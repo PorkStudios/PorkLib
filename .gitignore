@@ -3,7 +3,6 @@
 *.iml
 *.ipr
 *.class
-*.jar
 target/
 build/
 run/

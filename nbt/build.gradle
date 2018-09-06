@@ -1,0 +1,4 @@
+dependencies {
+    compile project(":binary")
+    compile project(":encoding")
+}

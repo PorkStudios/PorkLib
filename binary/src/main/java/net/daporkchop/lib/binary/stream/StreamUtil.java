@@ -24,7 +24,7 @@ import java.io.InputStream;
  * @author DaPorkchop_
  */
 public class StreamUtil {
-    public static int read(@NonNull InputStream input, @NonNull byte[] buffer, @NonNull int offset, @NonNull int length) throws IOException {
+    public static int read(@NonNull InputStream input, @NonNull byte[] buffer, int offset, int length) throws IOException {
         if (length < 0) {
             throw new IllegalArgumentException("Length must not be negative: " + length);
         }

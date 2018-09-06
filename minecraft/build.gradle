@@ -1,0 +1,7 @@
+dependencies {
+    compile project(":binary")
+    compile "org.apache.mina:mina-core:2.0.18"
+    compile "io.gomint:jraknet:5.3.0-SNAPSHOT"
+    compile "soupply:java:2.36.0"
+    compile "soupply:bedrock:2.36.0"
+}

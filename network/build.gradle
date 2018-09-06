@@ -1,0 +1,7 @@
+dependencies {
+    compile project(":binary")
+    compile project(":encoding")
+    compile project(":crypto")
+    compile project(":primitive")
+    compile "org.apache.mina:mina-core:2.0.18"
+}

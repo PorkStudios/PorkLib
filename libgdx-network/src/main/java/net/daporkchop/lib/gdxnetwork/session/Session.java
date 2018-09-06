@@ -15,27 +15,39 @@
 
 package net.daporkchop.lib.gdxnetwork.session;
 
+import lombok.Data;
 import lombok.NonNull;
 import net.daporkchop.lib.gdxnetwork.endpoint.Endpoint;
 import net.daporkchop.lib.gdxnetwork.packet.Packet;
+import net.daporkchop.lib.gdxnetwork.protocol.PacketProtocol;
+import net.daporkchop.lib.gdxnetwork.util.CryptHelper;
 
 import java.net.InetSocketAddress;
 
 /**
  * @author DaPorkchop_
  */
-public interface Session {
-    Endpoint getEndpoint();
+@Data
+public abstract class Session {
+    @NonNull
+    private final CryptHelper cryptHelper;
 
-    void sendPacket(@NonNull Packet packet);
+    @NonNull
+    private final PacketProtocol protocol;
 
-    default void disconnect() {
+    public abstract Endpoint getEndpoint();
+
+    public abstract void send(@NonNull Packet packet);
+
+    public void disconnect() {
         this.disconnect("");
     }
 
-    void disconnect(@NonNull String reason);
+    public abstract void disconnect(@NonNull String reason);
 
-    InetSocketAddress getRemoteAddress();
+    public InetSocketAddress getRemoteAddress() {
+        throw new UnsupportedOperationException();
+    }
 
-    boolean isConnected();
+    public abstract boolean isConnected();
 }

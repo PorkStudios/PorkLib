@@ -13,38 +13,44 @@
  *
  */
 
-package net.daporkchop.lib.gdxnetwork.packet;
+package net.daporkchop.lib.binary.stream;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
 
-import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
 
 /**
+ * An {@link InputStream} that reads from a {@link ByteBuffer}
+ *
  * @author DaPorkchop_
  */
-public interface Packet {
-    /**
-     * Decodes this packet
-     *
-     * @param in the input data
-     */
-    void decode(@NonNull DataIn in) throws IOException;
+@AllArgsConstructor
+@Getter
+public class ByteBufferInputStream extends InputStream {
+    @NonNull
+    private final ByteBuffer buffer;
 
-    /**
-     * Encodes this packet
-     *
-     * @param out the output data should be written to here
-     */
-    void encode(@NonNull DataOut out) throws IOException;
+    @Override
+    public int read() {
+        return this.buffer.hasRemaining() ? this.buffer.get() & 0xFF : -1;
+    }
 
-    int getId();
+    @Override
+    public int read(byte[] b, int off, int len) {
+        int toRead = Math.min(this.buffer.remaining(), len);
+        if (toRead == 0) {
+            return -1;
+        } else {
+            this.buffer.get(b, off, toRead);
+            return toRead;
+        }
+    }
 
-    /**
-     * Gets the length (in bytes) of the packet's current data.
-     *
-     * @return the length (in bytes) of this packet's contents
-     */
-    int getDataLength();
+    @Override
+    public int available() {
+        return this.buffer.remaining();
+    }
 }

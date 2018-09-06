@@ -13,24 +13,15 @@
  *
  */
 
-package net.daporkchop.lib.gdxnetwork.session;
+package chat;
 
-import lombok.Data;
-import lombok.NonNull;
 import net.daporkchop.lib.gdxnetwork.protocol.PacketProtocol;
-import net.daporkchop.lib.gdxnetwork.util.CryptHelper;
 
 /**
  * @author DaPorkchop_
  */
-@Data
-public abstract class EncapsulatedSession<S extends Session> implements Session {
-    @NonNull
-    private final S protocolSession;
-
-    @NonNull
-    private final CryptHelper cryptHelper;
-
-    @NonNull
-    private final PacketProtocol<S> protocol;
+public class ChatProtocol extends PacketProtocol {
+    public ChatProtocol() {
+        super("Chat", 1);
+    }
 }

@@ -15,21 +15,21 @@
 
 package net.daporkchop.lib.gdxnetwork.protocol.encapsulated;
 
-import net.daporkchop.lib.gdxnetwork.endpoint.Endpoint;
-import net.daporkchop.lib.gdxnetwork.endpoint.client.EncapsulatedSessionClient;
 import net.daporkchop.lib.gdxnetwork.protocol.PacketProtocol;
-import net.daporkchop.lib.gdxnetwork.session.EncapsulatedSession;
 
 /**
  * @author DaPorkchop_
  */
-public class EncapsulatedProtocol extends PacketProtocol<EncapsulatedSession> {
-    public EncapsulatedProtocol() {
-        super("Encapsulated", 1);
-    }
+public class EncapsulatedProtocol extends PacketProtocol {
+    public static final EncapsulatedProtocol INSTANCE = new EncapsulatedProtocol();
 
-    @Override
-    public EncapsulatedSession newSession(Endpoint endpoint) {
-        throw new UnsupportedOperationException();
+    public static final int WRAPPED_ID = 16;
+    public static final int MESSAGE_ID = 17;
+
+    private EncapsulatedProtocol() {
+        super("Encapsulated", 1);
+
+        this.registerPacket(WrappedPacket::new, new WrappedPacket.WrappedPacketHandler());
+        this.registerPacket(MessagePacket::new, new MessagePacket.MessagePacketHandler());
     }
 }

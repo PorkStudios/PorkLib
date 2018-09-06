@@ -22,6 +22,6 @@ import net.daporkchop.lib.gdxnetwork.session.Session;
 /**
  * @author DaPorkchop_
  */
-public interface IPacketHandler<T extends Packet, S extends Session> {
-    void handle(@NonNull T packet, @NonNull S session);
+public interface IPacketHandler<T extends Packet> {
+    void handle(@NonNull T packet, @NonNull Session session);
 }

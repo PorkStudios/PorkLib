@@ -18,27 +18,19 @@ package net.daporkchop.lib.gdxnetwork.endpoint;
 import lombok.NonNull;
 import net.daporkchop.lib.gdxnetwork.protocol.PacketProtocol;
 
-import java.net.InetSocketAddress;
-
 /**
  * @author DaPorkchop_
  */
 public interface Endpoint {
     EndpointType getType();
 
-    default void start(@NonNull InetSocketAddress address)  {
-        this.start(address.getHostName(), (short) address.getPort(), false);
-    }
-
-    void start(@NonNull String host, short port, boolean wss);
-
     boolean isRunning();
 
-    default void stop() {
-        this.stop("");
+    default void close() {
+        this.close("");
     }
 
-    void stop(@NonNull String reason);
+    void close(@NonNull String reason);
 
     PacketProtocol getPacketProtocol();
 }

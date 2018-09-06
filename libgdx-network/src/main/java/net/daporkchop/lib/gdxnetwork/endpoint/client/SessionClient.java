@@ -19,7 +19,6 @@ import lombok.NonNull;
 import net.daporkchop.lib.gdxnetwork.endpoint.Endpoint;
 import net.daporkchop.lib.gdxnetwork.packet.Packet;
 import net.daporkchop.lib.gdxnetwork.protocol.PacketProtocol;
-import net.daporkchop.lib.gdxnetwork.session.EncapsulatedSession;
 import net.daporkchop.lib.gdxnetwork.session.Session;
 import net.daporkchop.lib.gdxnetwork.util.CryptHelper;
 
@@ -28,11 +27,11 @@ import java.net.InetSocketAddress;
 /**
  * @author DaPorkchop_
  */
-public class EncapsulatedSessionClient<S extends Session> extends EncapsulatedSession<S> {
+public class SessionClient extends Session {
     private final NetClient client;
 
-    public EncapsulatedSessionClient(S protocolSession, CryptHelper cryptHelper, PacketProtocol<S> protocol, @NonNull NetClient client) {
-        super(protocolSession, cryptHelper, protocol);
+    public SessionClient(CryptHelper cryptHelper, PacketProtocol protocol, @NonNull NetClient client) {
+        super(cryptHelper, protocol);
         this.client = client;
     }
 
@@ -42,13 +41,13 @@ public class EncapsulatedSessionClient<S extends Session> extends EncapsulatedSe
     }
 
     @Override
-    public void sendPacket(Packet packet) {
-        this.client.
+    public void send(Packet packet) {
+        //TODO
     }
 
     @Override
     public void disconnect(String reason) {
-        this.client.stop(reason);
+        this.client.close(reason);
     }
 
     @Override

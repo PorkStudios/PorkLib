@@ -13,38 +13,27 @@
  *
  */
 
-package net.daporkchop.lib.gdxnetwork.packet;
+package chat;
 
-import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.gdxnetwork.endpoint.server.NetServer;
 
-import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.Scanner;
 
 /**
  * @author DaPorkchop_
  */
-public interface Packet {
-    /**
-     * Decodes this packet
-     *
-     * @param in the input data
-     */
-    void decode(@NonNull DataIn in) throws IOException;
+public class ChatTest {
+    public static void main(String... args) {
+        NetServer server = new NetServer(
+                new InetSocketAddress("0.0.0.0", 12345),
+                null,
+                new ChatProtocol()
+        );
+        server.run();
 
-    /**
-     * Encodes this packet
-     *
-     * @param out the output data should be written to here
-     */
-    void encode(@NonNull DataOut out) throws IOException;
+        new Scanner(System.in).nextLine();
 
-    int getId();
-
-    /**
-     * Gets the length (in bytes) of the packet's current data.
-     *
-     * @return the length (in bytes) of this packet's contents
-     */
-    int getDataLength();
+        server.close();
+    }
 }

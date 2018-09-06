@@ -13,38 +13,49 @@
  *
  */
 
-package net.daporkchop.lib.gdxnetwork.packet;
+package net.daporkchop.lib.gdxnetwork.endpoint.server;
 
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-
-import java.io.IOException;
+import net.daporkchop.lib.gdxnetwork.endpoint.Endpoint;
+import net.daporkchop.lib.gdxnetwork.packet.Packet;
+import net.daporkchop.lib.gdxnetwork.protocol.PacketProtocol;
+import net.daporkchop.lib.gdxnetwork.session.Session;
+import net.daporkchop.lib.gdxnetwork.util.CryptHelper;
+import org.java_websocket.WebSocket;
+import org.java_websocket.framing.CloseFrame;
 
 /**
  * @author DaPorkchop_
  */
-public interface Packet {
-    /**
-     * Decodes this packet
-     *
-     * @param in the input data
-     */
-    void decode(@NonNull DataIn in) throws IOException;
+@Getter
+public class SessionServer extends Session {
+    private final NetServer server;
+    private final WebSocket webSocket;
 
-    /**
-     * Encodes this packet
-     *
-     * @param out the output data should be written to here
-     */
-    void encode(@NonNull DataOut out) throws IOException;
+    public SessionServer(CryptHelper cryptHelper, PacketProtocol protocol, @NonNull NetServer server, @NonNull WebSocket webSocket) {
+        super(cryptHelper, protocol);
+        this.server = server;
+        this.webSocket = webSocket;
+    }
 
-    int getId();
+    @Override
+    public Endpoint getEndpoint() {
+        return this.server;
+    }
 
-    /**
-     * Gets the length (in bytes) of the packet's current data.
-     *
-     * @return the length (in bytes) of this packet's contents
-     */
-    int getDataLength();
+    @Override
+    public void send(Packet packet) {
+
+    }
+
+    @Override
+    public void disconnect(String reason) {
+        this.webSocket.close(CloseFrame.NORMAL, reason);
+    }
+
+    @Override
+    public boolean isConnected() {
+        return this.webSocket.isOpen();
+    }
 }

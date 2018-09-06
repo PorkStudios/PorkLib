@@ -13,38 +13,33 @@
  *
  */
 
-package net.daporkchop.lib.gdxnetwork.packet;
+package net.daporkchop.lib.binary.stream;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
 
-import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
 
 /**
+ * An {@link OutputStream} that writes to an {@link ByteBuffer}
+ *
  * @author DaPorkchop_
  */
-public interface Packet {
-    /**
-     * Decodes this packet
-     *
-     * @param in the input data
-     */
-    void decode(@NonNull DataIn in) throws IOException;
+@AllArgsConstructor
+@Getter
+public class ByteBufferOutputStream extends OutputStream {
+    @NonNull
+    private final ByteBuffer buffer;
 
-    /**
-     * Encodes this packet
-     *
-     * @param out the output data should be written to here
-     */
-    void encode(@NonNull DataOut out) throws IOException;
+    @Override
+    public void write(int b) {
+        this.buffer.put((byte) (b & 0xFF));
+    }
 
-    int getId();
-
-    /**
-     * Gets the length (in bytes) of the packet's current data.
-     *
-     * @return the length (in bytes) of this packet's contents
-     */
-    int getDataLength();
+    @Override
+    public void write(byte[] b, int off, int len) {
+        this.buffer.put(b, off, len);
+    }
 }

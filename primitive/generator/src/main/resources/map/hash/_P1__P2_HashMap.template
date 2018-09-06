@@ -1,0 +1,396 @@
+/*
+ * Adapted from the Wizardry License
+ *
+ * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ *
+ * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
+ *
+ * The persons and/or organizations are also disallowed from sub-licensing and/or trademarking this software without explicit permission from DaPorkchop_.
+ *
+ * Any persons and/or organizations using this software must disclose their source code and have it publicly available, include this license, provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+
+package net.daporkchop.lib.primitive.map.hash;
+
+import net.daporkchop.lib.primitive.lambda.consumer._P1_Consumer;
+import net.daporkchop.lib.primitive.lambda.consumer._P2_Consumer;
+import net.daporkchop.lib.primitive.lambda.consumer.IntegerConsumer;
+import net.daporkchop.lib.primitive.lambda.consumer.bi._P1__P2_Consumer;
+import net.daporkchop.lib.primitive.lambda.function._P1_ToIntegerFunction;
+import net.daporkchop.lib.primitive.lambda.function.IntegerToBooleanFunction;
+import net.daporkchop.lib.primitive.iterator._P1_Iterator;
+import net.daporkchop.lib.primitive.iterator._P2_Iterator;
+import net.daporkchop.lib.primitive.iterator.bi._P1__P2_Iterator;
+import net.daporkchop.lib.primitive.map._P1__P2_Map;
+import net.daporkchop.lib.primitive.tuple._P1__P2_Tuple;
+import net.daporkchop.lib.primitive.tuple._P1__P2_ImmutableTuple;
+import net.daporkchop.lib.primitiveutil.IsPow2;
+
+import java.util.BitSet;
+import java.util.ConcurrentModificationException;
+
+import lombok.*;
+
+/**
+ * A hash map, using a key type of _p1_ and a value type of _p2_.
+ * This works™, but isn't particularly efficiently
+ * At some point I might get around to fixing this, until then use tree maps as they work correctly
+ * <p>
+ * DO NOT EDIT BY HAND! THIS FILE IS SCRIPT-GENERATED!
+ *
+ * @author DaPorkchop_
+ */
+public class _P1__P2_HashMap_GH_ implements _P1__P2_Map_GHI_    {
+    protected _GKAI_[] keys;
+    protected _GVAI_[] values;
+    protected BitSet states;
+    protected final int baseSize;
+    protected int len;
+    protected int shrinkThreshold;
+    protected int growThreshold;
+    protected int mask;
+    protected int size;
+    protected final _P1_ToIntegerFunction keyHash;
+
+    public _P1__P2_HashMap()    {
+        this(16384);
+    }
+
+    public _P1__P2_HashMap(int baseSize)    {
+        this(baseSize, null);
+    }
+
+    public _P1__P2_HashMap(_P1_ToIntegerFunction keyHash) {
+        this(16384, keyHash);
+    }
+
+    public _P1__P2_HashMap(int baseSize, _P1_ToIntegerFunction keyHash)    {
+        if (!IsPow2.checkInt(baseSize)) throw new IllegalArgumentException("baseSize must be a power of 2!");
+        this.baseSize = baseSize;
+        if (keyHash == null)    {
+            this.keyHash = in -> {
+                _p1hf_
+            };
+        } else {
+            this.keyHash = keyHash;
+        }
+
+        //clear function sets up the arrays and such for us
+        clear();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public _p2_ get(_p1_ key)   {
+        int i = getIndex(key);
+        //check if key is present
+        if (this.states.get(i)) {
+            return_GVC_ this.values[i];
+        } else {
+            //if not, return empty value
+            return _p2e_;
+        }
+    }
+
+    @Override
+    public _p2_ put(_p1_ key, _p2_ value)   {
+        int i = getIndex(key);
+        //check if key is present
+        if (this.states.get(i)) {
+            //if the new key isn't equal to the stored key, we've got us a hash collision
+            //if that happens, just expand the array over and over until there's no more collisions
+            if (key != this.keys[i])    {
+                grow(true);
+                //fetch new index, as the arrays have been changed
+                i = getIndex(key);
+                //increment size index because this is a new entry
+                this.size++;
+            }
+            //fetch and overwrite old value, then return it
+            @SuppressWarnings("unchecked")
+            _p2_ old =_GVC_ this.values[i];
+            this.values[i] = value;
+            return old;
+        } else {
+            //mark key index as full
+            this.states.set(i);
+            //actually set data
+            this.keys[i] = key;
+            this.values[i] = value;
+            //increment size and check if we need to grow the backing arrays
+            this.size++;
+            grow(false);
+            //return empty value, as there was no old value to return
+            return _p2e_;
+        }
+    }
+
+    @Override
+    public _p2_ remove(_p1_ key)    {
+        return removeIndex(getIndex(key));
+    }
+
+    @Override
+    public boolean containsKey(_p1_ key)    {
+        return this.states.get(getIndex(key));
+    }
+
+    @Override
+    public boolean containsValue(_p2_ value)    {
+        return this.forEachBreaking((i) -> {
+            if (this.values[i] == value)    {
+                return true;
+            } else {
+                return false;
+            }
+        });
+    }
+
+    @Override
+    public void clear() {
+        this.keys = new _GKAI_[baseSize];
+        this.values = new _GVAI_[baseSize];
+        this.states = new BitSet();
+
+        this.len = baseSize;
+        updateConstants();
+        this.size = 0;
+    }
+
+    @Override
+    public int getSize()    {
+        return this.size;
+    }
+
+    @Override
+    public void forEachKey(@NonNull _P1_Consumer_GK_ consumer)   {
+        this.forEach(i -> consumer.accept(_GKC_ this.keys[i]));
+    }
+
+    @Override
+    public void forEachValue(@NonNull _P2_Consumer_GV_ consumer)   {
+        this.forEach(i -> consumer.accept(_GVC_ this.values[i]));
+    }
+
+    @Override
+    public void forEachEntry(@NonNull _P1__P2_Consumer_GHI_ consumer)   {
+        this.forEach(i -> consumer.accept(_GKC_ this.keys[i], _GVC_ this.values[i]));
+    }
+
+    public _P1_Iterator_GK_ keyIterator()   {
+        return new KeyIterator();
+    }
+
+    public _P2_Iterator_GV_ valueIterator() {
+        return new ValueIterator();
+    }
+
+    public _P1__P2_Iterator_GHI_ entryIterator() {
+        return new EntryIterator();
+    }
+
+    protected boolean forEachBreaking(IntegerToBooleanFunction function)    {
+        for (int i = this.states.nextSetBit(0); i != -1; i = this.states.nextSetBit(i + 1)) {
+            if (function.apply(i)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    protected void forEach(IntegerConsumer consumer)    {
+        for (int i = this.states.nextSetBit(0); i != -1; i = this.states.nextSetBit(i + 1)) {
+            consumer.accept(i);
+        }
+    }
+
+    protected void grow(boolean force)  {
+        if (force || this.size >= this.growThreshold)    {
+            //System.out.println("Growing from current size: " + len);
+            _GVAI_[] values;
+            _GKAI_[] keys;
+            BitSet states;
+            //repeat until there's no hash collisions
+            do {
+                //multiply length by 2 and update local values accordingly
+                this.len <<= 1;
+                updateConstants();
+                //init new arrays
+                values = new _GVAI_[this.len];
+                keys = new _GKAI_[this.len];
+                states = new BitSet();
+            } while (reHash(values, keys, states));
+            this.values = values;
+            this.keys = keys;
+            this.states = states;
+            //System.out.println("Grew! New size: " + len);
+        }
+    }
+
+    protected boolean reHash(_GVAI_[] values, _GKAI_[] keys, BitSet states)    {
+        return this.forEachBreaking(i -> {
+            _p1_ key =_GKC_ this.keys[i];
+            int j = getIndex(key);
+            if (states.get(j))  {
+                //there's already an element with this index!
+                return true;
+            }
+            states.set(j);
+            values[j] = this.values[i];
+            keys[j] = key;
+            return false;
+        });
+    }
+
+    protected int getIndex(_p1_ key)    {
+        return this.keyHash.apply(key) & this.mask;
+    }
+
+    protected void updateConstants()    {
+        this.shrinkThreshold = this.len >> 1;
+        this.growThreshold = this.len << 1;
+        this.mask = this.len - 1;
+    }
+
+    protected _p2_ removeIndex(int i)   {
+        //check if the key is present
+        if (this.states.get(i)) {
+            //mark the index as deleted
+            //key and value arrays don't need to be reset, as they'll be overwritten if a key with the same index is added later
+            this.states.clear(i);
+            //decrement size
+            this.size--;
+            //the value is actually still in the array, just there's no indexes pointing to it anymore after this call
+            return_GVC_ this.values[i];
+            //TODO: some method of shrinking down arrays
+            //that'll be a PITA in case there's a hash collision during shrinking because
+            //it'll then proceed to keep trying to shrink down the array and having collisions
+            //until one of the colliding elements is removed.
+            //caching the indexes of the colliding elements is an option, but is probably useless overhead
+        } else {
+            //if not, return empty value
+            return _p2e_;
+        }
+    }
+
+    private class KeyIterator implements _P1_Iterator_GK_ {
+        private int size;
+        private int index = -1;
+        private int next;
+
+        public KeyIterator()    {
+            this.size = _P1__P2_HashMap.this.size;
+            this.next = _P1__P2_HashMap.this.states.nextSetBit(0);
+        }
+
+        @Override
+        public boolean hasNext()    {
+            return this.next != -1;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public _p1_ get()   {
+            return_GKC_ _P1__P2_HashMap.this.keys[this.index];
+        }
+
+        @Override
+        public _p1_ advance()   {
+            findNext();
+            if (this.index == -1) throw new IllegalStateException("Reached end of array");
+            return get();
+        }
+
+        protected void findNext()   {
+            this.next = _P1__P2_HashMap.this.states.nextSetBit((this.index = this.next) + 1);
+        }
+
+        @Override
+        public void remove()    {
+            _P1__P2_HashMap.this.removeIndex(this.index);
+            this.size--;
+        }
+    }
+
+    private class ValueIterator implements _P2_Iterator_GV_ {
+        private int size;
+        private int index = -1;
+        private int next;
+
+        public ValueIterator()    {
+            this.size = _P1__P2_HashMap.this.size;
+            this.next = _P1__P2_HashMap.this.states.nextSetBit(0);
+        }
+
+        @Override
+        public boolean hasNext()    {
+            return this.next != -1;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public _p2_ get()   {
+            return_GVC_ _P1__P2_HashMap.this.values[this.index];
+        }
+
+        @Override
+        public _p2_ advance()   {
+            findNext();
+            if (this.index == -1) throw new IllegalStateException("Reached end of array");
+            return get();
+        }
+
+        protected void findNext()   {
+            this.next = _P1__P2_HashMap.this.states.nextSetBit((this.index = this.next) + 1);
+        }
+
+        @Override
+        public void remove()    {
+            _P1__P2_HashMap.this.removeIndex(this.index);
+            this.size--;
+        }
+    }
+
+    private class EntryIterator implements _P1__P2_Iterator_GHI_ {
+        private int size;
+        private int index = -1;
+        private int next;
+        private _P1__P2_Tuple_GHI_ tuple;
+
+        public EntryIterator()    {
+            this.size = _P1__P2_HashMap.this.size;
+            this.next = _P1__P2_HashMap.this.states.nextSetBit(0);
+        }
+
+        @Override
+        public boolean hasNext()    {
+            return this.next != -1;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public _P1__P2_Tuple_GHI_ get()   {
+            return this.tuple;
+        }
+
+        @Override
+        public _P1__P2_Tuple_GHI_ advance()   {
+            findNext();
+            if (this.index == -1) throw new IllegalStateException("Reached end of array");
+            return this.tuple = new _P1__P2_ImmutableTuple_GHI_(_GKC_ _P1__P2_HashMap.this.keys[this.index], _GVC_ _P1__P2_HashMap.this.values[this.index]);
+        }
+
+        protected void findNext()   {
+            this.next = _P1__P2_HashMap.this.states.nextSetBit((this.index = this.next) + 1);
+        }
+
+        @Override
+        public void remove()    {
+            _P1__P2_HashMap.this.removeIndex(this.index);
+            this.size--;
+        }
+    }
+}

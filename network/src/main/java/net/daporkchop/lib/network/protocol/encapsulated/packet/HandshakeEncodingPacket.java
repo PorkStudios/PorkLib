@@ -24,7 +24,7 @@ import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherHelper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.ec.impl.ECDHKeyPair;
 import net.daporkchop.lib.encoding.compression.EnumCompression;
 import net.daporkchop.lib.network.endpoint.AbstractEndpoint;
@@ -57,7 +57,7 @@ public class HandshakeEncodingPacket implements EncapsulatedPacket, Encapsulated
 
     private BlockCipherMode cipherMode;
 
-    private PaddingScheme cipherPadding;
+    private BlockCipherPadding cipherPadding;
 
     private ECDHKeyPair ecKey;
 
@@ -68,7 +68,7 @@ public class HandshakeEncodingPacket implements EncapsulatedPacket, Encapsulated
 
         if (this.cipherType != BlockCipherType.NONE)    {
             this.cipherMode = BlockCipherMode.valueOf(in.readUTF());
-            this.cipherPadding = PaddingScheme.valueOf(in.readUTF());
+            this.cipherPadding = BlockCipherPadding.valueOf(in.readUTF());
             this.ecKey = ECDHKeyPair.decodePublic(in.readBytesSimple());
         }
     }

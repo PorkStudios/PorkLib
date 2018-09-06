@@ -19,8 +19,8 @@ import lombok.Data;
 import lombok.NonNull;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
-import net.daporkchop.lib.crypto.sig.ec.ECCurves;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
+import net.daporkchop.lib.crypto.sig.ec.CurveType;
 import net.daporkchop.lib.encoding.compression.EnumCompression;
 import net.daporkchop.lib.network.builder.ServerBuilder;
 import net.daporkchop.lib.network.endpoint.AbstractEndpoint;
@@ -59,13 +59,13 @@ public abstract class Server extends AbstractEndpoint {
      * <p>
      * If encryption is disabled ({@link #cipherType} is set to {@link BlockCipherType#NONE}), this field is null
      */
-    private final PaddingScheme cipherPadding;
+    private final BlockCipherPadding cipherPadding;
     /**
      * The elliptic curve type to use for ECDH key exchange
      * <p>
      * If encryption is disabled ({@link #cipherType} is set to {@link BlockCipherType#NONE}), this field is null
      */
-    private final ECCurves curveType;
+    private final CurveType curveType;
 
     @NonNull
     private final IoAcceptor ioAcceptor;

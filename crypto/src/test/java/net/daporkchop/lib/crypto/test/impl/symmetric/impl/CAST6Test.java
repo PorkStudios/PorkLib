@@ -18,7 +18,7 @@ package net.daporkchop.lib.crypto.test.impl.symmetric.impl;
 import net.daporkchop.lib.crypto.cipher.impl.symmetric.CAST6Helper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.CAST6Key;
 import net.daporkchop.lib.crypto.keygen.symmetric.CAST6KeyGen;
 import net.daporkchop.lib.crypto.test.impl.symmetric.SymmetricCipherTest;
@@ -30,7 +30,7 @@ public class CAST6Test extends SymmetricCipherTest<CAST6Key, CAST6Helper> {
     }
 
     @Override
-    public CAST6Helper getHelper(BlockCipherMode mode, PaddingScheme scheme, CAST6Key key) {
+    public CAST6Helper getHelper(BlockCipherMode mode, BlockCipherPadding scheme, CAST6Key key) {
         return new CAST6Helper(mode, scheme, key);
     }
 

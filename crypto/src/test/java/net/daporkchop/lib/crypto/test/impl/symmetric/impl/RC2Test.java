@@ -18,7 +18,7 @@ package net.daporkchop.lib.crypto.test.impl.symmetric.impl;
 import net.daporkchop.lib.crypto.cipher.impl.symmetric.RC2Helper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.RC2Key;
 import net.daporkchop.lib.crypto.keygen.symmetric.RC2KeyGen;
 import net.daporkchop.lib.crypto.test.impl.symmetric.SymmetricCipherTest;
@@ -30,7 +30,7 @@ public class RC2Test extends SymmetricCipherTest<RC2Key, RC2Helper> {
     }
 
     @Override
-    public RC2Helper getHelper(BlockCipherMode mode, PaddingScheme scheme, RC2Key key) {
+    public RC2Helper getHelper(BlockCipherMode mode, BlockCipherPadding scheme, RC2Key key) {
         return new RC2Helper(mode, scheme, key);
     }
 

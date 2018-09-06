@@ -20,15 +20,15 @@ import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherHelper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
 import net.daporkchop.lib.crypto.cipher.symmetric.iv.UpdaterMode;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.DESKey;
 
 public class DESHelper extends BlockCipherHelper<DESKey> {
-    public DESHelper(@NonNull BlockCipherMode mode, @NonNull PaddingScheme scheme, @NonNull DESKey key) {
+    public DESHelper(@NonNull BlockCipherMode mode, @NonNull BlockCipherPadding scheme, @NonNull DESKey key) {
         this(mode, scheme, key, UpdaterMode.HASH_SHA_256);
     }
 
-    public DESHelper(@NonNull BlockCipherMode mode, @NonNull PaddingScheme scheme, @NonNull DESKey key, @NonNull UpdaterMode updater) {
+    public DESHelper(@NonNull BlockCipherMode mode, @NonNull BlockCipherPadding scheme, @NonNull DESKey key, @NonNull UpdaterMode updater) {
         super(BlockCipherType.DES, mode, scheme, key, updater);
     }
 }

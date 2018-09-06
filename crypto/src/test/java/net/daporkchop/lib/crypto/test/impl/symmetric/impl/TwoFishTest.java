@@ -18,7 +18,7 @@ package net.daporkchop.lib.crypto.test.impl.symmetric.impl;
 import net.daporkchop.lib.crypto.cipher.impl.symmetric.TwoFishHelper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.TwoFishKey;
 import net.daporkchop.lib.crypto.keygen.symmetric.TwoFishKeyGen;
 import net.daporkchop.lib.crypto.test.impl.symmetric.SymmetricCipherTest;
@@ -30,7 +30,7 @@ public class TwoFishTest extends SymmetricCipherTest<TwoFishKey, TwoFishHelper> 
     }
 
     @Override
-    public TwoFishHelper getHelper(BlockCipherMode mode, PaddingScheme scheme, TwoFishKey key) {
+    public TwoFishHelper getHelper(BlockCipherMode mode, BlockCipherPadding scheme, TwoFishKey key) {
         return new TwoFishHelper(mode, scheme, key);
     }
 

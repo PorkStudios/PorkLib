@@ -20,15 +20,15 @@ import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherHelper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
 import net.daporkchop.lib.crypto.cipher.symmetric.iv.UpdaterMode;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.CamelliaKey;
 
 public class CamelliaHelper extends BlockCipherHelper<CamelliaKey> {
-    public CamelliaHelper(@NonNull BlockCipherMode mode, @NonNull PaddingScheme scheme, @NonNull CamelliaKey key) {
+    public CamelliaHelper(@NonNull BlockCipherMode mode, @NonNull BlockCipherPadding scheme, @NonNull CamelliaKey key) {
         this(mode, scheme, key, UpdaterMode.HASH_SHA_256);
     }
 
-    public CamelliaHelper(@NonNull BlockCipherMode mode, @NonNull PaddingScheme scheme, @NonNull CamelliaKey key, @NonNull UpdaterMode updater) {
+    public CamelliaHelper(@NonNull BlockCipherMode mode, @NonNull BlockCipherPadding scheme, @NonNull CamelliaKey key, @NonNull UpdaterMode updater) {
         super(BlockCipherType.CAMELLIA, mode, scheme, key, updater);
     }
 }

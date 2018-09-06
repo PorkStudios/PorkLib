@@ -20,15 +20,15 @@ import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherHelper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
 import net.daporkchop.lib.crypto.cipher.symmetric.iv.UpdaterMode;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.GOST_3412_2015Key;
 
 public class GOST_3412_2015Helper extends BlockCipherHelper<GOST_3412_2015Key> {
-    public GOST_3412_2015Helper(@NonNull BlockCipherMode mode, @NonNull PaddingScheme scheme, @NonNull GOST_3412_2015Key key) {
+    public GOST_3412_2015Helper(@NonNull BlockCipherMode mode, @NonNull BlockCipherPadding scheme, @NonNull GOST_3412_2015Key key) {
         this(mode, scheme, key, UpdaterMode.HASH_SHA_256);
     }
 
-    public GOST_3412_2015Helper(@NonNull BlockCipherMode mode, @NonNull PaddingScheme scheme, @NonNull GOST_3412_2015Key key, @NonNull UpdaterMode updater) {
+    public GOST_3412_2015Helper(@NonNull BlockCipherMode mode, @NonNull BlockCipherPadding scheme, @NonNull GOST_3412_2015Key key, @NonNull UpdaterMode updater) {
         super(BlockCipherType.GOST_3412_2015, mode, scheme, key, updater);
     }
 }

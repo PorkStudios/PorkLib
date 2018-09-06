@@ -18,7 +18,7 @@ package net.daporkchop.lib.crypto.test.impl.symmetric.impl;
 import net.daporkchop.lib.crypto.cipher.impl.symmetric.AESHelper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.AESKey;
 import net.daporkchop.lib.crypto.keygen.symmetric.AESKeyGen;
 import net.daporkchop.lib.crypto.test.impl.symmetric.SymmetricCipherTest;
@@ -30,7 +30,7 @@ public class AESTest extends SymmetricCipherTest<AESKey, AESHelper> {
     }
 
     @Override
-    public AESHelper getHelper(BlockCipherMode mode, PaddingScheme scheme, AESKey key) {
+    public AESHelper getHelper(BlockCipherMode mode, BlockCipherPadding scheme, AESKey key) {
         return new AESHelper(mode, scheme, key);
     }
 

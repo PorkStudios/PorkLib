@@ -13,27 +13,24 @@
  *
  */
 
-package net.daporkchop.lib.crypto.cipher.symmetric.padding;
+package net.daporkchop.lib.gdxnetwork.session;
 
-import java.util.function.Supplier;
+import lombok.Data;
+import lombok.NonNull;
+import net.daporkchop.lib.gdxnetwork.protocol.PacketProtocol;
+import net.daporkchop.lib.gdxnetwork.util.CryptHelper;
 
-public enum PaddingScheme {
-    PKCS7("PKCS7Padding", PKCS7Padding::new),
-    ISO10126_2("ISO10126-2Padding", ISO10126d2Padding::new),
-    ISO7816_4("ISO7816-4Padding", ISO7816d4Padding::new),
-    X9_23("X9.23Padding", X923Padding::new),
-    TBC("TBCPadding", TBCPadding::new),
-    ZERO_BYTE("ZeroBytePadding", ZeroBytePadding::new);
+/**
+ * @author DaPorkchop_
+ */
+@Data
+public abstract class EncapsulatedSession<S extends Session> implements Session {
+    @NonNull
+    private final S protocolSession;
 
-    public final String name;
-    private final Supplier<BlockPadding> supplier;
+    @NonNull
+    private final CryptHelper cryptHelper;
 
-    PaddingScheme(String name, Supplier<BlockPadding> supplier) {
-        this.name = name.intern();
-        this.supplier = supplier;
-    }
-
-    public BlockPadding getPadding() {
-        return supplier.get();
-    }
+    @NonNull
+    private final PacketProtocol<S> protocol;
 }

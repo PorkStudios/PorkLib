@@ -18,7 +18,7 @@ package net.daporkchop.lib.crypto.test.impl.symmetric.impl;
 import net.daporkchop.lib.crypto.cipher.impl.symmetric.CamelliaHelper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.CamelliaKey;
 import net.daporkchop.lib.crypto.keygen.symmetric.CamelliaKeyGen;
 import net.daporkchop.lib.crypto.test.impl.symmetric.SymmetricCipherTest;
@@ -30,7 +30,7 @@ public class CamelliaTest extends SymmetricCipherTest<CamelliaKey, CamelliaHelpe
     }
 
     @Override
-    public CamelliaHelper getHelper(BlockCipherMode mode, PaddingScheme scheme, CamelliaKey key) {
+    public CamelliaHelper getHelper(BlockCipherMode mode, BlockCipherPadding scheme, CamelliaKey key) {
         return new CamelliaHelper(mode, scheme, key);
     }
 

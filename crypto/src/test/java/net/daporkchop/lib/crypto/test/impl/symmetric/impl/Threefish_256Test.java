@@ -18,7 +18,7 @@ package net.daporkchop.lib.crypto.test.impl.symmetric.impl;
 import net.daporkchop.lib.crypto.cipher.impl.symmetric.Threefish_256Helper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.Threefish_256Key;
 import net.daporkchop.lib.crypto.keygen.symmetric.Threefish_256KeyGen;
 import net.daporkchop.lib.crypto.test.impl.symmetric.SymmetricCipherTest;
@@ -30,7 +30,7 @@ public class Threefish_256Test extends SymmetricCipherTest<Threefish_256Key, Thr
     }
 
     @Override
-    public Threefish_256Helper getHelper(BlockCipherMode mode, PaddingScheme scheme, Threefish_256Key key) {
+    public Threefish_256Helper getHelper(BlockCipherMode mode, BlockCipherPadding scheme, Threefish_256Key key) {
         return new Threefish_256Helper(mode, scheme, key);
     }
 

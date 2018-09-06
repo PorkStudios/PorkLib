@@ -18,7 +18,7 @@ package net.daporkchop.lib.crypto.test.impl.symmetric.impl;
 import net.daporkchop.lib.crypto.cipher.impl.symmetric.SEEDHelper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.SEEDKey;
 import net.daporkchop.lib.crypto.keygen.symmetric.SEEDKeyGen;
 import net.daporkchop.lib.crypto.test.impl.symmetric.SymmetricCipherTest;
@@ -30,7 +30,7 @@ public class SEEDTest extends SymmetricCipherTest<SEEDKey, SEEDHelper> {
     }
 
     @Override
-    public SEEDHelper getHelper(BlockCipherMode mode, PaddingScheme scheme, SEEDKey key) {
+    public SEEDHelper getHelper(BlockCipherMode mode, BlockCipherPadding scheme, SEEDKey key) {
         return new SEEDHelper(mode, scheme, key);
     }
 

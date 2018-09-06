@@ -20,15 +20,15 @@ import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherHelper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
 import net.daporkchop.lib.crypto.cipher.symmetric.iv.UpdaterMode;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.SKIPJACKKey;
 
 public class SKIPJACKHelper extends BlockCipherHelper<SKIPJACKKey> {
-    public SKIPJACKHelper(@NonNull BlockCipherMode mode, @NonNull PaddingScheme scheme, @NonNull SKIPJACKKey key) {
+    public SKIPJACKHelper(@NonNull BlockCipherMode mode, @NonNull BlockCipherPadding scheme, @NonNull SKIPJACKKey key) {
         this(mode, scheme, key, UpdaterMode.HASH_SHA_256);
     }
 
-    public SKIPJACKHelper(@NonNull BlockCipherMode mode, @NonNull PaddingScheme scheme, @NonNull SKIPJACKKey key, @NonNull UpdaterMode updater) {
+    public SKIPJACKHelper(@NonNull BlockCipherMode mode, @NonNull BlockCipherPadding scheme, @NonNull SKIPJACKKey key, @NonNull UpdaterMode updater) {
         super(BlockCipherType.SKIPJACK, mode, scheme, key, updater);
     }
 }

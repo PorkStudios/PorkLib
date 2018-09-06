@@ -18,7 +18,7 @@ package net.daporkchop.lib.crypto.test.impl.symmetric.impl;
 import net.daporkchop.lib.crypto.cipher.impl.symmetric.XTEAHelper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.XTEAKey;
 import net.daporkchop.lib.crypto.keygen.symmetric.XTEAKeyGen;
 import net.daporkchop.lib.crypto.test.impl.symmetric.SymmetricCipherTest;
@@ -30,7 +30,7 @@ public class XTEATest extends SymmetricCipherTest<XTEAKey, XTEAHelper> {
     }
 
     @Override
-    public XTEAHelper getHelper(BlockCipherMode mode, PaddingScheme scheme, XTEAKey key) {
+    public XTEAHelper getHelper(BlockCipherMode mode, BlockCipherPadding scheme, XTEAKey key) {
         return new XTEAHelper(mode, scheme, key);
     }
 

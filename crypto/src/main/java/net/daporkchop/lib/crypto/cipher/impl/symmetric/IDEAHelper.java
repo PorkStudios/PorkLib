@@ -20,15 +20,15 @@ import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherHelper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
 import net.daporkchop.lib.crypto.cipher.symmetric.iv.UpdaterMode;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.IDEAKey;
 
 public class IDEAHelper extends BlockCipherHelper<IDEAKey> {
-    public IDEAHelper(@NonNull BlockCipherMode mode, @NonNull PaddingScheme scheme, @NonNull IDEAKey key) {
+    public IDEAHelper(@NonNull BlockCipherMode mode, @NonNull BlockCipherPadding scheme, @NonNull IDEAKey key) {
         this(mode, scheme, key, UpdaterMode.HASH_SHA_256);
     }
 
-    public IDEAHelper(@NonNull BlockCipherMode mode, @NonNull PaddingScheme scheme, @NonNull IDEAKey key, @NonNull UpdaterMode updater) {
+    public IDEAHelper(@NonNull BlockCipherMode mode, @NonNull BlockCipherPadding scheme, @NonNull IDEAKey key, @NonNull UpdaterMode updater) {
         super(BlockCipherType.IDEA, mode, scheme, key, updater);
     }
 }

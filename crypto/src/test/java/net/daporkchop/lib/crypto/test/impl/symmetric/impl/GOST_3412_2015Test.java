@@ -18,7 +18,7 @@ package net.daporkchop.lib.crypto.test.impl.symmetric.impl;
 import net.daporkchop.lib.crypto.cipher.impl.symmetric.GOST_3412_2015Helper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.GOST_3412_2015Key;
 import net.daporkchop.lib.crypto.keygen.symmetric.GOST_3412_2015KeyGen;
 import net.daporkchop.lib.crypto.test.impl.symmetric.SymmetricCipherTest;
@@ -30,7 +30,7 @@ public class GOST_3412_2015Test extends SymmetricCipherTest<GOST_3412_2015Key, G
     }
 
     @Override
-    public GOST_3412_2015Helper getHelper(BlockCipherMode mode, PaddingScheme scheme, GOST_3412_2015Key key) {
+    public GOST_3412_2015Helper getHelper(BlockCipherMode mode, BlockCipherPadding scheme, GOST_3412_2015Key key) {
         return new GOST_3412_2015Helper(mode, scheme, key);
     }
 

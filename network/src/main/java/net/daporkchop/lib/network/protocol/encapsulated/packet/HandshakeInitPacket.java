@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.crypto.sig.ec.ECCurves;
+import net.daporkchop.lib.crypto.sig.ec.CurveType;
 import net.daporkchop.lib.network.endpoint.AbstractEndpoint;
 import net.daporkchop.lib.network.protocol.PacketDirection;
 import net.daporkchop.lib.network.protocol.PacketHandler;
@@ -46,7 +46,7 @@ public class HandshakeInitPacket implements EncapsulatedPacket, EncapsulatedCons
 
     private boolean passwordAuth;
 
-    private ECCurves curveType;
+    private CurveType curveType;
 
     @Override
     public void read(DataIn in, PacketProtocol protocol) throws IOException {
@@ -55,7 +55,7 @@ public class HandshakeInitPacket implements EncapsulatedPacket, EncapsulatedCons
         if (ecName.isEmpty())   {
             this.curveType = null;
         } else {
-            this.curveType = ECCurves.valueOf(ecName);
+            this.curveType = CurveType.valueOf(ecName);
         }
         this.sessionRandom = in.readLong();
     }

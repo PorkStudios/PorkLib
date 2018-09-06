@@ -18,7 +18,7 @@ package net.daporkchop.lib.crypto.test.impl.symmetric.impl;
 import net.daporkchop.lib.crypto.cipher.impl.symmetric.IDEAHelper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.IDEAKey;
 import net.daporkchop.lib.crypto.keygen.symmetric.IDEAKeyGen;
 import net.daporkchop.lib.crypto.test.impl.symmetric.SymmetricCipherTest;
@@ -30,7 +30,7 @@ public class IDEATest extends SymmetricCipherTest<IDEAKey, IDEAHelper> {
     }
 
     @Override
-    public IDEAHelper getHelper(BlockCipherMode mode, PaddingScheme scheme, IDEAKey key) {
+    public IDEAHelper getHelper(BlockCipherMode mode, BlockCipherPadding scheme, IDEAKey key) {
         return new IDEAHelper(mode, scheme, key);
     }
 

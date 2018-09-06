@@ -44,7 +44,7 @@ import net.daporkchop.lib.crypto.cipher.impl.symmetric.Threefish_256Helper;
 import net.daporkchop.lib.crypto.cipher.impl.symmetric.Threefish_512Helper;
 import net.daporkchop.lib.crypto.cipher.impl.symmetric.TwoFishHelper;
 import net.daporkchop.lib.crypto.cipher.impl.symmetric.XTEAHelper;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.engine.symmetric.PorkCrypt2Engine;
 import net.daporkchop.lib.crypto.key.symmetric.AbstractSymmetricKey;
 import net.daporkchop.lib.crypto.key.symmetric.impl.AESKey;
@@ -318,9 +318,9 @@ public enum BlockCipherType {
     public final Function<byte[], ? extends AbstractSymmetricKey> keyGen;
     public final BiFunction<SecretKey, byte[], AbstractSymmetricKey> keyInstance;
     private final Supplier<BlockCipher> cipherSupplier;
-    private final TriFunction<BlockCipherMode, PaddingScheme, AbstractSymmetricKey, BlockCipherHelper> helperSupplier;
+    private final TriFunction<BlockCipherMode, BlockCipherPadding, AbstractSymmetricKey, BlockCipherHelper> helperSupplier;
 
-    BlockCipherType(String name, Supplier<BlockCipher> cipherSupplier, int blockSize, Function<byte[], ? extends AbstractSymmetricKey> keyGen, TriFunction<BlockCipherMode, PaddingScheme, AbstractSymmetricKey, BlockCipherHelper> helperSupplier, BiFunction<SecretKey, byte[], AbstractSymmetricKey> keyInstance) {
+    BlockCipherType(String name, Supplier<BlockCipher> cipherSupplier, int blockSize, Function<byte[], ? extends AbstractSymmetricKey> keyGen, TriFunction<BlockCipherMode, BlockCipherPadding, AbstractSymmetricKey, BlockCipherHelper> helperSupplier, BiFunction<SecretKey, byte[], AbstractSymmetricKey> keyInstance) {
         this.name = name.intern();
         this.cipherSupplier = cipherSupplier;
         this.blockSize = blockSize;
@@ -333,7 +333,7 @@ public enum BlockCipherType {
         return cipherSupplier.get();
     }
 
-    public <T extends AbstractSymmetricKey> BlockCipherHelper createHelper(BlockCipherMode mode, PaddingScheme padding, T key) {
+    public <T extends AbstractSymmetricKey> BlockCipherHelper createHelper(BlockCipherMode mode, BlockCipherPadding padding, T key) {
         return helperSupplier.apply(mode, padding, key);
     }
 

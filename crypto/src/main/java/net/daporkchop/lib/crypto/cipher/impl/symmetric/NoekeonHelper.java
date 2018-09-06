@@ -20,15 +20,15 @@ import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherHelper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
 import net.daporkchop.lib.crypto.cipher.symmetric.iv.UpdaterMode;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.NoekeonKey;
 
 public class NoekeonHelper extends BlockCipherHelper<NoekeonKey> {
-    public NoekeonHelper(@NonNull BlockCipherMode mode, @NonNull PaddingScheme scheme, @NonNull NoekeonKey key) {
+    public NoekeonHelper(@NonNull BlockCipherMode mode, @NonNull BlockCipherPadding scheme, @NonNull NoekeonKey key) {
         this(mode, scheme, key, UpdaterMode.HASH_SHA_256);
     }
 
-    public NoekeonHelper(@NonNull BlockCipherMode mode, @NonNull PaddingScheme scheme, @NonNull NoekeonKey key, @NonNull UpdaterMode updater) {
+    public NoekeonHelper(@NonNull BlockCipherMode mode, @NonNull BlockCipherPadding scheme, @NonNull NoekeonKey key, @NonNull UpdaterMode updater) {
         super(BlockCipherType.NOEKEON, mode, scheme, key, updater);
     }
 }

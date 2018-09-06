@@ -18,7 +18,7 @@ package net.daporkchop.lib.crypto.test.impl.symmetric.impl;
 import net.daporkchop.lib.crypto.cipher.impl.symmetric.SerpentHelper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.SerpentKey;
 import net.daporkchop.lib.crypto.keygen.symmetric.SerpentKeyGen;
 import net.daporkchop.lib.crypto.test.impl.symmetric.SymmetricCipherTest;
@@ -30,7 +30,7 @@ public class SerpentTest extends SymmetricCipherTest<SerpentKey, SerpentHelper> 
     }
 
     @Override
-    public SerpentHelper getHelper(BlockCipherMode mode, PaddingScheme scheme, SerpentKey key) {
+    public SerpentHelper getHelper(BlockCipherMode mode, BlockCipherPadding scheme, SerpentKey key) {
         return new SerpentHelper(mode, scheme, key);
     }
 

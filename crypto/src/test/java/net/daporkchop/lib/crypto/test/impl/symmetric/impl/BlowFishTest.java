@@ -18,7 +18,7 @@ package net.daporkchop.lib.crypto.test.impl.symmetric.impl;
 import net.daporkchop.lib.crypto.cipher.impl.symmetric.BlowFishHelper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.BlowFishKey;
 import net.daporkchop.lib.crypto.keygen.symmetric.BlowFishKeyGen;
 import net.daporkchop.lib.crypto.test.impl.symmetric.SymmetricCipherTest;
@@ -30,7 +30,7 @@ public class BlowFishTest extends SymmetricCipherTest<BlowFishKey, BlowFishHelpe
     }
 
     @Override
-    public BlowFishHelper getHelper(BlockCipherMode mode, PaddingScheme scheme, BlowFishKey key) {
+    public BlowFishHelper getHelper(BlockCipherMode mode, BlockCipherPadding scheme, BlowFishKey key) {
         return new BlowFishHelper(mode, scheme, key);
     }
 

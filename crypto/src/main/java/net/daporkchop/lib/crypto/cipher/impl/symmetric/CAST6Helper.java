@@ -20,15 +20,15 @@ import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherHelper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
 import net.daporkchop.lib.crypto.cipher.symmetric.iv.UpdaterMode;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.CAST6Key;
 
 public class CAST6Helper extends BlockCipherHelper<CAST6Key> {
-    public CAST6Helper(@NonNull BlockCipherMode mode, @NonNull PaddingScheme scheme, @NonNull CAST6Key key) {
+    public CAST6Helper(@NonNull BlockCipherMode mode, @NonNull BlockCipherPadding scheme, @NonNull CAST6Key key) {
         this(mode, scheme, key, UpdaterMode.HASH_SHA_256);
     }
 
-    public CAST6Helper(@NonNull BlockCipherMode mode, @NonNull PaddingScheme scheme, @NonNull CAST6Key key, @NonNull UpdaterMode updater) {
+    public CAST6Helper(@NonNull BlockCipherMode mode, @NonNull BlockCipherPadding scheme, @NonNull CAST6Key key, @NonNull UpdaterMode updater) {
         super(BlockCipherType.CAST6, mode, scheme, key, updater);
     }
 }

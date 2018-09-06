@@ -20,15 +20,15 @@ import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherHelper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
 import net.daporkchop.lib.crypto.cipher.symmetric.iv.UpdaterMode;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.BlowFishKey;
 
 public class BlowFishHelper extends BlockCipherHelper<BlowFishKey> {
-    public BlowFishHelper(@NonNull BlockCipherMode mode, @NonNull PaddingScheme scheme, @NonNull BlowFishKey key) {
+    public BlowFishHelper(@NonNull BlockCipherMode mode, @NonNull BlockCipherPadding scheme, @NonNull BlowFishKey key) {
         this(mode, scheme, key, UpdaterMode.HASH_SHA_256);
     }
 
-    public BlowFishHelper(@NonNull BlockCipherMode mode, @NonNull PaddingScheme scheme, @NonNull BlowFishKey key, @NonNull UpdaterMode updater) {
+    public BlowFishHelper(@NonNull BlockCipherMode mode, @NonNull BlockCipherPadding scheme, @NonNull BlowFishKey key, @NonNull UpdaterMode updater) {
         super(BlockCipherType.BLOWFISH, mode, scheme, key, updater);
     }
 }

@@ -19,7 +19,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.crypto.BouncyCastleInit;
 import net.daporkchop.lib.crypto.cipher.symmetric.iv.IVUpdater;
 import net.daporkchop.lib.crypto.cipher.symmetric.iv.UpdaterMode;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.AbstractSymmetricKey;
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.BufferedBlockCipher;
@@ -46,13 +46,13 @@ public abstract class BlockCipherHelper<P extends AbstractSymmetricKey> {
 
     public final BlockCipherMode mode;
     public final BlockCipherType type;
-    public final PaddingScheme padding;
+    public final BlockCipherPadding padding;
     private final ThreadLocal<WeakReference<BufferedBlockCipher>> tl;
     private final Supplier<BufferedBlockCipher> supplier;
     private final AbstractSymmetricKey encrypt, decrypt;
     private final IVUpdater updater;
 
-    protected BlockCipherHelper(@NonNull BlockCipherType type, @NonNull BlockCipherMode mode, @NonNull PaddingScheme scheme, @NonNull P key, @NonNull UpdaterMode updater) {
+    protected BlockCipherHelper(@NonNull BlockCipherType type, @NonNull BlockCipherMode mode, @NonNull BlockCipherPadding scheme, @NonNull P key, @NonNull UpdaterMode updater) {
         if (type == null) throw new IllegalArgumentException("Type cannot be null!");
         if (mode == null) throw new IllegalArgumentException("Mode cannot be null!");
         if (scheme == null) throw new IllegalArgumentException("Padding scheme cannot be null!");

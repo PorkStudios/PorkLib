@@ -18,7 +18,7 @@ package net.daporkchop.lib.crypto.test.impl.ec.impl;
 import net.daporkchop.lib.crypto.key.ec.impl.ECDSAKeyPair;
 import net.daporkchop.lib.crypto.keygen.ec.ECDSAKeyGen;
 import net.daporkchop.lib.crypto.sig.HashTypes;
-import net.daporkchop.lib.crypto.sig.ec.ECCurves;
+import net.daporkchop.lib.crypto.sig.ec.CurveType;
 import net.daporkchop.lib.crypto.sig.ec.impl.ECDSAHelper;
 import net.daporkchop.lib.crypto.test.impl.ec.ECTest;
 
@@ -29,7 +29,7 @@ public class ECDSATest extends ECTest<ECDSAKeyPair, ECDSAHelper> {
     }
 
     @Override
-    public ECDSAKeyPair getKeys(ECCurves curve) {
+    public ECDSAKeyPair getKeys(CurveType curve) {
         return ECDSAKeyGen.gen(curve);
     }
 

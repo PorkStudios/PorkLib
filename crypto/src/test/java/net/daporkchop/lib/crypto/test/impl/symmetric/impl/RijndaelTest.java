@@ -18,7 +18,7 @@ package net.daporkchop.lib.crypto.test.impl.symmetric.impl;
 import net.daporkchop.lib.crypto.cipher.impl.symmetric.RijndaelHelper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.RijndaelKey;
 import net.daporkchop.lib.crypto.keygen.symmetric.RijndaelKeyGen;
 import net.daporkchop.lib.crypto.test.impl.symmetric.SymmetricCipherTest;
@@ -30,7 +30,7 @@ public class RijndaelTest extends SymmetricCipherTest<RijndaelKey, RijndaelHelpe
     }
 
     @Override
-    public RijndaelHelper getHelper(BlockCipherMode mode, PaddingScheme scheme, RijndaelKey key) {
+    public RijndaelHelper getHelper(BlockCipherMode mode, BlockCipherPadding scheme, RijndaelKey key) {
         return new RijndaelHelper(mode, scheme, key);
     }
 

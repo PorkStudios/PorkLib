@@ -1,8 +1,10 @@
+.gradle/
 .idea/
 *.iml
 *.ipr
 *.class
 *.jar
 target/
+build/
 run/
 /porklib.daporkchop.net/

@@ -20,15 +20,15 @@ import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherHelper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
 import net.daporkchop.lib.crypto.cipher.symmetric.iv.UpdaterMode;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.XTEAKey;
 
 public class XTEAHelper extends BlockCipherHelper<XTEAKey> {
-    public XTEAHelper(@NonNull BlockCipherMode mode, @NonNull PaddingScheme scheme, @NonNull XTEAKey key) {
+    public XTEAHelper(@NonNull BlockCipherMode mode, @NonNull BlockCipherPadding scheme, @NonNull XTEAKey key) {
         this(mode, scheme, key, UpdaterMode.HASH_SHA_256);
     }
 
-    public XTEAHelper(@NonNull BlockCipherMode mode, @NonNull PaddingScheme scheme, @NonNull XTEAKey key, @NonNull UpdaterMode updater) {
+    public XTEAHelper(@NonNull BlockCipherMode mode, @NonNull BlockCipherPadding scheme, @NonNull XTEAKey key, @NonNull UpdaterMode updater) {
         super(BlockCipherType.XTEA, mode, scheme, key, updater);
     }
 }

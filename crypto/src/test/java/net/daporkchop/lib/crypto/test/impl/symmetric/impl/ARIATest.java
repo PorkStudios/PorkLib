@@ -18,7 +18,7 @@ package net.daporkchop.lib.crypto.test.impl.symmetric.impl;
 import net.daporkchop.lib.crypto.cipher.impl.symmetric.ARIAHelper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.ARIAKey;
 import net.daporkchop.lib.crypto.keygen.symmetric.ARIAKeyGen;
 import net.daporkchop.lib.crypto.test.impl.symmetric.SymmetricCipherTest;
@@ -30,7 +30,7 @@ public class ARIATest extends SymmetricCipherTest<ARIAKey, ARIAHelper> {
     }
 
     @Override
-    public ARIAHelper getHelper(BlockCipherMode mode, PaddingScheme scheme, ARIAKey key) {
+    public ARIAHelper getHelper(BlockCipherMode mode, BlockCipherPadding scheme, ARIAKey key) {
         return new ARIAHelper(mode, scheme, key);
     }
 

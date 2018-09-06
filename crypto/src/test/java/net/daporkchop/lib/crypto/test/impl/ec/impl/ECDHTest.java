@@ -18,7 +18,7 @@ package net.daporkchop.lib.crypto.test.impl.ec.impl;
 import net.daporkchop.lib.crypto.exchange.ECDHHelper;
 import net.daporkchop.lib.crypto.key.ec.impl.ECDHKeyPair;
 import net.daporkchop.lib.crypto.keygen.ec.ECDHKeyGen;
-import net.daporkchop.lib.crypto.sig.ec.ECCurves;
+import net.daporkchop.lib.crypto.sig.ec.CurveType;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -26,7 +26,7 @@ import java.util.Arrays;
 public class ECDHTest {
     @Test
     public void test() {
-        for (ECCurves curve : ECCurves.values()) {
+        for (CurveType curve : CurveType.values()) {
             ECDHKeyPair pair1 = ECDHKeyGen.gen(curve);
             ECDHKeyPair pair2 = ECDHKeyGen.gen(curve);
 

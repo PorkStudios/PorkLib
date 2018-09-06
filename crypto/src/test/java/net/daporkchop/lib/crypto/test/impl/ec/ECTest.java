@@ -19,7 +19,7 @@ import net.daporkchop.lib.crypto.key.ec.AbstractECKeyPair;
 import net.daporkchop.lib.crypto.key.serializer.impl.ECKeySerializer;
 import net.daporkchop.lib.crypto.sig.HashTypes;
 import net.daporkchop.lib.crypto.sig.ec.AbstractECHelper;
-import net.daporkchop.lib.crypto.sig.ec.ECCurves;
+import net.daporkchop.lib.crypto.sig.ec.CurveType;
 import net.daporkchop.lib.crypto.test.TestMain;
 import net.daporkchop.lib.encoding.basen.Base58;
 import org.junit.Test;
@@ -27,7 +27,7 @@ import org.junit.Test;
 public abstract class ECTest<K extends AbstractECKeyPair, H extends AbstractECHelper> {
     @Test
     public void test() {
-        for (ECCurves curve : ECCurves.values()) {
+        for (CurveType curve : CurveType.values()) {
             K keys = getKeys(curve);
             byte[] encoded = ECKeySerializer.INSTANCE.serialize(keys);
             keys = ECKeySerializer.INSTANCE.<K>deserialize(encoded);
@@ -52,7 +52,7 @@ public abstract class ECTest<K extends AbstractECKeyPair, H extends AbstractECHe
 
     public abstract String getName();
 
-    public abstract K getKeys(ECCurves curve);
+    public abstract K getKeys(CurveType curve);
 
     public abstract H getHelper(HashTypes hash);
 

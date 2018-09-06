@@ -15,4 +15,5 @@
 
 dependencies {
     compile "com.github.czyzby:gdx-websocket:1.9.1.9.6"
+    compile project(":crypto")
 }

@@ -20,15 +20,15 @@ import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherHelper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
 import net.daporkchop.lib.crypto.cipher.symmetric.iv.UpdaterMode;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.Threefish_1024Key;
 
 public class Threefish_1024Helper extends BlockCipherHelper<Threefish_1024Key> {
-    public Threefish_1024Helper(@NonNull BlockCipherMode mode, @NonNull PaddingScheme scheme, @NonNull Threefish_1024Key key) {
+    public Threefish_1024Helper(@NonNull BlockCipherMode mode, @NonNull BlockCipherPadding scheme, @NonNull Threefish_1024Key key) {
         this(mode, scheme, key, UpdaterMode.HASH_SHA_256);
     }
 
-    public Threefish_1024Helper(@NonNull BlockCipherMode mode, @NonNull PaddingScheme scheme, @NonNull Threefish_1024Key key, @NonNull UpdaterMode updater) {
+    public Threefish_1024Helper(@NonNull BlockCipherMode mode, @NonNull BlockCipherPadding scheme, @NonNull Threefish_1024Key key, @NonNull UpdaterMode updater) {
         super(BlockCipherType.THREEFISH_1024, mode, scheme, key, updater);
     }
 }

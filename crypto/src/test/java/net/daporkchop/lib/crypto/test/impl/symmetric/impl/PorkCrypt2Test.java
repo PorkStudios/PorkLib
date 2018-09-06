@@ -18,7 +18,7 @@ package net.daporkchop.lib.crypto.test.impl.symmetric.impl;
 import net.daporkchop.lib.crypto.cipher.impl.symmetric.PorkCrypt2Helper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.PorkCrypt2Key;
 import net.daporkchop.lib.crypto.keygen.symmetric.PorkCrypt2KeyGen;
 import net.daporkchop.lib.crypto.test.impl.symmetric.SymmetricCipherTest;
@@ -30,7 +30,7 @@ public class PorkCrypt2Test extends SymmetricCipherTest<PorkCrypt2Key, PorkCrypt
     }
 
     @Override
-    public PorkCrypt2Helper getHelper(BlockCipherMode mode, PaddingScheme scheme, PorkCrypt2Key key) {
+    public PorkCrypt2Helper getHelper(BlockCipherMode mode, BlockCipherPadding scheme, PorkCrypt2Key key) {
         return new PorkCrypt2Helper(mode, scheme, key);
     }
 

@@ -18,7 +18,7 @@ package net.daporkchop.lib.crypto.test.impl.symmetric.impl;
 import net.daporkchop.lib.crypto.cipher.impl.symmetric.TEAHelper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.TEAKey;
 import net.daporkchop.lib.crypto.keygen.symmetric.TEAKeyGen;
 import net.daporkchop.lib.crypto.test.impl.symmetric.SymmetricCipherTest;
@@ -30,7 +30,7 @@ public class TEATest extends SymmetricCipherTest<TEAKey, TEAHelper> {
     }
 
     @Override
-    public TEAHelper getHelper(BlockCipherMode mode, PaddingScheme scheme, TEAKey key) {
+    public TEAHelper getHelper(BlockCipherMode mode, BlockCipherPadding scheme, TEAKey key) {
         return new TEAHelper(mode, scheme, key);
     }
 

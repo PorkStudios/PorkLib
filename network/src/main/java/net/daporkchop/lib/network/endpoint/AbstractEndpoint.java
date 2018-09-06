@@ -19,12 +19,12 @@ import lombok.*;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherHelper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.exchange.ECDHHelper;
 import net.daporkchop.lib.crypto.key.ec.impl.ECDHKeyPair;
 import net.daporkchop.lib.crypto.key.symmetric.AbstractSymmetricKey;
 import net.daporkchop.lib.crypto.keygen.ec.ECDHKeyGen;
-import net.daporkchop.lib.crypto.sig.ec.ECCurves;
+import net.daporkchop.lib.crypto.sig.ec.CurveType;
 import net.daporkchop.lib.network.TransmissionProtocol;
 import net.daporkchop.lib.network.protocol.PacketProtocol;
 import net.daporkchop.lib.network.protocol.encapsulated.EncapsulatedHandler;
@@ -57,7 +57,7 @@ import java.util.concurrent.*;
 public abstract class AbstractEndpoint {
     private static final Executor executor = new ThreadPoolExecutor(0, Runtime.getRuntime().availableProcessors() << 1, 1, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
 
-    private static final Map<ECCurves, CompletableFuture<ECDHKeyPair>> keypairs = new ConcurrentHashMap<>();
+    private static final Map<CurveType, CompletableFuture<ECDHKeyPair>> keypairs = new ConcurrentHashMap<>();
 
     /**
      * The encapsulated protocol used for communicating with the network protocol
@@ -91,7 +91,7 @@ public abstract class AbstractEndpoint {
      * @param curve the curve type to be used
      * @return a completablefututure that points (or will point) to an ecdh key pair for the given curve type
      */
-    public synchronized static CompletableFuture<ECDHKeyPair> getECKeyPair(@NonNull ECCurves curve) {
+    public synchronized static CompletableFuture<ECDHKeyPair> getECKeyPair(@NonNull CurveType curve) {
         CompletableFuture<ECDHKeyPair> future = keypairs.get(curve);
         if (future == null) {
             CompletableFuture<ECDHKeyPair> reee = future = new CompletableFuture<>();
@@ -107,7 +107,7 @@ public abstract class AbstractEndpoint {
         return future;
     }
 
-    public static ECDHKeyPair getECKeyPairNow(@NonNull ECCurves curve) {
+    public static ECDHKeyPair getECKeyPairNow(@NonNull CurveType curve) {
         try {
             return getECKeyPair(curve).get();
         } catch (InterruptedException
@@ -127,7 +127,7 @@ public abstract class AbstractEndpoint {
      * @param cipherPadding the block cipher padding scheme
      * @return a completable future that will point to a {@link BlockCipherHelper} with the given settings
      */
-    public static CompletableFuture<BlockCipherHelper> getCipherHelper(@NonNull PublicKey publicKey, @NonNull PrivateKey privateKey, @NonNull BlockCipherType cipherType, @NonNull BlockCipherMode cipherMode, @NonNull PaddingScheme cipherPadding) {
+    public static CompletableFuture<BlockCipherHelper> getCipherHelper(@NonNull PublicKey publicKey, @NonNull PrivateKey privateKey, @NonNull BlockCipherType cipherType, @NonNull BlockCipherMode cipherMode, @NonNull BlockCipherPadding cipherPadding) {
         CompletableFuture<BlockCipherHelper> future = new CompletableFuture<>();
         executor.execute(() -> {
             try {

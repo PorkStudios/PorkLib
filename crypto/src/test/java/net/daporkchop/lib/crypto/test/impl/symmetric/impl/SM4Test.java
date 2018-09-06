@@ -18,7 +18,7 @@ package net.daporkchop.lib.crypto.test.impl.symmetric.impl;
 import net.daporkchop.lib.crypto.cipher.impl.symmetric.SM4Helper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.SM4Key;
 import net.daporkchop.lib.crypto.keygen.symmetric.SM4KeyGen;
 import net.daporkchop.lib.crypto.test.impl.symmetric.SymmetricCipherTest;
@@ -30,7 +30,7 @@ public class SM4Test extends SymmetricCipherTest<SM4Key, SM4Helper> {
     }
 
     @Override
-    public SM4Helper getHelper(BlockCipherMode mode, PaddingScheme scheme, SM4Key key) {
+    public SM4Helper getHelper(BlockCipherMode mode, BlockCipherPadding scheme, SM4Key key) {
         return new SM4Helper(mode, scheme, key);
     }
 

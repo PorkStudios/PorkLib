@@ -18,7 +18,7 @@ package net.daporkchop.lib.crypto.test.impl.symmetric.impl;
 import net.daporkchop.lib.crypto.cipher.impl.symmetric.SKIPJACKHelper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.SKIPJACKKey;
 import net.daporkchop.lib.crypto.keygen.symmetric.SKIPJACKKeyGen;
 import net.daporkchop.lib.crypto.test.impl.symmetric.SymmetricCipherTest;
@@ -30,7 +30,7 @@ public class SKIPJACKTest extends SymmetricCipherTest<SKIPJACKKey, SKIPJACKHelpe
     }
 
     @Override
-    public SKIPJACKHelper getHelper(BlockCipherMode mode, PaddingScheme scheme, SKIPJACKKey key) {
+    public SKIPJACKHelper getHelper(BlockCipherMode mode, BlockCipherPadding scheme, SKIPJACKKey key) {
         return new SKIPJACKHelper(mode, scheme, key);
     }
 

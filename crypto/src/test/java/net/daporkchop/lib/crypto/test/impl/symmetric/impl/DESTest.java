@@ -18,7 +18,7 @@ package net.daporkchop.lib.crypto.test.impl.symmetric.impl;
 import net.daporkchop.lib.crypto.cipher.impl.symmetric.DESHelper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.DESKey;
 import net.daporkchop.lib.crypto.keygen.symmetric.DESKeyGen;
 import net.daporkchop.lib.crypto.test.impl.symmetric.SymmetricCipherTest;
@@ -30,7 +30,7 @@ public class DESTest extends SymmetricCipherTest<DESKey, DESHelper> {
     }
 
     @Override
-    public DESHelper getHelper(BlockCipherMode mode, PaddingScheme scheme, DESKey key) {
+    public DESHelper getHelper(BlockCipherMode mode, BlockCipherPadding scheme, DESKey key) {
         return new DESHelper(mode, scheme, key);
     }
 

@@ -18,7 +18,7 @@ package net.daporkchop.lib.crypto.test.impl.symmetric.impl;
 import net.daporkchop.lib.crypto.cipher.impl.symmetric.NoekeonHelper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.NoekeonKey;
 import net.daporkchop.lib.crypto.keygen.symmetric.NoekeonKeyGen;
 import net.daporkchop.lib.crypto.test.impl.symmetric.SymmetricCipherTest;
@@ -30,7 +30,7 @@ public class NoekeonTest extends SymmetricCipherTest<NoekeonKey, NoekeonHelper> 
     }
 
     @Override
-    public NoekeonHelper getHelper(BlockCipherMode mode, PaddingScheme scheme, NoekeonKey key) {
+    public NoekeonHelper getHelper(BlockCipherMode mode, BlockCipherPadding scheme, NoekeonKey key) {
         return new NoekeonHelper(mode, scheme, key);
     }
 

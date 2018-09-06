@@ -18,7 +18,7 @@ package net.daporkchop.lib.crypto.keygen.ec;
 import net.daporkchop.lib.crypto.BouncyCastleInit;
 import net.daporkchop.lib.crypto.key.ec.impl.ECDHKeyPair;
 import net.daporkchop.lib.crypto.keygen.KeyRandom;
-import net.daporkchop.lib.crypto.sig.ec.ECCurves;
+import net.daporkchop.lib.crypto.sig.ec.CurveType;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPair;
@@ -38,7 +38,7 @@ public class ECDHKeyGen {
      * @param curve The type of curve to generate
      * @return An instance of SecretKey for use by ECDH key exchange methods
      */
-    public static ECDHKeyPair gen(byte[] seed, ECCurves curve) {
+    public static ECDHKeyPair gen(byte[] seed, CurveType curve) {
         ECDH ecdsa = new ECDH();
         SecureRandom random = new SecureRandom(seed);
         try {
@@ -57,7 +57,7 @@ public class ECDHKeyGen {
      * @param curve The type of curve to generate
      * @return An instance of SecretKey for use by ECDH key exchange methods
      */
-    public static ECDHKeyPair gen(ECCurves curve) {
+    public static ECDHKeyPair gen(CurveType curve) {
         return gen(KeyRandom.getBytes(1024), curve);
     }
 }

@@ -20,15 +20,15 @@ import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherHelper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
 import net.daporkchop.lib.crypto.cipher.symmetric.iv.UpdaterMode;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.PorkCrypt2Key;
 
 public class PorkCrypt2Helper extends BlockCipherHelper<PorkCrypt2Key> {
-    public PorkCrypt2Helper(@NonNull BlockCipherMode mode, @NonNull PaddingScheme scheme, @NonNull PorkCrypt2Key key) {
+    public PorkCrypt2Helper(@NonNull BlockCipherMode mode, @NonNull BlockCipherPadding scheme, @NonNull PorkCrypt2Key key) {
         this(mode, scheme, key, UpdaterMode.HASH_SHA_256);
     }
 
-    public PorkCrypt2Helper(@NonNull BlockCipherMode mode, @NonNull PaddingScheme scheme, @NonNull PorkCrypt2Key key, @NonNull UpdaterMode updater) {
+    public PorkCrypt2Helper(@NonNull BlockCipherMode mode, @NonNull BlockCipherPadding scheme, @NonNull PorkCrypt2Key key, @NonNull UpdaterMode updater) {
         super(BlockCipherType.PORKCRYPT2, mode, scheme, key, updater);
     }
 }

@@ -20,15 +20,15 @@ import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherHelper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
 import net.daporkchop.lib.crypto.cipher.symmetric.iv.UpdaterMode;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.TEAKey;
 
 public class TEAHelper extends BlockCipherHelper<TEAKey> {
-    public TEAHelper(@NonNull BlockCipherMode mode, @NonNull PaddingScheme scheme, @NonNull TEAKey key) {
+    public TEAHelper(@NonNull BlockCipherMode mode, @NonNull BlockCipherPadding scheme, @NonNull TEAKey key) {
         this(mode, scheme, key, UpdaterMode.HASH_SHA_256);
     }
 
-    public TEAHelper(@NonNull BlockCipherMode mode, @NonNull PaddingScheme scheme, @NonNull TEAKey key, @NonNull UpdaterMode updater) {
+    public TEAHelper(@NonNull BlockCipherMode mode, @NonNull BlockCipherPadding scheme, @NonNull TEAKey key, @NonNull UpdaterMode updater) {
         super(BlockCipherType.TEA, mode, scheme, key, updater);
     }
 }

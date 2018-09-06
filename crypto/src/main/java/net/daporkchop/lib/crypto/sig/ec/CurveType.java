@@ -23,7 +23,7 @@ import org.bouncycastle.jce.spec.ECParameterSpec;
  *
  * @author DaPorkchop_
  */
-public enum ECCurves {
+public enum CurveType {
     /*
      *   F p
      */
@@ -119,7 +119,7 @@ public enum ECCurves {
     public final int keySize;
     public final ECParameterSpec spec;
 
-    ECCurves(String name, int keySize) {
+    CurveType(String name, int keySize) {
         this.name = name.intern();
         this.keySize = keySize;
         this.spec = ECNamedCurveTable.getParameterSpec(this.name);

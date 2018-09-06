@@ -20,15 +20,15 @@ import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherHelper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
 import net.daporkchop.lib.crypto.cipher.symmetric.iv.UpdaterMode;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.RijndaelKey;
 
 public class RijndaelHelper extends BlockCipherHelper<RijndaelKey> {
-    public RijndaelHelper(@NonNull BlockCipherMode mode, @NonNull PaddingScheme scheme, @NonNull RijndaelKey key) {
+    public RijndaelHelper(@NonNull BlockCipherMode mode, @NonNull BlockCipherPadding scheme, @NonNull RijndaelKey key) {
         this(mode, scheme, key, UpdaterMode.HASH_SHA_256);
     }
 
-    public RijndaelHelper(@NonNull BlockCipherMode mode, @NonNull PaddingScheme scheme, @NonNull RijndaelKey key, @NonNull UpdaterMode updater) {
+    public RijndaelHelper(@NonNull BlockCipherMode mode, @NonNull BlockCipherPadding scheme, @NonNull RijndaelKey key, @NonNull UpdaterMode updater) {
         super(BlockCipherType.RIJNDAEL, mode, scheme, key, updater);
     }
 }

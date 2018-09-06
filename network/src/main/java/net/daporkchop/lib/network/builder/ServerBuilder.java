@@ -22,8 +22,8 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
-import net.daporkchop.lib.crypto.sig.ec.ECCurves;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
+import net.daporkchop.lib.crypto.sig.ec.CurveType;
 import net.daporkchop.lib.encoding.compression.EnumCompression;
 import net.daporkchop.lib.network.TransmissionProtocol;
 import net.daporkchop.lib.network.endpoint.server.Server;
@@ -48,10 +48,10 @@ public class ServerBuilder {
     private BlockCipherMode cipherMode = BlockCipherMode.CBC;
 
     @NonNull
-    private PaddingScheme cipherPadding = PaddingScheme.PKCS7;
+    private BlockCipherPadding cipherPadding = BlockCipherPadding.PKCS7;
 
     @NonNull
-    private ECCurves curveType = ECCurves.brainpoolp192r1;
+    private CurveType curveType = CurveType.brainpoolp192r1;
 
     @NonNull
     private TransmissionProtocol transmissionProtocol = TransmissionProtocol.TCP;

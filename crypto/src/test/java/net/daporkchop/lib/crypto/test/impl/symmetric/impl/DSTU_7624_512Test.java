@@ -18,7 +18,7 @@ package net.daporkchop.lib.crypto.test.impl.symmetric.impl;
 import net.daporkchop.lib.crypto.cipher.impl.symmetric.DSTU_7624_512Helper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.DSTU_7624_512Key;
 import net.daporkchop.lib.crypto.keygen.symmetric.DSTU_7624_512KeyGen;
 import net.daporkchop.lib.crypto.test.impl.symmetric.SymmetricCipherTest;
@@ -30,7 +30,7 @@ public class DSTU_7624_512Test extends SymmetricCipherTest<DSTU_7624_512Key, DST
     }
 
     @Override
-    public DSTU_7624_512Helper getHelper(BlockCipherMode mode, PaddingScheme scheme, DSTU_7624_512Key key) {
+    public DSTU_7624_512Helper getHelper(BlockCipherMode mode, BlockCipherPadding scheme, DSTU_7624_512Key key) {
         return new DSTU_7624_512Helper(mode, scheme, key);
     }
 

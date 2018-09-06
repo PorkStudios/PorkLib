@@ -18,7 +18,7 @@ package net.daporkchop.lib.crypto.test.impl.symmetric;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherHelper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.serializer.impl.SymmetricKeySerializer;
 import net.daporkchop.lib.crypto.key.symmetric.AbstractSymmetricKey;
 import net.daporkchop.lib.crypto.test.TestMain;
@@ -38,7 +38,7 @@ public abstract class SymmetricCipherTest<T extends AbstractSymmetricKey, Q exte
                 System.out.println("Incompatible cipher + mode combination: " + getType().name + "+" + mode.name);
                 continue;
             }
-            for (PaddingScheme scheme : PaddingScheme.values()) {
+            for (BlockCipherPadding scheme : BlockCipherPadding.values()) {
                 Q helper = getHelper(mode, scheme, key);
                 for (byte[] b : TestMain.RANDOM_DATA) {
                     //use length prefix to remove padding
@@ -59,7 +59,7 @@ public abstract class SymmetricCipherTest<T extends AbstractSymmetricKey, Q exte
 
     public abstract BlockCipherType getType();
 
-    public abstract Q getHelper(BlockCipherMode mode, PaddingScheme scheme, T key);
+    public abstract Q getHelper(BlockCipherMode mode, BlockCipherPadding scheme, T key);
 
     public abstract T genKeys();
 }

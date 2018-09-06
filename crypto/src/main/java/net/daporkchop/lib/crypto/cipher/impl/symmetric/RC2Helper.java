@@ -20,15 +20,15 @@ import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherHelper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
 import net.daporkchop.lib.crypto.cipher.symmetric.iv.UpdaterMode;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.RC2Key;
 
 public class RC2Helper extends BlockCipherHelper<RC2Key> {
-    public RC2Helper(@NonNull BlockCipherMode mode, @NonNull PaddingScheme scheme, @NonNull RC2Key key) {
+    public RC2Helper(@NonNull BlockCipherMode mode, @NonNull BlockCipherPadding scheme, @NonNull RC2Key key) {
         this(mode, scheme, key, UpdaterMode.HASH_SHA_256);
     }
 
-    public RC2Helper(@NonNull BlockCipherMode mode, @NonNull PaddingScheme scheme, @NonNull RC2Key key, @NonNull UpdaterMode updater) {
+    public RC2Helper(@NonNull BlockCipherMode mode, @NonNull BlockCipherPadding scheme, @NonNull RC2Key key, @NonNull UpdaterMode updater) {
         super(BlockCipherType.RC2, mode, scheme, key, updater);
     }
 }

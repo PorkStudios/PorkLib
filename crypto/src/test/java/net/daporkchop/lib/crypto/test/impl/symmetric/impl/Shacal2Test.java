@@ -18,7 +18,7 @@ package net.daporkchop.lib.crypto.test.impl.symmetric.impl;
 import net.daporkchop.lib.crypto.cipher.impl.symmetric.Shacal2Helper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.Shacal2Key;
 import net.daporkchop.lib.crypto.keygen.symmetric.Shacal2KeyGen;
 import net.daporkchop.lib.crypto.test.impl.symmetric.SymmetricCipherTest;
@@ -30,7 +30,7 @@ public class Shacal2Test extends SymmetricCipherTest<Shacal2Key, Shacal2Helper> 
     }
 
     @Override
-    public Shacal2Helper getHelper(BlockCipherMode mode, PaddingScheme scheme, Shacal2Key key) {
+    public Shacal2Helper getHelper(BlockCipherMode mode, BlockCipherPadding scheme, Shacal2Key key) {
         return new Shacal2Helper(mode, scheme, key);
     }
 

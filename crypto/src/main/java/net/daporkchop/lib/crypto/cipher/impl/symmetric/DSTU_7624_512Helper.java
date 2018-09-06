@@ -20,15 +20,15 @@ import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherHelper;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
 import net.daporkchop.lib.crypto.cipher.symmetric.iv.UpdaterMode;
-import net.daporkchop.lib.crypto.cipher.symmetric.padding.PaddingScheme;
+import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.key.symmetric.impl.DSTU_7624_512Key;
 
 public class DSTU_7624_512Helper extends BlockCipherHelper<DSTU_7624_512Key> {
-    public DSTU_7624_512Helper(@NonNull BlockCipherMode mode, @NonNull PaddingScheme scheme, @NonNull DSTU_7624_512Key key) {
+    public DSTU_7624_512Helper(@NonNull BlockCipherMode mode, @NonNull BlockCipherPadding scheme, @NonNull DSTU_7624_512Key key) {
         this(mode, scheme, key, UpdaterMode.HASH_SHA_256);
     }
 
-    public DSTU_7624_512Helper(@NonNull BlockCipherMode mode, @NonNull PaddingScheme scheme, @NonNull DSTU_7624_512Key key, @NonNull UpdaterMode updater) {
+    public DSTU_7624_512Helper(@NonNull BlockCipherMode mode, @NonNull BlockCipherPadding scheme, @NonNull DSTU_7624_512Key key, @NonNull UpdaterMode updater) {
         super(BlockCipherType.DSTU_7624_512, mode, scheme, key, updater);
     }
 }

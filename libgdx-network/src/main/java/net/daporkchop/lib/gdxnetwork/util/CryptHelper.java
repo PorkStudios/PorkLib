@@ -63,7 +63,7 @@ public class CryptHelper {
     }
 
     public InputStream wrap(@NonNull InputStream in)    {
-        if (this.settings == null)  {
+        if (this.settings == null || this.cipherHelper == null) {
             return in;
         } else {
             return this.cipherHelper.decryptionStream(in);
@@ -71,7 +71,7 @@ public class CryptHelper {
     }
 
     public OutputStream wrap(@NonNull OutputStream out)    {
-        if (this.settings == null)  {
+        if (this.settings == null || this.cipherHelper == null) {
             return out;
         } else {
             return this.cipherHelper.encryptionStream(out);

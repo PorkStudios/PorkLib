@@ -15,12 +15,8 @@
 
 package net.daporkchop.lib.gdxnetwork.protocol;
 
-import lombok.AccessLevel;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.gdxnetwork.endpoint.Endpoint;
 import net.daporkchop.lib.gdxnetwork.packet.Packet;
 import net.daporkchop.lib.gdxnetwork.session.Session;
 
@@ -32,15 +28,14 @@ import java.util.function.Supplier;
  * @author DaPorkchop_
  */
 @Data
-public abstract class PacketProtocol<S extends Session> {
-    @Getter(AccessLevel.PRIVATE)
+public abstract class PacketProtocol {
     private final Map<Integer, RegisteredPacket<?>> registeredPackets = new Hashtable<>();
 
     @NonNull
     private final String name;
     private final int version;
 
-    protected synchronized <P extends Packet> void registerPacket(@NonNull Supplier<P> supplier, @NonNull IPacketHandler<P, S> handler)   {
+    protected synchronized <P extends Packet> void registerPacket(@NonNull Supplier<P> supplier, @NonNull IPacketHandler<P> handler) {
         Packet packet = supplier.get();
         Integer id = packet.getId();
         if (this.registeredPackets.containsKey(id)) {
@@ -49,26 +44,23 @@ public abstract class PacketProtocol<S extends Session> {
         this.registeredPackets.put(id, new RegisteredPacket<>(supplier, handler));
     }
 
-    public abstract S newSession(@NonNull Endpoint endpoint);
-
-    @SuppressWarnings("unchecked")
-    public void handle(int id, @NonNull DataIn in, @NonNull S session)   {
+    public Packet getPacket(int id) {
         RegisteredPacket registeredPacket = this.registeredPackets.get(id);
-        Packet packet = (Packet) registeredPacket.supplier.get();
-        packet.decode(in);
-        ((IPacketHandler<Packet, S>) registeredPacket.handler).handle(packet, session);
+        return (Packet) registeredPacket.supplier.get();
     }
 
-    public byte[] encode(@NonNull Packet packet)    {
+    @SuppressWarnings("unchecked")
+    public void handle(@NonNull Packet packet, @NonNull Session session) {
         RegisteredPacket registeredPacket = this.registeredPackets.get(packet.getId());
+        ((IPacketHandler<Packet>) registeredPacket.handler).handle(packet, session);
     }
 
     @Data
-    private final class RegisteredPacket<P extends Packet>  {
+    public static final class RegisteredPacket<P extends Packet> {
         @NonNull
         private final Supplier<P> supplier;
 
         @NonNull
-        private final IPacketHandler<P, S> handler;
+        private final IPacketHandler<P> handler;
     }
 }

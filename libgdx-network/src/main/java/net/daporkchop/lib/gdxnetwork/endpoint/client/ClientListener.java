@@ -16,45 +16,52 @@
 package net.daporkchop.lib.gdxnetwork.endpoint.client;
 
 import com.github.czyzby.websocket.WebSocket;
-import com.github.czyzby.websocket.WebSocketAdapter;
+import com.github.czyzby.websocket.WebSocketHandler;
 import com.github.czyzby.websocket.data.WebSocketCloseCode;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NonNull;
+import net.daporkchop.lib.gdxnetwork.packet.Packet;
+import net.daporkchop.lib.gdxnetwork.protocol.IPacketHandler;
+import net.daporkchop.lib.gdxnetwork.protocol.encapsulated.EncapsulatedProtocol;
 
 /**
  * @author DaPorkchop_
  */
-@Data
-public class ClientListener extends WebSocketAdapter {
+@Getter
+public class ClientListener extends WebSocketHandler {
     @NonNull
     private final NetClient client;
+
+    @SuppressWarnings("unchecked")
+    public ClientListener(@NonNull NetClient client) {
+        this.client = client;
+
+        EncapsulatedProtocol.INSTANCE.getRegisteredPackets().forEach((id, registeredPacket) -> {
+            Packet packet = registeredPacket.getSupplier().get();
+            this.registerHandler(packet.getClass(), (webSocket, pck) -> {
+                ((IPacketHandler<Packet>) registeredPacket.getHandler()).handle((Packet) pck, this.client.getSession());
+                return true;
+            });
+        });
+    }
 
     @Override
     public boolean onOpen(WebSocket webSocket) {
         this.client.connectFuture.complete(null);
-        return FULLY_HANDLED;
+        return super.onOpen(webSocket);
     }
 
     @Override
     public boolean onClose(WebSocket webSocket, WebSocketCloseCode code, String reason) {
         this.client.disconnectFuture.complete(reason);
-        return FULLY_HANDLED;
-    }
-
-    @Override
-    public boolean onMessage(WebSocket webSocket, String packet) {
-        return this.onMessage(webSocket, packet.getBytes());
-    }
-
-    @Override
-    public boolean onMessage(WebSocket webSocket, byte[] packet) {
-        //TODO
-        return FULLY_HANDLED;
+        return super.onClose(webSocket, code, reason);
     }
 
     @Override
     public boolean onError(WebSocket webSocket, Throwable error) {
+        error.printStackTrace();
         this.client.disconnectFuture.completeExceptionally(error);
-        return FULLY_HANDLED;
+        webSocket.close(error.toString());
+        return super.onError(webSocket, error);
     }
 }

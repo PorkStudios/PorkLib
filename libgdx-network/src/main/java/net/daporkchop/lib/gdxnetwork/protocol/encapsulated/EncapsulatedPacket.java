@@ -13,38 +13,12 @@
  *
  */
 
-package net.daporkchop.lib.gdxnetwork.packet;
+package net.daporkchop.lib.gdxnetwork.protocol.encapsulated;
 
-import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-
-import java.io.IOException;
+import net.daporkchop.lib.gdxnetwork.packet.Packet;
 
 /**
  * @author DaPorkchop_
  */
-public interface Packet {
-    /**
-     * Decodes this packet
-     *
-     * @param in the input data
-     */
-    void decode(@NonNull DataIn in) throws IOException;
-
-    /**
-     * Encodes this packet
-     *
-     * @param out the output data should be written to here
-     */
-    void encode(@NonNull DataOut out) throws IOException;
-
-    int getId();
-
-    /**
-     * Gets the length (in bytes) of the packet's current data.
-     *
-     * @return the length (in bytes) of this packet's contents
-     */
-    int getDataLength();
+public interface EncapsulatedPacket extends Packet {
 }

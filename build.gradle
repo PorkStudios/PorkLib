@@ -60,6 +60,16 @@ allprojects {
         }
     }
 
+    configurations {
+        provided
+    }
+
+    sourceSets {
+        main {
+            compileClasspath += configurations.provided
+        }
+    }
+
     dependencies {
         testCompile group: 'junit', name: 'junit', version: '4.12'
     }

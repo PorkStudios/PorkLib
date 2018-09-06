@@ -13,38 +13,53 @@
  *
  */
 
-package net.daporkchop.lib.gdxnetwork.packet;
+package net.daporkchop.lib.gdxnetwork.protocol.encapsulated;
 
-import lombok.NonNull;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.gdxnetwork.protocol.IPacketHandler;
+import net.daporkchop.lib.gdxnetwork.session.Session;
 
+import javax.swing.*;
 import java.io.IOException;
+
+import static net.daporkchop.lib.gdxnetwork.protocol.encapsulated.EncapsulatedProtocol.MESSAGE_ID;
 
 /**
  * @author DaPorkchop_
  */
-public interface Packet {
-    /**
-     * Decodes this packet
-     *
-     * @param in the input data
-     */
-    void decode(@NonNull DataIn in) throws IOException;
+@AllArgsConstructor
+@NoArgsConstructor
+public class MessagePacket implements EncapsulatedPacket {
+    public String message;
 
-    /**
-     * Encodes this packet
-     *
-     * @param out the output data should be written to here
-     */
-    void encode(@NonNull DataOut out) throws IOException;
+    @Override
+    public void decode(DataIn in) throws IOException {
+        this.message = in.readUTF();
+    }
 
-    int getId();
+    @Override
+    public void encode(DataOut out) throws IOException {
+        out.writeUTF(this.message);
+    }
 
-    /**
-     * Gets the length (in bytes) of the packet's current data.
-     *
-     * @return the length (in bytes) of this packet's contents
-     */
-    int getDataLength();
+    @Override
+    public int getId() {
+        return MESSAGE_ID;
+    }
+
+    @Override
+    public int getDataLength() {
+        return 1 + (this.message == null ? 0 : 4 + this.message.length());
+    }
+
+    public static class MessagePacketHandler implements IPacketHandler<MessagePacket> {
+        @Override
+        public void handle(MessagePacket packet, Session session) {
+            System.out.println(packet.message);
+            JOptionPane.showMessageDialog(null, packet.message);
+        }
+    }
 }

@@ -14,6 +14,5 @@
  */
 
 dependencies {
-    compile project(":binary")
-    compile project(":encoding")
+    compile "com.github.czyzby:gdx-websocket:1.9.1.9.6"
 }

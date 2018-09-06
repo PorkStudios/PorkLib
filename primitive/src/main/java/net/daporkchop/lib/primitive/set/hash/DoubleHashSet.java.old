@@ -1,0 +1,257 @@
+/*
+ * Adapted from the Wizardry License
+ *
+ * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ *
+ * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
+ *
+ * The persons and/or organizations are also disallowed from sub-licensing and/or trademarking this software without explicit permission from DaPorkchop_.
+ *
+ * Any persons and/or organizations using this software must disclose their source code and have it publicly available, include this license, provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+
+package net.daporkchop.lib.primitive.set.hash;
+
+import net.daporkchop.lib.primitive.lambda.consumer.DoubleConsumer;
+import net.daporkchop.lib.primitive.iterator.DoubleIterator;
+import net.daporkchop.lib.primitive.set.DoubleSet;
+
+import java.util.Collection;
+
+/**
+ * A hash set of type double.
+ * <p>
+ * DO NOT EDIT BY HAND! THIS FILE IS SCRIPT-GENERATED!
+ *
+ * @author DaPorkchop_
+ */
+public class DoubleHashSet implements DoubleSet  {
+    protected byte[] values;
+    protected int[][][][] states = new int[256][][][];
+    protected int size = 0;
+    protected int len = 64;
+    protected int indexCounter = 0;
+    protected int removedCount = 0;
+    protected boolean[] index;
+
+    public DoubleHashSet()    {
+        this.clear();
+    }
+
+    @Override
+    public void add(double value)   {
+        int hash = hash(value);
+        if (containsHash(hash)) {
+            int state = getState(hash) * -1 - 1; //discard sign bit
+            values[state] = value;
+        } else {
+            //no mapping
+            checkResize(false);
+            size++;
+            removedCount--; //decrement this to prevent things breaking
+            int state = (indexCounter++ + 1) * -1;
+            mark(hash, state);
+            state = state * -1 - 1; //discard sign bit
+            values[state] = value;
+        }
+    }
+
+    @Override
+    public void remove(double value)    {
+        return remove(value, true);
+    }
+
+    protected void remove(double value, boolean shrink) {
+        int hash = hash(value);
+        if (!containsHash(hash)) return; //no mapping
+        int state = getState(hash);
+        mark(hash, 0);
+        size--;
+        removedCount++;
+        if (shrink) checkResize(true);
+    }
+
+    @Override
+    public boolean contains(double value)    {
+        return containsHash(hash(value));
+    }
+
+    @Override
+    public void clear() {
+        this.size = 0;
+        this.len = 64;
+        this.removedCount = 0;
+        this.values = new byte[len];
+        this.states = new int[256][][][];
+        this.index = new boolean[len];
+    }
+
+    @Override
+    public int getSize()    {
+        return size;
+    }
+
+    @Override
+    public void forEach(DoubleConsumer consumer)   {
+        if (consumer == null) throw new IllegalArgumentException("Consumer may not be null!");
+        //scan through the index until -1 is reached
+        for (int i = 0; i < index.length; i++)  {
+            if (index[i]) consumer.accept(values[i]);
+        }
+    }
+
+    @Override
+    public DoubleIterator iterator()   {
+        //TODO
+        return null;
+    }
+
+    protected boolean containsHash(int hash) {
+        int state = getState(hash);
+        return getState(hash) < 0 ? index[state * -1 - 1] : false;
+    }
+
+    protected boolean containsState(int state)  {
+        return state < 0 ? index[state * -1 - 1] : false;
+    }
+
+    protected void checkResize(boolean shrink)    {
+        if (indexCounter + 1 == len) {
+            if (removedCount >= len >> 8)    {
+                //if one 8th or more of the contained elements have been removed, then compact the array instead of shrinking it
+                doCompact();
+            } else {
+                doResize(len, len << 1);
+            }
+        } else if (shrink && size < len >> 1)    {
+            //if down to half size, shrink the darn thing!
+            doResize(len, len >> 1);
+        }
+    }
+
+    protected void doCompact()  {
+        System.out.println("Compacting! " + len);
+        indexCounter = 0;
+        removedCount = 0;
+        for (int i = 0; i < index.length; i++)  {
+            if (index[i])   {
+                int index = indexCounter++;
+                this.index[index] = true;
+
+                //finally, mark state
+                int hash = hash(values[index] = values[i]);
+                states[hash & 0xFF]
+                    [(hash >> 8) & 0xFF]
+                    [(hash >> 16) & 0xFF]
+                    [(hash >> 24) & 0xFF] = (index + 1) * -1;
+
+                if (indexCounter == size)   {
+                    System.out.println("Filling remaining indexes with `false`...");
+                    for (; i < this.index.length; i++)   {
+                        this.index[i] = false;
+                    }
+                    break;
+                }
+            }
+        };
+    }
+
+    protected void doResize(int oldSize, int newSize) {
+        System.out.println((oldSize > newSize ? "Shrinking" : "Growing") + "! " + oldSize + " " + newSize);
+        indexCounter = 0;
+        removedCount = 0;
+        len = newSize;
+        //even if we can get by without resetting the states map, the other ones need to be re-created as we're changing the size
+        byte[] newValues = new double[len];
+        boolean[] newIndex = new boolean[len];
+        forEach(value -> {
+            int index = indexCounter++;
+            newValues[index] = value;
+            newIndex[index] = true;
+
+            //finally, mark state
+            int hash = hash(value);
+            states[hash & 0xFF]
+                [(hash >> 8) & 0xFF]
+                [(hash >> 16) & 0xFF]
+                [(hash >> 24) & 0xFF] = (index + 1) * -1;
+        });
+        values = newValues;
+        index = newIndex;
+    }
+
+    protected void mark(int hash, int state)  {
+        int[][][] a = states[hash & 0xFF];
+        if (a == null) a = states[hash & 0xFF] = new int[256][][];
+        int[][] b = a[(hash >> 8) & 0xFF];
+        if (b == null) b = a[(hash >> 8) & 0xFF] = new int[256][];
+        int[] c = b[(hash >> 16) & 0xFF];
+        if (c == null) c = b[(hash >> 16) & 0xFF] = new int[256];
+        int j = (hash >> 24) & 0xFF;
+        int old = c[j];
+        c[j] = state;
+        if (state < 0 && old >= 0)  { //changing from empty to occupied
+            index[state * -1 - 1] = true;
+        } else if (state >= 0 && old < 0)   { //changing from occupied to empty
+            index[old * -1 - 1] = false;
+        }
+    }
+
+    protected int getState(int hash)  {
+        int[][][] a = states[hash & 0xFF];
+        if (a == null) return 0;
+        int[][] b = a[(hash >> 8) & 0xFF];
+        if (b == null) return 0;
+        int[] c = b[(hash >> 16) & 0xFF];
+        if (c == null) return 0;
+        return c[(hash >> 24) & 0xFF];
+    }
+
+    private class Iterator implements DoubleIterator  {
+        private int index = -1;
+        private int nextIndex = -1;
+        private final DoubleByteIndexedTreeMap this_ = DoubleByteIndexedTreeMap.this;
+
+        public KeyIterator()    {
+            this.findNext();
+        }
+
+        @Override
+        public boolean hasNext()    {
+            return this.nextIndex != -1;
+        }
+
+        @Override
+        public double get()  {
+            return this_.keys[this.index];
+        }
+
+        @Override
+        public double advance()   {
+            if (this.hasNext()) {
+                this.findNext();
+                return this.get();
+            } else {
+                throw new ArrayIndexOutOfBoundsException();
+            }
+        }
+
+        @Override
+        public void remove()    {
+            this_.remove(this.get(), false);
+        }
+
+        private void findNext() {
+            this.index = this.nextIndex++; //add one to prevent choosing the same index again
+            for (; this.nextIndex < this_.len; this.nextIndex++)  {
+                if (this_.index[this.nextIndex]) {
+                    return;
+                }
+            }
+            this.nextIndex = -1; //nothing was found
+        }
+    }
+}

@@ -1,0 +1,8 @@
+.idea/
+*.iml
+*.ipr
+*.class
+*.jar
+target/
+run/
+/porklib.daporkchop.net/

@@ -15,20 +15,20 @@
 
 package net.daporkchop.lib.gdxnetwork.endpoint.client;
 
+import com.github.czyzby.websocket.AbstractWebSocketListener;
 import com.github.czyzby.websocket.WebSocket;
-import com.github.czyzby.websocket.WebSocketHandler;
 import com.github.czyzby.websocket.data.WebSocketCloseCode;
+import com.github.czyzby.websocket.data.WebSocketException;
 import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.gdxnetwork.packet.Packet;
-import net.daporkchop.lib.gdxnetwork.protocol.IPacketHandler;
 import net.daporkchop.lib.gdxnetwork.protocol.encapsulated.EncapsulatedProtocol;
 
 /**
  * @author DaPorkchop_
  */
 @Getter
-public class ClientListener extends WebSocketHandler {
+public class ClientListener extends AbstractWebSocketListener {
     @NonNull
     private final NetClient client;
 
@@ -36,13 +36,20 @@ public class ClientListener extends WebSocketHandler {
     public ClientListener(@NonNull NetClient client) {
         this.client = client;
 
-        EncapsulatedProtocol.INSTANCE.getRegisteredPackets().forEach((id, registeredPacket) -> {
+        /*EncapsulatedProtocol.INSTANCE.getRegisteredPackets().forEach((id, registeredPacket) -> {
             Packet packet = registeredPacket.getSupplier().get();
             this.registerHandler(packet.getClass(), (webSocket, pck) -> {
                 ((IPacketHandler<Packet>) registeredPacket.getHandler()).handle((Packet) pck, this.client.getSession());
                 return true;
             });
-        });
+        });*/
+    }
+
+    @Override
+    protected boolean onMessage(WebSocket webSocket, Object packet) throws WebSocketException {
+        System.out.println("Handling " + packet.getClass().getCanonicalName());
+        EncapsulatedProtocol.INSTANCE.handle((Packet) packet, this.client.getSession());
+        return FULLY_HANDLED;
     }
 
     @Override
@@ -54,6 +61,7 @@ public class ClientListener extends WebSocketHandler {
     @Override
     public boolean onClose(WebSocket webSocket, WebSocketCloseCode code, String reason) {
         this.client.disconnectFuture.complete(reason);
+        System.out.println("Disconnected!");
         return super.onClose(webSocket, code, reason);
     }
 

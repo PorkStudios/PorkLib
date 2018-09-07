@@ -25,7 +25,6 @@ import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.stream.ByteBufferOutputStream;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.encoding.Hexadecimal;
 import net.daporkchop.lib.gdxnetwork.endpoint.Endpoint;
 import net.daporkchop.lib.gdxnetwork.endpoint.EndpointType;
 import net.daporkchop.lib.gdxnetwork.packet.Packet;
@@ -34,8 +33,8 @@ import net.daporkchop.lib.gdxnetwork.protocol.encapsulated.EncapsulatedPacket;
 import net.daporkchop.lib.gdxnetwork.protocol.encapsulated.EncapsulatedProtocol;
 import net.daporkchop.lib.gdxnetwork.protocol.encapsulated.WrappedPacket;
 import net.daporkchop.lib.gdxnetwork.session.Session;
+import net.daporkchop.lib.gdxnetwork.util.CryptHelper;
 
-import javax.swing.*;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -86,6 +85,7 @@ public class NetClient implements Endpoint {
         this.addListeners();
 
         try {
+            this.session = new SessionClient(new CryptHelper(null), this.packetProtocol, this);
             this.webSocket.connect();
         } catch (WebSocketException e) {
             throw new RuntimeException(String.format("Unable to connect to websocket on %s://%s:%d", wss ? "wss" : "ws", host, port), e);
@@ -135,16 +135,18 @@ public class NetClient implements Endpoint {
         this.webSocket.setSerializer(new AbstractBinarySerializer() {
             @Override
             public byte[] serialize(Object object) {
+                //System.out.printf("Sending object: %s\n", object.getClass().getCanonicalName());
                 try {
                     if (object instanceof Packet && !(object instanceof EncapsulatedPacket)) {
                         object = new WrappedPacket((Packet) object);
                     }
                     if (object instanceof EncapsulatedPacket) {
                         Packet packet = (Packet) object;
-                        ByteBuffer buffer = ByteBuffer.allocate(packet.getDataLength());
+                        ByteBuffer buffer = ByteBuffer.allocate(packet.getDataLength() + 1);
                         OutputStream os = new ByteBufferOutputStream(buffer);
                         os = NetClient.this.session.getCryptHelper().wrap(os);
                         os = new DataOut(os);
+                        os.write(packet.getId());
                         packet.encode((DataOut) os);
                         os.close();
                         return buffer.array();
@@ -158,15 +160,15 @@ public class NetClient implements Endpoint {
 
             @Override
             public Object deserialize(byte[] data) {
-                System.out.printf("Received data: %s\n", Hexadecimal.encode(data));
-                JOptionPane.showMessageDialog(null, Hexadecimal.encode(data));
+                //System.out.printf("Received data: %s\n", Hexadecimal.encode(data));
+                //JOptionPane.showMessageDialog(null, Hexadecimal.encode(data));
 
                 try {
                     InputStream is = new ByteArrayInputStream(data);
                     is = NetClient.this.session.getCryptHelper().wrap(is);
                     DataIn dataIn = new DataIn(is);
                     Packet packet = EncapsulatedProtocol.INSTANCE.getPacket(is.read());
-                    packet.decode(dataIn);
+                    packet.decode(dataIn, NetClient.this.packetProtocol);
                     dataIn.close();
                     return packet;
                 } catch (IOException e) {

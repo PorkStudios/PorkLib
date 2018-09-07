@@ -41,13 +41,17 @@ public class SessionClient extends Session {
     }
 
     @Override
-    public void send(Packet packet) {
-        //TODO
+    public void send(@NonNull Packet packet) {
+        if (this.client.isRunning()) {
+            this.client.webSocket.send(packet);
+        }
     }
 
     @Override
     public void disconnect(String reason) {
-        this.client.close(reason);
+        if (this.client.isRunning()) {
+            this.client.close(reason);
+        }
     }
 
     @Override

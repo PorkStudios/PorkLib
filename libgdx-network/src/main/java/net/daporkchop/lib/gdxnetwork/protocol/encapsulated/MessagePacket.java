@@ -19,15 +19,19 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.gdxnetwork.endpoint.client.SessionClient;
 import net.daporkchop.lib.gdxnetwork.protocol.IPacketHandler;
+import net.daporkchop.lib.gdxnetwork.protocol.PacketProtocol;
 import net.daporkchop.lib.gdxnetwork.session.Session;
 
-import javax.swing.*;
 import java.io.IOException;
 
 import static net.daporkchop.lib.gdxnetwork.protocol.encapsulated.EncapsulatedProtocol.MESSAGE_ID;
 
 /**
+ * Only here for debugging purposes, do not use in production (unless you want to
+ * send messages to the remote System.out :P)
+ *
  * @author DaPorkchop_
  */
 @AllArgsConstructor
@@ -36,7 +40,7 @@ public class MessagePacket implements EncapsulatedPacket {
     public String message;
 
     @Override
-    public void decode(DataIn in) throws IOException {
+    public void decode(DataIn in, PacketProtocol protocol) throws IOException {
         this.message = in.readUTF();
     }
 
@@ -59,7 +63,9 @@ public class MessagePacket implements EncapsulatedPacket {
         @Override
         public void handle(MessagePacket packet, Session session) {
             System.out.println(packet.message);
-            JOptionPane.showMessageDialog(null, packet.message);
+            if (session instanceof SessionClient) {
+                session.send(packet);
+            }
         }
     }
 }

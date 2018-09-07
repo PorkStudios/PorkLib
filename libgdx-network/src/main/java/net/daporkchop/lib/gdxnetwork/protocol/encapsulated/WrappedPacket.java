@@ -15,45 +15,42 @@
 
 package net.daporkchop.lib.gdxnetwork.protocol.encapsulated;
 
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.gdxnetwork.packet.Packet;
 import net.daporkchop.lib.gdxnetwork.protocol.IPacketHandler;
+import net.daporkchop.lib.gdxnetwork.protocol.PacketProtocol;
 import net.daporkchop.lib.gdxnetwork.session.Session;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.io.IOException;
 
 import static net.daporkchop.lib.gdxnetwork.protocol.encapsulated.EncapsulatedProtocol.WRAPPED_ID;
 
 /**
  * @author DaPorkchop_
  */
+@AllArgsConstructor
+@NoArgsConstructor
 public class WrappedPacket implements EncapsulatedPacket {
-    public final List<Packet> wrapped = new ArrayList<>();
+    public Packet packet;
 
-    public WrappedPacket(Packet... packets) {
-        Collections.addAll(this.wrapped, packets);
+    @Override
+    public void decode(DataIn in, PacketProtocol protocol) throws IOException {
+        this.packet = protocol.getPacket(in.read());
+        this.packet.decode(in, protocol);
     }
 
     @Override
-    public void decode(DataIn in) {
-        //TODO
-    }
-
-    @Override
-    public void encode(DataOut out) {
-
+    public void encode(DataOut out) throws IOException {
+        out.write(this.packet.getId());
+        this.packet.encode(out);
     }
 
     @Override
     public int getDataLength() {
-        int i = 0;
-        for (Packet packet : this.wrapped) {
-            i += packet.getDataLength();
-        }
-        return i + this.wrapped.size();
+        return this.packet.getDataLength() + 1;
     }
 
     @Override
@@ -64,9 +61,7 @@ public class WrappedPacket implements EncapsulatedPacket {
     public static class WrappedPacketHandler implements IPacketHandler<WrappedPacket> {
         @Override
         public void handle(WrappedPacket packet, Session session) {
-            for (Packet pck : packet.wrapped) {
-                session.getProtocol().handle(pck, session);
-            }
+            session.getProtocol().handle(packet.packet, session);
         }
     }
 }

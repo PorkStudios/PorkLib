@@ -17,6 +17,7 @@ dependencies {
     provided "com.badlogicgames.gdx:gdx:1.9.8"
 
     compile "com.github.czyzby:gdx-websocket:1.9.1.9.6"
+
     compile "org.java-websocket:Java-WebSocket:1.3.9"
     compile project(":crypto")
 }

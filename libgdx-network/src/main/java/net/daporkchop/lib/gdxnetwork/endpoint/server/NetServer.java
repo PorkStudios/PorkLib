@@ -112,13 +112,15 @@ public class NetServer extends WebSocketServer implements Endpoint {
 
     @Override
     public void onMessage(WebSocket conn, ByteBuffer message) {
+        //System.out.printf("Received message: %s\n", Hexadecimal.encode(message.array()));
+
         try {
             Session session = this.sessions.get(conn);
             InputStream is = new ByteBufferInputStream(message);
             is = session.getCryptHelper().wrap(is);
             DataIn dataIn = new DataIn(is);
             Packet packet = EncapsulatedProtocol.INSTANCE.getPacket(is.read());
-            packet.decode(dataIn);
+            packet.decode(dataIn, this.packetProtocol);
             dataIn.close();
 
             EncapsulatedProtocol.INSTANCE.handle(packet, session);

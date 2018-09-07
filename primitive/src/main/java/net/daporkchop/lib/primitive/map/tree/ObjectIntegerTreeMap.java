@@ -31,7 +31,7 @@ import lombok.*;
  * A tree map, using a key type of K and a value type of int.
  * This works similarly to a hash map, except rather than storing indexes in a giant array that's indexed by hash,
  * it stores indexes in a 4-dimensional array of hashes which in turn point to the index in the main array.
- * Although this map 𝙒𝙊𝙍𝙆𝙎, it's not really particularly optimized. I'd advise using {@link net.daporkchop.lib.primitive.map.tree.index.ObjectIntegerIndexedTreeMap},
+ * Although this map WORKS, it's not really particularly optimized. I'd advise using {@link net.daporkchop.lib.primitive.map.tree.index.ObjectIntegerIndexedTreeMap},
  * as it works in nearly the same manner without being nearly as memory-inefficient.
  * <p>
  * DO NOT EDIT BY HAND! THIS FILE IS SCRIPT-GENERATED!

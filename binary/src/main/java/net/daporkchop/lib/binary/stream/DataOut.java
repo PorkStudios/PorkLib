@@ -21,7 +21,6 @@ import net.daporkchop.lib.binary.UTF8;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.UUID;
 
 /**
  * @author DaPorkchop_
@@ -119,16 +118,6 @@ public class DataOut extends OutputStream {
             this.writeInt(b.length);
             this.write(b);
         }
-    }
-
-    /**
-     * Writes a UUID to the buffer
-     *
-     * @param uuid a UUID
-     */
-    public void writeUUID(@NonNull UUID uuid) throws IOException {
-        this.writeLong(uuid.getMostSignificantBits());
-        this.writeLong(uuid.getLeastSignificantBits());
     }
 
     /**

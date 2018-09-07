@@ -13,41 +13,38 @@
  *
  */
 
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
+    }
+}
+
 plugins {
     id 'java'
     id 'io.franzbecker.gradle-lombok' version '1.14' apply false
     id 'maven-publish'
-}
-
-group 'net.daporkchop.lib'
-version '${porklibVersion}'
-
-apply plugin: 'java'
-
-sourceCompatibility = 1.8
-
-repositories {
-    mavenLocal()
-    mavenCentral()
-    maven {
-        name = "DaPorkchop_"
-        url = "https://maven.daporkchop.net/"
-    }
+    id 'com.github.johnrengelman.shadow' version '2.0.4' apply false
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+    for (Project prj : project.allprojects) {
+        if (!"root".equalsIgnoreCase(prj.name)) {
+            compile project(":" + prj.name)
+        }
+    }
 }
 
 allprojects {
-    project.ext.set("porklibVersion", "0.2.0")
-
     apply plugin: 'java'
     apply plugin: 'io.franzbecker.gradle-lombok'
     apply plugin: 'maven-publish'
+    apply plugin: 'com.github.johnrengelman.shadow'
 
     group 'net.daporkchop.lib'
-    version '${porklibVersion}'
+    version '0.2.0'
 
     sourceCompatibility = 1.8
 
@@ -58,6 +55,14 @@ allprojects {
             name = "DaPorkchop_"
             url = "https://maven.daporkchop.net/"
         }
+    }
+
+    jar {
+        from project.sourceSets.main.output
+        from(project.sourceSets.main.allSource) {
+            include '**/*.xml'
+        }
+        baseName = archivesBaseName
     }
 
     configurations {
@@ -75,26 +80,27 @@ allprojects {
     }
 
     task sourceJar(type: Jar) {
-        from sourceSets.main.allJava
+        from sourceSets.main.allSource
     }
 
     publishing {
         publications {
             maven(MavenPublication) {
                 groupId = 'net.daporkchop.lib'
-                artifactId = project.name
-                version = project.porklibVersion
+                artifactId = "root".equalsIgnoreCase(project.name) ? "full" : project.name
+                version = project.version
 
                 from components.java
 
                 artifact sourceJar {
                     classifier "sources"
                 }
+                artifact shadowJar {
+                    classifier "full"
+                }
             }
         }
     }
 
-    if (!"root".equalsIgnoreCase(project.name)) {
-        build.dependsOn(publishToMavenLocal)
-    }
+    build.dependsOn(publishToMavenLocal)
 }

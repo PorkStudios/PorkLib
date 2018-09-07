@@ -20,18 +20,12 @@ import lombok.NonNull;
 import net.daporkchop.lib.gdxnetwork.endpoint.Endpoint;
 import net.daporkchop.lib.gdxnetwork.packet.Packet;
 import net.daporkchop.lib.gdxnetwork.protocol.PacketProtocol;
-import net.daporkchop.lib.gdxnetwork.util.CryptHelper;
-
-import java.net.InetSocketAddress;
 
 /**
  * @author DaPorkchop_
  */
 @Data
 public abstract class Session {
-    @NonNull
-    private final CryptHelper cryptHelper;
-
     @NonNull
     private final PacketProtocol protocol;
 
@@ -44,10 +38,6 @@ public abstract class Session {
     }
 
     public abstract void disconnect(@NonNull String reason);
-
-    public InetSocketAddress getRemoteAddress() {
-        throw new UnsupportedOperationException();
-    }
 
     public abstract boolean isConnected();
 }

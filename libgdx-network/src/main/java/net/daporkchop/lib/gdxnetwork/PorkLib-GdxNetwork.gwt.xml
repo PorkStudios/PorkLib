@@ -18,6 +18,8 @@
         "http://google-web-toolkit.googlecode.com/svn/trunk/distro-source/core/src/gwt-module.dtd">
 <module>
     <source path=""/>
+
+    <inherits name="net.daporkchop.lib.binary.PorkLib-Binary"/>
     <inherits name='com.github.czyzby.websocket.GdxWebSocket'/>
     <inherits name='com.github.czyzby.websocket.GdxWebSocketGwt'/>
 </module>

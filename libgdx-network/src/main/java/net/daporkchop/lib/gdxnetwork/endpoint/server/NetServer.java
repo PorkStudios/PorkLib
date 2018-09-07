@@ -28,8 +28,6 @@ import net.daporkchop.lib.gdxnetwork.protocol.PacketProtocol;
 import net.daporkchop.lib.gdxnetwork.protocol.encapsulated.EncapsulatedProtocol;
 import net.daporkchop.lib.gdxnetwork.protocol.encapsulated.MessagePacket;
 import net.daporkchop.lib.gdxnetwork.session.Session;
-import net.daporkchop.lib.gdxnetwork.util.CryptHelper;
-import net.daporkchop.lib.gdxnetwork.util.CryptographySettings;
 import org.java_websocket.WebSocket;
 import org.java_websocket.framing.CloseFrame;
 import org.java_websocket.handshake.ClientHandshake;
@@ -47,7 +45,6 @@ import java.util.Map;
  */
 @Getter
 public class NetServer extends WebSocketServer implements Endpoint {
-    private final CryptographySettings cryptographySettings;
     private final PacketProtocol packetProtocol;
     private final Map<WebSocket, Session> sessions = new IdentityHashMap<>();
     @Setter
@@ -61,9 +58,8 @@ public class NetServer extends WebSocketServer implements Endpoint {
         }
     };
 
-    public NetServer(@NonNull InetSocketAddress address, CryptographySettings cryptographySettings, @NonNull PacketProtocol packetProtocol) {
+    public NetServer(@NonNull InetSocketAddress address, @NonNull PacketProtocol packetProtocol) {
         super(address);
-        this.cryptographySettings = cryptographySettings;
         this.packetProtocol = packetProtocol;
     }
 
@@ -90,7 +86,7 @@ public class NetServer extends WebSocketServer implements Endpoint {
 
     @Override
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
-        Session session = new SessionServer(new CryptHelper(this.cryptographySettings), this.packetProtocol, this, conn);
+        Session session = new SessionServer(this.packetProtocol, this, conn);
         this.sessions.put(conn, session);
         this.listener.onConnected(conn);
         //TODO: handshake protocol
@@ -117,7 +113,6 @@ public class NetServer extends WebSocketServer implements Endpoint {
         try {
             Session session = this.sessions.get(conn);
             InputStream is = new ByteBufferInputStream(message);
-            is = session.getCryptHelper().wrap(is);
             DataIn dataIn = new DataIn(is);
             Packet packet = EncapsulatedProtocol.INSTANCE.getPacket(is.read());
             packet.decode(dataIn, this.packetProtocol);

@@ -21,7 +21,6 @@ import net.daporkchop.lib.binary.UTF8;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.UUID;
 
 /**
  * @author DaPorkchop_
@@ -119,15 +118,6 @@ public class DataIn extends InputStream {
         } else {
             return null;
         }
-    }
-
-    /**
-     * Reads a UUID from the buffer
-     *
-     * @return a UUID
-     */
-    public UUID readUUID() throws IOException {
-        return new UUID(this.readLong(), this.readLong());
     }
 
     /**

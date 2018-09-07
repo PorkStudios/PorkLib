@@ -20,9 +20,6 @@ import net.daporkchop.lib.gdxnetwork.endpoint.Endpoint;
 import net.daporkchop.lib.gdxnetwork.packet.Packet;
 import net.daporkchop.lib.gdxnetwork.protocol.PacketProtocol;
 import net.daporkchop.lib.gdxnetwork.session.Session;
-import net.daporkchop.lib.gdxnetwork.util.CryptHelper;
-
-import java.net.InetSocketAddress;
 
 /**
  * @author DaPorkchop_
@@ -30,8 +27,8 @@ import java.net.InetSocketAddress;
 public class SessionClient extends Session {
     private final NetClient client;
 
-    public SessionClient(CryptHelper cryptHelper, PacketProtocol protocol, @NonNull NetClient client) {
-        super(cryptHelper, protocol);
+    public SessionClient(PacketProtocol protocol, @NonNull NetClient client) {
+        super(protocol);
         this.client = client;
     }
 
@@ -52,11 +49,6 @@ public class SessionClient extends Session {
         if (this.client.isRunning()) {
             this.client.close(reason);
         }
-    }
-
-    @Override
-    public InetSocketAddress getRemoteAddress() {
-        throw new UnsupportedOperationException();
     }
 
     @Override

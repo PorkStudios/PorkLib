@@ -15,13 +15,12 @@
 
 package net.daporkchop.lib.gdxnetwork.protocol;
 
+import com.badlogic.gdx.utils.ObjectMap;
 import lombok.Data;
 import lombok.NonNull;
 import net.daporkchop.lib.gdxnetwork.packet.Packet;
 import net.daporkchop.lib.gdxnetwork.session.Session;
 
-import java.util.Hashtable;
-import java.util.Map;
 import java.util.function.Supplier;
 
 /**
@@ -29,7 +28,7 @@ import java.util.function.Supplier;
  */
 @Data
 public abstract class PacketProtocol {
-    private final Map<Integer, RegisteredPacket<?>> registeredPackets = new Hashtable<>();
+    private final ObjectMap<Integer, RegisteredPacket<?>> registeredPackets = new ObjectMap<>();
 
     @NonNull
     private final String name;
@@ -39,7 +38,7 @@ public abstract class PacketProtocol {
         Packet packet = supplier.get();
         Integer id = packet.getId();
         if (this.registeredPackets.containsKey(id)) {
-            throw new IllegalArgumentException(String.format("Packet %d already registered!", id));
+            throw new IllegalArgumentException("Packet " + id + " already registered!");
         }
         this.registeredPackets.put(id, new RegisteredPacket<>(supplier, handler));
     }

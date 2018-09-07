@@ -27,7 +27,6 @@ public class ChatTest {
     public static void main(String... args) {
         NetServer server = new NetServer(
                 new InetSocketAddress("0.0.0.0", 12345),
-                null,
                 new ChatProtocol()
         );
         server.run();

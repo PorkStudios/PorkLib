@@ -33,13 +33,11 @@ import net.daporkchop.lib.gdxnetwork.protocol.encapsulated.EncapsulatedPacket;
 import net.daporkchop.lib.gdxnetwork.protocol.encapsulated.EncapsulatedProtocol;
 import net.daporkchop.lib.gdxnetwork.protocol.encapsulated.WrappedPacket;
 import net.daporkchop.lib.gdxnetwork.session.Session;
-import net.daporkchop.lib.gdxnetwork.util.CryptHelper;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -66,10 +64,6 @@ public class NetClient implements Endpoint {
         return EndpointType.CLIENT;
     }
 
-    public void start(@NonNull InetSocketAddress address) {
-        this.start(address.getHostName(), (short) address.getPort(), false);
-    }
-
     public void start(String host, short portIn, boolean wss) {
         int port = portIn & 0xFFFF;
         if (wss) {
@@ -85,10 +79,10 @@ public class NetClient implements Endpoint {
         this.addListeners();
 
         try {
-            this.session = new SessionClient(new CryptHelper(null), this.packetProtocol, this);
+            this.session = new SessionClient(this.packetProtocol, this);
             this.webSocket.connect();
         } catch (WebSocketException e) {
-            throw new RuntimeException(String.format("Unable to connect to websocket on %s://%s:%d", wss ? "wss" : "ws", host, port), e);
+            throw new RuntimeException("Unable to connect to websocket on " + (wss ? "wss" : "ws") + "://" + host + ':' + port, e);
         }
     }
 
@@ -144,14 +138,13 @@ public class NetClient implements Endpoint {
                         Packet packet = (Packet) object;
                         ByteBuffer buffer = ByteBuffer.allocate(packet.getDataLength() + 1);
                         OutputStream os = new ByteBufferOutputStream(buffer);
-                        os = NetClient.this.session.getCryptHelper().wrap(os);
                         os = new DataOut(os);
                         os.write(packet.getId());
                         packet.encode((DataOut) os);
                         os.close();
                         return buffer.array();
                     } else {
-                        throw new IllegalArgumentException(String.format("Invalid packet class: %s", object.getClass().getCanonicalName()));
+                        throw new IllegalArgumentException("Invalid packet class: " + object.getClass().getCanonicalName());
                     }
                 } catch (IOException e) {
                     throw new RuntimeException(e);
@@ -165,7 +158,6 @@ public class NetClient implements Endpoint {
 
                 try {
                     InputStream is = new ByteArrayInputStream(data);
-                    is = NetClient.this.session.getCryptHelper().wrap(is);
                     DataIn dataIn = new DataIn(is);
                     Packet packet = EncapsulatedProtocol.INSTANCE.getPacket(is.read());
                     packet.decode(dataIn, NetClient.this.packetProtocol);

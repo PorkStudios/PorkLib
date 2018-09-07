@@ -25,7 +25,6 @@ import net.daporkchop.lib.gdxnetwork.protocol.PacketProtocol;
 import net.daporkchop.lib.gdxnetwork.protocol.encapsulated.EncapsulatedPacket;
 import net.daporkchop.lib.gdxnetwork.protocol.encapsulated.WrappedPacket;
 import net.daporkchop.lib.gdxnetwork.session.Session;
-import net.daporkchop.lib.gdxnetwork.util.CryptHelper;
 import org.java_websocket.WebSocket;
 import org.java_websocket.framing.CloseFrame;
 
@@ -42,8 +41,8 @@ public class SessionServer extends Session {
     private final NetServer server;
     private final WebSocket webSocket;
 
-    public SessionServer(CryptHelper cryptHelper, PacketProtocol protocol, @NonNull NetServer server, @NonNull WebSocket webSocket) {
-        super(cryptHelper, protocol);
+    public SessionServer(PacketProtocol protocol, @NonNull NetServer server, @NonNull WebSocket webSocket) {
+        super(protocol);
         this.server = server;
         this.webSocket = webSocket;
     }
@@ -61,7 +60,6 @@ public class SessionServer extends Session {
             }
             ByteBuffer buffer = ByteBuffer.allocate(packet.getDataLength() + 1);
             OutputStream os = new ByteBufferOutputStream(buffer);
-            os = this.getCryptHelper().wrap(os);
             os.write(packet.getId());
             DataOut dataOut = new DataOut(os);
             packet.encode(dataOut);
@@ -72,7 +70,6 @@ public class SessionServer extends Session {
         }
     }
 
-    @Override
     public InetSocketAddress getRemoteAddress() {
         return this.webSocket.getRemoteSocketAddress();
     }

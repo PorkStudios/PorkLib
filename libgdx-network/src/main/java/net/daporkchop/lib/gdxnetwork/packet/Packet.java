@@ -18,6 +18,7 @@ package net.daporkchop.lib.gdxnetwork.packet;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.gdxnetwork.protocol.PacketProtocol;
 
 import java.io.IOException;
 
@@ -29,8 +30,9 @@ public interface Packet {
      * Decodes this packet
      *
      * @param in the input data
+     * @param protocol
      */
-    void decode(@NonNull DataIn in) throws IOException;
+    void decode(@NonNull DataIn in, PacketProtocol protocol) throws IOException;
 
     /**
      * Encodes this packet

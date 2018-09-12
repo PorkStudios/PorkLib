@@ -13,10 +13,42 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.api.exception;
+package net.daporkchop.lib.minecraft.api.endpoint;
+
+import lombok.NonNull;
+import net.daporkchop.lib.minecraft.api.MinecraftProtocolHolder;
+
+import java.net.InetSocketAddress;
 
 /**
  * @author DaPorkchop_
  */
-public class AlreadyClosedException extends IllegalStateException {
+public interface MinecraftEndpoint extends MinecraftProtocolHolder {
+    /**
+     * Checks if this client is running (connected to a server)
+     *
+     * @return whether or not this client is running
+     */
+    boolean isRunning();
+
+    /**
+     * Disconnects from the server/stops the client
+     */
+    default void stop() {
+        this.stop(null);
+    }
+
+    /**
+     * Disconnects from the server/stops the client
+     *
+     * @param reason The reason for disconnection
+     */
+    void stop(String reason);
+
+    /**
+     * Connects to a server at the given address/binds the server to a given address
+     *
+     * @param address the address to connect/bind to
+     */
+    void start(@NonNull InetSocketAddress address);
 }

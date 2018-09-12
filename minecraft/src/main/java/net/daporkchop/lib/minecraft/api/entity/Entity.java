@@ -13,25 +13,13 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.common;
+package net.daporkchop.lib.minecraft.api.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NonNull;
-import net.daporkchop.lib.minecraft.api.PorkClient;
-import net.daporkchop.lib.minecraft.api.PorkSession;
-import net.daporkchop.lib.minecraft.data.Protocol;
-
-import java.util.concurrent.atomic.AtomicBoolean;
+import net.daporkchop.lib.minecraft.api.util.Identifiable;
+import net.daporkchop.lib.minecraft.api.util.PositionHolderD;
 
 /**
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-@Getter
-public abstract class BaseClient implements PorkClient {
-    protected transient final AtomicBoolean connected = new AtomicBoolean(false);
-    @NonNull
-    private final Protocol protocol;
-    private transient final PorkSession session = null;
+public interface Entity extends Identifiable, PositionHolderD {
 }

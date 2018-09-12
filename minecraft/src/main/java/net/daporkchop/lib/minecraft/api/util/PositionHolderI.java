@@ -13,55 +13,34 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.api;
+package net.daporkchop.lib.minecraft.api.util;
 
-import net.daporkchop.lib.minecraft.data.Platform;
-import net.daporkchop.lib.minecraft.data.Protocol;
-import net.daporkchop.lib.primitive.map.LongObjectMap;
+import lombok.NonNull;
+import net.daporkchop.lib.math.vector.i.Vec3i;
 
 /**
  * @author DaPorkchop_
  */
-public interface PorkServer {
-    /**
-     * Stops the server, disconnecting all players and closing any additional resources related to it
-     */
-    void stop();
-
-    /**
-     * Checks if the server is currently online and accepting connections
-     *
-     * @return if the server is running
-     */
-    boolean isRunning();
-
-    /**
-     * Binds to the given port and start listening for connections
-     *
-     * @param port
-     */
-    void bind(short port);
-
-    /**
-     * Gets all players currently connected to the server
-     *
-     * @return a collection of all currently connected players
-     */
-    LongObjectMap<PorkSession> getPlayers();
-
-    /**
-     * Gets this player's network protocol version
-     *
-     * @return this player's network protocol version
-     */
-    Protocol getProtocol();
-
-    /**
-     * Gets this player's minecraft platform
-     *
-     * @return this player's minecraft platform
-     */
-    default Platform getPlatform() {
-        return this.getProtocol().getPlatform();
+public interface PositionHolderI {
+    default Vec3i getPos() {
+        return new Vec3i(this.getX(), this.getY(), this.getZ());
     }
+
+    default void setPos(@NonNull Vec3i pos) {
+        this.setX(pos.getX());
+        this.setY(pos.getY());
+        this.setZ(pos.getZ());
+    }
+
+    int getX();
+
+    void setX(int x);
+
+    int getY();
+
+    void setY(int y);
+
+    int getZ();
+
+    void setZ(int z);
 }

@@ -13,34 +13,18 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.bedrock.client;
+package net.daporkchop.lib.minecraft.api.session;
 
-import io.gomint.jraknet.Socket;
-import io.gomint.jraknet.SocketEvent;
-import io.gomint.jraknet.SocketEventHandler;
-import lombok.AllArgsConstructor;
 import lombok.NonNull;
-
-import java.util.concurrent.CompletableFuture;
+import net.daporkchop.lib.minecraft.api.protocol.Packet;
 
 /**
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-public class ClientEventHandler implements SocketEventHandler {
-    @NonNull
-    private final BedrockClient client;
+public interface SessionHandler {
+    void connected(@NonNull MinecraftSession session);
 
-    @Override
-    public void onSocketEvent(Socket socket, SocketEvent event) {
-        switch (event.getType()) {
-            case UNCONNECTED_PONG: {
-                CompletableFuture<SocketEvent.PingPongInfo> future = this.client.queuedPings.remove(event.getPingPongInfo().getAddress());
-                if (future != null) {
-                    future.complete(event.getPingPongInfo());
-                }
-            }
-            break;
-        }
-    }
+    void disconnected(@NonNull MinecraftSession session, String reason);
+
+    void onReceived(@NonNull Packet packet);
 }

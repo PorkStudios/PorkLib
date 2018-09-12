@@ -13,21 +13,13 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.api.exception;
+package net.daporkchop.lib.minecraft.api.protocol;
 
 import lombok.NonNull;
-
-import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-public class BindException extends IllegalStateException {
-    public BindException(String message, @NonNull IOException cause) {
-        super(message, cause);
-    }
-
-    public BindException(@NonNull IOException cause) {
-        super(cause);
-    }
+public interface PacketTransmitter {
+    void sendPacket(@NonNull Packet packet);
 }

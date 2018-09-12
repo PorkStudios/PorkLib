@@ -27,12 +27,15 @@ import lombok.NonNull;
 @AllArgsConstructor
 @Getter
 public enum Protocol {
-    BE_v1_4_0(261, "1.4.0", Platform.BEDROCK),
+    BE_v1_6(282, "1.6", Platform.BEDROCK),
+    BE_v1_5_3(274, "1.5.3", Platform.BEDROCK),
+    BE_v1_4_5(261, "1.4.5", Platform.BEDROCK),
     BE_v1_2_11(201, "1.2.11", Platform.BEDROCK),
     BE_v1_2_9(160, "1.2.9", Platform.BEDROCK),
     BE_v1_2_6(150, "1.2.6", Platform.BEDROCK),
     BE_v1_2_5(141, "1.2.5", Platform.BEDROCK),
     BE_v1_2_3(137, "1.2.3", Platform.BEDROCK),
+    JE_v1_13(393, "1.13", Platform.JAVA),
     JE_v1_12_2(340, "1.12.2", Platform.JAVA),
     JE_v1_12_1(338, "1.12.1", Platform.JAVA),
     JE_v1_12(335, "1.12", Platform.JAVA),
@@ -60,9 +63,9 @@ public enum Protocol {
     public static Protocol getLatest(@NonNull Platform platform) {
         switch (platform) {
             case BEDROCK:
-                return BE_v1_4_0;
+                return BE_v1_6;
             case JAVA:
-                return JE_v1_12_2;
+                return JE_v1_13;
         }
         throw new IllegalStateException();
     }

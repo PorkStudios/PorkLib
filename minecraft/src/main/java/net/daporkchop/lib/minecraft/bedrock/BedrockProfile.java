@@ -13,65 +13,24 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.bedrock.server;
+package net.daporkchop.lib.minecraft.bedrock;
 
-import io.gomint.jraknet.ServerSocket;
-import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.common.BaseServer;
-import net.daporkchop.lib.minecraft.data.Platform;
-import net.daporkchop.lib.minecraft.data.Protocol;
+import net.daporkchop.lib.minecraft.common.AbstractProfile;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.UUID;
 
 /**
  * @author DaPorkchop_
  */
-public class BedrockServer extends BaseServer {
-    @NonNull
-    private final ServerSocket socket;
-
-    /**
-     * This server's unique identifier
-     */
-    @Getter
-    private final UUID serverId = UUID.randomUUID();
-
-    public BedrockServer() {
-        this(Integer.MAX_VALUE);
+public class BedrockProfile extends AbstractProfile {
+    @Deprecated
+    public BedrockProfile(@NonNull String name, @NonNull UUID uniqueId) {
+        super(name, uniqueId);
     }
 
-    public BedrockServer(int maxPlayers) {
-        super(Protocol.getLatest(Platform.BEDROCK), maxPlayers);
-
-        this.socket = new ServerSocket(maxPlayers);
-        this.socket.setMojangModificationEnabled(true);
-        this.socket.setEventHandler(new ServerEventHandler(this));
-    }
-
-    @Override
-    public Platform getPlatform() {
-        return Platform.BEDROCK;
-    }
-
-    @Override
-    public void stop() {
-        this.socket.close();
-    }
-
-    @Override
-    public boolean isRunning() {
-        return this.socket.isInitialized();
-    }
-
-    @Override
-    public void bind(short port) {
-        try {
-            this.socket.bind(new InetSocketAddress("0.0.0.0", port & 0xFFFF));
-        } catch (IOException e) {
-            throw new IllegalStateException("Could not bind to port " + (port & 0xFFFF), e);
-        }
+    public BedrockProfile(@NonNull String username, @NonNull String password) {
+        super(null, null);
+        //TODO: XBL login
     }
 }

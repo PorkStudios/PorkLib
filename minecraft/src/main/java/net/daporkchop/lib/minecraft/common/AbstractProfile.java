@@ -13,19 +13,21 @@
  *
  */
 
-package bedrock;
+package net.daporkchop.lib.minecraft.common;
 
-import net.daporkchop.lib.minecraft.util.ping.BedrockPing;
-import org.junit.Test;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import net.daporkchop.lib.minecraft.api.MinecraftProfile;
 
-import java.net.InetSocketAddress;
+import java.util.UUID;
 
 /**
  * @author DaPorkchop_
  */
-public class BedrockPingTest {
-    @Test
-    public void test() {
-        System.out.println(BedrockPing.ping(new InetSocketAddress("play.2p2e.net", 19132)));
-    }
+@AllArgsConstructor
+public class AbstractProfile implements MinecraftProfile {
+    @Getter
+    protected String name;
+    @Getter
+    protected UUID uniqueId;
 }

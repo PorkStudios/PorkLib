@@ -13,67 +13,25 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.api;
+package net.daporkchop.lib.minecraft.api.util;
 
-import lombok.NonNull;
-import net.daporkchop.lib.minecraft.data.Platform;
-import net.daporkchop.lib.minecraft.data.Protocol;
-
-import java.net.InetSocketAddress;
+import java.util.UUID;
 
 /**
  * @author DaPorkchop_
  */
-public interface PorkClient {
+public interface Identifiable {
     /**
-     * Checks if this client is running (connected to a server)
+     * Gets this player's name
      *
-     * @return whether or not this client is running
+     * @return this player's username (name tag)
      */
-    boolean isRunning();
+    String getName();
 
     /**
-     * Disconnects from the server
+     * Gets this player's UUID
      *
-     * @throws net.daporkchop.lib.minecraft.api.exception.AlreadyClosedException if not connected
+     * @return this player's unique identifier
      */
-    void disconnect();
-
-    /**
-     * Connects to a server at the given address
-     *
-     * @param address the address to connect to
-     */
-    void connect(@NonNull InetSocketAddress address);
-
-    /**
-     * Gets this client's session (player)
-     *
-     * @return this client's sesssion
-     */
-    PorkSession getSession();
-
-    /**
-     * Gets this player's network protocol version
-     *
-     * @return this player's network protocol version
-     */
-    Protocol getProtocol();
-
-    /**
-     * Pings a server
-     *
-     * @param address the server's address
-     * @return a {@link PingData} if the server could be pinged, null otherwise
-     */
-    PingData ping(@NonNull InetSocketAddress address);
-
-    /**
-     * Gets this player's minecraft platform
-     *
-     * @return this player's minecraft platform
-     */
-    default Platform getPlatform() {
-        return this.getProtocol().getPlatform();
-    }
+    UUID getUniqueId();
 }

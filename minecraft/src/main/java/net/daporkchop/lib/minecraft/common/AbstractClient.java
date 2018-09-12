@@ -13,43 +13,24 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.bedrock.server;
+package net.daporkchop.lib.minecraft.common;
 
-import io.gomint.jraknet.Socket;
-import io.gomint.jraknet.SocketEvent;
-import io.gomint.jraknet.SocketEventHandler;
-import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.minecraft.api.MinecraftProfile;
+import net.daporkchop.lib.minecraft.api.endpoint.MinecraftClient;
+import net.daporkchop.lib.minecraft.api.entity.EntityPlayer;
 
 /**
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-public class ServerEventHandler implements SocketEventHandler {
+@RequiredArgsConstructor
+public abstract class AbstractClient implements MinecraftClient {
     @NonNull
-    private final BedrockServer server;
+    @Getter
+    protected final MinecraftProfile profile;
 
-    @Override
-    public void onSocketEvent(Socket socket, SocketEvent event) {
-        switch (event.getType()) {
-            case UNCONNECTED_PING: {
-                StringBuilder motdBuilder = new StringBuilder();
-                motdBuilder.append("MCPE;");
-                motdBuilder.append(server.getMotd());
-                motdBuilder.append(';');
-                motdBuilder.append(server.getProtocol().getNetworkVersion());
-                motdBuilder.append(';');
-                motdBuilder.append(server.getProtocol().getVersionName());
-                motdBuilder.append(';');
-                motdBuilder.append(server.getPlayers().getSize());
-                motdBuilder.append(';');
-                motdBuilder.append(server.getMaxPlayers());
-                motdBuilder.append(';');
-                motdBuilder.append(server.getServerId().toString());
-                motdBuilder.append(";PorkLib;Survival;");
-                event.getPingPongInfo().setMotd(motdBuilder.toString());
-            }
-            break;
-        }
-    }
+    @Getter
+    protected EntityPlayer player;
 }

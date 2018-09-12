@@ -13,37 +13,13 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.common;
+package net.daporkchop.lib.minecraft.api.protocol;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import net.daporkchop.lib.minecraft.api.PorkServer;
-import net.daporkchop.lib.minecraft.api.PorkSession;
-import net.daporkchop.lib.minecraft.data.Protocol;
-import net.daporkchop.lib.primitive.map.LongObjectMap;
-import net.daporkchop.lib.primitive.map.concurrent.LongObjectConcurrentTreeHashMap;
+import net.daporkchop.lib.minecraft.api.MinecraftProtocolHolder;
 
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-public abstract class BaseServer implements PorkServer {
-    @NonNull
-    private final Protocol protocol;
-    /**
-     * The maximum number of players that can be connected to this server at any given time
-     */
-    private final int maxPlayers;
-    private final LongObjectMap<PorkSession> players = new LongObjectConcurrentTreeHashMap<>();
-    /**
-     * This server's current MOTD (message of the day)
-     * <p>
-     * Shown in the server list
-     */
-    @NonNull
-    @Setter
-    private String motd = "A Minecraft server";
+public interface Packet extends MinecraftProtocolHolder {
+    int getId();
 }

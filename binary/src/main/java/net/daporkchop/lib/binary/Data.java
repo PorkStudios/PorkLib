@@ -13,46 +13,19 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.api;
+package net.daporkchop.lib.binary;
 
-import net.daporkchop.lib.minecraft.data.Platform;
-import net.daporkchop.lib.minecraft.data.Protocol;
+import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
 
-import java.util.UUID;
+import java.io.IOException;
 
 /**
- * A basic representation of a player
- *
  * @author DaPorkchop_
  */
-public interface PorkSession {
-    /**
-     * Gets this player's name
-     *
-     * @return this player's username (name tag)
-     */
-    String getName();
+public interface Data {
+    void read(@NonNull DataIn in) throws IOException;
 
-    /**
-     * Gets this player's UUID
-     *
-     * @return this player's unique identifier
-     */
-    UUID getUniqueId();
-
-    /**
-     * Gets this player's network protocol version
-     *
-     * @return this player's network protocol version
-     */
-    Protocol getProtocol();
-
-    /**
-     * Gets this player's minecraft platform
-     *
-     * @return this player's minecraft platform
-     */
-    default Platform getPlatform() {
-        return this.getProtocol().getPlatform();
-    }
+    void write(@NonNull DataOut out) throws IOException;
 }

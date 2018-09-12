@@ -13,10 +13,34 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.api.exception;
+package net.daporkchop.lib.minecraft.api.util;
+
+import lombok.NonNull;
+import net.daporkchop.lib.math.vector.d.Vec3d;
 
 /**
  * @author DaPorkchop_
  */
-public class AlreadyConnectedException extends IllegalStateException {
+public interface PositionHolderD {
+    default Vec3d getPos() {
+        return new Vec3d(this.getX(), this.getY(), this.getZ());
+    }
+
+    default void setPos(@NonNull Vec3d pos) {
+        this.setX(pos.getX());
+        this.setY(pos.getY());
+        this.setZ(pos.getZ());
+    }
+
+    double getX();
+
+    void setX(double x);
+
+    double getY();
+
+    void setY(double y);
+
+    double getZ();
+
+    void setZ(double z);
 }

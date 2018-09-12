@@ -13,16 +13,17 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.api.exception;
+package net.daporkchop.lib.minecraft.api.entity;
 
-import lombok.NonNull;
-import net.daporkchop.lib.minecraft.data.Protocol;
+import net.daporkchop.lib.minecraft.api.MinecraftProfile;
 
 /**
  * @author DaPorkchop_
  */
-public class IllegalProtocolException extends IllegalStateException {
-    public IllegalProtocolException(@NonNull Protocol version) {
-        super(version.name() + " (network version: " + version.getNetworkVersion() + ")");
+public interface EntityPlayer extends Entity {
+    default String getDisplayName() {
+        return this.getName();
     }
+
+    MinecraftProfile getProfile();
 }

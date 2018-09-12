@@ -13,19 +13,12 @@
  *
  */
 
-package bedrock;
+package net.daporkchop.lib.minecraft.api;
 
-import net.daporkchop.lib.minecraft.util.ping.BedrockPing;
-import org.junit.Test;
-
-import java.net.InetSocketAddress;
+import net.daporkchop.lib.minecraft.api.util.Identifiable;
 
 /**
  * @author DaPorkchop_
  */
-public class BedrockPingTest {
-    @Test
-    public void test() {
-        System.out.println(BedrockPing.ping(new InetSocketAddress("play.2p2e.net", 19132)));
-    }
+public interface MinecraftProfile extends Identifiable {
 }

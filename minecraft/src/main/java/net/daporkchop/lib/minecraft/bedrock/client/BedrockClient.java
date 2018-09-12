@@ -16,109 +16,84 @@
 package net.daporkchop.lib.minecraft.bedrock.client;
 
 import io.gomint.jraknet.ClientSocket;
-import io.gomint.jraknet.SocketEvent;
 import lombok.NonNull;
 import net.daporkchop.lib.minecraft.api.PingData;
-import net.daporkchop.lib.minecraft.api.exception.AlreadyClosedException;
-import net.daporkchop.lib.minecraft.api.exception.AlreadyConnectedException;
-import net.daporkchop.lib.minecraft.api.exception.IllegalProtocolException;
-import net.daporkchop.lib.minecraft.common.BaseClient;
+import net.daporkchop.lib.minecraft.api.protocol.Packet;
+import net.daporkchop.lib.minecraft.api.session.SessionHandler;
+import net.daporkchop.lib.minecraft.bedrock.BedrockProfile;
+import net.daporkchop.lib.minecraft.common.AbstractClient;
 import net.daporkchop.lib.minecraft.data.Platform;
 import net.daporkchop.lib.minecraft.data.Protocol;
+import net.daporkchop.lib.minecraft.util.ping.BedrockPing;
 
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.net.SocketException;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * @author DaPorkchop_
  */
-public class BedrockClient extends BaseClient {
-    @NonNull
-    private final ClientSocket socket;
+public class BedrockClient extends AbstractClient {
+    private final ClientSocket socket = new ClientSocket();
 
-    final Map<SocketAddress, CompletableFuture<SocketEvent.PingPongInfo>> queuedPings = new ConcurrentHashMap<>();
+    public BedrockClient(BedrockProfile profile, @NonNull SessionHandler sessionHandler) {
+        super(profile);
 
-    public BedrockClient(Protocol protocol) {
-        super(protocol);
-        if (protocol.getPlatform() != this.getPlatform()) {
-            throw new IllegalProtocolException(protocol);
-        }
-
-        this.socket = new ClientSocket();
-        this.socket.setMojangModificationEnabled(true);
-        this.socket.setEventHandler(new ClientEventHandler(this));
         try {
+            this.socket.setMojangModificationEnabled(true);
+            this.socket.setEventHandler((socket, event) -> {
+                String reason = event.getReason();
+                switch (event.getType()) {
+                    case CONNECTION_ATTEMPT_SUCCEEDED: {
+                        sessionHandler.connected(BedrockClient.this);
+                    }
+                    break;
+                    case CONNECTION_ATTEMPT_FAILED:
+                    case CONNECTION_DISCONNECTED:
+                    case CONNECTION_CLOSED: {
+                        sessionHandler.disconnected(BedrockClient.this, reason);
+                    }
+                    break;
+                }
+            });
             this.socket.initialize();
         } catch (SocketException e) {
-            throw new IllegalStateException(e);
+            throw new RuntimeException(e);
         }
     }
 
     @Override
-    public Platform getPlatform() {
-        return Platform.BEDROCK;
+    public void sendPacket(@NonNull Packet packet) {
+        //TODO: encoding and whatnot lol
+    }
+
+    @Override
+    public PingData ping(@NonNull InetSocketAddress address) {
+        return BedrockPing.ping(address);
     }
 
     @Override
     public boolean isRunning() {
-        synchronized (this.connected) {
-            return this.connected.get();
-        }
+        return this.socket.getConnection() != null && this.socket.getConnection().isConnected();
     }
 
     @Override
-    public void disconnect() {
-        synchronized (this.connected)   {
-            if (!this.isRunning() && !this.socket.isInitialized())  {
-                throw new AlreadyClosedException();
-            }
-            this.connected.set(false);
-            this.socket.close();
+    public void stop(String reason) {
+        if (!this.isRunning()) {
+            throw new IllegalStateException("Already closed!");
         }
+        this.socket.getConnection().disconnect(reason);
     }
 
     @Override
-    public void connect(@NonNull InetSocketAddress address) {
-        synchronized (this.connected)   {
-            if (this.isRunning())   {
-                throw new AlreadyConnectedException();
-            }
-            this.socket.connect(address);
+    public void start(InetSocketAddress address) {
+        if (this.isRunning()) {
+            throw new IllegalStateException("Already running!");
         }
+        this.socket.connect(address);
     }
 
     @Override
-    public synchronized PingData ping(@NonNull InetSocketAddress address) {
-        CompletableFuture<SocketEvent.PingPongInfo> future;
-        synchronized (this.queuedPings) {
-            if (this.queuedPings.containsKey(address)) {
-                throw new IllegalStateException("Ping already queued for address: " + address.toString());
-            }
-            future = new CompletableFuture<>();
-            this.queuedPings.put(address, future);
-        }
-        this.socket.ping(address);
-        try {
-            SocketEvent.PingPongInfo info = future.get(10L, TimeUnit.SECONDS);
-            String[] split = info.getMotd().split(";");
-            System.out.println(info.getMotd());
-            if (split.length != 9 || !"MCPE".equals(split[0])) {
-                throw new IllegalStateException("Invalid MOTD: " + info.getMotd() + "(semicolon count:" + (split.length - 1) + ")");
-            }
-            int protocol = Integer.parseInt(split[2]), online = Integer.parseInt(split[4]), max = Integer.parseInt(split[5]);
-            return new PingData(split[1], protocol, Protocol.getByNetworkVersion(protocol, Platform.BEDROCK), info.getPingTime(), online, max);
-        } catch (TimeoutException e)    {
-            return null;
-        } catch (Throwable t)   {
-            throw new IllegalStateException(t);
-        } finally {
-            this.queuedPings.remove(address);
-        }
+    public Protocol getProtocol() {
+        return Protocol.getLatest(Platform.BEDROCK);
     }
 }

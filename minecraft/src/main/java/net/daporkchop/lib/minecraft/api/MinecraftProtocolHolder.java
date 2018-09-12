@@ -13,19 +13,28 @@
  *
  */
 
-package bedrock;
+package net.daporkchop.lib.minecraft.api;
 
-import net.daporkchop.lib.minecraft.util.ping.BedrockPing;
-import org.junit.Test;
-
-import java.net.InetSocketAddress;
+import net.daporkchop.lib.minecraft.data.Platform;
+import net.daporkchop.lib.minecraft.data.Protocol;
 
 /**
  * @author DaPorkchop_
  */
-public class BedrockPingTest {
-    @Test
-    public void test() {
-        System.out.println(BedrockPing.ping(new InetSocketAddress("play.2p2e.net", 19132)));
+public interface MinecraftProtocolHolder {
+    /**
+     * Gets this holder's network protocol version
+     *
+     * @return this holder's network protocol version
+     */
+    Protocol getProtocol();
+
+    /**
+     * Gets this holder's minecraft platform
+     *
+     * @return this holder's minecraft platform
+     */
+    default Platform getPlatform() {
+        return this.getProtocol().getPlatform();
     }
 }

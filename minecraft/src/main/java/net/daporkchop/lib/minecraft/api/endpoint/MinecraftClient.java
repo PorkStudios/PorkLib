@@ -13,19 +13,24 @@
  *
  */
 
-ext {
-    soupplyVersion = "2.69.0"
-}
+package net.daporkchop.lib.minecraft.api.endpoint;
 
-dependencies {
-    compile project(":primitive") //TODO: modularize primitive so i can depend on the functions without the maps
-    compile project(":binary")
+import lombok.NonNull;
+import net.daporkchop.lib.minecraft.api.PingData;
+import net.daporkchop.lib.minecraft.api.protocol.PacketTransmitter;
+import net.daporkchop.lib.minecraft.api.session.MinecraftSession;
 
-    compile "org.apache.mina:mina-core:2.0.18"
-    compile "io.gomint:jraknet:6.0.2-SNAPSHOT"
+import java.net.InetSocketAddress;
 
-    compile "net.sf.trove4j:trove:3.1.0-SNAPSHOT"
-
-    compile "soupply:java:$soupplyVersion"
-    compile "soupply:bedrock:$soupplyVersion"
+/**
+ * @author DaPorkchop_
+ */
+public interface MinecraftClient extends MinecraftEndpoint, MinecraftSession, PacketTransmitter {
+    /**
+     * Pings a server
+     *
+     * @param address the server's address
+     * @return a {@link PingData} if the server could be pinged, null otherwise
+     */
+    PingData ping(@NonNull InetSocketAddress address);
 }

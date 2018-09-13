@@ -13,19 +13,20 @@
  *
  */
 
-ext {
-    soupplyVersion = "2.69.0"
-}
+package net.daporkchop.lib.minecraft.api.session;
 
-dependencies {
-    compile project(":primitive") //TODO: modularize primitive so i can depend on the functions without the maps
-    compile project(":binary")
+import net.daporkchop.lib.minecraft.api.MinecraftProfile;
+import net.daporkchop.lib.minecraft.api.MinecraftProtocolHolder;
+import net.daporkchop.lib.minecraft.api.entity.EntityPlayer;
+import net.daporkchop.lib.minecraft.api.protocol.PacketTransmitter;
 
-    compile "org.apache.mina:mina-core:2.0.18"
-    compile "io.gomint:jraknet:6.0.2-SNAPSHOT"
+/**
+ * A basic representation of a player
+ *
+ * @author DaPorkchop_
+ */
+public interface MinecraftSession extends MinecraftProtocolHolder, PacketTransmitter {
+    EntityPlayer getPlayer();
 
-    compile "net.sf.trove4j:trove:3.1.0-SNAPSHOT"
-
-    compile "soupply:java:$soupplyVersion"
-    compile "soupply:bedrock:$soupplyVersion"
+    MinecraftProfile getProfile();
 }

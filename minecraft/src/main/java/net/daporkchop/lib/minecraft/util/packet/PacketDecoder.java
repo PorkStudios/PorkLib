@@ -13,19 +13,13 @@
  *
  */
 
-ext {
-    soupplyVersion = "2.69.0"
-}
+package net.daporkchop.lib.minecraft.util.packet;
 
-dependencies {
-    compile project(":primitive") //TODO: modularize primitive so i can depend on the functions without the maps
-    compile project(":binary")
+import soupply.util.Packet;
 
-    compile "org.apache.mina:mina-core:2.0.18"
-    compile "io.gomint:jraknet:6.0.2-SNAPSHOT"
-
-    compile "net.sf.trove4j:trove:3.1.0-SNAPSHOT"
-
-    compile "soupply:java:$soupplyVersion"
-    compile "soupply:bedrock:$soupplyVersion"
+/**
+ * @author DaPorkchop_
+ */
+public interface PacketDecoder<SoupplyPacket extends Packet> {
+    SoupplyPacket encode()
 }

@@ -13,19 +13,19 @@
  *
  */
 
-ext {
-    soupplyVersion = "2.69.0"
-}
+package net.daporkchop.lib.minecraft.api.endpoint;
 
-dependencies {
-    compile project(":primitive") //TODO: modularize primitive so i can depend on the functions without the maps
-    compile project(":binary")
+import gnu.trove.map.TLongObjectMap;
+import net.daporkchop.lib.minecraft.api.session.MinecraftSession;
 
-    compile "org.apache.mina:mina-core:2.0.18"
-    compile "io.gomint:jraknet:6.0.2-SNAPSHOT"
-
-    compile "net.sf.trove4j:trove:3.1.0-SNAPSHOT"
-
-    compile "soupply:java:$soupplyVersion"
-    compile "soupply:bedrock:$soupplyVersion"
+/**
+ * @author DaPorkchop_
+ */
+public interface MinecraftServer extends MinecraftEndpoint {
+    /**
+     * Gets all players currently connected to the server
+     *
+     * @return a collection of all currently connected players
+     */
+    TLongObjectMap<MinecraftSession> getPlayers();
 }

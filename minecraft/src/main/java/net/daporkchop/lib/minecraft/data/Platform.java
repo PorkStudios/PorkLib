@@ -15,12 +15,21 @@
 
 package net.daporkchop.lib.minecraft.data;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import net.daporkchop.lib.minecraft.bedrock.BedrockRegistry;
+import net.daporkchop.lib.minecraft.util.packet.PacketRegistry;
+
 /**
  * All valid platforms of Minecraft (that are supported by this library)
  *
  * @author DaPorkchop_
  */
+@AllArgsConstructor
+@Getter
 public enum Platform {
-    JAVA,
-    BEDROCK
+    JAVA(), //TODO
+    BEDROCK(BedrockRegistry.INSTANCE);
+
+    private final PacketRegistry packetRegistry;
 }

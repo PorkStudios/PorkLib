@@ -18,6 +18,7 @@ package net.daporkchop.lib.minecraft.data;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
+import net.daporkchop.lib.minecraft.util.packet.PacketRegistry;
 
 /**
  * All known network protocol versions
@@ -68,5 +69,13 @@ public enum Protocol {
                 return JE_v1_13;
         }
         throw new IllegalStateException();
+    }
+
+    public boolean isLatest() {
+        return this == getLatest(this.platform);
+    }
+
+    public PacketRegistry getPacketRegistry() {
+        return this.platform.getPacketRegistry();
     }
 }

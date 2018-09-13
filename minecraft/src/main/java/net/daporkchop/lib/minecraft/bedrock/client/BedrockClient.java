@@ -34,6 +34,7 @@ import java.net.SocketException;
  */
 public class BedrockClient extends AbstractClient {
     private final ClientSocket socket = new ClientSocket();
+    private Thread receiverThread;
 
     public BedrockClient(BedrockProfile profile, @NonNull SessionHandler sessionHandler) {
         super(profile);
@@ -90,6 +91,12 @@ public class BedrockClient extends AbstractClient {
             throw new IllegalStateException("Already running!");
         }
         this.socket.connect(address);
+        new Thread(() -> {
+            ClientSocket socket = BedrockClient.this.socket;
+            while (BedrockClient.this.isRunning()) {
+
+            }
+        });
     }
 
     @Override

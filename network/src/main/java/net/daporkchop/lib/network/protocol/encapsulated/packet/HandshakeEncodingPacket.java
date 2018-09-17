@@ -78,7 +78,7 @@ public class HandshakeEncodingPacket implements EncapsulatedPacket, Encapsulated
         out.writeUTF(this.compression.name());
         out.writeUTF(this.cipherType.name());
 
-        if (this.cipherType != null)    {
+        if (this.cipherType != null && this.cipherType != BlockCipherType.NONE) {
             out.writeUTF(this.cipherMode.name());
             out.writeUTF(this.cipherPadding.name());
             out.writeBytesSimple(this.ecKey.encodePublic());

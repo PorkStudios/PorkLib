@@ -15,7 +15,6 @@
 
 package chat;
 
-import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
 import net.daporkchop.lib.encoding.compression.EnumCompression;
 import net.daporkchop.lib.network.builder.ClientBuilder;
 import net.daporkchop.lib.network.builder.ServerBuilder;
@@ -45,7 +44,7 @@ public class ChatTest {
                     .setPort(12345)
                     .setPacketProtocol(new ChatProtocol())
                     .setCompression(EnumCompression.GZIP)
-                    .setCipherType(BlockCipherType.AES)
+                    //.setCipherType(BlockCipherType.AES)
                     .setPassword("asdfaa")
                     .build();
 

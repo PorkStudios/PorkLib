@@ -13,36 +13,51 @@
  *
  */
 
-package net.daporkchop.lib.network.endpoint.server;
+package net.daporkchop.lib.network.packet;
 
 import com.esotericsoftware.kryonet.Connection;
-import com.esotericsoftware.kryonet.Server;
+import com.esotericsoftware.kryonet.KryoSerialization;
 import lombok.NonNull;
+import net.daporkchop.lib.network.conn.PorkConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
-import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
-import net.daporkchop.lib.network.packet.KryoSerializationWrapper;
 
-import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * @author DaPorkchop_
  */
-public class NetServer extends Endpoint {
-    private final Server server;
+//TODO: see if i can remove this
+public class KryoSerializationWrapper extends KryoSerialization {
+    @NonNull
+    private final Endpoint endpoint;
 
-    public NetServer(@NonNull ServerBuilder builder) {
-        super(builder.getListeners(), builder.getProtocol());
-        try {
-            this.server = new Server(16384, 2048, new KryoSerializationWrapper(this)) {
-                @Override
-                protected Connection newConnection() {
-                    return new ServerConnection(builder);
-                }
-            };
-            this.server.addListener(new KryoListenerEndpoint());
-            this.server.bind(builder.getAddress(), null);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+    private ByteBuffer writeBuffer;
+
+    public KryoSerializationWrapper(@NonNull Endpoint endpoint) {
+        super();
+
+        this.endpoint = endpoint;
+    }
+
+    @Override
+    public synchronized void write(Connection connection, ByteBuffer buffer, Object object) {
+        PorkConnection porkConnection = (PorkConnection) connection;
+        if (this.writeBuffer == null)   {
+            this.writeBuffer = ByteBuffer.allocate(buffer.capacity());
         }
+        this.writeBuffer.clear();
+        int pos = buffer.position();
+        this.writeBuffer.position(pos);
+        super.write(connection, this.writeBuffer, object);
+        byte[] b = new byte[this.writeBuffer.position() - pos];
+        buffer.put(porkConnection.getCryptHelper().encrypt(b));
+    }
+
+    @Override
+    public synchronized Object read(Connection connection, ByteBuffer buffer) {
+        PorkConnection porkConnection = (PorkConnection) connection;
+        byte[] b = new byte[buffer.remaining()];
+        buffer.get(b);
+        return super.read(connection, ByteBuffer.wrap(porkConnection.getCryptHelper().decrypt(b)));
     }
 }

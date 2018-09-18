@@ -13,28 +13,30 @@
  *
  */
 
-package net.daporkchop.lib.network.util;
+package net.daporkchop.lib.network.packet.encapsulated;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
-import net.daporkchop.lib.crypto.CryptographySettings;
+import lombok.NoArgsConstructor;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-@Getter
+@NoArgsConstructor
 @AllArgsConstructor
-public class CryptHelper {
-    @Setter
-    private CryptographySettings cryptographySettings;
+public class WrappedPacket implements EncapsulatedPacket {
+    public byte[] packetData;
 
-    public byte[] encrypt(@NonNull byte[] b) {
-        return null; //TODO
+    @Override
+    public void read(DataIn in) throws IOException {
+        this.packetData = in.readBytesSimple();
     }
 
-    public byte[] decrypt(@NonNull byte[] b) {
-        return null; //TODO
+    @Override
+    public void write(DataOut out) throws IOException {
+        out.writeBytesSimple(this.packetData);
     }
 }

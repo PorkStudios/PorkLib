@@ -13,28 +13,49 @@
  *
  */
 
-package net.daporkchop.lib.network.util;
+package net.daporkchop.lib.network.packet.encapsulated;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
-import net.daporkchop.lib.crypto.CryptographySettings;
+import net.daporkchop.lib.network.conn.Session;
+import net.daporkchop.lib.network.packet.Codec;
+import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.packet.protocol.PacketProtocol;
+
+import java.util.function.Supplier;
 
 /**
  * @author DaPorkchop_
  */
-@Getter
-@AllArgsConstructor
-public class CryptHelper {
-    @Setter
-    private CryptographySettings cryptographySettings;
+public interface EncapsulatedPacket extends Packet {
+    int ENCAPSULATED_VERSION = 2;
+    PacketProtocol PROTOCOL = new PacketProtocol("PorkLib Network", ENCAPSULATED_VERSION) {
+        @Override
+        @SuppressWarnings("unchecked")
+        protected void registerPackets(PacketRegistry registry) {
+            registry.register(
+                    new NonhandlingCodec<>(WrappedPacket::new)
+            );
+        }
 
-    public byte[] encrypt(@NonNull byte[] b) {
-        return null; //TODO
-    }
+        @Override
+        public Session newSession() {
+            return null;
+        }
 
-    public byte[] decrypt(@NonNull byte[] b) {
-        return null; //TODO
-    }
+        @AllArgsConstructor
+        final class NonhandlingCodec<P extends EncapsulatedPacket> implements Codec<P, Session> {
+            @NonNull
+            private final Supplier<P> supplier;
+
+            @Override
+            public void handle(P packet, Session session) {
+            }
+
+            @Override
+            public P newPacket() {
+                return this.supplier.get();
+            }
+        }
+    };
 }

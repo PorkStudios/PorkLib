@@ -13,28 +13,37 @@
  *
  */
 
-package net.daporkchop.lib.network.util;
+package net.daporkchop.lib.network.endpoint.server;
 
-import lombok.AllArgsConstructor;
+import com.esotericsoftware.kryonet.Connection;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
-import net.daporkchop.lib.crypto.CryptographySettings;
+import net.daporkchop.lib.network.conn.PorkConnection;
+import net.daporkchop.lib.network.conn.Session;
+import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
+import net.daporkchop.lib.network.util.CryptHelper;
 
 /**
  * @author DaPorkchop_
  */
 @Getter
-@AllArgsConstructor
-public class CryptHelper {
-    @Setter
-    private CryptographySettings cryptographySettings;
+public class ServerConnection extends Connection implements PorkConnection {
+    public final CryptHelper cryptHelper;
+    public String disconnectReason;
+    public Session session;
 
-    public byte[] encrypt(@NonNull byte[] b) {
-        return null; //TODO
+    public ServerConnection(@NonNull ServerBuilder builder) {
+        this.cryptHelper = new CryptHelper(builder.getCryptographySettings());
     }
 
-    public byte[] decrypt(@NonNull byte[] b) {
-        return null; //TODO
+    @Override
+    public Connection getNetConnection() {
+        return this;
+    }
+
+    @Override
+    public void setSession(Session session) {
+        PorkConnection.super.setSession(session);
+        this.session = session;
     }
 }

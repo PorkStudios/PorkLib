@@ -13,11 +13,37 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile project(":crypto")
-    compile project(":primitive")
+package net.daporkchop.lib.network.endpoint.server;
 
-    compile "com.esotericsoftware:kryonet:2.22.0-RC1"
+import com.esotericsoftware.kryonet.Connection;
+import lombok.Getter;
+import lombok.NonNull;
+import net.daporkchop.lib.network.conn.PorkConnection;
+import net.daporkchop.lib.network.conn.Session;
+import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
+import net.daporkchop.lib.network.util.CryptHelper;
+
+/**
+ * @author DaPorkchop_
+ */
+@Getter
+public class PorkConnectionImplServer extends Connection implements PorkConnection {
+    public final CryptHelper cryptHelper;
+    public String disconnectReason;
+    public Session session;
+
+    public PorkConnectionImplServer(@NonNull ServerBuilder builder) {
+        this.cryptHelper = new CryptHelper(builder.getCryptographySettings());
+    }
+
+    @Override
+    public Connection getNetConnection() {
+        return this;
+    }
+
+    @Override
+    public void setSession(Session session) {
+        PorkConnection.super.setSession(session);
+        this.session = session;
+    }
 }

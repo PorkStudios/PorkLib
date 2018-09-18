@@ -13,11 +13,31 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile project(":crypto")
-    compile project(":primitive")
+package net.daporkchop.lib.network.conn;
 
-    compile "com.esotericsoftware:kryonet:2.22.0-RC1"
+import lombok.AccessLevel;
+import lombok.NonNull;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.network.packet.Packet;
+
+/**
+ * @author DaPorkchop_
+ */
+@Setter(AccessLevel.PACKAGE)
+public abstract class Session {
+    @NonNull
+    private PorkConnection porkConnection;
+    
+    public void send(@NonNull Packet packet)    {
+        this.porkConnection.send(packet);
+    }
+
+    public int getPing()   {
+        return this.porkConnection.getPing();
+    }
+
+    public boolean isConnected()   {
+        return this.porkConnection.isConnected();
+    }
 }

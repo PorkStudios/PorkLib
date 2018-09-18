@@ -13,11 +13,31 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile project(":crypto")
-    compile project(":primitive")
+package net.daporkchop.lib.network.endpoint.server;
 
-    compile "com.esotericsoftware:kryonet:2.22.0-RC1"
+import com.esotericsoftware.kryonet.Connection;
+import com.esotericsoftware.kryonet.Server;
+import lombok.NonNull;
+import net.daporkchop.lib.network.endpoint.Endpoint;
+import net.daporkchop.lib.network.endpoint.EndpointListener;
+import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
+
+import java.util.Set;
+
+/**
+ * @author DaPorkchop_
+ */
+public class NetServer extends Endpoint {
+    private final Server server;
+
+    public NetServer(@NonNull ServerBuilder builder)    {
+        super(builder.getListeners(), builder.getProtocol());
+        this.server = new Server() {
+            @Override
+            protected Connection newConnection() {
+                return new PorkConnectionImplServer(builder);
+            }
+        };
+        this.server.addListener(new KryoListenerEndpoint());
+    }
 }

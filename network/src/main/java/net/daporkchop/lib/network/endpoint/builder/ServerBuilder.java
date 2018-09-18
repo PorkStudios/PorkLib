@@ -13,11 +13,27 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile project(":crypto")
-    compile project(":primitive")
+package net.daporkchop.lib.network.endpoint.builder;
 
-    compile "com.esotericsoftware:kryonet:2.22.0-RC1"
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.crypto.CryptographySettings;
+import net.daporkchop.lib.network.endpoint.server.NetServer;
+
+/**
+ * @author DaPorkchop_
+ */
+@Accessors(chain = true)
+@Getter
+@Setter
+public class ServerBuilder extends AbstractBuilder<NetServer> {
+    @NonNull
+    private CryptographySettings cryptographySettings = new CryptographySettings();
+
+    @Override
+    protected NetServer doBuild() {
+        return new NetServer(this);
+    }
 }

@@ -13,11 +13,50 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile project(":crypto")
-    compile project(":primitive")
+package net.daporkchop.lib.network.endpoint.builder;
 
-    compile "com.esotericsoftware:kryonet:2.22.0-RC1"
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.network.endpoint.EndpointListener;
+import net.daporkchop.lib.network.packet.protocol.PacketProtocol;
+
+import java.net.InetSocketAddress;
+import java.util.HashSet;
+import java.util.Set;
+
+/**
+ * @author DaPorkchop_
+ */
+@Accessors(chain = true)
+@Getter
+@Setter
+public abstract class AbstractBuilder<T> {
+    private final Set<EndpointListener> listeners = new HashSet<>();
+    @NonNull
+    private InetSocketAddress address;
+    @NonNull
+    private PacketProtocol protocol;
+
+    public final T build()  {
+        if (this.address == null)   {
+            throw new NullPointerException("address");
+        } else if (this.protocol == null)   {
+            throw new NullPointerException("protocol");
+        }
+        return this.doBuild();
+    }
+
+    protected abstract T doBuild();
+
+    public void addListener(@NonNull EndpointListener... listeners) {
+        for (EndpointListener listener : listeners) {
+            if (listener == null) {
+                throw new NullPointerException("listener");
+            }
+            this.listeners.add(listener);
+        }
+    }
 }

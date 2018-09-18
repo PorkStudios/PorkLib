@@ -13,11 +13,12 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile project(":crypto")
-    compile project(":primitive")
+package net.daporkchop.lib.network.packet;
 
-    compile "com.esotericsoftware:kryonet:2.22.0-RC1"
+import net.daporkchop.lib.binary.Data;
+
+/**
+ * @author DaPorkchop_
+ */
+public interface Packet extends Data {
 }

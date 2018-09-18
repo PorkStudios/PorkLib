@@ -18,7 +18,6 @@ package net.daporkchop.lib.network.conn;
 import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.Setter;
-import lombok.experimental.Accessors;
 import net.daporkchop.lib.network.packet.Packet;
 
 /**
@@ -28,16 +27,16 @@ import net.daporkchop.lib.network.packet.Packet;
 public abstract class Session {
     @NonNull
     private PorkConnection porkConnection;
-    
-    public void send(@NonNull Packet packet)    {
+
+    public void send(@NonNull Packet packet) {
         this.porkConnection.send(packet);
     }
 
-    public int getPing()   {
+    public int getPing() {
         return this.porkConnection.getPing();
     }
 
-    public boolean isConnected()   {
+    public boolean isConnected() {
         return this.porkConnection.isConnected();
     }
 }

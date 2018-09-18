@@ -15,8 +15,17 @@
 
 package net.daporkchop.lib.network.endpoint.client;
 
+import lombok.NonNull;
+import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
+
 /**
  * @author DaPorkchop_
  */
 public class NetClient {
+    private final KryoClientWrapper client;
+
+    public NetClient(@NonNull ClientBuilder builder)    {
+        this.client = new KryoClientWrapper();
+
+    }
 }

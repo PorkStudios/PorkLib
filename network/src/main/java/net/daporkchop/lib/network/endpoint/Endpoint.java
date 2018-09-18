@@ -15,18 +15,32 @@
 
 package net.daporkchop.lib.network.endpoint;
 
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.Serializer;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.network.conn.PorkConnection;
 import net.daporkchop.lib.network.conn.Session;
+import net.daporkchop.lib.network.packet.Codec;
 import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.packet.encapsulated.EncapsulatedPacket;
+import net.daporkchop.lib.network.packet.encapsulated.WrappedPacket;
 import net.daporkchop.lib.network.packet.protocol.PacketProtocol;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.Set;
+import java.util.function.Supplier;
+
+import static net.daporkchop.lib.network.packet.encapsulated.EncapsulatedPacket.*;
 
 /**
  * @author DaPorkchop_
@@ -52,6 +66,37 @@ public abstract class Endpoint {
         this.listeners.forEach(l -> l.onReceieve(session, packet));
     }
 
+    @SuppressWarnings("unchecked")
+    protected void initKryo(@NonNull Kryo kryo) {
+        PROTOCOL.getClassCodecMap().forEach((o1, o2) -> {
+            Class clazz = (Class) o1;
+            int id = PROTOCOL.getId(clazz);
+            Codec<? extends EncapsulatedPacket, Session> codec = (Codec<? extends EncapsulatedPacket, Session>) o2;
+            kryo.register(clazz, new Serializer(false, true) {
+                @Override
+                public void write(Kryo kryo, Output output, Object object) {
+                    try {
+                        output.write(id);
+                        ((EncapsulatedPacket) object).write(new DataOut(output));
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+
+                @Override
+                public Object read(Kryo kryo, Input input, Class type) {
+                    try {
+                        EncapsulatedPacket packet = codec.newPacket();
+                        packet.read(new DataIn(input));
+                        return packet;
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            });
+        });
+    }
+
     @NoArgsConstructor
     protected class KryoListenerEndpoint extends Listener {
         @Override
@@ -66,13 +111,30 @@ public abstract class Endpoint {
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public void received(Connection connection, Object object) {
-            PorkConnection porkConnection = (PorkConnection) connection;
+            if (object instanceof EncapsulatedPacket) {
+                try {
+                    PorkConnection porkConnection = (PorkConnection) connection;
+
+                    if (object instanceof WrappedPacket) {
+                        WrappedPacket packet = (WrappedPacket) object;
+                        DataIn in = new DataIn(new ByteArrayInputStream(packet.packetData));
+                        int id = in.read();
+                        Packet wrapped = Endpoint.this.protocol.newPacket(id);
+                        wrapped.read(in);
+                        Endpoint.this.protocol.handle(packet, porkConnection.getSession());
+                    }
+                } catch (IOException e)  {
+                    throw new RuntimeException(e);
+                }
+            }
         }
 
         @Override
         public void idle(Connection connection) {
             PorkConnection porkConnection = (PorkConnection) connection;
+            //TODO: handle splitting for large packets
         }
     }
 }

@@ -13,28 +13,16 @@
  *
  */
 
-package net.daporkchop.lib.network.util;
+package net.daporkchop.lib.network.packet;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
-import net.daporkchop.lib.crypto.CryptographySettings;
+import net.daporkchop.lib.network.conn.Session;
 
 /**
  * @author DaPorkchop_
  */
-@Getter
-@AllArgsConstructor
-public class CryptHelper {
-    @Setter
-    private CryptographySettings cryptographySettings;
+public interface Codec<P extends Packet, S extends Session> {
+    void handle(@NonNull P packet, @NonNull S session);
 
-    public byte[] encrypt(@NonNull byte[] b) {
-        return null; //TODO
-    }
-
-    public byte[] decrypt(@NonNull byte[] b) {
-        return null; //TODO
-    }
+    P newPacket();
 }

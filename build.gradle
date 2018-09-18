@@ -50,11 +50,11 @@ allprojects {
 
     repositories {
         mavenLocal()
-        mavenCentral()
         maven {
             name = "DaPorkchop_"
             url = "https://maven.daporkchop.net/"
         }
+        mavenCentral()
     }
 
     jar {

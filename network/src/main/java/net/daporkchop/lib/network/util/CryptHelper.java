@@ -13,11 +13,19 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile project(":crypto")
-    compile project(":primitive")
+package net.daporkchop.lib.network.util;
 
-    compile "com.esotericsoftware:kryonet:2.22.0-RC1"
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NonNull;
+import net.daporkchop.lib.crypto.CryptographySettings;
+
+/**
+ * @author DaPorkchop_
+ */
+@Getter
+@AllArgsConstructor
+public class CryptHelper {
+    @NonNull
+    private final CryptographySettings cryptographySettings;
 }

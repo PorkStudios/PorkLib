@@ -13,11 +13,19 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile project(":crypto")
-    compile project(":primitive")
+package net.daporkchop.lib.network.endpoint;
 
-    compile "com.esotericsoftware:kryonet:2.22.0-RC1"
+import lombok.NonNull;
+import net.daporkchop.lib.network.conn.Session;
+import net.daporkchop.lib.network.packet.Packet;
+
+/**
+ * @author DaPorkchop_
+ */
+public interface EndpointListener<S extends Session> {
+    void onConnect(@NonNull S session);
+
+    void onDisconnect(@NonNull S sesion, String reason);
+
+    void onReceieve(@NonNull S session, @NonNull Packet packet);
 }

@@ -64,7 +64,7 @@ public class KryoSerializationWrapper extends KryoSerialization {
         try {
             //System.out.printf("Writing %s...\n", object.getClass().getCanonicalName());
             PorkConnection porkConnection = (PorkConnection) connection;
-            OutputStream o = porkConnection.getPacketReprocessor().encrypt(new ByteBufferOutputStream(buffer));
+            OutputStream o = porkConnection.getPacketReprocessor().encrypt(new ByteBufferOutputStream(buffer), porkConnection.getState());
             this.output.setOutputStream(o);
             this.kryo.getContext().put("connection", connection);
             this.kryo.writeClassAndObject(this.output, object);
@@ -80,7 +80,7 @@ public class KryoSerializationWrapper extends KryoSerialization {
     public synchronized Object read(Connection connection, ByteBuffer buffer) {
         try {
             PorkConnection porkConnection = (PorkConnection) connection;
-            InputStream i = porkConnection.getPacketReprocessor().decrypt(new ByteBufferInputStream(buffer));
+            InputStream i = porkConnection.getPacketReprocessor().decrypt(new ByteBufferInputStream(buffer), porkConnection.getState());
             this.input.setInputStream(i);
             this.kryo.getContext().put("connection", connection);
             Object object = this.kryo.readClassAndObject(this.input);

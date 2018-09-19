@@ -25,6 +25,7 @@ import net.daporkchop.lib.network.endpoint.EndpointType;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.packet.KryoSerializationWrapper;
 import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.packet.encapsulated.DisconnectPacket;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -66,19 +67,21 @@ public class PorkServer<S extends Session> extends Endpoint<S> {
 
     @Override
     public boolean isRunning() {
-        synchronized (this.server)  {
+        synchronized (this.server) {
             return this.running.get();
         }
     }
 
     @Override
     public void close(String reason) {
-        synchronized (this.server)  {
-            if (!this.isRunning())  {
+        synchronized (this.server) {
+            if (!this.isRunning()) {
                 throw new IllegalStateException("Server already closed!");
             }
 
             this.running.set(false);
+
+            this.server.sendToAllTCP(new DisconnectPacket(reason));
 
             try {
                 //this.server.close();
@@ -106,8 +109,8 @@ public class PorkServer<S extends Session> extends Endpoint<S> {
         }
     }
 
-    public void broadcast(@NonNull Packet packet)    {
-        for (Connection connection : this.server.getConnections())  {
+    public void broadcast(@NonNull Packet packet) {
+        for (Connection connection : this.server.getConnections()) {
             connection.sendTCP(packet);
         }
     }

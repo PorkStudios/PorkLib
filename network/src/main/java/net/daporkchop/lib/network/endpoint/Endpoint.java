@@ -139,7 +139,6 @@ public abstract class Endpoint<S extends Session> {
                 }
                 packet.compression = porkConnection.getPacketReprocessor().getCompression();
                 porkConnection.send(packet);
-                //TODO: flush socket and update connection state
                 ReflectionUtil.flush(connection);
                 porkConnection.incrementState();
             }
@@ -165,7 +164,6 @@ public abstract class Endpoint<S extends Session> {
                                 EncapsulatedPacket response = porkConnection.getPacketReprocessor().initClient(packet);
                                 porkConnection.incrementState();
                                 porkConnection.send(response);
-                                //TODO: flush socket and update connection state (again)
                                 ReflectionUtil.flush(connection);
                                 porkConnection.incrementState();
                             }

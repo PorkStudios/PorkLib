@@ -13,18 +13,16 @@
  *
  */
 
-package chat;
+package big;
 
-import chat.protocol.ChatProtocol;
-import chat.protocol.MessagePacket;
-import chat.protocol.SetNamePacket;
+import big.protocol.BigProtocol;
+import big.protocol.BigPacket;
 import net.daporkchop.lib.crypto.CryptographySettings;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
 import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.sig.ec.CurveType;
 import net.daporkchop.lib.encoding.compression.EnumCompression;
-import net.daporkchop.lib.network.conn.Session;
 import net.daporkchop.lib.network.endpoint.EndpointListener;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
@@ -39,13 +37,19 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * @author DaPorkchop_
  */
-public class ChatTestMain {
+public class BigTestMain {
+    public static final byte[] RANDOM_DATA = new byte[1_000_000];
+
+    static {
+        ThreadLocalRandom.current().nextBytes(RANDOM_DATA);
+    }
+
     public static void main(String... args) {
-        PorkServer<ChatSession> server = null;
-        PorkClient<ChatSession> client = null;
+        PorkServer<BigSession> server = null;
+        PorkClient<BigSession> client = null;
 
         try {
-            server = new ServerBuilder<ChatSession>()
+            server = new ServerBuilder<BigSession>()
                     .setCompression(EnumCompression.GZIP)
                     .setCryptographySettings(new CryptographySettings(
                             CurveType.brainpoolp256t1,
@@ -54,42 +58,30 @@ public class ChatTestMain {
                             BlockCipherPadding.PKCS7
                     ))
                     .setAddress(new InetSocketAddress(12346))
-                    .setProtocol(new ChatProtocol() {
-                        @Override
-                        public ChatSession newSession() {
-                            return new ChatSession(); //don't set the name on the server
-                        }
-                    })
+                    .setProtocol(new BigProtocol())
                     .build();
 
-            client = new ClientBuilder<ChatSession>()
+            client = new ClientBuilder<BigSession>()
                     .setAddress(new InetSocketAddress("localhost", 12346))
-                    .addListener(new EndpointListener<ChatSession>() {
+                    .addListener(new EndpointListener<BigSession>() {
                         @Override
-                        public void onConnect(ChatSession session) {
-                            session.send(new SetNamePacket(session.name));
+                        public void onConnect(BigSession session) {
+                            session.send(new BigPacket(RANDOM_DATA));
                         }
 
                         @Override
-                        public void onDisconnect(ChatSession sesion, String reason) {
+                        public void onDisconnect(BigSession sesion, String reason) {
                         }
 
                         @Override
-                        public void onReceieve(ChatSession session, Packet packet) {
+                        public void onReceieve(BigSession session, Packet packet) {
                         }
                     })
-                    .setProtocol(new ChatProtocol() {
-                        @Override
-                        public ChatSession newSession() {
-                            return new ChatSession(String.format("User #%d", ThreadLocalRandom.current().nextInt(0, 100)));
-                        }
-                    })
+                    .setProtocol(new BigProtocol())
                     .build();
 
             Scanner scanner = new Scanner(System.in);
-            String text;
-            while (!(text = scanner.nextLine()).isEmpty())  {
-                client.send(new MessagePacket(text));
+            while (!scanner.nextLine().isEmpty())  {
             }
             scanner.close();
         } catch (Exception e)   {

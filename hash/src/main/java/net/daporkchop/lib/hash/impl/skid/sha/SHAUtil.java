@@ -47,7 +47,6 @@ public class SHAUtil {
         result[0] = (byte) 0x80;
 
         // save number of bits, casting the long to an array of 8 bytes
-        // TODO: FIX Only ~35 bits of 128 bit counter usable this way
         long bits = count << 3;
         padding += 8;
         result[padding++] = (byte) (bits >>> 56);

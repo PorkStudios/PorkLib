@@ -18,6 +18,7 @@ package net.daporkchop.lib.crypto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.Setter;
 import net.daporkchop.lib.binary.Data;
 import net.daporkchop.lib.binary.stream.DataIn;
@@ -43,6 +44,16 @@ public class CryptographySettings implements Data {
     private BlockCipherType cipherType;
     private BlockCipherMode cipherMode;
     private BlockCipherPadding cipherPadding;
+
+    public CryptographySettings(@NonNull CurveType curveType, @NonNull BlockCipherType cipherType, @NonNull BlockCipherMode cipherMode, @NonNull BlockCipherPadding cipherPadding)   {
+        this(
+                curveType,
+                ECDHKeyPair.getKey(curveType),
+                cipherType,
+                cipherMode,
+                cipherPadding
+        );
+    }
 
     @Override
     public void read(DataIn in) throws IOException {

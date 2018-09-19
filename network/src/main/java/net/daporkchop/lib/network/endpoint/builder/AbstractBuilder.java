@@ -20,6 +20,8 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.network.conn.Session;
+import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.endpoint.EndpointListener;
 import net.daporkchop.lib.network.packet.protocol.PacketProtocol;
 
@@ -33,7 +35,7 @@ import java.util.Set;
 @Accessors(chain = true)
 @Getter
 @Setter
-public abstract class AbstractBuilder<T> {
+public abstract class AbstractBuilder<S extends Session, T extends Endpoint<S>> {
     private final Set<EndpointListener> listeners = new HashSet<>();
     @NonNull
     private InetSocketAddress address;

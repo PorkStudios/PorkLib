@@ -24,7 +24,7 @@ import net.daporkchop.lib.network.util.CryptHelper;
  * @author DaPorkchop_
  */
 public interface PorkConnection {
-    Session getSession();
+    <S extends Session> S getSession();
 
     default void setSession(@NonNull Session session)   {
         session.setPorkConnection(this);

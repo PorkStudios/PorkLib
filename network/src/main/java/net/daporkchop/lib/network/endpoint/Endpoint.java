@@ -47,9 +47,12 @@ import static net.daporkchop.lib.network.packet.encapsulated.EncapsulatedPacket.
  */
 @Getter
 @RequiredArgsConstructor
-public abstract class Endpoint {
+public abstract class Endpoint<S extends Session> {
+    protected static final int WRITE_BUFFER_SIZE = 16384;
+    protected static final int OBJECT_BUFFER_SIZE = 2048;
+
     protected final Set<EndpointListener> listeners;
-    protected final PacketProtocol protocol;
+    protected final PacketProtocol<S> protocol;
 
     @SuppressWarnings("unchecked")
     public void fireConnected(@NonNull Session session) {
@@ -68,16 +71,26 @@ public abstract class Endpoint {
 
     @SuppressWarnings("unchecked")
     protected void initKryo(@NonNull Kryo kryo) {
-        PROTOCOL.getClassCodecMap().forEach((o1, o2) -> {
-            Class clazz = (Class) o1;
-            int id = PROTOCOL.getId(clazz);
-            Codec<? extends EncapsulatedPacket, Session> codec = (Codec<? extends EncapsulatedPacket, Session>) o2;
+        this.registerProtocol(PROTOCOL, kryo);
+        this.registerProtocol(this.protocol, kryo);
+    }
+
+    public abstract boolean isRunning();
+
+    public void close() {
+        this.close(null);
+    }
+
+    public abstract void close(String reason);
+
+    @SuppressWarnings("unchecked")
+    protected <MS extends Session> void registerProtocol(@NonNull PacketProtocol<MS> protocol, @NonNull Kryo kryo)   {
+        protocol.getClassCodecMap().forEach((clazz, codec) ->
             kryo.register(clazz, new Serializer(false, true) {
                 @Override
                 public void write(Kryo kryo, Output output, Object object) {
                     try {
-                        output.write(id);
-                        ((EncapsulatedPacket) object).write(new DataOut(output));
+                        ((Packet) object).write(new DataOut(output));
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -86,15 +99,14 @@ public abstract class Endpoint {
                 @Override
                 public Object read(Kryo kryo, Input input, Class type) {
                     try {
-                        EncapsulatedPacket packet = codec.newPacket();
+                        Packet packet = codec.newPacket();
                         packet.read(new DataIn(input));
                         return packet;
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
                 }
-            });
-        });
+            }));
     }
 
     @NoArgsConstructor

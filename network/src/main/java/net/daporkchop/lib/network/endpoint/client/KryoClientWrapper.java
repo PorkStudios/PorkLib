@@ -17,6 +17,7 @@ package net.daporkchop.lib.network.endpoint.client;
 
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
+import com.esotericsoftware.kryonet.Serialization;
 import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.network.conn.PorkConnection;
@@ -35,10 +36,10 @@ public class KryoClientWrapper extends Client implements PorkConnection {
     public Session session;
     public final Endpoint endpoint;
 
-    public KryoClientWrapper(@NonNull Endpoint endpoint) {
-        super(16384, 2048, new KryoSerializationWrapper(endpoint));
+    public KryoClientWrapper(@NonNull Endpoint endpoint, int writeBufferSize, int objectBufferSize, @NonNull Serialization serialization) {
+        super(writeBufferSize, objectBufferSize, serialization);
 
-        this.cryptHelper = new CryptHelper(null);
+        this.cryptHelper = new CryptHelper();
         this.endpoint = endpoint;
     }
 

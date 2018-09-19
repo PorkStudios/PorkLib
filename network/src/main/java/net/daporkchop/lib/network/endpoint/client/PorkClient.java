@@ -19,18 +19,20 @@ import lombok.NonNull;
 import net.daporkchop.lib.network.conn.PorkConnection;
 import net.daporkchop.lib.network.conn.Session;
 import net.daporkchop.lib.network.endpoint.Endpoint;
+import net.daporkchop.lib.network.endpoint.EndpointType;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.packet.KryoSerializationWrapper;
+import net.daporkchop.lib.network.packet.Packet;
 
 import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-public class NetClient<S extends Session> extends Endpoint<S> {
+public class PorkClient<S extends Session> extends Endpoint<S> {
     private final KryoClientWrapper client;
 
-    public NetClient(@NonNull ClientBuilder<S> builder) {
+    public PorkClient(@NonNull ClientBuilder<S> builder) {
         super(builder.getListeners(), builder.getProtocol());
 
         try {
@@ -69,5 +71,23 @@ public class NetClient<S extends Session> extends Endpoint<S> {
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    public void send(@NonNull Packet... packets) {
+        for (Packet packet : packets)   {
+            if (packet == null) {
+                throw new NullPointerException("packet");
+            }
+            this.send(packet);
+        }
+    }
+
+    public void send(@NonNull Packet packet)    {
+        this.client.send(packet);
+    }
+
+    @Override
+    public EndpointType getType() {
+        return EndpointType.CLIENT;
     }
 }

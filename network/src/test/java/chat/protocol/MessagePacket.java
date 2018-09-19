@@ -13,32 +13,50 @@
  *
  */
 
-package net.daporkchop.lib.network.endpoint.builder;
+package chat.protocol;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.crypto.CryptographySettings;
-import net.daporkchop.lib.encoding.compression.EnumCompression;
-import net.daporkchop.lib.network.conn.Session;
-import net.daporkchop.lib.network.endpoint.server.PorkServer;
+import chat.ChatSession;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.network.endpoint.EndpointType;
+import net.daporkchop.lib.network.packet.Codec;
+import net.daporkchop.lib.network.packet.Packet;
+
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-@Accessors(chain = true)
-@Getter
-@Setter
-public class ServerBuilder<S extends Session> extends AbstractBuilder<S, PorkServer<S>> {
-    @NonNull
-    private CryptographySettings cryptographySettings = new CryptographySettings();
-
-    @NonNull
-    private EnumCompression compression = EnumCompression.NONE;
+@NoArgsConstructor
+@AllArgsConstructor
+public class MessagePacket implements Packet {
+    public String message;
 
     @Override
-    protected PorkServer<S> doBuild() {
-        return new PorkServer<>(this);
+    public void read(DataIn in) throws IOException {
+        this.message = in.readUTF();
+    }
+
+    @Override
+    public void write(DataOut out) throws IOException {
+        out.writeUTF(this.message);
+    }
+
+    public static class MessageCodec implements Codec<MessagePacket, ChatSession>   {
+        @Override
+        public void handle(MessagePacket packet, ChatSession session) {
+            boolean server = session.getEndpoint().getType() == EndpointType.SERVER;
+            System.out.printf("[%s] <%s> %s\n", server ? "Server" : "Client", session.name, packet.message);
+            if (server) {
+                session.send(packet);
+            }
+        }
+
+        @Override
+        public MessagePacket newPacket() {
+            return new MessagePacket();
+        }
     }
 }

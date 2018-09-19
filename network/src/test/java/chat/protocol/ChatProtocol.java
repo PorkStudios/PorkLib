@@ -13,30 +13,29 @@
  *
  */
 
-package net.daporkchop.lib.network.packet.encapsulated;
+package chat.protocol;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-
-import java.io.IOException;
+import chat.ChatSession;
+import net.daporkchop.lib.network.packet.protocol.PacketProtocol;
 
 /**
  * @author DaPorkchop_
  */
-@NoArgsConstructor
-@AllArgsConstructor
-public class WrappedPacket implements EncapsulatedPacket {
-    public byte[] packetData;
-
-    @Override
-    public void read(DataIn in) throws IOException {
-        this.packetData = in.readBytesSimple();
+public class ChatProtocol extends PacketProtocol<ChatSession> {
+    public ChatProtocol() {
+        super("ChatTest", 1);
     }
 
     @Override
-    public void write(DataOut out) throws IOException {
-        out.writeBytesSimple(this.packetData);
+    protected void registerPackets(PacketRegistry registry) {
+        registry.register(
+                new SetNamePacket.SetNameCodec(),
+                new MessagePacket.MessageCodec()
+        );
+    }
+
+    @Override
+    public ChatSession newSession() {
+        return null;
     }
 }

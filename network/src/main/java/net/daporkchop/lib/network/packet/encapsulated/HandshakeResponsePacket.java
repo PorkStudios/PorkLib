@@ -13,42 +13,46 @@
  *
  */
 
-package net.daporkchop.lib.network.util;
+package net.daporkchop.lib.network.packet.encapsulated;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.crypto.CryptographySettings;
-import net.daporkchop.lib.encoding.compression.EnumCompression;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-@Getter
-@Setter
 @NoArgsConstructor
-@RequiredArgsConstructor
 @AllArgsConstructor
-public class CryptHelper {
-    @Setter
-    private CryptographySettings cryptographySettings;
+public class HandshakeResponsePacket implements EncapsulatedPacket {
+    public CryptographySettings cryptographySettings;
+    public int encapsulatedVersion;
+    public String protocolName;
+    public int protocolVersion;
 
-    @NonNull
-    private EnumCompression compression = EnumCompression.NONE;
-
-    public OutputStream encrypt(@NonNull OutputStream o) {
-        return null; //TODO
+    @Override
+    public void read(DataIn in) throws IOException {
+        this.cryptographySettings = new CryptographySettings();
+        this.cryptographySettings.read(in);
+        this.encapsulatedVersion = in.readInt();
+        this.protocolName = in.readUTF();
+        this.protocolVersion = in.readInt();
     }
 
-    public InputStream decrypt(@NonNull InputStream i) {
-        return null; //TODO
+    @Override
+    public void write(DataOut out) throws IOException {
+        this.cryptographySettings.write(out);
+        out.writeInt(this.encapsulatedVersion);
+        out.writeUTF(this.protocolName);
+        out.writeInt(this.protocolVersion);
+    }
+
+    @Override
+    public EncapsulatedType getType() {
+        return EncapsulatedType.HANDSHAKE_RESPONSE;
     }
 }

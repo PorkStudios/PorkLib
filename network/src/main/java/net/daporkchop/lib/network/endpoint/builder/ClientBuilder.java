@@ -16,14 +16,14 @@
 package net.daporkchop.lib.network.endpoint.builder;
 
 import net.daporkchop.lib.network.conn.Session;
-import net.daporkchop.lib.network.endpoint.client.NetClient;
+import net.daporkchop.lib.network.endpoint.client.PorkClient;
 
 /**
  * @author DaPorkchop_
  */
-public class ClientBuilder<S extends Session> extends AbstractBuilder<S, NetClient<S>> {
+public class ClientBuilder<S extends Session> extends AbstractBuilder<S, PorkClient<S>> {
     @Override
-    protected NetClient<S> doBuild() {
-        return new NetClient<>(this);
+    protected PorkClient<S> doBuild() {
+        return new PorkClient<>(this);
     }
 }

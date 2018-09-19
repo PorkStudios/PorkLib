@@ -25,7 +25,9 @@ import net.daporkchop.lib.binary.stream.ByteBufferInputStream;
 import net.daporkchop.lib.binary.stream.ByteBufferOutputStream;
 import net.daporkchop.lib.network.conn.PorkConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
+import net.daporkchop.lib.network.util.ReflectionUtil;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
@@ -39,8 +41,8 @@ public class KryoSerializationWrapper extends KryoSerialization {
     private final Endpoint endpoint;
 
     private final Kryo kryo;
-    private final Output output = new Output();
-    private final Input input = new Input();
+    private final Output output = new Output(1024, -1);
+    private final Input input = new Input(1024);
 
     public KryoSerializationWrapper(@NonNull Endpoint endpoint) {
         super();
@@ -51,7 +53,7 @@ public class KryoSerializationWrapper extends KryoSerialization {
             Field field = KryoSerialization.class.getDeclaredField("kryo");
             field.setAccessible(true);
             this.kryo = (Kryo) field.get(this);
-        } catch (Exception e)    {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
@@ -59,20 +61,34 @@ public class KryoSerializationWrapper extends KryoSerialization {
     @Override
     @SuppressWarnings("unchecked")
     public synchronized void write(Connection connection, ByteBuffer buffer, Object object) {
-        PorkConnection porkConnection = (PorkConnection) connection;
-        OutputStream o = porkConnection.getCryptHelper().encrypt(new ByteBufferOutputStream(buffer));
-        this.output.setOutputStream(o);
-        this.kryo.getContext().put("connection", connection);
-        this.kryo.writeClassAndObject(this.output, object);
+        try {
+            //System.out.printf("Writing %s...\n", object.getClass().getCanonicalName());
+            PorkConnection porkConnection = (PorkConnection) connection;
+            OutputStream o = porkConnection.getPacketReprocessor().encrypt(new ByteBufferOutputStream(buffer));
+            this.output.setOutputStream(o);
+            this.kryo.getContext().put("connection", connection);
+            this.kryo.writeClassAndObject(this.output, object);
+            this.output.flush();
+            o.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public synchronized Object read(Connection connection, ByteBuffer buffer) {
-        PorkConnection porkConnection = (PorkConnection) connection;
-        InputStream i = porkConnection.getCryptHelper().decrypt(new ByteBufferInputStream(buffer));
-        this.input.setInputStream(i);
-        this.kryo.getContext().put("connection", connection);
-        return this.kryo.readClassAndObject(this.input);
+        try {
+            PorkConnection porkConnection = (PorkConnection) connection;
+            InputStream i = porkConnection.getPacketReprocessor().decrypt(new ByteBufferInputStream(buffer));
+            this.input.setInputStream(i);
+            this.kryo.getContext().put("connection", connection);
+            Object object = this.kryo.readClassAndObject(this.input);
+            //System.out.printf("Read %s!\n", object.getClass().getCanonicalName());
+            i.close();
+            return object;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

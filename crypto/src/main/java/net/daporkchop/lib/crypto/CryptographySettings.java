@@ -18,13 +18,14 @@ package net.daporkchop.lib.crypto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
+import lombok.Setter;
 import net.daporkchop.lib.binary.Data;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
 import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
+import net.daporkchop.lib.crypto.key.ec.impl.ECDHKeyPair;
 import net.daporkchop.lib.crypto.sig.ec.CurveType;
 
 import java.io.IOException;
@@ -35,21 +36,25 @@ import java.io.IOException;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
+@Setter
 public class CryptographySettings implements Data {
     private CurveType curveType;
+    private ECDHKeyPair key;
     private BlockCipherType cipherType;
     private BlockCipherMode cipherMode;
     private BlockCipherPadding cipherPadding;
 
     @Override
     public void read(DataIn in) throws IOException {
-        if (in.readBoolean())   {
+        if (in.readBoolean()) {
             this.curveType = CurveType.valueOf(in.readUTF());
+            this.key = ECDHKeyPair.decodePublic(in.readBytesSimple());
             this.cipherType = BlockCipherType.valueOf(in.readUTF());
             this.cipherMode = BlockCipherMode.valueOf(in.readUTF());
             this.cipherPadding = BlockCipherPadding.valueOf(in.readUTF());
         } else {
             this.curveType = null;
+            this.key = null;
             this.cipherType = null;
             this.cipherMode = null;
             this.cipherPadding = null;
@@ -63,9 +68,14 @@ public class CryptographySettings implements Data {
         } else {
             out.writeBoolean(true);
             out.writeUTF(this.curveType.name());
+            out.writeBytesSimple(this.key.encodePublic());
             out.writeUTF(this.cipherType.name());
             out.writeUTF(this.cipherMode.name());
             out.writeUTF(this.cipherPadding.name());
         }
+    }
+
+    public boolean doesEncrypt()    {
+        return this.curveType != null;
     }
 }

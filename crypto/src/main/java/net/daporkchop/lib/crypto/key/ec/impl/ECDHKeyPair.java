@@ -15,12 +15,40 @@
 
 package net.daporkchop.lib.crypto.key.ec.impl;
 
+import lombok.NonNull;
 import net.daporkchop.lib.crypto.key.ec.AbstractECKeyPair;
+import net.daporkchop.lib.crypto.keygen.ec.ECDHKeyGen;
+import net.daporkchop.lib.crypto.sig.ec.CurveType;
 
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ForkJoinPool;
 
 public class ECDHKeyPair extends AbstractECKeyPair {
+    private static final Map<CurveType, CompletableFuture<ECDHKeyPair>> keyInstances = new EnumMap<>(CurveType.class);
+
+    public static CompletableFuture<ECDHKeyPair> getKeyFuture(@NonNull CurveType type)  {
+        synchronized (keyInstances) {
+            return keyInstances.computeIfAbsent(type, c -> {
+                CompletableFuture<ECDHKeyPair> future = new CompletableFuture<>();
+                ForkJoinPool.commonPool().execute(() -> future.complete(ECDHKeyGen.gen(c)));
+                return future;
+            });
+        }
+    }
+
+    public static ECDHKeyPair getKey(@NonNull CurveType type)   {
+        CompletableFuture<ECDHKeyPair> future = getKeyFuture(type);
+        try {
+            return future.get();
+        } catch (Exception e)   {
+            throw new RuntimeException(e);
+        }
+    }
+
     public ECDHKeyPair(PrivateKey privateKey, PublicKey publicKey) {
         super(privateKey, publicKey);
     }

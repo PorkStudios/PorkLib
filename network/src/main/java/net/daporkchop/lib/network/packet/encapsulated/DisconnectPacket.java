@@ -13,32 +13,35 @@
  *
  */
 
-package net.daporkchop.lib.network.endpoint.builder;
+package net.daporkchop.lib.network.packet.encapsulated;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.crypto.CryptographySettings;
-import net.daporkchop.lib.encoding.compression.EnumCompression;
-import net.daporkchop.lib.network.conn.Session;
-import net.daporkchop.lib.network.endpoint.server.PorkServer;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-@Accessors(chain = true)
-@Getter
-@Setter
-public class ServerBuilder<S extends Session> extends AbstractBuilder<S, PorkServer<S>> {
-    @NonNull
-    private CryptographySettings cryptographySettings = new CryptographySettings();
-
-    @NonNull
-    private EnumCompression compression = EnumCompression.NONE;
+@NoArgsConstructor
+@AllArgsConstructor
+public class DisconnectPacket implements EncapsulatedPacket {
+    public String message;
 
     @Override
-    protected PorkServer<S> doBuild() {
-        return new PorkServer<>(this);
+    public void read(DataIn in) throws IOException {
+        this.message = in.readUTF();
+    }
+
+    @Override
+    public void write(DataOut out) throws IOException {
+        out.writeUTF(this.message);
+    }
+
+    @Override
+    public EncapsulatedType getType() {
+        return EncapsulatedType.DISCONNECT;
     }
 }

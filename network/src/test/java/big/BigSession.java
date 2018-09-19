@@ -13,11 +13,14 @@
  *
  */
 
-dependencies {
-    compile "org.bouncycastle:bcprov-jdk15on:1.59"
+package big;
 
-    compile project(":binary")
-    compile project(":hash")
-    compile project(":encoding")
-    compile project(":math")
+import lombok.NoArgsConstructor;
+import net.daporkchop.lib.network.conn.Session;
+
+/**
+ * @author DaPorkchop_
+ */
+@NoArgsConstructor
+public class BigSession extends Session {
 }

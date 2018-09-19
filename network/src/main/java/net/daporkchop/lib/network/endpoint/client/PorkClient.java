@@ -23,6 +23,7 @@ import net.daporkchop.lib.network.endpoint.EndpointType;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.packet.KryoSerializationWrapper;
 import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.packet.encapsulated.DisconnectPacket;
 
 import java.io.IOException;
 
@@ -64,6 +65,7 @@ public class PorkClient<S extends Session> extends Endpoint<S> {
                 throw new IllegalStateException("Client already closed!");
             }
 
+            this.client.send(new DisconnectPacket(reason));
             try {
                 this.client.stop();
                 this.client.dispose();

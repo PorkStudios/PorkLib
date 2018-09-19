@@ -25,8 +25,8 @@ import net.daporkchop.lib.crypto.exchange.ECDHHelper;
 import net.daporkchop.lib.crypto.key.ec.impl.ECDHKeyPair;
 import net.daporkchop.lib.crypto.key.symmetric.AbstractSymmetricKey;
 import net.daporkchop.lib.encoding.compression.EnumCompression;
+import net.daporkchop.lib.network.conn.ConnectionState;
 import net.daporkchop.lib.network.endpoint.Endpoint;
-import net.daporkchop.lib.network.endpoint.EndpointType;
 import net.daporkchop.lib.network.packet.encapsulated.EncapsulatedPacket;
 import net.daporkchop.lib.network.packet.encapsulated.HandshakeCompletePacket;
 import net.daporkchop.lib.network.packet.encapsulated.HandshakeInitPacket;
@@ -86,12 +86,12 @@ public class PacketReprocessor {
         return response;
     }
 
-    public HandshakeCompletePacket initServer(@NonNull HandshakeResponsePacket responsePacket)  {
+    public HandshakeCompletePacket initServer(@NonNull HandshakeResponsePacket responsePacket) {
         if (this.cipherHelper != null) {
             throw new IllegalStateException("Handshake is already complete!");
         }
 
-        if (this.cryptographySettings.doesEncrypt())    {
+        if (this.cryptographySettings.doesEncrypt()) {
             this.cryptographySettings.setKey(responsePacket.cryptographySettings.getKey());
             this.initCrypto();
         }
@@ -121,17 +121,25 @@ public class PacketReprocessor {
         return null;
     }
 
-    public OutputStream encrypt(@NonNull OutputStream o) {
-        if (this.cipherHelper != null)   {
+    public OutputStream encrypt(@NonNull OutputStream o, @NonNull ConnectionState state) {
+        if (state.encrypt && this.cipherHelper != null) {
             o = this.cipherHelper.encryptionStream(o);
         }
-        return this.compression.compressStream(o);
+        if (state.compress) {
+            return this.compression.compressStream(o);
+        } else {
+            return o;
+        }
     }
 
-    public InputStream decrypt(@NonNull InputStream i) {
-        if (this.cipherHelper != null)   {
+    public InputStream decrypt(@NonNull InputStream i, @NonNull ConnectionState state) {
+        if (state.encrypt && this.cipherHelper != null) {
             i = this.cipherHelper.decryptionStream(i);
         }
-        return this.compression.inflateStream(i);
+        if (state.compress) {
+            return this.compression.inflateStream(i);
+        } else {
+            return i;
+        }
     }
 }

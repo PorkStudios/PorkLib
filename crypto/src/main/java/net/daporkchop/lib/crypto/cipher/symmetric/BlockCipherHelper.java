@@ -182,7 +182,8 @@ public abstract class BlockCipherHelper<P extends AbstractSymmetricKey> {
             cipher.init(true, mode.getParametersFromKey(this.encrypt));
         }
 
-        return new BufferedOutputStream(new CipherOutputStream(stream, cipher), this.type.blockSize >> 3);
+        return new CipherOutputStream(stream, cipher);
+        //return new BufferedOutputStream(new CipherOutputStream(stream, cipher), this.type.blockSize >> 3);
     }
 
     /**
@@ -197,10 +198,11 @@ public abstract class BlockCipherHelper<P extends AbstractSymmetricKey> {
         synchronized (this.decrypt) {
             //update key
             this.updater.updateDecrypt(this.decrypt);
-            cipher.init(false, mode.getParametersFromKey(this.decrypt));
+            cipher.init(false, this.mode.getParametersFromKey(this.decrypt));
         }
 
-        return new BufferedInputStream(new CipherInputStream(stream, cipher, this.type.blockSize >> 3), this.type.blockSize >> 3);
+        return new CipherInputStream(stream, cipher);
+        //return new BufferedInputStream(new CipherInputStream(stream, cipher, this.type.blockSize >> 3), this.type.blockSize >> 3);
     }
 
     private void doCipher(BufferedBlockCipher c, int tam, byte[] b) {

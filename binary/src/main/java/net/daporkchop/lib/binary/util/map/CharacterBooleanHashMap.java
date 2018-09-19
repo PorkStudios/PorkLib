@@ -202,7 +202,6 @@ public class CharacterBooleanHashMap implements CharacterBooleanMap    {
             this.size--;
             //the value is actually still in the array, just there's no indexes pointing to it anymore after this call
             return this.values[i];
-            //TODO: some method of shrinking down arrays
             //that'll be a PITA in case there's a hash collision during shrinking because
             //it'll then proceed to keep trying to shrink down the array and having collisions
             //until one of the colliding elements is removed.

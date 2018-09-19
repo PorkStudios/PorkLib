@@ -13,11 +13,28 @@
  *
  */
 
-dependencies {
-    compile "org.bouncycastle:bcprov-jdk15on:1.59"
+package big.protocol;
 
-    compile project(":binary")
-    compile project(":hash")
-    compile project(":encoding")
-    compile project(":math")
+import big.BigSession;
+import net.daporkchop.lib.network.packet.protocol.PacketProtocol;
+
+/**
+ * @author DaPorkchop_
+ */
+public class BigProtocol extends PacketProtocol<BigSession> {
+    public BigProtocol() {
+        super("ChatTest", 1);
+    }
+
+    @Override
+    protected void registerPackets(PacketRegistry registry) {
+        registry.register(
+                new BigPacket.MessageCodec()
+        );
+    }
+
+    @Override
+    public BigSession newSession() {
+        return new BigSession();
+    }
 }

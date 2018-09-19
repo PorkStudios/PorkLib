@@ -21,36 +21,37 @@ import lombok.NonNull;
 import net.daporkchop.lib.network.conn.PorkConnection;
 import net.daporkchop.lib.network.conn.Session;
 import net.daporkchop.lib.network.endpoint.Endpoint;
+import net.daporkchop.lib.network.endpoint.EndpointType;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.packet.KryoSerializationWrapper;
+import net.daporkchop.lib.network.packet.Packet;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
  * @author DaPorkchop_
  */
-public class NetServer<S extends Session> extends Endpoint<S> {
+public class PorkServer<S extends Session> extends Endpoint<S> {
     private final Server server;
     private final AtomicBoolean running = new AtomicBoolean(false);
 
-    public NetServer(@NonNull ServerBuilder<S> builder) {
+    public PorkServer(@NonNull ServerBuilder<S> builder) {
         super(builder.getListeners(), builder.getProtocol());
         try {
             this.server = new Server(WRITE_BUFFER_SIZE, OBJECT_BUFFER_SIZE, new KryoSerializationWrapper(this)) {
                 @Override
                 protected Connection newConnection() {
-                    return new ServerConnection(builder);
+                    return new ServerConnection(PorkServer.this, builder);
                 }
 
                 @Override
                 public void bind(InetSocketAddress tcpPort, InetSocketAddress udpPort) throws IOException {
-                    NetServer.this.running.set(true);
+                    PorkServer.this.running.set(true);
                     super.bind(tcpPort, udpPort);
                 }
             };
@@ -80,9 +81,9 @@ public class NetServer<S extends Session> extends Endpoint<S> {
             this.running.set(false);
 
             try {
-                this.server.close();
+                //this.server.close();
                 this.server.dispose();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
@@ -92,5 +93,27 @@ public class NetServer<S extends Session> extends Endpoint<S> {
         return Arrays.stream(this.server.getConnections())
                 .map(connection -> ((PorkConnection) connection).<MS>getSession())
                 .collect(Collectors.toList());
+    }
+
+    public void broadcast(@NonNull Packet... packets) {
+        for (Connection connection : this.server.getConnections()) {
+            for (Packet packet : packets) {
+                if (packet == null) {
+                    throw new NullPointerException("packet");
+                }
+                connection.sendTCP(packet);
+            }
+        }
+    }
+
+    public void broadcast(@NonNull Packet packet)    {
+        for (Connection connection : this.server.getConnections())  {
+            connection.sendTCP(packet);
+        }
+    }
+
+    @Override
+    public EndpointType getType() {
+        return EndpointType.SERVER;
     }
 }

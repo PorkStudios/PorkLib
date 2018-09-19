@@ -15,7 +15,6 @@
 
 package net.daporkchop.lib.network.endpoint.builder;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -36,16 +35,16 @@ import java.util.Set;
 @Getter
 @Setter
 public abstract class AbstractBuilder<S extends Session, T extends Endpoint<S>> {
-    private final Set<EndpointListener> listeners = new HashSet<>();
+    private final Set<EndpointListener<S>> listeners = new HashSet<>();
     @NonNull
     private InetSocketAddress address;
     @NonNull
-    private PacketProtocol protocol;
+    private PacketProtocol<S> protocol;
 
-    public final T build()  {
-        if (this.address == null)   {
+    public final T build() {
+        if (this.address == null) {
             throw new NullPointerException("address");
-        } else if (this.protocol == null)   {
+        } else if (this.protocol == null) {
             throw new NullPointerException("protocol");
         }
         return this.doBuild();
@@ -53,12 +52,9 @@ public abstract class AbstractBuilder<S extends Session, T extends Endpoint<S>> 
 
     protected abstract T doBuild();
 
-    public void addListener(@NonNull EndpointListener... listeners) {
-        for (EndpointListener listener : listeners) {
-            if (listener == null) {
-                throw new NullPointerException("listener");
-            }
-            this.listeners.add(listener);
-        }
+    public AbstractBuilder<S, T> addListener(@NonNull EndpointListener<S> listener) {
+        this.listeners.add(listener);
+
+        return this;
     }
 }

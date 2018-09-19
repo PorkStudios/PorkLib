@@ -18,7 +18,10 @@ package net.daporkchop.lib.network.conn;
 import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.Setter;
+import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Packet;
+
+import java.net.InetSocketAddress;
 
 /**
  * @author DaPorkchop_
@@ -38,5 +41,14 @@ public abstract class Session {
 
     public boolean isConnected() {
         return this.porkConnection.isConnected();
+    }
+
+    @SuppressWarnings("unchecked")
+    public <E extends Endpoint> E getEndpoint() {
+        return (E) this.porkConnection.getEndpoint();
+    }
+
+    public InetSocketAddress getRemoteAddress() {
+        return this.porkConnection.getNetConnection().getRemoteAddressTCP();
     }
 }

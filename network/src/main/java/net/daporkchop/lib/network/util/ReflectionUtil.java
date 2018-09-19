@@ -13,45 +13,57 @@
  *
  */
 
-package net.daporkchop.lib.network.endpoint.server;
+package net.daporkchop.lib.network.util;
 
+import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryonet.Connection;
-import com.esotericsoftware.kryonet.Server;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
-import net.daporkchop.lib.network.conn.ConnectionState;
-import net.daporkchop.lib.network.conn.PorkConnection;
-import net.daporkchop.lib.network.conn.Session;
-import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
-import net.daporkchop.lib.network.util.PacketReprocessor;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 /**
  * @author DaPorkchop_
  */
-@Getter
-@Setter
-public class ServerConnection extends Connection implements PorkConnection {
-    public final PacketReprocessor packetReprocessor;
-    public final PorkServer endpoint;
-    public String disconnectReason;
-    public Session session;
-    public ConnectionState state = ConnectionState.NOT_CONNECTED;
+public class ReflectionUtil {
+    private static final Field connection_tcp;
+    private static Method tcpConnection_writeOperation;
 
-    public ServerConnection(@NonNull PorkServer server, @NonNull ServerBuilder builder) {
-        this.packetReprocessor = new PacketReprocessor(server, builder.getCryptographySettings(), builder.getCompression());
+    private static final Field input_capacity;
 
-        this.endpoint = server;
+    static {
+        try {
+            connection_tcp = Connection.class.getDeclaredField("tcp");
+            connection_tcp.setAccessible(true);
+
+            input_capacity = Input.class.getDeclaredField("capacity");
+            input_capacity.setAccessible(true);
+        } catch (Exception e)   {
+            throw new RuntimeException(e);
+        }
     }
 
-    @Override
-    public Connection getNetConnection() {
-        return this;
+    public static void flush(@NonNull Connection connection)  {
+        try {
+            if (!connection.isConnected())  {
+                return;
+            }
+            Object o = connection_tcp.get(connection);
+            if (tcpConnection_writeOperation == null) {
+                tcpConnection_writeOperation = o.getClass().getDeclaredMethod("writeOperation");
+                tcpConnection_writeOperation.setAccessible(true);
+            }
+            tcpConnection_writeOperation.invoke(o);
+        } catch (Exception e)   {
+            throw new RuntimeException(e);
+        }
     }
 
-    @Override
-    public void setSession(Session session) {
-        PorkConnection.super.setSession(session);
-        this.session = session;
+    public static void setCapacity(@NonNull Input input, int capacity)  {
+        try {
+            input_capacity.set(input, capacity);
+        } catch (Exception e)   {
+            throw new RuntimeException(e);
+        }
     }
 }

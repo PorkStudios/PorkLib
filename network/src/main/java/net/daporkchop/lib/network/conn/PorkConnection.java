@@ -17,8 +17,9 @@ package net.daporkchop.lib.network.conn;
 
 import com.esotericsoftware.kryonet.Connection;
 import lombok.NonNull;
+import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Packet;
-import net.daporkchop.lib.network.util.CryptHelper;
+import net.daporkchop.lib.network.util.PacketReprocessor;
 
 /**
  * @author DaPorkchop_
@@ -32,9 +33,31 @@ public interface PorkConnection {
 
     Connection getNetConnection();
 
-    CryptHelper getCryptHelper();
+    PacketReprocessor getPacketReprocessor();
 
     String getDisconnectReason();
+
+    void setDisconnectReason(String reason);
+
+    ConnectionState getState();
+
+    void setState(@NonNull ConnectionState state);
+
+    Endpoint getEndpoint();
+
+    default boolean canSetState(@NonNull ConnectionState state)   {
+        ConnectionState current = this.getState();
+        return current.ordinal() < state.ordinal();
+    }
+
+    default void incrementState()   {
+        ConnectionState current = this.getState();
+        ConnectionState[] values = ConnectionState.values();
+        if (current.ordinal() + 1 >= values.length) {
+            throw new IllegalStateException("Already on final state!");
+        }
+        this.setState(values[current.ordinal() + 1]);
+    }
 
     default void send(@NonNull Packet packet)   {
         this.getNetConnection().sendTCP(packet);

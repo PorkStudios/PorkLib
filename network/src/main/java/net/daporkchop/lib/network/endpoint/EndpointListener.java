@@ -25,7 +25,7 @@ import net.daporkchop.lib.network.packet.Packet;
 public interface EndpointListener<S extends Session> {
     void onConnect(@NonNull S session);
 
-    void onDisconnect(@NonNull S sesion, String reason);
+    void onDisconnect(S sesion, String reason);
 
     void onReceieve(@NonNull S session, @NonNull Packet packet);
 }

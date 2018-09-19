@@ -27,18 +27,22 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.crypto.CryptographySettings;
+import net.daporkchop.lib.crypto.key.ec.impl.ECDHKeyPair;
 import net.daporkchop.lib.network.conn.PorkConnection;
 import net.daporkchop.lib.network.conn.Session;
-import net.daporkchop.lib.network.packet.Codec;
+import net.daporkchop.lib.network.endpoint.server.PorkServer;
 import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.packet.encapsulated.DisconnectPacket;
 import net.daporkchop.lib.network.packet.encapsulated.EncapsulatedPacket;
-import net.daporkchop.lib.network.packet.encapsulated.WrappedPacket;
+import net.daporkchop.lib.network.packet.encapsulated.HandshakeCompletePacket;
+import net.daporkchop.lib.network.packet.encapsulated.HandshakeInitPacket;
+import net.daporkchop.lib.network.packet.encapsulated.HandshakeResponsePacket;
 import net.daporkchop.lib.network.packet.protocol.PacketProtocol;
+import net.daporkchop.lib.network.util.ReflectionUtil;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Set;
-import java.util.function.Supplier;
 
 import static net.daporkchop.lib.network.packet.encapsulated.EncapsulatedPacket.*;
 
@@ -51,21 +55,21 @@ public abstract class Endpoint<S extends Session> {
     protected static final int WRITE_BUFFER_SIZE = 16384;
     protected static final int OBJECT_BUFFER_SIZE = 2048;
 
-    protected final Set<EndpointListener> listeners;
+    protected final Set<EndpointListener<S>> listeners;
     protected final PacketProtocol<S> protocol;
 
     @SuppressWarnings("unchecked")
-    public void fireConnected(@NonNull Session session) {
+    public void fireConnected(@NonNull S session) {
         this.listeners.forEach(l -> l.onConnect(session));
     }
 
     @SuppressWarnings("unchecked")
-    public void fireDisconnected(@NonNull Session session, String reason) {
+    public void fireDisconnected(S session, String reason) {
         this.listeners.forEach(l -> l.onDisconnect(session, reason));
     }
 
     @SuppressWarnings("unchecked")
-    public void fireReceived(@NonNull Session session, @NonNull Packet packet) {
+    public void fireReceived(@NonNull S session, @NonNull Packet packet) {
         this.listeners.forEach(l -> l.onReceieve(session, packet));
     }
 
@@ -82,6 +86,8 @@ public abstract class Endpoint<S extends Session> {
     }
 
     public abstract void close(String reason);
+
+    public abstract EndpointType getType();
 
     @SuppressWarnings("unchecked")
     protected <MS extends Session> void registerProtocol(@NonNull PacketProtocol<MS> protocol, @NonNull Kryo kryo)   {
@@ -114,6 +120,29 @@ public abstract class Endpoint<S extends Session> {
         @Override
         public void connected(Connection connection) {
             PorkConnection porkConnection = (PorkConnection) connection;
+
+            porkConnection.setSession(Endpoint.this.protocol.newSession());
+
+            if (Endpoint.this instanceof PorkServer)    {
+                HandshakeInitPacket packet = new HandshakeInitPacket();
+                CryptographySettings settings = porkConnection.getPacketReprocessor().getCryptographySettings();
+                if (settings.doesEncrypt()) {
+                    packet.cryptographySettings = new CryptographySettings(
+                            settings.getCurveType(),
+                            ECDHKeyPair.getKey(settings.getCurveType()),
+                            settings.getCipherType(),
+                            settings.getCipherMode(),
+                            settings.getCipherPadding()
+                    );
+                } else {
+                    packet.cryptographySettings = new CryptographySettings();
+                }
+                packet.compression = porkConnection.getPacketReprocessor().getCompression();
+                porkConnection.send(packet);
+                //TODO: flush socket and update connection state
+                ReflectionUtil.flush(connection);
+                porkConnection.incrementState();
+            }
         }
 
         @Override
@@ -123,22 +152,52 @@ public abstract class Endpoint<S extends Session> {
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public void received(Connection connection, Object object) {
-            if (object instanceof EncapsulatedPacket) {
-                try {
-                    PorkConnection porkConnection = (PorkConnection) connection;
+            if (object instanceof Packet) {
+                PorkConnection porkConnection = (PorkConnection) connection;
 
-                    if (object instanceof WrappedPacket) {
-                        WrappedPacket packet = (WrappedPacket) object;
-                        DataIn in = new DataIn(new ByteArrayInputStream(packet.packetData));
-                        int id = in.read();
-                        Packet wrapped = Endpoint.this.protocol.newPacket(id);
-                        wrapped.read(in);
-                        Endpoint.this.protocol.handle(packet, porkConnection.getSession());
+                if (object instanceof EncapsulatedPacket) {
+                    EncapsulatedPacket encapsulatedPacket = (EncapsulatedPacket) object;
+                    try {
+                        switch (encapsulatedPacket.getType())   {
+                            case HANDSHAKE_INIT:{
+                                HandshakeInitPacket packet = (HandshakeInitPacket) object;
+                                EncapsulatedPacket response = porkConnection.getPacketReprocessor().initClient(packet);
+                                porkConnection.incrementState();
+                                porkConnection.send(response);
+                                //TODO: flush socket and update connection state (again)
+                                ReflectionUtil.flush(connection);
+                                porkConnection.incrementState();
+                            }
+                            break;
+                            case HANDSHAKE_RESPONSE: {
+                                HandshakeResponsePacket packet = (HandshakeResponsePacket) object;
+                                EncapsulatedPacket response = porkConnection.getPacketReprocessor().initServer(packet);
+                                porkConnection.incrementState();
+                                porkConnection.send(response);
+                                Endpoint.this.fireConnected(porkConnection.getSession());
+                            }
+                            break;
+                            case HANDSHAKE_COMPLETE: {
+                                HandshakeCompletePacket packet = (HandshakeCompletePacket) object;
+                                Endpoint.this.fireConnected(porkConnection.getSession());
+                            }
+                            break;
+                            case DISCONNECT: {
+                                DisconnectPacket packet = (DisconnectPacket) object;
+                                porkConnection.setDisconnectReason(packet.message);
+                                //disconnect event is fired by kryonet afterwards
+                            }
+                            break;
+                        }
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
                     }
-                } catch (IOException e)  {
-                    throw new RuntimeException(e);
+                } else {
+                    Packet packet = (Packet) object;
+                    S session = porkConnection.getSession();
+                    Endpoint.this.protocol.handle(session, packet);
+                    Endpoint.this.fireReceived(session, packet);
                 }
             }
         }

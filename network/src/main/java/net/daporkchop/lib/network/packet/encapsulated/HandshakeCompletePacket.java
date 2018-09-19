@@ -13,32 +13,30 @@
  *
  */
 
-package net.daporkchop.lib.network.endpoint.builder;
+package net.daporkchop.lib.network.packet.encapsulated;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.crypto.CryptographySettings;
-import net.daporkchop.lib.encoding.compression.EnumCompression;
-import net.daporkchop.lib.network.conn.Session;
-import net.daporkchop.lib.network.endpoint.server.PorkServer;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-@Accessors(chain = true)
-@Getter
-@Setter
-public class ServerBuilder<S extends Session> extends AbstractBuilder<S, PorkServer<S>> {
-    @NonNull
-    private CryptographySettings cryptographySettings = new CryptographySettings();
-
-    @NonNull
-    private EnumCompression compression = EnumCompression.NONE;
+@NoArgsConstructor
+public class HandshakeCompletePacket implements EncapsulatedPacket {
+    @Override
+    public void read(DataIn in) throws IOException {
+    }
 
     @Override
-    protected PorkServer<S> doBuild() {
-        return new PorkServer<>(this);
+    public void write(DataOut out) throws IOException {
+    }
+
+    @Override
+    public EncapsulatedType getType() {
+        return EncapsulatedType.HANDSHAKE_COMPLETE;
     }
 }

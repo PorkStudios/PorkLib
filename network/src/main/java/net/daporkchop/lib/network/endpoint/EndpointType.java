@@ -13,32 +13,13 @@
  *
  */
 
-package net.daporkchop.lib.network.endpoint.builder;
-
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.crypto.CryptographySettings;
-import net.daporkchop.lib.encoding.compression.EnumCompression;
-import net.daporkchop.lib.network.conn.Session;
-import net.daporkchop.lib.network.endpoint.server.PorkServer;
+package net.daporkchop.lib.network.endpoint;
 
 /**
  * @author DaPorkchop_
  */
-@Accessors(chain = true)
-@Getter
-@Setter
-public class ServerBuilder<S extends Session> extends AbstractBuilder<S, PorkServer<S>> {
-    @NonNull
-    private CryptographySettings cryptographySettings = new CryptographySettings();
-
-    @NonNull
-    private EnumCompression compression = EnumCompression.NONE;
-
-    @Override
-    protected PorkServer<S> doBuild() {
-        return new PorkServer<>(this);
-    }
+public enum EndpointType {
+    CLIENT,
+    SERVER
+    ;
 }

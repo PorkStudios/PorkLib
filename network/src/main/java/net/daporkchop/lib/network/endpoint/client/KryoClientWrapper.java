@@ -15,32 +15,34 @@
 
 package net.daporkchop.lib.network.endpoint.client;
 
-import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Serialization;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
+import net.daporkchop.lib.network.conn.ConnectionState;
 import net.daporkchop.lib.network.conn.PorkConnection;
 import net.daporkchop.lib.network.conn.Session;
 import net.daporkchop.lib.network.endpoint.Endpoint;
-import net.daporkchop.lib.network.packet.KryoSerializationWrapper;
-import net.daporkchop.lib.network.util.CryptHelper;
+import net.daporkchop.lib.network.util.PacketReprocessor;
 
 /**
  * @author DaPorkchop_
  */
 @Getter
-public class KryoClientWrapper extends Client implements PorkConnection {
-    public final CryptHelper cryptHelper;
+@Setter
+public class KryoClientWrapper extends com.esotericsoftware.kryonet.Client implements PorkConnection {
+    public final PacketReprocessor packetReprocessor;
     public String disconnectReason;
     public Session session;
     public final Endpoint endpoint;
+    public ConnectionState state = ConnectionState.NOT_CONNECTED;
 
-    public KryoClientWrapper(@NonNull Endpoint endpoint, int writeBufferSize, int objectBufferSize, @NonNull Serialization serialization) {
+    public KryoClientWrapper(@NonNull Endpoint client, int writeBufferSize, int objectBufferSize, @NonNull Serialization serialization) {
         super(writeBufferSize, objectBufferSize, serialization);
 
-        this.cryptHelper = new CryptHelper();
-        this.endpoint = endpoint;
+        this.packetReprocessor = new PacketReprocessor(client);
+        this.endpoint = client;
     }
 
     @Override

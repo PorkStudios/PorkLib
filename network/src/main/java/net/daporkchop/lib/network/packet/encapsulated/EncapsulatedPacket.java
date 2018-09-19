@@ -22,20 +22,24 @@ import net.daporkchop.lib.network.packet.Codec;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.protocol.PacketProtocol;
 
+import java.util.Arrays;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * @author DaPorkchop_
  */
 public interface EncapsulatedPacket extends Packet {
     int ENCAPSULATED_VERSION = 2;
+
     PacketProtocol PROTOCOL = new PacketProtocol("PorkLib Network", ENCAPSULATED_VERSION) {
         @Override
         @SuppressWarnings("unchecked")
         protected void registerPackets(PacketRegistry registry) {
-            registry.register(
-                    new NonhandlingCodec<>(WrappedPacket::new)
-            );
+            Arrays.stream(EncapsulatedType.values())
+                    .map(EncapsulatedType::getSupplier)
+                    .collect(Collectors.toSet())
+                    .forEach(supplier -> registry.register(new NonhandlingCodec<>(supplier)));
         }
 
         @Override
@@ -58,4 +62,6 @@ public interface EncapsulatedPacket extends Packet {
             }
         }
     };
+
+    EncapsulatedType getType();
 }

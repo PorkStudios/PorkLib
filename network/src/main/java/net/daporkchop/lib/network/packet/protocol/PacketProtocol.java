@@ -31,9 +31,9 @@ import java.util.Map;
  */
 @Getter
 public abstract class PacketProtocol<S extends Session> {
-    private final Map<Class, Codec<Packet, S>> classCodecMap = new IdentityHashMap<>();
+    private final Map<Class, Codec<? extends Packet, S>> classCodecMap = new IdentityHashMap<>();
     private final List<Class> classes = new ArrayList<>();
-    private final List<Codec<Packet, S>> codecs = new ArrayList<>();
+    private final List<Codec<? extends Packet, S>> codecs = new ArrayList<>();
 
     private final String name;
     private final int version;
@@ -64,15 +64,16 @@ public abstract class PacketProtocol<S extends Session> {
     }
 
     public Packet newPacket(int id) {
-        Codec<Packet, S> codec = this.codecs.get(id);
+        Codec<? extends Packet, S> codec = this.codecs.get(id);
         if (codec == null) {
             throw new IllegalArgumentException(String.format("Invalid packet id: %d", id));
         }
         return codec.newPacket();
     }
 
-    public void handle(@NonNull Packet packet, @NonNull S session) {
-        Codec<Packet, S> codec = this.classCodecMap.get(packet.getClass());
+    @SuppressWarnings("unchecked")
+    public <P extends Packet> void handle(@NonNull S session, @NonNull P packet) {
+        Codec<P, S> codec = (Codec<P, S>) this.classCodecMap.get(packet.getClass());
         if (codec == null) {
             throw new IllegalArgumentException(String.format("Invalid packet class: %s", packet.getClass().getCanonicalName()));
         }
@@ -84,14 +85,14 @@ public abstract class PacketProtocol<S extends Session> {
     }
 
     public boolean isCompatible(@NonNull String name, int version) {
-        return name.equals(this.name) && version == this.version;
+        return name.equals(this.name) && version >= 0 && version == this.version;
     }
 
     protected final class PacketRegistry {
-        private final Map<Class, Codec<Packet, S>> codecs = new IdentityHashMap<>();
+        private final Map<Class, Codec<? extends Packet, S>> codecs = new IdentityHashMap<>();
 
-        public void register(@NonNull Codec<Packet, S>... codecs) {
-            for (Codec<Packet, S> codec : codecs) {
+        public void register(@NonNull Codec<? extends Packet, S>... codecs) {
+            for (Codec<? extends Packet, S> codec : codecs) {
                 if (codec == null) {
                     throw new NullPointerException("supplier");
                 }
@@ -99,7 +100,7 @@ public abstract class PacketProtocol<S extends Session> {
             }
         }
 
-        public synchronized void register(@NonNull Codec<Packet, S> codec) {
+        public synchronized void register(@NonNull Codec<? extends Packet, S> codec) {
             Packet packet = codec.newPacket();
             Class clazz = packet.getClass();
 

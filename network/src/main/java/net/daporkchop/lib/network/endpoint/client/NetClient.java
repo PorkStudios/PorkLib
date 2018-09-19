@@ -16,16 +16,58 @@
 package net.daporkchop.lib.network.endpoint.client;
 
 import lombok.NonNull;
+import net.daporkchop.lib.network.conn.PorkConnection;
+import net.daporkchop.lib.network.conn.Session;
+import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
+import net.daporkchop.lib.network.packet.KryoSerializationWrapper;
+
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-public class NetClient {
+public class NetClient<S extends Session> extends Endpoint<S> {
     private final KryoClientWrapper client;
 
-    public NetClient(@NonNull ClientBuilder builder)    {
-        this.client = new KryoClientWrapper();
+    public NetClient(@NonNull ClientBuilder<S> builder) {
+        super(builder.getListeners(), builder.getProtocol());
 
+        try {
+            this.client = new KryoClientWrapper(this, WRITE_BUFFER_SIZE, OBJECT_BUFFER_SIZE, new KryoSerializationWrapper(this));
+            this.initKryo(this.client.getKryo());
+            this.client.addListener(new KryoListenerEndpoint());
+            this.client.start();
+            this.client.connect(10000, builder.getAddress().getHostString(), builder.getAddress().getPort());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public <MS extends S> MS getSession()   {
+        return ((PorkConnection) this.client).getSession();
+    }
+
+    @Override
+    public boolean isRunning() {
+        synchronized (this.client) {
+            return this.client.isConnected();
+        }
+    }
+
+    @Override
+    public void close(String reason) {
+        synchronized (this.client) {
+            if (!this.isRunning()) {
+                throw new IllegalStateException("Client already closed!");
+            }
+
+            try {
+                this.client.stop();
+                this.client.dispose();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }

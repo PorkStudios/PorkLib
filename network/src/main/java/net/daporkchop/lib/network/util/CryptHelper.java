@@ -17,24 +17,38 @@ package net.daporkchop.lib.network.util;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.crypto.CryptographySettings;
+import net.daporkchop.lib.encoding.compression.EnumCompression;
+
+import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  * @author DaPorkchop_
  */
 @Getter
+@Setter
+@NoArgsConstructor
+@RequiredArgsConstructor
 @AllArgsConstructor
 public class CryptHelper {
     @Setter
     private CryptographySettings cryptographySettings;
 
-    public byte[] encrypt(@NonNull byte[] b) {
+    @NonNull
+    private EnumCompression compression = EnumCompression.NONE;
+
+    public OutputStream encrypt(@NonNull OutputStream o) {
         return null; //TODO
     }
 
-    public byte[] decrypt(@NonNull byte[] b) {
+    public InputStream decrypt(@NonNull InputStream i) {
         return null; //TODO
     }
 }

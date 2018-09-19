@@ -15,49 +15,64 @@
 
 package net.daporkchop.lib.network.packet;
 
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.KryoSerialization;
 import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.ByteBufferInputStream;
+import net.daporkchop.lib.binary.stream.ByteBufferOutputStream;
 import net.daporkchop.lib.network.conn.PorkConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 
 /**
  * @author DaPorkchop_
  */
-//TODO: see if i can remove this
 public class KryoSerializationWrapper extends KryoSerialization {
     @NonNull
     private final Endpoint endpoint;
 
-    private ByteBuffer writeBuffer;
+    private final Kryo kryo;
+    private final Output output = new Output();
+    private final Input input = new Input();
 
     public KryoSerializationWrapper(@NonNull Endpoint endpoint) {
         super();
 
         this.endpoint = endpoint;
+
+        try {
+            Field field = KryoSerialization.class.getDeclaredField("kryo");
+            field.setAccessible(true);
+            this.kryo = (Kryo) field.get(this);
+        } catch (Exception e)    {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public synchronized void write(Connection connection, ByteBuffer buffer, Object object) {
         PorkConnection porkConnection = (PorkConnection) connection;
-        if (this.writeBuffer == null)   {
-            this.writeBuffer = ByteBuffer.allocate(buffer.capacity());
-        }
-        this.writeBuffer.clear();
-        int pos = buffer.position();
-        this.writeBuffer.position(pos);
-        super.write(connection, this.writeBuffer, object);
-        byte[] b = new byte[this.writeBuffer.position() - pos];
-        buffer.put(porkConnection.getCryptHelper().encrypt(b));
+        OutputStream o = porkConnection.getCryptHelper().encrypt(new ByteBufferOutputStream(buffer));
+        this.output.setOutputStream(o);
+        this.kryo.getContext().put("connection", connection);
+        this.kryo.writeClassAndObject(this.output, object);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public synchronized Object read(Connection connection, ByteBuffer buffer) {
         PorkConnection porkConnection = (PorkConnection) connection;
-        byte[] b = new byte[buffer.remaining()];
-        buffer.get(b);
-        return super.read(connection, ByteBuffer.wrap(porkConnection.getCryptHelper().decrypt(b)));
+        InputStream i = porkConnection.getCryptHelper().decrypt(new ByteBufferInputStream(buffer));
+        this.input.setInputStream(i);
+        this.kryo.getContext().put("connection", connection);
+        return this.kryo.readClassAndObject(this.input);
     }
 }

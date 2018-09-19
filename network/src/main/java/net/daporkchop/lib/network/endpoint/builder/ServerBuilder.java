@@ -20,6 +20,7 @@ import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.crypto.CryptographySettings;
+import net.daporkchop.lib.network.conn.Session;
 import net.daporkchop.lib.network.endpoint.server.NetServer;
 
 /**
@@ -28,12 +29,12 @@ import net.daporkchop.lib.network.endpoint.server.NetServer;
 @Accessors(chain = true)
 @Getter
 @Setter
-public class ServerBuilder extends AbstractBuilder<NetServer> {
+public class ServerBuilder<S extends Session> extends AbstractBuilder<S, NetServer<S>> {
     @NonNull
     private CryptographySettings cryptographySettings = new CryptographySettings();
 
     @Override
-    protected NetServer doBuild() {
-        return new NetServer(this);
+    protected NetServer<S> doBuild() {
+        return new NetServer<>(this);
     }
 }

@@ -130,7 +130,7 @@ public class ConstantLengthFile extends OpenFile {
     @Override
     protected void readHeaders() throws IOException {
         this.file.seek(0L);
-        for (int i = 0; i < 256; i++)   {
+        for (int i = 0; i < 256; i++) {
             this.index[i] = this.file.readInt();
         }
     }
@@ -138,7 +138,7 @@ public class ConstantLengthFile extends OpenFile {
     @Override
     protected void writeHeaders() throws IOException {
         this.file.seek(0L);
-        for (int i = 0; i < 256; i++)   {
+        for (int i = 0; i < 256; i++) {
             this.file.writeInt(this.index[i]);
         }
     }

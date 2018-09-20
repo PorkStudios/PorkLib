@@ -30,8 +30,7 @@ public enum EncapsulatedType {
     HANDSHAKE_INIT(HandshakeInitPacket::new),
     HANDSHAKE_RESPONSE(HandshakeResponsePacket::new),
     HANDSHAKE_COMPLETE(HandshakeCompletePacket::new),
-    DISCONNECT(DisconnectPacket::new)
-    ;
+    DISCONNECT(DisconnectPacket::new);
 
     @NonNull
     private final Supplier<EncapsulatedPacket> supplier;

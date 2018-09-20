@@ -19,7 +19,6 @@ import net.daporkchop.lib.primitive.iterator.IntegerIterator;
 import net.daporkchop.lib.primitive.iterator.LongIterator;
 import net.daporkchop.lib.primitive.iterator.bi.IntegerLongIterator;
 import net.daporkchop.lib.primitive.map.IntegerLongMap;
-import net.daporkchop.lib.primitive.map.concurrent.IntegerLongConcurrentTreeHashMap;
 import org.junit.Test;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -30,7 +29,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public abstract class MapTest {
     @Test
-    public void test()  {
+    public void test() {
         IntegerLongMap map = this.newMap();
         for (int i = 0; i < 1000; i++) {
             map.put(i, ThreadLocalRandom.current().nextInt(Integer.MAX_VALUE));

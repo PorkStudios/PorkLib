@@ -27,7 +27,7 @@ public enum DatabaseFormat {
     TREE,
     /**
      * Similar to the {@link #TREE} format, except everything is stored in a single ZIP file.
-     *
+     * <p>
      * Attention! The zip file is NOT compressed, so if you need compression you will still need to
      * manually enable it in the {@link DBBuilder}!
      */

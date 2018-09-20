@@ -15,7 +15,6 @@
 
 package net.daporkchop.lib.nbt.tag.impl.pork.object;
 
-import com.sun.org.apache.regexp.internal.RE;
 import net.daporkchop.lib.nbt.TagType;
 import net.daporkchop.lib.nbt.stream.NBTInputStream;
 import net.daporkchop.lib.nbt.stream.NBTOutputStream;
@@ -24,27 +23,10 @@ import net.daporkchop.lib.nbt.tag.Tag;
 import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Map;
-import java.util.function.BiFunction;
 
 public class ObjectTag<T> extends Tag<T> {
     private static final Map<String, SerializerContainer> SERIALIZERS = new Hashtable<>();
     private static final Map<Class, String> REGISTERED_CLASSES = new Hashtable<>();
-
-    public synchronized static <A> void registerSerializer(String key, ISerializer<A> serializer, IDeserializer<A> deserializer, Class<A> clazz)  {
-        if (key == null || "null".equals(key) || key.isEmpty()) throw new IllegalArgumentException("Key may not be null or empty!");
-        if (clazz == null) throw new IllegalArgumentException("Class may not be null!");
-        if (serializer == null) throw new IllegalArgumentException("Serializer may not be null!");
-        if (deserializer == null) throw new IllegalArgumentException("Deserializer may not be null!");
-
-        if (SERIALIZERS.containsKey(key)) {
-            throw new IllegalArgumentException("Serializer key " + key + " is already registered!");
-        } else if (REGISTERED_CLASSES.containsKey(clazz))   {
-            throw new IllegalArgumentException("Class " + clazz.getCanonicalName() + " is already registered under key " + REGISTERED_CLASSES.get(clazz) + "!");
-        } else {
-            SERIALIZERS.put(key, new SerializerContainer<>(serializer, deserializer));
-            REGISTERED_CLASSES.put(clazz, key);
-        }
-    }
 
     public ObjectTag(String name) {
         super(name);
@@ -52,6 +34,23 @@ public class ObjectTag<T> extends Tag<T> {
 
     public ObjectTag(String name, T value) {
         super(name, value);
+    }
+
+    public synchronized static <A> void registerSerializer(String key, ISerializer<A> serializer, IDeserializer<A> deserializer, Class<A> clazz) {
+        if (key == null || "null".equals(key) || key.isEmpty())
+            throw new IllegalArgumentException("Key may not be null or empty!");
+        if (clazz == null) throw new IllegalArgumentException("Class may not be null!");
+        if (serializer == null) throw new IllegalArgumentException("Serializer may not be null!");
+        if (deserializer == null) throw new IllegalArgumentException("Deserializer may not be null!");
+
+        if (SERIALIZERS.containsKey(key)) {
+            throw new IllegalArgumentException("Serializer key " + key + " is already registered!");
+        } else if (REGISTERED_CLASSES.containsKey(clazz)) {
+            throw new IllegalArgumentException("Class " + clazz.getCanonicalName() + " is already registered under key " + REGISTERED_CLASSES.get(clazz) + "!");
+        } else {
+            SERIALIZERS.put(key, new SerializerContainer<>(serializer, deserializer));
+            REGISTERED_CLASSES.put(clazz, key);
+        }
     }
 
     @Override
@@ -63,7 +62,8 @@ public class ObjectTag<T> extends Tag<T> {
         } else {
             T value = getValue();
             String key = REGISTERED_CLASSES.get(value.getClass());
-            if (key == null) throw new IllegalStateException("No serializer found for class: " + value.getClass().getCanonicalName());
+            if (key == null)
+                throw new IllegalStateException("No serializer found for class: " + value.getClass().getCanonicalName());
 
             dos.writeUTF(key);
             SerializerContainer<T> container = (SerializerContainer<T>) SERIALIZERS.get(key);

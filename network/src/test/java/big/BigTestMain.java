@@ -15,8 +15,8 @@
 
 package big;
 
-import big.protocol.BigProtocol;
 import big.protocol.BigPacket;
+import big.protocol.BigProtocol;
 import net.daporkchop.lib.crypto.CryptographySettings;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
@@ -85,24 +85,24 @@ public class BigTestMain {
                     .build();
 
             Scanner scanner = new Scanner(System.in);
-            while (!scanner.nextLine().isEmpty())  {
+            while (!scanner.nextLine().isEmpty()) {
             }
             scanner.close();
-        } catch (Exception e)   {
+        } catch (Exception e) {
             e.printStackTrace();
         } finally {
             try {
                 if (client != null) {
                     client.close();
                 }
-            } catch (Exception e)   {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             try {
                 if (server != null) {
                     server.close();
                 }
-            } catch (Exception e)   {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

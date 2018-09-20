@@ -27,9 +27,8 @@ import java.lang.reflect.Method;
  */
 public class ReflectionUtil {
     private static final Field connection_tcp;
-    private static Method tcpConnection_writeOperation;
-
     private static final Field input_capacity;
+    private static Method tcpConnection_writeOperation;
 
     static {
         try {
@@ -38,14 +37,14 @@ public class ReflectionUtil {
 
             input_capacity = Input.class.getDeclaredField("capacity");
             input_capacity.setAccessible(true);
-        } catch (Exception e)   {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static void flush(@NonNull Connection connection)  {
+    public static void flush(@NonNull Connection connection) {
         try {
-            if (!connection.isConnected())  {
+            if (!connection.isConnected()) {
                 return;
             }
             Object o = connection_tcp.get(connection);
@@ -54,15 +53,15 @@ public class ReflectionUtil {
                 tcpConnection_writeOperation.setAccessible(true);
             }
             tcpConnection_writeOperation.invoke(o);
-        } catch (Exception e)   {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static void setCapacity(@NonNull Input input, int capacity)  {
+    public static void setCapacity(@NonNull Input input, int capacity) {
         try {
             input_capacity.set(input, capacity);
-        } catch (Exception e)   {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }

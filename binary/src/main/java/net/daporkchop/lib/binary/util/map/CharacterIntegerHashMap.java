@@ -28,23 +28,23 @@ import java.util.BitSet;
  *
  * @author DaPorkchop_
  */
-public class CharacterIntegerHashMap implements CharacterIntegerMap    {
+public class CharacterIntegerHashMap implements CharacterIntegerMap {
+    protected final int baseSize;
+    protected final CharacterToIntegerFunction keyHash;
     protected char[] keys;
     protected int[] values;
     protected BitSet states;
-    protected final int baseSize;
     protected int len;
     protected int shrinkThreshold;
     protected int growThreshold;
     protected int mask;
     protected int size;
-    protected final CharacterToIntegerFunction keyHash;
 
-    public CharacterIntegerHashMap()    {
+    public CharacterIntegerHashMap() {
         this(16384);
     }
 
-    public CharacterIntegerHashMap(int baseSize)    {
+    public CharacterIntegerHashMap(int baseSize) {
         this(baseSize, null);
     }
 
@@ -52,10 +52,10 @@ public class CharacterIntegerHashMap implements CharacterIntegerMap    {
         this(16384, keyHash);
     }
 
-    public CharacterIntegerHashMap(int baseSize, CharacterToIntegerFunction keyHash)    {
+    public CharacterIntegerHashMap(int baseSize, CharacterToIntegerFunction keyHash) {
         if (!IsPow2.checkInt(baseSize)) throw new IllegalArgumentException("baseSize must be a power of 2!");
         this.baseSize = baseSize;
-        if (keyHash == null)    {
+        if (keyHash == null) {
             this.keyHash = in -> {
                 return in & 0xFFFF;
             };
@@ -69,7 +69,7 @@ public class CharacterIntegerHashMap implements CharacterIntegerMap    {
 
     @Override
     @SuppressWarnings("unchecked")
-    public int get(char key)   {
+    public int get(char key) {
         int i = getIndex(key);
         //check if key is present
         if (this.states.get(i)) {
@@ -81,13 +81,13 @@ public class CharacterIntegerHashMap implements CharacterIntegerMap    {
     }
 
     @Override
-    public int put(char key, int value)   {
+    public int put(char key, int value) {
         int i = getIndex(key);
         //check if key is present
         if (this.states.get(i)) {
             //if the new key isn't equal to the stored key, we've got us a hash collision
             //if that happens, just expand the array over and over until there's no more collisions
-            if (key != this.keys[i])    {
+            if (key != this.keys[i]) {
                 grow(true);
                 //fetch new index, as the arrays have been changed
                 i = getIndex(key);
@@ -124,11 +124,11 @@ public class CharacterIntegerHashMap implements CharacterIntegerMap    {
     }
 
     @Override
-    public int getSize()    {
+    public int getSize() {
         return this.size;
     }
 
-    protected boolean forEachBreaking(IntegerToBooleanFunction function)    {
+    protected boolean forEachBreaking(IntegerToBooleanFunction function) {
         for (int i = this.states.nextSetBit(0); i != -1; i = this.states.nextSetBit(i + 1)) {
             if (function.apply(i)) {
                 return true;
@@ -137,8 +137,8 @@ public class CharacterIntegerHashMap implements CharacterIntegerMap    {
         return false;
     }
 
-    protected void grow(boolean force)  {
-        if (force || this.size >= this.growThreshold)    {
+    protected void grow(boolean force) {
+        if (force || this.size >= this.growThreshold) {
             //System.out.println("Growing from current size: " + len);
             int[] values;
             char[] keys;
@@ -160,11 +160,11 @@ public class CharacterIntegerHashMap implements CharacterIntegerMap    {
         }
     }
 
-    protected boolean reHash(int[] values, char[] keys, BitSet states)    {
+    protected boolean reHash(int[] values, char[] keys, BitSet states) {
         return this.forEachBreaking(i -> {
             char key = this.keys[i];
             int j = getIndex(key);
-            if (states.get(j))  {
+            if (states.get(j)) {
                 //there's already an element with this index!
                 return true;
             }
@@ -175,17 +175,17 @@ public class CharacterIntegerHashMap implements CharacterIntegerMap    {
         });
     }
 
-    protected int getIndex(char key)    {
+    protected int getIndex(char key) {
         return this.keyHash.apply(key) & this.mask;
     }
 
-    protected void updateConstants()    {
+    protected void updateConstants() {
         this.shrinkThreshold = this.len >> 1;
         this.growThreshold = this.len << 1;
         this.mask = this.len - 1;
     }
 
-    protected int removeIndex(int i)   {
+    protected int removeIndex(int i) {
         //check if the key is present
         if (this.states.get(i)) {
             //mark the index as deleted

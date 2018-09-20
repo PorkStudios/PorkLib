@@ -16,7 +16,6 @@
 package net.daporkchop.lib.network.endpoint.server;
 
 import com.esotericsoftware.kryonet.Connection;
-import com.esotericsoftware.kryonet.Server;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;

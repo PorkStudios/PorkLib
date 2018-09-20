@@ -44,7 +44,7 @@ public class MessagePacket implements Packet {
         out.writeUTF(this.message);
     }
 
-    public static class MessageCodec implements Codec<MessagePacket, ChatSession>   {
+    public static class MessageCodec implements Codec<MessagePacket, ChatSession> {
         @Override
         public void handle(MessagePacket packet, ChatSession session) {
             boolean server = session.getEndpoint().getType() == EndpointType.SERVER;

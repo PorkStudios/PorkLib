@@ -45,7 +45,7 @@ public class CryptographySettings implements Data {
     private BlockCipherMode cipherMode;
     private BlockCipherPadding cipherPadding;
 
-    public CryptographySettings(@NonNull CurveType curveType, @NonNull BlockCipherType cipherType, @NonNull BlockCipherMode cipherMode, @NonNull BlockCipherPadding cipherPadding)   {
+    public CryptographySettings(@NonNull CurveType curveType, @NonNull BlockCipherType cipherType, @NonNull BlockCipherMode cipherMode, @NonNull BlockCipherPadding cipherPadding) {
         this(
                 curveType,
                 ECDHKeyPair.getKey(curveType),
@@ -86,7 +86,7 @@ public class CryptographySettings implements Data {
         }
     }
 
-    public boolean doesEncrypt()    {
+    public boolean doesEncrypt() {
         return this.curveType != null;
     }
 }

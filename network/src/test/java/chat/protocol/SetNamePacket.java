@@ -43,7 +43,7 @@ public class SetNamePacket implements Packet {
         out.writeUTF(this.name);
     }
 
-    public static class SetNameCodec implements Codec<SetNamePacket, ChatSession>   {
+    public static class SetNameCodec implements Codec<SetNamePacket, ChatSession> {
         @Override
         public void handle(SetNamePacket packet, ChatSession session) {
             session.name = packet.name;

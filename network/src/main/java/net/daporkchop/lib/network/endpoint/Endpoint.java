@@ -45,7 +45,7 @@ import net.daporkchop.lib.network.util.ReflectionUtil;
 import java.io.IOException;
 import java.util.Set;
 
-import static net.daporkchop.lib.network.packet.encapsulated.EncapsulatedPacket.*;
+import static net.daporkchop.lib.network.packet.encapsulated.EncapsulatedPacket.PROTOCOL;
 
 /**
  * @author DaPorkchop_
@@ -93,29 +93,29 @@ public abstract class Endpoint<S extends Session> {
     public abstract EndpointType getType();
 
     @SuppressWarnings("unchecked")
-    protected <MS extends Session> void registerProtocol(@NonNull PacketProtocol<MS> protocol, @NonNull Kryo kryo)   {
+    protected <MS extends Session> void registerProtocol(@NonNull PacketProtocol<MS> protocol, @NonNull Kryo kryo) {
         protocol.getClassCodecMap().forEach((clazz, codec) ->
-            kryo.register(clazz, new Serializer(false, true) {
-                @Override
-                public void write(Kryo kryo, Output output, Object object) {
-                    try {
-                        ((Packet) object).write(new DataOut(output));
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
+                kryo.register(clazz, new Serializer(false, true) {
+                    @Override
+                    public void write(Kryo kryo, Output output, Object object) {
+                        try {
+                            ((Packet) object).write(new DataOut(output));
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
                     }
-                }
 
-                @Override
-                public Object read(Kryo kryo, Input input, Class type) {
-                    try {
-                        Packet packet = codec.newPacket();
-                        packet.read(new DataIn(input));
-                        return packet;
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
+                    @Override
+                    public Object read(Kryo kryo, Input input, Class type) {
+                        try {
+                            Packet packet = codec.newPacket();
+                            packet.read(new DataIn(input));
+                            return packet;
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
                     }
-                }
-            }));
+                }));
     }
 
     @NoArgsConstructor
@@ -126,7 +126,7 @@ public abstract class Endpoint<S extends Session> {
 
             porkConnection.setSession(Endpoint.this.protocol.newSession());
 
-            if (Endpoint.this instanceof PorkServer)    {
+            if (Endpoint.this instanceof PorkServer) {
                 HandshakeInitPacket packet = new HandshakeInitPacket();
                 CryptographySettings settings = porkConnection.getPacketReprocessor().getCryptographySettings();
                 if (settings.doesEncrypt()) {
@@ -161,8 +161,8 @@ public abstract class Endpoint<S extends Session> {
                 if (object instanceof EncapsulatedPacket) {
                     EncapsulatedPacket encapsulatedPacket = (EncapsulatedPacket) object;
                     try {
-                        switch (encapsulatedPacket.getType())   {
-                            case HANDSHAKE_INIT:{
+                        switch (encapsulatedPacket.getType()) {
+                            case HANDSHAKE_INIT: {
                                 HandshakeInitPacket packet = (HandshakeInitPacket) object;
                                 EncapsulatedPacket response = porkConnection.getPacketReprocessor().initClient(packet);
                                 porkConnection.incrementState();

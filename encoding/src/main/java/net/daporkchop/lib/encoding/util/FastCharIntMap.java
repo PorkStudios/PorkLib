@@ -25,7 +25,7 @@ import java.util.Arrays;
 public class FastCharIntMap {
     private final int[][] backing = new int[256][];
 
-    public void put(char key, int val)  {
+    public void put(char key, int val) {
         int[] bin = backing[key >> 8];
         if (bin == null) {
             bin = backing[key >> 8] = new int[256];
@@ -34,7 +34,7 @@ public class FastCharIntMap {
         bin[key & 0xFF] = val;
     }
 
-    public int get(char key)    {
+    public int get(char key) {
         int[] bin = backing[key >> 8];
         if (bin == null) return -1;
         return bin[key & 0xFF];

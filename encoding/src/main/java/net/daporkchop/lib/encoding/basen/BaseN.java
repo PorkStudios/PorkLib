@@ -32,27 +32,29 @@ public class BaseN {
     public final char zero;
 
     protected BaseN(String alphabet) {
-        if (alphabet == null || alphabet.isEmpty()) throw new IllegalArgumentException("Alphabet cannot be null or empty!");
+        if (alphabet == null || alphabet.isEmpty())
+            throw new IllegalArgumentException("Alphabet cannot be null or empty!");
         this.alphabet = alphabet.toCharArray();
         this.length = alphabet.length();
 
         //check for duplicates
-        for (int i = 0; i < this.length; i++)   {
+        for (int i = 0; i < this.length; i++) {
             char c = this.alphabet[i];
-            for (int j = 0; j < this.length; j++)   {
+            for (int j = 0; j < this.length; j++) {
                 if (j == i) continue;
-                if (this.alphabet[j] == c) throw new IllegalArgumentException("Found duplicate characters in alphabet at indexes " + i + " and " + j + "!");
+                if (this.alphabet[j] == c)
+                    throw new IllegalArgumentException("Found duplicate characters in alphabet at indexes " + i + " and " + j + "!");
             }
         }
 
-        for (int i = 0; i < this.length; i++)   {
+        for (int i = 0; i < this.length; i++) {
             indexes.put(this.alphabet[i], i);
         }
 
         this.zero = this.alphabet[0];
     }
 
-    public String encode(byte[] data)   {
+    public String encode(byte[] data) {
         if (data.length == 0) return "";
         // Count leading zeros.
         int zeros = 0;
@@ -80,7 +82,7 @@ public class BaseN {
         return new String(encoded, outputStart, encoded.length - outputStart);
     }
 
-    public byte[] decode(String input)   {
+    public byte[] decode(String input) {
         if (input.length() == 0) {
             return new byte[0];
         }

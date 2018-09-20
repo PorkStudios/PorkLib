@@ -114,7 +114,7 @@ public class PorkCrypt2Engine implements BlockCipher {
             //not very strong, but should be confusing enough (also has the extremely useful side effect
             //of copying bytes from inBuf to outBuf)
             int a = k + r;
-            for (int i = 0; i < BLOCK_SIZE; i++)    {
+            for (int i = 0; i < BLOCK_SIZE; i++) {
                 this.outBuf[i] = this.inBuf[~(a + i) & BLOCK_MASK];
             }
         }
@@ -147,7 +147,7 @@ public class PorkCrypt2Engine implements BlockCipher {
         {
             //also like above, also backwards
             int a = k + r;
-            for (int i = 0; i < BLOCK_SIZE; i++)    {
+            for (int i = 0; i < BLOCK_SIZE; i++) {
                 this.outBuf[i] = this.inBuf[~(a + i) & BLOCK_MASK];
             }
         }

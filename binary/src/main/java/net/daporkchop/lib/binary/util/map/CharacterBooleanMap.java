@@ -15,8 +15,6 @@
 
 package net.daporkchop.lib.binary.util.map;
 
-import java.util.Collection;
-
 /**
  * A map, using a key type of char and a value type of boolean.
  * <p>
@@ -36,7 +34,7 @@ public interface CharacterBooleanMap {
     /**
      * Add a mapping to the map
      *
-     * @param key The key of the mapping to add
+     * @param key   The key of the mapping to add
      * @param value The value of the mapping to add
      * @return the element that was previously mapped to the given key, or false if no such mapping existed
      */
@@ -52,7 +50,7 @@ public interface CharacterBooleanMap {
      * @param in the key to be hashed
      * @return a hash of the given key
      */
-    default int hashKey(char in)    {
+    default int hashKey(char in) {
         return in & 0xFFFF;
     }
 }

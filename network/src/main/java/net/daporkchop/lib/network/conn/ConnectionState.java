@@ -24,8 +24,7 @@ import lombok.AllArgsConstructor;
 public enum ConnectionState {
     NOT_CONNECTED(false, false),
     HANDSHAKE(true, false),
-    RUN(true, true)
-    ;
+    RUN(true, true);
 
     public final boolean compress;
     public final boolean encrypt;

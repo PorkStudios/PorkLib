@@ -46,11 +46,11 @@ public class BigPacket implements Packet {
         out.writeBytesSimple(this.data);
     }
 
-    public static class MessageCodec implements Codec<BigPacket, BigSession>   {
+    public static class MessageCodec implements Codec<BigPacket, BigSession> {
         @Override
         public void handle(BigPacket packet, BigSession session) {
             boolean server = session.getEndpoint().getType() == EndpointType.SERVER;
-            if (!Arrays.equals(packet.data, BigTestMain.RANDOM_DATA))   {
+            if (!Arrays.equals(packet.data, BigTestMain.RANDOM_DATA)) {
                 throw new IllegalStateException("Invalid data!");
             }
             System.out.printf("[%s] Data valid!\n", server ? "Server" : "Client");

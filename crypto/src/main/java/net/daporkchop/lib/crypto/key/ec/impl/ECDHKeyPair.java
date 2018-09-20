@@ -30,7 +30,11 @@ import java.util.concurrent.ForkJoinPool;
 public class ECDHKeyPair extends AbstractECKeyPair {
     private static final Map<CurveType, CompletableFuture<ECDHKeyPair>> keyInstances = new EnumMap<>(CurveType.class);
 
-    public static CompletableFuture<ECDHKeyPair> getKeyFuture(@NonNull CurveType type)  {
+    public ECDHKeyPair(PrivateKey privateKey, PublicKey publicKey) {
+        super(privateKey, publicKey);
+    }
+
+    public static CompletableFuture<ECDHKeyPair> getKeyFuture(@NonNull CurveType type) {
         synchronized (keyInstances) {
             return keyInstances.computeIfAbsent(type, c -> {
                 CompletableFuture<ECDHKeyPair> future = new CompletableFuture<>();
@@ -40,16 +44,12 @@ public class ECDHKeyPair extends AbstractECKeyPair {
         }
     }
 
-    public static ECDHKeyPair getKey(@NonNull CurveType type)   {
+    public static ECDHKeyPair getKey(@NonNull CurveType type) {
         CompletableFuture<ECDHKeyPair> future = getKeyFuture(type);
         try {
             return future.get();
-        } catch (Exception e)   {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public ECDHKeyPair(PrivateKey privateKey, PublicKey publicKey) {
-        super(privateKey, publicKey);
     }
 }

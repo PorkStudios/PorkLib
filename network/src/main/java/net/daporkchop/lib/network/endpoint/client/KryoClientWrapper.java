@@ -33,9 +33,9 @@ import net.daporkchop.lib.network.util.PacketReprocessor;
 @Setter
 public class KryoClientWrapper extends com.esotericsoftware.kryonet.Client implements PorkConnection {
     public final PacketReprocessor packetReprocessor;
+    public final Endpoint endpoint;
     public String disconnectReason;
     public Session session;
-    public final Endpoint endpoint;
     public ConnectionState state = ConnectionState.NOT_CONNECTED;
 
     public KryoClientWrapper(@NonNull Endpoint client, int writeBufferSize, int objectBufferSize, @NonNull Serialization serialization) {

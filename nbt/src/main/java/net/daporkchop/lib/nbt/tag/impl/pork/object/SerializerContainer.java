@@ -22,7 +22,7 @@ public class SerializerContainer<T> {
     private final ISerializer<T> serializer;
     private final IDeserializer<T> deserializer;
 
-    public SerializerContainer(ISerializer<T> serializer, IDeserializer<T> deserializer)    {
+    public SerializerContainer(ISerializer<T> serializer, IDeserializer<T> deserializer) {
         this.serializer = serializer;
         this.deserializer = deserializer;
     }

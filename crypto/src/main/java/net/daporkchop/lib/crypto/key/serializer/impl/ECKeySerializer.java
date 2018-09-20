@@ -18,8 +18,6 @@ package net.daporkchop.lib.crypto.key.serializer.impl;
 import net.daporkchop.lib.crypto.key.ec.AbstractECKeyPair;
 import net.daporkchop.lib.crypto.key.serializer.AbstractKeySerializer;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;

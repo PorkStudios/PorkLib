@@ -21,7 +21,6 @@ import org.bouncycastle.crypto.modes.CBCBlockCipher;
 import org.bouncycastle.crypto.modes.CFBBlockCipher;
 import org.bouncycastle.crypto.modes.OFBBlockCipher;
 import org.bouncycastle.crypto.modes.OpenPGPCFBBlockCipher;
-import org.bouncycastle.crypto.modes.SICBlockCipher;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 
 import java.util.function.BiFunction;

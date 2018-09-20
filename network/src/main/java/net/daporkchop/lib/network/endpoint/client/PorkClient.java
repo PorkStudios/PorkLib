@@ -47,7 +47,7 @@ public class PorkClient<S extends Session> extends Endpoint<S> {
         }
     }
 
-    public <MS extends S> MS getSession()   {
+    public <MS extends S> MS getSession() {
         return ((PorkConnection) this.client).getSession();
     }
 
@@ -76,7 +76,7 @@ public class PorkClient<S extends Session> extends Endpoint<S> {
     }
 
     public void send(@NonNull Packet... packets) {
-        for (Packet packet : packets)   {
+        for (Packet packet : packets) {
             if (packet == null) {
                 throw new NullPointerException("packet");
             }
@@ -84,7 +84,7 @@ public class PorkClient<S extends Session> extends Endpoint<S> {
         }
     }
 
-    public void send(@NonNull Packet packet)    {
+    public void send(@NonNull Packet packet) {
         this.client.send(packet);
     }
 

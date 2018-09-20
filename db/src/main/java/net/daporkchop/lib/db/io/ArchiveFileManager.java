@@ -37,13 +37,13 @@ import java.util.function.BiConsumer;
  */
 public class ArchiveFileManager extends FileManager {
     private final Map<Long, CountingLock> usedFiles = new ConcurrentHashMap<>();
-    private File file;
     @NonNull
     private final String suffix;
+    private File file;
 
     public ArchiveFileManager(int maxOpenFiles, @NonNull String suffix) {
         super(maxOpenFiles);
-        this.suffix =suffix;
+        this.suffix = suffix;
     }
 
     private TFile getFile(@NonNull byte[] fullHash) {
@@ -154,8 +154,8 @@ public class ArchiveFileManager extends FileManager {
     @Override
     public void forEach(BiConsumer<byte[], InputStream> consumer) {
         TFile file = new TFile(this.file);
-        for (String member : file.list())   {
-            if (!member.endsWith(this.suffix))  {
+        for (String member : file.list()) {
+            if (!member.endsWith(this.suffix)) {
                 byte[] key = Base34.decodeBase34(member);
                 InputStream in = this.getStream(key, PorkDB.hash(key));
                 consumer.accept(key, in);

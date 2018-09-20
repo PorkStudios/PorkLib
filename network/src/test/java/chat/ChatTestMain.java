@@ -24,7 +24,6 @@ import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
 import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.sig.ec.CurveType;
 import net.daporkchop.lib.encoding.compression.EnumCompression;
-import net.daporkchop.lib.network.conn.Session;
 import net.daporkchop.lib.network.endpoint.EndpointListener;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
@@ -88,25 +87,25 @@ public class ChatTestMain {
 
             Scanner scanner = new Scanner(System.in);
             String text;
-            while (!(text = scanner.nextLine()).isEmpty())  {
+            while (!(text = scanner.nextLine()).isEmpty()) {
                 client.send(new MessagePacket(text));
             }
             scanner.close();
-        } catch (Exception e)   {
+        } catch (Exception e) {
             e.printStackTrace();
         } finally {
             try {
                 if (client != null) {
                     client.close();
                 }
-            } catch (Exception e)   {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             try {
                 if (server != null) {
                     server.close();
                 }
-            } catch (Exception e)   {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

@@ -23,6 +23,7 @@ import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
 import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.sig.ec.CurveType;
 import net.daporkchop.lib.encoding.compression.EnumCompression;
+import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.endpoint.EndpointListener;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
@@ -45,6 +46,9 @@ public class BigTestMain {
     }
 
     public static void main(String... args) {
+        Endpoint.setWRITE_BUFFER_SIZE(2_000_000);
+        Endpoint.setOBJECT_BUFFER_SIZE(2_000_000);
+
         PorkServer<BigSession> server = null;
         PorkClient<BigSession> client = null;
 

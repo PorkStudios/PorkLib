@@ -25,6 +25,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.crypto.CryptographySettings;
@@ -52,8 +53,10 @@ import static net.daporkchop.lib.network.packet.encapsulated.EncapsulatedPacket.
 @Getter
 @RequiredArgsConstructor
 public abstract class Endpoint<S extends Session> {
-    protected static final int WRITE_BUFFER_SIZE = 16384;
-    protected static final int OBJECT_BUFFER_SIZE = 2048;
+    @Setter
+    protected static int WRITE_BUFFER_SIZE = 16384;
+    @Setter
+    protected static int OBJECT_BUFFER_SIZE = 2048;
 
     protected final Set<EndpointListener<S>> listeners;
     protected final PacketProtocol<S> protocol;

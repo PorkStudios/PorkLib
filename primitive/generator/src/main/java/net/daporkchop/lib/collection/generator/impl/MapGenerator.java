@@ -16,15 +16,15 @@
 package net.daporkchop.lib.collection.generator.impl;
 
 import net.daporkchop.lib.collection.generator.BaseGenerator;
-import net.daporkchop.lib.collection.generator.CollectionGenerator;
 import net.daporkchop.lib.collection.generator.Primitive;
+import net.daporkchop.lib.collection.generator.PrimitiveGenerator;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 
-import static net.daporkchop.lib.collection.generator.CollectionGenerator.BASE;
+import static net.daporkchop.lib.collection.generator.PrimitiveGenerator.BASE;
 
 /**
  * @author DaPorkchop_
@@ -58,7 +58,9 @@ public class MapGenerator extends BaseGenerator {
                         .replaceAll("_p1e_", key.emptyValue).replaceAll("_p2e_", value.emptyValue)
                         .replaceAll("_p1hf_", key.hashFunction).replaceAll("_p2hf_", value.hashFunction)
                         .replaceAll("_p1lhf_", key.longHashFunction).replaceAll("_p2lhf_", value.longHashFunction)
-                        .replaceAll("_p1b_", key.bytes).replaceAll("_p2b_", value.bytes);
+                        .replaceAll("_p1b_", key.bytes).replaceAll("_p2b_", value.bytes)
+
+                        .replaceFirst("2018-2018", YEAR);
                 new File(BASE + relativeName).mkdirs();
                 File o = new File(BASE + relativeName + (file.getName().replace("_P1_", key.name()).replace("_P2_", value.name()).replace(".template", ".java")));
                 if (needsCheck && o.exists() && o.lastModified() >= l) {
@@ -69,10 +71,10 @@ public class MapGenerator extends BaseGenerator {
                 FileOutputStream fos = new FileOutputStream(o, false);
                 byte[] b = s1.getBytes(Charset.forName("UTF-8"));
                 fos.write(b);
-                CollectionGenerator.FILES++;
-                CollectionGenerator.SIZE += b.length;
+                PrimitiveGenerator.FILES++;
+                PrimitiveGenerator.SIZE += b.length;
                 fos.close();
-                if (!o.setLastModified(l))  {
+                if (!o.setLastModified(l)) {
                     throw new IllegalStateException("drai");
                 }
             }

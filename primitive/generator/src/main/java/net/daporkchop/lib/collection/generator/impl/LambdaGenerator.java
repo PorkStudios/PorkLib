@@ -16,15 +16,15 @@
 package net.daporkchop.lib.collection.generator.impl;
 
 import net.daporkchop.lib.collection.generator.BaseGenerator;
-import net.daporkchop.lib.collection.generator.CollectionGenerator;
 import net.daporkchop.lib.collection.generator.Primitive;
+import net.daporkchop.lib.collection.generator.PrimitiveGenerator;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 
-import static net.daporkchop.lib.collection.generator.CollectionGenerator.BASE;
+import static net.daporkchop.lib.collection.generator.PrimitiveGenerator.BASE;
 
 /**
  * @author DaPorkchop_
@@ -51,6 +51,7 @@ public class LambdaGenerator extends BaseGenerator {
                                 .replaceAll("_p3_", value.generic ? "V" : value.displayName)
                                 .replaceAll("_p1e_", key.emptyValue).replaceAll("_p2e_", key2.emptyValue).replaceAll("_p3e_", value.emptyValue)
                                 .replaceAll("_p1hf_", key.hashFunction).replaceAll("_p2hf_", value.hashFunction)
+                                .replaceFirst("2018-2018", YEAR)
                                 .replace("TWOPARAM", "");
                         new File(BASE + relativeName).mkdirs();
                         File o = new File(BASE + relativeName + (file.getName().replace("_P1_", key.name()).replace("_P2_", key2.name()).replace("_P3_", value.name()).replace(".template", ".java")));
@@ -62,8 +63,8 @@ public class LambdaGenerator extends BaseGenerator {
                         FileOutputStream fos = new FileOutputStream(o, false);
                         byte[] b = s1.getBytes(Charset.forName("UTF-8"));
                         fos.write(b);
-                        CollectionGenerator.FILES++;
-                        CollectionGenerator.SIZE += b.length;
+                        PrimitiveGenerator.FILES++;
+                        PrimitiveGenerator.SIZE += b.length;
                         fos.close();
                         if (!o.setLastModified(l)) {
                             throw new IllegalStateException("drai");
@@ -94,6 +95,7 @@ public class LambdaGenerator extends BaseGenerator {
 
                             .replaceAll("_p1e_", key.emptyValue).replaceAll("_p2e_", value.emptyValue)
                             .replaceAll("_p1hf_", key.hashFunction).replaceAll("_p2hf_", value.hashFunction)
+                            .replaceFirst("2018-2018", YEAR)
                             .replace("KEYONLY", "");
                     new File(BASE + relativeName).mkdirs();
                     File o = new File(BASE + relativeName + (file.getName().replace("_P1_", key.name()).replace("_P2_", value.name()).replace(".template", ".java")));
@@ -105,8 +107,8 @@ public class LambdaGenerator extends BaseGenerator {
                     FileOutputStream fos = new FileOutputStream(o, false);
                     byte[] b = s1.getBytes(Charset.forName("UTF-8"));
                     fos.write(b);
-                    CollectionGenerator.FILES++;
-                    CollectionGenerator.SIZE += b.length;
+                    PrimitiveGenerator.FILES++;
+                    PrimitiveGenerator.SIZE += b.length;
                     fos.close();
                     if (!o.setLastModified(l)) {
                         throw new IllegalStateException("drai");

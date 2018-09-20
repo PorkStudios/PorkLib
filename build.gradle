@@ -31,7 +31,7 @@ plugins {
 
 dependencies {
     for (Project prj : project.allprojects) {
-        if (!"root".equalsIgnoreCase(prj.name)) {
+        if (!"root".equalsIgnoreCase(prj.name) && prj.parent.name.equalsIgnoreCase("root")) {
             compile project(":" + prj.name)
         }
     }

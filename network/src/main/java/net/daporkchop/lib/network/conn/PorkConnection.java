@@ -19,11 +19,7 @@ import com.esotericsoftware.kryonet.Connection;
 import lombok.NonNull;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Packet;
-import net.daporkchop.lib.network.util.NetworkConstants;
 import net.daporkchop.lib.network.util.PacketReprocessor;
-
-import java.util.Queue;
-import java.util.concurrent.ArrayBlockingQueue;
 
 /**
  * @author DaPorkchop_
@@ -49,32 +45,6 @@ public interface PorkConnection {
 
     Endpoint getEndpoint();
 
-    Queue<Packet> getSendQueue();
-
-    default Queue<Packet> createQueue() {
-        return new ArrayBlockingQueue<Packet>(NetworkConstants.SEND_QUEUE_SIZE)   {
-            @Override
-            public boolean add(Packet packet) {
-                try {
-                    super.put(packet);
-                    return true;
-                } catch (InterruptedException e)    {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-    }
-
-    default void queueForSending(@NonNull Packet packet)   {
-        this.getSendQueue().add(packet);
-    }
-
-    default void queueForSending(@NonNull Packet... packets) {
-        for (Packet packet : packets)   {
-            this.queueForSending(packet);
-        }
-    }
-
     default boolean canSetState(@NonNull ConnectionState state)   {
         ConnectionState current = this.getState();
         return current.ordinal() < state.ordinal();
@@ -91,15 +61,6 @@ public interface PorkConnection {
 
     default void send(@NonNull Packet packet)   {
         this.getNetConnection().sendTCP(packet);
-    }
-
-    default void send(@NonNull Packet... packets)   {
-        for (Packet packet : packets)   {
-            if (packet == null) {
-                throw new NullPointerException("packet");
-            }
-            this.getNetConnection().sendTCP(packet);
-        }
     }
 
     default int getPing()   {

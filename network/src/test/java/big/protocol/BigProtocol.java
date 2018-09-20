@@ -13,51 +13,28 @@
  *
  */
 
-package net.daporkchop.lib.network.packet.encapsulated;
+package big.protocol;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-
-import java.io.IOException;
+import big.BigSession;
+import net.daporkchop.lib.network.packet.protocol.PacketProtocol;
 
 /**
  * @author DaPorkchop_
  */
-@NoArgsConstructor
-@AllArgsConstructor
-@ToString
-public class LargeDataPacket implements EncapsulatedPacket {
-    public boolean first;
-    public int totalLength;
-    public int offset;
-    public byte[] data;
-
-    @Override
-    public void read(DataIn in) throws IOException {
-        if (this.first = in.readBoolean())  {
-            this.totalLength = in.readInt();
-        }
-        this.offset = in.readInt();
-        this.data = in.readBytesSimple();
+public class BigProtocol extends PacketProtocol<BigSession> {
+    public BigProtocol() {
+        super("ChatTest", 1);
     }
 
     @Override
-    public void write(DataOut out) throws IOException {
-        if (this.first) {
-            out.writeBoolean(true);
-            out.writeInt(this.totalLength);
-        } else {
-            out.writeBoolean(false);
-        }
-        out.writeInt(this.offset);
-        out.writeBytesSimple(this.data);
+    protected void registerPackets(PacketRegistry registry) {
+        registry.register(
+                new BigPacket.MessageCodec()
+        );
     }
 
     @Override
-    public EncapsulatedType getType() {
-        return EncapsulatedType.LARGE_DATA;
+    public BigSession newSession() {
+        return new BigSession();
     }
 }

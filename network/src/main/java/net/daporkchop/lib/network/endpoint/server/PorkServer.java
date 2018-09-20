@@ -15,7 +15,6 @@
 
 package net.daporkchop.lib.network.endpoint.server;
 
-import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Server;
 import lombok.NonNull;
@@ -27,7 +26,6 @@ import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.packet.KryoSerializationWrapper;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.encapsulated.DisconnectPacket;
-import net.daporkchop.lib.network.util.NetworkConstants;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -46,7 +44,7 @@ public class PorkServer<S extends Session> extends Endpoint<S> {
     public PorkServer(@NonNull ServerBuilder<S> builder) {
         super(builder.getListeners(), builder.getProtocol());
         try {
-            this.server = new Server(NetworkConstants.WRITE_BUFFER_SIZE, NetworkConstants.OBJECT_BUFFER_SIZE, new KryoSerializationWrapper(this)) {
+            this.server = new Server(WRITE_BUFFER_SIZE, OBJECT_BUFFER_SIZE, new KryoSerializationWrapper(this)) {
                 @Override
                 protected Connection newConnection() {
                     return new ServerConnection(PorkServer.this, builder);
@@ -101,26 +99,20 @@ public class PorkServer<S extends Session> extends Endpoint<S> {
     }
 
     public void broadcast(@NonNull Packet... packets) {
-        for (Packet packet : packets) {
-            if (packet == null) {
-                throw new NullPointerException("packet");
+        for (Connection connection : this.server.getConnections()) {
+            for (Packet packet : packets) {
+                if (packet == null) {
+                    throw new NullPointerException("packet");
+                }
+                connection.sendTCP(packet);
             }
         }
-
-        this.getSessions().forEach(session -> {
-            for (Packet packet : packets) {
-                session.send(packet);
-            }
-        });
     }
 
     public void broadcast(@NonNull Packet packet) {
-        this.getSessions().forEach(session -> session.send(packet));
-    }
-
-    @Override
-    public Kryo getKryo() {
-        return this.server.getKryo();
+        for (Connection connection : this.server.getConnections()) {
+            connection.sendTCP(packet);
+        }
     }
 
     @Override

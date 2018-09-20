@@ -20,11 +20,14 @@ import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryonet.Connection;
+import com.esotericsoftware.kryonet.KryoSerialization;
 import com.esotericsoftware.kryonet.Listener;
+import com.esotericsoftware.kryonet.Serialization;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.crypto.CryptographySettings;
@@ -38,11 +41,15 @@ import net.daporkchop.lib.network.packet.encapsulated.EncapsulatedPacket;
 import net.daporkchop.lib.network.packet.encapsulated.HandshakeCompletePacket;
 import net.daporkchop.lib.network.packet.encapsulated.HandshakeInitPacket;
 import net.daporkchop.lib.network.packet.encapsulated.HandshakeResponsePacket;
+import net.daporkchop.lib.network.packet.encapsulated.LargeDataPacket;
 import net.daporkchop.lib.network.packet.protocol.PacketProtocol;
+import net.daporkchop.lib.network.util.LargeReceiveBuf;
 import net.daporkchop.lib.network.util.ReflectionUtil;
 
 import java.io.IOException;
+import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static net.daporkchop.lib.network.packet.encapsulated.EncapsulatedPacket.*;
 
@@ -52,8 +59,6 @@ import static net.daporkchop.lib.network.packet.encapsulated.EncapsulatedPacket.
 @Getter
 @RequiredArgsConstructor
 public abstract class Endpoint<S extends Session> {
-    protected static final int WRITE_BUFFER_SIZE = 16384;
-    protected static final int OBJECT_BUFFER_SIZE = 2048;
 
     protected final Set<EndpointListener<S>> listeners;
     protected final PacketProtocol<S> protocol;
@@ -89,6 +94,8 @@ public abstract class Endpoint<S extends Session> {
 
     public abstract EndpointType getType();
 
+    public abstract Kryo getKryo();
+
     @SuppressWarnings("unchecked")
     protected <MS extends Session> void registerProtocol(@NonNull PacketProtocol<MS> protocol, @NonNull Kryo kryo)   {
         protocol.getClassCodecMap().forEach((clazz, codec) ->
@@ -117,11 +124,14 @@ public abstract class Endpoint<S extends Session> {
 
     @NoArgsConstructor
     protected class KryoListenerEndpoint extends Listener {
+        private LargeReceiveBuf largeReceiveBuf;
+
         @Override
         public void connected(Connection connection) {
             PorkConnection porkConnection = (PorkConnection) connection;
 
             porkConnection.setSession(Endpoint.this.protocol.newSession());
+            connection.setIdleThreshold(0.89999999999999999999999999999999f);
 
             if (Endpoint.this instanceof PorkServer)    {
                 HandshakeInitPacket packet = new HandshakeInitPacket();
@@ -187,6 +197,25 @@ public abstract class Endpoint<S extends Session> {
                                 //disconnect event is fired by kryonet afterwards
                             }
                             break;
+                            case LARGE_DATA: {
+                                LargeDataPacket packet = (LargeDataPacket) object;
+                                if (packet.first)   {
+                                    if (this.largeReceiveBuf != null)   {
+                                        throw new IllegalStateException("Attempted to send large data when already receiving!");
+                                    }
+                                    this.largeReceiveBuf = new LargeReceiveBuf(packet.totalLength);
+                                } else if (this.largeReceiveBuf == null)    {
+                                    throw new IllegalStateException("Not receiving large data!");
+                                }
+                                this.largeReceiveBuf.receive(packet);
+                                if (this.largeReceiveBuf.isComplete())  {
+                                    Kryo kryo = Endpoint.this.getKryo();
+                                    Object o = kryo.readClassAndObject(new Input(this.largeReceiveBuf.data));
+                                    this.largeReceiveBuf = null;
+                                    this.received(connection, o);
+                                }
+                            }
+                            break;
                         }
                     } catch (Exception e) {
                         throw new RuntimeException(e);
@@ -203,7 +232,11 @@ public abstract class Endpoint<S extends Session> {
         @Override
         public void idle(Connection connection) {
             PorkConnection porkConnection = (PorkConnection) connection;
-            //TODO: handle splitting for large packets
+            Queue<Packet> sendQueue = porkConnection.getSendQueue();
+            Packet packet;
+            while (connection.isIdle() && (packet = sendQueue.poll()) != null)   {
+                connection.sendTCP(packet);
+            }
         }
     }
 }

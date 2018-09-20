@@ -13,55 +13,62 @@
  *
  */
 
-package net.daporkchop.lib.network.packet.encapsulated;
+package overflow.protocol;
 
+import net.daporkchop.lib.network.packet.LargePacket;
+import overflow.OverflowSession;
+import overflow.OverflowTestMain;
 import lombok.AllArgsConstructor;
-import lombok.NonNull;
-import net.daporkchop.lib.network.conn.Session;
+import lombok.NoArgsConstructor;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.network.endpoint.EndpointType;
 import net.daporkchop.lib.network.packet.Codec;
 import net.daporkchop.lib.network.packet.Packet;
-import net.daporkchop.lib.network.packet.protocol.PacketProtocol;
 
+import java.io.IOException;
 import java.util.Arrays;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 /**
  * @author DaPorkchop_
  */
-public interface EncapsulatedPacket extends Packet {
-    int ENCAPSULATED_VERSION = 3;
+@NoArgsConstructor
+@AllArgsConstructor
+public class BigPacket implements LargePacket {
+    public byte[] data;
 
-    PacketProtocol PROTOCOL = new PacketProtocol("PorkLib Network", ENCAPSULATED_VERSION) {
+    @Override
+    public void read(DataIn in) throws IOException {
+        this.data = in.readBytesSimple();
+    }
+
+    @Override
+    public void write(DataOut out) throws IOException {
+        out.writeBytesSimple(this.data);
+    }
+
+    @Override
+    public int getDataLength() {
+        return this.data.length
+                + 4;
+    }
+
+    public static class BigCodec implements Codec<BigPacket, OverflowSession>   {
         @Override
-        @SuppressWarnings("unchecked")
-        protected void registerPackets(PacketRegistry registry) {
-            Arrays.stream(EncapsulatedType.values())
-                    .map(EncapsulatedType::getSupplier)
-                    .collect(Collectors.toSet())
-                    .forEach(supplier -> registry.register(new NonhandlingCodec<>(supplier)));
+        public void handle(BigPacket packet, OverflowSession session) {
+            boolean server = session.getEndpoint().getType() == EndpointType.SERVER;
+            if (!Arrays.equals(packet.data, OverflowTestMain.RANDOM_DATA))   {
+                throw new IllegalStateException("Invalid data!");
+            }
+            System.out.printf("[%s] Data valid!\n", server ? "Server" : "Client");
+            if (server) {
+                session.send(packet);
+            }
         }
 
         @Override
-        public Session newSession() {
-            return null;
+        public BigPacket newPacket() {
+            return new BigPacket();
         }
-
-        @AllArgsConstructor
-        final class NonhandlingCodec<P extends EncapsulatedPacket> implements Codec<P, Session> {
-            @NonNull
-            private final Supplier<P> supplier;
-
-            @Override
-            public void handle(P packet, Session session) {
-            }
-
-            @Override
-            public P newPacket() {
-                return this.supplier.get();
-            }
-        }
-    };
-
-    EncapsulatedType getType();
+    }
 }

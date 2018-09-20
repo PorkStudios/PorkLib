@@ -13,27 +13,11 @@
  *
  */
 
-package net.daporkchop.lib.network.packet.encapsulated;
-
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NonNull;
-
-import java.util.function.Supplier;
+package net.daporkchop.lib.network.packet;
 
 /**
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-@Getter
-public enum EncapsulatedType {
-    HANDSHAKE_INIT(HandshakeInitPacket::new),
-    HANDSHAKE_RESPONSE(HandshakeResponsePacket::new),
-    HANDSHAKE_COMPLETE(HandshakeCompletePacket::new),
-    DISCONNECT(DisconnectPacket::new),
-    LARGE_DATA(LargeDataPacket::new)
-    ;
-
-    @NonNull
-    private final Supplier<EncapsulatedPacket> supplier;
+public interface LargePacket extends Packet {
+    int getDataLength();
 }

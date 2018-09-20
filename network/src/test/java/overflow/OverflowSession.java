@@ -13,27 +13,14 @@
  *
  */
 
-package net.daporkchop.lib.network.packet.encapsulated;
+package overflow;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NonNull;
-
-import java.util.function.Supplier;
+import lombok.NoArgsConstructor;
+import net.daporkchop.lib.network.conn.Session;
 
 /**
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-@Getter
-public enum EncapsulatedType {
-    HANDSHAKE_INIT(HandshakeInitPacket::new),
-    HANDSHAKE_RESPONSE(HandshakeResponsePacket::new),
-    HANDSHAKE_COMPLETE(HandshakeCompletePacket::new),
-    DISCONNECT(DisconnectPacket::new),
-    LARGE_DATA(LargeDataPacket::new)
-    ;
-
-    @NonNull
-    private final Supplier<EncapsulatedPacket> supplier;
+@NoArgsConstructor
+public class OverflowSession extends Session {
 }

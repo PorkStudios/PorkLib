@@ -13,34 +13,5 @@
  *
  */
 
-package net.daporkchop.lib.collection.generator;
-
-import net.daporkchop.lib.collection.generator.impl.LambdaGenerator;
-import net.daporkchop.lib.collection.generator.impl.MapGenerator;
-
-import java.io.File;
-import java.io.IOException;
-
-/**
- * @author DaPorkchop_
- */
-public class CollectionGenerator {
-    public static final String BASE = "./../../../../src/main/java/net/daporkchop/lib/primitive";
-
-    public static int FILES = 0;
-    public static int SIZE = 0;
-
-    public static void main(String... args) throws IOException {
-        new File(BASE).mkdirs();
-        new MapGenerator()
-                .generate(new File("./map"), "/map/");
-        new LambdaGenerator()
-                .generate(new File("./lambda"), "/lambda/")
-                .generate(new File("./iterator"), "/iterator/")
-                .generate(new File("./list"), "/list/")
-                .generate(new File("./set"), "/set/")
-                .generate(new File("./tuple"), "/tuple/");
-
-        System.out.println("Generated " + FILES + " files, totalling " + SIZE + " bytes (" + (SIZE / 1024D / 1024D) + " megabytes)");
-    }
+dependencies {
 }

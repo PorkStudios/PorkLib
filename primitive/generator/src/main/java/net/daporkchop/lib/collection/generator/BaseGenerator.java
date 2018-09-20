@@ -18,12 +18,18 @@ package net.daporkchop.lib.collection.generator;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Calendar;
 
 /**
  * @author DaPorkchop_
  */
 public abstract class BaseGenerator {
+    public static final String YEAR = String.format("2018-%d", Calendar.getInstance().get(Calendar.YEAR));
+
     public final BaseGenerator generate(File f, String relativeName) throws IOException {
+        if (!f.exists() || f.listFiles() == null) {
+            throw new IllegalStateException("Unable to find templates! Make sure the working directory is set to PorkLib/primitive/generator/src/main/resources!");
+        }
         for (File file : f.listFiles()) {
             if (file.isDirectory()) {
                 //System.out.println("Folder " + file.getName());

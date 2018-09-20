@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.primitive.map.concurrent;
+package net.daporkchop.lib.primitive.map.concurrent.treehash;
 
 import net.daporkchop.lib.primitive.lambda.consumer._P1_Consumer;
 import net.daporkchop.lib.primitive.lambda.consumer._P2_Consumer;

@@ -20,6 +20,5 @@ package net.daporkchop.lib.network.endpoint;
  */
 public enum EndpointType {
     CLIENT,
-    SERVER
-    ;
+    SERVER;
 }

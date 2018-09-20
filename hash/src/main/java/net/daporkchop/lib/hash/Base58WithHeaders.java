@@ -112,7 +112,7 @@ public class Base58WithHeaders {
         return new Decoded(data, prefix.toString(), version);
     }
 
-    public static final class Decoded   {
+    public static final class Decoded {
         public final byte[] content;
         public final String prefix;
         public final byte version;

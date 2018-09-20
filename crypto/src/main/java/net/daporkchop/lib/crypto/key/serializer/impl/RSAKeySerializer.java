@@ -20,8 +20,6 @@ import net.daporkchop.lib.crypto.key.serializer.AbstractKeySerializer;
 import net.daporkchop.lib.crypto.sig.asymmetric.PlainDSAEncoder;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.DataOutput;

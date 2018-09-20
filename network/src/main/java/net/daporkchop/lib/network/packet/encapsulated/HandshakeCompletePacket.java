@@ -15,7 +15,6 @@
 
 package net.daporkchop.lib.network.packet.encapsulated;
 
-import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;

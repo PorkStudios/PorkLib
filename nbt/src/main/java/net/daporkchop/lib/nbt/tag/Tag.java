@@ -21,7 +21,6 @@ import net.daporkchop.lib.nbt.stream.NBTOutputStream;
 import net.daporkchop.lib.nbt.tag.impl.notch.EndTag;
 
 import java.io.IOException;
-import java.io.PrintStream;
 
 public abstract class Tag<T> {
 

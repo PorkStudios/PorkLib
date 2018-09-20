@@ -45,7 +45,7 @@ public abstract class OpenFile implements Closeable {
                 throw new IllegalStateException("Unable to create new file!");
             }
             this.file = new RandomAccessFile(file, "rw");
-            if (!exists)    {
+            if (!exists) {
                 this.init();
             }
             this.readHeaders();

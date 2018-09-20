@@ -25,7 +25,6 @@ import net.daporkchop.lib.binary.stream.ByteBufferInputStream;
 import net.daporkchop.lib.binary.stream.ByteBufferOutputStream;
 import net.daporkchop.lib.network.conn.PorkConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
-import net.daporkchop.lib.network.util.ReflectionUtil;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -27,7 +27,7 @@ import net.daporkchop.lib.network.util.PacketReprocessor;
 public interface PorkConnection {
     <S extends Session> S getSession();
 
-    default void setSession(@NonNull Session session)   {
+    default void setSession(@NonNull Session session) {
         session.setPorkConnection(this);
     }
 
@@ -45,12 +45,12 @@ public interface PorkConnection {
 
     Endpoint getEndpoint();
 
-    default boolean canSetState(@NonNull ConnectionState state)   {
+    default boolean canSetState(@NonNull ConnectionState state) {
         ConnectionState current = this.getState();
         return current.ordinal() < state.ordinal();
     }
 
-    default void incrementState()   {
+    default void incrementState() {
         ConnectionState current = this.getState();
         ConnectionState[] values = ConnectionState.values();
         if (current.ordinal() + 1 >= values.length) {
@@ -59,15 +59,15 @@ public interface PorkConnection {
         this.setState(values[current.ordinal() + 1]);
     }
 
-    default void send(@NonNull Packet packet)   {
+    default void send(@NonNull Packet packet) {
         this.getNetConnection().sendTCP(packet);
     }
 
-    default int getPing()   {
+    default int getPing() {
         return this.getNetConnection().getReturnTripTime() >> 1;
     }
 
-    default boolean isConnected()   {
+    default boolean isConnected() {
         return this.getNetConnection().isConnected();
     }
 }

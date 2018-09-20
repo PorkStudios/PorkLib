@@ -16,7 +16,12 @@
 package net.daporkchop.lib.noise;
 
 import lombok.NonNull;
-import net.daporkchop.lib.noise.engine.*;
+import net.daporkchop.lib.noise.engine.CheckerboardEngine;
+import net.daporkchop.lib.noise.engine.INoiseEngine;
+import net.daporkchop.lib.noise.engine.OpenSimplexEngine;
+import net.daporkchop.lib.noise.engine.PerlinEngine;
+import net.daporkchop.lib.noise.engine.PorkianEngine;
+import net.daporkchop.lib.noise.engine.SimplexEngine;
 
 /**
  * A list of all supported noise algorithms
@@ -38,7 +43,7 @@ public enum NoiseEngineType {
     PERLIN(PerlinEngine::new),
     /**
      * My own custom algorithm :D
-     *
+     * <p>
      * Glorified value noise (very fast, not very natural-looking)
      */
     PORKIAN(PorkianEngine::new),

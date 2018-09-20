@@ -19,7 +19,7 @@ import static net.daporkchop.lib.math.primitive.Floor.floorI;
 
 /**
  * Implements the Perlin noise algorithm
- *
+ * <p>
  * Based on https://github.com/nvpro-samples/shared_sources/blob/master/noise/noise1234.cpp
  *
  * @author DaPorkchop_

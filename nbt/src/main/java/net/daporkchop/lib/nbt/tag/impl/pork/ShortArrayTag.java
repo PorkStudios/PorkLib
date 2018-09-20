@@ -33,14 +33,13 @@ public class ShortArrayTag extends Tag<short[]> {
 
     @Override
     public void write(NBTOutputStream dos) throws IOException {
-        short[] data = getValue();
+        short[] data = this.getValue();
         if (data == null) {
             dos.writeInt(0);
             return;
         }
         dos.writeInt(data.length);
-        for (int i = 0; i < data.length; i++) {
-            short s = data[i];
+        for (short s : data) {
             dos.writeByte((byte) s);
             dos.writeByte((byte) ((s >> 8) & 0xFF));
         }
@@ -59,7 +58,7 @@ public class ShortArrayTag extends Tag<short[]> {
 
     @Override
     public String toString() {
-        return "ShortArrayTag " + this.getName() + " (size=" + getValue().length + ")";
+        return "ShortArrayTag " + this.getName() + " (size=" + this.getValue().length + ')';
     }
 
     @Override
@@ -72,6 +71,6 @@ public class ShortArrayTag extends Tag<short[]> {
         short[] data = this.getValue();
         short[] cp = new short[data.length];
         System.arraycopy(data, 0, cp, 0, data.length);
-        return new ShortArrayTag(getName(), cp);
+        return new ShortArrayTag(this.getName(), cp);
     }
 }

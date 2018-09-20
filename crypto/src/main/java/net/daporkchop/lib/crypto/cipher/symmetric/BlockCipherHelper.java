@@ -62,7 +62,7 @@ public abstract class BlockCipherHelper<P extends AbstractSymmetricKey> {
             cipher = mode.wrap(cipher);
             return new PaddedBufferedBlockCipher(cipher, scheme.getPadding().create());
         };
-        this.tl = ThreadLocal.withInitial(() -> new WeakReference<>(supplier.get()));
+        this.tl = ThreadLocal.withInitial(() -> new WeakReference<>(this.supplier.get()));
         this.mode = mode;
         this.type = type;
         this.padding = scheme;
@@ -87,7 +87,7 @@ public abstract class BlockCipherHelper<P extends AbstractSymmetricKey> {
      * @return the encrypted bytes
      */
     public byte[] encrypt(byte[] data) {
-        return encrypt(data, false);
+        return this.encrypt(data, false);
     }
 
     /**
@@ -103,18 +103,18 @@ public abstract class BlockCipherHelper<P extends AbstractSymmetricKey> {
         if (lengthPrefix) {
             data = prefixLength(data);
         }
-        BufferedBlockCipher cipher = get();
+        BufferedBlockCipher cipher = this.get();
 
         synchronized (this.encrypt) {
             //update key
             this.updater.updateEncrypt(this.encrypt);
-            cipher.init(true, mode.getParametersFromKey(this.encrypt));
+            cipher.init(true, this.mode.getParametersFromKey(this.encrypt));
         }
 
         //actually do the encryption
         byte[] encrypted = new byte[cipher.getOutputSize(data.length)];
         int tam = cipher.processBytes(data, 0, data.length, encrypted, 0);
-        doCipher(cipher, tam, encrypted);
+        BlockCipherHelper.doCipher(cipher, tam, encrypted);
         return encrypted;
     }
 
@@ -125,7 +125,7 @@ public abstract class BlockCipherHelper<P extends AbstractSymmetricKey> {
      * @return the decrypted bytes
      */
     public byte[] decrypt(byte[] data) {
-        return decrypt(data, false);
+        return this.decrypt(data, false);
     }
 
     /**
@@ -138,12 +138,12 @@ public abstract class BlockCipherHelper<P extends AbstractSymmetricKey> {
      * @return the decrypted bytes
      */
     public byte[] decrypt(byte[] data, boolean lengthPrefix) {
-        BufferedBlockCipher cipher = get();
+        BufferedBlockCipher cipher = this.get();
 
         synchronized (this.decrypt) {
             //update key
             this.updater.updateDecrypt(this.decrypt);
-            cipher.init(false, mode.getParametersFromKey(this.decrypt));
+            cipher.init(false, this.mode.getParametersFromKey(this.decrypt));
         }
 
         byte[] decrypted = new byte[cipher.getOutputSize(data.length)];
@@ -151,7 +151,7 @@ public abstract class BlockCipherHelper<P extends AbstractSymmetricKey> {
             throw new IllegalArgumentException("Length header is missing!");
         }
         int tam = cipher.processBytes(data, 0, data.length, decrypted, 0);
-        doCipher(cipher, tam, decrypted);
+        BlockCipherHelper.doCipher(cipher, tam, decrypted);
         if (lengthPrefix) {
             int totalLength =
                     (((decrypted[0] & 0xFF) << 24)
@@ -172,12 +172,12 @@ public abstract class BlockCipherHelper<P extends AbstractSymmetricKey> {
      * @return a stream that encrypts written data and writes it to the given stream
      */
     public OutputStream encryptionStream(@NonNull OutputStream stream) {
-        BufferedBlockCipher cipher = get();
+        BufferedBlockCipher cipher = this.get();
 
         synchronized (this.encrypt) {
             //update key
             this.updater.updateEncrypt(this.encrypt);
-            cipher.init(true, mode.getParametersFromKey(this.encrypt));
+            cipher.init(true, this.mode.getParametersFromKey(this.encrypt));
         }
 
         return new CipherOutputStream(stream, cipher);
@@ -191,7 +191,7 @@ public abstract class BlockCipherHelper<P extends AbstractSymmetricKey> {
      * @return a stream that reads data from the given stream and decrypts it
      */
     public InputStream decryptionStream(@NonNull InputStream stream) {
-        BufferedBlockCipher cipher = get();
+        BufferedBlockCipher cipher = this.get();
 
         synchronized (this.decrypt) {
             //update key
@@ -203,7 +203,7 @@ public abstract class BlockCipherHelper<P extends AbstractSymmetricKey> {
         //return new BufferedInputStream(new CipherInputStream(stream, cipher, this.type.blockSize >> 3), this.type.blockSize >> 3);
     }
 
-    private void doCipher(BufferedBlockCipher c, int tam, byte[] b) {
+    private static void doCipher(BufferedBlockCipher c, int tam, byte[] b) {
         try {
             c.doFinal(b, tam);
         } catch (CryptoException e) {
@@ -214,9 +214,9 @@ public abstract class BlockCipherHelper<P extends AbstractSymmetricKey> {
 
     private BufferedBlockCipher get() {
         BufferedBlockCipher cipher;
-        if ((cipher = tl.get().get()) == null) {
-            cipher = supplier.get();
-            tl.set(new WeakReference<>(cipher));
+        if ((cipher = this.tl.get().get()) == null) {
+            cipher = this.supplier.get();
+            this.tl.set(new WeakReference<>(cipher));
         }
         return cipher;
     }

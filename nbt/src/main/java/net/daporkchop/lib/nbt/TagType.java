@@ -68,11 +68,11 @@ public enum TagType {
     }
 
     public byte getId() {
-        return (byte) ordinal();
+        return (byte) this.ordinal();
     }
 
     public Tag createInstance(String name) {
-        return provider.provide(name);
+        return this.provider.provide(name);
     }
 }
 

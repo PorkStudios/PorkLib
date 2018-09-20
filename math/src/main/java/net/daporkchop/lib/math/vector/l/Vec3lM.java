@@ -32,7 +32,7 @@ public class Vec3lM implements LongVector3 {
     }
 
     public long getX() {
-        return x;
+        return this.x;
     }
 
     public void setX(long x) {
@@ -40,7 +40,7 @@ public class Vec3lM implements LongVector3 {
     }
 
     public long getY() {
-        return y;
+        return this.y;
     }
 
     public void setY(long y) {
@@ -48,7 +48,7 @@ public class Vec3lM implements LongVector3 {
     }
 
     public long getZ() {
-        return z;
+        return this.z;
     }
 
     public void setZ(long z) {
@@ -89,7 +89,7 @@ public class Vec3lM implements LongVector3 {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null || !(obj instanceof Vec3lM)) {
+        if (!(obj instanceof Vec3lM)) {
             return false;
         }
 
@@ -99,11 +99,11 @@ public class Vec3lM implements LongVector3 {
 
     @Override
     public int hashCode() {
-        return 31 * 31 * (int) (x ^ (x >>> 32)) + 31 * (int) (y ^ (y >>> 32)) + (int) (z ^ (z >>> 32));
+        return 31 * 31 * (int) (this.x ^ (this.x >>> 32)) + 31 * (int) (this.y ^ (this.y >>> 32)) + (int) (this.z ^ (this.z >>> 32));
     }
 
     @Override
     public String toString() {
-        return "Vec3iM(x=" + x + ", y=" + y + ", z=" + z + ")";
+        return "Vec3iM(x=" + this.x + ", y=" + this.y + ", z=" + this.z + ')';
     }
 }

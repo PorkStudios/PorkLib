@@ -23,7 +23,7 @@ public class Pow {
         if (val == 0) return 0;
         if (exp == 0) return 0;
         long a = val;
-        for (long i = exp; a > 0; a--) {
+        for (; a > 0; a--) {
             a *= val;
         }
         return a;

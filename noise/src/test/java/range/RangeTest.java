@@ -26,11 +26,11 @@ import java.util.concurrent.ThreadLocalRandom;
  * @author DaPorkchop_
  */
 public abstract class RangeTest {
-    private static final int SAMPLES = 2560000;
+    private static final int SAMPLES = 256000;
 
     @Test
     public void test1d_raw() {
-        INoiseEngine engine = getEngine().getEngine(System.currentTimeMillis());
+        INoiseEngine engine = this.getEngine().getEngine(System.currentTimeMillis());
         double min = Double.MAX_VALUE, max = Double.MIN_VALUE;
         for (int j = 0; j < SAMPLES; j++) {
             //double val = engine.get1d(ThreadLocalRandom.current().nextDouble(-1000000d, 1000000d)); //TODO: make this work with non floating-point values
@@ -65,7 +65,7 @@ public abstract class RangeTest {
 
     @Test
     public void test2d_raw() {
-        INoiseEngine engine = getEngine().getEngine(System.currentTimeMillis());
+        INoiseEngine engine = this.getEngine().getEngine(System.currentTimeMillis());
         double min = Double.MAX_VALUE, max = Double.MIN_VALUE;
         for (int j = 0; j < SAMPLES; j++) {
             double val = engine.get(
@@ -83,7 +83,7 @@ public abstract class RangeTest {
 
     @Test
     public void test3d_raw() {
-        INoiseEngine engine = getEngine().getEngine(System.currentTimeMillis());
+        INoiseEngine engine = this.getEngine().getEngine(System.currentTimeMillis());
         double min = Double.MAX_VALUE, max = Double.MIN_VALUE;
         for (int j = 0; j < SAMPLES; j++) {
             double val = engine.get(
@@ -102,7 +102,7 @@ public abstract class RangeTest {
 
     @Test
     public void test4d_raw() {
-        INoiseEngine engine = getEngine().getEngine(System.currentTimeMillis());
+        INoiseEngine engine = this.getEngine().getEngine(System.currentTimeMillis());
         double min = Double.MAX_VALUE, max = Double.MIN_VALUE;
         for (int j = 0; j < SAMPLES; j++) {
             double val = engine.get(

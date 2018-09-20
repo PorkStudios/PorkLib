@@ -46,7 +46,7 @@ public class MD4Impl extends BaseHash {
         this.c = that.c;
         this.d = that.d;
         this.count = that.count;
-        this.buffer = (byte[]) that.buffer.clone();
+        this.buffer = that.buffer.clone();
     }
 
     public Object clone() {
@@ -54,32 +54,30 @@ public class MD4Impl extends BaseHash {
     }
 
     protected byte[] getResult() {
-        byte[] digest = {
-                (byte) a, (byte) (a >>> 8), (byte) (a >>> 16), (byte) (a >>> 24),
-                (byte) b, (byte) (b >>> 8), (byte) (b >>> 16), (byte) (b >>> 24),
-                (byte) c, (byte) (c >>> 8), (byte) (c >>> 16), (byte) (c >>> 24),
-                (byte) d, (byte) (d >>> 8), (byte) (d >>> 16), (byte) (d >>> 24)
+        return new byte[]{
+                (byte) this.a, (byte) (this.a >>> 8), (byte) (this.a >>> 16), (byte) (this.a >>> 24),
+                (byte) this.b, (byte) (this.b >>> 8), (byte) (this.b >>> 16), (byte) (this.b >>> 24),
+                (byte) this.c, (byte) (this.c >>> 8), (byte) (this.c >>> 16), (byte) (this.c >>> 24),
+                (byte) this.d, (byte) (this.d >>> 8), (byte) (this.d >>> 16), (byte) (this.d >>> 24)
         };
-        return digest;
     }
 
     protected void resetContext() {
-        a = A;
-        b = B;
-        c = C;
-        d = D;
+        this.a = A;
+        this.b = B;
+        this.c = C;
+        this.d = D;
     }
 
     public boolean selfTest() {
         if (valid == null) {
-            valid = new Boolean(
-                    DIGEST0.equals(HexBin.encode(new MD4Impl().digest())));
+            valid = DIGEST0.equals(HexBin.encode(new MD4Impl().digest()));
         }
-        return valid.booleanValue();
+        return valid;
     }
 
     protected byte[] padBuffer() {
-        return MDUtil.padBuffer(count, BLOCK_LENGTH);
+        return MDUtil.padBuffer(this.count, BLOCK_LENGTH);
     }
 
     protected void transform(byte[] in, int i) {
@@ -102,10 +100,10 @@ public class MD4Impl extends BaseHash {
 
         int aa, bb, cc, dd;
 
-        aa = a;
-        bb = b;
-        cc = c;
-        dd = d;
+        aa = this.a;
+        bb = this.b;
+        cc = this.c;
+        dd = this.d;
 
         aa += ((bb & cc) | ((~bb) & dd)) + X0;
         aa = aa << 3 | aa >>> -3;
@@ -206,9 +204,9 @@ public class MD4Impl extends BaseHash {
         bb += (cc ^ dd ^ aa) + X15 + 0x6ed9eba1;
         bb = bb << 15 | bb >>> -15;
 
-        a += aa;
-        b += bb;
-        c += cc;
-        d += dd;
+        this.a += aa;
+        this.b += bb;
+        this.c += cc;
+        this.d += dd;
     }
 }

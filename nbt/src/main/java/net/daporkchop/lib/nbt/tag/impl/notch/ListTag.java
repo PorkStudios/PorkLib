@@ -35,7 +35,7 @@ public class ListTag<T extends Tag> extends Tag<List<T>> {
 
     @Override
     public void write(NBTOutputStream dos) throws IOException {
-        List<T> list = getValue();
+        List<T> list = this.getValue();
         dos.writeByte(list.size() > 0 ? list.get(0).getType().getId() : 1);
         dos.writeInt(list.size());
         for (T t : list) t.write(dos);
@@ -53,7 +53,7 @@ public class ListTag<T extends Tag> extends Tag<List<T>> {
             tag.load(dis);
             list.add((T) tag);
         }
-        setValue(list);
+        this.setValue(list);
     }
 
     @Override
@@ -68,7 +68,7 @@ public class ListTag<T extends Tag> extends Tag<List<T>> {
 
     @Override
     public String toString() {
-        return "ListTag " + getName() + " (Size=" + getValue().size() + ")";
+        return "ListTag " + this.getName() + " (Size=" + this.getValue().size() + ')';
     }
 
     @Override
@@ -78,6 +78,6 @@ public class ListTag<T extends Tag> extends Tag<List<T>> {
 
     @Override
     public Tag copy() {
-        return new ListTag<>(getName(), new ArrayList<>(getValue()));
+        return new ListTag<>(this.getName(), new ArrayList<>(this.getValue()));
     }
 }

@@ -330,11 +330,11 @@ public enum BlockCipherType {
     }
 
     public BlockCipher create() {
-        return cipherSupplier.get();
+        return this.cipherSupplier.get();
     }
 
     public <T extends AbstractSymmetricKey> BlockCipherHelper createHelper(BlockCipherMode mode, BlockCipherPadding padding, T key) {
-        return helperSupplier.apply(mode, padding, key);
+        return this.helperSupplier.apply(mode, padding, key);
     }
 
     private interface TriFunction<A, B, C, Z> {

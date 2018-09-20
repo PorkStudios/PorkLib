@@ -27,6 +27,6 @@ public abstract class BlockPadding {
     }
 
     public BlockCipherPadding create() {
-        return supplier.get();
+        return this.supplier.get();
     }
 }

@@ -34,6 +34,6 @@ public enum BlockCipherPadding {
     }
 
     public BlockPadding getPadding() {
-        return supplier.get();
+        return this.supplier.get();
     }
 }

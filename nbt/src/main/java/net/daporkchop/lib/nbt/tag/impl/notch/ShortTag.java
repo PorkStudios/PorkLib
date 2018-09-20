@@ -33,12 +33,12 @@ public class ShortTag extends Tag<Short> {
 
     @Override
     public void write(NBTOutputStream dos) throws IOException {
-        dos.writeShort(getValue());
+        dos.writeShort(this.getValue());
     }
 
     @Override
     public void load(NBTInputStream dis) throws IOException {
-        setValue(dis.readShort());
+        this.setValue(dis.readShort());
     }
 
     @Override
@@ -48,11 +48,11 @@ public class ShortTag extends Tag<Short> {
 
     @Override
     public String toString() {
-        return "" + getValue();
+        return "" + this.getValue();
     }
 
     @Override
     public Tag copy() {
-        return new ShortTag(getName(), getValue());
+        return new ShortTag(this.getName(), this.getValue());
     }
 }

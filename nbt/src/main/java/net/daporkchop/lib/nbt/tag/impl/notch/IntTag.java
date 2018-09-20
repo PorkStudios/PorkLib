@@ -33,12 +33,12 @@ public class IntTag extends Tag<Integer> {
 
     @Override
     public void write(NBTOutputStream dos) throws IOException {
-        dos.writeInt(getValue());
+        dos.writeInt(this.getValue());
     }
 
     @Override
     public void load(NBTInputStream dis) throws IOException {
-        setValue(dis.readInt());
+        this.setValue(dis.readInt());
     }
 
     @Override
@@ -58,11 +58,11 @@ public class IntTag extends Tag<Integer> {
 
     @Override
     public String toString() {
-        return "IntTag" + this.getName() + "(data: " + getValue() + ")";
+        return "IntTag" + this.getName() + "(data: " + this.getValue() + ')';
     }
 
     @Override
     public Tag copy() {
-        return new IntTag(getName(), getValue());
+        return new IntTag(this.getName(), this.getValue());
     }
 }

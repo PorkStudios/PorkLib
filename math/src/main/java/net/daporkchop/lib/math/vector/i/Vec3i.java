@@ -32,15 +32,15 @@ public class Vec3i implements IntVector3 {
     }
 
     public int getX() {
-        return x;
+        return this.x;
     }
 
     public int getY() {
-        return y;
+        return this.y;
     }
 
     public int getZ() {
-        return z;
+        return this.z;
     }
 
     @Override
@@ -65,7 +65,7 @@ public class Vec3i implements IntVector3 {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null || !(obj instanceof Vec3i)) {
+        if (!(obj instanceof Vec3i)) {
             return false;
         }
 
@@ -75,11 +75,11 @@ public class Vec3i implements IntVector3 {
 
     @Override
     public int hashCode() {
-        return x * 31 * 31 + y * 31 + z;
+        return this.x * 31 * 31 + this.y * 31 + this.z;
     }
 
     @Override
     public String toString() {
-        return "Vec3i(x=" + x + ", y=" + y + ", z=" + z + ")";
+        return "Vec3i(x=" + this.x + ", y=" + this.y + ", z=" + this.z + ')';
     }
 }

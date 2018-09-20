@@ -38,7 +38,7 @@ public class RipeMD160Helper {
     }
 
     private byte[] hash(byte[] toHash) {
-        RipeMD160Impl i = tl.get();
+        RipeMD160Impl i = this.tl.get();
         i.update(toHash, 0, toHash.length);
         byte[] hash = i.digest();
         i.reset();
@@ -46,7 +46,7 @@ public class RipeMD160Helper {
     }
 
     private byte[] hash(byte[]... toHash) {
-        RipeMD160Impl i = tl.get();
+        RipeMD160Impl i = this.tl.get();
         for (byte[] b : toHash)
             i.update(b, 0, b.length);
         byte[] hash = i.digest();

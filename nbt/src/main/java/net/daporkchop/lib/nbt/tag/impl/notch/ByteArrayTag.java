@@ -33,7 +33,7 @@ public class ByteArrayTag extends Tag<byte[]> {
 
     @Override
     public void write(NBTOutputStream dos) throws IOException {
-        byte[] data = getValue();
+        byte[] data = this.getValue();
         if (data == null) {
             dos.writeInt(0);
             return;
@@ -62,9 +62,9 @@ public class ByteArrayTag extends Tag<byte[]> {
 
     @Override
     public Tag copy() {
-        byte[] data = getValue();
+        byte[] data = this.getValue();
         byte[] cp = new byte[data.length];
         System.arraycopy(data, 0, cp, 0, data.length);
-        return new ByteArrayTag(getName(), cp);
+        return new ByteArrayTag(this.getName(), cp);
     }
 }

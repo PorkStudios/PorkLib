@@ -35,17 +35,17 @@ public abstract class HashTest {
 
     @Test
     public void aaa_test() {
-        System.out.println(getName());
-        System.out.println(Hexadecimal.encode(hash(RANDOM_DATA)));
+        System.out.println(this.getName());
+        System.out.println(Hexadecimal.encode(this.hash(RANDOM_DATA)));
         RANDOM_DATA[0] += 1;
-        System.out.println(Hexadecimal.encode(hash(RANDOM_DATA)));
+        System.out.println(Hexadecimal.encode(this.hash(RANDOM_DATA)));
     }
 
     @Test
     public void aab_testEmpty() {
-        System.out.println(Hexadecimal.encode(hash(new byte[0])));
-        System.out.println(Hexadecimal.encode(hash(new byte[1])));
-        System.out.println(Hexadecimal.encode(hash(new byte[2])));
+        System.out.println(Hexadecimal.encode(this.hash(new byte[0])));
+        System.out.println(Hexadecimal.encode(this.hash(new byte[1])));
+        System.out.println(Hexadecimal.encode(this.hash(new byte[2])));
     }
 
     protected abstract byte[] hash(byte[] b);

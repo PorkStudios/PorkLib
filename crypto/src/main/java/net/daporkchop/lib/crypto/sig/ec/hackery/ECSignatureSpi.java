@@ -34,19 +34,19 @@ public class ECSignatureSpi extends PorkDSABase {
     public void engineInitVerify(PublicKey publicKey) throws InvalidKeyException {
         CipherParameters param = PorkECUtils.generatePublicKeyParameter(publicKey);
 
-        digest.reset();
-        signer.init(false, param);
+        this.digest.reset();
+        this.signer.init(false, param);
     }
 
     public void engineInitSign(PrivateKey privateKey) throws InvalidKeyException {
         CipherParameters param = ECUtil.generatePrivateKeyParameter(privateKey);
 
-        digest.reset();
+        this.digest.reset();
 
-        if (appRandom != null) {
-            signer.init(true, new ParametersWithRandom(param, appRandom));
+        if (this.appRandom != null) {
+            this.signer.init(true, new ParametersWithRandom(param, this.appRandom));
         } else {
-            signer.init(true, param);
+            this.signer.init(true, param);
         }
     }
 }

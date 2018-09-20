@@ -33,12 +33,12 @@ public class StringTag extends Tag<String> {
 
     @Override
     public void write(NBTOutputStream dos) throws IOException {
-        dos.writeUTF(getValue());
+        dos.writeUTF(this.getValue());
     }
 
     @Override
     public void load(NBTInputStream dis) throws IOException {
-        setValue(dis.readUTF());
+        this.setValue(dis.readUTF());
     }
 
     @Override
@@ -58,11 +58,11 @@ public class StringTag extends Tag<String> {
 
     @Override
     public String toString() {
-        return "StringTag " + this.getName() + " (data: " + getValue() + ")";
+        return "StringTag " + this.getName() + " (data: " + this.getValue() + ')';
     }
 
     @Override
     public Tag copy() {
-        return new StringTag(getName(), getValue());
+        return new StringTag(this.getName(), this.getValue());
     }
 }

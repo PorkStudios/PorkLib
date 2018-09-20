@@ -27,7 +27,7 @@ public abstract class AbstractKeySerializer<K> {
     public byte[] serialize(@NonNull K key) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try {
-            doSerialize(key, baos);
+            this.doSerialize(key, baos);
             return baos.toByteArray();
         } catch (IOException e) {
             e.printStackTrace();
@@ -43,7 +43,7 @@ public abstract class AbstractKeySerializer<K> {
     public <T extends K> T deserialize(@NonNull byte[] data) {
         ByteArrayInputStream bais = new ByteArrayInputStream(data);
         try {
-            return (T) doDeserialize(bais);
+            return (T) this.doDeserialize(bais);
         } catch (IOException e) {
             e.printStackTrace();
             throw new IllegalStateException(e);

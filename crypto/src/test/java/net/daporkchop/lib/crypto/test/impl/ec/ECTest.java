@@ -28,20 +28,20 @@ public abstract class ECTest<K extends AbstractECKeyPair, H extends AbstractECHe
     @Test
     public void test() {
         for (CurveType curve : CurveType.values()) {
-            K keys = getKeys(curve);
+            K keys = this.getKeys(curve);
             byte[] encoded = ECKeySerializer.INSTANCE.serialize(keys);
-            keys = ECKeySerializer.INSTANCE.<K>deserialize(encoded);
+            keys = ECKeySerializer.INSTANCE.deserialize(encoded);
             for (HashTypes hash : HashTypes.values()) {
-                H helper = getHelper(hash);
+                H helper = this.getHelper(hash);
 
                 for (byte[] b : TestMain.RANDOM_DATA) {
-                    byte[] sig = sign(b, keys, helper);
-                    if (!verify(b, sig, keys, helper)) {
+                    byte[] sig = this.sign(b, keys, helper);
+                    if (!this.verify(b, sig, keys, helper)) {
                         System.out.println("Public key: " + Base58.encodeBase58(keys.getPublicKey().getEncoded()));
                         System.out.println("Private key: " + Base58.encodeBase58(keys.getPrivateKey().getEncoded()));
                         System.out.println("Data: " + Base58.encodeBase58(b));
                         System.out.println("Signature: " + Base58.encodeBase58(sig));
-                        System.out.println("Curve+Hash: " + curve.name + "+" + hash.name());
+                        System.out.println("Curve+Hash: " + curve.name + '+' + hash.name());
                         throw new IllegalStateException("Invalid signature!");
                     }
                 }

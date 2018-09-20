@@ -31,7 +31,7 @@ public class RSATest {
     public void testCipher() {
         RSAKeyPair pair = RSAKeyGen.gen(4096);
         byte[] encoded = RSAKeySerializer.INSTANCE.serialize(pair);
-        pair = RSAKeySerializer.INSTANCE.<RSAKeyPair>deserialize(encoded);
+        pair = RSAKeySerializer.INSTANCE.deserialize(encoded);
 
         CIPHER:
         {
@@ -51,7 +51,7 @@ public class RSATest {
     public void testSig() {
         RSAKeyPair pair = RSAKeyGen.gen(4096);
         byte[] encoded = RSAKeySerializer.INSTANCE.serialize(pair);
-        pair = RSAKeySerializer.INSTANCE.<RSAKeyPair>deserialize(encoded);
+        pair = RSAKeySerializer.INSTANCE.deserialize(encoded);
 
         SIG:
         {

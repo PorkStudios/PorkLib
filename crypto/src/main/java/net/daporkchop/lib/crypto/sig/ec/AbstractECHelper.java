@@ -33,7 +33,7 @@ public abstract class AbstractECHelper<P extends AbstractECKeyPair> {
     }
 
     public byte[] sign(byte[] data, P key) {
-        ECSignatureSpi spi = get();
+        ECSignatureSpi spi = this.get();
         try {
             spi.engineInitSign(key.getPrivateKey());
             spi.engineUpdate(data, 0, data.length);
@@ -46,7 +46,7 @@ public abstract class AbstractECHelper<P extends AbstractECKeyPair> {
     }
 
     public boolean verify(byte[] sig, byte[] data, P key) {
-        ECSignatureSpi spi = get();
+        ECSignatureSpi spi = this.get();
         try {
             spi.engineInitVerify(key.getPublicKey());
             spi.engineUpdate(data, 0, data.length);
@@ -60,9 +60,9 @@ public abstract class AbstractECHelper<P extends AbstractECKeyPair> {
 
     protected ECSignatureSpi get() {
         ECSignatureSpi spi;
-        if ((spi = tl.get().get()) == null) {
-            spi = supplier.get();
-            tl.set(new WeakReference<>(spi));
+        if ((spi = this.tl.get().get()) == null) {
+            spi = this.supplier.get();
+            this.tl.set(new WeakReference<>(spi));
         }
         return spi;
     }

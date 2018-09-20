@@ -56,15 +56,15 @@ public enum BlockCipherMode {
     }
 
     public BlockCipher wrap(BlockCipher cipher) {
-        return cipherFunction.apply(cipher, cipher.getBlockSize());
+        return this.cipherFunction.apply(cipher, cipher.getBlockSize());
     }
 
     public CipherParameters getParametersFromKey(ParametersWithIV parameters) {
-        return parametersFunction.apply(parameters);
+        return this.parametersFunction.apply(parameters);
     }
 
     public boolean isCompatible(BlockCipherType cipher) {
-        for (BlockCipherType type : incompatible)
+        for (BlockCipherType type : this.incompatible)
             if (type == cipher) return false;
 
         return true;

@@ -33,14 +33,14 @@ public class FloatArrayTag extends Tag<float[]> {
 
     @Override
     public void write(NBTOutputStream dos) throws IOException {
-        float[] data = getValue();
+        float[] data = this.getValue();
         if (data == null) {
             dos.writeInt(0);
             return;
         }
         dos.writeInt(data.length);
-        for (int i = 0; i < data.length; i++) {
-            dos.writeFloat(data[i]);
+        for (float aData : data) {
+            dos.writeFloat(aData);
         }
     }
 
@@ -55,7 +55,7 @@ public class FloatArrayTag extends Tag<float[]> {
 
     @Override
     public String toString() {
-        return "FloatArrayTag " + this.getName() + " (size=" + getValue().length + ")";
+        return "FloatArrayTag " + this.getName() + " (size=" + this.getValue().length + ')';
     }
 
     @Override
@@ -68,6 +68,6 @@ public class FloatArrayTag extends Tag<float[]> {
         float[] data = this.getValue();
         float[] cp = new float[data.length];
         System.arraycopy(data, 0, cp, 0, data.length);
-        return new FloatArrayTag(getName(), cp);
+        return new FloatArrayTag(this.getName(), cp);
     }
 }

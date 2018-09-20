@@ -75,7 +75,7 @@ public class RipeMD160Impl extends BaseHash {
         this.h3 = md.h3;
         this.h4 = md.h4;
         this.count = md.count;
-        this.buffer = (byte[]) md.buffer.clone();
+        this.buffer = md.buffer.clone();
     }
 
     public Object clone() {
@@ -89,21 +89,21 @@ public class RipeMD160Impl extends BaseHash {
 
         // encode 64 bytes from input block into an array of 16 unsigned integers
         for (i = 0; i < 16; i++) {
-            X[i] = (in[offset++] & 0xFF) |
+            this.X[i] = (in[offset++] & 0xFF) |
                     (in[offset++] & 0xFF) << 8 |
                     (in[offset++] & 0xFF) << 16 |
                     in[offset++] << 24;
         }
 
-        A = Ap = h0;
-        B = Bp = h1;
-        C = Cp = h2;
-        D = Dp = h3;
-        E = Ep = h4;
+        A = Ap = this.h0;
+        B = Bp = this.h1;
+        C = Cp = this.h2;
+        D = Dp = this.h3;
+        E = Ep = this.h4;
 
         for (i = 0; i < 16; i++) { // rounds 0...15
             s = S[i];
-            T = A + (B ^ C ^ D) + X[i];
+            T = A + (B ^ C ^ D) + this.X[i];
             A = E;
             E = D;
             D = C << 10 | C >>> 22;
@@ -111,7 +111,7 @@ public class RipeMD160Impl extends BaseHash {
             B = (T << s | T >>> (32 - s)) + A;
 
             s = Sp[i];
-            T = Ap + (Bp ^ (Cp | ~Dp)) + X[Rp[i]] + 0x50A28BE6;
+            T = Ap + (Bp ^ (Cp | ~Dp)) + this.X[Rp[i]] + 0x50A28BE6;
             Ap = Ep;
             Ep = Dp;
             Dp = Cp << 10 | Cp >>> 22;
@@ -121,7 +121,7 @@ public class RipeMD160Impl extends BaseHash {
 
         for (; i < 32; i++) { // rounds 16...31
             s = S[i];
-            T = A + ((B & C) | (~B & D)) + X[R[i]] + 0x5A827999;
+            T = A + ((B & C) | (~B & D)) + this.X[R[i]] + 0x5A827999;
             A = E;
             E = D;
             D = C << 10 | C >>> 22;
@@ -129,7 +129,7 @@ public class RipeMD160Impl extends BaseHash {
             B = (T << s | T >>> (32 - s)) + A;
 
             s = Sp[i];
-            T = Ap + ((Bp & Dp) | (Cp & ~Dp)) + X[Rp[i]] + 0x5C4DD124;
+            T = Ap + ((Bp & Dp) | (Cp & ~Dp)) + this.X[Rp[i]] + 0x5C4DD124;
             Ap = Ep;
             Ep = Dp;
             Dp = Cp << 10 | Cp >>> 22;
@@ -139,7 +139,7 @@ public class RipeMD160Impl extends BaseHash {
 
         for (; i < 48; i++) { // rounds 32...47
             s = S[i];
-            T = A + ((B | ~C) ^ D) + X[R[i]] + 0x6ED9EBA1;
+            T = A + ((B | ~C) ^ D) + this.X[R[i]] + 0x6ED9EBA1;
             A = E;
             E = D;
             D = C << 10 | C >>> 22;
@@ -147,7 +147,7 @@ public class RipeMD160Impl extends BaseHash {
             B = (T << s | T >>> (32 - s)) + A;
 
             s = Sp[i];
-            T = Ap + ((Bp | ~Cp) ^ Dp) + X[Rp[i]] + 0x6D703EF3;
+            T = Ap + ((Bp | ~Cp) ^ Dp) + this.X[Rp[i]] + 0x6D703EF3;
             Ap = Ep;
             Ep = Dp;
             Dp = Cp << 10 | Cp >>> 22;
@@ -157,7 +157,7 @@ public class RipeMD160Impl extends BaseHash {
 
         for (; i < 64; i++) { // rounds 48...63
             s = S[i];
-            T = A + ((B & D) | (C & ~D)) + X[R[i]] + 0x8F1BBCDC;
+            T = A + ((B & D) | (C & ~D)) + this.X[R[i]] + 0x8F1BBCDC;
             A = E;
             E = D;
             D = C << 10 | C >>> 22;
@@ -165,7 +165,7 @@ public class RipeMD160Impl extends BaseHash {
             B = (T << s | T >>> (32 - s)) + A;
 
             s = Sp[i];
-            T = Ap + ((Bp & Cp) | (~Bp & Dp)) + X[Rp[i]] + 0x7A6D76E9;
+            T = Ap + ((Bp & Cp) | (~Bp & Dp)) + this.X[Rp[i]] + 0x7A6D76E9;
             Ap = Ep;
             Ep = Dp;
             Dp = Cp << 10 | Cp >>> 22;
@@ -175,7 +175,7 @@ public class RipeMD160Impl extends BaseHash {
 
         for (; i < 80; i++) { // rounds 64...79
             s = S[i];
-            T = A + (B ^ (C | ~D)) + X[R[i]] + 0xA953FD4E;
+            T = A + (B ^ (C | ~D)) + this.X[R[i]] + 0xA953FD4E;
             A = E;
             E = D;
             D = C << 10 | C >>> 22;
@@ -183,7 +183,7 @@ public class RipeMD160Impl extends BaseHash {
             B = (T << s | T >>> (32 - s)) + A;
 
             s = Sp[i];
-            T = Ap + (Bp ^ Cp ^ Dp) + X[Rp[i]];
+            T = Ap + (Bp ^ Cp ^ Dp) + this.X[Rp[i]];
             Ap = Ep;
             Ep = Dp;
             Dp = Cp << 10 | Cp >>> 22;
@@ -191,44 +191,42 @@ public class RipeMD160Impl extends BaseHash {
             Bp = (T << s | T >>> (32 - s)) + Ap;
         }
 
-        T = h1 + C + Dp;
-        h1 = h2 + D + Ep;
-        h2 = h3 + E + Ap;
-        h3 = h4 + A + Bp;
-        h4 = h0 + B + Cp;
-        h0 = T;
+        T = this.h1 + C + Dp;
+        this.h1 = this.h2 + D + Ep;
+        this.h2 = this.h3 + E + Ap;
+        this.h3 = this.h4 + A + Bp;
+        this.h4 = this.h0 + B + Cp;
+        this.h0 = T;
     }
 
     protected byte[] padBuffer() {
-        return MDUtil.padBuffer(count, BLOCK_SIZE);
+        return MDUtil.padBuffer(this.count, BLOCK_SIZE);
     }
 
     protected byte[] getResult() {
-        byte[] result = new byte[]{
-                (byte) h0, (byte) (h0 >>> 8), (byte) (h0 >>> 16), (byte) (h0 >>> 24),
-                (byte) h1, (byte) (h1 >>> 8), (byte) (h1 >>> 16), (byte) (h1 >>> 24),
-                (byte) h2, (byte) (h2 >>> 8), (byte) (h2 >>> 16), (byte) (h2 >>> 24),
-                (byte) h3, (byte) (h3 >>> 8), (byte) (h3 >>> 16), (byte) (h3 >>> 24),
-                (byte) h4, (byte) (h4 >>> 8), (byte) (h4 >>> 16), (byte) (h4 >>> 24)
-        };
 
-        return result;
+        return new byte[]{
+                (byte) this.h0, (byte) (this.h0 >>> 8), (byte) (this.h0 >>> 16), (byte) (this.h0 >>> 24),
+                (byte) this.h1, (byte) (this.h1 >>> 8), (byte) (this.h1 >>> 16), (byte) (this.h1 >>> 24),
+                (byte) this.h2, (byte) (this.h2 >>> 8), (byte) (this.h2 >>> 16), (byte) (this.h2 >>> 24),
+                (byte) this.h3, (byte) (this.h3 >>> 8), (byte) (this.h3 >>> 16), (byte) (this.h3 >>> 24),
+                (byte) this.h4, (byte) (this.h4 >>> 8), (byte) (this.h4 >>> 16), (byte) (this.h4 >>> 24)
+        };
     }
 
     protected void resetContext() {
         // magic RIPEMD160 initialisation constants
-        h0 = 0x67452301;
-        h1 = 0xEFCDAB89;
-        h2 = 0x98BADCFE;
-        h3 = 0x10325476;
-        h4 = 0xC3D2E1F0;
+        this.h0 = 0x67452301;
+        this.h1 = 0xEFCDAB89;
+        this.h2 = 0x98BADCFE;
+        this.h3 = 0x10325476;
+        this.h4 = 0xC3D2E1F0;
     }
 
     public boolean selfTest() {
         if (valid == null) {
-            valid = new Boolean(
-                    DIGEST0.equals(HexBin.encode(new RipeMD160Impl().digest())));
+            valid = DIGEST0.equals(HexBin.encode(new RipeMD160Impl().digest()));
         }
-        return valid.booleanValue();
+        return valid;
     }
 }

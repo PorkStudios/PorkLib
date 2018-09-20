@@ -46,11 +46,11 @@ public class NBTInputStream implements DataInput, AutoCloseable {
     }
 
     public ByteOrder getEndianness() {
-        return endianness;
+        return this.endianness;
     }
 
     public boolean isNetwork() {
-        return network;
+        return this.network;
     }
 
     @Override
@@ -86,7 +86,7 @@ public class NBTInputStream implements DataInput, AutoCloseable {
     @Override
     public short readShort() throws IOException {
         short s = this.stream.readShort();
-        if (endianness == ByteOrder.LITTLE_ENDIAN) {
+        if (this.endianness == ByteOrder.LITTLE_ENDIAN) {
             s = Short.reverseBytes(s);
         }
         return s;
@@ -95,7 +95,7 @@ public class NBTInputStream implements DataInput, AutoCloseable {
     @Override
     public int readUnsignedShort() throws IOException {
         int s = this.stream.readUnsignedShort();
-        if (endianness == ByteOrder.LITTLE_ENDIAN) {
+        if (this.endianness == ByteOrder.LITTLE_ENDIAN) {
             s = Integer.reverseBytes(s) >> 16;
         }
         return s;
@@ -104,7 +104,7 @@ public class NBTInputStream implements DataInput, AutoCloseable {
     @Override
     public char readChar() throws IOException {
         char c = this.stream.readChar();
-        if (endianness == ByteOrder.LITTLE_ENDIAN) {
+        if (this.endianness == ByteOrder.LITTLE_ENDIAN) {
             c = Character.reverseBytes(c);
         }
         return c;
@@ -113,7 +113,7 @@ public class NBTInputStream implements DataInput, AutoCloseable {
     @Override
     public int readInt() throws IOException {
         int i = this.stream.readInt();
-        if (endianness == ByteOrder.LITTLE_ENDIAN) {
+        if (this.endianness == ByteOrder.LITTLE_ENDIAN) {
             i = Integer.reverseBytes(i);
         }
         return i;
@@ -122,7 +122,7 @@ public class NBTInputStream implements DataInput, AutoCloseable {
     @Override
     public long readLong() throws IOException {
         long l = this.stream.readLong();
-        if (endianness == ByteOrder.LITTLE_ENDIAN) {
+        if (this.endianness == ByteOrder.LITTLE_ENDIAN) {
             l = Long.reverseBytes(l);
         }
         return l;

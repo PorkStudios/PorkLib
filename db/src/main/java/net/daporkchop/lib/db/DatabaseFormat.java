@@ -34,5 +34,5 @@ public enum DatabaseFormat {
     ZIP_TREE,
     TAR_TREE,
     TAR_GZ_TREE,
-    TAR_XZ_TREE;
+    TAR_XZ_TREE
 }

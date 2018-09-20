@@ -30,11 +30,11 @@ public abstract class AsymmetricSignatureHelper<K extends AsymmetricCipherKeyPai
 
     protected AsymmetricSignatureHelper(Function<Digest, S> function, HashTypes hash) {
         this.supplier = () -> function.apply(hash.getAsDigest());
-        this.tl = ThreadLocal.withInitial(supplier);
+        this.tl = ThreadLocal.withInitial(this.supplier);
     }
 
     public byte[] sign(byte[] data, K key) {
-        S signer = tl.get();
+        S signer = this.tl.get();
         signer.init(true, key.getPrivate());
         signer.update(data, 0, data.length);
         try {
@@ -46,7 +46,7 @@ public abstract class AsymmetricSignatureHelper<K extends AsymmetricCipherKeyPai
     }
 
     public boolean verify(byte[] sig, byte[] data, K key) {
-        S signer = tl.get();
+        S signer = this.tl.get();
         signer.init(false, key.getPublic());
         signer.update(data, 0, data.length);
         return signer.verifySignature(sig);

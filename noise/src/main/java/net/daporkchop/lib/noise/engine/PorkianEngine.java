@@ -35,18 +35,18 @@ public class PorkianEngine implements INoiseEngine {
     @Override
     public double get(double x) {
         int xI = floorI(x);
-        x = s(x - xI);
-        return (rand(xI) * (1 - x) + rand(xI + 1) * x) * shrinkFactor - 1.0d;
+        x = PorkianEngine.s(x - xI);
+        return (this.rand(xI) * (1 - x) + this.rand(xI + 1) * x) * shrinkFactor - 1.0d;
     }
 
     @Override
     public double get(double x, double y) {
         int xI = floorI(x);
         int yI = floorI(y);
-        x = s(x - xI);
-        y = s(y - yI);
-        return ((rand(xI, yI) * (1 - x) + rand(xI + 1, yI) * x) * (1 - y) +
-                (rand(xI, yI + 1) * (1 - x) + rand(xI + 1, yI + 1) * x) * y) * shrinkFactor - 1.0d;
+        x = PorkianEngine.s(x - xI);
+        y = PorkianEngine.s(y - yI);
+        return ((this.rand(xI, yI) * (1 - x) + this.rand(xI + 1, yI) * x) * (1 - y) +
+                (this.rand(xI, yI + 1) * (1 - x) + this.rand(xI + 1, yI + 1) * x) * y) * shrinkFactor - 1.0d;
     }
 
     @Override
@@ -54,13 +54,13 @@ public class PorkianEngine implements INoiseEngine {
         int xI = floorI(x);
         int yI = floorI(y);
         int zI = floorI(z);
-        x = s(x - xI);
-        y = s(y - yI);
-        z = s(z - zI);
-        return (((rand(xI, yI, zI) * (1 - x) + rand(xI + 1, yI, zI) * x) * (1 - y) +
-                (rand(xI, yI + 1, zI) * (1 - x) + rand(xI + 1, yI + 1, zI) * x) * y) * (1 - z) +
-                ((rand(xI, yI, zI + 1) * (1 - x) + rand(xI + 1, yI, zI + 1) * x) * (1 - y) +
-                        (rand(xI, yI + 1, zI + 1) * (1 - x) + rand(xI + 1, yI + 1, zI + 1) * x) * y) * z) * shrinkFactor - 1.0d;
+        x = PorkianEngine.s(x - xI);
+        y = PorkianEngine.s(y - yI);
+        z = PorkianEngine.s(z - zI);
+        return (((this.rand(xI, yI, zI) * (1 - x) + this.rand(xI + 1, yI, zI) * x) * (1 - y) +
+                (this.rand(xI, yI + 1, zI) * (1 - x) + this.rand(xI + 1, yI + 1, zI) * x) * y) * (1 - z) +
+                ((this.rand(xI, yI, zI + 1) * (1 - x) + this.rand(xI + 1, yI, zI + 1) * x) * (1 - y) +
+                        (this.rand(xI, yI + 1, zI + 1) * (1 - x) + this.rand(xI + 1, yI + 1, zI + 1) * x) * y) * z) * shrinkFactor - 1.0d;
     }
 
     @Override
@@ -69,21 +69,21 @@ public class PorkianEngine implements INoiseEngine {
         int yI = floorI(y);
         int zI = floorI(z);
         int wI = floorI(w);
-        x = s(x - xI);
-        y = s(y - yI);
-        z = s(z - zI);
-        w = s(w - wI);
-        return ((((rand(xI, yI, zI, wI) * (1 - x) + rand(xI + 1, yI, zI, wI) * x) * (1 - y) +
-                (rand(xI, yI + 1, zI, wI) * (1 - x) + rand(xI + 1, yI + 1, zI, wI) * x) * y) * (1 - z) +
-                ((rand(xI, yI, zI + 1, wI) * (1 - x) + rand(xI + 1, yI, zI + 1, wI) * x) * (1 - y) +
-                        (rand(xI, yI + 1, zI + 1, wI) * (1 - x) + rand(xI + 1, yI + 1, zI + 1, wI) * x) * y) * z) * (1 - w) +
-                (((rand(xI, yI, zI, wI + 1) * (1 - x) + rand(xI + 1, yI, zI, wI + 1) * x) * (1 - y) +
-                        (rand(xI, yI + 1, zI, wI + 1) * (1 - x) + rand(xI + 1, yI + 1, zI, wI + 1) * x) * y) * (1 - z) +
-                        ((rand(xI, yI, zI + 1, wI + 1) * (1 - x) + rand(xI + 1, yI, zI + 1, wI + 1) * x) * (1 - y) +
-                                (rand(xI, yI + 1, zI + 1, wI + 1) * (1 - x) + rand(xI + 1, yI + 1, zI + 1, wI + 1) * x) * y) * z) * w) * shrinkFactor - 1.0d;
+        x = PorkianEngine.s(x - xI);
+        y = PorkianEngine.s(y - yI);
+        z = PorkianEngine.s(z - zI);
+        w = PorkianEngine.s(w - wI);
+        return ((((this.rand(xI, yI, zI, wI) * (1 - x) + this.rand(xI + 1, yI, zI, wI) * x) * (1 - y) +
+                (this.rand(xI, yI + 1, zI, wI) * (1 - x) + this.rand(xI + 1, yI + 1, zI, wI) * x) * y) * (1 - z) +
+                ((this.rand(xI, yI, zI + 1, wI) * (1 - x) + this.rand(xI + 1, yI, zI + 1, wI) * x) * (1 - y) +
+                        (this.rand(xI, yI + 1, zI + 1, wI) * (1 - x) + this.rand(xI + 1, yI + 1, zI + 1, wI) * x) * y) * z) * (1 - w) +
+                (((this.rand(xI, yI, zI, wI + 1) * (1 - x) + this.rand(xI + 1, yI, zI, wI + 1) * x) * (1 - y) +
+                        (this.rand(xI, yI + 1, zI, wI + 1) * (1 - x) + this.rand(xI + 1, yI + 1, zI, wI + 1) * x) * y) * (1 - z) +
+                        ((this.rand(xI, yI, zI + 1, wI + 1) * (1 - x) + this.rand(xI + 1, yI, zI + 1, wI + 1) * x) * (1 - y) +
+                                (this.rand(xI, yI + 1, zI + 1, wI + 1) * (1 - x) + this.rand(xI + 1, yI + 1, zI + 1, wI + 1) * x) * y) * z) * w) * shrinkFactor - 1.0d;
     }
 
-    private double s(double t) {
+    private static double s(double t) {
         return t * t * t * (t * (t * 6.0d - 15.0d) + 10.0d);
     }
 

@@ -46,7 +46,7 @@ public class ObjectTag<T> extends Tag<T> {
         if (SERIALIZERS.containsKey(key)) {
             throw new IllegalArgumentException("Serializer key " + key + " is already registered!");
         } else if (REGISTERED_CLASSES.containsKey(clazz)) {
-            throw new IllegalArgumentException("Class " + clazz.getCanonicalName() + " is already registered under key " + REGISTERED_CLASSES.get(clazz) + "!");
+            throw new IllegalArgumentException("Class " + clazz.getCanonicalName() + " is already registered under key " + REGISTERED_CLASSES.get(clazz) + '!');
         } else {
             SERIALIZERS.put(key, new SerializerContainer<>(serializer, deserializer));
             REGISTERED_CLASSES.put(clazz, key);
@@ -56,11 +56,10 @@ public class ObjectTag<T> extends Tag<T> {
     @Override
     @SuppressWarnings("unchecked")
     public void write(NBTOutputStream dos) throws IOException {
-        if (getValue() == null) {
+        if (this.getValue() == null) {
             dos.writeUTF("null");
-            return;
         } else {
-            T value = getValue();
+            T value = this.getValue();
             String key = REGISTERED_CLASSES.get(value.getClass());
             if (key == null)
                 throw new IllegalStateException("No serializer found for class: " + value.getClass().getCanonicalName());
@@ -75,19 +74,18 @@ public class ObjectTag<T> extends Tag<T> {
     @SuppressWarnings("unchecked")
     public void load(NBTInputStream dis) throws IOException {
         String key = dis.readUTF();
-        if (key.equals("null")) {
-            setValue(null);
-            return;
+        if ("null".equals(key)) {
+            this.setValue(null);
         } else {
             SerializerContainer container = SERIALIZERS.get(key);
             if (container == null) throw new IllegalStateException("No deserializer found for class: " + key);
-            setValue(((SerializerContainer<T>) container).deserialize(dis));
+            this.setValue(((SerializerContainer<T>) container).deserialize(dis));
         }
     }
 
     @Override
     public String toString() {
-        return "ObjectTag " + getName() + " (class=" + (getValue() == null ? "null" : getValue().getClass().getCanonicalName()) + ")";
+        return "ObjectTag " + this.getName() + " (class=" + (this.getValue() == null ? "null" : this.getValue().getClass().getCanonicalName()) + ')';
     }
 
     @Override
@@ -97,6 +95,6 @@ public class ObjectTag<T> extends Tag<T> {
 
     @Override
     public Tag copy() {
-        return new ObjectTag<>(getName(), getValue());
+        return new ObjectTag<>(this.getName(), this.getValue());
     }
 }

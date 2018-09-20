@@ -32,7 +32,7 @@ public class Vec3iM implements IntVector3 {
     }
 
     public int getX() {
-        return x;
+        return this.x;
     }
 
     public void setX(int x) {
@@ -40,7 +40,7 @@ public class Vec3iM implements IntVector3 {
     }
 
     public int getY() {
-        return y;
+        return this.y;
     }
 
     public void setY(int y) {
@@ -48,7 +48,7 @@ public class Vec3iM implements IntVector3 {
     }
 
     public int getZ() {
-        return z;
+        return this.z;
     }
 
     public void setZ(int z) {
@@ -89,7 +89,7 @@ public class Vec3iM implements IntVector3 {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null || !(obj instanceof Vec3iM)) {
+        if (!(obj instanceof Vec3iM)) {
             return false;
         }
 
@@ -99,11 +99,11 @@ public class Vec3iM implements IntVector3 {
 
     @Override
     public int hashCode() {
-        return x * 31 * 31 + y * 31 + z;
+        return this.x * 31 * 31 + this.y * 31 + this.z;
     }
 
     @Override
     public String toString() {
-        return "Vec3iM(x=" + x + ", y=" + y + ", z=" + z + ")";
+        return "Vec3iM(x=" + this.x + ", y=" + this.y + ", z=" + this.z + ')';
     }
 }

@@ -30,9 +30,9 @@ public class XZIPTest {
         byte[] rand = new byte[8192];
         ThreadLocalRandom.current().nextBytes(rand);
         byte[] compressed = XZIPHelper.compress(rand);
-        System.out.println("Compressed: " + compressed.length + " bytes (original: 8192 bytes) (@" + rand.hashCode() + ")");
+        System.out.println("Compressed: " + compressed.length + " bytes (original: 8192 bytes) (@" + Arrays.hashCode(rand) + ')');
         byte[] inflated = XZIPHelper.inflate(compressed);
-        System.out.println("Inflated: " + inflated.length + " bytes (@" + inflated.hashCode() + ")");
+        System.out.println("Inflated: " + inflated.length + " bytes (@" + Arrays.hashCode(inflated) + ')');
         if (!Arrays.equals(rand, inflated)) throw new IllegalStateException("Data didn't match");
     }
 }

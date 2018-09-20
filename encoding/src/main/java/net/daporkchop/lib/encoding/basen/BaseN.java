@@ -43,12 +43,12 @@ public class BaseN {
             for (int j = 0; j < this.length; j++) {
                 if (j == i) continue;
                 if (this.alphabet[j] == c)
-                    throw new IllegalArgumentException("Found duplicate characters in alphabet at indexes " + i + " and " + j + "!");
+                    throw new IllegalArgumentException("Found duplicate characters in alphabet at indexes " + i + " and " + j + '!');
             }
         }
 
         for (int i = 0; i < this.length; i++) {
-            indexes.put(this.alphabet[i], i);
+            this.indexes.put(this.alphabet[i], i);
         }
 
         this.zero = this.alphabet[0];
@@ -90,7 +90,7 @@ public class BaseN {
         byte[] inputn = new byte[input.length()];
         for (int i = 0; i < input.length(); ++i) {
             char c = input.charAt(i);
-            int digit = indexes.get(c);
+            int digit = this.indexes.get(c);
             if (digit < 0) {
                 throw new IllegalArgumentException("Illegal character " + c + " at position " + i);
             }

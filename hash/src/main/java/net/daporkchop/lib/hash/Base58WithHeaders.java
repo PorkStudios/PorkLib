@@ -60,9 +60,7 @@ public class Base58WithHeaders {
         }
 
         byte[] hash = Sha512Helper.sha512(Sha512Helper.sha512(new byte[]{version}, prefix.getBytes(UTF8.utf8), content));
-        for (int i = 0; i < 4; i++) {
-            newData[i + (newData.length - 4)] = hash[i];
-        }
+        System.arraycopy(hash, 0, newData, (newData.length - 4), 4);
         return Base58.INSTANCE.alphabet[prefix.length()] + prefix + Base58.encodeBase58(newData);
     }
 
@@ -89,9 +87,7 @@ public class Base58WithHeaders {
             prefix.append((char) chars.remove(0));
         }
         StringBuilder remainingData = new StringBuilder(chars.size());
-        chars.forEach(character -> {
-            remainingData.append((char) character);
-        });
+        chars.forEach(character -> remainingData.append((char) character));
         byte[] rawData = Base58.decodeBase58(remainingData.toString());
         byte version = rawData[0];
         byte[] data = new byte[rawData.length - 5],

@@ -54,8 +54,8 @@ public abstract class AbstractSymmetricKey extends ParametersWithIV implements S
     }
 
     public void setIV(@NonNull byte[] iv) {
-        if (iv.length != getIV().length) {
-            throw new IllegalArgumentException("Input IV has invalid length (" + iv.length + ", current is " + getIV().length + ")");
+        if (iv.length != this.getIV().length) {
+            throw new IllegalArgumentException("Input IV has invalid length (" + iv.length + ", current is " + this.getIV().length + ')');
         }
 
         try {
@@ -71,8 +71,8 @@ public abstract class AbstractSymmetricKey extends ParametersWithIV implements S
     }
 
     public void setKey(@NonNull byte[] key) {
-        if (key.length != getKey().length) {
-            throw new IllegalArgumentException("Input key has invalid length (" + key.length + ", current is " + getKey().length + ")");
+        if (key.length != this.getKey().length) {
+            throw new IllegalArgumentException("Input key has invalid length (" + key.length + ", current is " + this.getKey().length + ')');
         }
 
         try {

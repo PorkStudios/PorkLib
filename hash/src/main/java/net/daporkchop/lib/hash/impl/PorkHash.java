@@ -36,7 +36,7 @@ public class PorkHash extends BaseHash {
 
     private static final byte[] EMPTY_HASH = Hexadecimal.decode("d9d36aee9a21f33f74ed44a6e60f2a4f386a201d08578e42629bb8bbc898c0eb35b33c6df1e2417e88dde92b361f0102ac1cd3b2d07d3f1f875dd9c5cf8e161c");
     private static final int MASK = BLOCK_SIZE - 1;
-    private static Boolean test = null;
+    private static Boolean test;
     private byte[] result = new byte[BLOCK_SIZE], buf = new byte[BLOCK_SIZE];
 
     public PorkHash() {
@@ -168,12 +168,12 @@ public class PorkHash extends BaseHash {
 
     @Override
     protected byte[] getResult() {
-        return result;
+        return this.result;
     }
 
     @Override
     protected void resetContext() {
-        result = new byte[BLOCK_SIZE];
+        this.result = new byte[BLOCK_SIZE];
     }
 
     @Override
@@ -195,7 +195,7 @@ public class PorkHash extends BaseHash {
     protected byte[] padBuffer() {
         byte[] result = this.result.clone();
         for (int i = 0; i < BLOCK_SIZE; i++) {
-            result[i] ^= result[(i + 1) & 0x3F] ^ count * 31;
+            result[i] ^= result[(i + 1) & 0x3F] ^ this.count * 31;
         }
         return result;
     }

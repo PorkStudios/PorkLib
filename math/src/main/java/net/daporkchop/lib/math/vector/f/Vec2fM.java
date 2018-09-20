@@ -30,7 +30,7 @@ public class Vec2fM implements FloatVector2 {
     }
 
     public float getX() {
-        return x;
+        return this.x;
     }
 
     public void setX(float x) {
@@ -38,7 +38,7 @@ public class Vec2fM implements FloatVector2 {
     }
 
     public float getY() {
-        return y;
+        return this.y;
     }
 
     public void setY(float y) {
@@ -75,7 +75,7 @@ public class Vec2fM implements FloatVector2 {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null || !(obj instanceof Vec2fM)) {
+        if (!(obj instanceof Vec2fM)) {
             return false;
         }
 
@@ -85,13 +85,13 @@ public class Vec2fM implements FloatVector2 {
 
     @Override
     public int hashCode() {
-        int xBits = Float.floatToIntBits(x);
-        int yBits = Float.floatToIntBits(y);
+        int xBits = Float.floatToIntBits(this.x);
+        int yBits = Float.floatToIntBits(this.y);
         return xBits ^ ((yBits >>> 16) | (yBits << 16));
     }
 
     @Override
     public String toString() {
-        return "Vec2fM(x=" + x + ", y=" + y + ")";
+        return "Vec2fM(x=" + this.x + ", y=" + this.y + ')';
     }
 }

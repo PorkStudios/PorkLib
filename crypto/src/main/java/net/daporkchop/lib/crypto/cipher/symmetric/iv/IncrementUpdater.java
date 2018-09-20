@@ -26,15 +26,15 @@ import net.daporkchop.lib.crypto.key.symmetric.AbstractSymmetricKey;
 public class IncrementUpdater<P extends AbstractSymmetricKey> implements IVUpdater<P> {
     @Override
     public void updateEncrypt(@NonNull AbstractSymmetricKey key) {
-        this.increment(key.getIV());
+        IncrementUpdater.increment(key.getIV());
     }
 
     @Override
     public void updateDecrypt(@NonNull AbstractSymmetricKey key) {
-        this.increment(key.getIV());
+        IncrementUpdater.increment(key.getIV());
     }
 
-    private void increment(byte[] b) {
+    private static void increment(byte[] b) {
         for (int i = 0; i < b.length; i++) {
             b[i] += i + 1;
         }

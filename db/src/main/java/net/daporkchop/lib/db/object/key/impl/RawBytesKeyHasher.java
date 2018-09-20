@@ -49,7 +49,7 @@ public class RawBytesKeyHasher extends KeyHasher<byte[]> {
     @Override
     public void hash(byte[] key, byte[] hash) {
         if (key.length != this.length) {
-            throw new IllegalArgumentException("Invalid key length! (must be " + this.length + ", given: " + key.length + ")");
+            throw new IllegalArgumentException("Invalid key length! (must be " + this.length + ", given: " + key.length + ')');
         }
         System.arraycopy(key, 0, hash, 0, this.length);
     }

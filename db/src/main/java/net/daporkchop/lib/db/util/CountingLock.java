@@ -29,7 +29,7 @@ import java.util.concurrent.locks.Lock;
  */
 public class CountingLock implements Lock {
     private final AtomicInteger using = new AtomicInteger(0);
-    private volatile boolean locked = false;
+    private volatile boolean locked;
 
     @Override
     public void lock() {

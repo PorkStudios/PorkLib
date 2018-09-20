@@ -31,11 +31,11 @@ import java.util.UUID;
 public class PorkBuf {
     private byte[] backing;
     @Getter
-    private int readPos = 0, writePos = 0;
+    private int readPos, writePos;
 
     @Getter
     @Setter
-    private boolean expand = false;
+    private boolean expand;
 
     private PorkBuf(byte[] backing) {
         this.backing = backing;
@@ -68,7 +68,7 @@ public class PorkBuf {
      * @param b the byte to write
      */
     public void putByte(byte b) {
-        put(b);
+        this.put(b);
     }
 
     /**
@@ -77,8 +77,8 @@ public class PorkBuf {
      * @param s the short to write
      */
     public void putShort(short s) {
-        put((byte) (s >>> 8),
-                (byte) (s >>> 0));
+        this.put((byte) (s >>> 8),
+                (byte) (s));
     }
 
     /**
@@ -87,7 +87,7 @@ public class PorkBuf {
      * @param i the int to write
      */
     public void putInt(int i) {
-        put((byte) (i >>> 24),
+        this.put((byte) (i >>> 24),
                 (byte) (i >>> 16),
                 (byte) (i >>> 8),
                 (byte) (i >>> 0));
@@ -99,7 +99,7 @@ public class PorkBuf {
      * @param l the long to write
      */
     public void putLong(long l) {
-        put((byte) (l >>> 56),
+        this.put((byte) (l >>> 56),
                 (byte) (l >>> 48),
                 (byte) (l >>> 40),
                 (byte) (l >>> 32),
@@ -115,7 +115,7 @@ public class PorkBuf {
      * @param f the float to write
      */
     public void putFloat(float f) {
-        putInt(Float.floatToIntBits(f));
+        this.putInt(Float.floatToIntBits(f));
     }
 
     /**
@@ -124,7 +124,7 @@ public class PorkBuf {
      * @param d the double to write
      */
     public void putDouble(double d) {
-        putLong(Double.doubleToLongBits(d));
+        this.putLong(Double.doubleToLongBits(d));
     }
 
     /**
@@ -133,8 +133,8 @@ public class PorkBuf {
      * @param s the string to write
      */
     public void putUTF(@NonNull String s) {
-        putInt(s.length());
-        put(s.getBytes(UTF8.utf8));
+        this.putInt(s.length());
+        this.put(s.getBytes(UTF8.utf8));
     }
 
     /**
@@ -145,14 +145,14 @@ public class PorkBuf {
     public void putUTFCompact(@NonNull String s) {
         int l = s.length();
         if (l == 0) {
-            put((byte) 0);
+            this.put((byte) 0);
         } else if (l < 128) {
-            put((byte) l);
-            put(s.getBytes(UTF8.utf8));
+            this.put((byte) l);
+            this.put(s.getBytes(UTF8.utf8));
         } else if (l <= 65536) {
             l -= 1;
-            put((byte) (128 | (l >> 8)), (byte) (l & 0xFF));
-            put(s.getBytes(UTF8.utf8));
+            this.put((byte) (128 | (l >> 8)), (byte) (l & 0xFF));
+            this.put(s.getBytes(UTF8.utf8));
         } else {
             throw new IllegalArgumentException("String too long! " + s);
         }
@@ -164,8 +164,8 @@ public class PorkBuf {
      * @param uuid a UUID
      */
     public void putUUID(@NonNull UUID uuid) {
-        putLong(uuid.getMostSignificantBits());
-        putLong(uuid.getLeastSignificantBits());
+        this.putLong(uuid.getMostSignificantBits());
+        this.putLong(uuid.getLeastSignificantBits());
     }
 
     /**
@@ -174,7 +174,7 @@ public class PorkBuf {
      * @param b the bytes to write
      */
     public void putBytes(@NonNull byte[] b) {
-        put(b);
+        this.put(b);
     }
 
     /**
@@ -183,7 +183,7 @@ public class PorkBuf {
      * @return a byte
      */
     public byte getByte() {
-        return get(1)[0];
+        return this.get(1)[0];
     }
 
     /**
@@ -192,7 +192,7 @@ public class PorkBuf {
      * @return a short
      */
     public short getShort() {
-        byte[] b = get(2);
+        byte[] b = this.get(2);
         return (short) ((((short) b[0] & 0xFF) << 8)
                 | ((short) b[1] & 0xFF));
     }
@@ -203,7 +203,7 @@ public class PorkBuf {
      * @return an int
      */
     public int getInt() {
-        byte[] b = get(4);
+        byte[] b = this.get(4);
         return (((int) b[0] & 0xFF) << 24)
                 | (((int) b[1] & 0xFF) << 16)
                 | (((int) b[2] & 0xFF) << 8)
@@ -216,7 +216,7 @@ public class PorkBuf {
      * @return a long
      */
     public long getLong() {
-        byte[] b = get(8);
+        byte[] b = this.get(8);
         return (((long) b[0] & 0xFF) << 56L)
                 | (((long) b[1] & 0xFF) << 48L)
                 | (((long) b[2] & 0xFF) << 40L)
@@ -233,7 +233,7 @@ public class PorkBuf {
      * @return a float
      */
     public float getFloat() {
-        return Float.intBitsToFloat(getInt());
+        return Float.intBitsToFloat(this.getInt());
     }
 
     /**
@@ -242,7 +242,7 @@ public class PorkBuf {
      * @return a double
      */
     public double getDouble() {
-        return Double.longBitsToDouble(getLong());
+        return Double.longBitsToDouble(this.getLong());
     }
 
     /**
@@ -251,8 +251,8 @@ public class PorkBuf {
      * @return a string
      */
     public String getUTF() {
-        int len = getInt();
-        return new String(get(len), UTF8.utf8);
+        int len = this.getInt();
+        return new String(this.get(len), UTF8.utf8);
     }
 
     /**
@@ -261,12 +261,12 @@ public class PorkBuf {
      * @return a string
      */
     public String getUTFCompact() {
-        int i = getByte();
+        int i = this.getByte();
         if ((i >> 7) == 0) {
-            return new String(get(i), UTF8.utf8);
+            return new String(this.get(i), UTF8.utf8);
         } else {
-            i = ((i & 127) << 8) | (int) getByte();
-            return new String(get(i), UTF8.utf8);
+            i = ((i & 127) << 8) | (int) this.getByte();
+            return new String(this.get(i), UTF8.utf8);
         }
     }
 
@@ -276,7 +276,7 @@ public class PorkBuf {
      * @return a UUID
      */
     public UUID getUUID() {
-        return new UUID(getLong(), getLong());
+        return new UUID(this.getLong(), this.getLong());
     }
 
     /**
@@ -287,7 +287,7 @@ public class PorkBuf {
      */
     public byte[] getBytes(int len) {
         if (len < 1) throw new IllegalArgumentException();
-        return get(len);
+        return this.get(len);
     }
 
     /**
@@ -340,31 +340,31 @@ public class PorkBuf {
     }
 
     private byte[] get(int len) {
-        if (readPos + len > backing.length) {
+        if (this.readPos + len > this.backing.length) {
             throw new BufferUnderflowException();
         }
         byte[] b = new byte[len];
-        System.arraycopy(backing, readPos, b, 0, len);
-        readPos += len;
+        System.arraycopy(this.backing, this.readPos, b, 0, len);
+        this.readPos += len;
         return b;
     }
 
     private void put(byte... bytes) {
-        if (writePos + bytes.length > backing.length) {
-            if (expand) {
-                int newLen = backing.length;
+        if (this.writePos + bytes.length > this.backing.length) {
+            if (this.expand) {
+                int newLen = this.backing.length;
                 do {
                     newLen <<= 1;
-                } while (writePos + bytes.length > newLen);
+                } while (this.writePos + bytes.length > newLen);
                 //expand array
                 byte[] b = new byte[newLen];
-                System.arraycopy(backing, 0, b, 0, writePos);
-                backing = b;
+                System.arraycopy(this.backing, 0, b, 0, this.writePos);
+                this.backing = b;
             } else {
                 throw new BufferOverflowException();
             }
         }
-        System.arraycopy(bytes, 0, backing, writePos, bytes.length);
-        writePos += bytes.length;
+        System.arraycopy(bytes, 0, this.backing, this.writePos, bytes.length);
+        this.writePos += bytes.length;
     }
 }

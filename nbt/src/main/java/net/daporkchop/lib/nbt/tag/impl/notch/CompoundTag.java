@@ -41,7 +41,7 @@ public class CompoundTag extends Tag<Map<String, Tag>> implements Cloneable {
 
     @Override
     public void write(NBTOutputStream dos) throws IOException {
-        for (Tag tag : getValue().values()) {
+        for (Tag tag : this.getValue().values()) {
             Tag.writeNamedTag(tag, dos);
         }
         dos.writeByte(0); //TAG_END
@@ -49,207 +49,207 @@ public class CompoundTag extends Tag<Map<String, Tag>> implements Cloneable {
 
     @Override
     public void load(NBTInputStream dis) throws IOException {
-        getValue().clear();
+        this.getValue().clear();
         Tag tag;
         while ((tag = Tag.readNamedTag(dis)).getType() != TagType.TAG_END) {
-            getValue().put(tag.getName(), tag);
+            this.getValue().put(tag.getName(), tag);
         }
     }
 
     public boolean hasTags() {
-        return getValue().isEmpty();
+        return this.getValue().isEmpty();
     }
 
     public Tag getTag(String name) {
-        return getValue().get(name);
+        return this.getValue().get(name);
     }
 
     public boolean containsTag(String name) {
-        return getValue().containsKey(name);
+        return this.getValue().containsKey(name);
     }
 
     public CompoundTag removeTag(String name) {
-        getValue().remove(name);
+        this.getValue().remove(name);
         return this;
     }
 
     //BEGIN NOTCHIAN TAGS
     public CompoundTag putTag(String name, Tag tag) {
-        getValue().put(name, tag.setName(name));
+        this.getValue().put(name, tag.setName(name));
         return this;
     }
 
     public CompoundTag putByte(String name, byte value) {
-        return putTag(name, new ByteTag(name, value));
+        return this.putTag(name, new ByteTag(name, value));
     }
 
     public byte getByte(String name) {
-        if (!containsTag(name)) return (byte) 0;
-        return ((ByteTag) getTag(name)).getValue();
+        if (!this.containsTag(name)) return (byte) 0;
+        return ((ByteTag) this.getTag(name)).getValue();
     }
 
     public CompoundTag putShort(String name, short value) {
-        return putTag(name, new ShortTag(name, value));
+        return this.putTag(name, new ShortTag(name, value));
     }
 
     public short getShort(String name) {
-        if (!containsTag(name)) return 0;
-        return ((ShortTag) getTag(name)).getValue();
+        if (!this.containsTag(name)) return 0;
+        return ((ShortTag) this.getTag(name)).getValue();
     }
 
     public CompoundTag putInt(String name, int value) {
-        return putTag(name, new IntTag(name, value));
+        return this.putTag(name, new IntTag(name, value));
     }
 
     public int getInt(String name) {
-        if (!containsTag(name)) return 0;
-        return ((IntTag) getTag(name)).getValue();
+        if (!this.containsTag(name)) return 0;
+        return ((IntTag) this.getTag(name)).getValue();
     }
 
     public CompoundTag putLong(String name, long value) {
-        return putTag(name, new LongTag(name, value));
+        return this.putTag(name, new LongTag(name, value));
     }
 
     public long getLong(String name) {
-        if (!containsTag(name)) return 0L;
-        return ((LongTag) getTag(name)).getValue();
+        if (!this.containsTag(name)) return 0L;
+        return ((LongTag) this.getTag(name)).getValue();
     }
 
     public CompoundTag putFloat(String name, float value) {
-        return putTag(name, new FloatTag(name, value));
+        return this.putTag(name, new FloatTag(name, value));
     }
 
     public float getFloat(String name) {
-        if (!containsTag(name)) return 0F;
-        return ((FloatTag) getTag(name)).getValue();
+        if (!this.containsTag(name)) return 0F;
+        return ((FloatTag) this.getTag(name)).getValue();
     }
 
     public CompoundTag putDouble(String name, double value) {
-        return putTag(name, new DoubleTag(name, value));
+        return this.putTag(name, new DoubleTag(name, value));
     }
 
     public double getDouble(String name) {
-        if (!containsTag(name)) return 0D;
-        return ((DoubleTag) getTag(name)).getValue();
+        if (!this.containsTag(name)) return 0D;
+        return ((DoubleTag) this.getTag(name)).getValue();
     }
 
     public CompoundTag putString(String name, String value) {
-        return putTag(name, new StringTag(name, value));
+        return this.putTag(name, new StringTag(name, value));
     }
 
     public String getString(String name) {
-        if (!containsTag(name)) return "";
-        return ((StringTag) getTag(name)).getValue();
+        if (!this.containsTag(name)) return "";
+        return ((StringTag) this.getTag(name)).getValue();
     }
 
     public CompoundTag putByteArray(String name, byte[] value) {
-        return putTag(name, new ByteArrayTag(name, value));
+        return this.putTag(name, new ByteArrayTag(name, value));
     }
 
     public byte[] getByteArray(String name) {
-        if (!containsTag(name)) return new byte[0];
-        return ((ByteArrayTag) getTag(name)).getValue();
+        if (!this.containsTag(name)) return new byte[0];
+        return ((ByteArrayTag) this.getTag(name)).getValue();
     }
 
     public CompoundTag putIntArray(String name, int[] value) {
-        return putTag(name, new IntArrayTag(name, value));
+        return this.putTag(name, new IntArrayTag(name, value));
     }
 
     public int[] getIntArray(String name) {
-        if (!containsTag(name)) return new int[0];
-        return ((IntArrayTag) getTag(name)).getValue();
+        if (!this.containsTag(name)) return new int[0];
+        return ((IntArrayTag) this.getTag(name)).getValue();
     }
 
     public CompoundTag putList(ListTag<? extends Tag> list) {
-        return putTag(list.getName(), list);
+        return this.putTag(list.getName(), list);
     }
 
     @SuppressWarnings("unchecked")
     public ListTag<? extends Tag> getList(String name) {
-        if (!containsTag(name)) return new ListTag<>(name);
-        return (ListTag<? extends Tag>) getTag(name);
+        if (!this.containsTag(name)) return new ListTag<>(name);
+        return (ListTag<? extends Tag>) this.getTag(name);
     }
 
     @SuppressWarnings("unchecked")
     public <T extends Tag> ListTag<T> getTypedList(String name) {
-        if (containsTag(name)) {
-            return (ListTag<T>) getTag(name);
+        if (this.containsTag(name)) {
+            return (ListTag<T>) this.getTag(name);
         }
         return new ListTag<>(name);
     }
 
     public CompoundTag putCompound(String name, CompoundTag value) {
-        return putTag(name, value);
+        return this.putTag(name, value);
     }
 
     public CompoundTag getCompound(String name) {
-        if (!containsTag(name)) return new CompoundTag(name);
-        return (CompoundTag) getTag(name);
+        if (!this.containsTag(name)) return new CompoundTag(name);
+        return (CompoundTag) this.getTag(name);
     }
 
     public CompoundTag putBoolean(String string, boolean val) {
-        return putByte(string, val ? (byte) 1 : (byte) 0);
+        return this.putByte(string, val ? (byte) 1 : (byte) 0);
     }
 
     public boolean getBoolean(String name) {
-        return getByte(name) != 0;
+        return this.getByte(name) != 0;
     }
     //END NOTCHIAN TAGS
 
     //BEGIN PORKAIN TAGS
     public CompoundTag putShortArray(String name, short[] arr) {
-        return putTag(name, new ShortArrayTag(name, arr));
+        return this.putTag(name, new ShortArrayTag(name, arr));
     }
 
     public short[] getShortArray(String name) {
-        if (!containsTag(name)) return new short[0];
-        return ((ShortArrayTag) getTag(name)).getValue();
+        if (!this.containsTag(name)) return new short[0];
+        return ((ShortArrayTag) this.getTag(name)).getValue();
     }
 
     public CompoundTag putLongArray(String name, long[] arr) {
-        return putTag(name, new LongArrayTag(name, arr));
+        return this.putTag(name, new LongArrayTag(name, arr));
     }
 
     public long[] getLongArray(String name) {
-        if (!containsTag(name)) return new long[0];
-        return ((LongArrayTag) getTag(name)).getValue();
+        if (!this.containsTag(name)) return new long[0];
+        return ((LongArrayTag) this.getTag(name)).getValue();
     }
 
     public CompoundTag putFloatArray(String name, float[] arr) {
-        return putTag(name, new FloatArrayTag(name, arr));
+        return this.putTag(name, new FloatArrayTag(name, arr));
     }
 
     public float[] getFloatArray(String name) {
-        if (!containsTag(name)) return new float[0];
-        return ((FloatArrayTag) getTag(name)).getValue();
+        if (!this.containsTag(name)) return new float[0];
+        return ((FloatArrayTag) this.getTag(name)).getValue();
     }
 
     public CompoundTag putDoubleArray(String name, double[] arr) {
-        return putTag(name, new DoubleArrayTag(name, arr));
+        return this.putTag(name, new DoubleArrayTag(name, arr));
     }
 
     public double[] getDoubleArray(String name) {
-        if (!containsTag(name)) return new double[0];
-        return ((DoubleArrayTag) getTag(name)).getValue();
+        if (!this.containsTag(name)) return new double[0];
+        return ((DoubleArrayTag) this.getTag(name)).getValue();
     }
 
     public CompoundTag putStringArray(String name, String[] arr) {
-        return putTag(name, new StringArrayTag(name, arr));
+        return this.putTag(name, new StringArrayTag(name, arr));
     }
 
     public String[] getStringArray(String name) {
-        if (!containsTag(name)) return new String[0];
-        return ((StringArrayTag) getTag(name)).getValue();
+        if (!this.containsTag(name)) return new String[0];
+        return ((StringArrayTag) this.getTag(name)).getValue();
     }
 
     public <T> CompoundTag putObject(String name, T obj) {
-        return putTag(name, new ObjectTag<>(name, obj));
+        return this.putTag(name, new ObjectTag<>(name, obj));
     }
 
     @SuppressWarnings("unchecked")
     public <T> T getObject(String name) {
-        if (!containsTag(name)) return null;
-        return ((ObjectTag<T>) getTag(name)).getValue();
+        if (!this.containsTag(name)) return null;
+        return ((ObjectTag<T>) this.getTag(name)).getValue();
     }
     //END PORKIAN TAGS
 
@@ -259,13 +259,13 @@ public class CompoundTag extends Tag<Map<String, Tag>> implements Cloneable {
     }
 
     public String toString() {
-        return "CompoundTag " + this.getName() + " (" + getValue().size() + " entries)";
+        return "CompoundTag " + this.getName() + " (" + this.getValue().size() + " entries)";
     }
 
     @Override
     public CompoundTag copy() {
         CompoundTag nbt = new CompoundTag();
-        getValue().forEach((key, value) -> nbt.putTag(key, value.copy()));
+        this.getValue().forEach((key, value) -> nbt.putTag(key, value.copy()));
         return nbt;
     }
 }

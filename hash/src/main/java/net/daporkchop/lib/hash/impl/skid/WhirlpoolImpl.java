@@ -61,7 +61,7 @@ public class WhirlpoolImpl extends BaseHash {
         int i, r, j;
         long s, s2, s3, s4, s5, s8, s9, t;
         char c;
-        final byte[] S = new byte[256];
+        byte[] S = new byte[256];
         for (i = 0; i < 256; i++) {
             c = Sd.charAt(i >>> 1);
 
@@ -161,14 +161,14 @@ public class WhirlpoolImpl extends BaseHash {
                 (in[offset++] & 0xFFL) << 24 | (in[offset++] & 0xFFL) << 16 |
                 (in[offset++] & 0xFFL) << 8 | (in[offset] & 0xFFL);
 
-        long k00 = H0;
-        long k01 = H1;
-        long k02 = H2;
-        long k03 = H3;
-        long k04 = H4;
-        long k05 = H5;
-        long k06 = H6;
-        long k07 = H7;
+        long k00 = this.H0;
+        long k01 = this.H1;
+        long k02 = this.H2;
+        long k03 = this.H3;
+        long k04 = this.H4;
+        long k05 = this.H5;
+        long k06 = this.H6;
+        long k07 = this.H7;
 
         long nn0 = n0 ^ k00;
         long nn1 = n1 ^ k01;
@@ -284,25 +284,25 @@ public class WhirlpoolImpl extends BaseHash {
             nn7 = w7;
         }
 
-        H0 ^= w0 ^ n0;
-        H1 ^= w1 ^ n1;
-        H2 ^= w2 ^ n2;
-        H3 ^= w3 ^ n3;
-        H4 ^= w4 ^ n4;
-        H5 ^= w5 ^ n5;
-        H6 ^= w6 ^ n6;
-        H7 ^= w7 ^ n7;
+        this.H0 ^= w0 ^ n0;
+        this.H1 ^= w1 ^ n1;
+        this.H2 ^= w2 ^ n2;
+        this.H3 ^= w3 ^ n3;
+        this.H4 ^= w4 ^ n4;
+        this.H5 ^= w5 ^ n5;
+        this.H6 ^= w6 ^ n6;
+        this.H7 ^= w7 ^ n7;
     }
 
     protected byte[] padBuffer() {
-        int n = (int) ((count + 33) % BLOCK_SIZE);
+        int n = (int) ((this.count + 33) % BLOCK_SIZE);
         int padding = n == 0 ? 33 : BLOCK_SIZE - n + 33;
 
         byte[] result = new byte[padding];
 
         result[0] = (byte) 0x80;
 
-        long bits = count * 8;
+        long bits = this.count * 8;
         int i = padding - 8;
         result[i++] = (byte) (bits >>> 56);
         result[i++] = (byte) (bits >>> 48);
@@ -317,37 +317,36 @@ public class WhirlpoolImpl extends BaseHash {
     }
 
     protected byte[] getResult() {
-        byte[] result = new byte[]{
-                (byte) (H0 >>> 56), (byte) (H0 >>> 48), (byte) (H0 >>> 40), (byte) (H0 >>> 32),
-                (byte) (H0 >>> 24), (byte) (H0 >>> 16), (byte) (H0 >>> 8), (byte) H0,
-                (byte) (H1 >>> 56), (byte) (H1 >>> 48), (byte) (H1 >>> 40), (byte) (H1 >>> 32),
-                (byte) (H1 >>> 24), (byte) (H1 >>> 16), (byte) (H1 >>> 8), (byte) H1,
-                (byte) (H2 >>> 56), (byte) (H2 >>> 48), (byte) (H2 >>> 40), (byte) (H2 >>> 32),
-                (byte) (H2 >>> 24), (byte) (H2 >>> 16), (byte) (H2 >>> 8), (byte) H2,
-                (byte) (H3 >>> 56), (byte) (H3 >>> 48), (byte) (H3 >>> 40), (byte) (H3 >>> 32),
-                (byte) (H3 >>> 24), (byte) (H3 >>> 16), (byte) (H3 >>> 8), (byte) H3,
-                (byte) (H4 >>> 56), (byte) (H4 >>> 48), (byte) (H4 >>> 40), (byte) (H4 >>> 32),
-                (byte) (H4 >>> 24), (byte) (H4 >>> 16), (byte) (H4 >>> 8), (byte) H4,
-                (byte) (H5 >>> 56), (byte) (H5 >>> 48), (byte) (H5 >>> 40), (byte) (H5 >>> 32),
-                (byte) (H5 >>> 24), (byte) (H5 >>> 16), (byte) (H5 >>> 8), (byte) H5,
-                (byte) (H6 >>> 56), (byte) (H6 >>> 48), (byte) (H6 >>> 40), (byte) (H6 >>> 32),
-                (byte) (H6 >>> 24), (byte) (H6 >>> 16), (byte) (H6 >>> 8), (byte) H6,
-                (byte) (H7 >>> 56), (byte) (H7 >>> 48), (byte) (H7 >>> 40), (byte) (H7 >>> 32),
-                (byte) (H7 >>> 24), (byte) (H7 >>> 16), (byte) (H7 >>> 8), (byte) H7
-        };
 
-        return result;
+        return new byte[]{
+                (byte) (this.H0 >>> 56), (byte) (this.H0 >>> 48), (byte) (this.H0 >>> 40), (byte) (this.H0 >>> 32),
+                (byte) (this.H0 >>> 24), (byte) (this.H0 >>> 16), (byte) (this.H0 >>> 8), (byte) this.H0,
+                (byte) (this.H1 >>> 56), (byte) (this.H1 >>> 48), (byte) (this.H1 >>> 40), (byte) (this.H1 >>> 32),
+                (byte) (this.H1 >>> 24), (byte) (this.H1 >>> 16), (byte) (this.H1 >>> 8), (byte) this.H1,
+                (byte) (this.H2 >>> 56), (byte) (this.H2 >>> 48), (byte) (this.H2 >>> 40), (byte) (this.H2 >>> 32),
+                (byte) (this.H2 >>> 24), (byte) (this.H2 >>> 16), (byte) (this.H2 >>> 8), (byte) this.H2,
+                (byte) (this.H3 >>> 56), (byte) (this.H3 >>> 48), (byte) (this.H3 >>> 40), (byte) (this.H3 >>> 32),
+                (byte) (this.H3 >>> 24), (byte) (this.H3 >>> 16), (byte) (this.H3 >>> 8), (byte) this.H3,
+                (byte) (this.H4 >>> 56), (byte) (this.H4 >>> 48), (byte) (this.H4 >>> 40), (byte) (this.H4 >>> 32),
+                (byte) (this.H4 >>> 24), (byte) (this.H4 >>> 16), (byte) (this.H4 >>> 8), (byte) this.H4,
+                (byte) (this.H5 >>> 56), (byte) (this.H5 >>> 48), (byte) (this.H5 >>> 40), (byte) (this.H5 >>> 32),
+                (byte) (this.H5 >>> 24), (byte) (this.H5 >>> 16), (byte) (this.H5 >>> 8), (byte) this.H5,
+                (byte) (this.H6 >>> 56), (byte) (this.H6 >>> 48), (byte) (this.H6 >>> 40), (byte) (this.H6 >>> 32),
+                (byte) (this.H6 >>> 24), (byte) (this.H6 >>> 16), (byte) (this.H6 >>> 8), (byte) this.H6,
+                (byte) (this.H7 >>> 56), (byte) (this.H7 >>> 48), (byte) (this.H7 >>> 40), (byte) (this.H7 >>> 32),
+                (byte) (this.H7 >>> 24), (byte) (this.H7 >>> 16), (byte) (this.H7 >>> 8), (byte) this.H7
+        };
     }
 
     protected void resetContext() {
-        H0 = H1 = H2 = H3 = H4 = H5 = H6 = H7 = 0L;
+        this.H0 = this.H1 = this.H2 = this.H3 = this.H4 = this.H5 = this.H6 = this.H7 = 0L;
     }
 
     public boolean selfTest() {
         if (valid == null) {
-            valid = new Boolean(DIGEST0.equals(HexBin.encode(new WhirlpoolImpl().digest())));
+            valid = DIGEST0.equals(HexBin.encode(new WhirlpoolImpl().digest()));
         }
-        return valid.booleanValue();
+        return valid;
     }
 
 }

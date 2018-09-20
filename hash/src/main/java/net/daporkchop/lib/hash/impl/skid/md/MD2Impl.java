@@ -61,10 +61,10 @@ public class MD2Impl extends BaseHash {
         this();
 
         this.count = md2.count;
-        this.buffer = (byte[]) md2.buffer.clone();
+        this.buffer = md2.buffer.clone();
 
-        this.checksum = (byte[]) md2.checksum.clone();
-        this.work = (byte[]) md2.work.clone();
+        this.checksum = md2.checksum.clone();
+        this.work = md2.work.clone();
     }
 
     public Object clone() {
@@ -77,29 +77,27 @@ public class MD2Impl extends BaseHash {
         byte[] result = new byte[DIGEST_LENGTH];
 
         // Encrypt checksum as last block.
-        encryptBlock(checksum, 0);
+        this.encryptBlock(this.checksum);
 
-        for (int i = 0; i < BLOCK_LENGTH; i++) {
-            result[i] = work[i];
-        }
+        System.arraycopy(this.work, 0, result, 0, BLOCK_LENGTH);
 
         return result;
     }
 
     protected void resetContext() {
-        checksum = new byte[BLOCK_LENGTH];
-        work = new byte[BLOCK_LENGTH * 3];
+        this.checksum = new byte[BLOCK_LENGTH];
+        this.work = new byte[BLOCK_LENGTH * 3];
     }
 
     public boolean selfTest() {
         if (valid == null) {
-            valid = new Boolean(DIGEST0.equals(HexBin.encode(new MD2Impl().digest())));
+            valid = DIGEST0.equals(HexBin.encode(new MD2Impl().digest()));
         }
-        return valid.booleanValue();
+        return valid;
     }
 
     protected byte[] padBuffer() {
-        int length = BLOCK_LENGTH - (int) (count % BLOCK_LENGTH);
+        int length = BLOCK_LENGTH - (int) (this.count % BLOCK_LENGTH);
         if (length == 0) {
             length = BLOCK_LENGTH;
         }
@@ -111,41 +109,41 @@ public class MD2Impl extends BaseHash {
     }
 
     protected void transform(byte[] in, int off) {
-        updateCheckSumAndEncryptBlock(in, off);
+        this.updateCheckSumAndEncryptBlock(in, off);
     }
 
-    private void encryptBlock(byte[] in, int off) {
+    private void encryptBlock(byte[] in) {
         for (int i = 0; i < BLOCK_LENGTH; i++) {
-            byte b = in[off + i];
-            work[BLOCK_LENGTH + i] = b;
-            work[BLOCK_LENGTH * 2 + i] = (byte) (work[i] ^ b);
+            byte b = in[0 + i];
+            this.work[BLOCK_LENGTH + i] = b;
+            this.work[BLOCK_LENGTH * 2 + i] = (byte) (this.work[i] ^ b);
         }
 
         byte t = 0;
         for (int i = 0; i < 18; i++) {
             for (int j = 0; j < 3 * BLOCK_LENGTH; j++) {
-                t = (byte) (work[j] ^ PI[t & 0xFF]);
-                work[j] = t;
+                t = (byte) (this.work[j] ^ PI[t & 0xFF]);
+                this.work[j] = t;
             }
             t = (byte) (t + i);
         }
     }
 
     private void updateCheckSumAndEncryptBlock(byte[] in, int off) {
-        byte l = checksum[BLOCK_LENGTH - 1];
+        byte l = this.checksum[BLOCK_LENGTH - 1];
         for (int i = 0; i < BLOCK_LENGTH; i++) {
             byte b = in[off + i];
-            work[BLOCK_LENGTH + i] = b;
-            work[BLOCK_LENGTH * 2 + i] = (byte) (work[i] ^ b);
-            l = (byte) (checksum[i] ^ PI[(b ^ l) & 0xFF]);
-            checksum[i] = l;
+            this.work[BLOCK_LENGTH + i] = b;
+            this.work[BLOCK_LENGTH * 2 + i] = (byte) (this.work[i] ^ b);
+            l = (byte) (this.checksum[i] ^ PI[(b ^ l) & 0xFF]);
+            this.checksum[i] = l;
         }
 
         byte t = 0;
         for (int i = 0; i < 18; i++) {
             for (int j = 0; j < 3 * BLOCK_LENGTH; j++) {
-                t = (byte) (work[j] ^ PI[t & 0xFF]);
-                work[j] = t;
+                t = (byte) (this.work[j] ^ PI[t & 0xFF]);
+                this.work[j] = t;
             }
             t = (byte) (t + i);
         }

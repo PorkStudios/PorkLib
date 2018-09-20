@@ -26,16 +26,16 @@ public class FastCharIntMap {
     private final int[][] backing = new int[256][];
 
     public void put(char key, int val) {
-        int[] bin = backing[key >> 8];
+        int[] bin = this.backing[key >> 8];
         if (bin == null) {
-            bin = backing[key >> 8] = new int[256];
+            bin = this.backing[key >> 8] = new int[256];
             Arrays.fill(bin, -1);
         }
         bin[key & 0xFF] = val;
     }
 
     public int get(char key) {
-        int[] bin = backing[key >> 8];
+        int[] bin = this.backing[key >> 8];
         if (bin == null) return -1;
         return bin[key & 0xFF];
     }

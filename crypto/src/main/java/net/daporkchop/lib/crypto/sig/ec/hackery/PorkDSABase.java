@@ -37,42 +37,42 @@ public abstract class PorkDSABase extends SignatureSpi implements PKCSObjectIden
         this.encoder = encoder;
     }
 
-    public void engineUpdate(byte b) throws SignatureException {
-        digest.update(b);
+    public void engineUpdate(byte b) {
+        this.digest.update(b);
     }
 
-    public void engineUpdate(byte[] b, int off, int len) throws SignatureException {
-        digest.update(b, off, len);
+    public void engineUpdate(byte[] b, int off, int len) {
+        this.digest.update(b, off, len);
     }
 
     public byte[] engineSign() throws SignatureException {
-        byte[] hash = new byte[digest.getDigestSize()];
+        byte[] hash = new byte[this.digest.getDigestSize()];
 
-        digest.doFinal(hash, 0);
+        this.digest.doFinal(hash, 0);
 
         try {
-            BigInteger[] sig = signer.generateSignature(hash);
+            BigInteger[] sig = this.signer.generateSignature(hash);
 
-            return encoder.encode(sig[0], sig[1]);
+            return this.encoder.encode(sig[0], sig[1]);
         } catch (Exception e) {
             throw new SignatureException(e.toString());
         }
     }
 
     public boolean engineVerify(byte[] sigBytes) throws SignatureException {
-        byte[] hash = new byte[digest.getDigestSize()];
+        byte[] hash = new byte[this.digest.getDigestSize()];
 
-        digest.doFinal(hash, 0);
+        this.digest.doFinal(hash, 0);
 
         BigInteger[] sig;
 
         try {
-            sig = encoder.decode(sigBytes);
+            sig = this.encoder.decode(sigBytes);
         } catch (Exception e) {
             throw new SignatureException("error decoding signature bytes.");
         }
 
-        return signer.verifySignature(hash, sig[0], sig[1]);
+        return this.signer.verifySignature(hash, sig[0], sig[1]);
     }
 
     public void engineSetParameter(AlgorithmParameterSpec params) {

@@ -47,7 +47,7 @@ public class ArchiveFileManager extends FileManager {
     }
 
     private TFile getFile(@NonNull byte[] fullHash) {
-        return new TFile(this.file, "/" + Base34.encodeBase34(fullHash));
+        return new TFile(this.file, '/' + Base34.encodeBase34(fullHash));
     }
 
     @Override

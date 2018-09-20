@@ -61,17 +61,14 @@ public class ECKeySerializer extends AbstractKeySerializer<AbstractECKeyPair> {
             throw new IllegalStateException(e);
         }
 
-        ObjectInputStream ois = new ObjectInputStream(bais);
         PrivateKey privateKey;
         PublicKey publicKey;
-        try {
+        try (ObjectInputStream ois = new ObjectInputStream(bais)) {
             publicKey = (PublicKey) ois.readObject();
             privateKey = (PrivateKey) ois.readObject();
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
             throw new IllegalStateException(e);
-        } finally {
-            ois.close();
         }
         try {
             return (AbstractECKeyPair) constructor.newInstance(privateKey, publicKey);

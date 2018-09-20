@@ -27,11 +27,11 @@ import java.io.IOException;
 @NoArgsConstructor
 public class HandshakeCompletePacket implements EncapsulatedPacket {
     @Override
-    public void read(DataIn in) throws IOException {
+    public void read(DataIn in) {
     }
 
     @Override
-    public void write(DataOut out) throws IOException {
+    public void write(DataOut out) {
     }
 
     @Override

@@ -32,15 +32,15 @@ public class Vec3l implements LongVector3 {
     }
 
     public long getX() {
-        return x;
+        return this.x;
     }
 
     public long getY() {
-        return y;
+        return this.y;
     }
 
     public long getZ() {
-        return z;
+        return this.z;
     }
 
     @Override
@@ -65,7 +65,7 @@ public class Vec3l implements LongVector3 {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null || !(obj instanceof Vec3l)) {
+        if (!(obj instanceof Vec3l)) {
             return false;
         }
 
@@ -75,11 +75,11 @@ public class Vec3l implements LongVector3 {
 
     @Override
     public int hashCode() {
-        return 31 * 31 * (int) (x ^ (x >>> 32)) + 31 * (int) (y ^ (y >>> 32)) + (int) (z ^ (z >>> 32));
+        return 31 * 31 * (int) (this.x ^ (this.x >>> 32)) + 31 * (int) (this.y ^ (this.y >>> 32)) + (int) (this.z ^ (this.z >>> 32));
     }
 
     @Override
     public String toString() {
-        return "Vec3i(x=" + x + ", y=" + y + ", z=" + z + ")";
+        return "Vec3i(x=" + this.x + ", y=" + this.y + ", z=" + this.z + ')';
     }
 }

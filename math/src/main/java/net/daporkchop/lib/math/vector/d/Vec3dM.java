@@ -32,7 +32,7 @@ public class Vec3dM implements DoubleVector3 {
     }
 
     public double getX() {
-        return x;
+        return this.x;
     }
 
     public void setX(double x) {
@@ -40,7 +40,7 @@ public class Vec3dM implements DoubleVector3 {
     }
 
     public double getY() {
-        return y;
+        return this.y;
     }
 
     public void setY(double y) {
@@ -48,7 +48,7 @@ public class Vec3dM implements DoubleVector3 {
     }
 
     public double getZ() {
-        return z;
+        return this.z;
     }
 
     public void setZ(double z) {
@@ -89,7 +89,7 @@ public class Vec3dM implements DoubleVector3 {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null || !(obj instanceof Vec3dM)) {
+        if (!(obj instanceof Vec3dM)) {
             return false;
         }
 
@@ -99,14 +99,14 @@ public class Vec3dM implements DoubleVector3 {
 
     @Override
     public int hashCode() {
-        long xBits = Double.doubleToLongBits(x);
-        long yBits = Double.doubleToLongBits(y);
-        long zBits = Double.doubleToLongBits(z);
+        long xBits = Double.doubleToLongBits(this.x);
+        long yBits = Double.doubleToLongBits(this.y);
+        long zBits = Double.doubleToLongBits(this.z);
         return 31 * 31 * (int) (xBits ^ (xBits >>> 32)) + 31 * (int) (yBits ^ (yBits >>> 32)) + (int) (zBits ^ (zBits >>> 32));
     }
 
     @Override
     public String toString() {
-        return "Vec3dM(x=" + x + ", y=" + y + ", z=" + z + ")";
+        return "Vec3dM(x=" + this.x + ", y=" + this.y + ", z=" + this.z + ')';
     }
 }

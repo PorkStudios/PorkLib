@@ -46,11 +46,11 @@ public class NBTOutputStream implements DataOutput, AutoCloseable {
     }
 
     public ByteOrder getEndianness() {
-        return endianness;
+        return this.endianness;
     }
 
     public boolean isNetwork() {
-        return network;
+        return this.network;
     }
 
     @Override
@@ -80,7 +80,7 @@ public class NBTOutputStream implements DataOutput, AutoCloseable {
 
     @Override
     public void writeShort(int v) throws IOException {
-        if (endianness == ByteOrder.LITTLE_ENDIAN) {
+        if (this.endianness == ByteOrder.LITTLE_ENDIAN) {
             v = Integer.reverseBytes(v) >> 16;
         }
         this.stream.writeShort(v);
@@ -88,7 +88,7 @@ public class NBTOutputStream implements DataOutput, AutoCloseable {
 
     @Override
     public void writeChar(int v) throws IOException {
-        if (endianness == ByteOrder.LITTLE_ENDIAN) {
+        if (this.endianness == ByteOrder.LITTLE_ENDIAN) {
             v = Character.reverseBytes((char) v);
         }
         this.stream.writeChar(v);
@@ -96,7 +96,7 @@ public class NBTOutputStream implements DataOutput, AutoCloseable {
 
     @Override
     public void writeInt(int v) throws IOException {
-        if (endianness == ByteOrder.LITTLE_ENDIAN) {
+        if (this.endianness == ByteOrder.LITTLE_ENDIAN) {
             v = Integer.reverseBytes(v);
         }
         this.stream.writeInt(v);
@@ -105,7 +105,7 @@ public class NBTOutputStream implements DataOutput, AutoCloseable {
 
     @Override
     public void writeLong(long v) throws IOException {
-        if (endianness == ByteOrder.LITTLE_ENDIAN) {
+        if (this.endianness == ByteOrder.LITTLE_ENDIAN) {
             v = Long.reverseBytes(v);
         }
         this.stream.writeLong(v);

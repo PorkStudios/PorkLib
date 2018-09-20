@@ -38,11 +38,11 @@ public class PorkCrypt2Test {
         engine.init(true, new KeyParameter(key));
         byte[] out = new byte[16];
         engine.processBlock(text.getBytes(), 0, out, 0);
-        System.out.println("Encrypted: " + new String(out).replaceAll("\n", " ") + " " + Hexadecimal.encode(out));
+        System.out.println("Encrypted: " + new String(out).replaceAll("\n", " ") + ' ' + Hexadecimal.encode(out));
         engine.init(false, new KeyParameter(key));
         byte[] newOut = new byte[16];
         engine.processBlock(out, 0, newOut, 0);
-        System.out.println("Decrypted: " + new String(newOut) + " " + Hexadecimal.encode(newOut));
+        System.out.println("Decrypted: " + new String(newOut) + ' ' + Hexadecimal.encode(newOut));
     }
 
     /*

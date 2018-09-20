@@ -16,6 +16,7 @@
 package net.daporkchop.lib.db.object.key.impl;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import net.daporkchop.lib.db.object.key.KeyHasher;
 
@@ -26,6 +27,7 @@ import java.nio.charset.Charset;
  *
  * @author DaPorkchop_
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class StringKeyHasher extends KeyHasher<String> {
     private static final Charset utf8 = Charset.forName("UTF-8");

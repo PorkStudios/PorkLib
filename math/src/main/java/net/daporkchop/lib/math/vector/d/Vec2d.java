@@ -30,11 +30,11 @@ public class Vec2d implements DoubleVector2 {
     }
 
     public double getX() {
-        return x;
+        return this.x;
     }
 
     public double getY() {
-        return y;
+        return this.y;
     }
 
     @Override
@@ -59,7 +59,7 @@ public class Vec2d implements DoubleVector2 {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null || !(obj instanceof Vec2d)) {
+        if (!(obj instanceof Vec2d)) {
             return false;
         }
 
@@ -69,13 +69,13 @@ public class Vec2d implements DoubleVector2 {
 
     @Override
     public int hashCode() {
-        final long xBits = Double.doubleToLongBits(x);
-        final long yBits = Double.doubleToLongBits(y);
+        long xBits = Double.doubleToLongBits(this.x);
+        long yBits = Double.doubleToLongBits(this.y);
         return 31 * (int) (xBits ^ (xBits >>> 32)) + (int) (yBits ^ (yBits >>> 32));
     }
 
     @Override
     public String toString() {
-        return "Vec2d(x=" + x + ", y=" + y + ")";
+        return "Vec2d(x=" + this.x + ", y=" + this.y + ')';
     }
 }

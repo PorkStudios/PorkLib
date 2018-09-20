@@ -53,8 +53,8 @@ public class TreeFileManager extends FileManager {
         super(maxOpenFiles);
     }
 
-    private String getFileFromSubHash(@NonNull byte[] subHash) {
-        return FastHex.toHex(subHash[0]) + "/" + Hexadecimal.encode(subHash, 1, subHash.length - 1) + PorkDB.ENTRY_ENDING;
+    private static String getFileFromSubHash(@NonNull byte[] subHash) {
+        return FastHex.toHex(subHash[0]) + '/' + Hexadecimal.encode(subHash, 1, subHash.length - 1) + PorkDB.ENTRY_ENDING;
     }
 
     /**
@@ -83,7 +83,7 @@ public class TreeFileManager extends FileManager {
         try {
             OpenFile file = this.openFiles.get(hashHash);
             if (file == null) {
-                File f = new File(this.db.getRootFolder(), this.getFileFromSubHash(subHash));
+                File f = new File(this.db.getRootFolder(), TreeFileManager.getFileFromSubHash(subHash));
                 if (f.exists() || createIfDoesntExist) {
                     file = this.db.getValueSerializer().isConstantLength() ?
                             new ConstantLengthFile(f, this) :

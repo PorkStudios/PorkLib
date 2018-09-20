@@ -32,7 +32,7 @@ public class Vec3fM implements FloatVector3 {
     }
 
     public float getX() {
-        return x;
+        return this.x;
     }
 
     public void setX(float x) {
@@ -40,7 +40,7 @@ public class Vec3fM implements FloatVector3 {
     }
 
     public float getY() {
-        return y;
+        return this.y;
     }
 
     public void setY(float y) {
@@ -48,7 +48,7 @@ public class Vec3fM implements FloatVector3 {
     }
 
     public float getZ() {
-        return z;
+        return this.z;
     }
 
     public void setZ(float z) {
@@ -89,7 +89,7 @@ public class Vec3fM implements FloatVector3 {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null || !(obj instanceof Vec3fM)) {
+        if (!(obj instanceof Vec3fM)) {
             return false;
         }
 
@@ -99,14 +99,14 @@ public class Vec3fM implements FloatVector3 {
 
     @Override
     public int hashCode() {
-        int xBits = Float.floatToIntBits(x);
-        int yBits = Float.floatToIntBits(y);
-        int zBits = Float.floatToIntBits(z);
+        int xBits = Float.floatToIntBits(this.x);
+        int yBits = Float.floatToIntBits(this.y);
+        int zBits = Float.floatToIntBits(this.z);
         return xBits * 31 * 31 + yBits * 31 + zBits;
     }
 
     @Override
     public String toString() {
-        return "Vec3fM(x=" + x + ", y=" + y + ", z=" + z + ")";
+        return "Vec3fM(x=" + this.x + ", y=" + this.y + ", z=" + this.z + ')';
     }
 }

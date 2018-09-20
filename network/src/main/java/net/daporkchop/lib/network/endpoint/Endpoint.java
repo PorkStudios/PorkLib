@@ -78,8 +78,8 @@ public abstract class Endpoint<S extends Session> {
 
     @SuppressWarnings("unchecked")
     protected void initKryo(@NonNull Kryo kryo) {
-        this.registerProtocol(PROTOCOL, kryo);
-        this.registerProtocol(this.protocol, kryo);
+        Endpoint.registerProtocol(PROTOCOL, kryo);
+        Endpoint.registerProtocol(this.protocol, kryo);
     }
 
     public abstract boolean isRunning();
@@ -93,7 +93,7 @@ public abstract class Endpoint<S extends Session> {
     public abstract EndpointType getType();
 
     @SuppressWarnings("unchecked")
-    protected <MS extends Session> void registerProtocol(@NonNull PacketProtocol<MS> protocol, @NonNull Kryo kryo) {
+    protected static <MS extends Session> void registerProtocol(@NonNull PacketProtocol<MS> protocol, @NonNull Kryo kryo) {
         protocol.getClassCodecMap().forEach((clazz, codec) ->
                 kryo.register(clazz, new Serializer(false, true) {
                     @Override

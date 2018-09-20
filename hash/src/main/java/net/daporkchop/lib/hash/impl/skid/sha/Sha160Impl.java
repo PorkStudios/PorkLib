@@ -47,7 +47,7 @@ public class Sha160Impl extends BaseHash {
         this.h3 = md.h3;
         this.h4 = md.h4;
         this.count = md.count;
-        this.buffer = (byte[]) md.buffer.clone();
+        this.buffer = md.buffer.clone();
     }
 
     public static final int[]
@@ -158,38 +158,37 @@ public class Sha160Impl extends BaseHash {
 //      }
 
 //      int[] result = sha(h0, h1, h2, h3, h4, in, offset, W);
-        int[] result = sha(h0, h1, h2, h3, h4, in, offset);
+        int[] result = sha(this.h0, this.h1, this.h2, this.h3, this.h4, in, offset);
 
-        h0 = result[0];
-        h1 = result[1];
-        h2 = result[2];
-        h3 = result[3];
-        h4 = result[4];
+        this.h0 = result[0];
+        this.h1 = result[1];
+        this.h2 = result[2];
+        this.h3 = result[3];
+        this.h4 = result[4];
     }
 
     protected byte[] padBuffer() {
-        return SHAUtil.padBuffer(count, BLOCK_SIZE);
+        return SHAUtil.padBuffer(this.count, BLOCK_SIZE);
     }
 
     protected byte[] getResult() {
-        byte[] result = new byte[]{
-                (byte) (h0 >>> 24), (byte) (h0 >>> 16), (byte) (h0 >>> 8), (byte) h0,
-                (byte) (h1 >>> 24), (byte) (h1 >>> 16), (byte) (h1 >>> 8), (byte) h1,
-                (byte) (h2 >>> 24), (byte) (h2 >>> 16), (byte) (h2 >>> 8), (byte) h2,
-                (byte) (h3 >>> 24), (byte) (h3 >>> 16), (byte) (h3 >>> 8), (byte) h3,
-                (byte) (h4 >>> 24), (byte) (h4 >>> 16), (byte) (h4 >>> 8), (byte) h4
-        };
 
-        return result;
+        return new byte[]{
+                (byte) (this.h0 >>> 24), (byte) (this.h0 >>> 16), (byte) (this.h0 >>> 8), (byte) this.h0,
+                (byte) (this.h1 >>> 24), (byte) (this.h1 >>> 16), (byte) (this.h1 >>> 8), (byte) this.h1,
+                (byte) (this.h2 >>> 24), (byte) (this.h2 >>> 16), (byte) (this.h2 >>> 8), (byte) this.h2,
+                (byte) (this.h3 >>> 24), (byte) (this.h3 >>> 16), (byte) (this.h3 >>> 8), (byte) this.h3,
+                (byte) (this.h4 >>> 24), (byte) (this.h4 >>> 16), (byte) (this.h4 >>> 8), (byte) this.h4
+        };
     }
 
     protected void resetContext() {
         // magic SHA-1/RIPEMD160 initialisation constants
-        h0 = 0x67452301;
-        h1 = 0xEFCDAB89;
-        h2 = 0x98BADCFE;
-        h3 = 0x10325476;
-        h4 = 0xC3D2E1F0;
+        this.h0 = 0x67452301;
+        this.h1 = 0xEFCDAB89;
+        this.h2 = 0x98BADCFE;
+        this.h3 = 0x10325476;
+        this.h4 = 0xC3D2E1F0;
     }
 
     // SHA specific methods ----------------------------------------------------
@@ -201,8 +200,8 @@ public class Sha160Impl extends BaseHash {
             md.update((byte) 0x62); // b
             md.update((byte) 0x63); // c
             String result = HexBin.encode(md.digest());
-            valid = new Boolean(DIGEST0.equals(result));
+            valid = DIGEST0.equals(result);
         }
-        return valid.booleanValue();
+        return valid;
     }
 }

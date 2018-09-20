@@ -56,21 +56,19 @@ public class CharacterIntegerHashMap implements CharacterIntegerMap {
         if (!IsPow2.checkInt(baseSize)) throw new IllegalArgumentException("baseSize must be a power of 2!");
         this.baseSize = baseSize;
         if (keyHash == null) {
-            this.keyHash = in -> {
-                return in & 0xFFFF;
-            };
+            this.keyHash = in -> in & 0xFFFF;
         } else {
             this.keyHash = keyHash;
         }
 
         //clear function sets up the arrays and such for us
-        clear();
+        this.clear();
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public int get(char key) {
-        int i = getIndex(key);
+        int i = this.getIndex(key);
         //check if key is present
         if (this.states.get(i)) {
             return this.values[i];
@@ -82,15 +80,15 @@ public class CharacterIntegerHashMap implements CharacterIntegerMap {
 
     @Override
     public int put(char key, int value) {
-        int i = getIndex(key);
+        int i = this.getIndex(key);
         //check if key is present
         if (this.states.get(i)) {
             //if the new key isn't equal to the stored key, we've got us a hash collision
             //if that happens, just expand the array over and over until there's no more collisions
             if (key != this.keys[i]) {
-                grow(true);
+                this.grow(true);
                 //fetch new index, as the arrays have been changed
-                i = getIndex(key);
+                i = this.getIndex(key);
                 //increment size index because this is a new entry
                 this.size++;
             }
@@ -107,19 +105,19 @@ public class CharacterIntegerHashMap implements CharacterIntegerMap {
             this.values[i] = value;
             //increment size and check if we need to grow the backing arrays
             this.size++;
-            grow(false);
+            this.grow(false);
             //return empty value, as there was no old value to return
             return 0;
         }
     }
 
     public void clear() {
-        this.keys = new char[baseSize];
-        this.values = new int[baseSize];
+        this.keys = new char[this.baseSize];
+        this.values = new int[this.baseSize];
         this.states = new BitSet();
 
-        this.len = baseSize;
-        updateConstants();
+        this.len = this.baseSize;
+        this.updateConstants();
         this.size = 0;
     }
 
@@ -147,12 +145,12 @@ public class CharacterIntegerHashMap implements CharacterIntegerMap {
             do {
                 //multiply length by 2 and update local values accordingly
                 this.len <<= 1;
-                updateConstants();
+                this.updateConstants();
                 //init new arrays
                 values = new int[this.len];
                 keys = new char[this.len];
                 states = new BitSet();
-            } while (reHash(values, keys, states));
+            } while (this.reHash(values, keys, states));
             this.values = values;
             this.keys = keys;
             this.states = states;
@@ -163,7 +161,7 @@ public class CharacterIntegerHashMap implements CharacterIntegerMap {
     protected boolean reHash(int[] values, char[] keys, BitSet states) {
         return this.forEachBreaking(i -> {
             char key = this.keys[i];
-            int j = getIndex(key);
+            int j = this.getIndex(key);
             if (states.get(j)) {
                 //there's already an element with this index!
                 return true;

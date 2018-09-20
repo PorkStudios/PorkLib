@@ -33,14 +33,14 @@ public class StringArrayTag extends Tag<String[]> {
 
     @Override
     public void write(NBTOutputStream dos) throws IOException {
-        String[] data = getValue();
+        String[] data = this.getValue();
         if (data == null) {
             dos.writeInt(0);
             return;
         }
         dos.writeInt(data.length);
-        for (int i = 0; i < data.length; i++) {
-            dos.writeUTF(data[i]);
+        for (String aData : data) {
+            dos.writeUTF(aData);
         }
     }
 
@@ -55,7 +55,7 @@ public class StringArrayTag extends Tag<String[]> {
 
     @Override
     public String toString() {
-        return "StringArrayTag " + this.getName() + " (size=" + getValue().length + ")";
+        return "StringArrayTag " + this.getName() + " (size=" + this.getValue().length + ')';
     }
 
     @Override
@@ -68,6 +68,6 @@ public class StringArrayTag extends Tag<String[]> {
         String[] data = this.getValue();
         String[] cp = new String[data.length];
         System.arraycopy(data, 0, cp, 0, data.length);
-        return new StringArrayTag(getName(), cp);
+        return new StringArrayTag(this.getName(), cp);
     }
 }

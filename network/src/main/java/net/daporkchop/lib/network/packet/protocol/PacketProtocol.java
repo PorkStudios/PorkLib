@@ -91,7 +91,8 @@ public abstract class PacketProtocol<S extends Session> {
     protected final class PacketRegistry {
         private final Map<Class, Codec<? extends Packet, S>> codecs = new IdentityHashMap<>();
 
-        public void register(@NonNull Codec<? extends Packet, S>... codecs) {
+        @SafeVarargs
+        public final void register(@NonNull Codec<? extends Packet, S>... codecs) {
             for (Codec<? extends Packet, S> codec : codecs) {
                 if (codec == null) {
                     throw new NullPointerException("supplier");

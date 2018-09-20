@@ -22,13 +22,13 @@ public class RSACipherHelper {
     private final ThreadLocal<RSAEngine> tl = ThreadLocal.withInitial(RSAEngine::new);
 
     public byte[] encrypt(byte[] data, RSAKeyPair pair) {
-        RSAEngine engine = tl.get();
+        RSAEngine engine = this.tl.get();
         engine.init(true, pair.getPublic());
         return engine.processBlock(data, 0, data.length);
     }
 
     public byte[] decrypt(byte[] data, RSAKeyPair pair) {
-        RSAEngine engine = tl.get();
+        RSAEngine engine = this.tl.get();
         engine.init(false, pair.getPrivate());
         return engine.processBlock(data, 0, data.length);
     }

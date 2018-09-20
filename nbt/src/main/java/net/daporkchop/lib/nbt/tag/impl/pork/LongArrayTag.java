@@ -33,14 +33,14 @@ public class LongArrayTag extends Tag<long[]> {
 
     @Override
     public void write(NBTOutputStream dos) throws IOException {
-        long[] data = getValue();
+        long[] data = this.getValue();
         if (data == null) {
             dos.writeInt(0);
             return;
         }
         dos.writeInt(data.length);
-        for (int i = 0; i < data.length; i++) {
-            dos.writeLong(data[i]);
+        for (long aData : data) {
+            dos.writeLong(aData);
         }
     }
 
@@ -55,7 +55,7 @@ public class LongArrayTag extends Tag<long[]> {
 
     @Override
     public String toString() {
-        return "LongArrayTag " + this.getName() + " (size=" + getValue().length + ")";
+        return "LongArrayTag " + this.getName() + " (size=" + this.getValue().length + ')';
     }
 
     @Override
@@ -68,6 +68,6 @@ public class LongArrayTag extends Tag<long[]> {
         long[] data = this.getValue();
         long[] cp = new long[data.length];
         System.arraycopy(data, 0, cp, 0, data.length);
-        return new LongArrayTag(getName(), cp);
+        return new LongArrayTag(this.getName(), cp);
     }
 }

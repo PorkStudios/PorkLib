@@ -32,8 +32,8 @@ public class PorkCrypt2Engine implements BlockCipher {
     private static final int BLOCK_MASK = BLOCK_SIZE - 1;
     private static final String NAME = "PorkCrypt2";
     private final byte[] inBuf = new byte[BLOCK_SIZE], outBuf = new byte[BLOCK_SIZE], key = new byte[BLOCK_SIZE];
-    private boolean encrypting = false;
-    private byte[] workingKey = null;
+    private boolean encrypting;
+    private byte[] workingKey;
     private byte[] keyHash;
     private int rounds;
 
@@ -46,7 +46,7 @@ public class PorkCrypt2Engine implements BlockCipher {
             if ((this.workingKey.length & (BLOCK_SIZE - 1)) != 0) {
                 byte[] workingKey = this.workingKey;
                 this.workingKey = null;
-                throw new IllegalArgumentException("Key length must be a multiple of " + BLOCK_SIZE + " (given: " + workingKey.length + ")");
+                throw new IllegalArgumentException("Key length must be a multiple of " + BLOCK_SIZE + " (given: " + workingKey.length + ')');
             }
             this.rounds = this.workingKey.length >> 4;
             this.keyHash = PorkHashHelper.porkhash(this.workingKey);
@@ -74,14 +74,14 @@ public class PorkCrypt2Engine implements BlockCipher {
         }
 
         System.arraycopy(in, inOff, this.inBuf, 0, BLOCK_SIZE);
-        for (int i = 0; i < rounds; i++) {
-            System.arraycopy(this.workingKey, this.encrypting ? i << 4 : (rounds - i - 1) << 4, this.key, 0, BLOCK_SIZE);
+        for (int i = 0; i < this.rounds; i++) {
+            System.arraycopy(this.workingKey, this.encrypting ? i << 4 : (this.rounds - i - 1) << 4, this.key, 0, BLOCK_SIZE);
             if (this.encrypting) {
                 this.encryptBlock(i);
             } else {
-                this.decryptBlock((rounds - 1) - i);
+                this.decryptBlock((this.rounds - 1) - i);
             }
-            if (i + 1 != rounds) {
+            if (i + 1 != this.rounds) {
                 System.arraycopy(this.outBuf, 0, this.inBuf, 0, BLOCK_SIZE);
             }
         }

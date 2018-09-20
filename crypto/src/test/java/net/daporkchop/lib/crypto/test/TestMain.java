@@ -69,7 +69,7 @@ public class TestMain {
             public void run() {
                 if (false) {
                     Scanner s = new Scanner(System.in);
-                    while (!s.nextLine().equals("stop")) System.gc();
+                    while (!"stop".equals(s.nextLine())) System.gc();
                     s.close();
                 }
             }

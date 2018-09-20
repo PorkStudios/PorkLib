@@ -36,12 +36,10 @@ public abstract class ImageTest {
 
         {
             Noise noise = new Noise(this.getType(), System.currentTimeMillis(), 8, 0.005d, 0.5d);
-            noise.forEach(-256d, 512, 1, ((x, d) -> {
-                image.setRGB(
-                        x
-                        //(int) (x * 100.0d + 256.0d)
-                        , (int) ((d + 1.0d) * 127.0d), Color.RED.getRGB());
-            }));
+            noise.forEach(-256d, 512, 1, ((x, d) -> image.setRGB(
+                    x
+                    //(int) (x * 100.0d + 256.0d)
+                    , (int) ((d + 1.0d) * 127.0d), Color.RED.getRGB())));
 
             JLabel picLabel = new JLabel(new ImageIcon(image));
             JOptionPane.showMessageDialog(null, picLabel, "jeff", JOptionPane.PLAIN_MESSAGE, null);

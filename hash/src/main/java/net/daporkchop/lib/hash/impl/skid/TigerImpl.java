@@ -324,18 +324,18 @@ public class TigerImpl extends BaseHash {
 
     public boolean selfTest() {
         if (valid == null) {
-            valid = new Boolean(DIGEST0.equals(HexBin.encode(new TigerImpl().digest())));
+            valid = DIGEST0.equals(HexBin.encode(new TigerImpl().digest()));
         }
-        return valid.booleanValue();
+        return valid;
     }
 
     protected byte[] padBuffer() {
-        int n = (int) (count % BLOCK_SIZE);
+        int n = (int) (this.count % BLOCK_SIZE);
         int padding = (n < 56) ? (56 - n) : (120 - n);
         byte[] pad = new byte[padding + 8];
 
         pad[0] = 1;
-        long bits = count << 3;
+        long bits = this.count << 3;
 
         pad[padding++] = (byte) bits;
         pad[padding++] = (byte) (bits >>> 8);
@@ -351,22 +351,22 @@ public class TigerImpl extends BaseHash {
 
     protected byte[] getResult() {
         return new byte[]{
-                (byte) a, (byte) (a >>> 8), (byte) (a >>> 16),
-                (byte) (a >>> 24), (byte) (a >>> 32), (byte) (a >>> 40),
-                (byte) (a >>> 48), (byte) (a >>> 56),
-                (byte) b, (byte) (b >>> 8), (byte) (b >>> 16),
-                (byte) (b >>> 24), (byte) (b >>> 32), (byte) (b >>> 40),
-                (byte) (b >>> 48), (byte) (b >>> 56),
-                (byte) c, (byte) (c >>> 8), (byte) (c >>> 16),
-                (byte) (c >>> 24), (byte) (c >>> 32), (byte) (c >>> 40),
-                (byte) (c >>> 48), (byte) (c >>> 56)
+                (byte) this.a, (byte) (this.a >>> 8), (byte) (this.a >>> 16),
+                (byte) (this.a >>> 24), (byte) (this.a >>> 32), (byte) (this.a >>> 40),
+                (byte) (this.a >>> 48), (byte) (this.a >>> 56),
+                (byte) this.b, (byte) (this.b >>> 8), (byte) (this.b >>> 16),
+                (byte) (this.b >>> 24), (byte) (this.b >>> 32), (byte) (this.b >>> 40),
+                (byte) (this.b >>> 48), (byte) (this.b >>> 56),
+                (byte) this.c, (byte) (this.c >>> 8), (byte) (this.c >>> 16),
+                (byte) (this.c >>> 24), (byte) (this.c >>> 32), (byte) (this.c >>> 40),
+                (byte) (this.c >>> 48), (byte) (this.c >>> 56)
         };
     }
 
     protected void resetContext() {
-        a = A;
-        b = B;
-        c = C;
+        this.a = A;
+        this.b = B;
+        this.c = C;
     }
 
     protected void transform(byte[] in, int offset) {
@@ -406,7 +406,7 @@ public class TigerImpl extends BaseHash {
                 | ((long) (in[offset++] & 0xFF) << 48) | ((long) (in[offset] & 0xFF) << 56);
 
         // save_abc ::=
-        long aa = a, bb = b, cc = c;
+        long aa = this.a, bb = this.b, cc = this.c;
 
         // pass(aa, bb, cc, 5) ::=
         cc ^= x0;
@@ -595,8 +595,8 @@ public class TigerImpl extends BaseHash {
         aa *= 9;
 
         // feedforward ::=
-        a ^= aa;
-        b = bb - b;
-        c += cc;
+        this.a ^= aa;
+        this.b = bb - this.b;
+        this.c += cc;
     }
 }

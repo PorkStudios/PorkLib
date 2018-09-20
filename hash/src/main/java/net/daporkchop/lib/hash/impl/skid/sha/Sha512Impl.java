@@ -70,7 +70,7 @@ public class Sha512Impl extends BaseHash {
         this.h6 = md.h6;
         this.h7 = md.h7;
         this.count = md.count;
-        this.buffer = (byte[]) md.buffer.clone();
+        this.buffer = md.buffer.clone();
     }
 
     public static final long[] G(long hh0, long hh1, long hh2, long hh3, long hh4,
@@ -130,53 +130,53 @@ public class Sha512Impl extends BaseHash {
     }
 
     protected void transform(byte[] in, int offset) {
-        long[] result = sha(h0, h1, h2, h3, h4, h5, h6, h7, in, offset);
+        long[] result = sha(this.h0, this.h1, this.h2, this.h3, this.h4, this.h5, this.h6, this.h7, in, offset);
 
-        h0 = result[0];
-        h1 = result[1];
-        h2 = result[2];
-        h3 = result[3];
-        h4 = result[4];
-        h5 = result[5];
-        h6 = result[6];
-        h7 = result[7];
+        this.h0 = result[0];
+        this.h1 = result[1];
+        this.h2 = result[2];
+        this.h3 = result[3];
+        this.h4 = result[4];
+        this.h5 = result[5];
+        this.h6 = result[6];
+        this.h7 = result[7];
     }
 
     protected byte[] padBuffer() {
-        return SHAUtil.padBuffer2(count, BLOCK_SIZE);
+        return SHAUtil.padBuffer2(this.count, BLOCK_SIZE);
     }
 
     protected byte[] getResult() {
         return new byte[]{
-                (byte) (h0 >>> 56), (byte) (h0 >>> 48), (byte) (h0 >>> 40), (byte) (h0 >>> 32),
-                (byte) (h0 >>> 24), (byte) (h0 >>> 16), (byte) (h0 >>> 8), (byte) h0,
-                (byte) (h1 >>> 56), (byte) (h1 >>> 48), (byte) (h1 >>> 40), (byte) (h1 >>> 32),
-                (byte) (h1 >>> 24), (byte) (h1 >>> 16), (byte) (h1 >>> 8), (byte) h1,
-                (byte) (h2 >>> 56), (byte) (h2 >>> 48), (byte) (h2 >>> 40), (byte) (h2 >>> 32),
-                (byte) (h2 >>> 24), (byte) (h2 >>> 16), (byte) (h2 >>> 8), (byte) h2,
-                (byte) (h3 >>> 56), (byte) (h3 >>> 48), (byte) (h3 >>> 40), (byte) (h3 >>> 32),
-                (byte) (h3 >>> 24), (byte) (h3 >>> 16), (byte) (h3 >>> 8), (byte) h3,
-                (byte) (h4 >>> 56), (byte) (h4 >>> 48), (byte) (h4 >>> 40), (byte) (h4 >>> 32),
-                (byte) (h4 >>> 24), (byte) (h4 >>> 16), (byte) (h4 >>> 8), (byte) h4,
-                (byte) (h5 >>> 56), (byte) (h5 >>> 48), (byte) (h5 >>> 40), (byte) (h5 >>> 32),
-                (byte) (h5 >>> 24), (byte) (h5 >>> 16), (byte) (h5 >>> 8), (byte) h5,
-                (byte) (h6 >>> 56), (byte) (h6 >>> 48), (byte) (h6 >>> 40), (byte) (h6 >>> 32),
-                (byte) (h6 >>> 24), (byte) (h6 >>> 16), (byte) (h6 >>> 8), (byte) h6,
-                (byte) (h7 >>> 56), (byte) (h7 >>> 48), (byte) (h7 >>> 40), (byte) (h7 >>> 32),
-                (byte) (h7 >>> 24), (byte) (h7 >>> 16), (byte) (h7 >>> 8), (byte) h7
+                (byte) (this.h0 >>> 56), (byte) (this.h0 >>> 48), (byte) (this.h0 >>> 40), (byte) (this.h0 >>> 32),
+                (byte) (this.h0 >>> 24), (byte) (this.h0 >>> 16), (byte) (this.h0 >>> 8), (byte) this.h0,
+                (byte) (this.h1 >>> 56), (byte) (this.h1 >>> 48), (byte) (this.h1 >>> 40), (byte) (this.h1 >>> 32),
+                (byte) (this.h1 >>> 24), (byte) (this.h1 >>> 16), (byte) (this.h1 >>> 8), (byte) this.h1,
+                (byte) (this.h2 >>> 56), (byte) (this.h2 >>> 48), (byte) (this.h2 >>> 40), (byte) (this.h2 >>> 32),
+                (byte) (this.h2 >>> 24), (byte) (this.h2 >>> 16), (byte) (this.h2 >>> 8), (byte) this.h2,
+                (byte) (this.h3 >>> 56), (byte) (this.h3 >>> 48), (byte) (this.h3 >>> 40), (byte) (this.h3 >>> 32),
+                (byte) (this.h3 >>> 24), (byte) (this.h3 >>> 16), (byte) (this.h3 >>> 8), (byte) this.h3,
+                (byte) (this.h4 >>> 56), (byte) (this.h4 >>> 48), (byte) (this.h4 >>> 40), (byte) (this.h4 >>> 32),
+                (byte) (this.h4 >>> 24), (byte) (this.h4 >>> 16), (byte) (this.h4 >>> 8), (byte) this.h4,
+                (byte) (this.h5 >>> 56), (byte) (this.h5 >>> 48), (byte) (this.h5 >>> 40), (byte) (this.h5 >>> 32),
+                (byte) (this.h5 >>> 24), (byte) (this.h5 >>> 16), (byte) (this.h5 >>> 8), (byte) this.h5,
+                (byte) (this.h6 >>> 56), (byte) (this.h6 >>> 48), (byte) (this.h6 >>> 40), (byte) (this.h6 >>> 32),
+                (byte) (this.h6 >>> 24), (byte) (this.h6 >>> 16), (byte) (this.h6 >>> 8), (byte) this.h6,
+                (byte) (this.h7 >>> 56), (byte) (this.h7 >>> 48), (byte) (this.h7 >>> 40), (byte) (this.h7 >>> 32),
+                (byte) (this.h7 >>> 24), (byte) (this.h7 >>> 16), (byte) (this.h7 >>> 8), (byte) this.h7
         };
     }
 
     protected void resetContext() {
         // magic SHA-512 initialisation constants
-        h0 = 0x6a09e667f3bcc908L;
-        h1 = 0xbb67ae8584caa73bL;
-        h2 = 0x3c6ef372fe94f82bL;
-        h3 = 0xa54ff53a5f1d36f1L;
-        h4 = 0x510e527fade682d1L;
-        h5 = 0x9b05688c2b3e6c1fL;
-        h6 = 0x1f83d9abfb41bd6bL;
-        h7 = 0x5be0cd19137e2179L;
+        this.h0 = 0x6a09e667f3bcc908L;
+        this.h1 = 0xbb67ae8584caa73bL;
+        this.h2 = 0x3c6ef372fe94f82bL;
+        this.h3 = 0xa54ff53a5f1d36f1L;
+        this.h4 = 0x510e527fade682d1L;
+        this.h5 = 0x9b05688c2b3e6c1fL;
+        this.h6 = 0x1f83d9abfb41bd6bL;
+        this.h7 = 0x5be0cd19137e2179L;
     }
 
     // SHA specific methods ----------------------------------------------------
@@ -188,8 +188,8 @@ public class Sha512Impl extends BaseHash {
             md.update((byte) 0x62); // b
             md.update((byte) 0x63); // c
             String result = HexBin.encode(md.digest());
-            valid = new Boolean(DIGEST0.equals(result));
+            valid = DIGEST0.equals(result);
         }
-        return valid.booleanValue();
+        return valid;
     }
 }

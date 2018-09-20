@@ -29,23 +29,23 @@ import java.util.Arrays;
 public abstract class SymmetricCipherTest<T extends AbstractSymmetricKey, Q extends BlockCipherHelper<T>> {
     @Test
     public void test() {
-        System.out.println("Testing " + getType().name + "...");
-        T key = genKeys();
+        System.out.println("Testing " + this.getType().name + "...");
+        T key = this.genKeys();
         byte[] encoded = SymmetricKeySerializer.INSTANCE.serialize(key);
-        key = SymmetricKeySerializer.INSTANCE.<T>deserialize(encoded);
+        key = SymmetricKeySerializer.INSTANCE.deserialize(encoded);
         for (BlockCipherMode mode : BlockCipherMode.values()) {
-            if (!mode.isCompatible(getType())) {
-                System.out.println("Incompatible cipher + mode combination: " + getType().name + "+" + mode.name);
+            if (!mode.isCompatible(this.getType())) {
+                System.out.println("Incompatible cipher + mode combination: " + this.getType().name + '+' + mode.name);
                 continue;
             }
             for (BlockCipherPadding scheme : BlockCipherPadding.values()) {
-                Q helper = getHelper(mode, scheme, key);
+                Q helper = this.getHelper(mode, scheme, key);
                 for (byte[] b : TestMain.RANDOM_DATA) {
                     //use length prefix to remove padding
                     byte[] encrypted = helper.encrypt(b, true);
                     byte[] decrypted = helper.decrypt(encrypted, true);
                     if (!Arrays.equals(b, decrypted)) {
-                        System.out.println("Cipher: " + getType().name + "/" + mode.name + "/" + scheme.name);
+                        System.out.println("Cipher: " + this.getType().name + '/' + mode.name + '/' + scheme.name);
                         System.out.println("Original: " + new String(b).replaceAll("\n", ""));
                         System.out.println("Encrypted: " + new String(encrypted).replaceAll("\n", ""));
                         System.out.println("Decrypted: " + new String(decrypted).replaceAll("\n", ""));

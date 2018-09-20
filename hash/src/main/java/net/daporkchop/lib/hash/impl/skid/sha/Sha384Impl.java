@@ -70,7 +70,7 @@ public class Sha384Impl extends BaseHash {
         this.h6 = md.h6;
         this.h7 = md.h7;
         this.count = md.count;
-        this.buffer = (byte[]) md.buffer.clone();
+        this.buffer = md.buffer.clone();
     }
 
     public static final long[] G(long hh0, long hh1, long hh2, long hh3, long hh4,
@@ -132,36 +132,36 @@ public class Sha384Impl extends BaseHash {
     }
 
     protected void transform(byte[] in, int offset) {
-        long[] result = sha(h0, h1, h2, h3, h4, h5, h6, h7, in, offset);
+        long[] result = sha(this.h0, this.h1, this.h2, this.h3, this.h4, this.h5, this.h6, this.h7, in, offset);
 
-        h0 = result[0];
-        h1 = result[1];
-        h2 = result[2];
-        h3 = result[3];
-        h4 = result[4];
-        h5 = result[5];
-        h6 = result[6];
-        h7 = result[7];
+        this.h0 = result[0];
+        this.h1 = result[1];
+        this.h2 = result[2];
+        this.h3 = result[3];
+        this.h4 = result[4];
+        this.h5 = result[5];
+        this.h6 = result[6];
+        this.h7 = result[7];
     }
 
     protected byte[] padBuffer() {
-        return SHAUtil.padBuffer2(count, BLOCK_SIZE);
+        return SHAUtil.padBuffer2(this.count, BLOCK_SIZE);
     }
 
     protected byte[] getResult() {
         return new byte[]{
-                (byte) (h0 >>> 56), (byte) (h0 >>> 48), (byte) (h0 >>> 40), (byte) (h0 >>> 32),
-                (byte) (h0 >>> 24), (byte) (h0 >>> 16), (byte) (h0 >>> 8), (byte) h0,
-                (byte) (h1 >>> 56), (byte) (h1 >>> 48), (byte) (h1 >>> 40), (byte) (h1 >>> 32),
-                (byte) (h1 >>> 24), (byte) (h1 >>> 16), (byte) (h1 >>> 8), (byte) h1,
-                (byte) (h2 >>> 56), (byte) (h2 >>> 48), (byte) (h2 >>> 40), (byte) (h2 >>> 32),
-                (byte) (h2 >>> 24), (byte) (h2 >>> 16), (byte) (h2 >>> 8), (byte) h2,
-                (byte) (h3 >>> 56), (byte) (h3 >>> 48), (byte) (h3 >>> 40), (byte) (h3 >>> 32),
-                (byte) (h3 >>> 24), (byte) (h3 >>> 16), (byte) (h3 >>> 8), (byte) h3,
-                (byte) (h4 >>> 56), (byte) (h4 >>> 48), (byte) (h4 >>> 40), (byte) (h4 >>> 32),
-                (byte) (h4 >>> 24), (byte) (h4 >>> 16), (byte) (h4 >>> 8), (byte) h4,
-                (byte) (h5 >>> 56), (byte) (h5 >>> 48), (byte) (h5 >>> 40), (byte) (h5 >>> 32),
-                (byte) (h5 >>> 24), (byte) (h5 >>> 16), (byte) (h5 >>> 8), (byte) h5
+                (byte) (this.h0 >>> 56), (byte) (this.h0 >>> 48), (byte) (this.h0 >>> 40), (byte) (this.h0 >>> 32),
+                (byte) (this.h0 >>> 24), (byte) (this.h0 >>> 16), (byte) (this.h0 >>> 8), (byte) this.h0,
+                (byte) (this.h1 >>> 56), (byte) (this.h1 >>> 48), (byte) (this.h1 >>> 40), (byte) (this.h1 >>> 32),
+                (byte) (this.h1 >>> 24), (byte) (this.h1 >>> 16), (byte) (this.h1 >>> 8), (byte) this.h1,
+                (byte) (this.h2 >>> 56), (byte) (this.h2 >>> 48), (byte) (this.h2 >>> 40), (byte) (this.h2 >>> 32),
+                (byte) (this.h2 >>> 24), (byte) (this.h2 >>> 16), (byte) (this.h2 >>> 8), (byte) this.h2,
+                (byte) (this.h3 >>> 56), (byte) (this.h3 >>> 48), (byte) (this.h3 >>> 40), (byte) (this.h3 >>> 32),
+                (byte) (this.h3 >>> 24), (byte) (this.h3 >>> 16), (byte) (this.h3 >>> 8), (byte) this.h3,
+                (byte) (this.h4 >>> 56), (byte) (this.h4 >>> 48), (byte) (this.h4 >>> 40), (byte) (this.h4 >>> 32),
+                (byte) (this.h4 >>> 24), (byte) (this.h4 >>> 16), (byte) (this.h4 >>> 8), (byte) this.h4,
+                (byte) (this.h5 >>> 56), (byte) (this.h5 >>> 48), (byte) (this.h5 >>> 40), (byte) (this.h5 >>> 32),
+                (byte) (this.h5 >>> 24), (byte) (this.h5 >>> 16), (byte) (this.h5 >>> 8), (byte) this.h5
 //         (byte)(h6 >>> 56), (byte)(h6 >>> 48), (byte)(h6 >>> 40), (byte)(h6 >>> 32),
 //         (byte)(h6 >>> 24), (byte)(h6 >>> 16), (byte)(h6 >>>  8), (byte) h6,
 //         (byte)(h7 >>> 56), (byte)(h7 >>> 48), (byte)(h7 >>> 40), (byte)(h7 >>> 32),
@@ -171,14 +171,14 @@ public class Sha384Impl extends BaseHash {
 
     protected void resetContext() {
         // magic SHA-384 initialisation constants
-        h0 = 0xcbbb9d5dc1059ed8L;
-        h1 = 0x629a292a367cd507L;
-        h2 = 0x9159015a3070dd17L;
-        h3 = 0x152fecd8f70e5939L;
-        h4 = 0x67332667ffc00b31L;
-        h5 = 0x8eb44a8768581511L;
-        h6 = 0xdb0c2e0d64f98fa7L;
-        h7 = 0x47b5481dbefa4fa4L;
+        this.h0 = 0xcbbb9d5dc1059ed8L;
+        this.h1 = 0x629a292a367cd507L;
+        this.h2 = 0x9159015a3070dd17L;
+        this.h3 = 0x152fecd8f70e5939L;
+        this.h4 = 0x67332667ffc00b31L;
+        this.h5 = 0x8eb44a8768581511L;
+        this.h6 = 0xdb0c2e0d64f98fa7L;
+        this.h7 = 0x47b5481dbefa4fa4L;
     }
 
     // SHA specific methods ----------------------------------------------------
@@ -190,8 +190,8 @@ public class Sha384Impl extends BaseHash {
             md.update((byte) 0x62); // b
             md.update((byte) 0x63); // c
             String result = HexBin.encode(md.digest());
-            valid = new Boolean(DIGEST0.equals(result));
+            valid = DIGEST0.equals(result);
         }
-        return valid.booleanValue();
+        return valid;
     }
 }

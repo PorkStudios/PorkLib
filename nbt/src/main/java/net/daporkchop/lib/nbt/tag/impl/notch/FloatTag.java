@@ -33,12 +33,12 @@ public class FloatTag extends Tag<Float> {
 
     @Override
     public void write(NBTOutputStream dos) throws IOException {
-        dos.writeFloat(getValue());
+        dos.writeFloat(this.getValue());
     }
 
     @Override
     public void load(NBTInputStream dis) throws IOException {
-        setValue(dis.readFloat());
+        this.setValue(dis.readFloat());
     }
 
     @Override
@@ -58,11 +58,11 @@ public class FloatTag extends Tag<Float> {
 
     @Override
     public String toString() {
-        return "FloatTag " + this.getName() + " (data: " + getValue() + ")";
+        return "FloatTag " + this.getName() + " (data: " + this.getValue() + ')';
     }
 
     @Override
     public Tag copy() {
-        return new FloatTag(getName(), getValue());
+        return new FloatTag(this.getName(), this.getValue());
     }
 }

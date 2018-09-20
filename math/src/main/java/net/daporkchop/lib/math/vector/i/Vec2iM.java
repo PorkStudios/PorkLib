@@ -35,7 +35,7 @@ public class Vec2iM implements IntVector2 {
     }
 
     public int getX() {
-        return x;
+        return this.x;
     }
 
     public void setX(int x) {
@@ -43,7 +43,7 @@ public class Vec2iM implements IntVector2 {
     }
 
     public int getY() {
-        return y;
+        return this.y;
     }
 
     public void setY(int y) {
@@ -79,12 +79,12 @@ public class Vec2iM implements IntVector2 {
     }
 
     public long encodeLong() {
-        return (((long) x) << 32) | (y & 0xffffffffL);
+        return (((long) this.x) << 32) | (this.y & 0xffffffffL);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null || !(obj instanceof Vec2iM)) {
+        if (!(obj instanceof Vec2iM)) {
             return false;
         }
 
@@ -94,11 +94,11 @@ public class Vec2iM implements IntVector2 {
 
     @Override
     public int hashCode() {
-        return x * 31 + y;
+        return this.x * 31 + this.y;
     }
 
     @Override
     public String toString() {
-        return "Vec2i(x=" + x + ", y=" + y + ")";
+        return "Vec2i(x=" + this.x + ", y=" + this.y + ')';
     }
 }

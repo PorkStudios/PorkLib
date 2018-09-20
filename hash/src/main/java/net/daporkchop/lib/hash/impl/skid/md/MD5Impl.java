@@ -39,7 +39,7 @@ public class MD5Impl extends BaseHash {
         this.h2 = md.h2;
         this.h3 = md.h3;
         this.count = md.count;
-        this.buffer = (byte[]) md.buffer.clone();
+        this.buffer = md.buffer.clone();
     }
 
     public Object clone() {
@@ -64,10 +64,10 @@ public class MD5Impl extends BaseHash {
         int X14 = (in[i++] & 0xFF) | (in[i++] & 0xFF) << 8 | (in[i++] & 0xFF) << 16 | in[i++] << 24;
         int X15 = (in[i++] & 0xFF) | (in[i++] & 0xFF) << 8 | (in[i++] & 0xFF) << 16 | in[i] << 24;
 
-        int A = h0;
-        int B = h1;
-        int C = h2;
-        int D = h3;
+        int A = this.h0;
+        int B = this.h1;
+        int C = this.h2;
+        int D = this.h3;
 
         // hex constants are from md5.c in FSF Gnu Privacy Guard 0.9.2
         // round 1
@@ -218,38 +218,37 @@ public class MD5Impl extends BaseHash {
         B += (D ^ (C | ~A)) + X9 + 0xEB86D391;
         B = C + (B << 21 | B >>> -21);
 
-        h0 += A;
-        h1 += B;
-        h2 += C;
-        h3 += D;
+        this.h0 += A;
+        this.h1 += B;
+        this.h2 += C;
+        this.h3 += D;
     }
 
     protected byte[] padBuffer() {
-        return MDUtil.padBuffer(count, BLOCK_SIZE);
+        return MDUtil.padBuffer(this.count, BLOCK_SIZE);
     }
 
     protected byte[] getResult() {
-        byte[] result = new byte[]{
-                (byte) h0, (byte) (h0 >>> 8), (byte) (h0 >>> 16), (byte) (h0 >>> 24),
-                (byte) h1, (byte) (h1 >>> 8), (byte) (h1 >>> 16), (byte) (h1 >>> 24),
-                (byte) h2, (byte) (h2 >>> 8), (byte) (h2 >>> 16), (byte) (h2 >>> 24),
-                (byte) h3, (byte) (h3 >>> 8), (byte) (h3 >>> 16), (byte) (h3 >>> 24)
-        };
 
-        return result;
+        return new byte[]{
+                (byte) this.h0, (byte) (this.h0 >>> 8), (byte) (this.h0 >>> 16), (byte) (this.h0 >>> 24),
+                (byte) this.h1, (byte) (this.h1 >>> 8), (byte) (this.h1 >>> 16), (byte) (this.h1 >>> 24),
+                (byte) this.h2, (byte) (this.h2 >>> 8), (byte) (this.h2 >>> 16), (byte) (this.h2 >>> 24),
+                (byte) this.h3, (byte) (this.h3 >>> 8), (byte) (this.h3 >>> 16), (byte) (this.h3 >>> 24)
+        };
     }
 
     protected void resetContext() {
-        h0 = 0x67452301;
-        h1 = 0xEFCDAB89;
-        h2 = 0x98BADCFE;
-        h3 = 0x10325476;
+        this.h0 = 0x67452301;
+        this.h1 = 0xEFCDAB89;
+        this.h2 = 0x98BADCFE;
+        this.h3 = 0x10325476;
     }
 
     public boolean selfTest() {
         if (valid == null) {
-            valid = new Boolean(DIGEST0.equals(HexBin.encode(new MD5Impl().digest())));
+            valid = DIGEST0.equals(HexBin.encode(new MD5Impl().digest()));
         }
-        return valid.booleanValue();
+        return valid;
     }
 }

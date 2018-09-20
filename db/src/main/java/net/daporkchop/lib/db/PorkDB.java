@@ -221,7 +221,6 @@ public abstract class PorkDB<K, V> {
             dataOut.close();
         } catch (IOException e) {
             e.printStackTrace();
-            return;
         }
     }
 

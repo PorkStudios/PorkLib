@@ -26,7 +26,7 @@ public class PlainDSAEncoder implements DSAEncoder {
     private PlainDSAEncoder() {
     }
 
-    private static byte[] doEncode(BigInteger r, BigInteger s) throws IOException {
+    private static byte[] doEncode(BigInteger r, BigInteger s) {
         byte[] first = doMakeUnsigned(r);
         byte[] second = doMakeUnsigned(s);
         byte[] res;
@@ -57,7 +57,7 @@ public class PlainDSAEncoder implements DSAEncoder {
         return res;
     }
 
-    private static BigInteger[] doDecode(byte[] encoding) throws IOException {
+    private static BigInteger[] doDecode(byte[] encoding) {
         BigInteger[] sig = new BigInteger[2];
 
         byte[] first = new byte[encoding.length / 2];

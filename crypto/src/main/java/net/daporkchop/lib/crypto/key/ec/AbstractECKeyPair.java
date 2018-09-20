@@ -81,11 +81,11 @@ public abstract class AbstractECKeyPair {
     }
 
     public PrivateKey getPrivateKey() {
-        return privateKey;
+        return this.privateKey;
     }
 
     public PublicKey getPublicKey() {
-        return publicKey;
+        return this.publicKey;
     }
 
     public byte[] encodeFull() {
@@ -97,7 +97,7 @@ public abstract class AbstractECKeyPair {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             ObjectOutputStream oos = new ObjectOutputStream(baos);
             oos.writeObject(this.getClass().getCanonicalName());
-            oos.writeObject(getPublicKey());
+            oos.writeObject(this.publicKey);
             oos.close();
             return baos.toByteArray();
         } catch (IOException e) {
@@ -111,7 +111,7 @@ public abstract class AbstractECKeyPair {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             ObjectOutputStream oos = new ObjectOutputStream(baos);
             oos.writeObject(this.getClass().getCanonicalName());
-            oos.writeObject(getPrivateKey());
+            oos.writeObject(this.privateKey);
             oos.close();
             return baos.toByteArray();
         } catch (IOException e) {

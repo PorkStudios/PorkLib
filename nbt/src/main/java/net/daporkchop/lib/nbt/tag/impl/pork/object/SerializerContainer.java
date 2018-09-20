@@ -28,10 +28,10 @@ public class SerializerContainer<T> {
     }
 
     public void serialize(T object, NBTOutputStream stream) {
-        serializer.serialize(object, stream);
+        this.serializer.serialize(object, stream);
     }
 
     public T deserialize(NBTInputStream stream) {
-        return deserializer.deserialize(stream);
+        return this.deserializer.deserialize(stream);
     }
 }

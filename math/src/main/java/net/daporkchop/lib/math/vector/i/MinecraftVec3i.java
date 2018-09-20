@@ -58,7 +58,7 @@ public class MinecraftVec3i {
      * @param z The Z coordinate to use
      */
     public MinecraftVec3i(int x, int y, int z) {
-        reset(x, y, z);
+        this.reset(x, y, z);
     }
 
     /**
@@ -74,7 +74,7 @@ public class MinecraftVec3i {
      * @return This vector's X coordinate
      */
     public int getX() {
-        return (int) (backing << 64 - X_SHIFT - NUM_X_BITS >> 64 - NUM_X_BITS);
+        return (int) (this.backing << 64 - X_SHIFT - NUM_X_BITS >> 64 - NUM_X_BITS);
     }
 
     /**
@@ -83,14 +83,14 @@ public class MinecraftVec3i {
      * @param x The new X coordinate
      */
     public void setX(int x) {
-        this.backing = (backing & (Y_MASK << Y_SHIFT | Z_MASK)) | ((long) x & X_MASK) << X_SHIFT;
+        this.backing = (this.backing & (Y_MASK << Y_SHIFT | Z_MASK)) | ((long) x & X_MASK) << X_SHIFT;
     }
 
     /**
      * @return This vector's Y coordinate
      */
     public int getY() {
-        return (int) (backing << 64 - Y_SHIFT - NUM_Y_BITS >> 64 - NUM_Y_BITS);
+        return (int) (this.backing << 64 - Y_SHIFT - NUM_Y_BITS >> 64 - NUM_Y_BITS);
     }
 
     /**
@@ -99,14 +99,14 @@ public class MinecraftVec3i {
      * @param y The new Y coordinate
      */
     public void setY(int y) {
-        this.backing = (backing & (X_MASK << X_SHIFT | Z_MASK)) | ((long) y & Y_MASK) << Y_SHIFT;
+        this.backing = (this.backing & (X_MASK << X_SHIFT | Z_MASK)) | ((long) y & Y_MASK) << Y_SHIFT;
     }
 
     /**
      * @return This vector's Z coordinate
      */
     public int getZ() {
-        return (int) (backing << 64 - NUM_Z_BITS >> 64 - NUM_Z_BITS);
+        return (int) (this.backing << 64 - NUM_Z_BITS >> 64 - NUM_Z_BITS);
     }
 
     /**
@@ -115,7 +115,7 @@ public class MinecraftVec3i {
      * @param z The new Z coordinate
      */
     public void setZ(int z) {
-        this.backing = (backing & (X_MASK << X_SHIFT | Y_MASK << Y_SHIFT)) | ((long) z & Z_MASK);
+        this.backing = (this.backing & (X_MASK << X_SHIFT | Y_MASK << Y_SHIFT)) | ((long) z & Z_MASK);
     }
 
     /**
@@ -126,7 +126,7 @@ public class MinecraftVec3i {
      * @param z How much to add on the Z axis
      */
     public void add(int x, int y, int z) {
-        reset(x + getX(), y + getY(), z + getZ());
+        this.reset(x + this.getX(), y + this.getY(), z + this.getZ());
     }
 
     /**
@@ -137,7 +137,7 @@ public class MinecraftVec3i {
      * @param z How much to subtract form the Z axis
      */
     public void subtract(int x, int y, int z) {
-        reset(getX() - x, getY() - y, getZ() - z);
+        this.reset(this.getX() - x, this.getY() - y, this.getZ() - z);
     }
 
     /**
@@ -166,7 +166,7 @@ public class MinecraftVec3i {
      * @return A long-encoded integer containing the X,Y,Z coordinates
      */
     public long toLong() {
-        return backing;
+        return this.backing;
     }
 
     /**
@@ -185,11 +185,12 @@ public class MinecraftVec3i {
      * @return A new object with the same coordinates as this vector
      */
     public MinecraftVec3i clone() {
-        return new MinecraftVec3i(backing);
+        MinecraftVec3i minecraftVec3i = this.clone();
+        return new MinecraftVec3i(this.backing);
     }
 
     static class Log2 {
-        private static final int[] DE_BRUIJN = new int[]{0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8, 31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9};
+        private static final int[] DE_BRUIJN = {0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8, 31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9};
 
         private Log2() {
         }

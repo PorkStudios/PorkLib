@@ -33,14 +33,14 @@ public class DoubleArrayTag extends Tag<double[]> {
 
     @Override
     public void write(NBTOutputStream dos) throws IOException {
-        double[] data = getValue();
+        double[] data = this.getValue();
         if (data == null) {
             dos.writeInt(0);
             return;
         }
         dos.writeInt(data.length);
-        for (int i = 0; i < data.length; i++) {
-            dos.writeDouble(data[i]);
+        for (double aData : data) {
+            dos.writeDouble(aData);
         }
     }
 
@@ -55,7 +55,7 @@ public class DoubleArrayTag extends Tag<double[]> {
 
     @Override
     public String toString() {
-        return "DoubleArrayTag " + this.getName() + " (size=" + getValue().length + ")";
+        return "DoubleArrayTag " + this.getName() + " (size=" + this.getValue().length + ')';
     }
 
     @Override
@@ -68,6 +68,6 @@ public class DoubleArrayTag extends Tag<double[]> {
         double[] data = this.getValue();
         double[] cp = new double[data.length];
         System.arraycopy(data, 0, cp, 0, data.length);
-        return new DoubleArrayTag(getName(), cp);
+        return new DoubleArrayTag(this.getName(), cp);
     }
 }

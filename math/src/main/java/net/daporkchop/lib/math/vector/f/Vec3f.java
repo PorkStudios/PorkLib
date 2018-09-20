@@ -32,15 +32,15 @@ public class Vec3f implements FloatVector3 {
     }
 
     public float getX() {
-        return x;
+        return this.x;
     }
 
     public float getY() {
-        return y;
+        return this.y;
     }
 
     public float getZ() {
-        return z;
+        return this.z;
     }
 
     @Override
@@ -65,7 +65,7 @@ public class Vec3f implements FloatVector3 {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null || !(obj instanceof Vec3f)) {
+        if (!(obj instanceof Vec3f)) {
             return false;
         }
 
@@ -75,14 +75,14 @@ public class Vec3f implements FloatVector3 {
 
     @Override
     public int hashCode() {
-        int xBits = Float.floatToIntBits(x);
-        int yBits = Float.floatToIntBits(y);
-        int zBits = Float.floatToIntBits(z);
+        int xBits = Float.floatToIntBits(this.x);
+        int yBits = Float.floatToIntBits(this.y);
+        int zBits = Float.floatToIntBits(this.z);
         return xBits * 31 * 31 + yBits * 31 + zBits;
     }
 
     @Override
     public String toString() {
-        return "Vec3f(x=" + x + ", y=" + y + ", z=" + z + ")";
+        return "Vec3f(x=" + this.x + ", y=" + this.y + ", z=" + this.z + ')';
     }
 }

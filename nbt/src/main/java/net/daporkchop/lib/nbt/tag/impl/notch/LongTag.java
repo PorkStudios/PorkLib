@@ -33,12 +33,12 @@ public class LongTag extends Tag<Long> {
 
     @Override
     public void write(NBTOutputStream dos) throws IOException {
-        dos.writeLong(getValue());
+        dos.writeLong(this.getValue());
     }
 
     @Override
     public void load(NBTInputStream dis) throws IOException {
-        setValue(dis.readLong());
+        this.setValue(dis.readLong());
     }
 
     @Override
@@ -58,11 +58,11 @@ public class LongTag extends Tag<Long> {
 
     @Override
     public String toString() {
-        return "LongTag" + this.getName() + " (data:" + getValue() + ")";
+        return "LongTag" + this.getName() + " (data:" + this.getValue() + ')';
     }
 
     @Override
     public Tag copy() {
-        return new LongTag(getName(), getValue());
+        return new LongTag(this.getName(), this.getValue());
     }
 }

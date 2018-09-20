@@ -43,12 +43,12 @@ public class DoubleTag extends Tag<Double> {
 
     @Override
     public void write(NBTOutputStream dos) throws IOException {
-        dos.writeDouble(getValue());
+        dos.writeDouble(this.getValue());
     }
 
     @Override
     public void load(NBTInputStream dis) throws IOException {
-        setValue(dis.readDouble());
+        this.setValue(dis.readDouble());
     }
 
     @Override
@@ -58,11 +58,11 @@ public class DoubleTag extends Tag<Double> {
 
     @Override
     public String toString() {
-        return "DoubleTag " + this.getName() + " (data: " + getValue() + ")";
+        return "DoubleTag " + this.getName() + " (data: " + this.getValue() + ')';
     }
 
     @Override
     public Tag copy() {
-        return new DoubleTag(getName(), getValue());
+        return new DoubleTag(this.getName(), this.getValue());
     }
 }

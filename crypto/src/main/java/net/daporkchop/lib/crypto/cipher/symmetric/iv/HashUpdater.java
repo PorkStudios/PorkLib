@@ -32,12 +32,12 @@ public class HashUpdater<P extends ParametersWithIV> implements IVUpdater<P> {
 
     @Override
     public void updateEncrypt(@NonNull AbstractSymmetricKey key) {
-        doThing(key);
+        this.doThing(key);
     }
 
     @Override
     public void updateDecrypt(@NonNull AbstractSymmetricKey key) {
-        doThing(key);
+        this.doThing(key);
     }
 
     private void doThing(AbstractSymmetricKey key) {
@@ -45,7 +45,7 @@ public class HashUpdater<P extends ParametersWithIV> implements IVUpdater<P> {
         byte[] ivN = new byte[iv.length];
         int index = 0;
         while (index < iv.length) {
-            byte[] hash = alg.hash(key.getKey(), iv, ivN);
+            byte[] hash = this.alg.hash(key.getKey(), iv, ivN);
             System.arraycopy(hash, 0, ivN, index, Math.min(iv.length - index, hash.length));
             index += hash.length;
         }

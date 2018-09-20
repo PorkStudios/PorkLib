@@ -30,11 +30,11 @@ public class Vec2l implements LongVector2 {
     }
 
     public long getX() {
-        return x;
+        return this.x;
     }
 
     public long getY() {
-        return y;
+        return this.y;
     }
 
     @Override
@@ -59,7 +59,7 @@ public class Vec2l implements LongVector2 {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null || !(obj instanceof Vec2l)) {
+        if (!(obj instanceof Vec2l)) {
             return false;
         }
 
@@ -69,11 +69,11 @@ public class Vec2l implements LongVector2 {
 
     @Override
     public int hashCode() {
-        return 31 * (int) (x ^ (x >>> 32)) + (int) (y ^ (y >>> 32));
+        return 31 * (int) (this.x ^ (this.x >>> 32)) + (int) (this.y ^ (this.y >>> 32));
     }
 
     @Override
     public String toString() {
-        return "Vec2l(x=" + x + ", y=" + y + ")";
+        return "Vec2l(x=" + this.x + ", y=" + this.y + ')';
     }
 }

@@ -62,10 +62,10 @@ public enum HashTypes {
 
     public byte[] hash(byte[] in) {
         if (in == null) throw new IllegalArgumentException("Cannot hash null!");
-        return hash.apply(in);
+        return this.hash.apply(in);
     }
 
     public Digest getAsDigest() {
-        return supplier.get();
+        return this.supplier.get();
     }
 }

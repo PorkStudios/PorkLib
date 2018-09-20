@@ -69,8 +69,8 @@ public abstract class Tag<T> {
     public abstract TagType getType();
 
     public String getName() {
-        if (name == null) return "";
-        return name;
+        if (this.name == null) return "";
+        return this.name;
     }
 
     public Tag setName(String name) {
@@ -83,7 +83,7 @@ public abstract class Tag<T> {
     }
 
     public T getValue() {
-        return value;
+        return this.value;
     }
 
     public void setValue(T value) {

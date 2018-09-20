@@ -325,7 +325,7 @@ public class Noise {
         int dXi = sizeX / distX;
         double[] dd = new double[dXi + 1];
         for (int a = 0; a < dd.length; a++) {
-            dd[a] = get(x + a * distX);
+            dd[a] = this.get(x + a * distX);
         }
         for (int a = 0; a < dXi; a++) {
             int e = a * distX;
@@ -367,7 +367,7 @@ public class Noise {
         for (int a = 0; a < dd.length; a++) {
             double[] ddA = dd[a];
             for (int b = 0; b < ddA.length; b++) {
-                ddA[b] = get(x + a * distX, y + b * distY);
+                ddA[b] = this.get(x + a * distX, y + b * distY);
             }
         }
 
@@ -437,7 +437,7 @@ public class Noise {
             for (int b = 0; b < ddA.length; b++) {
                 double[] ddB = ddA[b];
                 for (int c = 0; c < ddB.length; c++) {
-                    ddB[c] = get(x + a * distX, y + b * distY, z + c * distZ);
+                    ddB[c] = this.get(x + a * distX, y + b * distY, z + c * distZ);
                 }
             }
         }

@@ -65,7 +65,7 @@ public class Sha256Impl extends BaseHash {
         this.h6 = md.h6;
         this.h7 = md.h7;
         this.count = md.count;
-        this.buffer = (byte[]) md.buffer.clone();
+        this.buffer = md.buffer.clone();
     }
 
     // Class methods
@@ -130,45 +130,45 @@ public class Sha256Impl extends BaseHash {
     }
 
     protected void transform(byte[] in, int offset) {
-        int[] result = sha(h0, h1, h2, h3, h4, h5, h6, h7, in, offset);
+        int[] result = sha(this.h0, this.h1, this.h2, this.h3, this.h4, this.h5, this.h6, this.h7, in, offset);
 
-        h0 = result[0];
-        h1 = result[1];
-        h2 = result[2];
-        h3 = result[3];
-        h4 = result[4];
-        h5 = result[5];
-        h6 = result[6];
-        h7 = result[7];
+        this.h0 = result[0];
+        this.h1 = result[1];
+        this.h2 = result[2];
+        this.h3 = result[3];
+        this.h4 = result[4];
+        this.h5 = result[5];
+        this.h6 = result[6];
+        this.h7 = result[7];
     }
 
     protected byte[] padBuffer() {
-        return SHAUtil.padBuffer(count, BLOCK_SIZE);
+        return SHAUtil.padBuffer(this.count, BLOCK_SIZE);
     }
 
     protected byte[] getResult() {
         return new byte[]{
-                (byte) (h0 >>> 24), (byte) (h0 >>> 16), (byte) (h0 >>> 8), (byte) h0,
-                (byte) (h1 >>> 24), (byte) (h1 >>> 16), (byte) (h1 >>> 8), (byte) h1,
-                (byte) (h2 >>> 24), (byte) (h2 >>> 16), (byte) (h2 >>> 8), (byte) h2,
-                (byte) (h3 >>> 24), (byte) (h3 >>> 16), (byte) (h3 >>> 8), (byte) h3,
-                (byte) (h4 >>> 24), (byte) (h4 >>> 16), (byte) (h4 >>> 8), (byte) h4,
-                (byte) (h5 >>> 24), (byte) (h5 >>> 16), (byte) (h5 >>> 8), (byte) h5,
-                (byte) (h6 >>> 24), (byte) (h6 >>> 16), (byte) (h6 >>> 8), (byte) h6,
-                (byte) (h7 >>> 24), (byte) (h7 >>> 16), (byte) (h7 >>> 8), (byte) h7
+                (byte) (this.h0 >>> 24), (byte) (this.h0 >>> 16), (byte) (this.h0 >>> 8), (byte) this.h0,
+                (byte) (this.h1 >>> 24), (byte) (this.h1 >>> 16), (byte) (this.h1 >>> 8), (byte) this.h1,
+                (byte) (this.h2 >>> 24), (byte) (this.h2 >>> 16), (byte) (this.h2 >>> 8), (byte) this.h2,
+                (byte) (this.h3 >>> 24), (byte) (this.h3 >>> 16), (byte) (this.h3 >>> 8), (byte) this.h3,
+                (byte) (this.h4 >>> 24), (byte) (this.h4 >>> 16), (byte) (this.h4 >>> 8), (byte) this.h4,
+                (byte) (this.h5 >>> 24), (byte) (this.h5 >>> 16), (byte) (this.h5 >>> 8), (byte) this.h5,
+                (byte) (this.h6 >>> 24), (byte) (this.h6 >>> 16), (byte) (this.h6 >>> 8), (byte) this.h6,
+                (byte) (this.h7 >>> 24), (byte) (this.h7 >>> 16), (byte) (this.h7 >>> 8), (byte) this.h7
         };
     }
 
     protected void resetContext() {
         // magic SHA-256 initialisation constants
-        h0 = 0x6a09e667;
-        h1 = 0xbb67ae85;
-        h2 = 0x3c6ef372;
-        h3 = 0xa54ff53a;
-        h4 = 0x510e527f;
-        h5 = 0x9b05688c;
-        h6 = 0x1f83d9ab;
-        h7 = 0x5be0cd19;
+        this.h0 = 0x6a09e667;
+        this.h1 = 0xbb67ae85;
+        this.h2 = 0x3c6ef372;
+        this.h3 = 0xa54ff53a;
+        this.h4 = 0x510e527f;
+        this.h5 = 0x9b05688c;
+        this.h6 = 0x1f83d9ab;
+        this.h7 = 0x5be0cd19;
     }
 
     // SHA specific methods ----------------------------------------------------
@@ -180,9 +180,9 @@ public class Sha256Impl extends BaseHash {
             md.update((byte) 0x62); // b
             md.update((byte) 0x63); // c
             String result = HexBin.encode(md.digest());
-            valid = new Boolean(DIGEST0.equals(result));
+            valid = DIGEST0.equals(result);
         }
 
-        return valid.booleanValue();
+        return valid;
     }
 }

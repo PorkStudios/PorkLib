@@ -16,6 +16,7 @@
 package net.daporkchop.lib.db.object.serializer.impl.nbt;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
@@ -32,6 +33,7 @@ import java.util.function.Function;
  *
  * @author DaPorkchop_
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class NBTObjectSerializer<T> extends ValueSerializer<T> {
     @NonNull

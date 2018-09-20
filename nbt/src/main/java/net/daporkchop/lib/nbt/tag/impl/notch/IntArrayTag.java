@@ -33,7 +33,7 @@ public class IntArrayTag extends Tag<int[]> {
 
     @Override
     public void write(NBTOutputStream dos) throws IOException {
-        int[] data = getValue();
+        int[] data = this.getValue();
         dos.writeInt(data.length);
         for (int aData : data) {
             dos.writeInt(aData);
@@ -56,14 +56,14 @@ public class IntArrayTag extends Tag<int[]> {
 
     @Override
     public String toString() {
-        return "IntArrayTag " + this.getName() + " [" + getValue().length + " bytes]";
+        return "IntArrayTag " + this.getName() + " [" + this.getValue().length + " bytes]";
     }
 
     @Override
     public Tag copy() {
-        int[] data = getValue();
+        int[] data = this.getValue();
         int[] cp = new int[data.length];
         System.arraycopy(data, 0, cp, 0, data.length);
-        return new IntArrayTag(getName(), cp);
+        return new IntArrayTag(this.getName(), cp);
     }
 }

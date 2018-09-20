@@ -51,14 +51,14 @@ public class SectoredFile extends OpenFile {
     public SectoredFile(File path, FileManager fileManager) {
         super(fileManager);
 
-        lengths = new int[SECTOR_INTS];
-        sectors = new int[SECTOR_INTS];
-        offsets = new int[SECTOR_INTS];
+        this.lengths = new int[SECTOR_INTS];
+        this.sectors = new int[SECTOR_INTS];
+        this.offsets = new int[SECTOR_INTS];
 
-        sizeDelta.set(0);
+        this.sizeDelta.set(0);
 
         if (path.exists()) {
-            lastModified = path.lastModified();
+            this.lastModified = path.lastModified();
         }
 
         try {
@@ -69,44 +69,44 @@ public class SectoredFile extends OpenFile {
                 }
                 path.createNewFile();
             }
-            file = new RandomAccessFile(path, "rw");
+            this.file = new RandomAccessFile(path, "rw");
 
-            int initialLength = (int) file.length();
+            int initialLength = (int) this.file.length();
 
             // if the file size is under 4KB, grow it (4K data offset table)
-            if (lastModified == 0 || initialLength < 4096) {
+            if (this.lastModified == 0 || initialLength < 4096) {
                 // fast path for new or region files under 4K
-                file.write(emptySector);
-                sizeDelta.set(SECTOR_BYTES);
+                this.file.write(emptySector);
+                this.sizeDelta.set(SECTOR_BYTES);
             } else {
                 // seek to the end to prepare for grows
-                file.seek(initialLength);
+                this.file.seek(initialLength);
                 if ((initialLength & (SECTOR_BYTES - 1)) != 0) {
                     // if the file size is not a multiple of 4KB, grow it
-                    sizeDelta.set(initialLength & (SECTOR_BYTES - 1));
+                    this.sizeDelta.set(initialLength & (SECTOR_BYTES - 1));
                     System.err.println(
                             "Region \"" + path + "\" not aligned: " + initialLength + " increasing by "
                                     + (
                                     SECTOR_BYTES - (initialLength & (SECTOR_BYTES - 1))));
 
-                    for (long i = 0; i < sizeDelta.get(); ++i) {
-                        file.write(0);
+                    for (long i = 0; i < this.sizeDelta.get(); ++i) {
+                        this.file.write(0);
                     }
                 }
             }
 
             // set up the available sector map
-            totalSectors = (int) file.length() / SECTOR_BYTES;
-            sectorsUsed = new BitSet(totalSectors);
+            this.totalSectors = (int) this.file.length() / SECTOR_BYTES;
+            this.sectorsUsed = new BitSet(this.totalSectors);
 
-            sectorsUsed.set(0);
+            this.sectorsUsed.set(0);
 
             // read offset table and timestamp tables
-            file.seek(0);
+            this.file.seek(0);
 
             ByteBuffer header = ByteBuffer.allocate(SECTOR_BYTES - 1024);
             while (header.hasRemaining()) {
-                if (file.getChannel().read(header) == -1) {
+                if (this.file.getChannel().read(header) == -1) {
                     throw new EOFException();
                 }
             }
@@ -119,15 +119,15 @@ public class SectoredFile extends OpenFile {
                 int numSectors = this.sectors[i] = headerAsInts.get();
                 this.lengths[i] = headerAsInts.get();
 
-                if (startSector != 0 && startSector >= 0 && startSector + numSectors <= totalSectors) {
+                if (startSector != 0 && startSector >= 0 && startSector + numSectors <= this.totalSectors) {
                     for (int sectorNum = 0; sectorNum < numSectors; ++sectorNum) {
-                        sectorsUsed.set(startSector + sectorNum);
+                        this.sectorsUsed.set(startSector + sectorNum);
                     }
                 } else if (startSector != 0) {
                     System.err.println(
                             "Region \"" + path + "\": offsets[" + i + "] = " + startSector + " -> "
                                     + startSector
-                                    + "," + numSectors + " does not fit");
+                                    + ',' + numSectors + " does not fit");
                 }
             }
         } catch (IOException e) {
@@ -146,15 +146,15 @@ public class SectoredFile extends OpenFile {
         }
 
         int numSectors = this.sectors[x];
-        if (sectorNumber + numSectors > totalSectors) {
+        if (sectorNumber + numSectors > this.totalSectors) {
             throw new IOException(
-                    "Invalid sector: " + sectorNumber + "+" + numSectors + " > " + totalSectors);
+                    "Invalid sector: " + sectorNumber + '+' + numSectors + " > " + this.totalSectors);
         }
 
-        file.seek(sectorNumber * SECTOR_BYTES);
+        this.file.seek(sectorNumber * SECTOR_BYTES);
 
         byte[] data = new byte[this.lengths[x]];
-        file.read(data);
+        this.file.read(data);
         return new DataInputStream(new BufferedInputStream(new ByteArrayInputStream(data)));
     }
 
@@ -170,13 +170,13 @@ public class SectoredFile extends OpenFile {
 
         if (sectorNumber != 0 && sectorsAllocated == sectorsNeeded) {
             /* we can simply overwrite the old sectors */
-            doWrite(sectorNumber, data, length);
+            this.doWrite(sectorNumber, data, length);
         } else {
             /* we need to allocate new sectors */
 
             /* mark the sectors previously used for this data as free */
             for (int i = 0; i < sectorsAllocated; ++i) {
-                sectorsUsed.clear(sectorNumber + i);
+                this.sectorsUsed.clear(sectorNumber + i);
             }
 
             /* scan for a free space large enough to store this data */
@@ -184,11 +184,11 @@ public class SectoredFile extends OpenFile {
             int runLength = 0;
             int currentSector = 1;
             while (runLength < sectorsNeeded) {
-                if (sectorsUsed.length() >= currentSector) {
+                if (this.sectorsUsed.length() >= currentSector) {
                     // We reached the end, and we will need to allocate a new sector.
                     break;
                 }
-                int nextSector = sectorsUsed.nextClearBit(currentSector + 1);
+                int nextSector = this.sectorsUsed.nextClearBit(currentSector + 1);
                 if (currentSector + 1 == nextSector) {
                     runLength++;
                 } else {
@@ -201,52 +201,52 @@ public class SectoredFile extends OpenFile {
             if (runLength >= sectorsNeeded) {
                 /* we found a free space large enough */
                 sectorNumber = runStart;
-                setOffset(x, sectorNumber, sectorsNeeded, length);
+                this.setOffset(x, sectorNumber, sectorsNeeded, length);
                 for (int i = 0; i < sectorsNeeded; ++i) {
-                    sectorsUsed.set(sectorNumber + i);
+                    this.sectorsUsed.set(sectorNumber + i);
                 }
-                doWrite(sectorNumber, data, length);
+                this.doWrite(sectorNumber, data, length);
             } else {
                 /*
                  * no free space large enough found -- we need to grow the
                  * file
                  */
-                file.seek(file.length());
-                sectorNumber = totalSectors;
+                this.file.seek(this.file.length());
+                sectorNumber = this.totalSectors;
                 for (int i = 0; i < sectorsNeeded; ++i) {
-                    file.write(emptySector);
-                    sectorsUsed.set(totalSectors + i);
+                    this.file.write(emptySector);
+                    this.sectorsUsed.set(this.totalSectors + i);
                 }
-                totalSectors += sectorsNeeded;
-                sizeDelta.addAndGet(SECTOR_BYTES * sectorsNeeded);
+                this.totalSectors += sectorsNeeded;
+                this.sizeDelta.addAndGet(SECTOR_BYTES * sectorsNeeded);
 
-                doWrite(sectorNumber, data, length);
-                setOffset(x, sectorNumber, sectorsNeeded, length);
+                this.doWrite(sectorNumber, data, length);
+                this.setOffset(x, sectorNumber, sectorsNeeded, length);
             }
         }
     }
 
     private void doWrite(int sectorNumber, byte[] data, int length) throws IOException {
-        file.seek(sectorNumber * SECTOR_BYTES);
-        file.write(data, 0, length);
+        this.file.seek(sectorNumber * SECTOR_BYTES);
+        this.file.write(data, 0, length);
     }
 
     private void setOffset(int x, int offset, int sectors, int length) throws IOException {
         this.offsets[x] = offset;
         this.sectors[x] = sectors;
         this.lengths[x] = length;
-        file.seek(x * 12);
-        file.writeInt(offset);
-        file.writeInt(sectors);
-        file.writeInt(length);
+        this.file.seek(x * 12);
+        this.file.writeInt(offset);
+        this.file.writeInt(sectors);
+        this.file.writeInt(length);
     }
 
     @Override
     public void close() {
         this.lock.lock();
         try {
-            file.getChannel().force(true);
-            file.close();
+            this.file.getChannel().force(true);
+            this.file.close();
             this.file = null;
         } catch (IOException e) {
             e.printStackTrace();
@@ -359,7 +359,7 @@ public class SectoredFile extends OpenFile {
 
         @Override
         public void close() throws IOException {
-            SectoredFile.this.write(x, buf, count);
+            SectoredFile.this.write(this.x, this.buf, this.count);
         }
     }
 }

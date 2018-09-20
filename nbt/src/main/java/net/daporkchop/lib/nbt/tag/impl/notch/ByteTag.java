@@ -33,7 +33,7 @@ public class ByteTag extends Tag<Byte> {
 
     @Override
     public void write(NBTOutputStream dos) throws IOException {
-        dos.writeByte(getValue());
+        dos.writeByte(this.getValue());
     }
 
     @Override
@@ -61,13 +61,13 @@ public class ByteTag extends Tag<Byte> {
         //TODO: PorkLib encoding can be used here
         String hex = Integer.toHexString(this.getValue());
         if (hex.length() < 2) {
-            hex = "0" + hex;
+            hex = '0' + hex;
         }
-        return "ByteTag " + this.getName() + " (data: 0x" + hex + ")";
+        return "ByteTag " + this.getName() + " (data: 0x" + hex + ')';
     }
 
     @Override
     public Tag copy() {
-        return new ByteTag(getName(), getValue());
+        return new ByteTag(this.getName(), this.getValue());
     }
 }

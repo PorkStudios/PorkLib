@@ -13,44 +13,43 @@
  *
  */
 
-package big;
+package overflow;
 
-import big.protocol.BigProtocol;
-import big.protocol.BigPacket;
 import net.daporkchop.lib.crypto.CryptographySettings;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherMode;
 import net.daporkchop.lib.crypto.cipher.symmetric.BlockCipherType;
 import net.daporkchop.lib.crypto.cipher.symmetric.padding.BlockCipherPadding;
 import net.daporkchop.lib.crypto.sig.ec.CurveType;
-import net.daporkchop.lib.encoding.compression.EnumCompression;
 import net.daporkchop.lib.network.endpoint.EndpointListener;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.endpoint.client.PorkClient;
 import net.daporkchop.lib.network.endpoint.server.PorkServer;
 import net.daporkchop.lib.network.packet.Packet;
+import overflow.protocol.BigPacket;
+import overflow.protocol.OverflowProtocol;
+import overflow.protocol.TinyPacket;
 
 import java.net.InetSocketAddress;
-import java.util.Scanner;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * @author DaPorkchop_
  */
-public class BigTestMain {
-    public static final byte[] RANDOM_DATA = new byte[1_000_000];
+public class OverflowTestMain {
+    public static final byte[] RANDOM_DATA = new byte[1 << 20];
 
     static {
         ThreadLocalRandom.current().nextBytes(RANDOM_DATA);
     }
 
     public static void main(String... args) {
-        PorkServer<BigSession> server = null;
-        PorkClient<BigSession> client = null;
+        PorkServer<OverflowSession> server = null;
+        PorkClient<OverflowSession> client = null;
 
         try {
-            server = new ServerBuilder<BigSession>()
-                    .setCompression(EnumCompression.GZIP)
+            server = new ServerBuilder<OverflowSession>()
+                    //.setCompression(EnumCompression.GZIP)
                     .setCryptographySettings(new CryptographySettings(
                             CurveType.brainpoolp256t1,
                             BlockCipherType.AES,
@@ -58,47 +57,61 @@ public class BigTestMain {
                             BlockCipherPadding.PKCS7
                     ))
                     .setAddress(new InetSocketAddress(12346))
-                    .setProtocol(new BigProtocol())
+                    .setProtocol(new OverflowProtocol())
                     .build();
 
-            client = new ClientBuilder<BigSession>()
+            client = new ClientBuilder<OverflowSession>()
                     .setAddress(new InetSocketAddress("localhost", 12346))
-                    .addListener(new EndpointListener<BigSession>() {
+                    .addListener(new EndpointListener<OverflowSession>() {
                         @Override
-                        public void onConnect(BigSession session) {
-                            session.send(new BigPacket(RANDOM_DATA));
+                        public void onConnect(OverflowSession session) {
+                            synchronized (RANDOM_DATA) {
+                                RANDOM_DATA.notifyAll();
+                            }
                         }
 
                         @Override
-                        public void onDisconnect(BigSession sesion, String reason) {
+                        public void onDisconnect(OverflowSession sesion, String reason) {
                         }
 
                         @Override
-                        public void onReceieve(BigSession session, Packet packet) {
+                        public void onReceieve(OverflowSession session, Packet packet) {
                         }
                     })
-                    .setProtocol(new BigProtocol())
+                    .setProtocol(new OverflowProtocol())
                     .build();
 
-            Scanner scanner = new Scanner(System.in);
-            while (!scanner.nextLine().isEmpty())  {
+            synchronized (RANDOM_DATA) {
+                RANDOM_DATA.wait();
             }
-            scanner.close();
-        } catch (Exception e)   {
+
+            for (int i = 1; false && i <= 1024; i <<= 1) {
+                System.out.printf("Sending small packets (multiplier: x%d)\n", i);
+                TinyPacket packet = new TinyPacket(i);
+                for (int j = 1 << 15; j > 0; j--) {
+                    client.send(packet);
+                }
+                System.out.println("Sent!");
+            }
+            for (int i = 128; i > 0; i--) {
+                System.out.println("Sending 1MB packet...");
+                client.send(new BigPacket(RANDOM_DATA));
+            }
+        } catch (Exception e) {
             e.printStackTrace();
         } finally {
             try {
                 if (client != null) {
                     client.close();
                 }
-            } catch (Exception e)   {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             try {
                 if (server != null) {
                     server.close();
                 }
-            } catch (Exception e)   {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

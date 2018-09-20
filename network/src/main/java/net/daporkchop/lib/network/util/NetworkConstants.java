@@ -13,27 +13,17 @@
  *
  */
 
-package net.daporkchop.lib.network.packet.encapsulated;
-
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NonNull;
-
-import java.util.function.Supplier;
+package net.daporkchop.lib.network.util;
 
 /**
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-@Getter
-public enum EncapsulatedType {
-    HANDSHAKE_INIT(HandshakeInitPacket::new),
-    HANDSHAKE_RESPONSE(HandshakeResponsePacket::new),
-    HANDSHAKE_COMPLETE(HandshakeCompletePacket::new),
-    DISCONNECT(DisconnectPacket::new),
-    LARGE_DATA(LargeDataPacket::new)
-    ;
+public class NetworkConstants {
+    public static int LARGE_PACKET_MAX_SIZE = 1 << 26; // 64 megabytes
 
-    @NonNull
-    private final Supplier<EncapsulatedPacket> supplier;
+    public static int SEND_QUEUE_SIZE = 64;
+
+    public static int WRITE_BUFFER_SIZE = 16384 * 10;
+
+    public static int OBJECT_BUFFER_SIZE = WRITE_BUFFER_SIZE;
 }

@@ -13,51 +13,56 @@
  *
  */
 
-package net.daporkchop.lib.network.endpoint.server;
+package overflow.protocol;
 
-import com.esotericsoftware.kryonet.Connection;
-import com.esotericsoftware.kryonet.Server;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
-import net.daporkchop.lib.network.conn.ConnectionState;
-import net.daporkchop.lib.network.conn.PorkConnection;
-import net.daporkchop.lib.network.conn.Session;
-import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.network.packet.Codec;
 import net.daporkchop.lib.network.packet.Packet;
-import net.daporkchop.lib.network.util.PacketReprocessor;
+import overflow.OverflowSession;
 
-import java.util.Queue;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.io.IOException;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * @author DaPorkchop_
  */
-@Getter
-@Setter
-public class ServerConnection extends Connection implements PorkConnection {
-    public final PacketReprocessor packetReprocessor;
-    public final PorkServer endpoint;
-    public String disconnectReason;
-    public Session session;
-    public ConnectionState state = ConnectionState.NOT_CONNECTED;
-    protected final Queue<Packet> sendQueue = this.createQueue();
+@NoArgsConstructor
+@AllArgsConstructor
+public class TinyPacket implements Packet {
+    public long contents = ThreadLocalRandom.current().nextLong();
+    public int sizeMultiplier = 1;
 
-    public ServerConnection(@NonNull PorkServer server, @NonNull ServerBuilder builder) {
-        this.packetReprocessor = new PacketReprocessor(server, builder.getCryptographySettings(), builder.getCompression());
-
-        this.endpoint = server;
+    public TinyPacket(int multiplier)   {
+        this.sizeMultiplier = multiplier;
     }
 
     @Override
-    public Connection getNetConnection() {
-        return this;
+    public void read(DataIn in) throws IOException {
+        for (int i = (this.sizeMultiplier = in.readInt()) - 1; i >= 0; i--) {
+            this.contents = in.readLong();
+        }
     }
 
     @Override
-    public void setSession(Session session) {
-        PorkConnection.super.setSession(session);
-        this.session = session;
+    public void write(DataOut out) throws IOException {
+        out.writeInt(this.sizeMultiplier);
+        for (int i = this.sizeMultiplier - 1; i >= 0; i--)  {
+            out.writeLong(this.contents);
+        }
+    }
+
+    public static class TinyCodec implements Codec<TinyPacket, OverflowSession> {
+        @Override
+        public void handle(TinyPacket packet, OverflowSession session) {
+        }
+
+        @Override
+        public TinyPacket newPacket() {
+            return new TinyPacket();
+        }
     }
 }

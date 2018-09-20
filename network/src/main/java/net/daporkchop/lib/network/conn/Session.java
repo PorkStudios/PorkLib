@@ -15,13 +15,18 @@
 
 package net.daporkchop.lib.network.conn;
 
+import com.esotericsoftware.kryo.io.ByteBufferOutput;
+import com.esotericsoftware.kryo.io.Output;
 import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.Setter;
 import net.daporkchop.lib.network.endpoint.Endpoint;
+import net.daporkchop.lib.network.packet.LargePacket;
 import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.packet.encapsulated.LargeDataPacket;
 
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 
 /**
  * @author DaPorkchop_
@@ -31,8 +36,41 @@ public abstract class Session {
     @NonNull
     private PorkConnection porkConnection;
 
+    public void send(@NonNull Packet... packets) {
+        for (Packet packet : packets) {
+            this.send(packet);
+        }
+    }
+
     public void send(@NonNull Packet packet) {
-        this.porkConnection.send(packet);
+        if (packet instanceof LargePacket) {
+            this.send((LargePacket) packet);
+            return;
+        }
+        this.porkConnection.queueForSending(packet);
+    }
+
+    public void send(@NonNull LargePacket packet) {
+        ByteBuffer buffer = ByteBuffer.allocateDirect(packet.getDataLength() + 5);
+        buffer.clear();
+
+        Output output = new ByteBufferOutput(buffer);
+        this.porkConnection.getEndpoint().getKryo().writeClassAndObject(output, packet);
+        output.close();
+
+        buffer.flip();
+        int len = buffer.remaining();
+        System.out.printf("Large packet length: %d\n", len);
+        for (int o = 0; buffer.hasRemaining(); o++) {
+            LargeDataPacket largeDataPacket = new LargeDataPacket();
+            int remaining = Math.min(buffer.remaining(), 1024);
+            buffer.get(largeDataPacket.data = new byte[remaining]);
+            largeDataPacket.offset = o << 10;
+            if (largeDataPacket.first = (o == 0)) {
+                largeDataPacket.totalLength = len;
+            }
+            this.porkConnection.queueForSending(largeDataPacket);
+        }
     }
 
     public int getPing() {

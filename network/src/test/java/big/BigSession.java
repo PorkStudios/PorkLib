@@ -13,29 +13,14 @@
  *
  */
 
-package overflow.protocol;
+package big;
 
-import overflow.OverflowSession;
-import net.daporkchop.lib.network.packet.protocol.PacketProtocol;
+import lombok.NoArgsConstructor;
+import net.daporkchop.lib.network.conn.Session;
 
 /**
  * @author DaPorkchop_
  */
-public class OverflowProtocol extends PacketProtocol<OverflowSession> {
-    public OverflowProtocol() {
-        super("ChatTest", 1);
-    }
-
-    @Override
-    protected void registerPackets(PacketRegistry registry) {
-        registry.register(
-                new BigPacket.BigCodec(),
-                new TinyPacket.TinyCodec()
-        );
-    }
-
-    @Override
-    public OverflowSession newSession() {
-        return new OverflowSession();
-    }
+@NoArgsConstructor
+public class BigSession extends Session {
 }

@@ -24,12 +24,7 @@ import net.daporkchop.lib.network.conn.ConnectionState;
 import net.daporkchop.lib.network.conn.PorkConnection;
 import net.daporkchop.lib.network.conn.Session;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
-import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.util.PacketReprocessor;
-
-import java.util.Queue;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * @author DaPorkchop_
@@ -42,7 +37,6 @@ public class ServerConnection extends Connection implements PorkConnection {
     public String disconnectReason;
     public Session session;
     public ConnectionState state = ConnectionState.NOT_CONNECTED;
-    protected final Queue<Packet> sendQueue = this.createQueue();
 
     public ServerConnection(@NonNull PorkServer server, @NonNull ServerBuilder builder) {
         this.packetReprocessor = new PacketReprocessor(server, builder.getCryptographySettings(), builder.getCompression());

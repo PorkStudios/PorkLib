@@ -15,7 +15,6 @@
 
 package net.daporkchop.lib.network.endpoint.client;
 
-import com.esotericsoftware.kryo.Kryo;
 import lombok.NonNull;
 import net.daporkchop.lib.network.conn.PorkConnection;
 import net.daporkchop.lib.network.conn.Session;
@@ -25,7 +24,6 @@ import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.packet.KryoSerializationWrapper;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.encapsulated.DisconnectPacket;
-import net.daporkchop.lib.network.util.NetworkConstants;
 
 import java.io.IOException;
 
@@ -39,7 +37,7 @@ public class PorkClient<S extends Session> extends Endpoint<S> {
         super(builder.getListeners(), builder.getProtocol());
 
         try {
-            this.client = new KryoClientWrapper(this, NetworkConstants.WRITE_BUFFER_SIZE, NetworkConstants.OBJECT_BUFFER_SIZE, new KryoSerializationWrapper(this));
+            this.client = new KryoClientWrapper(this, WRITE_BUFFER_SIZE, OBJECT_BUFFER_SIZE, new KryoSerializationWrapper(this));
             this.initKryo(this.client.getKryo());
             this.client.addListener(new KryoListenerEndpoint());
             this.client.start();
@@ -78,16 +76,16 @@ public class PorkClient<S extends Session> extends Endpoint<S> {
     }
 
     public void send(@NonNull Packet... packets) {
-        this.client.session.send(packets);
+        for (Packet packet : packets)   {
+            if (packet == null) {
+                throw new NullPointerException("packet");
+            }
+            this.send(packet);
+        }
     }
 
     public void send(@NonNull Packet packet)    {
-        this.client.session.send(packet);
-    }
-
-    @Override
-    public Kryo getKryo() {
-        return this.client.getKryo();
+        this.client.send(packet);
     }
 
     @Override

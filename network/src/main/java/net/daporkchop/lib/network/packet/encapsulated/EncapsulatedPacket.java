@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  * @author DaPorkchop_
  */
 public interface EncapsulatedPacket extends Packet {
-    int ENCAPSULATED_VERSION = 3;
+    int ENCAPSULATED_VERSION = 2;
 
     PacketProtocol PROTOCOL = new PacketProtocol("PorkLib Network", ENCAPSULATED_VERSION) {
         @Override

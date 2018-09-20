@@ -24,12 +24,7 @@ import net.daporkchop.lib.network.conn.ConnectionState;
 import net.daporkchop.lib.network.conn.PorkConnection;
 import net.daporkchop.lib.network.conn.Session;
 import net.daporkchop.lib.network.endpoint.Endpoint;
-import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.util.PacketReprocessor;
-
-import java.util.Queue;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * @author DaPorkchop_
@@ -42,7 +37,6 @@ public class KryoClientWrapper extends com.esotericsoftware.kryonet.Client imple
     public Session session;
     public final Endpoint endpoint;
     public ConnectionState state = ConnectionState.NOT_CONNECTED;
-    protected final Queue<Packet> sendQueue = this.createQueue();
 
     public KryoClientWrapper(@NonNull Endpoint client, int writeBufferSize, int objectBufferSize, @NonNull Serialization serialization) {
         super(writeBufferSize, objectBufferSize, serialization);

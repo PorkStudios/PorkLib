@@ -13,46 +13,55 @@
  *
  */
 
-package net.daporkchop.lib.network.util;
+package big.protocol;
 
-import lombok.NonNull;
-import net.daporkchop.lib.network.packet.encapsulated.LargeDataPacket;
+import big.BigSession;
+import big.BigTestMain;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.network.endpoint.EndpointType;
+import net.daporkchop.lib.network.packet.Codec;
+import net.daporkchop.lib.network.packet.Packet;
 
-import java.util.BitSet;
+import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * @author DaPorkchop_
  */
-public class LargeReceiveBuf {
-    public final byte[] data;
-    public final BitSet occupied;
-    public final int totalSize;
-    public final int totalBlocks;
+@NoArgsConstructor
+@AllArgsConstructor
+public class BigPacket implements Packet {
+    public byte[] data;
 
-    public LargeReceiveBuf(int size)    {
-        if (size <= 0 || size > NetworkConstants.LARGE_PACKET_MAX_SIZE)   {
-            throw new IllegalStateException(String.format("Illegal size: %d", size));
-        }
-
-        this.totalBlocks = (size >> 10) + ((size & 0x3FF) == 0 ? 0 : 1);
-        this.occupied = new BitSet(this.totalBlocks);
-        this.totalSize = size;
-        this.data = new byte[size];
+    @Override
+    public void read(DataIn in) throws IOException {
+        this.data = in.readBytesSimple();
     }
 
-    public boolean isComplete() {
-        return this.occupied.cardinality() == this.totalBlocks;
+    @Override
+    public void write(DataOut out) throws IOException {
+        out.writeBytesSimple(this.data);
     }
 
-    public void receive(@NonNull LargeDataPacket packet)   {
-        int block = packet.offset >> 10;
-        if (block >= this.totalBlocks)   {
-            throw new IllegalStateException(String.format("Invalid block ID! Total: %d, given: %d", this.totalBlocks, block));
+    public static class MessageCodec implements Codec<BigPacket, BigSession>   {
+        @Override
+        public void handle(BigPacket packet, BigSession session) {
+            boolean server = session.getEndpoint().getType() == EndpointType.SERVER;
+            if (!Arrays.equals(packet.data, BigTestMain.RANDOM_DATA))   {
+                throw new IllegalStateException("Invalid data!");
+            }
+            System.out.printf("[%s] Data valid!\n", server ? "Server" : "Client");
+            if (server) {
+                session.send(packet);
+            }
         }
-        if (this.occupied.get(block))   {
-            throw new IllegalStateException("Already received data at block! Packet info: " + packet);
+
+        @Override
+        public BigPacket newPacket() {
+            return new BigPacket();
         }
-        this.occupied.set(block);
-        System.arraycopy(packet.data, 0, this.data, packet.offset, packet.data.length);
     }
 }

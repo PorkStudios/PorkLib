@@ -320,6 +320,22 @@ public abstract class PorkDB<K, V> {
     }
 
     /**
+     * Checks if the given key is loaded
+     *
+     * @param key the key to check for
+     * @return whether or not the key is loaded
+     */
+    public boolean isLoaded(@NonNull K key) {
+        this.ensureDatabaseOpen();
+
+        byte[] keyHash = this.keyHashBuf.get();
+        this.keyHasher.hash(key, keyHash);
+
+        Long hash = hash(keyHash);
+        return this.loadedEntries.containsKey(hash);
+    }
+
+    /**
      * Iterates over every entry in the database, and executes a function on them
      *
      * @param consumer the function to run

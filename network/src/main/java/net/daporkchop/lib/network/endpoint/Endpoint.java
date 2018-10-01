@@ -33,6 +33,7 @@ import net.daporkchop.lib.crypto.key.ec.impl.ECDHKeyPair;
 import net.daporkchop.lib.network.conn.PorkConnection;
 import net.daporkchop.lib.network.conn.Session;
 import net.daporkchop.lib.network.endpoint.server.PorkServer;
+import net.daporkchop.lib.network.packet.Codec;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.encapsulated.DisconnectPacket;
 import net.daporkchop.lib.network.packet.encapsulated.EncapsulatedPacket;
@@ -43,6 +44,8 @@ import net.daporkchop.lib.network.packet.protocol.PacketProtocol;
 import net.daporkchop.lib.network.util.ReflectionUtil;
 
 import java.io.IOException;
+import java.util.Comparator;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -61,6 +64,8 @@ public abstract class Endpoint<S extends Session> {
 
     protected final Set<EndpointListener<S>> listeners;
     protected final PacketProtocol<S> protocol;
+
+    public static boolean DEBUG = false;
 
     @SuppressWarnings("unchecked")
     public void fireConnected(@NonNull S session) {
@@ -95,28 +100,42 @@ public abstract class Endpoint<S extends Session> {
 
     @SuppressWarnings("unchecked")
     protected static <MS extends Session> void registerProtocol(@NonNull PacketProtocol<MS> protocol, @NonNull Kryo kryo, AtomicInteger i) {
-        protocol.getClassCodecMap().forEach((clazz, codec) ->
-                kryo.register(clazz, new Serializer(false, true) {
-                    @Override
-                    public void write(Kryo kryo, Output output, Object object) {
-                        try {
-                            ((Packet) object).write(new DataOut(output));
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
+        protocol
+                .getClassCodecMap()
+                .entrySet()
+                .stream()
+                .sorted((o1, o2) -> o1.getKey().getCanonicalName().compareTo(o2.getKey().getCanonicalName()))
+                .forEach(entry -> {
+                    Class<?> clazz = entry.getKey();
+                    Codec<? extends Packet, MS> codec = entry.getValue();
+                    kryo.register(clazz, new Serializer<Packet>(false, true) {
+                        @Override
+                        public void write(Kryo kryo, Output output, Packet packet) {
+                            try {
+                                if (DEBUG) {
+                                    System.out.printf("Writing %s (actually %s)\n", clazz.getCanonicalName(), packet.getClass().getCanonicalName());
+                                }
+                                packet.write(new DataOut(output));
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
                         }
-                    }
 
-                    @Override
-                    public Object read(Kryo kryo, Input input, Class type) {
-                        try {
-                            Packet packet = codec.newPacket();
-                            packet.read(new DataIn(input));
-                            return packet;
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
+                        @Override
+                        public Packet read(Kryo kryo, Input input, Class type) {
+                            try {
+                                Packet packet = codec.newPacket();
+                                if (DEBUG) {
+                                    System.out.printf("Reading %s (actually %s)\n", clazz.getCanonicalName(), type.getCanonicalName());
+                                }
+                                packet.read(new DataIn(input));
+                                return packet;
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
                         }
-                    }
-                }, i.getAndIncrement()));
+                    }, i.getAndIncrement());
+                });
     }
 
     @NoArgsConstructor

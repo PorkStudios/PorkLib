@@ -44,6 +44,7 @@ import net.daporkchop.lib.network.util.ReflectionUtil;
 
 import java.io.IOException;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static net.daporkchop.lib.network.packet.encapsulated.EncapsulatedPacket.PROTOCOL;
 
@@ -78,8 +79,8 @@ public abstract class Endpoint<S extends Session> {
 
     @SuppressWarnings("unchecked")
     protected void initKryo(@NonNull Kryo kryo) {
-        Endpoint.registerProtocol(PROTOCOL, kryo);
-        Endpoint.registerProtocol(this.protocol, kryo);
+        Endpoint.registerProtocol(PROTOCOL, kryo, new AtomicInteger(256));
+        Endpoint.registerProtocol(this.protocol, kryo, new AtomicInteger(512));
     }
 
     public abstract boolean isRunning();
@@ -93,7 +94,7 @@ public abstract class Endpoint<S extends Session> {
     public abstract EndpointType getType();
 
     @SuppressWarnings("unchecked")
-    protected static <MS extends Session> void registerProtocol(@NonNull PacketProtocol<MS> protocol, @NonNull Kryo kryo) {
+    protected static <MS extends Session> void registerProtocol(@NonNull PacketProtocol<MS> protocol, @NonNull Kryo kryo, AtomicInteger i) {
         protocol.getClassCodecMap().forEach((clazz, codec) ->
                 kryo.register(clazz, new Serializer(false, true) {
                     @Override
@@ -115,7 +116,7 @@ public abstract class Endpoint<S extends Session> {
                             throw new RuntimeException(e);
                         }
                     }
-                }));
+                }, i.getAndIncrement()));
     }
 
     @NoArgsConstructor

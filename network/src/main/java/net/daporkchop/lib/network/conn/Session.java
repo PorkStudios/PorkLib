@@ -20,7 +20,6 @@ import lombok.NonNull;
 import lombok.Setter;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Packet;
-import net.daporkchop.lib.network.util.ToggleableLock;
 
 import java.net.InetSocketAddress;
 
@@ -32,11 +31,7 @@ public abstract class Session {
     @NonNull
     private PorkConnection porkConnection;
 
-    private final ToggleableLock lock = new ToggleableLock(true);
-
     public void send(@NonNull Packet packet) {
-        this.lock.test(); //block until handshake is completed
-
         this.porkConnection.send(packet);
     }
 

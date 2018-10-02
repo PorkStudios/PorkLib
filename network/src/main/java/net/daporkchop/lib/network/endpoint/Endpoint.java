@@ -42,12 +42,8 @@ import net.daporkchop.lib.network.packet.encapsulated.HandshakeInitPacket;
 import net.daporkchop.lib.network.packet.encapsulated.HandshakeResponsePacket;
 import net.daporkchop.lib.network.packet.protocol.PacketProtocol;
 import net.daporkchop.lib.network.util.ReflectionUtil;
-import net.daporkchop.lib.network.util.ToggleableLock;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.util.Comparator;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -70,24 +66,17 @@ public abstract class Endpoint<S extends Session> {
     public static boolean DEBUG = false;
 
     @SuppressWarnings("unchecked")
-    private void fireConnected(@NonNull S session) {
-        try {
-            Field field = Session.class.getDeclaredField("lock");
-            field.setAccessible(true);
-            ((ToggleableLock) field.get(session)).toggle();
-        } catch (Exception e)   {
-            throw new RuntimeException(e);
-        }
+    protected void fireConnected(@NonNull S session) {
         this.listeners.forEach(l -> l.onConnect(session));
     }
 
     @SuppressWarnings("unchecked")
-    private void fireDisconnected(S session, String reason) {
+    protected void fireDisconnected(S session, String reason) {
         this.listeners.forEach(l -> l.onDisconnect(session, reason));
     }
 
     @SuppressWarnings("unchecked")
-    private void fireReceived(@NonNull S session, @NonNull Packet packet) {
+    protected void fireReceived(@NonNull S session, @NonNull Packet packet) {
         this.listeners.forEach(l -> l.onReceieve(session, packet));
     }
 

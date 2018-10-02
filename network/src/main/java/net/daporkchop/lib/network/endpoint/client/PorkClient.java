@@ -26,12 +26,15 @@ import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.encapsulated.DisconnectPacket;
 
 import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author DaPorkchop_
  */
 public class PorkClient<S extends Session> extends Endpoint<S> {
     private final KryoClientWrapper client;
+
+    private CompletableFuture<Object> connectFuture = new CompletableFuture<>();
 
     public PorkClient(@NonNull ClientBuilder<S> builder) {
         super(builder.getListeners(), builder.getProtocol());
@@ -45,10 +48,23 @@ public class PorkClient<S extends Session> extends Endpoint<S> {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+        try {
+            this.connectFuture.get();
+        } catch (Exception e)   {
+            this.close("error");
+            throw new RuntimeException(e);
+        }
     }
 
     public <MS extends S> MS getSession() {
         return ((PorkConnection) this.client).getSession();
+    }
+
+    @Override
+    protected void fireConnected(S session) {
+        this.connectFuture.complete(null);
+        super.fireConnected(session);
     }
 
     @Override

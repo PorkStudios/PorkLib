@@ -363,6 +363,9 @@ public abstract class PorkDB<K, V> {
         this.ensureDatabaseOpen();
 
         this.open = false;
+
+        this.loadedEntries.values().stream().map(LoadedEntry::getKey).forEach(this::unload);
+        this.loadedEntries.clear();
         this.fileManager.shutdown();
     }
 

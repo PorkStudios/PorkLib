@@ -173,51 +173,62 @@ public abstract class Endpoint<S extends Session> {
 
         @Override
         public void received(Connection connection, Object object) {
-            if (object instanceof Packet) {
-                PorkConnection porkConnection = (PorkConnection) connection;
+            try {
+                if (object instanceof Packet) {
+                    PorkConnection porkConnection = (PorkConnection) connection;
 
-                if (object instanceof EncapsulatedPacket) {
-                    EncapsulatedPacket encapsulatedPacket = (EncapsulatedPacket) object;
-                    try {
-                        switch (encapsulatedPacket.getType()) {
-                            case HANDSHAKE_INIT: {
-                                HandshakeInitPacket packet = (HandshakeInitPacket) object;
-                                EncapsulatedPacket response = porkConnection.getPacketReprocessor().initClient(packet);
-                                porkConnection.incrementState();
-                                porkConnection.send(response);
-                                ReflectionUtil.flush(connection);
-                                porkConnection.incrementState();
+                    if (object instanceof EncapsulatedPacket) {
+                        EncapsulatedPacket encapsulatedPacket = (EncapsulatedPacket) object;
+                        try {
+                            switch (encapsulatedPacket.getType()) {
+                                case HANDSHAKE_INIT: {
+                                    HandshakeInitPacket packet = (HandshakeInitPacket) object;
+                                    EncapsulatedPacket response = porkConnection.getPacketReprocessor().initClient(packet);
+                                    porkConnection.incrementState();
+                                    porkConnection.send(response);
+                                    ReflectionUtil.flush(connection);
+                                    porkConnection.incrementState();
+                                }
+                                break;
+                                case HANDSHAKE_RESPONSE: {
+                                    HandshakeResponsePacket packet = (HandshakeResponsePacket) object;
+                                    EncapsulatedPacket response = porkConnection.getPacketReprocessor().initServer(packet);
+                                    porkConnection.incrementState();
+                                    porkConnection.send(response);
+                                    Endpoint.this.fireConnected(porkConnection.getSession());
+                                }
+                                break;
+                                case HANDSHAKE_COMPLETE: {
+                                    HandshakeCompletePacket packet = (HandshakeCompletePacket) object;
+                                    Endpoint.this.fireConnected(porkConnection.getSession());
+                                }
+                                break;
+                                case DISCONNECT: {
+                                    DisconnectPacket packet = (DisconnectPacket) object;
+                                    porkConnection.setDisconnectReason(packet.message);
+                                    //disconnect event is fired by kryonet afterwards
+                                }
+                                break;
                             }
-                            break;
-                            case HANDSHAKE_RESPONSE: {
-                                HandshakeResponsePacket packet = (HandshakeResponsePacket) object;
-                                EncapsulatedPacket response = porkConnection.getPacketReprocessor().initServer(packet);
-                                porkConnection.incrementState();
-                                porkConnection.send(response);
-                                Endpoint.this.fireConnected(porkConnection.getSession());
-                            }
-                            break;
-                            case HANDSHAKE_COMPLETE: {
-                                HandshakeCompletePacket packet = (HandshakeCompletePacket) object;
-                                Endpoint.this.fireConnected(porkConnection.getSession());
-                            }
-                            break;
-                            case DISCONNECT: {
-                                DisconnectPacket packet = (DisconnectPacket) object;
-                                porkConnection.setDisconnectReason(packet.message);
-                                //disconnect event is fired by kryonet afterwards
-                            }
-                            break;
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
                         }
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
+                    } else {
+                        Packet packet = (Packet) object;
+                        S session = porkConnection.getSession();
+                        Endpoint.this.protocol.handle(session, packet);
+                        Endpoint.this.fireReceived(session, packet);
                     }
-                } else {
-                    Packet packet = (Packet) object;
-                    S session = porkConnection.getSession();
-                    Endpoint.this.protocol.handle(session, packet);
-                    Endpoint.this.fireReceived(session, packet);
                 }
+            } catch (Exception e)   {
+                System.err.printf("Caught exception from connection %d", connection.getID());
+                e.printStackTrace();
+                try {
+                    ((PorkConnection) connection).send(new DisconnectPacket(String.format("%s: %s", e.getClass().getCanonicalName(), e.getMessage())));
+                    ReflectionUtil.flush(connection);
+                } catch (Exception e1)   {
+                }
+                connection.close();
             }
         }
 

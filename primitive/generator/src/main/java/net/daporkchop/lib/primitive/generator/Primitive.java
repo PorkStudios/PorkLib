@@ -32,9 +32,25 @@ public class Primitive {
     public static final Collection<Primitive> primitives = new ArrayDeque<>();
     public static final String FULLNAME_DEF = "_P%d_";
     public static final String NAME_DEF = "_p%d_";
+    public static final String NAME_FORCE_DEF = "_name%d_";
     public static final String HASHCODE_DEF = "_hashCodeP%d_";
+    public static final String CAST_DEF = "_castP%d_";
+    public static final String METHOD_GENERIC_HEADER_DEF = "_methodG_hP%d_";
+    public static final String METHOD_GENERIC_SUPER_DEF = "_methodG_superP%d_";
 
     static {
+        primitives.add(
+                new Primitive()
+                        .setFullName("Byte")
+                        .setName("byte")
+                        .setHashCode("x & 0xFF")
+        );
+        primitives.add(
+                new Primitive()
+                        .setFullName("Short")
+                        .setName("short")
+                        .setHashCode("(x >> 8) ^ x")
+        );
         primitives.add(
                 new Primitive()
                         .setFullName("Integer")
@@ -43,9 +59,28 @@ public class Primitive {
         );
         primitives.add(
                 new Primitive()
-                .setFullName("Object")
-                .setName("Object")
-                .setHashCode("java.util.Objects.hashCode(x)")
+                        .setFullName("Long")
+                        .setName("long")
+                        .setHashCode("this.hashInteger((int) ((x >> 32) & 0xFFFFFFFF)) ^ this.hashInteger((int) x)")
+        );
+        primitives.add(
+                new Primitive()
+                        .setFullName("Float")
+                        .setName("float")
+                        .setHashCode("this.hashInteger(Float.floatToIntBits(x))")
+        );
+        primitives.add(
+                new Primitive()
+                        .setFullName("Long")
+                        .setName("long")
+                        .setHashCode("this.hashLong(Double.doubleToLongBits(x))")
+        );
+        primitives.add(
+                new Primitive()
+                        .setFullName("Object")
+                        .setName("Object")
+                        .setHashCode("java.util.Objects.hashCode(x)")
+                        .setGeneric()
         );
     }
 
@@ -55,6 +90,8 @@ public class Primitive {
     private String name;
     @NonNull
     private String hashCode;
+    @NonNull
+    private boolean generic = false;
 
     public static int countVariables(@NonNull String filename) {
         for (int i = 0; ; i++) {
@@ -65,11 +102,68 @@ public class Primitive {
         }
     }
 
+    public static String getGenericHeader(@NonNull Primitive[] primitives) {
+        if (primitives.length == 0) {
+            return "";
+        }
+        int i = 0;
+        for (Primitive p : primitives) {
+            if (p.generic) {
+                i++;
+            }
+        }
+        if (i == 0) {
+            return "";
+        }
+        String s = "<";
+        for (int j = 0; j < primitives.length; j++) {
+            if (primitives[j].generic){
+                s += (char) ('A' + j);
+            }
+        }
+        return s + '>';
+    }
+
+    public static String getGenericSuper(@NonNull Primitive[] primitives) {
+        if (primitives.length == 0) {
+            return "";
+        }
+        int i = 0;
+        for (Primitive p : primitives) {
+            if (p.generic) {
+                i++;
+            }
+        }
+        if (i == 0) {
+            return "";
+        }
+        String s = "<";
+        for (int j = 0; j < primitives.length; j++) {
+            if (primitives[j].generic) {
+                s += "? super ";
+                s += (char) ('A' + j);
+                s += ", ";
+            }
+        }
+        if (s.endsWith(", "))   {
+            s = s.substring(0, s.length() - 2);
+        }
+        return s + '>';
+    }
+
     public String format(@NonNull String text, int i) {
         return text
                 .replaceAll(String.format(FULLNAME_DEF, i), this.fullName)
-                .replaceAll(String.format(NAME_DEF, i), this.name)
-                .replaceAll(String.format(HASHCODE_DEF, i), this.hashCode);
+                .replaceAll(String.format(NAME_DEF, i), this.generic ? String.valueOf((char) ('A' + i)) : this.name)
+                .replaceAll(String.format(NAME_FORCE_DEF, i), this.name)
+                .replaceAll(String.format(HASHCODE_DEF, i), this.hashCode)
+                .replaceAll(String.format(CAST_DEF, i), this.generic ? "(" + (char) ('A' + i) + ") " : "")
+                .replaceAll(String.format(METHOD_GENERIC_HEADER_DEF, i), this.generic ? "<V>" : "");
+    }
+
+    private Primitive setGeneric() {
+        this.generic = true;
+        return this;
     }
 
     @Override

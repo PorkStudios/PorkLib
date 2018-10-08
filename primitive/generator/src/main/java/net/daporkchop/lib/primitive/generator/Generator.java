@@ -101,11 +101,23 @@ public class Generator {
         } else {
             String nameOut = name.replaceAll(".template", ".java");
             String contentOut = content;
-            for (int i = primitives.length - 1; i >= 0; i--) {
-                Primitive p = primitives[i];
-                nameOut = p.format(nameOut, i);
-                contentOut = p.format(contentOut, i);
+            if (depth == 0) {
+                int i = 0;
+                for (Primitive p : Primitive.primitives)    {
+                    nameOut = p.format(nameOut, i);
+                    contentOut = p.format(contentOut, i++);
+                }
+            } else {
+                for (int i = primitives.length - 1; i >= 0; i--) {
+                    Primitive p = primitives[i];
+                    nameOut = p.format(nameOut, i);
+                    contentOut = p.format(contentOut, i);
+                }
             }
+            contentOut = contentOut
+                    .replaceAll("_gH_", Primitive.getGenericHeader(primitives))
+                    .replaceAll("_G_super_", Primitive.getGenericSuper(primitives))
+            .replaceAll(Primitive.METHOD_GENERIC_HEADER_DEF, "<V> ");
             File file = new File(path, nameOut);
             try (OutputStream os = new FileOutputStream(file)) {
                 byte[] b = contentOut.getBytes(UTF8.utf8);

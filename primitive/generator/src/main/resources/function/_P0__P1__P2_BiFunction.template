@@ -1,0 +1,61 @@
+/*
+ * Adapted from the Wizardry License
+ *
+ * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ *
+ * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
+ *
+ * The persons and/or organizations are also disallowed from sub-licensing and/or trademarking this software without explicit permission from DaPorkchop_.
+ *
+ * Any persons and/or organizations using this software must disclose their source code and have it publicly available, include this license, provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+
+package net.daporkchop.lib.primitive.function;
+
+import lombok.*;
+
+/**
+ * Represents a function that accepts two arguments and produces a result.
+ * This is the two-arity specialization of {@link _P0_Function}.
+ *
+ * <p>This is a <a href="package-summary.html">functional interface</a>
+ * whose functional method is {@link #apply(_name0_, _name1_)}.
+ *
+ * @param <A> the type of the first argument to the function
+ * @param <B> the type of the second argument to the function
+ * @param <C> the type of the result of the function
+ *
+ * @see Function
+ * @since 1.8
+ */
+public interface _P0__P1__P2_BiFunction_gH_ {
+    /**
+     * Applies this function to the given arguments.
+     *
+     * @param t the first function argument
+     * @param u the second function argument
+     * @return the function result
+     */
+    _p2_ apply(_p0_ t, _p1_ u);
+
+    /**
+     * Returns a composed function that first applies this function to
+     * its input, and then applies the {@code after} function to the result.
+     * If evaluation of either function throws an exception, it is relayed to
+     * the caller of the composed function.
+     *
+     * @param <V> the type of output of the {@code after} function, and of the
+     *           composed function
+     * @param after the function to apply after this function is applied
+     * @return a composed function that first applies this function and then
+     * applies the {@code after} function
+     * @throws NullPointerException if after is null
+     */
+    default _name2_ _P0__P1__P2_BiFunction_gH_ andThen(Function<? super R, ? extends V> after) {
+        Objects.requireNonNull(after);
+        return (T t, U u) -> after.apply(apply(t, u));
+    }
+}

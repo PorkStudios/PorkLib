@@ -15,3 +15,5 @@
 
 dependencies {
 }
+
+compileJava.dependsOn(":primitive:generator:gen")

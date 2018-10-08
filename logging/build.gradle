@@ -13,31 +13,5 @@
  *
  */
 
-package net.daporkchop.lib.primitive.tuple;
-
-/**
- * A simple implementation of an immutable tuple.
- * <p>
- * DO NOT EDIT BY HAND! THIS FILE IS SCRIPT-GENERATED!
- *
- * @author DaPorkchop_
- */
-public class _P1__P2_ImmutableTuple_GH_ implements _P1__P2_Tuple_GHI_   {
-    protected _p1_ k;
-    protected _p2_ v;
-
-    public _P1__P2_ImmutableTuple(_p1_ k, _p2_ v)    {
-        this.k = k;
-        this.v = v;
-    }
-
-    @Override
-    public _p1_ getK()  {
-        return this.k;
-    }
-
-    @Override
-    public _p2_ getV()  {
-        return this.v;
-    }
+dependencies {
 }

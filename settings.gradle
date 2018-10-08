@@ -26,3 +26,5 @@ include 'network'
 include 'noise'
 include 'primitive'
 include 'primitive:generator'
+include 'logging'
+

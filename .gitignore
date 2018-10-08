@@ -8,3 +8,5 @@ build/
 run/
 out/
 /porklib.daporkchop.net/
+
+/primitive/src/

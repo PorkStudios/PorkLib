@@ -160,7 +160,7 @@ _methods_
      *
      * @return the new stream
      */
-    Stream<T> sorted();
+    _P0_Stream_gH_ sorted();
 
     /**
      * Returns a stream consisting of the elements of this stream, sorted
@@ -177,7 +177,7 @@ _methods_
      *                   {@code Comparator} to be used to compare stream elements
      * @return the new stream
      */
-    Stream<T> sorted(Comparator<? super T> comparator);
+    _P0_Stream_gH_ sorted(_P0_Comparator_gSuper_ comparator);
 
     /**
      * Returns a stream consisting of the elements of this stream, additionally
@@ -208,7 +208,7 @@ _methods_
      *                 they are consumed from the stream
      * @return the new stream
      */
-    Stream<T> peek(Consumer<? super T> action);
+    _P0_Stream_gH_ peek(_P0_Consumer_gSuper_ action);
 
     /**
      * Returns a stream consisting of the elements of this stream, truncated
@@ -235,7 +235,7 @@ _methods_
      * @return the new stream
      * @throws IllegalArgumentException if {@code maxSize} is negative
      */
-    Stream<T> limit(long maxSize);
+    _P0_Stream_gH_ limit(long maxSize);
 
     /**
      * Returns a stream consisting of the remaining elements of this stream
@@ -264,7 +264,7 @@ _methods_
      * @return the new stream
      * @throws IllegalArgumentException if {@code n} is negative
      */
-    Stream<T> skip(long n);
+    _P0_Stream_gH_ skip(long n);
 
     /**
      * Performs an action for each element of this stream.
@@ -283,7 +283,7 @@ _methods_
      * @param action a <a href="package-summary.html#NonInterference">
      *               non-interfering</a> action to perform on the elements
      */
-    void forEach(Consumer<? super T> action);
+    void forEach(_P0_Consumer_gSuper_ action);
 
     /**
      * Performs an action for each element of this stream, in the encounter
@@ -302,7 +302,7 @@ _methods_
      *               non-interfering</a> action to perform on the elements
      * @see #forEach(Consumer)
      */
-    void forEachOrdered(Consumer<? super T> action);
+    void forEachOrdered(_P0_Consumer_gSuper_ action);
 
     /**
      * Returns an array containing the elements of this stream.
@@ -312,8 +312,8 @@ _methods_
      *
      * @return an array containing the elements of this stream
      */
-    Object[] toArray();
-
+    _nameP0_[] toArray();
+<%
     /**
      * Returns an array containing the elements of this stream, using the
      * provided {@code generator} function to allocate the returned array, as
@@ -341,8 +341,8 @@ _methods_
      * from the array generator is not a supertype of the runtime type of every
      * element in this stream
      */
-    <A> A[] toArray(IntFunction<A[]> generator);
-
+    <T> T[] toArray(IntegerObjectFunction<T[]> generator);
+%>
     /**
      * Performs a <a href="package-summary.html#Reduction">reduction</a> on the
      * elements of this stream, using the provided identity value and an
@@ -392,7 +392,7 @@ _methods_
      *                    function for combining two values
      * @return the result of the reduction
      */
-    T reduce(T identity, BinaryOperator<T> accumulator);
+    _p0_ reduce(_p0_ identity, _P0_BinaryOperator_gH_ accumulator);
 
     /**
      * Performs a <a href="package-summary.html#Reduction">reduction</a> on the
@@ -432,58 +432,7 @@ _methods_
      * @see #min(Comparator)
      * @see #max(Comparator)
      */
-    Optional<T> reduce(BinaryOperator<T> accumulator);
-
-    /**
-     * Performs a <a href="package-summary.html#Reduction">reduction</a> on the
-     * elements of this stream, using the provided identity, accumulation and
-     * combining functions.  This is equivalent to:
-     * <pre>{@code
-     *     U result = identity;
-     *     for (T element : this stream)
-     *         result = accumulator.apply(result, element)
-     *     return result;
-     * }</pre>
-     *
-     * but is not constrained to execute sequentially.
-     *
-     * <p>The {@code identity} value must be an identity for the combiner
-     * function.  This means that for all {@code u}, {@code combiner(identity, u)}
-     * is equal to {@code u}.  Additionally, the {@code combiner} function
-     * must be compatible with the {@code accumulator} function; for all
-     * {@code u} and {@code t}, the following must hold:
-     * <pre>{@code
-     *     combiner.apply(u, accumulator.apply(identity, t)) == accumulator.apply(u, t)
-     * }</pre>
-     *
-     * <p>This is a <a href="package-summary.html#StreamOps">terminal
-     * operation</a>.
-     *
-     * @apiNote Many reductions using this form can be represented more simply
-     * by an explicit combination of {@code map} and {@code reduce} operations.
-     * The {@code accumulator} function acts as a fused mapper and accumulator,
-     * which can sometimes be more efficient than separate mapping and reduction,
-     * such as when knowing the previously reduced value allows you to avoid
-     * some computation.
-     *
-     * @param <U> The type of the result
-     * @param identity the identity value for the combiner function
-     * @param accumulator an <a href="package-summary.html#Associativity">associative</a>,
-     *                    <a href="package-summary.html#NonInterference">non-interfering</a>,
-     *                    <a href="package-summary.html#Statelessness">stateless</a>
-     *                    function for incorporating an additional element into a result
-     * @param combiner an <a href="package-summary.html#Associativity">associative</a>,
-     *                    <a href="package-summary.html#NonInterference">non-interfering</a>,
-     *                    <a href="package-summary.html#Statelessness">stateless</a>
-     *                    function for combining two values, which must be
-     *                    compatible with the accumulator function
-     * @return the result of the reduction
-     * @see #reduce(BinaryOperator)
-     * @see #reduce(Object, BinaryOperator)
-     */
-    <U> U reduce(U identity,
-                 BiFunction<U, ? super T, U> accumulator,
-                 BinaryOperator<U> combiner);
+    _P0_Optional_gH_ reduce(_P0_BinaryOperator_gH_ accumulator);
 
     /**
      * Performs a <a href="package-summary.html#MutableReduction">mutable
@@ -536,9 +485,11 @@ _methods_
      *                    compatible with the accumulator function
      * @return the result of the reduction
      */
+     //TODO
+     /*
     <R> R collect(Supplier<R> supplier,
                   BiConsumer<R, ? super T> accumulator,
-                  BiConsumer<R, R> combiner);
+                  BiConsumer<R, R> combiner);*/
 
     /**
      * Performs a <a href="package-summary.html#MutableReduction">mutable
@@ -592,7 +543,10 @@ _methods_
      * @see #collect(Supplier, BiConsumer, BiConsumer)
      * @see Collectors
      */
+     //TODO
+     /*
     <R, A> R collect(Collector<? super T, A, R> collector);
+    */
 
     /**
      * Returns the minimum element of this stream according to the provided
@@ -608,7 +562,7 @@ _methods_
      * or an empty {@code Optional} if the stream is empty
      * @throws NullPointerException if the minimum element is null
      */
-    Optional<T> min(Comparator<? super T> comparator);
+    _P0_Optional_gH_ min(_P0_Comparator_gSuper_ comparator);
 
     /**
      * Returns the maximum element of this stream according to the provided
@@ -625,7 +579,7 @@ _methods_
      * or an empty {@code Optional} if the stream is empty
      * @throws NullPointerException if the maximum element is null
      */
-    Optional<T> max(Comparator<? super T> comparator);
+    _P0_Optional_gH_ max(_P0_Comparator_gSuper_ comparator);
 
     /**
      * Returns the count of elements in this stream.  This is a special case of
@@ -660,7 +614,7 @@ _methods_
      * @return {@code true} if any elements of the stream match the provided
      * predicate, otherwise {@code false}
      */
-    boolean anyMatch(Predicate<? super T> predicate);
+    boolean anyMatch(_P0_Predicate_gSuper_ predicate);
 
     /**
      * Returns whether all elements of this stream match the provided predicate.
@@ -683,7 +637,7 @@ _methods_
      * @return {@code true} if either all elements of the stream match the
      * provided predicate or the stream is empty, otherwise {@code false}
      */
-    boolean allMatch(Predicate<? super T> predicate);
+    boolean allMatch(_P0_Predicate_gSuper_ predicate);
 
     /**
      * Returns whether no elements of this stream match the provided predicate.
@@ -706,7 +660,7 @@ _methods_
      * @return {@code true} if either no elements of the stream match the
      * provided predicate or the stream is empty, otherwise {@code false}
      */
-    boolean noneMatch(Predicate<? super T> predicate);
+    boolean noneMatch(_P0_Predicate_gSuper_ predicate);
 
     /**
      * Returns an {@link Optional} describing the first element of this stream,
@@ -720,7 +674,7 @@ _methods_
      * or an empty {@code Optional} if the stream is empty
      * @throws NullPointerException if the element selected is null
      */
-    Optional<T> findFirst();
+    _P0_Optional_gH_ findFirst();
 
     /**
      * Returns an {@link Optional} describing some element of the stream, or an
@@ -740,40 +694,48 @@ _methods_
      * @throws NullPointerException if the element selected is null
      * @see #findFirst()
      */
-    Optional<T> findAny();
+    _P0_Optional_gH_ findAny();
 
     // Static factories
 
     /**
-     * Returns a builder for a {@code Stream}.
+     * Returns a builder for a {@code _P0_Stream}.
      *
      * @param <T> type of elements
      * @return a stream builder
      */
-    public static<T> Builder<T> builder() {
-        return new Streams.StreamBuilderImpl<>();
+     //TODO
+     /*
+    public static <%<A> %>Builder<%<A>%> builder() {
+        return new Streams.StreamBuilderImpl<%<>%>();
     }
+    */
 
     /**
-     * Returns an empty sequential {@code Stream}.
+     * Returns an empty sequential {@code _P0_Stream}.
      *
      * @param <T> the type of stream elements
      * @return an empty sequential stream
      */
-    public static<T> Stream<T> empty() {
-        return StreamSupport.stream(Spliterators.<T>emptySpliterator(), false);
-    }
+     //TODO
+     /*
+    public static <%<A> %>_P0_Stream<%<A>%> empty() {
+        return StreamSupport.stream(Spliterators.<%<A>%>emptySpliterator(), false);
+    }*/
 
     /**
-     * Returns a sequential {@code Stream} containing a single element.
+     * Returns a sequential {@code _P0_Stream} containing a single element.
      *
      * @param t the single element
      * @param <T> the type of stream elements
      * @return a singleton sequential stream
      */
-    public static<T> Stream<T> of(T t) {
-        return StreamSupport.stream(new Streams.StreamBuilderImpl<>(t), false);
+     //TODO
+     /*
+    public static <%<A> %>_P0_Stream<%<A>%> of(_p0_ t) {
+        return _P0_StreamSupport.stream(new Streams.StreamBuilderImpl<%<>%>(t), false);
     }
+    */
 
     /**
      * Returns a sequential ordered stream whose elements are the specified values.
@@ -782,11 +744,14 @@ _methods_
      * @param values the elements of the new stream
      * @return the new stream
      */
+     //TODO
+     /*
     @SafeVarargs
     @SuppressWarnings("varargs") // Creating a stream from an array is safe
-    public static<T> Stream<T> of(T... values) {
+    public static <%<A> %>_P0_Stream<%<A>%> of(_P0_... values) {
         return Arrays.stream(values);
     }
+    /*
 
     /**
      * Returns an infinite sequential ordered {@code Stream} produced by iterative
@@ -803,13 +768,14 @@ _methods_
      * @param seed the initial element
      * @param f a function to be applied to to the previous element to produce
      *          a new element
-     * @return a new sequential {@code Stream}
+     * @return a new sequential {@code _P0_Stream}
      */
-    public static<T> Stream<T> iterate(final T seed, final UnaryOperator<T> f) {
-        Objects.requireNonNull(f);
-        final Iterator<T> iterator = new Iterator<T>() {
-            @SuppressWarnings("unchecked")
-            T t = (T) Streams.NONE;
+     //TODO
+     /*
+    public static <%<A> %>_P0_Stream<%<A>%> iterate(final _p0_ seed, @NonNull final UnaryOperator<%<A>%> f) {
+        final Iterator<%<A>%> iterator = new Iterator<%<A>%>() {
+            <%@SuppressWarnings("unchecked")
+            %>_p0_ t = <%(T) %>_P0_Streams.NONE;
 
             @Override
             public boolean hasNext() {
@@ -817,7 +783,7 @@ _methods_
             }
 
             @Override
-            public T next() {
+            public _p0_ next() {
                 return t = (t == Streams.NONE) ? seed : f.apply(t);
             }
         };
@@ -825,6 +791,7 @@ _methods_
                 iterator,
                 Spliterator.ORDERED | Spliterator.IMMUTABLE), false);
     }
+    */
 
     /**
      * Returns an infinite sequential unordered stream where each element is
@@ -835,11 +802,13 @@ _methods_
      * @param s the {@code Supplier} of generated elements
      * @return a new infinite sequential unordered {@code Stream}
      */
-    public static<T> Stream<T> generate(Supplier<T> s) {
-        Objects.requireNonNull(s);
+     //TODO
+     /*
+    public static <%<A> %>_P0_Stream<%<A>%> generate(@NonNull _P0_Supplier<%<A>%> s) {
         return StreamSupport.stream(
                 new StreamSpliterators.InfiniteSupplyingSpliterator.OfRef<>(Long.MAX_VALUE, s), false);
     }
+    */
 
     /**
      * Creates a lazily concatenated stream whose elements are all the
@@ -859,16 +828,16 @@ _methods_
      * @param b the second stream
      * @return the concatenation of the two input streams
      */
-    public static <T> Stream<T> concat(Stream<? extends T> a, Stream<? extends T> b) {
-        Objects.requireNonNull(a);
-        Objects.requireNonNull(b);
-
+     //TODO
+     /*
+    public static <%<A> %>_P0_Stream<%<A>%> concat(@NonNull _P0_Stream_gExtends_ a, @NonNull _P0_Stream_gExtends_ b) {
         @SuppressWarnings("unchecked")
         Spliterator<T> split = new Streams.ConcatSpliterator.OfRef<>(
                 (Spliterator<T>) a.spliterator(), (Spliterator<T>) b.spliterator());
         Stream<T> stream = StreamSupport.stream(split, a.isParallel() || b.isParallel());
         return stream.onClose(Streams.composedClose(a, b));
     }
+    */
 
     /**
      * A mutable builder for a {@code Stream}.  This allows the creation of a
@@ -884,10 +853,10 @@ _methods_
      * builder, in the order they were added.
      *
      * @param <T> the type of stream elements
-     * @see Stream#builder()
+     * @see _P0_Stream#builder()
      * @since 1.8
      */
-    public interface Builder<T> extends Consumer<T> {
+    public interface Builder<%<A>%> extends _P0_Consumer<%<A>%> {
 
         /**
          * Adds an element to the stream being built.
@@ -896,7 +865,7 @@ _methods_
          * the built state
          */
         @Override
-        void accept(T t);
+        void accept(_p0_ t);
 
         /**
          * Adds an element to the stream being built.
@@ -913,8 +882,8 @@ _methods_
          * @throws IllegalStateException if the builder has already transitioned to
          * the built state
          */
-        default Builder<T> add(T t) {
-            accept(t);
+        default Builder_gH_ add(_p0_ t) {
+            this.accept(t);
             return this;
         }
 
@@ -927,7 +896,6 @@ _methods_
          * @throws IllegalStateException if the builder has already transitioned to
          * the built state
          */
-        Stream<T> build();
-
+        _P0_Stream_gH_ build();
     }
 }

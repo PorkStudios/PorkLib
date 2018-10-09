@@ -5,3 +5,18 @@
     //Stream (kinda)
 StreamSupport
     //Optional
+Map
+Set
+HashMap
+ConcurrentHashMap
+HashSet
+List
+ArrayList
+LinkedList
+LinkedHashMap
+LinkedHashSet
+Queue
+ArrayQueue
+ConcurrentLinkedQueue
+Deque
+ArrayDeque

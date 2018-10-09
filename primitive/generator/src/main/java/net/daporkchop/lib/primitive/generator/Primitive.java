@@ -36,9 +36,13 @@ public class Primitive {
     public static final String NAME_DEF = String.format("_%s_", PARAM_DEF.toLowerCase());
     public static final String NAME_FORCE_DEF = String.format("_name%s_", PARAM_DEF);
     public static final String HASHCODE_DEF = String.format("_hashCode%s_", PARAM_DEF);
+    public static final String EQUALS_DEF = String.format("_equals%s_", PARAM_DEF);
     public static final String CAST_DEF = String.format("_cast%s_", PARAM_DEF);
     public static final String EMPTYVALUE_DEF = String.format("_%sE_", PARAM_DEF);
     public static final String NON_GENERIC_DEF = String.format("_nG%s_", PARAM_DEF);
+    public static final String GENERIC_DEF = String.format("_G%s_", PARAM_DEF);
+    public static final String GENERIC_SUPER_P_DEF = String.format("_Gsuper%s_", PARAM_DEF);
+    public static final String GENERIC_EXTENDS_P_DEF = String.format("_Gextends%s_", PARAM_DEF);
 
     public static final String GENERIC_HEADER_DEF = "_gH_";
     public static final String GENERIC_SUPER_DEF = "_gSuper_";
@@ -61,6 +65,8 @@ public class Primitive {
     private boolean generic;
     @NonNull
     private String emptyValue;
+    @NonNull
+    private String equals;
 
     public String format(@NonNull String text, int i) {
         return this.format(text, i, true);
@@ -84,9 +90,13 @@ public class Primitive {
                 .replaceAll(String.format(NAME_DEF, i), this.generic ? String.valueOf((char) ('A' + i)) : this.name)
                 .replaceAll(String.format(NAME_FORCE_DEF, i), this.name)
                 .replaceAll(String.format(HASHCODE_DEF, i), this.hashCode)
+                .replaceAll(String.format(EQUALS_DEF, i), this.equals)
                 .replaceAll(String.format(CAST_DEF, i), this.generic ? "(" + (char) ('A' + i) + ") " : "")
                 .replaceAll(String.format(EMPTYVALUE_DEF, i), this.emptyValue)
-                .replaceAll(String.format(NON_GENERIC_DEF, i), this.generic ? "" : this.name);
+                .replaceAll(String.format(NON_GENERIC_DEF, i), this.generic ? "" : this.name)
+                .replaceAll(String.format(GENERIC_DEF, i), this.generic ? "<" + ((char) ('A' + i)) + "> " : "")
+                .replaceAll(String.format(GENERIC_SUPER_P_DEF, i), getGenericSuper(i, this))
+                .replaceAll(String.format(GENERIC_EXTENDS_P_DEF, i), getGenericExtends(i, this));
     }
 
     public Primitive setGeneric() {
@@ -108,7 +118,7 @@ public class Primitive {
         }
     }
 
-    public static String getGenericHeader(@NonNull Primitive[] primitives) {
+    public static String getGenericHeader(Primitive... primitives) {
         if (primitives.length == 0) {
             return "";
         }
@@ -131,7 +141,7 @@ public class Primitive {
         return (s.endsWith(", ") ? s.substring(0, s.length() - 2) : s) + '>';
     }
 
-    public static String getGenericSuper(@NonNull Primitive[] primitives) {
+    public static String getGenericSuper(Primitive... primitives) {
         if (primitives.length == 0) {
             return "";
         }
@@ -158,7 +168,7 @@ public class Primitive {
         return s + '>';
     }
 
-    public static String getGenericExtends(@NonNull Primitive[] primitives) {
+    public static String getGenericExtends(Primitive... primitives) {
         if (primitives.length == 0) {
             return "";
         }
@@ -176,6 +186,60 @@ public class Primitive {
             if (primitives[j].generic) {
                 s += "? extends ";
                 s += (char) ('A' + j);
+                s += ", ";
+            }
+        }
+        if (s.endsWith(", ")) {
+            s = s.substring(0, s.length() - 2);
+        }
+        return s + '>';
+    }
+
+    public static String getGenericSuper(int x, Primitive... primitives) {
+        if (primitives.length == 0) {
+            return "";
+        }
+        int i = 0;
+        for (Primitive p : primitives) {
+            if (p.generic) {
+                i++;
+            }
+        }
+        if (i == 0) {
+            return "";
+        }
+        String s = "<";
+        for (int j = 0; j < primitives.length; j++) {
+            if (primitives[j].generic) {
+                s += "? super ";
+                s += (char) ('A' + j + x);
+                s += ", ";
+            }
+        }
+        if (s.endsWith(", ")) {
+            s = s.substring(0, s.length() - 2);
+        }
+        return s + '>';
+    }
+
+    public static String getGenericExtends(int x, Primitive... primitives) {
+        if (primitives.length == 0) {
+            return "";
+        }
+        int i = 0;
+        for (Primitive p : primitives) {
+            if (p.generic) {
+                i++;
+            }
+        }
+        if (i == 0) {
+            return "";
+        }
+        String s = "<";
+        for (int j = 0; j < primitives.length; j++) {
+            if (primitives[j].generic) {
+                s += "? extends ";
+                s += (char) ('A' + j + x);
                 s += ", ";
             }
         }

@@ -1,8 +1,8 @@
-    public static int hash(<method%@NonNull %>_methodnameP0_ x) {
+    int hash(<method%@NonNull %>_methodnameP0_ x) {
         return _methodhashCodeP0_;
     }
 
-    public static int hash_methodP0_(<method%@NonNull %>_methodnameP0_ x) {
+    int hash_methodP0_(<method%@NonNull %>_methodnameP0_ x) {
         return _methodhashCodeP0_;
     }
 

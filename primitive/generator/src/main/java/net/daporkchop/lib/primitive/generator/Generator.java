@@ -46,6 +46,7 @@ public class Generator {
                         .setName("boolean")
                         .setHashCode("x ? 1 : 0")
                         .setEmptyValue("false")
+                        .setEquals("a == b")
         );
         primitives.add(
                 new Primitive()
@@ -53,6 +54,7 @@ public class Generator {
                         .setName("byte")
                         .setHashCode("x & 0xFF")
                         .setEmptyValue("(byte) 0")
+                        .setEquals("a == b")
         );
         primitives.add(
                 new Primitive()
@@ -60,6 +62,7 @@ public class Generator {
                         .setName("short")
                         .setHashCode("(x >> 8) ^ x")
                         .setEmptyValue("(short) 0")
+                        .setEquals("a == b")
         );
         primitives.add(
                 new Primitive()
@@ -67,6 +70,7 @@ public class Generator {
                         .setName("int")
                         .setHashCode("(x >> 24) ^ (x >> 16) ^ (x >> 8) ^ x")
                         .setEmptyValue("0")
+                        .setEquals("a == b")
         );
         primitives.add(
                 new Primitive()
@@ -74,6 +78,7 @@ public class Generator {
                         .setName("long")
                         .setHashCode("hashInteger((int) (x >> 32)) ^ hashInteger((int) x)")
                         .setEmptyValue("0L")
+                        .setEquals("a == b")
         );
         primitives.add(
                 new Primitive()
@@ -81,6 +86,7 @@ public class Generator {
                         .setName("float")
                         .setHashCode("hashInteger(Float.floatToIntBits(x))")
                         .setEmptyValue("0.0f")
+                        .setEquals("a == b")
         );
         primitives.add(
                 new Primitive()
@@ -88,6 +94,7 @@ public class Generator {
                         .setName("double")
                         .setHashCode("hashLong(Double.doubleToLongBits(x))")
                         .setEmptyValue("0.0d")
+                        .setEquals("a == b")
         );
         primitives.add(
                 new Primitive()
@@ -96,6 +103,7 @@ public class Generator {
                         .setHashCode("Objects.hashCode(x)")
                         .setGeneric()
                         .setEmptyValue("null")
+                        .setEquals("Objects.equals(a, b)")
         );
 
         try (InputStream is = new FileInputStream(new File(".", "../../LICENSE"))) {

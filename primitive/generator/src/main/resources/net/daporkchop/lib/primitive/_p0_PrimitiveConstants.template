@@ -1,5 +1,5 @@
 _headers_
 
-public class PrimitiveConstants {
+public interface PrimitiveConstants {
 _methods_
 }

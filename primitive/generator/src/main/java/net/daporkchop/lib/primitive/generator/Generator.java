@@ -24,8 +24,10 @@ import java.io.*;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
+import static java.lang.Math.max;
 import static net.daporkchop.lib.primitive.generator.Primitive.*;
 
 /**
@@ -76,8 +78,8 @@ public class Generator {
         );
         primitives.add(
                 new Primitive()
-                        .setFullName("Long")
-                        .setName("long")
+                        .setFullName("Double")
+                        .setName("double")
                         .setHashCode("this.hashLong(Double.doubleToLongBits(x))")
         );
         primitives.add(
@@ -89,9 +91,8 @@ public class Generator {
         );
 
         try (InputStream is = new FileInputStream(new File(".", "../../LICENSE"))) {
-            byte[] b = IOUtils.readFully(is, -1, false);
             LICENSE = String.format("/*\n * %s\n */",
-                    new String(b)
+                    new String(IOUtils.readFully(is, -1, false))
                             .replace("$today.year", String.valueOf(Calendar.getInstance().get(Calendar.YEAR)))
                             /*.trim()*/.replaceAll("\n", "\n * "));
         } catch (IOException e) {
@@ -145,9 +146,9 @@ public class Generator {
 
         this.generate(this.inRoot, this.outRoot);
 
-        if (this.existing.size() > this.generated.size())   {
+        if (this.existing.size() > this.generated.size()) {
             System.out.printf("Existing: %d, generated: %d\n", this.existing.size(), this.generated.size());
-            for (String s : new ArrayDeque<>(this.generated))   {
+            for (String s : new ArrayDeque<>(this.generated)) {
                 int count = Primitive.countVariables(s);
                 if (count == 0) {
                     this.generated.add(s.replaceAll("\\.template", ".java"));
@@ -187,6 +188,9 @@ public class Generator {
             throw new IllegalStateException();
         }
         if (file.isDirectory()) {
+            if (file.getName().endsWith("_methods")) {
+                return;
+            }
             if (!"resources".equals(file.getName())) {
                 out = new File(out, file.getName());
             }
@@ -202,21 +206,44 @@ public class Generator {
             String packageName = this.getPackageName(file);
             this.generated.add(String.format("%s.%s", packageName, file.getName()));
             int count = Primitive.countVariables(name);
+
+            long lastModified = file.lastModified();
+
+            String[] methods = new String[0];
+            File methodsDir = new File(file.getParentFile(), String.format("%s_methods", file.getName().replaceAll(".template", "")));
+            if (methodsDir.exists()) {
+                if (!methodsDir.isDirectory()) {
+                    throw new IllegalStateException();
+                }
+                File[] files = methodsDir.listFiles();
+                if (files == null) {
+                    throw new NullPointerException();
+                }
+                methods = new String[files.length];
+                for (int i = 0; i < files.length; i++) {
+                    File f = files[i];
+                    lastModified = max(lastModified, f.lastModified());
+                    try (InputStream is = new FileInputStream(f)) {
+                        methods[i] = new String(IOUtils.readFully(is, -1, false));
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
             {
                 String s = name.replaceAll(".template", ".java");
                 for (int i = 0; i < count; i++) {
                     s = s.replaceAll(String.format(FULLNAME_DEF, i), "Byte");
                 }
                 File potentialOut = new File(out, s);
-                if (potentialOut.exists() && potentialOut.lastModified() >= file.lastModified()) {
+                if (potentialOut.exists() && potentialOut.lastModified() >= lastModified) {
                     System.out.printf("Skipping %s\n", name);
                     return;
                 }
             }
             String content;
             try (InputStream is = new FileInputStream(file)) {
-                byte[] b = IOUtils.readFully(is, -1, false);
-                content = new String(b);
+                content = new String(IOUtils.readFully(is, -1, false));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -224,21 +251,43 @@ public class Generator {
                 throw new IllegalStateException();
             }
             System.out.printf("Generating %s\n", name);
-            this.populateToDepth(out, name, content, String.format("package %s;", packageName), count);
+            this.populateToDepth(out, name, content, String.format("package %s;", packageName), methods, count);
         }
     }
 
-    private void populateToDepth(@NonNull File path, @NonNull String name, @NonNull String content, @NonNull String packageName, int depth, Primitive... primitives) {
+    private void populateToDepth(@NonNull File path, @NonNull String name, @NonNull String content, @NonNull String packageName, @NonNull String[] methods, int depth, Primitive... primitives) {
         if (depth > primitives.length) {
             Primitive[] p = new Primitive[primitives.length + 1];
             System.arraycopy(primitives, 0, p, 0, primitives.length);
             Primitive.primitives.forEach(primitive -> {
                 p[p.length - 1] = primitive;
-                this.populateToDepth(path, name, content, packageName, depth, p);
+                this.populateToDepth(path, name, content, packageName, methods, depth, p);
             });
         } else {
             String nameOut = name.replaceAll(".template", ".java");
             String contentOut = content;
+
+            if (methods.length != 0) {
+                StringBuilder builder = new StringBuilder();
+                for (String s : methods) {
+                    this.forEachPrimitiveRecursive(primitives1 -> {
+                        String in = s;
+                        for (int i = primitives.length - 1; i >= 0; i--) {
+                            in = primitives[i].format(in, i, false);
+                        }
+                        in = in
+                                .replaceAll("_method", "_")
+                                .replaceAll("<method%", "<%");
+                        AtomicReference<String> ref = new AtomicReference<>(in);
+                        for (int i = 0; i < primitives1.length; i++) {
+                            ref.set(primitives1[i].format(ref.get(), i));
+                        }
+                        builder.append(ref.get());
+                    }, depth);
+                }
+                contentOut = contentOut.replaceAll(METHODS_DEF, builder.toString());
+            }
+
             if (depth == 0) {
                 int i = 0;
                 for (Primitive p : Primitive.primitives) {
@@ -257,10 +306,12 @@ public class Generator {
             contentOut = contentOut
                     .replaceAll(GENERIC_HEADER_DEF, Primitive.getGenericHeader(primitives))
                     .replaceAll(GENERIC_SUPER_DEF, Primitive.getGenericSuper(primitives))
+                    .replaceAll(GENERIC_EXTENDS_DEF, Primitive.getGenericExtends(primitives))
                     .replaceAll(HEADERS_DEF, String.format("%s\n\n%s\n\n%s", LICENSE_DEF, PACKAGE_DEF, IMPORTS_DEF))
                     .replaceAll(PACKAGE_DEF, packageName)
                     .replaceAll(IMPORTS_DEF, this.imports)
                     .replaceAll(LICENSE_DEF, LICENSE);
+
             try (OutputStream os = new FileOutputStream(file)) {
                 byte[] b = contentOut.getBytes(UTF8.utf8);
                 os.write(b);
@@ -367,8 +418,8 @@ public class Generator {
         if (files == null) {
             throw new NullPointerException();
         }
-        for (File f : files)    {
-            if (f.isDirectory())    {
+        for (File f : files) {
+            if (f.isDirectory()) {
                 this.addAllExisting(f);
             } else {
                 this.existing.add(String.format("%s.%s", this.getPackageName(f), f.getName()));

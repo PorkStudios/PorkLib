@@ -11,7 +11,7 @@ _headers_
  *
  * @since 1.8
  */
-public interface _P0__P1_Function_gH_ {
+public interface _P0__P1_Function_gH_ extends _P0_Acceptor, _P0_Provider {
     /**
      * Applies this function to the given argument.
      *

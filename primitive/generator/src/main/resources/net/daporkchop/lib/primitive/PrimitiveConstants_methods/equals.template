@@ -1,0 +1,8 @@
+    boolean equals(_methodnameP0_ a, _methodnameP0_ b) {
+        return _methodequalsP0_;
+    }
+
+    boolean equals_methodP0_(_methodnameP0_ a, _methodnameP0_ b) {
+        return _methodequalsP0_;
+    }
+

@@ -16,4 +16,10 @@
 dependencies {
 }
 
+task deleteSource(type: Delete) {
+    delete "src"
+}
+
+clean.dependsOn(deleteSource)
+
 compileJava.dependsOn(":primitive:generator:gen")

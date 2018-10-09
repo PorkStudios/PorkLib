@@ -200,6 +200,7 @@ public class Generator {
         } else if (file.getName().endsWith(".template")) {
             String name = file.getName();
             String packageName = this.getPackageName(file);
+            this.generated.add(String.format("%s.%s", packageName, file.getName()));
             int count = Primitive.countVariables(name);
             {
                 String s = name.replaceAll(".template", ".java");
@@ -209,7 +210,6 @@ public class Generator {
                 File potentialOut = new File(out, s);
                 if (potentialOut.exists() && potentialOut.lastModified() >= file.lastModified()) {
                     System.out.printf("Skipping %s\n", name);
-                    this.generated.add(String.format("%s.%s", packageName, file.getName()));
                     return;
                 }
             }
@@ -272,7 +272,7 @@ public class Generator {
             if (!file.setLastModified(System.currentTimeMillis())) {
                 throw new IllegalStateException();
             }
-            this.generated.add(String.format("%s.%s", packageName, file.getName()));
+            //this.generated.add(String.format("%s.%s", packageName, file.getName()));
         }
     }
 

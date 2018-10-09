@@ -24,6 +24,7 @@ import java.io.*;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 
 import static net.daporkchop.lib.primitive.generator.Primitive.*;
 
@@ -145,22 +146,38 @@ public class Generator {
         this.generate(this.inRoot, this.outRoot);
 
         if (this.existing.size() > this.generated.size())   {
+            System.out.printf("Existing: %d, generated: %d\n", this.existing.size(), this.generated.size());
+            for (String s : new ArrayDeque<>(this.generated))   {
+                int count = Primitive.countVariables(s);
+                if (count == 0) {
+                    this.generated.add(s.replaceAll("\\.template", ".java"));
+                } else {
+                    this.forEachPrimitiveRecursive(primitives -> {
+                        String s1 = s;
+                        for (int i = 0; i < primitives.length; i++) {
+                            s1 = s1.replaceAll(String.format(FULLNAME_DEF, i), primitives[i].getFullName());
+                        }
+                        this.generated.add(s1.replaceAll("\\.template", ".java"));
+                    }, count);
+                }
+            }
             this.existing.removeAll(this.generated);
-            AtomicLong deletedCount = new AtomicLong(0L);
+            System.out.printf("Existing: %d, generated: %d\n", this.existing.size(), this.generated.size());
+            AtomicLong deletedFiles = new AtomicLong(0L);
             AtomicLong deletedSize = new AtomicLong(0L);
             this.existing.forEach(s -> {
-                File file = new File(this.outRoot, s.replaceAll("\\.", "/"));
+                File file = new File(this.outRoot, s.replaceAll("\\.", "/").replaceAll("/java", ".java"));
                 deletedSize.addAndGet(file.length());
                 if (!file.delete()) {
-                    throw new IllegalStateException();
+                    throw new IllegalStateException(String.format("Unable to delete file %s", file.getAbsoluteFile().getAbsolutePath()));
                 }
-                deletedCount.incrementAndGet();
+                deletedFiles.incrementAndGet();
             });
             System.out.printf(
                     "Deleted %d old files, totalling %s bytes (%.2f megabytes)\n",
-                    FILES.get(),
-                    NumberFormat.getInstance(Locale.US).format(SIZE.get()),
-                    SIZE.get() / 1024.0d / 1024.0d
+                    deletedFiles.get(),
+                    NumberFormat.getInstance(Locale.US).format(deletedSize.get()),
+                    deletedSize.get() / 1024.0d / 1024.0d
             );
         }
     }
@@ -182,6 +199,7 @@ public class Generator {
             }
         } else if (file.getName().endsWith(".template")) {
             String name = file.getName();
+            String packageName = this.getPackageName(file);
             int count = Primitive.countVariables(name);
             {
                 String s = name.replaceAll(".template", ".java");
@@ -191,6 +209,7 @@ public class Generator {
                 File potentialOut = new File(out, s);
                 if (potentialOut.exists() && potentialOut.lastModified() >= file.lastModified()) {
                     System.out.printf("Skipping %s\n", name);
+                    this.generated.add(String.format("%s.%s", packageName, file.getName()));
                     return;
                 }
             }
@@ -205,7 +224,7 @@ public class Generator {
                 throw new IllegalStateException();
             }
             System.out.printf("Generating %s\n", name);
-            this.populateToDepth(out, name, content, String.format("package %s;", this.getPackageName(file)), count);
+            this.populateToDepth(out, name, content, String.format("package %s;", packageName), count);
         }
     }
 
@@ -354,6 +373,19 @@ public class Generator {
             } else {
                 this.existing.add(String.format("%s.%s", this.getPackageName(f), f.getName()));
             }
+        }
+    }
+
+    private void forEachPrimitiveRecursive(@NonNull Consumer<Primitive[]> consumer, int depth, Primitive... primitives) {
+        if (depth > primitives.length) {
+            Primitive[] p = new Primitive[primitives.length + 1];
+            System.arraycopy(primitives, 0, p, 0, primitives.length);
+            Primitive.primitives.forEach(primitive -> {
+                p[p.length - 1] = primitive;
+                this.forEachPrimitiveRecursive(consumer, depth, p);
+            });
+        } else {
+            consumer.accept(primitives);
         }
     }
 }

@@ -487,9 +487,12 @@ public interface _P0_Collection_gH_ {
      * @return a sequential {@code Stream} over the elements in this collection
      * @since 1.8
      */
-    default Stream<E> stream() {
+     //TODO
+     /*
+    default _P0_Stream_gH_ stream() {
         return StreamSupport.stream(spliterator(), false);
     }
+    */
 
     /**
      * Returns a possibly parallel {@code Stream} with this collection as its
@@ -508,7 +511,10 @@ public interface _P0_Collection_gH_ {
      * collection
      * @since 1.8
      */
-    default Stream<E> parallelStream() {
+     //TODO
+     /*
+    default _P0_Stream_gH_ parallelStream() {
         return StreamSupport.stream(spliterator(), true);
     }
+    */
 }

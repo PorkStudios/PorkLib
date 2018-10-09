@@ -37,6 +37,8 @@ public class Primitive {
     public static final String NAME_FORCE_DEF = String.format("_name%s_", PARAM_DEF);
     public static final String HASHCODE_DEF = String.format("_hashCode%s_", PARAM_DEF);
     public static final String CAST_DEF = String.format("_cast%s_", PARAM_DEF);
+    public static final String EMPTYVALUE_DEF = String.format("_%sE_", PARAM_DEF);
+    public static final String NON_GENERIC_DEF = String.format("_nG%s_", PARAM_DEF);
 
     public static final String GENERIC_HEADER_DEF = "_gH_";
     public static final String GENERIC_SUPER_DEF = "_gSuper_";
@@ -57,10 +59,8 @@ public class Primitive {
     private String hashCode;
     @NonNull
     private boolean generic;
-
-    public static void main(String... args) {
-        System.out.println("<method%Hello world!%>".replaceAll("<%([\\s\\S]*?)%>", ""));
-    }
+    @NonNull
+    private String emptyValue;
 
     public String format(@NonNull String text, int i) {
         return this.format(text, i, true);
@@ -84,7 +84,9 @@ public class Primitive {
                 .replaceAll(String.format(NAME_DEF, i), this.generic ? String.valueOf((char) ('A' + i)) : this.name)
                 .replaceAll(String.format(NAME_FORCE_DEF, i), this.name)
                 .replaceAll(String.format(HASHCODE_DEF, i), this.hashCode)
-                .replaceAll(String.format(CAST_DEF, i), this.generic ? "(" + (char) ('A' + i) + ") " : "");
+                .replaceAll(String.format(CAST_DEF, i), this.generic ? "(" + (char) ('A' + i) + ") " : "")
+                .replaceAll(String.format(EMPTYVALUE_DEF, i), this.emptyValue)
+                .replaceAll(String.format(NON_GENERIC_DEF, i), this.generic ? "" : this.name);
     }
 
     public Primitive setGeneric() {

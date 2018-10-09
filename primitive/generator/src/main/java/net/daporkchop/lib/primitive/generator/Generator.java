@@ -45,49 +45,57 @@ public class Generator {
                         .setFullName("Boolean")
                         .setName("boolean")
                         .setHashCode("x ? 1 : 0")
+                        .setEmptyValue("false")
         );
         primitives.add(
                 new Primitive()
                         .setFullName("Byte")
                         .setName("byte")
                         .setHashCode("x & 0xFF")
+                        .setEmptyValue("(byte) 0")
         );
         primitives.add(
                 new Primitive()
                         .setFullName("Short")
                         .setName("short")
                         .setHashCode("(x >> 8) ^ x")
+                        .setEmptyValue("(short) 0")
         );
         primitives.add(
                 new Primitive()
                         .setFullName("Integer")
                         .setName("int")
                         .setHashCode("(x >> 24) ^ (x >> 16) ^ (x >> 8) ^ x")
+                        .setEmptyValue("0")
         );
         primitives.add(
                 new Primitive()
                         .setFullName("Long")
                         .setName("long")
-                        .setHashCode("this.hashInteger((int) ((x >> 32) & 0xFFFFFFFF)) ^ this.hashInteger((int) x)")
+                        .setHashCode("hashInteger((int) (x >> 32)) ^ hashInteger((int) x)")
+                        .setEmptyValue("0L")
         );
         primitives.add(
                 new Primitive()
                         .setFullName("Float")
                         .setName("float")
-                        .setHashCode("this.hashInteger(Float.floatToIntBits(x))")
+                        .setHashCode("hashInteger(Float.floatToIntBits(x))")
+                        .setEmptyValue("0.0f")
         );
         primitives.add(
                 new Primitive()
                         .setFullName("Double")
                         .setName("double")
-                        .setHashCode("this.hashLong(Double.doubleToLongBits(x))")
+                        .setHashCode("hashLong(Double.doubleToLongBits(x))")
+                        .setEmptyValue("0.0d")
         );
         primitives.add(
                 new Primitive()
                         .setFullName("Object")
                         .setName("Object")
-                        .setHashCode("java.util.Objects.hashCode(x)")
+                        .setHashCode("Objects.hashCode(x)")
                         .setGeneric()
+                        .setEmptyValue("null")
         );
 
         try (InputStream is = new FileInputStream(new File(".", "../../LICENSE"))) {
@@ -204,13 +212,29 @@ public class Generator {
         } else if (file.getName().endsWith(".template")) {
             String name = file.getName();
             String packageName = this.getPackageName(file);
-            this.generated.add(String.format("%s.%s", packageName, file.getName()));
-            int count = Primitive.countVariables(name);
-
+            int count;
+            {
+                count = Primitive.countVariables(name);
+                int countUpper = Primitive.countVariables(name.toUpperCase());
+                if (countUpper > count) {
+                    for (int i = 0; ; i++) {
+                        String s = String.format(FULLNAME_DEF.toLowerCase(), i);
+                        if (name.contains(s)) {
+                            name = name.replaceAll(s, "");
+                        } else {
+                            break;
+                        }
+                    }
+                    count = countUpper;
+                    //System.out.println("done " + name);
+                }
+                //System.out.println(name);
+            }
+            this.generated.add(String.format("%s.%s", packageName, name));
             long lastModified = file.lastModified();
 
             String[] methods = new String[0];
-            File methodsDir = new File(file.getParentFile(), String.format("%s_methods", file.getName().replaceAll(".template", "")));
+            File methodsDir = new File(file.getParentFile(), String.format("%s_methods", name.replaceAll(".template", "")));
             if (methodsDir.exists()) {
                 if (!methodsDir.isDirectory()) {
                     throw new IllegalStateException();
@@ -402,7 +426,11 @@ public class Generator {
         boolean flag = true;
         for (File f : files) {
             if (f.isDirectory()) {
-                this.getImportsRecursive(f);
+                if (f.getName().endsWith("_methods"))   {
+                    continue;
+                } else {
+                    this.getImportsRecursive(f);
+                }
             } else if (flag && f.getName().endsWith(".template")) {
                 this.importList.add(String.format("%s.*", this.getPackageName(f)));
                 flag = false;

@@ -1,6 +1,7 @@
-//BinaryOperator
-//BiPredicate
-//Predicate
-//UnaryOperator
-Stream
+    //BinaryOperator
+    //BiPredicate
+    //Predicate
+    //UnaryOperator
+    //Stream (kinda)
 StreamSupport
+    //Optional

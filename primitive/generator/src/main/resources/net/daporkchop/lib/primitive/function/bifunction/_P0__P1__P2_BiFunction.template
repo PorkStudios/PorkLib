@@ -1,0 +1,26 @@
+_headers_
+
+/**
+ * Represents a function that accepts two arguments and produces a result.
+ * This is the two-arity specialization of {@link _P0__P2_Function}.
+ *
+ * <p>This is a <a href="package-summary.html">functional interface</a>
+ * whose functional method is {@link #apply(_nameP0_, _nameP1_)}.
+ *
+ * @param <A> the type of the first argument to the function
+ * @param <B> the type of the second argument to the function
+ * @param <C> the type of the result of the function
+ *
+ * @see _P0__P2_Function
+ * @since 1.8
+ */
+public interface _P0__P1__P2_BiFunction_gH_ {
+    /**
+     * Applies this function to the given arguments.
+     *
+     * @param t the first function argument
+     * @param u the second function argument
+     * @return the function result
+     */
+    _p2_ apply(_p0_ t, _p1_ u);
+}

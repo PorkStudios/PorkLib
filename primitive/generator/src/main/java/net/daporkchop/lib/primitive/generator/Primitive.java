@@ -30,59 +30,20 @@ import java.util.Collection;
 @NoArgsConstructor
 public class Primitive {
     public static final Collection<Primitive> primitives = new ArrayDeque<>();
-    public static final String FULLNAME_DEF = "_P%d_";
-    public static final String NAME_DEF = "_p%d_";
-    public static final String NAME_FORCE_DEF = "_name%d_";
-    public static final String HASHCODE_DEF = "_hashCodeP%d_";
-    public static final String CAST_DEF = "_castP%d_";
-    public static final String METHOD_GENERIC_HEADER_DEF = "_methodG_hP%d_";
-    public static final String METHOD_GENERIC_SUPER_DEF = "_methodG_superP%d_";
+    public static final String PARAM_DEF = "P%d";
+    public static final String FULLNAME_DEF = String.format("_%s_", PARAM_DEF);
+    public static final String NAME_DEF = String.format("_%s_", PARAM_DEF.toLowerCase());
+    public static final String NAME_FORCE_DEF = String.format("_name%s_", PARAM_DEF);
+    public static final String HASHCODE_DEF = String.format("_hashCode%s_", PARAM_DEF);
+    public static final String CAST_DEF = String.format("_cast%s_", PARAM_DEF);
 
-    static {
-        primitives.add(
-                new Primitive()
-                        .setFullName("Byte")
-                        .setName("byte")
-                        .setHashCode("x & 0xFF")
-        );
-        primitives.add(
-                new Primitive()
-                        .setFullName("Short")
-                        .setName("short")
-                        .setHashCode("(x >> 8) ^ x")
-        );
-        primitives.add(
-                new Primitive()
-                        .setFullName("Integer")
-                        .setName("int")
-                        .setHashCode("(x >> 24) ^ (x >> 16) ^ (x >> 8) ^ x")
-        );
-        primitives.add(
-                new Primitive()
-                        .setFullName("Long")
-                        .setName("long")
-                        .setHashCode("this.hashInteger((int) ((x >> 32) & 0xFFFFFFFF)) ^ this.hashInteger((int) x)")
-        );
-        primitives.add(
-                new Primitive()
-                        .setFullName("Float")
-                        .setName("float")
-                        .setHashCode("this.hashInteger(Float.floatToIntBits(x))")
-        );
-        primitives.add(
-                new Primitive()
-                        .setFullName("Long")
-                        .setName("long")
-                        .setHashCode("this.hashLong(Double.doubleToLongBits(x))")
-        );
-        primitives.add(
-                new Primitive()
-                        .setFullName("Object")
-                        .setName("Object")
-                        .setHashCode("java.util.Objects.hashCode(x)")
-                        .setGeneric()
-        );
-    }
+    public static final String GENERIC_HEADER_DEF = "_gH_";
+    public static final String GENERIC_SUPER_DEF = "_gSuper_";
+
+    public static final String HEADERS_DEF = "_headers_";
+    public static final String LICENSE_DEF = "_copyright_";
+    public static final String PACKAGE_DEF = "_package_";
+    public static final String IMPORTS_DEF = "_imports_";
 
     @NonNull
     private String fullName;
@@ -91,7 +52,26 @@ public class Primitive {
     @NonNull
     private String hashCode;
     @NonNull
-    private boolean generic = false;
+    private boolean generic;
+
+    public String format(@NonNull String text, int i) {
+        return text
+                .replaceAll(String.format(FULLNAME_DEF, i), this.fullName)
+                .replaceAll(String.format(NAME_DEF, i), this.generic ? String.valueOf((char) ('A' + i)) : this.name)
+                .replaceAll(String.format(NAME_FORCE_DEF, i), this.name)
+                .replaceAll(String.format(HASHCODE_DEF, i), this.hashCode)
+                .replaceAll(String.format(CAST_DEF, i), this.generic ? "(" + (char) ('A' + i) + ") " : "");
+    }
+
+    public Primitive setGeneric() {
+        this.generic = true;
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        return this.fullName;
+    }
 
     public static int countVariables(@NonNull String filename) {
         for (int i = 0; ; i++) {
@@ -117,11 +97,12 @@ public class Primitive {
         }
         String s = "<";
         for (int j = 0; j < primitives.length; j++) {
-            if (primitives[j].generic){
+            if (primitives[j].generic) {
                 s += (char) ('A' + j);
+                s += ", ";
             }
         }
-        return s + '>';
+        return (s.endsWith(", ") ? s.substring(0, s.length() - 2) : s) + '>';
     }
 
     public static String getGenericSuper(@NonNull Primitive[] primitives) {
@@ -145,29 +126,9 @@ public class Primitive {
                 s += ", ";
             }
         }
-        if (s.endsWith(", "))   {
+        if (s.endsWith(", ")) {
             s = s.substring(0, s.length() - 2);
         }
         return s + '>';
-    }
-
-    public String format(@NonNull String text, int i) {
-        return text
-                .replaceAll(String.format(FULLNAME_DEF, i), this.fullName)
-                .replaceAll(String.format(NAME_DEF, i), this.generic ? String.valueOf((char) ('A' + i)) : this.name)
-                .replaceAll(String.format(NAME_FORCE_DEF, i), this.name)
-                .replaceAll(String.format(HASHCODE_DEF, i), this.hashCode)
-                .replaceAll(String.format(CAST_DEF, i), this.generic ? "(" + (char) ('A' + i) + ") " : "")
-                .replaceAll(String.format(METHOD_GENERIC_HEADER_DEF, i), this.generic ? "<V>" : "");
-    }
-
-    private Primitive setGeneric() {
-        this.generic = true;
-        return this;
-    }
-
-    @Override
-    public String toString() {
-        return this.fullName;
     }
 }

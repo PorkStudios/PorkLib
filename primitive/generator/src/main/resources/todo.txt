@@ -2,3 +2,5 @@
 //BiPredicate
 //Predicate
 //UnaryOperator
+Stream
+StreamSupport

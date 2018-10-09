@@ -40,11 +40,14 @@ public class Primitive {
 
     public static final String GENERIC_HEADER_DEF = "_gH_";
     public static final String GENERIC_SUPER_DEF = "_gSuper_";
+    public static final String GENERIC_EXTENDS_DEF = "_gExtends_";
 
     public static final String HEADERS_DEF = "_headers_";
     public static final String LICENSE_DEF = "_copyright_";
     public static final String PACKAGE_DEF = "_package_";
     public static final String IMPORTS_DEF = "_imports_";
+
+    public static final String METHODS_DEF = "_methods_";
 
     @NonNull
     private String fullName;
@@ -55,7 +58,26 @@ public class Primitive {
     @NonNull
     private boolean generic;
 
+    public static void main(String... args) {
+        System.out.println("<method%Hello world!%>".replaceAll("<%([\\s\\S]*?)%>", ""));
+    }
+
     public String format(@NonNull String text, int i) {
+        return this.format(text, i, true);
+    }
+
+    public String format(@NonNull String text, int i, boolean removeGenericThings) {
+        if (i == 0) {
+            if (this.generic) {
+                if (removeGenericThings){
+                    text = text
+                            .replaceAll("<%", "")
+                            .replaceAll("%>", "");
+                }
+            } else {
+                text = text.replaceAll("<%([\\s\\S]*?)%>", "");
+            }
+        }
         return text
                 .replaceAll(String.format(FULLNAME_DEF, i), this.fullName)
                 .replaceAll(String.format(FULLNAME_FORCE_DEF, i), this.generic ? String.valueOf((char) ('A' + i)) : this.fullName)
@@ -124,6 +146,33 @@ public class Primitive {
         for (int j = 0; j < primitives.length; j++) {
             if (primitives[j].generic) {
                 s += "? super ";
+                s += (char) ('A' + j);
+                s += ", ";
+            }
+        }
+        if (s.endsWith(", ")) {
+            s = s.substring(0, s.length() - 2);
+        }
+        return s + '>';
+    }
+
+    public static String getGenericExtends(@NonNull Primitive[] primitives) {
+        if (primitives.length == 0) {
+            return "";
+        }
+        int i = 0;
+        for (Primitive p : primitives) {
+            if (p.generic) {
+                i++;
+            }
+        }
+        if (i == 0) {
+            return "";
+        }
+        String s = "<";
+        for (int j = 0; j < primitives.length; j++) {
+            if (primitives[j].generic) {
+                s += "? extends ";
                 s += (char) ('A' + j);
                 s += ", ";
             }

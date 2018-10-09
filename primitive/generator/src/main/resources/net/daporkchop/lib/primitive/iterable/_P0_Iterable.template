@@ -12,7 +12,7 @@ _headers_
  * @since 1.5
  * @jls 14.14.2 The enhanced for statement
  */
-public interface _P0_Iterable_gH_ {
+public interface _P0_Iterable_gH_ /*extends Iterable<_fullnameP0_>*/ {
     /**
      * Returns an iterator over elements of type {@code _p0_}.
      *
@@ -40,33 +40,6 @@ public interface _P0_Iterable_gH_ {
      * @since 1.8
      */
     default void forEach(@NonNull _P0_Consumer_gSuper_ action) {
-        for (_p0_ t : this) {
-            action.accept(t);
-        }
-    }
-
-    /**
-     * Creates a {@link _P0_Spliterator} over the elements described by this
-     * {@code _P0_Iterable}.
-     *
-     * @implSpec
-     * The default implementation creates an
-     * <em><a href="_P0_Spliterator.html#binding">early-binding</a></em>
-     * spliterator from the iterable's {@code _P0_Iterator}.  The spliterator
-     * inherits the <em>fail-fast</em> properties of the iterable's iterator.
-     *
-     * @implNote
-     * The default implementation should usually be overridden.  The
-     * spliterator returned by the default implementation has poor splitting
-     * capabilities, is unsized, and does not report any spliterator
-     * characteristics. Implementing classes can nearly always provide a
-     * better implementation.
-     *
-     * @return a {@code _P0_Spliterator} over the elements described by this
-     * {@code _P0_Iterable}.
-     * @since 1.8
-     */
-    default _P0_Spliterator_gH_ spliterator() {
-        return _P0_Spliterators.spliteratorUnknownSize(this.iterator(), 0);
+        this.iterator().forEachRemaining(action::accept);
     }
 }

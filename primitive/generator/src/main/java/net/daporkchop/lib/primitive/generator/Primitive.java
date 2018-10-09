@@ -32,6 +32,7 @@ public class Primitive {
     public static final Collection<Primitive> primitives = new ArrayDeque<>();
     public static final String PARAM_DEF = "P%d";
     public static final String FULLNAME_DEF = String.format("_%s_", PARAM_DEF);
+    public static final String FULLNAME_FORCE_DEF = String.format("_fullname%s_", PARAM_DEF);
     public static final String NAME_DEF = String.format("_%s_", PARAM_DEF.toLowerCase());
     public static final String NAME_FORCE_DEF = String.format("_name%s_", PARAM_DEF);
     public static final String HASHCODE_DEF = String.format("_hashCode%s_", PARAM_DEF);
@@ -57,6 +58,7 @@ public class Primitive {
     public String format(@NonNull String text, int i) {
         return text
                 .replaceAll(String.format(FULLNAME_DEF, i), this.fullName)
+                .replaceAll(String.format(FULLNAME_FORCE_DEF, i), this.generic ? String.valueOf((char) ('A' + i)) : this.fullName)
                 .replaceAll(String.format(NAME_DEF, i), this.generic ? String.valueOf((char) ('A' + i)) : this.name)
                 .replaceAll(String.format(NAME_FORCE_DEF, i), this.name)
                 .replaceAll(String.format(HASHCODE_DEF, i), this.hashCode)

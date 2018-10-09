@@ -39,6 +39,12 @@ public class Generator {
     static {
         primitives.add(
                 new Primitive()
+                        .setFullName("Boolean")
+                        .setName("boolean")
+                        .setHashCode("x ? 1 : 0")
+        );
+        primitives.add(
+                new Primitive()
                         .setFullName("Byte")
                         .setName("byte")
                         .setHashCode("x & 0xFF")
@@ -112,17 +118,23 @@ public class Generator {
                 SIZE.get() / 1024.0d / 1024.0d
         );
     }
+
     @NonNull
     public final File inRoot;
     @NonNull
     public final File outRoot;
     private final List<String> importList = new ArrayList<>();
+    private final Collection<String> existing = new ArrayDeque<>();
+    private final Collection<String> generated = new ArrayDeque<>();
     private String imports;
 
     public void generate() {
-        if (this.outRoot.exists()) {
+        if (false && this.outRoot.exists()) {
             this.rmDir(this.outRoot);
             //TODO: only delete files that no longer need to be created
+        }
+        if (this.outRoot.exists()) {
+            this.addAllExisting(this.outRoot);
         }
         if (!this.outRoot.exists() && !this.outRoot.mkdirs()) {
             throw new IllegalStateException();
@@ -131,6 +143,26 @@ public class Generator {
         this.getImports();
 
         this.generate(this.inRoot, this.outRoot);
+
+        if (this.existing.size() > this.generated.size())   {
+            this.existing.removeAll(this.generated);
+            AtomicLong deletedCount = new AtomicLong(0L);
+            AtomicLong deletedSize = new AtomicLong(0L);
+            this.existing.forEach(s -> {
+                File file = new File(this.outRoot, s.replaceAll("\\.", "/"));
+                deletedSize.addAndGet(file.length());
+                if (!file.delete()) {
+                    throw new IllegalStateException();
+                }
+                deletedCount.incrementAndGet();
+            });
+            System.out.printf(
+                    "Deleted %d old files, totalling %s bytes (%.2f megabytes)\n",
+                    FILES.get(),
+                    NumberFormat.getInstance(Locale.US).format(SIZE.get()),
+                    SIZE.get() / 1024.0d / 1024.0d
+            );
+        }
     }
 
     public void generate(@NonNull File file, @NonNull File out) {
@@ -150,8 +182,18 @@ public class Generator {
             }
         } else if (file.getName().endsWith(".template")) {
             String name = file.getName();
-            System.out.println(name);
             int count = Primitive.countVariables(name);
+            {
+                String s = name.replaceAll(".template", ".java");
+                for (int i = 0; i < count; i++) {
+                    s = s.replaceAll(String.format(FULLNAME_DEF, i), "Byte");
+                }
+                File potentialOut = new File(out, s);
+                if (potentialOut.exists() && potentialOut.lastModified() >= file.lastModified()) {
+                    System.out.printf("Skipping %s\n", name);
+                    return;
+                }
+            }
             String content;
             try (InputStream is = new FileInputStream(file)) {
                 byte[] b = IOUtils.readFully(is, -1, false);
@@ -162,6 +204,7 @@ public class Generator {
             if (!out.exists() && !out.mkdirs()) {
                 throw new IllegalStateException();
             }
+            System.out.printf("Generating %s\n", name);
             this.populateToDepth(out, name, content, String.format("package %s;", this.getPackageName(file)), count);
         }
     }
@@ -207,6 +250,10 @@ public class Generator {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+            if (!file.setLastModified(System.currentTimeMillis())) {
+                throw new IllegalStateException();
+            }
+            this.generated.add(String.format("%s.%s", packageName, file.getName()));
         }
     }
 
@@ -231,7 +278,7 @@ public class Generator {
             file = file.getParentFile();
         }
         String name;
-        while (!"resources".equals(name = file.getName())) {
+        while (!"resources".equals(name = file.getName()) && !"java".equals(name)) {
             list.add(0, name);
             file = file.getParentFile();
         }
@@ -278,19 +325,34 @@ public class Generator {
         if (!file.isDirectory()) {
             throw new IllegalArgumentException();
         }
-        {
-            File[] files = file.listFiles();
-            if (files == null) {
-                throw new NullPointerException();
+        File[] files = file.listFiles();
+        if (files == null) {
+            throw new NullPointerException();
+        }
+        boolean flag = true;
+        for (File f : files) {
+            if (f.isDirectory()) {
+                this.getImportsRecursive(f);
+            } else if (flag && f.getName().endsWith(".template")) {
+                this.importList.add(String.format("%s.*", this.getPackageName(f)));
+                flag = false;
             }
-            boolean flag = true;
-            for (File f : files) {
-                if (f.isDirectory()) {
-                    this.getImportsRecursive(f);
-                } else if (flag && f.getName().endsWith(".template")) {
-                    this.importList.add(String.format("%s.*", this.getPackageName(f)));
-                    flag = false;
-                }
+        }
+    }
+
+    private void addAllExisting(@NonNull File file) {
+        if (!file.isDirectory()) {
+            throw new IllegalArgumentException();
+        }
+        File[] files = file.listFiles();
+        if (files == null) {
+            throw new NullPointerException();
+        }
+        for (File f : files)    {
+            if (f.isDirectory())    {
+                this.addAllExisting(f);
+            } else {
+                this.existing.add(String.format("%s.%s", this.getPackageName(f), f.getName()));
             }
         }
     }

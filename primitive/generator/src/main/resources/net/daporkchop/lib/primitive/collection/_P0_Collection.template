@@ -111,7 +111,7 @@ _headers_
  * @see     AbstractCollection
  * @since 1.2
  */
-public interface _P0_Collection_gH_ {
+public interface _P0_Collection_gH_ extends PrimitiveConstants {
     /**
      * Returns the number of elements in this collection.  If this collection
      * contains more than <tt>Integer.MAX_VALUE</tt> elements, returns

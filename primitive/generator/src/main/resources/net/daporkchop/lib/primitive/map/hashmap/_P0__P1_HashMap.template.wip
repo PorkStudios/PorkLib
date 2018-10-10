@@ -1,102 +1,105 @@
 _headers_
 
 /**
- * An object that maps keys to values.  A map cannot contain duplicate keys;
- * each key can map to at most one value.
+ * Hash table based implementation of the <tt>Map</tt> interface.  This
+ * implementation provides all of the optional map operations, and permits
+ * <tt>null</tt> values and the <tt>null</tt> key.  (The <tt>HashMap</tt>
+ * class is roughly equivalent to <tt>Hashtable</tt>, except that it is
+ * unsynchronized and permits nulls.)  This class makes no guarantees as to
+ * the order of the map; in particular, it does not guarantee that the order
+ * will remain constant over time.
  *
- * <p>This interface takes the place of the <tt>Dictionary</tt> class, which
- * was a totally abstract class rather than an interface.
+ * <p>This implementation provides constant-time performance for the basic
+ * operations (<tt>get</tt> and <tt>put</tt>), assuming the hash function
+ * disperses the elements properly among the buckets.  Iteration over
+ * collection views requires time proportional to the "capacity" of the
+ * <tt>HashMap</tt> instance (the number of buckets) plus its size (the number
+ * of key-value mappings).  Thus, it's very important not to set the initial
+ * capacity too high (or the load factor too low) if iteration performance is
+ * important.
  *
- * <p>The <tt>Map</tt> interface provides three <i>collection views</i>, which
- * allow a map's contents to be viewed as a set of keys, collection of values,
- * or set of key-value mappings.  The <i>order</i> of a map is defined as
- * the order in which the iterators on the map's collection views return their
- * elements.  Some map implementations, like the <tt>TreeMap</tt> class, make
- * specific guarantees as to their order; others, like the <tt>HashMap</tt>
- * class, do not.
+ * <p>An instance of <tt>HashMap</tt> has two parameters that affect its
+ * performance: <i>initial capacity</i> and <i>load factor</i>.  The
+ * <i>capacity</i> is the number of buckets in the hash table, and the initial
+ * capacity is simply the capacity at the time the hash table is created.  The
+ * <i>load factor</i> is a measure of how full the hash table is allowed to
+ * get before its capacity is automatically increased.  When the number of
+ * entries in the hash table exceeds the product of the load factor and the
+ * current capacity, the hash table is <i>rehashed</i> (that is, internal data
+ * structures are rebuilt) so that the hash table has approximately twice the
+ * number of buckets.
  *
- * <p>Note: great care must be exercised if mutable objects are used as map
- * keys.  The behavior of a map is not specified if the value of an object is
- * changed in a manner that affects <tt>equals</tt> comparisons while the
- * object is a key in the map.  A special case of this prohibition is that it
- * is not permissible for a map to contain itself as a key.  While it is
- * permissible for a map to contain itself as a value, extreme caution is
- * advised: the <tt>equals</tt> and <tt>hashCode</tt> methods are no longer
- * well defined on such a map.
+ * <p>As a general rule, the default load factor (.75) offers a good
+ * tradeoff between time and space costs.  Higher values decrease the
+ * space overhead but increase the lookup cost (reflected in most of
+ * the operations of the <tt>HashMap</tt> class, including
+ * <tt>get</tt> and <tt>put</tt>).  The expected number of entries in
+ * the map and its load factor should be taken into account when
+ * setting its initial capacity, so as to minimize the number of
+ * rehash operations.  If the initial capacity is greater than the
+ * maximum number of entries divided by the load factor, no rehash
+ * operations will ever occur.
  *
- * <p>All general-purpose map implementation classes should provide two
- * "standard" constructors: a void (no arguments) constructor which creates an
- * empty map, and a constructor with a single argument of type <tt>Map</tt>,
- * which creates a new map with the same key-value mappings as its argument.
- * In effect, the latter constructor allows the user to copy any map,
- * producing an equivalent map of the desired class.  There is no way to
- * enforce this recommendation (as interfaces cannot contain constructors) but
- * all of the general-purpose map implementations in the JDK comply.
+ * <p>If many mappings are to be stored in a <tt>HashMap</tt>
+ * instance, creating it with a sufficiently large capacity will allow
+ * the mappings to be stored more efficiently than letting it perform
+ * automatic rehashing as needed to grow the table.  Note that using
+ * many keys with the same {@code hashCode()} is a sure way to slow
+ * down performance of any hash table. To ameliorate impact, when keys
+ * are {@link Comparable}, this class may use comparison order among
+ * keys to help break ties.
  *
- * <p>The "destructive" methods contained in this interface, that is, the
- * methods that modify the map on which they operate, are specified to throw
- * <tt>UnsupportedOperationException</tt> if this map does not support the
- * operation.  If this is the case, these methods may, but are not required
- * to, throw an <tt>UnsupportedOperationException</tt> if the invocation would
- * have no effect on the map.  For example, invoking the {@link #putAll(Map)}
- * method on an unmodifiable map may, but is not required to, throw the
- * exception if the map whose mappings are to be "superimposed" is empty.
+ * <p><strong>Note that this implementation is not synchronized.</strong>
+ * If multiple threads access a hash map concurrently, and at least one of
+ * the threads modifies the map structurally, it <i>must</i> be
+ * synchronized externally.  (A structural modification is any operation
+ * that adds or deletes one or more mappings; merely changing the value
+ * associated with a key that an instance already contains is not a
+ * structural modification.)  This is typically accomplished by
+ * synchronizing on some object that naturally encapsulates the map.
  *
- * <p>Some map implementations have restrictions on the keys and values they
- * may contain.  For example, some implementations prohibit null keys and
- * values, and some have restrictions on the types of their keys.  Attempting
- * to insert an ineligible key or value throws an unchecked exception,
- * typically <tt>NullPointerException</tt> or <tt>ClassCastException</tt>.
- * Attempting to query the presence of an ineligible key or value may throw an
- * exception, or it may simply return false; some implementations will exhibit
- * the former behavior and some will exhibit the latter.  More generally,
- * attempting an operation on an ineligible key or value whose completion
- * would not result in the insertion of an ineligible element into the map may
- * throw an exception or it may succeed, at the option of the implementation.
- * Such exceptions are marked as "optional" in the specification for this
- * interface.
+ * If no such object exists, the map should be "wrapped" using the
+ * {@link Collections#synchronizedMap Collections.synchronizedMap}
+ * method.  This is best done at creation time, to prevent accidental
+ * unsynchronized access to the map:<pre>
+ *   Map m = Collections.synchronizedMap(new HashMap(...));</pre>
  *
- * <p>Many methods in Collections Framework interfaces are defined
- * in terms of the {@link Object#equals(Object) equals} method.  For
- * example, the specification for the {@link #containsKey(Object)
- * containsKey(Object key)} method says: "returns <tt>true</tt> if and
- * only if this map contains a mapping for a key <tt>k</tt> such that
- * <tt>(key==null ? k==null : key.equals(k))</tt>." This specification should
- * <i>not</i> be construed to imply that invoking <tt>Map.containsKey</tt>
- * with a non-null argument <tt>key</tt> will cause <tt>key.equals(k)</tt> to
- * be invoked for any key <tt>k</tt>.  Implementations are free to
- * implement optimizations whereby the <tt>equals</tt> invocation is avoided,
- * for example, by first comparing the hash codes of the two keys.  (The
- * {@link Object#hashCode()} specification guarantees that two objects with
- * unequal hash codes cannot be equal.)  More generally, implementations of
- * the various Collections Framework interfaces are free to take advantage of
- * the specified behavior of underlying {@link Object} methods wherever the
- * implementor deems it appropriate.
+ * <p>The iterators returned by all of this class's "collection view methods"
+ * are <i>fail-fast</i>: if the map is structurally modified at any time after
+ * the iterator is created, in any way except through the iterator's own
+ * <tt>remove</tt> method, the iterator will throw a
+ * {@link ConcurrentModificationException}.  Thus, in the face of concurrent
+ * modification, the iterator fails quickly and cleanly, rather than risking
+ * arbitrary, non-deterministic behavior at an undetermined time in the
+ * future.
  *
- * <p>Some map operations which perform recursive traversal of the map may fail
- * with an exception for self-referential instances where the map directly or
- * indirectly contains itself. This includes the {@code clone()},
- * {@code equals()}, {@code hashCode()} and {@code toString()} methods.
- * Implementations may optionally handle the self-referential scenario, however
- * most current implementations do not do so.
+ * <p>Note that the fail-fast behavior of an iterator cannot be guaranteed
+ * as it is, generally speaking, impossible to make any hard guarantees in the
+ * presence of unsynchronized concurrent modification.  Fail-fast iterators
+ * throw <tt>ConcurrentModificationException</tt> on a best-effort basis.
+ * Therefore, it would be wrong to write a program that depended on this
+ * exception for its correctness: <i>the fail-fast behavior of iterators
+ * should be used only to detect bugs.</i>
  *
- * <p>This interface is a member of the
+ * <p>This class is a member of the
  * <a href="{@docRoot}/../technotes/guides/collections/index.html">
  * Java Collections Framework</a>.
  *
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  *
+ * @author  Doug Lea
  * @author  Josh Bloch
- * @see HashMap
- * @see TreeMap
- * @see Hashtable
- * @see SortedMap
- * @see Collection
- * @see Set
- * @since 1.2
+ * @author  Arthur van Hoff
+ * @author  Neal Gafter
+ * @see     Object#hashCode()
+ * @see     Collection
+ * @see     Map
+ * @see     TreeMap
+ * @see     Hashtable
+ * @since   1.2
  */
-public interface _P0__P1_Map_gH_ extends PrimitiveConstants {
+public interface _P0__P1_Map_gH_ extends Map_gH_ {
     /**
      * Returns the number of key-value mappings in this map.  If the
      * map contains more than <tt>Integer.MAX_VALUE</tt> elements, returns
@@ -323,7 +326,7 @@ public interface _P0__P1_Map_gH_ extends PrimitiveConstants {
      *
      * @return a set view of the mappings contained in this map
      */
-    ObjectSet<_P0__P1_Map.Entry_gH_> entrySet();
+    Set<_P0__P1_Map.Entry_gH_> entrySet();
 
     /**
      * A map entry (key-value pair).  The <tt>Map.entrySet</tt> method returns
@@ -338,7 +341,7 @@ public interface _P0__P1_Map_gH_ extends PrimitiveConstants {
      * @see _P0__P1_Map#entrySet()
      * @since 1.2
      */
-    interface Entry_gH_ extends PrimitiveConstants {
+    interface Entry_gH_ {
         /**
          * Returns the key corresponding to this entry.
          *

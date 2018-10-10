@@ -5,8 +5,9 @@
     //Stream (kinda)
 StreamSupport
     //Optional
-Map
-Set
+    //Map
+    //Set
+AbstractCollection
 HashMap
 ConcurrentHashMap
 HashSet

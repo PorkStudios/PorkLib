@@ -81,8 +81,8 @@ public class PacketReprocessor {
             response.cryptographySettings = new CryptographySettings();
         }
         response.encapsulatedVersion = EncapsulatedPacket.ENCAPSULATED_VERSION;
-        response.protocolName = this.endpoint.getProtocol().getName();
-        response.protocolVersion = this.endpoint.getProtocol().getVersion();
+        response.protocolName = this.endpoint.protocol.getName();
+        response.protocolVersion = this.endpoint.protocol.getVersion();
         return response;
     }
 

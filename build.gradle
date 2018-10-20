@@ -31,7 +31,7 @@ plugins {
 
 dependencies {
     for (Project prj : project.allprojects) {
-        if (!"root".equalsIgnoreCase(prj.name) && prj.parent.name.equalsIgnoreCase("root")) {
+        if (!"PorkLib".equalsIgnoreCase(prj.name) && prj.parent.name.equalsIgnoreCase("PorkLib")) {
             compile project(":" + prj.name)
         }
     }
@@ -87,7 +87,7 @@ allprojects {
         publications {
             maven(MavenPublication) {
                 groupId = 'net.daporkchop.lib'
-                artifactId = "root".equalsIgnoreCase(project.name) ? "full" : project.name
+                artifactId = "PorkLib".equalsIgnoreCase(project.name) ? "full" : project.name
                 version = project.version
 
                 from components.java

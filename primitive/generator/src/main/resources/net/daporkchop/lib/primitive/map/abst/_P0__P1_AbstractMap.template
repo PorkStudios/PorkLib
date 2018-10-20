@@ -29,21 +29,21 @@ _headers_
  * <a href="{@docRoot}/../technotes/guides/collections/index.html">
  * Java Collections Framework</a>.
  *
- * @param <K> the type of keys maintained by this map
- * @param <V> the type of mapped values
+ * @param <A> the type of keys maintained by this map
+ * @param <B> the type of mapped values
  *
  * @author  Josh Bloch
  * @author  Neal Gafter
- * @see Map
- * @see Collection
+ * @see _P0__P1_Map
+ * @see _P0_Collection
  * @since 1.2
  */
-public abstract class _P0__P1_AbstractMap_gH_ implements Map_gH_ {
+public abstract class _P0__P1_AbstractMap_gH_ implements _P0__P1_Map_gH_ {
     /**
      * Sole constructor.  (For invocation by subclass constructors, typically
      * implicit.)
      */
-    protected AbstractMap() {
+    protected _P0__P1_AbstractMap() {
     }
 
     // Query Operations
@@ -55,7 +55,7 @@ public abstract class _P0__P1_AbstractMap_gH_ implements Map_gH_ {
      * This implementation returns <tt>entrySet().size()</tt>.
      */
     public int size() {
-        return entrySet().size();
+        return this.entrySet().size();
     }
 
     /**
@@ -65,7 +65,7 @@ public abstract class _P0__P1_AbstractMap_gH_ implements Map_gH_ {
      * This implementation returns <tt>size() == 0</tt>.
      */
     public boolean isEmpty() {
-        return size() == 0;
+        return this.size() == 0;
     }
 
     /**
@@ -81,18 +81,18 @@ public abstract class _P0__P1_AbstractMap_gH_ implements Map_gH_ {
      * @throws ClassCastException   {@inheritDoc}
      * @throws NullPointerException {@inheritDoc}
      */
-    public boolean containsValue(Object value) {
-        Iterator<Entry<K,V>> i = entrySet().iterator();
-        if (value==null) {
+    public boolean containsValue(_nameP1_ value) {
+        ObjectIterator<_P0__P1_Map.Entry_gH_> i = this.entrySet().iterator();
+        if (value==_P1E_) {
             while (i.hasNext()) {
-                Entry<K,V> e = i.next();
-                if (e.getValue()==null)
+                _P0__P1_Map.Entry_gH_ e = i.next();
+                if (e.getValue()==_P1E_)
                     return true;
             }
         } else {
             while (i.hasNext()) {
-                Entry<K,V> e = i.next();
-                if (value.equals(e.getValue()))
+                _P0__P1_Map.Entry_gH_ e = i.next();
+                if (this.equals_P1_(value, e.getValue()))
                     return true;
             }
         }
@@ -113,18 +113,18 @@ public abstract class _P0__P1_AbstractMap_gH_ implements Map_gH_ {
      * @throws ClassCastException   {@inheritDoc}
      * @throws NullPointerException {@inheritDoc}
      */
-    public boolean containsKey(Object key) {
-        Iterator<Map.Entry<K,V>> i = entrySet().iterator();
-        if (key==null) {
+    public boolean containsKey(_nameP0_ key) {
+        ObjectIterator<_P0__P1_Map.Entry_gH_> i = this.entrySet().iterator();
+        if (key==_P0E_) {
             while (i.hasNext()) {
-                Entry<K,V> e = i.next();
-                if (e.getKey()==null)
+                _P0__P1_Map.Entry_gH_ e = i.next();
+                if (e.getKey()==_P0E_)
                     return true;
             }
         } else {
             while (i.hasNext()) {
-                Entry<K,V> e = i.next();
-                if (key.equals(e.getKey()))
+                _P0__P1_Map.Entry_gH_ e = i.next();
+                if (this.equals_P0_(key, e.getKey()))
                     return true;
             }
         }
@@ -145,18 +145,18 @@ public abstract class _P0__P1_AbstractMap_gH_ implements Map_gH_ {
      * @throws ClassCastException            {@inheritDoc}
      * @throws NullPointerException          {@inheritDoc}
      */
-    public V get(Object key) {
-        Iterator<Entry<K,V>> i = entrySet().iterator();
-        if (key==null) {
+    public _p1_ get(_nameP0_ key) {
+        ObjectIterator<_P0__P1_Map.Entry_gH_> i = this.entrySet().iterator();
+        if (key==_P0E_) {
             while (i.hasNext()) {
-                Entry<K,V> e = i.next();
-                if (e.getKey()==null)
+                _P0__P1_Map.Entry_gH_ e = i.next();
+                if (e.getKey()==_P0E_)
                     return e.getValue();
             }
         } else {
             while (i.hasNext()) {
-                Entry<K,V> e = i.next();
-                if (key.equals(e.getKey()))
+                _P0__P1_Map.Entry_gH_ e = i.next();
+                if (this.equals_P0_(key, e.getKey()))
                     return e.getValue();
             }
         }
@@ -178,7 +178,7 @@ public abstract class _P0__P1_AbstractMap_gH_ implements Map_gH_ {
      * @throws NullPointerException          {@inheritDoc}
      * @throws IllegalArgumentException      {@inheritDoc}
      */
-    public V put(K key, V value) {
+    public _p1_ put(_p0_ key, _p1_ value) {
         throw new UnsupportedOperationException();
     }
 
@@ -204,25 +204,25 @@ public abstract class _P0__P1_AbstractMap_gH_ implements Map_gH_ {
      * @throws ClassCastException            {@inheritDoc}
      * @throws NullPointerException          {@inheritDoc}
      */
-    public V remove(Object key) {
-        Iterator<Entry<K,V>> i = entrySet().iterator();
-        Entry<K,V> correctEntry = null;
-        if (key==null) {
+    public _p1_ remove(_nameP0_ key) {
+        ObjectIterator<_P0__P1_Map.Entry_gH_> i = this.entrySet().iterator();
+        _P0__P1_Map.Entry_gH_ correctEntry = null;
+        if (key==_P0E_) {
             while (correctEntry==null && i.hasNext()) {
-                Entry<K,V> e = i.next();
-                if (e.getKey()==null)
+                _P0__P1_Map.Entry_gH_ e = i.next();
+                if (e.getKey()==_P0E_)
                     correctEntry = e;
             }
         } else {
             while (correctEntry==null && i.hasNext()) {
-                Entry<K,V> e = i.next();
-                if (key.equals(e.getKey()))
+                _P0__P1_Map.Entry_gH_ e = i.next();
+                if (this.equals_P0_(key, e.getKey()))
                     correctEntry = e;
             }
         }
 
-        V oldValue = null;
-        if (correctEntry !=null) {
+        _p1_ oldValue = _P1E_;
+        if (correctEntry != null) {
             oldValue = correctEntry.getValue();
             i.remove();
         }
@@ -249,9 +249,15 @@ public abstract class _P0__P1_AbstractMap_gH_ implements Map_gH_ {
      * @throws NullPointerException          {@inheritDoc}
      * @throws IllegalArgumentException      {@inheritDoc}
      */
-    public void putAll(Map<? extends K, ? extends V> m) {
-        for (Map.Entry<? extends K, ? extends V> e : m.entrySet())
-            put(e.getKey(), e.getValue());
+<%    @SuppressWarnings("unchecked")
+%>    public void putAll(@NonNull _P0__P1_Map m) {
+        ObjectIterator<_P0__P1_Map.Entry> i = m.entrySet().iterator();
+        while (i.hasNext()) {
+            _P0__P1_Map.Entry e = i.next();
+            this.put(_castP0_e.getKey(), _castP1_e.getValue());
+        }
+        /*for (_P0__P1_Map.Entry_gExtends_ e : m.entrySet())
+            this.put(e.getKey(), e.getValue());*/
     }
 
     /**
@@ -267,9 +273,8 @@ public abstract class _P0__P1_AbstractMap_gH_ implements Map_gH_ {
      * @throws UnsupportedOperationException {@inheritDoc}
      */
     public void clear() {
-        entrySet().clear();
+        this.entrySet().clear();
     }
-
 
     // Views
 
@@ -297,8 +302,8 @@ public abstract class _P0__P1_AbstractMap_gH_ implements Map_gH_ {
      * }
      *}</pre>
      */
-    transient Set<K>        keySet;
-    transient Collection<V> values;
+    transient _P0_Set_GP0_        keySet;
+    transient _P1_Collection_GP1_ values;
 
     /**
      * {@inheritDoc}
@@ -316,10 +321,10 @@ public abstract class _P0__P1_AbstractMap_gH_ implements Map_gH_ {
      * is performed, so there is a slight chance that multiple calls to this
      * method will not all return the same set.
      */
-    public Set<K> keySet() {
-        Set<K> ks = keySet;
+    public _P0_Set_GP0_ keySet() {
+        _P0_Set_GP0_ ks = this.keySet;
         if (ks == null) {
-            ks = new AbstractSet<K>() {
+            ks = new AbstractSet_GP0_() {
                 public Iterator<K> iterator() {
                     return new Iterator<K>() {
                         private Iterator<Entry<K,V>> i = entrySet().iterator();

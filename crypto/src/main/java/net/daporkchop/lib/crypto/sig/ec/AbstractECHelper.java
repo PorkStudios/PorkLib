@@ -15,7 +15,7 @@
 
 package net.daporkchop.lib.crypto.sig.ec;
 
-import net.daporkchop.lib.crypto.key.ec.AbstractECKeyPair;
+import net.daporkchop.lib.crypto.key.EllipticCurveKeyPair;
 import net.daporkchop.lib.crypto.sig.ec.hackery.ECSignatureSpi;
 
 import java.lang.ref.WeakReference;
@@ -23,7 +23,7 @@ import java.security.InvalidKeyException;
 import java.security.SignatureException;
 import java.util.function.Supplier;
 
-public abstract class AbstractECHelper<P extends AbstractECKeyPair> {
+public abstract class AbstractECHelper<P extends EllipticCurveKeyPair> {
     protected final ThreadLocal<WeakReference<ECSignatureSpi>> tl;
     protected final Supplier<ECSignatureSpi> supplier;
 

@@ -28,9 +28,9 @@ import net.daporkchop.lib.encoding.compression.EnumCompression;
 import net.daporkchop.lib.network.conn.ConnectionState;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.encapsulated.EncapsulatedPacket;
-import net.daporkchop.lib.network.packet.encapsulated.HandshakeCompletePacket;
-import net.daporkchop.lib.network.packet.encapsulated.HandshakeInitPacket;
-import net.daporkchop.lib.network.packet.encapsulated.HandshakeResponsePacket;
+import net.daporkchop.lib.network.packet.encapsulated.handshake.HandshakeCompletePacket;
+import net.daporkchop.lib.network.packet.encapsulated.handshake.HandshakeInitPacket;
+import net.daporkchop.lib.network.packet.encapsulated.handshake.HandshakeResponsePacket;
 
 import java.io.InputStream;
 import java.io.OutputStream;

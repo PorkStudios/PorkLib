@@ -17,8 +17,11 @@ package net.daporkchop.lib.network.endpoint;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.network.conn.Connection;
 import net.daporkchop.lib.network.conn.Session;
 import net.daporkchop.lib.network.packet.protocol.PacketProtocol;
+
+import java.util.Collection;
 
 @RequiredArgsConstructor
 public abstract class Endpoint<S extends Session> {
@@ -27,4 +30,6 @@ public abstract class Endpoint<S extends Session> {
 
     @NonNull
     public final PacketProtocol<S> protocol;
+
+    protected abstract Collection<Connection> getConnections();
 }

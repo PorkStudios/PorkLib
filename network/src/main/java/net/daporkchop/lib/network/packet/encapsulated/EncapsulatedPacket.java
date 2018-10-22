@@ -23,6 +23,7 @@ import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.protocol.PacketProtocol;
 
 import java.util.Arrays;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -32,36 +33,48 @@ import java.util.stream.Collectors;
 public interface EncapsulatedPacket extends Packet {
     int ENCAPSULATED_VERSION = 2;
 
-    PacketProtocol PROTOCOL = new PacketProtocol("PorkLib Network", ENCAPSULATED_VERSION) {
-        @Override
-        @SuppressWarnings("unchecked")
-        protected void registerPackets(PacketRegistry registry) {
-            Arrays.stream(EncapsulatedType.values())
-                    .map(EncapsulatedType::getSupplier)
-                    .collect(Collectors.toSet())
-                    .forEach(supplier -> registry.register(new NonhandlingCodec<>(supplier)));
-        }
-
-        @Override
-        public Session newSession() {
-            return null;
-        }
-
-        @AllArgsConstructor
-        final class NonhandlingCodec<P extends EncapsulatedPacket> implements Codec<P, Session> {
-            @NonNull
-            private final Supplier<P> supplier;
-
-            @Override
-            public void handle(P packet, Session session) {
-            }
-
-            @Override
-            public P newPacket() {
-                return this.supplier.get();
-            }
-        }
-    };
+    PacketProtocol PROTOCOL = new EncapsulatedPacketProtocol(false);
+    PacketProtocol P2P_PROTOCOL = new EncapsulatedPacketProtocol(true);
 
     EncapsulatedType getType();
+}
+
+class EncapsulatedPacketProtocol extends PacketProtocol {
+    private final boolean p2p;
+
+    public EncapsulatedPacketProtocol(boolean p2p) {
+        super(p2p ? "PorkLib Network - p2p mode" : "PorkLib Network", EncapsulatedPacket.ENCAPSULATED_VERSION);
+
+        this.p2p = p2p;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    protected void registerPackets(PacketRegistry registry) {
+        Arrays.stream(EncapsulatedType.values())
+                .filter(this.p2p ? a -> true : ((Predicate<EncapsulatedType>) EncapsulatedType::isP2pOnly).negate())
+                .map(EncapsulatedType::getSupplier)
+                .collect(Collectors.toSet())
+                .forEach(supplier -> registry.register(new NonhandlingCodec<>(supplier)));
+    }
+
+    @Override
+    public Session newSession() {
+        return null;
+    }
+
+    @AllArgsConstructor
+    private static class NonhandlingCodec<P extends EncapsulatedPacket> implements Codec<P, Session> {
+        @NonNull
+        private final Supplier<P> supplier;
+
+        @Override
+        public void handle(P packet, Session session) {
+        }
+
+        @Override
+        public P newPacket() {
+            return this.supplier.get();
+        }
+    }
 }

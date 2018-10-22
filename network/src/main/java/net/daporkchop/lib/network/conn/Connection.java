@@ -13,29 +13,7 @@
  *
  */
 
-package chat.protocol;
+package net.daporkchop.lib.network.conn;
 
-import chat.ChatSession;
-import net.daporkchop.lib.network.packet.protocol.PacketProtocol;
-
-/**
- * @author DaPorkchop_
- */
-public class ChatProtocol extends PacketProtocol<ChatSession> {
-    public ChatProtocol() {
-        super("ChatTest", 1);
-    }
-
-    @Override
-    protected void registerPackets(PacketRegistry registry) {
-        registry.register(
-                new SetNamePacket.SetNameCodec(),
-                new MessagePacket.MessageCodec()
-        );
-    }
-
-    @Override
-    public ChatSession newSession() {
-        return null;
-    }
+public class Connection {
 }

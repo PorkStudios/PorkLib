@@ -13,17 +13,37 @@
  *
  */
 
-package chat;
+package net.daporkchop.lib.network.packet.encapsulated.handshake.query;
 
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import net.daporkchop.lib.network.conn.Session;
+import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.network.packet.encapsulated.EncapsulatedPacket;
+import net.daporkchop.lib.network.packet.encapsulated.EncapsulatedType;
 
-/**
- * @author DaPorkchop_
- */
+import java.io.IOException;
+
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChatSession extends Session {
-    public String name;
+public class QueryResponsePacket implements EncapsulatedPacket {
+    @NonNull
+    public QueryData data;
+
+    @Override
+    public EncapsulatedType getType() {
+        return EncapsulatedType.QUERY_RESPONSE;
+    }
+
+    @Override
+    public void read(DataIn in) throws IOException {
+        this.data = new QueryData();
+        this.data.read(in);
+    }
+
+    @Override
+    public void write(DataOut out) throws IOException {
+        this.data.write(out);
+    }
 }

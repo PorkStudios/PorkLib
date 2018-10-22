@@ -13,28 +13,24 @@
  *
  */
 
-package big.protocol;
+package net.daporkchop.lib.network.endpoint.server;
 
-import big.BigSession;
-import net.daporkchop.lib.network.packet.protocol.PacketProtocol;
+import lombok.NonNull;
+import net.daporkchop.lib.network.conn.Connection;
+import net.daporkchop.lib.network.conn.Session;
+import net.daporkchop.lib.network.endpoint.Endpoint;
+import net.daporkchop.lib.network.endpoint.EndpointType;
+import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 
-/**
- * @author DaPorkchop_
- */
-public class BigProtocol extends PacketProtocol<BigSession> {
-    public BigProtocol() {
-        super("ChatTest", 1);
+import java.util.Collection;
+
+public class PorkServer<S extends Session> extends Endpoint<S> {
+    public PorkServer(@NonNull ServerBuilder<S> builder) {
+        super(EndpointType.SERVER, builder.getProtocol());
     }
 
     @Override
-    protected void registerPackets(PacketRegistry registry) {
-        registry.register(
-                new BigPacket.MessageCodec()
-        );
-    }
-
-    @Override
-    public BigSession newSession() {
-        return new BigSession();
+    protected Collection<Connection> getConnections() {
+        return null;
     }
 }

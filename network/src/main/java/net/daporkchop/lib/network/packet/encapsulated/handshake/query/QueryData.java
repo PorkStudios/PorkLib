@@ -13,41 +13,34 @@
  *
  */
 
-package net.daporkchop.lib.network.packet.encapsulated;
+package net.daporkchop.lib.network.packet.encapsulated.handshake.query;
 
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import net.daporkchop.lib.binary.Data;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.crypto.CryptographySettings;
-import net.daporkchop.lib.encoding.compression.EnumCompression;
 
 import java.io.IOException;
 
-/**
- * @author DaPorkchop_
- */
 @NoArgsConstructor
 @AllArgsConstructor
-public class HandshakeInitPacket implements EncapsulatedPacket {
-    public CryptographySettings cryptographySettings;
-    public EnumCompression compression;
+public class QueryData implements Data {
+    public int connections;
+    public int connectionsMax;
+    public String userData;
 
     @Override
     public void read(DataIn in) throws IOException {
-        this.cryptographySettings = new CryptographySettings();
-        this.cryptographySettings.read(in);
-        this.compression = EnumCompression.valueOf(in.readUTF());
+        this.connections = in.readInt();
+        this.connectionsMax = in.readInt();
+        this.userData = in.readUTF();
     }
 
     @Override
     public void write(DataOut out) throws IOException {
-        this.cryptographySettings.write(out);
-        out.writeUTF(this.compression.name());
-    }
-
-    @Override
-    public EncapsulatedType getType() {
-        return EncapsulatedType.HANDSHAKE_INIT;
+        out.writeInt(this.connections);
+        out.writeInt(this.connectionsMax);
+        out.writeUTF(this.userData);
     }
 }

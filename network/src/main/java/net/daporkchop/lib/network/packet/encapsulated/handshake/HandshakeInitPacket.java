@@ -13,15 +13,16 @@
  *
  */
 
-package chat.protocol;
+package net.daporkchop.lib.network.packet.encapsulated.handshake;
 
-import chat.ChatSession;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.network.packet.Codec;
-import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.crypto.CryptographySettings;
+import net.daporkchop.lib.encoding.compression.EnumCompression;
+import net.daporkchop.lib.network.packet.encapsulated.EncapsulatedPacket;
+import net.daporkchop.lib.network.packet.encapsulated.EncapsulatedType;
 
 import java.io.IOException;
 
@@ -30,29 +31,25 @@ import java.io.IOException;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-public class SetNamePacket implements Packet {
-    public String name;
+public class HandshakeInitPacket implements EncapsulatedPacket {
+    public CryptographySettings cryptographySettings;
+    public EnumCompression compression;
 
     @Override
     public void read(DataIn in) throws IOException {
-        this.name = in.readUTF();
+        this.cryptographySettings = new CryptographySettings();
+        this.cryptographySettings.read(in);
+        this.compression = EnumCompression.valueOf(in.readUTF());
     }
 
     @Override
     public void write(DataOut out) throws IOException {
-        out.writeUTF(this.name);
+        this.cryptographySettings.write(out);
+        out.writeUTF(this.compression.name());
     }
 
-    public static class SetNameCodec implements Codec<SetNamePacket, ChatSession> {
-        @Override
-        public void handle(SetNamePacket packet, ChatSession session) {
-            session.name = packet.name;
-            System.out.printf("[Server] Client logged in: %s\n", packet.name);
-        }
-
-        @Override
-        public SetNamePacket newPacket() {
-            return new SetNamePacket();
-        }
+    @Override
+    public EncapsulatedType getType() {
+        return EncapsulatedType.HANDSHAKE_INIT;
     }
 }

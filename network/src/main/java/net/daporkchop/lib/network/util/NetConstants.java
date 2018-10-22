@@ -13,29 +13,8 @@
  *
  */
 
-package net.daporkchop.lib.network.packet.encapsulated;
+package net.daporkchop.lib.network.util;
 
-import lombok.NoArgsConstructor;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-
-import java.io.IOException;
-
-/**
- * @author DaPorkchop_
- */
-@NoArgsConstructor
-public class HandshakeCompletePacket implements EncapsulatedPacket {
-    @Override
-    public void read(DataIn in) {
-    }
-
-    @Override
-    public void write(DataOut out) {
-    }
-
-    @Override
-    public EncapsulatedType getType() {
-        return EncapsulatedType.HANDSHAKE_COMPLETE;
-    }
+public class NetConstants {
+    public static int MTU = 16_000_000;
 }

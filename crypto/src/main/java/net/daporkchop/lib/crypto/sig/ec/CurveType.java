@@ -19,7 +19,7 @@ import org.bouncycastle.jce.ECNamedCurveTable;
 import org.bouncycastle.jce.spec.ECParameterSpec;
 
 /**
- * A listing of all ECDSA curve types supported by Bouncycastle
+ * A listing of all elliptic curve types supported by BouncyCastle
  *
  * @author DaPorkchop_
  */
@@ -27,7 +27,6 @@ public enum CurveType {
     /*
      *   F p
      */
-
     //X9.62
     prime192v1("prime192v1", 192),
     prime192v2("prime192v2", 192),

@@ -130,6 +130,21 @@ public class DataOut extends OutputStream {
         this.write(b);
     }
 
+    /**
+     * Writes an enum value to the buffer
+     *
+     * @param e   the value to write
+     * @param <E> the type of the enum
+     */
+    public <E extends Enum<E>> void writeEnum(E e) throws IOException {
+        if (e == null) {
+            this.writeBoolean(false);
+        } else {
+            this.writeBoolean(true);
+            this.writeUTF(e.name());
+        }
+    }
+
     @Override
     public void write(int b) throws IOException {
         this.stream.write(b);

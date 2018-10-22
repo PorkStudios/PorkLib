@@ -29,6 +29,9 @@ import java.net.InetSocketAddress;
 //TODO
 @Setter(AccessLevel.PACKAGE)
 public abstract class Session {
+    @Setter(AccessLevel.PACKAGE)
+    private Connection connection;
+
     public void send(@NonNull Packet packet) {
     }
 

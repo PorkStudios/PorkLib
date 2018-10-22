@@ -13,46 +13,34 @@
  *
  */
 
-package net.daporkchop.lib.network.packet.encapsulated;
+package net.daporkchop.lib.network.endpoint.builder;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.crypto.CryptographySettings;
+import net.daporkchop.lib.network.conn.Session;
+import net.daporkchop.lib.network.endpoint.server.PorkServer;
 
-import java.io.IOException;
+@Accessors(chain = true)
+@Getter
+@Setter
+public class ServerBuilder<S extends Session> extends AbstractBuilder<ServerBuilder<S>, S, PorkServer<S>> {
+    @NonNull
+    private CryptographySettings encryption = new CryptographySettings();
 
-/**
- * @author DaPorkchop_
- */
-@NoArgsConstructor
-@AllArgsConstructor
-public class HandshakeResponsePacket implements EncapsulatedPacket {
-    public CryptographySettings cryptographySettings;
-    public int encapsulatedVersion;
-    public String protocolName;
-    public int protocolVersion;
+    private int readerThreads = 2;
 
-    @Override
-    public void read(DataIn in) throws IOException {
-        this.cryptographySettings = new CryptographySettings();
-        this.cryptographySettings.read(in);
-        this.encapsulatedVersion = in.readInt();
-        this.protocolName = in.readUTF();
-        this.protocolVersion = in.readInt();
-    }
+    private int maxConnections = 100;
 
     @Override
-    public void write(DataOut out) throws IOException {
-        this.cryptographySettings.write(out);
-        out.writeInt(this.encapsulatedVersion);
-        out.writeUTF(this.protocolName);
-        out.writeInt(this.protocolVersion);
-    }
-
-    @Override
-    public EncapsulatedType getType() {
-        return EncapsulatedType.HANDSHAKE_RESPONSE;
+    protected PorkServer<S> doBuild() {
+        if (this.readerThreads <= 0)    {
+            throw new IllegalArgumentException(String.format("Invalid reader thread count: %d (must be at least 1)", this.readerThreads));
+        } else if (this.maxConnections <= 0)    {
+            throw new IllegalArgumentException(String.format("Invalid maximum connection count: %d (must be at least 1)", this.maxConnections));
+        }
+        return new PorkServer<>(this);
     }
 }

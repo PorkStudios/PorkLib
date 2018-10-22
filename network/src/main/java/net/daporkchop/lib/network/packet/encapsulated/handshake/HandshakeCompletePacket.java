@@ -13,16 +13,13 @@
  *
  */
 
-package chat.protocol;
+package net.daporkchop.lib.network.packet.encapsulated.handshake;
 
-import chat.ChatSession;
-import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.network.endpoint.EndpointType;
-import net.daporkchop.lib.network.packet.Codec;
-import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.packet.encapsulated.EncapsulatedPacket;
+import net.daporkchop.lib.network.packet.encapsulated.EncapsulatedType;
 
 import java.io.IOException;
 
@@ -30,33 +27,17 @@ import java.io.IOException;
  * @author DaPorkchop_
  */
 @NoArgsConstructor
-@AllArgsConstructor
-public class MessagePacket implements Packet {
-    public String message;
-
+public class HandshakeCompletePacket implements EncapsulatedPacket {
     @Override
-    public void read(DataIn in) throws IOException {
-        this.message = in.readUTF();
+    public void read(DataIn in) {
     }
 
     @Override
-    public void write(DataOut out) throws IOException {
-        out.writeUTF(this.message);
+    public void write(DataOut out) {
     }
 
-    public static class MessageCodec implements Codec<MessagePacket, ChatSession> {
-        @Override
-        public void handle(MessagePacket packet, ChatSession session) {
-            boolean server = session.getEndpoint().getType() == EndpointType.SERVER;
-            System.out.printf("[%s] <%s> %s\n", server ? "Server" : "Client", session.name, packet.message);
-            if (server) {
-                session.send(packet);
-            }
-        }
-
-        @Override
-        public MessagePacket newPacket() {
-            return new MessagePacket();
-        }
+    @Override
+    public EncapsulatedType getType() {
+        return EncapsulatedType.HANDSHAKE_COMPLETE;
     }
 }

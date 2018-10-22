@@ -13,14 +13,48 @@
  *
  */
 
-package big;
+package net.daporkchop.lib.network.packet.encapsulated.handshake;
 
+import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import net.daporkchop.lib.network.conn.Session;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.crypto.CryptographySettings;
+import net.daporkchop.lib.network.packet.encapsulated.EncapsulatedPacket;
+import net.daporkchop.lib.network.packet.encapsulated.EncapsulatedType;
+
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
 @NoArgsConstructor
-public class BigSession extends Session {
+@AllArgsConstructor
+public class HandshakeResponsePacket implements EncapsulatedPacket {
+    public CryptographySettings cryptographySettings;
+    public int encapsulatedVersion;
+    public String protocolName;
+    public int protocolVersion;
+
+    @Override
+    public void read(DataIn in) throws IOException {
+        this.cryptographySettings = new CryptographySettings();
+        this.cryptographySettings.read(in);
+        this.encapsulatedVersion = in.readInt();
+        this.protocolName = in.readUTF();
+        this.protocolVersion = in.readInt();
+    }
+
+    @Override
+    public void write(DataOut out) throws IOException {
+        this.cryptographySettings.write(out);
+        out.writeInt(this.encapsulatedVersion);
+        out.writeUTF(this.protocolName);
+        out.writeInt(this.protocolVersion);
+    }
+
+    @Override
+    public EncapsulatedType getType() {
+        return EncapsulatedType.HANDSHAKE_RESPONSE;
+    }
 }

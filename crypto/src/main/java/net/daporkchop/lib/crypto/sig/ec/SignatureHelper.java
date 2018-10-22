@@ -18,18 +18,19 @@ package net.daporkchop.lib.crypto.sig.ec;
 import net.daporkchop.lib.crypto.key.EllipticCurveKeyPair;
 import net.daporkchop.lib.crypto.sig.ec.hackery.ECSignatureSpi;
 
+import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 import java.util.function.Supplier;
 
-public abstract class AbstractECHelper<P extends EllipticCurveKeyPair> {
-    protected final ThreadLocal<WeakReference<ECSignatureSpi>> tl;
+public abstract class SignatureHelper<P extends EllipticCurveKeyPair> {
+    protected final ThreadLocal<SoftReference<ECSignatureSpi>> tl;
     protected final Supplier<ECSignatureSpi> supplier;
 
-    protected AbstractECHelper(Supplier<ECSignatureSpi> supplier) {
+    protected SignatureHelper(Supplier<ECSignatureSpi> supplier) {
         this.supplier = supplier;
-        this.tl = ThreadLocal.withInitial(() -> new WeakReference<>(supplier.get()));
+        this.tl = ThreadLocal.withInitial(() -> new SoftReference<>(supplier.get()));
     }
 
     public byte[] sign(byte[] data, P key) {
@@ -62,7 +63,7 @@ public abstract class AbstractECHelper<P extends EllipticCurveKeyPair> {
         ECSignatureSpi spi;
         if ((spi = this.tl.get().get()) == null) {
             spi = this.supplier.get();
-            this.tl.set(new WeakReference<>(spi));
+            this.tl.set(new SoftReference<>(spi));
         }
         return spi;
     }

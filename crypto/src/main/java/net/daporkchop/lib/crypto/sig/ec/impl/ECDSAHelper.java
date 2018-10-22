@@ -17,7 +17,7 @@ package net.daporkchop.lib.crypto.sig.ec.impl;
 
 import net.daporkchop.lib.crypto.key.EllipticCurveKeyPair;
 import net.daporkchop.lib.crypto.sig.HashTypes;
-import net.daporkchop.lib.crypto.sig.ec.AbstractECHelper;
+import net.daporkchop.lib.crypto.sig.ec.SignatureHelper;
 import net.daporkchop.lib.crypto.sig.SignatureAlgorithms;
 import net.daporkchop.lib.crypto.sig.ec.hackery.ECSignatureSpi;
 import org.bouncycastle.jcajce.provider.asymmetric.util.DSAEncoder;
@@ -25,7 +25,7 @@ import org.bouncycastle.jcajce.provider.asymmetric.util.DSAEncoder;
 import java.io.IOException;
 import java.math.BigInteger;
 
-public class ECDSAHelper extends AbstractECHelper<EllipticCurveKeyPair> {
+public class ECDSAHelper extends SignatureHelper<EllipticCurveKeyPair> {
     public ECDSAHelper(HashTypes hash) {
         super(() -> new ECSignatureSpi(hash.getAsDigest(), SignatureAlgorithms.ECDSA.supplier.get(), new PlainDSAEncoder()));
     }

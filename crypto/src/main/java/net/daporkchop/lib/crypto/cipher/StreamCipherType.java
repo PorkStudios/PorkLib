@@ -16,6 +16,8 @@
 package net.daporkchop.lib.crypto.cipher;
 
 import lombok.AllArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import org.bouncycastle.crypto.StreamCipher;
 import org.bouncycastle.crypto.engines.ChaChaEngine;
 import org.bouncycastle.crypto.engines.Grain128Engine;
@@ -24,18 +26,33 @@ import org.bouncycastle.crypto.engines.XSalsa20Engine;
 
 import java.util.function.Supplier;
 
-@AllArgsConstructor
 public enum StreamCipherType {
-    CHACHA10("ChaCha10", () -> new ChaChaEngine(10)),
-    CHACHA20("ChaCha20", ChaChaEngine::new),
-    CHACHA40("ChaCha40", () -> new ChaChaEngine(40)),
-    GRAIN128("Grain-128", Grain128Engine::new),
-    SALSA10("Salsa10", () -> new Salsa20Engine(10)),
-    SALSA20("Salsa20", Salsa20Engine::new),
-    XSALSA20("XSalsa20", XSalsa20Engine::new);
+    CHACHA10_128("ChaCha10", () -> new ChaChaEngine(10), 16, 8),
+    CHACHA20_128("ChaCha20", ChaChaEngine::new, 16, 8),
+    CHACHA40_128("ChaCha40", () -> new ChaChaEngine(40), 16, 8),
+    CHACHA10_256("ChaCha10", () -> new ChaChaEngine(10), 32, 8),
+    CHACHA20_256("ChaCha20", ChaChaEngine::new, 32, 8),
+    CHACHA40_256("ChaCha40", () -> new ChaChaEngine(40), 32, 8), //TODO: fix names
+    GRAIN128("Grain-128", Grain128Engine::new, 0),
+    SALSA10("Salsa10", () -> new Salsa20Engine(10), 0),
+    SALSA20("Salsa20", Salsa20Engine::new, 0),
+    XSALSA20("XSalsa20", XSalsa20Engine::new, 0);
 
     public final String name;
     private final Supplier<StreamCipher> cipherSupplier;
+    public final int keySize;
+    public final int ivSize;
+
+    StreamCipherType(@NonNull String name, @NonNull Supplier<StreamCipher> cipherSupplier, int keySize) {
+        this(name, cipherSupplier, keySize, keySize);
+    }
+
+    StreamCipherType(@NonNull String name, @NonNull Supplier<StreamCipher> cipherSupplier, int keySize, int ivSize) {
+        this.name = name;
+        this.cipherSupplier = cipherSupplier;
+        this.keySize = keySize;
+        this.ivSize = ivSize;
+    }
 
     public StreamCipher create()   {
         return this.cipherSupplier.get();

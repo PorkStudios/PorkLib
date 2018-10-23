@@ -27,9 +27,9 @@ import org.bouncycastle.crypto.io.CipherOutputStream;
 import org.bouncycastle.crypto.paddings.PaddedBufferedBlockCipher;
 
 import javax.crypto.spec.SecretKeySpec;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.lang.ref.SoftReference;
+import java.lang.reflect.Field;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -172,9 +172,30 @@ class BlockCipherImpl implements Cipher {
 }
 
 class StreamCipherImpl implements Cipher {
+    private static final Field filterOutputStream_out;
+    private static final Field filterIntputStream_in;
+
+    static {
+        Field f1 = null;
+        Field f2 = null;
+        try {
+            f1 = FilterOutputStream.class.getDeclaredField("out");
+            f1.setAccessible(true);
+            f2 = FilterInputStream.class.getDeclaredField("in");
+            f2.setAccessible(true);
+        } catch (Exception e)   {
+            throw new RuntimeException(e);
+        } finally {
+            filterOutputStream_out = f1;
+            filterIntputStream_in = f2;
+        }
+    }
+
     //TODO
     private final StreamCipherType type;
 
+    private final CipherOutputStream out;
+    private final CipherInputStream in;
     private final StreamCipher outCipher;
     private final StreamCipher inCipher;
 
@@ -185,20 +206,27 @@ class StreamCipherImpl implements Cipher {
         this.inCipher = type.create();
 
         this.outCipher.init(true, new CipherKey(key.getKey(), key.getIV()));
-        this.inCipher.init(false, new CipherKey(key.getKey(), key.getIV()));
+        this.inCipher.init(false, new CipherKey(key.getKey(), key.getIV())); //TODO: figure out a way to use different IVs for encryption and decryption automagically
+
+        this.out = new CipherOutputStream(null, this.outCipher);
+        this.in = new CipherInputStream(null, this.inCipher);
     }
 
     @Override
     public byte[] encrypt(byte[] plaintext) {
         synchronized (this.outCipher) {
-            return new byte[0];
+            byte[] b = new byte[plaintext.length];
+            this.outCipher.processBytes(plaintext, 0, plaintext.length, b, 0);
+            return b;
         }
     }
 
     @Override
     public byte[] decrypt(byte[] ciphertext) {
         synchronized (this.inCipher) {
-            return new byte[0];
+            byte[] b = new byte[ciphertext.length];
+            this.inCipher.processBytes(ciphertext, 0, ciphertext.length, b, 0);
+            return b;
         }
     }
 
@@ -219,5 +247,37 @@ class StreamCipherImpl implements Cipher {
     @Override
     public String toString() {
         return String.format("Cipher$StreamCipherImpl(type=%s)", this.type.name);
+    }
+
+    private static InputStream getInput(@NonNull CipherInputStream is)  {
+        try {
+            return (InputStream) filterIntputStream_in.get(is);
+        } catch (Exception e)   {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static OutputStream getOutput(@NonNull CipherOutputStream os)  {
+        try {
+            return (OutputStream) filterOutputStream_out.get(os);
+        } catch (Exception e)   {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void setInput(@NonNull CipherInputStream is, @NonNull InputStream i)  {
+        try {
+            filterIntputStream_in.set(is, i);
+        } catch (Exception e)   {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void setOutput(@NonNull CipherOutputStream os, @NonNull OutputStream o)  {
+        try {
+            filterOutputStream_out.set(os, o);
+        } catch (Exception e)   {
+            throw new RuntimeException(e);
+        }
     }
 }

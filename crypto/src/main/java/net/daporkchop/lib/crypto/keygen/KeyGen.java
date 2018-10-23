@@ -15,12 +15,17 @@
 
 package net.daporkchop.lib.crypto.keygen;
 
+import lombok.NonNull;
 import net.daporkchop.lib.crypto.BouncyCastleInit;
+import net.daporkchop.lib.crypto.cipher.CipherType;
+import net.daporkchop.lib.crypto.key.CipherKey;
 import net.daporkchop.lib.crypto.key.EllipticCurveKeyPair;
 import net.daporkchop.lib.crypto.sig.ec.CurveType;
+import net.daporkchop.lib.hash.helper.sha.Sha256Helper;
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey;
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPublicKey;
 
+import javax.crypto.spec.SecretKeySpec;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPair;
 import java.security.SecureRandom;
@@ -60,5 +65,29 @@ public class KeyGen {
      */
     public static EllipticCurveKeyPair gen(CurveType curve) {
         return gen(KeyRandom.getBytes(1024), curve);
+    }
+
+    public static CipherKey gen(@NonNull CipherType type, byte[] seed) {
+        byte[] key = new byte[type.blockSize];
+        byte[] iv = new byte[type.blockSize];
+        int i = 0;
+        do {
+            System.arraycopy(seed, 0, key, i, Math.min(seed.length, key.length - i));
+            i += seed.length;
+            seed = Sha256Helper.sha256(key, seed);
+        } while (i < key.length);
+        i = 0;
+        do {
+            System.arraycopy(seed, 0, iv, i, Math.min(seed.length, iv.length - i));
+            i += seed.length;
+            seed = Sha256Helper.sha256(iv, seed);
+        } while (i < iv.length);
+        return new CipherKey(new SecretKeySpec(key, "aaa"), iv);
+    }
+
+    public static CipherKey gen(@NonNull CipherType type) {
+        byte[] key = new byte[type.blockSize];
+        KeyRandom.getBytes(key);
+        return gen(type, key);
     }
 }

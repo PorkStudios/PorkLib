@@ -37,19 +37,26 @@ public class EncryptionTest {
         }
 
         for (CipherType type : CipherType.values()) {
+            if (type == CipherType.NONE)    {
+                continue;
+            }
+
             CipherKey key = KeyGen.gen(type);
 
             for (CipherMode mode : CipherMode.values()) {
                 for (CipherPadding padding : CipherPadding.values())    {
-                    Cipher cipher = Cipher.create(type, mode, padding, key);
-                    for (byte[] b : dataSets)   {
-                        byte[] encrypted = cipher.encrypt(b);
-                        byte[] decrypted = cipher.decrypt(encrypted);
-                        decrypted = Arrays.copyOf(decrypted, b.length); //remove padding
-                        //TODO: do this automagically somehow
-                        if (!Arrays.equals(b, decrypted))   {
-                            throw new IllegalStateException(String.format("Decrypted data isn't the same! Cipher: %s", cipher));
+                    try {
+                        Cipher cipher = Cipher.create(type, mode, padding, key);
+                        for (byte[] b : dataSets) {
+                            byte[] encrypted = cipher.encrypt(b);
+                            byte[] decrypted = cipher.decrypt(encrypted);
+                            decrypted = Arrays.copyOf(decrypted, b.length); //remove padding //TODO: do this automagically somehow
+                            if (!Arrays.equals(b, decrypted)) {
+                                throw new AssertionError(String.format("Decrypted data isn't the same! Cipher: %s", cipher));
+                            }
                         }
+                    } catch (Exception e)   {
+                        throw new RuntimeException(String.format("Error occurred while testing cipher (type=%s, mode=%s, padding= %s)", type.name, mode.name, padding.name), e);
                     }
                 }
             }

@@ -38,11 +38,11 @@ public class KeyGen {
     }
 
     /**
-     * Generate a random ECDH key pair using a given seed
+     * Generate a pseudorandom EC key pair using a given seed
      *
      * @param seed  The seed to use for random generation
      * @param curve The type of curve to generate
-     * @return An instance of SecretKey for use by ECDH key exchange methods
+     * @return An instance of SecretKey for use by EC key exchange methods
      */
     public static EllipticCurveKeyPair gen(byte[] seed, CurveType curve) {
         EC ec = new EC();
@@ -58,18 +58,25 @@ public class KeyGen {
     }
 
     /**
-     * Generate a random ECDH key pair, using 1024 bytes of random data as a seed
+     * Generate a random EC key pair, using 1024 bytes of random data as a seed
      *
      * @param curve The type of curve to generate
-     * @return An instance of SecretKey for use by ECDH key exchange methods
+     * @return An instance of SecretKey for use by EC key exchange methods
      */
     public static EllipticCurveKeyPair gen(CurveType curve) {
         return gen(KeyRandom.getBytes(1024), curve);
     }
 
+    /**
+     * Generates a pseudorandom block cipher key using a given seed
+     *
+     * @param type the block cipher algorithm to generate for
+     * @param seed the seed to use for random generation
+     * @return a random CipherKey
+     */
     public static CipherKey gen(@NonNull CipherType type, byte[] seed) {
-        byte[] key = new byte[type.blockSize];
-        byte[] iv = new byte[type.blockSize];
+        byte[] key = new byte[type.keySize];
+        byte[] iv = new byte[type.ivSize];
         int i = 0;
         do {
             System.arraycopy(seed, 0, key, i, Math.min(seed.length, key.length - i));
@@ -85,9 +92,13 @@ public class KeyGen {
         return new CipherKey(new SecretKeySpec(key, "aaa"), iv);
     }
 
+    /**
+     * Generates a random block cipher key
+     *
+     * @param type the block cipher algorithm to generate for
+     * @return a random CipherKey
+     */
     public static CipherKey gen(@NonNull CipherType type) {
-        byte[] key = new byte[type.blockSize];
-        KeyRandom.getBytes(key);
-        return gen(type, key);
+        return gen(type, KeyRandom.getBytes(1024));
     }
 }

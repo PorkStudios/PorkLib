@@ -22,19 +22,19 @@ import net.daporkchop.lib.crypto.sig.ec.CurveType;
 import net.daporkchop.lib.crypto.sig.ec.impl.ECDSAHelper;
 import org.junit.Test;
 
-import java.util.concurrent.ThreadLocalRandom;
+import static net.daporkchop.lib.crypto.TestConstants.randomData;
 
 public class SignatureTest {
     @Test
     public void testEC() {
-        byte[] randomBytes = new byte[4096];
-        ThreadLocalRandom.current().nextBytes(randomBytes);
         ECDSAHelper helper = new ECDSAHelper(HashTypes.SHA_256);
         for (CurveType type : CurveType.values()) {
             EllipticCurveKeyPair keyPair = KeyGen.gen(type);
-            byte[] sig = helper.sign(randomBytes, keyPair);
-            if (!helper.verify(sig, randomBytes, keyPair)) {
-                throw new IllegalStateException(String.format("Invalid signature on curve type %s", type.name));
+            for (byte[] b : randomData) {
+                byte[] sig = helper.sign(b, keyPair);
+                if (!helper.verify(sig, b, keyPair)) {
+                    throw new IllegalStateException(String.format("Invalid signature on curve type %s", type.name));
+                }
             }
             System.out.printf("Successful test of %s\n", type.name);
         }

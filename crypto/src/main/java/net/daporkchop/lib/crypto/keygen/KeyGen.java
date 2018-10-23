@@ -18,6 +18,7 @@ package net.daporkchop.lib.crypto.keygen;
 import lombok.NonNull;
 import net.daporkchop.lib.crypto.BouncyCastleInit;
 import net.daporkchop.lib.crypto.cipher.CipherType;
+import net.daporkchop.lib.crypto.cipher.StreamCipherType;
 import net.daporkchop.lib.crypto.key.CipherKey;
 import net.daporkchop.lib.crypto.key.EllipticCurveKeyPair;
 import net.daporkchop.lib.crypto.sig.ec.CurveType;
@@ -99,6 +100,28 @@ public class KeyGen {
      * @return a random CipherKey
      */
     public static CipherKey gen(@NonNull CipherType type) {
+        return gen(type, KeyRandom.getBytes(1024));
+    }
+
+    public static CipherKey gen(@NonNull StreamCipherType type, byte[] seed) {
+        byte[] key = new byte[type.keySize];
+        byte[] iv = new byte[type.ivSize];
+        int i = 0;
+        do {
+            System.arraycopy(seed, 0, key, i, Math.min(seed.length, key.length - i));
+            i += seed.length;
+            seed = Sha256Helper.sha256(key, seed);
+        } while (i < key.length);
+        i = 0;
+        do {
+            System.arraycopy(seed, 0, iv, i, Math.min(seed.length, iv.length - i));
+            i += seed.length;
+            seed = Sha256Helper.sha256(iv, seed);
+        } while (i < iv.length);
+        return new CipherKey(new SecretKeySpec(key, "aaa"), iv);
+    }
+
+    public static CipherKey gen(@NonNull StreamCipherType type) {
         return gen(type, KeyRandom.getBytes(1024));
     }
 }

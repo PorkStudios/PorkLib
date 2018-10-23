@@ -15,39 +15,29 @@
 
 package net.daporkchop.lib.crypto;
 
-import net.daporkchop.lib.crypto.cipher.Cipher;
-import net.daporkchop.lib.crypto.cipher.CipherMode;
-import net.daporkchop.lib.crypto.cipher.CipherPadding;
-import net.daporkchop.lib.crypto.cipher.CipherType;
+import net.daporkchop.lib.crypto.cipher.*;
 import net.daporkchop.lib.crypto.key.CipherKey;
 import net.daporkchop.lib.crypto.keygen.KeyGen;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.concurrent.ThreadLocalRandom;
+
+import static net.daporkchop.lib.crypto.TestConstants.randomData;
 
 public class EncryptionTest {
     @Test
-    public void testBlockCipher()   {
-        byte[][] dataSets = new byte[32][];
-        for (int i = dataSets.length - 1; i >= 0; i--)  {
-            byte[] b = new byte[ThreadLocalRandom.current().nextInt(1024, 8192)];
-            ThreadLocalRandom.current().nextBytes(b);
-            dataSets[i] = b;
-        }
-
+    public void testBlockCipher() {
         for (CipherType type : CipherType.values()) {
-            if (type == CipherType.NONE)    {
+            if (type == CipherType.NONE) {
                 continue;
             }
-
             CipherKey key = KeyGen.gen(type);
 
             for (CipherMode mode : CipherMode.values()) {
-                for (CipherPadding padding : CipherPadding.values())    {
+                for (CipherPadding padding : CipherPadding.values()) {
                     try {
                         Cipher cipher = Cipher.create(type, mode, padding, key);
-                        for (byte[] b : dataSets) {
+                        for (byte[] b : randomData) {
                             byte[] encrypted = cipher.encrypt(b);
                             byte[] decrypted = cipher.decrypt(encrypted);
                             decrypted = Arrays.copyOf(decrypted, b.length); //remove padding //TODO: do this automagically somehow
@@ -55,13 +45,33 @@ public class EncryptionTest {
                                 throw new AssertionError(String.format("Decrypted data isn't the same! Cipher: %s", cipher));
                             }
                         }
-                    } catch (Exception e)   {
+                    } catch (Exception e) {
                         throw new RuntimeException(String.format("Error occurred while testing cipher (type=%s, mode=%s, padding= %s)", type.name, mode.name, padding.name), e);
                     }
                 }
             }
 
             System.out.printf("Completed test on %s successfully\n", type.name);
+        }
+    }
+
+    @Test
+    public void testStreamCipher() {
+        for (StreamCipherType type : StreamCipherType.values()) {
+            try {
+                CipherKey key = KeyGen.gen(type);
+                Cipher cipher = Cipher.create(type, key);
+                for (byte[] b : randomData) {
+                    byte[] encrypted = cipher.encrypt(b);
+                    byte[] decrypted = cipher.decrypt(encrypted);
+                    if (!Arrays.equals(b, decrypted))   {
+                        throw new AssertionError(String.format("Decrypted data isn't the same! Cipher: %s", type.name));
+                    }
+                }
+            } catch (Exception e)   {
+                throw new RuntimeException(String.format("Error occurred while testing stream cipher (name=%s)", type.name), e);
+            }
+            System.out.printf("Successful test of stream cipher %s\n", type.name);
         }
     }
 }

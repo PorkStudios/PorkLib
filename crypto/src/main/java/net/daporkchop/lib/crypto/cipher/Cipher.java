@@ -42,12 +42,12 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public interface Cipher {
-    static Cipher create(@NonNull CipherType type, @NonNull CipherMode mode, @NonNull CipherPadding padding, @NonNull CipherKey key) {
-        return create(type, mode, padding, key, CipherInitSide.ONE_WAY);
+    static Cipher createBlock(@NonNull CipherType type, @NonNull CipherMode mode, @NonNull CipherPadding padding, @NonNull CipherKey key) {
+        return createBlock(type, mode, padding, key, CipherInitSide.ONE_WAY);
     }
 
-    static Cipher create(@NonNull CipherType type, @NonNull CipherMode mode, @NonNull CipherPadding padding, @NonNull CipherKey key, @NonNull CipherInitSide side) {
-        return create(type, mode, padding, key, side, b -> {
+    static Cipher createBlock(@NonNull CipherType type, @NonNull CipherMode mode, @NonNull CipherPadding padding, @NonNull CipherKey key, @NonNull CipherInitSide side) {
+        return createBlock(type, mode, padding, key, side, b -> {
             byte[] hash = Sha256Helper.sha256(b);
             for (int i = 0; i < b.length; i++) {
                 b[i] = hash[i % hash.length];
@@ -55,16 +55,24 @@ public interface Cipher {
         });
     }
 
-    static Cipher create(@NonNull CipherType type, @NonNull CipherMode mode, @NonNull CipherPadding padding, @NonNull CipherKey key, @NonNull CipherInitSide side, @NonNull Consumer<byte[]> ivUpdater) {
+    static Cipher createBlock(@NonNull CipherType type, @NonNull CipherMode mode, @NonNull CipherPadding padding, @NonNull CipherKey key, @NonNull CipherInitSide side, @NonNull Consumer<byte[]> ivUpdater) {
         return new BlockCipherImpl(type, mode, padding, key, side, ivUpdater);
     }
 
-    static Cipher create(@NonNull StreamCipherType type, @NonNull CipherKey key) {
-        return create(type, key, CipherInitSide.ONE_WAY);
+    static Cipher createStream(@NonNull StreamCipherType type, @NonNull CipherKey key) {
+        return createStream(type, key, CipherInitSide.ONE_WAY);
     }
 
-    static Cipher create(@NonNull StreamCipherType type, @NonNull CipherKey key, @NonNull CipherInitSide side) {
+    static Cipher createStream(@NonNull StreamCipherType type, @NonNull CipherKey key, @NonNull CipherInitSide side) {
         return new StreamCipherImpl(type, key, side);
+    }
+
+    static Cipher createPseudoStream(@NonNull CipherType type, @NonNull CipherMode mode, @NonNull CipherKey key)  {
+        return createPseudoStream(type, mode, key, CipherInitSide.ONE_WAY);
+    }
+
+    static Cipher createPseudoStream(@NonNull CipherType type, @NonNull CipherMode mode, @NonNull CipherKey key, @NonNull CipherInitSide side)  {
+        return new StreamCipherImpl(type, mode, key, side);
     }
 
     byte[] encrypt(@NonNull byte[] plaintext);
@@ -94,20 +102,24 @@ class BlockCipherImpl implements Cipher {
     private final CipherKey encrypt, decrypt;
 
     public BlockCipherImpl(@NonNull CipherType type, @NonNull CipherMode mode, @NonNull CipherPadding padding, @NonNull CipherKey key, @NonNull CipherInitSide side, @NonNull Consumer<byte[]> ivUpdater) {
+        this(() -> {
+            BlockCipher cipher = type.create();
+            cipher = mode.wrap(cipher);
+            return new PaddedBufferedBlockCipher(cipher, padding.create());
+        }, type, mode, padding, key, side, ivUpdater);
+    }
+
+    BlockCipherImpl(@NonNull Supplier<BufferedBlockCipher> supplier, @NonNull CipherType type, @NonNull CipherMode mode, @NonNull CipherPadding padding, @NonNull CipherKey key, @NonNull CipherInitSide side, @NonNull Consumer<byte[]> ivUpdater) {
         this.type = type;
         this.mode = mode;
         this.padding = padding;
 
         this.ivUpdater = ivUpdater;
-        this.supplier = () -> {
-            BlockCipher cipher = type.create();
-            cipher = mode.wrap(cipher);
-            return new PaddedBufferedBlockCipher(cipher, padding.create());
-        };
+        this.supplier = supplier;
         this.tl = ThreadLocal.withInitial(() -> new SoftReference<>(this.supplier.get()));
 
-        this.encrypt = new CipherKey(new SecretKeySpec(key.getKey().clone(), "aaa"), side.ivSetter.apply(key.getIV(), false));
-        this.decrypt = new CipherKey(new SecretKeySpec(key.getKey().clone(), "aaa"), side.ivSetter.apply(key.getIV(), true));
+        this.encrypt = new CipherKey(new SecretKeySpec(side.ivSetter.apply(key.getKey(), true), "aaa"), side.ivSetter.apply(key.getIV(), false));
+        this.decrypt = new CipherKey(new SecretKeySpec(side.ivSetter.apply(key.getKey(), false), "aaa"), side.ivSetter.apply(key.getIV(), true));
     }
 
     @Override
@@ -189,21 +201,30 @@ class BlockCipherImpl implements Cipher {
 }
 
 class StreamCipherImpl implements Cipher {
-    //TODO
     private final StreamCipherType type;
     private final Lock outLock = new ReentrantLock();
     private final Lock inLock = new ReentrantLock();
     private final StreamCipher outCipher;
     private final StreamCipher inCipher;
+    private String nameSuffix = "";
 
-    public StreamCipherImpl(@NonNull StreamCipherType type, @NonNull CipherKey key, @NonNull CipherInitSide side) {
+    public StreamCipherImpl(@NonNull CipherType type, @NonNull CipherMode mode, @NonNull CipherKey key, @NonNull CipherInitSide side) {
+        this(() -> mode.streamify(type.create()), StreamCipherType.BLOCK_CIPHER, key, side);
+        this.nameSuffix = String.format(", blockType=%s, blockMode=%s", type.name, mode.name);
+    }
+
+    public StreamCipherImpl(@NonNull StreamCipherType type, @NonNull CipherKey key, @NonNull CipherInitSide side)   {
+        this(type::create, type, key, side);
+    }
+
+    StreamCipherImpl(@NonNull Supplier<StreamCipher> cipherSupplier, @NonNull StreamCipherType type, @NonNull CipherKey key, @NonNull CipherInitSide side) {
         this.type = type;
 
-        this.outCipher = type.create();
-        this.inCipher = type.create();
+        this.outCipher = cipherSupplier.get();
+        this.inCipher = cipherSupplier.get();
 
-        this.outCipher.init(true, new CipherKey(key.getKey().clone(), side.ivSetter.apply(key.getIV(), false)));
-        this.inCipher.init(false, new CipherKey(key.getKey().clone(), side.ivSetter.apply(key.getIV(), true))); //TODO: figure out a way to use different IVs for encryption and decryption automagically
+        this.outCipher.init(true, new CipherKey(side.ivSetter.apply(key.getKey(), true), side.ivSetter.apply(key.getIV(), false)));
+        this.inCipher.init(false, new CipherKey(side.ivSetter.apply(key.getKey(), false), side.ivSetter.apply(key.getIV(), true))); //TODO: figure out a way to use different IVs for encryption and decryption automagically
     }
 
     @Override
@@ -242,6 +263,6 @@ class StreamCipherImpl implements Cipher {
 
     @Override
     public String toString() {
-        return String.format("Cipher$StreamCipherImpl(type=%s)", this.type.name);
+        return String.format("Cipher$StreamCipherImpl(type=%s%s)", this.type.name, this.nameSuffix);
     }
 }

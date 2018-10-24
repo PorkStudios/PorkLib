@@ -15,43 +15,55 @@
 
 package net.daporkchop.lib.crypto.cipher.block;
 
+import lombok.NonNull;
 import org.bouncycastle.crypto.BlockCipher;
-import org.bouncycastle.crypto.CipherParameters;
+import org.bouncycastle.crypto.StreamCipher;
 import org.bouncycastle.crypto.modes.*;
-import org.bouncycastle.crypto.params.ParametersWithIV;
 
+import java.util.Arrays;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 public enum CipherMode {
     CBC("CBC", (cipher, integer) -> new CBCBlockCipher(cipher)),
     OFB("OFB", OFBBlockCipher::new),
-    CFB("CFB", CFBBlockCipher::new), //TODO: this is also a stream cipher, so allow people to use it as such
-    KCTR("KCTR", (cipher, integer) -> new KCTRBlockCipher(cipher)), //TODO: same as above
+    CFB("CFB", CFBBlockCipher::new, true), //TODO: this is also a stream cipher, so allow people to use it as such
+    KCTR("KCTR", (cipher, integer) -> new KCTRBlockCipher(cipher), true), //TODO: same as above
     PGP_CFB("PGP_CFB", (cipher, integer) -> new PGPCFBBlockCipher(cipher, false)),
-    SIC("SIC", (cipher, integer) -> new SICBlockCipher(cipher)), //TODO: same as above
-    /*OPENPGP_CFB("OpenPGPCFB",
-            (cipher, integer) -> new OpenPGPCFBBlockCipher(cipher),
-            ParametersWithIV::getParameters)*/;
+    SIC("SIC", (cipher, integer) -> new SICBlockCipher(cipher), true) //TODO: same as above
+    ;
 
-    public final String name;
-    private final BiFunction<BlockCipher, Integer, BlockCipher> cipherFunction;
-    //private final Function<ParametersWithIV, CipherParameters> parametersFunction;
+    private static final CipherMode[] STREAMABLE_MODES;
 
-    CipherMode(String name,
-               BiFunction<BlockCipher, Integer, BlockCipher> cipherFunction,
-               //Function<ParametersWithIV, CipherParameters> parametersFunction,
-               CipherType... incompatible) {
-        this.name = name.intern();
-        this.cipherFunction = cipherFunction;
-        //this.parametersFunction = parametersFunction == null ? parameters -> parameters : parametersFunction;
+    static {
+        STREAMABLE_MODES = Arrays.stream(values()).filter(mode -> mode.streamSupported).toArray(CipherMode[]::new);
     }
 
-    public BlockCipher wrap(BlockCipher cipher) {
+    public final String name;
+    public final boolean streamSupported;
+    private final BiFunction<BlockCipher, Integer, BlockCipher> cipherFunction;
+
+    CipherMode(String name, BiFunction<BlockCipher, Integer, BlockCipher> cipherFunction) {
+        this(name, cipherFunction, false);
+    }
+
+    CipherMode(@NonNull String name, @NonNull BiFunction<BlockCipher, Integer, BlockCipher> cipherFunction, boolean streamSupported) {
+        this.name = name.intern();
+        this.cipherFunction = cipherFunction;
+        this.streamSupported = streamSupported;
+    }
+
+    public BlockCipher wrap(@NonNull BlockCipher cipher) {
         return this.cipherFunction.apply(cipher, cipher.getBlockSize());
     }
 
-    /*public CipherParameters getParametersFromKey(ParametersWithIV parameters) {
-        return this.parametersFunction.apply(parameters);
-    }*/
+    public StreamCipher streamify(@NonNull BlockCipher cipher)  {
+        if (!this.streamSupported)  {
+            throw new IllegalStateException(String.format("Cipher mode %s cannot be used as a stream!", this.name));
+        }
+        return (StreamCipher) this.wrap(cipher);
+    }
+
+    public static CipherMode[] streamableModes()    {
+        return STREAMABLE_MODES;
+    }
 }

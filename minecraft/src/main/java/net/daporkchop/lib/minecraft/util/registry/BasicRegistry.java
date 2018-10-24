@@ -12,21 +12,42 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  */
-rootProject.name = 'root'
 
-include 'binary'
-include 'crypto'
-include 'db'
-include 'encoding'
-include 'hash'
-include 'http'
-include 'math'
-include 'nbt'
-include 'network'
-include 'noise'
-include 'primitive'
-include 'primitive:generator'
-include 'minecraft'
-include 'minecraft:minecraft-worldscanner'
-findProject(':minecraft:minecraft-worldscanner')?.name = 'minecraft-worldscanner'
+package net.daporkchop.lib.minecraft.util.registry;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.primitive.lambda.function.IntegerToObjectFunction;
+
+public class BasicRegistry<T> {
+    @NonNull
+    private final IntegerToObjectFunction<T[]> arraySupplier;
+
+    private final T[] idToEntries;
+
+    public BasicRegistry(@NonNull IntegerToObjectFunction<T[]> arraySupplier, int maxValues)   {
+        this.arraySupplier = arraySupplier;
+        this.idToEntries = arraySupplier.apply(maxValues);
+    }
+
+    public synchronized void registerEntry(@NonNull T value, int id) {
+        if (this.idToEntries[id] != null)   {
+            throw new IllegalArgumentException(String.format("ID %d is already occupied by %s", id, this.idToEntries[id].toString()));
+        }
+        this.idToEntries[id] = value;
+    }
+
+    public T getValue(int id)   {
+        return this.idToEntries[id];
+    }
+
+    public int getId(@NonNull T value)  {
+        for (int i = this.idToEntries.length - 1; i >= 0; i--)  {
+            if (value == this.idToEntries[i] || value.equals(this.idToEntries[i]))  {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+}

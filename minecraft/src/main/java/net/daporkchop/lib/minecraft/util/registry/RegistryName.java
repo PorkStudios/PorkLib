@@ -12,21 +12,38 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  */
-rootProject.name = 'root'
 
-include 'binary'
-include 'crypto'
-include 'db'
-include 'encoding'
-include 'hash'
-include 'http'
-include 'math'
-include 'nbt'
-include 'network'
-include 'noise'
-include 'primitive'
-include 'primitive:generator'
-include 'minecraft'
-include 'minecraft:minecraft-worldscanner'
-findProject(':minecraft:minecraft-worldscanner')?.name = 'minecraft-worldscanner'
+package net.daporkchop.lib.minecraft.util.registry;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NonNull;
+
+@AllArgsConstructor
+@Getter
+public class RegistryName {
+    @NonNull
+    private final String modid;
+
+    @NonNull
+    private final String name;
+
+    @Override
+    public int hashCode() {
+        return this.modid.hashCode() * 31 + this.name.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof RegistryName)) {
+            return false;
+        }
+        RegistryName registryName = (RegistryName) obj;
+        return this.modid.equals(registryName.modid) && this.name.equals(registryName.name);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("RegistryName(%s:%s)", this.modid, this.name);
+    }
+}

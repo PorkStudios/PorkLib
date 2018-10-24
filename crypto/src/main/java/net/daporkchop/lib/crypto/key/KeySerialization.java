@@ -35,7 +35,7 @@ public class KeySerialization {
         if (!(pubKey | privKey)) {
             throw new IllegalArgumentException("Must encode either public key, private key or both!");
         }
-        out.writeEnum(keyPair.getCurveType());
+        out.writeUTF(keyPair.getCurveType().name());
         ObjectOutputStream oos = new ObjectOutputStream(out);
         if (privKey) {
             oos.writeObject(keyPair.getPrivateKey());
@@ -54,7 +54,7 @@ public class KeySerialization {
         if (!(pubKey | privKey)) {
             throw new IllegalArgumentException("Must encode either public key, private key or both!");
         }
-        CurveType type = in.readEnum(CurveType::valueOf);
+        CurveType type = CurveType.valueOf(in.readUTF());
         ObjectInputStream ois = new ObjectInputStream(in);
         try {
             if (pubKey && privKey) {

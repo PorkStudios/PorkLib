@@ -16,10 +16,15 @@
 package net.daporkchop.lib.crypto;
 
 import net.daporkchop.lib.crypto.cipher.*;
+import net.daporkchop.lib.crypto.cipher.block.CipherMode;
+import net.daporkchop.lib.crypto.cipher.block.CipherPadding;
+import net.daporkchop.lib.crypto.cipher.block.CipherType;
+import net.daporkchop.lib.crypto.cipher.stream.StreamCipherType;
 import net.daporkchop.lib.crypto.key.CipherKey;
 import net.daporkchop.lib.crypto.keygen.KeyGen;
 import org.junit.Test;
 
+import java.io.*;
 import java.util.Arrays;
 
 import static net.daporkchop.lib.crypto.TestConstants.randomData;
@@ -42,7 +47,7 @@ public class EncryptionTest {
                             byte[] decrypted = cipher.decrypt(encrypted);
                             decrypted = Arrays.copyOf(decrypted, b.length); //remove padding //TODO: do this automagically somehow
                             if (!Arrays.equals(b, decrypted)) {
-                                throw new AssertionError(String.format("Decrypted data isn't the same! Cipher: %s", cipher));
+                                throw new AssertionError(String.format("Decrypted data isn't the same! Cipher: (type=%s, mode=%s, padding= %s)", type.name, mode.name, padding.name));
                             }
                         }
                     } catch (Exception e) {
@@ -72,6 +77,56 @@ public class EncryptionTest {
                 throw new RuntimeException(String.format("Error occurred while testing stream cipher (name=%s)", type.name), e);
             }
             System.out.printf("Successful test of stream cipher %s\n", type.name);
+        }
+    }
+
+    @Test
+    public void testBlockCipherInputOutputStream() throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+        for (CipherType type : CipherType.values()) {
+            if (type == CipherType.NONE) {
+                continue;
+            }
+            CipherKey key1 = KeyGen.gen(type);
+            CipherKey key2 = KeyGen.gen(type);
+
+            for (CipherMode mode : CipherMode.values()) {
+                for (CipherPadding padding : CipherPadding.values()) {
+                    Cipher cipher1 = Cipher.create(type, mode, padding, key1, CipherInitSide.SERVER);
+                    Cipher cipher2 = Cipher.create(type, mode, padding, key1, CipherInitSide.CLIENT);
+                    Cipher cipher3 = Cipher.create(type, mode, padding, key2, CipherInitSide.CLIENT);
+
+                    for (byte[] b : randomData) {
+                        baos.reset();
+                        {
+                            byte[] encrypted1;
+                            {
+                                OutputStream os = cipher1.encryptionStream(baos);
+                                os.write(b.length & 0xFF);
+                                os.write((b.length >> 8) & 0xFF);
+                                os.write(b);
+                                os.close();
+                                encrypted1 = baos.toByteArray();
+                            }
+                            byte[] decrypted;
+                            {
+                                InputStream is = cipher2.decryptionStream(new ByteArrayInputStream(encrypted1));
+                                decrypted = new byte[is.read() | (is.read() << 8)];
+                                for (int i = 0; i < decrypted.length; i++)  {
+                                    decrypted[i] = (byte) is.read();
+                                }
+                                is.close();
+                                if (!Arrays.equals(b, decrypted))   {
+                                    throw new AssertionError(String.format("Decrypted data isn't the same! Cipher: (type=%s, mode=%s, padding= %s)", type.name, mode.name, padding.name));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            System.out.printf("Completed test on %s successfully\n", type.name);
         }
     }
 }

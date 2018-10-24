@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.crypto.cipher;
+package net.daporkchop.lib.crypto.cipher.block;
 
 import lombok.AllArgsConstructor;
 import org.bouncycastle.crypto.BlockCipher;

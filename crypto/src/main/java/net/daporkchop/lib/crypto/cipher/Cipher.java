@@ -84,6 +84,7 @@ class BlockCipherImpl implements Cipher {
             throw new RuntimeException(e);
         }
     }
+
     private final CipherType type;
     private final CipherMode mode;
     private final CipherPadding padding;
@@ -116,7 +117,8 @@ class BlockCipherImpl implements Cipher {
         synchronized (this.encrypt) {
             //update key
             this.ivUpdater.accept(this.encrypt.getIV());
-            cipher.init(true, this.mode.getParametersFromKey(this.encrypt));
+            //cipher.init(true, this.mode.getParametersFromKey(this.encrypt));
+            cipher.init(true, this.encrypt);
         }
 
         //actually do the encryption
@@ -133,7 +135,8 @@ class BlockCipherImpl implements Cipher {
         synchronized (this.decrypt) {
             //update key
             this.ivUpdater.accept(this.decrypt.getIV());
-            cipher.init(false, this.mode.getParametersFromKey(this.decrypt));
+            //cipher.init(false, this.mode.getParametersFromKey(this.decrypt));
+            cipher.init(false, this.decrypt);
         }
 
         byte[] decrypted = new byte[cipher.getOutputSize(ciphertext.length)];
@@ -149,7 +152,8 @@ class BlockCipherImpl implements Cipher {
         synchronized (this.encrypt) {
             //update key
             this.ivUpdater.accept(this.encrypt.getIV());
-            cipher.init(true, this.mode.getParametersFromKey(this.encrypt));
+            //cipher.init(true, this.mode.getParametersFromKey(this.encrypt));
+            cipher.init(true, this.encrypt);
         }
 
         return new CipherOutputStream(outputStream, cipher);
@@ -162,7 +166,8 @@ class BlockCipherImpl implements Cipher {
         synchronized (this.decrypt) {
             //update key
             this.ivUpdater.accept(this.decrypt.getIV());
-            cipher.init(false, this.mode.getParametersFromKey(this.decrypt));
+            //cipher.init(false, this.mode.getParametersFromKey(this.decrypt));
+            cipher.init(false, this.decrypt);
         }
 
         return new CipherInputStream(inputStream, cipher);

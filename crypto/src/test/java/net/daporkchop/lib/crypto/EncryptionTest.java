@@ -96,6 +96,7 @@ public class EncryptionTest {
                     Cipher cipher1 = Cipher.create(type, mode, padding, key1, CipherInitSide.SERVER);
                     Cipher cipher2 = Cipher.create(type, mode, padding, key1, CipherInitSide.CLIENT);
                     Cipher cipher3 = Cipher.create(type, mode, padding, key2, CipherInitSide.CLIENT);
+                    Cipher cipher4 = Cipher.create(type, mode, padding, key1, CipherInitSide.SERVER);
 
                     for (byte[] b : randomData) {
                         baos.reset();
@@ -119,6 +120,27 @@ public class EncryptionTest {
                                 is.close();
                                 if (!Arrays.equals(b, decrypted))   {
                                     throw new AssertionError(String.format("Decrypted data isn't the same! Cipher: (type=%s, mode=%s, padding= %s)", type.name, mode.name, padding.name));
+                                }
+                            }
+                            int j = 0;
+                            for (Cipher cipher : new Cipher[] {cipher3, cipher4}){
+                                try {
+                                    InputStream is = cipher.decryptionStream(new ByteArrayInputStream(encrypted1));
+                                    decrypted = new byte[is.read() | (is.read() << 8)];
+                                    for (int i = 0; i < decrypted.length; i++) {
+                                        decrypted[i] = (byte) is.read();
+                                    }
+                                    is.close();
+                                    if (!Arrays.equals(b, decrypted)) {
+                                        throw new RuntimeException(String.format("Decrypted data isn't the same! Cipher: (type=%s, mode=%s, padding= %s)", type.name, mode.name, padding.name));
+                                    }
+
+                                    //if we've gotten this far, something is seriously wrong
+                                    throw new AssertionError(String.format("Decryption using alt cipher completed successfully! Cipher: (type=%s, mode=%s, padding= %s)", type.name, mode.name, padding.name));
+                                } catch (Exception e)   {
+                                    //this should throw an exception, or something is wrong
+                                } finally {
+                                    j++;
                                 }
                             }
                         }

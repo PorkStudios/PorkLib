@@ -17,47 +17,41 @@ package net.daporkchop.lib.crypto.cipher.block;
 
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.modes.CBCBlockCipher;
-import org.bouncycastle.crypto.modes.CFBBlockCipher;
-import org.bouncycastle.crypto.modes.OFBBlockCipher;
-import org.bouncycastle.crypto.modes.OpenPGPCFBBlockCipher;
+import org.bouncycastle.crypto.modes.*;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public enum CipherMode {
-    CBC("CBC",
-            (cipher, integer) -> new CBCBlockCipher(cipher),
-            null),
-    OFB("OFB",
-            OFBBlockCipher::new,
-            null),
-    CFB("CFB",
-            CFBBlockCipher::new,
-            null),
-    OPENPGP_CFB("OpenPGPCFB",
+    CBC("CBC", (cipher, integer) -> new CBCBlockCipher(cipher)),
+    OFB("OFB", OFBBlockCipher::new),
+    CFB("CFB", CFBBlockCipher::new), //TODO: this is also a stream cipher, so allow people to use it as such
+    KCTR("KCTR", (cipher, integer) -> new KCTRBlockCipher(cipher)), //TODO: same as above
+    PGP_CFB("PGP_CFB", (cipher, integer) -> new PGPCFBBlockCipher(cipher, false)),
+    SIC("SIC", (cipher, integer) -> new SICBlockCipher(cipher)), //TODO: same as above
+    /*OPENPGP_CFB("OpenPGPCFB",
             (cipher, integer) -> new OpenPGPCFBBlockCipher(cipher),
-            ParametersWithIV::getParameters);
+            ParametersWithIV::getParameters)*/;
 
     public final String name;
     private final BiFunction<BlockCipher, Integer, BlockCipher> cipherFunction;
-    private final Function<ParametersWithIV, CipherParameters> parametersFunction;
+    //private final Function<ParametersWithIV, CipherParameters> parametersFunction;
 
     CipherMode(String name,
                BiFunction<BlockCipher, Integer, BlockCipher> cipherFunction,
-               Function<ParametersWithIV, CipherParameters> parametersFunction,
+               //Function<ParametersWithIV, CipherParameters> parametersFunction,
                CipherType... incompatible) {
         this.name = name.intern();
         this.cipherFunction = cipherFunction;
-        this.parametersFunction = parametersFunction == null ? parameters -> parameters : parametersFunction;
+        //this.parametersFunction = parametersFunction == null ? parameters -> parameters : parametersFunction;
     }
 
     public BlockCipher wrap(BlockCipher cipher) {
         return this.cipherFunction.apply(cipher, cipher.getBlockSize());
     }
 
-    public CipherParameters getParametersFromKey(ParametersWithIV parameters) {
+    /*public CipherParameters getParametersFromKey(ParametersWithIV parameters) {
         return this.parametersFunction.apply(parameters);
-    }
+    }*/
 }

@@ -28,7 +28,7 @@ public class StreamCipherInput extends InputStream {
     @Override
     public int read() throws IOException {
         this.readLock.lock();
-        return this.cipher.returnByte((byte) this.input.read());
+        return this.cipher.returnByte((byte) this.input.read()) & 0xFF;
     }
 
     @Override

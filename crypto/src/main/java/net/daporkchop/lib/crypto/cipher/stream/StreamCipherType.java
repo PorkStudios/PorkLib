@@ -36,7 +36,10 @@ public enum StreamCipherType {
     //This guy is totally broken: GRAIN128("Grain-128", Grain128Engine::new, 12, 12),
     SALSA10("Salsa10", () -> new Salsa20Engine(10), 16, 8),
     SALSA20("Salsa20", Salsa20Engine::new, 16, 8),
-    XSALSA20("XSalsa20", XSalsa20Engine::new, 32, 24);
+    XSALSA20("XSalsa20", XSalsa20Engine::new, 32, 24),
+    BLOCK_CIPHER("Pseudo-Stream (Block)", () -> {
+        throw new UnsupportedOperationException();
+    }, -1);
 
     public final String name;
     private final Supplier<StreamCipher> cipherSupplier;

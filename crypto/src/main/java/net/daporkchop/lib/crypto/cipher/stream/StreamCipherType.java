@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.crypto.cipher;
+package net.daporkchop.lib.crypto.cipher.stream;
 
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
@@ -27,16 +27,16 @@ import org.bouncycastle.crypto.engines.XSalsa20Engine;
 import java.util.function.Supplier;
 
 public enum StreamCipherType {
-    CHACHA10_128("ChaCha10", () -> new ChaChaEngine(10), 16, 8),
-    CHACHA20_128("ChaCha20", ChaChaEngine::new, 16, 8),
-    CHACHA40_128("ChaCha40", () -> new ChaChaEngine(40), 16, 8),
-    CHACHA10_256("ChaCha10", () -> new ChaChaEngine(10), 32, 8),
-    CHACHA20_256("ChaCha20", ChaChaEngine::new, 32, 8),
-    CHACHA40_256("ChaCha40", () -> new ChaChaEngine(40), 32, 8), //TODO: fix names
-    GRAIN128("Grain-128", Grain128Engine::new, 0),
-    SALSA10("Salsa10", () -> new Salsa20Engine(10), 0),
-    SALSA20("Salsa20", Salsa20Engine::new, 0),
-    XSALSA20("XSalsa20", XSalsa20Engine::new, 0);
+    CHACHA10_128("ChaCha10 (128-bit)", () -> new ChaChaEngine(10), 16, 8),
+    CHACHA20_128("ChaCha20 (128-bit)", ChaChaEngine::new, 16, 8),
+    CHACHA40_128("ChaCha40 (128-bit)", () -> new ChaChaEngine(40), 16, 8),
+    CHACHA10_256("ChaCha10 (256-bit)", () -> new ChaChaEngine(10), 32, 8),
+    CHACHA20_256("ChaCha20 (256-bit)", ChaChaEngine::new, 32, 8),
+    CHACHA40_256("ChaCha40 (256-bit)", () -> new ChaChaEngine(40), 32, 8),
+    //This guy is totally broken: GRAIN128("Grain-128", Grain128Engine::new, 12, 12),
+    SALSA10("Salsa10", () -> new Salsa20Engine(10), 16, 8),
+    SALSA20("Salsa20", Salsa20Engine::new, 16, 8),
+    XSALSA20("XSalsa20", XSalsa20Engine::new, 32, 24);
 
     public final String name;
     private final Supplier<StreamCipher> cipherSupplier;

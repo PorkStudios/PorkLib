@@ -17,8 +17,8 @@ package net.daporkchop.lib.crypto.keygen;
 
 import lombok.NonNull;
 import net.daporkchop.lib.crypto.BouncyCastleInit;
-import net.daporkchop.lib.crypto.cipher.CipherType;
-import net.daporkchop.lib.crypto.cipher.StreamCipherType;
+import net.daporkchop.lib.crypto.cipher.block.CipherType;
+import net.daporkchop.lib.crypto.cipher.stream.StreamCipherType;
 import net.daporkchop.lib.crypto.key.CipherKey;
 import net.daporkchop.lib.crypto.key.EllipticCurveKeyPair;
 import net.daporkchop.lib.crypto.sig.ec.CurveType;

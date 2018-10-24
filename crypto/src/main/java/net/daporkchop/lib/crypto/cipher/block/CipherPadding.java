@@ -13,23 +13,29 @@
  *
  */
 
-package net.daporkchop.lib.crypto.cipher.impl.asymmetric;
+package net.daporkchop.lib.crypto.cipher.block;
 
-import net.daporkchop.lib.crypto.key.asymmetric.RSAKeyPair;
-import org.bouncycastle.crypto.engines.RSAEngine;
+import org.bouncycastle.crypto.paddings.*;
 
-public class RSACipherHelper {
-    private final ThreadLocal<RSAEngine> tl = ThreadLocal.withInitial(RSAEngine::new);
+import java.util.function.Supplier;
 
-    public byte[] encrypt(byte[] data, RSAKeyPair pair) {
-        RSAEngine engine = this.tl.get();
-        engine.init(true, pair.getPublic());
-        return engine.processBlock(data, 0, data.length);
+public enum CipherPadding {
+    PKCS7("PKCS7Padding", PKCS7Padding::new),
+    ISO10126_2("ISO10126-2Padding", ISO10126d2Padding::new),
+    ISO7816_4("ISO7816-4Padding", ISO7816d4Padding::new),
+    X9_23("X9.23Padding", X923Padding::new),
+    TBC("TBCPadding", TBCPadding::new),
+    ZERO_BYTE("ZeroBytePadding", ZeroBytePadding::new);
+
+    public final String name;
+    private final Supplier<BlockCipherPadding> supplier;
+
+    CipherPadding(String name, Supplier<BlockCipherPadding> supplier) {
+        this.name = name.intern();
+        this.supplier = supplier;
     }
 
-    public byte[] decrypt(byte[] data, RSAKeyPair pair) {
-        RSAEngine engine = this.tl.get();
-        engine.init(false, pair.getPrivate());
-        return engine.processBlock(data, 0, data.length);
+    public BlockCipherPadding create() {
+        return this.supplier.get();
     }
 }

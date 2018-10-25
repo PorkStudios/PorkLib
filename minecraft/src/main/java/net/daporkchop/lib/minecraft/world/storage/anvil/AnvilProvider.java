@@ -16,15 +16,14 @@
 package net.daporkchop.lib.minecraft.world.storage.anvil;
 
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.world.ColumnProvider;
 
 import java.io.File;
 
-public class AnvilProvider implements ColumnProvider {
+public class AnvilProvider {
     @NonNull
     private final File root;
 
-    public AnvilProvider(@NonNull File root)    {
+    public AnvilProvider(@NonNull File root) {
         if (root.exists()) {
             if (!root.isDirectory()) {
                 throw new IllegalArgumentException(String.format("File %s is not a directory!", root.getAbsolutePath()));

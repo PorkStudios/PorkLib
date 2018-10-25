@@ -16,7 +16,7 @@
 dependencies {
     compile project(":binary")
     compile project(":encoding")
-    compile project(":crypto")
+    compile 'net.daporkchop.lib:crypto:0.2.0' //TODO: undo this after networking rewrite
     compile project(":primitive")
 
     compile "com.esotericsoftware:kryonet:2.22.0-RC1"

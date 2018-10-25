@@ -13,17 +13,27 @@
  *
  */
 
-package net.daporkchop.lib.minecraft;
+package net.daporkchop.lib.minecraft.world.format;
 
-import lombok.AllArgsConstructor;
+import lombok.NonNull;
+import net.daporkchop.lib.minecraft.world.Column;
+import net.daporkchop.lib.primitive.lambda.function.bi.IntegerIntegerToObjectFunction;
 
-@AllArgsConstructor
-public enum Dimension {
-    OVERWORLD(0, "Overworld"),
-    NETHER(-1, "Hell"),
-    END(1, "The End")
-    ;
+/**
+ * @author DaPorkchop_
+ */
+public interface ChunkProvider {
+    SaveManager getManager();
 
-    public final int id;
-    public final String name;
+    boolean hasColumn(int x, int z);
+
+    Column getOrCreateColumn(int x, int z, IntegerIntegerToObjectFunction<Column> supplier);
+
+    default Column getColumnIfExists(int x, int z)    {
+        if (this.hasColumn(x, z))   {
+            return this.getOrCreateColumn(x, z, null);
+        } else {
+            return null;
+        }
+    }
 }

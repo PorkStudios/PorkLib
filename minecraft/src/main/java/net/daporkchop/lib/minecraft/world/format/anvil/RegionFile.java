@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.world;
+package net.daporkchop.lib.minecraft.world.format.anvil;
 
 /*
  ** 2011 January 5

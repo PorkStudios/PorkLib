@@ -13,10 +13,17 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.world.format;
+package net.daporkchop.lib.minecraft.world;
+
+import net.daporkchop.lib.minecraft.registry.RegistryEntry;
+import net.daporkchop.lib.minecraft.registry.RegistryName;
+import net.daporkchop.lib.minecraft.registry.RegistryType;
 
 /**
  * @author DaPorkchop_
  */
-public interface SaveFormat {
+public class Dimension extends RegistryEntry {
+    public Dimension(RegistryName registryName, RegistryType type, int id) {
+        super(registryName, type, id);
+    }
 }

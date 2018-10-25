@@ -17,7 +17,6 @@ package net.daporkchop.lib.minecraft.world;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.Data;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
@@ -30,7 +29,6 @@ import java.io.IOException;
 //TODO: entities
 //TODO: tile (block) entities
 @NoArgsConstructor
-@RequiredArgsConstructor
 public class Column implements Data {
     private final Chunk[] chunks = new Chunk[16];
 
@@ -45,7 +43,7 @@ public class Column implements Data {
         this.z = in.readInt();
         {
             int mask = in.readShort() & 0xFFFF;
-            for (int y = 15; y >= 0; y--)   {
+            for (int y = 15; y >= 0; y--) {
                 if (((mask >> y) & 1) == 1) {
                     Chunk chunk = new Chunk(this);
                     chunk.read(in);
@@ -63,15 +61,15 @@ public class Column implements Data {
         out.writeInt(this.z);
         {
             int mask = 0;
-            for (int y = 15; y >= 0; y--)   {
+            for (int y = 15; y >= 0; y--) {
                 if (this.chunks[y] != null) {
                     mask |= 1 << y;
                 }
             }
             out.writeShort((short) mask);
-            for (int y = 15; y >= 0; y--)   {
+            for (int y = 15; y >= 0; y--) {
                 Chunk chunk = this.chunks[y];
-                if (chunk != null)  {
+                if (chunk != null) {
                     chunk.write(out);
                 }
             }

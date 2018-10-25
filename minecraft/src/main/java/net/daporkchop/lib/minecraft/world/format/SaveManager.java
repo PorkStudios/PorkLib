@@ -13,41 +13,10 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.util.registry;
+package net.daporkchop.lib.minecraft.world.format;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.primitive.lambda.function.IntegerToObjectFunction;
-
-public class BasicRegistry<T> {
-    @NonNull
-    private final IntegerToObjectFunction<T[]> arraySupplier;
-
-    private final T[] idToEntries;
-
-    public BasicRegistry(@NonNull IntegerToObjectFunction<T[]> arraySupplier, int maxValues)   {
-        this.arraySupplier = arraySupplier;
-        this.idToEntries = arraySupplier.apply(maxValues);
-    }
-
-    public synchronized void registerEntry(@NonNull T value, int id) {
-        if (this.idToEntries[id] != null)   {
-            throw new IllegalArgumentException(String.format("ID %d is already occupied by %s", id, this.idToEntries[id].toString()));
-        }
-        this.idToEntries[id] = value;
-    }
-
-    public T getValue(int id)   {
-        return this.idToEntries[id];
-    }
-
-    public int getId(@NonNull T value)  {
-        for (int i = this.idToEntries.length - 1; i >= 0; i--)  {
-            if (value == this.idToEntries[i] || value.equals(this.idToEntries[i]))  {
-                return i;
-            }
-        }
-
-        return -1;
-    }
+/**
+ * @author DaPorkchop_
+ */
+public interface SaveManager {
 }

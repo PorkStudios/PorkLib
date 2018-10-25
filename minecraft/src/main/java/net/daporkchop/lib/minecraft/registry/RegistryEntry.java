@@ -13,37 +13,36 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.util.registry;
+package net.daporkchop.lib.minecraft.registry;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
-@AllArgsConstructor
+/**
+ * @author DaPorkchop_
+ */
+@RequiredArgsConstructor
 @Getter
-public class RegistryName {
+public abstract class RegistryEntry {
     @NonNull
-    private final String modid;
+    private final RegistryName registryName;
 
     @NonNull
-    private final String name;
+    private final RegistryType type;
 
-    @Override
-    public int hashCode() {
-        return this.modid.hashCode() * 31 + this.name.hashCode();
+    private final int id;
+
+    public String getModid()    {
+        return this.registryName.getModid();
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (!(obj instanceof RegistryName)) {
-            return false;
-        }
-        RegistryName registryName = (RegistryName) obj;
-        return this.modid.equals(registryName.modid) && this.name.equals(registryName.name);
+    public String getName() {
+        return this.registryName.getName();
     }
 
     @Override
     public String toString() {
-        return String.format("RegistryName(%s:%s)", this.modid, this.name);
+        return String.format("RegistryEntry(type=%s, id=%s:%s)", this.type.name(), this.getModid(), this.getName());
     }
 }

@@ -13,29 +13,11 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.world.storage.anvil;
+package net.daporkchop.lib.common;
 
-import lombok.NonNull;
-
-import java.io.File;
-
-public class AnvilProvider {
-    @NonNull
-    private final File root;
-
-    public AnvilProvider(@NonNull File root) {
-        if (root.exists()) {
-            if (!root.isDirectory()) {
-                throw new IllegalArgumentException(String.format("File %s is not a directory!", root.getAbsolutePath()));
-            }
-        } else {
-            if (!root.mkdirs()) {
-                throw new IllegalStateException(String.format("Could not create directory %s", root.getAbsolutePath()));
-            }
-            //TODO: set up template level.dat
-            throw new UnsupportedOperationException("create Anvil level");
-        }
-        this.root = root;
-
-    }
+/**
+ * @author DaPorkchop_
+ */
+public interface VoidFunction {
+    void run();
 }

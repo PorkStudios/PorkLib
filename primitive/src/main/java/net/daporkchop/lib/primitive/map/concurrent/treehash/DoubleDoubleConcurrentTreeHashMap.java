@@ -16,28 +16,20 @@
 package net.daporkchop.lib.primitive.map.concurrent.treehash;
 
 import net.daporkchop.lib.primitive.lambda.consumer.DoubleConsumer;
-import net.daporkchop.lib.primitive.lambda.consumer.DoubleConsumer;
 import net.daporkchop.lib.primitive.lambda.consumer.bi.DoubleDoubleConsumer;
 import net.daporkchop.lib.primitive.lambda.function.DoubleToIntegerFunction;
 import net.daporkchop.lib.primitive.lambda.function.DoubleToLongFunction;
 import net.daporkchop.lib.primitive.iterator.concurrent.DoubleConcurrentIterator;
-import net.daporkchop.lib.primitive.iterator.concurrent.DoubleConcurrentIterator;
 import net.daporkchop.lib.primitive.iterator.concurrent.DoubleDoubleConcurrentIterator;
 import net.daporkchop.lib.primitive.map.DoubleDoubleMap;
 import net.daporkchop.lib.primitive.tuple.DoubleDoubleTuple;
-import net.daporkchop.lib.primitive.tuple.DoubleDoubleImmutableTuple;
 import net.daporkchop.lib.primitive.tuple.DoubleDoubleMutableTuple;
 import net.daporkchop.lib.primitiveutil.IteratorCompleteException;
-import net.daporkchop.lib.primitiveutil.VoidFunction;
+import net.daporkchop.lib.common.VoidFunction;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
-import lombok.*;
 
 /**
  * A tree hash map, using a key type of double and a value type of double.

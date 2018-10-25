@@ -25,19 +25,13 @@ import net.daporkchop.lib.primitive.iterator.concurrent.LongConcurrentIterator;
 import net.daporkchop.lib.primitive.iterator.concurrent.BooleanLongConcurrentIterator;
 import net.daporkchop.lib.primitive.map.BooleanLongMap;
 import net.daporkchop.lib.primitive.tuple.BooleanLongTuple;
-import net.daporkchop.lib.primitive.tuple.BooleanLongImmutableTuple;
 import net.daporkchop.lib.primitive.tuple.BooleanLongMutableTuple;
 import net.daporkchop.lib.primitiveutil.IteratorCompleteException;
-import net.daporkchop.lib.primitiveutil.VoidFunction;
+import net.daporkchop.lib.common.VoidFunction;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
-import lombok.*;
 
 /**
  * A tree hash map, using a key type of boolean and a value type of long.

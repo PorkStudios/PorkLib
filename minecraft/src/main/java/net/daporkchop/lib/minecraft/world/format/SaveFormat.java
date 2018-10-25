@@ -13,11 +13,10 @@
  *
  */
 
-package net.daporkchop.lib.primitiveutil;
+package net.daporkchop.lib.minecraft.world.format;
 
 /**
  * @author DaPorkchop_
  */
-public interface VoidFunction {
-    void run();
+public interface SaveFormat {
 }

@@ -76,6 +76,10 @@ allprojects {
     }
 
     dependencies {
+        if (!("root".equalsIgnoreCase(project.name) || "common".equalsIgnoreCase(project.name)))    {
+            compile project(":common")
+        }
+
         testCompile group: 'junit', name: 'junit', version: '4.12'
     }
 

@@ -25,19 +25,13 @@ import net.daporkchop.lib.primitive.iterator.concurrent.FloatConcurrentIterator;
 import net.daporkchop.lib.primitive.iterator.concurrent.IntegerFloatConcurrentIterator;
 import net.daporkchop.lib.primitive.map.IntegerFloatMap;
 import net.daporkchop.lib.primitive.tuple.IntegerFloatTuple;
-import net.daporkchop.lib.primitive.tuple.IntegerFloatImmutableTuple;
 import net.daporkchop.lib.primitive.tuple.IntegerFloatMutableTuple;
 import net.daporkchop.lib.primitiveutil.IteratorCompleteException;
-import net.daporkchop.lib.primitiveutil.VoidFunction;
+import net.daporkchop.lib.common.VoidFunction;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
-import lombok.*;
 
 /**
  * A tree hash map, using a key type of int and a value type of float.

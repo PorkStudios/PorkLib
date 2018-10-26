@@ -13,18 +13,19 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.registry;
+import net.daporkchop.lib.minecraft.world.format.anvil.AnvilSaveManager;
+import org.junit.Test;
+
+import java.io.File;
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-public enum RegistryType {
-    BLOCK,
-    ITEM,
-    ENTITY,
-    TILE_ENTITY,
-    DIMENSION,
-    RECIPE,
-    BIOME
-    ;
+public class AnvilTest {
+    @Test
+    public void test() throws IOException {
+        AnvilSaveManager manager = new AnvilSaveManager(new File(".", "run/testworld"));
+        manager.init();
+    }
 }

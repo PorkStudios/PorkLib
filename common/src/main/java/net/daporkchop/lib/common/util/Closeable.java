@@ -13,18 +13,11 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.registry;
+package net.daporkchop.lib.common.util;
 
 /**
  * @author DaPorkchop_
  */
-public enum RegistryType {
-    BLOCK,
-    ITEM,
-    ENTITY,
-    TILE_ENTITY,
-    DIMENSION,
-    RECIPE,
-    BIOME
-    ;
+public interface Closeable<E extends Exception> {
+    void close() throws E;
 }

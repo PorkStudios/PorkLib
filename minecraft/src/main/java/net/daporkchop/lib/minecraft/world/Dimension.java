@@ -23,7 +23,7 @@ import net.daporkchop.lib.minecraft.registry.RegistryType;
  * @author DaPorkchop_
  */
 public class Dimension extends RegistryEntry {
-    public Dimension(RegistryName registryName, RegistryType type, int id) {
-        super(registryName, type, id);
+    public Dimension(RegistryName registryName, int id) {
+        super(registryName, RegistryType.DIMENSION, id);
     }
 }

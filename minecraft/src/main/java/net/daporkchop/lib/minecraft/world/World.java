@@ -39,7 +39,7 @@ public interface World {
      */
     ChunkProvider getChunkProvider();
 
-    default boolean containsChunk(int x, int z) {
+    default boolean containsColumn(int x, int z) {
         return this.getChunkProvider().hasColumn(x, z);
     }
 

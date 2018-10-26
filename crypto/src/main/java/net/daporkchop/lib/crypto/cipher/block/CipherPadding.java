@@ -13,9 +13,29 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile 'net.daporkchop.lib:crypto:0.2.0' //TODO: undo this after networking rewrite
-    compile project(":primitive")
+package net.daporkchop.lib.crypto.cipher.block;
+
+import org.bouncycastle.crypto.paddings.*;
+
+import java.util.function.Supplier;
+
+public enum CipherPadding {
+    PKCS7("PKCS7Padding", PKCS7Padding::new),
+    ISO10126_2("ISO10126-2Padding", ISO10126d2Padding::new),
+    ISO7816_4("ISO7816-4Padding", ISO7816d4Padding::new),
+    X9_23("X9.23Padding", X923Padding::new),
+    TBC("TBCPadding", TBCPadding::new),
+    ZERO_BYTE("ZeroBytePadding", ZeroBytePadding::new);
+
+    public final String name;
+    private final Supplier<BlockCipherPadding> supplier;
+
+    CipherPadding(String name, Supplier<BlockCipherPadding> supplier) {
+        this.name = name.intern();
+        this.supplier = supplier;
+    }
+
+    public BlockCipherPadding create() {
+        return this.supplier.get();
+    }
 }

@@ -13,9 +13,36 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile 'net.daporkchop.lib:crypto:0.2.0' //TODO: undo this after networking rewrite
-    compile project(":primitive")
+package net.daporkchop.lib.minecraft.registry;
+
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
+/**
+ * @author DaPorkchop_
+ */
+@RequiredArgsConstructor
+@Getter
+public abstract class RegistryEntry {
+    @NonNull
+    private final RegistryName registryName;
+
+    @NonNull
+    private final RegistryType type;
+
+    private final int id;
+
+    public String getModid()    {
+        return this.registryName.getModid();
+    }
+
+    public String getName() {
+        return this.registryName.getName();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("RegistryEntry(type=%s, id=%s:%s)", this.type.name(), this.getModid(), this.getName());
+    }
 }

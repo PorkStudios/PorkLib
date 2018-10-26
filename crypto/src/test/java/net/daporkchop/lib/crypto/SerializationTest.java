@@ -13,9 +13,33 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile 'net.daporkchop.lib:crypto:0.2.0' //TODO: undo this after networking rewrite
-    compile project(":primitive")
+package net.daporkchop.lib.crypto;
+
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.crypto.key.EllipticCurveKeyPair;
+import net.daporkchop.lib.crypto.key.KeySerialization;
+import net.daporkchop.lib.crypto.keygen.KeyGen;
+import net.daporkchop.lib.crypto.sig.ec.CurveType;
+import org.junit.Test;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
+public class SerializationTest {
+    @Test
+    public void testEC() throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        for (CurveType type : CurveType.values())   {
+            EllipticCurveKeyPair keyPair = KeyGen.gen(type);
+            KeySerialization.encodeEC(new DataOut(baos), keyPair);
+            EllipticCurveKeyPair decoded = KeySerialization.decodeEC(new DataIn(new ByteArrayInputStream(baos.toByteArray())));
+            baos.reset();
+            if (!keyPair.equals(decoded))   {
+                throw new IllegalStateException(String.format("Decoded key pair was different from original on curve type %s", type.name));
+            }
+            System.out.printf("Successful test of %s\n", type.name);
+        }
+    }
 }

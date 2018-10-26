@@ -13,9 +13,27 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile 'net.daporkchop.lib:crypto:0.2.0' //TODO: undo this after networking rewrite
-    compile project(":primitive")
+package net.daporkchop.lib.minecraft.world.format;
+
+import lombok.NonNull;
+import net.daporkchop.lib.minecraft.world.Column;
+import net.daporkchop.lib.primitive.lambda.function.bi.IntegerIntegerToObjectFunction;
+
+/**
+ * @author DaPorkchop_
+ */
+public interface ChunkProvider {
+    SaveManager getManager();
+
+    boolean hasColumn(int x, int z);
+
+    Column getOrCreateColumn(int x, int z, IntegerIntegerToObjectFunction<Column> supplier);
+
+    default Column getColumnIfExists(int x, int z)    {
+        if (this.hasColumn(x, z))   {
+            return this.getOrCreateColumn(x, z, null);
+        } else {
+            return null;
+        }
+    }
 }

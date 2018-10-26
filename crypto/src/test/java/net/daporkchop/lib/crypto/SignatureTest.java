@@ -13,9 +13,30 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile 'net.daporkchop.lib:crypto:0.2.0' //TODO: undo this after networking rewrite
-    compile project(":primitive")
+package net.daporkchop.lib.crypto;
+
+import net.daporkchop.lib.crypto.key.EllipticCurveKeyPair;
+import net.daporkchop.lib.crypto.keygen.KeyGen;
+import net.daporkchop.lib.crypto.sig.HashTypes;
+import net.daporkchop.lib.crypto.sig.ec.CurveType;
+import net.daporkchop.lib.crypto.sig.ec.impl.ECDSAHelper;
+import org.junit.Test;
+
+import static net.daporkchop.lib.crypto.TestConstants.randomData;
+
+public class SignatureTest {
+    @Test
+    public void testEC() {
+        ECDSAHelper helper = new ECDSAHelper(HashTypes.SHA_256);
+        for (CurveType type : CurveType.values()) {
+            EllipticCurveKeyPair keyPair = KeyGen.gen(type);
+            for (byte[] b : randomData) {
+                byte[] sig = helper.sign(b, keyPair);
+                if (!helper.verify(sig, b, keyPair)) {
+                    throw new IllegalStateException(String.format("Invalid signature on curve type %s", type.name));
+                }
+            }
+            System.out.printf("Successful test of %s\n", type.name);
+        }
+    }
 }

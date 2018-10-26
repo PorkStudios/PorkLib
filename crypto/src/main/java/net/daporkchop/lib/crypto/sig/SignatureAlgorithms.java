@@ -13,9 +13,21 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile 'net.daporkchop.lib:crypto:0.2.0' //TODO: undo this after networking rewrite
-    compile project(":primitive")
+package net.daporkchop.lib.crypto.sig;
+
+import org.bouncycastle.crypto.DSA;
+import org.bouncycastle.crypto.signers.ECDSASigner;
+
+import java.util.function.Supplier;
+
+public enum SignatureAlgorithms {
+    ECDSA("ECDSA", ECDSASigner::new);
+
+    public final Supplier<DSA> supplier;
+    public final String name;
+
+    SignatureAlgorithms(String name, Supplier<DSA> supplier) {
+        this.name = name.intern();
+        this.supplier = supplier;
+    }
 }

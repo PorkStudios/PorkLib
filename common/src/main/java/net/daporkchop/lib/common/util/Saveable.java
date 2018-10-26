@@ -13,27 +13,19 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.world.format;
-
-import lombok.NonNull;
-import net.daporkchop.lib.minecraft.world.Column;
-import net.daporkchop.lib.primitive.lambda.function.bi.IntegerIntegerToObjectFunction;
+package net.daporkchop.lib.common.util;
 
 /**
  * @author DaPorkchop_
  */
-public interface ChunkProvider {
-    SaveManager getManager();
+public interface Saveable<T extends Throwable> {
+    void save() throws T;
 
-    boolean hasColumn(int x, int z);
-
-    Column getOrCreateColumn(int x, int z, IntegerIntegerToObjectFunction<Column> supplier);
-
-    default Column getColumnIfExists(int x, int z)    {
-        if (this.hasColumn(x, z))   {
-            return this.getOrCreateColumn(x, z, null);
-        } else {
-            return null;
-        }
+    default void markDirty()    {
+        this.setDirty(true);
     }
+
+    boolean isDirty();
+
+    void setDirty(boolean value);
 }

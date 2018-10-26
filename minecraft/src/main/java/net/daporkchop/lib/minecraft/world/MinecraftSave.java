@@ -16,53 +16,32 @@
 package net.daporkchop.lib.minecraft.world;
 
 import lombok.NonNull;
+import net.daporkchop.lib.common.util.Closeable;
 import net.daporkchop.lib.minecraft.registry.Registry;
 import net.daporkchop.lib.minecraft.registry.RegistryEntry;
-import net.daporkchop.lib.minecraft.registry.RegistryType;
-import net.daporkchop.lib.minecraft.world.format.SaveManager;
+import net.daporkchop.lib.minecraft.registry.ResourceLocation;
+import net.daporkchop.lib.minecraft.world.format.SaveFormat;
+import net.daporkchop.lib.primitive.map.IntegerObjectMap;
 
-import java.util.Collection;
+import java.io.IOException;
 import java.util.Map;
-import java.util.Set;
 
 /**
- * A Minecraft save file consists of multiple {@link World}s identified by {@link Dimension}s
- *
  * @author DaPorkchop_
  */
-public interface MinecraftSave {
-    /**
-     * @return the save manager for this level
-     */
-    SaveManager getSaveManager();
+public interface MinecraftSave extends Closeable<IOException> {
+    SaveFormat getSaveFormat();
 
-    /**
-     * Get a registry for a given registry type
-     *
-     * @param type the type of registry
-     * @param <T>  convenience parameter, allows the returned value to be an instance of the
-     *             desired subclass of {@link RegistryEntry} without manual casting
-     * @return a registry for the given type
-     */
-    <T extends RegistryEntry> Registry<T> getRegistry(@NonNull RegistryType type);
+    Map<ResourceLocation, Registry<? extends RegistryEntry>> getRegistries();
 
-    /**
-     * @return All dimension -> world mappings
-     */
-    Map<Dimension, World> getDimensionWorldMap();
-
-    default Set<Dimension> getDimensions()   {
-        return this.getDimensionWorldMap().keySet();
+    @SuppressWarnings("unchecked")
+    default <T extends RegistryEntry> Registry<T> getRegistry(@NonNull ResourceLocation name)   {
+        return (Registry<T>) this.getRegistries().get(name);
     }
 
-    default Collection<World> getWorlds()   {
-        return this.getDimensionWorldMap().values();
-    }
+    IntegerObjectMap<World> getWorlds();
 
-    default World getWorld(@NonNull Dimension dimension)    {
-        if (!this.getRegistry(RegistryType.DIMENSION).hasValue(dimension))  {
-            throw new IllegalArgumentException(String.format("Dimension %s does not exist!", dimension.getRegistryName().toString()));
-        }
-        return this.getDimensionWorldMap().get(dimension);
+    default World getWorld(int id)  {
+        return this.getWorlds().get(id);
     }
 }

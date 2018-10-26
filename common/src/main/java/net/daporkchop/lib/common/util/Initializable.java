@@ -18,6 +18,6 @@ package net.daporkchop.lib.common.util;
 /**
  * @author DaPorkchop_
  */
-public interface Initializable<E extends Exception> {
-    void init() throws E;
+public interface Initializable<T extends Throwable> {
+    void init() throws T;
 }

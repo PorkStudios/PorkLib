@@ -15,35 +15,21 @@
 
 package net.daporkchop.lib.minecraft.world;
 
-import net.daporkchop.lib.minecraft.world.format.ChunkProvider;
+import net.daporkchop.lib.minecraft.world.format.WorldManager;
+
+import java.util.Collection;
 
 /**
- * A Minecraft world consists of a 2-dimensional grid of {@link Column}s aligned
- * along the X and Z axes.
- *
  * @author DaPorkchop_
  */
 public interface World {
-    /**
-     * @return the dimension of this world
-     */
-    Dimension getDimension();
-
-    /**
-     * @return the save this world is contained it
-     */
     MinecraftSave getSave();
 
-    /**
-     * @return the chunk provider for this world
-     */
-    ChunkProvider getChunkProvider();
+    WorldManager getManager();
 
-    default boolean containsColumn(int x, int z) {
-        return this.getChunkProvider().hasColumn(x, z);
-    }
+    Collection<Column> getLoadedColumns();
 
-    default Column getColumn(int x, int z)    {
-        return this.getChunkProvider().getColumnIfExists(x, z);
-    }
+    Column getColumn(int x, int z);
+
+    void save();
 }

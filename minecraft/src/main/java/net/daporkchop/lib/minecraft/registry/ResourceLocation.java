@@ -13,17 +13,37 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.world;
+package net.daporkchop.lib.minecraft.registry;
 
-import net.daporkchop.lib.minecraft.registry.RegistryEntry;
-import net.daporkchop.lib.minecraft.registry.RegistryName;
-import net.daporkchop.lib.minecraft.registry.RegistryType;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NonNull;
 
-/**
- * @author DaPorkchop_
- */
-public class Dimension extends RegistryEntry {
-    public Dimension(RegistryName registryName, int id) {
-        super(registryName, RegistryType.DIMENSION, id);
+@AllArgsConstructor
+@Getter
+public class ResourceLocation {
+    @NonNull
+    private final String modid;
+
+    @NonNull
+    private final String name;
+
+    @Override
+    public int hashCode() {
+        return this.modid.hashCode() * 31 + this.name.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof ResourceLocation)) {
+            return false;
+        }
+        ResourceLocation resourceLocation = (ResourceLocation) obj;
+        return this.modid.equals(resourceLocation.modid) && this.name.equals(resourceLocation.name);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s:%s", this.modid, this.name);
     }
 }

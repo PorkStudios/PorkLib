@@ -15,106 +15,28 @@
 
 package net.daporkchop.lib.minecraft.world;
 
+import net.daporkchop.lib.common.util.Closeable;
+import net.daporkchop.lib.math.vector.i.IntVector2;
+
 /**
- * A 16x16 block square reaching from the bottom to the top of the world. Pretty
- * much the heart and soul of vanilla Minecraft :P
- * <p>
- * The official name for this is "Chunk", however I've decided to go with the
- * Cubic Chunks naming style so as to allow for compatibility in The Future(tm)
- *
  * @author DaPorkchop_
  */
-public interface Column {
-    /**
-     * @return The total number of chunks in this column.
-     */
-    int getChunkCount();
+public interface Column extends Closeable, IntVector2 {
+    World getWorld();
 
-    /**
-     * Returns a chunk, or null if none is present at the specified height.
-     *
-     * @param i the index of the chunk. In vanilla this ranges from 0-15
-     * @return a chunk, or null if none is present at the specified height.
-     */
-    Chunk getChunk(int i);
+    Chunk getChunk(int y);
 
-    /**
-     * Get the block ID at a given location relative to this column.
-     *
-     * @param x the x coordinate. must be in range 0-15
-     * @param y the y coordinate. in vanilla, must be in range 0-255
-     * @param z the x coordinate. must be in range 0-15
-     * @return the block id at the given position
-     */
-    int getBlockId(int x, int y, int z);
+    boolean exists();
 
-    /**
-     * Get the block meta at a given location relative to this column.
-     *
-     * @param x the x coordinate. must be in range 0-15
-     * @param y the y coordinate. in vanilla, must be in range 0-255
-     * @param z the x coordinate. must be in range 0-15
-     * @return the block meta at the given position
-     */
-    int getBlockMeta(int x, int y, int z);
+    boolean isLoaded();
 
-    /**
-     * Get the block light at a given location relative to this column.
-     *
-     * @param x the x coordinate. must be in range 0-15
-     * @param y the y coordinate. in vanilla, must be in range 0-255
-     * @param z the x coordinate. must be in range 0-15
-     * @return the block light at the given position
-     */
-    int getBlockLight(int x, int y, int z);
+    void load();
 
-    /**
-     * Get the sky light at a given location relative to this column.
-     *
-     * @param x the x coordinate. must be in range 0-15
-     * @param y the y coordinate. in vanilla, must be in range 0-255
-     * @param z the x coordinate. must be in range 0-15
-     * @return the sky light at the given position
-     */
-    int getSkyLight(int x, int y, int z);
+    default void load(boolean generate) {
+        if (this.exists())  {
+            this.load();
+        }
+    }
 
-    /**
-     * Set the block ID at a given location relative to this column.
-     *
-     * @param x  the x coordinate. must be in range 0-15
-     * @param y  the y coordinate. in vanilla, must be in range 0-255
-     * @param z  the x coordinate. must be in range 0-15
-     * @param id the new id
-     */
-    void setBlockId(int x, int y, int z, int id);
-
-    /**
-     * Set the block meta at a given location relative to this column.
-     *
-     * @param x    the x coordinate. must be in range 0-15
-     * @param y    the y coordinate. in vanilla, must be in range 0-255
-     * @param z    the x coordinate. must be in range 0-15
-     * @param meta the new meta
-     */
-    void setBlockMeta(int x, int y, int z, int meta);
-
-    /**
-     * Set the block light at a given location relative to this column.
-     *
-     * @param x     the x coordinate. must be in range 0-15
-     * @param y     the y coordinate. in vanilla, must be in range 0-255
-     * @param z     the x coordinate. must be in range 0-15
-     * @param level the new level
-     */
-    void setBlockLight(int x, int y, int z, int level);
-
-    /**
-     * Set the sky light at a given location relative to this column.
-     *
-     * @param x     the x coordinate. must be in range 0-15
-     * @param y     the y coordinate. in vanilla, must be in range 0-255
-     * @param z     the x coordinate. must be in range 0-15
-     * @param level the new level
-     */
-    void setSkyLight(int x, int y, int z, int level);
+    void unload();
 }

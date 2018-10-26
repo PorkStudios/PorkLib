@@ -13,9 +13,17 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile 'net.daporkchop.lib:crypto:0.2.0' //TODO: undo this after networking rewrite
-    compile project(":primitive")
+package net.daporkchop.lib.minecraft.world;
+
+import net.daporkchop.lib.minecraft.registry.RegistryEntry;
+import net.daporkchop.lib.minecraft.registry.RegistryName;
+import net.daporkchop.lib.minecraft.registry.RegistryType;
+
+/**
+ * @author DaPorkchop_
+ */
+public class Dimension extends RegistryEntry {
+    public Dimension(RegistryName registryName, RegistryType type, int id) {
+        super(registryName, type, id);
+    }
 }

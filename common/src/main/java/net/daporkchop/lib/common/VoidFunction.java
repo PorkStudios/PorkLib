@@ -13,9 +13,11 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile 'net.daporkchop.lib:crypto:0.2.0' //TODO: undo this after networking rewrite
-    compile project(":primitive")
+package net.daporkchop.lib.common;
+
+/**
+ * @author DaPorkchop_
+ */
+public interface VoidFunction {
+    void run();
 }

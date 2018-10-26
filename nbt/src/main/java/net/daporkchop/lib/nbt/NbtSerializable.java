@@ -13,9 +13,13 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile 'net.daporkchop.lib:crypto:0.2.0' //TODO: undo this after networking rewrite
-    compile project(":primitive")
+package net.daporkchop.lib.nbt;
+
+import lombok.NonNull;
+import net.daporkchop.lib.nbt.tag.impl.notch.CompoundTag;
+
+public interface NbtSerializable {
+    void read(@NonNull CompoundTag tag);
+
+    void write(@NonNull CompoundTag tag);
 }

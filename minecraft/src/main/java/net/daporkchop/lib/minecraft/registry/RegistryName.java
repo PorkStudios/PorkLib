@@ -13,9 +13,37 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile 'net.daporkchop.lib:crypto:0.2.0' //TODO: undo this after networking rewrite
-    compile project(":primitive")
+package net.daporkchop.lib.minecraft.registry;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NonNull;
+
+@AllArgsConstructor
+@Getter
+public class RegistryName {
+    @NonNull
+    private final String modid;
+
+    @NonNull
+    private final String name;
+
+    @Override
+    public int hashCode() {
+        return this.modid.hashCode() * 31 + this.name.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof RegistryName)) {
+            return false;
+        }
+        RegistryName registryName = (RegistryName) obj;
+        return this.modid.equals(registryName.modid) && this.name.equals(registryName.name);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s:%s", this.modid, this.name);
+    }
 }

@@ -15,8 +15,22 @@
 
 package net.daporkchop.lib.minecraft.world.format;
 
+import lombok.NonNull;
+import net.daporkchop.lib.common.util.Closeable;
+import net.daporkchop.lib.common.util.Initializable;
+import net.daporkchop.lib.minecraft.registry.Registry;
+import net.daporkchop.lib.minecraft.registry.RegistryType;
+import net.daporkchop.lib.minecraft.world.Dimension;
+import net.daporkchop.lib.primitive.tuple.ObjectObjectTuple;
+
+import java.io.IOException;
+import java.util.Collection;
+
 /**
  * @author DaPorkchop_
  */
-public interface SaveManager {
+public interface SaveManager extends Initializable<IOException>, Closeable<IOException> {
+    Collection<ObjectObjectTuple<Dimension, ChunkProvider>> getProvidersForAllWorlds();
+
+    void loadRegistry(@NonNull Registry registry);
 }

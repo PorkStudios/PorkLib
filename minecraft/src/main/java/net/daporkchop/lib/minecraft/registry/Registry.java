@@ -15,15 +15,22 @@
 
 package net.daporkchop.lib.minecraft.registry;
 
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.primitive.lambda.consumer.bi.IntegerObjectConsumer;
 import net.daporkchop.lib.primitive.lambda.function.IntegerToObjectFunction;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@RequiredArgsConstructor
 public class Registry<T extends RegistryEntry> {
     private final List<T> idToEntries = new ArrayList<>();
+
+    @NonNull
+    @Getter
+    private final RegistryType type;
 
     public synchronized void registerEntry(@NonNull T value, int id) {
         if (this.idToEntries.get(id) != null)   {

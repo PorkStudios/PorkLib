@@ -13,18 +13,15 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.registry;
+package net.daporkchop.lib.minecraft.world.format;
 
 /**
  * @author DaPorkchop_
  */
-public enum RegistryType {
-    BLOCK,
-    ITEM,
-    ENTITY,
-    TILE_ENTITY,
-    DIMENSION,
-    RECIPE,
-    BIOME
-    ;
+public interface WorldManager {
+    int getMinChunkY();
+
+    int getMaxChunkY();
+
+    SaveFormat getFormat();
 }

@@ -18,6 +18,6 @@ package net.daporkchop.lib.common.util;
 /**
  * @author DaPorkchop_
  */
-public interface Closeable<E extends Exception> {
-    void close() throws E;
+public interface Closeable<T extends Throwable> {
+    void close() throws T;
 }

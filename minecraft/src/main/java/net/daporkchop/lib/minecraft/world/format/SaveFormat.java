@@ -19,18 +19,23 @@ import lombok.NonNull;
 import net.daporkchop.lib.common.util.Closeable;
 import net.daporkchop.lib.common.util.Initializable;
 import net.daporkchop.lib.minecraft.registry.Registry;
-import net.daporkchop.lib.minecraft.registry.RegistryType;
-import net.daporkchop.lib.minecraft.world.Dimension;
-import net.daporkchop.lib.primitive.tuple.ObjectObjectTuple;
+import net.daporkchop.lib.minecraft.registry.ResourceLocation;
+import net.daporkchop.lib.minecraft.world.Column;
+import net.daporkchop.lib.minecraft.world.World;
+import net.daporkchop.lib.primitive.lambda.consumer.bi.IntegerObjectConsumer;
 
 import java.io.IOException;
-import java.util.Collection;
+import java.util.function.BiConsumer;
 
 /**
  * @author DaPorkchop_
  */
-public interface SaveManager extends Initializable<IOException>, Closeable<IOException> {
-    Collection<ObjectObjectTuple<Dimension, ChunkProvider>> getProvidersForAllWorlds();
+public interface SaveFormat extends Initializable<IOException>, Closeable<IOException> {
+    void loadWorlds(@NonNull IntegerObjectConsumer<WorldManager> addFunction);
 
-    void loadRegistry(@NonNull Registry registry);
+    void closeWorld(@NonNull World world);
+
+    void loadRegistries(@NonNull BiConsumer<ResourceLocation, Registry> addFunction);
+
+    Column createColumnInstance(int x, int z);
 }

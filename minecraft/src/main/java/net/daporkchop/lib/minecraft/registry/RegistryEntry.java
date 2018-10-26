@@ -26,10 +26,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 public abstract class RegistryEntry {
     @NonNull
-    private final RegistryName registryName;
-
-    @NonNull
-    private final RegistryType type;
+    private final ResourceLocation registryName;
 
     private final int id;
 
@@ -43,6 +40,6 @@ public abstract class RegistryEntry {
 
     @Override
     public String toString() {
-        return String.format("RegistryEntry(type=%s, id=%s:%s)", this.type.name(), this.getModid(), this.getName());
+        return String.format("%s:%s", this.getModid(), this.getName());
     }
 }

@@ -19,7 +19,6 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.primitive.lambda.consumer.bi.IntegerObjectConsumer;
-import net.daporkchop.lib.primitive.lambda.function.IntegerToObjectFunction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +52,7 @@ public class Registry<T extends RegistryEntry> {
         return this.idToEntries.indexOf(value);
     }
 
-    public int getId(@NonNull RegistryName name)  {
+    public int getId(@NonNull ResourceLocation name)  {
         for (int i = this.idToEntries.size() - 1; i >= 0; i--)  {
             if (name == this.idToEntries.get(i).getRegistryName() || name.equals(this.idToEntries.get(i).getRegistryName()))  {
                 return i;

@@ -30,9 +30,6 @@ include 'network'
 include 'noise'
 include 'primitive'
 include 'primitive:generator'
-<<<<<<< HEAD
 include 'logging'
-=======
 
 findProject(':minecraft:minecraft-worldscanner')?.name = 'minecraft-worldscanner'
->>>>>>> master

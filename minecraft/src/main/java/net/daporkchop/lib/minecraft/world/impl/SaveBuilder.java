@@ -13,33 +13,30 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.registry;
+package net.daporkchop.lib.minecraft.world.impl;
 
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.minecraft.world.MinecraftSave;
+import net.daporkchop.lib.minecraft.world.format.SaveFormat;
 
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
+@Accessors(chain = true)
 @Getter
-public abstract class RegistryEntry {
+@Setter
+public class SaveBuilder {
     @NonNull
-    private final ResourceLocation registryName;
+    private SaveFormat format;
 
-    private final int id;
+    public MinecraftSave build()    {
+        if (this.format == null)    {
+            throw new IllegalStateException("Save format must be set!");
+        }
 
-    public String getModid()    {
-        return this.registryName.getModid();
-    }
-
-    public String getName() {
-        return this.registryName.getName();
-    }
-
-    @Override
-    public String toString() {
-        return String.format("%s:%s", this.getModid(), this.getName());
+        return new MinecraftSaveImpl(this);
     }
 }

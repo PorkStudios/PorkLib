@@ -18,7 +18,6 @@ package net.daporkchop.lib.minecraft.world;
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.Closeable;
 import net.daporkchop.lib.minecraft.registry.Registry;
-import net.daporkchop.lib.minecraft.registry.RegistryEntry;
 import net.daporkchop.lib.minecraft.registry.ResourceLocation;
 import net.daporkchop.lib.minecraft.world.format.SaveFormat;
 import net.daporkchop.lib.primitive.map.IntegerObjectMap;
@@ -32,11 +31,11 @@ import java.util.Map;
 public interface MinecraftSave extends Closeable<IOException> {
     SaveFormat getSaveFormat();
 
-    Map<ResourceLocation, Registry<? extends RegistryEntry>> getRegistries();
+    Map<ResourceLocation, Registry> getRegistries();
 
     @SuppressWarnings("unchecked")
-    default <T extends RegistryEntry> Registry<T> getRegistry(@NonNull ResourceLocation name)   {
-        return (Registry<T>) this.getRegistries().get(name);
+    default Registry getRegistry(@NonNull ResourceLocation name)   {
+        return this.getRegistries().get(name);
     }
 
     IntegerObjectMap<World> getWorlds();

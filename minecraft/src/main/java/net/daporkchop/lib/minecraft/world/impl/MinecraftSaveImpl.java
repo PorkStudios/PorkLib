@@ -13,27 +13,43 @@
  *
  */
 
-import net.daporkchop.lib.minecraft.world.MinecraftSave;
-import net.daporkchop.lib.minecraft.world.format.anvil.AnvilSaveFormat;
-import net.daporkchop.lib.minecraft.world.impl.SaveBuilder;
-import org.junit.Test;
+package net.daporkchop.lib.minecraft.world.impl;
 
-import java.io.File;
+import lombok.Getter;
+import lombok.NonNull;
+import net.daporkchop.lib.minecraft.registry.Registry;
+import net.daporkchop.lib.minecraft.registry.ResourceLocation;
+import net.daporkchop.lib.minecraft.world.MinecraftSave;
+import net.daporkchop.lib.minecraft.world.World;
+import net.daporkchop.lib.minecraft.world.format.SaveFormat;
+import net.daporkchop.lib.primitive.map.IntegerObjectMap;
+import net.daporkchop.lib.primitive.map.hash.IntegerObjectHashMap;
+
 import java.io.IOException;
+import java.util.Hashtable;
+import java.util.Map;
 
 /**
  * @author DaPorkchop_
  */
-public class AnvilTest {
-    @Test
-    public void test() throws IOException {
-        MinecraftSave save = new SaveBuilder()
-                .setFormat(new AnvilSaveFormat(new File(".", "run/testworld")))
-                .build();
+@Getter
+public class MinecraftSaveImpl implements MinecraftSave {
+    private final SaveFormat saveFormat;
+    private final Map<ResourceLocation, Registry> registries = new Hashtable<>();
+    private final IntegerObjectMap<World> worlds = new IntegerObjectHashMap<>();
 
-        System.out.printf("%d registries\n", save.getRegistries().size());
-        save.getRegistries().forEach((resourceLocation, registry) -> System.out.printf("  %s: %d entries\n", resourceLocation, registry.getSize()));
+    public MinecraftSaveImpl(@NonNull SaveBuilder builder) {
+        this.saveFormat = builder.getFormat();
 
-        save.close();
+        try {
+            this.saveFormat.init();
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to initialize save", e);
+        }
+        this.saveFormat.loadRegistries(this.registries::put);
+    }
+
+    @Override
+    public void close() throws IOException {
     }
 }

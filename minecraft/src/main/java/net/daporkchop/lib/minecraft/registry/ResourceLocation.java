@@ -15,11 +15,9 @@
 
 package net.daporkchop.lib.minecraft.registry;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 
-@AllArgsConstructor
 @Getter
 public class ResourceLocation {
     @NonNull
@@ -27,6 +25,29 @@ public class ResourceLocation {
 
     @NonNull
     private final String name;
+
+    public ResourceLocation(@NonNull String name) {
+        String[] split = name.split(":");
+        if (split.length != 2 || split[0].isEmpty() || split[1].isEmpty()/* || split[0].contains(" ") || split[1].contains(" ")*/) {
+            throw new IllegalArgumentException(String.format("Invalid resource location: %s", name));
+        }
+        this.modid = split[0];
+        this.name = split[1];
+    }
+
+    public ResourceLocation(@NonNull String modid, @NonNull String name) {
+        if (modid.isEmpty()) {
+            throw new IllegalArgumentException("modid may not be empty!");
+        } else if (name.isEmpty()) {
+            throw new IllegalArgumentException("name may not be empty!");
+        } else if (modid.contains(":") || name.contains(":")) {
+            throw new IllegalArgumentException(String.format("Neither modid nor name may contain a colon! (given: modid=%s, name=%s)", modid, name));
+        }/* else if (modid.contains(" ") || name.contains(" ")) {
+            throw new IllegalArgumentException(String.format("Neither modid nor name may contain a space! (given: modid=%s, name=%s)", modid, name));
+        }*/
+        this.modid = modid;
+        this.name = name;
+    }
 
     @Override
     public int hashCode() {

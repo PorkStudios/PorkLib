@@ -23,6 +23,8 @@ import java.util.Collection;
  * @author DaPorkchop_
  */
 public interface World {
+    int getId();
+
     MinecraftSave getSave();
 
     WorldManager getManager();

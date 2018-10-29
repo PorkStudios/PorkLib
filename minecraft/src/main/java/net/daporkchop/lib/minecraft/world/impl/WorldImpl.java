@@ -17,44 +17,40 @@ package net.daporkchop.lib.minecraft.world.impl;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.registry.Registry;
-import net.daporkchop.lib.minecraft.registry.ResourceLocation;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.minecraft.world.Column;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.World;
-import net.daporkchop.lib.minecraft.world.format.SaveFormat;
-import net.daporkchop.lib.primitive.map.IntegerObjectMap;
-import net.daporkchop.lib.primitive.map.hash.IntegerObjectHashMap;
+import net.daporkchop.lib.minecraft.world.format.WorldManager;
 
-import java.io.IOException;
-import java.util.Hashtable;
-import java.util.Map;
+import java.util.Collection;
 
 /**
  * @author DaPorkchop_
  */
 @Getter
-public class MinecraftSaveImpl implements MinecraftSave {
-    private final SaveFormat saveFormat;
-    private final Map<ResourceLocation, Registry> registries = new Hashtable<>();
-    private final IntegerObjectMap<World> worlds = new IntegerObjectHashMap<>();
+@RequiredArgsConstructor
+public class WorldImpl implements World {
+    private final int id;
 
-    public MinecraftSaveImpl(@NonNull SaveBuilder builder) {
-        this.saveFormat = builder.getFormat();
+    @NonNull
+    private final WorldManager manager;
 
-        try {
-            this.saveFormat.init();
-        } catch (IOException e) {
-            throw new RuntimeException("Unable to initialize save", e);
-        }
-        this.saveFormat.loadRegistries(this.registries::put);
-        this.saveFormat.loadWorlds((id, worldManager) -> {
+    @NonNull
+    private final MinecraftSaveImpl save;
 
-        });
+    @Override
+    public Collection<Column> getLoadedColumns() {
+        return null;
     }
 
     @Override
-    public void close() throws IOException {
-        this.worlds.forEachValue(this.saveFormat::closeWorld);
-        this.saveFormat.close();
+    public Column getColumn(int x, int z) {
+        return null;
+    }
+
+    @Override
+    public void save() {
+        //TODO
     }
 }

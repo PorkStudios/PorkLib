@@ -79,6 +79,7 @@ public class AnvilSaveFormat implements SaveFormat {
 
     @Override
     public void loadWorlds(IntegerObjectConsumer<WorldManager> addFunction) {
+
     }
 
     @Override

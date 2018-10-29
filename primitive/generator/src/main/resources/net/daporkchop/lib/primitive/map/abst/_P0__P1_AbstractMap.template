@@ -539,9 +539,12 @@ public abstract class _P0__P1_AbstractMap_gH_ implements _P0__P1_Map_gH_ {
             _P0__P1_Map.Entry_gH_ e = i.next();
             _p0_ key = e.getKey();
             _p1_ value = e.getValue();
-            sb.append(<%key   == this ? "(this _P0__P1_Map)" : %>key);
+            //sb.append(<%key   == this ? "(this _P0__P1_Map)" : %>key);
+            //sb.append('=');
+            //sb.append(<%value == this ? "(this _P0__P1_Map)" : %>value);
+            sb.append(key);
             sb.append('=');
-            sb.append(<%value == this ? "(this _P0__P1_Map)" : %>value);
+            sb.append(value);
             if (! i.hasNext()){
                 return sb.append('}').toString();
             }

@@ -9,6 +9,8 @@ StreamSupport
     //Set
     //AbstractCollection
     //AbstractSet
+AbstractMap
+Throwing functions
 HashMap
 ConcurrentHashMap
 HashSet

@@ -160,7 +160,7 @@ public abstract class _P0__P1_AbstractMap_gH_ implements _P0__P1_Map_gH_ {
                     return e.getValue();
             }
         }
-        return null;
+        return _P1E_;
     }
 
 
@@ -324,16 +324,16 @@ public abstract class _P0__P1_AbstractMap_gH_ implements _P0__P1_Map_gH_ {
     public _P0_Set_GP0_ keySet() {
         _P0_Set_GP0_ ks = this.keySet;
         if (ks == null) {
-            ks = new AbstractSet_GP0_() {
-                public Iterator<K> iterator() {
-                    return new Iterator<K>() {
-                        private Iterator<Entry<K,V>> i = entrySet().iterator();
+            ks = new _P0_AbstractSet_GP0_() {
+                public _P0_Iterator_GP0_ iterator() {
+                    return new _P0_Iterator_GP0_() {
+                        private ObjectIterator<_P0__P1_Map.Entry_gH_> i = entrySet().iterator();
 
                         public boolean hasNext() {
                             return i.hasNext();
                         }
 
-                        public K next() {
+                        public _p0_ next() {
                             return i.next().getKey();
                         }
 
@@ -344,19 +344,19 @@ public abstract class _P0__P1_AbstractMap_gH_ implements _P0__P1_Map_gH_ {
                 }
 
                 public int size() {
-                    return AbstractMap.this.size();
+                    return _P0__P1_AbstractMap.this.size();
                 }
 
                 public boolean isEmpty() {
-                    return AbstractMap.this.isEmpty();
+                    return _P0__P1_AbstractMap.this.isEmpty();
                 }
 
                 public void clear() {
-                    AbstractMap.this.clear();
+                    _P0__P1_AbstractMap.this.clear();
                 }
 
-                public boolean contains(Object k) {
-                    return AbstractMap.this.containsKey(k);
+                public boolean contains(_nameP0_ k) {
+                    return _P0__P1_AbstractMap.this.containsKey(k);
                 }
             };
             keySet = ks;
@@ -380,19 +380,19 @@ public abstract class _P0__P1_AbstractMap_gH_ implements _P0__P1_Map_gH_ {
      * performed, so there is a slight chance that multiple calls to this
      * method will not all return the same collection.
      */
-    public _P1_Collection_GP1_values() {
-        _P1_Collection_GP1_vals = values;
+    public _P1_Collection_GP1_ values() {
+        _P1_Collection_GP1_ vals = this.values;
         if (vals == null) {
-            vals = new _P0__P1_AbstractCollection<V>() {
-                public Iterator<V> iterator() {
-                    return new Iterator<V>() {
-                        private Iterator<Entry<K,V>> i = entrySet().iterator();
+            vals = new _P1_AbstractCollection_GP1_() {
+                public _P1_Iterator_GP1_ iterator() {
+                    return new _P1_Iterator_GP1_() {
+                        private ObjectIterator<_P0__P1_Map.Entry_gH_> i = entrySet().iterator();
 
                         public boolean hasNext() {
                             return i.hasNext();
                         }
 
-                        public V next() {
+                        public _p1_ next() {
                             return i.next().getValue();
                         }
 
@@ -403,19 +403,19 @@ public abstract class _P0__P1_AbstractMap_gH_ implements _P0__P1_Map_gH_ {
                 }
 
                 public int size() {
-                    return AbstractMap.this.size();
+                    return _P0__P1_AbstractMap.this.size();
                 }
 
                 public boolean isEmpty() {
-                    return AbstractMap.this.isEmpty();
+                    return _P0__P1_AbstractMap.this.isEmpty();
                 }
 
                 public void clear() {
-                    AbstractMap.this.clear();
+                    _P0__P1_AbstractMap.this.clear();
                 }
 
-                public boolean contains(Object v) {
-                    return AbstractMap.this.containsValue(v);
+                public boolean contains(_nameP1_ v) {
+                    return _P0__P1_AbstractMap.this.containsValue(v);
                 }
             };
             values = vals;
@@ -423,8 +423,7 @@ public abstract class _P0__P1_AbstractMap_gH_ implements _P0__P1_Map_gH_ {
         return vals;
     }
 
-    public abstract Set<Entry<K,V>> entrySet();
-
+    public abstract ObjectSet<_P0__P1_Map.Entry_gH_> entrySet();
 
     // Comparison and hashing
 
@@ -450,7 +449,7 @@ public abstract class _P0__P1_AbstractMap_gH_ implements _P0__P1_Map_gH_ {
      * @param o object to be compared for equality with this map
      * @return <tt>true</tt> if the specified object is equal to this map
      */
-    @SupressWarnings("unchecked")
+    @SuppressWarnings("unchecked")
     public boolean equals(Object o) {
         if (o == this){
             return true;
@@ -470,12 +469,12 @@ public abstract class _P0__P1_AbstractMap_gH_ implements _P0__P1_Map_gH_ {
                 _P0__P1_Map.Entry_gH_ e = i.next();
                 _p0_ key = e.getKey();
                 _p1_ value = e.getValue();
-                if (value == null) {
+                if (value == _P1E_) {
                     if (!(m.get(key) == _P1E_ && m.containsKey(key))){
                         return false;
                     }
                 } else {
-                    if (!value.equals(m.get(key))){
+                    if (!this.equals_P1_(value, m.get(key))){
                         return false;
                     }
                 }
@@ -540,9 +539,9 @@ public abstract class _P0__P1_AbstractMap_gH_ implements _P0__P1_Map_gH_ {
             _P0__P1_Map.Entry_gH_ e = i.next();
             _p0_ key = e.getKey();
             _p1_ value = e.getValue();
-            sb.append(key   == this ? "(this _P0__P1_Map)" : key);
+            sb.append(<%key   == this ? "(this _P0__P1_Map)" : %>key);
             sb.append('=');
-            sb.append(value == this ? "(this _P0__P1_Map)" : value);
+            sb.append(<%value == this ? "(this _P0__P1_Map)" : %>value);
             if (! i.hasNext()){
                 return sb.append('}').toString();
             }
@@ -561,16 +560,6 @@ public abstract class _P0__P1_AbstractMap_gH_ implements _P0__P1_Map_gH_ {
         result.keySet = null;
         result.values = null;
         return result;
-    }
-
-    /**
-     * Utility method for SimpleEntry and SimpleImmutableEntry.
-     * Test for equality, checking for nulls.
-     *
-     * NB: Do not replace with Object.equals until JDK-8015417 is resolved.
-     */
-    private static boolean eq(Object o1, Object o2) {
-        return o1 == null ? o2 == null : o1.equals(o2);
     }
 
     // Implementation Note: SimpleEntry and SimpleImmutableEntry
@@ -673,10 +662,10 @@ public abstract class _P0__P1_AbstractMap_gH_ implements _P0__P1_Map_gH_ {
          * @see    #hashCode
          */
         public boolean equals(Object o) {
-            if (!(o instanceof Map.Entry))
+            if (!(o instanceof _P0__P1_Map.Entry))
                 return false;
-            Map.Entry<?,?> e = (Map.Entry<?,?>)o;
-            return eq(key, e.getKey()) && eq(value, e.getValue());
+            _P0__P1_Map.Entry e = (_P0__P1_Map.Entry) o;
+            return this.equals_P0_(key, e.getKey()) && this.equals_P1_(value, e.getValue());
         }
 
         /**
@@ -693,8 +682,8 @@ public abstract class _P0__P1_AbstractMap_gH_ implements _P0__P1_Map_gH_ {
          * @see    #equals
          */
         public int hashCode() {
-            return (key   == null ? 0 :   key.hashCode()) ^
-                   (value == null ? 0 : value.hashCode());
+            return (key   == _P0E_ ? 0 :   this.hash_P0_(key)) ^
+                   (value == _P1E_ ? 0 : this.hash_P1_(value));
         }
 
         /**
@@ -823,8 +812,8 @@ public abstract class _P0__P1_AbstractMap_gH_ implements _P0__P1_Map_gH_ {
          * @see    #equals
          */
         public int hashCode() {
-            return (key   == null ? 0 :   key.hashCode()) ^
-                   (value == null ? 0 : value.hashCode());
+            return (key   == _P0E_ ? 0 :   this.hash_P0_(key)) ^
+                   (value == _P1E_ ? 0 : this.hash_P1_(value));
         }
 
         /**

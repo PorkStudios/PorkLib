@@ -454,7 +454,7 @@ public interface _P0__P1_Map_gH_ extends PrimitiveConstants {
          * @return a comparator that compares {@link _P0__P1_Map.Entry} by the value.
          * @since 1.8
          */
-        public static _gH_ ObjectComparator<_P0__P1_Map.Entry_gH_> comparingByValue(@NonNull _P0_Comparator_GsuperP1_ cmp) {
+        public static _gH_ ObjectComparator<_P0__P1_Map.Entry_gH_> comparingByValue(@NonNull _P1_Comparator_GsuperP1_ cmp) {
             return (ObjectComparator<_P0__P1_Map.Entry_gH_> & Serializable)
                 (c1, c2) -> cmp.compare(c1.getValue(), c2.getValue());
         }
@@ -486,7 +486,7 @@ public interface _P0__P1_Map_gH_ extends PrimitiveConstants {
      */
     default _p1_ getOrDefault(_nameP0_ key, _p1_ defaultValue) {
         _p1_ v;
-        return (((v = this.get(key)) != _P0E_) || this.containsKey(key))
+        return (((v = this.get(key)) != _P1E_) || this.containsKey(key))
             ? v
             : defaultValue;
     }
@@ -517,7 +517,9 @@ public interface _P0__P1_Map_gH_ extends PrimitiveConstants {
      * @since 1.8
      */
     default void forEach(@NonNull _P0__P1_BiConsumer_gSuper_ action) {
-        for (_P0__P1_Map.Entry_gH_ entry : this.entrySet()) {
+        ObjectIterator<_P0__P1_Map.Entry_gH_> iterator = this.entrySet().iterator();
+        while (iterator.hasNext())  {
+            _P0__P1_Map.Entry_gH_ entry = iterator.next();
             _p0_ k;
             _p1_ v;
             try {
@@ -642,7 +644,7 @@ public interface _P0__P1_Map_gH_ extends PrimitiveConstants {
      */
     default _p1_ putIfAbsent(_p0_ key, _p1_ value) {
         _p1_ v = this.get(key);
-        if (v == _P0E_) {
+        if (v == _P1E_) {
             v = this.put(key, value);
         }
 
@@ -785,7 +787,7 @@ public interface _P0__P1_Map_gH_ extends PrimitiveConstants {
      */
     default _p1_ replace(_p0_ key, _p1_ value) {
         _p1_ curValue;
-        if (((curValue = this.get(key)) != _P0E_) || this.containsKey(key)) {
+        if (((curValue = this.get(key)) != _P1E_) || this.containsKey(key)) {
             curValue = this.put(key, value);
         }
         return curValue;
@@ -853,9 +855,9 @@ public interface _P0__P1_Map_gH_ extends PrimitiveConstants {
     default _p1_ computeIfAbsent(_p0_ key,
             @NonNull _P0__P1_Function_gH_ mappingFunction) {
         _p1_ v;
-        if ((v = this.get(key)) == _P0E_) {
+        if ((v = this.get(key)) == _P1E_) {
             _p1_ newValue;
-            if ((newValue = mappingFunction.apply(key)) != _P0E_) {
+            if ((newValue = mappingFunction.apply(key)) != _P1E_) {
                 this.put(key, newValue);
                 return newValue;
             }

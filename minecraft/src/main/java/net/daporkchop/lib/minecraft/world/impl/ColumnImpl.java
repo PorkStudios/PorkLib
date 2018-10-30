@@ -17,44 +17,79 @@ package net.daporkchop.lib.minecraft.world.impl;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.registry.Registry;
-import net.daporkchop.lib.minecraft.registry.ResourceLocation;
-import net.daporkchop.lib.minecraft.world.MinecraftSave;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.math.vector.i.Vec2i;
+import net.daporkchop.lib.minecraft.world.Chunk;
+import net.daporkchop.lib.minecraft.world.Column;
 import net.daporkchop.lib.minecraft.world.World;
-import net.daporkchop.lib.minecraft.world.format.SaveFormat;
-import net.daporkchop.lib.primitive.map.IntegerObjectMap;
-import net.daporkchop.lib.primitive.map.hash.IntegerObjectHashMap;
-
-import java.io.IOException;
-import java.util.Hashtable;
-import java.util.Map;
 
 /**
+ * An implementation of a Column for vanilla Minecraft
+ *
  * @author DaPorkchop_
  */
+@RequiredArgsConstructor
 @Getter
-public class MinecraftSaveImpl implements MinecraftSave {
-    private final SaveFormat saveFormat;
-    private final Map<ResourceLocation, Registry> registries = new Hashtable<>();
-    private final IntegerObjectMap<World> worlds = new IntegerObjectHashMap<>();
-    private final InitFunctions initFunctions;
+public class ColumnImpl implements Column {
+    @NonNull
+    private final Vec2i pos;
 
-    public MinecraftSaveImpl(@NonNull SaveBuilder builder) {
-        this.saveFormat = builder.getFormat();
-        this.initFunctions = builder.getInitFunctions();
+    @NonNull
+    private final World world;
 
-        try {
-            this.saveFormat.init();
-        } catch (IOException e) {
-            throw new RuntimeException("Unable to initialize save", e);
-        }
-        this.saveFormat.loadRegistries(this.registries::put);
-        this.saveFormat.loadWorlds((id, worldManager) -> this.worlds.put(id, this.initFunctions.getWorldCreator().create(id, worldManager, this)));
+    private volatile boolean dirty;
+    private volatile boolean loaded;
+    private final Chunk[] chunks = new Chunk[16];
+
+    @Override
+    public Chunk getChunk(int y) {
+        return this.chunks[y];
     }
 
     @Override
-    public void close() throws IOException {
-        this.worlds.forEachValue(this.saveFormat::closeWorld);
-        this.saveFormat.close();
+    public void setChunk(int y, Chunk chunk) {
+        this.chunks[y] = chunk;
+    }
+
+    @Override
+    public boolean exists() {
+        return this.loaded || this.world.getManager().hasChunk(this.pos.getX(), this.pos.getY());
+    }
+
+    @Override
+    public boolean isLoaded() {
+        return this.loaded;
+    }
+
+    @Override
+    public void load() {
+    }
+
+    @Override
+    public void markDirty() {
+        this.dirty = true;
+    }
+
+    @Override
+    public synchronized void save() {
+        if (this.dirty) {
+            this.dirty = false;
+        }
+    }
+
+    @Override
+    public void unload() {
+        this.save();
+        //TODO
+    }
+
+    @Override
+    public int getX() {
+        return this.pos.getX();
+    }
+
+    @Override
+    public int getZ() {
+        return this.pos.getY();
     }
 }

@@ -25,11 +25,15 @@ import java.util.Arrays;
 /**
  * @author DaPorkchop_
  */
+@Getter
 @RequiredArgsConstructor
 public class NibbleArray {
-    @Getter
     @NonNull
     private final byte[] data;
+
+    public NibbleArray()    {
+        this(new byte[2048]);
+    }
 
     public int get(int x, int y, int z) {
         int key = y << 8 | z << 4 | x;

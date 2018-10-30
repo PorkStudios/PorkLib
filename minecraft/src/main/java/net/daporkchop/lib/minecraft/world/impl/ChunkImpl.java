@@ -16,45 +16,69 @@
 package net.daporkchop.lib.minecraft.world.impl;
 
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.math.vector.i.Vec2i;
+import lombok.Setter;
+import net.daporkchop.lib.minecraft.util.NibbleArray;
+import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Column;
-import net.daporkchop.lib.minecraft.world.MinecraftSave;
-import net.daporkchop.lib.minecraft.world.World;
-import net.daporkchop.lib.minecraft.world.format.WorldManager;
-
-import java.util.Collection;
-import java.util.Hashtable;
-import java.util.Map;
 
 /**
+ * A chunk as defined in Minecraft 1.12.
+ *
+ * This will need a rework in 1.13 to work with the new local registry system
+ *
  * @author DaPorkchop_
  */
 @Getter
+@Setter
 @RequiredArgsConstructor
-public class WorldImpl implements World {
-    private final int id;
-    private final Map<Vec2i, Column> loadedColumns = new Hashtable<>();
+public class ChunkImpl implements Chunk {
+    private final int y;
 
-    @NonNull
-    private final WorldManager manager;
+    private final Column column;
 
-    @NonNull
-    private final MinecraftSave save;
+    private byte[] blockIds;
+    private NibbleArray meta;
+    private NibbleArray blockLight;
+    private NibbleArray skyLight;
 
     @Override
-    public Collection<Column> getLoadedColumns() {
-        return this.loadedColumns.values();
+    public int getBlockId(int x, int y, int z) {
+        return this.blockIds[y << 8 | z << 4 | x];
     }
 
     @Override
-    public Column getColumn(int x, int z) {
-        return this.loadedColumns.computeIfAbsent(new Vec2i(x, z), pos -> this.save.getInitFunctions().getColumnCreator().apply(pos, this));
+    public int getBlockMeta(int x, int y, int z) {
+        return this.meta.get(x, y, z);
     }
 
     @Override
-    public void save() {
-        //TODO
+    public int getBlockLight(int x, int y, int z) {
+        return this.blockLight.get(x, y, z);
+    }
+
+    @Override
+    public int getSkyLight(int x, int y, int z) {
+        return this.skyLight.get(x, y, z);
+    }
+
+    @Override
+    public void setBlockId(int x, int y, int z, int id) {
+        this.blockIds[y << 8 | z << 4 | x] = (byte) (id & 0xFF);
+    }
+
+    @Override
+    public void setBlockMeta(int x, int y, int z, int meta) {
+        this.meta.set(x, y, z, meta);
+    }
+
+    @Override
+    public void setBlockLight(int x, int y, int z, int level) {
+        this.blockLight.set(x, y, z, level);
+    }
+
+    @Override
+    public void setSkyLight(int x, int y, int z, int level) {
+        this.skyLight.set(x, y, z, level);
     }
 }

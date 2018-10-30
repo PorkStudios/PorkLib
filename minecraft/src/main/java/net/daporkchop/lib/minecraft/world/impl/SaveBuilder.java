@@ -32,6 +32,9 @@ public class SaveBuilder {
     @NonNull
     private SaveFormat format;
 
+    @NonNull
+    private InitFunctions initFunctions = new InitFunctions();
+
     public MinecraftSave build()    {
         if (this.format == null)    {
             throw new IllegalStateException("Save format must be set!");

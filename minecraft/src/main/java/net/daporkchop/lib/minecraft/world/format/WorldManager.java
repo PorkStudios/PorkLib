@@ -24,4 +24,6 @@ public interface WorldManager {
     int getMaxChunkY();
 
     SaveFormat getFormat();
+
+    boolean hasChunk(int x, int z);
 }

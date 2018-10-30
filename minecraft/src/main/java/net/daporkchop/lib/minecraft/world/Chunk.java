@@ -31,11 +31,23 @@ public interface Chunk {
 
     int getSkyLight(int x, int y, int z);
 
-    int setBlockId(int x, int y, int z, int id);
+    void setBlockId(int x, int y, int z, int id);
 
-    int setBlockMeta(int x, int y, int z, int meta);
+    void setBlockMeta(int x, int y, int z, int meta);
 
-    int setBlockLight(int x, int y, int z, int level);
+    void setBlockLight(int x, int y, int z, int level);
 
-    int setSkyLight(int x, int y, int z, int level);
+    void setSkyLight(int x, int y, int z, int level);
+
+    default void markDirty() {
+        this.getColumn().markDirty();
+    }
+
+    default boolean isDirty() {
+        return this.getColumn().isDirty();
+    }
+
+    default void save() {
+        this.getColumn().save();
+    }
 }

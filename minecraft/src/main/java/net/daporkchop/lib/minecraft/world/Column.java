@@ -17,14 +17,19 @@ package net.daporkchop.lib.minecraft.world;
 
 import net.daporkchop.lib.common.util.Closeable;
 import net.daporkchop.lib.math.vector.i.IntVector2;
+import net.daporkchop.lib.math.vector.i.Vec2i;
 
 /**
  * @author DaPorkchop_
  */
-public interface Column extends Closeable, IntVector2 {
+public interface Column extends Closeable, IntVector2.AddressableXZ {
+    Vec2i getPos();
+
     World getWorld();
 
     Chunk getChunk(int y);
+
+    void setChunk(int y, Chunk chunk);
 
     boolean exists();
 
@@ -38,5 +43,98 @@ public interface Column extends Closeable, IntVector2 {
         }
     }
 
+    boolean isDirty();
+
+    void markDirty();
+
+    void save();
+
     void unload();
+
+    @Override
+    default void close() throws Throwable {
+        if (this.isLoaded())    {
+            this.unload();
+        }
+    }
+
+    default int getBlockId(int x, int y, int z) {
+        Chunk chunk = this.getChunk(y >> 4);
+        if (chunk == null)  {
+            return 0;
+        } else {
+            return chunk.getBlockId(x, y & 0xFF, z);
+        }
+    }
+
+    default int getBlockMeta(int x, int y, int z) {
+        Chunk chunk = this.getChunk(y >> 4);
+        if (chunk == null)  {
+            return 0;
+        } else {
+            return chunk.getBlockMeta(x, y & 0xFF, z);
+        }
+    }
+
+    default int getBlockLight(int x, int y, int z) {
+        Chunk chunk = this.getChunk(y >> 4);
+        if (chunk == null)  {
+            return 0;
+        } else {
+            return chunk.getBlockLight(x, y & 0xFF, z);
+        }
+    }
+
+    default int getSkyLight(int x, int y, int z) {
+        Chunk chunk = this.getChunk(y >> 4);
+        if (chunk == null)  {
+            return 15;
+        } else {
+            return chunk.getSkyLight(x, y & 0xFF, z);
+        }
+    }
+
+    default void setBlockId(int x, int y, int z, int id)    {
+        Chunk chunk = this.getChunk(y >> 4);
+        if (chunk == null)  {
+            if (id == 0)    {
+                return; //don't create new chunk if setting default
+            }
+            this.setChunk(y >> 4, chunk = this.getWorld().getSave().getInitFunctions().getChunkCreator().apply(y >> 4, this));
+        }
+        chunk.setBlockId(x, y & 0xFF, z, id);
+    }
+
+    default void setBlockMeta(int x, int y, int z, int meta)    {
+        Chunk chunk = this.getChunk(y >> 4);
+        if (chunk == null)  {
+            if (meta == 0)    {
+                return; //don't create new chunk if setting default
+            }
+            this.setChunk(y >> 4, chunk = this.getWorld().getSave().getInitFunctions().getChunkCreator().apply(y >> 4, this));
+        }
+        chunk.setBlockMeta(x, y & 0xFF, z, meta);
+    }
+
+    default void setBlockLight(int x, int y, int z, int level)    {
+        Chunk chunk = this.getChunk(y >> 4);
+        if (chunk == null)  {
+            if (level == 0)    {
+                return; //don't create new chunk if setting default
+            }
+            this.setChunk(y >> 4, chunk = this.getWorld().getSave().getInitFunctions().getChunkCreator().apply(y >> 4, this));
+        }
+        chunk.setBlockLight(x, y & 0xFF, z, level);
+    }
+
+    default void setSkyLight(int x, int y, int z, int level)    {
+        Chunk chunk = this.getChunk(y >> 4);
+        if (chunk == null)  {
+            if (level == 15)    {
+                return; //don't create new chunk if setting default
+            }
+            this.setChunk(y >> 4, chunk = this.getWorld().getSave().getInitFunctions().getChunkCreator().apply(y >> 4, this));
+        }
+        chunk.setSkyLight(x, y & 0xFF, z, level);
+    }
 }

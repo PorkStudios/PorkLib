@@ -13,37 +13,40 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.world;
+package net.daporkchop.lib.minecraft.world.impl;
 
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.common.util.Closeable;
-import net.daporkchop.lib.minecraft.registry.Registry;
-import net.daporkchop.lib.minecraft.registry.ResourceLocation;
-import net.daporkchop.lib.minecraft.world.format.SaveFormat;
-import net.daporkchop.lib.minecraft.world.impl.InitFunctions;
-import net.daporkchop.lib.primitive.map.IntegerObjectMap;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.math.vector.i.Vec2i;
+import net.daporkchop.lib.minecraft.world.Chunk;
+import net.daporkchop.lib.minecraft.world.Column;
+import net.daporkchop.lib.minecraft.world.MinecraftSave;
+import net.daporkchop.lib.minecraft.world.World;
+import net.daporkchop.lib.minecraft.world.format.WorldManager;
+import net.daporkchop.lib.primitive.lambda.function.bi.IntegerObjectToObjectFunction;
 
-import java.io.IOException;
-import java.util.Map;
+import java.util.function.BiFunction;
 
 /**
  * @author DaPorkchop_
  */
-public interface MinecraftSave extends Closeable<IOException> {
-    SaveFormat getSaveFormat();
+@Accessors(chain = true)
+@Setter
+@Getter
+public class InitFunctions {
+    @NonNull
+    private WorldCreator worldCreator = WorldImpl::new;
 
-    InitFunctions getInitFunctions();
+    @NonNull
+    private BiFunction<Vec2i, World, Column> columnCreator = ColumnImpl::new;
 
-    Map<ResourceLocation, Registry> getRegistries();
+    @NonNull
+    private IntegerObjectToObjectFunction<Column, Chunk> chunkCreator = ChunkImpl::new;
 
-    @SuppressWarnings("unchecked")
-    default Registry getRegistry(@NonNull ResourceLocation name)   {
-        return this.getRegistries().get(name);
-    }
-
-    IntegerObjectMap<World> getWorlds();
-
-    default World getWorld(int id)  {
-        return this.getWorlds().get(id);
+    @FunctionalInterface
+    public interface WorldCreator    {
+        World create(int id, WorldManager manager, MinecraftSave save);
     }
 }

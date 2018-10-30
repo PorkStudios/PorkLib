@@ -38,13 +38,14 @@ public class ChunkImpl implements Chunk {
     private final Column column;
 
     private byte[] blockIds;
+    private NibbleArray add;
     private NibbleArray meta;
     private NibbleArray blockLight;
     private NibbleArray skyLight;
 
     @Override
     public int getBlockId(int x, int y, int z) {
-        return this.blockIds[y << 8 | z << 4 | x];
+        return (this.blockIds[y << 8 | z << 4 | x] & 0xFF) | (this.add == null ? 0 : this.add.get(x, y, z) << 8);
     }
 
     @Override
@@ -65,6 +66,9 @@ public class ChunkImpl implements Chunk {
     @Override
     public void setBlockId(int x, int y, int z, int id) {
         this.blockIds[y << 8 | z << 4 | x] = (byte) (id & 0xFF);
+        if (this.add != null)   {
+            this.add.set(x, y, z, (id >> 8) & 0xF);
+        }
     }
 
     @Override

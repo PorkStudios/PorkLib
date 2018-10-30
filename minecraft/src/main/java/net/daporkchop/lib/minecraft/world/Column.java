@@ -63,7 +63,7 @@ public interface Column extends Closeable, IntVector2.AddressableXZ {
         if (chunk == null)  {
             return 0;
         } else {
-            return chunk.getBlockId(x, y & 0xFF, z);
+            return chunk.getBlockId(x, y & 0xF, z);
         }
     }
 
@@ -72,7 +72,7 @@ public interface Column extends Closeable, IntVector2.AddressableXZ {
         if (chunk == null)  {
             return 0;
         } else {
-            return chunk.getBlockMeta(x, y & 0xFF, z);
+            return chunk.getBlockMeta(x, y & 0xF, z);
         }
     }
 
@@ -81,7 +81,7 @@ public interface Column extends Closeable, IntVector2.AddressableXZ {
         if (chunk == null)  {
             return 0;
         } else {
-            return chunk.getBlockLight(x, y & 0xFF, z);
+            return chunk.getBlockLight(x, y & 0xF, z);
         }
     }
 
@@ -90,7 +90,7 @@ public interface Column extends Closeable, IntVector2.AddressableXZ {
         if (chunk == null)  {
             return 15;
         } else {
-            return chunk.getSkyLight(x, y & 0xFF, z);
+            return chunk.getSkyLight(x, y & 0xF, z);
         }
     }
 
@@ -102,7 +102,7 @@ public interface Column extends Closeable, IntVector2.AddressableXZ {
             }
             this.setChunk(y >> 4, chunk = this.getWorld().getSave().getInitFunctions().getChunkCreator().apply(y >> 4, this));
         }
-        chunk.setBlockId(x, y & 0xFF, z, id);
+        chunk.setBlockId(x, y & 0xF, z, id);
     }
 
     default void setBlockMeta(int x, int y, int z, int meta)    {
@@ -113,7 +113,7 @@ public interface Column extends Closeable, IntVector2.AddressableXZ {
             }
             this.setChunk(y >> 4, chunk = this.getWorld().getSave().getInitFunctions().getChunkCreator().apply(y >> 4, this));
         }
-        chunk.setBlockMeta(x, y & 0xFF, z, meta);
+        chunk.setBlockMeta(x, y & 0xF, z, meta);
     }
 
     default void setBlockLight(int x, int y, int z, int level)    {
@@ -124,7 +124,7 @@ public interface Column extends Closeable, IntVector2.AddressableXZ {
             }
             this.setChunk(y >> 4, chunk = this.getWorld().getSave().getInitFunctions().getChunkCreator().apply(y >> 4, this));
         }
-        chunk.setBlockLight(x, y & 0xFF, z, level);
+        chunk.setBlockLight(x, y & 0xF, z, level);
     }
 
     default void setSkyLight(int x, int y, int z, int level)    {
@@ -135,6 +135,6 @@ public interface Column extends Closeable, IntVector2.AddressableXZ {
             }
             this.setChunk(y >> 4, chunk = this.getWorld().getSave().getInitFunctions().getChunkCreator().apply(y >> 4, this));
         }
-        chunk.setSkyLight(x, y & 0xFF, z, level);
+        chunk.setSkyLight(x, y & 0xF, z, level);
     }
 }

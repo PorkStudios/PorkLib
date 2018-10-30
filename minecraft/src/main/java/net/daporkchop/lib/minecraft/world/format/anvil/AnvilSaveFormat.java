@@ -15,16 +15,21 @@
 
 package net.daporkchop.lib.minecraft.world.format.anvil;
 
+import com.flowpowered.nbt.CompoundTag;
+import com.flowpowered.nbt.IntTag;
+import com.flowpowered.nbt.ListTag;
+import com.flowpowered.nbt.StringTag;
+import com.flowpowered.nbt.stream.NBTInputStream;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import net.daporkchop.lib.minecraft.registry.Registry;
 import net.daporkchop.lib.minecraft.registry.ResourceLocation;
 import net.daporkchop.lib.minecraft.world.Column;
+import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.format.SaveFormat;
 import net.daporkchop.lib.minecraft.world.format.WorldManager;
-import net.daporkchop.lib.nbt.NBTIO;
-import net.daporkchop.lib.nbt.tag.impl.notch.CompoundTag;
 import net.daporkchop.lib.primitive.lambda.consumer.bi.IntegerObjectConsumer;
 import net.daporkchop.lib.primitive.tuple.ObjectObjectImmutableTuple;
 
@@ -43,6 +48,8 @@ public class AnvilSaveFormat implements SaveFormat {
 
     private CompoundTag levelDat;
 
+    private MinecraftSave save;
+
     public AnvilSaveFormat(@NonNull File root)  {
         this.root = root;
 
@@ -57,7 +64,8 @@ public class AnvilSaveFormat implements SaveFormat {
     }
 
     @Override
-    public void init() throws IOException {
+    public void init(@NonNull MinecraftSave save) throws IOException {
+        this.save = save;
         {
             File levelDat_file = new File(this.root, "level.dat");
             if (levelDat_file.exists()) {
@@ -67,8 +75,8 @@ public class AnvilSaveFormat implements SaveFormat {
             } else {
                 throw new UnsupportedOperationException("create world");
             }
-            try (InputStream is = new FileInputStream(levelDat_file))   {
-                this.levelDat = NBTIO.readCompressed(is);
+            try (NBTInputStream is = new NBTInputStream(new FileInputStream(levelDat_file), true))   {
+                this.levelDat = (CompoundTag) is.readTag();
             }
         }
     }
@@ -79,7 +87,8 @@ public class AnvilSaveFormat implements SaveFormat {
 
     @Override
     public void loadWorlds(IntegerObjectConsumer<WorldManager> addFunction) {
-
+        addFunction.accept(0, new AnvilWorldManager(this, new File(this.root, "region")));
+        //TODO: other dimensions
     }
 
     @Override
@@ -87,13 +96,14 @@ public class AnvilSaveFormat implements SaveFormat {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void loadRegistries(BiConsumer<ResourceLocation, Registry> addFunction) {
-        CompoundTag fmlTag = this.levelDat.getCompound("FML");
+        CompoundTag fmlTag = (CompoundTag) this.levelDat.getValue().get("FML");
         if (fmlTag == null) {
             //TODO
             throw new UnsupportedOperationException("save must be created by FML, otherwise we can't read the registry! (this feature will be added Soon(tm))");
         } else {
-            CompoundTag registriesTag = fmlTag.getCompound("Registries");
+            CompoundTag registriesTag = (CompoundTag) fmlTag.getValue().get("Registries");
             if (registriesTag == null)  {
                 throw new NullPointerException("Registries");
             }
@@ -102,8 +112,7 @@ public class AnvilSaveFormat implements SaveFormat {
                     .forEach(tuple -> {
                         ResourceLocation registryName = tuple.getK();
                         Registry registry = new Registry(registryName);
-                        tuple.getV().<CompoundTag>getTypedList("ids").getValue()
-                                .forEach(tag -> registry.registerEntry(new ResourceLocation(tag.getString("K")), tag.getInt("V")));
+                        ((ListTag<CompoundTag>) tuple.getV().getValue().get("ids")).getValue().forEach(tag -> registry.registerEntry(new ResourceLocation(((StringTag) tag.getValue().get("K")).getValue()), ((IntTag) tag.getValue().get("V")).getValue()));
                         addFunction.accept(registryName, registry);
                     });
         }

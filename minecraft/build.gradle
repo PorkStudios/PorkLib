@@ -14,9 +14,11 @@
  */
 
 dependencies {
-    compile project(":nbt")
+    compile project(":binary")
+    compile project(":encoding")
     compile project(":primitive")
     compile 'com.google.code.gson:gson:2.8.5'
+    compile 'com.flowpowered:flow-nbt:1.0.1-SNAPSHOT'
 
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }

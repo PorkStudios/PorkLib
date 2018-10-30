@@ -44,7 +44,7 @@ public class MinecraftSaveImpl implements MinecraftSave {
         this.initFunctions = builder.getInitFunctions();
 
         try {
-            this.saveFormat.init();
+            this.saveFormat.init(this);
         } catch (IOException e) {
             throw new RuntimeException("Unable to initialize save", e);
         }

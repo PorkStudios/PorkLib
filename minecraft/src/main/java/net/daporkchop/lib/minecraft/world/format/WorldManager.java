@@ -15,15 +15,35 @@
 
 package net.daporkchop.lib.minecraft.world.format;
 
+import lombok.NonNull;
+import net.daporkchop.lib.minecraft.world.Chunk;
+import net.daporkchop.lib.minecraft.world.Column;
+
 /**
  * @author DaPorkchop_
  */
 public interface WorldManager {
-    int getMinChunkY();
+    default int getMinChunkY()  {
+        return 0;
+    }
 
-    int getMaxChunkY();
+    default int getMaxChunkY()  {
+        return 15;
+    }
 
     SaveFormat getFormat();
 
-    boolean hasChunk(int x, int z);
+    boolean hasColumn(int x, int z);
+
+    void loadColumn(@NonNull Column column);
+
+    void saveColumn(@NonNull Column column);
+
+    default void loadChunk(@NonNull Column column, int y)    {
+        throw new UnsupportedOperationException();
+    }
+
+    default void saveChunk(@NonNull Chunk chunk)    {
+        throw new UnsupportedOperationException();
+    }
 }

@@ -53,7 +53,7 @@ public class ColumnImpl implements Column {
 
     @Override
     public boolean exists() {
-        return this.loaded || this.world.getManager().hasChunk(this.pos.getX(), this.pos.getY());
+        return this.loaded || this.world.getManager().hasColumn(this.pos.getX(), this.pos.getY());
     }
 
     @Override
@@ -63,6 +63,10 @@ public class ColumnImpl implements Column {
 
     @Override
     public void load() {
+        if (!this.loaded)    {
+            this.loaded = true;
+            this.world.getManager().loadColumn(this);
+        }
     }
 
     @Override
@@ -74,6 +78,7 @@ public class ColumnImpl implements Column {
     public synchronized void save() {
         if (this.dirty) {
             this.dirty = false;
+            //TODO
         }
     }
 

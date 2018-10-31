@@ -15,9 +15,11 @@
 
 package net.daporkchop.lib.minecraft.world;
 
-import net.daporkchop.lib.common.util.Closeable;
 import net.daporkchop.lib.math.vector.i.IntVector2;
 import net.daporkchop.lib.math.vector.i.Vec2i;
+
+import java.io.Closeable;
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
@@ -38,7 +40,7 @@ public interface Column extends Closeable, IntVector2.AddressableXZ {
     void load();
 
     default void load(boolean generate) {
-        if (this.exists())  {
+        if (this.exists() || generate)  {
             this.load();
         }
     }
@@ -52,7 +54,7 @@ public interface Column extends Closeable, IntVector2.AddressableXZ {
     void unload();
 
     @Override
-    default void close() throws Throwable {
+    default void close() throws IOException {
         if (this.isLoaded())    {
             this.unload();
         }

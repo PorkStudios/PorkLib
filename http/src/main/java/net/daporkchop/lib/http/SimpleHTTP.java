@@ -26,6 +26,14 @@ import java.net.URLConnection;
  * @author DaPorkchop_
  */
 public class SimpleHTTP {
+    public static String getString(String url) throws IOException   {
+        return new String(get(url));
+    }
+
+    public static String getString(URL url) throws IOException   {
+        return new String(get(url));
+    }
+
     public static byte[] get(String url) throws IOException   {
         return get(new URL(url));
     }

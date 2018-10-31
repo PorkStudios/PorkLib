@@ -15,5 +15,60 @@
 
 package net.daporkchop.lib.minecraft.region;
 
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.minecraft.world.Column;
+import net.daporkchop.lib.minecraft.world.World;
+import net.daporkchop.lib.minecraft.world.format.WorldManager;
+import net.daporkchop.lib.minecraft.world.format.anvil.AnvilWorldManager;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.function.Consumer;
+
+@RequiredArgsConstructor
 public class WorldScanner {
+    @NonNull
+    @Getter
+    private final World world;
+
+    private final Collection<Consumer<Column>> processors = new ArrayList<>();
+
+    public WorldScanner addProcessor(@NonNull Consumer<Column> processor) {
+        this.processors.add(processor);
+        return this;
+    }
+
+    public WorldScanner clear() {
+        this.processors.clear();
+        return this;
+    }
+
+    public WorldScanner run()   {
+        return this.run(false);
+    }
+
+    public WorldScanner run(boolean parallel) {
+        WorldManager manager = this.world.getManager();
+        if (manager instanceof AnvilWorldManager) {
+            AnvilWorldManager anvilWorldManager = (AnvilWorldManager) manager;
+            (parallel ? anvilWorldManager.getRegions().parallelStream() : anvilWorldManager.getRegions().stream()).forEach(pos -> {
+                int xx = pos.getX() << 5;
+                int zz = pos.getY() << 5;
+                for (int x = 31; x >= 0; x--) {
+                    for (int z = 31; z >= 0; z--) {
+                        Column column = this.world.getColumn(xx + x, zz + z);
+                        column.load(false);
+                        for (Consumer<Column> consumer : this.processors) {
+                            consumer.accept(column);
+                        }
+                        column.unload();
+                    }
+                }
+            });
+        }
+
+        return this;
+    }
 }

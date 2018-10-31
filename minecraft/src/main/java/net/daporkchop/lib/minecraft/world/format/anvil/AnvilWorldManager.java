@@ -23,6 +23,7 @@ import com.flowpowered.nbt.ListTag;
 import com.flowpowered.nbt.stream.NBTInputStream;
 import lombok.Getter;
 import lombok.NonNull;
+import net.daporkchop.lib.math.vector.i.Vec2i;
 import net.daporkchop.lib.minecraft.util.NibbleArray;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Column;
@@ -185,5 +186,19 @@ public class AnvilWorldManager implements WorldManager {
             throw new RuntimeException(e);
         }*/
         throw new UnsupportedOperationException();
+    }
+
+    public Collection<Vec2i> getRegions()   {
+        Collection<Vec2i> positions = new ArrayDeque<>();
+        for (File f : this.root.listFiles())    {
+            String name = f.getName();
+            if (f.isFile() && name.endsWith(".mca")) {
+                String[] split = name.split("\\.");
+                int x = Integer.parseInt(split[1]);
+                int z = Integer.parseInt(split[2]);
+                positions.add(new Vec2i(x, z));
+            }
+        }
+        return positions;
     }
 }

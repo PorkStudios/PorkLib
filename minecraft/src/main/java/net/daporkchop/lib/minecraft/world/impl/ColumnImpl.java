@@ -85,6 +85,7 @@ public class ColumnImpl implements Column {
     @Override
     public void unload() {
         this.save();
+        this.world.getLoadedColumns().remove(this);
         //TODO
     }
 

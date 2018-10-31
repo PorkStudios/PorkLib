@@ -16,6 +16,7 @@
 dependencies {
     compile project(":binary")
     compile project(":encoding")
+    compile project(":http")
     compile project(":primitive")
     compile 'com.google.code.gson:gson:2.8.5'
     compile 'com.flowpowered:flow-nbt:1.0.1-SNAPSHOT'

@@ -39,10 +39,13 @@ public interface Column extends Closeable, IntVector2.AddressableXZ {
 
     void load();
 
-    default void load(boolean generate) {
+    default boolean load(boolean generate) {
         if (this.exists() || generate)  {
             this.load();
+            return true;
         }
+
+        return false;
     }
 
     boolean isDirty();

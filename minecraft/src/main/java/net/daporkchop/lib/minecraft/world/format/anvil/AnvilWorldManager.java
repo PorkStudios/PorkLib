@@ -78,6 +78,12 @@ public class AnvilWorldManager implements WorldManager {
         //TODO: check if region contains chunk
         try (NBTInputStream is = new NBTInputStream(file.getChunkDataInputStream(column.getX() & 0x1F, column.getZ() & 0x1F), false)) {
             rootTag = (CompoundTag) ((CompoundTag) is.readTag()).getValue().get("Level");
+        } catch (NullPointerException e)    {
+            //this seems to happen for invalid/corrupt chunks
+            for (int y = 15; y >= 0; y--)   {
+                column.setChunk(y, null);
+            }
+            return;
         } catch (IOException e)  {
             throw new RuntimeException(e);
         }

@@ -18,13 +18,17 @@ package net.daporkchop.lib.minecraft.region;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.math.vector.i.Vec2i;
 import net.daporkchop.lib.minecraft.world.Column;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.format.WorldManager;
 import net.daporkchop.lib.minecraft.world.format.anvil.AnvilWorldManager;
+import net.daporkchop.lib.primitive.lambda.consumer.bi.IntegerObjectConsumer;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
 @RequiredArgsConstructor
@@ -33,9 +37,14 @@ public class WorldScanner {
     @Getter
     private final World world;
 
-    private final Collection<Consumer<Column>> processors = new ArrayList<>();
+    private final Collection<ColumnProcessor> processors = new ArrayList<>();
 
     public WorldScanner addProcessor(@NonNull Consumer<Column> processor) {
+        this.processors.add((current, estimatedTotal, column) -> processor.accept(column));
+        return this;
+    }
+
+    public WorldScanner addProcessor(@NonNull ColumnProcessor processor) {
         this.processors.add(processor);
         return this;
     }
@@ -50,25 +59,38 @@ public class WorldScanner {
     }
 
     public WorldScanner run(boolean parallel) {
+        AtomicLong curr = new AtomicLong(0L);
+        AtomicLong estimatedTotal = new AtomicLong(0L);
         WorldManager manager = this.world.getManager();
         if (manager instanceof AnvilWorldManager) {
             AnvilWorldManager anvilWorldManager = (AnvilWorldManager) manager;
-            (parallel ? anvilWorldManager.getRegions().parallelStream() : anvilWorldManager.getRegions().stream()).forEach(pos -> {
+            Collection<Vec2i> regions = anvilWorldManager.getRegions();
+            estimatedTotal.set(regions.size() * 32L * 32L);
+            (parallel ? regions.parallelStream() : regions.stream()).forEach(pos -> {
                 int xx = pos.getX() << 5;
                 int zz = pos.getY() << 5;
                 for (int x = 31; x >= 0; x--) {
                     for (int z = 31; z >= 0; z--) {
                         Column column = this.world.getColumn(xx + x, zz + z);
-                        column.load(false);
-                        for (Consumer<Column> consumer : this.processors) {
-                            consumer.accept(column);
+                        if (column.load(false)) {
+                            for (ColumnProcessor processor : this.processors) {
+                                processor.handle(curr.getAndIncrement(), estimatedTotal.get(), column);
+                            }
+                            column.unload();
+                        } else {
+                            estimatedTotal.decrementAndGet();
                         }
-                        column.unload();
                     }
                 }
             });
+        } else {
+            throw new UnsupportedOperationException(String.format("Iteration over %s", manager.getClass().getCanonicalName()));
         }
 
         return this;
+    }
+
+    public interface ColumnProcessor {
+        void handle(long current, long estimatedTotal, @NonNull Column column);
     }
 }

@@ -22,11 +22,11 @@ import net.daporkchop.lib.crypto.sig.ec.CurveType;
 import net.daporkchop.lib.crypto.sig.ec.impl.ECDSAHelper;
 import org.junit.Test;
 
-import static net.daporkchop.lib.crypto.TestConstants.randomData;
 
 public class SignatureTest {
     @Test
     public void testEC() {
+        byte[][] randomData = EncryptionTest.generateRandomBytes();
         ECDSAHelper helper = new ECDSAHelper(HashTypes.SHA_256);
         for (CurveType type : CurveType.values()) {
             EllipticCurveKeyPair keyPair = KeyGen.gen(type);

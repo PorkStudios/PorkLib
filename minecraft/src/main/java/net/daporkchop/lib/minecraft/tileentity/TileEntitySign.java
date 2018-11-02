@@ -13,14 +13,47 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile project(":http")
-    compile project(":minecraft:minecraft-text")
-    compile project(":primitive")
-    compile 'com.google.code.gson:gson:2.8.5'
-    compile 'com.flowpowered:flow-nbt:1.0.1-SNAPSHOT'
+package net.daporkchop.lib.minecraft.tileentity;
 
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+import com.flowpowered.nbt.CompoundTag;
+import com.flowpowered.nbt.StringTag;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
+import net.daporkchop.lib.minecraft.text.util.ChatUtils;
+import net.daporkchop.lib.minecraft.world.World;
+
+/**
+ * @author DaPorkchop_
+ */
+@Getter
+@Setter
+public class TileEntitySign extends TileEntityBase {
+    @NonNull
+    private String line1;
+    @NonNull
+    private String line2;
+    @NonNull
+    private String line3;
+    @NonNull
+    private String line4;
+
+    public TileEntitySign(World world, CompoundTag data) {
+        super(world, data);
+    }
+
+    @Override
+    protected void init() {
+        super.init();
+        this.line1 = ChatUtils.getOldText(((StringTag) this.data.getValue().get("Text1")).getValue());
+        this.line2 = ChatUtils.getOldText(((StringTag) this.data.getValue().get("Text2")).getValue());
+        this.line3 = ChatUtils.getOldText(((StringTag) this.data.getValue().get("Text3")).getValue());
+        this.line4 = ChatUtils.getOldText(((StringTag) this.data.getValue().get("Text4")).getValue());
+    }
+
+    @Override
+    public void save() {
+        super.save();
+        //TODO
+    }
 }

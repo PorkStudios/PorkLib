@@ -13,14 +13,18 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile project(":http")
-    compile project(":minecraft:minecraft-text")
-    compile project(":primitive")
-    compile 'com.google.code.gson:gson:2.8.5'
-    compile 'com.flowpowered:flow-nbt:1.0.1-SNAPSHOT'
+package net.daporkchop.lib.minecraft.text;
 
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+public class TextComponentTranslationFormatException extends IllegalArgumentException {
+    public TextComponentTranslationFormatException(TextComponentTranslation component, String message) {
+        super(String.format("Error parsing: %s: %s", component, message));
+    }
+
+    public TextComponentTranslationFormatException(TextComponentTranslation component, int index) {
+        super(String.format("Invalid index %d requested for %s", index, component));
+    }
+
+    public TextComponentTranslationFormatException(TextComponentTranslation component, Throwable cause) {
+        super(String.format("Error while parsing: %s", component), cause);
+    }
 }

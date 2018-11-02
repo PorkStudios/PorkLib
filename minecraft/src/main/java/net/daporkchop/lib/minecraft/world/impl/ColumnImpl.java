@@ -19,9 +19,13 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.math.vector.i.Vec2i;
+import net.daporkchop.lib.minecraft.tileentity.TileEntity;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Column;
 import net.daporkchop.lib.minecraft.world.World;
+
+import java.util.ArrayDeque;
+import java.util.Collection;
 
 /**
  * An implementation of a Column for vanilla Minecraft
@@ -37,9 +41,11 @@ public class ColumnImpl implements Column {
     @NonNull
     private final World world;
 
+    @NonNull
+    private final Collection<TileEntity> tileEntities = new ArrayDeque<>();
+    private final Chunk[] chunks = new Chunk[16];
     private volatile boolean dirty;
     private volatile boolean loaded;
-    private final Chunk[] chunks = new Chunk[16];
 
     @Override
     public Chunk getChunk(int y) {
@@ -57,15 +63,12 @@ public class ColumnImpl implements Column {
     }
 
     @Override
-    public boolean isLoaded() {
-        return this.loaded;
-    }
-
-    @Override
     public void load() {
-        if (!this.loaded)    {
-            this.loaded = true;
-            this.world.getManager().loadColumn(this);
+        synchronized (this) {
+            if (!this.loaded) {
+                this.loaded = true;
+                this.world.getManager().loadColumn(this);
+            }
         }
     }
 
@@ -75,18 +78,27 @@ public class ColumnImpl implements Column {
     }
 
     @Override
-    public synchronized void save() {
-        if (this.dirty) {
-            this.dirty = false;
-            //TODO
+    public void save() {
+        synchronized (this) {
+            if (this.dirty) {
+                this.dirty = false;
+                //TODO
+            }
         }
     }
 
     @Override
     public void unload() {
-        this.save();
-        this.world.getLoadedColumns().remove(this);
-        //TODO
+        synchronized (this) {
+            this.loaded = false;
+            this.save();
+            this.world.getLoadedColumns().remove(this.pos);
+            this.world.getLoadedTileEntities().values().removeAll(this.tileEntities);
+            for (int y = 15; y >= 0; y--) {
+                this.chunks[y] = null;
+            }
+            //TODO
+        }
     }
 
     @Override

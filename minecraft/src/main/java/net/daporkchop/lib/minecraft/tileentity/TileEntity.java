@@ -13,14 +13,25 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile project(":http")
-    compile project(":minecraft:minecraft-text")
-    compile project(":primitive")
-    compile 'com.google.code.gson:gson:2.8.5'
-    compile 'com.flowpowered:flow-nbt:1.0.1-SNAPSHOT'
+package net.daporkchop.lib.minecraft.tileentity;
 
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+import com.flowpowered.nbt.CompoundTag;
+import net.daporkchop.lib.math.vector.i.IntVector3;
+import net.daporkchop.lib.math.vector.i.Vec3i;
+import net.daporkchop.lib.minecraft.registry.ResourceLocation;
+import net.daporkchop.lib.minecraft.world.World;
+
+/**
+ * @author DaPorkchop_
+ */
+public interface TileEntity extends IntVector3.AddressableXYZ {
+    World getWorld();
+
+    ResourceLocation getId();
+
+    CompoundTag getData();
+
+    default Vec3i getPos()  {
+        return new Vec3i(this.getX(), this.getY(), this.getZ());
+    }
 }

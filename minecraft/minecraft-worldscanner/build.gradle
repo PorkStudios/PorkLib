@@ -13,16 +13,8 @@
  *
  */
 
-repositories {
-    maven {
-        name = "Apache Development Snapshot Repository"
-        url = "https://repository.apache.org/content/repositories/snapshots/"
-    }
-}
-
 dependencies {
     compile project(":minecraft")
 
-    testCompile 'com.google.guava:guava:27.0-jre'
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }

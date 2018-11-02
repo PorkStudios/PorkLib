@@ -23,10 +23,12 @@ import com.flowpowered.nbt.ListTag;
 import com.flowpowered.nbt.stream.NBTInputStream;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import net.daporkchop.lib.math.vector.i.Vec2i;
 import net.daporkchop.lib.minecraft.util.NibbleArray;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Column;
+import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.format.WorldManager;
 import net.daporkchop.lib.minecraft.world.impl.ChunkImpl;
 
@@ -38,6 +40,7 @@ import java.lang.ref.SoftReference;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 /**
  * @author DaPorkchop_
@@ -48,6 +51,10 @@ public class AnvilWorldManager implements WorldManager {
 
     private final AnvilSaveFormat format;
     private final File root;
+
+    @NonNull
+    @Setter
+    private World world;
 
     public AnvilWorldManager(@NonNull AnvilSaveFormat format, @NonNull File root) {
         this.format = format;
@@ -88,46 +95,55 @@ public class AnvilWorldManager implements WorldManager {
             throw new RuntimeException(e);
         }
         //ListTag<CompoundTag> entitiesTag = rootTag.getTypedList("Entities"); //TODO
-        //ListTag<CompoundTag> tileEntitiesTag = rootTag.getTypedList("TileEntities"); //TODO
-        ListTag<CompoundTag> sectionsTag = (ListTag<CompoundTag>) rootTag.getValue().get("Sections");
-        //TODO: biomes, terrain populated flag etc.
-        for (int y = 15; y >= 0; y--)    {
-            Chunk chunk = column.getChunk(y);
-            CompoundTag tag = null;
-            for (CompoundTag t : sectionsTag.getValue())   {
-                if (((ByteTag) t.getValue().get("Y")).getValue() == y)    {
-                    tag = t;
-                    break;
-                }
-            }
-            if (tag == null)    {
-                column.setChunk(y, null);
-            } else {
-                if (chunk == null)  {
-                    column.setChunk(y, chunk = this.format.getSave().getInitFunctions().getChunkCreator().apply(y, column));
-                }
-                if (chunk instanceof ChunkImpl) {
-                    this.loadChunkImpl((ChunkImpl) chunk, tag.getValue());
-                } else {
-                    SoftReference<ChunkImpl> ref = chunkImplCache.get();
-                    ChunkImpl impl = ref.get();
-                    if (impl == null)   {
-                        chunkImplCache.set(new SoftReference<>(impl = new ChunkImpl(-1, null)));
+        {
+            ListTag<CompoundTag> sectionsTag = (ListTag<CompoundTag>) rootTag.getValue().get("Sections");
+            //TODO: biomes, terrain populated flag etc.
+            for (int y = 15; y >= 0; y--) {
+                Chunk chunk = column.getChunk(y);
+                CompoundTag tag = null;
+                for (CompoundTag t : sectionsTag.getValue()) {
+                    if (((ByteTag) t.getValue().get("Y")).getValue() == y) {
+                        tag = t;
+                        break;
                     }
-                    this.loadChunkImpl(impl, tag.getValue());
-                    for (int x = 15; x >= 0; x--)   {
-                        for (int yy = 15; yy >= 0; yy--)   {
-                            for (int z = 15; z >= 0; z--)   {
-                                chunk.setBlockId(x, yy, z, impl.getBlockId(x, yy, z));
-                                chunk.setBlockMeta(x, yy, z, impl.getBlockMeta(x, yy, z));
-                                chunk.setBlockLight(x, yy, z, impl.getBlockLight(x, yy, z));
-                                chunk.setSkyLight(x, yy, z, impl.getSkyLight(x, yy, z));
+                }
+                if (tag == null) {
+                    column.setChunk(y, null);
+                } else {
+                    if (chunk == null) {
+                        column.setChunk(y, chunk = this.format.getSave().getInitFunctions().getChunkCreator().apply(y, column));
+                    }
+                    if (chunk instanceof ChunkImpl) {
+                        this.loadChunkImpl((ChunkImpl) chunk, tag.getValue());
+                    } else {
+                        SoftReference<ChunkImpl> ref = chunkImplCache.get();
+                        ChunkImpl impl = ref.get();
+                        if (impl == null) {
+                            chunkImplCache.set(new SoftReference<>(impl = new ChunkImpl(-1, null)));
+                        }
+                        this.loadChunkImpl(impl, tag.getValue());
+                        for (int x = 15; x >= 0; x--) {
+                            for (int yy = 15; yy >= 0; yy--) {
+                                for (int z = 15; z >= 0; z--) {
+                                    chunk.setBlockId(x, yy, z, impl.getBlockId(x, yy, z));
+                                    chunk.setBlockMeta(x, yy, z, impl.getBlockMeta(x, yy, z));
+                                    chunk.setBlockLight(x, yy, z, impl.getBlockLight(x, yy, z));
+                                    chunk.setSkyLight(x, yy, z, impl.getSkyLight(x, yy, z));
+                                }
                             }
                         }
                     }
                 }
             }
         }
+        {
+            ListTag<CompoundTag> sectionsTag = (ListTag<CompoundTag>) rootTag.getValue().get("TileEntities");
+            sectionsTag.getValue().stream()
+                    .map(tag -> this.world.getSave().getInitFunctions().getTileEntityCreator().apply(this.world, tag))
+                    .forEach(column.getTileEntities()::add);
+            column.getTileEntities().forEach(tileEntity -> this.world.getLoadedTileEntities().put(tileEntity.getPos(), tileEntity));
+        }
+        this.world.getLoadedColumns().putIfAbsent(column.getPos(), column);
     }
 
     private void loadChunkImpl(@NonNull ChunkImpl impl, @NonNull CompoundMap map)   {

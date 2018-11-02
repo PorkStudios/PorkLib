@@ -15,11 +15,16 @@
 
 package net.daporkchop.lib.minecraft.world.impl;
 
+import com.flowpowered.nbt.CompoundTag;
+import com.flowpowered.nbt.StringTag;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.math.vector.i.Vec2i;
+import net.daporkchop.lib.minecraft.tileentity.TileEntity;
+import net.daporkchop.lib.minecraft.tileentity.TileEntityBase;
+import net.daporkchop.lib.minecraft.tileentity.TileEntitySign;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Column;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
@@ -45,8 +50,19 @@ public class InitFunctions {
     @NonNull
     private IntegerObjectToObjectFunction<Column, Chunk> chunkCreator = ChunkImpl::new;
 
+    @NonNull
+    private BiFunction<World, CompoundTag, TileEntity> tileEntityCreator = (world, tag) -> {
+        String id = ((StringTag) tag.getValue().get("id")).getValue();
+        switch (id) {
+            case "minecraft:sign":
+                return new TileEntitySign(world, tag);
+            default:
+                return new TileEntityBase(world, tag);
+        }
+    }; //TODO: cleaner
+
     @FunctionalInterface
-    public interface WorldCreator    {
+    public interface WorldCreator {
         World create(int id, WorldManager manager, MinecraftSave save);
     }
 }

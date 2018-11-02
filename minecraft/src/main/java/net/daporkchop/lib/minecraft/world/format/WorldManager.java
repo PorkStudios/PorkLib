@@ -18,6 +18,7 @@ package net.daporkchop.lib.minecraft.world.format;
 import lombok.NonNull;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Column;
+import net.daporkchop.lib.minecraft.world.World;
 
 /**
  * @author DaPorkchop_
@@ -46,4 +47,6 @@ public interface WorldManager {
     default void saveChunk(@NonNull Chunk chunk)    {
         throw new UnsupportedOperationException();
     }
+
+    void setWorld(@NonNull World world);
 }

@@ -26,6 +26,7 @@ import net.daporkchop.lib.math.vector.i.Vec2i;
 import net.daporkchop.lib.minecraft.region.WorldScanner;
 import net.daporkchop.lib.minecraft.registry.Registry;
 import net.daporkchop.lib.minecraft.registry.ResourceLocation;
+import net.daporkchop.lib.minecraft.tileentity.TileEntitySign;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.format.anvil.AnvilSaveFormat;
 import net.daporkchop.lib.minecraft.world.impl.SaveBuilder;
@@ -48,6 +49,7 @@ public class ScannerTest {
         return new SaveBuilder()
                 .setFormat(new AnvilSaveFormat(new File(".", "run/testworld")))
                 //.setFormat(new AnvilSaveFormat(new File("/media/daporkchop/TooMuchStuff/Misc/2b2t_org")))
+                //.setFormat(new AnvilSaveFormat(new File("E:\\Misc\\2b2t_org")))
                 .build();
     }
 
@@ -59,7 +61,7 @@ public class ScannerTest {
 
             new WorldScanner(save.getWorld(0))
                     .addProcessor(col -> {
-                        if (((col.getX() & 0x1F) | (col.getZ() & 0x1F)) == 0) {
+                        if ((col.getX() & 0x1F) == 31 && (col.getZ() & 0x1F) == 31) {
                             System.out.printf("Scanning region (%d,%d)\n", col.getX() >> 5, col.getZ() >> 5);
                         }
                     })
@@ -81,6 +83,70 @@ public class ScannerTest {
             System.out.printf("Average height: %.2f\n", (float) h.get() / (float) c.get());
             System.out.printf("Total values: %d\n", c.get());
             System.out.printf("Sum: %d\n", h.get());
+        }
+    }
+
+    @Test
+    public void findDoubleChests() throws IOException {
+        try (MinecraftSave save = this.getTestWorld()) {
+            Registry blocksRegistry = save.getRegistry(new ResourceLocation("minecraft:blocks"));
+            int chestId = blocksRegistry.getId(new ResourceLocation("minecraft:chest"));
+            int trappedChestId = blocksRegistry.getId(new ResourceLocation("minecraft:trapped_chest"));
+            new WorldScanner(save.getWorld(0))
+                    .addProcessor(col -> {
+                        if ((col.getX() & 0x1F) == 31 && (col.getZ() & 0x1F) == 31) {
+                            System.out.printf("Scanning region (%d,%d)\n", col.getX() >> 5, col.getZ() >> 5);
+                        }
+                    })
+                    .addProcessor((current, estimatedTotal, world, x, z) -> {
+                        for (int xx = 15; xx >= 0; xx--)    {
+                            for (int zz = (xx & 1) == 0 ? 15 : 14; zz >= 0; zz -= 2)    {
+                                for (int y = 255; y >= 0; y--)  {
+                                    int id = world.getBlockId(x + xx, y, z + zz);
+                                    if (id == chestId)  {
+                                        if (false)   {
+                                            System.out.printf("Found chest at (%d,%d,%d)\n", x + xx, y, z + zz);
+                                        }
+                                        if (world.getBlockId(x + xx + 1, y, z + zz) == chestId
+                                                || world.getBlockId(x + xx, y, z + zz + 1) == chestId) {
+                                            System.out.printf("Found double chest at (%d,%d,%d)\n", x + xx, y, z + zz);
+                                        }
+                                    } else if (id == trappedChestId)    {
+                                        if (false)   {
+                                            System.out.printf("Found trapped chest at (%d,%d,%d)\n", x + xx, y, z + zz);
+                                        }
+                                        if (world.getBlockId(x + xx + 1, y, z + zz) == trappedChestId
+                                                || world.getBlockId(x + xx, y, z + zz + 1) == trappedChestId) {
+                                            System.out.printf("Found double trapped chest at (%d,%d,%d)\n", x + xx, y, z + zz);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    })
+                    .run(true);
+        }
+    }
+
+    @Test
+    public void findTileEntities() throws IOException {
+        try (MinecraftSave save = this.getTestWorld()) {
+            new WorldScanner(save.getWorld(0))
+                    .addProcessor(col -> {
+                        if ((col.getX() & 0x1F) == 31 && (col.getZ() & 0x1F) == 31) {
+                            System.out.printf("Scanning region (%d,%d)\n", col.getX() >> 5, col.getZ() >> 5);
+                        }
+                    })
+                    .addProcessor(col -> col.getTileEntities().forEach(tileEntity -> {
+                        if (false)  {
+                            System.out.printf("Found TileEntity (id=%s, class=%s) at (%d,%d,%d)\n", tileEntity.getId().toString(), tileEntity.getClass().getCanonicalName(), tileEntity.getX(), tileEntity.getY(), tileEntity.getZ());
+                        }
+                        if (tileEntity instanceof TileEntitySign)   {
+                            TileEntitySign sign = (TileEntitySign) tileEntity;
+                            System.out.printf("Found sign at (%d,%d,%d). Content: \n%s\n%s\n%s\n%s\n", tileEntity.getX(), tileEntity.getY(), tileEntity.getZ(), sign.getLine1(), sign.getLine2(), sign.getLine3(), sign.getLine4());
+                        }
+                    }))
+                    .run(true);
         }
     }
 
@@ -147,7 +213,7 @@ public class ScannerTest {
 
             new WorldScanner(save.getWorld(0))
                     .addProcessor(col -> {
-                        if (((col.getX() & 0x1F) | (col.getZ() & 0x1F)) == 0) {
+                        if ((col.getX() & 0x1F) == 31 && (col.getZ() & 0x1F) == 31) {
                             System.out.printf("Mapping region (%d,%d)\n", col.getX() >> 5, col.getZ() >> 5);
                         }
                     })

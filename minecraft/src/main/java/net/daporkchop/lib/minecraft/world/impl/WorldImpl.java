@@ -15,46 +15,91 @@
 
 package net.daporkchop.lib.minecraft.world.impl;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.cache.RemovalListener;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.math.vector.i.Vec2i;
+import net.daporkchop.lib.math.vector.i.Vec3i;
+import net.daporkchop.lib.minecraft.tileentity.TileEntity;
 import net.daporkchop.lib.minecraft.world.Column;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.format.WorldManager;
 
-import java.util.Collection;
-import java.util.Hashtable;
+import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author DaPorkchop_
  */
 @Getter
-@RequiredArgsConstructor
 public class WorldImpl implements World {
     private final int id;
-    private final Map<Vec2i, Column> loadedColumns = new Hashtable<>();
-
+    private final Map<Vec3i, TileEntity> loadedTileEntities = new ConcurrentHashMap<>();
     @NonNull
     private final WorldManager manager;
-
     @NonNull
     private final MinecraftSave save;
+    private final LoadingCache<Vec2i, Column> loadedColumns = CacheBuilder.newBuilder()
+            .concurrencyLevel(Runtime.getRuntime().availableProcessors())
+            .maximumSize(34 * 34 * Runtime.getRuntime().availableProcessors())
+            .expireAfterAccess(30L, TimeUnit.SECONDS) //TODO: configurable
+            .removalListener((RemovalListener<Vec2i, Column>) n -> {
+                n.getValue().unload();
+            })
+            .build(new CacheLoader<Vec2i, Column>() {
+                @Override
+                public Column load(Vec2i key) throws Exception {
+                    Column column = WorldImpl.this.save.getInitFunctions().getColumnCreator().apply(key, WorldImpl.this);
+                    //WorldImpl.this.manager.loadColumn(column);
+                    return column;
+                }
+            });
+
+    public WorldImpl(int id, @NonNull WorldManager manager, @NonNull MinecraftSave save) {
+        this.id = id;
+        this.manager = manager;
+        this.save = save;
+
+        manager.setWorld(this);
+    }
 
     @Override
-    public Collection<Column> getLoadedColumns() {
-        return this.loadedColumns.values();
+    public Map<Vec2i, Column> getLoadedColumns() {
+        return this.loadedColumns.asMap();
+    }
+
+    @Override
+    public TileEntity getTileEntity(int x, int y, int z) {
+        return this.loadedTileEntities.get(new Vec3i(x, y, z));
     }
 
     @Override
     public Column getColumn(int x, int z) {
-        return this.loadedColumns.computeIfAbsent(new Vec2i(x, z), pos -> this.save.getInitFunctions().getColumnCreator().apply(pos, this));
+        return this.loadedColumns.getUnchecked(new Vec2i(x, z));
+    }
+
+    @Override
+    public Column getColumnOrNull(int x, int z) {
+        return this.loadedColumns.getIfPresent(new Vec2i(x, z));
     }
 
     @Override
     public void save() {
+        this.loadedColumns.asMap().values().forEach(Column::save);
+        //TODO
+    }
+
+    @Override
+    public void close() throws IOException {
+        this.save();
+        this.loadedColumns.invalidateAll();
+        this.loadedTileEntities.clear();
         //TODO
     }
 }

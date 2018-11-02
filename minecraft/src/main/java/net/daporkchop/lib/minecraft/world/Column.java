@@ -17,9 +17,11 @@ package net.daporkchop.lib.minecraft.world;
 
 import net.daporkchop.lib.math.vector.i.IntVector2;
 import net.daporkchop.lib.math.vector.i.Vec2i;
+import net.daporkchop.lib.minecraft.tileentity.TileEntity;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.Collection;
 
 /**
  * @author DaPorkchop_
@@ -66,6 +68,9 @@ public interface Column extends Closeable, IntVector2.AddressableXZ {
     default int getBlockId(int x, int y, int z) {
         Chunk chunk = this.getChunk(y >> 4);
         if (chunk == null)  {
+            if (y == 0) {
+                return 0;
+            }
             return 0;
         } else {
             return chunk.getBlockId(x, y & 0xF, z);
@@ -142,4 +147,6 @@ public interface Column extends Closeable, IntVector2.AddressableXZ {
         }
         chunk.setSkyLight(x, y & 0xF, z, level);
     }
+
+    Collection<TileEntity> getTileEntities();
 }

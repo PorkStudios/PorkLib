@@ -15,23 +15,103 @@
 
 package net.daporkchop.lib.minecraft.world;
 
+import net.daporkchop.lib.math.vector.i.Vec2i;
+import net.daporkchop.lib.math.vector.i.Vec3i;
+import net.daporkchop.lib.minecraft.tileentity.TileEntity;
 import net.daporkchop.lib.minecraft.world.format.WorldManager;
 
-import java.util.Collection;
+import java.io.Closeable;
+import java.util.Map;
 
 /**
  * @author DaPorkchop_
  */
-public interface World {
+public interface World extends Closeable {
     int getId();
 
     MinecraftSave getSave();
 
     WorldManager getManager();
 
-    Collection<Column> getLoadedColumns();
+    Map<Vec2i, Column> getLoadedColumns();
 
     Column getColumn(int x, int z);
 
+    Column getColumnOrNull(int x, int z);
+
+    Map<Vec3i, TileEntity> getLoadedTileEntities();
+
+    default TileEntity getTileEntity(int x, int y, int z)   {
+        return this.getLoadedTileEntities().get(new Vec3i(x, y, z));
+    }
+
     void save();
+
+    default int getBlockId(int x, int y, int z) {
+        Column col = this.getColumn(x >> 4, z >> 4);
+        if (col == null)    {
+            return 0;
+        } else {
+            return col.getBlockId(x & 0xF, y, z & 0xF);
+        }
+    }
+
+    default int getBlockMeta(int x, int y, int z) {
+        Column col = this.getColumnOrNull(x >> 4, z >> 4);
+        if (col == null)    {
+            return 0;
+        } else {
+            return col.getBlockMeta(x & 0xF, y, z & 0xF);
+        }
+    }
+
+    default int getBlockLight(int x, int y, int z) {
+        Column col = this.getColumnOrNull(x >> 4, z >> 4);
+        if (col == null)    {
+            return 0;
+        } else {
+            return col.getBlockLight(x & 0xF, y, z & 0xF);
+        }
+    }
+
+    default int getSkyLight(int x, int y, int z) {
+        Column col = this.getColumnOrNull(x >> 4, z >> 4);
+        if (col == null)    {
+            return 0;
+        } else {
+            return col.getSkyLight(x & 0xF, y, z & 0xF);
+        }
+    }
+
+    default void setBlockId(int x, int y, int z, int id)    {
+        Column col = this.getColumn(x >> 4, z >> 4);
+        if (!col.isLoaded())    {
+            col.load();
+        }
+        col.setBlockId(x & 0xF, y, z & 0xF, id);
+    }
+
+    default void setBlockMeta(int x, int y, int z, int meta)    {
+        Column col = this.getColumn(x >> 4, z >> 4);
+        if (!col.isLoaded())    {
+            col.load();
+        }
+        col.setBlockMeta(x & 0xF, y, z & 0xF, meta);
+    }
+
+    default void setBlockLight(int x, int y, int z, int level)    {
+        Column col = this.getColumn(x >> 4, z >> 4);
+        if (!col.isLoaded())    {
+            col.load();
+        }
+        col.setBlockLight(x & 0xF, y, z & 0xF, level);
+    }
+
+    default void setSkyLight(int x, int y, int z, int level)    {
+        Column col = this.getColumn(x >> 4, z >> 4);
+        if (!col.isLoaded())    {
+            col.load();
+        }
+        col.setSkyLight(x & 0xF, y, z & 0xF, level);
+    }
 }

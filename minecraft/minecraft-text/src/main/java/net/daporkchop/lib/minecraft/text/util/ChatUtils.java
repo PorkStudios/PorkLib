@@ -13,14 +13,20 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile project(":http")
-    compile project(":minecraft:minecraft-text")
-    compile project(":primitive")
-    compile 'com.google.code.gson:gson:2.8.5'
-    compile 'com.flowpowered:flow-nbt:1.0.1-SNAPSHOT'
+package net.daporkchop.lib.minecraft.text.util;
 
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+import com.google.gson.JsonParser;
+import net.daporkchop.lib.minecraft.text.ITextComponent;
+
+public class ChatUtils {
+    private static final JsonParser parser = new JsonParser();
+
+    public static String getOldText(String json) {
+        ITextComponent component = ITextComponent.Serializer.jsonToComponent(json.trim());
+        String text = component.getFormattedText();
+        if (text.startsWith("{")) {
+            text = ITextComponent.Serializer.jsonToComponent(text).getFormattedText();
+        }
+        return text;
+    }
 }

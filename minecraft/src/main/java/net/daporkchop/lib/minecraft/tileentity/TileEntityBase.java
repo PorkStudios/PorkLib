@@ -13,14 +13,46 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile project(":http")
-    compile project(":minecraft:minecraft-text")
-    compile project(":primitive")
-    compile 'com.google.code.gson:gson:2.8.5'
-    compile 'com.flowpowered:flow-nbt:1.0.1-SNAPSHOT'
+package net.daporkchop.lib.minecraft.tileentity;
 
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+import com.flowpowered.nbt.CompoundTag;
+import com.flowpowered.nbt.IntTag;
+import com.flowpowered.nbt.StringTag;
+import lombok.Getter;
+import lombok.NonNull;
+import net.daporkchop.lib.minecraft.registry.ResourceLocation;
+import net.daporkchop.lib.minecraft.world.World;
+
+/**
+ * @author DaPorkchop_
+ */
+@Getter
+public class TileEntityBase implements TileEntity {
+    @NonNull
+    protected final World world;
+
+    @NonNull
+    protected final CompoundTag data;
+
+    protected int x;
+    protected int y;
+    protected int z;
+
+    protected ResourceLocation id;
+
+    public TileEntityBase(@NonNull World world, @NonNull CompoundTag data)  {
+        this.world = world;
+        this.data = data;
+        this.init();
+    }
+
+    protected void init()   {
+        this.id = new ResourceLocation(((StringTag) this.data.getValue().get("id")).getValue());
+        this.x = ((IntTag) this.data.getValue().get("x")).getValue();
+        this.y = ((IntTag) this.data.getValue().get("y")).getValue();
+        this.z = ((IntTag) this.data.getValue().get("z")).getValue();
+    }
+
+    public void save()   {
+    }
 }

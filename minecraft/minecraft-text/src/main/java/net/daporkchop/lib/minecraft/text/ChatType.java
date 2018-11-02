@@ -13,14 +13,30 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile project(":http")
-    compile project(":minecraft:minecraft-text")
-    compile project(":primitive")
-    compile 'com.google.code.gson:gson:2.8.5'
-    compile 'com.flowpowered:flow-nbt:1.0.1-SNAPSHOT'
+package net.daporkchop.lib.minecraft.text;
 
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+public enum ChatType {
+    CHAT((byte) 0),
+    SYSTEM((byte) 1),
+    GAME_INFO((byte) 2);
+
+    private final byte id;
+
+    ChatType(byte id) {
+        this.id = id;
+    }
+
+    public static ChatType byId(byte idIn) {
+        for (ChatType chattype : values()) {
+            if (idIn == chattype.id) {
+                return chattype;
+            }
+        }
+
+        return CHAT;
+    }
+
+    public byte getId() {
+        return this.id;
+    }
 }

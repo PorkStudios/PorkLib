@@ -42,7 +42,7 @@ public interface Column extends Closeable, IntVector2.AddressableXZ {
     void load();
 
     default boolean load(boolean generate) {
-        if (this.exists() || generate)  {
+        if (this.exists() || generate) {
             this.load();
             return true;
         }
@@ -60,14 +60,14 @@ public interface Column extends Closeable, IntVector2.AddressableXZ {
 
     @Override
     default void close() throws IOException {
-        if (this.isLoaded())    {
+        if (this.isLoaded()) {
             this.unload();
         }
     }
 
     default int getBlockId(int x, int y, int z) {
         Chunk chunk = this.getChunk(y >> 4);
-        if (chunk == null)  {
+        if (chunk == null) {
             if (y == 0) {
                 return 0;
             }
@@ -79,7 +79,7 @@ public interface Column extends Closeable, IntVector2.AddressableXZ {
 
     default int getBlockMeta(int x, int y, int z) {
         Chunk chunk = this.getChunk(y >> 4);
-        if (chunk == null)  {
+        if (chunk == null) {
             return 0;
         } else {
             return chunk.getBlockMeta(x, y & 0xF, z);
@@ -88,7 +88,7 @@ public interface Column extends Closeable, IntVector2.AddressableXZ {
 
     default int getBlockLight(int x, int y, int z) {
         Chunk chunk = this.getChunk(y >> 4);
-        if (chunk == null)  {
+        if (chunk == null) {
             return 0;
         } else {
             return chunk.getBlockLight(x, y & 0xF, z);
@@ -97,17 +97,17 @@ public interface Column extends Closeable, IntVector2.AddressableXZ {
 
     default int getSkyLight(int x, int y, int z) {
         Chunk chunk = this.getChunk(y >> 4);
-        if (chunk == null)  {
+        if (chunk == null) {
             return 15;
         } else {
             return chunk.getSkyLight(x, y & 0xF, z);
         }
     }
 
-    default void setBlockId(int x, int y, int z, int id)    {
+    default void setBlockId(int x, int y, int z, int id) {
         Chunk chunk = this.getChunk(y >> 4);
-        if (chunk == null)  {
-            if (id == 0)    {
+        if (chunk == null) {
+            if (id == 0) {
                 return; //don't create new chunk if setting default
             }
             this.setChunk(y >> 4, chunk = this.getWorld().getSave().getInitFunctions().getChunkCreator().apply(y >> 4, this));
@@ -115,10 +115,10 @@ public interface Column extends Closeable, IntVector2.AddressableXZ {
         chunk.setBlockId(x, y & 0xF, z, id);
     }
 
-    default void setBlockMeta(int x, int y, int z, int meta)    {
+    default void setBlockMeta(int x, int y, int z, int meta) {
         Chunk chunk = this.getChunk(y >> 4);
-        if (chunk == null)  {
-            if (meta == 0)    {
+        if (chunk == null) {
+            if (meta == 0) {
                 return; //don't create new chunk if setting default
             }
             this.setChunk(y >> 4, chunk = this.getWorld().getSave().getInitFunctions().getChunkCreator().apply(y >> 4, this));
@@ -126,10 +126,10 @@ public interface Column extends Closeable, IntVector2.AddressableXZ {
         chunk.setBlockMeta(x, y & 0xF, z, meta);
     }
 
-    default void setBlockLight(int x, int y, int z, int level)    {
+    default void setBlockLight(int x, int y, int z, int level) {
         Chunk chunk = this.getChunk(y >> 4);
-        if (chunk == null)  {
-            if (level == 0)    {
+        if (chunk == null) {
+            if (level == 0) {
                 return; //don't create new chunk if setting default
             }
             this.setChunk(y >> 4, chunk = this.getWorld().getSave().getInitFunctions().getChunkCreator().apply(y >> 4, this));
@@ -137,15 +137,27 @@ public interface Column extends Closeable, IntVector2.AddressableXZ {
         chunk.setBlockLight(x, y & 0xF, z, level);
     }
 
-    default void setSkyLight(int x, int y, int z, int level)    {
+    default void setSkyLight(int x, int y, int z, int level) {
         Chunk chunk = this.getChunk(y >> 4);
-        if (chunk == null)  {
-            if (level == 15)    {
+        if (chunk == null) {
+            if (level == 15) {
                 return; //don't create new chunk if setting default
             }
             this.setChunk(y >> 4, chunk = this.getWorld().getSave().getInitFunctions().getChunkCreator().apply(y >> 4, this));
         }
         chunk.setSkyLight(x, y & 0xF, z, level);
+    }
+
+    default int getHighestBlock(int x, int z) {
+        if (!this.isLoaded()) {
+            return -1;
+        }
+        for (int y = 255; y >= 0; y--) {
+            if (this.getBlockId(x, y, z) != 0) {
+                return y;
+            }
+        }
+        return 0;
     }
 
     Collection<TileEntity> getTileEntities();

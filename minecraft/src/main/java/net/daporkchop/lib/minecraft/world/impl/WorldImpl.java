@@ -18,6 +18,7 @@ package net.daporkchop.lib.minecraft.world.impl;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.cache.RemovalCause;
 import com.google.common.cache.RemovalListener;
 import lombok.Getter;
 import lombok.NonNull;
@@ -30,6 +31,7 @@ import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.format.WorldManager;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -46,11 +48,13 @@ public class WorldImpl implements World {
     @NonNull
     private final MinecraftSave save;
     private final LoadingCache<Vec2i, Column> loadedColumns = CacheBuilder.newBuilder()
-            .concurrencyLevel(Runtime.getRuntime().availableProcessors())
+            .concurrencyLevel(1)
             .maximumSize(34 * 34 * Runtime.getRuntime().availableProcessors())
             .expireAfterAccess(30L, TimeUnit.SECONDS) //TODO: configurable
             .removalListener((RemovalListener<Vec2i, Column>) n -> {
-                n.getValue().unload();
+                if (n.getCause() != RemovalCause.REPLACED)  {
+                    n.getValue().unload();
+                }
             })
             .build(new CacheLoader<Vec2i, Column>() {
                 @Override
@@ -60,6 +64,12 @@ public class WorldImpl implements World {
                     return column;
                 }
             });
+    /*private final Map<Vec2i, Column> loadedColumns = new LinkedHashMap<Vec2i, Column>()  {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry eldest) {
+            return this.size() > 256;
+        }
+    };*/
 
     public WorldImpl(int id, @NonNull WorldManager manager, @NonNull MinecraftSave save) {
         this.id = id;
@@ -82,16 +92,19 @@ public class WorldImpl implements World {
     @Override
     public Column getColumn(int x, int z) {
         return this.loadedColumns.getUnchecked(new Vec2i(x, z));
+        //return this.loadedColumns.computeIfAbsent(new Vec2i(x, z), pos -> this.save.getInitFunctions().getColumnCreator().apply(pos, this));
     }
 
     @Override
     public Column getColumnOrNull(int x, int z) {
         return this.loadedColumns.getIfPresent(new Vec2i(x, z));
+        //return this.loadedColumns.get(new Vec2i(x, z));
     }
 
     @Override
     public void save() {
         this.loadedColumns.asMap().values().forEach(Column::save);
+        //this.loadedColumns.values().forEach(Column::save);
         //TODO
     }
 
@@ -99,6 +112,7 @@ public class WorldImpl implements World {
     public void close() throws IOException {
         this.save();
         this.loadedColumns.invalidateAll();
+        //this.loadedColumns.values().forEach(Column::unload);
         this.loadedTileEntities.clear();
         //TODO
     }

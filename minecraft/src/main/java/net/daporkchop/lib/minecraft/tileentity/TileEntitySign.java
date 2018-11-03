@@ -17,6 +17,7 @@ package net.daporkchop.lib.minecraft.tileentity;
 
 import com.flowpowered.nbt.CompoundTag;
 import com.flowpowered.nbt.StringTag;
+import com.google.gson.JsonParseException;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -45,10 +46,15 @@ public class TileEntitySign extends TileEntityBase {
     @Override
     protected void init() {
         super.init();
-        this.line1 = ChatUtils.getOldText(((StringTag) this.data.getValue().get("Text1")).getValue());
-        this.line2 = ChatUtils.getOldText(((StringTag) this.data.getValue().get("Text2")).getValue());
-        this.line3 = ChatUtils.getOldText(((StringTag) this.data.getValue().get("Text3")).getValue());
-        this.line4 = ChatUtils.getOldText(((StringTag) this.data.getValue().get("Text4")).getValue());
+        try {
+            this.line1 = ChatUtils.getOldText(((StringTag) this.data.getValue().get("Text1")).getValue());
+            this.line2 = ChatUtils.getOldText(((StringTag) this.data.getValue().get("Text2")).getValue());
+            this.line3 = ChatUtils.getOldText(((StringTag) this.data.getValue().get("Text3")).getValue());
+            this.line4 = ChatUtils.getOldText(((StringTag) this.data.getValue().get("Text4")).getValue());
+        } catch (JsonParseException e)  {
+            //invalid sign data, can happen sometimes so just ignore
+            this.line1 = this.line2 = this.line3 = this.line4 = "";
+        }
     }
 
     @Override

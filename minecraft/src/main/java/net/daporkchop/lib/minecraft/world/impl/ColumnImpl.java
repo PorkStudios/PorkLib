@@ -18,6 +18,7 @@ package net.daporkchop.lib.minecraft.world.impl;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import net.daporkchop.lib.math.vector.i.Vec2i;
 import net.daporkchop.lib.minecraft.tileentity.TileEntity;
 import net.daporkchop.lib.minecraft.world.Chunk;
@@ -46,6 +47,8 @@ public class ColumnImpl implements Column {
     private final Chunk[] chunks = new Chunk[16];
     private volatile boolean dirty;
     private volatile boolean loaded;
+    @Setter
+    private byte[] heightMap;
 
     @Override
     public Chunk getChunk(int y) {
@@ -68,6 +71,9 @@ public class ColumnImpl implements Column {
             if (!this.loaded) {
                 this.loaded = true;
                 this.world.getManager().loadColumn(this);
+                if (this.heightMap == null) {
+                    this.recalculateHeightMap();
+                }
             }
         }
     }
@@ -92,11 +98,12 @@ public class ColumnImpl implements Column {
         synchronized (this) {
             this.loaded = false;
             this.save();
-            this.world.getLoadedColumns().remove(this.pos);
+            //this.world.getLoadedColumns().remove(this.pos);
             this.world.getLoadedTileEntities().values().removeAll(this.tileEntities);
             for (int y = 15; y >= 0; y--) {
                 this.chunks[y] = null;
             }
+            this.heightMap = null;
             //TODO
         }
     }
@@ -109,5 +116,22 @@ public class ColumnImpl implements Column {
     @Override
     public int getZ() {
         return this.pos.getY();
+    }
+
+    @Override
+    public int getHighestBlock(int x, int z) {
+        return this.heightMap[z << 4 | x] & 0xFF;
+        //TODO: update heightmap
+    }
+
+    public void recalculateHeightMap()  {
+        if (this.heightMap == null) {
+            this.heightMap = new byte[16 * 16];
+        }
+        for (int x = 15; x >= 0; x--)   {
+            for (int z = 15; z >= 0; z--)   {
+                this.heightMap[z << 4 | x] = (byte) Column.super.getHighestBlock(x, z);
+            }
+        }
     }
 }

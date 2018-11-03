@@ -48,7 +48,7 @@ public interface World extends Closeable {
     void save();
 
     default int getBlockId(int x, int y, int z) {
-        Column col = this.getColumn(x >> 4, z >> 4);
+        Column col = this.getColumnOrNull(x >> 4, z >> 4);
         if (col == null)    {
             return 0;
         } else {
@@ -113,5 +113,14 @@ public interface World extends Closeable {
             col.load();
         }
         col.setSkyLight(x & 0xF, y, z & 0xF, level);
+    }
+
+    default int getHighestBlock(int x, int z) {
+        Column col = this.getColumnOrNull(x >> 4, z >> 4);
+        if (col == null)    {
+            return -1;
+        } else {
+            return col.getHighestBlock(x & 0xF, z & 0xF);
+        }
     }
 }

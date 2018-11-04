@@ -13,10 +13,28 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
+package net.daporkchop.lib.common.test;
 
-    compile 'com.google.http-client:google-http-client:1.23.0'
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
-    testCompile 'com.google.code.gson:gson:2.8.5'
+/**
+ * @author DaPorkchop_
+ */
+public class TestRandomData {
+    public static final byte[][] randomBytes = new byte[32][];
+
+    static {
+        ThreadLocalRandom r = ThreadLocalRandom.current();
+        for (int i = randomBytes.length - 1; i >= 0; i--)   {
+            r.nextBytes(randomBytes[i] = new byte[r.nextInt(1024, 8192)]);
+        }
+    }
+
+    public static byte[] getRandomBytes(int minLen, int maxLen) {
+        ThreadLocalRandom r = ThreadLocalRandom.current();
+        byte[] b = new byte[r.nextInt(minLen, maxLen)];
+        r.nextBytes(b);
+        return b;
+    }
 }

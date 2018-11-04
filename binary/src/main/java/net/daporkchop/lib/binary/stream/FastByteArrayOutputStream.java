@@ -13,10 +13,31 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
+package net.daporkchop.lib.binary.stream;
 
-    compile 'com.google.http-client:google-http-client:1.23.0'
+import net.daporkchop.lib.encoding.Hexadecimal;
 
-    testCompile 'com.google.code.gson:gson:2.8.5'
+import java.io.ByteArrayOutputStream;
+
+/**
+ * @author DaPorkchop_
+ */
+public class FastByteArrayOutputStream extends ByteArrayOutputStream {
+    public FastByteArrayOutputStream() {
+        super();
+    }
+
+    public FastByteArrayOutputStream(int size) {
+        super(size);
+    }
+
+    @Override
+    public synchronized byte[] toByteArray() {
+        return this.buf;
+    }
+
+    @Override
+    public synchronized String toString() {
+        return Hexadecimal.encode(this.buf);
+    }
 }

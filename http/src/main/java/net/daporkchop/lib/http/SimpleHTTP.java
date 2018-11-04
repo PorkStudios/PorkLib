@@ -187,7 +187,7 @@ public class SimpleHTTP {
             Long lengthObj = response.getHeaders().getContentLength();
             length = lengthObj == null ? -1 : (int) (long) lengthObj;
         }
-        ByteArrayOutputStream baos = length == -1 ? new ByteArrayOutputStream() : new FastByteArrayOutputStream(length);
+        ByteArrayOutputStream baos = length == -1 ? new ByteArrayOutputStream() : new ByteArrayOutputStream(length);//new FastByteArrayOutputStream(length);
         try (InputStream is = response.getContent()) {
             int i;
             while ((i = is.read()) != -1) {

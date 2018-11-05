@@ -13,19 +13,44 @@
  *
  */
 
-package net.daporkchop.lib.network.conn;
+package net.daporkchop.lib.crypto.sig.ec;
 
-import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import net.daporkchop.lib.crypto.key.EllipticCurveKeyPair;
+import net.daporkchop.lib.crypto.keygen.KeyGen;
+
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ForkJoinPool;
 
 /**
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-public enum ConnectionState {
-    NOT_CONNECTED(false, false),
-    HANDSHAKE(true, false),
-    RUN(true, true);
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class EllipticCurveKeyCache {
+    private static final Map<CurveType, CompletableFuture<EllipticCurveKeyPair>> cache = new EnumMap<>(CurveType.class);
 
-    public final boolean compress;
-    public final boolean encrypt;
+    public static CompletableFuture<EllipticCurveKeyPair> getFutureKeyPair(@NonNull CurveType curveType)    {
+        synchronized (cache)    {
+            if (cache.containsKey(curveType))   {
+                return cache.get(curveType);
+            } else {
+                CompletableFuture<EllipticCurveKeyPair> future = new CompletableFuture<>();
+                cache.put(curveType, future);
+                ForkJoinPool.commonPool().submit(() -> future.complete(KeyGen.gen(curveType)));
+                return future;
+            }
+        }
+    }
+
+    public static EllipticCurveKeyPair getKeyPair(@NonNull CurveType type)  {
+        try {
+            return getFutureKeyPair(type).get();
+        } catch (Exception e)   {
+            throw new RuntimeException(e);
+        }
+    }
 }

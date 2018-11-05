@@ -13,56 +13,50 @@
  *
  */
 
-package net.daporkchop.lib.network.util;
+package net.daporkchop.lib.crypto.exchange;
 
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryonet.Connection;
-import lombok.NonNull;
+import org.bouncycastle.jcajce.provider.asymmetric.ec.KeyAgreementSpi;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.security.Key;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.SecureRandom;
 
 /**
  * @author DaPorkchop_
  */
-public class ReflectionUtil {
-    private static final Field connection_tcp;
-    private static final Field input_capacity;
-    private static Method tcpConnection_writeOperation;
+public class ECDHHelper {
+    private static Method engineInit;
+    private static Method engineDoPhase;
+    private static Method engineGenerateSecret;
 
     static {
+        //intellij stop flagging this as duplicate code! this is a different class
         try {
-            connection_tcp = Connection.class.getDeclaredField("tcp");
-            connection_tcp.setAccessible(true);
+            engineInit = KeyAgreementSpi.class.getDeclaredMethod("engineInit", Key.class, SecureRandom.class);
+            engineDoPhase = KeyAgreementSpi.class.getDeclaredMethod("engineDoPhase", Key.class, boolean.class);
+            engineGenerateSecret = KeyAgreementSpi.class.getDeclaredMethod("calcSecret");
 
-            input_capacity = Input.class.getDeclaredField("capacity");
-            input_capacity.setAccessible(true);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            engineInit.setAccessible(true);
+            engineDoPhase.setAccessible(true);
+            engineGenerateSecret.setAccessible(true);
+        } catch (Throwable t) {
+            t.printStackTrace();
+            System.exit(1);
         }
     }
 
-    public static void flush(@NonNull Connection connection) {
+    public static byte[] generateCommonSecret(PrivateKey ownKey, PublicKey remoteKey) {
+        KeyAgreementSpi spi = new KeyAgreementSpi.DH();
         try {
-            if (!connection.isConnected()) {
-                return;
-            }
-            Object o = connection_tcp.get(connection);
-            if (tcpConnection_writeOperation == null) {
-                tcpConnection_writeOperation = o.getClass().getDeclaredMethod("writeOperation");
-                tcpConnection_writeOperation.setAccessible(true);
-            }
-            tcpConnection_writeOperation.invoke(o);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+            engineInit.invoke(spi, ownKey, null);
+            engineDoPhase.invoke(spi, remoteKey, true);
 
-    public static void setCapacity(@NonNull Input input, int capacity) {
-        try {
-            input_capacity.set(input, capacity);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            return (byte[]) engineGenerateSecret.invoke(spi);
+        } catch (Throwable t) {
+            t.printStackTrace();
+            throw new IllegalStateException(t);
         }
     }
 }

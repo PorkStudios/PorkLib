@@ -572,7 +572,7 @@ public interface _P0__P1_Map_gH_ extends PrimitiveConstants {
      * removed during iteration
      * @since 1.8
      */
-     //TODO
+    //TODO: add clause in generator for this parameter
      /*
     default void replaceAll(@NonNull _P0__P1_BiFunction<? super K, ? super V, ? extends V> function) {
         for (Map.Entry<K, V> entry : entrySet()) {
@@ -852,19 +852,21 @@ public interface _P0__P1_Map_gH_ extends PrimitiveConstants {
      *         (<a href="{@docRoot}/java/util/Collection.html#optional-restrictions">optional</a>)
      * @since 1.8
      */
+    //TODO: add clause in generator for this parameter
+    /*@SuppressWarnings("unchecked")
     default _p1_ computeIfAbsent(_p0_ key,
-            @NonNull _P0__P1_Function_gH_ mappingFunction) {
+            @NonNull _P0__P1_Function<? super K, ? extends V> mappingFunction) {
         _p1_ v;
         if ((v = this.get(key)) == _P1E_) {
             _p1_ newValue;
-            if ((newValue = mappingFunction.apply(key)) != _P1E_) {
+            if ((newValue = (_p1_) mappingFunction.apply(key)) != _P1E_) {
                 this.put(key, newValue);
                 return newValue;
             }
         }
 
         return v;
-    }
+    }*/
 
     /**
      * If the value for the specified key is present and non-null, attempts to
@@ -912,7 +914,7 @@ public interface _P0__P1_Map_gH_ extends PrimitiveConstants {
      *         (<a href="{@docRoot}/java/util/Collection.html#optional-restrictions">optional</a>)
      * @since 1.8
      */
-     //TODO
+    //TODO: add clause in generator for this parameter
      /*
     default _p1_ computeIfPresent(_p0_ key,
             @NonNull _P0__P1_BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
@@ -991,7 +993,7 @@ public interface _P0__P1_Map_gH_ extends PrimitiveConstants {
      *         (<a href="{@docRoot}/java/util/Collection.html#optional-restrictions">optional</a>)
      * @since 1.8
      */
-     //TODO
+    //TODO: add clause in generator for this parameter
      /*
     default _p1_ compute(_p0_ key,
             @NonNull BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
@@ -1075,7 +1077,7 @@ public interface _P0__P1_Map_gH_ extends PrimitiveConstants {
      *         null
      * @since 1.8
      */
-     //TODO
+    //TODO: add clause in generator for this parameter
      /*
     default V merge(K key, V value,
             BiFunction<? super V, ? super V, ? extends V> remappingFunction) {

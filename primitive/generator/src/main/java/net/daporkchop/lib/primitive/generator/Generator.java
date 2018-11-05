@@ -71,6 +71,7 @@ public class Generator {
                         .setHashCode("(x >> 24) ^ (x >> 16) ^ (x >> 8) ^ x")
                         .setEmptyValue("0")
                         .setEquals("a == b")
+                        .setSerializationName("Int")
         );
         primitives.add(
                 new Primitive()
@@ -434,7 +435,7 @@ public class Generator {
         boolean flag = true;
         for (File f : files) {
             if (f.isDirectory()) {
-                if (f.getName().endsWith("_methods"))   {
+                if (f.getName().endsWith("_methods")) {
                     continue;
                 } else {
                     this.getImportsRecursive(f);

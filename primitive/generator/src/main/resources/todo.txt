@@ -10,8 +10,8 @@ StreamSupport
     //AbstractCollection
     //AbstractSet
     //AbstractMap
-Throwing functions
-HashMap
+LinkedHashMap
+    //HashMap
 ConcurrentHashMap
 HashSet
 List
@@ -24,3 +24,4 @@ ArrayQueue
 ConcurrentLinkedQueue
 Deque
 ArrayDeque
+Throwing functions

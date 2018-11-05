@@ -144,7 +144,7 @@ public interface _P0_Collection_gH_ extends PrimitiveConstants {
      *         collection does not permit null elements
      *         (<a href="#optional-restrictions">optional</a>)
      */
-    boolean contains(_p0_ o);
+    boolean contains(/*_p0_*/_nameP0_ o);
 
     /**
      * Returns an iterator over the elements in this collection.  There are no
@@ -276,7 +276,7 @@ public interface _P0_Collection_gH_ extends PrimitiveConstants {
      * @throws UnsupportedOperationException if the <tt>remove</tt> operation
      *         is not supported by this collection
      */
-    boolean remove(_p0_ o);
+    boolean remove(/*_p0_*/_nameP0_ o);
 
     // Bulk Operations
 

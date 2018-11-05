@@ -249,9 +249,9 @@ public abstract class _P0__P1_AbstractMap_gH_ implements _P0__P1_Map_gH_ {
      * @throws NullPointerException          {@inheritDoc}
      * @throws IllegalArgumentException      {@inheritDoc}
      */
-<%    @SuppressWarnings("unchecked")
-%>    public void putAll(@NonNull _P0__P1_Map m) {
-        ObjectIterator<_P0__P1_Map.Entry> i = m.entrySet().iterator();
+    @SuppressWarnings("unchecked")
+    public void putAll(@NonNull _P0__P1_Map_gExtends_ m) {
+        ObjectIterator<_P0__P1_Map.Entry> i = ((_P0__P1_Map) m).entrySet().iterator();
         while (i.hasNext()) {
             _P0__P1_Map.Entry e = i.next();
             this.put(_castP0_e.getKey(), _castP1_e.getValue());
@@ -302,8 +302,8 @@ public abstract class _P0__P1_AbstractMap_gH_ implements _P0__P1_Map_gH_ {
      * }
      *}</pre>
      */
-    transient _P0_Set_GP0_        keySet;
-    transient _P1_Collection_GP1_ values;
+    public transient _P0_Set_GP0_        keySet;
+    public transient _P1_Collection_GP1_ values;
 
     /**
      * {@inheritDoc}

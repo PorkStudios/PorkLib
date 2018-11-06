@@ -13,18 +13,25 @@
  *
  */
 
-repositories {
-    maven   {
-        name = "NukkitX Snapshots"
-        url = "https://repo.nukkitx.com/snapshot/"
+package net.daporkchop.lib.network.protocol.netty;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.MessageToByteEncoder;
+
+/**
+ * @author DaPorkchop_
+ */
+public class NettyPacketEncoder extends MessageToByteEncoder<String> {
+    @Override
+    protected void encode(ChannelHandlerContext channelHandlerContext, String o, ByteBuf byteBuf) throws Exception {
+        System.out.printf("Writing %s...\n", o.getClass().getCanonicalName());
+        if (o instanceof String)    {
+            String s = (String) o;
+            byteBuf.writeInt(s.length());
+            for (int i = 0; i < s.length(); i++)    {
+                byteBuf.writeChar(s.charAt(i));
+            }
+        }
     }
-}
-
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile project(":crypto")
-    compile project(":primitive")
-
-    compile "com.nukkitx.network:raknet:1.2.1-SNAPSHOT"
 }

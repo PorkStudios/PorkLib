@@ -13,29 +13,26 @@
  *
  */
 
-package chat.protocol;
+package net.daporkchop.lib.network.protocol.netty;
 
-import chat.ChatSession;
-import net.daporkchop.lib.network.packet.protocol.PacketProtocol;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.ByteToMessageCodec;
+import io.netty.handler.codec.ByteToMessageDecoder;
+
+import java.util.List;
 
 /**
  * @author DaPorkchop_
  */
-public class ChatProtocol extends PacketProtocol<ChatSession> {
-    public ChatProtocol() {
-        super("ChatTest", 1);
-    }
-
+public class NettyPacketDecoder extends ByteToMessageDecoder {
     @Override
-    protected void registerPackets(PacketRegistry registry) {
-        registry.register(
-                new SetNamePacket.SetNameCodec(),
-                new MessagePacket.MessageCodec()
-        );
-    }
-
-    @Override
-    public ChatSession newSession() {
-        return null;
+    protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, List<Object> list) throws Exception {
+        System.out.printf("Decoding from %d bytes...\n", byteBuf.readableBytes());
+        char[] c = new char[byteBuf.readInt()];
+        for (int i = 0; i < c.length; i++)  {
+            c[i] = byteBuf.readChar();
+        }
+        list.add(new String(c));
     }
 }

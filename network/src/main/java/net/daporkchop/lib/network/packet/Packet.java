@@ -13,46 +13,12 @@
  *
  */
 
-package chat.protocol;
+package net.daporkchop.lib.network.packet;
 
-import chat.ChatSession;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.network.packet.Codec;
-import net.daporkchop.lib.network.packet.Packet;
-
-import java.io.IOException;
+import net.daporkchop.lib.binary.Data;
 
 /**
  * @author DaPorkchop_
  */
-@NoArgsConstructor
-@AllArgsConstructor
-public class SetNamePacket implements Packet {
-    public String name;
-
-    @Override
-    public void read(DataIn in) throws IOException {
-        this.name = in.readUTF();
-    }
-
-    @Override
-    public void write(DataOut out) throws IOException {
-        out.writeUTF(this.name);
-    }
-
-    public static class SetNameCodec implements Codec<SetNamePacket, ChatSession> {
-        @Override
-        public void handle(SetNamePacket packet, ChatSession session) {
-            session.name = packet.name;
-            System.out.printf("[Server] Client logged in: %s\n", packet.name);
-        }
-
-        @Override
-        public SetNamePacket newPacket() {
-            return new SetNamePacket();
-        }
-    }
+public interface Packet extends Data {
 }

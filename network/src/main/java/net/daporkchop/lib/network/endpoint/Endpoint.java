@@ -13,28 +13,44 @@
  *
  */
 
-package big.protocol;
+package net.daporkchop.lib.network.endpoint;
 
-import big.BigSession;
-import net.daporkchop.lib.network.packet.protocol.PacketProtocol;
+import lombok.NonNull;
+import net.daporkchop.lib.network.EndpointType;
+import net.daporkchop.lib.network.conn.Connection;
+import net.daporkchop.lib.network.conn.UserConnection;
+import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.packet.PacketProtocol;
+
+import java.util.Collection;
 
 /**
  * @author DaPorkchop_
  */
-public class BigProtocol extends PacketProtocol<BigSession> {
-    public BigProtocol() {
-        super("ChatTest", 1);
+public interface Endpoint<C extends UserConnection> {
+    EndpointType getType();
+
+    Collection<C> getConnections();
+
+    PacketProtocol<C> getProtocol();
+
+    default void close()    {
+        this.close(null);
     }
 
-    @Override
-    protected void registerPackets(PacketRegistry registry) {
-        registry.register(
-                new BigPacket.MessageCodec()
-        );
+    void close(String reason);
+
+    boolean isRunning();
+
+    default boolean isClosed() {
+        return !this.isRunning();
     }
 
-    @Override
-    public BigSession newSession() {
-        return new BigSession();
+    default void broadcast(@NonNull Packet packet)  {
+        this.getConnections().forEach(c -> c.send(packet));
+    }
+
+    default void broadcast(@NonNull Packet... packets)  {
+        this.getConnections().forEach(c -> c.send(packets));
     }
 }

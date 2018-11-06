@@ -1,22 +1,5 @@
 _headers_
 
-/**
- * Represents a function that accepts one argument and produces a result.
- *
- * <p>This is a <a href="package-summary.html">functional interface</a>
- * whose functional method is {@link #apply(_nameP0_)}.
- *
- * @param <A> the type of the input to the function
- * @param <B> the type of the result of the function
- *
- * @since 1.8
- */
 public interface _P0__P1_Function_gH_ extends _P0_Acceptor, _P0_Provider {
-    /**
-     * Applies this function to the given argument.
-     *
-     * @param t the function argument
-     * @return the function result
-     */
     _p1_ apply(_p0_ t);
 }

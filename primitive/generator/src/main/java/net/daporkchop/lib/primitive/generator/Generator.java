@@ -58,6 +58,15 @@ public class Generator {
         );
         primitives.add(
                 new Primitive()
+                        .setFullName("Character")
+                        .setName("char")
+                        .setHashCode("(x >> 24) ^ (x >> 16) ^ (x >> 8) ^ x")
+                        .setEmptyValue("(char) 0")
+                        .setEquals("a == b")
+                        .setSerializationName("Char")
+        );
+        primitives.add(
+                new Primitive()
                         .setFullName("Short")
                         .setName("short")
                         .setHashCode("(x >> 8) ^ x")

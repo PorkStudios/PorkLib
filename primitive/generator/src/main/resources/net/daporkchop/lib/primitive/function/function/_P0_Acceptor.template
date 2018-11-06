@@ -1,9 +1,4 @@
 _headers_
 
-/**
- * A function that accepts a _nameP0_
- *
- * @author DaPorkchop_
- */
 public interface _P0_Acceptor_gH_ {
 }

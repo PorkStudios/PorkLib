@@ -1,44 +1,8 @@
 _headers_
 
-/**
- * Implementing this interface allows an object to be the target of
- * the "for-each loop" statement. See
- * <strong>
- * <a href="{@docRoot}/../technotes/guides/language/foreach.html">For-each Loop</a>
- * </strong>
- *
- * @param <A> the type of elements returned by the iterator
- *
- * @since 1.5
- * @jls 14.14.2 The enhanced for statement
- */
 public interface _P0_Iterable_gH_ /*extends Iterable<_fullnameP0_>*/ {
-    /**
-     * Returns an iterator over elements of type {@code _p0_}.
-     *
-     * @return a _P0_Iterator.
-     */
     _P0_Iterator_gH_ iterator();
 
-    /**
-     * Performs the given action for each element of the {@code _P0_Iterable}
-     * until all elements have been processed or the action throws an
-     * exception.  Unless otherwise specified by the implementing class,
-     * actions are performed in the order of iteration (if an iteration order
-     * is specified).  Exceptions thrown by the action are relayed to the
-     * caller.
-     *
-     * @implSpec
-     * <p>The default implementation behaves as if:
-     * <pre>{@code
-     *     for (A t : this)
-     *         action.accept(t);
-     * }</pre>
-     *
-     * @param action The action to be performed for each element
-     * @throws NullPointerException if the specified action is null
-     * @since 1.8
-     */
     default void forEach(@NonNull _P0_Consumer_gSuper_ action) {
         this.iterator().forEachRemaining(action::accept);
     }

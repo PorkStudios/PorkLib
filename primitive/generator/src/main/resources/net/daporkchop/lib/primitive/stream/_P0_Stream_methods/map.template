@@ -1,15 +1,2 @@
-    /**
-     * Returns a stream consisting of the results of applying the given
-     * function to the elements of this stream.
-     *
-     * <p>This is an <a href="package-summary.html#StreamOps">intermediate
-     * operation</a>.
-     *
-<method%     * @param <T> The element type of the new stream
-%>     * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
-     *               <a href="package-summary.html#Statelessness">stateless</a>
-     *               function to apply to each element
-     * @return the new stream
-     */
     <method%<T> %>_methodP0_Stream<method%<T>%> map(_P0__methodP0_Function mapper);
 

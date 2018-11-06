@@ -1,24 +1,5 @@
 _headers_
 
-/**
- * Represents an operation on a single operand that produces a result of the
- * same type as its operand.  This is a specialization of {@code Function} for
- * the case where the operand and result are of the same type.
- *
- * <p>This is a <a href="package-summary.html">functional interface</a>
- * whose functional method is {@link #apply(_nameP0_)}.
- *
- * @param <T> the type of the operand and result of the operator
- *
- * @see _P0__P0_Function
- * @since 1.8
- */
 public interface _P0_UnaryOperator_gH_ {
-    /**
-     * Applies this function to the given argument.
-     *
-     * @param t the function argument
-     * @return the function result
-     */
     _p0_ apply(_p0_ t);
 }

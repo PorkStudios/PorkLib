@@ -1,37 +1,8 @@
 _headers_
 
-/**
- * Represents an operation that accepts a single input argument and returns no
- * result. Unlike most other functional interfaces, {@code _P0_Consumer} is expected
- * to operate via side-effects.
- *
- * <p>This is a <a href="package-summary.html">functional interface</a>
- * whose functional method is {@link #accept(_nameP0_)}.
- *
- * @param <A> the type of the input to the operation (only if Object)
- *
- * @since 1.8
- */
 public interface _P0_Consumer_gH_ {
-    /**
-     * Performs this operation on the given argument.
-     *
-     * @param t the input argument
-     */
     void accept(_p0_ t);
 
-    /**
-     * Returns a composed {@code _P0_Consumer} that performs, in sequence, this
-     * operation followed by the {@code after} operation. If performing either
-     * operation throws an exception, it is relayed to the caller of the
-     * composed operation.  If performing this operation throws an exception,
-     * the {@code after} operation will not be performed.
-     *
-     * @param after the operation to perform after this operation
-     * @return a composed {@code _P0_Consumer} that performs in sequence this
-     * operation followed by the {@code after} operation
-     * @throws NullPointerException if {@code after} is null
-     */
     default _P0_Consumer_gH_ andThen(@NonNull _P0_Consumer_gSuper_ after) {
         return t -> {
             this.accept(t);

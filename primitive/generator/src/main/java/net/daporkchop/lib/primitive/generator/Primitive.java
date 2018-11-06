@@ -63,7 +63,6 @@ public class Primitive {
     private String name;
     @NonNull
     private String hashCode;
-    @NonNull
     private boolean generic;
     @NonNull
     private String emptyValue;

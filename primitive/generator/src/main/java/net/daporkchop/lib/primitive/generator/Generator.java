@@ -192,7 +192,7 @@ public class Generator {
             System.out.printf("Existing: %d, generated: %d\n", this.existing.size(), this.generated.size());
             AtomicLong deletedFiles = new AtomicLong(0L);
             AtomicLong deletedSize = new AtomicLong(0L);
-            this.existing.forEach(s -> {
+            this.existing.parallelStream().forEach(s -> {
                 File file = new File(this.outRoot, s.replaceAll("\\.", "/").replaceAll("/java", ".java"));
                 deletedSize.addAndGet(file.length());
                 if (!file.delete()) {
@@ -224,9 +224,8 @@ public class Generator {
             if (files == null) {
                 throw new NullPointerException();
             }
-            for (File f : files) {
-                this.generate(f, out);
-            }
+            File realOut = out;
+            Arrays.stream(files).parallel().forEach(f -> this.generate(f, realOut));
         } else if (file.getName().endsWith(".template")) {
             String name = file.getName();
             String packageName = this.getPackageName(file);
@@ -244,9 +243,7 @@ public class Generator {
                         }
                     }
                     count = countUpper;
-                    //System.out.println("done " + name);
                 }
-                //System.out.println(name);
             }
             this.generated.add(String.format("%s.%s", packageName, name));
             long lastModified = file.lastModified();
@@ -365,7 +362,6 @@ public class Generator {
             if (!file.setLastModified(System.currentTimeMillis())) {
                 throw new IllegalStateException();
             }
-            //this.generated.add(String.format("%s.%s", packageName, file.getName()));
         }
     }
 
@@ -375,9 +371,7 @@ public class Generator {
             if (files == null) {
                 throw new NullPointerException();
             }
-            for (File f : files) {
-                this.rmDir(f);
-            }
+            Arrays.stream(files).parallel().forEach(this::rmDir);
         }
         if (!file.delete()) {
             throw new IllegalStateException();
@@ -402,9 +396,6 @@ public class Generator {
                 builder.append('.');
             }
         }
-        //String text = builder.toString();
-        //System.out.println(text);
-        //return text;
         return builder.toString();
     }
 
@@ -444,9 +435,7 @@ public class Generator {
         boolean flag = true;
         for (File f : files) {
             if (f.isDirectory()) {
-                if (f.getName().endsWith("_methods")) {
-                    continue;
-                } else {
+                if (!f.getName().endsWith("_methods")) {
                     this.getImportsRecursive(f);
                 }
             } else if (flag && f.getName().endsWith(".template")) {

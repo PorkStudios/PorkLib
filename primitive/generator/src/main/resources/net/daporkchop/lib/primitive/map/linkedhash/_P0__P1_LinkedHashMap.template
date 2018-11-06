@@ -7,4 +7,377 @@ public class _P0__P1_LinkedHashMap_gH_ extends _P0__P1_HashMap_gH_ {
             super(hash, key, value, next);
         }
     }
+
+    private static final long serialVersionUID = 3801124242820219132L;
+
+    transient _P0__P1_LinkedHashMap.Entry_gH_ head;
+
+    transient _P0__P1_LinkedHashMap.Entry_gH_ tail;
+
+    final boolean accessOrder;
+
+    // internal utilities
+
+    // link at the end of list
+    private void linkNodeLast(_P0__P1_LinkedHashMap.Entry_gH_ p) {
+        _P0__P1_LinkedHashMap.Entry_gH_ last = tail;
+        tail = p;
+        if (last == null)
+            head = p;
+        else {
+            p.before = last;
+            last.after = p;
+        }
+    }
+
+    // apply src's links to dst
+    private void transferLinks(_P0__P1_LinkedHashMap.Entry_gH_ src,
+                               _P0__P1_LinkedHashMap.Entry_gH_ dst) {
+        _P0__P1_LinkedHashMap.Entry_gH_ b = dst.before = src.before;
+        _P0__P1_LinkedHashMap.Entry_gH_ a = dst.after = src.after;
+        if (b == null)
+            head = dst;
+        else
+            b.after = dst;
+        if (a == null)
+            tail = dst;
+        else
+            a.before = dst;
+    }
+
+    // overrides of HashMap hook methods
+
+    public void reinitialize() {
+        super.reinitialize();
+        head = tail = null;
+    }
+
+    public Node_gH_ newNode(int hash, _p0_ key, _p1_ value, Node_gH_ e) {
+        _P0__P1_LinkedHashMap.Entry_gH_ p =
+            new _P0__P1_LinkedHashMap.Entry_gH_(hash, key, value, e);
+        linkNodeLast(p);
+        return p;
+    }
+
+    public Node_gH_ replacementNode(Node_gH_ p, Node_gH_ next) {
+        _P0__P1_LinkedHashMap.Entry_gH_ q = (_P0__P1_LinkedHashMap.Entry_gH_) p;
+        _P0__P1_LinkedHashMap.Entry_gH_ t = new _P0__P1_LinkedHashMap.Entry_gH_(q.hash, q.key, q.value, next);
+        transferLinks(q, t);
+        return t;
+    }
+
+    public TreeNode_gH_ newTreeNode(int hash, _p0_ key, _p1_ value, Node_gH_ next) {
+        TreeNode_gH_ p = new TreeNode_gH_(hash, key, value, next);
+        linkNodeLast(p);
+        return p;
+    }
+
+    public TreeNode_gH_ replacementTreeNode(Node_gH_ p, Node_gH_ next) {
+        _P0__P1_LinkedHashMap.Entry_gH_ q = (_P0__P1_LinkedHashMap.Entry_gH_) p;
+        TreeNode_gH_ t = new TreeNode_gH_(q.hash, q.key, q.value, next);
+        transferLinks(q, t);
+        return t;
+    }
+
+    public void afterNodeRemoval(Node_gH_ e) { // unlink
+        _P0__P1_LinkedHashMap.Entry_gH_ p = (_P0__P1_LinkedHashMap.Entry_gH_) e, b = p.before, a = p.after;
+        p.before = p.after = null;
+        if (b == null)
+            head = a;
+        else
+            b.after = a;
+        if (a == null)
+            tail = b;
+        else
+            a.before = b;
+    }
+
+    public void afterNodeInsertion(boolean evict) { // possibly remove eldest
+        _P0__P1_LinkedHashMap.Entry_gH_ first;
+        if (evict && (first = head) != null && removeEldestEntry(first)) {
+            _p0_ key = first.key;
+            removeNode(hash(key), key, _P1E_, false, true);
+        }
+    }
+
+    public void afterNodeAccess(Node_gH_ e) { // move node to last
+        _P0__P1_LinkedHashMap.Entry_gH_ last;
+        if (accessOrder && (last = tail) != e) {
+            _P0__P1_LinkedHashMap.Entry_gH_ p = (_P0__P1_LinkedHashMap.Entry_gH_) e, b = p.before, a = p.after;
+            p.after = null;
+            if (b == null)
+                head = a;
+            else
+                b.after = a;
+            if (a != null)
+                a.before = b;
+            else
+                last = b;
+            if (last == null)
+                head = p;
+            else {
+                p.before = last;
+                last.after = p;
+            }
+            tail = p;
+            ++modCount;
+        }
+    }
+
+    public void internalWriteEntries(java.io.ObjectOutputStream s) throws IOException {
+        for (_P0__P1_LinkedHashMap.Entry_gH_ e = head; e != null; e = e.after) {
+            s.writeObject(e.key);
+            s.writeObject(e.value);
+        }
+    }
+
+    public _P0__P1_LinkedHashMap(int initialCapacity, float loadFactor) {
+        super(initialCapacity, loadFactor);
+        accessOrder = false;
+    }
+
+    public _P0__P1_LinkedHashMap(int initialCapacity) {
+        super(initialCapacity);
+        accessOrder = false;
+    }
+
+    public _P0__P1_LinkedHashMap() {
+        super();
+        accessOrder = false;
+    }
+
+    public _P0__P1_LinkedHashMap(_P0__P1_Map_gExtends_ m) {
+        super();
+        accessOrder = false;
+        putMapEntries(m, false);
+    }
+
+    public _P0__P1_LinkedHashMap(int initialCapacity,
+                         float loadFactor,
+                         boolean accessOrder) {
+        super(initialCapacity, loadFactor);
+        this.accessOrder = accessOrder;
+    }
+
+    public boolean containsValue(_nameP0_ value) {
+        for (_P0__P1_LinkedHashMap.Entry_gH_ e = head; e != null; e = e.after) {
+            _p1_ v = e.value;
+            if (this.equals_P1_(v, value))
+                return true;
+        }
+        return false;
+    }
+
+    public _p1_ get(_nameP0_ key) {
+        Node_gH_ e;
+        if ((e = getNode(hash(key), key)) == null)
+            return _P1E_;
+        if (accessOrder)
+            afterNodeAccess(e);
+        return e.value;
+    }
+
+    public _p1_ getOrDefault(_nameP0_ key, _p1_ defaultValue) {
+       Node_gH_ e;
+       if ((e = getNode(hash(key), key)) == null)
+           return defaultValue;
+       if (accessOrder)
+           afterNodeAccess(e);
+       return e.value;
+   }
+
+    public void clear() {
+        super.clear();
+        head = tail = null;
+    }
+
+    protected boolean removeEldestEntry(_P0__P1_Map.Entry_gH_ eldest) {
+        return false;
+    }
+
+    public _P0_Set_GP0_ keySet() {
+        _P0_Set_GP0_ ks = keySet;
+        if (ks == null) {
+            ks = new LinkedKeySet();
+            keySet = ks;
+        }
+        return ks;
+    }
+
+    final class LinkedKeySet extends _P0_AbstractSet_GP0_ {
+        public final int size()                 { return size; }
+        public final void clear()               { _P0__P1_LinkedHashMap.this.clear(); }
+        public final _P0_Iterator_GP0_ iterator() {
+            return new LinkedKeyIterator();
+        }
+        public final boolean contains(_nameP0_ o) { return containsKey(o); }
+        public final boolean remove(_nameP0_ key) {
+            return removeNode(hash(key), key, null, false, true) != null;
+        }
+        public final _P0_Spliterator_GP0_ spliterator()  {
+            /*return Spliterators.spliterator(this, Spliterator.SIZED |
+                                            Spliterator.ORDERED |
+                                            Spliterator.DISTINCT);*/
+            //TODO
+            throw new UnsupportedOperationException();
+        }
+        public final void forEach(@NonNull _P0_Consumer_GsuperP0_ action) {
+            int mc = modCount;
+            for (_P0__P1_LinkedHashMap.Entry_gH_ e = head; e != null; e = e.after)
+                action.accept(e.key);
+            if (modCount != mc)
+                throw new ConcurrentModificationException();
+        }
+    }
+
+    public _P1_Collection_GP1_ values() {
+        _P1_Collection_GP1_ vs = values;
+        if (vs == null) {
+            vs = new LinkedValues();
+            values = vs;
+        }
+        return vs;
+    }
+
+    final class LinkedValues extends _P1_AbstractCollection_GP1_ {
+        public final int size()                 { return size; }
+        public final void clear()               { _P0__P1_LinkedHashMap.this.clear(); }
+        public final _P1_Iterator_GP1_ iterator() {
+            return new LinkedValueIterator();
+        }
+        public final boolean contains(_nameP1_ o) { return containsValue(o); }
+        public final _P1_Spliterator_GP1_ spliterator() {
+            /*return Spliterators.spliterator(this, Spliterator.SIZED |
+                                            Spliterator.ORDERED);*/
+            //TODO
+            throw new UnsupportedOperationException();
+        }
+        public final void forEach(@NonNull _P1_Consumer_GsuperP1_ action) {
+            int mc = modCount;
+            for (_P0__P1_LinkedHashMap.Entry_gH_ e = head; e != null; e = e.after)
+                action.accept(e.value);
+            if (modCount != mc)
+                throw new ConcurrentModificationException();
+        }
+    }
+
+    public ObjectSet<_P0__P1_Map.Entry_gH_> entrySet() {
+        ObjectSet<_P0__P1_Map.Entry_gH_> es;
+        return (es = entrySet) == null ? (entrySet = new LinkedEntrySet()) : es;
+    }
+
+    final class LinkedEntrySet extends ObjectAbstractSet<_P0__P1_Map.Entry_gH_> {
+        public final int size()                 { return size; }
+        public final void clear()               { _P0__P1_LinkedHashMap.this.clear(); }
+        public final ObjectIterator<_P0__P1_Map.Entry_gH_> iterator() {
+            return new LinkedEntryIterator();
+        }
+        public final boolean contains(Object o) {
+            if (!(o instanceof _P0__P1_Map.Entry))
+                return false;
+            _P0__P1_Map.Entry e = (_P0__P1_Map.Entry) o;
+            _nameP0_ key = e.getKey();
+            Node_gH_ candidate = getNode(hash(key), key);
+            return candidate != null && candidate.equals(e);
+        }
+        public final boolean remove(Object o) {
+            if (o instanceof _P0__P1_Map.Entry) {
+                _P0__P1_Map.Entry e = (_P0__P1_Map.Entry) o;
+                _nameP0_ key = e.getKey();
+                _nameP1_ value = e.getValue();
+                return removeNode(hash(key), key, value, true, true) != null;
+            }
+            return false;
+        }
+        public final ObjectSpliterator<_P0__P1_Map.Entry_gH_> spliterator() {
+            /*return Spliterators.spliterator(this, Spliterator.SIZED |
+                                            Spliterator.ORDERED |
+                                            Spliterator.DISTINCT);*/
+            //TODO
+            throw new UnsupportedOperationException();
+        }
+        public final void forEach(@NonNull ObjectConsumer<? super _P0__P1_Map.Entry_gH_> action) {
+            int mc = modCount;
+            for (_P0__P1_LinkedHashMap.Entry_gH_ e = head; e != null; e = e.after)
+                action.accept(e);
+            if (modCount != mc)
+                throw new ConcurrentModificationException();
+        }
+    }
+
+    // Map overrides
+
+    public void forEach(@NonNull _P0__P1_BiConsumer_gSuper_ action) {
+        int mc = modCount;
+        for (_P0__P1_LinkedHashMap.Entry_gH_ e = head; e != null; e = e.after)
+            action.accept(e.key, e.value);
+        if (modCount != mc)
+            throw new ConcurrentModificationException();
+    }
+
+//TODO: clause in generator for this
+/*
+    public void replaceAll(@NonNull BiFunction<? super K, ? super V, ? extends V> function) {
+        int mc = modCount;
+        for (LinkedHashMap.Entry<K,V> e = head; e != null; e = e.after)
+            e.value = function.apply(e.key, e.value);
+        if (modCount != mc)
+            throw new ConcurrentModificationException();
+    }*/
+
+    // Iterators
+
+    abstract class LinkedHashIterator {
+        _P0__P1_LinkedHashMap.Entry_gH_ next;
+        _P0__P1_LinkedHashMap.Entry_gH_ current;
+        int expectedModCount;
+
+        LinkedHashIterator() {
+            next = head;
+            expectedModCount = modCount;
+            current = null;
+        }
+
+        public final boolean hasNext() {
+            return next != null;
+        }
+
+        final _P0__P1_LinkedHashMap.Entry_gH_ nextNode() {
+            _P0__P1_LinkedHashMap.Entry_gH_ e = next;
+            if (modCount != expectedModCount)
+                throw new ConcurrentModificationException();
+            if (e == null)
+                throw new NoSuchElementException();
+            current = e;
+            next = e.after;
+            return e;
+        }
+
+        public final void remove() {
+            Node_gH_ p = current;
+            if (p == null)
+                throw new IllegalStateException();
+            if (modCount != expectedModCount)
+                throw new ConcurrentModificationException();
+            current = null;
+            _p0_ key = p.key;
+            removeNode(hash(key), key, _P1E_, false, false);
+            expectedModCount = modCount;
+        }
+    }
+
+    final class LinkedKeyIterator extends LinkedHashIterator
+        implements _P0_Iterator_GP0_ {
+        public final _p0_ next() { return nextNode().getKey(); }
+    }
+
+    final class LinkedValueIterator extends LinkedHashIterator
+        implements _P1_Iterator_GP1_ {
+        public final _p1_ next() { return nextNode().value; }
+    }
+
+    final class LinkedEntryIterator extends LinkedHashIterator
+        implements ObjectIterator<_P0__P1_Map.Entry_gH_> {
+        public final _P0__P1_Map.Entry_gH_ next() { return nextNode(); }
+    }
 }

@@ -10,8 +10,8 @@ StreamSupport
     //AbstractCollection
     //AbstractSet
     //AbstractMap
-LinkedHashMap
     //HashMap
+    //LinkedHashMap
 ConcurrentHashMap
 HashSet
 List

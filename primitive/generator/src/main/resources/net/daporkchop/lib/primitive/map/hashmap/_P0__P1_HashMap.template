@@ -78,17 +78,17 @@ public class _P0__P1_HashMap_gH_ extends _P0__P1_AbstractMap_gH_ implements _P0_
 
     /* ---------------- Fields -------------- */
 
-    transient Node_gH_[] table;
+    public transient Node_gH_[] table;
 
-    transient ObjectSet<_P0__P1_Map.Entry_gH_> entrySet;
+    public transient ObjectSet<_P0__P1_Map.Entry_gH_> entrySet;
 
-    transient int size;
+    public transient int size;
 
-    transient int modCount;
+    public transient int modCount;
 
-    int threshold;
+    public int threshold;
 
-    final float loadFactor;
+    public final float loadFactor;
 
     /* ---------------- Public operations -------------- */
 
@@ -117,8 +117,9 @@ public class _P0__P1_HashMap_gH_ extends _P0__P1_AbstractMap_gH_ implements _P0_
         this.loadFactor = DEFAULT_LOAD_FACTOR;
         putMapEntries(m, false);
     }
-essWarnings("unchecked")
-    final void putMapEntries(_P0__P1_Map_gExtends_ m, boolean evict) {
+
+    @SuppressWarnings("unchecked")
+    public final void putMapEntries(_P0__P1_Map_gExtends_ m, boolean evict) {
         int s = m.size();
         if (s > 0) {
             if (table == null) { // pre-size
@@ -153,7 +154,7 @@ essWarnings("unchecked")
         return (e = getNode(hash(key), key)) == null ? _P1E_ : e.value;
     }
 
-    final Node_gH_ getNode(int hash, _nameP0_ key) {
+    public final Node_gH_ getNode(int hash, _nameP0_ key) {
         Node_gH_[] tab; Node_gH_ first, e; int n; _p0_ k;
         if ((tab = table) != null && (n = tab.length) > 0 &&
             (first = tab[(n - 1) & hash]) != null) {
@@ -181,7 +182,7 @@ essWarnings("unchecked")
         return putVal(hash(key), key, value, false, true);
     }
 
-    final _p1_ putVal(int hash, _p0_ key, _p1_ value, boolean onlyIfAbsent,
+    public final _p1_ putVal(int hash, _p0_ key, _p1_ value, boolean onlyIfAbsent,
                    boolean evict) {
         Node_gH_[] tab; Node_gH_ p; int n, i;
         if ((tab = table) == null || (n = tab.length) == 0)
@@ -224,7 +225,7 @@ essWarnings("unchecked")
         return _P1E_;
     }
 
-    final Node_gH_[] resize() {
+    public final Node_gH_[] resize() {
         Node_gH_[] oldTab = table;
         int oldCap = (oldTab == null) ? 0 : oldTab.length;
         int oldThr = threshold;
@@ -298,7 +299,7 @@ essWarnings("unchecked")
         return newTab;
     }
 
-    final void treeifyBin(Node_gH_[] tab, int hash) {
+    public final void treeifyBin(Node_gH_[] tab, int hash) {
         int n, index; Node_gH_ e;
         if (tab == null || (n = tab.length) < MIN_TREEIFY_CAPACITY)
             resize();
@@ -328,7 +329,7 @@ essWarnings("unchecked")
         return (e = removeNode(hash(key), key, _P1E_, false, true)) == null ? null : e.value;
     }
 
-    final Node_gH_ removeNode(int hash, _nameP0_ key, _nameP1_ value,
+    public final Node_gH_ removeNode(int hash, _nameP0_ key, _nameP1_ value,
                                boolean matchValue, boolean movable) {
         Node_gH_[] tab; Node_gH_ p; int n, index;
         if ((tab = table) != null && (n = tab.length) > 0 &&
@@ -1181,15 +1182,15 @@ essWarnings("unchecked")
         return new Node_gH_(p.hash, p.key, p.value, next);
     }
 
-    TreeNode_gH_ newTreeNode(int hash, _p0_ key, _p1_ value, Node_gH_ next) {
+    public TreeNode_gH_ newTreeNode(int hash, _p0_ key, _p1_ value, Node_gH_ next) {
         return new TreeNode_gH_(hash, key, value, next);
     }
 
-    TreeNode_gH_ replacementTreeNode(Node_gH_ p, Node_gH_ next) {
+    public TreeNode_gH_ replacementTreeNode(Node_gH_ p, Node_gH_ next) {
         return new TreeNode_gH_(p.hash, p.key, p.value, next);
     }
 
-    void reinitialize() {
+    public void reinitialize()  {
         table = null;
         entrySet = null;
         keySet = null;
@@ -1200,12 +1201,12 @@ essWarnings("unchecked")
     }
 
     // Callbacks to allow LinkedHashMap post-actions
-    void afterNodeAccess(Node_gH_ p) { }
-    void afterNodeInsertion(boolean evict) { }
-    void afterNodeRemoval(Node_gH_ p) { }
+    public void afterNodeAccess(Node_gH_ p) { }
+    public void afterNodeInsertion(boolean evict) { }
+    public void afterNodeRemoval(Node_gH_ p) { }
 
     // Called only from writeObject, to ensure compatible ordering.
-    void internalWriteEntries(java.io.ObjectOutputStream s) throws IOException {
+    public void internalWriteEntries(java.io.ObjectOutputStream s) throws IOException {
         Node_gH_[] tab;
         if (size > 0 && (tab = table) != null) {
             for (int i = 0; i < tab.length; ++i) {
@@ -1226,7 +1227,7 @@ essWarnings("unchecked")
         TreeNode_gH_ right;
         TreeNode_gH_ prev;    // needed to unlink next upon deletion
         boolean red;
-        TreeNode(int hash, _p0_ key, _p1_ val, Node_gH_ next) {
+        public TreeNode(int hash, _p0_ key, _p1_ val, Node_gH_ next) {
             super(hash, key, val, next);
         }
 

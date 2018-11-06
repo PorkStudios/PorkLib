@@ -45,6 +45,7 @@ public class Primitive {
     public static final String GENERIC_EXTENDS_P_DEF = String.format("_Gextends%s_", PARAM_DEF);
     public static final String WRITE_P_DEF = String.format("_write%s_", PARAM_DEF);
     public static final String READ_P_DEF = String.format("_read%s_", PARAM_DEF);
+    public static final String STRING_FORMAT_DEF = String.format("_fmt%s_", PARAM_DEF);
 
     public static final String GENERIC_HEADER_DEF = "_gH_";
     public static final String GENERIC_SUPER_DEF = "_gSuper_";
@@ -70,6 +71,8 @@ public class Primitive {
     private String equals;
     @NonNull
     private String serializationName;
+    @NonNull
+    private String stringFormat;
 
     public String format(@NonNull String text, int i) {
         return this.format(text, i, true);
@@ -101,7 +104,8 @@ public class Primitive {
                 .replaceAll(String.format(GENERIC_SUPER_P_DEF, i), getGenericSuper(i, this))
                 .replaceAll(String.format(GENERIC_EXTENDS_P_DEF, i), getGenericExtends(i, this))
                 .replaceAll(String.format(WRITE_P_DEF, i), String.format("write%s", this.serializationName == null ? this.fullName : this.serializationName))
-                .replaceAll(String.format(READ_P_DEF, i), String.format("read%s", this.serializationName == null ? this.fullName : this.serializationName));
+                .replaceAll(String.format(READ_P_DEF, i), String.format("read%s", this.serializationName == null ? this.fullName : this.serializationName))
+                .replaceAll(String.format(STRING_FORMAT_DEF, i), this.stringFormat);
     }
 
     public Primitive setGeneric() {

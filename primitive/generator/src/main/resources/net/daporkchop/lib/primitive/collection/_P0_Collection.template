@@ -1,6 +1,6 @@
 _headers_
 
-public interface _P0_Collection_gH_ extends PrimitiveConstants {
+public interface _P0_Collection_gH_ extends _P0_Iterable_gH_, PrimitiveConstants {
     int size();
 
     boolean isEmpty();

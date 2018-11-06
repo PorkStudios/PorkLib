@@ -40,71 +40,79 @@ public class Generator {
     public static String LICENSE;
 
     static {
-        primitives.add(
+        /*primitives.add(
                 new Primitive()
                         .setFullName("Boolean")
                         .setName("boolean")
                         .setHashCode("x ? 1 : 0")
                         .setEmptyValue("false")
                         .setEquals("a == b")
-        );
+                        .setStringFormat("%b")
+        );*/
         primitives.add(
                 new Primitive()
                         .setFullName("Byte")
                         .setName("byte")
                         .setHashCode("x & 0xFF")
-                        .setEmptyValue("(byte) 0")
+                        .setEmptyValue("Byte.MIN_VALUE")
                         .setEquals("a == b")
+                        .setStringFormat("%d")
         );
         primitives.add(
                 new Primitive()
                         .setFullName("Character")
                         .setName("char")
                         .setHashCode("(x >> 24) ^ (x >> 16) ^ (x >> 8) ^ x")
-                        .setEmptyValue("(char) 0")
+                        .setEmptyValue("Character.MAX_VALUE")
                         .setEquals("a == b")
                         .setSerializationName("Char")
+                        .setStringFormat("%c")
         );
         primitives.add(
                 new Primitive()
                         .setFullName("Short")
                         .setName("short")
                         .setHashCode("(x >> 8) ^ x")
-                        .setEmptyValue("(short) 0")
+                        .setEmptyValue("Short.MIN_VALUE")
                         .setEquals("a == b")
+                        .setStringFormat("%d")
         );
         primitives.add(
                 new Primitive()
                         .setFullName("Integer")
                         .setName("int")
                         .setHashCode("(x >> 24) ^ (x >> 16) ^ (x >> 8) ^ x")
-                        .setEmptyValue("0")
+                        .setEmptyValue("Integer.MIN_VALUE")
                         .setEquals("a == b")
                         .setSerializationName("Int")
+                        .setStringFormat("%d")
         );
         primitives.add(
                 new Primitive()
                         .setFullName("Long")
                         .setName("long")
                         .setHashCode("hashInteger((int) (x >> 32)) ^ hashInteger((int) x)")
-                        .setEmptyValue("0L")
+                        .setEmptyValue("Long.MIN_VALUE")
                         .setEquals("a == b")
+                        .setStringFormat("%d")
         );
         primitives.add(
                 new Primitive()
                         .setFullName("Float")
                         .setName("float")
                         .setHashCode("hashInteger(Float.floatToIntBits(x))")
-                        .setEmptyValue("0.0f")
+                        .setEmptyValue("Float.NaN")
                         .setEquals("a == b")
+                        .setStringFormat("%f")
         );
         primitives.add(
                 new Primitive()
                         .setFullName("Double")
                         .setName("double")
                         .setHashCode("hashLong(Double.doubleToLongBits(x))")
-                        .setEmptyValue("0.0d")
+                        .setEmptyValue("Double.NaN")
                         .setEquals("a == b")
+                        .setStringFormat("%f")
         );
         primitives.add(
                 new Primitive()
@@ -114,6 +122,7 @@ public class Generator {
                         .setGeneric()
                         .setEmptyValue("null")
                         .setEquals("Objects.equals(a, b)")
+                        .setStringFormat("%s")
         );
 
         try (InputStream is = new FileInputStream(new File(".", "../../LICENSE"))) {

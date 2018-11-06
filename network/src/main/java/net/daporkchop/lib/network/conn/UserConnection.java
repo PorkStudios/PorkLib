@@ -13,55 +13,47 @@
  *
  */
 
-package big.protocol;
+package net.daporkchop.lib.network.conn;
 
-import big.BigSession;
-import big.BigTestMain;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.network.endpoint.EndpointType;
-import net.daporkchop.lib.network.packet.Codec;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
+import net.daporkchop.lib.network.Transport;
+import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Packet;
-
-import java.io.IOException;
-import java.util.Arrays;
 
 /**
  * @author DaPorkchop_
  */
-@NoArgsConstructor
-@AllArgsConstructor
-public class BigPacket implements Packet {
-    public byte[] data;
+public abstract class UserConnection implements Connection {
+    @Setter(AccessLevel.PACKAGE)
+    @Getter
+    @NonNull
+    private Connection protocolConnection;
 
     @Override
-    public void read(DataIn in) throws IOException {
-        this.data = in.readBytesSimple();
+    public Endpoint getEndpoint() {
+        return this.protocolConnection.getEndpoint();
     }
 
     @Override
-    public void write(DataOut out) throws IOException {
-        out.writeBytesSimple(this.data);
+    public void close(String reason) {
+        this.protocolConnection.close(reason);
     }
 
-    public static class MessageCodec implements Codec<BigPacket, BigSession> {
-        @Override
-        public void handle(BigPacket packet, BigSession session) {
-            boolean server = session.getEndpoint().getType() == EndpointType.SERVER;
-            if (!Arrays.equals(packet.data, BigTestMain.RANDOM_DATA)) {
-                throw new IllegalStateException("Invalid data!");
-            }
-            System.out.printf("[%s] Data valid!\n", server ? "Server" : "Client");
-            if (server) {
-                session.send(packet);
-            }
-        }
+    @Override
+    public boolean isConnected() {
+        return this.protocolConnection.isConnected();
+    }
 
-        @Override
-        public BigPacket newPacket() {
-            return new BigPacket();
-        }
+    @Override
+    public void send(Packet packet) {
+        this.protocolConnection.send(packet);
+    }
+
+    @Override
+    public Transport getTransport() {
+        return this.protocolConnection.getTransport();
     }
 }

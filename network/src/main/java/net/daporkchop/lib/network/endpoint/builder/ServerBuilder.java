@@ -13,50 +13,28 @@
  *
  */
 
-package chat.protocol;
+package net.daporkchop.lib.network.endpoint.builder;
 
-import chat.ChatSession;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.network.endpoint.EndpointType;
-import net.daporkchop.lib.network.packet.Codec;
-import net.daporkchop.lib.network.packet.Packet;
-
-import java.io.IOException;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.crypto.CryptographySettings;
+import net.daporkchop.lib.network.conn.UserConnection;
+import net.daporkchop.lib.network.endpoint.server.PorkServer;
 
 /**
  * @author DaPorkchop_
  */
-@NoArgsConstructor
-@AllArgsConstructor
-public class MessagePacket implements Packet {
-    public String message;
+@Accessors(chain = true)
+@Getter
+@Setter
+public class ServerBuilder<C extends UserConnection> extends AbstractBuilder<C, PorkServer<C>> {
+    @NonNull
+    private CryptographySettings cryptographySettings = new CryptographySettings();
 
     @Override
-    public void read(DataIn in) throws IOException {
-        this.message = in.readUTF();
-    }
-
-    @Override
-    public void write(DataOut out) throws IOException {
-        out.writeUTF(this.message);
-    }
-
-    public static class MessageCodec implements Codec<MessagePacket, ChatSession> {
-        @Override
-        public void handle(MessagePacket packet, ChatSession session) {
-            boolean server = session.getEndpoint().getType() == EndpointType.SERVER;
-            System.out.printf("[%s] <%s> %s\n", server ? "Server" : "Client", session.name, packet.message);
-            if (server) {
-                session.send(packet);
-            }
-        }
-
-        @Override
-        public MessagePacket newPacket() {
-            return new MessagePacket();
-        }
+    PorkServer<C> doBuild() {
+        return new PorkServer<>(this);
     }
 }

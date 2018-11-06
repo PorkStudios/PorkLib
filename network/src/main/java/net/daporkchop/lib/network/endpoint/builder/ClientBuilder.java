@@ -13,17 +13,17 @@
  *
  */
 
-package chat;
+package net.daporkchop.lib.network.endpoint.builder;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import net.daporkchop.lib.network.conn.Session;
+import net.daporkchop.lib.network.conn.UserConnection;
+import net.daporkchop.lib.network.endpoint.client.PorkClient;
 
 /**
  * @author DaPorkchop_
  */
-@NoArgsConstructor
-@AllArgsConstructor
-public class ChatSession extends Session {
-    public String name;
+public class ClientBuilder<C extends UserConnection> extends AbstractBuilder<C, PorkClient<C>> {
+    @Override
+    PorkClient<C> doBuild() {
+        return new PorkClient<>(this);
+    }
 }

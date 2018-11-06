@@ -13,14 +13,16 @@
  *
  */
 
-package big;
-
-import lombok.NoArgsConstructor;
-import net.daporkchop.lib.network.conn.Session;
+package net.daporkchop.lib.network;
 
 /**
+ * Used to differentiate the various endpoint types
+ *
  * @author DaPorkchop_
  */
-@NoArgsConstructor
-public class BigSession extends Session {
+public enum EndpointType {
+    CLIENT,
+    SERVER,
+    P2P
+    ;
 }

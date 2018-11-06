@@ -1,0 +1,114 @@
+/*
+ * Adapted from the Wizardry License
+ *
+ * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ *
+ * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
+ *
+ * The persons and/or organizations are also disallowed from sub-licensing and/or trademarking this software without explicit permission from DaPorkchop_.
+ *
+ * Any persons and/or organizations using this software must disclose their source code and have it publicly available, include this license, provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+
+package net.daporkchop.lib.network.endpoint.client;
+
+import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import io.netty.handler.codec.LengthFieldPrepender;
+import lombok.Getter;
+import lombok.NonNull;
+import net.daporkchop.lib.network.EndpointType;
+import net.daporkchop.lib.network.Transport;
+import net.daporkchop.lib.network.conn.UserConnection;
+import net.daporkchop.lib.network.endpoint.Endpoint;
+import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
+import net.daporkchop.lib.network.packet.PacketProtocol;
+import net.daporkchop.lib.network.protocol.netty.NettyPacketDecoder;
+import net.daporkchop.lib.network.protocol.netty.NettyPacketEncoder;
+import net.daporkchop.lib.network.protocol.netty.PorkReceiveHandler;
+
+import java.util.Collection;
+
+/**
+ * @author DaPorkchop_
+ */
+@Getter
+public class PorkClient<C extends UserConnection> implements Endpoint<C> {
+    private final PacketProtocol<C> protocol;
+    private final Transport transport;
+
+    private final EventLoopGroup workerGroup;
+    private final ChannelFuture channelFuture;
+
+    public PorkClient(@NonNull ClientBuilder<C> builder) {
+        this.protocol = builder.getProtocol();
+        this.transport = builder.getTransport();
+
+        this.workerGroup = new NioEventLoopGroup(0, builder.getExecutor());
+        try {
+            Bootstrap bootstrap = new Bootstrap();
+            bootstrap.group(this.workerGroup);
+            bootstrap.channel(NioSocketChannel.class); //TODO: make use of this for fast data access?
+            bootstrap.handler(new ChannelInitializer<SocketChannel>() {
+                @Override
+                protected void initChannel(SocketChannel c) throws Exception {
+                    c.pipeline().addLast(new LengthFieldPrepender(3));
+                    c.pipeline().addLast(new LengthFieldBasedFrameDecoder(0xFFFFFF, 0, 3, 0, 3));
+                    c.pipeline().addLast(new NettyPacketEncoder());
+                    c.pipeline().addLast(new NettyPacketDecoder());
+                    c.pipeline().addLast(new PorkReceiveHandler<>(PorkClient.this));
+                }
+            });
+            bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
+
+            this.channelFuture = bootstrap.connect(builder.getAddress()).syncUninterruptibly();
+        } catch (Exception e) {
+            this.workerGroup.shutdownGracefully();
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public EndpointType getType() {
+        return EndpointType.CLIENT;
+    }
+
+    @Override
+    public Collection<C> getConnections() {
+        return null;
+    }
+
+    public void send(@NonNull Object obj)  {
+        this.channelFuture.channel().writeAndFlush(obj).syncUninterruptibly();
+    }
+
+    @Override
+    public void close(String reason) {
+        synchronized (this) {
+            if (!this.isRunning()) {
+                throw new IllegalStateException("Already closed!");
+            }
+
+            //TODO: send disconnect here
+
+            this.channelFuture.channel().close();
+            this.workerGroup.shutdownGracefully();
+        }
+    }
+
+    @Override
+    public boolean isRunning() {
+        return this.channelFuture.channel().isActive();
+    }
+}

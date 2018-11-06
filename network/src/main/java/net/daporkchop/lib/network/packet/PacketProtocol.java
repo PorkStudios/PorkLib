@@ -13,18 +13,12 @@
  *
  */
 
-repositories {
-    maven   {
-        name = "NukkitX Snapshots"
-        url = "https://repo.nukkitx.com/snapshot/"
-    }
-}
+package net.daporkchop.lib.network.packet;
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile project(":crypto")
-    compile project(":primitive")
+import net.daporkchop.lib.network.conn.UserConnection;
 
-    compile "com.nukkitx.network:raknet:1.2.1-SNAPSHOT"
+/**
+ * @author DaPorkchop_
+ */
+public class PacketProtocol<C extends UserConnection> {
 }

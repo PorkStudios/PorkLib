@@ -13,18 +13,30 @@
  *
  */
 
-repositories {
-    maven   {
-        name = "NukkitX Snapshots"
-        url = "https://repo.nukkitx.com/snapshot/"
+package net.daporkchop.lib.network.packet;
+
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.network.conn.UserConnection;
+
+import java.util.function.Supplier;
+
+/**
+ * @author DaPorkchop_
+ */
+public interface Codec<P extends Packet, C extends UserConnection> {
+    void handle(@NonNull P packet, @NonNull C connection);
+
+    P createInstance();
+
+    @RequiredArgsConstructor
+    abstract class SimpleCodec<P extends Packet, C extends UserConnection> implements Codec<P, C>   {
+        @NonNull
+        private final Supplier<P> packetSupplier;
+
+        @Override
+        public P createInstance() {
+            return this.packetSupplier.get();
+        }
     }
-}
-
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile project(":crypto")
-    compile project(":primitive")
-
-    compile "com.nukkitx.network:raknet:1.2.1-SNAPSHOT"
 }

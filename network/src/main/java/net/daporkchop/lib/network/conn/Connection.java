@@ -13,18 +13,34 @@
  *
  */
 
-repositories {
-    maven   {
-        name = "NukkitX Snapshots"
-        url = "https://repo.nukkitx.com/snapshot/"
+package net.daporkchop.lib.network.conn;
+
+import lombok.NonNull;
+import net.daporkchop.lib.network.Transport;
+import net.daporkchop.lib.network.endpoint.Endpoint;
+import net.daporkchop.lib.network.packet.Packet;
+
+/**
+ * @author DaPorkchop_
+ */
+public interface Connection {
+    Endpoint getEndpoint();
+
+    default void close()    {
+        this.close(null);
     }
-}
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile project(":crypto")
-    compile project(":primitive")
+    void close(String reason);
 
-    compile "com.nukkitx.network:raknet:1.2.1-SNAPSHOT"
+    boolean isConnected();
+
+    void send(@NonNull Packet packet);
+
+    Transport getTransport();
+
+    default void send(@NonNull Packet... packets)   {
+        for (Packet packet : packets)    {
+            this.send(packet);
+        }
+    }
 }

@@ -13,18 +13,40 @@
  *
  */
 
-repositories {
-    maven   {
-        name = "NukkitX Snapshots"
-        url = "https://repo.nukkitx.com/snapshot/"
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
+import io.netty.buffer.UnpooledDirectByteBuf;
+import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
+import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
+import net.daporkchop.lib.network.endpoint.client.PorkClient;
+import net.daporkchop.lib.network.endpoint.server.PorkServer;
+import net.daporkchop.lib.network.packet.PacketProtocol;
+import org.junit.Test;
+
+import java.net.InetSocketAddress;
+import java.util.Scanner;
+
+/**
+ * @author DaPorkchop_
+ */
+public class TempTest {
+    public static void main(String... args) {
+        PorkServer server = new ServerBuilder<>()
+                .setAddress(new InetSocketAddress("0.0.0.0", 12345))
+                .setProtocol(new PacketProtocol<>())
+                .build();
+
+        PorkClient client = new ClientBuilder<>()
+                .setAddress(new InetSocketAddress("localhost", 12345))
+                .setProtocol(new PacketProtocol<>())
+                .build();
+
+        client.send("name jef lol");
+
+        /*try (Scanner scanner = new Scanner(System.in))  {
+            scanner.nextLine();
+        }*/
+        client.close();
+        server.close();
     }
-}
-
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile project(":crypto")
-    compile project(":primitive")
-
-    compile "com.nukkitx.network:raknet:1.2.1-SNAPSHOT"
 }

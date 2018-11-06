@@ -13,18 +13,13 @@
  *
  */
 
-repositories {
-    maven   {
-        name = "NukkitX Snapshots"
-        url = "https://repo.nukkitx.com/snapshot/"
-    }
-}
+package net.daporkchop.lib.network;
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile project(":crypto")
-    compile project(":primitive")
-
-    compile "com.nukkitx.network:raknet:1.2.1-SNAPSHOT"
+/**
+ * @author DaPorkchop_
+ */
+public enum Transport {
+    TCP,
+    UDP
+    ;
 }

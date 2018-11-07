@@ -16,90 +16,38 @@
 package net.daporkchop.lib.minecraft.world;
 
 /**
- * A 16³ cube of world data. A vanilla chunk contains 16 of these, stacked vertically.
- *
  * @author DaPorkchop_
  */
 public interface Chunk {
     Column getColumn();
 
-    /**
-     * Get the block ID at a given location relative to this chunk.
-     *
-     * @param x the x coordinate. must be in range 0-15
-     * @param y the y coordinate. must be in range 0-15
-     * @param z the x coordinate. must be in range 0-15
-     * @return the block id at the given position
-     */
+    int getY();
+
     int getBlockId(int x, int y, int z);
 
-    /**
-     * Get the block meta at a given location relative to this chunk.
-     *
-     * @param x the x coordinate. must be in range 0-15
-     * @param y the y coordinate. must be in range 0-15
-     * @param z the x coordinate. must be in range 0-15
-     * @return the block meta at the given position
-     */
     int getBlockMeta(int x, int y, int z);
 
-    /**
-     * Get the block light at a given location relative to this chunk.
-     *
-     * @param x the x coordinate. must be in range 0-15
-     * @param y the y coordinate. must be in range 0-15
-     * @param z the x coordinate. must be in range 0-15
-     * @return the block light at the given position
-     */
     int getBlockLight(int x, int y, int z);
 
-    /**
-     * Get the sky light at a given location relative to this chunk.
-     *
-     * @param x the x coordinate. must be in range 0-15
-     * @param y the y coordinate. must be in range 0-15
-     * @param z the x coordinate. must be in range 0-15
-     * @return the sky light at the given position
-     */
     int getSkyLight(int x, int y, int z);
 
-    /**
-     * Set the block ID at a given location relative to this chunk.
-     *
-     * @param x  the x coordinate. must be in range 0-15
-     * @param y  the y coordinate. must be in range 0-15
-     * @param z  the x coordinate. must be in range 0-15
-     * @param id the new id
-     */
     void setBlockId(int x, int y, int z, int id);
 
-    /**
-     * Set the block meta at a given location relative to this chunk.
-     *
-     * @param x    the x coordinate. must be in range 0-15
-     * @param y    the y coordinate. must be in range 0-15
-     * @param z    the x coordinate. must be in range 0-15
-     * @param meta the new meta
-     */
     void setBlockMeta(int x, int y, int z, int meta);
 
-    /**
-     * Set the block light at a given location relative to this chunk.
-     *
-     * @param x     the x coordinate. must be in range 0-15
-     * @param y     the y coordinate. must be in range 0-15
-     * @param z     the x coordinate. must be in range 0-15
-     * @param level the new level
-     */
     void setBlockLight(int x, int y, int z, int level);
 
-    /**
-     * Set the sky light at a given location relative to this chunk.
-     *
-     * @param x     the x coordinate. must be in range 0-15
-     * @param y     the y coordinate. must be in range 0-15
-     * @param z     the x coordinate. must be in range 0-15
-     * @param level the new level
-     */
     void setSkyLight(int x, int y, int z, int level);
+
+    default void markDirty() {
+        this.getColumn().markDirty();
+    }
+
+    default boolean isDirty() {
+        return this.getColumn().isDirty();
+    }
+
+    default void save() {
+        this.getColumn().save();
+    }
 }

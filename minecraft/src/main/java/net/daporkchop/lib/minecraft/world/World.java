@@ -15,35 +15,112 @@
 
 package net.daporkchop.lib.minecraft.world;
 
-import net.daporkchop.lib.minecraft.world.format.ChunkProvider;
+import net.daporkchop.lib.math.vector.i.Vec2i;
+import net.daporkchop.lib.math.vector.i.Vec3i;
+import net.daporkchop.lib.minecraft.tileentity.TileEntity;
+import net.daporkchop.lib.minecraft.world.format.WorldManager;
+
+import java.io.Closeable;
+import java.util.Map;
 
 /**
- * A Minecraft world consists of a 2-dimensional grid of {@link Column}s aligned
- * along the X and Z axes.
- *
  * @author DaPorkchop_
  */
-public interface World {
-    /**
-     * @return the dimension of this world
-     */
-    Dimension getDimension();
+public interface World extends Closeable {
+    int getId();
 
-    /**
-     * @return the save this world is contained it
-     */
     MinecraftSave getSave();
 
-    /**
-     * @return the chunk provider for this world
-     */
-    ChunkProvider getChunkProvider();
+    WorldManager getManager();
 
-    default boolean containsChunk(int x, int z) {
-        return this.getChunkProvider().hasColumn(x, z);
+    Map<Vec2i, Column> getLoadedColumns();
+
+    Column getColumn(int x, int z);
+
+    Column getColumnOrNull(int x, int z);
+
+    Map<Vec3i, TileEntity> getLoadedTileEntities();
+
+    default TileEntity getTileEntity(int x, int y, int z)   {
+        return this.getLoadedTileEntities().get(new Vec3i(x, y, z));
     }
 
-    default Column getColumn(int x, int z)    {
-        return this.getChunkProvider().getColumnIfExists(x, z);
+    void save();
+
+    default int getBlockId(int x, int y, int z) {
+        Column col = this.getColumnOrNull(x >> 4, z >> 4);
+        if (col == null)    {
+            return 0;
+        } else {
+            return col.getBlockId(x & 0xF, y, z & 0xF);
+        }
+    }
+
+    default int getBlockMeta(int x, int y, int z) {
+        Column col = this.getColumnOrNull(x >> 4, z >> 4);
+        if (col == null)    {
+            return 0;
+        } else {
+            return col.getBlockMeta(x & 0xF, y, z & 0xF);
+        }
+    }
+
+    default int getBlockLight(int x, int y, int z) {
+        Column col = this.getColumnOrNull(x >> 4, z >> 4);
+        if (col == null)    {
+            return 0;
+        } else {
+            return col.getBlockLight(x & 0xF, y, z & 0xF);
+        }
+    }
+
+    default int getSkyLight(int x, int y, int z) {
+        Column col = this.getColumnOrNull(x >> 4, z >> 4);
+        if (col == null)    {
+            return 0;
+        } else {
+            return col.getSkyLight(x & 0xF, y, z & 0xF);
+        }
+    }
+
+    default void setBlockId(int x, int y, int z, int id)    {
+        Column col = this.getColumn(x >> 4, z >> 4);
+        if (!col.isLoaded())    {
+            col.load();
+        }
+        col.setBlockId(x & 0xF, y, z & 0xF, id);
+    }
+
+    default void setBlockMeta(int x, int y, int z, int meta)    {
+        Column col = this.getColumn(x >> 4, z >> 4);
+        if (!col.isLoaded())    {
+            col.load();
+        }
+        col.setBlockMeta(x & 0xF, y, z & 0xF, meta);
+    }
+
+    default void setBlockLight(int x, int y, int z, int level)    {
+        Column col = this.getColumn(x >> 4, z >> 4);
+        if (!col.isLoaded())    {
+            col.load();
+        }
+        col.setBlockLight(x & 0xF, y, z & 0xF, level);
+    }
+
+    default void setSkyLight(int x, int y, int z, int level)    {
+        Column col = this.getColumn(x >> 4, z >> 4);
+        if (!col.isLoaded())    {
+            col.load();
+        }
+        col.setSkyLight(x & 0xF, y, z & 0xF, level);
+    }
+
+    default int getHighestBlock(int x, int z) {
+        Column col = this.getColumnOrNull(x >> 4, z >> 4);
+        if (col == null)    {
+            return -1;
+        } else {
+            return col.getHighestBlock(x & 0xF, z & 0xF);
+        }
     }
 }

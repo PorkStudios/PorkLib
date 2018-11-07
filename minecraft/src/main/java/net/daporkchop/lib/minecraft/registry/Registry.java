@@ -15,48 +15,58 @@
 
 package net.daporkchop.lib.minecraft.registry;
 
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.primitive.lambda.consumer.bi.IntegerObjectConsumer;
-import net.daporkchop.lib.primitive.lambda.function.IntegerToObjectFunction;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
-public class Registry<T extends RegistryEntry> {
-    private final List<T> idToEntries = new ArrayList<>();
+@RequiredArgsConstructor
+public class Registry {
+    private final List<ResourceLocation> idToEntries = new ArrayList<>();
+    private final AtomicInteger size = new AtomicInteger(0);
 
-    public synchronized void registerEntry(@NonNull T value, int id) {
-        if (this.idToEntries.get(id) != null)   {
+    @NonNull
+    @Getter
+    private final ResourceLocation name;
+
+    public synchronized void registerEntry(@NonNull ResourceLocation name, int id) {
+        if (id < this.idToEntries.size() && this.idToEntries.get(id) != null) {
             throw new IllegalArgumentException(String.format("ID %d is already occupied by %s", id, this.idToEntries.get(id).toString()));
         }
-        this.idToEntries.set(id, value);
+
+        if (id >= this.idToEntries.size()) {
+            ((ArrayList) this.idToEntries).ensureCapacity(id + 1);
+            while (this.idToEntries.size() < id + 1) {
+                this.idToEntries.add(null);
+            }
+        }
+        this.idToEntries.set(id, name);
+        this.size.incrementAndGet();
     }
 
-    public void forEachEntry(@NonNull IntegerObjectConsumer<T> consumer)    {
-        for (int i = 0; i < this.idToEntries.size(); i++)   {
+    public void forEachEntry(@NonNull IntegerObjectConsumer<ResourceLocation> consumer) {
+        for (int i = 0; i < this.idToEntries.size(); i++) {
             consumer.accept(i, this.idToEntries.get(i));
         }
     }
 
-    public T getValue(int id)   {
+    public ResourceLocation getName(int id) {
         return this.idToEntries.get(id);
     }
 
-    public int getId(@NonNull T value)  {
-        return this.idToEntries.indexOf(value);
+    public int getId(@NonNull ResourceLocation name) {
+        return this.idToEntries.indexOf(name);
     }
 
-    public int getId(@NonNull RegistryName name)  {
-        for (int i = this.idToEntries.size() - 1; i >= 0; i--)  {
-            if (name == this.idToEntries.get(i).getRegistryName() || name.equals(this.idToEntries.get(i).getRegistryName()))  {
-                return i;
-            }
-        }
-
-        return -1;
+    public boolean hasValue(ResourceLocation value) {
+        return value != null && this.idToEntries.contains(value);
     }
 
-    public boolean hasValue(T value)    {
-        return this.idToEntries.contains(value);
+    public int getSize()    {
+        return this.size.get();
     }
 }

@@ -23,7 +23,7 @@ import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.format.SaveFormat;
 import net.daporkchop.lib.primitive.map.IntegerObjectMap;
-import net.daporkchop.lib.primitive.map.hash.IntegerObjectHashMap;
+import net.daporkchop.lib.primitive.map.hashmap.IntegerObjectHashMap;
 
 import java.io.IOException;
 import java.util.Hashtable;
@@ -54,7 +54,7 @@ public class MinecraftSaveImpl implements MinecraftSave {
 
     @Override
     public void close() throws IOException {
-        this.worlds.forEachValue(this.saveFormat::closeWorld);
+        this.worlds.values().forEach(this.saveFormat::closeWorld);
         this.saveFormat.close();
     }
 }

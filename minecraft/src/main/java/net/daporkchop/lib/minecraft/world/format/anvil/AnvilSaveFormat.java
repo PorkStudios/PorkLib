@@ -22,7 +22,6 @@ import com.flowpowered.nbt.StringTag;
 import com.flowpowered.nbt.stream.NBTInputStream;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
 import net.daporkchop.lib.minecraft.registry.Registry;
 import net.daporkchop.lib.minecraft.registry.ResourceLocation;
 import net.daporkchop.lib.minecraft.world.Column;
@@ -30,13 +29,12 @@ import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.format.SaveFormat;
 import net.daporkchop.lib.minecraft.world.format.WorldManager;
-import net.daporkchop.lib.primitive.lambda.consumer.bi.IntegerObjectConsumer;
-import net.daporkchop.lib.primitive.tuple.ObjectObjectImmutableTuple;
+import net.daporkchop.lib.primitive.function.biconsumer.IntegerObjectBiConsumer;
+import net.daporkchop.lib.primitive.tuple.ObjectObjectTuple;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.function.BiConsumer;
 
 /**
@@ -50,11 +48,11 @@ public class AnvilSaveFormat implements SaveFormat {
 
     private MinecraftSave save;
 
-    public AnvilSaveFormat(@NonNull File root)  {
+    public AnvilSaveFormat(@NonNull File root) {
         this.root = root;
 
         if (root.exists()) {
-            if (!root.isDirectory())    {
+            if (!root.isDirectory()) {
                 throw new IllegalArgumentException(String.format("Anvil save root (%s) is a file!", root.getAbsolutePath()));
             }
         } else {
@@ -69,13 +67,13 @@ public class AnvilSaveFormat implements SaveFormat {
         {
             File levelDat_file = new File(this.root, "level.dat");
             if (levelDat_file.exists()) {
-                if (levelDat_file.isDirectory())    {
+                if (levelDat_file.isDirectory()) {
                     throw new IllegalStateException(String.format("level.dat (%s) is a directory!", levelDat_file.getAbsolutePath()));
                 }
             } else {
                 throw new UnsupportedOperationException("create world");
             }
-            try (NBTInputStream is = new NBTInputStream(new FileInputStream(levelDat_file), true))   {
+            try (NBTInputStream is = new NBTInputStream(new FileInputStream(levelDat_file), true)) {
                 this.levelDat = (CompoundTag) is.readTag();
             }
         }
@@ -86,7 +84,7 @@ public class AnvilSaveFormat implements SaveFormat {
     }
 
     @Override
-    public void loadWorlds(IntegerObjectConsumer<WorldManager> addFunction) {
+    public void loadWorlds(IntegerObjectBiConsumer<WorldManager> addFunction) {
         addFunction.accept(0, new AnvilWorldManager(this, new File(this.root, "region")));
         //TODO: other dimensions
     }
@@ -104,11 +102,11 @@ public class AnvilSaveFormat implements SaveFormat {
             throw new UnsupportedOperationException("save must be created by FML, otherwise we can't read the registry! (this feature will be added Soon(tm))");
         } else {
             CompoundTag registriesTag = (CompoundTag) fmlTag.getValue().get("Registries");
-            if (registriesTag == null)  {
+            if (registriesTag == null) {
                 throw new NullPointerException("Registries");
             }
             registriesTag.getValue().entrySet().stream()
-                    .map(entry -> new ObjectObjectImmutableTuple<>(new ResourceLocation(entry.getKey()), (CompoundTag) entry.getValue()))
+                    .map(entry -> new ObjectObjectTuple<>(new ResourceLocation(entry.getKey()), (CompoundTag) entry.getValue()))
                     .forEach(tuple -> {
                         ResourceLocation registryName = tuple.getK();
                         Registry registry = new Registry(registryName);

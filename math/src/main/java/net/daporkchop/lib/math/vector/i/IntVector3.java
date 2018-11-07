@@ -29,4 +29,12 @@ public interface IntVector3 {
     IntVector3 multiply(int x, int y, int z);
 
     IntVector3 divide(int x, int y, int z);
+
+    interface AddressableXYZ   {
+        int getX();
+
+        int getY();
+
+        int getZ();
+    }
 }

@@ -15,106 +15,150 @@
 
 package net.daporkchop.lib.minecraft.world;
 
+import net.daporkchop.lib.math.vector.i.IntVector2;
+import net.daporkchop.lib.math.vector.i.Vec2i;
+import net.daporkchop.lib.minecraft.tileentity.TileEntity;
+
+import java.io.Closeable;
+import java.io.IOException;
+import java.util.Collection;
+
 /**
- * A 16x16 block square reaching from the bottom to the top of the world. Pretty
- * much the heart and soul of vanilla Minecraft :P
- * <p>
- * The official name for this is "Chunk", however I've decided to go with the
- * Cubic Chunks naming style so as to allow for compatibility in The Future(tm)
- *
  * @author DaPorkchop_
  */
-public interface Column {
-    /**
-     * @return The total number of chunks in this column.
-     */
-    int getChunkCount();
+public interface Column extends Closeable, IntVector2.AddressableXZ {
+    Vec2i getPos();
 
-    /**
-     * Returns a chunk, or null if none is present at the specified height.
-     *
-     * @param i the index of the chunk. In vanilla this ranges from 0-15
-     * @return a chunk, or null if none is present at the specified height.
-     */
-    Chunk getChunk(int i);
+    World getWorld();
 
-    /**
-     * Get the block ID at a given location relative to this column.
-     *
-     * @param x the x coordinate. must be in range 0-15
-     * @param y the y coordinate. in vanilla, must be in range 0-255
-     * @param z the x coordinate. must be in range 0-15
-     * @return the block id at the given position
-     */
-    int getBlockId(int x, int y, int z);
+    Chunk getChunk(int y);
 
-    /**
-     * Get the block meta at a given location relative to this column.
-     *
-     * @param x the x coordinate. must be in range 0-15
-     * @param y the y coordinate. in vanilla, must be in range 0-255
-     * @param z the x coordinate. must be in range 0-15
-     * @return the block meta at the given position
-     */
-    int getBlockMeta(int x, int y, int z);
+    void setChunk(int y, Chunk chunk);
 
-    /**
-     * Get the block light at a given location relative to this column.
-     *
-     * @param x the x coordinate. must be in range 0-15
-     * @param y the y coordinate. in vanilla, must be in range 0-255
-     * @param z the x coordinate. must be in range 0-15
-     * @return the block light at the given position
-     */
-    int getBlockLight(int x, int y, int z);
+    boolean exists();
 
-    /**
-     * Get the sky light at a given location relative to this column.
-     *
-     * @param x the x coordinate. must be in range 0-15
-     * @param y the y coordinate. in vanilla, must be in range 0-255
-     * @param z the x coordinate. must be in range 0-15
-     * @return the sky light at the given position
-     */
-    int getSkyLight(int x, int y, int z);
+    boolean isLoaded();
 
-    /**
-     * Set the block ID at a given location relative to this column.
-     *
-     * @param x  the x coordinate. must be in range 0-15
-     * @param y  the y coordinate. in vanilla, must be in range 0-255
-     * @param z  the x coordinate. must be in range 0-15
-     * @param id the new id
-     */
-    void setBlockId(int x, int y, int z, int id);
+    void load();
 
-    /**
-     * Set the block meta at a given location relative to this column.
-     *
-     * @param x    the x coordinate. must be in range 0-15
-     * @param y    the y coordinate. in vanilla, must be in range 0-255
-     * @param z    the x coordinate. must be in range 0-15
-     * @param meta the new meta
-     */
-    void setBlockMeta(int x, int y, int z, int meta);
+    default boolean load(boolean generate) {
+        if (this.exists() || generate) {
+            this.load();
+            return true;
+        }
 
-    /**
-     * Set the block light at a given location relative to this column.
-     *
-     * @param x     the x coordinate. must be in range 0-15
-     * @param y     the y coordinate. in vanilla, must be in range 0-255
-     * @param z     the x coordinate. must be in range 0-15
-     * @param level the new level
-     */
-    void setBlockLight(int x, int y, int z, int level);
+        return false;
+    }
 
-    /**
-     * Set the sky light at a given location relative to this column.
-     *
-     * @param x     the x coordinate. must be in range 0-15
-     * @param y     the y coordinate. in vanilla, must be in range 0-255
-     * @param z     the x coordinate. must be in range 0-15
-     * @param level the new level
-     */
-    void setSkyLight(int x, int y, int z, int level);
+    boolean isDirty();
+
+    void markDirty();
+
+    void save();
+
+    void unload();
+
+    @Override
+    default void close() throws IOException {
+        if (this.isLoaded()) {
+            this.unload();
+        }
+    }
+
+    default int getBlockId(int x, int y, int z) {
+        Chunk chunk = this.getChunk(y >> 4);
+        if (chunk == null) {
+            if (y == 0) {
+                return 0;
+            }
+            return 0;
+        } else {
+            return chunk.getBlockId(x, y & 0xF, z);
+        }
+    }
+
+    default int getBlockMeta(int x, int y, int z) {
+        Chunk chunk = this.getChunk(y >> 4);
+        if (chunk == null) {
+            return 0;
+        } else {
+            return chunk.getBlockMeta(x, y & 0xF, z);
+        }
+    }
+
+    default int getBlockLight(int x, int y, int z) {
+        Chunk chunk = this.getChunk(y >> 4);
+        if (chunk == null) {
+            return 0;
+        } else {
+            return chunk.getBlockLight(x, y & 0xF, z);
+        }
+    }
+
+    default int getSkyLight(int x, int y, int z) {
+        Chunk chunk = this.getChunk(y >> 4);
+        if (chunk == null) {
+            return 15;
+        } else {
+            return chunk.getSkyLight(x, y & 0xF, z);
+        }
+    }
+
+    default void setBlockId(int x, int y, int z, int id) {
+        Chunk chunk = this.getChunk(y >> 4);
+        if (chunk == null) {
+            if (id == 0) {
+                return; //don't create new chunk if setting default
+            }
+            this.setChunk(y >> 4, chunk = this.getWorld().getSave().getInitFunctions().getChunkCreator().apply(y >> 4, this));
+        }
+        chunk.setBlockId(x, y & 0xF, z, id);
+    }
+
+    default void setBlockMeta(int x, int y, int z, int meta) {
+        Chunk chunk = this.getChunk(y >> 4);
+        if (chunk == null) {
+            if (meta == 0) {
+                return; //don't create new chunk if setting default
+            }
+            this.setChunk(y >> 4, chunk = this.getWorld().getSave().getInitFunctions().getChunkCreator().apply(y >> 4, this));
+        }
+        chunk.setBlockMeta(x, y & 0xF, z, meta);
+    }
+
+    default void setBlockLight(int x, int y, int z, int level) {
+        Chunk chunk = this.getChunk(y >> 4);
+        if (chunk == null) {
+            if (level == 0) {
+                return; //don't create new chunk if setting default
+            }
+            this.setChunk(y >> 4, chunk = this.getWorld().getSave().getInitFunctions().getChunkCreator().apply(y >> 4, this));
+        }
+        chunk.setBlockLight(x, y & 0xF, z, level);
+    }
+
+    default void setSkyLight(int x, int y, int z, int level) {
+        Chunk chunk = this.getChunk(y >> 4);
+        if (chunk == null) {
+            if (level == 15) {
+                return; //don't create new chunk if setting default
+            }
+            this.setChunk(y >> 4, chunk = this.getWorld().getSave().getInitFunctions().getChunkCreator().apply(y >> 4, this));
+        }
+        chunk.setSkyLight(x, y & 0xF, z, level);
+    }
+
+    default int getHighestBlock(int x, int z) {
+        if (!this.isLoaded()) {
+            return -1;
+        }
+        for (int y = 255; y >= 0; y--) {
+            if (this.getBlockId(x, y, z) != 0) {
+                return y;
+            }
+        }
+        return 0;
+    }
+
+    Collection<TileEntity> getTileEntities();
 }

@@ -24,6 +24,7 @@ include 'hash'
 include 'http'
 include 'math'
 include 'minecraft'
+include 'minecraft:minecraft-text'
 include 'minecraft:minecraft-worldscanner'
 include 'nbt'
 include 'network'
@@ -33,3 +34,5 @@ include 'primitive:generator'
 include 'logging'
 
 findProject(':minecraft:minecraft-worldscanner')?.name = 'minecraft-worldscanner'
+findProject(':minecraft:minecraft-text')?.name = 'minecraft-text'
+

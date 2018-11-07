@@ -18,20 +18,17 @@ package net.daporkchop.lib.network.protocol.netty;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
+import net.daporkchop.lib.binary.stream.DataOut;
 
 /**
  * @author DaPorkchop_
  */
 public class NettyPacketEncoder extends MessageToByteEncoder<String> {
     @Override
-    protected void encode(ChannelHandlerContext channelHandlerContext, String o, ByteBuf byteBuf) throws Exception {
-        System.out.printf("Writing %s...\n", o.getClass().getCanonicalName());
-        if (o instanceof String)    {
-            String s = (String) o;
-            byteBuf.writeInt(s.length());
-            for (int i = 0; i < s.length(); i++)    {
-                byteBuf.writeChar(s.charAt(i));
-            }
+    protected void encode(ChannelHandlerContext channelHandlerContext, String s, ByteBuf buf) throws Exception {
+        try (DataOut out = DataOut.wrap(buf)) {
+            System.out.printf("Writing %s...\n", s.getClass().getCanonicalName());
+            out.writeUTF(s);
         }
     }
 }

@@ -1,0 +1,146 @@
+_headers_
+
+public interface _P0__P1_ConcurrentMap_gH_ extends _P0__P1_Map_gH_ {
+    @Override
+    default _p1_ getOrDefault(_nameP0_ key, _p1_ defaultValue) {
+        _p1_ v;
+        return ((v = get(key)) != _P1E_) ? v : defaultValue;
+    }
+
+    @Override
+    default void forEach(@NonNull _P0__P1_BiConsumer_gSuper_ action) {
+        entrySet().forEach(entry -> {
+            _p0_ k;
+            _p1_ v;
+            try {
+                k = entry.getKey();
+                v = entry.getValue();
+            } catch(IllegalStateException ise) {
+                // this usually means the entry is no longer in the map.
+                return;
+            }
+            action.accept(k, v);
+        });
+    }
+
+     _p1_ putIfAbsent(_p0_ key, _p1_ value);
+
+    boolean remove(_nameP0_ key, _nameP1_ value);
+
+    boolean replace(_p0_ key, _p1_ oldValue, _p1_ newValue);
+
+    _p1_ replace(_p0_ key, _p1_ value);
+
+//TODO: clause in generator for this
+/*
+    @Override
+    default void replaceAll(@NonNull BiFunction<? super K, ? super V, ? extends V> function) {
+        forEach((k,v) -> {
+            while(!replace(k, v, function.apply(k, v))) {
+                // v changed or k is gone
+                if ( (v = get(k)) == null) {
+                    // k is no longer in the map.
+                    break;
+                }
+            }
+        });
+    }*/
+
+//TODO: clause in generator for this
+/*
+    @Override
+    default V computeIfAbsent(K key, @NonNull Function<? super K, ? extends V> mappingFunction) {
+        V v, newValue;
+        return ((v = get(key)) == null &&
+                (newValue = mappingFunction.apply(key)) != null &&
+                (v = putIfAbsent(key, newValue)) == null) ? newValue : v;
+    }*/
+
+//TODO: clause in generator for this
+/*
+    @Override
+    default V computeIfPresent(K key, @NonNull BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+        V oldValue;
+        while((oldValue = get(key)) != null) {
+            V newValue = remappingFunction.apply(key, oldValue);
+            if (newValue != null) {
+                if (replace(key, oldValue, newValue))
+                    return newValue;
+            } else if (remove(key, oldValue))
+               return null;
+        }
+        return oldValue;
+    }*/
+
+//TODO: clause in generator for this
+/*
+    @Override
+    default V compute(K key, @NonNull BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+        Objects.requireNonNull(remappingFunction);
+        V oldValue = get(key);
+        for(;;) {
+            V newValue = remappingFunction.apply(key, oldValue);
+            if (newValue == null) {
+                // delete mapping
+                if (oldValue != null || containsKey(key)) {
+                    // something to remove
+                    if (remove(key, oldValue)) {
+                        // removed the old value as expected
+                        return null;
+                    }
+
+                    // some other value replaced old value. try again.
+                    oldValue = get(key);
+                } else {
+                    // nothing to do. Leave things as they were.
+                    return null;
+                }
+            } else {
+                // add or replace old mapping
+                if (oldValue != null) {
+                    // replace
+                    if (replace(key, oldValue, newValue)) {
+                        // replaced as expected.
+                        return newValue;
+                    }
+
+                    // some other value replaced old value. try again.
+                    oldValue = get(key);
+                } else {
+                    // add (replace if oldValue was null)
+                    if ((oldValue = putIfAbsent(key, newValue)) == null) {
+                        // replaced
+                        return newValue;
+                    }
+
+                    // some other value replaced old value. try again.
+                }
+            }
+        }
+    }*/
+
+//TODO: clause in generator for this
+/*
+    @Override
+    default V merge(K key, V value, @NonNull BiFunction<? super V, ? super V, ? extends V> remappingFunction) {
+        Objects.requireNonNull(remappingFunction);
+        Objects.requireNonNull(value);
+        V oldValue = get(key);
+        for (;;) {
+            if (oldValue != null) {
+                V newValue = remappingFunction.apply(oldValue, value);
+                if (newValue != null) {
+                    if (replace(key, oldValue, newValue))
+                        return newValue;
+                } else if (remove(key, oldValue)) {
+                    return null;
+                }
+                oldValue = get(key);
+            } else {
+                if ((oldValue = putIfAbsent(key, value)) == null) {
+                    return value;
+                }
+            }
+        }
+    }*/
+}

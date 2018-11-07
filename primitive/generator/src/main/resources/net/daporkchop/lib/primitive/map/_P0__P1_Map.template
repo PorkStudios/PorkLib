@@ -1,0 +1,238 @@
+_headers_
+
+public interface _P0__P1_Map_gH_ extends PrimitiveConstants {
+    int size();
+
+    boolean isEmpty();
+
+    boolean containsKey(_nameP0_ key);
+
+    boolean containsValue(_nameP1_ value);
+
+    _p1_ get(_nameP0_ key);
+
+    // Modification Operations
+
+    _p1_ put(_p0_ key, _p1_ value);
+
+    _p1_ remove(_nameP0_ key);
+
+    // Bulk Operations
+
+    void putAll(_P0__P1_Map_gExtends_ m);
+
+    void clear();
+
+    // Views
+
+    _P0_Set_GP0_ keySet();
+
+    _P1_Collection_GP1_ values();
+
+    ObjectSet<_P0__P1_Map.Entry_gH_> entrySet();
+
+    interface Entry_gH_ extends PrimitiveConstants {
+        _p0_ getKey();
+
+        _p1_ getValue();
+
+        _p1_ setValue(_p1_ value);
+
+         //TODO
+         /*
+        public static <K extends Comparable<? super K>, V> Comparator<Map.Entry<K,V>> comparingByKey() {
+            return (Comparator<Map.Entry<K, V>> & Serializable)
+                (c1, c2) -> c1.getKey().compareTo(c2.getKey());
+        }
+        */
+
+         //TODO
+         /*
+        public static <K, V extends Comparable<? super V>> Comparator<Map.Entry<K,V>> comparingByValue() {
+            return (Comparator<Map.Entry<K, V>> & Serializable)
+                (c1, c2) -> c1.getValue().compareTo(c2.getValue());
+        }
+        */
+
+        public static _gH_ ObjectComparator<_P0__P1_Map.Entry_gH_> comparingByKey(@NonNull _P0_Comparator_GsuperP0_ cmp) {
+            return (ObjectComparator<_P0__P1_Map.Entry_gH_> & Serializable)
+                (c1, c2) -> cmp.compare(c1.getKey(), c2.getKey());
+        }
+
+        public static _gH_ ObjectComparator<_P0__P1_Map.Entry_gH_> comparingByValue(@NonNull _P1_Comparator_GsuperP1_ cmp) {
+            return (ObjectComparator<_P0__P1_Map.Entry_gH_> & Serializable)
+                (c1, c2) -> cmp.compare(c1.getValue(), c2.getValue());
+        }
+    }
+
+    // Defaultable methods
+
+    default _p1_ getOrDefault(_nameP0_ key, _p1_ defaultValue) {
+        _p1_ v;
+        return (((v = this.get(key)) != _P1E_) || this.containsKey(key))
+            ? v
+            : defaultValue;
+    }
+
+    default void forEach(@NonNull _P0__P1_BiConsumer_gSuper_ action) {
+        ObjectIterator<_P0__P1_Map.Entry_gH_> iterator = this.entrySet().iterator();
+        while (iterator.hasNext())  {
+            _P0__P1_Map.Entry_gH_ entry = iterator.next();
+            _p0_ k;
+            _p1_ v;
+            try {
+                k = entry.getKey();
+                v = entry.getValue();
+            } catch(IllegalStateException ise) {
+                // this usually means the entry is no longer in the map.
+                throw new ConcurrentModificationException(ise);
+            }
+            action.accept(k, v);
+        }
+    }
+
+    //TODO: add clause in generator for this parameter
+     /*
+    default void replaceAll(@NonNull _P0__P1_BiFunction<? super K, ? super V, ? extends V> function) {
+        for (Map.Entry<K, V> entry : entrySet()) {
+            K k;
+            V v;
+            try {
+                k = entry.getKey();
+                v = entry.getValue();
+            } catch(IllegalStateException ise) {
+                // this usually means the entry is no longer in the map.
+                throw new ConcurrentModificationException(ise);
+            }
+
+            // ise thrown from function is not a cme.
+            v = function.apply(k, v);
+
+            try {
+                entry.setValue(v);
+            } catch(IllegalStateException ise) {
+                // this usually means the entry is no longer in the map.
+                throw new ConcurrentModificationException(ise);
+            }
+        }
+    }
+    */
+
+    default _p1_ putIfAbsent(_p0_ key, _p1_ value) {
+        _p1_ v = this.get(key);
+        if (v == _P1E_) {
+            v = this.put(key, value);
+        }
+
+        return v;
+    }
+
+    default boolean remove(_nameP0_ key, _nameP1_ value) {
+        _nameP1_ curValue = this.get(key);
+        if (!this.equals_P1_(curValue, value) ||
+            (curValue == _P1E_ && !this.containsKey(key))) {
+            return false;
+        }
+        this.remove(key);
+        return true;
+    }
+
+    default boolean replace(_p0_ key, _p1_ oldValue, _p1_ newValue) {
+        _nameP1_ curValue = this.get(key);
+        if (!this.equals_P1_(curValue, oldValue) ||
+            (curValue == _P1E_ && !this.containsKey(key))) {
+            return false;
+        }
+        this.put(key, newValue);
+        return true;
+    }
+
+    default _p1_ replace(_p0_ key, _p1_ value) {
+        _p1_ curValue;
+        if (((curValue = this.get(key)) != _P1E_) || this.containsKey(key)) {
+            curValue = this.put(key, value);
+        }
+        return curValue;
+    }
+
+    //TODO: add clause in generator for this parameter
+    /*@SuppressWarnings("unchecked")
+    default _p1_ computeIfAbsent(_p0_ key,
+            @NonNull _P0__P1_Function<? super K, ? extends V> mappingFunction) {
+        _p1_ v;
+        if ((v = this.get(key)) == _P1E_) {
+            _p1_ newValue;
+            if ((newValue = (_p1_) mappingFunction.apply(key)) != _P1E_) {
+                this.put(key, newValue);
+                return newValue;
+            }
+        }
+
+        return v;
+    }*/
+
+    //TODO: add clause in generator for this parameter
+     /*
+    default _p1_ computeIfPresent(_p0_ key,
+            @NonNull _P0__P1_BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+        Objects.requireNonNull(remappingFunction);
+        V oldValue;
+        if ((oldValue = get(key)) != null) {
+            V newValue = remappingFunction.apply(key, oldValue);
+            if (newValue != null) {
+                put(key, newValue);
+                return newValue;
+            } else {
+                remove(key);
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+    */
+
+    //TODO: add clause in generator for this parameter
+     /*
+    default _p1_ compute(_p0_ key,
+            @NonNull BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+        Objects.requireNonNull(remappingFunction);
+        V oldValue = get(key);
+
+        V newValue = remappingFunction.apply(key, oldValue);
+        if (newValue == null) {
+            // delete mapping
+            if (oldValue != null || containsKey(key)) {
+                // something to remove
+                remove(key);
+                return null;
+            } else {
+                // nothing to do. Leave things as they were.
+                return null;
+            }
+        } else {
+            // add or replace old mapping
+            put(key, newValue);
+            return newValue;
+        }
+    }
+    */
+
+    //TODO: add clause in generator for this parameter
+     /*
+    default V merge(K key, V value,
+            BiFunction<? super V, ? super V, ? extends V> remappingFunction) {
+        Objects.requireNonNull(remappingFunction);
+        Objects.requireNonNull(value);
+        V oldValue = get(key);
+        V newValue = (oldValue == null) ? value :
+                   remappingFunction.apply(oldValue, value);
+        if(newValue == null) {
+            remove(key);
+        } else {
+            put(key, newValue);
+        }
+        return newValue;
+    }
+    */
+}

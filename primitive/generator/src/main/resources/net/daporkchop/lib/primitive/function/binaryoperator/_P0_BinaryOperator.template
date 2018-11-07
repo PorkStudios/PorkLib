@@ -1,0 +1,5 @@
+_headers_
+
+public interface _P0_BinaryOperator_gH_ {
+    _p0_ apply(_p0_ t, _p0_ u);
+}

@@ -1,0 +1,5 @@
+_headers_
+
+public interface _P0__P1__P2_BiFunction_gH_ {
+    _p2_ apply(_p0_ t, _p1_ u);
+}

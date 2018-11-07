@@ -1,0 +1,8 @@
+    default int hash(_methodnameP0_ x) {
+        return _methodhashCodeP0_;
+    }
+
+    default int hash_methodP0_(_methodnameP0_ x) {
+        return _methodhashCodeP0_;
+    }
+

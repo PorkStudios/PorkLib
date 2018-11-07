@@ -1,0 +1,97 @@
+_headers_
+
+public class _P0_Optional_gH_ {
+    private static final _P0_Optional<%<?>%> EMPTY = new _P0_Optional<%<>%>();
+
+    private final _p0_ value;
+
+    private _P0_Optional() {
+        this.value = _P0E_;
+    }
+
+<%    @SuppressWarnings("unchecked")
+%>    public static <%<T>%> _P0_Optional<%<T>%> empty() {
+        _P0_Optional<%<T>%> t = <%(_P0_Optional<T>) %>EMPTY;
+        return t;
+    }
+
+    private _P0_Optional(<%@NonNull %>_p0_ value) {
+        this.value = value;
+    }
+
+    public static <%<T>%> _P0_Optional<%<T>%> of(_nGP0_<%T%> value) {
+        return new _P0_Optional<%<>%>(value);
+    }
+
+    public static <%<T>%> _P0_Optional<%<T>%> ofNullable(_nGP0_<%T%> value) {
+        return value == _P0E_ ? empty() : of(value);
+    }
+
+    public _p0_ get() {
+        if (!this.isPresent() /*value == _P0E_*/) {
+            throw new NoSuchElementException("No value present");
+        }
+        return this.value;
+    }
+
+    public boolean isPresent() {
+        return this != EMPTY /*value != _P0E_*/;
+    }
+
+    public void ifPresent(@NonNull _P0_Consumer_gSuper_ consumer) {
+        if (this.isPresent()){
+            consumer.accept(this.value);
+        }
+    }
+
+    public _P0_Optional<%<_p0_>%> filter(@NonNull _P0_Predicate_gSuper_ predicate) {
+        if (this.isPresent()){
+            return this;
+        } else {
+            return predicate.test(this.value) ? this : empty();
+        }
+    }
+
+_methods_
+    public _p0_ orElse(_p0_ other) {
+        return this.isPresent() /*value != _P0E_*/ ? this.value : other;
+    }
+
+    public _p0_ orElseGet(@NonNull _P0_Supplier_gExtends_ other) {
+        return this.isPresent() /*value != _P0E_*/ ? this.value : other.get();
+    }
+
+    public <X extends Throwable> _p0_ orElseThrow(@NonNull ObjectSupplier<? extends X> exceptionSupplier) throws X {
+        if (this.isPresent() /*value != null*/) {
+            return this.value;
+        } else {
+            throw exceptionSupplier.get();
+        }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+
+        if (!(obj instanceof _P0_Optional)) {
+            return false;
+        }
+
+        _P0_Optional<%<?>%> other = (_P0_Optional<%<?>%>) obj;
+        return Objects.equals(this.value, other.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(this.value);
+    }
+
+    @Override
+    public String toString() {
+        return this.isPresent() /*value != _P0E_*/
+            ? String.format("Optional[%s]", value)
+            : "Optional.empty";
+    }
+}

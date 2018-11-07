@@ -26,29 +26,29 @@ import java.net.InetSocketAddress;
 /**
  * @author DaPorkchop_
  */
+//TODO
 @Setter(AccessLevel.PACKAGE)
 public abstract class Session {
-    @NonNull
-    private PorkConnection porkConnection;
+    @Setter(AccessLevel.PACKAGE)
+    private Connection connection;
 
     public void send(@NonNull Packet packet) {
-        this.porkConnection.send(packet);
     }
 
     public int getPing() {
-        return this.porkConnection.getPing();
+        return -1;
     }
 
     public boolean isConnected() {
-        return this.porkConnection.isConnected();
+        return false;
     }
 
     @SuppressWarnings("unchecked")
     public <E extends Endpoint> E getEndpoint() {
-        return (E) this.porkConnection.getEndpoint();
+        return null;
     }
 
     public InetSocketAddress getRemoteAddress() {
-        return this.porkConnection.getNetConnection().getRemoteAddressTCP();
+        return null;
     }
 }

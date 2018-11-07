@@ -15,3 +15,16 @@
 
 dependencies {
 }
+
+task deleteSource(type: Delete) {
+    delete "src"
+}
+
+clean.dependsOn(deleteSource)
+
+compileJava.dependsOn(":primitive:generator:gen")
+
+compileJava {
+    options.fork = true
+    options.forkOptions.setMemoryMaximumSize("2g")
+}

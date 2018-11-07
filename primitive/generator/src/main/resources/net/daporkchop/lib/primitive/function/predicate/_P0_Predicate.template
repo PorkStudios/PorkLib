@@ -1,0 +1,17 @@
+_headers_
+
+public interface _P0_Predicate_gH_ {
+    boolean test(_p0_ t);
+
+    default _P0_Predicate_gH_ and(@NonNull _P0_Predicate_gSuper_ other) {
+        return (t) -> this.test(t) && other.test(t);
+    }
+
+    default _P0_Predicate_gH_ negate() {
+        return (t) -> !this.test(t);
+    }
+
+    default _P0_Predicate_gH_ or(@NonNull _P0_Predicate_gSuper_ other) {
+        return (t) -> this.test(t) || other.test(t);
+    }
+}

@@ -15,10 +15,9 @@
 
 package net.daporkchop.lib.network.endpoint;
 
-/**
- * @author DaPorkchop_
- */
 public enum EndpointType {
     CLIENT,
-    SERVER
+    SERVER,
+    P2P
+    ;
 }

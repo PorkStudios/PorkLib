@@ -20,25 +20,27 @@ import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.crypto.CryptographySettings;
-import net.daporkchop.lib.encoding.compression.EnumCompression;
 import net.daporkchop.lib.network.conn.Session;
 import net.daporkchop.lib.network.endpoint.server.PorkServer;
 
-/**
- * @author DaPorkchop_
- */
 @Accessors(chain = true)
 @Getter
 @Setter
-public class ServerBuilder<S extends Session> extends AbstractBuilder<S, PorkServer<S>> {
+public class ServerBuilder<S extends Session> extends AbstractBuilder<ServerBuilder<S>, S, PorkServer<S>> {
     @NonNull
-    private CryptographySettings cryptographySettings = new CryptographySettings();
+    private CryptographySettings encryption = new CryptographySettings();
 
-    @NonNull
-    private EnumCompression compression = EnumCompression.NONE;
+    private int readerThreads = 2;
+
+    private int maxConnections = 100;
 
     @Override
     protected PorkServer<S> doBuild() {
+        if (this.readerThreads <= 0)    {
+            throw new IllegalArgumentException(String.format("Invalid reader thread count: %d (must be at least 1)", this.readerThreads));
+        } else if (this.maxConnections <= 0)    {
+            throw new IllegalArgumentException(String.format("Invalid maximum connection count: %d (must be at least 1)", this.maxConnections));
+        }
         return new PorkServer<>(this);
     }
 }

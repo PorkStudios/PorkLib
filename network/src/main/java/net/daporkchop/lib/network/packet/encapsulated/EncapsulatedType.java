@@ -18,6 +18,10 @@ package net.daporkchop.lib.network.packet.encapsulated;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
+import net.daporkchop.lib.network.packet.encapsulated.handshake.HandshakeCompletePacket;
+import net.daporkchop.lib.network.packet.encapsulated.handshake.HandshakeInitPacket;
+import net.daporkchop.lib.network.packet.encapsulated.handshake.HandshakeResponsePacket;
+import net.daporkchop.lib.network.packet.encapsulated.handshake.query.QueryResponsePacket;
 
 import java.util.function.Supplier;
 
@@ -28,10 +32,17 @@ import java.util.function.Supplier;
 @Getter
 public enum EncapsulatedType {
     HANDSHAKE_INIT(HandshakeInitPacket::new),
+    QUERY_RESPONSE(QueryResponsePacket::new),
     HANDSHAKE_RESPONSE(HandshakeResponsePacket::new),
     HANDSHAKE_COMPLETE(HandshakeCompletePacket::new),
     DISCONNECT(DisconnectPacket::new);
 
     @NonNull
     private final Supplier<EncapsulatedPacket> supplier;
+
+    private final boolean p2pOnly;
+
+    EncapsulatedType(Supplier<EncapsulatedPacket> supplier) {
+        this(supplier, false);
+    }
 }

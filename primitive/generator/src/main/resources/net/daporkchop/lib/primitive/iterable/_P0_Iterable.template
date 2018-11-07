@@ -1,0 +1,9 @@
+_headers_
+
+public interface _P0_Iterable_gH_ /*extends Iterable<_fullnameP0_>*/ {
+    _P0_Iterator_gH_ iterator();
+
+    default void forEach(@NonNull _P0_Consumer_gSuper_ action) {
+        this.iterator().forEachRemaining(action::accept);
+    }
+}

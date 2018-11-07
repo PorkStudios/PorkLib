@@ -8,6 +8,7 @@ build/
 out/
 /porklib.daporkchop.net/
 
+/primitive/src/
 /minecraft/minecraft-worldscanner/run/testworld/region/r.0.1.mca
 /minecraft/minecraft-worldscanner/run/testworld/region/r.0.-1.mca
 /minecraft/minecraft-worldscanner/run/testworld/region/r.1.1.mca

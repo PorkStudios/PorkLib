@@ -17,44 +17,59 @@ package net.daporkchop.lib.network.endpoint.builder;
 
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 import net.daporkchop.lib.network.conn.Session;
 import net.daporkchop.lib.network.endpoint.Endpoint;
-import net.daporkchop.lib.network.endpoint.EndpointListener;
 import net.daporkchop.lib.network.packet.protocol.PacketProtocol;
 
 import java.net.InetSocketAddress;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.concurrent.Executor;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
-/**
- * @author DaPorkchop_
- */
-@Accessors(chain = true)
 @Getter
-@Setter
-public abstract class AbstractBuilder<S extends Session, T extends Endpoint<S>> {
-    private final Set<EndpointListener<S>> listeners = new HashSet<>();
-    @NonNull
-    private InetSocketAddress address;
+abstract class AbstractBuilder<B extends AbstractBuilder<B, S, E>, S extends Session, E extends Endpoint<S>> {
+    protected static final Executor DEFAULT_EXECUTOR = new ThreadPoolExecutor(
+            0, Runtime.getRuntime().availableProcessors() << 1,
+            60L, TimeUnit.SECONDS,
+            new SynchronousQueue<>()
+    );
+
     @NonNull
     private PacketProtocol<S> protocol;
 
-    public final T build() {
-        if (this.address == null) {
-            throw new NullPointerException("address");
-        } else if (this.protocol == null) {
-            throw new NullPointerException("protocol");
+    @NonNull
+    private InetSocketAddress address;
+
+    @NonNull
+    private Executor executor = DEFAULT_EXECUTOR;
+
+    @SuppressWarnings("unchecked")
+    public B setProtocol(@NonNull PacketProtocol<S> protocol) {
+        this.protocol = protocol;
+        return (B) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public B setAddress(@NonNull InetSocketAddress address) {
+        this.address = address;
+        return (B) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public B setExecutor(@NonNull Executor executor) {
+        this.executor = executor;
+        return (B) this;
+    }
+
+    public E build() {
+        if (this.protocol == null) {
+            throw new IllegalStateException("Protocol must be set!");
+        } else if (this.address == null) {
+            throw new IllegalStateException("Address must be set!");
         }
         return this.doBuild();
     }
 
-    protected abstract T doBuild();
-
-    public AbstractBuilder<S, T> addListener(@NonNull EndpointListener<S> listener) {
-        this.listeners.add(listener);
-
-        return this;
-    }
+    protected abstract E doBuild();
 }

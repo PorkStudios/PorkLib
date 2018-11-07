@@ -21,6 +21,7 @@ import net.daporkchop.lib.binary.UTF8;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.function.Function;
 
 /**
  * @author DaPorkchop_
@@ -130,6 +131,21 @@ public class DataIn extends InputStream {
         byte[] b = new byte[len];
         StreamUtil.read(this.stream, b, 0, b.length);
         return b;
+    }
+
+    /**
+     * Reads an enum value from the buffer
+     *
+     * @param f   a function to calculate the enum value from the name (i.e. MyEnum::valueOf)
+     * @param <E> the enum type
+     * @return a value of <E>, or null if input was null
+     */
+    public <E extends Enum<E>> E readEnum(@NonNull Function<String, E> f) throws IOException {
+        if (this.readBoolean()) {
+            return f.apply(this.readUTF());
+        } else {
+            return null;
+        }
     }
 
     @Override

@@ -19,8 +19,11 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.UTF8;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 
 /**
  * @author DaPorkchop_
@@ -28,6 +31,14 @@ import java.io.OutputStream;
 public abstract class DataOut extends OutputStream {
     public static DataOut wrap(OutputStream out) {
         return new StreamOut(out);
+    }
+
+    public static DataOut wrap(ByteBuffer buffer) {
+        return new BufferOut(buffer);
+    }
+
+    public static DataOut wrap(@NonNull File file) throws IOException   {
+        return wrap(new FileOutputStream(file));
     }
 
     /**
@@ -166,6 +177,21 @@ public abstract class DataOut extends OutputStream {
 
     @Override
     public abstract void close() throws IOException;
+
+    @AllArgsConstructor
+    private static class BufferOut extends DataOut {
+        @NonNull
+        private final ByteBuffer buffer;
+
+        @Override
+        public void close() throws IOException {
+        }
+
+        @Override
+        public void write(int b) throws IOException {
+            this.buffer.put((byte) b);
+        }
+    }
 
     @AllArgsConstructor
     private static class StreamOut extends DataOut {

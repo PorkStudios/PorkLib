@@ -4,12 +4,12 @@ public interface _P0__P1_ConcurrentMap_gH_ extends _P0__P1_Map_gH_ {
     @Override
     default _p1_ getOrDefault(_nameP0_ key, _p1_ defaultValue) {
         _p1_ v;
-        return ((v = get(key)) != null) ? v : defaultValue;
+        return ((v = get(key)) != _P1E_) ? v : defaultValue;
     }
 
     @Override
     default void forEach(@NonNull _P0__P1_BiConsumer_gSuper_ action) {
-        for (_P0__P1_Map.Entry_gH_ entry : entrySet()) {
+        entrySet().forEach(entry -> {
             _p0_ k;
             _p1_ v;
             try {
@@ -17,10 +17,10 @@ public interface _P0__P1_ConcurrentMap_gH_ extends _P0__P1_Map_gH_ {
                 v = entry.getValue();
             } catch(IllegalStateException ise) {
                 // this usually means the entry is no longer in the map.
-                continue;
+                return;
             }
             action.accept(k, v);
-        }
+        });
     }
 
      _p1_ putIfAbsent(_p0_ key, _p1_ value);

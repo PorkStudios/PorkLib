@@ -330,7 +330,10 @@ public class Generator {
                         for (int i = 0; i < primitives1.length; i++) {
                             ref.set(primitives1[i].format(ref.get(), i));
                         }
-                        builder.append(ref.get());
+                        builder.append(ref.get()
+                                .replaceAll(GENERIC_HEADER_DEF, Primitive.getGenericHeader(primitives1))
+                                .replaceAll(GENERIC_SUPER_DEF, Primitive.getGenericSuper(primitives1))
+                                .replaceAll(GENERIC_EXTENDS_DEF, Primitive.getGenericExtends(primitives1)));
                     }, depth);
                 }
                 contentOut = contentOut.replaceAll(METHODS_DEF, builder.toString());

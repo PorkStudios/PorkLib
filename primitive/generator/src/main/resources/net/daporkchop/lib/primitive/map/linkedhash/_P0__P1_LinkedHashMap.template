@@ -159,7 +159,7 @@ public class _P0__P1_LinkedHashMap_gH_ extends _P0__P1_HashMap_gH_ {
         this.accessOrder = accessOrder;
     }
 
-    public boolean containsValue(_nameP0_ value) {
+    public boolean containsValue(_nameP1_ value) {
         for (_P0__P1_LinkedHashMap.Entry_gH_ e = head; e != null; e = e.after) {
             _p1_ v = e.value;
             if (this.equals_P1_(v, value))
@@ -212,7 +212,7 @@ public class _P0__P1_LinkedHashMap_gH_ extends _P0__P1_HashMap_gH_ {
         }
         public final boolean contains(_nameP0_ o) { return containsKey(o); }
         public final boolean remove(_nameP0_ key) {
-            return removeNode(hash(key), key, null, false, true) != null;
+            return removeNode(hash(key), key, _P1E_, false, true) != null;
         }
         public final _P0_Spliterator_GP0_ spliterator()  {
             /*return Spliterators.spliterator(this, Spliterator.SIZED |

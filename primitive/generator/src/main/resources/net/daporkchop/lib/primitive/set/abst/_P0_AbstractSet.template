@@ -1,0 +1,55 @@
+_headers_
+
+public abstract class _P0_AbstractSet_gH_ extends _P0_AbstractCollection_gH_ implements _P0_Set_gH_ {
+    protected _P0_AbstractSet() {
+    }
+
+    // Comparison and hashing
+
+    public boolean equals(Object o) {
+        if (o == this)
+            return true;
+
+        if (!(o instanceof _P0_Set))
+            return false;
+        _P0_Collection<%<?>%> c = (_P0_Collection<%<?>%>) o;
+        if (c.size() != this.size())
+            return false;
+        try {
+            return this.containsAll(c);
+        } catch (ClassCastException unused)   {
+            return false;
+        } catch (NullPointerException unused) {
+            return false;
+        }
+    }
+
+    public int hashCode() {
+        int h = 0;
+        _P0_Iterator_gH_ i = this.iterator();
+        while (i.hasNext()) {
+            //_p0_ obj = i.next();
+            h += this.hash_P0_(i.next());
+            /*if (obj != _P0E_)
+                h += obj.hashCode();*/
+        }
+        return h;
+    }
+
+    public boolean removeAll(<%@NonNull %>_P0_Collection c) {
+        boolean modified = false;
+
+        if (this.size() > c.size()) {
+            for (_P0_Iterator<%<?>%> i = c.iterator(); i.hasNext(); )
+                modified |= this.remove(i.next());
+        } else {
+            for (_P0_Iterator  i = this.iterator(); i.hasNext(); ) {
+                if (c.contains(i.next())) {
+                    i.remove();
+                    modified = true;
+                }
+            }
+        }
+        return modified;
+    }
+}

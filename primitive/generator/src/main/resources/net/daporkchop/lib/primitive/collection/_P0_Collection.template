@@ -1,0 +1,62 @@
+_headers_
+
+public interface _P0_Collection_gH_ extends _P0_Iterable_gH_, PrimitiveConstants {
+    int size();
+
+    boolean isEmpty();
+
+    boolean contains(/*_p0_*/_nameP0_ o);
+
+    _P0_Iterator_gH_ iterator();
+
+    _nameP0_[] toArray();
+<%
+    <T> T[] toArray(T[] a);
+%>
+    // Modification Operations
+    boolean add(_p0_ e);
+
+    boolean remove(/*_p0_*/_nameP0_ o);
+
+    // Bulk Operations
+    boolean containsAll(_P0_Collection c);
+
+    boolean addAll(_P0_Collection_gExtends_ c);
+
+    boolean removeAll(_P0_Collection c);
+
+    default boolean removeIf(@NonNull _P0_Predicate_gSuper_ filter) {
+        boolean removed = false;
+        final _P0_Iterator_gH_ each = this.iterator();
+        while (each.hasNext()) {
+            if (filter.test(each.next())) {
+                each.remove();
+                removed = true;
+            }
+        }
+        return removed;
+    }
+
+    boolean retainAll(_P0_Collection c);
+
+    void clear();
+
+    // Comparison and hashing
+    boolean equals(Object o);
+
+    int hashCode();
+
+     //TODO
+     /*
+    default _P0_Stream_gH_ stream() {
+        return StreamSupport.stream(spliterator(), false);
+    }
+    */
+
+     //TODO
+     /*
+    default _P0_Stream_gH_ parallelStream() {
+        return StreamSupport.stream(spliterator(), true);
+    }
+    */
+}

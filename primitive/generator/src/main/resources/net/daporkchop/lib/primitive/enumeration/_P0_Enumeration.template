@@ -1,0 +1,7 @@
+_headers_
+
+public interface _P0_Enumeration_gH_ {
+    boolean hasMoreElements();
+
+    _p0_ nextElement();
+}

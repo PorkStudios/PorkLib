@@ -17,11 +17,9 @@ package net.daporkchop.lib.minecraft.text.util;
 
 import net.daporkchop.lib.primitive.map.CharacterObjectMap;
 import net.daporkchop.lib.primitive.map.IntegerObjectMap;
-import net.daporkchop.lib.primitive.map.hash.CharacterObjectHashMap;
-import net.daporkchop.lib.primitive.map.hash.IntegerObjectHashMap;
+import net.daporkchop.lib.primitive.map.hashmap.CharacterObjectHashMap;
+import net.daporkchop.lib.primitive.map.hashmap.IntegerObjectHashMap;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

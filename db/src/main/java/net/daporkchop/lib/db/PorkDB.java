@@ -174,7 +174,7 @@ public abstract class PorkDB<K, V> {
                 return null;
             }
             EnumCompression compression = EnumCompression.values()[in.read()];
-            DataIn dataIn = new DataIn(compression.inflateStream(in));
+            DataIn dataIn = DataIn.wrap(compression.inflateStream(in));
             V val = this.valueSerializer.read(dataIn);
             dataIn.close();
             return val;
@@ -216,7 +216,7 @@ public abstract class PorkDB<K, V> {
         try {
             OutputStream out = this.fileManager.putStream(keyHash, hash);
             out.write(compression.ordinal());
-            DataOut dataOut = new DataOut(compression.compressStream(out));
+            DataOut dataOut = DataOut.wrap(compression.compressStream(out));
             this.valueSerializer.write(value, dataOut);
             dataOut.close();
         } catch (IOException e) {
@@ -345,7 +345,7 @@ public abstract class PorkDB<K, V> {
         this.fileManager.forEach((keyBytes, stream) -> {
             try {
                 stream = EnumCompression.values()[stream.read()].inflateStream(stream);
-                V value = this.valueSerializer.read(new DataIn(stream));
+                V value = this.valueSerializer.read(DataIn.wrap(stream));
                 stream.close();
                 consumer.accept(keyDeserialize ? this.keyHasher.getKeyFromHash(keyBytes) : null, value);
             } catch (IOException e) {

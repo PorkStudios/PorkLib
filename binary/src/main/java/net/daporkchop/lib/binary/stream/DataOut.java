@@ -25,13 +25,13 @@ import java.io.OutputStream;
 /**
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-public class DataOut extends OutputStream {
-    @NonNull
-    private final OutputStream stream;
+public abstract class DataOut extends OutputStream {
+    public static DataOut wrap(OutputStream out) {
+        return new StreamOut(out);
+    }
 
     /**
-     * Writes a boolean to the buffer
+     * Writes a boolean
      *
      * @param b the boolean to write
      */
@@ -40,7 +40,7 @@ public class DataOut extends OutputStream {
     }
 
     /**
-     * Writes a byte to the buffer
+     * Writes a byte
      *
      * @param b the byte to write
      */
@@ -49,7 +49,7 @@ public class DataOut extends OutputStream {
     }
 
     /**
-     * Writes a short to the buffer
+     * Writes a short
      *
      * @param s the short to write
      */
@@ -59,7 +59,7 @@ public class DataOut extends OutputStream {
     }
 
     /**
-     * Writes an int to the buffer
+     * Writes an int
      *
      * @param i the int to write
      */
@@ -71,7 +71,7 @@ public class DataOut extends OutputStream {
     }
 
     /**
-     * Writes a long to the buffer
+     * Writes a long
      *
      * @param l the long to write
      */
@@ -87,7 +87,7 @@ public class DataOut extends OutputStream {
     }
 
     /**
-     * Writes a float to the buffer
+     * Writes a float
      *
      * @param f the float to write
      */
@@ -96,7 +96,7 @@ public class DataOut extends OutputStream {
     }
 
     /**
-     * Writes a double to the buffer
+     * Writes a double
      *
      * @param d the double to write
      */
@@ -105,7 +105,7 @@ public class DataOut extends OutputStream {
     }
 
     /**
-     * Writes a UTF-8 encoded string to the buffer, along with a 4-byte length prefix
+     * Writes a UTF-8 encoded string, along with a 4-byte length prefix
      *
      * @param s the string to write
      */
@@ -114,14 +114,12 @@ public class DataOut extends OutputStream {
             this.writeBoolean(false);
         } else {
             this.writeBoolean(true);
-            byte[] b = s.getBytes(UTF8.utf8);
-            this.writeInt(b.length);
-            this.write(b);
+            this.writeBytesSimple(s.getBytes(UTF8.utf8));
         }
     }
 
     /**
-     * Writes a plain byte array to the buffer
+     * Writes a plain byte array
      *
      * @param b the bytes to write
      */
@@ -131,7 +129,7 @@ public class DataOut extends OutputStream {
     }
 
     /**
-     * Writes an enum value to the buffer
+     * Writes an enum value
      *
      * @param e   the value to write
      * @param <E> the type of the enum
@@ -145,20 +143,49 @@ public class DataOut extends OutputStream {
         }
     }
 
-    @Override
-    public void write(int b) throws IOException {
-        this.stream.write(b);
-    }
-
-    @Override
-    public void write(byte[] b, int off, int len) throws IOException {
-        if (len != 0) {
-            this.stream.write(b, off, len);
+    public void writeVarInt(int i) throws IOException {
+        if (i < 0) {
+            throw new IllegalArgumentException(String.format("%d is negative", i));
+        } else if (i == 0) {
+            this.write(0);
+            return;
+        }
+        int next = 0;
+        while (i != 0) {
+            next = (i >>= 7) & 0x7F;
+            this.write(next | (i == 0 ? 0 : 128));
         }
     }
 
     @Override
-    public void close() throws IOException {
-        this.stream.close();
+    public void write(byte[] b, int off, int len) throws IOException {
+        for (int i = 0; i < len; i++) {
+            this.write(b[i + off] & 0xFF);
+        }
+    }
+
+    @Override
+    public abstract void close() throws IOException;
+
+    @AllArgsConstructor
+    private static class StreamOut extends DataOut {
+        @NonNull
+        private final OutputStream out;
+
+        @Override
+        public void close() throws IOException {
+            this.flush();
+            this.out.close();
+        }
+
+        @Override
+        public void write(int b) throws IOException {
+            this.out.write(b);
+        }
+
+        @Override
+        public void flush() throws IOException {
+            this.out.flush();
+        }
     }
 }

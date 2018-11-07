@@ -19,8 +19,11 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.UTF8;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.function.Function;
 
 /**
@@ -29,6 +32,14 @@ import java.util.function.Function;
 public abstract class DataIn extends InputStream {
     public static DataIn wrap(InputStream in) {
         return new StreamIn(in);
+    }
+
+    public static DataIn wrap(ByteBuffer buffer) {
+        return new BufferIn(buffer);
+    }
+
+    public static DataIn wrap(@NonNull File file) throws IOException   {
+        return wrap(new FileInputStream(file));
     }
 
     /**
@@ -195,6 +206,26 @@ public abstract class DataIn extends InputStream {
         @Override
         public int available() throws IOException {
             return this.in.available();
+        }
+    }
+
+    @AllArgsConstructor
+    private static class BufferIn extends DataIn {
+        @NonNull
+        private final ByteBuffer buffer;
+
+        @Override
+        public void close() throws IOException {
+        }
+
+        @Override
+        public int read() throws IOException {
+            return this.buffer.get();
+        }
+
+        @Override
+        public int available() throws IOException {
+            return this.buffer.remaining();
         }
     }
 }

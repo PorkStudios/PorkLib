@@ -19,37 +19,27 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.UTF8;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.function.Function;
 
 /**
  * @author DaPorkchop_
  */
 public abstract class DataIn extends InputStream {
-    public static DataIn wrap(InputStream in)  {
+    public static DataIn wrap(InputStream in) {
         return new StreamIn(in);
     }
 
-    @AllArgsConstructor
-    private static class StreamIn extends DataIn  {
-        @NonNull
-        private final InputStream in;
+    public static DataIn wrap(ByteBuffer buffer) {
+        return new BufferIn(buffer);
+    }
 
-        @Override
-        public void close() throws IOException {
-            this.in.close();
-        }
-
-        @Override
-        public int read() throws IOException {
-            return this.in.read();
-        }
-
-        @Override
-        public int available() throws IOException {
-            return this.in.available();
-        }
+    public static DataIn wrap(@NonNull File file) throws IOException   {
+        return wrap(new FileInputStream(file));
     }
 
     /**
@@ -168,11 +158,11 @@ public abstract class DataIn extends InputStream {
         int v = 0;
         int i;
         int o = 0;
-        while (true)    {
+        while (true) {
             i = this.read();
             v |= (i & 0x7F) << o;
             o += 7;
-            if ((i >> 7) == 0)  {
+            if ((i >> 7) == 0) {
                 break;
             }
         }
@@ -193,4 +183,45 @@ public abstract class DataIn extends InputStream {
 
     @Override
     public abstract void close() throws IOException;
+
+    @AllArgsConstructor
+    private static class StreamIn extends DataIn {
+        @NonNull
+        private final InputStream in;
+
+        @Override
+        public void close() throws IOException {
+            this.in.close();
+        }
+
+        @Override
+        public int read() throws IOException {
+            return this.in.read();
+        }
+
+        @Override
+        public int available() throws IOException {
+            return this.in.available();
+        }
+    }
+
+    @AllArgsConstructor
+    private static class BufferIn extends DataIn {
+        @NonNull
+        private final ByteBuffer buffer;
+
+        @Override
+        public void close() throws IOException {
+        }
+
+        @Override
+        public int read() throws IOException {
+            return this.buffer.get();
+        }
+
+        @Override
+        public int available() throws IOException {
+            return this.buffer.remaining();
+        }
+    }
 }

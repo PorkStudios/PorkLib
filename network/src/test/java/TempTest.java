@@ -13,18 +13,13 @@
  *
  */
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufUtil;
-import io.netty.buffer.UnpooledDirectByteBuf;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.endpoint.client.PorkClient;
 import net.daporkchop.lib.network.endpoint.server.PorkServer;
 import net.daporkchop.lib.network.packet.PacketProtocol;
-import org.junit.Test;
 
 import java.net.InetSocketAddress;
-import java.util.Scanner;
 
 /**
  * @author DaPorkchop_

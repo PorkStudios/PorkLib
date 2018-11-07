@@ -124,7 +124,7 @@ public abstract class DataOut extends OutputStream {
      * @param b the bytes to write
      */
     public void writeBytesSimple(@NonNull byte[] b) throws IOException {
-        this.writeInt(b.length);
+        this.writeVarInt(b.length, true);
         this.write(b);
     }
 
@@ -144,16 +144,21 @@ public abstract class DataOut extends OutputStream {
     }
 
     public void writeVarInt(int i) throws IOException {
-        if (i < 0) {
-            throw new IllegalArgumentException(String.format("%d is negative", i));
-        } else if (i == 0) {
+        this.writeVarInt(i, false);
+    }
+
+    public void writeVarInt(int i, boolean optimizePositive) throws IOException {
+        if (!optimizePositive) {
+            i = (i << 1) | (i >>> 31);
+        }
+        if (i == 0) {
             this.write(0);
             return;
         }
         int next = 0;
         while (i != 0) {
             next = i & 0x7F;
-            i >>= 7;
+            i >>>= 7;
             this.write(next | (i == 0 ? 0 : 0x80));
         }
     }

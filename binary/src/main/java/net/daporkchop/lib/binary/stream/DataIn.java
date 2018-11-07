@@ -27,29 +27,8 @@ import java.util.function.Function;
  * @author DaPorkchop_
  */
 public abstract class DataIn extends InputStream {
-    public static DataIn wrap(InputStream in)  {
+    public static DataIn wrap(InputStream in) {
         return new StreamIn(in);
-    }
-
-    @AllArgsConstructor
-    private static class StreamIn extends DataIn  {
-        @NonNull
-        private final InputStream in;
-
-        @Override
-        public void close() throws IOException {
-            this.in.close();
-        }
-
-        @Override
-        public int read() throws IOException {
-            return this.in.read();
-        }
-
-        @Override
-        public int available() throws IOException {
-            return this.in.available();
-        }
     }
 
     /**
@@ -141,7 +120,7 @@ public abstract class DataIn extends InputStream {
      * @return a byte array
      */
     public byte[] readBytesSimple() throws IOException {
-        int len = this.readInt();
+        int len = this.readVarInt(true);
         byte[] b = new byte[len];
         for (int i = 0; i < len; i++) {
             b[i] = (byte) this.read();
@@ -165,18 +144,22 @@ public abstract class DataIn extends InputStream {
     }
 
     public int readVarInt() throws IOException {
+        return this.readVarInt(false);
+    }
+
+    public int readVarInt(boolean optimizePositive) throws IOException {
         int v = 0;
         int i;
         int o = 0;
-        while (true)    {
+        while (true) {
             i = this.read();
             v |= (i & 0x7F) << o;
             o += 7;
-            if ((i & 0x80) == 0)  {
+            if ((i & 0x80) == 0) {
                 break;
             }
         }
-        return v;
+        return optimizePositive ? v : (v >>> 1) | (v << 31);
     }
 
     @Override
@@ -193,4 +176,25 @@ public abstract class DataIn extends InputStream {
 
     @Override
     public abstract void close() throws IOException;
+
+    @AllArgsConstructor
+    private static class StreamIn extends DataIn {
+        @NonNull
+        private final InputStream in;
+
+        @Override
+        public void close() throws IOException {
+            this.in.close();
+        }
+
+        @Override
+        public int read() throws IOException {
+            return this.in.read();
+        }
+
+        @Override
+        public int available() throws IOException {
+            return this.in.available();
+        }
+    }
 }

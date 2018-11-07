@@ -33,8 +33,8 @@ public class SerializationTest {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         for (CurveType type : CurveType.values())   {
             EllipticCurveKeyPair keyPair = KeyGen.gen(type);
-            KeySerialization.encodeEC(new DataOut(baos), keyPair);
-            EllipticCurveKeyPair decoded = KeySerialization.decodeEC(new DataIn(new ByteArrayInputStream(baos.toByteArray())));
+            KeySerialization.encodeEC(DataOut.wrap(baos), keyPair);
+            EllipticCurveKeyPair decoded = KeySerialization.decodeEC(DataIn.wrap(new ByteArrayInputStream(baos.toByteArray())));
             baos.reset();
             if (!keyPair.equals(decoded))   {
                 throw new IllegalStateException(String.format("Decoded key pair was different from original on curve type %s", type.name));

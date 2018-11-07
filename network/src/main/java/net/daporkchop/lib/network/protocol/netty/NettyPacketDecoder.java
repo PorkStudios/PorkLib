@@ -18,6 +18,7 @@ package net.daporkchop.lib.network.protocol.netty;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
+import net.daporkchop.lib.binary.NettyByteBufUtil;
 import net.daporkchop.lib.binary.stream.DataIn;
 
 import java.util.List;
@@ -28,7 +29,7 @@ import java.util.List;
 public class NettyPacketDecoder extends ByteToMessageDecoder {
     @Override
     protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf buf, List<Object> list) throws Exception {
-        DataIn in = DataIn.wrap(buf);
+        DataIn in = NettyByteBufUtil.wrapIn(buf);
         System.out.printf("Decoding from %d bytes...\n", in.available());
         list.add(in.readUTF());
     }

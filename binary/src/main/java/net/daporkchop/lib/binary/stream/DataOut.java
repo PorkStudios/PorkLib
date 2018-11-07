@@ -15,7 +15,6 @@
 
 package net.daporkchop.lib.binary.stream;
 
-import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.UTF8;
@@ -40,10 +39,6 @@ public abstract class DataOut extends OutputStream {
 
     public static DataOut wrap(@NonNull File file) throws IOException {
         return wrap(new FileOutputStream(file));
-    }
-
-    public static DataOut wrap(ByteBuf buf) {
-        return new ByteBufOut(buf);
     }
 
     /**
@@ -188,21 +183,6 @@ public abstract class DataOut extends OutputStream {
 
     @Override
     public abstract void close() throws IOException;
-
-    @AllArgsConstructor
-    private static class ByteBufOut extends DataOut {
-        @NonNull
-        private final ByteBuf buf;
-
-        @Override
-        public void close() throws IOException {
-        }
-
-        @Override
-        public void write(int b) throws IOException {
-            this.buf.writeByte(b);
-        }
-    }
 
     @AllArgsConstructor
     private static class BufferOut extends DataOut {

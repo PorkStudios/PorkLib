@@ -172,7 +172,7 @@ public abstract class DataIn extends InputStream {
             i = this.read();
             v |= (i & 0x7F) << o;
             o += 7;
-            if ((i >> 7) == 0)  {
+            if ((i & 0x80) == 0)  {
                 break;
             }
         }

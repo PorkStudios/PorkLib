@@ -152,8 +152,9 @@ public abstract class DataOut extends OutputStream {
         }
         int next = 0;
         while (i != 0) {
-            next = (i >>= 7) & 0x7F;
-            this.write(next | (i == 0 ? 0 : 128));
+            next = i & 0x7F;
+            i >>= 7;
+            this.write(next | (i == 0 ? 0 : 0x80));
         }
     }
 

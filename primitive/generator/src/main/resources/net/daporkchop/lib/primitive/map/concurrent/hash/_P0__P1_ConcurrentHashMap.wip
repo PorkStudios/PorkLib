@@ -2707,10 +2707,250 @@ public class _P0__P1_ConcurrentHashMap_gH_ extends _P0__P1_AbstractMap_gH_ imple
 
     /* ----------------Views -------------- */
 
-    abstract static class CollectionView<K,V,E> implements Collection<E>, java.io.Serializable {
+    public static class KeySetView_gH_ implements _P0_Collection_GP0_, java.io.Serializable, _P0_Set_GP0_ {
         private static final long serialVersionUID = 7249069246763182397L;
-        final ConcurrentHashMap<K,V> map;
-        CollectionView(ConcurrentHashMap<K,V> map)  { this.map = map; }
+        private final _p1_ value;
+        private final _P0__P1_ConcurrentHashMap_gH_ map;
+        KeySetView(_P0__P1_ConcurrentHashMap_gH_ map, _p1_ value) {  // non-public
+            //super(map);
+            this.map = map;
+            this.value = value;
+        }
+
+        public _p1_ getMappedValue() { return value; }
+
+        public boolean contains(_nameP0_ o) { return map.containsKey(o); }
+
+        public boolean remove(_nameP0_ o) { return map.remove(o) != _P1E_; }
+
+        public _P0_Iterator_GP0_ iterator() {
+            Node_gH_[] t;
+            _P0__P1_ConcurrentHashMap_gH_ m = map;
+            int f = (t = m.table) == null ? 0 : t.length;
+            return new KeyIterator_gH_(t, f, 0, f, m);
+        }
+
+        public boolean add(_p0_ e) {
+            _p1_ v;
+            if ((v = value) == _P1E_)
+                throw new UnsupportedOperationException();
+            return map.putVal(e, v, true) == _P1E_;
+        }
+
+        public boolean addAll(@NonNull _P0_Collection_GextendsP0_ c) {
+            boolean added = false;
+            _p1_ v;
+            if ((v = value) == _P1E_)
+                throw new UnsupportedOperationException();
+            for (_P0_Iterator_GextendsP0_ i = c.iterator(); i.hasNext();)   {
+                _p0_ e = i.next();
+                if (map.putVal(e, v, true) == _P1E_)    {
+                    added = true;
+                }
+            }
+            /*for (_p0_ e : c) {
+                if (map.putVal(e, v, true) == null)
+                    added = true;
+            }*/
+            return added;
+        }
+
+        public int hashCode() {
+            int h = 0;
+            for (_P0_Iterator_GextendsP0_ i = c.iterator(); i.hasNext();)   {
+                h += i.next().hashCode();
+            }
+            //for (K e : this)
+            //    h += e.hashCode();
+            return h;
+        }
+
+        public boolean equals(Object o) {
+            _P0_Set c;
+            return ((o instanceof _P0_Set) &&
+                    ((c = (_P0_Set) o) == this ||
+                     (containsAll(c) && c.containsAll(this))));
+        }
+
+        public _P0_Spliterator_GP0_ spliterator() {
+            Node_gH_[] t;
+            _P0__P1_ConcurrentHashMap_gH_ m = map;
+            long n = m.sumCount();
+            int f = (t = m.table) == null ? 0 : t.length;
+            return new KeySpliterator_gH_(t, f, 0, f, n < 0L ? 0L : n);
+        }
+
+        public void forEach(@NonNull _P0_Consumer_GsuperP0_ action) {
+            Node_gH_[] t;
+            if ((t = map.table) != null) {
+                Traverser_gH_ it = new Traverser_gH_(t, t.length, 0, t.length);
+                for (Node_gH_ p; (p = it.advance()) != null; )
+                    action.accept(p.key);
+            }
+        }
+
+        public _P0__P1ConcurrentHashMap_gH_ getMap() { return map; }
+
+        public final void clear()      { map.clear(); }
+        public final int size()        { return map.size(); }
+        public final boolean isEmpty() { return map.isEmpty(); }
+
+        private static final String oomeMsg = "Required array size too large";
+
+        public final _nameP0_[] toArray() {
+            long sz = map.mappingCount();
+            if (sz > MAX_ARRAY_SIZE)
+                throw new OutOfMemoryError(oomeMsg);
+            int n = (int)sz;
+            _nameP0_[] r = new _nameP0_[n];
+            int i = 0;
+            for (E e : this) {
+                if (i == n) {
+                    if (n >= MAX_ARRAY_SIZE)
+                        throw new OutOfMemoryError(oomeMsg);
+                    if (n >= MAX_ARRAY_SIZE - (MAX_ARRAY_SIZE >>> 1) - 1)
+                        n = MAX_ARRAY_SIZE;
+                    else
+                        n += (n >>> 1) + 1;
+                    r = Arrays.copyOf(r, n);
+                }
+                r[i++] = e;
+            }
+            return (i == n) ? r : Arrays.copyOf(r, i);
+        }
+<%
+        @SuppressWarnings("unchecked")
+        public final <T> T[] toArray(T[] a) {
+            long sz = map.mappingCount();
+            if (sz > MAX_ARRAY_SIZE)
+                throw new OutOfMemoryError(oomeMsg);
+            int m = (int)sz;
+            T[] r = (a.length >= m) ? a :
+                (T[])java.lang.reflect.Array
+                .newInstance(a.getClass().getComponentType(), m);
+            int n = r.length;
+            int i = 0;
+            for (E e : this) {
+                if (i == n) {
+                    if (n >= MAX_ARRAY_SIZE)
+                        throw new OutOfMemoryError(oomeMsg);
+                    if (n >= MAX_ARRAY_SIZE - (MAX_ARRAY_SIZE >>> 1) - 1)
+                        n = MAX_ARRAY_SIZE;
+                    else
+                        n += (n >>> 1) + 1;
+                    r = Arrays.copyOf(r, n);
+                }
+                r[i++] = (T)e;
+            }
+            if (a == r && i < n) {
+                r[i] = null; // null-terminate
+                return r;
+            }
+            return (i == n) ? r : Arrays.copyOf(r, i);
+        }
+%>
+
+        public final String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append('[');
+            _P0_Iterator_GP0_ it = iterator();
+            if (it.hasNext()) {
+                for (;;) {
+                    //_nameP0_ e = it.next();
+                    sb.append(it.next());
+                    //sb.append(e == this ? "(this Collection)" : e);
+                    if (!it.hasNext())
+                        break;
+                    sb.append(',').append(' ');
+                }
+            }
+            return sb.append(']').toString();
+        }
+
+        public final boolean containsAll(_P0_Collection c) {
+            if (c != this) {
+                for (_nameP0_ e : c) {
+                    if (e == _P0E_ || !contains(e))
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        public final boolean removeAll(@NonNull _P0_Collection c) {
+            boolean modified = false;
+            for (_P0_Iterator_GP0_ it = iterator(); it.hasNext();) {
+                if (c.contains(it.next())) {
+                    it.remove();
+                    modified = true;
+                }
+            }
+            return modified;
+        }
+
+        public final boolean retainAll(@NonNull _P0_Collection c) {
+            boolean modified = false;
+            for (_P0_Iterator_GP0_ it = iterator(); it.hasNext();) {
+                if (!c.contains(it.next())) {
+                    it.remove();
+                    modified = true;
+                }
+            }
+            return modified;
+        }
+    }
+
+    static final class ValuesView<K,V> extends CollectionView<K,V,V>
+        implements Collection<V>, java.io.Serializable {
+        private static final long serialVersionUID = 2249069246763182397L;
+        ValuesView(ConcurrentHashMap<K,V> map) { super(map); }
+        public final boolean contains(Object o) {
+            return map.containsValue(o);
+        }
+
+        public final boolean remove(Object o) {
+            if (o != null) {
+                for (Iterator<V> it = iterator(); it.hasNext();) {
+                    if (o.equals(it.next())) {
+                        it.remove();
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        public final Iterator<V> iterator() {
+            ConcurrentHashMap<K,V> m = map;
+            Node<K,V>[] t;
+            int f = (t = m.table) == null ? 0 : t.length;
+            return new ValueIterator<K,V>(t, f, 0, f, m);
+        }
+
+        public final boolean add(V e) {
+            throw new UnsupportedOperationException();
+        }
+        public final boolean addAll(Collection<? extends V> c) {
+            throw new UnsupportedOperationException();
+        }
+
+        public Spliterator<V> spliterator() {
+            Node<K,V>[] t;
+            ConcurrentHashMap<K,V> m = map;
+            long n = m.sumCount();
+            int f = (t = m.table) == null ? 0 : t.length;
+            return new ValueSpliterator<K,V>(t, f, 0, f, n < 0L ? 0L : n);
+        }
+
+        public void forEach(Consumer<? super V> action) {
+            if (action == null) throw new NullPointerException();
+            Node<K,V>[] t;
+            if ((t = map.table) != null) {
+                Traverser<K,V> it = new Traverser<K,V>(t, t.length, 0, t.length);
+                for (Node<K,V> p; (p = it.advance()) != null; )
+                    action.accept(p.val);
+            }
+        }
 
         /**
          * Returns the map backing this view.
@@ -2855,194 +3095,6 @@ public class _P0__P1_ConcurrentHashMap_gH_ extends _P0__P1_AbstractMap_gH_ imple
             }
             return modified;
         }
-
-    }
-
-    /**
-     * A view of a ConcurrentHashMap as a {@link Set} of keys, in
-     * which additions may optionally be enabled by mapping to a
-     * common value.  This class cannot be directly instantiated.
-     * See {@link #keySet() keySet()},
-     * {@link #keySet(Object) keySet(V)},
-     * {@link #newKeySet() newKeySet()},
-     * {@link #newKeySet(int) newKeySet(int)}.
-     *
-     * @since 1.8
-     */
-    public static class KeySetView<K,V> extends CollectionView<K,V,K>
-        implements Set<K>, java.io.Serializable {
-        private static final long serialVersionUID = 7249069246763182397L;
-        private final V value;
-        KeySetView(ConcurrentHashMap<K,V> map, V value) {  // non-public
-            super(map);
-            this.value = value;
-        }
-
-        /**
-         * Returns the default mapped value for additions,
-         * or {@code null} if additions are not supported.
-         *
-         * @return the default mapped value for additions, or {@code null}
-         * if not supported
-         */
-        public V getMappedValue() { return value; }
-
-        /**
-         * {@inheritDoc}
-         * @throws NullPointerException if the specified key is null
-         */
-        public boolean contains(Object o) { return map.containsKey(o); }
-
-        /**
-         * Removes the key from this map view, by removing the key (and its
-         * corresponding value) from the backing map.  This method does
-         * nothing if the key is not in the map.
-         *
-         * @param  o the key to be removed from the backing map
-         * @return {@code true} if the backing map contained the specified key
-         * @throws NullPointerException if the specified key is null
-         */
-        public boolean remove(Object o) { return map.remove(o) != null; }
-
-        /**
-         * @return an iterator over the keys of the backing map
-         */
-        public Iterator<K> iterator() {
-            Node<K,V>[] t;
-            ConcurrentHashMap<K,V> m = map;
-            int f = (t = m.table) == null ? 0 : t.length;
-            return new KeyIterator<K,V>(t, f, 0, f, m);
-        }
-
-        /**
-         * Adds the specified key to this set view by mapping the key to
-         * the default mapped value in the backing map, if defined.
-         *
-         * @param e key to be added
-         * @return {@code true} if this set changed as a result of the call
-         * @throws NullPointerException if the specified key is null
-         * @throws UnsupportedOperationException if no default mapped value
-         * for additions was provided
-         */
-        public boolean add(K e) {
-            V v;
-            if ((v = value) == null)
-                throw new UnsupportedOperationException();
-            return map.putVal(e, v, true) == null;
-        }
-
-        /**
-         * Adds all of the elements in the specified collection to this set,
-         * as if by calling {@link #add} on each one.
-         *
-         * @param c the elements to be inserted into this set
-         * @return {@code true} if this set changed as a result of the call
-         * @throws NullPointerException if the collection or any of its
-         * elements are {@code null}
-         * @throws UnsupportedOperationException if no default mapped value
-         * for additions was provided
-         */
-        public boolean addAll(Collection<? extends K> c) {
-            boolean added = false;
-            V v;
-            if ((v = value) == null)
-                throw new UnsupportedOperationException();
-            for (K e : c) {
-                if (map.putVal(e, v, true) == null)
-                    added = true;
-            }
-            return added;
-        }
-
-        public int hashCode() {
-            int h = 0;
-            for (K e : this)
-                h += e.hashCode();
-            return h;
-        }
-
-        public boolean equals(Object o) {
-            Set<?> c;
-            return ((o instanceof Set) &&
-                    ((c = (Set<?>)o) == this ||
-                     (containsAll(c) && c.containsAll(this))));
-        }
-
-        public Spliterator<K> spliterator() {
-            Node<K,V>[] t;
-            ConcurrentHashMap<K,V> m = map;
-            long n = m.sumCount();
-            int f = (t = m.table) == null ? 0 : t.length;
-            return new KeySpliterator<K,V>(t, f, 0, f, n < 0L ? 0L : n);
-        }
-
-        public void forEach(Consumer<? super K> action) {
-            if (action == null) throw new NullPointerException();
-            Node<K,V>[] t;
-            if ((t = map.table) != null) {
-                Traverser<K,V> it = new Traverser<K,V>(t, t.length, 0, t.length);
-                for (Node<K,V> p; (p = it.advance()) != null; )
-                    action.accept(p.key);
-            }
-        }
-    }
-
-    /**
-     * A view of a ConcurrentHashMap as a {@link Collection} of
-     * values, in which additions are disabled. This class cannot be
-     * directly instantiated. See {@link #values()}.
-     */
-    static final class ValuesView<K,V> extends CollectionView<K,V,V>
-        implements Collection<V>, java.io.Serializable {
-        private static final long serialVersionUID = 2249069246763182397L;
-        ValuesView(ConcurrentHashMap<K,V> map) { super(map); }
-        public final boolean contains(Object o) {
-            return map.containsValue(o);
-        }
-
-        public final boolean remove(Object o) {
-            if (o != null) {
-                for (Iterator<V> it = iterator(); it.hasNext();) {
-                    if (o.equals(it.next())) {
-                        it.remove();
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-
-        public final Iterator<V> iterator() {
-            ConcurrentHashMap<K,V> m = map;
-            Node<K,V>[] t;
-            int f = (t = m.table) == null ? 0 : t.length;
-            return new ValueIterator<K,V>(t, f, 0, f, m);
-        }
-
-        public final boolean add(V e) {
-            throw new UnsupportedOperationException();
-        }
-        public final boolean addAll(Collection<? extends V> c) {
-            throw new UnsupportedOperationException();
-        }
-
-        public Spliterator<V> spliterator() {
-            Node<K,V>[] t;
-            ConcurrentHashMap<K,V> m = map;
-            long n = m.sumCount();
-            int f = (t = m.table) == null ? 0 : t.length;
-            return new ValueSpliterator<K,V>(t, f, 0, f, n < 0L ? 0L : n);
-        }
-
-        public void forEach(Consumer<? super V> action) {
-            if (action == null) throw new NullPointerException();
-            Node<K,V>[] t;
-            if ((t = map.table) != null) {
-                Traverser<K,V> it = new Traverser<K,V>(t, t.length, 0, t.length);
-                for (Node<K,V> p; (p = it.advance()) != null; )
-                    action.accept(p.val);
-            }
-        }
     }
 
     /**
@@ -3132,6 +3184,149 @@ public class _P0__P1_ConcurrentHashMap_gH_ extends _P0__P1_AbstractMap_gH_ imple
             }
         }
 
+        /**
+         * Returns the map backing this view.
+         *
+         * @return the map backing this view
+         */
+        public ConcurrentHashMap<K,V> getMap() { return map; }
+
+        /**
+         * Removes all of the elements from this view, by removing all
+         * the mappings from the map backing this view.
+         */
+        public final void clear()      { map.clear(); }
+        public final int size()        { return map.size(); }
+        public final boolean isEmpty() { return map.isEmpty(); }
+
+        // implementations below rely on concrete classes supplying these
+        // abstract methods
+        /**
+         * Returns an iterator over the elements in this collection.
+         *
+         * <p>The returned iterator is
+         * <a href="package-summary.html#Weakly"><i>weakly consistent</i></a>.
+         *
+         * @return an iterator over the elements in this collection
+         */
+        public abstract Iterator<E> iterator();
+        public abstract boolean contains(Object o);
+        public abstract boolean remove(Object o);
+
+        private static final String oomeMsg = "Required array size too large";
+
+        public final Object[] toArray() {
+            long sz = map.mappingCount();
+            if (sz > MAX_ARRAY_SIZE)
+                throw new OutOfMemoryError(oomeMsg);
+            int n = (int)sz;
+            Object[] r = new Object[n];
+            int i = 0;
+            for (E e : this) {
+                if (i == n) {
+                    if (n >= MAX_ARRAY_SIZE)
+                        throw new OutOfMemoryError(oomeMsg);
+                    if (n >= MAX_ARRAY_SIZE - (MAX_ARRAY_SIZE >>> 1) - 1)
+                        n = MAX_ARRAY_SIZE;
+                    else
+                        n += (n >>> 1) + 1;
+                    r = Arrays.copyOf(r, n);
+                }
+                r[i++] = e;
+            }
+            return (i == n) ? r : Arrays.copyOf(r, i);
+        }
+
+        @SuppressWarnings("unchecked")
+        public final <T> T[] toArray(T[] a) {
+            long sz = map.mappingCount();
+            if (sz > MAX_ARRAY_SIZE)
+                throw new OutOfMemoryError(oomeMsg);
+            int m = (int)sz;
+            T[] r = (a.length >= m) ? a :
+                (T[])java.lang.reflect.Array
+                .newInstance(a.getClass().getComponentType(), m);
+            int n = r.length;
+            int i = 0;
+            for (E e : this) {
+                if (i == n) {
+                    if (n >= MAX_ARRAY_SIZE)
+                        throw new OutOfMemoryError(oomeMsg);
+                    if (n >= MAX_ARRAY_SIZE - (MAX_ARRAY_SIZE >>> 1) - 1)
+                        n = MAX_ARRAY_SIZE;
+                    else
+                        n += (n >>> 1) + 1;
+                    r = Arrays.copyOf(r, n);
+                }
+                r[i++] = (T)e;
+            }
+            if (a == r && i < n) {
+                r[i] = null; // null-terminate
+                return r;
+            }
+            return (i == n) ? r : Arrays.copyOf(r, i);
+        }
+
+        /**
+         * Returns a string representation of this collection.
+         * The string representation consists of the string representations
+         * of the collection's elements in the order they are returned by
+         * its iterator, enclosed in square brackets ({@code "[]"}).
+         * Adjacent elements are separated by the characters {@code ", "}
+         * (comma and space).  Elements are converted to strings as by
+         * {@link String#valueOf(Object)}.
+         *
+         * @return a string representation of this collection
+         */
+        public final String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append('[');
+            Iterator<E> it = iterator();
+            if (it.hasNext()) {
+                for (;;) {
+                    Object e = it.next();
+                    sb.append(e == this ? "(this Collection)" : e);
+                    if (!it.hasNext())
+                        break;
+                    sb.append(',').append(' ');
+                }
+            }
+            return sb.append(']').toString();
+        }
+
+        public final boolean containsAll(Collection<?> c) {
+            if (c != this) {
+                for (Object e : c) {
+                    if (e == null || !contains(e))
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        public final boolean removeAll(Collection<?> c) {
+            if (c == null) throw new NullPointerException();
+            boolean modified = false;
+            for (Iterator<E> it = iterator(); it.hasNext();) {
+                if (c.contains(it.next())) {
+                    it.remove();
+                    modified = true;
+                }
+            }
+            return modified;
+        }
+
+        public final boolean retainAll(Collection<?> c) {
+            if (c == null) throw new NullPointerException();
+            boolean modified = false;
+            for (Iterator<E> it = iterator(); it.hasNext();) {
+                if (!c.contains(it.next())) {
+                    it.remove();
+                    modified = true;
+                }
+            }
+            return modified;
+        }
     }
 
     // -------------------------------------------------------

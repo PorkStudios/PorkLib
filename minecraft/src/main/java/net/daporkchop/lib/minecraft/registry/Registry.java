@@ -18,7 +18,7 @@ package net.daporkchop.lib.minecraft.registry;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.primitive.lambda.consumer.bi.IntegerObjectConsumer;
+import net.daporkchop.lib.primitive.function.biconsumer.IntegerObjectBiConsumer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +48,7 @@ public class Registry {
         this.size.incrementAndGet();
     }
 
-    public void forEachEntry(@NonNull IntegerObjectConsumer<ResourceLocation> consumer) {
+    public void forEachEntry(@NonNull IntegerObjectBiConsumer<ResourceLocation> consumer) {
         for (int i = 0; i < this.idToEntries.size(); i++) {
             consumer.accept(i, this.idToEntries.get(i));
         }
@@ -66,7 +66,7 @@ public class Registry {
         return value != null && this.idToEntries.contains(value);
     }
 
-    public int getSize()    {
+    public int getSize() {
         return this.size.get();
     }
 }

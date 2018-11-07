@@ -1,0 +1,8 @@
+_headers_
+
+@Data
+public class _P0__P1_Tuple_gH_ implements PrimitiveConstants {
+    private final _p0_ k;
+
+    private final _p1_ v;
+}

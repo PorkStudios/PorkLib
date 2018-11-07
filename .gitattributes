@@ -1,2 +1,7 @@
 # Auto detect text files and perform LF normalization
 *.java text=auto eol=lf
+*.xml text=auto eol=lf
+*.json text=auto eol=lf
+*.md text=auto eol=lf
+*.yml text=auto eol=lf
+*.template text=auto eol=lf

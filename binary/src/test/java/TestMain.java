@@ -13,59 +13,36 @@
  *
  */
 
-import net.daporkchop.lib.binary.PorkBuf;
 import net.daporkchop.lib.binary.bit.BitInputStream;
 import net.daporkchop.lib.binary.bit.BitOutputStream;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * @author DaPorkchop_
  */
 public class TestMain {
     @Test
-    public void test() {
-        Random random;
-        long a, b;
-        for (int i = 0; i < 256; i++) {
-            PorkBuf buf = PorkBuf.allocate(1024);
-            random = new Random(i);
-            while (buf.getWritePos() != 1024) {
-                buf.putLong(random.nextLong());
+    public void test() throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        for (int i = 50; i >= 0; i--)   {
+            int j = ThreadLocalRandom.current().nextInt(Integer.MAX_VALUE);
+            DataOut out = DataOut.wrap(baos);
+            out.writeVarInt(j);
+            out.close();
+            DataIn in = DataIn.wrap(new ByteArrayInputStream(baos.toByteArray()));
+            int k = in.readVarInt();
+            if (j != k)   {
+                throw new IllegalStateException(String.format("%d %d", j, k));
             }
-            buf.reset();
-            random = new Random(i);
-            while (buf.getReadPos() != 1024) {
-                if ((a = buf.getLong()) != (b = random.nextLong())) {
-                    throw new IllegalStateException("Invalid value " + a + " (expected: " + b + ")");
-                }
-            }
-        }
-    }
-
-    @Test
-    public void testWritten() {
-        PorkBuf buf = PorkBuf.allocate(4);
-        buf.setExpand(true);
-
-        byte[] randomBytes = new byte[]{
-                0, 1, 2, 3, 4, 5, 6
-        };
-        buf.putBytes(randomBytes);
-
-        byte[] raw = buf.toArray();
-        byte[] written = buf.getWrittenBytes();
-
-        if (raw.length == written.length || written.length != randomBytes.length
-                || !Arrays.equals(randomBytes, written)) {
-            throw new IllegalStateException();
-        } else {
-            System.out.println("Success!");
+            in.close();
+            baos.reset();
         }
     }
 

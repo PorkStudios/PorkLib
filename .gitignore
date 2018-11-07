@@ -6,6 +6,7 @@
 target/
 build/
 out/
+test_out/
 /porklib.daporkchop.net/
 
 /primitive/src/

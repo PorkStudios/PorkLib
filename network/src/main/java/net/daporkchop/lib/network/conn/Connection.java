@@ -13,44 +13,34 @@
  *
  */
 
-package net.daporkchop.lib.binary.stream;
+package net.daporkchop.lib.network.conn;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.NonNull;
-
-import java.io.InputStream;
-import java.nio.ByteBuffer;
+import net.daporkchop.lib.network.Transport;
+import net.daporkchop.lib.network.endpoint.Endpoint;
+import net.daporkchop.lib.network.packet.Packet;
 
 /**
- * An {@link InputStream} that reads from a {@link ByteBuffer}
- *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-@Getter
-public class ByteBufferInputStream extends InputStream {
-    @NonNull
-    private final ByteBuffer buffer;
+public interface Connection {
+    Endpoint getEndpoint();
 
-    @Override
-    public int read() {
-        return this.buffer.hasRemaining() ? this.buffer.get() & 0xFF : -1;
+    default void close()    {
+        this.close(null);
     }
 
-    @Override
-    public int read(byte[] b, int off, int len) {
-        int toRead = Math.min(this.buffer.remaining(), len);
-        if (toRead == 0) {
-            return -1;
-        } else {
-            this.buffer.get(b, off, toRead);
-            return toRead;
+    void close(String reason);
+
+    boolean isConnected();
+
+    void send(@NonNull Packet packet);
+
+    Transport getTransport();
+
+    default void send(@NonNull Packet... packets)   {
+        for (Packet packet : packets)    {
+            this.send(packet);
         }
-    }
-
-    @Override
-    public int available() {
-        return this.buffer.remaining();
     }
 }

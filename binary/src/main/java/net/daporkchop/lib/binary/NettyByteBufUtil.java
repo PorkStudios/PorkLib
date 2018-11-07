@@ -13,23 +13,70 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.netty;
+package net.daporkchop.lib.binary;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.MessageToByteEncoder;
-import net.daporkchop.lib.binary.NettyByteBufUtil;
+import io.netty.buffer.ByteBufAllocator;
+import lombok.AllArgsConstructor;
+import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-public class NettyPacketEncoder extends MessageToByteEncoder<String> {
-    @Override
-    protected void encode(ChannelHandlerContext channelHandlerContext, String s, ByteBuf buf) throws Exception {
-        try (DataOut out = NettyByteBufUtil.wrapOut(buf)) {
-            System.out.printf("Writing %s...\n", s.getClass().getCanonicalName());
-            out.writeUTF(s);
+public class NettyByteBufUtil {
+    public static DataIn wrapIn(ByteBuf buf) {
+        return new ByteBufIn(buf);
+    }
+
+    public static DataOut wrapOut(ByteBuf buf) {
+        return new ByteBufOut(buf);
+    }
+
+    public static ByteBuf alloc(int size)   {
+        return ByteBufAllocator.DEFAULT.directBuffer(size);
+    }
+
+    public static ByteBuf alloc(int size, int max)   {
+        return ByteBufAllocator.DEFAULT.directBuffer(size, max);
+    }
+
+    @AllArgsConstructor
+    private static class ByteBufIn extends DataIn {
+        @NonNull
+        private final ByteBuf buf;
+
+        @Override
+        public void close() throws IOException {
+            this.buf.release();
+        }
+
+        @Override
+        public int read() throws IOException {
+            return this.buf.readByte() & 0xFF;
+        }
+
+        @Override
+        public int available() throws IOException {
+            return this.buf.readableBytes();
+        }
+    }
+
+    @AllArgsConstructor
+    private static class ByteBufOut extends DataOut {
+        @NonNull
+        private final ByteBuf buf;
+
+        @Override
+        public void close() throws IOException {
+        }
+
+        @Override
+        public void write(int b) throws IOException {
+            this.buf.writeByte(b);
         }
     }
 }

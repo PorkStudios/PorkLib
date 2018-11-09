@@ -17,10 +17,9 @@ package net.daporkchop.lib.network.endpoint;
 
 import lombok.NonNull;
 import net.daporkchop.lib.network.EndpointType;
-import net.daporkchop.lib.network.conn.Connection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.packet.Packet;
-import net.daporkchop.lib.network.packet.PacketProtocol;
+import net.daporkchop.lib.network.packet.UserProtocol;
 
 import java.util.Collection;
 
@@ -31,8 +30,6 @@ public interface Endpoint<C extends UserConnection> {
     EndpointType getType();
 
     Collection<C> getConnections();
-
-    PacketProtocol<C> getProtocol();
 
     default void close()    {
         this.close(null);

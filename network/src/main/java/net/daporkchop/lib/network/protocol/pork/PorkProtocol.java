@@ -13,12 +13,23 @@
  *
  */
 
-package net.daporkchop.lib.network.packet;
+package net.daporkchop.lib.network.protocol.pork;
 
 import net.daporkchop.lib.network.conn.UserConnection;
+import net.daporkchop.lib.network.packet.UserProtocol;
 
 /**
  * @author DaPorkchop_
  */
-public class PacketProtocol<C extends UserConnection> {
+public class PorkProtocol extends UserProtocol<UserConnection> {
+    public static final PorkProtocol INSTANCE = new PorkProtocol();
+
+    private PorkProtocol() {
+        super("PorkLib Networking", 1);
+    }
+
+    @Override
+    protected void registerPackets() {
+        this.register(new DisconnectPacket.DisconnectCodec());
+    }
 }

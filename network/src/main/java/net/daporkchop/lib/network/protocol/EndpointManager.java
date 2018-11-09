@@ -13,35 +13,41 @@
  *
  */
 
-package net.daporkchop.lib.network.conn;
+package net.daporkchop.lib.network.protocol;
 
 import lombok.NonNull;
+import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Packet;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.Collection;
+import java.util.concurrent.Executor;
 
 /**
  * @author DaPorkchop_
  */
-public interface Connection {
-    Endpoint getEndpoint();
+public interface EndpointManager<C extends UserConnection> {
+    void close();
 
-    default void close()    {
-        this.close(null);
+    boolean isRunning();
+
+    default boolean isClosed() {
+        return !this.isRunning();
     }
 
-    void close(String reason);
+    void start(@NonNull InetSocketAddress address, @NonNull Executor executor, @NonNull Endpoint<C> endpoint);
 
-    boolean isConnected();
+    interface ServerEndpointManager<C extends UserConnection> extends EndpointManager<C> {
+        Collection<C> getConnections();
 
-    default void send(@NonNull Packet packet)   {
-        this.send(packet, false);
+        void broadcast(@NonNull Packet packet);
     }
 
-    void send(@NonNull Packet packet, boolean blocking);
+    interface ClientEndpointManager<C extends UserConnection> extends EndpointManager<C> {
+        C getConnection();
 
-    default void send(@NonNull Packet... packets)   {
-        for (Packet packet : packets)    {
-            this.send(packet);
-        }
+        void send(@NonNull Packet packet);
     }
 }

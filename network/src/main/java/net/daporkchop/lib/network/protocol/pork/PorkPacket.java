@@ -13,35 +13,14 @@
  *
  */
 
-package net.daporkchop.lib.network.conn;
+package net.daporkchop.lib.network.protocol.pork;
 
-import lombok.NonNull;
-import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Packet;
 
 /**
+ * Doesn't actually do anything, serves simply as a quick way of flagging porklib packets from user packets
+ *
  * @author DaPorkchop_
  */
-public interface Connection {
-    Endpoint getEndpoint();
-
-    default void close()    {
-        this.close(null);
-    }
-
-    void close(String reason);
-
-    boolean isConnected();
-
-    default void send(@NonNull Packet packet)   {
-        this.send(packet, false);
-    }
-
-    void send(@NonNull Packet packet, boolean blocking);
-
-    default void send(@NonNull Packet... packets)   {
-        for (Packet packet : packets)    {
-            this.send(packet);
-        }
-    }
+public interface PorkPacket extends Packet {
 }

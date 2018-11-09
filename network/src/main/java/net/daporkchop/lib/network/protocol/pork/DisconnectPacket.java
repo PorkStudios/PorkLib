@@ -13,35 +13,44 @@
  *
  */
 
-package net.daporkchop.lib.network.conn;
+package net.daporkchop.lib.network.protocol.pork;
 
-import lombok.NonNull;
-import net.daporkchop.lib.network.endpoint.Endpoint;
-import net.daporkchop.lib.network.packet.Packet;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.network.conn.UserConnection;
+import net.daporkchop.lib.network.packet.Codec;
+
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-public interface Connection {
-    Endpoint getEndpoint();
+@NoArgsConstructor
+@AllArgsConstructor
+public class DisconnectPacket implements PorkPacket {
+    public String reason;
 
-    default void close()    {
-        this.close(null);
+    @Override
+    public void read(DataIn in) throws IOException {
+        this.reason = in.readUTF();
     }
 
-    void close(String reason);
-
-    boolean isConnected();
-
-    default void send(@NonNull Packet packet)   {
-        this.send(packet, false);
+    @Override
+    public void write(DataOut out) throws IOException {
+        out.writeUTF(this.reason);
     }
 
-    void send(@NonNull Packet packet, boolean blocking);
+    public static class DisconnectCodec implements Codec<DisconnectPacket, UserConnection>  {
+        @Override
+        public void handle(DisconnectPacket packet, UserConnection connection) {
+            connection.close(packet.reason);
+        }
 
-    default void send(@NonNull Packet... packets)   {
-        for (Packet packet : packets)    {
-            this.send(packet);
+        @Override
+        public DisconnectPacket createInstance() {
+            return new DisconnectPacket();
         }
     }
 }

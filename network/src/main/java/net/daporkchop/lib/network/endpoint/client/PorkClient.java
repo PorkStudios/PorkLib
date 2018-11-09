@@ -15,28 +15,16 @@
 
 package net.daporkchop.lib.network.endpoint.client;
 
-import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
-import io.netty.handler.codec.LengthFieldPrepender;
 import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.network.EndpointType;
-import net.daporkchop.lib.network.Transport;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
-import net.daporkchop.lib.network.packet.PacketProtocol;
-import net.daporkchop.lib.network.protocol.netty.NettyPacketDecoder;
-import net.daporkchop.lib.network.protocol.netty.NettyPacketEncoder;
-import net.daporkchop.lib.network.protocol.netty.PorkReceiveHandler;
+import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.packet.PacketRegistry;
+import net.daporkchop.lib.network.protocol.EndpointManager;
+import net.daporkchop.lib.network.protocol.pork.DisconnectPacket;
 
 import java.util.Collection;
 
@@ -45,38 +33,16 @@ import java.util.Collection;
  */
 @Getter
 public class PorkClient<C extends UserConnection> implements Endpoint<C> {
-    private final PacketProtocol<C> protocol;
-    private final Transport transport;
+    private final PacketRegistry<C> registry;
 
-    private final EventLoopGroup workerGroup;
-    private final ChannelFuture channelFuture;
+    private final EndpointManager.ClientEndpointManager<C> manager;
 
+    @SuppressWarnings("unchecked")
     public PorkClient(@NonNull ClientBuilder<C> builder) {
-        this.protocol = builder.getProtocol();
-        this.transport = builder.getTransport();
+        this.registry = new PacketRegistry<>(builder.getProtocols());
+        this.manager = builder.getManager().createClientManager();
 
-        this.workerGroup = new NioEventLoopGroup(0, builder.getExecutor());
-        try {
-            Bootstrap bootstrap = new Bootstrap();
-            bootstrap.group(this.workerGroup);
-            bootstrap.channel(NioSocketChannel.class); //TODO: make use of this for fast data access?
-            bootstrap.handler(new ChannelInitializer<SocketChannel>() {
-                @Override
-                protected void initChannel(SocketChannel c) throws Exception {
-                    c.pipeline().addLast(new LengthFieldPrepender(3));
-                    c.pipeline().addLast(new LengthFieldBasedFrameDecoder(0xFFFFFF, 0, 3, 0, 3));
-                    c.pipeline().addLast(new NettyPacketEncoder());
-                    c.pipeline().addLast(new NettyPacketDecoder());
-                    c.pipeline().addLast(new PorkReceiveHandler<>(PorkClient.this));
-                }
-            });
-            bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
-
-            this.channelFuture = bootstrap.connect(builder.getAddress()).syncUninterruptibly();
-        } catch (Exception e) {
-            this.workerGroup.shutdownGracefully();
-            throw new RuntimeException(e);
-        }
+        this.manager.start(builder.getAddress(), builder.getExecutor(), this);
     }
 
     @Override
@@ -89,8 +55,8 @@ public class PorkClient<C extends UserConnection> implements Endpoint<C> {
         return null;
     }
 
-    public void send(@NonNull Object obj)  {
-        this.channelFuture.channel().writeAndFlush(obj).syncUninterruptibly();
+    public void send(@NonNull Packet pck) {
+        this.manager.send(pck);
     }
 
     @Override
@@ -100,15 +66,13 @@ public class PorkClient<C extends UserConnection> implements Endpoint<C> {
                 throw new IllegalStateException("Already closed!");
             }
 
-            //TODO: send disconnect here
-
-            this.channelFuture.channel().close();
-            this.workerGroup.shutdownGracefully();
+            this.send(new DisconnectPacket(reason));
+            this.manager.close();
         }
     }
 
     @Override
     public boolean isRunning() {
-        return this.channelFuture.channel().isActive();
+        return this.manager.isRunning();
     }
 }

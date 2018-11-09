@@ -13,35 +13,56 @@
  *
  */
 
-package net.daporkchop.lib.network.conn;
+package net.daporkchop.lib.network.packet;
 
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.network.endpoint.Endpoint;
-import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.conn.UserConnection;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * @author DaPorkchop_
  */
-public interface Connection {
-    Endpoint getEndpoint();
+public abstract class UserProtocol<C extends UserConnection> {
+    final List<Codec<? extends Packet, C>> registered = new LinkedList<>();
 
-    default void close()    {
-        this.close(null);
+    @Getter
+    private final String name;
+
+    @Getter
+    private final int version;
+
+    public UserProtocol(@NonNull String name, int version) {
+        this.name = name;
+        this.version = version;
     }
 
-    void close(String reason);
-
-    boolean isConnected();
-
-    default void send(@NonNull Packet packet)   {
-        this.send(packet, false);
+    public boolean isCompatible(@NonNull UserProtocol<C> protocol)  {
+        return this.isCompatible(protocol.name, protocol.version);
     }
 
-    void send(@NonNull Packet packet, boolean blocking);
+    public boolean isCompatible(@NonNull String name, int version)  {
+        return this.name.equals(name) && this.version == version;
+    }
 
-    default void send(@NonNull Packet... packets)   {
-        for (Packet packet : packets)    {
-            this.send(packet);
+    protected abstract void registerPackets();
+
+    protected void register(@NonNull Codec<? extends Packet, C> codec) {
+        synchronized (this.registered) {
+            this.registered.add(codec);
         }
+    }
+
+    protected void register(@NonNull Codec<? extends Packet, C>... codecs) {
+        for (Codec<? extends Packet, C> codec : codecs) {
+            this.register(codec);
+        }
+    }
+
+    protected <P extends Packet> void register(@NonNull PacketHandler<P, C> handler, @NonNull Supplier<P> supplier) {
+        this.register(new Codec.SimpleCodec<>(handler, supplier));
     }
 }

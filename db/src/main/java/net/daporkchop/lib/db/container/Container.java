@@ -10,6 +10,7 @@ import net.daporkchop.lib.db.PorkDB;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.function.Consumer;
 
 /**
  * @author DaPorkchop_
@@ -114,6 +115,9 @@ public abstract class Container<V, B extends Container.Builder<V, ? extends Cont
 
         @NonNull
         protected final String name;
+
+        @NonNull
+        private final Consumer<C> buildHook;
 
         public final C buildIfPresent() throws IOException {
             if (new File(this.db.getRoot(), this.name).exists()) {

@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Consumer;
 
 /**
  * @author DaPorkchop_
@@ -152,8 +153,8 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
         @NonNull
         private Serializer<V> valueSerializer;
 
-        protected Builder(PorkDB db, String name) {
-            super(db, name);
+        public Builder(PorkDB db, String name, Consumer<DBMap<K, V>> buildHook) {
+            super(db, name, buildHook);
         }
 
         @Override

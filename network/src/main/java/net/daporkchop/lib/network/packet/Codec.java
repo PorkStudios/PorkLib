@@ -24,15 +24,21 @@ import java.util.function.Supplier;
 /**
  * @author DaPorkchop_
  */
-public interface Codec<P extends Packet, C extends UserConnection> {
-    void handle(@NonNull P packet, @NonNull C connection);
-
+public interface Codec<P extends Packet, C extends UserConnection> extends PacketHandler<P, C> {
     P createInstance();
 
     @RequiredArgsConstructor
-    abstract class SimpleCodec<P extends Packet, C extends UserConnection> implements Codec<P, C>   {
+    class SimpleCodec<P extends Packet, C extends UserConnection> implements Codec<P, C>   {
+        @NonNull
+        private final PacketHandler<P, C> handler;
+
         @NonNull
         private final Supplier<P> packetSupplier;
+
+        @Override
+        public void handle(P packet, C connection) {
+            this.handler.handle(packet, connection);
+        }
 
         @Override
         public P createInstance() {

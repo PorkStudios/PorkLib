@@ -13,35 +13,19 @@
  *
  */
 
-package net.daporkchop.lib.network.conn;
-
-import lombok.NonNull;
-import net.daporkchop.lib.network.endpoint.Endpoint;
-import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.packet.UserProtocol;
 
 /**
  * @author DaPorkchop_
  */
-public interface Connection {
-    Endpoint getEndpoint();
+public class TestProtocol extends UserProtocol<TestConnection> {
+    public static final TestProtocol INSTANCE = new TestProtocol();
 
-    default void close()    {
-        this.close(null);
+    private TestProtocol() {
+        super("Test", 1);
     }
 
-    void close(String reason);
-
-    boolean isConnected();
-
-    default void send(@NonNull Packet packet)   {
-        this.send(packet, false);
-    }
-
-    void send(@NonNull Packet packet, boolean blocking);
-
-    default void send(@NonNull Packet... packets)   {
-        for (Packet packet : packets)    {
-            this.send(packet);
-        }
+    @Override
+    protected void registerPackets() {
     }
 }

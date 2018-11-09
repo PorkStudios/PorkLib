@@ -17,26 +17,27 @@ import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.endpoint.client.PorkClient;
 import net.daporkchop.lib.network.endpoint.server.PorkServer;
-import net.daporkchop.lib.network.packet.PacketProtocol;
+import org.junit.Test;
 
 import java.net.InetSocketAddress;
 
 /**
  * @author DaPorkchop_
  */
-public class TempTest {
-    public static void main(String... args) {
-        PorkServer server = new ServerBuilder<>()
+public class NetworkTest {
+    @Test
+    public void test() {
+        PorkServer server = new ServerBuilder<TestConnection>()
                 .setAddress(new InetSocketAddress("0.0.0.0", 12345))
-                .setProtocol(new PacketProtocol<>())
+                .addProtocol(TestProtocol.INSTANCE)
                 .build();
 
-        PorkClient client = new ClientBuilder<>()
+        PorkClient client = new ClientBuilder<TestConnection>()
                 .setAddress(new InetSocketAddress("localhost", 12345))
-                .setProtocol(new PacketProtocol<>())
+                .addProtocol(TestProtocol.INSTANCE)
                 .build();
 
-        client.send("name jef lol");
+        //client.send("name jef lol");
 
         /*try (Scanner scanner = new Scanner(System.in))  {
             scanner.nextLine();

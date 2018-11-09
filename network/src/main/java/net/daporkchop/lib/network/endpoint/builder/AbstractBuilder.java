@@ -19,14 +19,17 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.network.Transport;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
-import net.daporkchop.lib.network.packet.PacketProtocol;
+import net.daporkchop.lib.network.packet.UserProtocol;
+import net.daporkchop.lib.network.protocol.ProtocolManager;
+import net.daporkchop.lib.network.protocol.netty.TcpProtocolManager;
+import net.daporkchop.lib.network.protocol.pork.PorkProtocol;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -35,35 +38,62 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * @author DaPorkchop_
  */
-@Accessors(chain = true)
 @Getter
-@Setter
-public abstract class AbstractBuilder<C extends UserConnection, E extends Endpoint<C>> {
+public abstract class AbstractBuilder<C extends UserConnection, E extends Endpoint<C>, B extends AbstractBuilder<C, E, B>> {
     private static final AtomicInteger DEFAULT_EXECUTOR_THREAD_COUNTER = new AtomicInteger(0);
-    //private static final Executor DEFAULT_EXECUTOR = Executors.newCachedThreadPool(runnable -> new Thread(runnable, String.format("PorkLib network executor #%d", DEFAULT_EXECUTOR_THREAD_COUNTER.getAndIncrement())));
     private static final Executor DEFAULT_EXECUTOR = new ThreadPoolExecutor(
             0, Integer.MAX_VALUE,
-            0, TimeUnit.SECONDS, //2, TimeUnit.SECONDS,
+            0, TimeUnit.SECONDS,
             new SynchronousQueue<>(),
             runnable -> new Thread(runnable, String.format("PorkLib network executor #%d", DEFAULT_EXECUTOR_THREAD_COUNTER.getAndIncrement()))
     );
 
-    @NonNull
-    private PacketProtocol<C> protocol;
+    @SuppressWarnings("unchecked")
+    private final Collection<UserProtocol<C>> protocols = new ArrayDeque<UserProtocol<C>>()    {
+        {
+            this.add((UserProtocol<C>) PorkProtocol.INSTANCE);
+        }
+    };
 
     @NonNull
     private InetSocketAddress address;
 
     @NonNull
-    private Transport transport = Transport.TCP;
+    private ProtocolManager manager = TcpProtocolManager.INSTANCE;
 
     @NonNull
     private Executor executor = DEFAULT_EXECUTOR;
 
-    public E build()    {
-        if (this.protocol == null)  {
-            throw new IllegalStateException("protocol must be set!");
-        } else if (this.address == null)    {
+    @SuppressWarnings("unchecked")
+    public B addProtocol(@NonNull UserProtocol<C> protocol) {
+        synchronized (this.protocols)   {
+            this.protocols.add(protocol);
+        }
+        return (B) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public B setAddress(@NonNull InetSocketAddress address) {
+        this.address = address;
+        return (B) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public B setManager(@NonNull ProtocolManager manager) {
+        this.manager = manager;
+        return (B) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public B setExecutor(@NonNull Executor executor) {
+        this.executor = executor;
+        return (B) this;
+    }
+
+    public E build() {
+        if (this.protocols.isEmpty()) {
+            throw new IllegalStateException("At least one protocol must be registered!");
+        } else if (this.address == null) {
             throw new IllegalStateException("address must be set!");
         }
 

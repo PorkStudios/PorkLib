@@ -13,13 +13,14 @@
  *
  */
 
-package net.daporkchop.lib.network;
+package net.daporkchop.lib.network.packet;
+
+import lombok.NonNull;
+import net.daporkchop.lib.network.conn.UserConnection;
 
 /**
  * @author DaPorkchop_
  */
-public enum Transport {
-    TCP,
-    UDP
-    ;
+public interface PacketHandler<P extends Packet, C extends UserConnection> {
+    void handle(@NonNull P packet, @NonNull C connection);
 }

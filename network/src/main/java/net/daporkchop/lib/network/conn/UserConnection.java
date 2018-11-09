@@ -19,7 +19,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import net.daporkchop.lib.network.Transport;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Packet;
 
@@ -53,7 +52,7 @@ public abstract class UserConnection implements Connection {
     }
 
     @Override
-    public Transport getTransport() {
-        return this.protocolConnection.getTransport();
+    public void send(Packet packet, boolean blocking) {
+        this.protocolConnection.send(packet, blocking);
     }
 }

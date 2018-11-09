@@ -13,35 +13,46 @@
  *
  */
 
-package net.daporkchop.lib.network.conn;
+package net.daporkchop.lib.network.protocol.netty.conn;
 
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.network.conn.Connection;
+import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.protocol.pork.DisconnectPacket;
 
 /**
  * @author DaPorkchop_
  */
-public interface Connection {
-    Endpoint getEndpoint();
+@Getter
+@RequiredArgsConstructor
+public class NettyConnection<C extends UserConnection> implements Connection {
+    @NonNull
+    private final Channel channel;
+    @NonNull
+    private final Endpoint<C> endpoint;
 
-    default void close()    {
-        this.close(null);
+    @Override
+    public void close(String reason) {
+        this.channel.writeAndFlush(new DisconnectPacket(reason));
+        this.channel.close();
     }
 
-    void close(String reason);
-
-    boolean isConnected();
-
-    default void send(@NonNull Packet packet)   {
-        this.send(packet, false);
+    @Override
+    public boolean isConnected() {
+        return this.channel.isActive();
     }
 
-    void send(@NonNull Packet packet, boolean blocking);
-
-    default void send(@NonNull Packet... packets)   {
-        for (Packet packet : packets)    {
-            this.send(packet);
+    @Override
+    public void send(@NonNull Packet packet, boolean blocking) {
+        ChannelFuture future = this.channel.writeAndFlush(packet);
+        if (blocking) {
+            future.syncUninterruptibly();
         }
     }
 }

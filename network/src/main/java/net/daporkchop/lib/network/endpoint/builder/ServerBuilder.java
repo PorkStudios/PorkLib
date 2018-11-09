@@ -29,7 +29,7 @@ import net.daporkchop.lib.network.endpoint.server.PorkServer;
 @Accessors(chain = true)
 @Getter
 @Setter
-public class ServerBuilder<C extends UserConnection> extends AbstractBuilder<C, PorkServer<C>> {
+public class ServerBuilder<C extends UserConnection> extends AbstractBuilder<C, PorkServer<C>, ServerBuilder<C>> {
     @NonNull
     private CryptographySettings cryptographySettings = new CryptographySettings();
 

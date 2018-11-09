@@ -1,8 +1,0 @@
-/.idea/
-*.iml
-*.ipr
-*.class
-*.jar
-target/
-/run/
-*.db

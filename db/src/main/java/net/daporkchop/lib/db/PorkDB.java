@@ -8,10 +8,14 @@ import net.daporkchop.lib.db.container.impl.DBAtomicLong;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Manages the various {@link Container}s for a database
@@ -19,10 +23,10 @@ import java.util.function.Consumer;
  * @author DaPorkchop_
  */
 public class PorkDB {
-    public static Builder builder()    {
+    public static Builder builder() {
         return new Builder();
     }
-
+    private final Map<Class<? extends Container>, Function<String, ? extends Container.Builder>> builderCache = new IdentityHashMap<>();
     @Getter
     private final File root;
 
@@ -49,6 +53,23 @@ public class PorkDB {
         return (C) this.loadedContainers.get(name);
     }
 
+    @SuppressWarnings("unchecked")
+    public <V, B extends Container.Builder<V, ? extends Container<V, B>>, C extends Container<V, ? extends Container.Builder<V, C>>> B getBuilderFor(@NonNull String name, @NonNull Class<C> clazz) {
+        Function<String, ? extends B> supplier;
+        synchronized (builderCache) {
+            supplier = (Function<String, ? extends B>) builderCache.computeIfAbsent(clazz, clazzIn -> n -> {
+                    try {
+                        Class<? extends Container.Builder> builderClass = (Class<? extends Container.Builder>) Class.forName(String.format("%s.Builder", clazzIn.getCanonicalName()));
+                        Constructor constructor = builderClass.getConstructor(PorkDB.class, String.class, Consumer.class);
+                        return (B) constructor.newInstance(this, n, (Consumer<C>) c -> this.loadedContainers.put(n, c));
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+        }
+        return supplier.apply(name);
+    }
+
     /**
      * Get a {@link DBAtomicLong}, loading/creating it if required.
      *
@@ -59,7 +80,7 @@ public class PorkDB {
      */
     public DBAtomicLong loadAtomicLong(@NonNull String name, @NonNull Consumer<DBAtomicLong.Builder>... populators) {
         this.ensureOpen();
-        return this.computeIfAbsent(name, n -> this.load(new DBAtomicLong.Builder(this, name), populators));
+        return this.computeIfAbsent(name, n -> this.load(new DBAtomicLong.Builder(this, name, c -> this.loadedContainers.put(n, c)), populators));
     }
 
     /**

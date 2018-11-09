@@ -21,7 +21,7 @@ public class DBTest {
     @Test
     @SuppressWarnings("unchecked")
     public void test() throws IOException {
-        Random r = ThreadLocalRandom.current();
+        /*Random r = ThreadLocalRandom.current();
         long longVal = r.nextLong();
         {
             PorkDB db = PorkDB.builder()
@@ -49,6 +49,7 @@ public class DBTest {
             } finally {
                 db.close();
             }
-        }
+        }*/
+        System.out.println(DBAtomicLong.Builder.class.getCanonicalName());
     }
 }

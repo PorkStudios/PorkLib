@@ -10,6 +10,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 
 /**
  * @author DaPorkchop_
@@ -75,8 +76,8 @@ public class DBAtomicLong extends Container<AtomicLong, DBAtomicLong.Builder> {
     }
 
     public static final class Builder extends Container.Builder<AtomicLong, DBAtomicLong> {
-        public Builder(PorkDB db, String name) {
-            super(db, name);
+        public Builder(PorkDB db, String name, Consumer<DBAtomicLong> buildHook) {
+            super(db, name, buildHook);
         }
 
         @Override

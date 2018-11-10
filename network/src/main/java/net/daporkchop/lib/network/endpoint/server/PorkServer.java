@@ -23,6 +23,7 @@ import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.packet.PacketRegistry;
 import net.daporkchop.lib.network.protocol.EndpointManager;
+import net.daporkchop.lib.network.protocol.pork.DisconnectPacket;
 
 import java.util.Collection;
 
@@ -59,7 +60,8 @@ public class PorkServer<C extends UserConnection> implements Endpoint<C> {
                 throw new IllegalStateException("Already closed!");
             }
 
-            this.manager.getConnections().forEach(c -> c.close(reason));
+            this.manager.broadcast(new DisconnectPacket(reason));
+            //this.manager.getConnections().forEach(c -> c.closeConnection(reason));
             this.manager.close();
         }
     }

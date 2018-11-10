@@ -25,11 +25,11 @@ import net.daporkchop.lib.network.packet.Packet;
 public interface Connection {
     Endpoint getEndpoint();
 
-    default void close()    {
-        this.close(null);
+    default void closeConnection()    {
+        this.closeConnection(null);
     }
 
-    void close(String reason);
+    void closeConnection(String reason);
 
     boolean isConnected();
 

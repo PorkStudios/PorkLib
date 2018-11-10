@@ -43,6 +43,8 @@ public interface EndpointManager<C extends UserConnection> {
         Collection<C> getConnections();
 
         void broadcast(@NonNull Packet packet);
+
+        void close(String reason);
     }
 
     interface ClientEndpointManager<C extends UserConnection> extends EndpointManager<C> {

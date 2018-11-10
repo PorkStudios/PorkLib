@@ -13,44 +13,10 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.pork;
-
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.network.conn.UserConnection;
-import net.daporkchop.lib.network.packet.Codec;
-
-import java.io.IOException;
+package net.daporkchop.lib.network.util;
 
 /**
  * @author DaPorkchop_
  */
-@NoArgsConstructor
-@AllArgsConstructor
-public class DisconnectPacket implements PorkPacket {
-    public String reason;
-
-    @Override
-    public void read(DataIn in) throws IOException {
-        this.reason = in.readUTF();
-    }
-
-    @Override
-    public void write(DataOut out) throws IOException {
-        out.writeUTF(this.reason);
-    }
-
-    public static class DisconnectCodec implements Codec<DisconnectPacket, UserConnection>  {
-        @Override
-        public void handle(DisconnectPacket packet, UserConnection connection) {
-            connection.closeConnection(packet.reason);
-        }
-
-        @Override
-        public DisconnectPacket createInstance() {
-            return new DisconnectPacket();
-        }
-    }
+public class CryptManager {
 }

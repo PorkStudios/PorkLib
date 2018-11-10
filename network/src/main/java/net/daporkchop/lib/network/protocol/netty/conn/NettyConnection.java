@@ -38,7 +38,7 @@ public class NettyConnection<C extends UserConnection> implements Connection {
     private final Endpoint<C> endpoint;
 
     @Override
-    public void close(String reason) {
+    public void closeConnection(String reason) {
         this.channel.writeAndFlush(new DisconnectPacket(reason));
         this.channel.close();
     }

@@ -13,44 +13,50 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.pork;
+package net.daporkchop.lib.network.protocol.netty;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
+import net.daporkchop.lib.network.conn.Connection;
 import net.daporkchop.lib.network.conn.UserConnection;
-import net.daporkchop.lib.network.packet.Codec;
-
-import java.io.IOException;
+import net.daporkchop.lib.network.endpoint.Endpoint;
+import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.protocol.pork.DisconnectPacket;
 
 /**
  * @author DaPorkchop_
  */
-@NoArgsConstructor
-@AllArgsConstructor
-public class DisconnectPacket implements PorkPacket {
-    public String reason;
+public class WrapperNioServerSocketChannel<C extends UserConnection> extends NioServerSocketChannel implements Connection {
+    @Setter(AccessLevel.PACKAGE)
+    @Getter
+    @NonNull
+    private Endpoint<C> endpoint;
+
+    @Setter(AccessLevel.PACKAGE)
+    @Getter
+    @NonNull
+    private C connection;
 
     @Override
-    public void read(DataIn in) throws IOException {
-        this.reason = in.readUTF();
+    public void closeConnection(String reason) {
+        super.writeAndFlush(new DisconnectPacket(reason));//.syncUninterruptibly();
+        super.close();//.syncUninterruptibly();
     }
 
     @Override
-    public void write(DataOut out) throws IOException {
-        out.writeUTF(this.reason);
+    public boolean isConnected() {
+        return super.isActive();
     }
 
-    public static class DisconnectCodec implements Codec<DisconnectPacket, UserConnection>  {
-        @Override
-        public void handle(DisconnectPacket packet, UserConnection connection) {
-            connection.closeConnection(packet.reason);
-        }
-
-        @Override
-        public DisconnectPacket createInstance() {
-            return new DisconnectPacket();
+    @Override
+    public void send(@NonNull Packet packet, boolean blocking) {
+        ChannelFuture future = super.write(packet);
+        if (blocking)   {
+            future.syncUninterruptibly();
         }
     }
 }

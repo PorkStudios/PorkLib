@@ -37,8 +37,8 @@ public abstract class UserConnection implements Connection {
     }
 
     @Override
-    public void close(String reason) {
-        this.protocolConnection.close(reason);
+    public void closeConnection(String reason) {
+        this.protocolConnection.closeConnection(reason);
     }
 
     @Override

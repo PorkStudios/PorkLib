@@ -5,3 +5,4 @@
 *.md text=auto eol=lf
 *.yml text=auto eol=lf
 *.template text=auto eol=lf
+*.txt text=auto eol=lf

@@ -40,7 +40,7 @@ public class Generator {
     public static String LICENSE;
 
     static {
-        /*primitives.add(
+        primitives.add(
                 new Primitive()
                         .setFullName("Boolean")
                         .setName("boolean")
@@ -48,7 +48,7 @@ public class Generator {
                         .setEmptyValue("false")
                         .setEquals("a == b")
                         .setStringFormat("%b")
-        );*/
+        );
         primitives.add(
                 new Primitive()
                         .setFullName("Byte")

@@ -1,21 +1,32 @@
+/*
+ * Adapted from the Wizardry License
+ *
+ * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ *
+ * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
+ *
+ * The persons and/or organizations are also disallowed from sub-licensing and/or trademarking this software without explicit permission from DaPorkchop_.
+ *
+ * Any persons and/or organizations using this software must disclose their source code and have it publicly available, include this license, provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+
 package net.daporkchop.lib.db;
 
 import lombok.*;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.function.IOEFunction;
-import net.daporkchop.lib.db.container.Container;
-import net.daporkchop.lib.db.container.impl.DBAtomicLong;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * Manages the various {@link Container}s for a database
@@ -26,11 +37,16 @@ public class PorkDB {
     public static Builder builder() {
         return new Builder();
     }
+
+    public static Builder builder(@NonNull File root) {
+        return new Builder().setRoot(root);
+    }
+
     private final Map<Class<? extends Container>, Function<String, ? extends Container.Builder>> builderCache = new IdentityHashMap<>();
     @Getter
     private final File root;
 
-    private final Map<String, Container> loadedContainers = new ConcurrentHashMap<>();
+    final Map<String, Container> loadedContainers = new ConcurrentHashMap<>();
 
     private final Object saveLock = new Object();
     @Getter
@@ -51,36 +67,6 @@ public class PorkDB {
     public <C extends Container> C get(@NonNull String name) {
         this.ensureOpen();
         return (C) this.loadedContainers.get(name);
-    }
-
-    @SuppressWarnings("unchecked")
-    public <V, B extends Container.Builder<V, ? extends Container<V, B>>, C extends Container<V, ? extends Container.Builder<V, C>>> B getBuilderFor(@NonNull String name, @NonNull Class<C> clazz) {
-        Function<String, ? extends B> supplier;
-        synchronized (builderCache) {
-            supplier = (Function<String, ? extends B>) builderCache.computeIfAbsent(clazz, clazzIn -> n -> {
-                    try {
-                        Class<? extends Container.Builder> builderClass = (Class<? extends Container.Builder>) Class.forName(String.format("%s.Builder", clazzIn.getCanonicalName()));
-                        Constructor constructor = builderClass.getConstructor(PorkDB.class, String.class, Consumer.class);
-                        return (B) constructor.newInstance(this, n, (Consumer<C>) c -> this.loadedContainers.put(n, c));
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                });
-        }
-        return supplier.apply(name);
-    }
-
-    /**
-     * Get a {@link DBAtomicLong}, loading/creating it if required.
-     *
-     * @param name       the container name
-     * @param populators functions to be run on the builder to initialize the container
-     *                   as needed
-     * @return an instance of {@link DBAtomicLong}
-     */
-    public DBAtomicLong loadAtomicLong(@NonNull String name, @NonNull Consumer<DBAtomicLong.Builder>... populators) {
-        this.ensureOpen();
-        return this.computeIfAbsent(name, n -> this.load(new DBAtomicLong.Builder(this, name, c -> this.loadedContainers.put(n, c)), populators));
     }
 
     /**

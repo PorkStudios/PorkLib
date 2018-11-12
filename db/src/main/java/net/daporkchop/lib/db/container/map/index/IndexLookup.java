@@ -13,19 +13,33 @@
  *
  */
 
-package net.daporkchop.lib.common.util;
+package net.daporkchop.lib.db.container.map.index;
+
+import lombok.NonNull;
+import net.daporkchop.lib.binary.Persistent;
+import net.daporkchop.lib.db.data.key.KeyHasher;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 
 /**
  * @author DaPorkchop_
  */
-public interface Saveable<T extends Throwable> {
-    void save() throws T;
-
-    default void markDirty()    {
-        this.setDirty(true);
+public interface IndexLookup<K> extends Persistent {
+    default KeyHasher<K> getKeyHasher() {
+        throw new UnsupportedOperationException(String.format("%s doesn't use a hash!", this.getClass().getCanonicalName()));
     }
 
-    boolean isDirty();
+    default void init(KeyHasher<K> keyHasher, @NonNull RandomAccessFile file) throws IOException {
+        this.load();
+    }
 
-    void setDirty(boolean value);
+    long get(@NonNull K key);
+
+    void set(@NonNull K key, long val);
+
+    boolean contains(@NonNull K key);
+
+    void remove(@NonNull K key);
 }

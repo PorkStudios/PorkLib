@@ -1,11 +1,33 @@
-package net.daporkchop.lib.db.container.impl.map;
+/*
+ * Adapted from the Wizardry License
+ *
+ * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ *
+ * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
+ *
+ * The persons and/or organizations are also disallowed from sub-licensing and/or trademarking this software without explicit permission from DaPorkchop_.
+ *
+ * Any persons and/or organizations using this software must disclose their source code and have it publicly available, include this license, provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
 
+package net.daporkchop.lib.db.container.map;
+
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.data.Serializer;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.db.Container;
 import net.daporkchop.lib.db.PorkDB;
-import net.daporkchop.lib.db.container.Container;
+import net.daporkchop.lib.db.container.map.index.IndexLookup;
+import net.daporkchop.lib.db.container.map.index.TreeIndexLookup;
+import net.daporkchop.lib.db.data.key.KeyHasher;
+import net.daporkchop.lib.db.data.key.KeyHasherDefault;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -14,31 +36,35 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.function.Consumer;
 
 /**
  * @author DaPorkchop_
  */
 public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> implements Map<K, V> {
-    private volatile boolean dirty = false;
+    public static Builder builder(@NonNull PorkDB db, @NonNull String name) {
+        return new Builder(db, name);
+    }
     private final AtomicLong size = new AtomicLong(0L);
-
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
-
     private final Serializer<K> keySerializer;
     private final Serializer<V> valueSerializer;
+    private final IndexLookup<K> indexLookup;
+    private volatile boolean dirty = false;
 
     public DBMap(Builder<K, V> builder) throws IOException {
         super(builder);
 
         this.keySerializer = builder.keySerializer;
         this.valueSerializer = builder.valueSerializer;
+        this.indexLookup = builder.indexLookup;
 
         try (DataIn in = this.getIn("headers.dat", out -> {
             out.writeLong(0L); //size
         })) {
             this.size.set(in.readLong());
         }
+
+        this.indexLookup.init(builder.keyHasher, this.getRAF("index"));
     }
 
     @Override
@@ -59,6 +85,7 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
         } finally {
             this.lock.writeLock().unlock();
         }
+        this.indexLookup.save();
         //TODO
     }
 
@@ -148,13 +175,23 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
         return null;
     }
 
+    @Getter
+    @Setter
+    @Accessors(chain = true)
     public static class Builder<K, V> extends Container.Builder<Map<K, V>, DBMap<K, V>> {
         private Serializer<K> keySerializer;
+
         @NonNull
         private Serializer<V> valueSerializer;
 
-        public Builder(PorkDB db, String name, Consumer<DBMap<K, V>> buildHook) {
-            super(db, name, buildHook);
+        @NonNull
+        private KeyHasher<K> keyHasher = new KeyHasherDefault<>();
+
+        @NonNull
+        private IndexLookup<K> indexLookup = new TreeIndexLookup<>();
+
+        private Builder(PorkDB db, String name) {
+            super(db, name);
         }
 
         @Override

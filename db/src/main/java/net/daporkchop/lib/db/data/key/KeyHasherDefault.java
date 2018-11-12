@@ -13,11 +13,33 @@
  *
  */
 
-package net.daporkchop.lib.common.util;
+package net.daporkchop.lib.db.data.key;
+
+import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.FastByteArrayOutputStream;
+import net.daporkchop.lib.hash.HashAlg;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 
 /**
  * @author DaPorkchop_
  */
-public interface Initializable<T extends Throwable> {
-    void init() throws T;
+public class KeyHasherDefault<K> implements KeyHasher<K> {
+    @Override
+    public byte[] hash(@NonNull K key) {
+        ByteArrayOutputStream baos = new FastByteArrayOutputStream();
+        try (ObjectOutputStream out = new ObjectOutputStream(baos)) {
+            out.writeObject(key);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return HashAlg.SHA_256.hash(baos.toByteArray());
+    }
+
+    @Override
+    public int getHashLength() {
+        return HashAlg.SHA_256.getLength();
+    }
 }

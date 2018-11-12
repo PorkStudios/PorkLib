@@ -13,6 +13,10 @@
  *
  */
 
-dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+package net.daporkchop.lib.db.data;
+
+/**
+ * @author DaPorkchop_
+ */
+public class A {
 }

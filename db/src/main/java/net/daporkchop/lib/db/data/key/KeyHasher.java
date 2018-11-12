@@ -13,6 +13,39 @@
  *
  */
 
-dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+package net.daporkchop.lib.db.data.key;
+
+import lombok.Getter;
+import lombok.NonNull;
+
+/**
+ * @author DaPorkchop_
+ */
+public interface KeyHasher<K> {
+    byte[] hash(@NonNull K key);
+
+    int getHashLength();
+
+    abstract class BaseKeyHasher<K> implements KeyHasher<K> {
+        @Getter
+        private final int hashLength;
+        private final ThreadLocal<byte[]> hashCache;
+
+        public BaseKeyHasher(int hashLength) {
+            if (hashLength <= 0) {
+                throw new IllegalArgumentException(String.format("Invalid hash length: %d", hashLength));
+            }
+            this.hashLength = hashLength;
+            this.hashCache = ThreadLocal.withInitial(() -> new byte[hashLength]);
+        }
+
+        @Override
+        public byte[] hash(@NonNull K key) {
+            byte[] b = this.hashCache.get();
+            this.doHash(key, b);
+            return b;
+        }
+
+        protected abstract void doHash(@NonNull K key, @NonNull byte[] b);
+    }
 }

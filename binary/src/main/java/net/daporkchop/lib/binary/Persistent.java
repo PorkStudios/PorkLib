@@ -13,6 +13,32 @@
  *
  */
 
-dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+package net.daporkchop.lib.binary;
+
+import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+
+import java.io.IOException;
+import java.io.RandomAccessFile;
+
+/**
+ * @author DaPorkchop_
+ */
+public interface Persistent {
+    void load() throws IOException;
+
+    void save() throws IOException;
+
+    void close() throws IOException;
+
+    boolean isDirty();
+
+    void setDirty(boolean dirty);
+
+    default void markDirty()    {
+        this.setDirty(true);
+    }
+
+    RandomAccessFile getFile();
 }

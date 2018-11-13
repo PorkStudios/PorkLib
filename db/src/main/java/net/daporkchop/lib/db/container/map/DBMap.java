@@ -46,7 +46,11 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
     }
     private final AtomicLong size = new AtomicLong(0L);
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
+    @Getter
     private final Serializer<K> keySerializer;
+    @Getter
+    private final KeyHasher<K> keyHasher;
+    @Getter
     private final Serializer<V> valueSerializer;
     private final IndexLookup<K> indexLookup;
     private volatile boolean dirty = false;
@@ -55,6 +59,7 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
         super(builder);
 
         this.keySerializer = builder.keySerializer;
+        this.keyHasher = builder.keyHasher;
         this.valueSerializer = builder.valueSerializer;
         this.indexLookup = builder.indexLookup;
 
@@ -64,7 +69,7 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
             this.size.set(in.readLong());
         }
 
-        this.indexLookup.init(builder.keyHasher, this.getRAF("index"));
+        this.indexLookup.init(this, this.getRAF("index"));
     }
 
     @Override

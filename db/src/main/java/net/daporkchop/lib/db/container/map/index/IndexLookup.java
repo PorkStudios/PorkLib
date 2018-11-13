@@ -17,21 +17,23 @@ package net.daporkchop.lib.db.container.map.index;
 
 import lombok.NonNull;
 import net.daporkchop.lib.binary.Persistent;
+import net.daporkchop.lib.db.container.map.DBMap;
 import net.daporkchop.lib.db.data.key.KeyHasher;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.Map;
 
 /**
  * @author DaPorkchop_
  */
 public interface IndexLookup<K> extends Persistent {
-    default KeyHasher<K> getKeyHasher() {
+    default DBMap<K, ?> getBacking() {
         throw new UnsupportedOperationException(String.format("%s doesn't use a hash!", this.getClass().getCanonicalName()));
     }
 
-    default void init(KeyHasher<K> keyHasher, @NonNull RandomAccessFile file) throws IOException {
+    default void init(@NonNull DBMap<K, ?> map, @NonNull RandomAccessFile file) throws IOException {
         this.load();
     }
 

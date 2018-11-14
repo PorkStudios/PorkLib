@@ -28,6 +28,8 @@ import net.daporkchop.lib.db.container.map.index.IndexLookup;
 import net.daporkchop.lib.db.container.map.index.TreeIndexLookup;
 import net.daporkchop.lib.db.data.key.KeyHasher;
 import net.daporkchop.lib.db.data.key.KeyHasherDefault;
+import net.daporkchop.lib.encoding.compression.Compression;
+import net.daporkchop.lib.encoding.compression.CompressionHelper;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -47,6 +49,8 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
     private final AtomicLong size = new AtomicLong(0L);
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
     @Getter
+    private final CompressionHelper compression;
+    @Getter
     private final Serializer<K> keySerializer;
     @Getter
     private final KeyHasher<K> keyHasher;
@@ -58,6 +62,7 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
     public DBMap(Builder<K, V> builder) throws IOException {
         super(builder);
 
+        this.compression = builder.compression;
         this.keySerializer = builder.keySerializer;
         this.keyHasher = builder.keyHasher;
         this.valueSerializer = builder.valueSerializer;
@@ -87,6 +92,7 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
                 }
                 this.dirty = false;
             }
+            this.indexLookup.save();
         } finally {
             this.lock.writeLock().unlock();
         }
@@ -198,6 +204,9 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
 
         @NonNull
         private IndexLookup<K> indexLookup = new TreeIndexLookup<>();
+
+        @NonNull
+        private CompressionHelper compression = Compression.NONE;
 
         private Builder(PorkDB db, String name) {
             super(db, name);

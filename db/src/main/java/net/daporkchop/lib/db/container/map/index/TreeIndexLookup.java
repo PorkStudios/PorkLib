@@ -125,13 +125,8 @@ public class TreeIndexLookup<K> implements IndexLookup<K> {
     public long get(K key) throws IOException {
         byte[] hash = this.hash(key);
         TreeNode node = this.rootNode;
-        while (node.depth != this.hashLength - 1) {
-            node = (TreeNode) node.get(hash, true);
-            if (node == null)   {
-                return -1L;
-            }
-        }
-        return node.getOffset(hash);
+        //TODO
+        return -1L;
     }
 
     @Override
@@ -139,10 +134,7 @@ public class TreeIndexLookup<K> implements IndexLookup<K> {
     public void set(K key, long val) throws IOException {
         byte[] hash = this.hash(key);
         TreeNode node = this.rootNode;
-        while (node.depth != this.hashLength - 1) {
-            node = (TreeNode) node.get(hash, true);
-        }
-        node.set(hash, val);
+        //TODO
     }
 
     @Override
@@ -150,26 +142,15 @@ public class TreeIndexLookup<K> implements IndexLookup<K> {
     public boolean contains(K key) throws IOException {
         byte[] hash = this.hash(key);
         TreeNode node = this.rootNode;
-        while (node.depth != this.hashLength - 1) {
-            node = (TreeNode) node.get(hash, true);
-            if (node == null)   {
-                return false;
-            }
-        }
-        return node.getOffset(hash) != -1L;
-        /*Object value;
-        while ((value = node.get(hash, false)) != null) {
-            if (value instanceof TreeIndexLookup.TreeNode) {
-                node = (TreeNode) value;
-            } else if (value instanceof Long)   {
-                return (Long) value != -1L;
-            }
-        }
-        return false;*/
+        //TODO
+        return false;
     }
 
     @Override
     public void remove(K key) throws IOException {
+        byte[] hash = this.hash(key);
+        TreeNode node = this.rootNode;
+        //TODO
     }
 
     @Override
@@ -210,117 +191,19 @@ public class TreeIndexLookup<K> implements IndexLookup<K> {
         protected final TreeIndexLookup this_ = TreeIndexLookup.this;
 
         protected final ReadWriteLock lock = new ReentrantReadWriteLock();
-        protected final SoftReference<TreeNode>[] subNodes;// = new SoftReference[256];
-        protected final ByteBuffer bbuf;
-        protected final LongBuffer pointers;
+        //protected final SoftReference<TreeNode>[] subNodes;
         protected final long pos;
         protected final int depth;
 
         @SuppressWarnings("unchecked")
         protected TreeNode(long offset, int depth) throws IOException {
             this.pos = offset << NODE_SIZE_SHIFT;
-            this.bbuf = ByteBuffer.allocateDirect(2048);
-            this.this_.channel.read(this.bbuf, this.pos);
-            this.bbuf.flip();
-            this.pointers = this.bbuf.asLongBuffer();
             this.depth = depth;
-            if (this.depth == this.this_.hashLength - 1) {
+            /*if (this.depth == this.this_.hashLength - 1) {
                 this.subNodes = null;
             } else {
                 this.subNodes = (SoftReference<TreeNode>[]) new SoftReference[256];
-            }
-        }
-
-        public Object get(byte[] hash, boolean createIfAbsent) throws IOException {
-            this.lock.readLock().lock();
-            try {
-                int i = hash[this.depth] & 0xFF;
-                if (this.subNodes == null) {
-                    return this.pointers.get(i);
-                }
-
-                //only call SoftReference#get once, you never know when GC may kick in
-                TreeNode node;
-                if (this.subNodes[i] == null || (node = this.subNodes[i].get()) == null) {
-                    //we'll need to read from disk
-                    long l = this.pointers.get(i);
-                    if (l == -1L && !createIfAbsent) {
-                        //not found, don't create
-                        return null;
-                    }
-                    this.lock.writeLock().lock();
-                    try {
-                        long nextPos = this.this_.findAndAllocateNewSector();
-                        TreeNode next = new TreeNode(nextPos, this.depth + 1);
-                        this.subNodes[i] = new SoftReference<>(next);
-                        this.pointers.put(i, nextPos);
-                        this.bbuf.rewind();
-                        this.this_.channel.write(this.bbuf, this.pos); //TODO: don't write immediately, but cache in RAM until unload
-                        return next;
-                    } finally {
-                        this.lock.writeLock().unlock();
-                    }
-                } else {
-                    //use cache
-                    return node;
-                }
-            } finally {
-                this.lock.readLock().unlock();
-            }
-        }
-
-        public long getOffset(byte[] hash)    {
-            if (this.depth != this.this_.hashLength - 1)    {
-                throw new IllegalStateException(String.format("Call to get() on node at depth: %d", this.depth));
-            }
-            this.lock.readLock().lock();
-            try {
-                return this.pointers.get(hash[this.depth] & 0xFF);
-            } finally {
-                this.lock.readLock().unlock();
-            }
-        }
-
-        public void set(byte[] hash, long val) throws IOException    {
-            if (this.depth != this.this_.hashLength - 1)    {
-                throw new IllegalStateException(String.format("Call to set() on node at depth: %d", this.depth));
-            }
-            this.lock.writeLock().lock();
-            try {
-                this.pointers.put(hash[this.depth] & 0xFF, val);
-                this.bbuf.rewind();
-                this.this_.channel.write(this.bbuf, this.pos);
-            } finally {
-                this.lock.writeLock().unlock();
-            }
-        }
-
-        public void remove(byte[] hash) throws IOException  {
-            this.lock.readLock().lock();
-            try {
-                //TODO: flag as ready for deletion somehow
-                this.pointers.put(hash[this.depth] & 0xFF, -1L);
-                if (this.countOccupied() == 0)  {
-                    //TODO: delete self and remove from parents
-                }
-            } finally {
-                this.lock.readLock().unlock();
-            }
-        }
-
-        public int countOccupied()  {
-            this.lock.readLock().lock();
-            try {
-                int i = 0;
-                for (int j = 255; j >= 0; j--)  {
-                    if (this.pointers.get(j) != -1L)    {
-                        i++;
-                    }
-                }
-                return i;
-            } finally {
-                this.lock.readLock().unlock();
-            }
+            }*/
         }
     }
 }

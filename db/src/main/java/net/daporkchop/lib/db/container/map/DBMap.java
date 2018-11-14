@@ -117,31 +117,35 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
     }
 
     @Override
-    public boolean containsKey(Object key) {
+    @SuppressWarnings("unchecked")
+    public boolean containsKey(@NonNull Object key) {
+        try {
+            return this.indexLookup.contains((K) key);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public boolean containsValue(@NonNull Object value) {
         //TODO
         return false;
     }
 
     @Override
-    public boolean containsValue(Object value) {
-        //TODO
-        return false;
-    }
-
-    @Override
-    public V get(Object key) {
+    public V get(@NonNull Object key) {
         //TODO
         return null;
     }
 
     @Override
-    public V put(K key, V value) {
+    public V put(@NonNull K key, @NonNull V value) {
         //TODO
         return null;
     }
 
     @Override
-    public V remove(Object key) {
+    public V remove(@NonNull Object key) {
         //TODO
         return null;
     }

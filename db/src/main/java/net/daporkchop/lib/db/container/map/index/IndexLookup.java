@@ -37,11 +37,11 @@ public interface IndexLookup<K> extends Persistent {
         this.load();
     }
 
-    long get(@NonNull K key);
+    long get(@NonNull K key) throws IOException;
 
-    void set(@NonNull K key, long val);
+    void set(@NonNull K key, long val) throws IOException;
 
-    boolean contains(@NonNull K key);
+    boolean contains(@NonNull K key) throws IOException;
 
-    void remove(@NonNull K key);
+    void remove(@NonNull K key) throws IOException;
 }

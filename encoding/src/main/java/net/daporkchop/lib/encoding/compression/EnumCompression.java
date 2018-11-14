@@ -25,6 +25,7 @@ import java.util.function.Function;
 /**
  * @author DaPorkchop_
  */
+@Deprecated
 public enum EnumCompression {
     NONE(b -> b, b -> b, b -> b, b -> b),
     GZIP(GZIPHelper::compress, GZIPHelper::inflate, GZIPHelper::deflateStream, GZIPHelper::inflateStream),

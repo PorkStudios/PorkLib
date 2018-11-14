@@ -15,5 +15,9 @@
 
 dependencies {
     compile project(":math")
-    compile "org.tukaani:xz:1.5"
+
+    compile "org.tukaani:xz:1.8"
+    compile "org.apache.commons:commons-compress:1.16.1"
+
+    //testCompile project(":primitive")
 }

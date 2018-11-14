@@ -29,6 +29,7 @@ import java.util.zip.GZIPOutputStream;
 /**
  * @author DaPorkchop_
  */
+@Deprecated
 public class GZIPHelper {
     public static byte[] compress(@NonNull byte[] in) {
         byte[] result = new byte[0];

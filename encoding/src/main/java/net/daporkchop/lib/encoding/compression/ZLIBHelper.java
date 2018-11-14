@@ -29,6 +29,7 @@ import java.util.zip.InflaterInputStream;
 /**
  * @author DaPorkchop_
  */
+@Deprecated
 public class ZLIBHelper {
     public static byte[] compress(byte[] in) {
         byte[] result = new byte[0];

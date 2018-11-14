@@ -13,26 +13,11 @@
  *
  */
 
-package compression;
-
-import net.daporkchop.lib.encoding.compression.GZIPHelper;
-import org.junit.Test;
-
-import java.util.Arrays;
-import java.util.concurrent.ThreadLocalRandom;
+package net.daporkchop.lib.common.function;
 
 /**
  * @author DaPorkchop_
  */
-public class GZIPTest {
-    @Test
-    public void test() {
-        byte[] rand = new byte[8192];
-        ThreadLocalRandom.current().nextBytes(rand);
-        byte[] compressed = GZIPHelper.compress(rand);
-        System.out.println("Compressed: " + compressed.length + " bytes (original: 8192 bytes) (@" + Arrays.hashCode(rand) + ')');
-        byte[] inflated = GZIPHelper.inflate(compressed);
-        System.out.println("Inflated: " + inflated.length + " bytes (@" + Arrays.hashCode(inflated) + ')');
-        if (!Arrays.equals(rand, inflated)) throw new IllegalStateException("Data didn't match");
-    }
+public interface Void {
+    void run();
 }

@@ -28,12 +28,9 @@ import org.apache.commons.compress.compressors.gzip.GzipParameters;
 import org.apache.commons.compress.compressors.lz4.BlockLZ4CompressorInputStream;
 import org.apache.commons.compress.compressors.lz4.BlockLZ4CompressorOutputStream;
 import org.apache.commons.compress.compressors.lz4.FramedLZ4CompressorOutputStream;
-import org.tukaani.xz.LZMA2InputStream;
-import org.tukaani.xz.LZMA2Options;
-import org.tukaani.xz.LZMAInputStream;
-import org.tukaani.xz.LZMAOutputStream;
-import org.tukaani.xz.XZInputStream;
-import org.tukaani.xz.XZOutputStream;
+import org.tukaani.xz.*;
+
+import java.lang.reflect.Field;
 
 /**
  * @author DaPorkchop_
@@ -205,4 +202,17 @@ public class Compression {
             .setInputStreamWrapperSimple(XZInputStream::new)
             .setOutputStreamWrapper(XZOutputStream::new)
             .build();
+
+    static {
+        try {
+            for (Field field : Compression.class.getDeclaredFields()) {
+                if (field.getType() == CompressionHelper.class) {
+                    //System.out.printf("Found compression algorithm: %s\n", field.getName());
+                    CompressionHelper.registerCompressionType(field.getName(), (CompressionHelper) field.get(null));
+                }
+            }
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

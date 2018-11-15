@@ -14,6 +14,7 @@
  */
 
 import net.daporkchop.lib.common.test.TestRandomData;
+import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.encoding.compression.CompressionHelper;
 import org.junit.Test;
 
@@ -29,6 +30,7 @@ import java.util.Map;
 public class CompressionTest {
     @Test
     public void test() {
+        Compression.BZIP2_HIGH.toString();
         Map<String, Double> ratios = Collections.synchronizedMap(new Hashtable<>());
         Map<String, Long> times = Collections.synchronizedMap(new Hashtable<>());
         CompressionHelper.forAllRegisteredAlgs((name, helper) -> {

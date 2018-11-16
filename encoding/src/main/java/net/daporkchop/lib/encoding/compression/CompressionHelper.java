@@ -46,20 +46,7 @@ import java.util.stream.Stream;
  */
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class CompressionHelper<ParamType> {
-    private static final Map<String, CompressionHelper> nameLookup = Collections.synchronizedMap(new Hashtable<>());
-
-    static {
-        try {
-            for (Field field : Compression.class.getDeclaredFields()) {
-                if (field.getType() == CompressionHelper.class) {
-                    //System.out.printf("Found compression algorithm: %s\n", field.getName());
-                    registerCompressionType(field.getName(), (CompressionHelper) field.get(null));
-                }
-            }
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
+    static final Map<String, CompressionHelper> nameLookup = Collections.synchronizedMap(new Hashtable<>());
 
     @NonNull
     @Getter
@@ -73,7 +60,7 @@ public class CompressionHelper<ParamType> {
     @NonNull
     private final IOBiFunction<OutputStream, ParamType, OutputStream> outputStreamWrapper;
 
-    private static boolean registerCompressionType(@NonNull String name, @NonNull CompressionHelper helper) {
+    static boolean registerCompressionType(@NonNull String name, @NonNull CompressionHelper helper) {
         return nameLookup.putIfAbsent(name, helper) == null;
     }
 

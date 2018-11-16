@@ -51,7 +51,7 @@ public abstract class Container<V, B extends Container.Builder<V, ? extends Cont
         } else {
             File parent = this.file.getParentFile();
             if ((parent.exists() && !parent.isDirectory()) || (!parent.exists() && !parent.mkdirs()) || !this.file.createNewFile()) {
-                throw new IllegalStateException(String.format("Could not create file: %s", this.file.getAbsolutePath()));
+                //throw new IllegalStateException(String.format("Could not create file: %s", this.file.getAbsolutePath()));
             }
         }
     }

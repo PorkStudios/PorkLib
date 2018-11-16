@@ -43,9 +43,10 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * @author DaPorkchop_
  */
 public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> implements Map<K, V> {
-    public static Builder builder(@NonNull PorkDB db, @NonNull String name) {
-        return new Builder(db, name);
+    public static <K, V> Builder<K, V> builder(@NonNull PorkDB db, @NonNull String name) {
+        return new Builder<>(db, name);
     }
+
     private final AtomicLong size = new AtomicLong(0L);
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
     @Getter

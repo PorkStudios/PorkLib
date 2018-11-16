@@ -19,20 +19,31 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.UTF8;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.function.Function;
 
 /**
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-public class DataIn extends InputStream {
-    @NonNull
-    private final InputStream stream;
+public abstract class DataIn extends InputStream {
+    public static DataIn wrap(InputStream in) {
+        return new StreamIn(in);
+    }
+
+    public static DataIn wrap(ByteBuffer buffer) {
+        return new BufferIn(buffer);
+    }
+
+    public static DataIn wrap(@NonNull File file) throws IOException {
+        return wrap(new FileInputStream(file));
+    }
 
     /**
-     * Read a boolean from the buffer
+     * Read a boolean
      *
      * @return a boolean
      */
@@ -41,7 +52,7 @@ public class DataIn extends InputStream {
     }
 
     /**
-     * Read a byte from the buffer
+     * Read a byte
      *
      * @return a byte
      */
@@ -50,7 +61,7 @@ public class DataIn extends InputStream {
     }
 
     /**
-     * Read a short from the buffer
+     * Read a short
      *
      * @return a short
      */
@@ -60,7 +71,7 @@ public class DataIn extends InputStream {
     }
 
     /**
-     * Read an int from the buffer
+     * Read an int
      *
      * @return an int
      */
@@ -72,7 +83,7 @@ public class DataIn extends InputStream {
     }
 
     /**
-     * Read a long from the buffer
+     * Read a long
      *
      * @return a long
      */
@@ -88,7 +99,7 @@ public class DataIn extends InputStream {
     }
 
     /**
-     * Read a float from the buffer
+     * Read a float
      *
      * @return a float
      */
@@ -97,7 +108,7 @@ public class DataIn extends InputStream {
     }
 
     /**
-     * Read a double from the buffer
+     * Read a double
      *
      * @return a double
      */
@@ -106,35 +117,30 @@ public class DataIn extends InputStream {
     }
 
     /**
-     * Read a UTF-8 encoded string from the buffer
+     * Read a UTF-8 encoded string
      *
      * @return a string
      */
     public String readUTF() throws IOException {
-        if (this.readBoolean()) {
-            int len = this.readInt();
-            byte[] b = new byte[len];
-            StreamUtil.read(this.stream, b, 0, b.length);
-            return new String(b, UTF8.utf8);
-        } else {
-            return null;
-        }
+        return this.readBoolean() ? new String(this.readBytesSimple(), UTF8.utf8) : null;
     }
 
     /**
-     * Reads a plain byte array from the buffer
+     * Reads a plain byte array
      *
      * @return a byte array
      */
     public byte[] readBytesSimple() throws IOException {
-        int len = this.readInt();
+        int len = this.readVarInt(true);
         byte[] b = new byte[len];
-        StreamUtil.read(this.stream, b, 0, b.length);
+        for (int i = 0; i < len; i++) {
+            b[i] = (byte) this.read();
+        }
         return b;
     }
 
     /**
-     * Reads an enum value from the buffer
+     * Reads an enum value
      *
      * @param f   a function to calculate the enum value from the name (i.e. MyEnum::valueOf)
      * @param <E> the enum type
@@ -148,27 +154,78 @@ public class DataIn extends InputStream {
         }
     }
 
-    @Override
-    public int read() throws IOException {
-        return this.stream.read();
+    public int readVarInt() throws IOException {
+        return this.readVarInt(false);
+    }
+
+    public int readVarInt(boolean optimizePositive) throws IOException {
+        int v = 0;
+        int i;
+        int o = 0;
+        while (true) {
+            i = this.read();
+            v |= (i & 0x7F) << o;
+            o += 7;
+            if ((i & 0x80) == 0) {
+                break;
+            }
+        }
+        return optimizePositive ? v : (v >>> 1) | (v << 31);
     }
 
     @Override
     public int read(byte[] b, int off, int len) throws IOException {
         if (len != 0) {
-            return this.stream.read(b, off, len);
+            for (int i = 0; i < len; i++) {
+                b[i + off] = (byte) this.read();
+            }
+            return len;
         } else {
             return 0;
         }
     }
 
     @Override
-    public void close() throws IOException {
-        this.stream.close();
+    public abstract void close() throws IOException;
+
+    @AllArgsConstructor
+    private static class StreamIn extends DataIn {
+        @NonNull
+        private final InputStream in;
+
+        @Override
+        public void close() throws IOException {
+            this.in.close();
+        }
+
+        @Override
+        public int read() throws IOException {
+            return this.in.read();
+        }
+
+        @Override
+        public int available() throws IOException {
+            return this.in.available();
+        }
     }
 
-    @Override
-    public int available() throws IOException {
-        return this.stream.available();
+    @AllArgsConstructor
+    private static class BufferIn extends DataIn {
+        @NonNull
+        private final ByteBuffer buffer;
+
+        @Override
+        public void close() throws IOException {
+        }
+
+        @Override
+        public int read() throws IOException {
+            return this.buffer.get();
+        }
+
+        @Override
+        public int available() throws IOException {
+            return this.buffer.remaining();
+        }
     }
 }

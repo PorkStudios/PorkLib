@@ -41,17 +41,19 @@ public class PorkUtil {
     }
 
     public static void rm(@NonNull File file)   {
-        if (file.isDirectory()) {
-            File[] files = file.listFiles();
-            if (files == null)  {
-                throw new NullPointerException(file.getAbsolutePath());
+        if (file.exists()) {
+            if (file.isDirectory()) {
+                File[] files = file.listFiles();
+                if (files == null) {
+                    throw new NullPointerException(file.getAbsolutePath());
+                }
+                for (File f : files) {
+                    rm(f);
+                }
             }
-            for (File f : files)    {
-                rm(f);
+            if (!file.delete()) {
+                throw new IllegalStateException(String.format("Could not delete file: %s", file.getAbsolutePath()));
             }
-        }
-        if (!file.delete()) {
-            throw new IllegalStateException(String.format("Could not delete file: %s", file.getAbsolutePath()));
         }
     }
 }

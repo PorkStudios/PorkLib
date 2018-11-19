@@ -94,7 +94,7 @@ public class PorkDB {
         synchronized (this.saveLock) { //TODO: read-write locking implementation
             this.open = false;
             try {
-                for (Iterator<Container> iter = this.loadedContainers.values().iterator(); iter.hasNext(); iter.next().save()) {
+                for (Iterator<Container> iter = this.loadedContainers.values().iterator(); iter.hasNext(); iter.next().close()) {
                 }
             } finally {
                 this.loadedContainers.clear();

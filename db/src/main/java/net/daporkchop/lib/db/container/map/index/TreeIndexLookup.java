@@ -82,6 +82,7 @@ public class TreeIndexLookup<K> implements IndexLookup<K> {
         this.keyHasher = this.map.getKeyHasher();
         this.hashLength = this.keyHasher.getHashLength();
         this.file = file;
+        this.nodeSectorMap = new PersistentSparseBitSet(this.map.getFile("index.bitmap"));
         IndexLookup.super.init(this.map, file);
     }
 
@@ -89,6 +90,7 @@ public class TreeIndexLookup<K> implements IndexLookup<K> {
     public void load() throws IOException {
         this.channel = this.file.getChannel();
         this.channel.lock();
+        this.nodeSectorMap.load();
         if (this.file.length() == 0L || !this.nodeSectorMap.get(0)) {
             //allocate root sector
             if (this.nodeSectorMap.get(0)) {
@@ -124,6 +126,7 @@ public class TreeIndexLookup<K> implements IndexLookup<K> {
         try {
             //take advantage of reentrance
             this.save();
+            this.rootNode.close();
             this.channel.close();
             this.file.close();
 
@@ -131,6 +134,7 @@ public class TreeIndexLookup<K> implements IndexLookup<K> {
             this.channel = null;
             this.file = null;
             this.hashLength = -1;
+            this.nodeSectorMap.close();
             this.nodeSectorMap = null;
             this.rootNode = null;
             this.keyHasher = null;
@@ -145,7 +149,10 @@ public class TreeIndexLookup<K> implements IndexLookup<K> {
     public long get(K key) throws IOException {
         byte[] hash = this.hash(key);
         TreeNode node = this.rootNode;
-        while ((node = node.getNodeAt(hash, false)) != null && !node.isEnd())   {
+        while ((node = node.getNodeAt(hash, false)) != null) {
+            if (node.isEnd()) {
+                break;
+            }
         }
         return node == null ? -1L : node.getOffset(hash);
     }
@@ -155,7 +162,7 @@ public class TreeIndexLookup<K> implements IndexLookup<K> {
     public void set(K key, long val) throws IOException {
         byte[] hash = this.hash(key);
         TreeNode node = this.rootNode;
-        while (!node.isEnd())   {
+        while (!node.isEnd()) {
             node = node.getNodeAt(hash, true);
         }
         node.setOffset(hash, val);
@@ -211,7 +218,7 @@ public class TreeIndexLookup<K> implements IndexLookup<K> {
         }
     }
 
-    protected void removeNode(long pos) throws IOException  {
+    protected void removeNode(long pos) throws IOException {
         this.lock.writeLock().lock();
         try {
             this.nodeSectorMap.clear((int) pos);
@@ -258,14 +265,17 @@ public class TreeIndexLookup<K> implements IndexLookup<K> {
             try {
                 int i = hash[this.depth];
                 return this.nodeCache.get(Integer.valueOf(i), () -> {
-                    long pos = this.buffer.getLong(i << 3);
+                    long pos = this.buffer.getLong(((byte) i & 0xFF) << 3);
                     if (pos < 0L) {
                         if (create) {
                             //TODO: i don't think we need to lock manually here
                             this.lock.writeLock().lock();
                             try {
                                 pos = this.this_.findAndAllocateNewSector();
-                                this.buffer.putLong(i << 3);
+                                this.buffer.putLong(((byte) i & 0xFF) << 3, pos);
+                                if (true) {
+                                    this.buffer.force();
+                                }
                             } finally {
                                 this.lock.writeLock().unlock();
                             }
@@ -275,8 +285,8 @@ public class TreeIndexLookup<K> implements IndexLookup<K> {
                     }
                     return new TreeNode(pos, this.depth + 1, this);
                 });
-            } catch (ExecutionException | UncheckedExecutionException e)    {
-                if (e.getCause() == NODE_NOT_FOUND_EXCEPTION)   {
+            } catch (ExecutionException | UncheckedExecutionException e) {
+                if (e.getCause() == NODE_NOT_FOUND_EXCEPTION) {
                     return null;
                 } else {
                     throw new RuntimeException(String.format("Could not fetch node at offset %d from node at depth %d", hash[this.depth] & 0xFF, this.depth), e);
@@ -284,18 +294,21 @@ public class TreeIndexLookup<K> implements IndexLookup<K> {
             }
         }
 
-        protected long getOffset(byte[] hash)   {
+        protected long getOffset(byte[] hash) {
             return this.buffer.getLong((hash[this.depth] & 0xFF) << 3);
         }
 
         protected void setOffset(byte[] hash, long val) {
-            if (!this.isEnd())  {
+            if (!this.isEnd()) {
                 throw new IllegalStateException("not end node");
             }
             this.buffer.putLong((hash[this.depth] & 0xFF) << 3, val);
+            if (true) {
+                this.buffer.force();
+            }
         }
 
-        protected TreeNode getLoadedNode(byte[] hash)   {
+        protected TreeNode getLoadedNode(byte[] hash) {
             return this.nodeCache.getIfPresent(Integer.valueOf(hash[this.depth]));
         }
 
@@ -303,13 +316,13 @@ public class TreeIndexLookup<K> implements IndexLookup<K> {
             return this.buffer.getLong((b & 0xFF) << 3) >= 0;
         }
 
-        protected void remove(byte[] hash) throws IOException  {
+        protected void remove(byte[] hash) throws IOException {
             this.lock.writeLock().lock();
             try {
                 byte b = hash[this.depth];
                 if (this.containsAt(b)) {
                     this.buffer.putLong((b & 0xFF) << 3, -1L);
-                    if (this.depth != 0 && this.getOccupiedValues() == 0)   {
+                    if (this.depth != 0 && this.getOccupiedValues() == 0) {
                         //remove this node itself
                         this.this_.removeNode(this.pos >> NODE_SIZE_SHIFT);
                         //TODO: this needs to be fixed up
@@ -324,29 +337,32 @@ public class TreeIndexLookup<K> implements IndexLookup<K> {
 
         protected void close() {
             this.buffer.force();
+            if (!this.isEnd()) {
+                this.nodeCache.asMap().values().forEach(TreeNode::close);
+            }
             Cleaner cleaner = ((DirectBuffer) this.buffer).cleaner();
             if (cleaner != null) {
                 cleaner.clean();
             }
         }
 
-        protected int getOccupiedValues()    {
+        protected int getOccupiedValues() {
             int i = 0;
-            for (int j = 255; j >= 0; j--)  {
-                if (this.buffer.getLong(j << 3) >= 0)   {
+            for (int j = 255; j >= 0; j--) {
+                if (this.buffer.getLong(j << 3) >= 0) {
                     i++;
                 }
             }
             return i;
         }
 
-        protected boolean isEnd()   {
+        protected boolean isEnd() {
             return this.nodeCache == null;
         }
 
-        protected void save()   {
+        protected void save() {
             this.buffer.force();
-            if (!this.isEnd())  {
+            if (!this.isEnd()) {
                 this.nodeCache.asMap().values().forEach(TreeNode::save);
             }
         }

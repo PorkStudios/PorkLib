@@ -35,11 +35,11 @@ public class KeyHasherDefault<K> implements KeyHasher<K> {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return HashAlg.SHA_256.hash(baos.toByteArray());
+        return HashAlg.MD5.hash(baos.toByteArray());
     }
 
     @Override
     public int getHashLength() {
-        return HashAlg.SHA_256.getLength();
+        return HashAlg.MD5.getLength();
     }
 }

@@ -81,6 +81,7 @@ public class PersistentSparseBitSet implements Persistent {
 
     public void set(int pos, boolean state) {
         this.bitSet.set(pos, state);
+        this.dirty = true;
     }
 
     public void set(int pos) {
@@ -89,9 +90,11 @@ public class PersistentSparseBitSet implements Persistent {
 
     public void clear(int pos) {
         this.set(pos, false);
+        this.dirty = true;
     }
 
     public void clear() {
         this.bitSet.clear();
+        this.dirty = true;
     }
 }

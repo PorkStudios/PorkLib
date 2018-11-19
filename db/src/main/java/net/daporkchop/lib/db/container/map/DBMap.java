@@ -31,7 +31,9 @@ import net.daporkchop.lib.db.data.key.KeyHasherDefault;
 import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.encoding.compression.CompressionHelper;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -57,6 +59,7 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
     private final KeyHasher<K> keyHasher;
     @Getter
     private final Serializer<V> valueSerializer;
+    @Getter
     private final IndexLookup<K> indexLookup;
     private volatile boolean dirty = false;
 
@@ -93,12 +96,17 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
                 }
                 this.dirty = false;
             }
-            this.indexLookup.save();
         } finally {
             this.lock.writeLock().unlock();
         }
         this.indexLookup.save();
         //TODO
+    }
+
+    @Override
+    public void close() throws IOException {
+        super.close();
+        this.indexLookup.close();
     }
 
     /**
@@ -189,6 +197,16 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
     public Set<Entry<K, V>> entrySet() {
         //TODO
         return null;
+    }
+
+    @Override
+    public File getFile(String name) throws IOException {
+        return super.getFile(name);
+    }
+
+    @Override
+    public RandomAccessFile getRAF(String name) throws IOException {
+        return super.getRAF(name);
     }
 
     @Getter

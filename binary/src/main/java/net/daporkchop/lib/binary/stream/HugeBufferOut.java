@@ -30,7 +30,7 @@ import java.util.function.Consumer;
  *
  * @author DaPorkchop_
  */
-public class HugeBufferOut extends OutputStream implements DataOut {
+public class HugeBufferOut extends DataOut {
     private final int bufferSize;
     private final IOEConsumer<List<ByteBuffer>> closer;
     private List<ByteBuffer> buffers = new ArrayList<>();

@@ -191,10 +191,12 @@ public class TreeIndexLookup<K> implements IndexLookup<K> {
     @Override
     @SuppressWarnings("unchecked")
     public boolean contains(K key) throws IOException {
-        byte[] hash = this.hash(key);
+        /*byte[] hash = this.hash(key);
         TreeNode node = this.rootNode;
         //TODO
-        return false;
+        return false;*/
+        long off = this.get(key);
+        return off != -1L;
     }
 
     @Override

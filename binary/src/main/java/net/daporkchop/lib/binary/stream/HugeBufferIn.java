@@ -29,7 +29,7 @@ import java.util.List;
  *
  * @author DaPorkchop_
  */
-public class HugeBufferIn extends InputStream implements DataIn {
+public class HugeBufferIn extends DataIn {
     private List<ByteBuffer> buffers = new ArrayList<>();
 
     public HugeBufferIn(@NonNull FileChannel channel, long offset, long size) throws IOException {

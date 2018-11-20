@@ -20,6 +20,7 @@ import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.binary.stream.HugeBufferIn;
 import net.daporkchop.lib.binary.stream.HugeBufferOut;
+import net.daporkchop.lib.common.function.IOEConsumer;
 import net.daporkchop.lib.db.container.bitset.PersistentSparseBitSet;
 import net.daporkchop.lib.db.container.map.DBMap;
 import net.daporkchop.lib.math.primitive.RoundUp;
@@ -82,7 +83,7 @@ public class StreamingDataLookup implements DataLookup {
     }
 
     @Override
-    public long write(long id, @NonNull Consumer<DataOut> writer) throws IOException {
+    public long write(long id, @NonNull IOEConsumer<DataOut> writer) throws IOException {
         AtomicLong newOff = new AtomicLong(-1L);
         DataOut out = new HugeBufferOut(buffers -> {
             ByteBuffer inBuf = ByteBuffer.allocateDirect(8);

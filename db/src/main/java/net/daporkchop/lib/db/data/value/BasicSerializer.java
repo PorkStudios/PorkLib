@@ -13,33 +13,35 @@
  *
  */
 
-package net.daporkchop.lib.db.container.map.data;
+package net.daporkchop.lib.db.data.value;
 
-import lombok.NonNull;
-import net.daporkchop.lib.binary.Persistent;
+import net.daporkchop.lib.binary.data.Serializer;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.common.function.IOEConsumer;
-import net.daporkchop.lib.db.container.map.DBMap;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.util.function.Consumer;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
 /**
  * @author DaPorkchop_
  */
-public interface DataLookup extends Persistent {
-    default void init(@NonNull DBMap<?, ?> map, @NonNull File file) throws IOException {
-        this.load();
+public class BasicSerializer<T extends Serializable> implements Serializer<T> {
+    @Override
+    public void write(T val, DataOut out) throws IOException {
+        try (ObjectOutputStream oOut = new ObjectOutputStream(out)) {
+            oOut.writeObject(val);
+        }
     }
 
-    DataIn read(long id) throws IOException;
-
-    long write(long id, @NonNull IOEConsumer<DataOut> writer) throws IOException;
-
-    void remove(long id) throws IOException;
-
-    void clear() throws IOException;
+    @Override
+    @SuppressWarnings("unchecked")
+    public T read(DataIn in) throws IOException {
+        try (ObjectInputStream oIn = new ObjectInputStream(in)) {
+            return (T) oIn.readObject();
+        } catch (ClassNotFoundException e)  {
+            throw new RuntimeException(e);
+        }
+    }
 }

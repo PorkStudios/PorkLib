@@ -19,11 +19,13 @@ import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 
+import java.io.IOException;
+
 /**
  * @author DaPorkchop_
  */
 public interface Serializer<T> {
-    void write(@NonNull T val, @NonNull DataOut out);
+    void write(@NonNull T val, @NonNull DataOut out) throws IOException;
 
-    T read(@NonNull DataIn in);
+    T read(@NonNull DataIn in) throws IOException;
 }

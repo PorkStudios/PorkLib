@@ -65,15 +65,19 @@ public abstract class Container<V, B extends Container.Builder<V, ? extends Cont
     public abstract void save() throws IOException;
 
     protected File getFile(@NonNull String name) throws IOException    {
-        return this.getFile(name, null);
+        return this.getFile(name, null, true);
     }
 
-    protected File getFile(@NonNull String name, IOEConsumer<DataOut> initializer) throws IOException    {
+    protected File getFile(@NonNull String name, boolean create) throws IOException    {
+        return this.getFile(name, null, create);
+    }
+
+    protected File getFile(@NonNull String name, IOEConsumer<DataOut> initializer, boolean create) throws IOException    {
         if (!this.usesDirectory())  {
             throw new IllegalStateException();
         } else {
             File file = new File(this.file, name);
-            if (!file.exists()) {
+            if (create && !file.exists()) {
                 File parent = file.getParentFile();
                 if (!parent.exists() && !parent.mkdirs())   {
                     throw new IOException(String.format("Could not create file: %s", parent.getAbsolutePath()));
@@ -96,7 +100,7 @@ public abstract class Container<V, B extends Container.Builder<V, ? extends Cont
     }
 
     protected DataIn getIn(@NonNull String name, IOEConsumer<DataOut> initializer) throws IOException {
-        return DataIn.wrap(this.getFile(name, initializer));
+        return DataIn.wrap(this.getFile(name, initializer, true));
     }
 
     protected DataOut getOut(@NonNull String name) throws IOException {
@@ -104,7 +108,7 @@ public abstract class Container<V, B extends Container.Builder<V, ? extends Cont
     }
 
     protected DataOut getOut(@NonNull String name, IOEConsumer<DataOut> initializer) throws IOException {
-        return DataOut.wrap(this.getFile(name, initializer));
+        return DataOut.wrap(this.getFile(name, initializer, true));
     }
 
     protected RandomAccessFile getRAF(@NonNull String name) throws IOException {
@@ -112,7 +116,7 @@ public abstract class Container<V, B extends Container.Builder<V, ? extends Cont
     }
 
     protected RandomAccessFile getRAF(@NonNull String name, IOEConsumer<DataOut> initializer) throws IOException {
-        return new RandomAccessFile(this.getFile(name, initializer), "rw");
+        return new RandomAccessFile(this.getFile(name, initializer, true), "rw");
     }
 
     public void close() throws IOException {

@@ -22,11 +22,13 @@ import net.daporkchop.lib.db.container.DBAtomicLong;
 import net.daporkchop.lib.db.container.map.DBMap;
 import net.daporkchop.lib.db.container.map.index.IndexLookup;
 import net.daporkchop.lib.db.container.map.index.TreeIndexLookup;
+import net.daporkchop.lib.db.data.value.BasicSerializer;
 import net.daporkchop.lib.encoding.basen.Base58;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Objects;
@@ -123,14 +125,29 @@ public class DBTest {
     public void test() throws IOException {
         Random r = ThreadLocalRandom.current();
         long longVal = r.nextLong();
+        Map<String, byte[]> data = new Hashtable<>();
+            for (int i = 0; i < 50; i++)    {
+                byte[] b1 = new byte[16];
+                byte[] b2 = new byte[r.nextInt(4096) + 1024];
+                r.nextBytes(b1);
+                r.nextBytes(b2);
+                data.put(Base58.encodeBase58(b1), b2);
+            }
         {
             PorkDB db = PorkDB.builder()
                     .setRoot(outFile)
                     .build();
 
-            {
+            if (false){
                 DBAtomicLong atomicLong = DBAtomicLong.builder(db, "long").build();
                 atomicLong.set(longVal);
+            }
+            if (true)   {
+                DBMap<String, byte[]> dbMap = DBMap.<String, byte[]>builder(db, "map")
+                        .setValueSerializer(new BasicSerializer<>())
+                        .build();
+
+                dbMap.putAll(data);
             }
             db.close();
         }
@@ -140,12 +157,27 @@ public class DBTest {
                     .build();
 
             try {
-                {
+                if (false){
                     DBAtomicLong atomicLong = DBAtomicLong.builder(db, "long").buildIfPresent();
                     Objects.requireNonNull(atomicLong);
                     if (atomicLong.get() != longVal) {
                         throw new IllegalStateException(String.format("Inconsistent values: real=%d, on disk=%d", longVal, atomicLong.get()));
                     }
+                }
+                if (true)   {
+                    DBMap<String, byte[]> dbMap = DBMap.<String, byte[]>builder(db, "map")
+                            .setValueSerializer(new BasicSerializer<>())
+                            .build();
+
+                    data.forEach((key, val) -> {
+                        if (!dbMap.containsKey(key))    {
+                            throw new IllegalStateException(String.format("Missing key: %s", key));
+                        }
+                        byte[] diskVal = dbMap.get(key);
+                        if (!Arrays.equals(val, diskVal))   {
+                            throw new IllegalStateException(String.format("Value for key %s is incorrect!", key));
+                        }
+                    });
                 }
             } finally {
                 db.close();

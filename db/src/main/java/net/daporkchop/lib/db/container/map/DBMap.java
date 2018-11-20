@@ -24,10 +24,13 @@ import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.db.Container;
 import net.daporkchop.lib.db.PorkDB;
+import net.daporkchop.lib.db.container.map.data.DataLookup;
+import net.daporkchop.lib.db.container.map.data.IndividualFileLookup;
 import net.daporkchop.lib.db.container.map.index.IndexLookup;
 import net.daporkchop.lib.db.container.map.index.TreeIndexLookup;
 import net.daporkchop.lib.db.data.key.KeyHasher;
 import net.daporkchop.lib.db.data.key.KeyHasherDefault;
+import net.daporkchop.lib.db.data.value.BasicSerializer;
 import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.encoding.compression.CompressionHelper;
 
@@ -59,7 +62,9 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
     private final KeyHasher<K> keyHasher;
     @Getter
     private final Serializer<V> valueSerializer;
+    @Getter //TODO: remove this debug thing
     private final IndexLookup<K> indexLookup;
+    private final DataLookup dataLookup;
     private volatile boolean dirty = false;
 
     public DBMap(Builder<K, V> builder) throws IOException {
@@ -70,6 +75,7 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
         this.keyHasher = builder.keyHasher;
         this.valueSerializer = builder.valueSerializer;
         this.indexLookup = builder.indexLookup;
+        this.dataLookup = builder.dataLookup;
 
         try (DataIn in = this.getIn("headers.dat", out -> {
             out.writeLong(0L); //size
@@ -78,6 +84,7 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
         }
 
         this.indexLookup.init(this, this.getRAF("index"));
+        this.dataLookup.init(this, this.getFile("data", false));
     }
 
     @Override
@@ -99,6 +106,7 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
             this.lock.writeLock().unlock();
         }
         this.indexLookup.save();
+        this.dataLookup.save();
         //TODO
     }
 
@@ -106,6 +114,7 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
     public void close() throws IOException {
         super.close();
         this.indexLookup.close();
+        this.dataLookup.close();
     }
 
     /**
@@ -141,21 +150,50 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
     }
 
     @Override
+    @Deprecated
     public boolean containsValue(@NonNull Object value) {
         //TODO
         return false;
     }
 
     @Override
-    public V get(@NonNull Object key) {
-        //TODO
-        return null;
+    @SuppressWarnings("unchecked")
+    public V get(@NonNull Object o) {
+        try {
+            K key = (K) o;
+            if (this.indexLookup.contains(key)) {
+                long id = this.indexLookup.get(key);
+                try (DataIn in = this.dataLookup.read(id))  {
+                    return this.valueSerializer.read(in);
+                }
+            } else {
+                return null;
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public V put(@NonNull K key, @NonNull V value) {
-        //TODO
-        return null;
+        return this.put(key, value, true);
+    }
+
+    public V put(@NonNull K key, @NonNull V value, boolean loadOldValue) {
+        V oldValue = null;
+        try {
+            long id = this.indexLookup.get(key);
+            if (loadOldValue && id != -1L)  {
+                oldValue = this.get(key);
+            }
+            long newId = this.dataLookup.write(id, out -> this.valueSerializer.write(value, out));
+            if (id != newId)    {
+                this.indexLookup.set(key, newId);
+            }
+            return oldValue;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -223,6 +261,16 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
         @NonNull
         private IndexLookup<K> indexLookup = new TreeIndexLookup<>();
 
+        /**
+         * The {@link DataLookup} used for reading values.
+         *
+         * Default implementations:
+         * {@link net.daporkchop.lib.db.container.map.data.IndividualFileLookup}
+         * {@link net.daporkchop.lib.db.container.map.data.StreamingDataLookup} (wip)
+         */
+        @NonNull
+        private DataLookup dataLookup = new IndividualFileLookup();
+
         @NonNull
         private CompressionHelper compression = Compression.NONE;
 
@@ -234,6 +282,8 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
         protected DBMap<K, V> buildImpl() throws IOException {
             if (this.valueSerializer == null) {
                 throw new IllegalStateException("Value serializer must be set!");
+            } else if (this.dataLookup == null) {
+
             }
 
             return new DBMap<>(this);

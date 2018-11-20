@@ -19,6 +19,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.common.function.IOEConsumer;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.db.container.bitset.PersistentSparseBitSet;
 import net.daporkchop.lib.db.container.map.DBMap;
@@ -46,6 +47,7 @@ public class IndividualFileLookup implements DataLookup {
             throw new IllegalStateException(String.format("Not a directory: %s", this.dataFile.getAbsolutePath()));
         }
         this.file = file;
+        DataLookup.super.init(map, file);
     }
 
     @Override
@@ -64,7 +66,7 @@ public class IndividualFileLookup implements DataLookup {
 
     @Override
     public DataIn read(long id) throws IOException {
-        File file = new File(this.dataFile, String.format("%d/%d.dat", id >>> 8L, id & 0xFFL));
+        File file = new File(this.dataFile, String.format("%d/%d", id >>> 8L, id & 0xFFL));
         if (!file.exists() || !file.isFile()) {
             return null;
         } else {
@@ -73,14 +75,14 @@ public class IndividualFileLookup implements DataLookup {
     }
 
     @Override
-    public long write(long id, @NonNull Consumer<DataOut> writer) throws IOException {
+    public long write(long id, @NonNull IOEConsumer<DataOut> writer) throws IOException {
         if (id == -1L)  {
             synchronized (this.ids) {
                 id = this.ids.getBitSet().nextClearBit(0);
                 this.ids.set((int) id);
             }
         }
-        File file = new File(this.dataFile, String.format("%d/%d.dat", id >>> 8L, id & 0xFFL));
+        File file = new File(this.dataFile, String.format("%d/%d", id >>> 8L, id & 0xFFL));
         if (!file.exists()) {
             if (!file.getParentFile().exists() && !file.getParentFile().mkdirs()) {
                 throw new IllegalStateException(String.format("Couldn't create directory: %s", file.getParentFile().getAbsolutePath()));
@@ -96,7 +98,7 @@ public class IndividualFileLookup implements DataLookup {
 
     @Override
     public void remove(long id) throws IOException {
-        File file = new File(this.dataFile, String.format("%d/%d.dat", id >>> 8L, id & 0xFFL));
+        File file = new File(this.dataFile, String.format("%d/%d", id >>> 8L, id & 0xFFL));
         if (file.exists() && !file.delete())    {
             throw new IllegalStateException(String.format("Couldn't delete file: %s", file.getAbsolutePath()));
         }

@@ -45,7 +45,7 @@ public class DBTest {
         PorkUtil.rm(outFile);
     }
 
-    @Test
+    /*@Test
     public void testIndexLookup() throws IOException {
         Map<String, Long> dataMap = new Hashtable<>();
         {
@@ -116,7 +116,7 @@ public class DBTest {
             });
             db.close();
         }
-    }
+    }*/
 
     @Test
     @SuppressWarnings("unchecked")

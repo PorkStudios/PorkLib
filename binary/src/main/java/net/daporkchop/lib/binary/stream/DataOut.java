@@ -18,7 +18,9 @@ package net.daporkchop.lib.binary.stream;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.UTF8;
+import net.daporkchop.lib.common.function.IOEConsumer;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -28,17 +30,21 @@ import java.nio.ByteBuffer;
 /**
  * @author DaPorkchop_
  */
-public abstract class DataOut extends OutputStream {
-    public static DataOut wrap(OutputStream out) {
+public interface DataOut extends AutoCloseable {
+    static DataOut wrap(OutputStream out) {
         return new StreamOut(out);
     }
 
-    public static DataOut wrap(ByteBuffer buffer) {
+    static DataOut wrap(ByteBuffer buffer) {
         return new BufferOut(buffer);
     }
 
-    public static DataOut wrap(@NonNull File file) throws IOException {
+    static DataOut wrap(@NonNull File file) throws IOException {
         return wrap(new FileOutputStream(file));
+    }
+
+    static DataOut wrap(@NonNull File file, int bufferSize) throws IOException {
+        return wrap(new BufferedOutputStream(new FileOutputStream(file), bufferSize));
     }
 
     /**
@@ -46,7 +52,7 @@ public abstract class DataOut extends OutputStream {
      *
      * @param b the boolean to write
      */
-    public void writeBoolean(boolean b) throws IOException {
+    default void writeBoolean(boolean b) throws IOException {
         this.write(b ? 1 : 0);
     }
 
@@ -55,7 +61,7 @@ public abstract class DataOut extends OutputStream {
      *
      * @param b the byte to write
      */
-    public void writeByte(byte b) throws IOException {
+    default void writeByte(byte b) throws IOException {
         this.write(b & 0xFF);
     }
 
@@ -64,7 +70,7 @@ public abstract class DataOut extends OutputStream {
      *
      * @param s the short to write
      */
-    public void writeShort(short s) throws IOException {
+    default void writeShort(short s) throws IOException {
         this.write((s >>> 8) & 0xFF);
         this.write(s & 0xFF);
     }
@@ -74,7 +80,7 @@ public abstract class DataOut extends OutputStream {
      *
      * @param i the int to write
      */
-    public void writeInt(int i) throws IOException {
+    default void writeInt(int i) throws IOException {
         this.write((i >>> 24) & 0xFF);
         this.write((i >>> 16) & 0xFF);
         this.write((i >>> 8) & 0xFF);
@@ -86,7 +92,7 @@ public abstract class DataOut extends OutputStream {
      *
      * @param l the long to write
      */
-    public void writeLong(long l) throws IOException {
+    default void writeLong(long l) throws IOException {
         this.write((int) (l >>> 56) & 0xFF);
         this.write((int) (l >>> 48) & 0xFF);
         this.write((int) (l >>> 40) & 0xFF);
@@ -102,7 +108,7 @@ public abstract class DataOut extends OutputStream {
      *
      * @param f the float to write
      */
-    public void writeFloat(float f) throws IOException {
+    default void writeFloat(float f) throws IOException {
         this.writeInt(Float.floatToIntBits(f));
     }
 
@@ -111,7 +117,7 @@ public abstract class DataOut extends OutputStream {
      *
      * @param d the double to write
      */
-    public void writeDouble(double d) throws IOException {
+    default void writeDouble(double d) throws IOException {
         this.writeLong(Double.doubleToLongBits(d));
     }
 
@@ -120,7 +126,7 @@ public abstract class DataOut extends OutputStream {
      *
      * @param s the string to write
      */
-    public void writeUTF(String s) throws IOException {
+    default void writeUTF(String s) throws IOException {
         if (s == null) {
             this.writeBoolean(false);
         } else {
@@ -134,7 +140,7 @@ public abstract class DataOut extends OutputStream {
      *
      * @param b the bytes to write
      */
-    public void writeBytesSimple(@NonNull byte[] b) throws IOException {
+    default void writeBytesSimple(@NonNull byte[] b) throws IOException {
         this.writeVarInt(b.length, true);
         this.write(b);
     }
@@ -145,7 +151,7 @@ public abstract class DataOut extends OutputStream {
      * @param e   the value to write
      * @param <E> the type of the enum
      */
-    public <E extends Enum<E>> void writeEnum(E e) throws IOException {
+    default <E extends Enum<E>> void writeEnum(E e) throws IOException {
         if (e == null) {
             this.writeBoolean(false);
         } else {
@@ -154,11 +160,11 @@ public abstract class DataOut extends OutputStream {
         }
     }
 
-    public void writeVarInt(int i) throws IOException {
+    default void writeVarInt(int i) throws IOException {
         this.writeVarInt(i, false);
     }
 
-    public void writeVarInt(int i, boolean optimizePositive) throws IOException {
+    default void writeVarInt(int i, boolean optimizePositive) throws IOException {
         if (!optimizePositive) {
             i = (i << 1) ^ (i >> 31);
         }
@@ -174,50 +180,55 @@ public abstract class DataOut extends OutputStream {
         }
     }
 
-    @Override
-    public void write(byte[] b, int off, int len) throws IOException {
+    default void write(@NonNull byte[] b) throws IOException {
+        this.write(b, 0, b.length);
+    }
+
+    default void write(@NonNull byte[] b, int off, int len) throws IOException {
         for (int i = 0; i < len; i++) {
             this.write(b[i + off] & 0xFF);
         }
     }
 
+    void write(int b) throws IOException;
+
     @Override
-    public abstract void close() throws IOException;
+    void close() throws IOException;
+}
 
-    @AllArgsConstructor
-    private static class BufferOut extends DataOut {
-        @NonNull
-        private final ByteBuffer buffer;
+@AllArgsConstructor
+class BufferOut extends OutputStream implements DataOut {
+    @NonNull
+    private final ByteBuffer buffer;
 
-        @Override
-        public void close() throws IOException {
-        }
-
-        @Override
-        public void write(int b) throws IOException {
-            this.buffer.put((byte) b);
-        }
+    @Override
+    public void close() throws IOException {
     }
 
-    @AllArgsConstructor
-    private static class StreamOut extends DataOut {
-        @NonNull
-        private final OutputStream out;
+    @Override
+    public void write(int b) throws IOException {
+        this.buffer.put((byte) b);
+    }
+}
 
-        @Override
-        public void close() throws IOException {
-            this.flush();
-            this.out.close();
-        }
+@AllArgsConstructor
+class StreamOut extends OutputStream implements DataOut {
+    @NonNull
+    private final OutputStream out;
 
-        @Override
-        public void write(int b) throws IOException {
-            this.out.write(b);
-        }
+    @Override
+    public void close() throws IOException {
+        this.flush();
+        this.out.close();
+    }
 
-        @Override
-        public void flush() throws IOException {
-            this.out.flush();
-        }
+    @Override
+    public void write(int b) throws IOException {
+        this.out.write(b);
+    }
+
+    @Override
+    public void flush() throws IOException {
+        this.out.flush();
     }
 }

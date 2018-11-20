@@ -29,16 +29,16 @@ import java.util.function.Function;
 /**
  * @author DaPorkchop_
  */
-public abstract class DataIn extends InputStream {
-    public static DataIn wrap(InputStream in) {
+public interface DataIn extends AutoCloseable {
+    static DataIn wrap(InputStream in) {
         return new StreamIn(in);
     }
 
-    public static DataIn wrap(ByteBuffer buffer) {
+    static DataIn wrap(ByteBuffer buffer) {
         return new BufferIn(buffer);
     }
 
-    public static DataIn wrap(@NonNull File file) throws IOException {
+    static DataIn wrap(@NonNull File file) throws IOException {
         return wrap(new FileInputStream(file));
     }
 
@@ -47,7 +47,7 @@ public abstract class DataIn extends InputStream {
      *
      * @return a boolean
      */
-    public boolean readBoolean() throws IOException {
+    default boolean readBoolean() throws IOException {
         return this.read() == 1;
     }
 
@@ -56,7 +56,7 @@ public abstract class DataIn extends InputStream {
      *
      * @return a byte
      */
-    public byte readByte() throws IOException {
+    default byte readByte() throws IOException {
         return (byte) this.read();
     }
 
@@ -65,7 +65,7 @@ public abstract class DataIn extends InputStream {
      *
      * @return a short
      */
-    public short readShort() throws IOException {
+    default short readShort() throws IOException {
         return (short) (((this.read() & 0xFF) << 8)
                 | (this.read() & 0xFF));
     }
@@ -75,7 +75,7 @@ public abstract class DataIn extends InputStream {
      *
      * @return an int
      */
-    public int readInt() throws IOException {
+    default int readInt() throws IOException {
         return ((this.read() & 0xFF) << 24)
                 | ((this.read() & 0xFF) << 16)
                 | ((this.read() & 0xFF) << 8)
@@ -87,7 +87,7 @@ public abstract class DataIn extends InputStream {
      *
      * @return a long
      */
-    public long readLong() throws IOException {
+    default long readLong() throws IOException {
         return (((long) this.read() & 0xFF) << 56L)
                 | (((long) this.read() & 0xFF) << 48L)
                 | (((long) this.read() & 0xFF) << 40L)
@@ -103,7 +103,7 @@ public abstract class DataIn extends InputStream {
      *
      * @return a float
      */
-    public float readFloat() throws IOException {
+    default float readFloat() throws IOException {
         return Float.intBitsToFloat(this.readInt());
     }
 
@@ -112,7 +112,7 @@ public abstract class DataIn extends InputStream {
      *
      * @return a double
      */
-    public double readDouble() throws IOException {
+    default double readDouble() throws IOException {
         return Double.longBitsToDouble(this.readLong());
     }
 
@@ -121,7 +121,7 @@ public abstract class DataIn extends InputStream {
      *
      * @return a string
      */
-    public String readUTF() throws IOException {
+    default String readUTF() throws IOException {
         return this.readBoolean() ? new String(this.readBytesSimple(), UTF8.utf8) : null;
     }
 
@@ -130,7 +130,7 @@ public abstract class DataIn extends InputStream {
      *
      * @return a byte array
      */
-    public byte[] readBytesSimple() throws IOException {
+    default byte[] readBytesSimple() throws IOException {
         int len = this.readVarInt(true);
         byte[] b = new byte[len];
         for (int i = 0; i < len; i++) {
@@ -146,7 +146,7 @@ public abstract class DataIn extends InputStream {
      * @param <E> the enum type
      * @return a value of <E>, or null if input was null
      */
-    public <E extends Enum<E>> E readEnum(@NonNull Function<String, E> f) throws IOException {
+    default <E extends Enum<E>> E readEnum(@NonNull Function<String, E> f) throws IOException {
         if (this.readBoolean()) {
             return f.apply(this.readUTF());
         } else {
@@ -154,11 +154,11 @@ public abstract class DataIn extends InputStream {
         }
     }
 
-    public int readVarInt() throws IOException {
+    default int readVarInt() throws IOException {
         return this.readVarInt(false);
     }
 
-    public int readVarInt(boolean optimizePositive) throws IOException {
+    default int readVarInt(boolean optimizePositive) throws IOException {
         int v = 0;
         int i;
         int o = 0;
@@ -173,7 +173,7 @@ public abstract class DataIn extends InputStream {
         return optimizePositive ? v : ((v >>> 1) ^ -(v & 1));
     }
 
-    public int readFully(byte[] b, int off, int len) throws IOException {
+    default int readFully(byte[] b, int off, int len) throws IOException {
         if (len != 0) {
             for (int i = 0; i < len; i++) {
                 b[i + off] = (byte) this.read();
@@ -184,107 +184,110 @@ public abstract class DataIn extends InputStream {
         }
     }
 
+    int read() throws IOException;
+
     @Override
-    public abstract void close() throws IOException;
+    void close() throws IOException;
+}
 
-    @AllArgsConstructor
-    private static class StreamIn extends DataIn {
-        @NonNull
-        private final InputStream in;
+@AllArgsConstructor
+class StreamIn extends InputStream implements DataIn {
+    @NonNull
+    private final InputStream in;
 
-        @Override
-        public void close() throws IOException {
-            this.in.close();
-        }
+    @Override
+    public void close() throws IOException {
+        this.in.close();
+    }
 
-        @Override
-        public int read() throws IOException {
-            return this.in.read();
-        }
+    @Override
+    public int read() throws IOException {
+        return this.in.read();
+    }
 
-        @Override
-        public int available() throws IOException {
-            return this.in.available();
+    @Override
+    public int available() throws IOException {
+        return this.in.available();
+    }
+}
+
+
+@AllArgsConstructor
+class BufferIn extends InputStream implements DataIn {
+    @NonNull
+    private ByteBuffer buffer;
+
+    public int read() throws IOException {
+        if (this.buffer == null) {
+            throw new IOException("read on a closed InputStream");
+        } else {
+            return this.buffer.remaining() == 0 ? -1 : this.buffer.get() & 255;
         }
     }
 
-    @AllArgsConstructor
-    private static class BufferIn extends DataIn {
-        @NonNull
-        private ByteBuffer buffer;
-
-        public int read() throws IOException {
-            if (this.buffer == null) {
-                throw new IOException("read on a closed InputStream");
-            } else {
-                return this.buffer.remaining() == 0 ? -1 : this.buffer.get() & 255;
-            }
+    public int read(byte[] var1) throws IOException {
+        if (this.buffer == null) {
+            throw new IOException("read on a closed InputStream");
+        } else {
+            return this.read(var1, 0, var1.length);
         }
+    }
 
-        public int read(byte[] var1) throws IOException {
-            if (this.buffer == null) {
-                throw new IOException("read on a closed InputStream");
+    public int read(byte[] var1, int var2, int var3) throws IOException {
+        if (this.buffer == null) {
+            throw new IOException("read on a closed InputStream");
+        } else if (var1 == null) {
+            throw new NullPointerException();
+        } else if (var2 >= 0 && var3 >= 0 && var3 <= var1.length - var2) {
+            if (var3 == 0) {
+                return 0;
             } else {
-                return this.read(var1, 0, var1.length);
-            }
-        }
-
-        public int read(byte[] var1, int var2, int var3) throws IOException {
-            if (this.buffer == null) {
-                throw new IOException("read on a closed InputStream");
-            } else if (var1 == null) {
-                throw new NullPointerException();
-            } else if (var2 >= 0 && var3 >= 0 && var3 <= var1.length - var2) {
-                if (var3 == 0) {
-                    return 0;
-                } else {
-                    int var4 = Math.min(this.buffer.remaining(), var3);
-                    if (var4 == 0) {
-                        return -1;
-                    } else {
-                        this.buffer.get(var1, var2, var4);
-                        return var4;
-                    }
-                }
-            } else {
-                throw new IndexOutOfBoundsException();
-            }
-        }
-
-        public long skip(long var1) throws IOException {
-            if (this.buffer == null) {
-                throw new IOException("skip on a closed InputStream");
-            } else if (var1 <= 0L) {
-                return 0L;
-            } else {
-                int var3 = (int)var1;
                 int var4 = Math.min(this.buffer.remaining(), var3);
-                this.buffer.position(this.buffer.position() + var4);
-                return (long)var3;
+                if (var4 == 0) {
+                    return -1;
+                } else {
+                    this.buffer.get(var1, var2, var4);
+                    return var4;
+                }
             }
+        } else {
+            throw new IndexOutOfBoundsException();
         }
+    }
 
-        public int available() throws IOException {
-            if (this.buffer == null) {
-                throw new IOException("available on a closed InputStream");
-            } else {
-                return this.buffer.remaining();
-            }
+    public long skip(long var1) throws IOException {
+        if (this.buffer == null) {
+            throw new IOException("skip on a closed InputStream");
+        } else if (var1 <= 0L) {
+            return 0L;
+        } else {
+            int var3 = (int)var1;
+            int var4 = Math.min(this.buffer.remaining(), var3);
+            this.buffer.position(this.buffer.position() + var4);
+            return (long)var3;
         }
+    }
 
-        public void close() throws IOException {
-            this.buffer = null;
+    public int available() throws IOException {
+        if (this.buffer == null) {
+            throw new IOException("available on a closed InputStream");
+        } else {
+            return this.buffer.remaining();
         }
+    }
 
-        public synchronized void mark(int var1) {
-        }
+    public void close() throws IOException {
+        this.buffer = null;
+    }
 
-        public synchronized void reset() throws IOException {
-            throw new IOException("mark/reset not supported");
-        }
+    public synchronized void mark(int var1) {
+    }
 
-        public boolean markSupported() {
-            return false;
-        }
+    public synchronized void reset() throws IOException {
+        throw new IOException("mark/reset not supported");
+    }
+
+    public boolean markSupported() {
+        return false;
     }
 }

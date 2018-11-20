@@ -59,7 +59,6 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
     private final KeyHasher<K> keyHasher;
     @Getter
     private final Serializer<V> valueSerializer;
-    @Getter
     private final IndexLookup<K> indexLookup;
     private volatile boolean dirty = false;
 

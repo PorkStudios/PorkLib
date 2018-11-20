@@ -13,10 +13,32 @@
  *
  */
 
-package net.daporkchop.lib.db.data;
+package net.daporkchop.lib.db.container.map.data;
+
+import lombok.NonNull;
+import net.daporkchop.lib.binary.Persistent;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.db.container.map.DBMap;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.util.function.Consumer;
 
 /**
  * @author DaPorkchop_
  */
-public class A {
+public interface DataLookup extends Persistent {
+    default void init(@NonNull DBMap<?, ?> map, @NonNull File file) throws IOException {
+        this.load();
+    }
+
+    DataIn read(long id) throws IOException;
+
+    long write(long id, @NonNull Consumer<DataOut> writer) throws IOException;
+
+    void remove(long id) throws IOException;
+
+    void clear() throws IOException;
 }

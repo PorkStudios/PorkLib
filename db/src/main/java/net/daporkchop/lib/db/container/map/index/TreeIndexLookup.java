@@ -44,6 +44,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 @Getter
 //TODO: this godawful mess won't work well with concurrent removals
+//TODO: additionally, this godawful mess is extremely storage inefficient
+//TODO: to preserve my limited sanity, nuke this whole godawful mess
 public class TreeIndexLookup<K> implements IndexLookup<K> {
     protected static final int NODE_ENTRIES = 256;
     protected static final int NODE_ENTRY_BYTES = Long.BYTES;
@@ -139,6 +141,24 @@ public class TreeIndexLookup<K> implements IndexLookup<K> {
             this.rootNode = null;
             this.keyHasher = null;
             this.map = null;
+        } finally {
+            this.lock.writeLock().unlock();
+        }
+    }
+
+    @Override
+    public void clear() throws IOException {
+        this.lock.writeLock().lock();
+        try {
+            this.nodeSectorMap.clear();
+            this.nodeSectorMap.set(1);
+            this.rootNode = null;
+            this.nodeSectorMap.set(0);
+            this.file.setLength(1L << NODE_SIZE_SHIFT);
+            this.channel.write(ByteBuffer.wrap(EMPTY_NODE), 0L);
+            this.rootNode = new TreeNode(0, 0, null);
+
+            this.save();
         } finally {
             this.lock.writeLock().unlock();
         }

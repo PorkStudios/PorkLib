@@ -44,4 +44,6 @@ public interface IndexLookup<K> extends Persistent {
     boolean contains(@NonNull K key) throws IOException;
 
     long remove(@NonNull K key) throws IOException;
+
+    void clear() throws IOException;
 }

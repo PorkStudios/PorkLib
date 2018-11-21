@@ -13,19 +13,12 @@
  *
  */
 
-import net.daporkchop.lib.binary.data.Serializer;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.db.PorkDB;
 import net.daporkchop.lib.db.container.DBAtomicLong;
 import net.daporkchop.lib.db.container.map.DBMap;
-import net.daporkchop.lib.db.container.map.data.ConstantLengthLookup;
 import net.daporkchop.lib.db.container.map.data.OneTimeWriteDataLookup;
-import net.daporkchop.lib.db.container.map.index.IndexLookup;
-import net.daporkchop.lib.db.container.map.index.TreeIndexLookup;
-import net.daporkchop.lib.db.data.value.BasicSerializer;
-import net.daporkchop.lib.db.data.value.ConstantLengthSerializer;
+import net.daporkchop.lib.binary.data.impl.BasicSerializer;
 import net.daporkchop.lib.encoding.basen.Base58;
 import net.daporkchop.lib.encoding.compression.Compression;
 import org.junit.Test;
@@ -63,7 +56,7 @@ public class DBTest {
             }
         }
         {
-            IndexLookup<String> lookup;// = new TreeIndexLookup<>();
+            IndexLookup<String> lookup;// = new SlowAndInefficientTreeIndexLookup<>();
             PorkDB db = PorkDB.builder()
                     .setRoot(outFile)
                     .build();
@@ -93,7 +86,7 @@ public class DBTest {
         }
         System.out.println("AAAAAA");
         {
-            IndexLookup<String> lookup;// = new TreeIndexLookup<>();
+            IndexLookup<String> lookup;// = new SlowAndInefficientTreeIndexLookup<>();
             PorkDB db = PorkDB.builder()
                     .setRoot(outFile)
                     .build();

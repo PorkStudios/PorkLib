@@ -15,7 +15,11 @@
 
 package net.daporkchop.lib.db;
 
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.function.IOFunction;
 
@@ -34,26 +38,35 @@ import java.util.function.Function;
  * @author DaPorkchop_
  */
 public class PorkDB {
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    public static Builder builder(@NonNull File root) {
-        return new Builder().setRoot(root);
-    }
-
+    final Map<String, Container> loadedContainers = new ConcurrentHashMap<>();
     private final Map<Class<? extends Container>, Function<String, ? extends Container.Builder>> builderCache = new IdentityHashMap<>();
     @Getter
     private final File root;
-
-    final Map<String, Container> loadedContainers = new ConcurrentHashMap<>();
-
     private final Object saveLock = new Object();
     @Getter
     private volatile boolean open = true;
 
     private PorkDB(@NonNull Builder builder) {
         this.root = builder.root;
+    }
+
+    /**
+     * Constructs a new {@link Builder}
+     *
+     * @return a blank instance of {@link Builder}
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Constructs a new {@link Builder}
+     *
+     * @param root the root folder of the {@link PorkDB} to be constructed
+     * @return a new instance of {@link Builder} with the given root
+     */
+    public static Builder builder(@NonNull File root) {
+        return new Builder().setRoot(root);
     }
 
     /**
@@ -73,7 +86,7 @@ public class PorkDB {
      * Saves the content of every loaded container to disk. The exact behavior of this may vary across
      * various {@link Container} implementations.
      *
-     * @throws IOException if an io exception occurs? duh
+     * @throws IOException if a IO exception occurs you dummy
      */
     public void save() throws IOException {
         this.ensureOpen();
@@ -87,7 +100,7 @@ public class PorkDB {
     /**
      * Closes the database, unloading all currently loaded containers.
      *
-     * @throws IOException if an io exception occurs? duh
+     * @throws IOException if a IO exception occurs you dummy
      */
     public void close() throws IOException {
         this.ensureOpen();
@@ -129,9 +142,17 @@ public class PorkDB {
     @Getter
     @Setter
     public static final class Builder {
+        /**
+         * The root directory of the database.
+         */
         @NonNull
         private File root;
 
+        /**
+         * Constructs a new {@link PorkDB} using the settings from this builder
+         *
+         * @return a new instance of {@link PorkDB} based on this builder
+         */
         public PorkDB build() {
             if (this.root == null) {
                 throw new IllegalStateException("root must be set!");

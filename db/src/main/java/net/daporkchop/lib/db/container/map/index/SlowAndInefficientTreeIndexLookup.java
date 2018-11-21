@@ -23,7 +23,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.binary.util.RequiredBits;
 import net.daporkchop.lib.db.container.bitset.PersistentSparseBitSet;
 import net.daporkchop.lib.db.container.map.DBMap;
-import net.daporkchop.lib.db.data.key.KeyHasher;
+import net.daporkchop.lib.db.container.map.data.key.KeyHasher;
 import sun.misc.Cleaner;
 import sun.nio.ch.DirectBuffer;
 
@@ -46,7 +46,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 //TODO: this godawful mess won't work well with concurrent removals
 //TODO: additionally, this godawful mess is extremely storage inefficient
 //TODO: to preserve my limited sanity, nuke this whole godawful mess
-public class TreeIndexLookup<K> implements IndexLookup<K> {
+public class SlowAndInefficientTreeIndexLookup<K> implements IndexLookup<K> {
     protected static final int NODE_ENTRIES = 256;
     protected static final int NODE_ENTRY_BYTES = Long.BYTES;
     protected static final int NODE_SIZE_SHIFT = RequiredBits.getNumBitsNeededFor(NODE_ENTRY_BYTES * NODE_ENTRIES);
@@ -256,7 +256,7 @@ public class TreeIndexLookup<K> implements IndexLookup<K> {
 
     @Getter
     protected class TreeNode {
-        protected final TreeIndexLookup this_ = TreeIndexLookup.this;
+        protected final SlowAndInefficientTreeIndexLookup this_ = SlowAndInefficientTreeIndexLookup.this;
 
         protected final ReadWriteLock lock = new ReentrantReadWriteLock();
         protected final long pos;

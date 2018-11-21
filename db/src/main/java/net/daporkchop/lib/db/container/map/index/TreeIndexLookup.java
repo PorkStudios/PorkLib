@@ -230,7 +230,8 @@ public class TreeIndexLookup<K> implements IndexLookup<K> {
             //check if we need to expand file
             long totalLength = (sector + 1L) << NODE_SIZE_SHIFT;
             if (this.file.length() < totalLength) {
-                System.out.printf("Expanding index from %d to %d bytes\n", this.file.length(), totalLength);
+                //TODO: i really need to add a logger with debug printing
+                //System.out.printf("Expanding index from %d to %d bytes\n", this.file.length(), totalLength);
                 this.file.setLength(totalLength);
                 this.channel.write(ByteBuffer.wrap(EMPTY_NODE), (long) sector << NODE_SIZE_SHIFT);
             }

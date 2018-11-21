@@ -45,6 +45,14 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
+ * A filesystem-based implementation of {@link Map}.
+ *
+ * How exactly this will behave depends on the settings defined in the builder. Configurable
+ * options are:
+ * {@link KeyHasher}
+ * {@link IndexLookup}
+ * {@link DataLookup}
+ *
  * @author DaPorkchop_
  */
 public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> implements Map<K, V> {

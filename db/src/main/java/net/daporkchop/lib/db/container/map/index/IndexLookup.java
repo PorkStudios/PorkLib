@@ -18,14 +18,13 @@ package net.daporkchop.lib.db.container.map.index;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.Persistent;
 import net.daporkchop.lib.db.container.map.DBMap;
-import net.daporkchop.lib.db.data.key.KeyHasher;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.Map;
 
 /**
+ * A simple mapping of objects to 64-bit values
+ *
  * @author DaPorkchop_
  */
 public interface IndexLookup<K> extends Persistent {
@@ -37,13 +36,47 @@ public interface IndexLookup<K> extends Persistent {
         this.load();
     }
 
+    /**
+     * Get the value associated with a given key
+     *
+     * @param key the key
+     * @return the current value for the given key, or -1 if not found
+     * @throws IOException if an IO exception occurs you dummy
+     */
     long get(@NonNull K key) throws IOException;
 
+    /**
+     * Set the value associated with a given key
+     *
+     * @param key the key
+     * @param val the new value
+     * @throws IOException if an IO exception occurs you dummy
+     */
     void set(@NonNull K key, long val) throws IOException;
 
+    /**
+     * Checks if a value exists for a given key
+     *
+     * @param key the key
+     * @return whether or not a mapping exists for that key
+     * @throws IOException if an IO exception occurs you dummy
+     */
     boolean contains(@NonNull K key) throws IOException;
 
+    /**
+     * Removes a value from the index
+     *
+     * @param key the key
+     * @return the value that was removed, or -1 if not found
+     * @throws IOException if an IO exception occurs you dummy
+     */
     long remove(@NonNull K key) throws IOException;
 
+    /**
+     * Clears the index, removing all values. Implementations are expected to also
+     * free up any disk resources used.
+     *
+     * @throws IOException if an IO exception occurs you dummy
+     */
     void clear() throws IOException;
 }

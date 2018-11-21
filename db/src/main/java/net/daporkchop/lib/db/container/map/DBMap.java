@@ -35,6 +35,7 @@ import net.daporkchop.lib.encoding.compression.CompressionHelper;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.util.Collection;
 import java.util.Map;
@@ -172,7 +173,7 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
             K key = (K) o;
             AtomicReference<V> ref = new AtomicReference<>(null);
             this.indexLookup.runIfContains(key, id -> {
-                try (DataIn in = this.dataLookup.read(id)) {
+                try (DataIn in = this.wrap(this.dataLookup.read(id))) {
                     ref.set(this.valueSerializer.read(in));
                 }
             });
@@ -200,11 +201,15 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
             AtomicReference<V> oldValue = loadOldValue ? new AtomicReference<>(null) : null;
             this.indexLookup.change(key, id -> {
                 if (id != -1L && loadOldValue) {
-                    try (DataIn in = this.dataLookup.read(id)) {
+                    try (DataIn in = this.wrap(this.dataLookup.read(id))) {
                         oldValue.set(this.valueSerializer.read(in));
                     }
                 }
-                return this.dataLookup.write(id, out -> this.valueSerializer.write(value, out));
+                return this.dataLookup.write(id, out -> {
+                    try (DataOut theOut = this.wrap(out))   {
+                        this.valueSerializer.write(value, theOut);
+                    }
+                });
             });
             return loadOldValue ? oldValue.get() : null;
         } catch (IOException e) {
@@ -231,7 +236,7 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
             AtomicReference<V> ref = loadOld ? new AtomicReference<>(null) : null;
             this.indexLookup.runIfContains(key, id -> {
                 if (loadOld) {
-                    try (DataIn in = this.dataLookup.read(id)) {
+                    try (DataIn in = this.wrap(this.dataLookup.read(id))) {
                         ref.set(this.valueSerializer.read(in));
                     }
                 }
@@ -287,6 +292,22 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
         return super.getRAF(name);
     }
 
+    private DataIn wrap(@NonNull DataIn in) throws IOException {
+        if (this.dataLookup.allowsCompression() && this.compression != Compression.NONE)    {
+            return DataIn.wrap(this.compression.inflate(in));
+        } else {
+            return in;
+        }
+    }
+
+    private DataOut wrap(@NonNull DataOut out) throws IOException {
+        if (this.dataLookup.allowsCompression() && this.compression != Compression.NONE)    {
+            return DataOut.wrap(this.compression.deflate(out));
+        } else {
+            return out;
+        }
+    }
+
     @Getter
     @Setter
     @Accessors(chain = true)
@@ -308,6 +329,8 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
          * Default implementations:
          * {@link net.daporkchop.lib.db.container.map.data.IndividualFileLookup}
          * {@link net.daporkchop.lib.db.container.map.data.StreamingDataLookup} (wip)
+         * {@link net.daporkchop.lib.db.container.map.data.ConstantLengthLookup}
+         * {@link net.daporkchop.lib.db.container.map.data.OneTimeWriteDataLookup}
          */
         @NonNull
         private DataLookup dataLookup = new IndividualFileLookup();
@@ -323,6 +346,8 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
         protected DBMap<K, V> buildImpl() throws IOException {
             if (this.valueSerializer == null) {
                 throw new IllegalStateException("Value serializer must be set!");
+            } if (this.compression != Compression.NONE && !this.dataLookup.allowsCompression()) {
+                System.err.printf("[Warning] DataLookup %s reports that it doesn't support compression, but compression is set to %s. Data will not be compressed.\n", this.dataLookup.getClass().getCanonicalName(), this.compression);
             }
 
             return new DBMap<>(this);

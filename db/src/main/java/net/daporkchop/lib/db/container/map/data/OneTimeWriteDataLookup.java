@@ -144,4 +144,9 @@ public class OneTimeWriteDataLookup implements DataLookup {
     public void remove(long id) throws IOException {
         throw new UnsupportedOperationException("remove");
     }
+
+    @Override
+    public boolean allowsCompression() {
+        return true;
+    }
 }

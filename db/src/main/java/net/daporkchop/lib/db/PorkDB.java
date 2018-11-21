@@ -17,7 +17,7 @@ package net.daporkchop.lib.db;
 
 import lombok.*;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.function.IOEFunction;
+import net.daporkchop.lib.common.function.IOFunction;
 
 import java.io.File;
 import java.io.IOException;
@@ -109,7 +109,7 @@ public class PorkDB {
     }
 
     @SuppressWarnings("unchecked")
-    private <V, C extends Container<V, ? extends Container.Builder<V, C>>> C computeIfAbsent(@NonNull String name, @NonNull IOEFunction<String, C> creator) {
+    private <V, C extends Container<V, ? extends Container.Builder<V, C>>> C computeIfAbsent(@NonNull String name, @NonNull IOFunction<String, C> creator) {
         return (C) this.loadedContainers.computeIfAbsent(name, creator);
     }
 

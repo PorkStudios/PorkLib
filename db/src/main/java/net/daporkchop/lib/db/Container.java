@@ -19,12 +19,11 @@ import lombok.*;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.common.function.IOEConsumer;
+import net.daporkchop.lib.common.function.IOConsumer;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.function.Consumer;
 
 /**
  * @author DaPorkchop_
@@ -72,7 +71,7 @@ public abstract class Container<V, B extends Container.Builder<V, ? extends Cont
         return this.getFile(name, null, create);
     }
 
-    protected File getFile(@NonNull String name, IOEConsumer<DataOut> initializer, boolean create) throws IOException    {
+    protected File getFile(@NonNull String name, IOConsumer<DataOut> initializer, boolean create) throws IOException    {
         if (!this.usesDirectory())  {
             throw new IllegalStateException();
         } else {
@@ -99,7 +98,7 @@ public abstract class Container<V, B extends Container.Builder<V, ? extends Cont
         return this.getIn(name, null);
     }
 
-    protected DataIn getIn(@NonNull String name, IOEConsumer<DataOut> initializer) throws IOException {
+    protected DataIn getIn(@NonNull String name, IOConsumer<DataOut> initializer) throws IOException {
         return DataIn.wrap(this.getFile(name, initializer, true));
     }
 
@@ -107,7 +106,7 @@ public abstract class Container<V, B extends Container.Builder<V, ? extends Cont
         return this.getOut(name, null);
     }
 
-    protected DataOut getOut(@NonNull String name, IOEConsumer<DataOut> initializer) throws IOException {
+    protected DataOut getOut(@NonNull String name, IOConsumer<DataOut> initializer) throws IOException {
         return DataOut.wrap(this.getFile(name, initializer, true));
     }
 
@@ -115,7 +114,7 @@ public abstract class Container<V, B extends Container.Builder<V, ? extends Cont
         return this.getRAF(name, null);
     }
 
-    protected RandomAccessFile getRAF(@NonNull String name, IOEConsumer<DataOut> initializer) throws IOException {
+    protected RandomAccessFile getRAF(@NonNull String name, IOConsumer<DataOut> initializer) throws IOException {
         return new RandomAccessFile(this.getFile(name, initializer, true), "rw");
     }
 

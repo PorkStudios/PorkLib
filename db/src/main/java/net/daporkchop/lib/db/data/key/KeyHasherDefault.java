@@ -16,7 +16,7 @@
 package net.daporkchop.lib.db.data.key;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.FastByteArrayOutputStream;
+import net.daporkchop.lib.binary.stream.optimizations.FastByteArrayOutputStream;
 import net.daporkchop.lib.hash.HashAlg;
 
 import java.io.ByteArrayOutputStream;

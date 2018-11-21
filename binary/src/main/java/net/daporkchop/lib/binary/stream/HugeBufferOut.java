@@ -16,14 +16,12 @@
 package net.daporkchop.lib.binary.stream;
 
 import lombok.NonNull;
-import net.daporkchop.lib.common.function.IOEConsumer;
+import net.daporkchop.lib.common.function.IOConsumer;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * Allows buffering a huge amount of data in RAM
@@ -32,15 +30,15 @@ import java.util.function.Consumer;
  */
 public class HugeBufferOut extends DataOut {
     private final int bufferSize;
-    private final IOEConsumer<List<ByteBuffer>> closer;
+    private final IOConsumer<List<ByteBuffer>> closer;
     private List<ByteBuffer> buffers = new ArrayList<>();
     private ByteBuffer currentBuffer;
 
-    public HugeBufferOut(@NonNull IOEConsumer<List<ByteBuffer>> closer) {
+    public HugeBufferOut(@NonNull IOConsumer<List<ByteBuffer>> closer) {
         this(closer, 4096);
     }
 
-    public HugeBufferOut(@NonNull IOEConsumer<List<ByteBuffer>> closer, int bufferSize) {
+    public HugeBufferOut(@NonNull IOConsumer<List<ByteBuffer>> closer, int bufferSize) {
         if (bufferSize <= 0) {
             throw new IllegalArgumentException(String.format("Invalid buffer size: %d", bufferSize));
         }

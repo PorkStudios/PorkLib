@@ -20,7 +20,7 @@ import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.binary.stream.HugeBufferIn;
 import net.daporkchop.lib.binary.stream.HugeBufferOut;
-import net.daporkchop.lib.common.function.IOEConsumer;
+import net.daporkchop.lib.common.function.IOConsumer;
 import net.daporkchop.lib.db.container.bitset.PersistentSparseBitSet;
 import net.daporkchop.lib.db.container.map.DBMap;
 import net.daporkchop.lib.math.primitive.RoundUp;
@@ -31,7 +31,6 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
 
 /**
  * This is totally broken, don't use it
@@ -83,7 +82,7 @@ public class StreamingDataLookup implements DataLookup {
     }
 
     @Override
-    public long write(long id, @NonNull IOEConsumer<DataOut> writer) throws IOException {
+    public long write(long id, @NonNull IOConsumer<DataOut> writer) throws IOException {
         AtomicLong newOff = new AtomicLong(-1L);
         DataOut out = new HugeBufferOut(buffers -> {
             ByteBuffer inBuf = ByteBuffer.allocateDirect(8);

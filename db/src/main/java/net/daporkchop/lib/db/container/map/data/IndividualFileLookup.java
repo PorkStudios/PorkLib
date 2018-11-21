@@ -19,7 +19,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.common.function.IOEConsumer;
+import net.daporkchop.lib.common.function.IOConsumer;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.db.container.bitset.PersistentSparseBitSet;
 import net.daporkchop.lib.db.container.map.DBMap;
@@ -79,8 +79,8 @@ public class IndividualFileLookup implements DataLookup {
     }
 
     @Override
-    public long write(long id, @NonNull IOEConsumer<DataOut> writer) throws IOException {
-        if (id == -1L) {
+    public long write(long id, @NonNull IOConsumer<DataOut> writer) throws IOException {
+        if (id == -1L || !this.ids.get((int) id)) {
             synchronized (this.ids) {
                 id = this.ids.getBitSet().nextClearBit(0);
                 this.ids.set((int) id);

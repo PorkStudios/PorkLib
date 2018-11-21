@@ -103,7 +103,7 @@ public interface IndexLookup<K> extends Persistent {
     }
 
     /**
-     * Run a function on the current value mapped to the given key, and then change the current value to the
+     * Run a function on the current value mapped to the given key, and then change the current impl to the
      * return value of the function
      *
      * @param key  the key

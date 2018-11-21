@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.db.data.key;
+package net.daporkchop.lib.db.container.map.data.key;
 
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.optimizations.FastByteArrayOutputStream;
@@ -26,7 +26,7 @@ import java.io.ObjectOutputStream;
 /**
  * @author DaPorkchop_
  */
-public class KeyHasherDefault<K> implements KeyHasher<K> {
+public class DefaultKeyHasher<K> implements KeyHasher<K> {
     @Override
     public byte[] hash(@NonNull K key) {
         ByteArrayOutputStream baos = new FastByteArrayOutputStream();

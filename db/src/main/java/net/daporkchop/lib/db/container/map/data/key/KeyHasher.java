@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.db.data.key;
+package net.daporkchop.lib.db.container.map.data.key;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -25,6 +25,14 @@ public interface KeyHasher<K> {
     byte[] hash(@NonNull K key);
 
     int getHashLength();
+
+    default boolean canReconstructFromHash()    {
+        return false;
+    }
+
+    default K reconstructFromHash(@NonNull byte[] hash) {
+        throw new UnsupportedOperationException("reconstruct from hash");
+    }
 
     abstract class BaseKeyHasher<K> implements KeyHasher<K> {
         @Getter

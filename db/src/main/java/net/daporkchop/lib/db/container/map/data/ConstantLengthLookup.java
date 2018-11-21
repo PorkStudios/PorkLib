@@ -22,7 +22,7 @@ import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.function.IOConsumer;
 import net.daporkchop.lib.db.container.bitset.PersistentSparseBitSet;
 import net.daporkchop.lib.db.container.map.DBMap;
-import net.daporkchop.lib.db.data.value.ConstantLengthSerializer;
+import net.daporkchop.lib.binary.data.impl.ConstantLengthSerializer;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,7 +34,7 @@ import java.nio.channels.FileChannel;
  * An implementation of {@link DataLookup} that stores everything in a single file with
  * minimal overhead.
  * <p>
- * This requires that a subclass of {@link net.daporkchop.lib.db.data.value.ConstantLengthSerializer} is used.
+ * This requires that a subclass of {@link net.daporkchop.lib.binary.data.impl.ConstantLengthSerializer} is used.
  *
  * @author DaPorkchop_
  */

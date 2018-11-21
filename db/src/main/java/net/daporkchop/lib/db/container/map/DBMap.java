@@ -26,16 +26,15 @@ import net.daporkchop.lib.db.Container;
 import net.daporkchop.lib.db.PorkDB;
 import net.daporkchop.lib.db.container.map.data.DataLookup;
 import net.daporkchop.lib.db.container.map.data.IndividualFileLookup;
+import net.daporkchop.lib.db.container.map.data.key.DefaultKeyHasher;
+import net.daporkchop.lib.db.container.map.data.key.KeyHasher;
 import net.daporkchop.lib.db.container.map.index.IndexLookup;
-import net.daporkchop.lib.db.container.map.index.TreeIndexLookup;
-import net.daporkchop.lib.db.data.key.KeyHasher;
-import net.daporkchop.lib.db.data.key.KeyHasherDefault;
+import net.daporkchop.lib.db.container.map.index.SlowAndInefficientTreeIndexLookup;
 import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.encoding.compression.CompressionHelper;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.util.Collection;
 import java.util.Map;
@@ -206,7 +205,7 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
                     }
                 }
                 return this.dataLookup.write(id, out -> {
-                    try (DataOut theOut = this.wrap(out))   {
+                    try (DataOut theOut = this.wrap(out)) {
                         this.valueSerializer.write(value, theOut);
                     }
                 });
@@ -293,7 +292,7 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
     }
 
     private DataIn wrap(@NonNull DataIn in) throws IOException {
-        if (this.dataLookup.allowsCompression() && this.compression != Compression.NONE)    {
+        if (this.dataLookup.allowsCompression() && this.compression != Compression.NONE) {
             return DataIn.wrap(this.compression.inflate(in));
         } else {
             return in;
@@ -301,7 +300,7 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
     }
 
     private DataOut wrap(@NonNull DataOut out) throws IOException {
-        if (this.dataLookup.allowsCompression() && this.compression != Compression.NONE)    {
+        if (this.dataLookup.allowsCompression() && this.compression != Compression.NONE) {
             return DataOut.wrap(this.compression.deflate(out));
         } else {
             return out;
@@ -314,27 +313,63 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
     public static class Builder<K, V> extends Container.Builder<Map<K, V>, DBMap<K, V>> {
         //TODO: private Serializer<K> keySerializer;
 
+        /**
+         * The {@link Serializer} used for writing values to disk.
+         * <p>
+         * If the {@link DataLookup} expects constant-length values, this must
+         * be set to an instance of {@link net.daporkchop.lib.binary.data.impl.ConstantLengthSerializer}.
+         * <p>
+         * MUST BE SET! Unlike all other fields in this class, this one is NOT set to a
+         * default value.
+         *
+         * @see net.daporkchop.lib.binary.data.impl.BasicSerializer
+         * @see net.daporkchop.lib.binary.data.impl.ConstantLengthSerializer
+         * @see net.daporkchop.lib.binary.data.impl.ByteArraySerializer
+         */
         @NonNull
         private Serializer<V> valueSerializer;
 
+        /**
+         * The {@link KeyHasher} used for... hashing keys
+         *
+         * @see net.daporkchop.lib.db.container.map.data.key.DefaultKeyHasher
+         * @see net.daporkchop.lib.db.container.map.data.key.ByteArrayKeyHasher
+         * @see net.daporkchop.lib.db.container.map.data.key.PrimitiveKeyHasher
+         */
         @NonNull
-        private KeyHasher<K> keyHasher = new KeyHasherDefault<>();
+        private KeyHasher<K> keyHasher = new DefaultKeyHasher<>();
 
+        /**
+         * The {@link IndexLookup} used for mapping keys to long ids as used by
+         * implementations of {@link DataLookup}
+         *
+         * @see net.daporkchop.lib.db.container.map.index.SlowAndInefficientTreeIndexLookup (don't use this, really)
+         */
         @NonNull
-        private IndexLookup<K> indexLookup = new TreeIndexLookup<>();
+        private IndexLookup<K> indexLookup = new SlowAndInefficientTreeIndexLookup<>();
 
         /**
          * The {@link DataLookup} used for reading values.
-         * <p>
-         * Default implementations:
-         * {@link net.daporkchop.lib.db.container.map.data.IndividualFileLookup}
-         * {@link net.daporkchop.lib.db.container.map.data.StreamingDataLookup} (wip)
-         * {@link net.daporkchop.lib.db.container.map.data.ConstantLengthLookup}
-         * {@link net.daporkchop.lib.db.container.map.data.OneTimeWriteDataLookup}
+         *
+         * @see net.daporkchop.lib.db.container.map.data.IndividualFileLookup
+         * @see net.daporkchop.lib.db.container.map.data.StreamingDataLookup (wip)
+         * @see net.daporkchop.lib.db.container.map.data.ConstantLengthLookup
+         * @see net.daporkchop.lib.db.container.map.data.OneTimeWriteDataLookup
          */
         @NonNull
         private DataLookup dataLookup = new IndividualFileLookup();
 
+        /**
+         * The compression algorithm used for compression of values. If the {@link DataLookup}
+         * doesn't allow compression of values (see {@link DataLookup#allowsCompression()}) then
+         * this will not be used.
+         * <p>
+         * Some default {@link CompressionHelper} instances to use here can be found
+         * as static fields in {@link Compression}.
+         *
+         * @see Compression
+         * @see DataLookup#allowsCompression()
+         */
         @NonNull
         private CompressionHelper compression = Compression.NONE;
 
@@ -346,7 +381,8 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
         protected DBMap<K, V> buildImpl() throws IOException {
             if (this.valueSerializer == null) {
                 throw new IllegalStateException("Value serializer must be set!");
-            } if (this.compression != Compression.NONE && !this.dataLookup.allowsCompression()) {
+            }
+            if (this.compression != Compression.NONE && !this.dataLookup.allowsCompression()) {
                 System.err.printf("[Warning] DataLookup %s reports that it doesn't support compression, but compression is set to %s. Data will not be compressed.\n", this.dataLookup.getClass().getCanonicalName(), this.compression);
             }
 

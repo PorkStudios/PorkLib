@@ -126,7 +126,7 @@ public class DBTest {
         Random r = ThreadLocalRandom.current();
         long longVal = r.nextLong();
         Map<String, byte[]> data = new Hashtable<>();
-            for (int i = 0; i < 50; i++)    {
+            for (int i = 0; i < 15; i++)    {
                 byte[] b1 = new byte[16];
                 byte[] b2 = new byte[r.nextInt(4096) + 1024];
                 r.nextBytes(b1);

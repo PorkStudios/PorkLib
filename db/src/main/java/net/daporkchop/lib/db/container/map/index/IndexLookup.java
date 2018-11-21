@@ -21,6 +21,7 @@ import net.daporkchop.lib.common.function.IOConsumer;
 import net.daporkchop.lib.common.function.IOFunction;
 import net.daporkchop.lib.db.container.map.DBMap;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
@@ -34,7 +35,7 @@ public interface IndexLookup<K> extends Persistent {
         throw new UnsupportedOperationException(String.format("%s doesn't use a hash!", this.getClass().getCanonicalName()));
     }
 
-    default void init(@NonNull DBMap<K, ?> map, @NonNull RandomAccessFile file) throws IOException {
+    default void init(@NonNull DBMap<K, ?> map, @NonNull File file) throws IOException {
         this.load();
     }
 
@@ -95,7 +96,7 @@ public interface IndexLookup<K> extends Persistent {
             return false;
         } else {
             long l2 = func.apply(l);
-            if (l == 1L || l != l2) {
+            if (l != l2) {
                 this.set(key, l2);
             }
             return true;
@@ -113,7 +114,7 @@ public interface IndexLookup<K> extends Persistent {
     default void change(@NonNull K key, @NonNull IOFunction<Long, Long> func) throws IOException {
         long l = this.get(key);
         long l2 = func.apply(l);
-        if (l == 1L || l != l2) {
+        if (l == -1L || l != l2) {
             this.set(key, l2);
         }
     }

@@ -76,15 +76,23 @@ public class SlowAndInefficientTreeIndexLookup<K> implements IndexLookup<K> {
     }
 
     @Override
-    public void init(@NonNull DBMap<K, ?> map, @NonNull RandomAccessFile file) throws IOException {
+    public void init(@NonNull DBMap<K, ?> map, @NonNull File file) throws IOException {
         if (this.map != null) {
             throw new IllegalStateException("already initialized");
         }
         this.map = map;
         this.keyHasher = this.map.getKeyHasher();
         this.hashLength = this.keyHasher.getHashLength();
-        this.file = file;
-        this.nodeSectorMap = new PersistentSparseBitSet(this.map.getFile("index.bitmap"));
+        this.nodeSectorMap = new PersistentSparseBitSet(new File(file, "index.bitmap"));
+        file = new File(file, "index.data");
+        if (!file.exists()) {
+            if (!file.getParentFile().exists() && !file.getParentFile().mkdirs()) {
+                throw new IllegalStateException(String.format("Couldn't create directory: %s", file.getParentFile().getAbsolutePath()));
+            } else if (!file.createNewFile()) {
+                throw new IllegalStateException(String.format("Couldn't create file: %s", file.getAbsolutePath()));
+            }
+        }
+        this.file = new RandomAccessFile(file, "rw");
         IndexLookup.super.init(this.map, file);
     }
 

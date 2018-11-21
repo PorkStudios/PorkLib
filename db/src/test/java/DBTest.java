@@ -13,12 +13,14 @@
  *
  */
 
+import net.daporkchop.lib.binary.data.impl.ByteArraySerializer;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.db.PorkDB;
 import net.daporkchop.lib.db.container.DBAtomicLong;
 import net.daporkchop.lib.db.container.map.DBMap;
 import net.daporkchop.lib.db.container.map.data.OneTimeWriteDataLookup;
 import net.daporkchop.lib.binary.data.impl.BasicSerializer;
+import net.daporkchop.lib.db.container.map.index.hashtable.MappedHashTableIndexLookup;
 import net.daporkchop.lib.encoding.basen.Base58;
 import net.daporkchop.lib.encoding.compression.Compression;
 import org.junit.Test;
@@ -130,7 +132,7 @@ public class DBTest {
             r.nextBytes(b2);
             data.put(Base58.encodeBase58(b1), b2);
         }
-        {
+        if (true){
             byte[] b1 = new byte[16];
             byte[] b2 = new byte[0xFFFFFF];
             r.nextBytes(b1);
@@ -147,9 +149,10 @@ public class DBTest {
             }
             if (true)   {
                 DBMap<String, byte[]> dbMap = DBMap.<String, byte[]>builder(db, "map")
-                        .setValueSerializer(new BasicSerializer<>())
-                        .setDataLookup(new OneTimeWriteDataLookup())
-                        .setCompression(Compression.BZIP2_NORMAL)
+                        .setValueSerializer(ByteArraySerializer.INSTANCE)
+                        //.setDataLookup(new OneTimeWriteDataLookup())
+                        .setIndexLookup(new MappedHashTableIndexLookup<>(16, 4))
+                        //.setCompression(Compression.BZIP2_NORMAL)
                         .build();
 
                 dbMap.putAll(data);
@@ -171,9 +174,10 @@ public class DBTest {
                 }
                 if (true)   {
                     DBMap<String, byte[]> dbMap = DBMap.<String, byte[]>builder(db, "map")
-                            .setValueSerializer(new BasicSerializer<>())
-                            .setDataLookup(new OneTimeWriteDataLookup())
-                            .setCompression(Compression.BZIP2_NORMAL)
+                            .setValueSerializer(ByteArraySerializer.INSTANCE)
+                            //.setDataLookup(new OneTimeWriteDataLookup())
+                            .setIndexLookup(new MappedHashTableIndexLookup<>(16, 4))
+                            //.setCompression(Compression.BZIP2_NORMAL)
                             .build();
 
                     data.forEach((key, val) -> {

@@ -71,7 +71,7 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
     private final DataLookup dataLookup;
     private volatile boolean dirty = false;
 
-    public DBMap(Builder<K, V> builder) throws IOException {
+    public DBMap(@NonNull Builder<K, V> builder) throws IOException {
         super(builder);
 
         this.compression = builder.compression;
@@ -87,7 +87,7 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
             this.size.set(in.readLong());
         }
 
-        this.indexLookup.init(this, this.getRAF("index"));
+        this.indexLookup.init(this, this.getFile("index", false));
         this.dataLookup.init(this, this.getFile("data", false));
     }
 
@@ -248,7 +248,7 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
 
     @Override
     public void putAll(@NonNull Map<? extends K, ? extends V> m) {
-        m.forEach(this::put);
+        m.forEach((key, value) -> this.put(key, value, false));
     }
 
     @Override

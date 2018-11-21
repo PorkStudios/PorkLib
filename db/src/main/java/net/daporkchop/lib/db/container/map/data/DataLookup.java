@@ -19,7 +19,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.binary.Persistent;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.common.function.IOEConsumer;
+import net.daporkchop.lib.common.function.IOConsumer;
 import net.daporkchop.lib.db.container.map.DBMap;
 
 import java.io.File;
@@ -56,7 +56,7 @@ public interface DataLookup extends Persistent {
      * @return the new id of the data. may be the same
      * @throws IOException if a IO exception occurs you dummy
      */
-    long write(long id, @NonNull IOEConsumer<DataOut> writer) throws IOException;
+    long write(long id, @NonNull IOConsumer<DataOut> writer) throws IOException;
 
     /**
      * Removes the data at a given id from disk. This behaviour is undefined, it may actually remove the

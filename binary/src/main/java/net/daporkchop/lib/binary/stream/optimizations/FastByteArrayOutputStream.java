@@ -13,24 +13,31 @@
  *
  */
 
-package net.daporkchop.lib.common.function;
+package net.daporkchop.lib.binary.stream.optimizations;
 
-import java.io.IOException;
-import java.util.function.Consumer;
+import net.daporkchop.lib.encoding.Hexadecimal;
+
+import java.io.ByteArrayOutputStream;
 
 /**
  * @author DaPorkchop_
  */
-@FunctionalInterface
-public interface IOEConsumer<T> extends Consumer<T> {
-    @Override
-    default void accept(T t) {
-        try {
-            this.acceptThrowing(t);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+public class FastByteArrayOutputStream extends ByteArrayOutputStream {
+    public FastByteArrayOutputStream() {
+        super();
     }
 
-    void acceptThrowing(T t) throws IOException;
+    public FastByteArrayOutputStream(int size) {
+        super(size);
+    }
+
+    @Override
+    public synchronized byte[] toByteArray() {
+        return this.buf;
+    }
+
+    @Override
+    public synchronized String toString() {
+        return Hexadecimal.encode(this.buf);
+    }
 }

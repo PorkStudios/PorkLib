@@ -20,9 +20,11 @@ import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.db.PorkDB;
 import net.daporkchop.lib.db.container.DBAtomicLong;
 import net.daporkchop.lib.db.container.map.DBMap;
+import net.daporkchop.lib.db.container.map.data.ConstantLengthLookup;
 import net.daporkchop.lib.db.container.map.index.IndexLookup;
 import net.daporkchop.lib.db.container.map.index.TreeIndexLookup;
 import net.daporkchop.lib.db.data.value.BasicSerializer;
+import net.daporkchop.lib.db.data.value.ConstantLengthSerializer;
 import net.daporkchop.lib.encoding.basen.Base58;
 import org.junit.Test;
 
@@ -128,7 +130,7 @@ public class DBTest {
         Map<String, byte[]> data = new Hashtable<>();
             for (int i = 0; i < 15; i++)    {
                 byte[] b1 = new byte[16];
-                byte[] b2 = new byte[r.nextInt(4096) + 1024];
+                byte[] b2 = new byte[1024];
                 r.nextBytes(b1);
                 r.nextBytes(b2);
                 data.put(Base58.encodeBase58(b1), b2);
@@ -144,7 +146,8 @@ public class DBTest {
             }
             if (true)   {
                 DBMap<String, byte[]> dbMap = DBMap.<String, byte[]>builder(db, "map")
-                        .setValueSerializer(new BasicSerializer<>())
+                        .setValueSerializer(ConstantLengthSerializer.byteArray(1024))
+                        .setDataLookup(new ConstantLengthLookup())
                         .build();
 
                 dbMap.putAll(data);
@@ -166,7 +169,8 @@ public class DBTest {
                 }
                 if (true)   {
                     DBMap<String, byte[]> dbMap = DBMap.<String, byte[]>builder(db, "map")
-                            .setValueSerializer(new BasicSerializer<>())
+                            .setValueSerializer(ConstantLengthSerializer.byteArray(1024))
+                            .setDataLookup(new ConstantLengthLookup())
                             .build();
 
                     data.forEach((key, val) -> {

@@ -27,6 +27,7 @@ import net.daporkchop.lib.db.container.map.index.TreeIndexLookup;
 import net.daporkchop.lib.db.data.value.BasicSerializer;
 import net.daporkchop.lib.db.data.value.ConstantLengthSerializer;
 import net.daporkchop.lib.encoding.basen.Base58;
+import net.daporkchop.lib.encoding.compression.Compression;
 import org.junit.Test;
 
 import java.io.File;
@@ -129,13 +130,19 @@ public class DBTest {
         Random r = ThreadLocalRandom.current();
         long longVal = r.nextLong();
         Map<String, byte[]> data = new Hashtable<>();
-            for (int i = 0; i < 15; i++)    {
-                byte[] b1 = new byte[16];
-                byte[] b2 = new byte[1024];
-                r.nextBytes(b1);
-                r.nextBytes(b2);
-                data.put(Base58.encodeBase58(b1), b2);
-            }
+        for (int i = 0; i < 15; i++) {
+            byte[] b1 = new byte[16];
+            byte[] b2 = new byte[1024];
+            r.nextBytes(b1);
+            r.nextBytes(b2);
+            data.put(Base58.encodeBase58(b1), b2);
+        }
+        {
+            byte[] b1 = new byte[16];
+            byte[] b2 = new byte[0xFFFFFF];
+            r.nextBytes(b1);
+            data.put(Base58.encodeBase58(b1), b2);
+        }
         {
             PorkDB db = PorkDB.builder()
                     .setRoot(outFile)
@@ -147,8 +154,9 @@ public class DBTest {
             }
             if (true)   {
                 DBMap<String, byte[]> dbMap = DBMap.<String, byte[]>builder(db, "map")
-                        .setValueSerializer(ConstantLengthSerializer.byteArray(1024))
+                        .setValueSerializer(new BasicSerializer<>())
                         .setDataLookup(new OneTimeWriteDataLookup())
+                        .setCompression(Compression.BZIP2_NORMAL)
                         .build();
 
                 dbMap.putAll(data);
@@ -170,8 +178,9 @@ public class DBTest {
                 }
                 if (true)   {
                     DBMap<String, byte[]> dbMap = DBMap.<String, byte[]>builder(db, "map")
-                            .setValueSerializer(ConstantLengthSerializer.byteArray(1024))
+                            .setValueSerializer(new BasicSerializer<>())
                             .setDataLookup(new OneTimeWriteDataLookup())
+                            .setCompression(Compression.BZIP2_NORMAL)
                             .build();
 
                     data.forEach((key, val) -> {

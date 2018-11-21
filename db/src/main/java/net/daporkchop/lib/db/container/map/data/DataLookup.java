@@ -74,4 +74,13 @@ public interface DataLookup extends Persistent {
      * @throws IOException if a IO exception occurs you dummy
      */
     void clear() throws IOException;
+
+    /**
+     * Checks if this {@link DataLookup} allows compression to be applied to values before writing.
+     *
+     * @return whether or not compression is allowed.
+     */
+    default boolean allowsCompression() {
+        return false;
+    }
 }

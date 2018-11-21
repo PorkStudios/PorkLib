@@ -61,19 +61,27 @@ public class HugeBufferOut extends DataOut {
 
     @Override
     public void flush() throws IOException {
-        if (this.buffers == null)    {
-            throw new IOException("Stream closed!");
-        } else {
-            this.currentBuffer.flip();
-            this.buffers.add(this.currentBuffer);
-            this.currentBuffer = null;
+        synchronized (this) {
+            if (this.currentBuffer != null) { //current buffer can be null if exactly the right number of bytes is written
+                if (this.buffers == null) {
+                    throw new IOException("Stream closed!");
+                } else {
+                    this.currentBuffer.flip();
+                    this.buffers.add(this.currentBuffer);
+                    this.currentBuffer = null;
+                }
+            }
         }
     }
 
     @Override
     public void close() throws IOException {
-        this.flush();
-        this.closer.accept(this.buffers);
-        this.buffers = null;
+        synchronized (this) {
+            if (this.buffers != null) {
+                this.flush();
+                this.closer.accept(this.buffers);
+                this.buffers = null;
+            }
+        }
     }
 }

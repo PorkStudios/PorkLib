@@ -123,6 +123,11 @@ public class IndividualFileLookup implements DataLookup {
         this.ids.setDirty(dirty);
     }
 
+    @Override
+    public boolean allowsCompression() {
+        return true;
+    }
+
     protected File getFile(long id) {
         return new File(this.dataFile, String.format(
                 "%d/%d/%d/%d",

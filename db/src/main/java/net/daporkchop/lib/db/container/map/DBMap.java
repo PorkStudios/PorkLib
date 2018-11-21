@@ -30,7 +30,6 @@ import net.daporkchop.lib.db.container.map.index.IndexLookup;
 import net.daporkchop.lib.db.container.map.index.TreeIndexLookup;
 import net.daporkchop.lib.db.data.key.KeyHasher;
 import net.daporkchop.lib.db.data.key.KeyHasherDefault;
-import net.daporkchop.lib.db.data.value.BasicSerializer;
 import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.encoding.compression.CompressionHelper;
 
@@ -41,12 +40,13 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * A filesystem-based implementation of {@link Map}.
- *
+ * <p>
  * How exactly this will behave depends on the settings defined in the builder. Configurable
  * options are:
  * {@link KeyHasher}
@@ -56,16 +56,12 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * @author DaPorkchop_
  */
 public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> implements Map<K, V> {
-    public static <K, V> Builder<K, V> builder(@NonNull PorkDB db, @NonNull String name) {
-        return new Builder<>(db, name);
-    }
-
     private final AtomicLong size = new AtomicLong(0L);
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
     @Getter
     private final CompressionHelper compression;
-    @Getter
-    private final Serializer<K> keySerializer;
+    //@Getter
+    //private final Serializer<K> keySerializer;
     @Getter
     private final KeyHasher<K> keyHasher;
     @Getter
@@ -79,7 +75,7 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
         super(builder);
 
         this.compression = builder.compression;
-        this.keySerializer = builder.keySerializer;
+        //this.keySerializer = builder.keySerializer;
         this.keyHasher = builder.keyHasher;
         this.valueSerializer = builder.valueSerializer;
         this.indexLookup = builder.indexLookup;
@@ -93,6 +89,10 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
 
         this.indexLookup.init(this, this.getRAF("index"));
         this.dataLookup.init(this, this.getFile("data", false));
+    }
+
+    public static <K, V> Builder<K, V> builder(@NonNull PorkDB db, @NonNull String name) {
+        return new Builder<>(db, name);
     }
 
     @Override
@@ -129,6 +129,7 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
      * Use {@link #sizeLong()}
      */
     @Override
+    @Deprecated
     public int size() {
         return this.size.intValue();
     }
@@ -161,7 +162,7 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
     @Deprecated
     public boolean containsValue(@NonNull Object value) {
         //TODO
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -169,14 +170,13 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
     public V get(@NonNull Object o) {
         try {
             K key = (K) o;
-            if (this.indexLookup.contains(key)) {
-                long id = this.indexLookup.get(key);
-                try (DataIn in = this.dataLookup.read(id))  {
-                    return this.valueSerializer.read(in);
+            AtomicReference<V> ref = new AtomicReference<>(null);
+            this.indexLookup.runIfContains(key, id -> {
+                try (DataIn in = this.dataLookup.read(id)) {
+                    ref.set(this.valueSerializer.read(in));
                 }
-            } else {
-                return null;
-            }
+            });
+            return ref.get();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -187,27 +187,59 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
         return this.put(key, value, true);
     }
 
+    /**
+     * Puts a key/value pair into the map
+     *
+     * @param key          the key to add
+     * @param value        the value corresponding to the key
+     * @param loadOldValue whether or not the old value should be loaded and returned, if present
+     * @return the old value, if present and loadOldValue is true
+     */
     public V put(@NonNull K key, @NonNull V value, boolean loadOldValue) {
-        V oldValue = null;
         try {
-            long id = this.indexLookup.get(key);
-            if (loadOldValue && id != -1L)  {
-                oldValue = this.get(key);
-            }
-            long newId = this.dataLookup.write(id, out -> this.valueSerializer.write(value, out));
-            if (id != newId)    {
-                this.indexLookup.set(key, newId);
-            }
-            return oldValue;
+            AtomicReference<V> oldValue = loadOldValue ? new AtomicReference<>(null) : null;
+            this.indexLookup.change(key, id -> {
+                if (id != -1L && loadOldValue) {
+                    try (DataIn in = this.dataLookup.read(id)) {
+                        oldValue.set(this.valueSerializer.read(in));
+                    }
+                }
+                return this.dataLookup.write(id, out -> this.valueSerializer.write(value, out));
+            });
+            return loadOldValue ? oldValue.get() : null;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public V remove(@NonNull Object key) {
-        //TODO
-        return null;
+    @SuppressWarnings("unchecked")
+    public V remove(@NonNull Object o) {
+        return this.remove((K) o, true);
+    }
+
+    /**
+     * Remove a mapping from the map
+     *
+     * @param key     the key that should be removed
+     * @param loadOld whether or not the old value should be loaded and returned, if
+     *                present
+     * @return the old value, if present and loadOld is true
+     */
+    public V remove(@NonNull K key, boolean loadOld) {
+        try {
+            AtomicReference<V> ref = loadOld ? new AtomicReference<>(null) : null;
+            this.indexLookup.runIfContains(key, id -> {
+                if (loadOld) {
+                    try (DataIn in = this.dataLookup.read(id)) {
+                        ref.set(this.valueSerializer.read(in));
+                    }
+                }
+            });
+            return loadOld ? ref.get() : null;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -217,9 +249,10 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
 
     @Override
     public void clear() {
-        //TODO
         this.size.set(0L);
         try {
+            this.indexLookup.clear();
+            this.dataLookup.clear();
             this.save();
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -229,19 +262,19 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
     @Override
     public Set<K> keySet() {
         //TODO
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Collection<V> values() {
         //TODO
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Set<Entry<K, V>> entrySet() {
         //TODO
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -258,7 +291,7 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
     @Setter
     @Accessors(chain = true)
     public static class Builder<K, V> extends Container.Builder<Map<K, V>, DBMap<K, V>> {
-        private Serializer<K> keySerializer;
+        //TODO: private Serializer<K> keySerializer;
 
         @NonNull
         private Serializer<V> valueSerializer;
@@ -271,7 +304,7 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
 
         /**
          * The {@link DataLookup} used for reading values.
-         *
+         * <p>
          * Default implementations:
          * {@link net.daporkchop.lib.db.container.map.data.IndividualFileLookup}
          * {@link net.daporkchop.lib.db.container.map.data.StreamingDataLookup} (wip)
@@ -290,8 +323,6 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
         protected DBMap<K, V> buildImpl() throws IOException {
             if (this.valueSerializer == null) {
                 throw new IllegalStateException("Value serializer must be set!");
-            } else if (this.dataLookup == null) {
-
             }
 
             return new DBMap<>(this);

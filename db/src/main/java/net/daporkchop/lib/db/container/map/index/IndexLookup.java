@@ -17,6 +17,8 @@ package net.daporkchop.lib.db.container.map.index;
 
 import lombok.NonNull;
 import net.daporkchop.lib.binary.Persistent;
+import net.daporkchop.lib.common.function.IOConsumer;
+import net.daporkchop.lib.common.function.IOFunction;
 import net.daporkchop.lib.db.container.map.DBMap;
 
 import java.io.IOException;
@@ -62,6 +64,59 @@ public interface IndexLookup<K> extends Persistent {
      * @throws IOException if an IO exception occurs you dummy
      */
     boolean contains(@NonNull K key) throws IOException;
+
+    /**
+     * If a mapping is present for the given key, run a function
+     *
+     * @param key  the key
+     * @param func the function to run
+     * @return whether or not the function was run
+     * @throws IOException if an IO exception occurs you dummy
+     */
+    default boolean runIfContains(@NonNull K key, @NonNull IOConsumer<Long> func) throws IOException {
+        return this.changeIfContains(key, l -> {
+            func.accept(l);
+            return l;
+        });
+    }
+
+    /**
+     * If a mapping is present for the given key, run a function and change the value
+     * of the mapping to the return value of the function
+     *
+     * @param key  the key
+     * @param func the function to run
+     * @return whether or not the function was run
+     * @throws IOException if an IO exception occurs you dummy
+     */
+    default boolean changeIfContains(@NonNull K key, @NonNull IOFunction<Long, Long> func) throws IOException {
+        long l = this.get(key);
+        if (l == -1L) {
+            return false;
+        } else {
+            long l2 = func.apply(l);
+            if (l == 1L || l != l2) {
+                this.set(key, l2);
+            }
+            return true;
+        }
+    }
+
+    /**
+     * Run a function on the current value mapped to the given key, and then change the current value to the
+     * return value of the function
+     *
+     * @param key  the key
+     * @param func the function to run
+     * @throws IOException if an IO exception occurs you dummy
+     */
+    default void change(@NonNull K key, @NonNull IOFunction<Long, Long> func) throws IOException {
+        long l = this.get(key);
+        long l2 = func.apply(l);
+        if (l == 1L || l != l2) {
+            this.set(key, l2);
+        }
+    }
 
     /**
      * Removes a value from the index

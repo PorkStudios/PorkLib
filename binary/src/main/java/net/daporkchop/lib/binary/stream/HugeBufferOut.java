@@ -64,6 +64,7 @@ public class HugeBufferOut extends DataOut {
         if (this.buffers == null)    {
             throw new IOException("Stream closed!");
         } else {
+            this.currentBuffer.flip();
             this.buffers.add(this.currentBuffer);
             this.currentBuffer = null;
         }

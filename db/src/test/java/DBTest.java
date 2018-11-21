@@ -21,6 +21,7 @@ import net.daporkchop.lib.db.PorkDB;
 import net.daporkchop.lib.db.container.DBAtomicLong;
 import net.daporkchop.lib.db.container.map.DBMap;
 import net.daporkchop.lib.db.container.map.data.ConstantLengthLookup;
+import net.daporkchop.lib.db.container.map.data.OneTimeWriteDataLookup;
 import net.daporkchop.lib.db.container.map.index.IndexLookup;
 import net.daporkchop.lib.db.container.map.index.TreeIndexLookup;
 import net.daporkchop.lib.db.data.value.BasicSerializer;
@@ -147,7 +148,7 @@ public class DBTest {
             if (true)   {
                 DBMap<String, byte[]> dbMap = DBMap.<String, byte[]>builder(db, "map")
                         .setValueSerializer(ConstantLengthSerializer.byteArray(1024))
-                        .setDataLookup(new ConstantLengthLookup())
+                        .setDataLookup(new OneTimeWriteDataLookup())
                         .build();
 
                 dbMap.putAll(data);
@@ -170,7 +171,7 @@ public class DBTest {
                 if (true)   {
                     DBMap<String, byte[]> dbMap = DBMap.<String, byte[]>builder(db, "map")
                             .setValueSerializer(ConstantLengthSerializer.byteArray(1024))
-                            .setDataLookup(new ConstantLengthLookup())
+                            .setDataLookup(new OneTimeWriteDataLookup())
                             .build();
 
                     data.forEach((key, val) -> {

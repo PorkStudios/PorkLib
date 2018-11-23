@@ -78,6 +78,7 @@ public class TcpProtocolManager implements ProtocolManager {
             if (this.isClosed()) {
                 throw new IllegalStateException("already closed!");
             }
+            this.channel.flush();
             this.channel.close().syncUninterruptibly();
             this.workerGroup.shutdownGracefully();
         }
@@ -109,8 +110,8 @@ public class TcpProtocolManager implements ProtocolManager {
             try {
                 ServerBootstrap bootstrap = new ServerBootstrap();
                 bootstrap.group(this.bossGroup, this.workerGroup);
-                //bootstrap.channel(NioServerSocketChannel.class);
-                bootstrap.channel(WrapperNioServerSocketChannel.class);
+                bootstrap.channel(NioServerSocketChannel.class);
+                //bootstrap.channel(WrapperNioServerSocketChannel.class);
                 bootstrap.childHandler(new NettyChannelInitializer<>(endpoint, p -> p.addLast(groupAdder)));
                 bootstrap.option(ChannelOption.SO_BACKLOG, 256);
                 bootstrap.childOption(ChannelOption.SO_KEEPALIVE, true);
@@ -176,7 +177,7 @@ public class TcpProtocolManager implements ProtocolManager {
 
         @Override
         public void send(Packet packet) {
-            this.channel.write(packet);
+            this.channel.write(packet);//.syncUninterruptibly();
         }
     }
 

@@ -49,6 +49,9 @@ public class PorkReceiveHandler<C extends UserConnection> extends ChannelInbound
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        if (cause != null)  {
+            cause.printStackTrace();
+        }
         ctx.close();//.sync();
         super.exceptionCaught(ctx, cause);
     }

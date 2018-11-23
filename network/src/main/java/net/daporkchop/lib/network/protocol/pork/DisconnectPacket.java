@@ -20,6 +20,7 @@ import lombok.NoArgsConstructor;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.network.conn.UserConnection;
+import net.daporkchop.lib.network.endpoint.server.PorkServer;
 import net.daporkchop.lib.network.packet.Codec;
 
 import java.io.IOException;
@@ -45,6 +46,7 @@ public class DisconnectPacket implements PorkPacket {
     public static class DisconnectCodec implements Codec<DisconnectPacket, UserConnection>  {
         @Override
         public void handle(DisconnectPacket packet, UserConnection connection) {
+            System.out.printf("[%s] disconnect packet with reason: %s\n", connection.getEndpoint() instanceof PorkServer ? "Server" : "Client", packet.reason);
             connection.closeConnection(packet.reason);
         }
 

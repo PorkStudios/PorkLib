@@ -17,6 +17,7 @@ import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.endpoint.client.PorkClient;
 import net.daporkchop.lib.network.endpoint.server.PorkServer;
+import net.daporkchop.lib.network.protocol.pork.DisconnectPacket;
 import org.junit.Test;
 
 import java.net.InetSocketAddress;
@@ -26,23 +27,46 @@ import java.net.InetSocketAddress;
  */
 public class NetworkTest {
     @Test
-    public void test() {
+    public void test() throws InterruptedException {
+        System.out.println("Starting server...");
         PorkServer server = new ServerBuilder<TestConnection>()
                 .setAddress(new InetSocketAddress("0.0.0.0", 12345))
                 .addProtocol(TestProtocol.INSTANCE)
                 .build();
-
+        System.out.println("Server started.");
+        Thread.sleep(1000L);
+        System.out.println("Starting client...");
         PorkClient client = new ClientBuilder<TestConnection>()
                 .setAddress(new InetSocketAddress("localhost", 12345))
                 .addProtocol(TestProtocol.INSTANCE)
                 .build();
+        System.out.println("Client started.");
+        Thread.sleep(1000L);
 
         //client.send("name jef lol");
 
         /*try (Scanner scanner = new Scanner(System.in))  {
             scanner.nextLine();
         }*/
-        client.close();
+
+        System.out.println("Sending some random packets...");
+        for (int i = 0; i < 1; i++)    {
+            Thread.sleep(75L);
+            client.send(new TestPacket("hello world!"));
+        }
+
+        System.out.println("Waiting...");
+        Thread.sleep(1000L);
+        /*for (int i = 0; i < 100; i++)   {
+            client.send(new DisconnectPacket("jeff"));
+        }*/
+
+        System.out.println("Closing sessions...");
+        client.close("ok lol");
+        Thread.sleep(1000L);
         server.close();
+
+        Thread.sleep(1000L);
+        System.out.println("Done!");
     }
 }

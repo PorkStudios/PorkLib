@@ -13,26 +13,41 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.netty;
-
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.MessageToByteEncoder;
-import net.daporkchop.lib.binary.NettyByteBufUtil;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.network.packet.Codec;
 import net.daporkchop.lib.network.packet.Packet;
 
-/**
- * @author DaPorkchop_
- */
-public class NettyPacketEncoder extends MessageToByteEncoder<Packet> {
+import java.io.IOException;
+
+@NoArgsConstructor
+@AllArgsConstructor
+public class TestPacket implements Packet {
+    @NonNull
+    public String message;
+
     @Override
-    protected void encode(ChannelHandlerContext channelHandlerContext, Packet packet, ByteBuf buf) throws Exception {
-        try (DataOut out = NettyByteBufUtil.wrapOut(buf)) {
-            System.out.printf("Writing %s...\n", packet.getClass().getCanonicalName());
-            //TODO: correctly you dummy
-            //packet.write(out);
-            out.writeUTF("jeff");
+    public void read(DataIn in) throws IOException {
+        this.message = in.readUTF();
+    }
+
+    @Override
+    public void write(DataOut out) throws IOException {
+        out.writeUTF(this.message);
+    }
+
+    public static class TestCodec implements Codec<TestPacket, TestConnection>  {
+        @Override
+        public void handle(TestPacket packet, TestConnection connection) {
+            System.out.printf("Recieved test packet: %s\n", packet.message);
+        }
+
+        @Override
+        public TestPacket createInstance() {
+            return new TestPacket();
         }
     }
 }

@@ -60,9 +60,9 @@ public class PorkServer<C extends UserConnection> implements Endpoint<C> {
                 throw new IllegalStateException("Already closed!");
             }
 
-            this.manager.broadcast(new DisconnectPacket(reason));
+            //this.manager.broadcast(new DisconnectPacket(reason));
             //this.manager.getConnections().forEach(c -> c.closeConnection(reason));
-            this.manager.close();
+            this.manager.close(reason);
         }
     }
 

@@ -170,11 +170,10 @@ public abstract class DataIn extends InputStream {
                 break;
             }
         }
-        return optimizePositive ? v : (v >>> 1) | (v << 31);
+        return optimizePositive ? v : ((v >>> 1) ^ -(v & 1));
     }
 
-    @Override
-    public int read(byte[] b, int off, int len) throws IOException {
+    public int readFully(byte[] b, int off, int len) throws IOException {
         if (len != 0) {
             for (int i = 0; i < len; i++) {
                 b[i + off] = (byte) this.read();
@@ -212,20 +211,80 @@ public abstract class DataIn extends InputStream {
     @AllArgsConstructor
     private static class BufferIn extends DataIn {
         @NonNull
-        private final ByteBuffer buffer;
+        private ByteBuffer buffer;
 
-        @Override
-        public void close() throws IOException {
-        }
-
-        @Override
         public int read() throws IOException {
-            return this.buffer.get();
+            if (this.buffer == null) {
+                throw new IOException("read on a closed InputStream");
+            } else {
+                return this.buffer.remaining() == 0 ? -1 : this.buffer.get() & 255;
+            }
         }
 
-        @Override
+        public int read(byte[] var1) throws IOException {
+            if (this.buffer == null) {
+                throw new IOException("read on a closed InputStream");
+            } else {
+                return this.read(var1, 0, var1.length);
+            }
+        }
+
+        public int read(byte[] var1, int var2, int var3) throws IOException {
+            if (this.buffer == null) {
+                throw new IOException("read on a closed InputStream");
+            } else if (var1 == null) {
+                throw new NullPointerException();
+            } else if (var2 >= 0 && var3 >= 0 && var3 <= var1.length - var2) {
+                if (var3 == 0) {
+                    return 0;
+                } else {
+                    int var4 = Math.min(this.buffer.remaining(), var3);
+                    if (var4 == 0) {
+                        return -1;
+                    } else {
+                        this.buffer.get(var1, var2, var4);
+                        return var4;
+                    }
+                }
+            } else {
+                throw new IndexOutOfBoundsException();
+            }
+        }
+
+        public long skip(long var1) throws IOException {
+            if (this.buffer == null) {
+                throw new IOException("skip on a closed InputStream");
+            } else if (var1 <= 0L) {
+                return 0L;
+            } else {
+                int var3 = (int)var1;
+                int var4 = Math.min(this.buffer.remaining(), var3);
+                this.buffer.position(this.buffer.position() + var4);
+                return (long)var3;
+            }
+        }
+
         public int available() throws IOException {
-            return this.buffer.remaining();
+            if (this.buffer == null) {
+                throw new IOException("available on a closed InputStream");
+            } else {
+                return this.buffer.remaining();
+            }
+        }
+
+        public void close() throws IOException {
+            this.buffer = null;
+        }
+
+        public synchronized void mark(int var1) {
+        }
+
+        public synchronized void reset() throws IOException {
+            throw new IOException("mark/reset not supported");
+        }
+
+        public boolean markSupported() {
+            return false;
         }
     }
 }

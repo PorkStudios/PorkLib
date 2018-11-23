@@ -13,26 +13,26 @@
  *
  */
 
-package compression;
+package net.daporkchop.lib.common.function;
 
-import net.daporkchop.lib.encoding.compression.ZLIBHelper;
-import org.junit.Test;
-
-import java.util.Arrays;
-import java.util.concurrent.ThreadLocalRandom;
+import java.io.IOException;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 /**
+ * A {@link Function} that can throw an {@link IOException}
+ *
  * @author DaPorkchop_
  */
-public class ZLIBTest {
-    @Test
-    public void test() {
-        byte[] rand = new byte[8192];
-        ThreadLocalRandom.current().nextBytes(rand);
-        byte[] compressed = ZLIBHelper.compress(rand);
-        System.out.println("Compressed: " + compressed.length + " bytes (original: 8192 bytes) (@" + Arrays.hashCode(rand) + ')');
-        byte[] inflated = ZLIBHelper.inflate(compressed);
-        System.out.println("Inflated: " + inflated.length + " bytes (@" + Arrays.hashCode(inflated) + ')');
-        if (!Arrays.equals(rand, inflated)) throw new IllegalStateException("Data didn't match");
+public interface IOBiFunction<T, U, R> extends BiFunction<T, U, R> {
+    @Override
+    default R apply(T t, U u) {
+        try {
+            return this.applyThrowing(t, u);
+        } catch (IOException e)  {
+            throw new RuntimeException(e);
+        }
     }
+
+    R applyThrowing(T t, U u) throws IOException;
 }

@@ -17,14 +17,10 @@ package net.daporkchop.lib.db.container.map.index.hashtable;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.util.IsPow2;
 import net.daporkchop.lib.common.function.IOFunction;
 import net.daporkchop.lib.db.container.map.DBMap;
 import net.daporkchop.lib.db.container.map.data.key.KeyHasher;
 import net.daporkchop.lib.db.container.map.index.IndexLookup;
-import net.daporkchop.lib.db.util.BufferWriterFunc;
-import net.daporkchop.lib.primitive.function.biconsumer.ObjectIntegerBiConsumer;
-import net.daporkchop.lib.primitive.function.bifunction.ObjectIntegerLongBiFunction;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,11 +40,21 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public abstract class BaseHashTableIndexLookup<K> implements IndexLookup<K> {
     protected static final ThreadLocal<ByteBuffer> bufferCache = ThreadLocal.withInitial(() -> ByteBuffer.allocateDirect(8));
 
+    /**
+     * The number of bits from the hash that will be used as an offset for looking up values
+     */
+    @Getter
     protected final int usedBits;
+    /**
+     * The total number of values
+     */
+    @Getter
     protected final long tableSize;
+    /**
+     * The size, in bytes, of a single value
+     */
+    @Getter
     protected final int pointerBytes;
-    protected final ObjectIntegerLongBiFunction<ByteBuffer> bufferReader;
-    protected final BufferWriterFunc bufferWriter;
     protected final ReadWriteLock lock = new ReentrantReadWriteLock();
     protected ThreadLocal<byte[]> hashCache;
     protected KeyHasher<K> keyHasher;
@@ -58,35 +64,14 @@ public abstract class BaseHashTableIndexLookup<K> implements IndexLookup<K> {
     protected FileChannel tableChannel;
 
     public BaseHashTableIndexLookup(int usedBits, int pointerBytes) {
-        if (usedBits <= 0 || usedBits > 32) {
-            throw new IllegalArgumentException(String.format("Used bits must be in range 1-31 (given: %d)", usedBits));
-        } else if (!(pointerBytes == 1 || pointerBytes == 2 || pointerBytes == 4 || pointerBytes == 8)) {
-            throw new IllegalArgumentException(String.format("Pointer byte count must be 1,2,4 or 8 (given: %d)", pointerBytes));
+        if (usedBits <= 0 || usedBits >= 64) {
+            throw new IllegalArgumentException(String.format("Used bits must be in range 1-63 (given: %d)", usedBits));
+        } else if (pointerBytes <= 0 || pointerBytes > 8) {
+            throw new IllegalArgumentException(String.format("Pointer byte count must be in range 1-8 (given: %d)", pointerBytes));
         }
         this.tableSize = (1L << usedBits) * (long) pointerBytes;
         this.usedBits = usedBits;
         this.pointerBytes = pointerBytes;
-
-        switch (pointerBytes) {
-            case 1:
-                bufferReader = (buf, i) -> buf.get(i) & 0xFFL;
-                bufferWriter = (buf, i, val) -> buf.put(i, (byte) (val & 0xFFL));
-                break;
-            case 2:
-                bufferReader = (buf, i) -> buf.getShort(i << 1) & 0xFFFFL;
-                bufferWriter = (buf, i, val) -> buf.putShort(i << 1, (short) (val & 0xFFFFL));
-                break;
-            case 4:
-                bufferReader = (buf, i) -> buf.getInt(i << 2) & 0xFFFFFFFFL;
-                bufferWriter = (buf, i, val) -> buf.putInt(i << 2, (int) (val & 0xFFFFFFFFL));
-                break;
-            case 8:
-                bufferReader = (buf, i) -> buf.getLong(i << 3);
-                bufferWriter = (buf, i, val) -> buf.putLong(i << 3, val);
-                break;
-            default:
-                throw new IllegalStateException();
-        }
     }
 
     @Override
@@ -98,6 +83,9 @@ public abstract class BaseHashTableIndexLookup<K> implements IndexLookup<K> {
             }
             {
                 int len = map.getKeyHasher().getHashLength();
+                if ((len << 8) < this.usedBits) {
+                    throw new IllegalStateException(String.format("This lookup requires a hash of at least %d bits, but the current key hasher generates hashes %d bits long!", this.usedBits, len << 8));
+                }
                 this.hashCache = ThreadLocal.withInitial(() -> new byte[len]);
             }
             this.keyHasher = map.getKeyHasher();
@@ -164,7 +152,9 @@ public abstract class BaseHashTableIndexLookup<K> implements IndexLookup<K> {
         return this.doGet(key) - 1L;
     }
 
-    protected abstract long doGet(@NonNull K key) throws IOException;
+    protected long doGet(@NonNull K key) throws IOException {
+        return this.getDiskValue(key);
+    }
 
     @Override
     public void set(@NonNull K key, long val) throws IOException {
@@ -177,7 +167,9 @@ public abstract class BaseHashTableIndexLookup<K> implements IndexLookup<K> {
         }
     }
 
-    protected abstract void doSet(@NonNull K key, long val) throws IOException;
+    protected void doSet(@NonNull K key, long val) throws IOException   {
+        this.setDiskValue(key, val);
+    }
 
     @Override
     public boolean contains(@NonNull K key) throws IOException {
@@ -189,7 +181,9 @@ public abstract class BaseHashTableIndexLookup<K> implements IndexLookup<K> {
         }
     }
 
-    protected abstract boolean doContains(@NonNull K key) throws IOException;
+    protected boolean doContains(@NonNull K key) throws IOException {
+        return this.getDiskValue(key) != 0L;
+    }
 
     @Override
     public long remove(@NonNull K key) throws IOException {
@@ -201,7 +195,13 @@ public abstract class BaseHashTableIndexLookup<K> implements IndexLookup<K> {
         }
     }
 
-    protected abstract long doRemove(@NonNull K key) throws IOException;
+    protected long doRemove(@NonNull K key) throws IOException  {
+        byte[] hash = this.getHash(key);
+        long relevantBits = this.getRelevantHashBits(hash);
+        long oldHash = this.getDiskValue(relevantBits);
+        this.setDiskValue(relevantBits, 0L);
+        return oldHash;
+    }
 
     @Override
     public boolean changeIfContains(@NonNull K key, @NonNull IOFunction<Long, Long> func) throws IOException {
@@ -257,21 +257,45 @@ public abstract class BaseHashTableIndexLookup<K> implements IndexLookup<K> {
     }
 
     protected byte[] getHash(@NonNull K key)    {
-        //byte[] hash = this.hashCache.get();
-        //this.keyHasher.hash(key);
         return this.keyHasher.hash(key);
     }
 
-    protected int getRelevantHashBits(@NonNull K key)   {
-        int i = this.getRelevantHashBits(this.getHash(key));
-        return i;
+    protected long getRelevantHashBits(@NonNull K key)   {
+        return this.getRelevantHashBits(this.getHash(key));
     }
 
-    protected int getRelevantHashBits(@NonNull byte[] hash)   {
-        int x = (hash[0] & 0xFF) |
+    protected long getRelevantHashBits(@NonNull byte[] hash)   {
+        //get required number of bytes into hash thing
+        long bits = 0L;
+        for (int i = this.usedBits >> 3; i >= 0; i--)   {
+            bits = ((bits << 8L) | (hash[i] & 0xFFL));
+        }
+        //remove excessive bits at the end
+        return bits & ((1L << this.usedBits) - 1L);
+        /*int x = (hash[0] & 0xFF) |
                 ((hash[1] & 0xFF) << 8) |
                 ((hash[2] & 0xFF) << 16) |
                 ((hash[3] & 0xFF) << 24);
-        return x & ((1 << this.usedBits) - 1);
+        return x & ((1 << this.usedBits) - 1);*/
     }
+
+    protected long getDiskValue(@NonNull K key) throws IOException   {
+        return this.getDiskValue(this.getRelevantHashBits(key));
+    }
+
+    protected long getDiskValue(@NonNull byte[] hash) throws IOException   {
+        return this.getDiskValue(this.getRelevantHashBits(hash));
+    }
+
+    protected abstract long getDiskValue(long hashBits) throws IOException;
+
+    protected void setDiskValue(@NonNull K key, long val) throws IOException   {
+        this.setDiskValue(this.getRelevantHashBits(key), val);
+    }
+
+    protected void setDiskValue(@NonNull byte[] hash, long val) throws IOException {
+        this.setDiskValue(this.getRelevantHashBits(hash), val);
+    }
+
+    protected abstract void setDiskValue(long hashBits, long val) throws IOException;
 }

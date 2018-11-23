@@ -13,26 +13,22 @@
  *
  */
 
-package compression;
+package net.daporkchop.lib.common.function;
 
-import net.daporkchop.lib.encoding.compression.XZIPHelper;
-import org.junit.Test;
-
-import java.util.Arrays;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Supplier;
 
 /**
  * @author DaPorkchop_
  */
-public class XZIPTest {
-    @Test
-    public void test() {
-        byte[] rand = new byte[8192];
-        ThreadLocalRandom.current().nextBytes(rand);
-        byte[] compressed = XZIPHelper.compress(rand);
-        System.out.println("Compressed: " + compressed.length + " bytes (original: 8192 bytes) (@" + Arrays.hashCode(rand) + ')');
-        byte[] inflated = XZIPHelper.inflate(compressed);
-        System.out.println("Inflated: " + inflated.length + " bytes (@" + Arrays.hashCode(inflated) + ')');
-        if (!Arrays.equals(rand, inflated)) throw new IllegalStateException("Data didn't match");
+public interface ThrowingSupplier<T> extends Supplier<T> {
+    @Override
+    default T get() {
+        try {
+            return this.getThrowing();
+        } catch (Exception e)    {
+            throw new RuntimeException(e);
+        }
     }
+
+    T getThrowing() throws Exception;
 }

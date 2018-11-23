@@ -29,6 +29,7 @@ import java.io.OutputStream;
 /**
  * @author DaPorkchop_
  */
+@Deprecated
 public class XZIPHelper {
     public static byte[] compress(@NonNull byte[] in) {
         byte[] result = new byte[0];

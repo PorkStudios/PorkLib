@@ -160,7 +160,7 @@ public abstract class DataOut extends OutputStream {
 
     public void writeVarInt(int i, boolean optimizePositive) throws IOException {
         if (!optimizePositive) {
-            i = (i << 1) | (i >>> 31);
+            i = (i << 1) ^ (i >> 31);
         }
         if (i == 0) {
             this.write(0);

@@ -27,5 +27,6 @@ public class TestProtocol extends UserProtocol<TestConnection> {
 
     @Override
     protected void registerPackets() {
+        this.register(new TestPacket.TestCodec());
     }
 }

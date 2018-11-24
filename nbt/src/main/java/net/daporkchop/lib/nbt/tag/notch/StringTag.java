@@ -12,8 +12,49 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile project(":primitive")
+package net.daporkchop.lib.nbt.tag.notch;
+
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
+import net.daporkchop.lib.binary.UTF8;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.nbt.tag.Tag;
+import net.daporkchop.lib.nbt.tag.TagRegistry;
+
+import java.io.IOException;
+
+/**
+ * @author DaPorkchop_
+ */
+@Getter
+@Setter
+public class StringTag extends Tag {
+    @NonNull
+    private String value;
+
+    public StringTag(String name) {
+        super(name);
+    }
+
+    public StringTag(String name, @NonNull String value) {
+        super(name);
+        this.value = value;
+    }
+
+    @Override
+    public void read(@NonNull DataIn in, @NonNull TagRegistry registry) throws IOException {
+        int nameLength = in.readShort() & 0xFFFF;
+        byte[] b = new byte[nameLength];
+        in.readFully(b, 0, b.length);
+        this.value = new String(b, UTF8.utf8);
+    }
+
+    @Override
+    public void write(@NonNull DataOut out, @NonNull TagRegistry registry) throws IOException {
+        byte[] b = this.value.getBytes(UTF8.utf8);
+        out.writeShort((short) b.length);
+        out.write(b);
+    }
 }

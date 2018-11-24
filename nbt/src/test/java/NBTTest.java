@@ -13,8 +13,11 @@
  */
 
 import lombok.NonNull;
+import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.nbt.NBTInputStream;
+import net.daporkchop.lib.nbt.tag.Tag;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
+import net.daporkchop.lib.nbt.tag.notch.ListTag;
 import net.daporkchop.lib.nbt.tag.notch.StringTag;
 import org.junit.Test;
 
@@ -31,23 +34,26 @@ public class NBTTest {
             this.printTagRecursive(tag, 0);
         }
     }
+    @Test
+    public void testBig() throws IOException {
+        try (NBTInputStream in = new NBTInputStream(NBTTest.class.getResourceAsStream("bigtest.nbt"), Compression.GZIP_NORMAL))  {
+            CompoundTag tag = in.readTag();
+            this.printTagRecursive(tag, 0);
+        }
+    }
 
-    public void printTagRecursive(@NonNull CompoundTag tag, int depth) {
+    public void printTagRecursive(@NonNull Tag tag, int depth) {
         if (depth == 0) {
-            System.out.printf("CompoundTag \"%s\": %d children\n", tag.getName(), tag.getContents().size());
+            System.out.printf("CompoundTag \"%s\": %d children\n", tag.getName(), tag.getAsCompoundTag().getContents().size());
             this.printTagRecursive(tag, 2);
             return;
         }
-        tag.forEach((name, subTag) -> {
-            System.out.print(this.space(depth));
-            if (subTag instanceof CompoundTag)  {
-                CompoundTag compoundTag = subTag.getAsCompoundTag();
-                System.out.printf("CompoundTag \"%s\": %d children\n", name, compoundTag.getContents().size());
-                this.printTagRecursive(compoundTag, depth + 2);
-            } else if (subTag instanceof StringTag) {
-                System.out.printf("StringTag \"%s\": \"%s\"\n", name, subTag.<StringTag>getAs().getValue());
-            }
-        });
+        System.out.printf("%s%s\n", this.space(depth), tag);
+        if (tag instanceof CompoundTag) {
+            tag.getAsCompoundTag().forEach(subTag -> this.printTagRecursive(subTag, depth + 2));
+        } else if (tag instanceof ListTag)  {
+            tag.<ListTag<? extends Tag>>getAs().getValue().forEach(subTag -> this.printTagRecursive(subTag, depth + 2));
+        }
     }
 
     public String space(int count)  {

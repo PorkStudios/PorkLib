@@ -15,8 +15,7 @@
 package net.daporkchop.lib.nbt.tag;
 
 import lombok.NonNull;
-import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
-import net.daporkchop.lib.nbt.tag.notch.StringTag;
+import net.daporkchop.lib.nbt.tag.notch.*;
 import net.daporkchop.lib.primitive.map.ByteObjectMap;
 import net.daporkchop.lib.primitive.map.ObjectByteMap;
 import net.daporkchop.lib.primitive.map.hashmap.ByteObjectHashMap;
@@ -31,8 +30,18 @@ import java.util.function.Function;
  */
 public class TagRegistry {
     public static final TagRegistry NOTCHIAN = new TagRegistry()
+            .register(1, ByteTag.class, ByteTag::new)
+            .register(2, ShortTag.class, ShortTag::new)
+            .register(3, IntTag.class, IntTag::new)
+            .register(4, LongTag.class, LongTag::new)
+            .register(5, FloatTag.class, FloatTag::new)
+            .register(6, DoubleTag.class, DoubleTag::new)
+            .register(7, ByteArrayTag.class, ByteArrayTag::new)
             .register(8, StringTag.class, StringTag::new)
+            .register(9, ListTag.class, ListTag::new)
             .register(10, CompoundTag.class, CompoundTag::new)
+            .register(11, IntArrayTag.class, IntArrayTag::new)
+            .register(12, LongArrayTag.class, LongArrayTag::new)
             .finish();
 
     private final ByteObjectMap<Function<String, ? extends Tag>> tagCreators = new ByteObjectHashMap<>();
@@ -70,13 +79,16 @@ public class TagRegistry {
         return this;
     }
 
-    public byte getId(@NonNull Class<? extends Tag> clazz)  {
+    public byte getId(@NonNull Class<? extends Tag> clazz) {
         return this.tagIds.get(clazz);
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends Tag> T create(byte id, @NonNull String name)  {
+    public <T extends Tag> T create(byte id, String name) {
         Function<String, T> creator = (Function<String, T>) this.tagCreators.get(id);
+        if (creator == null) {
+            throw new IllegalStateException(String.format("No such tag: %d", id & 0xFF));
+        }
         return creator.apply(name);
     }
 }

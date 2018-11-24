@@ -17,14 +17,34 @@ package net.daporkchop.lib.network.conn;
 
 import lombok.NonNull;
 import net.daporkchop.lib.network.packet.UserProtocol;
+import net.daporkchop.lib.network.protocol.pork.PorkProtocol;
+
+import java.util.Map;
 
 /**
  * @author DaPorkchop_
  */
-public interface UnderlyingNetworkConnection {
-    <C extends UserConnection> C getUserConnection(@NonNull Class<? extends UserProtocol<C>> clazz);
+public interface UnderlyingNetworkConnection extends Connection {
+    Map<Class<? extends UserProtocol>, UserConnection> getConnections();
+
+    /**
+     * Closes the channel at network level, i.e. with no disconnect packet or whatever
+     */
+    void disconnectAtNetworkLevel();
+
+    @SuppressWarnings("unchecked")
+    default <C extends UserConnection> C getUserConnection(@NonNull Class<? extends UserProtocol<C>> clazz) {
+        return (C) this.getConnections().get(clazz);
+    }
 
     //<C extends UserConnection> void putUserConnection(@NonNull Class<UserProtocol<C>> clazz, @NonNull C connection);
     //xd screw good coding
-    void putUserConnection(@NonNull Class<? extends UserProtocol> clazz, @NonNull UserConnection connection);
+    default void putUserConnection(@NonNull Class<? extends UserProtocol> clazz, @NonNull UserConnection connection)    {
+        this.getConnections().put(clazz, connection);
+    }
+
+    default void registerTheUnderlyingConnection()  {
+        this.getUserConnection(PorkProtocol.class).setRealConnection(this);
+        this.getConnections().values().forEach(conn -> conn.setProtocolConnection(this));
+    }
 }

@@ -26,5 +26,6 @@ dependencies {
     compile project(":crypto")
     compile project(":primitive")
 
-    compile "com.nukkitx.network:raknet:1.2.1-SNAPSHOT"
+    compile "com.nukkitx.network:raknet:$raknetVersion"
+    //compile "com.google.guava:guava:$guavaVersion"
 }

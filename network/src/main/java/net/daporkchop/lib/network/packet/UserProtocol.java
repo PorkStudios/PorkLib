@@ -27,7 +27,7 @@ import java.util.function.Supplier;
  * @author DaPorkchop_
  */
 public abstract class UserProtocol<C extends UserConnection> {
-    final List<Codec<? extends Packet, C>> registered = new LinkedList<>();
+    final List<Codec<Packet, C>> registered = new LinkedList<>();
 
     @Getter
     private final String name;
@@ -38,6 +38,8 @@ public abstract class UserProtocol<C extends UserConnection> {
     public UserProtocol(@NonNull String name, int version) {
         this.name = name;
         this.version = version;
+
+        this.registerPackets();
     }
 
     public boolean isCompatible(@NonNull UserProtocol<C> protocol)  {
@@ -50,14 +52,15 @@ public abstract class UserProtocol<C extends UserConnection> {
 
     protected abstract void registerPackets();
 
-    protected void register(@NonNull Codec<? extends Packet, C> codec) {
+    @SuppressWarnings("unchecked")
+    protected <P extends Packet> void register(@NonNull Codec<P, C> codec) {
         synchronized (this.registered) {
-            this.registered.add(codec);
+            this.registered.add((Codec<Packet, C>) codec);
         }
     }
 
-    protected void register(@NonNull Codec<? extends Packet, C>... codecs) {
-        for (Codec<? extends Packet, C> codec : codecs) {
+    protected <P extends Packet> void register(@NonNull Codec<P, C>... codecs) {
+        for (Codec<P, C> codec : codecs) {
             this.register(codec);
         }
     }
@@ -65,4 +68,6 @@ public abstract class UserProtocol<C extends UserConnection> {
     protected <P extends Packet> void register(@NonNull PacketHandler<P, C> handler, @NonNull Supplier<P> supplier) {
         this.register(new Codec.SimpleCodec<>(handler, supplier));
     }
+
+    public abstract C newConnection();
 }

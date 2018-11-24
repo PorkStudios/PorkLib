@@ -23,23 +23,26 @@ import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.PacketRegistry;
+import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.protocol.EndpointManager;
 import net.daporkchop.lib.network.protocol.pork.DisconnectPacket;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * @author DaPorkchop_
  */
 @Getter
-public class PorkClient<C extends UserConnection> implements Endpoint<C> {
-    private final PacketRegistry<C> registry;
+public class PorkClient implements Endpoint {
+    private final PacketRegistry packetRegistry;
 
-    private final EndpointManager.ClientEndpointManager<C> manager;
+    private final EndpointManager.ClientEndpointManager manager;
 
     @SuppressWarnings("unchecked")
-    public PorkClient(@NonNull ClientBuilder<C> builder) {
-        this.registry = new PacketRegistry<>(builder.getProtocols());
+    public PorkClient(@NonNull ClientBuilder builder) {
+        this.packetRegistry = new PacketRegistry(builder.getProtocols());
         this.manager = builder.getManager().createClientManager();
 
         this.manager.start(builder.getAddress(), builder.getExecutor(), this);
@@ -51,8 +54,8 @@ public class PorkClient<C extends UserConnection> implements Endpoint<C> {
     }
 
     @Override
-    public Collection<C> getConnections() {
-        return null;
+    public <C extends UserConnection> Collection<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass) {
+        return Collections.singletonList(this.manager.getConnection(protocolClass));
     }
 
     public void send(@NonNull Packet pck) {
@@ -74,5 +77,10 @@ public class PorkClient<C extends UserConnection> implements Endpoint<C> {
     @Override
     public boolean isRunning() {
         return this.manager.isRunning();
+    }
+
+    @Override
+    public String getName() {
+        return "Client";
     }
 }

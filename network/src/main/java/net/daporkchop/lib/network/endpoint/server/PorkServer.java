@@ -21,9 +21,10 @@ import net.daporkchop.lib.network.EndpointType;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
+import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.PacketRegistry;
+import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.protocol.EndpointManager;
-import net.daporkchop.lib.network.protocol.pork.DisconnectPacket;
 
 import java.util.Collection;
 
@@ -31,13 +32,13 @@ import java.util.Collection;
  * @author DaPorkchop_
  */
 @Getter
-public class PorkServer<C extends UserConnection> implements Endpoint<C> {
-    private final PacketRegistry<C> registry;
-    //private final CryptographySettings cryptographySettings; //TODO
-    private final EndpointManager.ServerEndpointManager<C> manager;
+public class PorkServer implements Endpoint {
+    private final PacketRegistry packetRegistry;
+    private final EndpointManager.ServerEndpointManager manager;
 
-    public PorkServer(@NonNull ServerBuilder<C> builder) {
-        this.registry = new PacketRegistry<>(builder.getProtocols());
+    @SuppressWarnings("unchecked")
+    public PorkServer(@NonNull ServerBuilder builder) {
+        this.packetRegistry = new PacketRegistry(builder.getProtocols());
         this.manager = builder.getManager().createServerManager();
 
         this.manager.start(builder.getAddress(), builder.getExecutor(), this);
@@ -49,8 +50,20 @@ public class PorkServer<C extends UserConnection> implements Endpoint<C> {
     }
 
     @Override
-    public Collection<C> getConnections() {
-        return this.manager.getConnections();
+    public <C extends UserConnection> Collection<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass) {
+        return this.manager.getConnections(protocolClass);
+    }
+
+    @Override
+    public void broadcast(@NonNull Packet packet) {
+        this.manager.broadcast(packet);
+    }
+
+    @Override
+    public void broadcast(@NonNull Packet... packets) {
+        for (Packet packet : packets)   {
+            this.manager.broadcast(packet);
+        }
     }
 
     @Override
@@ -60,8 +73,6 @@ public class PorkServer<C extends UserConnection> implements Endpoint<C> {
                 throw new IllegalStateException("Already closed!");
             }
 
-            //this.manager.broadcast(new DisconnectPacket(reason));
-            //this.manager.getConnections().forEach(c -> c.closeConnection(reason));
             this.manager.close(reason);
         }
     }
@@ -69,5 +80,10 @@ public class PorkServer<C extends UserConnection> implements Endpoint<C> {
     @Override
     public boolean isRunning() {
         return this.manager.isRunning();
+    }
+
+    @Override
+    public String getName() {
+        return "Server";
     }
 }

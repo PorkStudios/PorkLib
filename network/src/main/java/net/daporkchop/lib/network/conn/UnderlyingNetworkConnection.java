@@ -13,48 +13,18 @@
  *
  */
 
-package net.daporkchop.lib.network.endpoint;
+package net.daporkchop.lib.network.conn;
 
 import lombok.NonNull;
-import net.daporkchop.lib.network.EndpointType;
-import net.daporkchop.lib.network.conn.UserConnection;
-import net.daporkchop.lib.network.packet.Packet;
-import net.daporkchop.lib.network.packet.PacketRegistry;
 import net.daporkchop.lib.network.packet.UserProtocol;
-import net.daporkchop.lib.network.protocol.pork.PorkConnection;
-import net.daporkchop.lib.network.protocol.pork.PorkProtocol;
-
-import java.util.Collection;
 
 /**
  * @author DaPorkchop_
  */
-public interface Endpoint {
-    EndpointType getType();
+public interface UnderlyingNetworkConnection {
+    <C extends UserConnection> C getUserConnection(@NonNull Class<? extends UserProtocol<C>> clazz);
 
-    <C extends UserConnection> Collection<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass);
-
-    PacketRegistry getPacketRegistry();
-
-    default void close()    {
-        this.close(null);
-    }
-
-    void close(String reason);
-
-    boolean isRunning();
-
-    String getName();
-
-    default boolean isClosed() {
-        return !this.isRunning();
-    }
-
-    default void broadcast(@NonNull Packet packet)  {
-        this.getConnections(PorkProtocol.class).forEach(c -> c.send(packet));
-    }
-
-    default void broadcast(@NonNull Packet... packets)  {
-        this.getConnections(PorkProtocol.class).forEach(c -> c.send(packets));
-    }
+    //<C extends UserConnection> void putUserConnection(@NonNull Class<UserProtocol<C>> clazz, @NonNull C connection);
+    //xd screw good coding
+    void putUserConnection(@NonNull Class<? extends UserProtocol> clazz, @NonNull UserConnection connection);
 }

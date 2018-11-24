@@ -19,6 +19,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.packet.UserProtocol;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -28,7 +29,7 @@ import java.util.concurrent.Executor;
 /**
  * @author DaPorkchop_
  */
-public interface EndpointManager<C extends UserConnection> {
+public interface EndpointManager {
     void close();
 
     boolean isRunning();
@@ -37,18 +38,18 @@ public interface EndpointManager<C extends UserConnection> {
         return !this.isRunning();
     }
 
-    void start(@NonNull InetSocketAddress address, @NonNull Executor executor, @NonNull Endpoint<C> endpoint);
+    void start(@NonNull InetSocketAddress address, @NonNull Executor executor, @NonNull Endpoint endpoint);
 
-    interface ServerEndpointManager<C extends UserConnection> extends EndpointManager<C> {
-        Collection<C> getConnections();
+    interface ServerEndpointManager extends EndpointManager {
+        <C extends UserConnection> Collection<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass);
 
         void broadcast(@NonNull Packet packet);
 
         void close(String reason);
     }
 
-    interface ClientEndpointManager<C extends UserConnection> extends EndpointManager<C> {
-        C getConnection();
+    interface ClientEndpointManager extends EndpointManager {
+        <C extends UserConnection> C getConnection(@NonNull Class<? extends UserProtocol<C>> protocolClass);
 
         void send(@NonNull Packet packet);
     }

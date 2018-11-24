@@ -35,7 +35,7 @@ public class NettyConnection<C extends UserConnection> implements Connection {
     @NonNull
     private final Channel channel;
     @NonNull
-    private final Endpoint<C> endpoint;
+    private final Endpoint endpoint;
 
     @Override
     public void closeConnection(String reason) {

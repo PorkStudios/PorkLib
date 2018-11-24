@@ -13,38 +13,57 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.netty;
+package net.daporkchop.lib.network.protocol.netty.wrapper;
 
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
-import lombok.AccessLevel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import net.daporkchop.lib.network.conn.Connection;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.protocol.pork.DisconnectPacket;
+
+import java.nio.channels.SocketChannel;
+import java.nio.channels.spi.SelectorProvider;
+import java.util.IdentityHashMap;
+import java.util.Map;
 
 /**
  * @author DaPorkchop_
  */
-public class WrapperNioServerSocketChannel<C extends UserConnection> extends NioServerSocketChannel implements Connection {
-    @Setter(AccessLevel.PACKAGE)
+public class WrapperNioSocketChannel extends NioSocketChannel implements Connection, UnderlyingNetworkConnection {
+    private final Map<Class<? extends UserProtocol>, UserConnection> connections = new IdentityHashMap<>();
+    @Setter
     @Getter
     @NonNull
-    private Endpoint<C> endpoint;
+    private Endpoint endpoint;
 
-    @Setter(AccessLevel.PACKAGE)
-    @Getter
-    @NonNull
-    private C connection;
+    public WrapperNioSocketChannel() {
+        super();
+    }
+
+    public WrapperNioSocketChannel(SelectorProvider provider) {
+        super(provider);
+    }
+
+    public WrapperNioSocketChannel(SocketChannel socket) {
+        super(socket);
+    }
+
+    public WrapperNioSocketChannel(Channel parent, SocketChannel socket) {
+        super(parent, socket);
+    }
 
     @Override
     public void closeConnection(String reason) {
-        super.writeAndFlush(new DisconnectPacket(reason));//.syncUninterruptibly();
-        super.close();//.syncUninterruptibly();
+        super.writeAndFlush(new DisconnectPacket(reason));
+        super.close();
     }
 
     @Override
@@ -58,5 +77,16 @@ public class WrapperNioServerSocketChannel<C extends UserConnection> extends Nio
         if (blocking)   {
             future.syncUninterruptibly();
         }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <C extends UserConnection> C getUserConnection(@NonNull Class<? extends UserProtocol<C>> clazz) {
+        return (C) this.connections.get(clazz);
+    }
+
+    @Override
+    public void putUserConnection(@NonNull Class<? extends UserProtocol> clazz, @NonNull UserConnection connection) {
+        this.connections.put(clazz, connection);
     }
 }

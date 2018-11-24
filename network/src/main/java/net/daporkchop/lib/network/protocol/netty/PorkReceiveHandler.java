@@ -15,24 +15,25 @@
 
 package net.daporkchop.lib.network.protocol.netty;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.UTF8;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.endpoint.server.PorkServer;
+import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.packet.PacketRegistry;
+import net.daporkchop.lib.network.packet.UserProtocol;
 
 /**
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-public class PorkReceiveHandler<C extends UserConnection> extends ChannelInboundHandlerAdapter {
+public class PorkReceiveHandler extends ChannelInboundHandlerAdapter {
     @NonNull
-    private final Endpoint<C> endpoint;
+    private final Endpoint endpoint;
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
@@ -40,19 +41,30 @@ public class PorkReceiveHandler<C extends UserConnection> extends ChannelInbound
     }
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        System.out.printf("Received %s: %s\n", msg.getClass().getCanonicalName(), msg.toString());//((ByteBuf) msg).toString(UTF8.utf8));
-        if (msg instanceof ByteBuf) {
-            ((ByteBuf) msg).release();
+    @SuppressWarnings("unchecked")
+    public void channelRead(ChannelHandlerContext ctx, @NonNull Object msg) throws Exception {
+        if (!(msg instanceof Packet)) {
+            throw new IllegalArgumentException(String.format("Expected %s, but got %s!", Packet.class.getCanonicalName(), msg.getClass().getCanonicalName()));
         }
+
+        Packet packet = (Packet) msg;
+        PacketRegistry registry = this.endpoint.getPacketRegistry();
+        Class<? extends UserProtocol<UserConnection>> protocolClass = registry.getOwningProtocol(packet.getClass());
+        if (protocolClass == null) {
+            throw new IllegalArgumentException(String.format("Unregistered inbound packet: %s", packet.getClass().getCanonicalName()));
+        }
+
+        UserConnection connection = ((UnderlyingNetworkConnection) ctx.channel()).getUserConnection(protocolClass);
+        System.out.printf("Handling %s...\n", packet.getClass().getCanonicalName());
+        registry.getCodec(packet.getClass()).handle(packet, connection);
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        if (cause != null)  {
+        if (cause != null) {
             cause.printStackTrace();
         }
-        ctx.close();//.sync();
+        ctx.close();
         super.exceptionCaught(ctx, cause);
     }
 
@@ -60,7 +72,7 @@ public class PorkReceiveHandler<C extends UserConnection> extends ChannelInbound
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
         try {
             System.out.printf("[%s] New connection: %s\n", this.endpoint instanceof PorkServer ? "Server" : "Client", ctx.channel().localAddress().toString());
-        } catch (NullPointerException e)     {
+        } catch (NullPointerException e) {
             System.out.printf("[%s] new connection\n", this.endpoint instanceof PorkServer ? "Server" : "Client");
         }
         super.channelRegistered(ctx);
@@ -70,7 +82,7 @@ public class PorkReceiveHandler<C extends UserConnection> extends ChannelInbound
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
         try {
             System.out.printf("[%s] Connection removed: %s\n", this.endpoint instanceof PorkServer ? "Server" : "Client", ctx.channel().remoteAddress().toString());
-        } catch (NullPointerException e)     {
+        } catch (NullPointerException e) {
             System.out.printf("[%s] connection removed\n", this.endpoint instanceof PorkServer ? "Server" : "Client");
         }
         super.channelUnregistered(ctx);

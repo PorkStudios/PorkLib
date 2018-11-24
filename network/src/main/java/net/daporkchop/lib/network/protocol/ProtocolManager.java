@@ -25,7 +25,7 @@ import java.net.InetSocketAddress;
  * @author DaPorkchop_
  */
 public interface ProtocolManager {
-    <C extends UserConnection> EndpointManager.ServerEndpointManager<C> createServerManager();
+    EndpointManager.ServerEndpointManager createServerManager();
 
-    <C extends UserConnection> EndpointManager.ClientEndpointManager<C> createClientManager();
+    EndpointManager.ClientEndpointManager createClientManager();
 }

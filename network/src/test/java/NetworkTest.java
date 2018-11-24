@@ -29,14 +29,14 @@ public class NetworkTest {
     @Test
     public void test() throws InterruptedException {
         System.out.println("Starting server...");
-        PorkServer server = new ServerBuilder<TestConnection>()
+        PorkServer server = new ServerBuilder()
                 .setAddress(new InetSocketAddress("0.0.0.0", 12345))
                 .addProtocol(TestProtocol.INSTANCE)
                 .build();
         System.out.println("Server started.");
         Thread.sleep(1000L);
         System.out.println("Starting client...");
-        PorkClient client = new ClientBuilder<TestConnection>()
+        PorkClient client = new ClientBuilder()
                 .setAddress(new InetSocketAddress("localhost", 12345))
                 .addProtocol(TestProtocol.INSTANCE)
                 .build();
@@ -50,9 +50,10 @@ public class NetworkTest {
         }*/
 
         System.out.println("Sending some random packets...");
-        for (int i = 0; i < 1; i++)    {
+        for (int i = 0; i < 5; i++)    {
             Thread.sleep(75L);
             client.send(new TestPacket("hello world!"));
+            server.broadcast(new TestPacket("name jef lol"));
         }
 
         System.out.println("Waiting...");

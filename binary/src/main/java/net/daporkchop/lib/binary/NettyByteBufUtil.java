@@ -28,6 +28,14 @@ import java.io.IOException;
  * @author DaPorkchop_
  */
 public class NettyByteBufUtil {
+    static {
+        try {
+            Class.forName("io.netty.buffer.ByteBuf");
+        } catch (ClassNotFoundException e)  {
+            throw new RuntimeException("netty-buffer not found in classpath!", e);
+        }
+    }
+
     public static DataIn wrapIn(ByteBuf buf) {
         return new ByteBufIn(buf);
     }

@@ -19,10 +19,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.internal.SocketUtils;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
+import lombok.*;
 import net.daporkchop.lib.network.conn.Connection;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
@@ -41,15 +38,13 @@ import java.util.Map;
 /**
  * @author DaPorkchop_
  */
-public class WrapperNioServerSocketChannel extends NioServerSocketChannel implements Connection, UnderlyingNetworkConnection {
-    @Setter
-    @Getter
+@RequiredArgsConstructor
+@Getter
+public class WrapperNioServerSocketChannel extends NioServerSocketChannel/* implements UnderlyingNetworkConnection*/ {
     @NonNull
-    private Endpoint endpoint;
+    private final Endpoint endpoint;
 
-    private final Map<Class<? extends UserProtocol>, UserConnection> connections = new IdentityHashMap<>();
-
-    @Override
+    /*@Override
     public void closeConnection(String reason) {
         super.writeAndFlush(new DisconnectPacket(reason));
         super.close();
@@ -66,18 +61,7 @@ public class WrapperNioServerSocketChannel extends NioServerSocketChannel implem
         if (blocking)   {
             future.syncUninterruptibly();
         }
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public <C extends UserConnection> C getUserConnection(@NonNull Class<? extends UserProtocol<C>> clazz) {
-        return (C) this.connections.get(clazz);
-    }
-
-    @Override
-    public void putUserConnection(@NonNull Class<? extends UserProtocol> clazz, @NonNull UserConnection connection) {
-        this.connections.put(clazz, connection);
-    }
+    }*/
 
     @Override
     protected int doReadMessages(List<Object> buf) throws Exception {
@@ -85,7 +69,8 @@ public class WrapperNioServerSocketChannel extends NioServerSocketChannel implem
 
         try {
             if (ch != null) {
-                buf.add(new WrapperNioSocketChannel(this, ch));
+                WrapperNioSocketChannel wrapper = new WrapperNioSocketChannel(this, ch, this.endpoint);
+                buf.add(wrapper);
                 return 1;
             }
         } catch (Throwable t) {

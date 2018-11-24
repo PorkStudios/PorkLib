@@ -15,11 +15,19 @@
 
 package net.daporkchop.lib.network.protocol.pork;
 
+import lombok.Getter;
+import lombok.Setter;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 
 /**
  * @author DaPorkchop_
  */
+@Getter
 public class PorkConnection extends UserConnection {
-    //TODO: useful code here
+    @Setter
+    private String disconnectReason;
+
+    @Setter
+    private UnderlyingNetworkConnection realConnection;
 }

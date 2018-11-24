@@ -21,15 +21,21 @@ import lombok.NonNull;
 import lombok.Setter;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.protocol.pork.PorkProtocol;
+
+import java.net.InetSocketAddress;
 
 /**
+ * Every protocol registered to a connection gets to create an instance of {@link UserConnection}. This can be used to store information
+ * about e.g. the current connection state.
+ *
  * @author DaPorkchop_
  */
 public abstract class UserConnection implements Connection {
     @Setter(AccessLevel.PACKAGE)
     @Getter
     @NonNull
-    private Connection protocolConnection;
+    private UnderlyingNetworkConnection protocolConnection;
 
     @Override
     public Endpoint getEndpoint() {
@@ -38,6 +44,8 @@ public abstract class UserConnection implements Connection {
 
     @Override
     public void closeConnection(String reason) {
+        //actually set the disconnect reason here
+        this.protocolConnection.getUserConnection(PorkProtocol.class).setDisconnectReason(reason);
         this.protocolConnection.closeConnection(reason);
     }
 
@@ -47,12 +55,36 @@ public abstract class UserConnection implements Connection {
     }
 
     @Override
-    public void send(Packet packet) {
+    public InetSocketAddress getAddress() {
+        return this.protocolConnection.getAddress();
+    }
+
+    @Override
+    public void send(@NonNull Packet packet) {
         this.protocolConnection.send(packet);
     }
 
     @Override
-    public void send(Packet packet, boolean blocking) {
+    public void send(@NonNull Packet packet, boolean blocking) {
         this.protocolConnection.send(packet, blocking);
+    }
+
+    /**
+     * Called when a connection is established.
+     * <p>
+     * This will be called after the connection is completely ready to go (i.e. handshake has been completed, cryptography
+     * has been initialized, etc.)
+     */
+    public void onConnect() {
+    }
+
+    /**
+     * Called when a connection is closed.
+     * <p>
+     * This can be called either when this side closes the connection, or after it was closed remotely.
+     *
+     * @param reason the reason message for disconnecting. can be null
+     */
+    public void onDisconnect(String reason) {
     }
 }

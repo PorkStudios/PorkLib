@@ -19,4 +19,13 @@ import net.daporkchop.lib.network.conn.UserConnection;
  * @author DaPorkchop_
  */
 public class TestConnection extends UserConnection {
+    @Override
+    public void onConnect() {
+        System.out.printf("[%s] Connection %s opened\n", this.getEndpoint().getName(), this.getAddress());
+    }
+
+    @Override
+    public void onDisconnect(String reason) {
+        System.out.printf("[%s] Connection %s closed: %s\n", this.getEndpoint().getName(), this.getAddress(), reason);
+    }
 }

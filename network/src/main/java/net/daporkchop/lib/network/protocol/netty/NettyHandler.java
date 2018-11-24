@@ -26,18 +26,21 @@ import net.daporkchop.lib.network.endpoint.server.PorkServer;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.PacketRegistry;
 import net.daporkchop.lib.network.packet.UserProtocol;
+import net.daporkchop.lib.network.protocol.pork.PorkConnection;
+import net.daporkchop.lib.network.protocol.pork.PorkProtocol;
 
 /**
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-public class PorkReceiveHandler extends ChannelInboundHandlerAdapter {
+public class NettyHandler extends ChannelInboundHandlerAdapter {
     @NonNull
     private final Endpoint endpoint;
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
+        //TODO: send keepalives
     }
 
     @Override
@@ -64,27 +67,46 @@ public class PorkReceiveHandler extends ChannelInboundHandlerAdapter {
         if (cause != null) {
             cause.printStackTrace();
         }
-        ctx.close();
+
+        UnderlyingNetworkConnection realConnection = (UnderlyingNetworkConnection) ctx.channel();
+        PorkConnection porkConnection = realConnection.getUserConnection(PorkProtocol.class);
+        porkConnection.setDisconnectReason(cause == null ? "Unknown exception" : String.format("%s: %s", cause.getClass().getCanonicalName(), cause.getMessage()));
+
         super.exceptionCaught(ctx, cause);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
         try {
             System.out.printf("[%s] New connection: %s\n", this.endpoint instanceof PorkServer ? "Server" : "Client", ctx.channel().localAddress().toString());
         } catch (NullPointerException e) {
             System.out.printf("[%s] new connection\n", this.endpoint instanceof PorkServer ? "Server" : "Client");
         }
+
+        UnderlyingNetworkConnection realConnection = (UnderlyingNetworkConnection) ctx.channel();
+        this.endpoint.getPacketRegistry().getProtocols().stream()
+                .map(userProtocol -> realConnection.getUserConnection((Class<UserProtocol<UserConnection>>) userProtocol.getClass()))
+                .forEach(UserConnection::onConnect);
+
         super.channelRegistered(ctx);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
         try {
             System.out.printf("[%s] Connection removed: %s\n", this.endpoint instanceof PorkServer ? "Server" : "Client", ctx.channel().remoteAddress().toString());
         } catch (NullPointerException e) {
             System.out.printf("[%s] connection removed\n", this.endpoint instanceof PorkServer ? "Server" : "Client");
         }
+
+        UnderlyingNetworkConnection realConnection = (UnderlyingNetworkConnection) ctx.channel();
+        String disconnectReason = realConnection.getUserConnection(PorkProtocol.class).getDisconnectReason();
+        this.endpoint.getPacketRegistry().getProtocols().stream()
+                .map(userProtocol -> realConnection.getUserConnection((Class<UserProtocol<UserConnection>>) userProtocol.getClass()))
+                .forEach(c -> c.onDisconnect(disconnectReason));
+
         super.channelUnregistered(ctx);
     }
 }

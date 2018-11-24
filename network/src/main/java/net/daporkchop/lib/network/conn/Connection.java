@@ -19,6 +19,8 @@ import lombok.NonNull;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Packet;
 
+import java.net.InetSocketAddress;
+
 /**
  * @author DaPorkchop_
  */
@@ -38,6 +40,8 @@ public interface Connection {
     }
 
     void send(@NonNull Packet packet, boolean blocking);
+
+    InetSocketAddress getAddress();
 
     default void send(@NonNull Packet... packets)   {
         for (Packet packet : packets)    {

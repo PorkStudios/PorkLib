@@ -28,16 +28,12 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Packet;
@@ -99,7 +95,7 @@ public class TcpProtocolManager implements ProtocolManager {
 
         @Override
         @SuppressWarnings("unchecked")
-        public void start(InetSocketAddress address, Executor executor, Endpoint endpoint) {
+        public void start(@NonNull InetSocketAddress address, @NonNull Executor executor, @NonNull Endpoint endpoint) {
             this.bossGroup = new NioEventLoopGroup(0, executor);
             this.workerGroup = new NioEventLoopGroup(0, executor);
             this.channels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
@@ -115,8 +111,8 @@ public class TcpProtocolManager implements ProtocolManager {
                 ServerBootstrap bootstrap = new ServerBootstrap();
                 bootstrap.group(this.bossGroup, this.workerGroup);
                 //bootstrap.channel(NioServerSocketChannel.class);
-                bootstrap.channel(WrapperNioServerSocketChannel.class);
-                //bootstrap.channelFactory(WrapperNioServerSocketChannel::new);
+                //bootstrap.channel(WrapperNioServerSocketChannel.class);
+                bootstrap.channelFactory(() -> new WrapperNioServerSocketChannel(endpoint));
                 bootstrap.childHandler(new NettyChannelInitializer(endpoint, p -> p.addLast(groupAdder)));
                 bootstrap.option(ChannelOption.SO_BACKLOG, 256);
                 bootstrap.childOption(ChannelOption.SO_KEEPALIVE, true);
@@ -140,7 +136,10 @@ public class TcpProtocolManager implements ProtocolManager {
         @Override
         @SuppressWarnings("unchecked")
         public <C extends UserConnection> Collection<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass) {
-            return this.channels.stream().map(ch -> ((WrapperNioServerSocketChannel) ch).getUserConnection(protocolClass)).collect(Collectors.toCollection(ArrayDeque::new));
+            return this.channels.stream()
+                    .map(WrapperNioSocketChannel.class::cast)
+                    .map(realConnection -> realConnection.getUserConnection(protocolClass))
+                    .collect(Collectors.toCollection(ArrayDeque::new));
         }
 
         @Override
@@ -158,14 +157,15 @@ public class TcpProtocolManager implements ProtocolManager {
     private static class NettyClientManager extends NettyEndpointManager implements EndpointManager.ClientEndpointManager {
         @Override
         @SuppressWarnings("unchecked")
-        public void start(InetSocketAddress address, Executor executor, Endpoint endpoint) {
+        public void start(@NonNull InetSocketAddress address, @NonNull Executor executor, @NonNull Endpoint endpoint) {
             this.workerGroup = new NioEventLoopGroup(0, executor);
 
             try {
                 Bootstrap bootstrap = new Bootstrap();
                 bootstrap.group(this.workerGroup);
-                //bootstrap.channelFactory(WrapperNioServerSocketChannel::new);
-                bootstrap.channel(WrapperNioSocketChannel.class);
+                //bootstrap.channel(NioSocketChannel.class);
+                //bootstrap.channel(WrapperNioSocketChannel.class);
+                bootstrap.channelFactory(() -> new WrapperNioSocketChannel(endpoint));
                 bootstrap.handler(new NettyChannelInitializer(endpoint));
                 bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
 
@@ -209,10 +209,12 @@ public class TcpProtocolManager implements ProtocolManager {
             c.pipeline().addLast(new LengthFieldBasedFrameDecoder(0xFFFFFF, 0, 3, 0, 3));
             c.pipeline().addLast(new NettyPacketEncoder(this.endpoint));
             c.pipeline().addLast(new NettyPacketDecoder(this.endpoint));
-            c.pipeline().addLast(new PorkReceiveHandler(this.endpoint));
+            c.pipeline().addLast(new NettyHandler(this.endpoint));
             this.populators.forEach(populator -> populator.accept(c.pipeline()));
 
-            this.endpoint.getPacketRegistry().getProtocols().forEach(protocol -> ((UnderlyingNetworkConnection) c).putUserConnection(protocol.getClass(), protocol.newConnection()));
+            WrapperNioSocketChannel realConnection = (WrapperNioSocketChannel) c;
+            this.endpoint.getPacketRegistry().getProtocols().forEach(protocol -> realConnection.putUserConnection(protocol.getClass(), protocol.newConnection()));
+            realConnection.registerTheUnderlyingConnection();
         }
     }
 }

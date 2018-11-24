@@ -26,6 +26,8 @@ import net.daporkchop.lib.network.packet.Codec;
 import java.io.IOException;
 
 /**
+ * Sent before a connection is closed to inform the remote end of the reason for the disconnection
+ *
  * @author DaPorkchop_
  */
 @NoArgsConstructor
@@ -46,8 +48,8 @@ public class DisconnectPacket implements PorkPacket {
     public static class DisconnectCodec implements Codec<DisconnectPacket, PorkConnection>  {
         @Override
         public void handle(DisconnectPacket packet, PorkConnection connection) {
-            System.out.printf("[%s] disconnect packet with reason: %s\n", connection.getEndpoint().getName(), packet.reason);
-            connection.closeConnection(packet.reason);
+            connection.setDisconnectReason(packet.reason);
+            connection.getRealConnection().disconnectAtNetworkLevel(); //disconnecting at network level prevents an endless ping/pong of disconnect packets
         }
 
         @Override

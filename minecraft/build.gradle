@@ -19,8 +19,7 @@ dependencies {
     compile project(":http")
     compile project(":minecraft:minecraft-text")
     compile project(":primitive")
-    compile 'com.google.code.gson:gson:2.8.5'
-    compile 'com.flowpowered:flow-nbt:1.0.1-SNAPSHOT'
 
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+    compile "com.google.code.gson:gson:$gsonVersion"
+    compile "com.flowpowered:flow-nbt:1.0.1-SNAPSHOT" //TODO: rewrite PorkLib NBT
 }

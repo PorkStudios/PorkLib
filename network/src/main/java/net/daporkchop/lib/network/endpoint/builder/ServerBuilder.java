@@ -29,12 +29,12 @@ import net.daporkchop.lib.network.endpoint.server.PorkServer;
 @Accessors(chain = true)
 @Getter
 @Setter
-public class ServerBuilder<C extends UserConnection> extends AbstractBuilder<C, PorkServer<C>, ServerBuilder<C>> {
+public class ServerBuilder extends AbstractBuilder<PorkServer, ServerBuilder> {
     @NonNull
     private CryptographySettings cryptographySettings = new CryptographySettings();
 
     @Override
-    PorkServer<C> doBuild() {
-        return new PorkServer<>(this);
+    PorkServer doBuild() {
+        return new PorkServer(this);
     }
 }

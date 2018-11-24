@@ -39,7 +39,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author DaPorkchop_
  */
 @Getter
-public abstract class AbstractBuilder<C extends UserConnection, E extends Endpoint<C>, B extends AbstractBuilder<C, E, B>> {
+public abstract class AbstractBuilder<E extends Endpoint, B extends AbstractBuilder<E, B>> {
     private static final AtomicInteger DEFAULT_EXECUTOR_THREAD_COUNTER = new AtomicInteger(0);
     private static final Executor DEFAULT_EXECUTOR = new ThreadPoolExecutor(
             0, Integer.MAX_VALUE,
@@ -48,10 +48,9 @@ public abstract class AbstractBuilder<C extends UserConnection, E extends Endpoi
             runnable -> new Thread(runnable, String.format("PorkLib network executor #%d", DEFAULT_EXECUTOR_THREAD_COUNTER.getAndIncrement()))
     );
 
-    @SuppressWarnings("unchecked")
-    private final Collection<UserProtocol<C>> protocols = new ArrayDeque<UserProtocol<C>>()    {
+    private final Collection<UserProtocol> protocols = new ArrayDeque<UserProtocol>()    {
         {
-            this.add((UserProtocol<C>) PorkProtocol.INSTANCE);
+            this.add(PorkProtocol.INSTANCE);
         }
     };
 
@@ -65,7 +64,7 @@ public abstract class AbstractBuilder<C extends UserConnection, E extends Endpoi
     private Executor executor = DEFAULT_EXECUTOR;
 
     @SuppressWarnings("unchecked")
-    public B addProtocol(@NonNull UserProtocol<C> protocol) {
+    public <C extends UserConnection> B addProtocol(@NonNull UserProtocol<C> protocol) {
         synchronized (this.protocols)   {
             this.protocols.add(protocol);
         }

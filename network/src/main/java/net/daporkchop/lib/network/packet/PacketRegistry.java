@@ -25,21 +25,25 @@ import net.daporkchop.lib.primitive.map.hashmap.ObjectIntegerHashMap;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.IdentityHashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author DaPorkchop_
  */
-public class PacketRegistry<C extends UserConnection> {
-    private final IntegerObjectMap<Codec<? extends Packet, C>> registeredCodecs = new IntegerObjectHashMap<>();
+public class PacketRegistry {
+    private final IntegerObjectMap<Codec<Packet, UserConnection>> registeredCodecs = new IntegerObjectHashMap<>();
     private final ObjectIntegerMap<Class<? extends Packet>> packetIds = new ObjectIntegerHashMap<>();
+    private final Map<Class<? extends Packet>, Class<? extends UserProtocol>> supplyingProtocol = new IdentityHashMap<>();
     @Getter
-    private final Collection<UserProtocol<C>> protocols;
+    private final Collection<UserProtocol> protocols;
 
-    public PacketRegistry(@NonNull Collection<UserProtocol<C>> protocols)    {
+    @SuppressWarnings("unchecked")
+    public PacketRegistry(@NonNull Collection<UserProtocol> protocols)    {
         this.protocols = protocols;
         AtomicInteger idCounter = new AtomicInteger(0);
-        for (UserProtocol<C> protocol : protocols)  {
+        for (UserProtocol<UserConnection> protocol : protocols)  {
             if (protocol == null)   {
                 throw new NullPointerException();
             }
@@ -51,19 +55,26 @@ public class PacketRegistry<C extends UserConnection> {
                     throw new NullPointerException();
                 }
                 this.packetIds.put(packet.getClass(), id);
+                this.supplyingProtocol.put(packet.getClass(), protocol.getClass());
             });
         }
     }
 
-    public Codec<? extends Packet, C> getCodec(int id)  {
-        return this.registeredCodecs.get(id);
+    @SuppressWarnings("unchecked")
+    public <C extends UserConnection> Codec<Packet, C> getCodec(int id)  {
+        return (Codec<Packet, C>) this.registeredCodecs.get(id);
     }
 
     public int getId(@NonNull Class<? extends Packet> clazz)    {
-        return this.packetIds.get(clazz);
+        return this.packetIds.getOrDefault(clazz, -1);
     }
 
-    public Codec<? extends Packet, C> getCodec(@NonNull Class<? extends Packet> clazz)  {
+    public <C extends UserConnection> Codec<Packet, C> getCodec(@NonNull Class<? extends Packet> clazz)  {
         return this.getCodec(this.getId(clazz));
+    }
+
+    @SuppressWarnings("unchecked")
+    public <C extends UserConnection> Class<? extends UserProtocol<C>> getOwningProtocol(@NonNull Class<? extends Packet> clazz)  {
+        return (Class<? extends UserProtocol<C>>) this.supplyingProtocol.get(clazz);
     }
 }

@@ -43,10 +43,10 @@ public class DisconnectPacket implements PorkPacket {
         out.writeUTF(this.reason);
     }
 
-    public static class DisconnectCodec implements Codec<DisconnectPacket, UserConnection>  {
+    public static class DisconnectCodec implements Codec<DisconnectPacket, PorkConnection>  {
         @Override
-        public void handle(DisconnectPacket packet, UserConnection connection) {
-            System.out.printf("[%s] disconnect packet with reason: %s\n", connection.getEndpoint() instanceof PorkServer ? "Server" : "Client", packet.reason);
+        public void handle(DisconnectPacket packet, PorkConnection connection) {
+            System.out.printf("[%s] disconnect packet with reason: %s\n", connection.getEndpoint().getName(), packet.reason);
             connection.closeConnection(packet.reason);
         }
 

@@ -21,7 +21,7 @@ import net.daporkchop.lib.network.packet.UserProtocol;
 /**
  * @author DaPorkchop_
  */
-public class PorkProtocol extends UserProtocol<UserConnection> {
+public class PorkProtocol extends UserProtocol<PorkConnection> {
     public static final PorkProtocol INSTANCE = new PorkProtocol();
 
     private PorkProtocol() {
@@ -31,5 +31,10 @@ public class PorkProtocol extends UserProtocol<UserConnection> {
     @Override
     protected void registerPackets() {
         this.register(new DisconnectPacket.DisconnectCodec());
+    }
+
+    @Override
+    public PorkConnection newConnection() {
+        return new PorkConnection();
     }
 }

@@ -21,9 +21,9 @@ import net.daporkchop.lib.network.endpoint.client.PorkClient;
 /**
  * @author DaPorkchop_
  */
-public class ClientBuilder<C extends UserConnection> extends AbstractBuilder<C, PorkClient<C>, ClientBuilder<C>> {
+public class ClientBuilder extends AbstractBuilder<PorkClient, ClientBuilder> {
     @Override
-    PorkClient<C> doBuild() {
-        return new PorkClient<>(this);
+    PorkClient doBuild() {
+        return new PorkClient(this);
     }
 }

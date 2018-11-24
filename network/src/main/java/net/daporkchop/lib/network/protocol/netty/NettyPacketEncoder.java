@@ -23,6 +23,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.NettyByteBufUtil;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Packet;
@@ -32,7 +33,7 @@ import net.daporkchop.lib.network.packet.Packet;
  */
 @RequiredArgsConstructor
 @Getter
-public class NettyPacketEncoder extends MessageToByteEncoder<Packet> {
+public class NettyPacketEncoder extends MessageToByteEncoder<Packet> implements Logging {
     @NonNull
     private final Endpoint endpoint;
 
@@ -40,10 +41,10 @@ public class NettyPacketEncoder extends MessageToByteEncoder<Packet> {
     protected void encode(ChannelHandlerContext channelHandlerContext, Packet packet, ByteBuf buf) throws Exception {
         //System.out.printf("Size pre-send: %d\n", buf.writerIndex());
         try (DataOut out = NettyByteBufUtil.wrapOut(buf)) {
-            System.out.printf("[%s] Writing %s...\n", this.endpoint.getName(), packet.getClass().getCanonicalName());
+            logger.debug("[${0}] Writing ${1}...", this.endpoint.getName(), packet.getClass());
             int id = this.endpoint.getPacketRegistry().getId(packet.getClass());
             if (id == -1)   {
-                throw new IllegalArgumentException(String.format("Unregistered outbound packet: %s", packet.getClass().getCanonicalName()));
+                throw this.exception("Unregistered outbound packet: ${0}", packet.getClass());
             }
             out.writeVarInt(id, true);
             packet.write(out);

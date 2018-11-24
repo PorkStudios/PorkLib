@@ -19,10 +19,10 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
-import net.daporkchop.lib.network.endpoint.server.PorkServer;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.PacketRegistry;
 import net.daporkchop.lib.network.packet.UserProtocol;
@@ -33,7 +33,7 @@ import net.daporkchop.lib.network.protocol.pork.PorkProtocol;
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-public class NettyHandler extends ChannelInboundHandlerAdapter {
+public class NettyHandler extends ChannelInboundHandlerAdapter implements Logging {
     @NonNull
     private final Endpoint endpoint;
 
@@ -47,42 +47,36 @@ public class NettyHandler extends ChannelInboundHandlerAdapter {
     @SuppressWarnings("unchecked")
     public void channelRead(ChannelHandlerContext ctx, @NonNull Object msg) throws Exception {
         if (!(msg instanceof Packet)) {
-            throw new IllegalArgumentException(String.format("Expected %s, but got %s!", Packet.class.getCanonicalName(), msg.getClass().getCanonicalName()));
+            throw new IllegalArgumentException(this.format("Expected ${0}, but got ${1}!", Packet.class, msg.getClass()));
         }
 
         Packet packet = (Packet) msg;
         PacketRegistry registry = this.endpoint.getPacketRegistry();
         Class<? extends UserProtocol<UserConnection>> protocolClass = registry.getOwningProtocol(packet.getClass());
         if (protocolClass == null) {
-            throw new IllegalArgumentException(String.format("Unregistered inbound packet: %s", packet.getClass().getCanonicalName()));
+            throw new IllegalArgumentException(this.format("Unregistered inbound packet: ${0}", packet.getClass()));
         }
 
         UserConnection connection = ((UnderlyingNetworkConnection) ctx.channel()).getUserConnection(protocolClass);
-        System.out.printf("Handling %s...\n", packet.getClass().getCanonicalName());
+        logger.debug("Handling ${0}...", packet.getClass());
         registry.getCodec(packet.getClass()).handle(packet, connection);
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         if (cause != null) {
-            cause.printStackTrace();
+            logger.error(cause);
         }
 
         UnderlyingNetworkConnection realConnection = (UnderlyingNetworkConnection) ctx.channel();
         PorkConnection porkConnection = realConnection.getUserConnection(PorkProtocol.class);
-        porkConnection.setDisconnectReason(cause == null ? "Unknown exception" : String.format("%s: %s", cause.getClass().getCanonicalName(), cause.getMessage()));
-
-        super.exceptionCaught(ctx, cause);
+        porkConnection.setDisconnectReason(cause == null ? "Unknown exception" : this.format("${0}: ${1}", cause.getClass(), cause.getMessage()));
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-        try {
-            System.out.printf("[%s] New connection: %s\n", this.endpoint instanceof PorkServer ? "Server" : "Client", ctx.channel().localAddress().toString());
-        } catch (NullPointerException e) {
-            System.out.printf("[%s] new connection\n", this.endpoint instanceof PorkServer ? "Server" : "Client");
-        }
+        logger.trace("[${0}] New connection: ${1}", this.endpoint.getName(), ctx.channel().remoteAddress());
 
         UnderlyingNetworkConnection realConnection = (UnderlyingNetworkConnection) ctx.channel();
         this.endpoint.getPacketRegistry().getProtocols().stream()
@@ -95,11 +89,7 @@ public class NettyHandler extends ChannelInboundHandlerAdapter {
     @Override
     @SuppressWarnings("unchecked")
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-        try {
-            System.out.printf("[%s] Connection removed: %s\n", this.endpoint instanceof PorkServer ? "Server" : "Client", ctx.channel().remoteAddress().toString());
-        } catch (NullPointerException e) {
-            System.out.printf("[%s] connection removed\n", this.endpoint instanceof PorkServer ? "Server" : "Client");
-        }
+        logger.trace("[${0}] Connection ${1} removed", this.endpoint.getName(), ctx.channel().remoteAddress());
 
         UnderlyingNetworkConnection realConnection = (UnderlyingNetworkConnection) ctx.channel();
         String disconnectReason = realConnection.getUserConnection(PorkProtocol.class).getDisconnectReason();

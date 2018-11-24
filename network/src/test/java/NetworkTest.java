@@ -13,61 +13,58 @@
  *
  */
 
+import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.endpoint.client.PorkClient;
 import net.daporkchop.lib.network.endpoint.server.PorkServer;
-import net.daporkchop.lib.network.protocol.pork.DisconnectPacket;
 import org.junit.Test;
 
+import java.io.File;
 import java.net.InetSocketAddress;
 
 /**
  * @author DaPorkchop_
  */
-public class NetworkTest {
+public class NetworkTest implements Logging {
     @Test
     public void test() throws InterruptedException {
-        System.out.println("Starting server...");
+        logger.add(new File("./test_out/test_network_1.log"), true);
+
+        logger.info("Starting server...");
         PorkServer server = new ServerBuilder()
                 .setAddress(new InetSocketAddress("0.0.0.0", 12345))
                 .addProtocol(TestProtocol.INSTANCE)
                 .build();
-        System.out.println("Server started.");
-        Thread.sleep(1000L);
-        System.out.println("Starting client...");
+        logger.info("Server started.");
+        //Thread.sleep(1000L);
+        logger.info("Starting client...");
         PorkClient client = new ClientBuilder()
                 .setAddress(new InetSocketAddress("localhost", 12345))
                 .addProtocol(TestProtocol.INSTANCE)
                 .build();
-        System.out.println("Client started.");
-        Thread.sleep(1000L);
+        logger.info("Client started.");
+        //Thread.sleep(1000L);
 
-        //client.send("name jef lol");
-
-        /*try (Scanner scanner = new Scanner(System.in))  {
-            scanner.nextLine();
-        }*/
-
-        System.out.println("Sending some random packets...");
-        for (int i = 0; i < 5; i++)    {
-            Thread.sleep(75L);
-            client.send(new TestPacket("hello world!"));
-            server.broadcast(new TestPacket("name jef lol"));
+        {
+            int count = 3;
+            logger.info("Sending ${0} random packets...", count);
+            for (int i = 0; i < count; i++) {
+                Thread.sleep(75L);
+                client.send(new TestPacket("hello world!"));
+                server.broadcast(new TestPacket("name jef lol"));
+            }
         }
 
-        System.out.println("Waiting...");
-        Thread.sleep(1000L);
-        /*for (int i = 0; i < 100; i++)   {
-            client.send(new DisconnectPacket("jeff"));
-        }*/
+        //logger.info("Waiting...");
+        //Thread.sleep(1000L);
 
-        System.out.println("Closing sessions...");
-        client.close("ok lol");
-        Thread.sleep(1000L);
+        logger.info("Closing...");
+        client.close("client closing...");
+        //Thread.sleep(1000L);
         server.close();
 
         Thread.sleep(1000L);
-        System.out.println("Done!");
+        logger.info("Done!");
     }
 }

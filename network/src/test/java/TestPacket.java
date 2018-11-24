@@ -18,6 +18,7 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.packet.Codec;
 import net.daporkchop.lib.network.packet.Packet;
 
@@ -39,10 +40,10 @@ public class TestPacket implements Packet {
         out.writeUTF(this.message);
     }
 
-    public static class TestCodec implements Codec<TestPacket, TestConnection>  {
+    public static class TestCodec implements Codec<TestPacket, TestConnection>, Logging {
         @Override
         public void handle(TestPacket packet, TestConnection connection) {
-            System.out.printf("Recieved test packet: %s\n", packet.message);
+            logger.info("[${0}] Received test packet: ${1}", connection.getEndpoint().getName(), packet.message);
         }
 
         @Override

@@ -25,6 +25,7 @@ dependencies {
     compile project(":encoding")
     compile project(":crypto")
     compile project(":primitive")
+    compile project(":logging")
 
     compile "com.nukkitx.network:raknet:$raknetVersion"
     //compile "com.google.guava:guava:$guavaVersion"

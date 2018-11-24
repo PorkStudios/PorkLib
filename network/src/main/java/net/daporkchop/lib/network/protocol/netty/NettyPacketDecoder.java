@@ -23,6 +23,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.NettyByteBufUtil;
 import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Codec;
@@ -35,7 +36,7 @@ import java.util.List;
  */
 @RequiredArgsConstructor
 @Getter
-public class NettyPacketDecoder extends ByteToMessageDecoder {
+public class NettyPacketDecoder extends ByteToMessageDecoder implements Logging {
     @NonNull
     private final Endpoint endpoint;
 
@@ -47,11 +48,11 @@ public class NettyPacketDecoder extends ByteToMessageDecoder {
         int id = in.readVarInt(true);
         Codec<? extends Packet, ? extends UserConnection> codec = this.endpoint.getPacketRegistry().getCodec(id);
         if (codec == null)  {
-            throw new IllegalStateException(String.format("Received unknown packet id: %d", id));
+            throw this.exception("Received unknown packet id ${0}", id);
         }
         Packet packet = codec.createInstance();
         packet.read(in);
-        System.out.printf("[%s] Read packet: %s (%d bytes)\n", this.endpoint.getName(), packet.getClass().getCanonicalName(), size - in.available());
+        logger.debug("[${0}] Read packet: ${1} (${2} bytes)", this.endpoint.getName(), packet.getClass(), size - in.available());
         list.add(packet);
     }
 }

@@ -13,20 +13,16 @@
  *
  */
 
-import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.conn.UserConnection;
+import net.daporkchop.lib.logging.Formatter;
+import org.junit.Test;
 
 /**
  * @author DaPorkchop_
  */
-public class TestConnection extends UserConnection implements Logging {
-    @Override
-    public void onConnect() {
-        logger.info("[${0}] Connection ${1} opened", this.getEndpoint().getName(), this.getAddress());
-    }
-
-    @Override
-    public void onDisconnect(String reason) {
-        logger.info("[${0}] Connection ${1} closed because: ${2}", this.getEndpoint().getName(), this.getAddress(), reason);
+public class FormatterTest {
+    @Test
+    public void test() {
+        //TODO: a lot more test cases and then actually check if the output is correct
+        System.out.println(Formatter.format("${0} abcd ${2}TEST $$$ ${1}", 5, "\"Hello World!\" ", 15.5d));
     }
 }

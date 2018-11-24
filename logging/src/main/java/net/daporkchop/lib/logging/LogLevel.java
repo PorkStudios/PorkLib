@@ -13,20 +13,25 @@
  *
  */
 
-import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.conn.UserConnection;
+package net.daporkchop.lib.logging;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author DaPorkchop_
  */
-public class TestConnection extends UserConnection implements Logging {
-    @Override
-    public void onConnect() {
-        logger.info("[${0}] Connection ${1} opened", this.getEndpoint().getName(), this.getAddress());
-    }
+@RequiredArgsConstructor
+@Getter
+public enum LogLevel {
+    INFO(0),
+    ERROR(0),
+    FATAL(0),
+    WARN(1),
+    NOTIFY(1),
+    TRACE(2),
+    DEBUG(3)
+    ;
 
-    @Override
-    public void onDisconnect(String reason) {
-        logger.info("[${0}] Connection ${1} closed because: ${2}", this.getEndpoint().getName(), this.getAddress(), reason);
-    }
+    private final int level;
 }

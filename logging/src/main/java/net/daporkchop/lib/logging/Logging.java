@@ -13,20 +13,37 @@
  *
  */
 
-import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.conn.UserConnection;
+package net.daporkchop.lib.logging;
+
+import lombok.NonNull;
 
 /**
  * @author DaPorkchop_
  */
-public class TestConnection extends UserConnection implements Logging {
-    @Override
-    public void onConnect() {
-        logger.info("[${0}] Connection ${1} opened", this.getEndpoint().getName(), this.getAddress());
+public interface Logging {
+    Logger logger = Logger.DEFAULT_LOG;
+
+    default String format(@NonNull String text, @NonNull Object... params)     {
+        return Formatter.format(text, params);
     }
 
-    @Override
-    public void onDisconnect(String reason) {
-        logger.info("[${0}] Connection ${1} closed because: ${2}", this.getEndpoint().getName(), this.getAddress(), reason);
+    default String javaFormat(@NonNull String text, @NonNull Object... params)  {
+        return String.format(text, params);
+    }
+
+    default RuntimeException exception(@NonNull String text)    {
+        return new RuntimeException(text);
+    }
+
+    default RuntimeException exception(@NonNull String text, @NonNull Object... params)    {
+        return new RuntimeException(this.format(text, params));
+    }
+
+    default RuntimeException exception(@NonNull String text, @NonNull Throwable t, @NonNull Object... params)    {
+        return new RuntimeException(this.format(text, params), t);
+    }
+
+    default RuntimeException exception(@NonNull Throwable t)    {
+        return new RuntimeException(t);
     }
 }

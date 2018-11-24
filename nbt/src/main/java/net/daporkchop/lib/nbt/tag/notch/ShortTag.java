@@ -12,41 +12,47 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.nbt.tag;
+package net.daporkchop.lib.nbt.tag.notch;
 
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.Data;
+import lombok.Setter;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
+import net.daporkchop.lib.nbt.tag.Tag;
+import net.daporkchop.lib.nbt.tag.TagRegistry;
 
 import java.io.IOException;
 
 /**
- * Represents an NBT tag.
- *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
 @Getter
-public abstract class Tag {
-    private final String name;
+@Setter
+public class ShortTag extends Tag {
+    private short value;
 
-    @SuppressWarnings("unchecked")
-    public <T extends Tag> T getAs()    {
-        return (T) this;
+    public ShortTag(String name) {
+        super(name);
     }
 
-    public CompoundTag getAsCompoundTag()   {
-        return this.getAs();
+    public ShortTag(String name, short value)   {
+        super(name);
+        this.value = value;
     }
-
-    public abstract void read(@NonNull DataIn in, @NonNull TagRegistry registry) throws IOException;
-
-    public abstract void write(@NonNull DataOut out, @NonNull TagRegistry registry) throws IOException;
 
     @Override
-    public abstract String toString();
+    public void read(@NonNull DataIn in, @NonNull TagRegistry registry) throws IOException {
+        this.value = in.readShort();
+    }
+
+    @Override
+    public void write(@NonNull DataOut out, @NonNull TagRegistry registry) throws IOException {
+        out.writeShort(this.value);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("ShortTag(\"%s\"): %d", this.getName(), this.value & 0xFFFF);
+    }
 }

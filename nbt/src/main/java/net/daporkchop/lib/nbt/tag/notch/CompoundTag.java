@@ -98,4 +98,9 @@ public class CompoundTag extends Tag {
     public void clear() {
         this.contents.clear();
     }
+
+    @Override
+    public String toString() {
+        return String.format("CompoundTag(\"%s\"): %d children", this.getName(), this.contents.size());
+    }
 }

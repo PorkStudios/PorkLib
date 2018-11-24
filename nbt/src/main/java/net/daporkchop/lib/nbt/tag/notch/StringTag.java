@@ -57,4 +57,9 @@ public class StringTag extends Tag {
         out.writeShort((short) b.length);
         out.write(b);
     }
+
+    @Override
+    public String toString() {
+        return String.format("StringTag(\"%s\"): \"%s\"", this.getName(), this.value);
+    }
 }

@@ -17,9 +17,7 @@ package net.daporkchop.lib.nbt.tag;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.nbt.tag.notch.*;
-import net.daporkchop.lib.nbt.tag.pork.DoubleArrayTag;
-import net.daporkchop.lib.nbt.tag.pork.FloatArrayTag;
-import net.daporkchop.lib.nbt.tag.pork.ShortArrayTag;
+import net.daporkchop.lib.nbt.tag.pork.*;
 import net.daporkchop.lib.primitive.map.ByteObjectMap;
 import net.daporkchop.lib.primitive.map.ObjectByteMap;
 import net.daporkchop.lib.primitive.map.hashmap.ByteObjectHashMap;
@@ -59,6 +57,9 @@ public class TagRegistry {
             .register(64, ShortArrayTag.class, ShortArrayTag::new)
             .register(65, FloatArrayTag.class, FloatArrayTag::new)
             .register(66, DoubleArrayTag.class, DoubleArrayTag::new)
+            .register(67, BooleanTag.class, BooleanTag::new)
+            .register(68, CharTag.class, CharTag::new)
+            .register(69, CharArrayTag.class, CharArrayTag::new)
             .finish();
 
     private final ByteObjectMap<Function<String, ? extends Tag>> tagCreators = new ByteObjectHashMap<>();

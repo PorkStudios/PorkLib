@@ -25,6 +25,8 @@ import net.daporkchop.lib.nbt.tag.TagRegistry;
 import java.io.IOException;
 
 /**
+ * A tag that contains a single double[]
+ *
  * @author DaPorkchop_
  */
 @Getter

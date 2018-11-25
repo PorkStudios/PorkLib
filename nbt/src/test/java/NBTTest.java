@@ -13,20 +13,61 @@
  */
 
 import lombok.NonNull;
+import net.daporkchop.lib.encoding.Hexadecimal;
 import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.nbt.NBTInputStream;
+import net.daporkchop.lib.nbt.NBTOutputStream;
 import net.daporkchop.lib.nbt.tag.Tag;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 import net.daporkchop.lib.nbt.tag.notch.ListTag;
 import net.daporkchop.lib.nbt.tag.notch.StringTag;
+import org.apache.commons.compress.utils.IOUtils;
 import org.junit.Test;
+import sun.nio.ch.IOUtil;
 
-import java.io.IOException;
+import java.io.*;
+import java.util.Arrays;
 
 /**
  * @author DaPorkchop_
  */
 public class NBTTest {
+    @Test
+    public void testWriting() throws IOException    {
+        byte[] original_uncompressed;
+        try (InputStream is = NBTTest.class.getResourceAsStream("bigtest.nbt")) {
+            byte[] b = IOUtils.toByteArray(is);
+            original_uncompressed = Compression.GZIP_NORMAL.inflate(b);
+        }
+        CompoundTag tag;
+        try (NBTInputStream in = new NBTInputStream(new ByteArrayInputStream(original_uncompressed)))   {
+            tag = in.readTag();
+        }
+        byte[] written;
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             NBTOutputStream out = new NBTOutputStream(baos))   {
+            out.writeTag(tag);
+            out.flush();
+            written = baos.toByteArray();
+        }
+        try (NBTInputStream in = new NBTInputStream(new ByteArrayInputStream(written)))   {
+            tag = in.readTag();
+        }
+        this.printTagRecursive(tag, 0);
+        File file = new File("test_out/written.nbt");
+        if (!file.exists())  {
+            File parent = file.getParentFile();
+            if (!parent.exists() && !parent.mkdirs())   {
+                throw new IllegalStateException(String.format("Couldn't create directory: %s", parent.getAbsolutePath()));
+            } else if (!file.createNewFile())    {
+                throw new IllegalStateException(String.format("Couldn't create file: %s", file.getAbsolutePath()));
+            }
+        }
+        try (NBTOutputStream out = new NBTOutputStream(new BufferedOutputStream(new FileOutputStream(file))))   {
+            out.writeTag(tag);
+        }
+    }
+
     @Test
     public void testHelloWorld() throws IOException {
         try (NBTInputStream in = new NBTInputStream(NBTTest.class.getResourceAsStream("hello_world.nbt")))  {
@@ -34,6 +75,7 @@ public class NBTTest {
             this.printTagRecursive(tag, 0);
         }
     }
+
     @Test
     public void testBig() throws IOException {
         try (NBTInputStream in = new NBTInputStream(NBTTest.class.getResourceAsStream("bigtest.nbt"), Compression.GZIP_NORMAL))  {

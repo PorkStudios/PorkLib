@@ -17,6 +17,8 @@ package net.daporkchop.lib.encoding.compression;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.apache.commons.compress.compressors.deflate.DeflateCompressorInputStream;
@@ -30,6 +32,8 @@ import org.apache.commons.compress.compressors.lz4.BlockLZ4CompressorOutputStrea
 import org.apache.commons.compress.compressors.lz4.FramedLZ4CompressorOutputStream;
 import org.tukaani.xz.*;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.Field;
 
 /**
@@ -170,19 +174,19 @@ public class Compression {
     public static final CompressionHelper LZMA_LOW = CompressionHelper.<LZMA2Options>builder("LZMA", "Low")
             .setParamsFunc(() -> new LZMA2Options(0))
             .setInputStreamWrapperSimple(LZMAInputStream::new)
-            .setOutputStreamWrapper((out, params) -> new LZMAOutputStream(out, params, -1L))
+            .setOutputStreamWrapper((out, params) -> new LZMAWrapperOut(new LZMAOutputStream(out, params, -1L)))
             .build();
 
     public static final CompressionHelper LZMA_NORMAL = CompressionHelper.<LZMA2Options>builder("LZMA", "Normal")
             .setParamsFunc(() -> new LZMA2Options(6))
             .setInputStreamWrapperSimple(LZMAInputStream::new)
-            .setOutputStreamWrapper((out, params) -> new LZMAOutputStream(out, params, -1L))
+            .setOutputStreamWrapper((out, params) -> new LZMAWrapperOut(new LZMAOutputStream(out, params, -1L)))
             .build();
 
     public static final CompressionHelper LZMA_HIGH = CompressionHelper.<LZMA2Options>builder("LZMA", "High")
             .setParamsFunc(() -> new LZMA2Options(9))
             .setInputStreamWrapperSimple(LZMAInputStream::new)
-            .setOutputStreamWrapper((out, params) -> new LZMAOutputStream(out, params, -1L))
+            .setOutputStreamWrapper((out, params) -> new LZMAWrapperOut(new LZMAOutputStream(out, params, -1L)))
             .build();
 
     public static final CompressionHelper XZ_LOW = CompressionHelper.<LZMA2Options>builder("XZ", "Low")
@@ -213,6 +217,32 @@ public class Compression {
             }
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    @RequiredArgsConstructor
+    private static class LZMAWrapperOut extends OutputStream   {
+        @NonNull
+        private final LZMAOutputStream out;
+
+        @Override
+        public void write(int b) throws IOException {
+            this.out.write(b);
+        }
+
+        /*@Override
+        public void write(byte[] b) throws IOException {
+            this.out.write(b);
+        }
+
+        @Override
+        public void write(byte[] b, int off, int len) throws IOException {
+            this.out.write(b, off, len);
+        }*/
+
+        @Override
+        public void close() throws IOException {
+            this.out.close();
         }
     }
 }

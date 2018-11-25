@@ -46,4 +46,8 @@ public interface Logging {
     default RuntimeException exception(@NonNull Throwable t)    {
         return new RuntimeException(t);
     }
+
+    default String stringify(@NonNull Throwable t)  {
+        return this.format("${0}: ${1}", t.getClass(), t.getMessage());
+    }
 }

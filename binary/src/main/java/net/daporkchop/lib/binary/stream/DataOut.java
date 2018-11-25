@@ -33,6 +33,10 @@ public abstract class DataOut extends OutputStream {
         return out instanceof DataOut ? (DataOut) out : new StreamOut(out);
     }
 
+    public static DataOut wrapNonClosing(OutputStream out) {
+        return out instanceof NonClosingStreamOut ? (NonClosingStreamOut) out : new NonClosingStreamOut(out);
+    }
+
     public static DataOut wrap(ByteBuffer buffer) {
         return new BufferOut(buffer);
     }
@@ -226,8 +230,27 @@ public abstract class DataOut extends OutputStream {
 
         @Override
         public void close() throws IOException {
-            this.flush();
             this.out.close();
+        }
+
+        @Override
+        public void write(int b) throws IOException {
+            this.out.write(b);
+        }
+
+        @Override
+        public void flush() throws IOException {
+            this.out.flush();
+        }
+    }
+
+    @AllArgsConstructor
+    private static class NonClosingStreamOut extends DataOut {
+        @NonNull
+        private final OutputStream out;
+
+        @Override
+        public void close() throws IOException {
         }
 
         @Override

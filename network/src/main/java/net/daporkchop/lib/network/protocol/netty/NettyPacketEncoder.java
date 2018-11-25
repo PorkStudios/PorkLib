@@ -27,6 +27,7 @@ import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
+import net.daporkchop.lib.network.endpoint.client.PorkClient;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.protocol.pork.PorkProtocol;
 
@@ -42,7 +43,6 @@ public class NettyPacketEncoder extends MessageToByteEncoder<Packet> implements 
     @Override
     protected void encode(ChannelHandlerContext ctx, Packet packet, ByteBuf buf) throws Exception {
         try (DataOut out = DataOut.wrap(((UnderlyingNetworkConnection) ctx.channel()).getUserConnection(PorkProtocol.class).getPacketReprocessor().wrap(NettyByteBufUtil.wrapOut(buf)))) {
-        //try (DataOut out = NettyByteBufUtil.wrapOut(buf))   {
             logger.debug("[${0}] Writing ${1}...", this.endpoint.getName(), packet.getClass());
             int id = this.endpoint.getPacketRegistry().getId(packet.getClass());
             if (id == -1)   {
@@ -52,9 +52,11 @@ public class NettyPacketEncoder extends MessageToByteEncoder<Packet> implements 
             packet.write(out);
         } catch (Exception e)   {
             logger.error(e);
+            if (this.endpoint instanceof PorkClient)    {
+                ((PorkClient) this.endpoint).postConnectCallback(e);
+            }
+            ((UnderlyingNetworkConnection) ctx.channel()).closeConnection();
             throw e;
-        }/* finally {
-            logger.debug("[${0}] Written ${1}.", this.endpoint.getName(), packet.getClass());
-        }*/
+        }
     }
 }

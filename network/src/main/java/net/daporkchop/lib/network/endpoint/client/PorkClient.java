@@ -17,8 +17,10 @@ package net.daporkchop.lib.network.endpoint.client;
 
 import lombok.Getter;
 import lombok.NonNull;
+import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.EndpointType;
+import net.daporkchop.lib.network.conn.Connection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
@@ -26,8 +28,11 @@ import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.PacketRegistry;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.protocol.EndpointManager;
+import net.daporkchop.lib.network.protocol.pork.PorkConnection;
+import net.daporkchop.lib.network.protocol.pork.PorkProtocol;
 import net.daporkchop.lib.network.protocol.pork.packet.DisconnectPacket;
 
+import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
@@ -36,11 +41,12 @@ import java.util.concurrent.CompletableFuture;
  * @author DaPorkchop_
  */
 @Getter
-public class PorkClient implements Endpoint, Logging {
+public class PorkClient implements Endpoint, Logging, Connection {
     private final PacketRegistry packetRegistry;
 
     private final EndpointManager.ClientEndpointManager manager;
     private final CompletableFuture<Object> connectWaiter = new CompletableFuture<>();
+    private final PorkConnection porkConnection;
 
     @SuppressWarnings("unchecked")
     public PorkClient(@NonNull ClientBuilder builder) {
@@ -54,6 +60,7 @@ public class PorkClient implements Endpoint, Logging {
         } catch (Exception e) {
             throw this.exception(e);
         }
+        this.porkConnection = this.manager.getConnection(PorkProtocol.class);
     }
 
     @Override
@@ -64,22 +71,6 @@ public class PorkClient implements Endpoint, Logging {
     @Override
     public <C extends UserConnection> Collection<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass) {
         return Collections.singletonList(this.manager.getConnection(protocolClass));
-    }
-
-    public void send(@NonNull Packet pck) {
-        this.manager.send(pck);
-    }
-
-    @Override
-    public void close(String reason) {
-        synchronized (this) {
-            if (!this.isRunning()) {
-                throw new IllegalStateException("Already closed!");
-            }
-
-            this.send(new DisconnectPacket(reason));
-            this.manager.close();
-        }
     }
 
     @Override
@@ -104,5 +95,43 @@ public class PorkClient implements Endpoint, Logging {
                 this.connectWaiter.completeExceptionally(t);
             }
         }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <E extends Endpoint> E getEndpoint() {
+        return (E) this;
+    }
+
+    @Override
+    public void close(String reason) {
+        this.closeConnection(reason);
+    }
+
+    @Override
+    public void closeConnection(String reason) {
+        synchronized (this) {
+            if (!this.isRunning()) {
+                throw new IllegalStateException("Already closed!");
+            }
+
+            this.send(new DisconnectPacket(reason));
+            this.manager.close();
+        }
+    }
+
+    @Override
+    public boolean isConnected() {
+        return this.porkConnection.isConnected();
+    }
+
+    @Override
+    public void send(@NonNull Packet packet, boolean blocking, Void postSendCallback) {
+        this.porkConnection.send(packet, blocking, postSendCallback);
+    }
+
+    @Override
+    public InetSocketAddress getAddress() {
+        return this.porkConnection.getAddress();
     }
 }

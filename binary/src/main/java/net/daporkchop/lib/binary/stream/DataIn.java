@@ -34,6 +34,10 @@ public abstract class DataIn extends InputStream {
         return in instanceof DataIn ? (DataIn) in : new StreamIn(in);
     }
 
+    public static DataIn wrapNonClosing(InputStream in) {
+        return in instanceof NonClosingStreamIn ? (NonClosingStreamIn) in : new NonClosingStreamIn(in);
+    }
+
     public static DataIn wrap(ByteBuffer buffer) {
         return new BufferIn(buffer);
     }
@@ -214,6 +218,26 @@ public abstract class DataIn extends InputStream {
         @Override
         public void close() throws IOException {
             this.in.close();
+        }
+
+        @Override
+        public int read() throws IOException {
+            return this.in.read();
+        }
+
+        @Override
+        public int available() throws IOException {
+            return this.in.available();
+        }
+    }
+
+    @AllArgsConstructor
+    private static class NonClosingStreamIn extends DataIn {
+        @NonNull
+        private final InputStream in;
+
+        @Override
+        public void close() throws IOException {
         }
 
         @Override

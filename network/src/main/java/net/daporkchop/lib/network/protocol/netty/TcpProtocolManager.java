@@ -17,15 +17,9 @@ package net.daporkchop.lib.network.protocol.netty;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.ChannelGroupFuture;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
@@ -34,6 +28,7 @@ import io.netty.util.concurrent.GlobalEventExecutor;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Packet;
@@ -46,7 +41,6 @@ import net.daporkchop.lib.network.protocol.pork.packet.DisconnectPacket;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayDeque;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
@@ -140,14 +134,20 @@ public class TcpProtocolManager implements ProtocolManager {
         }
 
         @Override
-        public void broadcast(@NonNull Packet packet) {
-            this.channels.writeAndFlush(packet);
-            //this.channels.forEach(channel -> channel.writeAndFlush(packet));
+        public void broadcast(@NonNull Packet packet, boolean blocking, Void postSendCallback) {
+            ChannelGroupFuture future = this.channels.writeAndFlush(packet);
+            if (postSendCallback != null) {
+                future.addListener(f -> postSendCallback.run());
+            }
+            if (blocking) {
+                future.syncUninterruptibly();
+            }
+            //this.channels.writeAndFlush(packet);
         }
 
         @Override
         public void close(String reason) {
-            this.broadcast(new DisconnectPacket(reason));
+            this.broadcast(new DisconnectPacket(reason), false, null);
             this.close();
         }
     }
@@ -180,8 +180,14 @@ public class TcpProtocolManager implements ProtocolManager {
         }
 
         @Override
-        public void send(@NonNull Packet packet) {
-            this.channel.writeAndFlush(packet);
+        public void send(@NonNull Packet packet, boolean blocking, Void postSendCallback) {
+            ChannelFuture future = this.channel.writeAndFlush(packet);
+            if (postSendCallback != null) {
+                future.addListener(f -> postSendCallback.run());
+            }
+            if (blocking) {
+                future.syncUninterruptibly();
+            }
         }
     }
 
@@ -192,7 +198,9 @@ public class TcpProtocolManager implements ProtocolManager {
         private final Consumer<Channel> unRegisterHook;
 
         private NettyChannelInitializer(@NonNull Endpoint endpoint) {
-            this(endpoint, c -> {}, c -> {});
+            this(endpoint, c -> {
+            }, c -> {
+            });
         }
 
         private NettyChannelInitializer(@NonNull Endpoint endpoint, @NonNull Consumer<Channel> registerHook, @NonNull Consumer<Channel> unRegisterHook) {

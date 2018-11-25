@@ -16,6 +16,7 @@
 package net.daporkchop.lib.network.protocol;
 
 import lombok.NonNull;
+import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Packet;
@@ -43,7 +44,7 @@ public interface EndpointManager {
     interface ServerEndpointManager extends EndpointManager {
         <C extends UserConnection> Collection<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass);
 
-        void broadcast(@NonNull Packet packet);
+        void broadcast(@NonNull Packet packet, boolean blocking, Void postSendCallback);
 
         void close(String reason);
     }
@@ -51,6 +52,6 @@ public interface EndpointManager {
     interface ClientEndpointManager extends EndpointManager {
         <C extends UserConnection> C getConnection(@NonNull Class<? extends UserProtocol<C>> protocolClass);
 
-        void send(@NonNull Packet packet);
+        void send(@NonNull Packet packet, boolean blocking, Void postSendCallback);
     }
 }

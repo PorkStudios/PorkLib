@@ -38,6 +38,10 @@ import java.util.function.Consumer;
 public class CompoundTag extends Tag {
     private final Map<String, Tag> contents = new HashMap<>();
 
+    public CompoundTag() {
+        this("");
+    }
+
     public CompoundTag(String name) {
         super(name);
     }

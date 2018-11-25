@@ -18,9 +18,11 @@ package net.daporkchop.lib.network.protocol.pork.packet;
 import lombok.NoArgsConstructor;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.network.endpoint.client.PorkClient;
 import net.daporkchop.lib.network.packet.Codec;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.protocol.pork.PorkConnection;
+import net.daporkchop.lib.network.util.ConnectionState;
 
 import java.io.IOException;
 
@@ -40,6 +42,8 @@ public class HandshakeCompletePacket implements Packet {
     public static class HandshakeCompleteCodec implements Codec<HandshakeCompletePacket, PorkConnection>    {
         @Override
         public void handle(HandshakeCompletePacket packet, PorkConnection connection) {
+            connection.setState(ConnectionState.RUNTIME);
+            connection.<PorkClient>getEndpoint().postConnectCallback(null);
         }
 
         @Override

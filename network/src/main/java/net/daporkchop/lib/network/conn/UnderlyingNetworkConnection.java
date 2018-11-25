@@ -16,6 +16,7 @@
 package net.daporkchop.lib.network.conn;
 
 import lombok.NonNull;
+import net.daporkchop.lib.network.endpoint.server.PorkServer;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.protocol.pork.PorkConnection;
 import net.daporkchop.lib.network.protocol.pork.PorkProtocol;

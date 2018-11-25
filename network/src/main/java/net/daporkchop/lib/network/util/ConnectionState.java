@@ -30,12 +30,4 @@ public enum ConnectionState {
 
     public final boolean shouldEncrypt;
     public final boolean shouldCompress;
-
-    public static ConnectionState getNext(@NonNull ConnectionState current) {
-        if (current == CLOSED) {
-            return CLOSED;
-        } else {
-            return values()[current.ordinal() + 1];
-        }
-    }
 }

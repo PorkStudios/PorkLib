@@ -71,14 +71,13 @@ public class HandshakeResponsePacket implements Packet {
                 connection.closeConnection("invalid protocol count");
                 throw new IllegalStateException();
             }
-            registry.getProtocols().forEach(protocol -> {
-                if (!packet.protocolVersions.contains(protocol))    {
+            registry.getProtocols().stream().map(Version::new).forEach(protocolVersion -> {
+                if (!packet.protocolVersions.contains(protocolVersion))    {
                     connection.closeConnection("invalid protocol version/name");
                     throw new IllegalStateException();
                 }
             });
-            connection.send(connection.getPacketReprocessor().initServer(packet), true);
-            connection.setState(ConnectionState.getNext(connection.getState()));
+            connection.send(connection.getPacketReprocessor().initServer(packet), () -> connection.setState(ConnectionState.RUNTIME));
         }
 
         @Override

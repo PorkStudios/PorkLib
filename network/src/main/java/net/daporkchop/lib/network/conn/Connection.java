@@ -16,6 +16,7 @@
 package net.daporkchop.lib.network.conn;
 
 import lombok.NonNull;
+import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Packet;
 
@@ -25,7 +26,7 @@ import java.net.InetSocketAddress;
  * @author DaPorkchop_
  */
 public interface Connection {
-    Endpoint getEndpoint();
+    <E extends Endpoint> E getEndpoint();
 
     default void closeConnection()    {
         this.closeConnection(null);
@@ -36,10 +37,26 @@ public interface Connection {
     boolean isConnected();
 
     default void send(@NonNull Packet packet)   {
-        this.send(packet, false);
+        this.send(packet, false, null);
     }
 
-    void send(@NonNull Packet packet, boolean blocking);
+    default void send(@NonNull Packet packet, Void postSendCallback)   {
+        this.send(packet, false, postSendCallback);
+    }
+
+    default void sendBlocking(@NonNull Packet packet)   {
+        this.send(packet, true, null);
+    }
+
+    default void sendBlocking(@NonNull Packet packet, Void postSendCallback)   {
+        this.send(packet, true, postSendCallback);
+    }
+
+    default void send(@NonNull Packet packet, boolean blocking) {
+        this.send(packet, blocking, null);
+    }
+
+    void send(@NonNull Packet packet, boolean blocking, Void postSendCallback);
 
     InetSocketAddress getAddress();
 

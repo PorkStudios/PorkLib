@@ -57,7 +57,7 @@ public class HandshakeInitPacket implements Packet {
     public static class HandshakeInitCodec implements Codec<HandshakeInitPacket, PorkConnection>    {
         @Override
         public void handle(@NonNull HandshakeInitPacket packet, @NonNull PorkConnection connection) {
-            connection.setState(ConnectionState.getNext(connection.getState()));
+            connection.setState(ConnectionState.HANDSHAKE);
             connection.send(connection.getPacketReprocessor().initClient(packet));
         }
 

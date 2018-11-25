@@ -21,6 +21,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
@@ -72,9 +73,12 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements Underly
     }
 
     @Override
-    public void send(@NonNull Packet packet, boolean blocking) {
-        ChannelFuture future = super.write(packet);
-        if (blocking) {
+    public void send(@NonNull Packet packet, boolean blocking, Void postSendCallback) {
+        ChannelFuture future = this.writeAndFlush(packet);
+        if (postSendCallback != null)   {
+            future.addListener(f -> postSendCallback.run());
+        }
+        if (blocking)   {
             future.syncUninterruptibly();
         }
     }

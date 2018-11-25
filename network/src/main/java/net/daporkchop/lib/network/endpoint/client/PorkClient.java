@@ -17,6 +17,7 @@ package net.daporkchop.lib.network.endpoint.client;
 
 import lombok.Getter;
 import lombok.NonNull;
+import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.EndpointType;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
@@ -29,15 +30,17 @@ import net.daporkchop.lib.network.protocol.pork.packet.DisconnectPacket;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author DaPorkchop_
  */
 @Getter
-public class PorkClient implements Endpoint {
+public class PorkClient implements Endpoint, Logging {
     private final PacketRegistry packetRegistry;
 
     private final EndpointManager.ClientEndpointManager manager;
+    private final CompletableFuture<Object> connectWaiter = new CompletableFuture<>();
 
     @SuppressWarnings("unchecked")
     public PorkClient(@NonNull ClientBuilder builder) {
@@ -45,6 +48,12 @@ public class PorkClient implements Endpoint {
         this.manager = builder.getManager().createClientManager();
 
         this.manager.start(builder.getAddress(), builder.getExecutor(), this);
+
+        try {
+            this.connectWaiter.get();
+        } catch (Exception e) {
+            throw this.exception(e);
+        }
     }
 
     @Override
@@ -81,5 +90,19 @@ public class PorkClient implements Endpoint {
     @Override
     public String getName() {
         return "Client";
+    }
+
+    public void postConnectCallback(Throwable t)   {
+        if (this.connectWaiter.isDone())    {
+            if (t == null)  {
+                throw new IllegalStateException("already connected! why the heck are you even trying to run this method ye dummy?");
+            }
+        } else {
+            if (t == null) {
+                this.connectWaiter.complete(null);
+            } else {
+                this.connectWaiter.completeExceptionally(t);
+            }
+        }
     }
 }

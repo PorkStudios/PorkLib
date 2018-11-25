@@ -23,6 +23,7 @@ import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
+import net.daporkchop.lib.network.endpoint.client.PorkClient;
 import net.daporkchop.lib.network.endpoint.server.PorkServer;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.PacketRegistry;
@@ -74,6 +75,9 @@ public class NettyHandler extends ChannelInboundHandlerAdapter implements Loggin
         UnderlyingNetworkConnection realConnection = (UnderlyingNetworkConnection) ctx.channel();
         PorkConnection porkConnection = realConnection.getUserConnection(PorkProtocol.class);
         porkConnection.setDisconnectReason(cause == null ? "Unknown exception" : this.format("${0}: ${1}", cause.getClass(), cause.getMessage()));
+        if (cause != null && realConnection.getEndpoint() instanceof PorkClient) {
+            realConnection.<PorkClient>getEndpoint().postConnectCallback(cause);
+        }
     }
 
     @Override
@@ -85,13 +89,14 @@ public class NettyHandler extends ChannelInboundHandlerAdapter implements Loggin
         /*this.endpoint.getPacketRegistry().getProtocols().stream()
                 .map(userProtocol -> realConnection.getUserConnection((Class<UserProtocol<UserConnection>>) userProtocol.getClass()))
                 .forEach(UserConnection::onConnect);*/
-        if (false && this.endpoint instanceof PorkServer) {
+        if (this.endpoint instanceof PorkServer) {
             realConnection.send(new HandshakeInitPacket(
                     ((PorkServer) this.endpoint).getCryptographySettings(),
                     ((PorkServer) this.endpoint).getCompression()
-            ));
-            PorkConnection connection = realConnection.getUserConnection(PorkProtocol.class);
-            connection.setState(ConnectionState.getNext(connection.getState()));
+            ), () -> {
+                PorkConnection connection = realConnection.getUserConnection(PorkProtocol.class);
+                connection.setState(ConnectionState.HANDSHAKE);
+            });
         }
     }
 

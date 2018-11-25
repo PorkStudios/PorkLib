@@ -15,8 +15,27 @@
 
 package net.daporkchop.lib.network.util;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
 /**
  * @author DaPorkchop_
  */
-public class CryptManager {
+@RequiredArgsConstructor
+public enum ConnectionState {
+    INIT(false, false),
+    HANDSHAKE(false, true),
+    RUNTIME(true, true),
+    CLOSED(false, false);
+
+    public final boolean shouldEncrypt;
+    public final boolean shouldCompress;
+
+    public static ConnectionState getNext(@NonNull ConnectionState current) {
+        if (current == CLOSED) {
+            return CLOSED;
+        } else {
+            return values()[current.ordinal() + 1];
+        }
+    }
 }

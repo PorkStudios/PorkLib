@@ -13,48 +13,38 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.pork;
+package net.daporkchop.lib.network.protocol.pork.packet;
 
-import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.network.conn.UserConnection;
-import net.daporkchop.lib.network.endpoint.server.PorkServer;
 import net.daporkchop.lib.network.packet.Codec;
+import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.protocol.pork.PorkConnection;
 
 import java.io.IOException;
 
 /**
- * Sent before a connection is closed to inform the remote end of the reason for the disconnection
- *
  * @author DaPorkchop_
  */
 @NoArgsConstructor
-@AllArgsConstructor
-public class DisconnectPacket implements PorkPacket {
-    public String reason;
-
+public class HandshakeCompletePacket implements Packet {
     @Override
     public void read(DataIn in) throws IOException {
-        this.reason = in.readUTF();
     }
 
     @Override
     public void write(DataOut out) throws IOException {
-        out.writeUTF(this.reason);
     }
 
-    public static class DisconnectCodec implements Codec<DisconnectPacket, PorkConnection>  {
+    public static class HandshakeCompleteCodec implements Codec<HandshakeCompletePacket, PorkConnection>    {
         @Override
-        public void handle(DisconnectPacket packet, PorkConnection connection) {
-            connection.setDisconnectReason(packet.reason);
-            connection.getRealConnection().disconnectAtNetworkLevel(); //disconnecting at network level prevents an endless ping/pong of disconnect packets
+        public void handle(HandshakeCompletePacket packet, PorkConnection connection) {
         }
 
         @Override
-        public DisconnectPacket createInstance() {
-            return new DisconnectPacket();
+        public HandshakeCompletePacket createInstance() {
+            return new HandshakeCompletePacket();
         }
     }
 }

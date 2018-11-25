@@ -16,9 +16,12 @@
 package net.daporkchop.lib.network.protocol.pork;
 
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
+import net.daporkchop.lib.network.util.ConnectionState;
+import net.daporkchop.lib.network.util.PacketReprocessor;
 
 /**
  * @author DaPorkchop_
@@ -30,4 +33,11 @@ public class PorkConnection extends UserConnection {
 
     @Setter
     private UnderlyingNetworkConnection realConnection;
+
+    @Setter
+    @NonNull
+    private ConnectionState state = ConnectionState.INIT;
+
+    @Setter
+    private PacketReprocessor packetReprocessor;
 }

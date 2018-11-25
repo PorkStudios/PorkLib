@@ -42,7 +42,7 @@ import net.daporkchop.lib.network.protocol.EndpointManager;
 import net.daporkchop.lib.network.protocol.ProtocolManager;
 import net.daporkchop.lib.network.protocol.netty.wrapper.WrapperNioServerSocketChannel;
 import net.daporkchop.lib.network.protocol.netty.wrapper.WrapperNioSocketChannel;
-import net.daporkchop.lib.network.protocol.pork.DisconnectPacket;
+import net.daporkchop.lib.network.protocol.pork.packet.DisconnectPacket;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayDeque;

@@ -13,42 +13,55 @@
  *
  */
 
-package net.daporkchop.lib.network.conn;
+package net.daporkchop.lib.network.protocol.pork.packet;
 
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.network.packet.UserProtocol;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.crypto.CryptographySettings;
+import net.daporkchop.lib.encoding.compression.CompressionHelper;
+import net.daporkchop.lib.network.packet.Codec;
+import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.protocol.pork.PorkConnection;
-import net.daporkchop.lib.network.protocol.pork.PorkProtocol;
-import net.daporkchop.lib.network.util.PacketReprocessor;
 
-import java.util.Map;
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-public interface UnderlyingNetworkConnection extends Connection {
-    Map<Class<? extends UserProtocol>, UserConnection> getConnections();
+@NoArgsConstructor
+@AllArgsConstructor
+public class HandshakeInitPacket implements Packet {
+    @NonNull
+    public CryptographySettings cryptographySettings;
 
-    /**
-     * Closes the channel at network level, i.e. with no disconnect packet or whatever
-     */
-    void disconnectAtNetworkLevel();
+    @NonNull
+    public CompressionHelper compression;
 
-    @SuppressWarnings("unchecked")
-    default <C extends UserConnection> C getUserConnection(@NonNull Class<? extends UserProtocol<C>> clazz) {
-        return (C) this.getConnections().get(clazz);
+    @Override
+    public void read(@NonNull DataIn in) throws IOException {
+        this.cryptographySettings = new CryptographySettings();
+        this.cryptographySettings.read(in);
+        this.compression = CompressionHelper.forName(in.readUTF());
     }
 
-    //<C extends UserConnection> void putUserConnection(@NonNull Class<UserProtocol<C>> clazz, @NonNull C connection);
-    //xd screw good coding
-    default void putUserConnection(@NonNull Class<? extends UserProtocol> clazz, @NonNull UserConnection connection)    {
-        this.getConnections().put(clazz, connection);
+    @Override
+    public void write(@NonNull DataOut out) throws IOException {
+        this.cryptographySettings.write(out);
+        out.writeUTF(CompressionHelper.getName(this.compression));
     }
 
-    default void registerTheUnderlyingConnection()  {
-        PorkConnection porkConnection = this.getUserConnection(PorkProtocol.class);
-        porkConnection.setRealConnection(this);
-        this.getConnections().values().forEach(conn -> conn.setProtocolConnection(this));
-        porkConnection.setPacketReprocessor(new PacketReprocessor(porkConnection));
+    public static class HandshakeInitCodec implements Codec<HandshakeInitPacket, PorkConnection>    {
+        @Override
+        public void handle(@NonNull HandshakeInitPacket packet, @NonNull PorkConnection connection) {
+
+        }
+
+        @Override
+        public HandshakeInitPacket createInstance() {
+            return new HandshakeInitPacket();
+        }
     }
 }

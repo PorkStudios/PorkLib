@@ -17,6 +17,7 @@ package net.daporkchop.lib.network.endpoint.server;
 
 import lombok.Getter;
 import lombok.NonNull;
+import net.daporkchop.lib.crypto.CryptographySettings;
 import net.daporkchop.lib.network.EndpointType;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
@@ -34,12 +35,14 @@ import java.util.Collection;
 @Getter
 public class PorkServer implements Endpoint {
     private final PacketRegistry packetRegistry;
+    private final CryptographySettings cryptographySettings;
     private final EndpointManager.ServerEndpointManager manager;
 
     @SuppressWarnings("unchecked")
     public PorkServer(@NonNull ServerBuilder builder) {
         this.packetRegistry = new PacketRegistry(builder.getProtocols());
         this.manager = builder.getManager().createServerManager();
+        this.cryptographySettings = builder.getCryptographySettings();
 
         this.manager.start(builder.getAddress(), builder.getExecutor(), this);
     }

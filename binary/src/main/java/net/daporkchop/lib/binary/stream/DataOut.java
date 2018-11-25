@@ -174,6 +174,26 @@ public abstract class DataOut extends OutputStream {
         }
     }
 
+    public void writeVarLong(long l) throws IOException {
+        this.writeVarLong(l, false);
+    }
+
+    public void writeVarLong(long l, boolean optimizePositive) throws IOException {
+        if (!optimizePositive) {
+            l = (l << 1L) ^ (l >> 63L);
+        }
+        if (l == 0L) {
+            this.write(0);
+            return;
+        }
+        long next = 0L;
+        while (l != 0) {
+            next = l & 0x7FL;
+            l >>>= 7L;
+            this.write((int) (next | (l == 0L ? 0L : 0x80L)));
+        }
+    }
+
     @Override
     public void write(byte[] b, int off, int len) throws IOException {
         for (int i = 0; i < len; i++) {

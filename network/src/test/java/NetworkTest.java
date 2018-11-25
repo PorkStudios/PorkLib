@@ -29,7 +29,7 @@ import java.net.InetSocketAddress;
 public class NetworkTest implements Logging {
     @Test
     public void test() throws InterruptedException {
-        logger.add(new File("./test_out/test_network_1.log"), true);
+        logger.add(new File("./test_out/test_network.log"), true);
 
         logger.info("Starting server...");
         PorkServer server = new ServerBuilder()
@@ -37,14 +37,13 @@ public class NetworkTest implements Logging {
                 .addProtocol(TestProtocol.INSTANCE)
                 .build();
         logger.info("Server started.");
-        //Thread.sleep(1000L);
+
         logger.info("Starting client...");
         PorkClient client = new ClientBuilder()
                 .setAddress(new InetSocketAddress("localhost", 12345))
                 .addProtocol(TestProtocol.INSTANCE)
                 .build();
         logger.info("Client started.");
-        //Thread.sleep(1000L);
 
         {
             int count = 3;
@@ -56,12 +55,8 @@ public class NetworkTest implements Logging {
             }
         }
 
-        //logger.info("Waiting...");
-        //Thread.sleep(1000L);
-
         logger.info("Closing...");
         client.close("client closing...");
-        //Thread.sleep(1000L);
         server.close();
 
         Thread.sleep(1000L);

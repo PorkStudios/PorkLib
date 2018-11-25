@@ -93,6 +93,15 @@ public class CryptographySettings implements Data {
         this(CurveType.brainpoolp256r1, type);
     }
 
+    public CryptographySettings(@NonNull EllipticCurveKeyPair keyPair, @NonNull CryptographySettings cryptographySettings)  {
+        this.keyPair = keyPair;
+
+        this.cipherType = cryptographySettings.cipherType;
+        this.cipherMode = cryptographySettings.cipherMode;
+        this.cipherPadding = cryptographySettings.cipherPadding;
+        this.streamCipherType = cryptographySettings.streamCipherType;
+    }
+
     @Override
     public void read(DataIn in) throws IOException {
         this.keyPair = in.readBoolean() ? KeySerialization.decodeEC(in, true, false) : null;

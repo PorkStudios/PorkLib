@@ -25,9 +25,8 @@ import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.PacketRegistry;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.protocol.EndpointManager;
-import net.daporkchop.lib.network.protocol.pork.DisconnectPacket;
+import net.daporkchop.lib.network.protocol.pork.packet.DisconnectPacket;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 

@@ -13,6 +13,7 @@
  *
  */
 
+import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
@@ -35,6 +36,7 @@ public class NetworkTest implements Logging {
         PorkServer server = new ServerBuilder()
                 .setAddress(new InetSocketAddress("0.0.0.0", 12345))
                 .addProtocol(TestProtocol.INSTANCE)
+                .setCompression(Compression.GZIP_LOW)
                 .build();
         logger.info("Server started.");
 
@@ -45,6 +47,7 @@ public class NetworkTest implements Logging {
                 .build();
         logger.info("Client started.");
 
+        //Thread.sleep(5000L);
         {
             int count = 3;
             logger.info("Sending ${0} random packets...", count);

@@ -41,8 +41,8 @@ public class NettyPacketEncoder extends MessageToByteEncoder<Packet> implements 
 
     @Override
     protected void encode(ChannelHandlerContext ctx, Packet packet, ByteBuf buf) throws Exception {
-        //try (DataOut out = DataOut.wrap(((UnderlyingNetworkConnection) ctx.channel()).getUserConnection(PorkProtocol.class).getPacketReprocessor().wrap(NettyByteBufUtil.wrapOut(buf)))) {
-        try (DataOut out = NettyByteBufUtil.wrapOut(buf))   {
+        try (DataOut out = DataOut.wrap(((UnderlyingNetworkConnection) ctx.channel()).getUserConnection(PorkProtocol.class).getPacketReprocessor().wrap(NettyByteBufUtil.wrapOut(buf)))) {
+        //try (DataOut out = NettyByteBufUtil.wrapOut(buf))   {
             logger.debug("[${0}] Writing ${1}...", this.endpoint.getName(), packet.getClass());
             int id = this.endpoint.getPacketRegistry().getId(packet.getClass());
             if (id == -1)   {

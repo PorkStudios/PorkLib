@@ -44,10 +44,9 @@ public class NettyPacketDecoder extends ByteToMessageDecoder implements Logging 
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> list) throws Exception {
-        //try (DataIn in = DataIn.wrap(((UnderlyingNetworkConnection) ctx.channel()).getUserConnection(PorkProtocol.class).getPacketReprocessor().wrap(NettyByteBufUtil.wrapIn(buf)))) {
-        try (DataIn in = NettyByteBufUtil.wrapIn(buf))   {
-            int size = in.available();
-            //System.out.printf("[%s] Reading packet (%d bytes)\n", this.endpoint.getName(), size);
+        int size = buf.readableBytes();
+        try (DataIn in = DataIn.wrap(((UnderlyingNetworkConnection) ctx.channel()).getUserConnection(PorkProtocol.class).getPacketReprocessor().wrap(NettyByteBufUtil.wrapIn(buf)))) {
+        //try (DataIn in = NettyByteBufUtil.wrapIn(buf))   {
             int id = in.readVarInt(true);
             Codec<? extends Packet, ? extends UserConnection> codec = this.endpoint.getPacketRegistry().getCodec(id);
             if (codec == null) {
@@ -55,7 +54,7 @@ public class NettyPacketDecoder extends ByteToMessageDecoder implements Logging 
             }
             Packet packet = codec.createInstance();
             packet.read(in);
-            logger.debug("[${0}] Read packet: ${1} (${2} bytes)", this.endpoint.getName(), packet.getClass(), size - in.available());
+            logger.debug("[${0}] Read packet: ${1} (${2} bytes)", this.endpoint.getName(), packet.getClass(), size - buf.readableBytes());
             list.add(packet);
         } catch (Exception e)   {
             logger.error(e);

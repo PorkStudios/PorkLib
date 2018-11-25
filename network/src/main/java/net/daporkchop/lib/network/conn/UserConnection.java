@@ -19,6 +19,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.protocol.pork.PorkProtocol;
@@ -38,7 +39,7 @@ public abstract class UserConnection implements Connection {
     private UnderlyingNetworkConnection protocolConnection;
 
     @Override
-    public Endpoint getEndpoint() {
+    public <E extends Endpoint> E getEndpoint() {
         return this.protocolConnection.getEndpoint();
     }
 
@@ -60,13 +61,8 @@ public abstract class UserConnection implements Connection {
     }
 
     @Override
-    public void send(@NonNull Packet packet) {
-        this.protocolConnection.send(packet);
-    }
-
-    @Override
-    public void send(@NonNull Packet packet, boolean blocking) {
-        this.protocolConnection.send(packet, blocking);
+    public void send(@NonNull Packet packet, boolean blocking, Void postSendCallback) {
+        this.protocolConnection.send(packet, blocking, postSendCallback);
     }
 
     /**

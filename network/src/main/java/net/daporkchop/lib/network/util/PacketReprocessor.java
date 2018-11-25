@@ -25,6 +25,7 @@ import net.daporkchop.lib.crypto.key.EllipticCurveKeyPair;
 import net.daporkchop.lib.crypto.sig.ec.EllipticCurveKeyCache;
 import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.encoding.compression.CompressionHelper;
+import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.endpoint.server.PorkServer;
 import net.daporkchop.lib.network.protocol.pork.PorkConnection;
 import net.daporkchop.lib.network.protocol.pork.packet.HandshakeCompletePacket;
@@ -40,16 +41,18 @@ import java.util.stream.Collectors;
  * @author DaPorkchop_
  */
 @Getter
-public class PacketReprocessor {
+public class PacketReprocessor implements Logging {
     @NonNull
     private final PorkConnection connection;
-    private CompressionHelper compression = Compression.NONE;
+    private CompressionHelper compression;
     private CryptographySettings cryptographySettings;
     private Cipher cipher;
 
     public PacketReprocessor(@NonNull PorkConnection connection)    {
         this.connection = connection;
+        //TODO: check if the CHANNEL is a server, not the endpoint. will be needed for p2p where the endpoint is a client and a server
         this.cryptographySettings = connection.getEndpoint() instanceof PorkServer ? ((PorkServer) connection.getEndpoint()).getCryptographySettings() : null;
+        this.compression = connection.getEndpoint() instanceof PorkServer ? ((PorkServer) connection.getEndpoint()).getCompression() : Compression.NONE;
     }
 
     public HandshakeResponsePacket initClient(@NonNull HandshakeInitPacket packet) {
@@ -61,7 +64,7 @@ public class PacketReprocessor {
             this.cipher = this.cryptographySettings.getCipher(localPair, CipherInitSide.CLIENT);
         }
         return new HandshakeResponsePacket(
-                new CryptographySettings(localPair, this.cryptographySettings), //placeholder, we just need this as a container for the key pair
+                localPair == null ? new CryptographySettings() : new CryptographySettings(localPair, this.cryptographySettings), //placeholder, we just need this as a container for the key pair
                 this.connection.getEndpoint().getPacketRegistry().getProtocols().stream().map(Version::new).collect(Collectors.toList())
         );
     }
@@ -74,6 +77,15 @@ public class PacketReprocessor {
     }
 
     public OutputStream wrap(@NonNull OutputStream out) throws IOException {
+        logger.debug(
+                "[${5}] Wrapping output. state=${0} -> compression=${1},encryption=${2} (${3} with ${4})",
+                this.connection.getState(),
+                this.connection.getState().shouldCompress,
+                this.cipher != null && this.connection.getState().shouldEncrypt,
+                this.compression,
+                this.cipher,
+                this.connection.getEndpoint().getName()
+        );
         if (this.connection.getState().shouldCompress) {
             out = this.compression.deflate(out);
         }
@@ -84,6 +96,15 @@ public class PacketReprocessor {
     }
 
     public InputStream wrap(@NonNull InputStream in) throws IOException {
+        logger.debug(
+                "[${5}] Wrapping input.  state=${0} -> compression=${1},encryption=${2} (${3} with ${4})",
+                this.connection.getState(),
+                this.connection.getState().shouldCompress,
+                this.cipher != null && this.connection.getState().shouldEncrypt,
+                this.compression,
+                this.cipher,
+                this.connection.getEndpoint().getName()
+        );
         if (this.connection.getState().shouldCompress)  {
             in = this.compression.inflate(in);
         }

@@ -22,7 +22,7 @@ import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.db.object.serializer.ValueSerializer;
 import net.daporkchop.lib.nbt.NBTIO;
-import net.daporkchop.lib.nbt.tag.impl.notch.CompoundTag;
+import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 
 import java.io.IOException;
 import java.util.function.BiConsumer;
@@ -46,14 +46,12 @@ public class NBTObjectSerializer<T> extends ValueSerializer<T> {
     public void write(T value, DataOut out) throws IOException {
         CompoundTag tag = new CompoundTag();
         this.writeFunction.accept(value, tag);
-        byte[] b = NBTIO.write(tag);
-        out.writeBytesSimple(b);
+        NBTIO.write(out, tag);
     }
 
     @Override
     public T read(DataIn in) throws IOException {
-        byte[] b = in.readBytesSimple();
-        CompoundTag tag = NBTIO.read(b);
+        CompoundTag tag = NBTIO.read(in);
         return this.readFunction.apply(tag);
     }
 }

@@ -41,7 +41,7 @@ import java.util.concurrent.CompletableFuture;
  * @author DaPorkchop_
  */
 @Getter
-public class PorkClient implements Endpoint, Logging, Connection {
+public class PorkClient implements Client, Logging {
     private final PacketRegistry packetRegistry;
 
     private final EndpointManager.ClientEndpointManager manager;
@@ -64,23 +64,13 @@ public class PorkClient implements Endpoint, Logging, Connection {
     }
 
     @Override
-    public EndpointType getType() {
-        return EndpointType.CLIENT;
-    }
-
-    @Override
-    public <C extends UserConnection> Collection<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass) {
-        return Collections.singletonList(this.manager.getConnection(protocolClass));
+    public <C extends UserConnection> C getConnection(Class<? extends UserProtocol<C>> protocolClass) {
+        return this.manager.getConnection(protocolClass);
     }
 
     @Override
     public boolean isRunning() {
         return this.manager.isRunning();
-    }
-
-    @Override
-    public String getName() {
-        return "Client";
     }
 
     public void postConnectCallback(Throwable t)   {
@@ -98,17 +88,6 @@ public class PorkClient implements Endpoint, Logging, Connection {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <E extends Endpoint> E getEndpoint() {
-        return (E) this;
-    }
-
-    @Override
-    public void close(String reason) {
-        this.closeConnection(reason);
-    }
-
-    @Override
     public void closeConnection(String reason) {
         synchronized (this) {
             if (!this.isRunning()) {
@@ -121,13 +100,8 @@ public class PorkClient implements Endpoint, Logging, Connection {
     }
 
     @Override
-    public boolean isConnected() {
-        return this.porkConnection.isConnected();
-    }
-
-    @Override
     public void send(@NonNull Packet packet, boolean blocking, Void postSendCallback) {
-        this.porkConnection.send(packet, blocking, postSendCallback);
+        this.manager.send(packet, blocking, postSendCallback);
     }
 
     @Override

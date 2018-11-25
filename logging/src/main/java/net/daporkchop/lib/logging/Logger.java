@@ -38,7 +38,7 @@ public class Logger implements Logging {
     /**
      * A default logger instance. This will print messages from all levels to {@link System#out}.
      */
-    public static final Logger DEFAULT_LOG = builder().build();
+    public static final Logger DEFAULT_LOG = builder().level(1).build();
 
     /**
      * The {@link PrintStream} that messages will be written to

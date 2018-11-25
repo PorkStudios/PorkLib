@@ -13,40 +13,52 @@
  *
  */
 
-package net.daporkchop.lib.network.endpoint;
+package net.daporkchop.lib.network.endpoint.client;
 
 import lombok.NonNull;
 import net.daporkchop.lib.network.EndpointType;
+import net.daporkchop.lib.network.conn.Connection;
 import net.daporkchop.lib.network.conn.UserConnection;
-import net.daporkchop.lib.network.packet.Packet;
-import net.daporkchop.lib.network.packet.PacketRegistry;
+import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.UserProtocol;
-import net.daporkchop.lib.network.protocol.pork.PorkConnection;
-import net.daporkchop.lib.network.protocol.pork.PorkProtocol;
 
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * @author DaPorkchop_
  */
-public interface Endpoint {
-    EndpointType getType();
-
-    <C extends UserConnection> Collection<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass);
-
-    PacketRegistry getPacketRegistry();
-
-    default void close()    {
-        this.close(null);
+public interface Client extends Endpoint, Connection {
+    @Override
+    default void close(String reason) {
+        this.closeConnection(reason);
     }
 
-    void close(String reason);
+    @Override
+    default boolean isConnected() {
+        return this.isRunning();
+    }
 
-    boolean isRunning();
+    @Override
+    default EndpointType getType() {
+        return EndpointType.CLIENT;
+    }
 
-    String getName();
+    @Override
+    default  <C extends UserConnection> Collection<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass) {
+        return Collections.singletonList(this.getConnection(protocolClass));
+    }
 
-    default boolean isClosed() {
-        return !this.isRunning();
+    <C extends UserConnection> C getConnection(@NonNull Class<? extends UserProtocol<C>> protocolClass);
+
+    @Override
+    default String getName() {
+        return "Client";
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    default <E extends Endpoint> E getEndpoint() {
+        return (E) this;
     }
 }

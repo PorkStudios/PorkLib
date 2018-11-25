@@ -17,6 +17,7 @@ package net.daporkchop.lib.network.endpoint.server;
 
 import lombok.Getter;
 import lombok.NonNull;
+import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.crypto.CryptographySettings;
 import net.daporkchop.lib.encoding.compression.CompressionHelper;
 import net.daporkchop.lib.network.EndpointType;
@@ -34,7 +35,7 @@ import java.util.Collection;
  * @author DaPorkchop_
  */
 @Getter
-public class PorkServer implements Endpoint {
+public class PorkServer implements Server {
     private final PacketRegistry packetRegistry;
     private final CryptographySettings cryptographySettings;
     private final CompressionHelper compression;
@@ -51,25 +52,13 @@ public class PorkServer implements Endpoint {
     }
 
     @Override
-    public EndpointType getType() {
-        return EndpointType.SERVER;
-    }
-
-    @Override
     public <C extends UserConnection> Collection<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass) {
         return this.manager.getConnections(protocolClass);
     }
 
     @Override
-    public void broadcast(@NonNull Packet packet) {
-        this.manager.broadcast(packet);
-    }
-
-    @Override
-    public void broadcast(@NonNull Packet... packets) {
-        for (Packet packet : packets)   {
-            this.manager.broadcast(packet);
-        }
+    public void broadcast(@NonNull Packet packet, boolean blocking, Void postSendCallback)  {
+        this.manager.broadcast(packet, blocking, postSendCallback);
     }
 
     @Override
@@ -86,10 +75,5 @@ public class PorkServer implements Endpoint {
     @Override
     public boolean isRunning() {
         return this.manager.isRunning();
-    }
-
-    @Override
-    public String getName() {
-        return "Server";
     }
 }

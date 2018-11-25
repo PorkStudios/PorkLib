@@ -12,46 +12,18 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.nbt.tag;
+package net.daporkchop.lib.nbt.util;
 
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.Data;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
-import net.daporkchop.lib.nbt.tag.notch.ListTag;
-
-import java.io.IOException;
 
 /**
- * Represents an NBT tag.
+ * Defines a class that can load and save objects of type <V> to/from an NBT tag.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-public abstract class Tag {
-    private final String name;
+public interface NBTSerializer<V> {
+    void write(@NonNull V val, @NonNull CompoundTag tag);
 
-    @SuppressWarnings("unchecked")
-    public <T extends Tag> T getAs()    {
-        return (T) this;
-    }
-
-    public CompoundTag getAsCompoundTag()   {
-        return this.getAs();
-    }
-
-    public <T extends Tag> ListTag<T> getAsList()   {
-        return this.getAs();
-    }
-
-    public abstract void read(@NonNull DataIn in, @NonNull TagRegistry registry) throws IOException;
-
-    public abstract void write(@NonNull DataOut out, @NonNull TagRegistry registry) throws IOException;
-
-    @Override
-    public abstract String toString();
+    V read(@NonNull CompoundTag tag);
 }

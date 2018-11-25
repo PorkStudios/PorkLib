@@ -12,7 +12,7 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.nbt.tag.notch;
+package net.daporkchop.lib.nbt.tag.pork;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -23,61 +23,44 @@ import net.daporkchop.lib.nbt.tag.Tag;
 import net.daporkchop.lib.nbt.tag.TagRegistry;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * @author DaPorkchop_
  */
 @Getter
 @Setter
-public class ListTag<T extends Tag> extends Tag {
+public class FloatArrayTag extends Tag {
     @NonNull
-    private List<T> value;
+    private float[] value;
 
-    public ListTag(String name) {
+    public FloatArrayTag(String name) {
         super(name);
     }
 
-    public ListTag(String name, @NonNull List<T> value) {
+    public FloatArrayTag(String name, @NonNull float[] value)   {
         super(name);
         this.value = value;
     }
 
     @Override
-    public void read(@NonNull DataIn in, @NonNull TagRegistry registry) throws IOException {
-        this.value = new ArrayList<>();
-        byte type = in.readByte();
+    public void read(DataIn in, TagRegistry registry) throws IOException {
         int len = in.readInt();
-        for (int i = 0; i < len; i++) {
-            T tag = registry.create(type, null);
-            tag.read(in, registry);
-            this.value.add(tag);
+        this.value = new float[len];
+        for (int i = 0; i < len; i++)   {
+            this.value[i] = in.readFloat();
         }
     }
 
     @Override
-    public void write(@NonNull DataOut out, @NonNull TagRegistry registry) throws IOException {
-        if (this.value.isEmpty()) {
-            out.writeByte((byte) 0);
-            out.writeInt(0);
-        } else {
-            byte id = registry.getId(this.value.get(0).getClass());
-            out.writeByte(id);
-            out.writeInt(this.value.size());
-            for (T tag : this.value) {
-                tag.write(out, registry);
-            }
+    public void write(DataOut out, TagRegistry registry) throws IOException {
+        out.writeInt(this.value.length);
+        for (int i = 0; i < this.value.length; i++) {
+            out.writeFloat(this.value[i]);
         }
     }
 
     @Override
     public String toString() {
-        return String.format("ListTag(\"%s\"): %d tags", this.getName(), this.value.size());
-    }
-
-    public void forEach(@NonNull Consumer<T> consumer)  {
-        this.value.forEach(consumer);
+        return String.format("FloatArrayTag(\"%s\"): %d floats", this.getName(), this.value.length);
     }
 }

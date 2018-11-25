@@ -94,7 +94,7 @@ public class NBTTest {
         if (tag instanceof CompoundTag) {
             tag.getAsCompoundTag().forEach(subTag -> this.printTagRecursive(subTag, depth + 2));
         } else if (tag instanceof ListTag)  {
-            tag.<ListTag<? extends Tag>>getAs().getValue().forEach(subTag -> this.printTagRecursive(subTag, depth + 2));
+            tag.<ListTag<? extends Tag>>getAs().forEach(subTag -> this.printTagRecursive(subTag, depth + 2));
         }
     }
 

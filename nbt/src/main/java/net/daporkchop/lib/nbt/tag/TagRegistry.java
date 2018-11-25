@@ -14,8 +14,12 @@
 
 package net.daporkchop.lib.nbt.tag;
 
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.nbt.tag.notch.*;
+import net.daporkchop.lib.nbt.tag.pork.DoubleArrayTag;
+import net.daporkchop.lib.nbt.tag.pork.FloatArrayTag;
+import net.daporkchop.lib.nbt.tag.pork.ShortArrayTag;
 import net.daporkchop.lib.primitive.map.ByteObjectMap;
 import net.daporkchop.lib.primitive.map.ObjectByteMap;
 import net.daporkchop.lib.primitive.map.hashmap.ByteObjectHashMap;
@@ -29,6 +33,9 @@ import java.util.function.Function;
  * @author DaPorkchop_
  */
 public class TagRegistry {
+    /**
+     * All of the different NBT tag types, as defined in Notch's nbt.txt paper
+     */
     public static final TagRegistry NOTCHIAN = new TagRegistry()
             .register(1, ByteTag.class, ByteTag::new)
             .register(2, ShortTag.class, ShortTag::new)
@@ -44,9 +51,29 @@ public class TagRegistry {
             .register(12, LongArrayTag.class, LongArrayTag::new)
             .finish();
 
+    /**
+     * DaPorkchop_'s custom additions to the NBT spec
+     */
+    public static final TagRegistry PORKIAN = new TagRegistry()
+            .registerAll(NOTCHIAN)
+            .register(64, ShortArrayTag.class, ShortArrayTag::new)
+            .register(65, FloatArrayTag.class, FloatArrayTag::new)
+            .register(66, DoubleArrayTag.class, DoubleArrayTag::new)
+            .finish();
+
     private final ByteObjectMap<Function<String, ? extends Tag>> tagCreators = new ByteObjectHashMap<>();
     private final ObjectByteMap<Class<? extends Tag>> tagIds = new ObjectByteHashMap<>();
     private volatile boolean finished = false;
+
+    public synchronized TagRegistry registerAll(@NonNull TagRegistry otherRegistry) {
+        if (this.finished) {
+            throw new IllegalStateException("registry is finished!");
+        } else {
+            this.tagCreators.putAll(otherRegistry.tagCreators);
+            this.tagIds.putAll(otherRegistry.tagIds);
+        }
+        return this;
+    }
 
     public <T extends Tag> TagRegistry register(int id, @NonNull Class<T> clazz, @NonNull Function<String, T> creator) {
         if ((id & 0xFF) != id) {
@@ -61,6 +88,8 @@ public class TagRegistry {
             throw new IllegalStateException("registry is finished!");
         } else if (this.tagCreators.containsKey(id)) {
             throw new IllegalStateException(String.format("Tag id %d already taken!", id & 0xFF));
+        } else if (id == 0) {
+            throw new IllegalArgumentException("Tag id 0 is reserved!");
         } else if (this.tagIds.containsKey(clazz)) {
             throw new IllegalStateException(String.format("Tag %s already registered!", clazz.getCanonicalName()));
         } else {

@@ -24,6 +24,7 @@ import net.daporkchop.lib.nbt.tag.TagRegistry;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -68,6 +69,12 @@ public class CompoundTag extends Tag {
         out.writeByte((byte) 0);
     }
 
+    @Override
+    public String toString() {
+        return String.format("CompoundTag(\"%s\"): %d children", this.getName(), this.contents.size());
+    }
+
+    //UTILITY METHODS
     @SuppressWarnings("unchecked")
     public <T extends Tag> T get(@NonNull String name)  {
         return (T) this.contents.get(name);
@@ -99,8 +106,190 @@ public class CompoundTag extends Tag {
         this.contents.clear();
     }
 
-    @Override
-    public String toString() {
-        return String.format("CompoundTag(\"%s\"): %d children", this.getName(), this.contents.size());
+    public void putByte(@NonNull String name, byte val)   {
+        this.put(name, new ByteTag(name, val));
+    }
+
+    public void putShort(@NonNull String name, short val)   {
+        this.put(name, new ShortTag(name, val));
+    }
+
+    public void putInt(@NonNull String name, int val)   {
+        this.put(name, new IntTag(name, val));
+    }
+
+    public void putLong(@NonNull String name, long val)   {
+        this.put(name, new LongTag(name, val));
+    }
+
+    public void putFloat(@NonNull String name, float val)   {
+        this.put(name, new FloatTag(name, val));
+    }
+
+    public void putDouble(@NonNull String name, double val)   {
+        this.put(name, new DoubleTag(name, val));
+    }
+
+    public void putByteArray(@NonNull String name, @NonNull byte[] val)   {
+        this.put(name, new ByteArrayTag(name, val));
+    }
+
+    public void putIntArray(@NonNull String name, @NonNull int[] val)   {
+        this.put(name, new IntArrayTag(name, val));
+    }
+
+    public void putLongArray(@NonNull String name, @NonNull long[] val)   {
+        this.put(name, new LongArrayTag(name, val));
+    }
+
+    public void putString(@NonNull String name, @NonNull String val)   {
+        this.put(name, new StringTag(name, val));
+    }
+
+    public <T extends Tag> void putList(@NonNull String name, @NonNull List<T> list)  {
+        this.put(name, new ListTag<>(name, list));
+    }
+
+    public byte getByte(@NonNull String name, byte def) {
+        ByteTag tag = this.get(name);
+        if (tag == null)    {
+            return def;
+        } else {
+            return tag.getValue();
+        }
+    }
+
+    public short getShort(@NonNull String name, short def) {
+        ShortTag tag = this.get(name);
+        if (tag == null)    {
+            return def;
+        } else {
+            return tag.getValue();
+        }
+    }
+
+    public int getInt(@NonNull String name, int def) {
+        IntTag tag = this.get(name);
+        if (tag == null)    {
+            return def;
+        } else {
+            return tag.getValue();
+        }
+    }
+
+    public long getLong(@NonNull String name, long def) {
+        LongTag tag = this.get(name);
+        if (tag == null)    {
+            return def;
+        } else {
+            return tag.getValue();
+        }
+    }
+
+    public float getFloat(@NonNull String name, float def) {
+        FloatTag tag = this.get(name);
+        if (tag == null)    {
+            return def;
+        } else {
+            return tag.getValue();
+        }
+    }
+
+    public double getDouble(@NonNull String name, double def) {
+        DoubleTag tag = this.get(name);
+        if (tag == null)    {
+            return def;
+        } else {
+            return tag.getValue();
+        }
+    }
+
+    public byte[] getByteArray(@NonNull String name, byte[] def) {
+        ByteArrayTag tag = this.get(name);
+        if (tag == null)    {
+            return def;
+        } else {
+            return tag.getValue();
+        }
+    }
+
+    public int[] getIntArray(@NonNull String name, int[] def) {
+        IntArrayTag tag = this.get(name);
+        if (tag == null)    {
+            return def;
+        } else {
+            return tag.getValue();
+        }
+    }
+
+    public long[] getLongArray(@NonNull String name, long[] def) {
+        LongArrayTag tag = this.get(name);
+        if (tag == null)    {
+            return def;
+        } else {
+            return tag.getValue();
+        }
+    }
+
+    public String getString(@NonNull String name, String def) {
+        StringTag tag = this.get(name);
+        if (tag == null)    {
+            return def;
+        } else {
+            return tag.getValue();
+        }
+    }
+
+    public <T extends Tag> List<T> getList(@NonNull String name, List<T> def) {
+        ListTag<T> tag = this.get(name);
+        if (tag == null)    {
+            return def;
+        } else {
+            return tag.getValue();
+        }
+    }
+
+    public byte getByte(@NonNull String name) {
+        return this.getByte(name, (byte) 0);
+    }
+
+    public short getShort(@NonNull String name) {
+        return this.getShort(name, (short) 0);
+    }
+
+    public int getInt(@NonNull String name) {
+        return this.getInt(name, 0);
+    }
+
+    public long getLong(@NonNull String name) {
+        return this.getLong(name, 0L);
+    }
+
+    public float getFloat(@NonNull String name) {
+        return this.getFloat(name, 0.0f);
+    }
+
+    public double getDouble(@NonNull String name) {
+        return this.getDouble(name, 0.0d);
+    }
+
+    public byte[] getByteArray(@NonNull String name) {
+        return this.getByteArray(name, null);
+    }
+
+    public int[] getIntArray(@NonNull String name) {
+        return this.getIntArray(name, null);
+    }
+
+    public long[] getLongArray(@NonNull String name) {
+        return this.getLongArray(name, null);
+    }
+
+    public String getString(@NonNull String name) {
+        return this.getString(name, null);
+    }
+
+    public <T extends Tag> List<T> getList(@NonNull String name) {
+        return this.getList(name, null);
     }
 }

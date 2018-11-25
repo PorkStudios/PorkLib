@@ -10,6 +10,7 @@ out/
 
 /src/
 
+test_out/
 /primitive/src/
 /minecraft/minecraft-worldscanner/run/testworld/region/r.0.1.mca
 /minecraft/minecraft-worldscanner/run/testworld/region/r.0.-1.mca

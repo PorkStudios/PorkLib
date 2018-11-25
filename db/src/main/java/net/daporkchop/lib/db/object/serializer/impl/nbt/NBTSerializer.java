@@ -20,7 +20,7 @@ import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.db.object.serializer.ValueSerializer;
 import net.daporkchop.lib.nbt.NBTIO;
-import net.daporkchop.lib.nbt.tag.impl.notch.CompoundTag;
+import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 
 import java.io.IOException;
 
@@ -38,12 +38,11 @@ public class NBTSerializer extends ValueSerializer<CompoundTag> {
 
     @Override
     public void write(CompoundTag value, DataOut out) throws IOException {
-        byte[] b = NBTIO.write(value);
-        out.writeBytesSimple(b);
+        NBTIO.write(out, value);
     }
 
     @Override
     public CompoundTag read(DataIn in) throws IOException {
-        return NBTIO.read(in.readBytesSimple());
+        return NBTIO.read(in);
     }
 }

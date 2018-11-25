@@ -15,11 +15,11 @@
 
 package net.daporkchop.lib.minecraft.tileentity;
 
-import com.flowpowered.nbt.CompoundTag;
 import net.daporkchop.lib.math.vector.i.IntVector3;
 import net.daporkchop.lib.math.vector.i.Vec3i;
 import net.daporkchop.lib.minecraft.registry.ResourceLocation;
 import net.daporkchop.lib.minecraft.world.World;
+import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 
 /**
  * @author DaPorkchop_

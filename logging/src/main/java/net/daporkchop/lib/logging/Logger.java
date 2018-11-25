@@ -140,8 +140,20 @@ public class Logger implements Logging {
 
     public void log(@NonNull String message, @NonNull LogLevel level) {
         if (level.getLevel() <= this.level) {
-            String msg = this.format(message, level);
-            this.actuallyDoTheLoggingThing(msg.getBytes(UTF8.utf8));
+            if (message.indexOf('\n') == -1) {
+                String msg = this.format(message, level);
+                this.actuallyDoTheLoggingThing(msg.getBytes(UTF8.utf8));
+            } else {
+                this.lock.lock();
+                try {
+                    for (String subMsg : message.split("\n")) {
+                        String msg = this.format(subMsg, level);
+                        this.actuallyDoTheLoggingThing(msg.getBytes(UTF8.utf8));
+                    }
+                } finally {
+                    this.lock.unlock();
+                }
+            }
         }
     }
 
@@ -175,8 +187,7 @@ public class Logger implements Logging {
 
     public void log(@NonNull String message, @NonNull LogLevel level, @NonNull Object... params) {
         if (level.getLevel() <= this.level) {
-            String msg = this.format(Formatter.format(message, params), level);
-            this.actuallyDoTheLoggingThing(msg.getBytes(UTF8.utf8));
+            this.log(Formatter.format(message, params), level);
         }
     }
 

@@ -33,10 +33,12 @@ import java.io.IOException;
 public class HandshakeCompletePacket implements Packet {
     @Override
     public void read(DataIn in) throws IOException {
+        //in.readBytesSimple();
     }
 
     @Override
     public void write(DataOut out) throws IOException {
+        //out.writeBytesSimple(new byte[0xFFFFFF]);
     }
 
     public static class HandshakeCompleteCodec implements Codec<HandshakeCompletePacket, PorkConnection>    {

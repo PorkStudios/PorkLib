@@ -64,7 +64,7 @@ public class NettyByteBufUtil {
 
         @Override
         public int read() throws IOException {
-            return this.buf.readableBytes() == 0 ? -1 : this.buf.readByte() & 0xFF;
+            return this.buf.isReadable() ? this.buf.readByte() & 0xFF : -1;
         }
 
         @Override

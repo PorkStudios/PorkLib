@@ -86,11 +86,11 @@ public class PacketReprocessor implements Logging {
                 this.cipher,
                 this.connection.getEndpoint().getName()
         );
-        if (this.connection.getState().shouldCompress) {
-            out = this.compression.deflate(out);
-        }
         if (this.cipher != null && this.connection.getState().shouldEncrypt) {
             out = this.cipher.encryptionStream(out);
+        }
+        if (this.connection.getState().shouldCompress) {
+            out = this.compression.deflate(out);
         }
         return out;
     }
@@ -105,11 +105,11 @@ public class PacketReprocessor implements Logging {
                 this.cipher,
                 this.connection.getEndpoint().getName()
         );
-        if (this.connection.getState().shouldCompress)  {
-            in = this.compression.inflate(in);
-        }
         if (this.cipher != null && this.connection.getState().shouldEncrypt)    {
             in = this.cipher.decryptionStream(in);
+        }
+        if (this.connection.getState().shouldCompress)  {
+            in = this.compression.inflate(in);
         }
         return in;
     }

@@ -20,6 +20,8 @@ import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.crypto.CryptographySettings;
+import net.daporkchop.lib.encoding.compression.Compression;
+import net.daporkchop.lib.encoding.compression.CompressionHelper;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.server.PorkServer;
 
@@ -32,6 +34,9 @@ import net.daporkchop.lib.network.endpoint.server.PorkServer;
 public class ServerBuilder extends AbstractBuilder<PorkServer, ServerBuilder> {
     @NonNull
     private CryptographySettings cryptographySettings = new CryptographySettings();
+
+    @NonNull
+    private CompressionHelper compression = Compression.NONE;
 
     @Override
     PorkServer doBuild() {

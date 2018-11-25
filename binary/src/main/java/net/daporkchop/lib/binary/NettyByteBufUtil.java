@@ -59,7 +59,7 @@ public class NettyByteBufUtil {
 
         @Override
         public void close() throws IOException {
-            this.buf.release();
+            //this.buf.release();
         }
 
         @Override

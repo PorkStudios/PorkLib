@@ -25,6 +25,7 @@ import net.daporkchop.lib.encoding.compression.CompressionHelper;
 import net.daporkchop.lib.network.packet.Codec;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.protocol.pork.PorkConnection;
+import net.daporkchop.lib.network.util.ConnectionState;
 
 import java.io.IOException;
 
@@ -56,7 +57,8 @@ public class HandshakeInitPacket implements Packet {
     public static class HandshakeInitCodec implements Codec<HandshakeInitPacket, PorkConnection>    {
         @Override
         public void handle(@NonNull HandshakeInitPacket packet, @NonNull PorkConnection connection) {
-
+            connection.setState(ConnectionState.getNext(connection.getState()));
+            connection.send(connection.getPacketReprocessor().initClient(packet));
         }
 
         @Override

@@ -50,8 +50,8 @@ public class NetworkTest implements Logging {
             logger.info("Sending ${0} random packets...", count);
             for (int i = 0; i < count; i++) {
                 Thread.sleep(75L);
-                client.send(new TestPacket("hello world!"));
-                server.broadcast(new TestPacket("name jef lol"));
+                client.send(new TestPacket("hello from client!"));
+                server.broadcast(new TestPacket("hello from server!"));
             }
         }
 

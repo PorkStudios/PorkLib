@@ -31,7 +31,7 @@ import java.util.function.Function;
  */
 public abstract class DataIn extends InputStream {
     public static DataIn wrap(InputStream in) {
-        return new StreamIn(in);
+        return in instanceof DataIn ? (DataIn) in : new StreamIn(in);
     }
 
     public static DataIn wrap(ByteBuffer buffer) {

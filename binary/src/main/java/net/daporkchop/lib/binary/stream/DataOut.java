@@ -30,7 +30,7 @@ import java.nio.ByteBuffer;
  */
 public abstract class DataOut extends OutputStream {
     public static DataOut wrap(OutputStream out) {
-        return new StreamOut(out);
+        return out instanceof DataOut ? (DataOut) out : new StreamOut(out);
     }
 
     public static DataOut wrap(ByteBuffer buffer) {

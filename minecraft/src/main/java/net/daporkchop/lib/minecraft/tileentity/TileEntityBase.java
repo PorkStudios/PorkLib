@@ -15,13 +15,13 @@
 
 package net.daporkchop.lib.minecraft.tileentity;
 
-import com.flowpowered.nbt.CompoundTag;
-import com.flowpowered.nbt.IntTag;
-import com.flowpowered.nbt.StringTag;
 import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.minecraft.registry.ResourceLocation;
 import net.daporkchop.lib.minecraft.world.World;
+import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
+import net.daporkchop.lib.nbt.tag.notch.IntTag;
+import net.daporkchop.lib.nbt.tag.notch.StringTag;
 
 /**
  * @author DaPorkchop_
@@ -47,10 +47,10 @@ public class TileEntityBase implements TileEntity {
     }
 
     protected void init()   {
-        this.id = new ResourceLocation(((StringTag) this.data.getValue().get("id")).getValue());
-        this.x = ((IntTag) this.data.getValue().get("x")).getValue();
-        this.y = ((IntTag) this.data.getValue().get("y")).getValue();
-        this.z = ((IntTag) this.data.getValue().get("z")).getValue();
+        this.id = new ResourceLocation(this.data.<StringTag>get("id").getValue());
+        this.x = this.data.<IntTag>get("x").getValue();
+        this.y = this.data.<IntTag>get("y").getValue();
+        this.z = this.data.<IntTag>get("z").getValue();
     }
 
     public void save()   {

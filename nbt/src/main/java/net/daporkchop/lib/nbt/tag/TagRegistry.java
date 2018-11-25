@@ -65,6 +65,12 @@ public class TagRegistry {
     private final ObjectByteMap<Class<? extends Tag>> tagIds = new ObjectByteHashMap<>();
     private volatile boolean finished = false;
 
+    /**
+     * Registers all ids from another registry
+     *
+     * @param otherRegistry the other registry
+     * @return this registry
+     */
     public synchronized TagRegistry registerAll(@NonNull TagRegistry otherRegistry) {
         if (this.finished) {
             throw new IllegalStateException("registry is finished!");
@@ -75,6 +81,15 @@ public class TagRegistry {
         return this;
     }
 
+    /**
+     * Register a new tag
+     *
+     * @param id      the tag's id
+     * @param clazz   the class of the tag
+     * @param creator a function to create new instances of the tag
+     * @param <T>     the type of the tag
+     * @return this registry
+     */
     public <T extends Tag> TagRegistry register(int id, @NonNull Class<T> clazz, @NonNull Function<String, T> creator) {
         if ((id & 0xFF) != id) {
             throw new IllegalArgumentException(String.format("Id too large: %d", id));
@@ -83,6 +98,15 @@ public class TagRegistry {
         }
     }
 
+    /**
+     * Register a new tag
+     *
+     * @param id      the tag's id
+     * @param clazz   the class of the tag
+     * @param creator a function to create new instances of the tag
+     * @param <T>     the type of the tag
+     * @return this registry
+     */
     public synchronized <T extends Tag> TagRegistry register(byte id, @NonNull Class<T> clazz, @NonNull Function<String, T> creator) {
         if (this.finished) {
             throw new IllegalStateException("registry is finished!");
@@ -99,6 +123,11 @@ public class TagRegistry {
         return this;
     }
 
+    /**
+     * Locks this registry to prevent any more writing
+     *
+     * @return this registry
+     */
     public synchronized TagRegistry finish() {
         if (this.finished) {
             throw new IllegalStateException("registry is finished!");
@@ -108,10 +137,24 @@ public class TagRegistry {
         return this;
     }
 
+    /**
+     * Gets the id of a given tag class
+     *
+     * @param clazz the class of the tag to get the id of
+     * @return the id of the tag class
+     */
     public byte getId(@NonNull Class<? extends Tag> clazz) {
         return this.tagIds.get(clazz);
     }
 
+    /**
+     * Create a new instance of a tag
+     *
+     * @param id   the tag id
+     * @param name the name of the new tag
+     * @param <T>  the type of tag to cast to
+     * @return a newly created tag with the given name
+     */
     @SuppressWarnings("unchecked")
     public <T extends Tag> T create(byte id, String name) {
         Function<String, T> creator = (Function<String, T>) this.tagCreators.get(id);

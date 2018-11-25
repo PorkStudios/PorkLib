@@ -26,6 +26,8 @@ import net.daporkchop.lib.nbt.tag.TagRegistry;
 import java.io.IOException;
 
 /**
+ * A tag that contains a single {@link String}
+ *
  * @author DaPorkchop_
  */
 @Getter

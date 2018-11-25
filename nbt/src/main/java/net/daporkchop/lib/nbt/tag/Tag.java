@@ -32,23 +32,59 @@ import java.io.IOException;
 @RequiredArgsConstructor
 @Getter
 public abstract class Tag {
+    /**
+     * The name of this tag.
+     * <p>
+     * This will never be {@code null} unless this is an element of a {@link ListTag}
+     */
     private final String name;
 
+    /**
+     * Gets and casts this tag to a specific tag type
+     *
+     * @param <T> the type to cast to
+     * @return this tag casted to the given type
+     */
     @SuppressWarnings("unchecked")
     public <T extends Tag> T getAs() {
         return (T) this;
     }
 
+    /**
+     * Gets this tag as a {@link CompoundTag}
+     *
+     * @return this tag as a {@link CompoundTag}
+     */
     public CompoundTag getAsCompoundTag() {
         return this.getAs();
     }
 
+    /**
+     * Gets this tag as a {@link ListTag}
+     *
+     * @param <T> the type of tag contained in the list
+     * @return this tag as a {@link ListTag}
+     */
     public <T extends Tag> ListTag<T> getAsList() {
         return this.getAs();
     }
 
+    /**
+     * Reads this tag from a stream
+     *
+     * @param in       the input stream to read from
+     * @param registry the registry of NBT tag ids
+     * @throws IOException if an IO exception occurs you dummy
+     */
     public abstract void read(@NonNull DataIn in, @NonNull TagRegistry registry) throws IOException;
 
+    /**
+     * Writes this tag to a stream
+     *
+     * @param out      the output stream to write to
+     * @param registry the registry of NBT tag ids
+     * @throws IOException if an IO exception occurs you dummy
+     */
     public abstract void write(@NonNull DataOut out, @NonNull TagRegistry registry) throws IOException;
 
     @Override

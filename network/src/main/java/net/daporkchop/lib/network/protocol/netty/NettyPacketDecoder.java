@@ -24,10 +24,12 @@ import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.NettyByteBufUtil;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Codec;
 import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.protocol.pork.PorkProtocol;
 
 import java.util.List;
 
@@ -41,18 +43,23 @@ public class NettyPacketDecoder extends ByteToMessageDecoder implements Logging 
     private final Endpoint endpoint;
 
     @Override
-    protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf buf, List<Object> list) throws Exception {
-        DataIn in = NettyByteBufUtil.wrapIn(buf);
-        int size = in.available();
-        //System.out.printf("[%s] Reading packet (%d bytes)\n", this.endpoint.getName(), size);
-        int id = in.readVarInt(true);
-        Codec<? extends Packet, ? extends UserConnection> codec = this.endpoint.getPacketRegistry().getCodec(id);
-        if (codec == null)  {
-            throw this.exception("Received unknown packet id ${0}", id);
+    protected void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> list) throws Exception {
+        //try (DataIn in = DataIn.wrap(((UnderlyingNetworkConnection) ctx.channel()).getUserConnection(PorkProtocol.class).getPacketReprocessor().wrap(NettyByteBufUtil.wrapIn(buf)))) {
+        try (DataIn in = NettyByteBufUtil.wrapIn(buf))   {
+            int size = in.available();
+            //System.out.printf("[%s] Reading packet (%d bytes)\n", this.endpoint.getName(), size);
+            int id = in.readVarInt(true);
+            Codec<? extends Packet, ? extends UserConnection> codec = this.endpoint.getPacketRegistry().getCodec(id);
+            if (codec == null) {
+                throw this.exception("Received unknown packet id ${0}", id);
+            }
+            Packet packet = codec.createInstance();
+            packet.read(in);
+            logger.debug("[${0}] Read packet: ${1} (${2} bytes)", this.endpoint.getName(), packet.getClass(), size - in.available());
+            list.add(packet);
+        } catch (Exception e)   {
+            logger.error(e);
+            throw e;
         }
-        Packet packet = codec.createInstance();
-        packet.read(in);
-        logger.debug("[${0}] Read packet: ${1} (${2} bytes)", this.endpoint.getName(), packet.getClass(), size - in.available());
-        list.add(packet);
     }
 }

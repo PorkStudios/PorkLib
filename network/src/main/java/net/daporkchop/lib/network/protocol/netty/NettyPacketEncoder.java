@@ -24,9 +24,11 @@ import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.NettyByteBufUtil;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.protocol.pork.PorkProtocol;
 
 /**
  * @author DaPorkchop_
@@ -38,9 +40,9 @@ public class NettyPacketEncoder extends MessageToByteEncoder<Packet> implements 
     private final Endpoint endpoint;
 
     @Override
-    protected void encode(ChannelHandlerContext channelHandlerContext, Packet packet, ByteBuf buf) throws Exception {
-        //System.out.printf("Size pre-send: %d\n", buf.writerIndex());
-        try (DataOut out = NettyByteBufUtil.wrapOut(buf)) {
+    protected void encode(ChannelHandlerContext ctx, Packet packet, ByteBuf buf) throws Exception {
+        //try (DataOut out = DataOut.wrap(((UnderlyingNetworkConnection) ctx.channel()).getUserConnection(PorkProtocol.class).getPacketReprocessor().wrap(NettyByteBufUtil.wrapOut(buf)))) {
+        try (DataOut out = NettyByteBufUtil.wrapOut(buf))   {
             logger.debug("[${0}] Writing ${1}...", this.endpoint.getName(), packet.getClass());
             int id = this.endpoint.getPacketRegistry().getId(packet.getClass());
             if (id == -1)   {
@@ -49,9 +51,10 @@ public class NettyPacketEncoder extends MessageToByteEncoder<Packet> implements 
             out.writeVarInt(id, true);
             packet.write(out);
         } catch (Exception e)   {
-            e.printStackTrace();
+            logger.error(e);
             throw e;
-        }
-        //System.out.printf("Size post-send: %d\n", buf.writerIndex());
+        }/* finally {
+            logger.debug("[${0}] Written ${1}.", this.endpoint.getName(), packet.getClass());
+        }*/
     }
 }

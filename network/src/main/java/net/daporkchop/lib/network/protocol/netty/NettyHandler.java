@@ -23,11 +23,14 @@ import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
+import net.daporkchop.lib.network.endpoint.server.PorkServer;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.PacketRegistry;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.protocol.pork.PorkConnection;
 import net.daporkchop.lib.network.protocol.pork.PorkProtocol;
+import net.daporkchop.lib.network.protocol.pork.packet.HandshakeInitPacket;
+import net.daporkchop.lib.network.util.ConnectionState;
 
 /**
  * @author DaPorkchop_
@@ -79,11 +82,17 @@ public class NettyHandler extends ChannelInboundHandlerAdapter implements Loggin
         logger.trace("[${0}] New connection: ${1}", this.endpoint.getName(), ctx.channel().remoteAddress());
 
         UnderlyingNetworkConnection realConnection = (UnderlyingNetworkConnection) ctx.channel();
-        this.endpoint.getPacketRegistry().getProtocols().stream()
+        /*this.endpoint.getPacketRegistry().getProtocols().stream()
                 .map(userProtocol -> realConnection.getUserConnection((Class<UserProtocol<UserConnection>>) userProtocol.getClass()))
-                .forEach(UserConnection::onConnect);
-
-        super.channelRegistered(ctx);
+                .forEach(UserConnection::onConnect);*/
+        if (false && this.endpoint instanceof PorkServer) {
+            realConnection.send(new HandshakeInitPacket(
+                    ((PorkServer) this.endpoint).getCryptographySettings(),
+                    ((PorkServer) this.endpoint).getCompression()
+            ));
+            PorkConnection connection = realConnection.getUserConnection(PorkProtocol.class);
+            connection.setState(ConnectionState.getNext(connection.getState()));
+        }
     }
 
     @Override
@@ -96,7 +105,5 @@ public class NettyHandler extends ChannelInboundHandlerAdapter implements Loggin
         this.endpoint.getPacketRegistry().getProtocols().stream()
                 .map(userProtocol -> realConnection.getUserConnection((Class<UserProtocol<UserConnection>>) userProtocol.getClass()))
                 .forEach(c -> c.onDisconnect(disconnectReason));
-
-        super.channelUnregistered(ctx);
     }
 }

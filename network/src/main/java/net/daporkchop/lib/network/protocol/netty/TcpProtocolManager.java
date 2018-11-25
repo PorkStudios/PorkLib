@@ -100,20 +100,17 @@ public class TcpProtocolManager implements ProtocolManager {
             this.workerGroup = new NioEventLoopGroup(0, executor);
             this.channels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
-            ChannelHandler groupAdder = new ChannelInboundHandlerAdapter() {
-                @Override
-                public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-                    NettyServerManager.this.channels.add(ctx.channel());
-                }
-            };
-
             try {
                 ServerBootstrap bootstrap = new ServerBootstrap();
                 bootstrap.group(this.bossGroup, this.workerGroup);
                 //bootstrap.channel(NioServerSocketChannel.class);
                 //bootstrap.channel(WrapperNioServerSocketChannel.class);
                 bootstrap.channelFactory(() -> new WrapperNioServerSocketChannel(endpoint));
-                bootstrap.childHandler(new NettyChannelInitializer(endpoint, p -> p.addLast(groupAdder)));
+                bootstrap.childHandler(new NettyChannelInitializer(
+                        endpoint,
+                        channel -> this.channels.add(channel),
+                        channel -> this.channels.remove(channel)
+                ));
                 bootstrap.option(ChannelOption.SO_BACKLOG, 256);
                 bootstrap.childOption(ChannelOption.SO_KEEPALIVE, true);
 
@@ -145,6 +142,7 @@ public class TcpProtocolManager implements ProtocolManager {
         @Override
         public void broadcast(@NonNull Packet packet) {
             this.channels.writeAndFlush(packet);
+            //this.channels.forEach(channel -> channel.writeAndFlush(packet));
         }
 
         @Override
@@ -190,17 +188,17 @@ public class TcpProtocolManager implements ProtocolManager {
     private static class NettyChannelInitializer extends ChannelInitializer<Channel> {
         @NonNull
         private final Endpoint endpoint;
-        private final Collection<Consumer<ChannelPipeline>> populators;
+        private final Consumer<Channel> registerHook;
+        private final Consumer<Channel> unRegisterHook;
 
-        @SafeVarargs
-        private NettyChannelInitializer(@NonNull Endpoint endpoint, @NonNull Consumer<ChannelPipeline>... populators) {
+        private NettyChannelInitializer(@NonNull Endpoint endpoint) {
+            this(endpoint, c -> {}, c -> {});
+        }
+
+        private NettyChannelInitializer(@NonNull Endpoint endpoint, @NonNull Consumer<Channel> registerHook, @NonNull Consumer<Channel> unRegisterHook) {
             this.endpoint = endpoint;
-            this.populators = Arrays.asList(populators);
-            this.populators.forEach(c -> {
-                if (c == null) {
-                    throw new NullPointerException();
-                }
-            });
+            this.registerHook = registerHook;
+            this.unRegisterHook = unRegisterHook;
         }
 
         @Override
@@ -210,11 +208,17 @@ public class TcpProtocolManager implements ProtocolManager {
             c.pipeline().addLast(new NettyPacketEncoder(this.endpoint));
             c.pipeline().addLast(new NettyPacketDecoder(this.endpoint));
             c.pipeline().addLast(new NettyHandler(this.endpoint));
-            this.populators.forEach(populator -> populator.accept(c.pipeline()));
+            this.registerHook.accept(c);
 
             WrapperNioSocketChannel realConnection = (WrapperNioSocketChannel) c;
             this.endpoint.getPacketRegistry().getProtocols().forEach(protocol -> realConnection.putUserConnection(protocol.getClass(), protocol.newConnection()));
             realConnection.registerTheUnderlyingConnection();
+        }
+
+        @Override
+        public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
+            super.channelUnregistered(ctx);
+            this.unRegisterHook.accept(ctx.channel());
         }
     }
 }

@@ -25,6 +25,7 @@ import net.daporkchop.lib.network.packet.Codec;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.PacketRegistry;
 import net.daporkchop.lib.network.protocol.pork.PorkConnection;
+import net.daporkchop.lib.network.util.ConnectionState;
 import net.daporkchop.lib.network.util.Version;
 
 import java.io.IOException;
@@ -76,6 +77,8 @@ public class HandshakeResponsePacket implements Packet {
                     throw new IllegalStateException();
                 }
             });
+            connection.send(connection.getPacketReprocessor().initServer(packet), true);
+            connection.setState(ConnectionState.getNext(connection.getState()));
         }
 
         @Override

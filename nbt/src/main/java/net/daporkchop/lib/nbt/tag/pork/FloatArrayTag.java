@@ -37,7 +37,7 @@ public class FloatArrayTag extends Tag {
         super(name);
     }
 
-    public FloatArrayTag(String name, @NonNull float[] value)   {
+    public FloatArrayTag(String name, @NonNull float[] value) {
         super(name);
         this.value = value;
     }
@@ -46,7 +46,7 @@ public class FloatArrayTag extends Tag {
     public void read(DataIn in, TagRegistry registry) throws IOException {
         int len = in.readInt();
         this.value = new float[len];
-        for (int i = 0; i < len; i++)   {
+        for (int i = 0; i < len; i++) {
             this.value[i] = in.readFloat();
         }
     }

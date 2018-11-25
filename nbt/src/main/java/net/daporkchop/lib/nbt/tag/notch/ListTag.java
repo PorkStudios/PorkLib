@@ -77,7 +77,7 @@ public class ListTag<T extends Tag> extends Tag {
         return String.format("ListTag(\"%s\"): %d tags", this.getName(), this.value.size());
     }
 
-    public void forEach(@NonNull Consumer<T> consumer)  {
+    public void forEach(@NonNull Consumer<T> consumer) {
         this.value.forEach(consumer);
     }
 }

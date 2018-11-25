@@ -43,7 +43,7 @@ public class CompoundTag extends Tag {
     @Override
     public void read(@NonNull DataIn in, @NonNull TagRegistry registry) throws IOException {
         byte id;
-        while ((id = in.readByte()) != 0)   {
+        while ((id = in.readByte()) != 0) {
             String name;
             {
                 byte[] b = new byte[in.readShort() & 0xFFFF];
@@ -58,7 +58,7 @@ public class CompoundTag extends Tag {
 
     @Override
     public void write(@NonNull DataOut out, @NonNull TagRegistry registry) throws IOException {
-        for (Map.Entry<String, Tag> entry : this.contents.entrySet())   {
+        for (Map.Entry<String, Tag> entry : this.contents.entrySet()) {
             byte id = registry.getId(entry.getValue().getClass());
             out.writeByte(id);
             byte[] name = entry.getKey().getBytes(UTF8.utf8);
@@ -76,7 +76,7 @@ public class CompoundTag extends Tag {
 
     //UTILITY METHODS
     @SuppressWarnings("unchecked")
-    public <T extends Tag> T get(@NonNull String name)  {
+    public <T extends Tag> T get(@NonNull String name) {
         return (T) this.contents.get(name);
     }
 
@@ -84,21 +84,21 @@ public class CompoundTag extends Tag {
         this.contents.put(name, tag);
     }
 
-    public boolean contains(@NonNull String name)   {
+    public boolean contains(@NonNull String name) {
         return this.contents.containsKey(name);
     }
 
-    public void remove(@NonNull String name)     {
+    public void remove(@NonNull String name) {
         this.contents.remove(name);
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends Tag> void forEach(@NonNull BiConsumer<String, T> consumer)    {
+    public <T extends Tag> void forEach(@NonNull BiConsumer<String, T> consumer) {
         ((Map<String, T>) this.contents).forEach(consumer);
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends Tag> void forEach(@NonNull Consumer<T> consumer)    {
+    public <T extends Tag> void forEach(@NonNull Consumer<T> consumer) {
         ((Map<String, T>) this.contents).values().forEach(consumer);
     }
 
@@ -106,57 +106,57 @@ public class CompoundTag extends Tag {
         this.contents.clear();
     }
 
-    public void putByte(@NonNull String name, byte val)   {
+    public void putByte(@NonNull String name, byte val) {
         this.put(name, new ByteTag(name, val));
     }
 
-    public void putShort(@NonNull String name, short val)   {
+    public void putShort(@NonNull String name, short val) {
         this.put(name, new ShortTag(name, val));
     }
 
-    public void putInt(@NonNull String name, int val)   {
+    public void putInt(@NonNull String name, int val) {
         this.put(name, new IntTag(name, val));
     }
 
-    public void putLong(@NonNull String name, long val)   {
+    public void putLong(@NonNull String name, long val) {
         this.put(name, new LongTag(name, val));
     }
 
-    public void putFloat(@NonNull String name, float val)   {
+    public void putFloat(@NonNull String name, float val) {
         this.put(name, new FloatTag(name, val));
     }
 
-    public void putDouble(@NonNull String name, double val)   {
+    public void putDouble(@NonNull String name, double val) {
         this.put(name, new DoubleTag(name, val));
     }
 
-    public void putByteArray(@NonNull String name, @NonNull byte[] val)   {
+    public void putByteArray(@NonNull String name, @NonNull byte[] val) {
         this.put(name, new ByteArrayTag(name, val));
     }
 
-    public void putIntArray(@NonNull String name, @NonNull int[] val)   {
+    public void putIntArray(@NonNull String name, @NonNull int[] val) {
         this.put(name, new IntArrayTag(name, val));
     }
 
-    public void putLongArray(@NonNull String name, @NonNull long[] val)   {
+    public void putLongArray(@NonNull String name, @NonNull long[] val) {
         this.put(name, new LongArrayTag(name, val));
     }
 
-    public void putString(@NonNull String name, @NonNull String val)   {
+    public void putString(@NonNull String name, @NonNull String val) {
         this.put(name, new StringTag(name, val));
     }
 
-    public void putCompound(@NonNull CompoundTag val)   {
+    public void putCompound(@NonNull CompoundTag val) {
         this.put(val.getName(), val);
     }
 
-    public <T extends Tag> void putList(@NonNull String name, @NonNull List<T> list)  {
+    public <T extends Tag> void putList(@NonNull String name, @NonNull List<T> list) {
         this.put(name, new ListTag<>(name, list));
     }
 
     public byte getByte(@NonNull String name, byte def) {
         ByteTag tag = this.get(name);
-        if (tag == null)    {
+        if (tag == null) {
             return def;
         } else {
             return tag.getValue();
@@ -165,7 +165,7 @@ public class CompoundTag extends Tag {
 
     public short getShort(@NonNull String name, short def) {
         ShortTag tag = this.get(name);
-        if (tag == null)    {
+        if (tag == null) {
             return def;
         } else {
             return tag.getValue();
@@ -174,7 +174,7 @@ public class CompoundTag extends Tag {
 
     public int getInt(@NonNull String name, int def) {
         IntTag tag = this.get(name);
-        if (tag == null)    {
+        if (tag == null) {
             return def;
         } else {
             return tag.getValue();
@@ -183,7 +183,7 @@ public class CompoundTag extends Tag {
 
     public long getLong(@NonNull String name, long def) {
         LongTag tag = this.get(name);
-        if (tag == null)    {
+        if (tag == null) {
             return def;
         } else {
             return tag.getValue();
@@ -192,7 +192,7 @@ public class CompoundTag extends Tag {
 
     public float getFloat(@NonNull String name, float def) {
         FloatTag tag = this.get(name);
-        if (tag == null)    {
+        if (tag == null) {
             return def;
         } else {
             return tag.getValue();
@@ -201,7 +201,7 @@ public class CompoundTag extends Tag {
 
     public double getDouble(@NonNull String name, double def) {
         DoubleTag tag = this.get(name);
-        if (tag == null)    {
+        if (tag == null) {
             return def;
         } else {
             return tag.getValue();
@@ -210,7 +210,7 @@ public class CompoundTag extends Tag {
 
     public byte[] getByteArray(@NonNull String name, byte[] def) {
         ByteArrayTag tag = this.get(name);
-        if (tag == null)    {
+        if (tag == null) {
             return def;
         } else {
             return tag.getValue();
@@ -219,7 +219,7 @@ public class CompoundTag extends Tag {
 
     public int[] getIntArray(@NonNull String name, int[] def) {
         IntArrayTag tag = this.get(name);
-        if (tag == null)    {
+        if (tag == null) {
             return def;
         } else {
             return tag.getValue();
@@ -228,7 +228,7 @@ public class CompoundTag extends Tag {
 
     public long[] getLongArray(@NonNull String name, long[] def) {
         LongArrayTag tag = this.get(name);
-        if (tag == null)    {
+        if (tag == null) {
             return def;
         } else {
             return tag.getValue();
@@ -237,7 +237,7 @@ public class CompoundTag extends Tag {
 
     public String getString(@NonNull String name, String def) {
         StringTag tag = this.get(name);
-        if (tag == null)    {
+        if (tag == null) {
             return def;
         } else {
             return tag.getValue();
@@ -246,7 +246,7 @@ public class CompoundTag extends Tag {
 
     public CompoundTag getCompound(@NonNull String name, CompoundTag def) {
         CompoundTag tag = this.get(name);
-        if (tag == null)    {
+        if (tag == null) {
             return def;
         } else {
             return tag;
@@ -255,7 +255,7 @@ public class CompoundTag extends Tag {
 
     public <T extends Tag> List<T> getList(@NonNull String name, List<T> def) {
         ListTag<T> tag = this.get(name);
-        if (tag == null)    {
+        if (tag == null) {
             return def;
         } else {
             return tag.getValue();

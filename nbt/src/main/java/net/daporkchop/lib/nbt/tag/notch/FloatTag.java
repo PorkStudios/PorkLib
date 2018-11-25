@@ -36,7 +36,7 @@ public class FloatTag extends Tag {
         super(name);
     }
 
-    public FloatTag(String name, float value)   {
+    public FloatTag(String name, float value) {
         super(name);
         this.value = value;
     }

@@ -49,7 +49,7 @@ public class NBTOutputStream extends DataOut {
         this.defaultRegistry = registry;
     }
 
-    public void writeTag(@NonNull CompoundTag tag) throws IOException  {
+    public void writeTag(@NonNull CompoundTag tag) throws IOException {
         this.writeTag(tag, this.defaultRegistry);
     }
 

@@ -46,7 +46,7 @@ public class DoubleArrayTag extends Tag {
     public void read(@NonNull DataIn in, @NonNull TagRegistry registry) throws IOException {
         int len = in.readInt();
         this.value = new double[len];
-        for (int i = 0; i < len; i++)   {
+        for (int i = 0; i < len; i++) {
             this.value[i] = in.readDouble();
         }
     }

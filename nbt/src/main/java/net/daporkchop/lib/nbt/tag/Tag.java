@@ -17,7 +17,6 @@ package net.daporkchop.lib.nbt.tag;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.Data;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
@@ -36,15 +35,15 @@ public abstract class Tag {
     private final String name;
 
     @SuppressWarnings("unchecked")
-    public <T extends Tag> T getAs()    {
+    public <T extends Tag> T getAs() {
         return (T) this;
     }
 
-    public CompoundTag getAsCompoundTag()   {
+    public CompoundTag getAsCompoundTag() {
         return this.getAs();
     }
 
-    public <T extends Tag> ListTag<T> getAsList()   {
+    public <T extends Tag> ListTag<T> getAsList() {
         return this.getAs();
     }
 

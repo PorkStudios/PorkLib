@@ -37,7 +37,7 @@ public class IntArrayTag extends Tag {
         super(name);
     }
 
-    public IntArrayTag(String name, @NonNull int[] value)   {
+    public IntArrayTag(String name, @NonNull int[] value) {
         super(name);
         this.value = value;
     }
@@ -46,7 +46,7 @@ public class IntArrayTag extends Tag {
     public void read(DataIn in, TagRegistry registry) throws IOException {
         int len = in.readInt();
         this.value = new int[len];
-        for (int i = 0; i < len; i++)   {
+        for (int i = 0; i < len; i++) {
             this.value[i] = in.readInt();
         }
     }

@@ -14,7 +14,6 @@
 
 package net.daporkchop.lib.nbt.tag;
 
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.nbt.tag.notch.*;
 import net.daporkchop.lib.nbt.tag.pork.*;

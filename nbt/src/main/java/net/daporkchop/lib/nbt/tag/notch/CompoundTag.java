@@ -146,6 +146,10 @@ public class CompoundTag extends Tag {
         this.put(name, new StringTag(name, val));
     }
 
+    public void putCompound(@NonNull CompoundTag val)   {
+        this.put(val.getName(), val);
+    }
+
     public <T extends Tag> void putList(@NonNull String name, @NonNull List<T> list)  {
         this.put(name, new ListTag<>(name, list));
     }
@@ -240,6 +244,15 @@ public class CompoundTag extends Tag {
         }
     }
 
+    public CompoundTag getCompound(@NonNull String name, CompoundTag def) {
+        CompoundTag tag = this.get(name);
+        if (tag == null)    {
+            return def;
+        } else {
+            return tag;
+        }
+    }
+
     public <T extends Tag> List<T> getList(@NonNull String name, List<T> def) {
         ListTag<T> tag = this.get(name);
         if (tag == null)    {
@@ -287,6 +300,10 @@ public class CompoundTag extends Tag {
 
     public String getString(@NonNull String name) {
         return this.getString(name, null);
+    }
+
+    public CompoundTag getCompound(@NonNull String name) {
+        return this.getCompound(name, null);
     }
 
     public <T extends Tag> List<T> getList(@NonNull String name) {

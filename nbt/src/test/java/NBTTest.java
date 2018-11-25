@@ -53,7 +53,7 @@ public class NBTTest {
         try (NBTInputStream in = new NBTInputStream(new ByteArrayInputStream(written)))   {
             tag = in.readTag();
         }
-        this.printTagRecursive(tag, 0);
+        printTagRecursive(tag, 0);
         File file = new File("test_out/written.nbt");
         if (!file.exists())  {
             File parent = file.getParentFile();
@@ -72,7 +72,7 @@ public class NBTTest {
     public void testHelloWorld() throws IOException {
         try (NBTInputStream in = new NBTInputStream(NBTTest.class.getResourceAsStream("hello_world.nbt")))  {
             CompoundTag tag = in.readTag();
-            this.printTagRecursive(tag, 0);
+            printTagRecursive(tag, 0);
         }
     }
 
@@ -80,25 +80,25 @@ public class NBTTest {
     public void testBig() throws IOException {
         try (NBTInputStream in = new NBTInputStream(NBTTest.class.getResourceAsStream("bigtest.nbt"), Compression.GZIP_NORMAL))  {
             CompoundTag tag = in.readTag();
-            this.printTagRecursive(tag, 0);
+            printTagRecursive(tag, 0);
         }
     }
 
-    public void printTagRecursive(@NonNull Tag tag, int depth) {
+    public static void printTagRecursive(@NonNull Tag tag, int depth) {
         if (depth == 0) {
             System.out.printf("CompoundTag \"%s\": %d children\n", tag.getName(), tag.getAsCompoundTag().getContents().size());
-            this.printTagRecursive(tag, 2);
+            tag.getAsCompoundTag().forEach(subTag -> printTagRecursive(subTag, 2));
             return;
         }
-        System.out.printf("%s%s\n", this.space(depth), tag);
+        System.out.printf("%s%s\n", space(depth), tag);
         if (tag instanceof CompoundTag) {
-            tag.getAsCompoundTag().forEach(subTag -> this.printTagRecursive(subTag, depth + 2));
+            tag.getAsCompoundTag().forEach(subTag -> printTagRecursive(subTag, depth + 2));
         } else if (tag instanceof ListTag)  {
-            tag.<ListTag<? extends Tag>>getAs().forEach(subTag -> this.printTagRecursive(subTag, depth + 2));
+            tag.<ListTag<? extends Tag>>getAs().forEach(subTag -> printTagRecursive(subTag, depth + 2));
         }
     }
 
-    public String space(int count)  {
+    public static String space(int count)  {
         char[] c = new char[count];
         for (int i = count - 1; i >= 0; i--)    {
             c[i] = ' ';

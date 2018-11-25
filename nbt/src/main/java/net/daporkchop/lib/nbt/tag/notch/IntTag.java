@@ -36,7 +36,7 @@ public class IntTag extends Tag {
         super(name);
     }
 
-    public IntTag(String name, int value)  {
+    public IntTag(String name, int value) {
         super(name);
         this.value = value;
     }

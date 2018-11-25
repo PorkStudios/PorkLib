@@ -36,7 +36,7 @@ public class ShortTag extends Tag {
         super(name);
     }
 
-    public ShortTag(String name, short value)   {
+    public ShortTag(String name, short value) {
         super(name);
         this.value = value;
     }

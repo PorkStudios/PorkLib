@@ -19,7 +19,6 @@ import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.encoding.compression.CompressionHelper;
-import net.daporkchop.lib.nbt.tag.Tag;
 import net.daporkchop.lib.nbt.tag.TagRegistry;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 
@@ -39,26 +38,26 @@ public class NBTInputStream extends DataIn {
         this(in, Compression.NONE, TagRegistry.NOTCHIAN);
     }
 
-    public NBTInputStream(@NonNull InputStream in, @NonNull CompressionHelper compression) throws IOException  {
+    public NBTInputStream(@NonNull InputStream in, @NonNull CompressionHelper compression) throws IOException {
         this(in, compression, TagRegistry.NOTCHIAN);
     }
 
-    public NBTInputStream(@NonNull InputStream in, @NonNull TagRegistry registry) throws IOException  {
+    public NBTInputStream(@NonNull InputStream in, @NonNull TagRegistry registry) throws IOException {
         this(in, Compression.NONE, registry);
     }
 
-    public NBTInputStream(@NonNull InputStream in, @NonNull CompressionHelper compression, @NonNull TagRegistry registry) throws IOException  {
+    public NBTInputStream(@NonNull InputStream in, @NonNull CompressionHelper compression, @NonNull TagRegistry registry) throws IOException {
         this.in = compression.inflate(in);
         this.defaultRegistry = registry;
     }
 
-    public CompoundTag readTag() throws IOException    {
+    public CompoundTag readTag() throws IOException {
         return this.readTag(this.defaultRegistry);
     }
 
-    public CompoundTag readTag(@NonNull TagRegistry registry) throws IOException    {
+    public CompoundTag readTag(@NonNull TagRegistry registry) throws IOException {
         byte id = this.readByte();
-        if (registry.getId(CompoundTag.class) != id)    {
+        if (registry.getId(CompoundTag.class) != id) {
             throw new IllegalStateException("Invalid id for compound tag!");
         }
         byte[] b = new byte[this.readShort() & 0xFFFF];

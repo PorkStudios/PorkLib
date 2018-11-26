@@ -15,8 +15,161 @@
 
 package net.daporkchop.lib.db.container.map.index.hashtable;
 
+import net.daporkchop.lib.db.container.map.DBMap;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+
 /**
+ * A hashtable-based implementation of {@link net.daporkchop.lib.db.container.map.index.IndexLookup}, where
+ * the hashes are dynamically read from disk.
+ * <p>
+ * This can be rather slow. For faster lookups at a cost of higher memory usage, use {@link MappedHashTableIndexLookup}
+ * <p>
+ * This does not check for hash collisions! If you would like hash collisions to be checked, use //TODO
+ *
  * @author DaPorkchop_
+ * @see MappedHashTableIndexLookup
+ * @see BaseHashTableIndexLookup
  */
-public class HashTableIndexLookup {
+public class HashTableIndexLookup<K> extends BaseHashTableIndexLookup<K> {
+    public HashTableIndexLookup(int usedBits, int pointerBytes) {
+        super(usedBits, pointerBytes);
+    }
+
+    @Override
+    protected void doInit(DBMap map, File file) throws IOException {
+    }
+
+    @Override
+    protected void doClose() throws IOException {
+    }
+
+    @Override
+    protected void doClear() throws IOException {
+        this.tableRaf.seek(0L);
+        this.tableRaf.setLength(0L);
+        long fullSize = (long) this.pointerBytes * this.tableSize;
+        //grow file
+        byte[] buf = new byte[1024];
+        this.tableRaf.seek(0L);
+        for (long l = fullSize / 1024L; l >= 0L; l--) {
+            this.tableRaf.write(buf);
+        }
+    }
+
+    @Override
+    protected void doSave() throws IOException {
+        //no action is required
+    }
+
+    @Override
+    protected long getDiskValue(long hashBits) throws IOException {
+        long pos = hashBits;
+        pos *= this.pointerBytes;
+        ByteBuffer buffer = this.valueBufferCache.get();
+        buffer.clear();
+        this.tableChannel.read(buffer, pos);
+        buffer.rewind();
+        switch (this.pointerBytes)  {
+            case 1:
+                return buffer.get() & 0xFFL;
+            case 2:
+                return buffer.getShort() & 0xFFFFL;
+            case 3:
+                return (buffer.get() & 0xFFL) |
+                        ((buffer.get() & 0xFFL) << 8L) |
+                        ((buffer.get() & 0xFFL) << 16L);
+            case 4:
+                return buffer.getInt() & 0xFFFFFFFFL;
+            case 5:
+                return (buffer.get() & 0xFFL) |
+                        ((buffer.get() & 0xFFL) << 8L) |
+                        ((buffer.get() & 0xFFL) << 16L) |
+                        ((buffer.get() & 0xFFL) << 24L) |
+                        ((buffer.get() & 0xFFL) << 32L);
+            case 6:
+                return (buffer.get() & 0xFFL) |
+                        ((buffer.get() & 0xFFL) << 8L) |
+                        ((buffer.get() & 0xFFL) << 16L) |
+                        ((buffer.get() & 0xFFL) << 24L) |
+                        ((buffer.get() & 0xFFL) << 32L) |
+                        ((buffer.get() & 0xFFL) << 40L);
+            case 7:
+                return (buffer.get() & 0xFFL) |
+                        ((buffer.get() & 0xFFL) << 8L) |
+                        ((buffer.get() & 0xFFL) << 16L) |
+                        ((buffer.get() & 0xFFL) << 24L) |
+                        ((buffer.get() & 0xFFL) << 32L) |
+                        ((buffer.get() & 0xFFL) << 40L) |
+                        ((buffer.get() & 0xFFL) << 48L);
+            case 8:
+                return buffer.getLong();
+        }
+        throw new IllegalStateException();
+    }
+
+    @Override
+    protected void setDiskValue(long hashBits, long val) throws IOException {
+        long pos = hashBits;
+        pos *= this.pointerBytes;
+        ByteBuffer buffer = this.valueBufferCache.get();
+        buffer.clear();
+        switch (this.pointerBytes)  {
+            case 1: {
+                buffer.put((byte) (val & 0xFFL));
+            }
+            break;
+            case 2: {
+                buffer.putShort((short) (val & 0xFFFFL));
+            }
+            break;
+            case 3: {
+                buffer.put((byte) (val & 0xFFL));
+                buffer.put((byte) ((val >>> 8L) & 0xFFL));
+                buffer.put((byte) ((val >>> 16L) & 0xFFL));
+            }
+            break;
+            case 4: {
+                buffer.putInt((int) (val & 0xFFFFFFFFL));
+            }
+            break;
+            case 5: {
+                buffer.put((byte) (val & 0xFFL));
+                buffer.put((byte) ((val >>> 8L) & 0xFFL));
+                buffer.put((byte) ((val >>> 16L) & 0xFFL));
+                buffer.put((byte) ((val >>> 24L) & 0xFFL));
+                buffer.put((byte) ((val >>> 32L) & 0xFFL));
+            }
+            break;
+            case 6: {
+                buffer.put((byte) (val & 0xFFL));
+                buffer.put((byte) ((val >>> 8L) & 0xFFL));
+                buffer.put((byte) ((val >>> 16L) & 0xFFL));
+                buffer.put((byte) ((val >>> 24L) & 0xFFL));
+                buffer.put((byte) ((val >>> 32L) & 0xFFL));
+                buffer.put((byte) ((val >>> 40L) & 0xFFL));
+            }
+            break;
+            case 7: {
+                buffer.put((byte) (val & 0xFFL));
+                buffer.put((byte) ((val >>> 8L) & 0xFFL));
+                buffer.put((byte) ((val >>> 16L) & 0xFFL));
+                buffer.put((byte) ((val >>> 24L) & 0xFFL));
+                buffer.put((byte) ((val >>> 32L) & 0xFFL));
+                buffer.put((byte) ((val >>> 40L) & 0xFFL));
+                buffer.put((byte) ((val >>> 48L) & 0xFFL));
+            }
+            break;
+            case 8: {
+                buffer.putLong(val);
+            }
+            break;
+            default:
+                throw new IllegalStateException();
+        }
+        buffer.flip();
+        this.tableChannel.write(buffer, pos);
+    }
 }

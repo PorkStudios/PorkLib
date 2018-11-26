@@ -57,8 +57,8 @@ public class PorkServer implements Server {
     }
 
     @Override
-    public void broadcast(@NonNull Packet packet, boolean blocking, Void postSendCallback)  {
-        this.manager.broadcast(packet, blocking, postSendCallback);
+    public void broadcast(@NonNull Packet packet, boolean blocking, Void callback)  {
+        this.manager.broadcast(packet, blocking, callback);
     }
 
     @Override

@@ -13,19 +13,34 @@
  *
  */
 
-repositories {
-    maven   {
-        name = "NukkitX Snapshots"
-        url = "https://repo.nukkitx.com/snapshot/"
-    }
-}
+package net.daporkchop.lib.network.util.reliability;
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile project(":crypto")
-    compile project(":primitive")
-    compile project(":logging")
-
-    compile "com.nukkitx.network:raknet:$raknetVersion"
+/**
+ * Allows specifying the reliability that a packet will arrive at its destination.
+ * <p>
+ * Note: when using TCP, this has no effect. The obvious reason is that TCP is effectively {@link Reliability#RELIABLE_ORDERED} :P
+ *
+ * @author DaPorkchop_
+ */
+public enum Reliability {
+    /**
+     * No guarantees that the data will arrive
+     */
+    UNRELIABLE,
+    /**
+     * No guarantees that the data will arrive, however when it arrives, older packets will be discarded
+     */
+    UNRELIABLE_SEQUENCED,
+    /**
+     * Guarantees that the packets will arrive
+     */
+    RELIABLE,
+    /**
+     * Guarantees that the packets will arrive, however when they arrive, older packets will be discarded
+     */
+    RELIABLE_SEQUENCED,
+    /**
+     * Guarantees that the packets will arrive and be processed in the order they were sent in
+     */
+    RELIABLE_ORDERED;
 }

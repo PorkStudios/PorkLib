@@ -100,8 +100,8 @@ public class PorkClient implements Client, Logging {
     }
 
     @Override
-    public void send(@NonNull Packet packet, boolean blocking, Void postSendCallback) {
-        this.manager.send(packet, blocking, postSendCallback);
+    public void send(@NonNull Packet packet, boolean blocking, Void callback) {
+        this.manager.send(packet, blocking, callback);
     }
 
     @Override

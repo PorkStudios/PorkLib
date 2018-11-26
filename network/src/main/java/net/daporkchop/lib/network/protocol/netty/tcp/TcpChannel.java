@@ -13,19 +13,47 @@
  *
  */
 
-repositories {
-    maven   {
-        name = "NukkitX Snapshots"
-        url = "https://repo.nukkitx.com/snapshot/"
+package net.daporkchop.lib.network.protocol.netty.tcp;
+
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.common.function.Void;
+import net.daporkchop.lib.network.channel.Channel;
+import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.util.reliability.Reliability;
+
+/**
+ * A simple implementation of {@link Channel} for a TCP session.
+ * <p>
+ * As TCP only supports full ordering and reliability, packets sent through this channel will not respect the reliability setting
+ * given by the user.
+ *
+ * @author DaPorkchop_
+ */
+@RequiredArgsConstructor
+@Getter
+public class TcpChannel implements Channel {
+    @NonNull
+    private final WrapperNioSocketChannel realChannel;
+
+    @Override
+    public void send(@NonNull Packet packet, boolean blocking, Void callback, Reliability reliability) {
+        this.realChannel.send(packet, blocking, callback);
     }
-}
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile project(":crypto")
-    compile project(":primitive")
-    compile project(":logging")
+    @Override
+    public Reliability getReliability() {
+        return Reliability.RELIABLE_ORDERED;
+    }
 
-    compile "com.nukkitx.network:raknet:$raknetVersion"
+    @Override
+    public boolean isReliabilityRespected() {
+        return false;
+    }
+
+    @Override
+    public int getId() {
+        return 0; //TCP only has one channel
+    }
 }

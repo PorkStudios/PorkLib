@@ -13,19 +13,44 @@
  *
  */
 
-repositories {
-    maven   {
-        name = "NukkitX Snapshots"
-        url = "https://repo.nukkitx.com/snapshot/"
+package net.daporkchop.lib.common.util;
+
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.NonNull;
+
+import java.util.function.Supplier;
+
+/**
+ * Allows for having a reference to an object that will not be created until required
+ *
+ * @author DaPorkchop_
+ */
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class LateReference<T> {
+    private T value;
+
+    public static <T> LateReference<T> empty() {
+        return new LateReference<>(null);
     }
-}
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile project(":crypto")
-    compile project(":primitive")
-    compile project(":logging")
+    public static <T> LateReference<T> create(@NonNull T value) {
+        return new LateReference<>(value);
+    }
 
-    compile "com.nukkitx.network:raknet:$raknetVersion"
+    public boolean contains()   {
+        return this.value != null;
+    }
+
+    public T get()  {
+        return this.value;
+    }
+
+    public T getOrDefault(T def)    {
+        return this.value == null ? def : this.value;
+    }
+
+    public T computeIfAbsent(@NonNull Supplier<T> func) {
+        return this.value == null ? this.value = func.get() : this.value;
+    }
 }

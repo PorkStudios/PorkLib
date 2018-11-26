@@ -82,7 +82,7 @@ public interface Connection {
      * Open a new {@link Channel} on this connection
      *
      * @param reliability the desired channel reliability. depending on the underlying network protocol, this reliability may be
-     *                    enforced for all packet, used merely as a default, or ignored entirely.
+     *                    enforced for all packets, used merely as a default, or ignored entirely.
      * @return a new {@link Channel}
      */
     Channel openChannel(@NonNull Reliability reliability);

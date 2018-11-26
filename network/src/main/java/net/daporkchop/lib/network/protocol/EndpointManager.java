@@ -22,36 +22,98 @@ import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.concurrent.Executor;
 
 /**
+ * Manages a specific endpoint
+ *
  * @author DaPorkchop_
+ * @see ProtocolManager
  */
 public interface EndpointManager {
+    /**
+     * Closes the endpoint, removing all connected sessions
+     */
     void close();
 
+    /**
+     * Checks if this endpoint is running
+     *
+     * @return whether or not this endpoint is running
+     */
     boolean isRunning();
 
     default boolean isClosed() {
         return !this.isRunning();
     }
 
+    /**
+     * Starts this endpoint
+     *
+     * @param address  the address to bind/connect to
+     * @param executor the executor to use for threading
+     * @param endpoint the actual endpoint object
+     */
     void start(@NonNull InetSocketAddress address, @NonNull Executor executor, @NonNull Endpoint endpoint);
 
+    /**
+     * Manages a server
+     */
     interface ServerEndpointManager extends EndpointManager {
+        /**
+         * Gets a list of all currently open connections to this server
+         *
+         * @param protocolClass the class of the protocol whose connections are to be returned
+         * @param <C>           the connection type
+         * @return all currently open connections to this server
+         */
         <C extends UserConnection> Collection<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass);
 
+        /**
+         * Send a message to all connected clients
+         *
+         * @param packet   the packet to send
+         * @param blocking whether or not this method will block the invoking thread until the packet has been flushed
+         * @param callback a function to run once the packet has been flushed
+         */
         void broadcast(@NonNull Packet packet, boolean blocking, Void callback);
 
+        /**
+         * Closes the endpoint, removing all connected sessions
+         *
+         * @param reason the reason for disconnecting
+         * @see EndpointManager#close()
+         */
         void close(String reason);
+
+        @Override
+        default void close() {
+            this.close(null);
+        }
     }
 
+    /**
+     * Manages a client
+     */
     interface ClientEndpointManager extends EndpointManager {
+        /**
+         * Gets the client's connection
+         *
+         * @param protocolClass the class of the protocol whose connection is to be returned
+         * @param <C>           the connection type
+         * @return the client's connection
+         */
         <C extends UserConnection> C getConnection(@NonNull Class<? extends UserProtocol<C>> protocolClass);
 
+        /**
+         * Send a packet to the server
+         *
+         * @param packet   the packet to send
+         * @param blocking whether or not this method will block the invoking thread until the packet has been flushed
+         * @param callback a function to run once the packet has been flushed
+         */
         void send(@NonNull Packet packet, boolean blocking, Void callback);
     }
 }

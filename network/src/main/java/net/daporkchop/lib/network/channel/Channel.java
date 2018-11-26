@@ -17,7 +17,9 @@ package net.daporkchop.lib.network.channel;
 
 import lombok.NonNull;
 import net.daporkchop.lib.common.function.Void;
+import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 
 /**
@@ -87,6 +89,15 @@ public interface Channel {
      * @return this channel's id
      */
     int getId();
+
+    /**
+     * Gets a {@link UserConnection} from this channel's underlying connection.
+     *
+     * @param protocolClass the class of the protocol whose connection is to be returned
+     * @param <C>           the type of the connection to get
+     * @return the connection for the protocol which was given as a parameter, or null if the protocol isn't registered to this connection
+     */
+    <C extends UserConnection> C getConnection(@NonNull Class<? extends UserProtocol<C>> protocolClass);
 
     //
     //

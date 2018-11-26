@@ -63,7 +63,7 @@ public class HandshakeResponsePacket implements Packet {
         }
     }
 
-    public static class HandshakeReponseCodec implements Codec<HandshakeResponsePacket, PorkConnection> {
+    public static class HandshakeReponseCodec implements Codec.Simple<HandshakeResponsePacket, PorkConnection> {
         @Override
         public void handle(@NonNull HandshakeResponsePacket packet, @NonNull PorkConnection connection) {
             PacketRegistry registry = connection.getEndpoint().getPacketRegistry();

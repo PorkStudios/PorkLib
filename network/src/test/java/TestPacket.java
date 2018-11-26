@@ -40,9 +40,9 @@ public class TestPacket implements Packet {
         out.writeUTF(this.message);
     }
 
-    public static class TestCodec implements Codec<TestPacket, TestConnection>, Logging {
+    public static class TestCodec implements Codec.Simple<TestPacket, TestConnection>, Logging {
         @Override
-        public void handle(TestPacket packet, TestConnection connection) {
+        public void handle(@NonNull TestPacket packet, @NonNull TestConnection connection) {
             logger.info("[${0}] Received test packet: ${1}", connection.getEndpoint().getName(), packet.message);
         }
 

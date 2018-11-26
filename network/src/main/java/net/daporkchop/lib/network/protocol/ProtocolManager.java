@@ -22,10 +22,20 @@ import net.daporkchop.lib.network.endpoint.Endpoint;
 import java.net.InetSocketAddress;
 
 /**
+ * Implements a network protocol
+ *
  * @author DaPorkchop_
  */
 public interface ProtocolManager {
+    /**
+     * Create and get a new {@link net.daporkchop.lib.network.protocol.EndpointManager.ServerEndpointManager}
+     * @return a new server manager
+     */
     EndpointManager.ServerEndpointManager createServerManager();
 
+    /**
+     * Create and get a new {@link net.daporkchop.lib.network.protocol.EndpointManager.ClientEndpointManager}
+     * @return a new client manager
+     */
     EndpointManager.ClientEndpointManager createClientManager();
 }

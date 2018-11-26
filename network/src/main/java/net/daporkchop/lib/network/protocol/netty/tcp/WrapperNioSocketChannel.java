@@ -48,7 +48,7 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements Underly
     private final Map<Class<? extends UserProtocol>, UserConnection> connections = new IdentityHashMap<>();
     @NonNull
     private final Endpoint endpoint;
-    private final LateReference<TcpChannel> channel = LateReference.empty();
+    private final TcpChannel channel = new TcpChannel(this);
 
     public WrapperNioSocketChannel(SelectorProvider provider, @NonNull Endpoint endpoint) {
         super(provider);
@@ -99,12 +99,12 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements Underly
 
     @Override
     public Channel openChannel(Reliability reliability) {
-        return this.channel.computeIfAbsent(() -> new TcpChannel(this));
+        return this.channel;
     }
 
     @Override
     public Channel getOpenChannel(int id) {
-        return id == 0 ? this.channel.get() : null;
+        return id == 0 ? this.channel : null;
     }
 
     //

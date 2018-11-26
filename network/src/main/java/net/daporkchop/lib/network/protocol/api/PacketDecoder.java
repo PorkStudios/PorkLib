@@ -13,36 +13,50 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.netty;
+package net.daporkchop.lib.network.protocol.api;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.MessageToByteEncoder;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.NettyByteBufUtil;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.endpoint.client.PorkClient;
+import net.daporkchop.lib.network.packet.Codec;
 import net.daporkchop.lib.network.packet.Packet;
-import net.daporkchop.lib.network.protocol.api.PacketEncoder;
 import net.daporkchop.lib.network.protocol.pork.PorkProtocol;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 /**
+ * Decodes packets ye dummy
+ *
+ * Hah! You came here looking for a useful javadoc, but all you got was this LOUSY insult!
+ *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-public class NettyPacketEncoder extends MessageToByteEncoder<Packet> implements PacketEncoder {
-    @NonNull
-    private final Endpoint endpoint;
+public interface PacketDecoder extends Logging {
+    <E extends Endpoint> E getEndpoint();
 
-    @Override
-    protected void encode(ChannelHandlerContext ctx, Packet packet, ByteBuf buf) throws Exception {
-        this.writePacket((UnderlyingNetworkConnection) ctx.channel(), packet, NettyByteBufUtil.wrapOut(buf));
+    default Packet getPacket(@NonNull UnderlyingNetworkConnection connection, @NonNull InputStream stream) throws IOException {
+        // DataIn in = DataIn.wrap(((UnderlyingNetworkConnection) ctx.channel()).getUserConnection(PorkProtocol.class).getPacketReprocessor().wrap(NettyByteBufUtil.wrapIn(buf)))
+        try (DataIn in = DataIn.wrap(connection.getUserConnection(PorkProtocol.class).getPacketReprocessor().wrap(stream)))  {
+            int id = in.readVarInt(true);
+            Codec<? extends Packet, ? extends UserConnection> codec = this.getEndpoint().getPacketRegistry().getCodec(id);
+            if (codec == null) {
+                throw this.exception("Received unknown packet id ${0}", id);
+            }
+            Packet packet = codec.createInstance();
+            packet.read(in);
+            return packet;
+        } catch (Exception e) {
+            logger.error(e);
+            if (this.getEndpoint() instanceof PorkClient) {
+                ((PorkClient) this.getEndpoint()).postConnectCallback(e);
+            }
+            connection.closeConnection();
+            throw e;
+        }
     }
 }

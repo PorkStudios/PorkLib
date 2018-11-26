@@ -17,6 +17,7 @@ package net.daporkchop.lib.network.packet;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.conn.UserConnection;
 
 import java.util.function.Supplier;
@@ -25,10 +26,18 @@ import java.util.function.Supplier;
  * @author DaPorkchop_
  */
 public interface Codec<P extends Packet, C extends UserConnection> extends PacketHandler<P, C> {
+    /**
+     * Create a new instance of this codec's packet
+     *
+     * @return a new, blank instance of this codec's packet
+     */
     P createInstance();
 
+    interface Simple<P extends Packet, C extends UserConnection> extends PacketHandler.Simple<P, C>, Codec<P, C>    {
+    }
+
     @RequiredArgsConstructor
-    class SimpleCodec<P extends Packet, C extends UserConnection> implements Codec<P, C>   {
+    class SimpleCodec<P extends Packet, C extends UserConnection> implements Codec<P, C> {
         @NonNull
         private final PacketHandler<P, C> handler;
 
@@ -36,8 +45,8 @@ public interface Codec<P extends Packet, C extends UserConnection> extends Packe
         private final Supplier<P> packetSupplier;
 
         @Override
-        public void handle(P packet, C connection) {
-            this.handler.handle(packet, connection);
+        public void handle(@NonNull P packet, @NonNull Channel channel, @NonNull C connection) {
+            this.handler.handle(packet, channel, connection);
         }
 
         @Override

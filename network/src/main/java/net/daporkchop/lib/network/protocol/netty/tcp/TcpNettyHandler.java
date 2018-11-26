@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.netty;
+package net.daporkchop.lib.network.protocol.netty.tcp;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -34,10 +34,12 @@ import net.daporkchop.lib.network.protocol.pork.packet.HandshakeInitPacket;
 import net.daporkchop.lib.network.util.ConnectionState;
 
 /**
+ * Handles events on a connection managed by {@link TcpProtocolManager}
+ *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-public class NettyHandler extends ChannelInboundHandlerAdapter implements Logging {
+public class TcpNettyHandler extends ChannelInboundHandlerAdapter implements Logging {
     @NonNull
     private final Endpoint endpoint;
 
@@ -63,7 +65,11 @@ public class NettyHandler extends ChannelInboundHandlerAdapter implements Loggin
 
         UserConnection connection = ((UnderlyingNetworkConnection) ctx.channel()).getUserConnection(protocolClass);
         logger.debug("Handling ${0}...", packet.getClass());
-        registry.getCodec(packet.getClass()).handle(packet, connection);
+        registry.getCodec(packet.getClass()).handle(
+                packet,
+                connection.getOpenChannel(0), //this has pretty much no performance hit due to the fact that WrapperNioSocketChannel#getOpenChannel simply returns its channel instance
+                connection
+        );
     }
 
     @Override

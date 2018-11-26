@@ -35,7 +35,6 @@ import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.protocol.EndpointManager;
 import net.daporkchop.lib.network.protocol.ProtocolManager;
-import net.daporkchop.lib.network.protocol.netty.NettyHandler;
 import net.daporkchop.lib.network.protocol.netty.NettyPacketDecoder;
 import net.daporkchop.lib.network.protocol.netty.NettyPacketEncoder;
 import net.daporkchop.lib.network.protocol.pork.packet.DisconnectPacket;
@@ -216,7 +215,7 @@ public class TcpProtocolManager implements ProtocolManager {
             c.pipeline().addLast(new LengthFieldBasedFrameDecoder(0xFFFFFF, 0, 3, 0, 3));
             c.pipeline().addLast(new NettyPacketEncoder(this.endpoint));
             c.pipeline().addLast(new NettyPacketDecoder(this.endpoint));
-            c.pipeline().addLast(new NettyHandler(this.endpoint));
+            c.pipeline().addLast(new TcpNettyHandler(this.endpoint));
             this.registerHook.accept(c);
 
             WrapperNioSocketChannel realConnection = (WrapperNioSocketChannel) c;

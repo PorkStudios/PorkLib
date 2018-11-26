@@ -17,15 +17,21 @@ package net.daporkchop.lib.network.endpoint.client;
 
 import lombok.NonNull;
 import net.daporkchop.lib.network.EndpointType;
+import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.conn.Connection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.UserProtocol;
+import net.daporkchop.lib.network.protocol.pork.PorkConnection;
+import net.daporkchop.lib.network.protocol.pork.PorkProtocol;
+import net.daporkchop.lib.network.util.reliability.Reliability;
 
 import java.util.Collection;
 import java.util.Collections;
 
 /**
+ * Represents a network client
+ *
  * @author DaPorkchop_
  */
 public interface Client extends Endpoint, Connection {
@@ -60,5 +66,15 @@ public interface Client extends Endpoint, Connection {
     @SuppressWarnings("unchecked")
     default <E extends Endpoint> E getEndpoint() {
         return (E) this;
+    }
+
+    @Override
+    default Channel openChannel(@NonNull Reliability reliability) {
+        return this.getConnection(PorkProtocol.class).openChannel(reliability);
+    }
+
+    @Override
+    default Channel getOpenChannel(int id) {
+        return this.getConnection(PorkProtocol.class).getOpenChannel(id);
     }
 }

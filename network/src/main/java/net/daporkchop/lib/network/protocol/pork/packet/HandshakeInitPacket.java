@@ -54,7 +54,7 @@ public class HandshakeInitPacket implements Packet {
         out.writeUTF(CompressionHelper.getName(this.compression));
     }
 
-    public static class HandshakeInitCodec implements Codec<HandshakeInitPacket, PorkConnection>    {
+    public static class HandshakeInitCodec implements Codec.Simple<HandshakeInitPacket, PorkConnection>    {
         @Override
         public void handle(@NonNull HandshakeInitPacket packet, @NonNull PorkConnection connection) {
             connection.setState(ConnectionState.HANDSHAKE);

@@ -16,11 +16,39 @@
 package net.daporkchop.lib.network.packet;
 
 import lombok.NonNull;
+import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.conn.UserConnection;
 
 /**
+ * Handles received packets
+ *
  * @author DaPorkchop_
  */
 public interface PacketHandler<P extends Packet, C extends UserConnection> {
-    void handle(@NonNull P packet, @NonNull C connection);
+    /**
+     * Handles a packet
+     *
+     * @param packet     the packet that was received
+     * @param channel    the channel the packet was received on
+     * @param connection the connection the packet was received on
+     */
+    void handle(@NonNull P packet, @NonNull Channel channel, @NonNull C connection);
+
+    /**
+     * A shorthand wrapper around {@link PacketHandler} for protocol's that don't make use of channels
+     */
+    interface Simple<P extends Packet, C extends UserConnection> extends PacketHandler<P, C> {
+        @Override
+        default void handle(@NonNull P packet, @NonNull Channel channel, @NonNull C connection) {
+            this.handle(packet, connection);
+        }
+
+        /**
+         * Handles a packet
+         *
+         * @param packet     the packet that was received
+         * @param connection the connection the packet was received on
+         */
+        void handle(@NonNull P packet, @NonNull C connection);
+    }
 }

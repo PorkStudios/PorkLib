@@ -19,10 +19,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.EndpointType;
-import net.daporkchop.lib.network.conn.Connection;
 import net.daporkchop.lib.network.conn.UserConnection;
-import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.PacketRegistry;
@@ -33,11 +30,12 @@ import net.daporkchop.lib.network.protocol.pork.PorkProtocol;
 import net.daporkchop.lib.network.protocol.pork.packet.DisconnectPacket;
 
 import java.net.InetSocketAddress;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
 /**
+ * The default implementation of {@link Client}. This contains everything required to offload work to
+ * various protocol implementations.
+ *
  * @author DaPorkchop_
  */
 @Getter
@@ -73,9 +71,9 @@ public class PorkClient implements Client, Logging {
         return this.manager.isRunning();
     }
 
-    public void postConnectCallback(Throwable t)   {
-        if (this.connectWaiter.isDone())    {
-            if (t == null)  {
+    public void postConnectCallback(Throwable t) {
+        if (this.connectWaiter.isDone()) {
+            if (t == null) {
                 throw new IllegalStateException("already connected! why the heck are you even trying to run this method ye dummy?");
             }
         } else {

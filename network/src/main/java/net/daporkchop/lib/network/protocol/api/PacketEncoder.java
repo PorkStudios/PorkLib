@@ -13,43 +13,44 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.netty;
+package net.daporkchop.lib.network.protocol.api;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.ByteToMessageDecoder;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.NettyByteBufUtil;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
+import net.daporkchop.lib.network.endpoint.client.PorkClient;
 import net.daporkchop.lib.network.packet.Packet;
-import net.daporkchop.lib.network.protocol.api.PacketDecoder;
+import net.daporkchop.lib.network.protocol.pork.PorkProtocol;
 
-import java.util.List;
+import java.io.IOException;
+import java.io.OutputStream;
 
 /**
+ * Encodes packets
+ *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-public class NettyPacketDecoder extends ByteToMessageDecoder implements PacketDecoder {
-    @NonNull
-    private final Endpoint endpoint;
+public interface PacketEncoder extends Logging {
+    <E extends Endpoint> E getEndpoint();
 
-    private static void readRemainingBuffer(@NonNull ByteBuf buf) {
-        while (buf.isReadable()) {
-            buf.readByte();
+    default void writePacket(@NonNull UnderlyingNetworkConnection connection, @NonNull Packet packet, @NonNull OutputStream stream) throws IOException  {
+        try (DataOut out = DataOut.wrap(connection.getUserConnection(PorkProtocol.class).getPacketReprocessor().wrap(stream)))   {
+            logger.debug("[${0}] Writing ${1}...", this.getEndpoint().getName(), packet.getClass());
+            int id = this.getEndpoint().getPacketRegistry().getId(packet.getClass());
+            if (id == -1)   {
+                throw this.exception("Unregistered outbound packet: ${0}", packet.getClass());
+            }
+            out.writeVarInt(id, true);
+            packet.write(out);
+        } catch (Exception e)   {
+            logger.error(e);
+            if (this.getEndpoint() instanceof PorkClient)    {
+                ((PorkClient) this.getEndpoint()).postConnectCallback(e);
+            }
+            connection.closeConnection();
+            throw e;
         }
-    }
-
-    @Override
-    protected void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> list) throws Exception {
-        int size = buf.readableBytes();
-        Packet packet = this.getPacket((UnderlyingNetworkConnection) ctx.channel(), NettyByteBufUtil.wrapIn(buf));
-        logger.debug("[${0}] Read packet: ${1} (${2} bytes)", this.endpoint.getName(), packet.getClass(), size - buf.readableBytes());
-        list.add(packet);
-        readRemainingBuffer(buf);
     }
 }

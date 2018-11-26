@@ -30,11 +30,16 @@ import java.nio.channels.FileChannel;
  * the entire hash table file is mapped into memory.
  * <p>
  * This can use a significant amount of memory for large tables. If you want a large table and can accept a
- * small decrease in performance, look at the plain old {@link HashTableIndexLookup}.
+ * small decrease in performance, look at {@link HashTableIndexLookup}.
+ *
+ * This does not allow for tables than 2^31 bytes. To use a massive table of that size (although if you're
+ * doing that, you're probably doing something wrong), use {@link HashTableIndexLookup}
  * <p>
  * This does not check for hash collisions! If you would like hash collisions to be checked, use //TODO
  *
  * @author DaPorkchop_
+ * @see HashTableIndexLookup
+ * @see BaseHashTableIndexLookup
  */
 public class MappedHashTableIndexLookup<K> extends BaseHashTableIndexLookup<K> {
     private MappedByteBuffer buffer;
@@ -48,7 +53,7 @@ public class MappedHashTableIndexLookup<K> extends BaseHashTableIndexLookup<K> {
 
     @Override
     protected void doInit(@NonNull DBMap<K, ?> map, @NonNull File file) throws IOException {
-        long fullSize = (long) this.tableSize * (long) this.pointerBytes;
+        long fullSize = this.tableSize * (long) this.pointerBytes;
         this.buffer = this.tableChannel.map(FileChannel.MapMode.READ_WRITE, 0L, fullSize);
     }
 
@@ -68,30 +73,6 @@ public class MappedHashTableIndexLookup<K> extends BaseHashTableIndexLookup<K> {
             this.buffer.put(i, (byte) 0);
         }
     }
-
-    /*@Override
-    protected long doGet(@NonNull K key) throws IOException {
-        return this.getDiskValue(key);
-    }
-
-    @Override
-    protected void doSet(@NonNull K key, long val) throws IOException {
-        this.setDiskValue(key, val);
-    }
-
-    @Override
-    protected boolean doContains(@NonNull K key) throws IOException {
-        return this.getDiskValue(key) != 0L;
-    }
-
-    @Override
-    protected long doRemove(@NonNull K key) throws IOException {
-        byte[] hash = this.getHash(key);
-        long relevantBits = this.getRelevantHashBits(hash);
-        long oldHash = this.getDiskValue(relevantBits);
-        this.setDiskValue(relevantBits, 0L);
-        return oldHash;
-    }*/
 
     @Override
     protected long getDiskValue(long hashBits)  throws IOException{

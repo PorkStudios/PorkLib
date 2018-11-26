@@ -20,6 +20,7 @@ import net.daporkchop.lib.db.container.DBAtomicLong;
 import net.daporkchop.lib.db.container.map.DBMap;
 import net.daporkchop.lib.db.container.map.data.OneTimeWriteDataLookup;
 import net.daporkchop.lib.binary.data.impl.BasicSerializer;
+import net.daporkchop.lib.db.container.map.index.hashtable.HashTableIndexLookup;
 import net.daporkchop.lib.db.container.map.index.hashtable.MappedHashTableIndexLookup;
 import net.daporkchop.lib.encoding.basen.Base58;
 import net.daporkchop.lib.encoding.compression.Compression;
@@ -122,10 +123,10 @@ public class DBTest {
     @Test
     @SuppressWarnings("unchecked")
     public void test() throws IOException {
-        Random r = ThreadLocalRandom.current();
+        Random r = new Random(123456789L);
         long longVal = r.nextLong();
         Map<String, byte[]> data = new Hashtable<>();
-        for (int i = 0; i < 15; i++) {
+        for (int i = 0; i < 513; i++) {
             byte[] b1 = new byte[16];
             byte[] b2 = new byte[1024];
             r.nextBytes(b1);
@@ -151,7 +152,7 @@ public class DBTest {
                 DBMap<String, byte[]> dbMap = DBMap.<String, byte[]>builder(db, "map")
                         .setValueSerializer(ByteArraySerializer.INSTANCE)
                         //.setDataLookup(new OneTimeWriteDataLookup())
-                        .setIndexLookup(new MappedHashTableIndexLookup<>(16, 4))
+                        .setIndexLookup(new HashTableIndexLookup<>(16, 4))
                         //.setCompression(Compression.BZIP2_NORMAL)
                         .build();
 
@@ -176,7 +177,7 @@ public class DBTest {
                     DBMap<String, byte[]> dbMap = DBMap.<String, byte[]>builder(db, "map")
                             .setValueSerializer(ByteArraySerializer.INSTANCE)
                             //.setDataLookup(new OneTimeWriteDataLookup())
-                            .setIndexLookup(new MappedHashTableIndexLookup<>(16, 4))
+                            .setIndexLookup(new HashTableIndexLookup<>(16, 4))
                             //.setCompression(Compression.BZIP2_NORMAL)
                             .build();
 

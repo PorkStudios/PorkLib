@@ -38,7 +38,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * @author DaPorkchop_
  */
 public abstract class BaseHashTableIndexLookup<K> implements IndexLookup<K> {
-    protected static final ThreadLocal<ByteBuffer> bufferCache = ThreadLocal.withInitial(() -> ByteBuffer.allocateDirect(8));
+    protected final ThreadLocal<ByteBuffer> valueBufferCache;
 
     /**
      * The number of bits from the hash that will be used as an offset for looking up values
@@ -56,7 +56,6 @@ public abstract class BaseHashTableIndexLookup<K> implements IndexLookup<K> {
     @Getter
     protected final int pointerBytes;
     protected final ReadWriteLock lock = new ReentrantReadWriteLock();
-    protected ThreadLocal<byte[]> hashCache;
     protected KeyHasher<K> keyHasher;
     @Getter
     protected File file;
@@ -72,31 +71,25 @@ public abstract class BaseHashTableIndexLookup<K> implements IndexLookup<K> {
         this.tableSize = (1L << usedBits) * (long) pointerBytes;
         this.usedBits = usedBits;
         this.pointerBytes = pointerBytes;
+        this.valueBufferCache = ThreadLocal.withInitial(() -> ByteBuffer.allocateDirect(this.pointerBytes));
     }
 
     @Override
     public void init(@NonNull DBMap<K, ?> map, @NonNull File file) throws IOException {
         this.lock.writeLock().lock();
         try {
-            if (this.hashCache != null) {
+            if (this.tableRaf != null) {
                 throw new IllegalStateException("already initialized!");
-            }
-            {
-                int len = map.getKeyHasher().getHashLength();
-                if ((len << 8) < this.usedBits) {
-                    throw new IllegalStateException(String.format("This lookup requires a hash of at least %d bits, but the current key hasher generates hashes %d bits long!", this.usedBits, len << 8));
-                }
-                this.hashCache = ThreadLocal.withInitial(() -> new byte[len]);
             }
             this.keyHasher = map.getKeyHasher();
             this.file = file;
             this.tableRaf = new RandomAccessFile(map.getFile("index/table"), "rw");
-            long fullSize = (long) this.pointerBytes * (long) this.tableSize;
+            long fullSize = (long) this.pointerBytes * this.tableSize;
             if (this.tableRaf.length() < fullSize) {
                 //grow file
                 byte[] buf = new byte[1024];
                 this.tableRaf.seek(0L);
-                for (long l = fullSize / 1024L - 1L; l >= 0L; l--) {
+                for (long l = fullSize / 1024L; l >= 0L; l--) {
                     this.tableRaf.write(buf);
                 }
             }
@@ -114,7 +107,7 @@ public abstract class BaseHashTableIndexLookup<K> implements IndexLookup<K> {
     public void close() throws IOException {
         this.lock.writeLock().lock();
         try {
-            if (this.hashCache == null) {
+            if (this.tableRaf == null) {
                 throw new IllegalStateException("already closed!");
             }
 
@@ -126,7 +119,6 @@ public abstract class BaseHashTableIndexLookup<K> implements IndexLookup<K> {
             this.tableChannel = null;
             this.tableRaf = null;
             this.file = null;
-            this.hashCache = null;
             this.keyHasher = null;
         } finally {
             this.lock.writeLock().unlock();
@@ -167,7 +159,7 @@ public abstract class BaseHashTableIndexLookup<K> implements IndexLookup<K> {
         }
     }
 
-    protected void doSet(@NonNull K key, long val) throws IOException   {
+    protected void doSet(@NonNull K key, long val) throws IOException {
         this.setDiskValue(key, val);
     }
 
@@ -195,7 +187,7 @@ public abstract class BaseHashTableIndexLookup<K> implements IndexLookup<K> {
         }
     }
 
-    protected long doRemove(@NonNull K key) throws IOException  {
+    protected long doRemove(@NonNull K key) throws IOException {
         byte[] hash = this.getHash(key);
         long relevantBits = this.getRelevantHashBits(hash);
         long oldHash = this.getDiskValue(relevantBits);
@@ -256,18 +248,18 @@ public abstract class BaseHashTableIndexLookup<K> implements IndexLookup<K> {
     public void setDirty(boolean dirty) {
     }
 
-    protected byte[] getHash(@NonNull K key)    {
+    protected byte[] getHash(@NonNull K key) {
         return this.keyHasher.hash(key);
     }
 
-    protected long getRelevantHashBits(@NonNull K key)   {
+    protected long getRelevantHashBits(@NonNull K key) {
         return this.getRelevantHashBits(this.getHash(key));
     }
 
-    protected long getRelevantHashBits(@NonNull byte[] hash)   {
+    protected long getRelevantHashBits(@NonNull byte[] hash) {
         //get required number of bytes into hash thing
         long bits = 0L;
-        for (int i = this.usedBits >> 3; i >= 0; i--)   {
+        for (int i = this.usedBits >> 3; i >= 0; i--) {
             bits = ((bits << 8L) | (hash[i] & 0xFFL));
         }
         //remove excessive bits at the end
@@ -279,17 +271,17 @@ public abstract class BaseHashTableIndexLookup<K> implements IndexLookup<K> {
         return x & ((1 << this.usedBits) - 1);*/
     }
 
-    protected long getDiskValue(@NonNull K key) throws IOException   {
+    protected long getDiskValue(@NonNull K key) throws IOException {
         return this.getDiskValue(this.getRelevantHashBits(key));
     }
 
-    protected long getDiskValue(@NonNull byte[] hash) throws IOException   {
+    protected long getDiskValue(@NonNull byte[] hash) throws IOException {
         return this.getDiskValue(this.getRelevantHashBits(hash));
     }
 
     protected abstract long getDiskValue(long hashBits) throws IOException;
 
-    protected void setDiskValue(@NonNull K key, long val) throws IOException   {
+    protected void setDiskValue(@NonNull K key, long val) throws IOException {
         this.setDiskValue(this.getRelevantHashBits(key), val);
     }
 

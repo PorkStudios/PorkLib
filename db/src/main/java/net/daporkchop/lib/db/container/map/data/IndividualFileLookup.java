@@ -39,18 +39,16 @@ public class IndividualFileLookup implements DataLookup {
     private PersistentSparseBitSet ids;
     @Getter
     private File file;
-    private File dataFile;
 
     @Override
     public void init(@NonNull DBMap<?, ?> map, @NonNull File file) throws IOException {
-        this.ids = new PersistentSparseBitSet(new File(file, "ids.bitmap"));
-        this.dataFile = new File(file, "data");
-        if (!this.dataFile.exists() && !this.dataFile.mkdirs()) {
-            throw new IllegalStateException(String.format("Couldn't create directory: %s", this.dataFile.getAbsolutePath()));
-        } else if (!this.dataFile.isDirectory()) {
-            throw new IllegalStateException(String.format("Not a directory: %s", this.dataFile.getAbsolutePath()));
-        }
         this.file = file;
+        if (!this.file.exists() && !this.file.mkdirs()) {
+            throw new IllegalStateException(String.format("Couldn't create directory: %s", this.file.getAbsolutePath()));
+        } else if (!this.file.isDirectory()) {
+            throw new IllegalStateException(String.format("Not a directory: %s", this.file.getAbsolutePath()));
+        }
+        this.ids = new PersistentSparseBitSet(new File(this.file, "ids.bitmap"));
         DataLookup.super.init(map, file);
     }
 
@@ -62,9 +60,9 @@ public class IndividualFileLookup implements DataLookup {
     @Override
     public void clear() throws IOException {
         this.ids.clear();
-        PorkUtil.rm(this.dataFile);
-        if (!this.dataFile.mkdirs()) {
-            throw new IllegalStateException(String.format("Couldn't create directory: %s", this.dataFile.getAbsolutePath()));
+        PorkUtil.rm(this.file);
+        if (!this.file.mkdirs()) {
+            throw new IllegalStateException(String.format("Couldn't create directory: %s", this.file.getAbsolutePath()));
         }
     }
 
@@ -129,7 +127,7 @@ public class IndividualFileLookup implements DataLookup {
     }
 
     protected File getFile(long id) {
-        return new File(this.dataFile, String.format(
+        return new File(this.file, String.format(
                 "%d/%d/%d/%d",
                 (id >>> 24L) & 0xFFL,
                 (id >>> 16L) & 0xFFL,

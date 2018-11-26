@@ -44,7 +44,7 @@ public interface EndpointManager {
     interface ServerEndpointManager extends EndpointManager {
         <C extends UserConnection> Collection<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass);
 
-        void broadcast(@NonNull Packet packet, boolean blocking, Void postSendCallback);
+        void broadcast(@NonNull Packet packet, boolean blocking, Void callback);
 
         void close(String reason);
     }
@@ -52,6 +52,6 @@ public interface EndpointManager {
     interface ClientEndpointManager extends EndpointManager {
         <C extends UserConnection> C getConnection(@NonNull Class<? extends UserProtocol<C>> protocolClass);
 
-        void send(@NonNull Packet packet, boolean blocking, Void postSendCallback);
+        void send(@NonNull Packet packet, boolean blocking, Void callback);
     }
 }

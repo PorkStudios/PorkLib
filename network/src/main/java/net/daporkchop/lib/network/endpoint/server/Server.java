@@ -46,23 +46,23 @@ public interface Server extends Endpoint {
         this.broadcast(packet, false, null);
     }
 
-    default void broadcast(@NonNull Packet packet, Void postSendCallback)   {
-        this.broadcast(packet, false, postSendCallback);
+    default void broadcast(@NonNull Packet packet, Void callback)   {
+        this.broadcast(packet, false, callback);
     }
 
     default void broadcastBlocking(@NonNull Packet packet)   {
         this.broadcast(packet, true, null);
     }
 
-    default void broadcastBlocking(@NonNull Packet packet, Void postSendCallback)   {
-        this.broadcast(packet, true, postSendCallback);
+    default void broadcastBlocking(@NonNull Packet packet, Void callback)   {
+        this.broadcast(packet, true, callback);
     }
 
     default void broadcast(@NonNull Packet packet, boolean blocking) {
         this.broadcast(packet, blocking, null);
     }
 
-    void broadcast(@NonNull Packet packet, boolean blocking, Void postSendCallback);
+    void broadcast(@NonNull Packet packet, boolean blocking, Void callback);
 
     @Override
     default String getName() {

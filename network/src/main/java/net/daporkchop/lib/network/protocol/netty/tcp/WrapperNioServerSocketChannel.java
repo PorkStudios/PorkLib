@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.netty.wrapper;
+package net.daporkchop.lib.network.protocol.netty.tcp;
 
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.internal.SocketUtils;
@@ -24,32 +24,16 @@ import java.nio.channels.SocketChannel;
 import java.util.List;
 
 /**
+ * This allows overriding the channel creation behavior in {@link NioServerSocketChannel} to create instances
+ * of {@link WrapperNioSocketChannel} instead of {@link io.netty.channel.socket.nio.NioSocketChannel}.
+ *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
 @Getter
-public class WrapperNioServerSocketChannel extends NioServerSocketChannel/* implements UnderlyingNetworkConnection*/ {
+public class WrapperNioServerSocketChannel extends NioServerSocketChannel {
     @NonNull
     private final Endpoint endpoint;
-
-    /*@Override
-    public void closeConnection(String reason) {
-        super.writeAndFlush(new DisconnectPacket(reason));
-        super.close();
-    }
-
-    @Override
-    public boolean isConnected() {
-        return super.isActive();
-    }
-
-    @Override
-    public void send(@NonNull Packet packet, boolean blocking) {
-        ChannelFuture future = super.write(packet);
-        if (blocking)   {
-            future.syncUninterruptibly();
-        }
-    }*/
 
     @Override
     protected int doReadMessages(List<Object> buf) throws Exception {

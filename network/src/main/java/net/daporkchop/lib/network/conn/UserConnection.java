@@ -20,9 +20,11 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import net.daporkchop.lib.common.function.Void;
+import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.protocol.pork.PorkProtocol;
+import net.daporkchop.lib.network.util.reliability.Reliability;
 
 import java.net.InetSocketAddress;
 
@@ -39,30 +41,40 @@ public abstract class UserConnection implements Connection {
     private UnderlyingNetworkConnection protocolConnection;
 
     @Override
-    public <E extends Endpoint> E getEndpoint() {
+    public final <E extends Endpoint> E getEndpoint() {
         return this.protocolConnection.getEndpoint();
     }
 
     @Override
-    public void closeConnection(String reason) {
+    public final void closeConnection(String reason) {
         //actually set the disconnect reason here
         this.protocolConnection.getUserConnection(PorkProtocol.class).setDisconnectReason(reason);
         this.protocolConnection.closeConnection(reason);
     }
 
     @Override
-    public boolean isConnected() {
+    public final boolean isConnected() {
         return this.protocolConnection.isConnected();
     }
 
     @Override
-    public InetSocketAddress getAddress() {
+    public final InetSocketAddress getAddress() {
         return this.protocolConnection.getAddress();
     }
 
     @Override
-    public void send(@NonNull Packet packet, boolean blocking, Void postSendCallback) {
-        this.protocolConnection.send(packet, blocking, postSendCallback);
+    public final void send(@NonNull Packet packet, boolean blocking, Void callback) {
+        this.protocolConnection.send(packet, blocking, callback);
+    }
+
+    @Override
+    public final Channel openChannel(@NonNull Reliability reliability) {
+        return this.protocolConnection.openChannel(reliability);
+    }
+
+    @Override
+    public final Channel getOpenChannel(int id) {
+        return this.protocolConnection.getOpenChannel(id);
     }
 
     /**

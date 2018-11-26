@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.netty;
+package net.daporkchop.lib.network.protocol.netty.tcp;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
@@ -35,8 +35,9 @@ import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.protocol.EndpointManager;
 import net.daporkchop.lib.network.protocol.ProtocolManager;
-import net.daporkchop.lib.network.protocol.netty.wrapper.WrapperNioServerSocketChannel;
-import net.daporkchop.lib.network.protocol.netty.wrapper.WrapperNioSocketChannel;
+import net.daporkchop.lib.network.protocol.netty.NettyHandler;
+import net.daporkchop.lib.network.protocol.netty.NettyPacketDecoder;
+import net.daporkchop.lib.network.protocol.netty.NettyPacketEncoder;
 import net.daporkchop.lib.network.protocol.pork.packet.DisconnectPacket;
 
 import java.net.InetSocketAddress;
@@ -63,7 +64,7 @@ public class TcpProtocolManager implements ProtocolManager {
         return new NettyClientManager();
     }
 
-    private static abstract class NettyEndpointManager implements EndpointManager {
+    private abstract static class NettyEndpointManager implements EndpointManager {
         protected Channel channel;
         protected EventLoopGroup workerGroup;
 
@@ -134,10 +135,10 @@ public class TcpProtocolManager implements ProtocolManager {
         }
 
         @Override
-        public void broadcast(@NonNull Packet packet, boolean blocking, Void postSendCallback) {
+        public void broadcast(@NonNull Packet packet, boolean blocking, Void callback) {
             ChannelGroupFuture future = this.channels.writeAndFlush(packet);
-            if (postSendCallback != null) {
-                future.addListener(f -> postSendCallback.run());
+            if (callback != null) {
+                future.addListener(f -> callback.run());
             }
             if (blocking) {
                 future.syncUninterruptibly();
@@ -180,10 +181,10 @@ public class TcpProtocolManager implements ProtocolManager {
         }
 
         @Override
-        public void send(@NonNull Packet packet, boolean blocking, Void postSendCallback) {
+        public void send(@NonNull Packet packet, boolean blocking, Void callback) {
             ChannelFuture future = this.channel.writeAndFlush(packet);
-            if (postSendCallback != null) {
-                future.addListener(f -> postSendCallback.run());
+            if (callback != null) {
+                future.addListener(f -> callback.run());
             }
             if (blocking) {
                 future.syncUninterruptibly();

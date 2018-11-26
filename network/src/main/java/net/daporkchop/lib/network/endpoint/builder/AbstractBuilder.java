@@ -17,13 +17,11 @@ package net.daporkchop.lib.network.endpoint.builder;
 
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.protocol.ProtocolManager;
-import net.daporkchop.lib.network.protocol.netty.TcpProtocolManager;
+import net.daporkchop.lib.network.protocol.netty.tcp.TcpProtocolManager;
 import net.daporkchop.lib.network.protocol.pork.PorkProtocol;
 
 import java.net.InetSocketAddress;

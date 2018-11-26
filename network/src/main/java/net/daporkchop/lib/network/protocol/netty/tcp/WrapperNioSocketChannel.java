@@ -13,21 +13,23 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.netty.wrapper;
+package net.daporkchop.lib.network.protocol.netty.tcp;
 
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.function.Void;
+import net.daporkchop.lib.common.util.LateReference;
+import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.protocol.pork.packet.DisconnectPacket;
+import net.daporkchop.lib.network.util.reliability.Reliability;
 
 import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
@@ -36,6 +38,8 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 
 /**
+ * A wrapper on top of {@link NioSocketChannel} that allows to store extra data (i.e. implement {@link UnderlyingNetworkConnection})
+ *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
@@ -44,6 +48,7 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements Underly
     private final Map<Class<? extends UserProtocol>, UserConnection> connections = new IdentityHashMap<>();
     @NonNull
     private final Endpoint endpoint;
+    private final LateReference<TcpChannel> channel = LateReference.empty();
 
     public WrapperNioSocketChannel(SelectorProvider provider, @NonNull Endpoint endpoint) {
         super(provider);
@@ -55,12 +60,16 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements Underly
         this.endpoint = endpoint;
     }
 
-    public WrapperNioSocketChannel(Channel parent, SocketChannel socket, @NonNull Endpoint endpoint) {
+    public WrapperNioSocketChannel(io.netty.channel.Channel parent, SocketChannel socket, @NonNull Endpoint endpoint) {
         super(parent, socket);
         this.endpoint = endpoint;
     }
 
+    //
+    //
     // Connection implementations
+    //
+    //
     @Override
     public void closeConnection(String reason) {
         super.writeAndFlush(new DisconnectPacket(reason));
@@ -73,12 +82,12 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements Underly
     }
 
     @Override
-    public void send(@NonNull Packet packet, boolean blocking, Void postSendCallback) {
+    public void send(@NonNull Packet packet, boolean blocking, Void callback) {
         ChannelFuture future = this.writeAndFlush(packet);
-        if (postSendCallback != null)   {
-            future.addListener(f -> postSendCallback.run());
+        if (callback != null) {
+            future.addListener(f -> callback.run());
         }
-        if (blocking)   {
+        if (blocking) {
             future.syncUninterruptibly();
         }
     }
@@ -88,9 +97,23 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements Underly
         return this.remoteAddress();
     }
 
+    @Override
+    public Channel openChannel(Reliability reliability) {
+        return this.channel.computeIfAbsent(() -> new TcpChannel(this));
+    }
+
+    @Override
+    public Channel getOpenChannel(int id) {
+        return id == 0 ? this.channel.get() : null;
+    }
+
+    //
+    //
     // UnderlyingNetworkConnection implementations
+    //
+    //
     @Override
     public void disconnectAtNetworkLevel() {
-        this.close();//.syncUninterruptibly();
+        this.close();
     }
 }

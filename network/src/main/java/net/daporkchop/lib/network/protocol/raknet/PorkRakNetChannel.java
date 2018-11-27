@@ -61,6 +61,10 @@ public class PorkRakNetChannel implements Channel {
         }
     }
 
+    public Reliability getReliability() {
+        return ReliabilityMap.RAKNET.get(this.reliability);
+    }
+
     //OVERRIDES
 
     @Override

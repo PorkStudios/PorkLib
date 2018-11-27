@@ -49,7 +49,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Getter
 public class RakNetPorkSession implements NetworkSession<RakNetSession>, UnderlyingNetworkConnection, RakNetConstants, Logging {
     final BitSet channelIds = new BitSet(MAX_CHANNELS);
-    final IntegerObjectMap<PorkRakNetChannel> channels = PorkMaps.synchronize(new IntegerObjectHashMap<>(), (Object) this);
+    final IntegerObjectMap<PorkRakNetChannel> channels = PorkMaps.synchronize(new IntegerObjectHashMap<>(), this);
     private final RakNetSession connection;
     private final Endpoint endpoint;
     private final Channel defaultChannel;

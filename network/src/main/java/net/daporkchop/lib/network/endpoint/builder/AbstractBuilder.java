@@ -79,7 +79,9 @@ public abstract class AbstractBuilder<E extends Endpoint, B extends AbstractBuil
     private ProtocolManager manager = TcpProtocolManager.INSTANCE;
 
     /**
-     * An {@link Executor} for handling threading on connections
+     * An {@link Executor} for handling threading on connections.
+     *
+     * Some implementations of {@link ProtocolManager} may ignore this setting.
      */
     @NonNull
     private Executor executor = DEFAULT_EXECUTOR;

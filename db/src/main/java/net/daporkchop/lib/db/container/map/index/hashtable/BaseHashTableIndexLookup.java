@@ -17,6 +17,7 @@ package net.daporkchop.lib.db.container.map.index.hashtable;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import net.daporkchop.lib.common.function.IOFunction;
 import net.daporkchop.lib.db.container.map.DBMap;
 import net.daporkchop.lib.db.container.map.data.key.KeyHasher;
@@ -61,6 +62,9 @@ public abstract class BaseHashTableIndexLookup<K> implements IndexLookup<K> {
     protected File file;
     protected RandomAccessFile tableRaf;
     protected FileChannel tableChannel;
+    @Getter
+    @Setter
+    protected volatile boolean dirty;
 
     public BaseHashTableIndexLookup(int usedBits, int pointerBytes) {
         if (usedBits <= 0 || usedBits >= 64) {
@@ -132,6 +136,7 @@ public abstract class BaseHashTableIndexLookup<K> implements IndexLookup<K> {
         this.lock.writeLock().lock();
         try {
             this.doClear();
+            this.dirty = true;
         } finally {
             this.lock.writeLock().unlock();
         }
@@ -229,24 +234,18 @@ public abstract class BaseHashTableIndexLookup<K> implements IndexLookup<K> {
 
     @Override
     public void save() throws IOException {
-        this.lock.writeLock().lock();
-        try {
-            this.doSave();
-        } finally {
-            this.lock.writeLock().unlock();
+        if (this.dirty) {
+            this.lock.writeLock().lock();
+            try {
+                this.doSave();
+            } finally {
+                this.lock.writeLock().unlock();
+            }
+            this.dirty = false;
         }
     }
 
     protected abstract void doSave() throws IOException;
-
-    @Override
-    public boolean isDirty() {
-        return false;
-    }
-
-    @Override
-    public void setDirty(boolean dirty) {
-    }
 
     protected byte[] getHash(@NonNull K key) {
         return this.keyHasher.hash(key);
@@ -272,7 +271,7 @@ public abstract class BaseHashTableIndexLookup<K> implements IndexLookup<K> {
     }
 
     protected long getDiskValue(@NonNull K key) throws IOException {
-        return this.getDiskValue(this.getRelevantHashBits(key));
+        return this.getDiskValue(this.getHash(key));
     }
 
     protected long getDiskValue(@NonNull byte[] hash) throws IOException {
@@ -282,7 +281,7 @@ public abstract class BaseHashTableIndexLookup<K> implements IndexLookup<K> {
     protected abstract long getDiskValue(long hashBits) throws IOException;
 
     protected void setDiskValue(@NonNull K key, long val) throws IOException {
-        this.setDiskValue(this.getRelevantHashBits(key), val);
+        this.setDiskValue(this.getHash(key), val);
     }
 
     protected void setDiskValue(@NonNull byte[] hash, long val) throws IOException {

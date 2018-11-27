@@ -10,48 +10,58 @@
  * Any persons and/or organizations using this software must disclose their source code and have it publicly available, include this license, provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
-package net.daporkchop.lib.db.object.serializer.impl.nbt;
+package net.daporkchop.lib.nbt.tag.notch;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
+import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.db.object.serializer.ValueSerializer;
-import net.daporkchop.lib.nbt.NBTIO;
-import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
+import net.daporkchop.lib.nbt.tag.Tag;
+import net.daporkchop.lib.nbt.tag.TagRegistry;
 
 import java.io.IOException;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 /**
- * Reads and writes an object to and from an NBT compound tag
+ * A tag that contains a single {@link String}
  *
  * @author DaPorkchop_
  */
-@EqualsAndHashCode(callSuper = true)
-@Data
-public class NBTObjectSerializer<T> extends ValueSerializer<T> {
+@Getter
+@Setter
+public class StringTag extends Tag {
     @NonNull
-    private final BiConsumer<T, CompoundTag> writeFunction;
+    private String value;
 
-    @NonNull
-    private final Function<CompoundTag, T> readFunction;
+    public StringTag(String name) {
+        super(name);
+    }
 
-    @Override
-    public void write(T value, DataOut out) throws IOException {
-        CompoundTag tag = new CompoundTag();
-        this.writeFunction.accept(value, tag);
-        NBTIO.write(out, tag);
+    public StringTag(String name, @NonNull String value) {
+        super(name);
+        this.value = value;
     }
 
     @Override
-    public T read(DataIn in) throws IOException {
-        CompoundTag tag = NBTIO.read(in);
-        return this.readFunction.apply(tag);
+    public void read(@NonNull DataIn in, @NonNull TagRegistry registry) throws IOException {
+        int nameLength = in.readShort() & 0xFFFF;
+        byte[] b = new byte[nameLength];
+        in.readFully(b, 0, b.length);
+        this.value = new String(b, UTF8.utf8);
+    }
+
+    @Override
+    public void write(@NonNull DataOut out, @NonNull TagRegistry registry) throws IOException {
+        byte[] b = this.value.getBytes(UTF8.utf8);
+        out.writeShort((short) b.length);
+        out.write(b);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("StringTag(\"%s\"): \"%s\"", this.getName(), this.value);
     }
 }

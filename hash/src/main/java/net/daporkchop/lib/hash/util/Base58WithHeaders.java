@@ -51,9 +51,7 @@ public class Base58WithHeaders {
                         + 4 //hash suffix
                 ];
         newData[0] = version;
-        for (int i = 0; i < content.length; i++) {
-            newData[i + 1] = content[i];
-        }
+        System.arraycopy(content, 0, newData, 1, content.length);
         for (int i = newData.length - 4; i < newData.length; i++) {
             newData[i] = version; //fill with random data for hash
         }
@@ -89,11 +87,9 @@ public class Base58WithHeaders {
         chars.forEach(character -> remainingData.append((char) character));
         byte[] rawData = Base58.decodeBase58(remainingData.toString());
         byte version = rawData[0];
-        byte[] data = new byte[rawData.length - 5],
-                hash = new byte[4];
-        for (int i = 1; i < rawData.length - 4; i++) {
-            data[i - 1] = rawData[i];
-        }
+        byte[] data = new byte[rawData.length - 5];
+        byte[] hash = new byte[4];
+        System.arraycopy(rawData, 1, data, 0, rawData.length - 4 - 1);
         for (int i = rawData.length - 4; i < rawData.length; i++) {
             hash[i - (rawData.length - 4)] = rawData[i];
             rawData[i] = version;

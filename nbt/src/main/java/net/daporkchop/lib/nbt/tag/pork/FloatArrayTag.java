@@ -12,8 +12,57 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile project(":primitive")
+package net.daporkchop.lib.nbt.tag.pork;
+
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.nbt.tag.Tag;
+import net.daporkchop.lib.nbt.tag.TagRegistry;
+
+import java.io.IOException;
+
+/**
+ * A tag that contains a single float[]
+ *
+ * @author DaPorkchop_
+ */
+@Getter
+@Setter
+public class FloatArrayTag extends Tag {
+    @NonNull
+    private float[] value;
+
+    public FloatArrayTag(String name) {
+        super(name);
+    }
+
+    public FloatArrayTag(String name, @NonNull float[] value) {
+        super(name);
+        this.value = value;
+    }
+
+    @Override
+    public void read(DataIn in, TagRegistry registry) throws IOException {
+        int len = in.readInt();
+        this.value = new float[len];
+        for (int i = 0; i < len; i++) {
+            this.value[i] = in.readFloat();
+        }
+    }
+
+    @Override
+    public void write(DataOut out, TagRegistry registry) throws IOException {
+        out.writeInt(this.value.length);
+        for (int i = 0; i < this.value.length; i++) {
+            out.writeFloat(this.value[i]);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("FloatArrayTag(\"%s\"): %d floats", this.getName(), this.value.length);
+    }
 }

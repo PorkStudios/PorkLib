@@ -27,7 +27,7 @@ import net.daporkchop.lib.db.util.exception.DatabaseClosedException;
 import net.daporkchop.lib.db.util.exception.WrappedException;
 import net.daporkchop.lib.encoding.compression.EnumCompression;
 import net.daporkchop.lib.nbt.NBTIO;
-import net.daporkchop.lib.nbt.tag.impl.notch.CompoundTag;
+import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 
 import java.io.File;
 import java.io.IOException;
@@ -123,24 +123,28 @@ public abstract class PorkDB<K, V> {
         this.keyHasher = builder.getKeyHasher();
         this.keyHashBuf = ThreadLocal.withInitial(() -> new byte[this.keyHasher.getKeyLength()]);
 
-        this.rootFile = new File(this.rootFolder, "root" + ROOT_ENDING);
-        if (this.rootFile.exists()) {
-            CompoundTag tag = NBTIO.read(this.rootFile);
-            if (!builder.isForceOpen()) {
-                if (!tag.getBoolean("closed")) {
-                    throw new IllegalStateException("Database was not closed safely! Use DBBuilder#setForceOpen to force opening this database.");
+        try {
+            this.rootFile = new File(this.rootFolder, "root" + ROOT_ENDING);
+            if (this.rootFile.exists()) {
+                CompoundTag tag = NBTIO.read(this.rootFile);
+                if (!builder.isForceOpen()) {
+                    if (tag.getByte("closed") != 1) {
+                        throw new IllegalStateException("Database was not closed safely! Use DBBuilder#setForceOpen to force opening this database.");
+                    }
                 }
-            }
-            tag.putBoolean("closed", false);
+                tag.putByte("closed", (byte) 0);
 
-            NBTIO.write(tag, this.rootFile);
-        } else {
-            CompoundTag tag = new CompoundTag();
-            tag.putBoolean("closed", false);
-            NBTIO.write(tag, this.rootFile);
+                NBTIO.write(this.rootFile, tag);
+            } else {
+                CompoundTag tag = new CompoundTag();
+                tag.putByte("closed", (byte) 1);
+                NBTIO.write(this.rootFile, tag);
+            }
+            this.fileManager.setDb(this);
+            this.fileManager.init();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-        this.fileManager.setDb(this);
-        this.fileManager.init();
     }
 
     public static Long hash(@NonNull byte[] bytes) {

@@ -15,13 +15,9 @@
 
 package net.daporkchop.lib.minecraft.world.format.anvil;
 
-import com.flowpowered.nbt.CompoundTag;
-import com.flowpowered.nbt.IntTag;
-import com.flowpowered.nbt.ListTag;
-import com.flowpowered.nbt.StringTag;
-import com.flowpowered.nbt.stream.NBTInputStream;
 import lombok.Getter;
 import lombok.NonNull;
+import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.minecraft.registry.Registry;
 import net.daporkchop.lib.minecraft.registry.ResourceLocation;
 import net.daporkchop.lib.minecraft.world.Column;
@@ -29,6 +25,11 @@ import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.format.SaveFormat;
 import net.daporkchop.lib.minecraft.world.format.WorldManager;
+import net.daporkchop.lib.nbt.NBTInputStream;
+import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
+import net.daporkchop.lib.nbt.tag.notch.IntTag;
+import net.daporkchop.lib.nbt.tag.notch.ListTag;
+import net.daporkchop.lib.nbt.tag.notch.StringTag;
 import net.daporkchop.lib.primitive.function.biconsumer.IntegerObjectBiConsumer;
 import net.daporkchop.lib.primitive.tuple.ObjectObjectTuple;
 
@@ -73,8 +74,8 @@ public class AnvilSaveFormat implements SaveFormat {
             } else {
                 throw new UnsupportedOperationException("create world");
             }
-            try (NBTInputStream is = new NBTInputStream(new FileInputStream(levelDat_file), true)) {
-                this.levelDat = (CompoundTag) is.readTag();
+            try (NBTInputStream is = new NBTInputStream(new FileInputStream(levelDat_file), Compression.GZIP_NORMAL)) {
+                this.levelDat = is.readTag();
             }
         }
     }
@@ -96,21 +97,21 @@ public class AnvilSaveFormat implements SaveFormat {
     @Override
     @SuppressWarnings("unchecked")
     public void loadRegistries(BiConsumer<ResourceLocation, Registry> addFunction) {
-        CompoundTag fmlTag = (CompoundTag) this.levelDat.getValue().get("FML");
+        CompoundTag fmlTag = this.levelDat.get("FML");
         if (fmlTag == null) {
             //TODO
             throw new UnsupportedOperationException("save must be created by FML, otherwise we can't read the registry! (this feature will be added Soon(tm))");
         } else {
-            CompoundTag registriesTag = (CompoundTag) fmlTag.getValue().get("Registries");
+            CompoundTag registriesTag = fmlTag.get("Registries");
             if (registriesTag == null) {
                 throw new NullPointerException("Registries");
             }
-            registriesTag.getValue().entrySet().stream()
+            registriesTag.getContents().entrySet().stream()
                     .map(entry -> new ObjectObjectTuple<>(new ResourceLocation(entry.getKey()), (CompoundTag) entry.getValue()))
                     .forEach(tuple -> {
                         ResourceLocation registryName = tuple.getK();
                         Registry registry = new Registry(registryName);
-                        ((ListTag<CompoundTag>) tuple.getV().getValue().get("ids")).getValue().forEach(tag -> registry.registerEntry(new ResourceLocation(((StringTag) tag.getValue().get("K")).getValue()), ((IntTag) tag.getValue().get("V")).getValue()));
+                        tuple.getV().<ListTag<CompoundTag>>get("ids").getValue().forEach(tag -> registry.registerEntry(new ResourceLocation(tag.<StringTag>get("K").getValue()), tag.<IntTag>get("V").getValue()));
                         addFunction.accept(registryName, registry);
                     });
         }

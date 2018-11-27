@@ -12,8 +12,49 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile project(":primitive")
+package net.daporkchop.lib.nbt.tag.pork;
+
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.nbt.tag.Tag;
+import net.daporkchop.lib.nbt.tag.TagRegistry;
+
+import java.io.IOException;
+
+/**
+ * A tag that contains a single char
+ *
+ * @author DaPorkchop_
+ */
+@Getter
+@Setter
+public class CharTag extends Tag {
+    private char value;
+
+    public CharTag(String name) {
+        super(name);
+    }
+
+    public CharTag(String name, char value) {
+        super(name);
+        this.value = value;
+    }
+
+    @Override
+    public void read(@NonNull DataIn in, @NonNull TagRegistry registry) throws IOException {
+        this.value = (char) in.readShort();
+    }
+
+    @Override
+    public void write(@NonNull DataOut out, @NonNull TagRegistry registry) throws IOException {
+        out.writeShort((short) (this.value & 0xFFFF));
+    }
+
+    @Override
+    public String toString() {
+        return String.format("CharTag(\"%s\"): %c", this.getName(), this.value);
+    }
 }

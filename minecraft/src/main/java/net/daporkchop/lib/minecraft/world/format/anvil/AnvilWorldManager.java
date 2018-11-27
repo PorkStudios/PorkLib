@@ -15,13 +15,6 @@
 
 package net.daporkchop.lib.minecraft.world.format.anvil;
 
-import com.flowpowered.nbt.ByteArrayTag;
-import com.flowpowered.nbt.ByteTag;
-import com.flowpowered.nbt.CompoundMap;
-import com.flowpowered.nbt.CompoundTag;
-import com.flowpowered.nbt.IntArrayTag;
-import com.flowpowered.nbt.ListTag;
-import com.flowpowered.nbt.stream.NBTInputStream;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -37,6 +30,8 @@ import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.format.WorldManager;
 import net.daporkchop.lib.minecraft.world.impl.ChunkImpl;
 import net.daporkchop.lib.minecraft.world.impl.ColumnImpl;
+import net.daporkchop.lib.nbt.NBTInputStream;
+import net.daporkchop.lib.nbt.tag.notch.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -130,8 +125,8 @@ public class AnvilWorldManager implements WorldManager {
             RegionFile file = this.regionFileCache.get(new Vec2i(column.getX() >> 5, column.getZ() >> 5));
             CompoundTag rootTag;
             //TODO: check if region contains chunk
-            try (NBTInputStream is = new NBTInputStream(file.getChunkDataInputStream(column.getX() & 0x1F, column.getZ() & 0x1F), false)) {
-                rootTag = (CompoundTag) ((CompoundTag) is.readTag()).getValue().get("Level");
+            try (NBTInputStream is = new NBTInputStream(file.getChunkDataInputStream(column.getX() & 0x1F, column.getZ() & 0x1F))) {
+                rootTag = is.readTag().get("Level");
             } catch (NullPointerException e) {
                 //this seems to happen for invalid/corrupt chunks
                 for (int y = 15; y >= 0; y--) {
@@ -143,13 +138,13 @@ public class AnvilWorldManager implements WorldManager {
             }
             //ListTag<CompoundTag> entitiesTag = rootTag.getTypedList("Entities"); //TODO
             {
-                ListTag<CompoundTag> sectionsTag = (ListTag<CompoundTag>) rootTag.getValue().get("Sections");
+                ListTag<CompoundTag> sectionsTag = rootTag.get("Sections");
                 //TODO: biomes, terrain populated flag etc.
                 for (int y = 15; y >= 0; y--) {
                     Chunk chunk = column.getChunk(y);
                     CompoundTag tag = null;
                     for (CompoundTag t : sectionsTag.getValue()) {
-                        if (((ByteTag) t.getValue().get("Y")).getValue() == y) {
+                        if (t.<ByteTag>get("Y").getValue() == y) {
                             tag = t;
                             break;
                         }
@@ -161,14 +156,14 @@ public class AnvilWorldManager implements WorldManager {
                             column.setChunk(y, chunk = this.format.getSave().getInitFunctions().getChunkCreator().apply(y, column));
                         }
                         if (chunk instanceof ChunkImpl) {
-                            this.loadChunkImpl((ChunkImpl) chunk, tag.getValue());
+                            this.loadChunkImpl((ChunkImpl) chunk, tag);
                         } else {
                             SoftReference<ChunkImpl> ref = chunkImplCache.get();
                             ChunkImpl impl = ref.get();
                             if (impl == null) {
                                 chunkImplCache.set(new SoftReference<>(impl = new ChunkImpl(-1, null)));
                             }
-                            this.loadChunkImpl(impl, tag.getValue());
+                            this.loadChunkImpl(impl, tag);
                             for (int x = 15; x >= 0; x--) {
                                 for (int yy = 15; yy >= 0; yy--) {
                                     for (int z = 15; z >= 0; z--) {
@@ -183,8 +178,8 @@ public class AnvilWorldManager implements WorldManager {
                     }
                 }
             }
-            if (column instanceof ColumnImpl && rootTag.getValue().containsKey("HeightMap")) {
-                int[] heightMapI = ((IntArrayTag) rootTag.getValue().get("HeightMap")).getValue();
+            if (column instanceof ColumnImpl && rootTag.contains("HeightMap")) {
+                int[] heightMapI = rootTag.<IntArrayTag>get("HeightMap").getValue();
                 byte[] heightMapB = new byte[16 * 16];
                 for (int i = heightMapI.length - 1; i >= 0; i--) {
                     heightMapB[i] = (byte) heightMapI[i];
@@ -192,7 +187,7 @@ public class AnvilWorldManager implements WorldManager {
                 ((ColumnImpl) column).setHeightMap(heightMapB);
             }
             {
-                ListTag<CompoundTag> sectionsTag = (ListTag<CompoundTag>) rootTag.getValue().get("TileEntities");
+                ListTag<CompoundTag> sectionsTag = rootTag.get("TileEntities");
                 sectionsTag.getValue().stream()
                         .map(tag -> this.world.getSave().getInitFunctions().getTileEntityCreator().apply(this.world, tag))
                         .forEach(column.getTileEntities()::add);
@@ -205,13 +200,13 @@ public class AnvilWorldManager implements WorldManager {
         }
     }
 
-    private void loadChunkImpl(@NonNull ChunkImpl impl, @NonNull CompoundMap map) {
-        impl.setBlockIds(((ByteArrayTag) map.get("Blocks")).getValue());
-        impl.setMeta(new NibbleArray(((ByteArrayTag) map.get("Data")).getValue()));
-        impl.setBlockLight(new NibbleArray(((ByteArrayTag) map.get("BlockLight")).getValue()));
-        impl.setSkyLight(new NibbleArray(((ByteArrayTag) map.get("SkyLight")).getValue()));
-        if (map.containsKey("Add")) {
-            impl.setAdd(new NibbleArray(((ByteArrayTag) map.get("Add")).getValue()));
+    private void loadChunkImpl(@NonNull ChunkImpl impl, @NonNull CompoundTag tag) {
+        impl.setBlockIds(tag.<ByteArrayTag>get("Blocks").getValue());
+        impl.setMeta(new NibbleArray(tag.<ByteArrayTag>get("Data").getValue()));
+        impl.setBlockLight(new NibbleArray(tag.<ByteArrayTag>get("BlockLight").getValue()));
+        impl.setSkyLight(new NibbleArray(tag.<ByteArrayTag>get("SkyLight").getValue()));
+        if (tag.contains("Add")) {
+            impl.setAdd(new NibbleArray(tag.<ByteArrayTag>get("Add").getValue()));
         } else {
             impl.setAdd(null);
         }

@@ -13,45 +13,14 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.pork.packet;
+package net.daporkchop.lib.network.pork;
 
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.network.endpoint.client.PorkClient;
-import net.daporkchop.lib.network.packet.Codec;
 import net.daporkchop.lib.network.packet.Packet;
-import net.daporkchop.lib.network.protocol.pork.PorkConnection;
-import net.daporkchop.lib.network.util.ConnectionState;
-
-import java.io.IOException;
 
 /**
+ * Doesn't actually do anything, serves simply as a quick way of flagging porklib packets from user packets
+ *
  * @author DaPorkchop_
  */
-@NoArgsConstructor
-public class HandshakeCompletePacket implements Packet {
-    @Override
-    public void read(DataIn in) throws IOException {
-        //in.readBytesSimple();
-    }
-
-    @Override
-    public void write(DataOut out) throws IOException {
-        //out.writeBytesSimple(new byte[0xFFFFFF]);
-    }
-
-    public static class HandshakeCompleteCodec implements Codec.Simple<HandshakeCompletePacket, PorkConnection>    {
-        @Override
-        public void handle(@NonNull HandshakeCompletePacket packet, @NonNull PorkConnection connection) {
-            connection.setState(ConnectionState.RUNTIME);
-            connection.<PorkClient>getEndpoint().postConnectCallback(null);
-        }
-
-        @Override
-        public HandshakeCompletePacket createInstance() {
-            return new HandshakeCompletePacket();
-        }
-    }
+public interface PorkPacket extends Packet {
 }

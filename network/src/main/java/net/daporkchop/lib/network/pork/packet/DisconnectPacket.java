@@ -13,36 +13,49 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.pork;
+package net.daporkchop.lib.network.pork.packet;
 
-import net.daporkchop.lib.network.packet.UserProtocol;
-import net.daporkchop.lib.network.protocol.pork.packet.DisconnectPacket;
-import net.daporkchop.lib.network.protocol.pork.packet.HandshakeCompletePacket;
-import net.daporkchop.lib.network.protocol.pork.packet.HandshakeInitPacket;
-import net.daporkchop.lib.network.protocol.pork.packet.HandshakeResponsePacket;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.network.packet.Codec;
+import net.daporkchop.lib.network.pork.PorkConnection;
+import net.daporkchop.lib.network.pork.PorkPacket;
+
+import java.io.IOException;
 
 /**
+ * Sent before a connection is closed to inform the remote end of the reason for the disconnection
+ *
  * @author DaPorkchop_
  */
-public class PorkProtocol extends UserProtocol<PorkConnection> {
-    public static final PorkProtocol INSTANCE = new PorkProtocol();
+@NoArgsConstructor
+@AllArgsConstructor
+public class DisconnectPacket implements PorkPacket {
+    public String reason;
 
-    private PorkProtocol() {
-        super("PorkLib Networking", 1);
+    @Override
+    public void read(DataIn in) throws IOException {
+        this.reason = in.readUTF();
     }
 
     @Override
-    protected void registerPackets() {
-        //handshake packets
-        this.register(new HandshakeInitPacket.HandshakeInitCodec());
-        this.register(new HandshakeResponsePacket.HandshakeReponseCodec());
-        this.register(new HandshakeCompletePacket.HandshakeCompleteCodec());
-        //misc. packets
-        this.register(new DisconnectPacket.DisconnectCodec());
+    public void write(DataOut out) throws IOException {
+        out.writeUTF(this.reason);
     }
 
-    @Override
-    public PorkConnection newConnection() {
-        return new PorkConnection();
+    public static class DisconnectCodec implements Codec.Simple<DisconnectPacket, PorkConnection> {
+        @Override
+        public void handle(@NonNull DisconnectPacket packet, @NonNull PorkConnection connection) {
+            connection.setDisconnectReason(packet.reason);
+            connection.getRealConnection().disconnectAtNetworkLevel(); //disconnecting at network level prevents an endless ping/pong of disconnect packets
+        }
+
+        @Override
+        public DisconnectPacket createInstance() {
+            return new DisconnectPacket();
+        }
     }
 }

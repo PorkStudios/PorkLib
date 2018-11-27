@@ -13,37 +13,14 @@
  *
  */
 
-package net.daporkchop.lib.network.endpoint;
-
-import lombok.NonNull;
-import net.daporkchop.lib.network.EndpointType;
-import net.daporkchop.lib.network.conn.UserConnection;
-import net.daporkchop.lib.network.packet.PacketRegistry;
-import net.daporkchop.lib.network.packet.UserProtocol;
-
-import java.util.Collection;
+package net.daporkchop.lib.network.protocol.raknet;
 
 /**
  * @author DaPorkchop_
  */
-public interface Endpoint {
-    EndpointType getType();
-
-    <C extends UserConnection> Collection<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass);
-
-    PacketRegistry getPacketRegistry();
-
-    default void close()    {
-        this.close(null);
-    }
-
-    void close(String reason);
-
-    boolean isRunning();
-
-    String getName();
-
-    default boolean isClosed() {
-        return !this.isRunning();
-    }
+public interface RakNetConstants {
+    /**
+     * RakNet only supports 32 channels per connection
+     */
+    int MAX_CHANNELS = 32;
 }

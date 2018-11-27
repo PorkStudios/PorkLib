@@ -22,15 +22,10 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.NettyByteBufUtil;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
-import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
-import net.daporkchop.lib.network.endpoint.client.PorkClient;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.protocol.api.PacketEncoder;
-import net.daporkchop.lib.network.protocol.pork.PorkProtocol;
 
 /**
  * @author DaPorkchop_

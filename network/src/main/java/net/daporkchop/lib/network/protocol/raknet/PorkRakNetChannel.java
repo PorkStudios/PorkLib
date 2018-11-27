@@ -13,8 +13,9 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.netty.tcp;
+package net.daporkchop.lib.network.protocol.raknet;
 
+import com.nukkitx.network.raknet.datagram.RakNetReliability;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -24,48 +25,66 @@ import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.util.reliability.Reliability;
+import net.daporkchop.lib.network.util.reliability.ReliabilityMap;
 
 /**
- * A simple implementation of {@link Channel} for a TCP session.
- * <p>
- * As TCP only supports full ordering and reliability, packets sent through this channel will not respect the reliability setting
- * given by the user.
+ * An implementation of {@link Channel} for RakNet connections
  *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
 @Getter
-public class TcpChannel implements Channel {
+public class PorkRakNetChannel implements Channel {
+    private final int id;
+    private final RakNetReliability reliability;
     @NonNull
-    private final WrapperNioSocketChannel realChannel;
+    private final RakNetPorkSession session;
+    private volatile boolean closed;
 
-    @Override
-    public void send(@NonNull Packet packet, boolean blocking, Void callback, Reliability reliability) {
-        this.realChannel.send(packet, blocking, callback);
-    }
-
-    @Override
-    public Reliability getReliability() {
-        return Reliability.RELIABLE_ORDERED;
-    }
-
-    @Override
-    public boolean isReliabilityRespected() {
-        return false;
-    }
-
-    @Override
-    public int getId() {
-        return 0; //TCP only has one channel
+    private void send(@NonNull Packet packet, boolean blocking, Void callback, RakNetReliability reliability)    {
+        //TODO: this is very important to figure out how to do
     }
 
     @Override
     public <C extends UserConnection> C getConnection(@NonNull Class<? extends UserProtocol<C>> protocolClass) {
-        return this.realChannel.getUserConnection(protocolClass);
+        return this.session.getUserConnection(protocolClass);
     }
 
     @Override
     public void close() {
-        //don't close anything because TCP only has one channel
+        synchronized (this.session) {
+            if (!this.isDefault()) {
+                this.closed = false;
+                this.session.channels.remove(this.id);
+                this.session.channelIds.clear(this.id);
+            }
+        }
+    }
+
+    //OVERRIDES
+
+    @Override
+    public void send(@NonNull Packet packet, boolean blocking, Void callback, Reliability reliability) {
+        this.send(packet, blocking, callback, ReliabilityMap.RAKNET.get(reliability));
+    }
+
+    @Override
+    public void send(@NonNull Packet packet, boolean blocking, Void callback) {
+        this.send(packet, blocking, callback, this.reliability);
+    }
+
+    @Override
+    public void send(@NonNull Packet packet, boolean blocking) {
+        this.send(packet, blocking, null, this.reliability);
+    }
+
+    @Override
+    public void send(@NonNull Packet packet, Void callback) {
+        this.send(packet, false, callback, this.reliability);
+    }
+
+    @Override
+    public void send(@NonNull Packet packet) {
+        this.send(packet, false, null, this.reliability);
     }
 }

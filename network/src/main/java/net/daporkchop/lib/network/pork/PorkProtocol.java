@@ -13,14 +13,36 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.pork;
+package net.daporkchop.lib.network.pork;
 
-import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.packet.UserProtocol;
+import net.daporkchop.lib.network.pork.packet.DisconnectPacket;
+import net.daporkchop.lib.network.pork.packet.HandshakeCompletePacket;
+import net.daporkchop.lib.network.pork.packet.HandshakeInitPacket;
+import net.daporkchop.lib.network.pork.packet.HandshakeResponsePacket;
 
 /**
- * Doesn't actually do anything, serves simply as a quick way of flagging porklib packets from user packets
- *
  * @author DaPorkchop_
  */
-public interface PorkPacket extends Packet {
+public class PorkProtocol extends UserProtocol<PorkConnection> {
+    public static final PorkProtocol INSTANCE = new PorkProtocol();
+
+    private PorkProtocol() {
+        super("PorkLib Networking", 1);
+    }
+
+    @Override
+    protected void registerPackets() {
+        //handshake packets
+        this.register(new HandshakeInitPacket.HandshakeInitCodec());
+        this.register(new HandshakeResponsePacket.HandshakeReponseCodec());
+        this.register(new HandshakeCompletePacket.HandshakeCompleteCodec());
+        //misc. packets
+        this.register(new DisconnectPacket.DisconnectCodec());
+    }
+
+    @Override
+    public PorkConnection newConnection() {
+        return new PorkConnection();
+    }
 }

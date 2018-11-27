@@ -13,31 +13,23 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.pork;
-
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
-import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
-import net.daporkchop.lib.network.conn.UserConnection;
-import net.daporkchop.lib.network.util.ConnectionState;
-import net.daporkchop.lib.network.util.PacketReprocessor;
+package net.daporkchop.lib.network.protocol.api;
 
 /**
+ * Implements a network protocol
+ *
  * @author DaPorkchop_
  */
-@Getter
-public class PorkConnection extends UserConnection {
-    @Setter
-    private String disconnectReason;
+public interface ProtocolManager {
+    /**
+     * Create and get a new {@link EndpointManager.ServerEndpointManager}
+     * @return a new server manager
+     */
+    EndpointManager.ServerEndpointManager createServerManager();
 
-    @Setter
-    private UnderlyingNetworkConnection realConnection;
-
-    @Setter
-    @NonNull
-    private ConnectionState state = ConnectionState.INIT;
-
-    @Setter
-    private PacketReprocessor packetReprocessor;
+    /**
+     * Create and get a new {@link EndpointManager.ClientEndpointManager}
+     * @return a new client manager
+     */
+    EndpointManager.ClientEndpointManager createClientManager();
 }

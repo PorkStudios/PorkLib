@@ -28,9 +28,9 @@ import net.daporkchop.lib.network.endpoint.server.PorkServer;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.PacketRegistry;
 import net.daporkchop.lib.network.packet.UserProtocol;
-import net.daporkchop.lib.network.protocol.pork.PorkConnection;
-import net.daporkchop.lib.network.protocol.pork.PorkProtocol;
-import net.daporkchop.lib.network.protocol.pork.packet.HandshakeInitPacket;
+import net.daporkchop.lib.network.pork.PorkConnection;
+import net.daporkchop.lib.network.pork.PorkProtocol;
+import net.daporkchop.lib.network.pork.packet.HandshakeInitPacket;
 import net.daporkchop.lib.network.util.ConnectionState;
 
 /**

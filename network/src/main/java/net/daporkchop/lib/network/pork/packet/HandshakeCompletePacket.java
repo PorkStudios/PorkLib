@@ -13,29 +13,45 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol;
+package net.daporkchop.lib.network.pork.packet;
 
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.network.conn.UserConnection;
-import net.daporkchop.lib.network.endpoint.Endpoint;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.network.endpoint.client.PorkClient;
+import net.daporkchop.lib.network.packet.Codec;
+import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.pork.PorkConnection;
+import net.daporkchop.lib.network.util.ConnectionState;
 
-import java.net.InetSocketAddress;
+import java.io.IOException;
 
 /**
- * Implements a network protocol
- *
  * @author DaPorkchop_
  */
-public interface ProtocolManager {
-    /**
-     * Create and get a new {@link net.daporkchop.lib.network.protocol.EndpointManager.ServerEndpointManager}
-     * @return a new server manager
-     */
-    EndpointManager.ServerEndpointManager createServerManager();
+@NoArgsConstructor
+public class HandshakeCompletePacket implements Packet {
+    @Override
+    public void read(DataIn in) throws IOException {
+        //in.readBytesSimple();
+    }
 
-    /**
-     * Create and get a new {@link net.daporkchop.lib.network.protocol.EndpointManager.ClientEndpointManager}
-     * @return a new client manager
-     */
-    EndpointManager.ClientEndpointManager createClientManager();
+    @Override
+    public void write(DataOut out) throws IOException {
+        //out.writeBytesSimple(new byte[0xFFFFFF]);
+    }
+
+    public static class HandshakeCompleteCodec implements Codec.Simple<HandshakeCompletePacket, PorkConnection>    {
+        @Override
+        public void handle(@NonNull HandshakeCompletePacket packet, @NonNull PorkConnection connection) {
+            connection.setState(ConnectionState.RUNTIME);
+            connection.<PorkClient>getEndpoint().postConnectCallback(null);
+        }
+
+        @Override
+        public HandshakeCompletePacket createInstance() {
+            return new HandshakeCompletePacket();
+        }
+    }
 }

@@ -24,7 +24,7 @@ import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.endpoint.client.PorkClient;
 import net.daporkchop.lib.network.packet.Codec;
 import net.daporkchop.lib.network.packet.Packet;
-import net.daporkchop.lib.network.protocol.pork.PorkProtocol;
+import net.daporkchop.lib.network.pork.PorkProtocol;
 
 import java.io.IOException;
 import java.io.InputStream;

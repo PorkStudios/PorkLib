@@ -20,9 +20,9 @@ import lombok.NonNull;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.UserProtocol;
-import net.daporkchop.lib.network.protocol.ProtocolManager;
+import net.daporkchop.lib.network.pork.PorkProtocol;
+import net.daporkchop.lib.network.protocol.api.ProtocolManager;
 import net.daporkchop.lib.network.protocol.netty.tcp.TcpProtocolManager;
-import net.daporkchop.lib.network.protocol.pork.PorkProtocol;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayDeque;
@@ -34,7 +34,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
+ * Shared code for all endpoint builders
+ *
  * @author DaPorkchop_
+ * @see ClientBuilder
+ * @see ServerBuilder
  */
 @Getter
 public abstract class AbstractBuilder<E extends Endpoint, B extends AbstractBuilder<E, B>> {
@@ -46,24 +50,43 @@ public abstract class AbstractBuilder<E extends Endpoint, B extends AbstractBuil
             runnable -> new Thread(runnable, String.format("PorkLib network executor #%d", DEFAULT_EXECUTOR_THREAD_COUNTER.getAndIncrement()))
     );
 
-    private final Collection<UserProtocol> protocols = new ArrayDeque<UserProtocol>()    {
+    private final Collection<UserProtocol> protocols = new ArrayDeque<UserProtocol>() {
         {
             this.add(PorkProtocol.INSTANCE);
         }
     };
 
+    /**
+     * The address of the endpoint.
+     * <p>
+     * For clients, this is the address of the target server.
+     * For servers, this is the bind address.
+     */
     @NonNull
     private InetSocketAddress address;
 
+    /**
+     * The protocol manager to use for creating connections.
+     * <p>
+     * This defines most behaviors of the connection, for example the transport protocol or packet reliability.
+     * <p>
+     * Default implementations:
+     *
+     * @see net.daporkchop.lib.network.protocol.netty.tcp.TcpProtocolManager#INSTANCE
+     * @see net.daporkchop.lib.network.protocol.raknet.RakNetProtocolManager#INSTANCE
+     */
     @NonNull
     private ProtocolManager manager = TcpProtocolManager.INSTANCE;
 
+    /**
+     * An {@link Executor} for handling threading on connections
+     */
     @NonNull
     private Executor executor = DEFAULT_EXECUTOR;
 
     @SuppressWarnings("unchecked")
     public <C extends UserConnection> B addProtocol(@NonNull UserProtocol<C> protocol) {
-        synchronized (this.protocols)   {
+        synchronized (this.protocols) {
             this.protocols.add(protocol);
         }
         return (B) this;

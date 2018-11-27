@@ -17,6 +17,7 @@ package net.daporkchop.lib.network.channel;
 
 import lombok.NonNull;
 import net.daporkchop.lib.common.function.Void;
+import net.daporkchop.lib.network.conn.Connection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
@@ -99,6 +100,20 @@ public interface Channel {
      */
     <C extends UserConnection> C getConnection(@NonNull Class<? extends UserProtocol<C>> protocolClass);
 
+    /**
+     * Closes this channel.
+     * <p>
+     * Depending on the underlying network connection, this can do one of multiple things:
+     * - for transports that do not natively support channels (such as TCP), this will do nothing
+     * - for transports that have native support for channels (such as RakNet), this will either
+     * --- do nothing (if this is the default channel)
+     * --- close this channel, and only this channel (if this is not the default channel)
+     * <p>
+     * To close the actual connection, use {@link Connection#closeConnection()} (a dummy connection can be obtained from
+     * {@link #getConnection(Class)} with {@link net.daporkchop.lib.network.pork.PorkProtocol}.class as a parameter)
+     */
+    void close();
+
     //
     //
     // Convenience methods
@@ -139,5 +154,9 @@ public interface Channel {
 
     default void send(@NonNull Packet packet) {
         this.send(packet, false, null, this.getReliability());
+    }
+
+    default boolean isDefault()    {
+        return this.getId() == 0;
     }
 }

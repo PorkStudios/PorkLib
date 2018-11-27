@@ -17,16 +17,13 @@ import net.daporkchop.lib.crypto.CryptographySettings;
 import net.daporkchop.lib.crypto.cipher.block.CipherMode;
 import net.daporkchop.lib.crypto.cipher.block.CipherPadding;
 import net.daporkchop.lib.crypto.cipher.block.CipherType;
-import net.daporkchop.lib.crypto.keygen.KeyGen;
 import net.daporkchop.lib.crypto.sig.ec.CurveType;
-import net.daporkchop.lib.crypto.sig.ec.EllipticCurveKeyCache;
 import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.endpoint.client.PorkClient;
 import net.daporkchop.lib.network.endpoint.server.PorkServer;
-import net.daporkchop.lib.network.protocol.pork.PorkConnection;
 import org.junit.Test;
 
 import java.io.File;

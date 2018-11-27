@@ -13,42 +13,31 @@
  *
  */
 
-package net.daporkchop.lib.network.conn;
+package net.daporkchop.lib.network.pork;
 
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.network.packet.UserProtocol;
-import net.daporkchop.lib.network.pork.PorkConnection;
-import net.daporkchop.lib.network.pork.PorkProtocol;
+import lombok.Setter;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
+import net.daporkchop.lib.network.conn.UserConnection;
+import net.daporkchop.lib.network.util.ConnectionState;
 import net.daporkchop.lib.network.util.PacketReprocessor;
-
-import java.util.Map;
 
 /**
  * @author DaPorkchop_
  */
-public interface UnderlyingNetworkConnection extends Connection {
-    Map<Class<? extends UserProtocol>, UserConnection> getConnections();
+@Getter
+public class PorkConnection extends UserConnection {
+    @Setter
+    private String disconnectReason;
 
-    /**
-     * Closes the channel at network level, i.e. with no disconnect packet or whatever
-     */
-    void disconnectAtNetworkLevel();
+    @Setter
+    private UnderlyingNetworkConnection realConnection;
 
-    @SuppressWarnings("unchecked")
-    default <C extends UserConnection> C getUserConnection(@NonNull Class<? extends UserProtocol<C>> clazz) {
-        return (C) this.getConnections().get(clazz);
-    }
+    @Setter
+    @NonNull
+    private ConnectionState state = ConnectionState.INIT;
 
-    //<C extends UserConnection> void putUserConnection(@NonNull Class<UserProtocol<C>> clazz, @NonNull C connection);
-    //xd screw good coding
-    default void putUserConnection(@NonNull Class<? extends UserProtocol> clazz, @NonNull UserConnection connection)    {
-        this.getConnections().put(clazz, connection);
-    }
-
-    default void registerTheUnderlyingConnection()  {
-        PorkConnection porkConnection = this.getUserConnection(PorkProtocol.class);
-        porkConnection.setRealConnection(this);
-        this.getConnections().values().forEach(conn -> conn.setProtocolConnection(this));
-        porkConnection.setPacketReprocessor(new PacketReprocessor(porkConnection));
-    }
+    @Setter
+    private PacketReprocessor packetReprocessor;
 }

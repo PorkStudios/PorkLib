@@ -17,7 +17,6 @@ package net.daporkchop.lib.network.util;
 
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.crypto.CryptographySettings;
 import net.daporkchop.lib.crypto.cipher.Cipher;
 import net.daporkchop.lib.crypto.cipher.CipherInitSide;
@@ -27,10 +26,10 @@ import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.encoding.compression.CompressionHelper;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.endpoint.server.PorkServer;
-import net.daporkchop.lib.network.protocol.pork.PorkConnection;
-import net.daporkchop.lib.network.protocol.pork.packet.HandshakeCompletePacket;
-import net.daporkchop.lib.network.protocol.pork.packet.HandshakeInitPacket;
-import net.daporkchop.lib.network.protocol.pork.packet.HandshakeResponsePacket;
+import net.daporkchop.lib.network.pork.PorkConnection;
+import net.daporkchop.lib.network.pork.packet.HandshakeCompletePacket;
+import net.daporkchop.lib.network.pork.packet.HandshakeInitPacket;
+import net.daporkchop.lib.network.pork.packet.HandshakeResponsePacket;
 
 import java.io.IOException;
 import java.io.InputStream;

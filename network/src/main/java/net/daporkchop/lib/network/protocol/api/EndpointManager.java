@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol;
+package net.daporkchop.lib.network.protocol.api;
 
 import lombok.NonNull;
 import net.daporkchop.lib.common.function.Void;

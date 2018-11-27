@@ -22,8 +22,7 @@ import net.daporkchop.lib.network.conn.Connection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.UserProtocol;
-import net.daporkchop.lib.network.protocol.pork.PorkConnection;
-import net.daporkchop.lib.network.protocol.pork.PorkProtocol;
+import net.daporkchop.lib.network.pork.PorkProtocol;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 
 import java.util.Collection;

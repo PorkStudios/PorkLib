@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.pork.packet;
+package net.daporkchop.lib.network.pork.packet;
 
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -24,7 +24,7 @@ import net.daporkchop.lib.crypto.CryptographySettings;
 import net.daporkchop.lib.encoding.compression.CompressionHelper;
 import net.daporkchop.lib.network.packet.Codec;
 import net.daporkchop.lib.network.packet.Packet;
-import net.daporkchop.lib.network.protocol.pork.PorkConnection;
+import net.daporkchop.lib.network.pork.PorkConnection;
 import net.daporkchop.lib.network.util.ConnectionState;
 
 import java.io.IOException;

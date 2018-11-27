@@ -13,49 +13,48 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.pork.packet;
+package net.daporkchop.lib.network.protocol.raknet;
 
-import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.network.packet.Codec;
-import net.daporkchop.lib.network.protocol.pork.PorkConnection;
-import net.daporkchop.lib.network.protocol.pork.PorkPacket;
+import net.daporkchop.lib.network.endpoint.Endpoint;
+import net.daporkchop.lib.network.protocol.api.EndpointManager;
+import net.daporkchop.lib.network.protocol.api.ProtocolManager;
 
-import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.concurrent.Executor;
 
 /**
- * Sent before a connection is closed to inform the remote end of the reason for the disconnection
+ * https://en.wikipedia.org/wiki/RakNet
  *
  * @author DaPorkchop_
  */
-@NoArgsConstructor
-@AllArgsConstructor
-public class DisconnectPacket implements PorkPacket {
-    public String reason;
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class RakNetProtocolManager implements ProtocolManager {
+    public static final RakNetProtocolManager INSTANCE = new RakNetProtocolManager();
 
     @Override
-    public void read(DataIn in) throws IOException {
-        this.reason = in.readUTF();
+    public EndpointManager.ServerEndpointManager createServerManager() {
+        return null;
     }
 
     @Override
-    public void write(DataOut out) throws IOException {
-        out.writeUTF(this.reason);
+    public EndpointManager.ClientEndpointManager createClientManager() {
+        return null;
     }
 
-    public static class DisconnectCodec implements Codec.Simple<DisconnectPacket, PorkConnection> {
+    private abstract static class RakNetEndpointManager implements EndpointManager  {
         @Override
-        public void handle(@NonNull DisconnectPacket packet, @NonNull PorkConnection connection) {
-            connection.setDisconnectReason(packet.reason);
-            connection.getRealConnection().disconnectAtNetworkLevel(); //disconnecting at network level prevents an endless ping/pong of disconnect packets
+        public void close() {
         }
 
         @Override
-        public DisconnectPacket createInstance() {
-            return new DisconnectPacket();
+        public boolean isRunning() {
+            return false;
+        }
+
+        @Override
+        public void start(InetSocketAddress address, Executor executor, Endpoint endpoint) {
         }
     }
 }

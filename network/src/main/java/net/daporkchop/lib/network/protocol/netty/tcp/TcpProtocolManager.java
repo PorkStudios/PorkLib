@@ -33,11 +33,11 @@ import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
-import net.daporkchop.lib.network.protocol.EndpointManager;
-import net.daporkchop.lib.network.protocol.ProtocolManager;
+import net.daporkchop.lib.network.protocol.api.EndpointManager;
+import net.daporkchop.lib.network.protocol.api.ProtocolManager;
 import net.daporkchop.lib.network.protocol.netty.NettyPacketDecoder;
 import net.daporkchop.lib.network.protocol.netty.NettyPacketEncoder;
-import net.daporkchop.lib.network.protocol.pork.packet.DisconnectPacket;
+import net.daporkchop.lib.network.pork.packet.DisconnectPacket;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayDeque;

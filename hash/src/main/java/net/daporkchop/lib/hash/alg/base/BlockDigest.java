@@ -12,10 +12,11 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.hash.util;
+package net.daporkchop.lib.hash.alg.base;
 
 import lombok.NonNull;
 import net.daporkchop.lib.binary.util.Pack;
+import net.daporkchop.lib.hash.util.DigestAlg;
 
 /**
  * A digest algorithm that accepts data in blocks rather than processing it as it's received
@@ -31,31 +32,31 @@ public abstract class BlockDigest implements DigestAlg {
     private long byteCount;
 
     protected BlockDigest() {
-        xBufOff = 0;
+        this.xBufOff = 0;
     }
 
     protected BlockDigest(@NonNull byte[] encodedState) {
-        System.arraycopy(encodedState, 0, xBuf, 0, xBuf.length);
-        xBufOff = Pack.bigEndianToInt(encodedState, 4);
-        byteCount = Pack.bigEndianToLong(encodedState, 8);
+        System.arraycopy(encodedState, 0, this.xBuf, 0, this.xBuf.length);
+        this.xBufOff = Pack.bigEndianToInt(encodedState, 4);
+        this.byteCount = Pack.bigEndianToLong(encodedState, 8);
     }
 
     protected void copyIn(@NonNull BlockDigest t) {
-        System.arraycopy(t.xBuf, 0, xBuf, 0, t.xBuf.length);
+        System.arraycopy(t.xBuf, 0, this.xBuf, 0, t.xBuf.length);
 
-        xBufOff = t.xBufOff;
-        byteCount = t.byteCount;
+        this.xBufOff = t.xBufOff;
+        this.byteCount = t.byteCount;
     }
 
     public void update(byte in) {
-        xBuf[xBufOff++] = in;
+        this.xBuf[this.xBufOff++] = in;
 
-        if (xBufOff == xBuf.length) {
-            processWord(xBuf, 0);
-            xBufOff = 0;
+        if (this.xBufOff == this.xBuf.length) {
+            this.processWord(this.xBuf, 0);
+            this.xBufOff = 0;
         }
 
-        byteCount++;
+        this.byteCount++;
     }
 
     public void update(byte[] in, int inOff, int len) {
@@ -63,12 +64,12 @@ public abstract class BlockDigest implements DigestAlg {
 
         // fill the current word
         int i = 0;
-        if (xBufOff != 0) {
+        if (this.xBufOff != 0) {
             while (i < len) {
-                xBuf[xBufOff++] = in[inOff + i++];
-                if (xBufOff == 4) {
-                    processWord(xBuf, 0);
-                    xBufOff = 0;
+                this.xBuf[this.xBufOff++] = in[inOff + i++];
+                if (this.xBufOff == 4) {
+                    this.processWord(this.xBuf, 0);
+                    this.xBufOff = 0;
                     break;
                 }
             }
@@ -77,45 +78,45 @@ public abstract class BlockDigest implements DigestAlg {
         // process whole words.
         int limit = ((len - i) & ~3) + i;
         for (; i < limit; i += 4) {
-            processWord(in, inOff + i);
+            this.processWord(in, inOff + i);
         }
 
         // load in the remainder.
         while (i < len) {
-            xBuf[xBufOff++] = in[inOff + i++];
+            this.xBuf[this.xBufOff++] = in[inOff + i++];
         }
 
-        byteCount += len;
+        this.byteCount += len;
     }
 
     public void finish() {
-        long bitLength = (byteCount << 3);
+        long bitLength = (this.byteCount << 3);
 
         // add the pad bytes.
-        update((byte) 128);
+        this.update((byte) 128);
 
-        while (xBufOff != 0) {
-            update((byte) 0);
+        while (this.xBufOff != 0) {
+            this.update((byte) 0);
         }
 
-        processLength(bitLength);
+        this.processLength(bitLength);
 
-        processBlock();
+        this.processBlock();
     }
 
     public void reset() {
-        byteCount = 0;
+        this.byteCount = 0;
 
-        xBufOff = 0;
-        for (int i = 0; i < xBuf.length; i++) {
-            xBuf[i] = 0;
+        this.xBufOff = 0;
+        for (int i = 0; i < this.xBuf.length; i++) {
+            this.xBuf[i] = 0;
         }
     }
 
     protected void populateState(byte[] state) {
-        System.arraycopy(xBuf, 0, state, 0, xBufOff);
-        Pack.intToBigEndian(xBufOff, state, 4);
-        Pack.longToBigEndian(byteCount, state, 8);
+        System.arraycopy(this.xBuf, 0, state, 0, this.xBufOff);
+        Pack.intToBigEndian(this.xBufOff, state, 4);
+        Pack.longToBigEndian(this.byteCount, state, 8);
     }
 
     public int getByteLength() {

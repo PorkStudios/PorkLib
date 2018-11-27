@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.network.protocol.raknet;
 
+import com.nukkitx.network.raknet.RakNet;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import net.daporkchop.lib.network.endpoint.Endpoint;
@@ -43,7 +44,9 @@ public class RakNetProtocolManager implements ProtocolManager {
         return null;
     }
 
-    private abstract static class RakNetEndpointManager implements EndpointManager  {
+    private abstract static class RakNetEndpointManager implements EndpointManager {
+        protected RakNet<RakNetPorkSession> rakNet;
+
         @Override
         public void close() {
         }

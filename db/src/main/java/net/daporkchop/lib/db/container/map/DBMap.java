@@ -22,6 +22,7 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.data.Serializer;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.common.function.IOConsumer;
 import net.daporkchop.lib.db.Container;
 import net.daporkchop.lib.db.PorkDB;
 import net.daporkchop.lib.db.container.map.data.DataLookup;
@@ -284,6 +285,11 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
     @Override
     public File getFile(String name) throws IOException {
         return super.getFile(name);
+    }
+
+    @Override
+    public File getFile(String name, IOConsumer<DataOut> initializer, boolean create) throws IOException {
+        return super.getFile(name, initializer, create);
     }
 
     @Override

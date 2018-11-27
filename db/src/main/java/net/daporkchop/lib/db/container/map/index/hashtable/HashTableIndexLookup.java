@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.db.container.map.index.hashtable;
 
+import lombok.NonNull;
 import net.daporkchop.lib.db.container.map.DBMap;
 
 import java.io.File;
@@ -39,7 +40,7 @@ public class HashTableIndexLookup<K> extends BaseHashTableIndexLookup<K> {
     }
 
     @Override
-    protected void doInit(DBMap map, File file) throws IOException {
+    protected void doInit(@NonNull DBMap<K, ?> map, @NonNull File file) throws IOException {
     }
 
     @Override
@@ -71,7 +72,11 @@ public class HashTableIndexLookup<K> extends BaseHashTableIndexLookup<K> {
         ByteBuffer buffer = this.valueBufferCache.get();
         buffer.clear();
         this.tableChannel.read(buffer, pos);
-        buffer.rewind();
+        buffer.flip();
+        return this.readFromBuffer(buffer);
+    }
+
+    protected long readFromBuffer(@NonNull ByteBuffer buffer)   {
         switch (this.pointerBytes)  {
             case 1:
                 return buffer.get() & 0xFFL;
@@ -116,6 +121,12 @@ public class HashTableIndexLookup<K> extends BaseHashTableIndexLookup<K> {
         pos *= this.pointerBytes;
         ByteBuffer buffer = this.valueBufferCache.get();
         buffer.clear();
+        this.writeToBuffer(buffer, val);
+        buffer.flip();
+        this.tableChannel.write(buffer, pos);
+    }
+
+    protected void writeToBuffer(@NonNull ByteBuffer buffer, long val)  {
         switch (this.pointerBytes)  {
             case 1: {
                 buffer.put((byte) (val & 0xFFL));
@@ -169,7 +180,5 @@ public class HashTableIndexLookup<K> extends BaseHashTableIndexLookup<K> {
             default:
                 throw new IllegalStateException();
         }
-        buffer.flip();
-        this.tableChannel.write(buffer, pos);
     }
 }

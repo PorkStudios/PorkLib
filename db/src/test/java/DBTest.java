@@ -13,17 +13,23 @@
  *
  */
 
+import net.daporkchop.lib.binary.data.Serializer;
 import net.daporkchop.lib.binary.data.impl.ByteArraySerializer;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.db.PorkDB;
 import net.daporkchop.lib.db.container.DBAtomicLong;
 import net.daporkchop.lib.db.container.map.DBMap;
+import net.daporkchop.lib.db.container.map.data.DataLookup;
+import net.daporkchop.lib.db.container.map.data.IndividualFileLookup;
 import net.daporkchop.lib.db.container.map.data.OneTimeWriteDataLookup;
 import net.daporkchop.lib.binary.data.impl.BasicSerializer;
+import net.daporkchop.lib.db.container.map.index.IndexLookup;
+import net.daporkchop.lib.db.container.map.index.hashtable.BucketingHashTableIndexLookup;
 import net.daporkchop.lib.db.container.map.index.hashtable.HashTableIndexLookup;
 import net.daporkchop.lib.db.container.map.index.hashtable.MappedHashTableIndexLookup;
 import net.daporkchop.lib.encoding.basen.Base58;
 import net.daporkchop.lib.encoding.compression.Compression;
+import net.daporkchop.lib.encoding.compression.CompressionHelper;
 import org.junit.Test;
 
 import java.io.File;
@@ -34,6 +40,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Supplier;
 
 import static java.lang.Math.abs;
 
@@ -123,6 +130,11 @@ public class DBTest {
     @Test
     @SuppressWarnings("unchecked")
     public void test() throws IOException {
+        final Supplier<Serializer<byte[]>> valueSerializer = () -> ByteArraySerializer.INSTANCE;
+        final Supplier<DataLookup> dataLookup = () -> new IndividualFileLookup();
+        final Supplier<IndexLookup<String>> indexLookup = () -> new BucketingHashTableIndexLookup<>(4, 4);
+        final Supplier<CompressionHelper> compression = () -> Compression.NONE;
+
         Random r = new Random(123456789L);
         long longVal = r.nextLong();
         Map<String, byte[]> data = new Hashtable<>();
@@ -133,7 +145,7 @@ public class DBTest {
             r.nextBytes(b2);
             data.put(Base58.encodeBase58(b1), b2);
         }
-        if (true){
+        if (false){
             byte[] b1 = new byte[16];
             byte[] b2 = new byte[0xFFFFFF];
             r.nextBytes(b1);
@@ -150,10 +162,10 @@ public class DBTest {
             }
             if (true)   {
                 DBMap<String, byte[]> dbMap = DBMap.<String, byte[]>builder(db, "map")
-                        .setValueSerializer(ByteArraySerializer.INSTANCE)
-                        //.setDataLookup(new OneTimeWriteDataLookup())
-                        .setIndexLookup(new HashTableIndexLookup<>(16, 4))
-                        //.setCompression(Compression.BZIP2_NORMAL)
+                        .setValueSerializer(valueSerializer.get())
+                        .setDataLookup(dataLookup.get())
+                        .setIndexLookup(indexLookup.get())
+                        .setCompression(compression.get())
                         .build();
 
                 dbMap.putAll(data);
@@ -175,10 +187,10 @@ public class DBTest {
                 }
                 if (true)   {
                     DBMap<String, byte[]> dbMap = DBMap.<String, byte[]>builder(db, "map")
-                            .setValueSerializer(ByteArraySerializer.INSTANCE)
-                            //.setDataLookup(new OneTimeWriteDataLookup())
-                            .setIndexLookup(new HashTableIndexLookup<>(16, 4))
-                            //.setCompression(Compression.BZIP2_NORMAL)
+                            .setValueSerializer(valueSerializer.get())
+                            .setDataLookup(dataLookup.get())
+                            .setIndexLookup(indexLookup.get())
+                            .setCompression(compression.get())
                             .build();
 
                     data.forEach((key, val) -> {

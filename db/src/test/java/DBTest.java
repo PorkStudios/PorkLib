@@ -132,7 +132,7 @@ public class DBTest {
     public void test() throws IOException {
         final Supplier<Serializer<byte[]>> valueSerializer = () -> ByteArraySerializer.INSTANCE;
         final Supplier<DataLookup> dataLookup = () -> new IndividualFileLookup();
-        final Supplier<IndexLookup<String>> indexLookup = () -> new BucketingHashTableIndexLookup<>(4, 4);
+        final Supplier<IndexLookup<String>> indexLookup = () -> new BucketingHashTableIndexLookup<>(1, 4);
         final Supplier<CompressionHelper> compression = () -> Compression.NONE;
 
         Random r = new Random(123456789L);

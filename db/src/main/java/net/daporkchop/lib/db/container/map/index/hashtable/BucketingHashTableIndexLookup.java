@@ -28,10 +28,7 @@ import java.nio.channels.FileChannel;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * An implementation of {@link HashTableIndexLookup} uses buckets.
- * <p>
- * This allows to check for hash collisions, which can occur if the entire hash is not used (which in all
- * likelihood will almost never be the case).
+ * An implementation of {@link HashTableIndexLookup} that uses buckets to prevent hash collisions.
  * <p>
  * The cost is that the index size will increase by upwards of 4 times when compared to a plain hashtable (with
  * all value slots filled).

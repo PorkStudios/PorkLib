@@ -30,7 +30,7 @@ import net.daporkchop.lib.db.container.map.data.IndividualFileLookup;
 import net.daporkchop.lib.db.container.map.data.key.DefaultKeyHasher;
 import net.daporkchop.lib.db.container.map.data.key.KeyHasher;
 import net.daporkchop.lib.db.container.map.index.IndexLookup;
-import net.daporkchop.lib.db.container.map.index.SlowAndInefficientTreeIndexLookup;
+import net.daporkchop.lib.db.container.map.index.tree.SlowAndInefficientTreeIndexLookup;
 import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.encoding.compression.CompressionHelper;
 
@@ -349,7 +349,10 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
          * The {@link IndexLookup} used for mapping keys to long ids as used by
          * implementations of {@link DataLookup}
          *
-         * @see net.daporkchop.lib.db.container.map.index.SlowAndInefficientTreeIndexLookup (don't use this, really)
+         * @see SlowAndInefficientTreeIndexLookup (don't use this, really)
+         * @see net.daporkchop.lib.db.container.map.index.hashtable.HashTableIndexLookup
+         * @see net.daporkchop.lib.db.container.map.index.hashtable.MappedHashTableIndexLookup
+         * @see net.daporkchop.lib.db.container.map.index.hashtable.BucketingHashTableIndexLookup
          */
         @NonNull
         private IndexLookup<K> indexLookup = new SlowAndInefficientTreeIndexLookup<>();

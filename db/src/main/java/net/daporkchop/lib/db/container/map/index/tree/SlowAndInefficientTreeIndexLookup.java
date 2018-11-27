@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.db.container.map.index;
+package net.daporkchop.lib.db.container.map.index.tree;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -21,9 +21,10 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
 import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.util.RequiredBits;
-import net.daporkchop.lib.db.container.bitset.PersistentSparseBitSet;
 import net.daporkchop.lib.db.container.map.DBMap;
 import net.daporkchop.lib.db.container.map.data.key.KeyHasher;
+import net.daporkchop.lib.db.container.map.index.IndexLookup;
+import net.daporkchop.lib.db.util.PersistentSparseBitSet;
 import sun.misc.Cleaner;
 import sun.nio.ch.DirectBuffer;
 
@@ -40,12 +41,16 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
+ * A tree-based implementation of {@link IndexLookup}.
+ * <p>
+ * This is more of an experiment to see if a tree lookup would work, in practice this shouldn't
+ * be used.
+ * <p>
+ * //TODO: write better tree lookup
+ *
  * @author DaPorkchop_
  */
 @Getter
-//TODO: this godawful mess won't work well with concurrent removals
-//TODO: additionally, this godawful mess is extremely storage inefficient
-//TODO: to preserve my limited sanity, nuke this whole godawful mess
 public class SlowAndInefficientTreeIndexLookup<K> implements IndexLookup<K> {
     protected static final int NODE_ENTRIES = 256;
     protected static final int NODE_ENTRY_BYTES = Long.BYTES;

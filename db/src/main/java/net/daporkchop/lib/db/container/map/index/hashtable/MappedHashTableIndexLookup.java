@@ -35,7 +35,8 @@ import java.nio.channels.FileChannel;
  * This does not allow for tables than 2^31 bytes. To use a massive table of that size (although if you're
  * doing that, you're probably doing something wrong), use {@link HashTableIndexLookup}
  * <p>
- * This does not check for hash collisions! If you would like hash collisions to be checked, use //TODO
+ * This does not check for hash collisions! If you would like hash collisions to be
+ * checked, use {@link BucketingHashTableIndexLookup}
  *
  * @author DaPorkchop_
  * @see HashTableIndexLookup

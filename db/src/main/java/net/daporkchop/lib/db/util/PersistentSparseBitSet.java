@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.db.container.bitset;
+package net.daporkchop.lib.db.util;
 
 import com.zaxxer.sparsebits.SparseBitSet;
 import lombok.Getter;

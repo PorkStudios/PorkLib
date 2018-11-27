@@ -28,7 +28,8 @@ import java.nio.ByteBuffer;
  * <p>
  * This can be rather slow. For faster lookups at a cost of higher memory usage, use {@link MappedHashTableIndexLookup}
  * <p>
- * This does not check for hash collisions! If you would like hash collisions to be checked, use //TODO
+ * This does not check for hash collisions! If you would like hash collisions to be
+ * checked, use {@link BucketingHashTableIndexLookup}
  *
  * @author DaPorkchop_
  * @see MappedHashTableIndexLookup

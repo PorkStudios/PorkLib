@@ -54,7 +54,10 @@ public class PorkClient implements Client, Logging {
         this.manager.start(builder.getAddress(), builder.getExecutor(), this);
 
         try {
-            this.connectWaiter.get();
+            //this.connectWaiter.get();
+            logger.debug("Client waiting...");
+            Thread.sleep(5000L);
+            logger.debug("Client wait finished.");
         } catch (Exception e) {
             throw this.exception(e);
         }

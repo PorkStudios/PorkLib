@@ -10,44 +10,31 @@
  * Any persons and/or organizations using this software must disclose their source code and have it publicly available, include this license, provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
-package net.daporkchop.lib.hash.impl.skid;
+package net.daporkchop.lib.hash.util;
 
-public abstract class BaseHash {
+import lombok.Getter;
+import lombok.NonNull;
 
+public abstract class Digest {
+    @Getter
     protected String name;
 
+    @Getter
     protected int hashSize;
-
+    @Getter
     protected int blockSize;
-
     protected long count;
-
     protected byte[] buffer;
 
-    protected BaseHash(String name, int hashSize, int blockSize) {
-        super();
-
+    protected Digest(@NonNull String name, int hashSize, int blockSize) {
         this.name = name;
         this.hashSize = hashSize;
         this.blockSize = blockSize;
         this.buffer = new byte[blockSize];
 
         this.resetContext();
-    }
-
-    public String name() {
-        return this.name;
-    }
-
-    public int hashSize() {
-        return this.hashSize;
-    }
-
-    public int blockSize() {
-        return this.blockSize;
     }
 
     public void update(byte b) {

@@ -13,12 +13,12 @@
  *
  */
 
-package net.daporkchop.lib.hash.impl.skid.md;
+package net.daporkchop.lib.hash.impl.md;
 
 import com.sun.org.apache.xerces.internal.impl.dv.util.HexBin;
-import net.daporkchop.lib.hash.impl.skid.BaseHash;
+import net.daporkchop.lib.hash.util.Digest;
 
-public class MD5Impl extends BaseHash {
+public class MD5Impl extends Digest {
     private static final int BLOCK_SIZE = 64; // inner block size in bytes
 
     private static final String DIGEST0 = "D41D8CD98F00B204E9800998ECF8427E";
@@ -225,7 +225,7 @@ public class MD5Impl extends BaseHash {
     }
 
     protected byte[] padBuffer() {
-        return MDUtil.padBuffer(this.count, BLOCK_SIZE);
+        return padBuffer(this.count, BLOCK_SIZE);
     }
 
     protected byte[] getResult() {
@@ -250,5 +250,25 @@ public class MD5Impl extends BaseHash {
             valid = DIGEST0.equals(HexBin.encode(new MD5Impl().digest()));
         }
         return valid;
+    }
+
+    private static byte[] padBuffer(long count, int BLOCK_SIZE) {
+        int n = (int) (count % BLOCK_SIZE);
+        int padding = (n < 56) ? (56 - n) : (120 - n);
+        byte[] result = new byte[padding + 8];
+
+        result[0] = (byte) 0x80;
+
+        long bits = count << 3;
+        result[padding++] = (byte) bits;
+        result[padding++] = (byte) (bits >>> 8);
+        result[padding++] = (byte) (bits >>> 16);
+        result[padding++] = (byte) (bits >>> 24);
+        result[padding++] = (byte) (bits >>> 32);
+        result[padding++] = (byte) (bits >>> 40);
+        result[padding++] = (byte) (bits >>> 48);
+        result[padding] = (byte) (bits >>> 56);
+
+        return result;
     }
 }

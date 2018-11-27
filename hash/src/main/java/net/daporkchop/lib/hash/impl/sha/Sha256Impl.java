@@ -13,12 +13,12 @@
  *
  */
 
-package net.daporkchop.lib.hash.impl.skid.sha;
+package net.daporkchop.lib.hash.impl.sha;
 
 import com.sun.org.apache.xerces.internal.impl.dv.util.HexBin;
-import net.daporkchop.lib.hash.impl.skid.BaseHash;
+import net.daporkchop.lib.hash.util.Digest;
 
-public class Sha256Impl extends BaseHash {
+public class Sha256Impl extends Digest {
     private static final int[] k = {
             0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
             0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
@@ -123,7 +123,7 @@ public class Sha256Impl extends BaseHash {
         };
     }
 
-    // Implementation of concrete methods in BaseHash --------------------------
+    // Implementation of concrete methods in Digest --------------------------
 
     public Object clone() {
         return new Sha256Impl(this);

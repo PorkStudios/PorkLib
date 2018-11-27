@@ -13,12 +13,12 @@
  *
  */
 
-package net.daporkchop.lib.hash.impl.skid.sha;
+package net.daporkchop.lib.hash.impl.sha;
 
 import com.sun.org.apache.xerces.internal.impl.dv.util.HexBin;
-import net.daporkchop.lib.hash.impl.skid.BaseHash;
+import net.daporkchop.lib.hash.util.Digest;
 
-public class Sha160Impl extends BaseHash {
+public class Sha1Impl extends Digest {
     private static final int BLOCK_SIZE = 64; // inner block size in bytes
 
     private static final String DIGEST0 = "A9993E364706816ABA3E25717850C26C9CD0D89D";
@@ -29,7 +29,7 @@ public class Sha160Impl extends BaseHash {
 
     private int h0, h1, h2, h3, h4;
 
-    public Sha160Impl() {
+    public Sha1Impl() {
         super("sha-160", 20, BLOCK_SIZE);
     }
 
@@ -38,7 +38,7 @@ public class Sha160Impl extends BaseHash {
      *
      * @param md the instance to clone.
      */
-    private Sha160Impl(Sha160Impl md) {
+    private Sha1Impl(Sha1Impl md) {
         this();
 
         this.h0 = md.h0;
@@ -138,10 +138,10 @@ public class Sha160Impl extends BaseHash {
         return new int[]{hh0 + A, hh1 + B, hh2 + C, hh3 + D, hh4 + E};
     }
 
-    // Implementation of concrete methods in BaseHash --------------------------
+    // Implementation of concrete methods in Digest --------------------------
 
     public Object clone() {
-        return new Sha160Impl(this);
+        return new Sha1Impl(this);
     }
 
     protected void transform(byte[] in, int offset) {
@@ -195,7 +195,7 @@ public class Sha160Impl extends BaseHash {
 
     public boolean selfTest() {
         if (valid == null) {
-            Sha160Impl md = new Sha160Impl();
+            Sha1Impl md = new Sha1Impl();
             md.update((byte) 0x61); // a
             md.update((byte) 0x62); // b
             md.update((byte) 0x63); // c

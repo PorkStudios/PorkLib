@@ -13,12 +13,12 @@
  *
  */
 
-package net.daporkchop.lib.hash.impl.skid.sha;
+package net.daporkchop.lib.hash.impl.sha;
 
 import com.sun.org.apache.xerces.internal.impl.dv.util.HexBin;
-import net.daporkchop.lib.hash.impl.skid.BaseHash;
+import net.daporkchop.lib.hash.util.Digest;
 
-public class Sha512Impl extends BaseHash {
+public class Sha384Impl extends Digest {
     private static final long[] k = {
             0x428a2f98d728ae22L, 0x7137449123ef65cdL, 0xb5c0fbcfec4d3b2fL, 0xe9b5dba58189dbbcL,
             0x3956c25bf348b538L, 0x59f111f1b605d019L, 0x923f82a4af194f9bL, 0xab1c5ed5da6d8118L,
@@ -45,8 +45,8 @@ public class Sha512Impl extends BaseHash {
     private static final int BLOCK_SIZE = 128;
 
     private static final String DIGEST0 =
-            "DDAF35A193617ABACC417349AE20413112E6FA4E89A97EA20A9EEEE64B55D39A" +
-                    "2192992A274FC1A836BA3C23A3FEEBBD454D4423643CE80E2A9AC94FA54CA49F";
+            "CB00753F45A35E8BB5A03D699AC65007272C32AB0EDED1631A8B605A43FF5BED" +
+                    "8086072BA1E7CC2358BAECA134C825A7";
 
     private static final long[] w = new long[80];
 
@@ -54,11 +54,11 @@ public class Sha512Impl extends BaseHash {
 
     private long h0, h1, h2, h3, h4, h5, h6, h7;
 
-    public Sha512Impl() {
-        super("sha-512", 64, BLOCK_SIZE);
+    public Sha384Impl() {
+        super("sha-384", 48, BLOCK_SIZE);
     }
 
-    private Sha512Impl(Sha512Impl md) {
+    private Sha384Impl(Sha384Impl md) {
         this();
 
         this.h0 = md.h0;
@@ -108,7 +108,9 @@ public class Sha512Impl extends BaseHash {
         }
 
         for (r = 0; r < 80; r++) {
+
             T = H + (((E >>> 14) | (E << 50)) ^ ((E >>> 18) | (E << 46)) ^ ((E >>> 41) | (E << 23))) + ((E & F) ^ ((~E) & G)) + k[r] + w[r];
+            // T IS INCORRECT SOMEHOW
             T2 = (((A >>> 28) | (A << 36)) ^ ((A >>> 34) | (A << 30)) ^ ((A >>> 39) | (A << 25))) + ((A & B) ^ (A & C) ^ (B & C));
             H = G;
             G = F;
@@ -126,7 +128,7 @@ public class Sha512Impl extends BaseHash {
     }
 
     public Object clone() {
-        return new Sha512Impl(this);
+        return new Sha384Impl(this);
     }
 
     protected void transform(byte[] in, int offset) {
@@ -159,31 +161,31 @@ public class Sha512Impl extends BaseHash {
                 (byte) (this.h4 >>> 56), (byte) (this.h4 >>> 48), (byte) (this.h4 >>> 40), (byte) (this.h4 >>> 32),
                 (byte) (this.h4 >>> 24), (byte) (this.h4 >>> 16), (byte) (this.h4 >>> 8), (byte) this.h4,
                 (byte) (this.h5 >>> 56), (byte) (this.h5 >>> 48), (byte) (this.h5 >>> 40), (byte) (this.h5 >>> 32),
-                (byte) (this.h5 >>> 24), (byte) (this.h5 >>> 16), (byte) (this.h5 >>> 8), (byte) this.h5,
-                (byte) (this.h6 >>> 56), (byte) (this.h6 >>> 48), (byte) (this.h6 >>> 40), (byte) (this.h6 >>> 32),
-                (byte) (this.h6 >>> 24), (byte) (this.h6 >>> 16), (byte) (this.h6 >>> 8), (byte) this.h6,
-                (byte) (this.h7 >>> 56), (byte) (this.h7 >>> 48), (byte) (this.h7 >>> 40), (byte) (this.h7 >>> 32),
-                (byte) (this.h7 >>> 24), (byte) (this.h7 >>> 16), (byte) (this.h7 >>> 8), (byte) this.h7
+                (byte) (this.h5 >>> 24), (byte) (this.h5 >>> 16), (byte) (this.h5 >>> 8), (byte) this.h5
+//         (byte)(h6 >>> 56), (byte)(h6 >>> 48), (byte)(h6 >>> 40), (byte)(h6 >>> 32),
+//         (byte)(h6 >>> 24), (byte)(h6 >>> 16), (byte)(h6 >>>  8), (byte) h6,
+//         (byte)(h7 >>> 56), (byte)(h7 >>> 48), (byte)(h7 >>> 40), (byte)(h7 >>> 32),
+//         (byte)(h7 >>> 24), (byte)(h7 >>> 16), (byte)(h7 >>>  8), (byte) h7
         };
     }
 
     protected void resetContext() {
-        // magic SHA-512 initialisation constants
-        this.h0 = 0x6a09e667f3bcc908L;
-        this.h1 = 0xbb67ae8584caa73bL;
-        this.h2 = 0x3c6ef372fe94f82bL;
-        this.h3 = 0xa54ff53a5f1d36f1L;
-        this.h4 = 0x510e527fade682d1L;
-        this.h5 = 0x9b05688c2b3e6c1fL;
-        this.h6 = 0x1f83d9abfb41bd6bL;
-        this.h7 = 0x5be0cd19137e2179L;
+        // magic SHA-384 initialisation constants
+        this.h0 = 0xcbbb9d5dc1059ed8L;
+        this.h1 = 0x629a292a367cd507L;
+        this.h2 = 0x9159015a3070dd17L;
+        this.h3 = 0x152fecd8f70e5939L;
+        this.h4 = 0x67332667ffc00b31L;
+        this.h5 = 0x8eb44a8768581511L;
+        this.h6 = 0xdb0c2e0d64f98fa7L;
+        this.h7 = 0x47b5481dbefa4fa4L;
     }
 
     // SHA specific methods ----------------------------------------------------
 
     public boolean selfTest() {
         if (valid == null) {
-            Sha512Impl md = new Sha512Impl();
+            Sha384Impl md = new Sha384Impl();
             md.update((byte) 0x61); // a
             md.update((byte) 0x62); // b
             md.update((byte) 0x63); // c

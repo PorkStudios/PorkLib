@@ -13,9 +13,9 @@
  *
  */
 
-package net.daporkchop.lib.hash.impl.skid.sha;
+package net.daporkchop.lib.hash.impl.sha;
 
-public class SHAUtil {
+class SHAUtil {
     public static byte[] padBuffer(long count, int BLOCK_SIZE) {
         int n = (int) (count % BLOCK_SIZE);
         int padding = (n < 56) ? (56 - n) : (120 - n);

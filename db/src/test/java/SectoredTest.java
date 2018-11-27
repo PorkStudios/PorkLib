@@ -17,7 +17,7 @@ import net.daporkchop.lib.db.DBBuilder;
 import net.daporkchop.lib.db.PorkDB;
 import net.daporkchop.lib.db.object.key.impl.HashKeyHasher;
 import net.daporkchop.lib.db.object.serializer.impl.ByteArraySerializer;
-import net.daporkchop.lib.hash.HashAlg;
+import net.daporkchop.lib.hash.util.HashAlg;
 import org.junit.Test;
 
 import java.io.File;

@@ -19,7 +19,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import net.daporkchop.lib.db.object.key.KeyHasher;
-import net.daporkchop.lib.hash.HashAlg;
+import net.daporkchop.lib.hash.util.HashAlg;
 
 /**
  * Hashes a byte array to a constant-length hash.

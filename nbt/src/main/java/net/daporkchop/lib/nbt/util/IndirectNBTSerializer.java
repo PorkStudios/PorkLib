@@ -13,17 +13,37 @@
  *
  */
 
-dependencies {
-    compile project(":encoding")
-    compile project(":binary")
-    compile project(":nbt")
-    compile project(":hash")
-    compile project(":primitive")
+package net.daporkchop.lib.nbt.util;
 
-    compile "com.zaxxer:SparseBitSet:1.1"
-    compile "com.google.guava:guava:27.0-jre"
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.binary.data.Serializer;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.nbt.NBTIO;
+import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 
-    provided "de.schlichtherle.truezip:truezip-file:7.7.10"
-    provided "de.schlichtherle.truezip:truezip-driver-zip:7.7.10"
-    provided "de.schlichtherle.truezip:truezip-driver-tar:7.7.10"
+import java.io.IOException;
+import java.util.function.Supplier;
+
+/**
+ * @author DaPorkchop_
+ */
+@RequiredArgsConstructor
+public class IndirectNBTSerializer<V extends NBTSerializable> implements Serializer<V> {
+    @NonNull
+    private final Supplier<V> blankInstanceSupplier;
+
+    @Override
+    public void write(@NonNull V val, @NonNull DataOut out) throws IOException {
+        CompoundTag tag = new CompoundTag("");
+        NBTIO.write(out, tag);
+    }
+
+    @Override
+    public V read(@NonNull DataIn in) throws IOException {
+        V val = this.blankInstanceSupplier.get();
+        val.read(NBTIO.read(in));
+        return val;
+    }
 }

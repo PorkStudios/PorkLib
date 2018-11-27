@@ -331,6 +331,8 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
          * @see net.daporkchop.lib.binary.data.impl.BasicSerializer
          * @see net.daporkchop.lib.binary.data.impl.ConstantLengthSerializer
          * @see net.daporkchop.lib.binary.data.impl.ByteArraySerializer
+         * @see net.daporkchop.lib.nbt.util.NBTSerializer
+         * @see net.daporkchop.lib.nbt.util.IndirectNBTSerializer
          */
         @NonNull
         private Serializer<V> valueSerializer;

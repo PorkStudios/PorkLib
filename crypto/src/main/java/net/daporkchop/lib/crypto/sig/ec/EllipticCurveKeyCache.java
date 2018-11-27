@@ -29,32 +29,6 @@ import java.util.concurrent.ForkJoinPool;
 /**
  * @author DaPorkchop_
  */
-<<<<<<<HEAD:network/src/main/java/net/daporkchop/lib/network/conn/Session.java
-//TODO
-@Setter(AccessLevel.PACKAGE)
-public abstract class Session {
-    @Setter(AccessLevel.PACKAGE)
-    private Connection connection;
-
-    public void send(@NonNull Packet packet) {
-    }
-
-    public int getPing() {
-        return -1;
-    }
-
-    public boolean isConnected() {
-        return false;
-    }
-
-    @SuppressWarnings("unchecked")
-    public <E extends Endpoint> E getEndpoint() {
-        return null;
-    }
-
-    public InetSocketAddress getRemoteAddress() {
-        return null;
-=======
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class EllipticCurveKeyCache {
     private static final Map<CurveType, CompletableFuture<EllipticCurveKeyPair>> cache = new EnumMap<>(CurveType.class);
@@ -78,6 +52,5 @@ public class EllipticCurveKeyCache {
         } catch (Exception e)   {
             throw new RuntimeException(e);
         }
->>>>>>> 810b6d7... nuke networking completely, and add ECDH util to crypto:crypto/src/main/java/net/daporkchop/lib/crypto/sig/ec/EllipticCurveKeyCache.java
     }
 }

@@ -10,49 +10,59 @@
  * Any persons and/or organizations using this software must disclose their source code and have it publicly available, include this license, provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
-package net.daporkchop.lib.minecraft.tileentity;
+package net.daporkchop.lib.nbt.tag.pork;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.registry.ResourceLocation;
-import net.daporkchop.lib.minecraft.world.World;
-import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
-import net.daporkchop.lib.nbt.tag.notch.IntTag;
-import net.daporkchop.lib.nbt.tag.notch.StringTag;
+import lombok.Setter;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.nbt.tag.Tag;
+import net.daporkchop.lib.nbt.tag.TagRegistry;
+
+import java.io.IOException;
 
 /**
+ * A tag that contains a single char[]
+ *
  * @author DaPorkchop_
  */
 @Getter
-public class TileEntityBase implements TileEntity {
+@Setter
+public class CharArrayTag extends Tag {
     @NonNull
-    protected final World world;
+    private char[] value;
 
-    @NonNull
-    protected final CompoundTag data;
-
-    protected int x;
-    protected int y;
-    protected int z;
-
-    protected ResourceLocation id;
-
-    public TileEntityBase(@NonNull World world, @NonNull CompoundTag data)  {
-        this.world = world;
-        this.data = data;
-        this.init();
+    public CharArrayTag(String name) {
+        super(name);
     }
 
-    protected void init()   {
-        this.id = new ResourceLocation(this.data.<StringTag>get("id").getValue());
-        this.x = this.data.<IntTag>get("x").getValue();
-        this.y = this.data.<IntTag>get("y").getValue();
-        this.z = this.data.<IntTag>get("z").getValue();
+    public CharArrayTag(String name, @NonNull char[] value) {
+        super(name);
+        this.value = value;
     }
 
-    public void save()   {
+    @Override
+    public void read(@NonNull DataIn in, @NonNull TagRegistry registry) throws IOException {
+        int len = in.readInt();
+        this.value = new char[len];
+        for (int i = 0; i < len; i++) {
+            this.value[i] = (char) in.readShort();
+        }
+    }
+
+    @Override
+    public void write(@NonNull DataOut out, @NonNull TagRegistry registry) throws IOException {
+        out.writeInt(this.value.length);
+        for (int i = 0; i < this.value.length; i++) {
+            out.writeShort((short) (this.value[i] & 0xFFFF));
+        }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("ShortArrayTag(\"%s\"): %d shorts", this.getName(), this.value.length);
     }
 }

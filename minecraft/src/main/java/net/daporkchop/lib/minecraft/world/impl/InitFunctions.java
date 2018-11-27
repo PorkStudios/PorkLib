@@ -15,8 +15,6 @@
 
 package net.daporkchop.lib.minecraft.world.impl;
 
-import com.flowpowered.nbt.CompoundTag;
-import com.flowpowered.nbt.StringTag;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -30,6 +28,8 @@ import net.daporkchop.lib.minecraft.world.Column;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.format.WorldManager;
+import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
+import net.daporkchop.lib.nbt.tag.notch.StringTag;
 import net.daporkchop.lib.primitive.function.bifunction.IntegerObjectObjectBiFunction;
 
 import java.util.function.BiFunction;
@@ -52,7 +52,7 @@ public class InitFunctions {
 
     @NonNull
     private BiFunction<World, CompoundTag, TileEntity> tileEntityCreator = (world, tag) -> {
-        String id = ((StringTag) tag.getValue().get("id")).getValue();
+        String id = tag.<StringTag>get("id").getValue();
         switch (id) {
             case "minecraft:sign":
                 return new TileEntitySign(world, tag);

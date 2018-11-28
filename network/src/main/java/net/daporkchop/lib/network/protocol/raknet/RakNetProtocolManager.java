@@ -27,6 +27,9 @@ import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
+import net.daporkchop.lib.network.endpoint.client.Client;
+import net.daporkchop.lib.network.endpoint.client.PorkClient;
+import net.daporkchop.lib.network.endpoint.server.Server;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.pork.packet.DisconnectPacket;
@@ -34,10 +37,7 @@ import net.daporkchop.lib.network.protocol.api.EndpointManager;
 import net.daporkchop.lib.network.protocol.api.ProtocolManager;
 
 import java.net.InetSocketAddress;
-import java.util.ArrayDeque;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
@@ -61,20 +61,20 @@ public class RakNetProtocolManager implements ProtocolManager {
         return new RakNetClientManager();
     }
 
-    private abstract static class RakNetEndpointManager<R extends RakNet<RakNetPorkSession>> implements EndpointManager {
+    private abstract static class RakNetEndpointManager<E extends Endpoint, R extends RakNet<RakNetPorkSession>> implements EndpointManager<E> {
         protected R rakNet;
 
         @Override
         public boolean isRunning() {
-            return this.rakNet.getChannel().isOpen();
+            return this.rakNet.getChannel().isActive();
         }
     }
 
-    private static class RakNetServerManager extends RakNetEndpointManager<RakNetServer<RakNetPorkSession>> implements EndpointManager.ServerEndpointManager {
+    private static class RakNetServerManager extends RakNetEndpointManager<Server, RakNetServer<RakNetPorkSession>> implements EndpointManager.ServerEndpointManager {
         private com.nukkitx.network.SessionManager<RakNetPorkSession> sessionManager;
 
         @Override
-        public void start(InetSocketAddress address, Executor executor, Endpoint endpoint) {
+        public void start(@NonNull InetSocketAddress address, @NonNull Executor executor, @NonNull Server endpoint) {
             if (this.sessionManager != null) {
                 throw new IllegalStateException("already initialized!");
             }
@@ -84,7 +84,7 @@ public class RakNetProtocolManager implements ProtocolManager {
                     .id(0L)
                     .sessionFactory(connection -> new RakNetPorkSession(connection, endpoint))
                     .sessionManager(this.sessionManager)
-                    .packet(RakNetPacketWrapper::new, 0xFF)
+                    .packet(RakNetPacketWrapper::new, 0x20)
                     .eventListener(new EventHandler(endpoint))
                     .build();
             this.rakNet.bind();
@@ -94,7 +94,7 @@ public class RakNetProtocolManager implements ProtocolManager {
         public <C extends UserConnection> Collection<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass) {
             return this.sessionManager.all().stream()
                     .map(session -> session.getUserConnection(protocolClass))
-                    .collect(Collectors.toCollection(ArrayDeque::new));
+                    .collect(Collectors.toCollection(ArrayList::new));
         }
 
         @Override
@@ -121,7 +121,7 @@ public class RakNetProtocolManager implements ProtocolManager {
             );
 
             @NonNull
-            private final Endpoint endpoint;
+            private final Server server;
 
             @Override
             public Action onConnectionRequest(InetSocketAddress address) {
@@ -137,7 +137,7 @@ public class RakNetProtocolManager implements ProtocolManager {
         @RequiredArgsConstructor
         private static class SessionManager implements com.nukkitx.network.SessionManager<RakNetPorkSession>, Logging {
             @NonNull
-            private final Endpoint endpoint;
+            private final Server server;
 
             private final Map<InetSocketAddress, RakNetPorkSession> connections = new ConcurrentHashMap<>();
             private final Map<RakNetPorkSession, InetSocketAddress> theseAreAlsoConnections = new ConcurrentHashMap<>();
@@ -150,6 +150,7 @@ public class RakNetProtocolManager implements ProtocolManager {
                 } else {
                     this.connections.put(address, session);
                     this.theseAreAlsoConnections.put(session, address);
+                    session.getConnection().sendPacket(new RakNetPacketWrapper());
                     return true;
                 }
             }
@@ -181,7 +182,7 @@ public class RakNetProtocolManager implements ProtocolManager {
         }
     }
 
-    private static class RakNetClientManager extends RakNetEndpointManager<RakNetClient<RakNetPorkSession>> implements EndpointManager.ClientEndpointManager {
+    private static class RakNetClientManager extends RakNetEndpointManager<Client, RakNetClient<RakNetPorkSession>> implements EndpointManager.ClientEndpointManager {
         private RakNetPorkSession session;
 
         @Override
@@ -190,15 +191,15 @@ public class RakNetProtocolManager implements ProtocolManager {
         }
 
         @Override
-        public void start(@NonNull InetSocketAddress address, @NonNull Executor executor, @NonNull Endpoint endpoint) {
+        public void start(@NonNull InetSocketAddress address, @NonNull Executor executor, @NonNull Client client) {
             if (this.rakNet != null) {
                 throw new IllegalStateException("already started!");
             }
             this.rakNet = new RakNetClient.Builder<RakNetPorkSession>()
                     .id(0L)
-                    .sessionFactory(connection -> new RakNetPorkSession(connection, endpoint))
-                    .sessionManager(new SessionManager(endpoint))
-                    .packet(RakNetPacketWrapper::new, 0xFF)
+                    .sessionFactory(connection -> new RakNetPorkSession(connection, client))
+                    .sessionManager(new SessionManager(client))
+                    .packet(RakNetPacketWrapper::new, 0x20)
                     .build();
             try {
                 this.rakNet.connect(address);
@@ -220,7 +221,7 @@ public class RakNetProtocolManager implements ProtocolManager {
         @RequiredArgsConstructor
         private class SessionManager implements com.nukkitx.network.SessionManager<RakNetPorkSession>, Logging {
             @NonNull
-            private final Endpoint endpoint;
+            private final Client client;
             private InetSocketAddress address;
 
             @Override
@@ -230,6 +231,7 @@ public class RakNetProtocolManager implements ProtocolManager {
                     if (this.address == null) {
                         this.address = address;
                         RakNetClientManager.this.session = session;
+                        ((PorkClient) this.client).postConnectCallback(null); //TODO!!!
                         return true;
                     } else {
                         return false;

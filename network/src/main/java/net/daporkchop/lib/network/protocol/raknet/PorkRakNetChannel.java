@@ -42,7 +42,8 @@ public class PorkRakNetChannel implements Channel {
     private volatile boolean closed;
 
     private void send(@NonNull Packet packet, boolean blocking, Void callback, RakNetReliability reliability)    {
-        //TODO: this is very important to figure out how to do
+        //TODO: use correct channel and reliability!
+        this.session.getConnection().sendPacket(new RakNetPacketWrapper(packet, this.session));
     }
 
     @Override

@@ -31,6 +31,8 @@ import lombok.NonNull;
 import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
+import net.daporkchop.lib.network.endpoint.client.Client;
+import net.daporkchop.lib.network.endpoint.server.Server;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.protocol.api.EndpointManager;
@@ -63,7 +65,7 @@ public class TcpProtocolManager implements ProtocolManager {
         return new NettyClientManager();
     }
 
-    private abstract static class NettyEndpointManager implements EndpointManager {
+    private abstract static class NettyEndpointManager<E extends Endpoint> implements EndpointManager<E> {
         protected Channel channel;
         protected EventLoopGroup workerGroup;
 
@@ -83,13 +85,13 @@ public class TcpProtocolManager implements ProtocolManager {
         }
     }
 
-    private static class NettyServerManager extends NettyEndpointManager implements EndpointManager.ServerEndpointManager {
+    private static class NettyServerManager extends NettyEndpointManager<Server> implements EndpointManager.ServerEndpointManager {
         protected EventLoopGroup bossGroup;
         private ChannelGroup channels;
 
         @Override
         @SuppressWarnings("unchecked")
-        public void start(@NonNull InetSocketAddress address, @NonNull Executor executor, @NonNull Endpoint endpoint) {
+        public void start(@NonNull InetSocketAddress address, @NonNull Executor executor, @NonNull Server server) {
             this.bossGroup = new NioEventLoopGroup(0, executor);
             this.workerGroup = new NioEventLoopGroup(0, executor);
             this.channels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
@@ -99,9 +101,9 @@ public class TcpProtocolManager implements ProtocolManager {
                 bootstrap.group(this.bossGroup, this.workerGroup);
                 //bootstrap.channel(NioServerSocketChannel.class);
                 //bootstrap.channel(WrapperNioServerSocketChannel.class);
-                bootstrap.channelFactory(() -> new WrapperNioServerSocketChannel(endpoint));
+                bootstrap.channelFactory(() -> new WrapperNioServerSocketChannel(server));
                 bootstrap.childHandler(new NettyChannelInitializer(
-                        endpoint,
+                        server,
                         channel -> this.channels.add(channel),
                         channel -> this.channels.remove(channel)
                 ));
@@ -152,10 +154,10 @@ public class TcpProtocolManager implements ProtocolManager {
         }
     }
 
-    private static class NettyClientManager extends NettyEndpointManager implements EndpointManager.ClientEndpointManager {
+    private static class NettyClientManager extends NettyEndpointManager<Client> implements EndpointManager.ClientEndpointManager {
         @Override
         @SuppressWarnings("unchecked")
-        public void start(@NonNull InetSocketAddress address, @NonNull Executor executor, @NonNull Endpoint endpoint) {
+        public void start(@NonNull InetSocketAddress address, @NonNull Executor executor, @NonNull Client client) {
             this.workerGroup = new NioEventLoopGroup(0, executor);
 
             try {
@@ -163,8 +165,8 @@ public class TcpProtocolManager implements ProtocolManager {
                 bootstrap.group(this.workerGroup);
                 //bootstrap.channel(NioSocketChannel.class);
                 //bootstrap.channel(WrapperNioSocketChannel.class);
-                bootstrap.channelFactory(() -> new WrapperNioSocketChannel(endpoint));
-                bootstrap.handler(new NettyChannelInitializer(endpoint));
+                bootstrap.channelFactory(() -> new WrapperNioSocketChannel(client));
+                bootstrap.handler(new NettyChannelInitializer(client));
                 bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
 
                 this.channel = bootstrap.connect(address).syncUninterruptibly().channel();

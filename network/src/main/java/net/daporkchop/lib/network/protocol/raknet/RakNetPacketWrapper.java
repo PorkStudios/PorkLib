@@ -17,22 +17,61 @@ package net.daporkchop.lib.network.protocol.raknet;
 
 import com.nukkitx.network.raknet.CustomRakNetPacket;
 import io.netty.buffer.ByteBuf;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.binary.NettyByteBufUtil;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.network.conn.Connection;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
+import net.daporkchop.lib.network.endpoint.Endpoint;
+import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.protocol.api.PacketEncoder;
+
+import java.io.IOException;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
+ * A wrapper for {@link com.nukkitx.network.raknet.RakNetPacket} to make this work with PorkLib
+ *
  * @author DaPorkchop_
  */
-//TODO
-public class RakNetPacketWrapper implements CustomRakNetPacket<RakNetPorkSession> {
+@NoArgsConstructor
+@RequiredArgsConstructor
+public class RakNetPacketWrapper implements CustomRakNetPacket<RakNetPorkSession>, PacketEncoder {
+    @NonNull
+    public Packet packet;
+    @NonNull
+    public UnderlyingNetworkConnection connection;
+    private ByteBuf buf;
+    private long ok;
+
+    @Override
+    public <E extends Endpoint> E getEndpoint() {
+        return this.connection.getEndpoint();
+    }
+
     @Override
     public void encode(@NonNull ByteBuf buffer) {
+        buffer.writeLong(ThreadLocalRandom.current().nextLong());
+        /*try {
+            this.writePacket(this.connection, this.packet, NettyByteBufUtil.wrapOut(buffer));
+        } catch (IOException e) {
+            throw new RuntimeException("this isn't even possible...", e);
+        }*/
     }
 
     @Override
     public void decode(@NonNull ByteBuf buffer) {
+        /*while (buffer.readableBytes() != 0) {
+            buffer.readByte();
+        }*/
+        //this.buf = buffer.copy();
+        this.ok = buffer.readLong();
     }
 
     @Override
     public void handle(@NonNull RakNetPorkSession session) throws Exception {
+        logger.debug("Received RakNet packet: ${0}", this.ok);
     }
 }

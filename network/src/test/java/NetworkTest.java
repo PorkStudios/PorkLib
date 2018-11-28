@@ -24,6 +24,7 @@ import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.endpoint.client.PorkClient;
 import net.daporkchop.lib.network.endpoint.server.PorkServer;
+import net.daporkchop.lib.network.pork.PorkProtocol;
 import net.daporkchop.lib.network.protocol.raknet.RakNetProtocolManager;
 import org.junit.Test;
 
@@ -103,6 +104,21 @@ public class NetworkTest implements Logging {
         logger.info("Client started.");
 
         {
+            Thread t = new Thread(() -> {
+                while (true) {
+                    try {
+                        Thread.sleep(500L);
+                    } catch (InterruptedException e) {
+                    }
+                    logger.debug("Server: ${0} Client: ${1}", server.isRunning(), client.isRunning());
+                    logger.debug("Server has ${0} connected clients", server.getConnections(PorkProtocol.class).size());
+                }
+            });
+            t.setDaemon(true);
+            t.start();
+        }
+
+        {
             int count = 3;
             logger.info("Sending ${0} random packets...", count);
             for (int i = 0; i < count; i++) {
@@ -115,6 +131,9 @@ public class NetworkTest implements Logging {
                     true
             );
         }
+        Thread.sleep(1000L);
+        Thread.sleep(1000L);
+        Thread.sleep(1000L);
 
         logger.info("Closing...");
         client.close("client closing...");

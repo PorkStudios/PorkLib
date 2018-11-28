@@ -19,6 +19,8 @@ import lombok.NonNull;
 import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
+import net.daporkchop.lib.network.endpoint.client.Client;
+import net.daporkchop.lib.network.endpoint.server.Server;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
 
@@ -32,7 +34,7 @@ import java.util.concurrent.Executor;
  * @author DaPorkchop_
  * @see ProtocolManager
  */
-public interface EndpointManager {
+public interface EndpointManager<E extends Endpoint> {
     /**
      * Closes the endpoint, removing all connected sessions
      */
@@ -56,12 +58,12 @@ public interface EndpointManager {
      * @param executor the executor to use for threading
      * @param endpoint the actual endpoint object
      */
-    void start(@NonNull InetSocketAddress address, @NonNull Executor executor, @NonNull Endpoint endpoint);
+    void start(@NonNull InetSocketAddress address, @NonNull Executor executor, @NonNull E endpoint);
 
     /**
      * Manages a server
      */
-    interface ServerEndpointManager extends EndpointManager {
+    interface ServerEndpointManager extends EndpointManager<Server> {
         /**
          * Gets a list of all currently open connections to this server
          *
@@ -97,7 +99,7 @@ public interface EndpointManager {
     /**
      * Manages a client
      */
-    interface ClientEndpointManager extends EndpointManager {
+    interface ClientEndpointManager extends EndpointManager<Client> {
         /**
          * Gets the client's connection
          *

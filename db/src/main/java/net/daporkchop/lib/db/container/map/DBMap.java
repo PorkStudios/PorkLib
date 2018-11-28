@@ -27,8 +27,8 @@ import net.daporkchop.lib.db.Container;
 import net.daporkchop.lib.db.PorkDB;
 import net.daporkchop.lib.db.container.map.data.DataLookup;
 import net.daporkchop.lib.db.container.map.data.IndividualFileLookup;
-import net.daporkchop.lib.db.container.map.data.key.DefaultKeyHasher;
-import net.daporkchop.lib.db.container.map.data.key.KeyHasher;
+import net.daporkchop.lib.db.container.map.key.DefaultKeyHasher;
+import net.daporkchop.lib.db.container.map.key.KeyHasher;
 import net.daporkchop.lib.db.container.map.index.IndexLookup;
 import net.daporkchop.lib.db.container.map.index.tree.SlowAndInefficientTreeIndexLookup;
 import net.daporkchop.lib.encoding.compression.Compression;
@@ -234,12 +234,14 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
     public V remove(@NonNull K key, boolean loadOld) {
         try {
             AtomicReference<V> ref = loadOld ? new AtomicReference<>(null) : null;
-            this.indexLookup.runIfContains(key, id -> {
+            //TODO: this is totally borked
+            this.indexLookup.remove(key, id -> {
                 if (loadOld) {
                     try (DataIn in = this.wrap(this.dataLookup.read(id))) {
                         ref.set(this.valueSerializer.read(in));
                     }
                 }
+                this.indexLookup.remove(key);
             });
             return loadOld ? ref.get() : null;
         } catch (IOException e) {
@@ -340,9 +342,9 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
         /**
          * The {@link KeyHasher} used for... hashing keys
          *
-         * @see net.daporkchop.lib.db.container.map.data.key.DefaultKeyHasher
-         * @see net.daporkchop.lib.db.container.map.data.key.ByteArrayKeyHasher
-         * @see net.daporkchop.lib.db.container.map.data.key.PrimitiveKeyHasher
+         * @see net.daporkchop.lib.db.container.map.key.DefaultKeyHasher
+         * @see net.daporkchop.lib.db.container.map.key.ByteArrayKeyHasher
+         * @see net.daporkchop.lib.db.container.map.key.PrimitiveKeyHasher
          */
         @NonNull
         private KeyHasher<K> keyHasher = new DefaultKeyHasher<>();
@@ -366,6 +368,7 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
          * @see net.daporkchop.lib.db.container.map.data.StreamingDataLookup (wip)
          * @see net.daporkchop.lib.db.container.map.data.ConstantLengthLookup
          * @see net.daporkchop.lib.db.container.map.data.OneTimeWriteDataLookup
+         * @see net.daporkchop.lib.db.container.map.data.SectoredDataLookup
          */
         @NonNull
         private DataLookup dataLookup = new IndividualFileLookup();

@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.db.container.map.data.key;
+package net.daporkchop.lib.db.container.map.key;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

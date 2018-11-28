@@ -13,31 +13,33 @@
  *
  */
 
-package net.daporkchop.lib.db.container.map.data.key;
+package net.daporkchop.lib.db.container.map.key;
 
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.binary.stream.optimizations.FastByteArrayOutputStream;
 import net.daporkchop.lib.hash.HashAlg;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+
 /**
- * Allows hashing a byte array using one of the hashing algorithms defined in {@link HashAlg}
- *
  * @author DaPorkchop_
  */
-@Getter
-@RequiredArgsConstructor
-public class ByteArrayKeyHasher implements KeyHasher<byte[]> {
-    @NonNull
-    private final HashAlg alg;
-
+public class DefaultKeyHasher<K> implements KeyHasher<K> {
     @Override
-    public byte[] hash(@NonNull byte[] key) {
-        return this.alg.hash(key);
+    public byte[] hash(@NonNull K key) {
+        ByteArrayOutputStream baos = new FastByteArrayOutputStream();
+        try (ObjectOutputStream out = new ObjectOutputStream(baos)) {
+            out.writeObject(key);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return HashAlg.MD5.hash(baos.toByteArray());
     }
 
     @Override
     public int getHashLength() {
-        return this.alg.getLength();
+        return HashAlg.MD5.getLength();
     }
 }

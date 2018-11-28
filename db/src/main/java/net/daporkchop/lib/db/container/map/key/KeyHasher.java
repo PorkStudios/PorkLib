@@ -13,33 +13,47 @@
  *
  */
 
-package net.daporkchop.lib.db.container.map.data.key;
+package net.daporkchop.lib.db.container.map.key;
 
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.optimizations.FastByteArrayOutputStream;
-import net.daporkchop.lib.hash.HashAlg;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 
 /**
  * @author DaPorkchop_
  */
-public class DefaultKeyHasher<K> implements KeyHasher<K> {
-    @Override
-    public byte[] hash(@NonNull K key) {
-        ByteArrayOutputStream baos = new FastByteArrayOutputStream();
-        try (ObjectOutputStream out = new ObjectOutputStream(baos)) {
-            out.writeObject(key);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return HashAlg.MD5.hash(baos.toByteArray());
+public interface KeyHasher<K> {
+    byte[] hash(@NonNull K key);
+
+    int getHashLength();
+
+    default boolean canReconstructFromHash()    {
+        return false;
     }
 
-    @Override
-    public int getHashLength() {
-        return HashAlg.MD5.getLength();
+    default K reconstructFromHash(@NonNull byte[] hash) {
+        throw new UnsupportedOperationException("reconstruct from hash");
+    }
+
+    abstract class BaseKeyHasher<K> implements KeyHasher<K> {
+        @Getter
+        private final int hashLength;
+        private final ThreadLocal<byte[]> hashCache;
+
+        public BaseKeyHasher(int hashLength) {
+            if (hashLength <= 0) {
+                throw new IllegalArgumentException(String.format("Invalid hash length: %d", hashLength));
+            }
+            this.hashLength = hashLength;
+            this.hashCache = ThreadLocal.withInitial(() -> new byte[hashLength]);
+        }
+
+        @Override
+        public byte[] hash(@NonNull K key) {
+            byte[] b = this.hashCache.get();
+            this.doHash(key, b);
+            return b;
+        }
+
+        protected abstract void doHash(@NonNull K key, @NonNull byte[] b);
     }
 }

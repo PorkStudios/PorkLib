@@ -22,7 +22,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.util.RequiredBits;
 import net.daporkchop.lib.db.container.map.DBMap;
-import net.daporkchop.lib.db.container.map.data.key.KeyHasher;
+import net.daporkchop.lib.db.container.map.key.KeyHasher;
 import net.daporkchop.lib.db.container.map.index.IndexLookup;
 import net.daporkchop.lib.db.util.PersistentSparseBitSet;
 import sun.misc.Cleaner;

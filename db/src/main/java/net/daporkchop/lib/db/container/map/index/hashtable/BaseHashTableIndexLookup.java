@@ -20,7 +20,7 @@ import lombok.NonNull;
 import lombok.Setter;
 import net.daporkchop.lib.common.function.IOFunction;
 import net.daporkchop.lib.db.container.map.DBMap;
-import net.daporkchop.lib.db.container.map.data.key.KeyHasher;
+import net.daporkchop.lib.db.container.map.key.KeyHasher;
 import net.daporkchop.lib.db.container.map.index.IndexLookup;
 
 import java.io.File;

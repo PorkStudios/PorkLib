@@ -117,12 +117,15 @@ public class BucketingHashTableIndexLookup<K> extends HashTableIndexLookup<K> {
 
     @Override
     protected void setDiskValue(@NonNull byte[] hash, long val) throws IOException {
+        //TODO: remove unused buckets
         long disk = super.getDiskValue(hash);
         ByteBuffer buffer = this.bucketBufferCache.get();
         //first, check if the hash is currently present on disk
         if (disk == 0L) {
             //the hash is not on disk, so we can add it ourselves
-            //long hashBits = this.getRelevantHashBits(hash);
+            if (val == 0L)  {
+                return; //no need to add something that we're about to remove
+            }
             long bucketPos = this.offset.getAndIncrement();
             super.setDiskValue(hash, bucketPos + 1L);
             buffer.clear();
@@ -143,7 +146,7 @@ public class BucketingHashTableIndexLookup<K> extends HashTableIndexLookup<K> {
                 buffer.flip();
                 if (this.compare(hash, buffer)) {
                     //we found a match! we now write the value to the bucket at this position
-                    next = (next + 1L) * this.posMultiplier - this.pointerBytes;
+                    next = (next + 1L) * this.posMultiplier - this.pointerBytes * 2L;
                     buffer.clear();
                     buffer.limit(this.pointerBytes);
                     this.writeToBuffer(buffer, val);
@@ -175,6 +178,15 @@ public class BucketingHashTableIndexLookup<K> extends HashTableIndexLookup<K> {
             buffer.flip();
             this.bucketChannel.write(buffer, prev * this.posMultiplier);
         }
+    }
+
+    @Override
+    protected long doRemove(@NonNull K key) throws IOException {
+        //TODO: this can be optimized quite significantly
+        byte[] hash = this.getHash(key);
+        long oldHash = this.getDiskValue(hash);
+        this.setDiskValue(hash, 0L);
+        return oldHash;
     }
 
     protected boolean compare(@NonNull byte[] arr, @NonNull ByteBuffer buffer) {

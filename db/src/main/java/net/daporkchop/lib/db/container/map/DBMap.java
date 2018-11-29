@@ -27,10 +27,10 @@ import net.daporkchop.lib.db.Container;
 import net.daporkchop.lib.db.PorkDB;
 import net.daporkchop.lib.db.container.map.data.DataLookup;
 import net.daporkchop.lib.db.container.map.data.IndividualFileLookup;
-import net.daporkchop.lib.db.container.map.key.DefaultKeyHasher;
-import net.daporkchop.lib.db.container.map.key.KeyHasher;
 import net.daporkchop.lib.db.container.map.index.IndexLookup;
 import net.daporkchop.lib.db.container.map.index.tree.SlowAndInefficientTreeIndexLookup;
+import net.daporkchop.lib.db.container.map.key.DefaultKeyHasher;
+import net.daporkchop.lib.db.container.map.key.KeyHasher;
 import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.encoding.compression.CompressionHelper;
 
@@ -233,17 +233,17 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
      */
     public V remove(@NonNull K key, boolean loadOld) {
         try {
-            AtomicReference<V> ref = loadOld ? new AtomicReference<>(null) : null;
-            //TODO: this is totally borked
-            this.indexLookup.remove(key, id -> {
+            V old = null;
+            long id = this.indexLookup.remove(key);
+            if (id != -1L) {
                 if (loadOld) {
                     try (DataIn in = this.wrap(this.dataLookup.read(id))) {
-                        ref.set(this.valueSerializer.read(in));
+                        old = this.valueSerializer.read(in);
                     }
                 }
-                this.indexLookup.remove(key);
-            });
-            return loadOld ? ref.get() : null;
+                this.dataLookup.remove(id);
+            }
+            return old;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

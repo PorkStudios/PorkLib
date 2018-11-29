@@ -179,14 +179,16 @@ public abstract class BaseHashTableIndexLookup<K> implements IndexLookup<K> {
     }
 
     protected boolean doContains(@NonNull K key) throws IOException {
-        return this.getDiskValue(key) != 0L;
+        long l = this.getDiskValue(key);
+        return l != 0L;
     }
 
     @Override
     public long remove(@NonNull K key) throws IOException {
         this.lock.writeLock().lock();
         try {
-            return this.doRemove(key) - 1L;
+            long l = this.doRemove(key);
+            return l - 1L;
         } finally {
             this.lock.writeLock().unlock();
         }

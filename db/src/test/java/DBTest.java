@@ -136,6 +136,7 @@ public class DBTest {
         final Supplier<Serializer<byte[]>> valueSerializer = () -> ByteArraySerializer.INSTANCE;
         final Supplier<DataLookup> dataLookup = () -> new SectoredDataLookup(2048);
         final Supplier<IndexLookup<String>> indexLookup = () -> new BucketingHashTableIndexLookup<>(1, 4);
+        //final Supplier<IndexLookup<String>> indexLookup = () -> new HashTableIndexLookup<>(16, 4);
         final Supplier<CompressionHelper> compression = () -> Compression.NONE;
 
         Random r = new Random(123456789L);
@@ -149,18 +150,20 @@ public class DBTest {
             r.nextBytes(b2);
             data.put(Base58.encodeBase58(b1), b2);
         }
-        if (true){
-            byte[] b1 = new byte[16];
-            byte[] b2 = new byte[0xFFFFFF];
-            r.nextBytes(b1);
-            data.put(Base58.encodeBase58(b1), b2);
-        }
-        if (true){
-            byte[] b1 = new byte[16];
-            byte[] b2 = new byte[0xFFFFFF];
-            r.nextBytes(b1);
-            r.nextBytes(b2);
-            data.put(Base58.encodeBase58(b1), b2);
+        if (false) {
+            if (true) {
+                byte[] b1 = new byte[16];
+                byte[] b2 = new byte[0xFFFFFF];
+                r.nextBytes(b1);
+                data.put(Base58.encodeBase58(b1), b2);
+            }
+            if (true) {
+                byte[] b1 = new byte[16];
+                byte[] b2 = new byte[0xFFFFFF];
+                r.nextBytes(b1);
+                r.nextBytes(b2);
+                data.put(Base58.encodeBase58(b1), b2);
+            }
         }
         oldData = new HashMap<>(data);
         {

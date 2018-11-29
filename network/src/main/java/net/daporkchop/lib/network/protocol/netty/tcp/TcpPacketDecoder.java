@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.netty;
+package net.daporkchop.lib.network.protocol.netty.tcp;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -34,7 +34,7 @@ import java.util.List;
  */
 @RequiredArgsConstructor
 @Getter
-public class NettyPacketDecoder extends ByteToMessageDecoder implements PacketDecoder {
+public class TcpPacketDecoder extends ByteToMessageDecoder implements PacketDecoder {
     @NonNull
     private final Endpoint endpoint;
 

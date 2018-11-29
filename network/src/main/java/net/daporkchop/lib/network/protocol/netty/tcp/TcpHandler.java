@@ -17,6 +17,7 @@ package net.daporkchop.lib.network.protocol.netty.tcp;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.logging.Logging;
@@ -39,7 +40,8 @@ import net.daporkchop.lib.network.util.ConnectionState;
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-public class TcpNettyHandler extends ChannelInboundHandlerAdapter implements Logging {
+@Getter
+public class TcpHandler extends ChannelInboundHandlerAdapter implements Logging {
     @NonNull
     private final Endpoint endpoint;
 

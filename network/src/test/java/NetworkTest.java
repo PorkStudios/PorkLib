@@ -22,124 +22,86 @@ import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
-import net.daporkchop.lib.network.endpoint.client.PorkClient;
-import net.daporkchop.lib.network.endpoint.server.PorkServer;
-import net.daporkchop.lib.network.pork.PorkProtocol;
+import net.daporkchop.lib.network.endpoint.client.Client;
+import net.daporkchop.lib.network.endpoint.server.Server;
+import net.daporkchop.lib.network.protocol.api.ProtocolManager;
+import net.daporkchop.lib.network.protocol.netty.tcp.TcpProtocolManager;
 import net.daporkchop.lib.network.protocol.raknet.RakNetProtocolManager;
 import org.junit.Test;
 
 import java.io.File;
 import java.net.InetSocketAddress;
+import java.util.Arrays;
+import java.util.Collection;
 
 /**
  * @author DaPorkchop_
  */
 public class NetworkTest implements Logging {
+    private static final Collection<ProtocolManager> MANAGERS = Arrays.asList(
+            TcpProtocolManager.INSTANCE
+            //, RakNetProtocolManager.INSTANCE
+    );
+
     static {
         logger.setLevel(4);
         logger.add(new File("./test_out/test_network.log"), true);
     }
 
-    @Test
-    public void test() throws InterruptedException {
-        logger.info("Starting server...");
-        PorkServer server = new ServerBuilder()
-                .setAddress(new InetSocketAddress("0.0.0.0", 12345))
-                .addProtocol(TestProtocol.INSTANCE)
-                .setCompression(Compression.GZIP_HIGH)
-                .setCryptographySettings(new CryptographySettings(
-                        CurveType.B_283,
-                        CipherType.BLOWFISH,
-                        CipherMode.CBC,
-                        CipherPadding.PKCS7
-                ))
-                .build();
-        logger.info("Server started.");
-
-        logger.info("Starting client...");
-        PorkClient client = new ClientBuilder()
-                .setAddress(new InetSocketAddress("localhost", 12345))
-                .addProtocol(TestProtocol.INSTANCE)
-                .build();
-        logger.info("Client started.");
-
-        {
-            int count = 3;
-            logger.info("Sending ${0} random packets...", count);
-            for (int i = 0; i < count; i++) {
-                Thread.sleep(75L);
-                client.send(new TestPacket("hello from client!"), true);
-                server.broadcast(new TestPacket("hello from server!"));
-            }
-            server.broadcast(
-                    new TestPacket("\nI'd just like to interject for moment. What you're referring to as Linux, is in fact, GNU/Linux, or as I've recently taken to calling it, GNU plus Linux. Linux is not an operating system unto itself, but rather another free component of a fully functioning GNU system made useful by the GNU corelibs, shell utilities and vital system components comprising a full OS as defined by POSIX.\n\nMany computer users run a modified version of the GNU system every day, without realizing it. Through a peculiar turn of events, the version of GNU which is widely used today is often called Linux, and many of its users are not aware that it is basically the GNU system, developed by the GNU Project.\n\nThere really is a Linux, and these people are using it, but it is just a part of the system they use. Linux is the kernel: the program in the system that allocates the machine's resources to the other programs that you run. The kernel is an essential part of an operating system, but useless by itself; it can only function in the context of a complete operating system. Linux is normally used in combination with the GNU operating system: the whole system is basically GNU with Linux added, or GNU/Linux. All the so-called Linux distributions are really distributions of GNU/Linux!"),
-                    true
-            );
+    private static void sleep(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
-
-        logger.info("Closing...");
-        client.close("client closing...");
-        server.close();
-
-        Thread.sleep(1000L);
-        logger.info("Done!");
     }
 
     @Test
-    public void testRakNet() throws InterruptedException    {
-        logger.info("Starting server...");
-        PorkServer server = new ServerBuilder()
-                .setAddress(new InetSocketAddress("0.0.0.0", 12346))
-                .setManager(RakNetProtocolManager.INSTANCE)
-                .addProtocol(TestProtocol.INSTANCE)
-                .build();
-        logger.info("Server started.");
+    public void test() {
+        MANAGERS.forEach(manager -> {
+            logger.info("Testing transport: ${0}", manager.getClass());
+            logger.info("Starting server...");
+            Server server = new ServerBuilder()
+                    .setManager(manager)
+                    .setAddress(new InetSocketAddress("0.0.0.0", 12345))
+                    .addProtocol(TestProtocol.INSTANCE)
+                    .setCompression(Compression.GZIP_HIGH)
+                    .setCryptographySettings(new CryptographySettings(
+                            CurveType.B_283,
+                            CipherType.BLOWFISH,
+                            CipherMode.CBC,
+                            CipherPadding.PKCS7
+                    ))
+                    .build();
+            logger.info("Server started.");
 
-        logger.info("Starting client...");
-        PorkClient client = new ClientBuilder()
-                .setManager(RakNetProtocolManager.INSTANCE)
-                .setAddress(new InetSocketAddress("localhost", 12346))
-                .addProtocol(TestProtocol.INSTANCE)
-                .build();
-        logger.info("Client started.");
+            logger.info("Starting client...");
+            Client client = new ClientBuilder()
+                    .setAddress(new InetSocketAddress("localhost", 12345))
+                    .addProtocol(TestProtocol.INSTANCE)
+                    .build();
+            logger.info("Client started.");
 
-        {
-            Thread t = new Thread(() -> {
-                while (true) {
-                    try {
-                        Thread.sleep(500L);
-                    } catch (InterruptedException e) {
-                    }
-                    logger.debug("Server: ${0} Client: ${1}", server.isRunning(), client.isRunning());
-                    logger.debug("Server has ${0} connected clients", server.getConnections(PorkProtocol.class).size());
+            {
+                int count = 3;
+                logger.info("Sending ${0} random packets...", count);
+                for (int i = 0; i < count; i++) {
+                    sleep(75L);
+                    client.send(new TestPacket("hello from client!"), true);
+                    server.broadcast(new TestPacket("hello from server!"));
                 }
-            });
-            t.setDaemon(true);
-            t.start();
-        }
-
-        {
-            int count = 3;
-            logger.info("Sending ${0} random packets...", count);
-            for (int i = 0; i < count; i++) {
-                Thread.sleep(75L);
-                client.send(new TestPacket("hello from client!"), true);
-                server.broadcast(new TestPacket("hello from server!"));
+                server.broadcast(
+                        new TestPacket("\nI'd just like to interject for moment. What you're referring to as Linux, is in fact, GNU/Linux, or as I've recently taken to calling it, GNU plus Linux. Linux is not an operating system unto itself, but rather another free component of a fully functioning GNU system made useful by the GNU corelibs, shell utilities and vital system components comprising a full OS as defined by POSIX.\n\nMany computer users run a modified version of the GNU system every day, without realizing it. Through a peculiar turn of events, the version of GNU which is widely used today is often called Linux, and many of its users are not aware that it is basically the GNU system, developed by the GNU Project.\n\nThere really is a Linux, and these people are using it, but it is just a part of the system they use. Linux is the kernel: the program in the system that allocates the machine's resources to the other programs that you run. The kernel is an essential part of an operating system, but useless by itself; it can only function in the context of a complete operating system. Linux is normally used in combination with the GNU operating system: the whole system is basically GNU with Linux added, or GNU/Linux. All the so-called Linux distributions are really distributions of GNU/Linux!"),
+                        true
+                );
             }
-            server.broadcast(
-                    new TestPacket("\nI'd just like to interject for moment. What you're referring to as Linux, is in fact, GNU/Linux, or as I've recently taken to calling it, GNU plus Linux. Linux is not an operating system unto itself, but rather another free component of a fully functioning GNU system made useful by the GNU corelibs, shell utilities and vital system components comprising a full OS as defined by POSIX.\n\nMany computer users run a modified version of the GNU system every day, without realizing it. Through a peculiar turn of events, the version of GNU which is widely used today is often called Linux, and many of its users are not aware that it is basically the GNU system, developed by the GNU Project.\n\nThere really is a Linux, and these people are using it, but it is just a part of the system they use. Linux is the kernel: the program in the system that allocates the machine's resources to the other programs that you run. The kernel is an essential part of an operating system, but useless by itself; it can only function in the context of a complete operating system. Linux is normally used in combination with the GNU operating system: the whole system is basically GNU with Linux added, or GNU/Linux. All the so-called Linux distributions are really distributions of GNU/Linux!"),
-                    true
-            );
-        }
-        Thread.sleep(1000L);
-        Thread.sleep(1000L);
-        Thread.sleep(1000L);
 
-        logger.info("Closing...");
-        client.close("client closing...");
-        server.close();
+            logger.info("Closing...");
+            client.close("client closing...");
+            server.close();
 
-        Thread.sleep(1000L);
-        logger.info("Done!");
+            sleep(1000L);
+            logger.info("Done!");
+        });
     }
 }

@@ -25,6 +25,7 @@ import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.endpoint.client.Client;
 import net.daporkchop.lib.network.endpoint.server.Server;
 import net.daporkchop.lib.network.protocol.api.ProtocolManager;
+import net.daporkchop.lib.network.protocol.netty.sctp.SctpProtocolManager;
 import net.daporkchop.lib.network.protocol.netty.tcp.TcpProtocolManager;
 import net.daporkchop.lib.network.protocol.raknet.RakNetProtocolManager;
 import org.junit.Test;
@@ -39,8 +40,10 @@ import java.util.Collection;
  */
 public class NetworkTest implements Logging {
     private static final Collection<ProtocolManager> MANAGERS = Arrays.asList(
-            TcpProtocolManager.INSTANCE
+            null
+            //, TcpProtocolManager.INSTANCE
             //, RakNetProtocolManager.INSTANCE
+            , SctpProtocolManager.INSTANCE
     );
 
     static {
@@ -59,6 +62,10 @@ public class NetworkTest implements Logging {
     @Test
     public void test() {
         MANAGERS.forEach(manager -> {
+            if (manager == null)    {
+                return;
+            }
+
             logger.info("Testing transport: ${0}", manager.getClass());
             logger.info("Starting server...");
             Server server = new ServerBuilder()
@@ -77,6 +84,7 @@ public class NetworkTest implements Logging {
 
             logger.info("Starting client...");
             Client client = new ClientBuilder()
+                    .setManager(manager)
                     .setAddress(new InetSocketAddress("localhost", 12345))
                     .addProtocol(TestProtocol.INSTANCE)
                     .build();

@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.netty;
+package net.daporkchop.lib.network.protocol.netty.tcp;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -32,7 +32,7 @@ import net.daporkchop.lib.network.protocol.api.PacketEncoder;
  */
 @RequiredArgsConstructor
 @Getter
-public class NettyPacketEncoder extends MessageToByteEncoder<Packet> implements PacketEncoder {
+public class TcpPacketEncoder extends MessageToByteEncoder<Packet> implements PacketEncoder {
     @NonNull
     private final Endpoint endpoint;
 

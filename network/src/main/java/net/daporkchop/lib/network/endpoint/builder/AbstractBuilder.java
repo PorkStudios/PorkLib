@@ -73,6 +73,7 @@ public abstract class AbstractBuilder<E extends Endpoint, B extends AbstractBuil
      * Default implementations:
      *
      * @see net.daporkchop.lib.network.protocol.netty.tcp.TcpProtocolManager#INSTANCE
+     * @see net.daporkchop.lib.network.protocol.netty.sctp.SctpProtocolManager#INSTANCE
      * @see net.daporkchop.lib.network.protocol.raknet.RakNetProtocolManager#INSTANCE
      */
     @NonNull

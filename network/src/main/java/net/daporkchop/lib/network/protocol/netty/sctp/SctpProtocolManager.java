@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.netty.tcp;
+package net.daporkchop.lib.network.protocol.netty.sctp;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
@@ -22,8 +22,10 @@ import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.ChannelGroupFuture;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
-import io.netty.handler.codec.LengthFieldPrepender;
+import io.netty.channel.sctp.SctpChannelOption;
+import io.netty.channel.sctp.nio.NioSctpChannel;
+import io.netty.channel.sctp.nio.NioSctpServerChannel;
+import io.netty.handler.codec.sctp.SctpMessageCompletionHandler;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -40,34 +42,34 @@ import net.daporkchop.lib.network.protocol.api.EndpointManager;
 import net.daporkchop.lib.network.protocol.api.ProtocolManager;
 
 import java.net.InetSocketAddress;
-import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 /**
- * An implementation of {@link ProtocolManager} for the TCP transport protocol.
+ * An implementation of {@link ProtocolManager} for the SCTP transport protocol.
  * <p>
- * TCP provides a single, bi-directional {@link net.daporkchop.lib.network.util.reliability.Reliability#RELIABLE_ORDERED} channel.
+ * SCTP provides an unlimited* number of independent reliable (and optionally ordered) channels. Unlike TCP,
+ * which is stream-based, SCTP is message-based (like UDP) which gives better performance for the direct packet-based networking that
+ * PorkLib network is designed for.
  *
  * @author DaPorkchop_
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class TcpProtocolManager implements ProtocolManager {
-    public static final TcpProtocolManager INSTANCE = new TcpProtocolManager();
+public class SctpProtocolManager implements ProtocolManager {
+    public static final SctpProtocolManager INSTANCE = new SctpProtocolManager();
 
     @Override
     public EndpointManager.ServerEndpointManager createServerManager() {
-        return new TcpServerManager();
+        return new SctpServerManager();
     }
 
     @Override
     public EndpointManager.ClientEndpointManager createClientManager() {
-        return new TcpClientManager();
+        return new SctpClientManager();
     }
 
-    private abstract static class TcpEndpointManager<E extends Endpoint> implements EndpointManager<E> {
+    private abstract static class SctpEndpointManager<E extends Endpoint> implements EndpointManager<E> {
         protected Channel channel;
         protected EventLoopGroup workerGroup;
 
@@ -87,12 +89,11 @@ public class TcpProtocolManager implements ProtocolManager {
         }
     }
 
-    private static class TcpServerManager extends TcpEndpointManager<Server> implements EndpointManager.ServerEndpointManager {
+    private static class SctpServerManager extends SctpEndpointManager<Server> implements EndpointManager.ServerEndpointManager {
         protected EventLoopGroup bossGroup;
         private ChannelGroup channels;
 
         @Override
-        @SuppressWarnings("unchecked")
         public void start(@NonNull InetSocketAddress address, @NonNull Executor executor, @NonNull Server server) {
             this.bossGroup = new NioEventLoopGroup(0, executor);
             this.workerGroup = new NioEventLoopGroup(0, executor);
@@ -101,13 +102,10 @@ public class TcpProtocolManager implements ProtocolManager {
             try {
                 ServerBootstrap bootstrap = new ServerBootstrap();
                 bootstrap.group(this.bossGroup, this.workerGroup);
-                //bootstrap.channel(NioServerSocketChannel.class);
-                //bootstrap.channel(WrapperNioServerSocketChannel.class);
-                bootstrap.channelFactory(() -> new WrapperNioServerSocketChannel(server));
-                bootstrap.childHandler(new TcpChannelInitializer(server, this.channels::add, this.channels::remove));
-                bootstrap.option(ChannelOption.SO_BACKLOG, 256);
-                bootstrap.childOption(ChannelOption.SO_KEEPALIVE, true);
-                bootstrap.childOption(ChannelOption.TCP_NODELAY, true);
+                //TODO: channel
+                bootstrap.channel(NioSctpServerChannel.class);
+                bootstrap.childHandler(new SctpChannelInitializer(server, this.channels::add, this.channels::remove));
+                bootstrap.childOption(SctpChannelOption.SCTP_NODELAY, true);
 
                 this.channel = bootstrap.bind(address).syncUninterruptibly().channel();
             } catch (Throwable t) {
@@ -119,19 +117,8 @@ public class TcpProtocolManager implements ProtocolManager {
         }
 
         @Override
-        public void close() {
-            super.close();
-            this.bossGroup.shutdownGracefully();
-            this.channels.close();
-        }
-
-        @Override
-        @SuppressWarnings("unchecked")
-        public <C extends UserConnection> Collection<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass) {
-            return this.channels.stream()
-                    .map(WrapperNioSocketChannel.class::cast)
-                    .map(realConnection -> realConnection.getUserConnection(protocolClass))
-                    .collect(Collectors.toCollection(ArrayDeque::new));
+        public <C extends UserConnection> Collection<C> getConnections(Class<? extends UserProtocol<C>> protocolClass) {
+            return null;
         }
 
         @Override
@@ -143,30 +130,33 @@ public class TcpProtocolManager implements ProtocolManager {
             if (blocking) {
                 future.syncUninterruptibly();
             }
-            //this.channels.writeAndFlush(packet);
         }
 
         @Override
         public void close(String reason) {
-            this.broadcast(new DisconnectPacket(reason), false, null);
+            this.broadcast(new DisconnectPacket(reason), true, null);
             this.close();
+        }
+
+        @Override
+        public void close() {
+            super.close();
+            this.bossGroup.shutdownGracefully();
         }
     }
 
-    private static class TcpClientManager extends TcpEndpointManager<Client> implements EndpointManager.ClientEndpointManager {
+    private static class SctpClientManager extends SctpEndpointManager<Client> implements EndpointManager.ClientEndpointManager {
         @Override
-        @SuppressWarnings("unchecked")
         public void start(@NonNull InetSocketAddress address, @NonNull Executor executor, @NonNull Client client) {
             this.workerGroup = new NioEventLoopGroup(0, executor);
 
             try {
                 Bootstrap bootstrap = new Bootstrap();
                 bootstrap.group(this.workerGroup);
-                //bootstrap.channel(NioSocketChannel.class);
-                //bootstrap.channel(WrapperNioSocketChannel.class);
-                bootstrap.channelFactory(() -> new WrapperNioSocketChannel(client));
-                bootstrap.handler(new TcpChannelInitializer(client));
-                bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
+                //TODO: channel
+                bootstrap.channel(NioSctpChannel.class);
+                bootstrap.handler(new SctpChannelInitializer(client));
+                bootstrap.option(SctpChannelOption.SCTP_NODELAY, true);
 
                 this.channel = bootstrap.connect(address).syncUninterruptibly().channel();
             } catch (Throwable t) {
@@ -176,8 +166,8 @@ public class TcpProtocolManager implements ProtocolManager {
         }
 
         @Override
-        public <C extends UserConnection> C getConnection(@NonNull Class<? extends UserProtocol<C>> protocolClass) {
-            return ((WrapperNioSocketChannel) this.channel).getUserConnection(protocolClass);
+        public <C extends UserConnection> C getConnection(Class<? extends UserProtocol<C>> protocolClass) {
+            return null;
         }
 
         @Override
@@ -192,19 +182,19 @@ public class TcpProtocolManager implements ProtocolManager {
         }
     }
 
-    private static class TcpChannelInitializer extends ChannelInitializer<Channel> {
+    private static class SctpChannelInitializer extends ChannelInitializer<Channel> {
         @NonNull
         private final Endpoint endpoint;
         private final Consumer<Channel> registerHook;
         private final Consumer<Channel> unRegisterHook;
 
-        private TcpChannelInitializer(@NonNull Endpoint endpoint) {
+        private SctpChannelInitializer(@NonNull Endpoint endpoint) {
             this(endpoint, c -> {
             }, c -> {
             });
         }
 
-        private TcpChannelInitializer(@NonNull Endpoint endpoint, @NonNull Consumer<Channel> registerHook, @NonNull Consumer<Channel> unRegisterHook) {
+        private SctpChannelInitializer(@NonNull Endpoint endpoint, @NonNull Consumer<Channel> registerHook, @NonNull Consumer<Channel> unRegisterHook) {
             this.endpoint = endpoint;
             this.registerHook = registerHook;
             this.unRegisterHook = unRegisterHook;
@@ -212,16 +202,14 @@ public class TcpProtocolManager implements ProtocolManager {
 
         @Override
         protected void initChannel(Channel c) throws Exception {
-            c.pipeline().addLast(new LengthFieldPrepender(3));
-            c.pipeline().addLast(new LengthFieldBasedFrameDecoder(0xFFFFFF, 0, 3, 0, 3));
-            c.pipeline().addLast(new TcpPacketEncoder(this.endpoint));
-            c.pipeline().addLast(new TcpPacketDecoder(this.endpoint));
-            c.pipeline().addLast(new TcpHandler(this.endpoint));
+            c.pipeline().addLast(new SctpMessageCompletionHandler());
+            c.pipeline().addLast(new SctpPacketCodec(this.endpoint));
+            c.pipeline().addLast(new SctpHandler(this.endpoint));
             this.registerHook.accept(c);
 
-            WrapperNioSocketChannel realConnection = (WrapperNioSocketChannel) c;
-            this.endpoint.getPacketRegistry().getProtocols().forEach(protocol -> realConnection.putUserConnection(protocol.getClass(), protocol.newConnection()));
-            realConnection.registerTheUnderlyingConnection();
+            //TODO: WrapperNioSocketChannel realConnection = (WrapperNioSocketChannel) c;
+            //this.endpoint.getPacketRegistry().getProtocols().forEach(protocol -> realConnection.putUserConnection(protocol.getClass(), protocol.newConnection()));
+            //realConnection.registerTheUnderlyingConnection();
         }
 
         @Override

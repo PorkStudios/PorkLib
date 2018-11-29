@@ -36,8 +36,8 @@ public interface PacketEncoder extends Logging {
     <E extends Endpoint> E getEndpoint();
 
     default void writePacket(@NonNull UnderlyingNetworkConnection connection, @NonNull Packet packet, @NonNull OutputStream stream) throws IOException  {
-        //try (DataOut out = DataOut.wrap(connection.getUserConnection(PorkProtocol.class).getPacketReprocessor().wrap(stream)))   {
-        try (DataOut out = DataOut.wrap(stream))   {
+        try (DataOut out = DataOut.wrap(connection.getUserConnection(PorkProtocol.class).getPacketReprocessor().wrap(stream)))   {
+        //try (DataOut out = DataOut.wrap(stream))   {
             logger.debug("[${0}] Writing ${1}...", this.getEndpoint().getName(), packet.getClass());
             int id = this.getEndpoint().getPacketRegistry().getId(packet.getClass());
             if (id == -1)   {
@@ -50,7 +50,7 @@ public interface PacketEncoder extends Logging {
             if (this.getEndpoint() instanceof PorkClient)    {
                 ((PorkClient) this.getEndpoint()).postConnectCallback(e);
             }
-            //connection.closeConnection();
+            connection.closeConnection();
             throw e;
         }
     }

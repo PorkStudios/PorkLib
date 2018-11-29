@@ -24,6 +24,7 @@ import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.encoding.compression.CompressionHelper;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.server.PorkServer;
+import net.daporkchop.lib.network.endpoint.server.Server;
 
 /**
  * @author DaPorkchop_
@@ -31,7 +32,7 @@ import net.daporkchop.lib.network.endpoint.server.PorkServer;
 @Accessors(chain = true)
 @Getter
 @Setter
-public class ServerBuilder extends AbstractBuilder<PorkServer, ServerBuilder> {
+public class ServerBuilder extends AbstractBuilder<Server, ServerBuilder> {
     @NonNull
     private CryptographySettings cryptographySettings = new CryptographySettings();
 
@@ -39,7 +40,7 @@ public class ServerBuilder extends AbstractBuilder<PorkServer, ServerBuilder> {
     private CompressionHelper compression = Compression.NONE;
 
     @Override
-    PorkServer doBuild() {
+    Server doBuild() {
         return new PorkServer(this);
     }
 }

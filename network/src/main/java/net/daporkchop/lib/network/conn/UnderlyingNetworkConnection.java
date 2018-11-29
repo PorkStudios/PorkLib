@@ -16,6 +16,8 @@
 package net.daporkchop.lib.network.conn;
 
 import lombok.NonNull;
+import net.daporkchop.lib.common.function.Void;
+import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.pork.PorkConnection;
 import net.daporkchop.lib.network.pork.PorkProtocol;
@@ -50,5 +52,10 @@ public interface UnderlyingNetworkConnection extends Connection {
         porkConnection.setRealConnection(this);
         this.getConnections().values().forEach(conn -> conn.setProtocolConnection(this));
         porkConnection.setPacketReprocessor(new PacketReprocessor(porkConnection));
+    }
+
+    @Override
+    default void send(@NonNull Packet packet, boolean blocking, Void callback) {
+        this.getDefaultChannel().send(packet, blocking, callback);
     }
 }

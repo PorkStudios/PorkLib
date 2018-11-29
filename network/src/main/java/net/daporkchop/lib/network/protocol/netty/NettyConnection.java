@@ -13,30 +13,42 @@
  *
  */
 
-repositories {
-    maven   {
-        name = "NukkitX Snapshots"
-        url = "https://repo.nukkitx.com/snapshot/"
+package net.daporkchop.lib.network.protocol.netty;
+
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import net.daporkchop.lib.common.function.Void;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
+import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.pork.packet.DisconnectPacket;
+
+import java.net.InetSocketAddress;
+
+/**
+ * Shared methods for implementations of {@link UnderlyingNetworkConnection} built on top of
+ * a Netty {@link Channel}
+ *
+ * @author DaPorkchop_
+ */
+public interface NettyConnection extends Channel, UnderlyingNetworkConnection {
+    @Override
+    default void disconnectAtNetworkLevel() {
+        this.close();
     }
-}
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile project(":crypto")
-    compile project(":primitive")
-    compile project(":logging")
-
-    compile "com.zaxxer:SparseBitSet:$sparseBitSetVersion"
-
-    compile ("com.nukkitx.network:raknet:$raknetVersion") {
-        exclude group: "io.netty"
+    @Override
+    default void closeConnection(String reason) {
+        this.writeAndFlush(new DisconnectPacket(reason));
+        this.disconnectAtNetworkLevel();
     }
 
-    compile "io.netty:netty-buffer:$nettyVersion"
-    compile "io.netty:netty-transport-native-epoll:$nettyVersion:linux-x86_64"
-    compile "io.netty:netty-transport-native-kqueue:$nettyVersion:osx-x86_64"
+    @Override
+    default boolean isConnected() {
+        return this.isActive();
+    }
 
-    compile "io.netty:netty-transport:$nettyVersion"
-    compile "io.netty:netty-transport-sctp:$nettyVersion"
+    @Override
+    default InetSocketAddress getAddress() {
+        return (InetSocketAddress) this.remoteAddress();
+    }
 }

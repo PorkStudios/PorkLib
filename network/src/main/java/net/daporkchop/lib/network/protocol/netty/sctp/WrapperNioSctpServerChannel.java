@@ -13,30 +13,34 @@
  *
  */
 
-repositories {
-    maven   {
-        name = "NukkitX Snapshots"
-        url = "https://repo.nukkitx.com/snapshot/"
+package net.daporkchop.lib.network.protocol.netty.sctp;
+
+import com.sun.nio.sctp.SctpChannel;
+import io.netty.channel.sctp.nio.NioSctpChannel;
+import io.netty.channel.sctp.nio.NioSctpServerChannel;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.network.endpoint.Endpoint;
+
+import java.util.List;
+
+/**
+ * @author DaPorkchop_
+ */
+@RequiredArgsConstructor
+@Getter
+public class WrapperNioSctpServerChannel extends NioSctpServerChannel {
+    @NonNull
+    private final Endpoint endpoint;
+
+    @Override
+    protected int doReadMessages(List<Object> buf) throws Exception {
+        SctpChannel ch = this.javaChannel().accept();
+        if (ch == null) {
+            return 0;
+        }
+        buf.add(new WrapperNioSctpChannel(this, ch, this.endpoint));
+        return 1;
     }
-}
-
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile project(":crypto")
-    compile project(":primitive")
-    compile project(":logging")
-
-    compile "com.zaxxer:SparseBitSet:$sparseBitSetVersion"
-
-    compile ("com.nukkitx.network:raknet:$raknetVersion") {
-        exclude group: "io.netty"
-    }
-
-    compile "io.netty:netty-buffer:$nettyVersion"
-    compile "io.netty:netty-transport-native-epoll:$nettyVersion:linux-x86_64"
-    compile "io.netty:netty-transport-native-kqueue:$nettyVersion:osx-x86_64"
-
-    compile "io.netty:netty-transport:$nettyVersion"
-    compile "io.netty:netty-transport-sctp:$nettyVersion"
 }

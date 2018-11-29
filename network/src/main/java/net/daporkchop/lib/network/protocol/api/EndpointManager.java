@@ -74,7 +74,7 @@ public interface EndpointManager<E extends Endpoint> {
         <C extends UserConnection> Collection<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass);
 
         /**
-         * Send a message to all connected clients
+         * Send a message to all connected clients on the default channel
          *
          * @param packet   the packet to send
          * @param blocking whether or not this method will block the invoking thread until the packet has been flushed

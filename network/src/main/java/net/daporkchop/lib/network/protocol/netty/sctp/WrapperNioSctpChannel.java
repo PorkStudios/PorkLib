@@ -13,78 +13,71 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.netty.tcp;
+package net.daporkchop.lib.network.protocol.netty.sctp;
 
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.socket.nio.NioSocketChannel;
+import com.zaxxer.sparsebits.SparseBitSet;
+import io.netty.channel.sctp.nio.NioSctpChannel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.common.function.Void;
+import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.channel.Channel;
-import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
-import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
-import net.daporkchop.lib.network.pork.packet.DisconnectPacket;
 import net.daporkchop.lib.network.protocol.netty.NettyConnection;
 import net.daporkchop.lib.network.util.reliability.Reliability;
+import net.daporkchop.lib.primitive.map.IntegerObjectMap;
+import net.daporkchop.lib.primitive.map.PorkMaps;
+import net.daporkchop.lib.primitive.map.hashmap.IntegerObjectHashMap;
 
-import java.net.InetSocketAddress;
-import java.nio.channels.SocketChannel;
-import java.nio.channels.spi.SelectorProvider;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
 /**
- * A wrapper on top of {@link NioSocketChannel} that allows to store extra data (i.e. implement {@link UnderlyingNetworkConnection})
- *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
 @Getter
-public class WrapperNioSocketChannel extends NioSocketChannel implements NettyConnection {
-    private final Map<Class<? extends UserProtocol>, UserConnection> connections = new IdentityHashMap<>();
+public class WrapperNioSctpChannel extends NioSctpChannel implements NettyConnection, Logging {
     @NonNull
     private final Endpoint endpoint;
-    private final TcpChannel channel = new TcpChannel(this);
+    private final Map<Class<? extends UserProtocol>, UserConnection> connections = new IdentityHashMap<>();
 
-    public WrapperNioSocketChannel(SelectorProvider provider, @NonNull Endpoint endpoint) {
-        super(provider);
+    final SparseBitSet channelIds = new SparseBitSet();
+    final IntegerObjectMap<SctpChannel> channels = PorkMaps.synchronize(new IntegerObjectHashMap<>());
+
+    public WrapperNioSctpChannel(com.sun.nio.sctp.SctpChannel sctpChannel, @NonNull Endpoint endpoint) {
+        super(sctpChannel);
         this.endpoint = endpoint;
     }
 
-    public WrapperNioSocketChannel(SocketChannel socket, @NonNull Endpoint endpoint) {
-        super(socket);
+    public WrapperNioSctpChannel(io.netty.channel.Channel parent, com.sun.nio.sctp.SctpChannel sctpChannel, @NonNull Endpoint endpoint) {
+        super(parent, sctpChannel);
         this.endpoint = endpoint;
     }
-
-    public WrapperNioSocketChannel(io.netty.channel.Channel parent, SocketChannel socket, @NonNull Endpoint endpoint) {
-        super(parent, socket);
-        this.endpoint = endpoint;
-    }
-
-    //
-    //
-    // Connection implementations
-    //
-    //
 
     @Override
-    public Channel openChannel(Reliability reliability) {
-        return this.channel;
+    public Channel openChannel(@NonNull Reliability reliability) {
+        switch (reliability) {
+            case RELIABLE:
+            case RELIABLE_ORDERED: {
+                int id;
+                synchronized (this.channelIds) {
+                    id = this.channelIds.nextClearBit(0);
+                    this.channelIds.set(id);
+                }
+                SctpChannel channel = new SctpChannel(id, reliability, this);
+                this.channels.put(id, channel);
+                return channel;
+            }
+            default:
+                throw new IllegalArgumentException(this.format("SCTP only supports RELIABLE and RELIABLE_ORDERED, but ${0} was given!", reliability.name()));
+        }
     }
 
     @Override
     public Channel getOpenChannel(int id) {
-        return id == 0 ? this.channel : null;
-    }
-
-    //minor optimization (removes overhead of calling getOpenChannel())
-
-    @Override
-    public void send(@NonNull Packet packet, boolean blocking, Void callback) {
-        this.channel.send(packet, blocking, callback);
+        return this.channels.get(id);
     }
 }

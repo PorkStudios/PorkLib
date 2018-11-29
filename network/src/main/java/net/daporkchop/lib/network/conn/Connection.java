@@ -96,6 +96,20 @@ public interface Connection {
      */
     Channel getOpenChannel(int id);
 
+    /**
+     * Gets this connection's default channel.
+     * <p>
+     * For most implementations, this will return the same channel that PorkLib network uses for sending control messages, and
+     * should therefore be avoided in applications where performance is critical.
+     * <p>
+     * For some implementations (e.g. TCP) this will return the only accessible channel (as TCP only has one channel)
+     *
+     * @return this connection's default channel
+     */
+    default Channel getDefaultChannel() {
+        return this.getOpenChannel(0);
+    }
+
     //
     //
     // Convenience methods

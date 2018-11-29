@@ -56,6 +56,7 @@ allprojects {
         guavaVersion = '27.0-jre'
         nettyVersion = '4.1.24.Final'
         raknetVersion = '1.2.1-SNAPSHOT'
+        sparseBitSetVersion = '1.1'
         xzVersion = '1.8'
     }
 

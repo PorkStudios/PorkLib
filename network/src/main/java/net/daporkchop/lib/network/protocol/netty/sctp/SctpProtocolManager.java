@@ -23,8 +23,6 @@ import io.netty.channel.group.ChannelGroupFuture;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.sctp.SctpChannelOption;
-import io.netty.channel.sctp.nio.NioSctpChannel;
-import io.netty.channel.sctp.nio.NioSctpServerChannel;
 import io.netty.handler.codec.sctp.SctpMessageCompletionHandler;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import lombok.AccessLevel;
@@ -102,8 +100,7 @@ public class SctpProtocolManager implements ProtocolManager {
             try {
                 ServerBootstrap bootstrap = new ServerBootstrap();
                 bootstrap.group(this.bossGroup, this.workerGroup);
-                //TODO: channel
-                bootstrap.channel(NioSctpServerChannel.class);
+                bootstrap.channelFactory(() -> new WrapperNioSctpServerChannel(server));
                 bootstrap.childHandler(new SctpChannelInitializer(server, this.channels::add, this.channels::remove));
                 bootstrap.childOption(SctpChannelOption.SCTP_NODELAY, true);
 
@@ -153,8 +150,7 @@ public class SctpProtocolManager implements ProtocolManager {
             try {
                 Bootstrap bootstrap = new Bootstrap();
                 bootstrap.group(this.workerGroup);
-                //TODO: channel
-                bootstrap.channel(NioSctpChannel.class);
+                bootstrap.channelFactory(() -> new WrapperNioSctpChannel(client));
                 bootstrap.handler(new SctpChannelInitializer(client));
                 bootstrap.option(SctpChannelOption.SCTP_NODELAY, true);
 
@@ -207,9 +203,9 @@ public class SctpProtocolManager implements ProtocolManager {
             c.pipeline().addLast(new SctpHandler(this.endpoint));
             this.registerHook.accept(c);
 
-            //TODO: WrapperNioSocketChannel realConnection = (WrapperNioSocketChannel) c;
-            //this.endpoint.getPacketRegistry().getProtocols().forEach(protocol -> realConnection.putUserConnection(protocol.getClass(), protocol.newConnection()));
-            //realConnection.registerTheUnderlyingConnection();
+            WrapperNioSctpChannel realConnection = (WrapperNioSctpChannel) c;
+            this.endpoint.getPacketRegistry().getProtocols().forEach(protocol -> realConnection.putUserConnection(protocol.getClass(), protocol.newConnection()));
+            realConnection.registerTheUnderlyingConnection();
         }
 
         @Override

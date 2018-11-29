@@ -82,11 +82,6 @@ public class RakNetPorkSession implements NetworkSession<RakNetSession>, Underly
     }
 
     @Override
-    public void send(Packet packet, boolean blocking, Void callback) {
-        this.defaultChannel.send(packet, blocking, callback); //defaults to RELIABLE_ORDERED, for other reliabilities use channels
-    }
-
-    @Override
     public InetSocketAddress getAddress() {
         return this.connection.getRemoteAddress().orElseThrow(IllegalStateException::new);
     }

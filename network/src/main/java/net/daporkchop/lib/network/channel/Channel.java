@@ -77,6 +77,10 @@ public interface Channel {
      * <p>
      * If {@code false}, all packets will be sent with the reliability obtained from {@link Channel#getReliability()}, even
      * if the user requests something else.
+     * <p>
+     * For implementations that only support a few reliability modes (e.g. SCTP), the reliability will only be respected if it
+     * is supported.
+     * //TODO: add a method to get supported reliabilities
      *
      * @return whether or not reliability is respected
      */
@@ -156,7 +160,7 @@ public interface Channel {
         this.send(packet, false, null, this.getReliability());
     }
 
-    default boolean isDefault()    {
+    default boolean isDefault() {
         return this.getId() == 0;
     }
 }

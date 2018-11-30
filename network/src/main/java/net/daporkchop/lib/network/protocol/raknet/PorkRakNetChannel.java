@@ -27,6 +27,8 @@ import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 import net.daporkchop.lib.network.util.reliability.ReliabilityMap;
 
+import java.util.Collection;
+
 /**
  * An implementation of {@link Channel} for RakNet connections
  *
@@ -91,5 +93,10 @@ public class PorkRakNetChannel implements Channel {
     @Override
     public void send(@NonNull Packet packet) {
         this.send(packet, false, null, this.reliability);
+    }
+
+    @Override
+    public Collection<Reliability> supportedReliabilities() {
+        return Reliability.ALL;
     }
 }

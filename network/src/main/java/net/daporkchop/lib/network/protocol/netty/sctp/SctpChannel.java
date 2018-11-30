@@ -27,6 +27,9 @@ import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 /**
  * An implementation of {@link Channel} for SCTP.
  * <p>
@@ -42,6 +45,11 @@ import net.daporkchop.lib.network.util.reliability.Reliability;
 @RequiredArgsConstructor
 @Getter
 public class SctpChannel implements Channel, Logging {
+    private static final Collection<Reliability> RELIABLE_ONLY = Arrays.asList(
+            Reliability.RELIABLE,
+            Reliability.RELIABLE_ORDERED
+    );
+
     private final int id;
     @NonNull
     private final Reliability reliability;
@@ -102,5 +110,10 @@ public class SctpChannel implements Channel, Logging {
         }
         this.channel.channels.remove(this.id, this);
         //TODO: notify remote end of channel close
+    }
+
+    @Override
+    public Collection<Reliability> supportedReliabilities() {
+        return RELIABLE_ONLY;
     }
 }

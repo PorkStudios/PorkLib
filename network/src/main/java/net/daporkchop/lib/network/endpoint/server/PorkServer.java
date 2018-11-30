@@ -20,6 +20,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.crypto.CryptographySettings;
 import net.daporkchop.lib.encoding.compression.CompressionHelper;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.packet.Packet;
@@ -55,11 +56,6 @@ public class PorkServer implements Server {
     }
 
     @Override
-    public void broadcast(@NonNull Packet packet, boolean blocking, Void callback)  {
-        this.manager.broadcast(packet, blocking, callback);
-    }
-
-    @Override
     public void close(String reason) {
         synchronized (this) {
             if (!this.isRunning()) {
@@ -73,5 +69,10 @@ public class PorkServer implements Server {
     @Override
     public boolean isRunning() {
         return this.manager.isRunning();
+    }
+
+    @Override
+    public Collection<UnderlyingNetworkConnection> getUnderlyingNetworkConnections() {
+        return this.manager.getChannel().getUnderlyingNetworkConnections();
     }
 }

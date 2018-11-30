@@ -26,6 +26,7 @@ import io.netty.channel.sctp.SctpChannelOption;
 import io.netty.handler.codec.sctp.SctpMessageCompletionHandler;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.common.function.Void;
@@ -38,11 +39,15 @@ import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.pork.packet.DisconnectPacket;
 import net.daporkchop.lib.network.protocol.api.EndpointManager;
 import net.daporkchop.lib.network.protocol.api.ProtocolManager;
+import net.daporkchop.lib.network.protocol.netty.NettyServerChannel;
+import net.daporkchop.lib.network.protocol.netty.tcp.WrapperNioSocketChannel;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * An implementation of {@link ProtocolManager} for the SCTP transport protocol.
@@ -67,6 +72,16 @@ public class SctpProtocolManager implements ProtocolManager {
         return new SctpClientManager();
     }
 
+    @Override
+    public boolean areEncryptionSettingsRespected() {
+        return false;
+    }
+
+    @Override
+    public boolean areCompressionSettingsRespected() {
+        return false;
+    }
+
     private abstract static class SctpEndpointManager<E extends Endpoint> implements EndpointManager<E> {
         protected Channel channel;
         protected EventLoopGroup workerGroup;
@@ -88,8 +103,10 @@ public class SctpProtocolManager implements ProtocolManager {
     }
 
     private static class SctpServerManager extends SctpEndpointManager<Server> implements EndpointManager.ServerEndpointManager {
-        protected EventLoopGroup bossGroup;
+        private EventLoopGroup bossGroup;
         private ChannelGroup channels;
+        @Getter
+        private SctpServerChannel channel;
 
         @Override
         public void start(@NonNull InetSocketAddress address, @NonNull Executor executor, @NonNull Server server) {
@@ -104,7 +121,8 @@ public class SctpProtocolManager implements ProtocolManager {
                 bootstrap.childHandler(new SctpChannelInitializer(server, this.channels::add, this.channels::remove));
                 bootstrap.childOption(SctpChannelOption.SCTP_NODELAY, true);
 
-                this.channel = bootstrap.bind(address).syncUninterruptibly().channel();
+                super.channel = bootstrap.bind(address).syncUninterruptibly().channel();
+                this.channel = new SctpServerChannel(this.channels, server);
             } catch (Throwable t) {
                 this.workerGroup.shutdownGracefully();
                 this.bossGroup.shutdownGracefully();
@@ -114,24 +132,8 @@ public class SctpProtocolManager implements ProtocolManager {
         }
 
         @Override
-        public <C extends UserConnection> Collection<C> getConnections(Class<? extends UserProtocol<C>> protocolClass) {
-            return null;
-        }
-
-        @Override
-        public void broadcast(@NonNull Packet packet, boolean blocking, Void callback) {
-            ChannelGroupFuture future = this.channels.writeAndFlush(packet);
-            if (callback != null) {
-                future.addListener(f -> callback.run());
-            }
-            if (blocking) {
-                future.syncUninterruptibly();
-            }
-        }
-
-        @Override
         public void close(String reason) {
-            this.broadcast(new DisconnectPacket(reason), true, null);
+            this.channel.broadcast(new DisconnectPacket(reason), true);
             this.close();
         }
 
@@ -139,6 +141,22 @@ public class SctpProtocolManager implements ProtocolManager {
         public void close() {
             super.close();
             this.bossGroup.shutdownGracefully();
+        }
+
+        private class SctpServerChannel extends NettyServerChannel  {
+            private SctpServerChannel(ChannelGroup channels, Server server) {
+                super(channels, server);
+            }
+
+            @Override
+            public void close(String reason) {
+                SctpServerManager.this.close(reason);
+            }
+
+            @Override
+            public void broadcast(@NonNull Packet packet, boolean blocking) {
+                super.broadcast(new SctpPacketWrapper(packet, 0, true), blocking);
+            }
         }
     }
 
@@ -162,19 +180,13 @@ public class SctpProtocolManager implements ProtocolManager {
         }
 
         @Override
-        public <C extends UserConnection> C getConnection(Class<? extends UserProtocol<C>> protocolClass) {
-            return null;
+        public <C extends UserConnection> C getConnection(@NonNull Class<? extends UserProtocol<C>> protocolClass) {
+            return ((WrapperNioSctpChannel) this.channel).getUserConnection(protocolClass);
         }
 
         @Override
         public void send(@NonNull Packet packet, boolean blocking, Void callback) {
-            ChannelFuture future = this.channel.writeAndFlush(packet);
-            if (callback != null) {
-                future.addListener(f -> callback.run());
-            }
-            if (blocking) {
-                future.syncUninterruptibly();
-            }
+            ((WrapperNioSctpChannel) this.channel).send(packet, blocking, callback);
         }
     }
 

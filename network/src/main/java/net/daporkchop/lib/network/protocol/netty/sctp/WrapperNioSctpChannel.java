@@ -24,6 +24,8 @@ import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
+import net.daporkchop.lib.network.endpoint.client.Client;
+import net.daporkchop.lib.network.endpoint.server.Server;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.protocol.netty.NettyConnection;
 import net.daporkchop.lib.network.util.reliability.Reliability;
@@ -37,28 +39,29 @@ import java.util.Map;
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
 @Getter
 public class WrapperNioSctpChannel extends NioSctpChannel implements NettyConnection, Logging {
     @NonNull
     private final Endpoint endpoint;
     private final Map<Class<? extends UserProtocol>, UserConnection> connections = new IdentityHashMap<>();
+    private final SctpChannel defaultChannel;
 
     final SparseBitSet channelIds = new SparseBitSet();
     final IntegerObjectMap<SctpChannel> channels = PorkMaps.synchronize(new IntegerObjectHashMap<>());
 
-    public WrapperNioSctpChannel(com.sun.nio.sctp.SctpChannel sctpChannel, @NonNull Endpoint endpoint) {
-        super(sctpChannel);
-        this.endpoint = endpoint;
+    public WrapperNioSctpChannel(@NonNull Client client)    {
+        this.endpoint = client;
+        this.defaultChannel = this.openChannel(Reliability.RELIABLE_ORDERED);
     }
 
-    public WrapperNioSctpChannel(io.netty.channel.Channel parent, com.sun.nio.sctp.SctpChannel sctpChannel, @NonNull Endpoint endpoint) {
+    public WrapperNioSctpChannel(io.netty.channel.Channel parent, com.sun.nio.sctp.SctpChannel sctpChannel, @NonNull Server server) {
         super(parent, sctpChannel);
-        this.endpoint = endpoint;
+        this.endpoint = server;
+        this.defaultChannel = this.openChannel(Reliability.RELIABLE_ORDERED);
     }
 
     @Override
-    public Channel openChannel(@NonNull Reliability reliability) {
+    public SctpChannel openChannel(@NonNull Reliability reliability) {
         switch (reliability) {
             case RELIABLE:
             case RELIABLE_ORDERED: {
@@ -79,5 +82,12 @@ public class WrapperNioSctpChannel extends NioSctpChannel implements NettyConnec
     @Override
     public Channel getOpenChannel(int id) {
         return this.channels.get(id);
+    }
+
+    @Override
+    public void disconnectAtNetworkLevel() {
+        this.channels.values().forEach(channel -> channel.closed = true);
+        this.channels.clear();
+        NettyConnection.super.disconnectAtNetworkLevel();
     }
 }

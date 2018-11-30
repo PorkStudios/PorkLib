@@ -16,12 +16,11 @@
 package net.daporkchop.lib.network.protocol.netty.sctp;
 
 import com.sun.nio.sctp.SctpChannel;
-import io.netty.channel.sctp.nio.NioSctpChannel;
 import io.netty.channel.sctp.nio.NioSctpServerChannel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.network.endpoint.Endpoint;
+import net.daporkchop.lib.network.endpoint.server.Server;
 
 import java.util.List;
 
@@ -32,7 +31,7 @@ import java.util.List;
 @Getter
 public class WrapperNioSctpServerChannel extends NioSctpServerChannel {
     @NonNull
-    private final Endpoint endpoint;
+    private final Server server;
 
     @Override
     protected int doReadMessages(List<Object> buf) throws Exception {
@@ -40,7 +39,7 @@ public class WrapperNioSctpServerChannel extends NioSctpServerChannel {
         if (ch == null) {
             return 0;
         }
-        buf.add(new WrapperNioSctpChannel(this, ch, this.endpoint));
+        buf.add(new WrapperNioSctpChannel(this, ch, this.server));
         return 1;
     }
 }

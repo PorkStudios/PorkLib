@@ -38,17 +38,18 @@ import java.util.List;
  */
 @RequiredArgsConstructor
 @Getter
-public class SctpPacketCodec extends MessageToMessageCodec<SctpMessage, Packet> implements PacketEncoder {
+public class SctpPacketCodec extends MessageToMessageCodec<SctpMessage, SctpPacketWrapper> implements PacketEncoder {
     @NonNull
     private final Endpoint endpoint;
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, Packet msg, List<Object> out) throws Exception {
+    protected void encode(ChannelHandlerContext ctx, SctpPacketWrapper msg, List<Object> out) throws Exception {
+        //logger.debug("[${0} Packet codec] Encoding packet ${1}", this.endpoint.getName(), msg.getClass());
         ByteBuf buf = ByteBufAllocator.DEFAULT.buffer(256, Integer.MAX_VALUE);
         try (DataOut dataOut = NettyByteBufUtil.wrapOut(buf))   {
-            dataOut.writeUTF(msg.getClass().getCanonicalName());
+            dataOut.writeUTF(msg.getPacket().getClass().getCanonicalName());
         }
-        out.add(new SctpMessage(0, 0, false, buf));
+        out.add(new SctpMessage(0, msg.getChannel(), !msg.isOrdered(), buf));
     }
 
     @Override

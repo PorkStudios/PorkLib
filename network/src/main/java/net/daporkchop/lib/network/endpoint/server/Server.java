@@ -18,54 +18,37 @@ package net.daporkchop.lib.network.endpoint.server;
 import lombok.NonNull;
 import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.network.EndpointType;
+import net.daporkchop.lib.network.channel.ServerChannel;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
+import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.packet.UserProtocol;
+
+import java.util.Collection;
 
 /**
  * @author DaPorkchop_
  */
-public interface Server extends Endpoint {
+public interface Server extends Endpoint, ServerChannel {
     @Override
     default EndpointType getType() {
         return EndpointType.SERVER;
     }
 
-    default void broadcast(@NonNull Packet... packets) {
-        for (Packet packet : packets)   {
-            this.broadcast(packet);
-        }
-    }
-
-    default void broadcastBlocking(@NonNull Packet... packets) {
-        for (Packet packet : packets)   {
-            this.broadcastBlocking(packet);
-        }
-    }
-
-    default void broadcast(@NonNull Packet packet)   {
-        this.broadcast(packet, false, null);
-    }
-
-    default void broadcast(@NonNull Packet packet, Void callback)   {
-        this.broadcast(packet, false, callback);
-    }
-
-    default void broadcastBlocking(@NonNull Packet packet)   {
-        this.broadcast(packet, true, null);
-    }
-
-    default void broadcastBlocking(@NonNull Packet packet, Void callback)   {
-        this.broadcast(packet, true, callback);
-    }
-
-    default void broadcast(@NonNull Packet packet, boolean blocking) {
-        this.broadcast(packet, blocking, null);
-    }
-
-    void broadcast(@NonNull Packet packet, boolean blocking, Void callback);
-
     @Override
     default String getName() {
         return "Server";
+    }
+
+    @Override
+    default <C extends UserConnection> Collection<C> getConnections(Class<? extends UserProtocol<C>> protocolClass) {
+        return ServerChannel.super.getConnections(protocolClass);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    default <S extends Server> S getServer() {
+        return (S) this;
     }
 }

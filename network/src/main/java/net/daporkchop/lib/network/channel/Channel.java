@@ -110,13 +110,22 @@ public interface Channel {
      * Depending on the underlying network connection, this can do one of multiple things:
      * - for transports that do not natively support channels (such as TCP), this will do nothing
      * - for transports that have native support for channels (such as RakNet), this will either
-     * --- do nothing (if this is the default channel)
+     * --- close the connection (if this is the default channel)
      * --- close this channel, and only this channel (if this is not the default channel)
      * <p>
      * To close the actual connection, use {@link Connection#closeConnection()} (a dummy connection can be obtained from
      * {@link #getConnection(Class)} with {@link net.daporkchop.lib.network.pork.PorkProtocol}.class as a parameter)
      */
     void close();
+
+    /**
+     * Checks if this is the default channel
+     *
+     * @return whether or not this is the default channel
+     */
+    default boolean isDefaultChannel() {
+        return this.getId() == 0;
+    }
 
     //
     //

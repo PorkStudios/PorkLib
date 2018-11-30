@@ -13,48 +13,51 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.netty.tcp;
+package net.daporkchop.lib.network.protocol.netty;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.ByteToMessageDecoder;
+import io.netty.channel.group.ChannelGroup;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.NettyByteBufUtil;
+import net.daporkchop.lib.network.channel.ServerChannel;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
+import net.daporkchop.lib.network.endpoint.server.Server;
 import net.daporkchop.lib.network.packet.Packet;
-import net.daporkchop.lib.network.protocol.api.PacketDecoder;
 
-import java.util.List;
+import java.util.Collection;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
+ * A base implementation of {@link ServerChannel} for Netty-based protocol managers
+ *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
 @Getter
-public class TcpPacketDecoder extends ByteToMessageDecoder implements PacketDecoder {
+public abstract class NettyServerChannel implements ServerChannel {
     @NonNull
-    private final Endpoint endpoint;
+    private final ChannelGroup channels;
+    @NonNull
+    private final Server server;
 
-    private static void readRemainingBuffer(@NonNull ByteBuf buf) {
-        while (buf.isReadable()) {
-            buf.readByte();
+    @Override
+    public void broadcast(@NonNull Packet packet, boolean blocking) {
+        if (blocking)   {
+            this.channels.writeAndFlush(packet).syncUninterruptibly();
+        } else {
+            this.channels.writeAndFlush(packet);
         }
     }
 
     @Override
-    protected void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> list) throws Exception {
-        try {
-            int size = buf.readableBytes();
-            Packet packet = this.getPacket((UnderlyingNetworkConnection) ctx.channel(), NettyByteBufUtil.wrapIn(buf));
-            logger.debug("[${0}] Read packet: ${1} (${2} bytes)", this.endpoint.getName(), packet.getClass(), size - buf.readableBytes());
-            list.add(packet);
-            readRemainingBuffer(buf);
-        } catch (Exception e)    {
-            logger.error(e);
-            throw e;
-        }
+    public Collection<UnderlyingNetworkConnection> getUnderlyingNetworkConnections() {
+        return this.channels.stream().map(UnderlyingNetworkConnection.class::cast).collect(Collectors.toList());
+    }
+
+    @Override
+    public Stream<UnderlyingNetworkConnection> getUnderlyingNetworkConnectionsAsStream() {
+        return this.channels.stream().map(UnderlyingNetworkConnection.class::cast);
     }
 }

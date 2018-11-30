@@ -37,8 +37,8 @@ public interface UnderlyingNetworkConnection extends Connection {
     void disconnectAtNetworkLevel();
 
     @SuppressWarnings("unchecked")
-    default <C extends UserConnection> C getUserConnection(@NonNull Class<? extends UserProtocol<C>> clazz) {
-        return (C) this.getConnections().get(clazz);
+    default <C extends UserConnection> C getUserConnection(@NonNull Class<? extends UserProtocol<C>> protocolClass) {
+        return (C) this.getConnections().get(protocolClass);
     }
 
     //<C extends UserConnection> void putUserConnection(@NonNull Class<UserProtocol<C>> clazz, @NonNull C connection);

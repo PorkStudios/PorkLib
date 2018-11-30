@@ -20,6 +20,7 @@ import net.daporkchop.lib.crypto.cipher.block.CipherType;
 import net.daporkchop.lib.crypto.sig.ec.CurveType;
 import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.endpoint.client.Client;
@@ -41,7 +42,7 @@ import java.util.Collection;
 public class NetworkTest implements Logging {
     private static final Collection<ProtocolManager> MANAGERS = Arrays.asList(
             null
-            //, TcpProtocolManager.INSTANCE
+            , TcpProtocolManager.INSTANCE
             //, RakNetProtocolManager.INSTANCE
             , SctpProtocolManager.INSTANCE
     );
@@ -95,7 +96,7 @@ public class NetworkTest implements Logging {
                 logger.info("Sending ${0} random packets...", count);
                 for (int i = 0; i < count; i++) {
                     sleep(75L);
-                    client.send(new TestPacket("hello from client!"), true);
+                    client.getDefaultChannel().send(new TestPacket("hello from client!"), true);
                     server.broadcast(new TestPacket("hello from server!"));
                 }
                 server.broadcast(

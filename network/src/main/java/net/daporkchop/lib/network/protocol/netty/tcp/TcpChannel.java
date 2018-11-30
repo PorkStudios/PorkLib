@@ -15,10 +15,12 @@
 
 package net.daporkchop.lib.network.protocol.netty.tcp;
 
+import io.netty.channel.ChannelFuture;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.function.Void;
+import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.packet.Packet;
@@ -35,13 +37,20 @@ import net.daporkchop.lib.network.util.reliability.Reliability;
  */
 @RequiredArgsConstructor
 @Getter
-public class TcpChannel implements Channel {
+public class TcpChannel implements Channel, Logging {
     @NonNull
     private final WrapperNioSocketChannel realChannel;
 
     @Override
     public void send(@NonNull Packet packet, boolean blocking, Void callback, Reliability reliability) {
-        this.realChannel.send(packet, blocking, callback);
+        ChannelFuture future = this.realChannel.writeAndFlush(packet);
+        //future.addListener(f -> logger.debug("[] Send packet: ${0}", packet.getClass()));
+        if (callback != null)   {
+            future.addListener(f -> callback.run());
+        }
+        if (blocking)   {
+            future.syncUninterruptibly();
+        }
     }
 
     @Override
@@ -67,5 +76,10 @@ public class TcpChannel implements Channel {
     @Override
     public void close() {
         //don't close anything because TCP only has one channel
+    }
+
+    @Override
+    public boolean isDefaultChannel() {
+        return true;
     }
 }

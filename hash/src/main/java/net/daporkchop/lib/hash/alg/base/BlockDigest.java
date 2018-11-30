@@ -86,7 +86,7 @@ public abstract class BlockDigest implements DigestAlg {
             this.xBuf[this.xBufOff++] = in[inOff + i++];
         }
 
-        this.byteCount += len;
+        this.byteCount = (long) (this.byteCount + len);
     }
 
     public void finish() {
@@ -105,11 +105,11 @@ public abstract class BlockDigest implements DigestAlg {
     }
 
     public void reset() {
-        this.byteCount = 0;
+        this.byteCount = 0L;
 
         this.xBufOff = 0;
         for (int i = 0; i < this.xBuf.length; i++) {
-            this.xBuf[i] = 0;
+            this.xBuf[i] = (byte) 0;
         }
     }
 

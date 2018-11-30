@@ -43,7 +43,7 @@ public class SHA256 extends BlockDigest {
     private int H6;
     private int H7;
     private int H8;
-    private int[] X = new int[64];
+    private final int[] X = new int[64];
     private int xOff;
 
     public SHA256() {
@@ -107,7 +107,7 @@ public class SHA256 extends BlockDigest {
         }
 
         this.X[14] = (int) (bitLength >>> 32);
-        this.X[15] = (int) (bitLength & 0xffffffff);
+        this.X[15] = (int) (bitLength & 0xffffffffL);
     }
 
     @Override

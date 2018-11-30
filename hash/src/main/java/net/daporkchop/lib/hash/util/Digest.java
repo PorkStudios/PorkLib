@@ -16,10 +16,8 @@ package net.daporkchop.lib.hash.util;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.hash.alg.MD5;
-import net.daporkchop.lib.hash.alg.SHA1;
-import net.daporkchop.lib.hash.alg.SHA256;
-import net.daporkchop.lib.hash.alg.SHA512;
+import net.daporkchop.lib.hash.alg.SHA3;
+import net.daporkchop.lib.hash.alg.Whirlpool;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,6 +34,9 @@ public class Digest implements BaseDigest {
     public static final Digest SHA1 = new Digest(net.daporkchop.lib.hash.alg.SHA1::new);
     public static final Digest SHA256 = new Digest(net.daporkchop.lib.hash.alg.SHA256::new);
     public static final Digest SHA512 = new Digest(net.daporkchop.lib.hash.alg.SHA512::new);
+    public static final Digest SHA3_256 = new Digest(net.daporkchop.lib.hash.alg.SHA3::new);
+    public static final Digest SHA3_512 = new Digest(() -> new SHA3(512));
+    public static final Digest WHIRLPOOL = new Digest(Whirlpool::new);
 
     private final ThreadLocal<DigestAlg> digestCache;
     @Getter

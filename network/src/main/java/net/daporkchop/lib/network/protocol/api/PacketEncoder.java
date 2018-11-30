@@ -35,20 +35,20 @@ import java.io.OutputStream;
 public interface PacketEncoder extends Logging {
     <E extends Endpoint> E getEndpoint();
 
-    default void writePacket(@NonNull UnderlyingNetworkConnection connection, @NonNull Packet packet, @NonNull OutputStream stream) throws IOException  {
-        try (DataOut out = DataOut.wrap(connection.getUserConnection(PorkProtocol.class).getPacketReprocessor().wrap(stream)))   {
-        //try (DataOut out = DataOut.wrap(stream))   {
-            logger.debug("[${0}] Writing ${1}...", this.getEndpoint().getName(), packet.getClass());
+    default void writePacket(@NonNull UnderlyingNetworkConnection connection, @NonNull Packet packet, @NonNull OutputStream stream) throws IOException {
+        try (DataOut out = DataOut.wrap(connection.getUserConnection(PorkProtocol.class).getPacketReprocessor().wrap(stream))) {
+            //try (DataOut out = DataOut.wrap(stream))   {
+            //logger.debug("[${0}] Writing ${1}...", this.getEndpoint().getName(), packet.getClass());
             int id = this.getEndpoint().getPacketRegistry().getId(packet.getClass());
-            if (id == -1)   {
+            if (id == -1) {
                 throw this.exception("Unregistered outbound packet: ${0}", packet.getClass());
             }
             out.writeVarInt(id, true);
             packet.write(out);
-            logger.debug("[${0}] Wrote ${1}.", this.getEndpoint().getName(), packet.getClass());
-        } catch (Exception e)   {
+            //logger.debug("[${0}] Wrote ${1}.", this.getEndpoint().getName(), packet.getClass());
+        } catch (Exception e) {
             logger.error(e);
-            if (this.getEndpoint() instanceof PorkClient)    {
+            if (this.getEndpoint() instanceof PorkClient) {
                 ((PorkClient) this.getEndpoint()).postConnectCallback(e);
             }
             connection.closeConnection();

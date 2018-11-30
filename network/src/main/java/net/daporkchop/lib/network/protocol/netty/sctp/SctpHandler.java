@@ -21,11 +21,14 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.endpoint.client.PorkClient;
 import net.daporkchop.lib.network.endpoint.server.PorkServer;
+import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.packet.PacketRegistry;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.pork.PorkConnection;
 import net.daporkchop.lib.network.pork.PorkProtocol;
@@ -47,17 +50,18 @@ public class SctpHandler extends ChannelInboundHandlerAdapter implements Logging
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
         logger.trace("[${0}] New connection: ${1}", this.endpoint.getName(), ctx.channel().remoteAddress());
 
-        if (this.endpoint instanceof PorkClient) {
-            ((PorkClient) this.endpoint).postConnectCallback(null);
-        }
         UnderlyingNetworkConnection realConnection = (UnderlyingNetworkConnection) ctx.channel();
         if (this.endpoint instanceof PorkServer) {
             realConnection.send(new HandshakeInitPacket(
                     ((PorkServer) this.endpoint).getCryptographySettings(),
                     ((PorkServer) this.endpoint).getCompression()), () -> {
                 PorkConnection connection = realConnection.getUserConnection(PorkProtocol.class);
-                connection.setState(ConnectionState.HANDSHAKE);
+                if (true)  {
+                    connection.setState(ConnectionState.HANDSHAKE);
+                }
             });
+        } else if (false && this.endpoint instanceof PorkClient) {
+            ((PorkClient) this.endpoint).postConnectCallback(null);
         }
 
         super.channelRegistered(ctx);
@@ -84,6 +88,29 @@ public class SctpHandler extends ChannelInboundHandlerAdapter implements Logging
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         logger.debug("[${0}] Received message: ${1} (class: ${2})", this.endpoint.getName(), msg, msg.getClass());
+
+        if (!(msg instanceof SctpPacketWrapper)) {
+            logger.error("Expected ${0}, but got ${1}!", SctpPacketWrapper.class, msg.getClass());
+            throw new IllegalArgumentException(this.format("Expected ${0}, but got ${1}!", SctpPacketWrapper.class, msg.getClass()));
+        }
+
+        SctpPacketWrapper wrapper = (SctpPacketWrapper) msg;
+        Packet packet = wrapper.getPacket();
+        PacketRegistry registry = this.endpoint.getPacketRegistry();
+        Class<? extends UserProtocol<UserConnection>> protocolClass = registry.getOwningProtocol(packet.getClass());
+        if (protocolClass == null) {
+            throw new IllegalArgumentException(this.format("Unregistered inbound packet: ${0}", packet.getClass()));
+        }
+
+        UserConnection connection = ((UnderlyingNetworkConnection) ctx.channel()).getUserConnection(protocolClass);
+
+        Channel channel = connection.getOpenChannel(wrapper.getChannel());
+        if(channel == null) {
+            throw this.exception("Received packet ${0} on channel ${1}, but no open channel with the ID ${1} was found!", packet.getClass(), wrapper.getChannel());
+        }
+
+        logger.debug("Handling ${0}...", packet.getClass());
+        registry.getCodec(packet.getClass()).handle(packet, channel, connection);
     }
 
     @Override

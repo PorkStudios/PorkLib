@@ -69,11 +69,7 @@ public class TcpHandler extends ChannelInboundHandlerAdapter implements Logging 
 
         UserConnection connection = ((UnderlyingNetworkConnection) ctx.channel()).getUserConnection(protocolClass);
         logger.debug("Handling ${0}...", packet.getClass());
-        registry.getCodec(packet.getClass()).handle(
-                packet,
-                connection.getOpenChannel(0), //this has pretty much no performance hit due to the fact that WrapperNioSocketChannel#getOpenChannel simply returns its channel instance
-                connection
-        );
+        registry.getCodec(packet.getClass()).handle(packet, connection.getDefaultChannel(), connection);
     }
 
     @Override
@@ -96,7 +92,7 @@ public class TcpHandler extends ChannelInboundHandlerAdapter implements Logging 
         logger.trace("[${0}] New connection: ${1}", this.endpoint.getName(), ctx.channel().remoteAddress());
 
         UnderlyingNetworkConnection realConnection = (UnderlyingNetworkConnection) ctx.channel();
-        /*this.endpoint.getPacketRegistry().getProtocols().stream()
+        /*this.endpoint.getPacketRegistry().getProtocols().stream() //TODO: implement this
                 .map(userProtocol -> realConnection.getUserConnection((Class<UserProtocol<UserConnection>>) userProtocol.getClass()))
                 .forEach(UserConnection::onConnect);*/
         if (this.endpoint instanceof PorkServer) {

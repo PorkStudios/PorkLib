@@ -13,10 +13,9 @@
  *
  */
 
-package net.daporkchop.lib.logging;
+package net.daporkchop.lib.common.util;
 
 import lombok.NonNull;
-import net.daporkchop.lib.common.util.PorkUtil;
 
 import java.io.File;
 import java.util.Arrays;
@@ -65,6 +64,16 @@ public class Formatter {
 
     public static String format(@NonNull String message, @NonNull Object... params) {
         String[] values = VALUE_CACHE.get().computeIfAbsent(params.length, String[]::new);
+        boolean reentrant = false;
+        for (int i = params.length - 1; i >= 0; i--)    {
+            if (values[i] != null)  {
+                reentrant = true;
+                break;
+            }
+        }
+        if (reentrant)  {
+            values = new String[params.length];
+        }
         int valuesConsecutiveLength = 0;
         for (int i = params.length - 1; i >= 0; i--) {
             Object o = params[i];
@@ -82,12 +91,12 @@ public class Formatter {
             }
             valuesConsecutiveLength += (values[i] = s).length();
         }
-        String[] replacementKeys = KEY_CACHE.get().computeIfAbsent(params.length, String[]::new);
+        String[] replacementKeys = reentrant ? new String[params.length] : KEY_CACHE.get().computeIfAbsent(params.length, String[]::new);
         int keysConsecutiveLength = 0;
         for (int i = params.length - 1; i >= 0; i--) {
             keysConsecutiveLength += (replacementKeys[i] = getReplacementKey(i)).length();
         }
-        int[] offsets = OFFSET_CACHE.get().computeIfAbsent(params.length, int[]::new);
+        int[] offsets = reentrant ? new int[params.length] : OFFSET_CACHE.get().computeIfAbsent(params.length, int[]::new);
         for (int i = params.length - 1; i >= 0; i--) {
             if ((offsets[i] = message.indexOf(replacementKeys[i])) == -1) {
                 //don't allocate too many chars

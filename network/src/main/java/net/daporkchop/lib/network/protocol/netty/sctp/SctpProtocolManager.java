@@ -124,21 +124,22 @@ public class SctpProtocolManager implements ProtocolManager {
                 super.channel = bootstrap.bind(address).syncUninterruptibly().channel();
                 this.channel = new SctpServerChannel(this.channels, server);
             } catch (Throwable t) {
+                this.channels.close();
                 this.workerGroup.shutdownGracefully();
                 this.bossGroup.shutdownGracefully();
-                this.channels.close();
                 throw new RuntimeException(t);
             }
         }
 
         @Override
         public void close(String reason) {
-            this.channel.broadcast(new DisconnectPacket(reason), true);
+            this.channel.broadcast(new DisconnectPacket(reason), false);
             this.close();
         }
 
         @Override
         public void close() {
+            this.channels.close();
             super.close();
             this.bossGroup.shutdownGracefully();
         }

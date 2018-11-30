@@ -17,14 +17,13 @@ package net.daporkchop.lib.logging;
 
 import lombok.*;
 import net.daporkchop.lib.binary.UTF8;
+import net.daporkchop.lib.common.util.Formatter;
 import net.daporkchop.lib.common.util.PorkUtil;
 
 import java.io.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.IdentityHashMap;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -35,6 +34,10 @@ import java.util.concurrent.locks.ReentrantLock;
 @Getter
 @Builder(builderClassName = "Builder")
 public class Logger implements Logging {
+    private static final String ALERT_HEADER = "****************************************";
+    private static final String ALERT_PREFIX = "* ";
+    private static final String ALERT_FOOTER = ALERT_HEADER;
+
     /**
      * A default logger instance. This will print messages from all levels to {@link System#out}.
      */
@@ -122,6 +125,10 @@ public class Logger implements Logging {
         this.log(message, LogLevel.FATAL);
     }
 
+    public void alert(@NonNull String message) {
+        this.log(message, LogLevel.ALERT);
+    }
+
     public void warn(@NonNull String message) {
         this.log(message, LogLevel.WARN);
     }
@@ -141,11 +148,29 @@ public class Logger implements Logging {
     public void log(@NonNull String message, @NonNull LogLevel level) {
         if (level.getLevel() <= this.level) {
             if (message.indexOf('\n') == -1) {
+                if (level == LogLevel.ALERT)    {
+                    this.actuallyDoTheLoggingThing(this.format(ALERT_HEADER, LogLevel.ALERT).getBytes(UTF8.utf8));
+                    this.actuallyDoTheLoggingThing(this.format(ALERT_PREFIX, LogLevel.ALERT).getBytes(UTF8.utf8));
+                    this.actuallyDoTheLoggingThing(this.format(String.format("%s%s", ALERT_PREFIX, message), level).getBytes(UTF8.utf8));
+                    this.actuallyDoTheLoggingThing(this.format(ALERT_PREFIX, LogLevel.ALERT).getBytes(UTF8.utf8));
+                    this.actuallyDoTheLoggingThing(this.format(ALERT_FOOTER, LogLevel.ALERT).getBytes(UTF8.utf8));
+                    return;
+                }
                 String msg = this.format(message, level);
                 this.actuallyDoTheLoggingThing(msg.getBytes(UTF8.utf8));
             } else {
                 this.lock.lock();
                 try {
+                    if (level == LogLevel.ALERT)    {
+                        this.actuallyDoTheLoggingThing(this.format(ALERT_HEADER, LogLevel.ALERT).getBytes(UTF8.utf8));
+                        this.actuallyDoTheLoggingThing(this.format(ALERT_PREFIX, LogLevel.ALERT).getBytes(UTF8.utf8));
+                        for (String subMsg : message.split("\n")) {
+                            this.actuallyDoTheLoggingThing(this.format(String.format("%s%s", ALERT_PREFIX, subMsg), level).getBytes(UTF8.utf8));
+                        }
+                        this.actuallyDoTheLoggingThing(this.format(ALERT_PREFIX, LogLevel.ALERT).getBytes(UTF8.utf8));
+                        this.actuallyDoTheLoggingThing(this.format(ALERT_FOOTER, LogLevel.ALERT).getBytes(UTF8.utf8));
+                        return;
+                    }
                     for (String subMsg : message.split("\n")) {
                         String msg = this.format(subMsg, level);
                         this.actuallyDoTheLoggingThing(msg.getBytes(UTF8.utf8));
@@ -167,6 +192,10 @@ public class Logger implements Logging {
 
     public void fatal(@NonNull String message, @NonNull Object... params) {
         this.log(message, LogLevel.FATAL, params);
+    }
+
+    public void alert(@NonNull String message, @NonNull Object... params) {
+        this.log(message, LogLevel.ALERT, params);
     }
 
     public void warn(@NonNull String message, @NonNull Object... params) {

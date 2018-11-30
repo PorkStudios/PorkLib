@@ -13,7 +13,7 @@
  *
  */
 
-import net.daporkchop.lib.logging.Formatter;
+import net.daporkchop.lib.common.util.Formatter;
 import org.junit.Test;
 
 /**

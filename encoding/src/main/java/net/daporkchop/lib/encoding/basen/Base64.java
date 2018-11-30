@@ -10,33 +10,27 @@
  * Any persons and/or organizations using this software must disclose their source code and have it publicly available, include this license, provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
-package net.daporkchop.lib.crypto;
+package net.daporkchop.lib.encoding.basen;
 
-import net.daporkchop.lib.crypto.key.EllipticCurveKeyPair;
-import net.daporkchop.lib.crypto.keygen.KeyGen;
-import net.daporkchop.lib.crypto.sig.ec.CurveType;
-import net.daporkchop.lib.crypto.sig.ec.impl.ECDSAHelper;
-import net.daporkchop.lib.hash.util.Digest;
-import org.junit.Test;
+import lombok.NonNull;
 
+/**
+ * @author DaPorkchop_
+ */
+public class Base64 extends BaseN {
+    public static final Base64 INSTANCE = new Base64();
 
-public class SignatureTest {
-    @Test
-    public void testEC() {
-        byte[][] randomData = EncryptionTest.generateRandomBytes();
-        ECDSAHelper helper = new ECDSAHelper(Digest.SHA256);
-        for (CurveType type : CurveType.values()) {
-            EllipticCurveKeyPair keyPair = KeyGen.gen(type);
-            for (byte[] b : randomData) {
-                byte[] sig = helper.sign(b, keyPair);
-                if (!helper.verify(sig, b, keyPair)) {
-                    throw new IllegalStateException(String.format("Invalid signature on curve type %s", type.name));
-                }
-            }
-            System.out.printf("Successful test of %s\n", type.name);
-        }
+    protected Base64() {
+        super("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
+    }
+
+    public static String encodeBase64(@NonNull byte[] data)   {
+        return INSTANCE.encode(data);
+    }
+
+    public static byte[] decodeBase64(@NonNull String data) {
+        return INSTANCE.decode(data);
     }
 }

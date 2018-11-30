@@ -15,19 +15,61 @@
 
 package net.daporkchop.lib.crypto.sig.ec.impl;
 
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.crypto.key.EllipticCurveKeyPair;
-import net.daporkchop.lib.crypto.sig.HashTypes;
 import net.daporkchop.lib.crypto.sig.ec.SignatureHelper;
 import net.daporkchop.lib.crypto.sig.SignatureAlgorithms;
 import net.daporkchop.lib.crypto.sig.ec.hackery.ECSignatureSpi;
+import net.daporkchop.lib.hash.util.Digest;
+import net.daporkchop.lib.hash.util.DigestAlg;
+import net.daporkchop.lib.hash.util.Digester;
 import org.bouncycastle.jcajce.provider.asymmetric.util.DSAEncoder;
 
 import java.io.IOException;
 import java.math.BigInteger;
 
 public class ECDSAHelper extends SignatureHelper<EllipticCurveKeyPair> {
-    public ECDSAHelper(HashTypes hash) {
-        super(() -> new ECSignatureSpi(hash.getAsDigest(), SignatureAlgorithms.ECDSA.supplier.get(), new PlainDSAEncoder()));
+    public ECDSAHelper(@NonNull Digest digest) {
+        super(() -> new ECSignatureSpi(new AsBouncyCastleDigestWrapper(digest.getSupplier().get()), SignatureAlgorithms.ECDSA.supplier.get(), new PlainDSAEncoder()));
+    }
+
+    @RequiredArgsConstructor
+    @Getter
+    private static class AsBouncyCastleDigestWrapper implements org.bouncycastle.crypto.Digest  {
+        @NonNull
+        private final DigestAlg digest;
+
+        @Override
+        public String getAlgorithmName() {
+            return this.digest.getAlgorithmName();
+        }
+
+        @Override
+        public int getDigestSize() {
+            return this.digest.getHashSize();
+        }
+
+        @Override
+        public void update(byte in) {
+            this.digest.update(in);
+        }
+
+        @Override
+        public void update(byte[] in, int inOff, int len) {
+            this.digest.update(in, inOff, len);
+        }
+
+        @Override
+        public int doFinal(byte[] out, int outOff) {
+            return this.digest.doFinal(out, outOff);
+        }
+
+        @Override
+        public void reset() {
+            this.digest.reset();
+        }
     }
 
     public static class PlainDSAEncoder implements DSAEncoder {

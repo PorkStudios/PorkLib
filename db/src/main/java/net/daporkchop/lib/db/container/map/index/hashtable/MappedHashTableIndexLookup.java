@@ -18,6 +18,7 @@ package net.daporkchop.lib.db.container.map.index.hashtable;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.db.container.map.DBMap;
 
 import java.io.File;
@@ -65,6 +66,7 @@ public class MappedHashTableIndexLookup<K> extends BaseHashTableIndexLookup<K> {
 
     @Override
     protected void doClose() throws IOException {
+        PorkUtil.release(this.buffer);
         this.buffer = null;
     }
 

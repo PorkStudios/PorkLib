@@ -16,10 +16,12 @@
 package net.daporkchop.lib.common.util;
 
 import lombok.NonNull;
+import sun.misc.Cleaner;
 import sun.misc.Unsafe;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.nio.ByteBuffer;
 
 /**
  * @author DaPorkchop_
@@ -41,7 +43,7 @@ public class PorkUtil {
     }
 
     public static void rm(@NonNull File file)   {
-        if (file.exists()) {
+        while (file.exists()) {
             if (file.isDirectory()) {
                 File[] files = file.listFiles();
                 if (files == null) {
@@ -54,6 +56,13 @@ public class PorkUtil {
             if (!file.delete()) {
                 throw new IllegalStateException(String.format("Could not delete file: %s", file.getAbsolutePath()));
             }
+        }
+    }
+
+    public static void release(@NonNull ByteBuffer buffer)  {
+        Cleaner cleaner = ((sun.nio.ch.DirectBuffer) buffer).cleaner();
+        if (cleaner != null) {
+            cleaner.clean();
         }
     }
 }

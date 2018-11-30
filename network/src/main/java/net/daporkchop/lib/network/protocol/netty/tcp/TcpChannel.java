@@ -27,6 +27,9 @@ import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 
+import java.util.Collection;
+import java.util.Collections;
+
 /**
  * A simple implementation of {@link Channel} for a TCP session.
  * <p>
@@ -38,6 +41,8 @@ import net.daporkchop.lib.network.util.reliability.Reliability;
 @RequiredArgsConstructor
 @Getter
 public class TcpChannel implements Channel, Logging {
+    private static final Collection<Reliability> RELIABLE_ORDERED_ONLY = Collections.singleton(Reliability.RELIABLE_ORDERED);
+
     @NonNull
     private final WrapperNioSocketChannel realChannel;
 
@@ -81,5 +86,10 @@ public class TcpChannel implements Channel, Logging {
     @Override
     public boolean isDefaultChannel() {
         return true;
+    }
+
+    @Override
+    public Collection<Reliability> supportedReliabilities() {
+        return RELIABLE_ORDERED_ONLY;
     }
 }

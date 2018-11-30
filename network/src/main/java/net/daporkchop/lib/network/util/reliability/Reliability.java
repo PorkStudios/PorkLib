@@ -15,6 +15,10 @@
 
 package net.daporkchop.lib.network.util.reliability;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+
 /**
  * Allows specifying the reliability that a packet will arrive at its destination.
  * <p>
@@ -43,4 +47,14 @@ public enum Reliability {
      * Guarantees that the packets will arrive and be processed in the order they were sent in
      */
     RELIABLE_ORDERED;
+
+    public static final Collection<Reliability> NONE = Collections.emptyList();
+
+    public static final Collection<Reliability> ALL = Arrays.asList(
+            UNRELIABLE,
+            UNRELIABLE_SEQUENCED,
+            RELIABLE,
+            RELIABLE_SEQUENCED,
+            RELIABLE_ORDERED
+    );
 }

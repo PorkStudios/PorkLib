@@ -23,6 +23,8 @@ import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 
+import java.util.Collection;
+
 /**
  * A channel opened over an existing {@link net.daporkchop.lib.network.conn.Connection}.
  * <p>
@@ -80,9 +82,9 @@ public interface Channel {
      * <p>
      * For implementations that only support a few reliability modes (e.g. SCTP), the reliability will only be respected if it
      * is supported.
-     * //TODO: add a method to get supported reliabilities
      *
      * @return whether or not reliability is respected
+     * @see #supportedReliabilities()
      */
     default boolean isReliabilityRespected() {
         return true;
@@ -126,6 +128,13 @@ public interface Channel {
     default boolean isDefaultChannel() {
         return this.getId() == 0;
     }
+
+    /**
+     * Gets a list of all {@link Reliability} modes supported by this channel
+     *
+     * @return all reliabilities supported by this channel
+     */
+    Collection<Reliability> supportedReliabilities();
 
     //
     //

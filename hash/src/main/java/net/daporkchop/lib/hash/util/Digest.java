@@ -42,20 +42,30 @@ public class Digest implements BaseDigest {
     @Getter
     private final String algorithmName;
     @Getter
-    private final int digestSize;
+    private final int hashSize;
     @Getter
-    private final int byteLength;
+    private final int internalBufferSize;
+    @Getter
+    private final Supplier<DigestAlg> supplier;
 
     public Digest(@NonNull Supplier<DigestAlg> supplier) {
+        this.supplier = supplier;
         this.digestCache = ThreadLocal.withInitial(supplier);
         DigestAlg alg = this.digestCache.get();
         this.algorithmName = alg.getAlgorithmName();
-        this.digestSize = alg.getDigestSize();
-        this.byteLength = alg.getByteLength();
+        this.hashSize = alg.getHashSize();
+        this.internalBufferSize = alg.getInternalBufferSize();
     }
 
     public Digester start() {
         return new Digester(this.digestCache.get());
+    }
+
+    public Digester start(@NonNull byte[] hashOut)  {
+        if (hashOut.length < this.hashSize) {
+            throw new IllegalStateException(String.format("Hash size must be at least %d bytes, but found %d!", this.hashSize, hashOut.length));
+        }
+        return new Digester(this.digestCache.get(), hashOut);
     }
 
     public Hash hash()  {

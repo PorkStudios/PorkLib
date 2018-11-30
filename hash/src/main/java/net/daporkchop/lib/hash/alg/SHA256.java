@@ -81,7 +81,7 @@ public class SHA256 extends BlockDigest {
     }
 
     @Override
-    public int getDigestSize() {
+    public int getHashSize() {
         return DIGEST_LENGTH;
     }
 

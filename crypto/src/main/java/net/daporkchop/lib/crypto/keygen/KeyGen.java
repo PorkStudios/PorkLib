@@ -22,7 +22,7 @@ import net.daporkchop.lib.crypto.cipher.stream.StreamCipherType;
 import net.daporkchop.lib.crypto.key.CipherKey;
 import net.daporkchop.lib.crypto.key.EllipticCurveKeyPair;
 import net.daporkchop.lib.crypto.sig.ec.CurveType;
-import net.daporkchop.lib.hash.helper.sha.Sha256Helper;
+import net.daporkchop.lib.hash.util.Digest;
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey;
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPublicKey;
 
@@ -43,6 +43,7 @@ public class KeyGen {
      *
      * @param seed  The seed to use for random generation
      * @param curve The type of curve to generate
+     *
      * @return An instance of SecretKey for use by EC key exchange methods
      */
     public static EllipticCurveKeyPair gen(byte[] seed, CurveType curve) {
@@ -62,6 +63,7 @@ public class KeyGen {
      * Generate a random EC key pair, using 1024 bytes of random data as a seed
      *
      * @param curve The type of curve to generate
+     *
      * @return An instance of SecretKey for use by EC key exchange methods
      */
     public static EllipticCurveKeyPair gen(CurveType curve) {
@@ -73,6 +75,7 @@ public class KeyGen {
      *
      * @param type the block cipher algorithm to generate for
      * @param seed the seed to use for random generation
+     *
      * @return a random CipherKey
      */
     public static CipherKey gen(@NonNull CipherType type, byte[] seed) {
@@ -82,13 +85,13 @@ public class KeyGen {
         do {
             System.arraycopy(seed, 0, key, i, Math.min(seed.length, key.length - i));
             i += seed.length;
-            seed = Sha256Helper.sha256(key, seed);
+            seed = Digest.SHA3_256.hash(key, seed).getHash();
         } while (i < key.length);
         i = 0;
         do {
             System.arraycopy(seed, 0, iv, i, Math.min(seed.length, iv.length - i));
             i += seed.length;
-            seed = Sha256Helper.sha256(iv, seed);
+            seed = Digest.SHA3_256.hash(iv, seed).getHash();
         } while (i < iv.length);
         return new CipherKey(new SecretKeySpec(key, "aaa"), iv);
     }
@@ -97,6 +100,7 @@ public class KeyGen {
      * Generates a random block cipher key
      *
      * @param type the block cipher algorithm to generate for
+     *
      * @return a random CipherKey
      */
     public static CipherKey gen(@NonNull CipherType type) {
@@ -110,13 +114,13 @@ public class KeyGen {
         do {
             System.arraycopy(seed, 0, key, i, Math.min(seed.length, key.length - i));
             i += seed.length;
-            seed = Sha256Helper.sha256(key, seed);
+            seed = Digest.SHA3_256.hash(key, seed).getHash();
         } while (i < key.length);
         i = 0;
         do {
             System.arraycopy(seed, 0, iv, i, Math.min(seed.length, iv.length - i));
             i += seed.length;
-            seed = Sha256Helper.sha256(iv, seed);
+            seed = Digest.SHA3_256.hash(iv, seed).getHash();
         } while (i < iv.length);
         return new CipherKey(new SecretKeySpec(key, "aaa"), iv);
     }

@@ -69,7 +69,7 @@ public class MD5 extends BlockDigest {
     }
 
     @Override
-    public int getDigestSize() {
+    public int getHashSize() {
         return DIGEST_LENGTH;
     }
 

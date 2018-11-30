@@ -53,7 +53,7 @@ public class Keccak implements DigestAlg {
     }
 
     @Override
-    public int getDigestSize() {
+    public int getHashSize() {
         return this.fixedOutputLength / 8;
     }
 
@@ -73,7 +73,7 @@ public class Keccak implements DigestAlg {
 
         this.reset();
 
-        return this.getDigestSize();
+        return this.getHashSize();
     }
 
     protected int doFinal(byte[] out, int outOff, byte partialByte, int partialBits) {
@@ -85,7 +85,7 @@ public class Keccak implements DigestAlg {
 
         this.reset();
 
-        return this.getDigestSize();
+        return this.getHashSize();
     }
 
     @Override
@@ -94,7 +94,7 @@ public class Keccak implements DigestAlg {
     }
 
     @Override
-    public int getByteLength() {
+    public int getInternalBufferSize() {
         return this.rate / 8;
     }
 

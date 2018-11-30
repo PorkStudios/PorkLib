@@ -17,6 +17,7 @@ import net.daporkchop.lib.db.DBBuilder;
 import net.daporkchop.lib.db.PorkDB;
 import net.daporkchop.lib.db.object.key.impl.HashKeyHasher;
 import net.daporkchop.lib.db.object.serializer.impl.ByteArraySerializer;
+import net.daporkchop.lib.hash.util.Digest;
 import org.junit.Test;
 
 import java.io.File;
@@ -43,7 +44,7 @@ public class SectoredTest {
         PorkDB<byte[], byte[]> db = new DBBuilder<byte[], byte[]>()
                 .setMaxOpenFiles(32)
                 .setRootFolder(file)
-                .setKeyHasher(new HashKeyHasher(HashAlg.MD2))
+                .setKeyHasher(new HashKeyHasher(Digest.MD5))
                 .setValueSerializer(ByteArraySerializer.getInstance())
                 .build();
 

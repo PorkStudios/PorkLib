@@ -141,7 +141,7 @@ public class Whirlpool implements DigestAlg {
     }
 
     @Override
-    public int getDigestSize() {
+    public int getHashSize() {
         return DIGEST_LENGTH_BYTES;
     }
 
@@ -155,7 +155,7 @@ public class Whirlpool implements DigestAlg {
         }
 
         this.reset();
-        return this.getDigestSize();
+        return this.getHashSize();
     }
 
     @Override
@@ -316,7 +316,7 @@ public class Whirlpool implements DigestAlg {
     }
 
     @Override
-    public int getByteLength() {
+    public int getInternalBufferSize() {
         return BYTE_LENGTH;
     }
 }

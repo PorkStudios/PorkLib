@@ -48,7 +48,7 @@ public class SHA1 extends BlockDigest {
     }
 
     @Override
-    public int getDigestSize() {
+    public int getHashSize() {
         return DIGEST_LENGTH;
     }
 

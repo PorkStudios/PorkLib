@@ -143,7 +143,7 @@ public abstract class LongDigest implements DigestAlg {
     }
 
     @Override
-    public int getByteLength()
+    public int getInternalBufferSize()
     {
         return BYTE_LENGTH;
     }

@@ -37,7 +37,7 @@ public class Digester {
     private final byte[] hashBuf;
 
     public Digester(@NonNull DigestAlg digest)  {
-        this(digest, new byte[digest.getDigestSize()]);
+        this(digest, new byte[digest.getHashSize()]);
     }
 
     public Digester append(byte b)  {

@@ -23,6 +23,7 @@ import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.binary.stream.HugeBufferOut;
 import net.daporkchop.lib.binary.stream.file.BufferingFileInput;
 import net.daporkchop.lib.common.function.IOConsumer;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.db.container.map.DBMap;
 
 import java.io.File;
@@ -88,7 +89,7 @@ public class OneTimeWriteDataLookup implements DataLookup {
             this.raf.seek(0L);
             this.raf.writeLong(8L);
         }
-        this.lengthWriteBuffer = this.channel.map(FileChannel.MapMode.READ_WRITE, 0L, 8L);
+        //this.lengthWriteBuffer = this.channel.map(FileChannel.MapMode.READ_WRITE, 0L, 8L);
     }
 
     @Override
@@ -102,6 +103,7 @@ public class OneTimeWriteDataLookup implements DataLookup {
     public void close() throws IOException {
         synchronized (this) {
             this.save();
+            PorkUtil.release(this.lengthWriteBuffer);
             this.lengthWriteBuffer = null;
             this.channel.close();
             this.channel = null;
@@ -140,9 +142,14 @@ public class OneTimeWriteDataLookup implements DataLookup {
         }
     }
 
+    private static boolean HAS_WARNED = false;
+
     @Override
     public void remove(long id) throws IOException {
-        throw new UnsupportedOperationException("remove");
+        if (!HAS_WARNED)    {
+            HAS_WARNED = true;
+            System.out.println("[Warning] OneTimeWriteDataLookup does not support the remove() operation, and disk resources will not be freed!");
+        }
     }
 
     @Override

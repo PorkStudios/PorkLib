@@ -119,7 +119,7 @@ public abstract class BlockDigest implements DigestAlg {
         Pack.longToBigEndian(this.byteCount, state, 8);
     }
 
-    public int getByteLength() {
+    public int getInternalBufferSize() {
         return BYTE_LENGTH;
     }
 

@@ -19,6 +19,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import net.daporkchop.lib.db.object.key.KeyHasher;
+import net.daporkchop.lib.hash.util.Digest;
 
 /**
  * Hashes a byte array to a constant-length hash.
@@ -31,7 +32,7 @@ import net.daporkchop.lib.db.object.key.KeyHasher;
 @Data
 public class HashKeyHasher extends KeyHasher<byte[]> {
     @NonNull
-    private final HashAlg alg;
+    private final Digest alg;
 
     @Override
     public boolean canGetKeyFromHash() {
@@ -40,12 +41,11 @@ public class HashKeyHasher extends KeyHasher<byte[]> {
 
     @Override
     public int getKeyLength() {
-        return this.alg.getLength();
+        return this.alg.getHashSize();
     }
 
     @Override
-    public void hash(byte[] key, byte[] hash) {
-        byte[] b = this.alg.hash(key);
-        System.arraycopy(b, 0, hash, 0, b.length);
+    public void hash(@NonNull byte[] key, @NonNull byte[] hash) {
+        this.alg.start(hash).append(key).hashToByteArray();
     }
 }

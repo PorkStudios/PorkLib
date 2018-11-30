@@ -17,9 +17,9 @@ package net.daporkchop.lib.crypto;
 
 import net.daporkchop.lib.crypto.key.EllipticCurveKeyPair;
 import net.daporkchop.lib.crypto.keygen.KeyGen;
-import net.daporkchop.lib.crypto.sig.HashTypes;
 import net.daporkchop.lib.crypto.sig.ec.CurveType;
 import net.daporkchop.lib.crypto.sig.ec.impl.ECDSAHelper;
+import net.daporkchop.lib.hash.util.Digest;
 import org.junit.Test;
 
 
@@ -27,7 +27,7 @@ public class SignatureTest {
     @Test
     public void testEC() {
         byte[][] randomData = EncryptionTest.generateRandomBytes();
-        ECDSAHelper helper = new ECDSAHelper(HashTypes.SHA_256);
+        ECDSAHelper helper = new ECDSAHelper(Digest.SHA256);
         for (CurveType type : CurveType.values()) {
             EllipticCurveKeyPair keyPair = KeyGen.gen(type);
             for (byte[] b : randomData) {

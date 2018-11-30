@@ -2,10 +2,9 @@ package net.daporkchop.lib.crypto.cipher;
 
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.hash.helper.sha.Sha256Helper;
+import net.daporkchop.lib.hash.util.Digest;
 
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 /**
  * Used for setting a starting IV when initializing a cipher.
@@ -17,14 +16,14 @@ public enum CipherInitSide {
     SERVER((iv, recv) -> {
         if (recv) {
             byte[] b = new byte[iv.length];
-            byte[] hash = Sha256Helper.sha256(iv, b);
+            byte[] hash = Digest.SHA3_256.hash(iv, b).getHash();
             for (int i = 0; i < b.length; i++) {
                 b[i] = hash[i % hash.length];
             }
             return b;
         } else {
             byte[] b = new byte[iv.length];
-            byte[] hash = Sha256Helper.sha256(b, iv);
+            byte[] hash = Digest.SHA3_256.hash(b, iv).getHash();
             for (int i = b.length - 1; i >= 0; i--) {
                 b[i] = hash[i % hash.length];
             }
@@ -34,14 +33,14 @@ public enum CipherInitSide {
     CLIENT((iv, recv) -> {
         if (recv) {
             byte[] b = new byte[iv.length];
-            byte[] hash = Sha256Helper.sha256(b, iv);
+            byte[] hash = Digest.SHA3_256.hash(b, iv).getHash();
             for (int i = b.length - 1; i >= 0; i--) {
                 b[i] = hash[i % hash.length];
             }
             return b;
         } else {
             byte[] b = new byte[iv.length];
-            byte[] hash = Sha256Helper.sha256(iv, b);
+            byte[] hash = Digest.SHA3_256.hash(iv, b).getHash();
             for (int i = 0; i < b.length; i++) {
                 b[i] = hash[i % hash.length];
             }

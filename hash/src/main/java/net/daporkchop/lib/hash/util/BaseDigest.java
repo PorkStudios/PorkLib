@@ -33,12 +33,12 @@ interface BaseDigest {
      *
      * @return the size of this hash (in bytes)
      */
-    int getDigestSize();
+    int getHashSize();
 
     /**
      * Gets the size of this hash's internal buffer
      *
      * @return the size of this hash's internal buffer (in bytes)
      */
-    int getByteLength();
+    int getInternalBufferSize();
 }

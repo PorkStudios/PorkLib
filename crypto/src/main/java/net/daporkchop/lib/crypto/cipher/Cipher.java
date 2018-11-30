@@ -23,7 +23,7 @@ import net.daporkchop.lib.crypto.cipher.stream.StreamCipherInput;
 import net.daporkchop.lib.crypto.cipher.stream.StreamCipherOutput;
 import net.daporkchop.lib.crypto.cipher.stream.StreamCipherType;
 import net.daporkchop.lib.crypto.key.CipherKey;
-import net.daporkchop.lib.hash.helper.sha.Sha256Helper;
+import net.daporkchop.lib.hash.util.Digest;
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.BufferedBlockCipher;
 import org.bouncycastle.crypto.CryptoException;
@@ -48,7 +48,7 @@ public interface Cipher {
 
     static Cipher createBlock(@NonNull CipherType type, @NonNull CipherMode mode, @NonNull CipherPadding padding, @NonNull CipherKey key, @NonNull CipherInitSide side) {
         return createBlock(type, mode, padding, key, side, b -> {
-            byte[] hash = Sha256Helper.sha256(b);
+            byte[] hash = Digest.SHA3_256.hash(b).getHash();
             for (int i = 0; i < b.length; i++) {
                 b[i] = hash[i % hash.length];
             }

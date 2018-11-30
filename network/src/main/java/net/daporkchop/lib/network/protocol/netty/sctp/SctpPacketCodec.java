@@ -27,8 +27,10 @@ import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.NettyByteBufUtil;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.protocol.api.PacketDecoder;
 import net.daporkchop.lib.network.protocol.api.PacketEncoder;
 
 import java.util.List;
@@ -38,24 +40,24 @@ import java.util.List;
  */
 @RequiredArgsConstructor
 @Getter
-public class SctpPacketCodec extends MessageToMessageCodec<SctpMessage, SctpPacketWrapper> implements PacketEncoder {
+public class SctpPacketCodec extends MessageToMessageCodec<SctpMessage, SctpPacketWrapper> implements PacketEncoder, PacketDecoder {
     @NonNull
     private final Endpoint endpoint;
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, SctpPacketWrapper msg, List<Object> out) throws Exception {
-        //logger.debug("[${0} Packet codec] Encoding packet ${1}", this.endpoint.getName(), msg.getClass());
+    protected void encode(ChannelHandlerContext ctx, @NonNull SctpPacketWrapper msg, List<Object> out) throws Exception {
+        logger.debug("[${0} codec] Encoding packet ${1}", this.endpoint.getName(), msg.getPacket().getClass());
         ByteBuf buf = ByteBufAllocator.DEFAULT.buffer(256, Integer.MAX_VALUE);
-        try (DataOut dataOut = NettyByteBufUtil.wrapOut(buf))   {
-            dataOut.writeUTF(msg.getPacket().getClass().getCanonicalName());
-        }
+        this.writePacket((UnderlyingNetworkConnection) ctx.channel(), msg.getPacket(), NettyByteBufUtil.wrapOut(buf));
         out.add(new SctpMessage(0, msg.getChannel(), !msg.isOrdered(), buf));
     }
 
     @Override
     protected void decode(ChannelHandlerContext ctx, SctpMessage msg, List<Object> out) throws Exception {
-        try (DataIn in = NettyByteBufUtil.wrapIn(msg.content()))    {
-            out.add(in.readUTF());
-        }
+        out.add(new SctpPacketWrapper(
+                this.getPacket((UnderlyingNetworkConnection) ctx.channel(), NettyByteBufUtil.wrapIn(msg.content())),
+                msg.streamIdentifier(),
+                !msg.isUnordered()
+        ));
     }
 }

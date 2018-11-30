@@ -134,9 +134,9 @@ public class TcpProtocolManager implements ProtocolManager {
 
         @Override
         public void close() {
+            this.channels.close();
             super.close();
             this.bossGroup.shutdownGracefully();
-            this.channels.close();
         }
 
         @Override

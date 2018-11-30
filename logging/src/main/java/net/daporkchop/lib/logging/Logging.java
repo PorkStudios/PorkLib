@@ -16,6 +16,7 @@
 package net.daporkchop.lib.logging;
 
 import lombok.NonNull;
+import net.daporkchop.lib.common.util.Formatter;
 
 /**
  * @author DaPorkchop_

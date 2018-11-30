@@ -20,6 +20,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.packet.Packet;
 
 import java.io.IOException;
@@ -31,7 +32,7 @@ import java.io.IOException;
  */
 @RequiredArgsConstructor
 @Getter
-public class SctpPacketWrapper implements Packet {
+public class SctpPacketWrapper implements Packet, Logging {
     @NonNull
     private final Packet packet;
 
@@ -46,5 +47,10 @@ public class SctpPacketWrapper implements Packet {
     @Override
     public void write(DataOut out) throws IOException {
         throw new UnsupportedOperationException("write");
+    }
+
+    @Override
+    public String toString() {
+        return this.format("packet=${0}, channel=${1}, ordered=${2}", this.packet.getClass(), this.channel, this.ordered);
     }
 }

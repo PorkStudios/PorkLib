@@ -67,7 +67,7 @@ public class NetworkTest implements Logging {
                 return;
             }
 
-            logger.info("Testing transport: ${0}", manager.getClass());
+            logger.alert("Testing transport: ${0}", manager.getClass());
             logger.info("Starting server...");
             Server server = new ServerBuilder()
                     .setManager(manager)

@@ -20,6 +20,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.function.Void;
+import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.packet.Packet;
@@ -40,20 +41,21 @@ import net.daporkchop.lib.network.util.reliability.Reliability;
  */
 @RequiredArgsConstructor
 @Getter
-public class SctpChannel implements Channel {
+public class SctpChannel implements Channel, Logging {
     private final int id;
     @NonNull
     private final Reliability reliability;
     @NonNull
     private final WrapperNioSctpChannel channel;
 
-    private volatile boolean closed;
+    volatile boolean closed;
 
     @Override
     public void send(@NonNull Packet packet, boolean blocking, Void callback, Reliability reliability) {
         if (this.closed) {
             throw new IllegalStateException("channel closed!");
         }
+        //logger.debug("[${0}] Sending packet: ${1}", this.channel.getEndpoint().getName(), packet.getClass());
         ChannelFuture future;
         if (reliability == null) {
             reliability = this.reliability;
@@ -73,11 +75,11 @@ public class SctpChannel implements Channel {
                 return;
             }
         }
-        if (blocking) {
-            future.syncUninterruptibly();
-        }
         if (callback != null) {
             future.addListener(f -> callback.run());
+        }
+        if (blocking) {
+            future.syncUninterruptibly();
         }
     }
 
@@ -90,6 +92,9 @@ public class SctpChannel implements Channel {
     public synchronized void close() {
         if (!this.closed) {
             throw new IllegalArgumentException("already closed!");
+        }
+        if (this.isDefaultChannel())    {
+            this.channel.close();
         }
         this.closed = true;
         synchronized (this.channel.channelIds) {

@@ -48,6 +48,7 @@ public class TcpHandler extends ChannelInboundHandlerAdapter implements Logging 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
+        logger.trace("[${0}] Channel inactive: ${1}", this.endpoint.getName(), ctx.channel().remoteAddress());
         //TODO: send keepalives
     }
 
@@ -55,6 +56,7 @@ public class TcpHandler extends ChannelInboundHandlerAdapter implements Logging 
     @SuppressWarnings("unchecked")
     public void channelRead(ChannelHandlerContext ctx, @NonNull Object msg) throws Exception {
         if (!(msg instanceof Packet)) {
+            logger.error("Expected ${0}, but got ${1}!", Packet.class, msg.getClass());
             throw new IllegalArgumentException(this.format("Expected ${0}, but got ${1}!", Packet.class, msg.getClass()));
         }
 
@@ -105,6 +107,8 @@ public class TcpHandler extends ChannelInboundHandlerAdapter implements Logging 
                 PorkConnection connection = realConnection.getUserConnection(PorkProtocol.class);
                 connection.setState(ConnectionState.HANDSHAKE);
             });
+        } else if (false && this.endpoint instanceof PorkClient) {
+            ((PorkClient) this.endpoint).postConnectCallback(null);
         }
     }
 

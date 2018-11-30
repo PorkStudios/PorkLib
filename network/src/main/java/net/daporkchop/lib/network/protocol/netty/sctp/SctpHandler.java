@@ -21,8 +21,16 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
+import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.endpoint.client.PorkClient;
+import net.daporkchop.lib.network.endpoint.server.PorkServer;
+import net.daporkchop.lib.network.packet.UserProtocol;
+import net.daporkchop.lib.network.pork.PorkConnection;
+import net.daporkchop.lib.network.pork.PorkProtocol;
+import net.daporkchop.lib.network.pork.packet.HandshakeInitPacket;
+import net.daporkchop.lib.network.util.ConnectionState;
 
 /**
  * Handles events on a connection managed by {@link SctpProtocolManager}
@@ -42,15 +50,29 @@ public class SctpHandler extends ChannelInboundHandlerAdapter implements Logging
         if (this.endpoint instanceof PorkClient) {
             ((PorkClient) this.endpoint).postConnectCallback(null);
         }
+        UnderlyingNetworkConnection realConnection = (UnderlyingNetworkConnection) ctx.channel();
+        if (this.endpoint instanceof PorkServer) {
+            realConnection.send(new HandshakeInitPacket(
+                    ((PorkServer) this.endpoint).getCryptographySettings(),
+                    ((PorkServer) this.endpoint).getCompression()), () -> {
+                PorkConnection connection = realConnection.getUserConnection(PorkProtocol.class);
+                connection.setState(ConnectionState.HANDSHAKE);
+            });
+        }
 
         super.channelRegistered(ctx);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
         logger.trace("[${0}] Connection ${1} removed", this.endpoint.getName(), ctx.channel().remoteAddress());
 
-        super.channelUnregistered(ctx);
+        UnderlyingNetworkConnection realConnection = (UnderlyingNetworkConnection) ctx.channel();
+        String disconnectReason = realConnection.getUserConnection(PorkProtocol.class).getDisconnectReason();
+        this.endpoint.getPacketRegistry().getProtocols().stream()
+                .map(userProtocol -> realConnection.getUserConnection((Class<UserProtocol<UserConnection>>) userProtocol.getClass()))
+                .forEach(c -> c.onDisconnect(disconnectReason));
     }
 
     @Override
@@ -61,7 +83,7 @@ public class SctpHandler extends ChannelInboundHandlerAdapter implements Logging
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        logger.info("[${0}] Received message: ${1} (class: ${2})", this.endpoint.getName(), msg, msg.getClass());
+        logger.debug("[${0}] Received message: ${1} (class: ${2})", this.endpoint.getName(), msg, msg.getClass());
     }
 
     @Override
@@ -70,6 +92,9 @@ public class SctpHandler extends ChannelInboundHandlerAdapter implements Logging
             logger.error(cause);
         }
 
+        UnderlyingNetworkConnection realConnection = (UnderlyingNetworkConnection) ctx.channel();
+        PorkConnection porkConnection = realConnection.getUserConnection(PorkProtocol.class);
+        porkConnection.setDisconnectReason(cause == null ? "Unknown exception" : this.format("${0}: ${1}", cause.getClass(), cause.getMessage()));
         if (cause != null && this.endpoint instanceof PorkClient) {
             ((PorkClient) this.endpoint).postConnectCallback(cause);
         }

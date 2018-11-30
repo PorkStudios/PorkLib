@@ -45,6 +45,7 @@ public interface PacketEncoder extends Logging {
             }
             out.writeVarInt(id, true);
             packet.write(out);
+            logger.debug("[${0}] Wrote ${1}.", this.getEndpoint().getName(), packet.getClass());
         } catch (Exception e)   {
             logger.error(e);
             if (this.getEndpoint() instanceof PorkClient)    {

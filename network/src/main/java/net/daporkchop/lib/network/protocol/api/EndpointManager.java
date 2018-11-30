@@ -17,6 +17,7 @@ package net.daporkchop.lib.network.protocol.api;
 
 import lombok.NonNull;
 import net.daporkchop.lib.common.function.Void;
+import net.daporkchop.lib.network.channel.ServerChannel;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.endpoint.client.Client;
@@ -27,6 +28,7 @@ import net.daporkchop.lib.network.packet.UserProtocol;
 import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.concurrent.Executor;
+import java.util.stream.Collectors;
 
 /**
  * Manages a specific endpoint
@@ -71,16 +73,21 @@ public interface EndpointManager<E extends Endpoint> {
          * @param <C>           the connection type
          * @return all currently open connections to this server
          */
-        <C extends UserConnection> Collection<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass);
+        default <C extends UserConnection> Collection<C> getConnections(Class<? extends UserProtocol<C>> protocolClass)    {
+            return this.getChannel().getUnderlyingNetworkConnectionsAsStream()
+                    .map(connection -> connection.getUserConnection(protocolClass))
+                    .collect(Collectors.toList());
+        }
 
         /**
          * Send a message to all connected clients on the default channel
          *
          * @param packet   the packet to send
          * @param blocking whether or not this method will block the invoking thread until the packet has been flushed
-         * @param callback a function to run once the packet has been flushed
          */
-        void broadcast(@NonNull Packet packet, boolean blocking, Void callback);
+        default void broadcast(@NonNull Packet packet, boolean blocking)    {
+            this.getChannel().broadcast(packet, blocking);
+        }
 
         /**
          * Closes the endpoint, removing all connected sessions
@@ -88,12 +95,20 @@ public interface EndpointManager<E extends Endpoint> {
          * @param reason the reason for disconnecting
          * @see EndpointManager#close()
          */
-        void close(String reason);
+        default void close(String reason)   {
+            this.getChannel().close(reason);
+        }
 
         @Override
         default void close() {
-            this.close(null);
+            this.getChannel().close(null);
         }
+
+        /**
+         * Gets this server's channel
+         * @return this server's channel
+         */
+        ServerChannel getChannel();
     }
 
     /**

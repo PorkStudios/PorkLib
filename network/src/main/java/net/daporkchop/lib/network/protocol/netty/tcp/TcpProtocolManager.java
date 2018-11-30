@@ -26,6 +26,7 @@ import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.common.function.Void;
@@ -38,6 +39,7 @@ import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.pork.packet.DisconnectPacket;
 import net.daporkchop.lib.network.protocol.api.EndpointManager;
 import net.daporkchop.lib.network.protocol.api.ProtocolManager;
+import net.daporkchop.lib.network.protocol.netty.NettyServerChannel;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayDeque;
@@ -53,6 +55,7 @@ import java.util.stream.Collectors;
  *
  * @author DaPorkchop_
  */
+//TODO: abstract out netty protocol manager stuff
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class TcpProtocolManager implements ProtocolManager {
     public static final TcpProtocolManager INSTANCE = new TcpProtocolManager();
@@ -65,6 +68,16 @@ public class TcpProtocolManager implements ProtocolManager {
     @Override
     public EndpointManager.ClientEndpointManager createClientManager() {
         return new TcpClientManager();
+    }
+
+    @Override
+    public boolean areEncryptionSettingsRespected() {
+        return true;
+    }
+
+    @Override
+    public boolean areCompressionSettingsRespected() {
+        return true;
     }
 
     private abstract static class TcpEndpointManager<E extends Endpoint> implements EndpointManager<E> {
@@ -88,8 +101,10 @@ public class TcpProtocolManager implements ProtocolManager {
     }
 
     private static class TcpServerManager extends TcpEndpointManager<Server> implements EndpointManager.ServerEndpointManager {
-        protected EventLoopGroup bossGroup;
+        private EventLoopGroup bossGroup;
         private ChannelGroup channels;
+        @Getter
+        private TcpServerChannel channel;
 
         @Override
         @SuppressWarnings("unchecked")
@@ -101,15 +116,14 @@ public class TcpProtocolManager implements ProtocolManager {
             try {
                 ServerBootstrap bootstrap = new ServerBootstrap();
                 bootstrap.group(this.bossGroup, this.workerGroup);
-                //bootstrap.channel(NioServerSocketChannel.class);
-                //bootstrap.channel(WrapperNioServerSocketChannel.class);
                 bootstrap.channelFactory(() -> new WrapperNioServerSocketChannel(server));
                 bootstrap.childHandler(new TcpChannelInitializer(server, this.channels::add, this.channels::remove));
                 bootstrap.option(ChannelOption.SO_BACKLOG, 256);
                 bootstrap.childOption(ChannelOption.SO_KEEPALIVE, true);
-                bootstrap.childOption(ChannelOption.TCP_NODELAY, true);
+                //bootstrap.childOption(ChannelOption.TCP_NODELAY, true);
 
-                this.channel = bootstrap.bind(address).syncUninterruptibly().channel();
+                super.channel = bootstrap.bind(address).syncUninterruptibly().channel();
+                this.channel = new TcpServerChannel(this.channels, server);
             } catch (Throwable t) {
                 this.workerGroup.shutdownGracefully();
                 this.bossGroup.shutdownGracefully();
@@ -126,30 +140,20 @@ public class TcpProtocolManager implements ProtocolManager {
         }
 
         @Override
-        @SuppressWarnings("unchecked")
-        public <C extends UserConnection> Collection<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass) {
-            return this.channels.stream()
-                    .map(WrapperNioSocketChannel.class::cast)
-                    .map(realConnection -> realConnection.getUserConnection(protocolClass))
-                    .collect(Collectors.toCollection(ArrayDeque::new));
-        }
-
-        @Override
-        public void broadcast(@NonNull Packet packet, boolean blocking, Void callback) {
-            ChannelGroupFuture future = this.channels.writeAndFlush(packet);
-            if (callback != null) {
-                future.addListener(f -> callback.run());
-            }
-            if (blocking) {
-                future.syncUninterruptibly();
-            }
-            //this.channels.writeAndFlush(packet);
-        }
-
-        @Override
         public void close(String reason) {
-            this.broadcast(new DisconnectPacket(reason), false, null);
+            this.channel.broadcast(new DisconnectPacket(reason), false);
             this.close();
+        }
+
+        private class TcpServerChannel extends NettyServerChannel    {
+            private TcpServerChannel(ChannelGroup channels, Server server) {
+                super(channels, server);
+            }
+
+            @Override
+            public void close(String reason) {
+                TcpServerManager.this.close(reason);
+            }
         }
     }
 
@@ -162,11 +166,10 @@ public class TcpProtocolManager implements ProtocolManager {
             try {
                 Bootstrap bootstrap = new Bootstrap();
                 bootstrap.group(this.workerGroup);
-                //bootstrap.channel(NioSocketChannel.class);
-                //bootstrap.channel(WrapperNioSocketChannel.class);
                 bootstrap.channelFactory(() -> new WrapperNioSocketChannel(client));
                 bootstrap.handler(new TcpChannelInitializer(client));
                 bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
+                //bootstrap.option(ChannelOption.TCP_NODELAY, true);
 
                 this.channel = bootstrap.connect(address).syncUninterruptibly().channel();
             } catch (Throwable t) {
@@ -182,13 +185,7 @@ public class TcpProtocolManager implements ProtocolManager {
 
         @Override
         public void send(@NonNull Packet packet, boolean blocking, Void callback) {
-            ChannelFuture future = this.channel.writeAndFlush(packet);
-            if (callback != null) {
-                future.addListener(f -> callback.run());
-            }
-            if (blocking) {
-                future.syncUninterruptibly();
-            }
+            ((WrapperNioSocketChannel) this.channel).send(packet, blocking, callback);
         }
     }
 

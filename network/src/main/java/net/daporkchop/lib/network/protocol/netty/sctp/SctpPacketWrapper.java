@@ -18,7 +18,11 @@ package net.daporkchop.lib.network.protocol.netty.sctp;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.network.packet.Packet;
+
+import java.io.IOException;
 
 /**
  * Used so that reliability parameters and so forth can be processed in encoders/decoders
@@ -27,10 +31,20 @@ import net.daporkchop.lib.network.packet.Packet;
  */
 @RequiredArgsConstructor
 @Getter
-public class SctpPacketWrapper {
+public class SctpPacketWrapper implements Packet {
     @NonNull
     private final Packet packet;
 
     private final int channel;
     private final boolean ordered;
+
+    @Override
+    public void read(DataIn in) throws IOException {
+        throw new UnsupportedOperationException("read");
+    }
+
+    @Override
+    public void write(DataOut out) throws IOException {
+        throw new UnsupportedOperationException("write");
+    }
 }

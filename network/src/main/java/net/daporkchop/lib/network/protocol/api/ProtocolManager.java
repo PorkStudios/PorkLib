@@ -15,6 +15,9 @@
 
 package net.daporkchop.lib.network.protocol.api;
 
+import net.daporkchop.lib.crypto.CryptographySettings;
+import net.daporkchop.lib.encoding.compression.CompressionHelper;
+
 /**
  * Implements a network protocol
  *
@@ -32,4 +35,23 @@ public interface ProtocolManager {
      * @return a new client manager
      */
     EndpointManager.ClientEndpointManager createClientManager();
+
+    //TODO: use an enum for the following methods:
+    /**
+     * Checks if this protocol manager respects the encryption settings as defined in
+     * {@link net.daporkchop.lib.network.endpoint.builder.ServerBuilder#setCryptographySettings(CryptographySettings)}
+     *
+     * (i.e. if it supports encryption)
+     * @return whether or not this protocol supports encryption
+     */
+    boolean areEncryptionSettingsRespected();
+
+    /**
+     * Checks if this protocol manager respects the compression settings as defined in
+     * {@link net.daporkchop.lib.network.endpoint.builder.ServerBuilder#setCompression(CompressionHelper)}
+     *
+     * (i.e. if it supports compression)
+     * @return whether or not this protocol supports compression
+     */
+    boolean areCompressionSettingsRespected();
 }

@@ -20,6 +20,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import net.daporkchop.lib.common.function.Void;
+import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Packet;
@@ -34,7 +35,7 @@ import java.net.InetSocketAddress;
  *
  * @author DaPorkchop_
  */
-public abstract class UserConnection implements Connection {
+public abstract class UserConnection implements Connection, Logging {
     @Setter(AccessLevel.PACKAGE)
     @Getter
     @NonNull

@@ -19,12 +19,11 @@ import com.nukkitx.network.raknet.RakNet;
 import com.nukkitx.network.raknet.RakNetClient;
 import com.nukkitx.network.raknet.RakNetServer;
 import com.nukkitx.network.raknet.RakNetServerEventListener;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.network.channel.ServerChannel;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.endpoint.client.Client;
@@ -41,6 +40,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * https://en.wikipedia.org/wiki/RakNet
@@ -61,6 +61,16 @@ public class RakNetProtocolManager implements ProtocolManager {
         return new RakNetClientManager();
     }
 
+    @Override
+    public boolean areEncryptionSettingsRespected() {
+        return false;
+    }
+
+    @Override
+    public boolean areCompressionSettingsRespected() {
+        return false;
+    }
+
     private abstract static class RakNetEndpointManager<E extends Endpoint, R extends RakNet<RakNetPorkSession>> implements EndpointManager<E> {
         protected R rakNet;
 
@@ -72,22 +82,25 @@ public class RakNetProtocolManager implements ProtocolManager {
 
     private static class RakNetServerManager extends RakNetEndpointManager<Server, RakNetServer<RakNetPorkSession>> implements EndpointManager.ServerEndpointManager {
         private com.nukkitx.network.SessionManager<RakNetPorkSession> sessionManager;
+        @Getter
+        private RakNetServerChannel channel;
 
         @Override
-        public void start(@NonNull InetSocketAddress address, @NonNull Executor executor, @NonNull Server endpoint) {
+        public void start(@NonNull InetSocketAddress address, @NonNull Executor executor, @NonNull Server server) {
             if (this.sessionManager != null) {
                 throw new IllegalStateException("already initialized!");
             }
-            this.sessionManager = new SessionManager(endpoint);
+            this.sessionManager = new SessionManager(server);
             this.rakNet = new RakNetServer.Builder<RakNetPorkSession>()
                     .address(address)
                     .id(0L)
-                    .sessionFactory(connection -> new RakNetPorkSession(connection, endpoint))
+                    .sessionFactory(connection -> new RakNetPorkSession(connection, server))
                     .sessionManager(this.sessionManager)
                     .packet(RakNetPacketWrapper::new, 0x20)
-                    .eventListener(new EventHandler(endpoint))
+                    .eventListener(new EventHandler(server))
                     .build();
             this.rakNet.bind();
+            this.channel = new RakNetServerChannel(server);
         }
 
         @Override
@@ -98,14 +111,33 @@ public class RakNetProtocolManager implements ProtocolManager {
         }
 
         @Override
-        public void broadcast(Packet packet, boolean blocking, Void callback) {
-            this.sessionManager.all().forEach(session -> session.send(packet, blocking, callback));
+        public void close(String reason) {
+            this.broadcast(new DisconnectPacket(reason), false);
+            this.rakNet.close();
         }
 
-        @Override
-        public void close(String reason) {
-            this.broadcast(new DisconnectPacket(reason), false, null);
-            this.rakNet.close();
+        @RequiredArgsConstructor
+        @Getter
+        private class RakNetServerChannel implements ServerChannel  {
+            @NonNull
+            private final Server server;
+
+            @Override
+            public Collection<UnderlyingNetworkConnection> getUnderlyingNetworkConnections() {
+                return RakNetServerManager.this.sessionManager.all().stream()
+                        .map(UnderlyingNetworkConnection.class::cast)
+                        .collect(Collectors.toList());
+            }
+
+            @Override
+            public Stream<UnderlyingNetworkConnection> getUnderlyingNetworkConnectionsAsStream() {
+                return RakNetServerManager.this.sessionManager.all().stream().map(UnderlyingNetworkConnection.class::cast);
+            }
+
+            @Override
+            public void close(String reason) {
+                RakNetServerManager.this.close(reason);
+            }
         }
 
         @RequiredArgsConstructor

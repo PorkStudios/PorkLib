@@ -35,7 +35,7 @@ public class SHA1 extends BlockDigest {
     private int H3;
     private int H4;
     private int H5;
-    private int[] X = new int[80];
+    private final int[] X = new int[80];
     private int xOff;
 
     public SHA1() {

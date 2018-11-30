@@ -71,7 +71,7 @@ public class Base58WithHeaders {
         char prefixLengthChar = chars.remove(0);
         int prefixLength = -1;
         for (int i = 0; i < Base58.INSTANCE.length; i++) {
-            if (Base58.INSTANCE.alphabet[i] == prefixLengthChar) {
+            if (Base58.INSTANCE.alphabet[i] == (int) prefixLengthChar) {
                 prefixLength = i;
             }
         }

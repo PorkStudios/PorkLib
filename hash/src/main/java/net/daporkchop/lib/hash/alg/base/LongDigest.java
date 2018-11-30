@@ -26,7 +26,7 @@ import net.daporkchop.lib.hash.util.DigestAlg;
 public abstract class LongDigest implements DigestAlg {
     private static final int BYTE_LENGTH = 128;
 
-    private byte[] xBuf = new byte[8];
+    private final byte[] xBuf = new byte[8];
     private int     xBufOff;
 
     private long    byteCount1;
@@ -41,7 +41,7 @@ public abstract class LongDigest implements DigestAlg {
     protected long H7;
     protected long H8;
 
-    private long[]  W = new long[80];
+    private final long[]  W = new long[80];
     private int     wOff;
 
     protected LongDigest()
@@ -87,7 +87,7 @@ public abstract class LongDigest implements DigestAlg {
 
             inOff += this.xBuf.length;
             len -= this.xBuf.length;
-            this.byteCount1 += this.xBuf.length;
+            this.byteCount1 = (long) (this.byteCount1 + this.xBuf.length);
         }
 
         //
@@ -126,19 +126,19 @@ public abstract class LongDigest implements DigestAlg {
 
     @Override
     public void reset() {
-        this.byteCount1 = 0;
-        this.byteCount2 = 0;
+        this.byteCount1 = 0L;
+        this.byteCount2 = 0L;
 
         this.xBufOff = 0;
         for (int i = 0; i < this.xBuf.length; i++)
         {
-            this.xBuf[i] = 0;
+            this.xBuf[i] = (byte) 0;
         }
 
         this.wOff = 0;
         for (int i = 0; i != this.W.length; i++)
         {
-            this.W[i] = 0;
+            this.W[i] = 0L;
         }
     }
 
@@ -255,7 +255,7 @@ public abstract class LongDigest implements DigestAlg {
         this.wOff = 0;
         for (int i = 0; i < 16; i++)
         {
-            this.W[i] = 0;
+            this.W[i] = 0L;
         }
     }
 

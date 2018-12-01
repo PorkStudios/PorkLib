@@ -17,8 +17,10 @@ package net.daporkchop.lib.binary.stream;
 
 import lombok.NonNull;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 
 /**
  * @author DaPorkchop_
@@ -38,5 +40,49 @@ public class StreamUtil {
             remaining -= count;
         }
         return length - remaining;
+    }
+
+    /**
+     * Reads the total content of an {@link InputStream} into a byte array
+     *
+     * @param in          the {@link InputStream} to read from
+     * @param maxSize     the maximum number of bytes to read. set to -1 to remove limt
+     * @param requireSize whether or not the entire maxSize must be filled
+     *
+     * @return the complete content of an {@link InputStream}
+     * @throws IOException if an IO exception occurs you dummy
+     */
+    public static byte[] readFully(@NonNull InputStream in, int maxSize, boolean requireSize) throws IOException {
+        byte[] var3 = new byte[0];
+        if (maxSize == -1) {
+            maxSize = 2147483647;
+        }
+
+        int var6;
+        for (int var4 = 0; var4 < maxSize; var4 += var6) {
+            int var5;
+            if (var4 >= var3.length) {
+                var5 = Math.min(maxSize - var4, var3.length + 1024);
+                if (var3.length < var4 + var5) {
+                    var3 = Arrays.copyOf(var3, var4 + var5);
+                }
+            } else {
+                var5 = var3.length - var4;
+            }
+
+            var6 = in.read(var3, var4, var5);
+            if (var6 < 0) {
+                if (requireSize && maxSize != 2147483647) {
+                    throw new EOFException("Detect premature EOF");
+                }
+
+                if (var3.length != var4) {
+                    var3 = Arrays.copyOf(var3, var4);
+                }
+                break;
+            }
+        }
+
+        return var3;
     }
 }

@@ -12,13 +12,18 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-dependencies {
-    compile project(":binary")
+package ${package};
 
-    compile 'com.google.code.gson:gson:2.8.5'
-}
+import lombok.*;
+import java.util.*;
+import java.io.*;
+import net.daporkchop.lib.minecraft.protocol.*;
 
-task gen(type: JavaExec, dependsOn: 'classes') {
-    main = 'net.daporkchop.lib.minecraft.protocol.generator.Generator'
-    classpath = sourceSets.main.runtimeClasspath
-}
+/**
+ * !!! WARNING !!!
+ *
+ * This file is script-generated!
+ * Do not edit by hand!
+ *
+ * @author DaPorkchop_
+ */

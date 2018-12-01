@@ -14,16 +14,34 @@
 
 package net.daporkchop.lib.minecraft.protocol.generator;
 
+import net.daporkchop.lib.common.util.PorkUtil;
+
 import java.io.File;
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
 public class Generator {
-    private static final File ROOT = new File(".");
+    public static void main(String... args) throws IOException {
+        System.out.println("Cleaning output directory...");
+        PorkUtil.rm(DataGenerator.OUT_ROOT);
 
-    public static void main(String... args) {
-        System.out.println("Hello world!");
-        System.out.printf("%s\n", ROOT.getAbsolutePath());
+        for (File platformDir : DataGenerator.IN_ROOT.listFiles()) {
+            if (!platformDir.isDirectory()) {
+                continue;
+            }
+            String platform = platformDir.getName();
+            for (File dataFile : platformDir.listFiles()) {
+                if (!dataFile.isFile()) {
+                    continue;
+                }
+                String versionName = dataFile.getName().substring(0, dataFile.getName().lastIndexOf('.'));
+                System.out.printf("Generating data for %s -> %s\n", platform, versionName);
+                DataGenerator.GENERATORS.get(platform)
+                        .apply(versionName, dataFile)
+                        .run(new File(DataGenerator.OUT_ROOT, platform));
+            }
+        }
     }
 }

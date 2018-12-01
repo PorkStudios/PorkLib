@@ -14,9 +14,25 @@
 
 package net.daporkchop.lib.minecraft.protocol;
 
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NonNull;
+
 /**
  * @author DaPorkchop_
  */
 public interface Platform {
     String getName();
+
+    @Builder
+    @Getter
+    class DefaultImpl implements Platform {
+        @NonNull
+        private final String name;
+
+        @Override
+        public String toString() {
+            return this.name;
+        }
+    }
 }

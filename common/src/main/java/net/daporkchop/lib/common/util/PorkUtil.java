@@ -1,7 +1,9 @@
 package net.daporkchop.lib.common.util;
 
+import lombok.NonNull;
 import sun.misc.Unsafe;
 
+import java.io.File;
 import java.lang.reflect.Field;
 
 /**
@@ -20,6 +22,23 @@ public class PorkUtil {
             throw new RuntimeException(e);
         } finally {
             unsafe = u;
+        }
+    }
+
+    public static void rm(@NonNull File file)   {
+        if (file.exists()) {
+            if (file.isDirectory()) {
+                File[] files = file.listFiles();
+                if (files == null) {
+                    throw new NullPointerException(file.getAbsolutePath());
+                }
+                for (File f : files) {
+                    rm(f);
+                }
+            }
+            if (!file.delete()) {
+                throw new IllegalStateException(String.format("Could not delete file: %s", file.getAbsolutePath()));
+            }
         }
     }
 }

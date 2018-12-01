@@ -22,6 +22,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.NettyByteBufUtil;
+import net.daporkchop.lib.network.channel.ChannelImplementation;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Packet;
@@ -48,7 +49,7 @@ public class TcpPacketDecoder extends ByteToMessageDecoder implements PacketDeco
     protected void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> list) throws Exception {
         try {
             int size = buf.readableBytes();
-            Packet packet = this.getPacket((UnderlyingNetworkConnection) ctx.channel(), NettyByteBufUtil.wrapIn(buf));
+            Packet packet = this.getPacket((ChannelImplementation) ((UnderlyingNetworkConnection) ctx.channel()).getDefaultChannel(), NettyByteBufUtil.wrapIn(buf));
             logger.debug("[${0}] Read packet: ${1} (${2} bytes)", this.endpoint.getName(), packet.getClass(), size - buf.readableBytes());
             list.add(packet);
             readRemainingBuffer(buf);

@@ -13,21 +13,17 @@
  *
  */
 
-package net.daporkchop.lib.network.util;
+package net.daporkchop.lib.network.channel;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.network.util.PacketReprocessor;
 
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-public enum ConnectionState {
-    INIT(false, false),
-    HANDSHAKE(false, true),
-    RUNTIME(true, true),
-    CLOSED(false, false);
+public interface ChannelImplementation extends Channel {
+    PacketReprocessor getPacketReprocessor();
 
-    public final boolean shouldEncrypt;
-    public final boolean shouldCompress;
+    void setEncryptionReady(boolean state);
+
+    boolean isEncryptionReady();
 }

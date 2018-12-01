@@ -22,9 +22,11 @@ import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.channel.Channel;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
+import net.daporkchop.lib.network.protocol.netty.NettyChannel;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 
 import java.util.Arrays;
@@ -44,7 +46,10 @@ import java.util.Collection;
  */
 @RequiredArgsConstructor
 @Getter
-public class SctpChannel implements Channel, Logging {
+public class SctpChannel extends NettyChannel implements Logging {
+    static final int FLAG_DEFAULT = 0;
+    static final int FLAG_CONTROL = 1;
+
     private static final Collection<Reliability> RELIABLE_ONLY = Arrays.asList(
             Reliability.RELIABLE,
             Reliability.RELIABLE_ORDERED
@@ -57,6 +62,7 @@ public class SctpChannel implements Channel, Logging {
     private final WrapperNioSctpChannel channel;
 
     volatile boolean closed;
+    int flags;
 
     @Override
     public void send(@NonNull Packet packet, boolean blocking, Void callback, Reliability reliability) {
@@ -115,5 +121,20 @@ public class SctpChannel implements Channel, Logging {
     @Override
     public Collection<Reliability> supportedReliabilities() {
         return RELIABLE_ONLY;
+    }
+
+    @Override
+    public UnderlyingNetworkConnection getConnection() {
+        return this.channel;
+    }
+
+    @Override
+    public boolean isDefaultChannel() {
+        return ((this.flags >>> FLAG_DEFAULT) & 1) == 1;
+    }
+
+    @Override
+    public boolean isControlChannel() {
+        return ((this.flags >>> FLAG_CONTROL) & 1) == 1;
     }
 }

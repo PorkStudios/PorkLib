@@ -36,16 +36,12 @@ import java.util.Collection;
 @Getter
 public class PorkServer implements Server {
     private final PacketRegistry packetRegistry;
-    private final CryptographySettings cryptographySettings;
-    private final CompressionHelper compression;
     private final EndpointManager.ServerEndpointManager manager;
 
     @SuppressWarnings("unchecked")
     public PorkServer(@NonNull ServerBuilder builder) {
         this.packetRegistry = new PacketRegistry(builder.getProtocols());
         this.manager = builder.getManager().createServerManager();
-        this.cryptographySettings = builder.getCryptographySettings();
-        this.compression = builder.getCompression();
 
         this.manager.start(builder.getAddress(), builder.getExecutor(), this);
     }

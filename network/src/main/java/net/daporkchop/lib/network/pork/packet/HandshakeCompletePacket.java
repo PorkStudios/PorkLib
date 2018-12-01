@@ -23,7 +23,6 @@ import net.daporkchop.lib.network.endpoint.client.PorkClient;
 import net.daporkchop.lib.network.packet.Codec;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.pork.PorkConnection;
-import net.daporkchop.lib.network.util.ConnectionState;
 
 import java.io.IOException;
 
@@ -45,7 +44,6 @@ public class HandshakeCompletePacket implements Packet {
     public static class HandshakeCompleteCodec implements Codec.Simple<HandshakeCompletePacket, PorkConnection>    {
         @Override
         public void handle(@NonNull HandshakeCompletePacket packet, @NonNull PorkConnection connection) {
-            connection.setState(ConnectionState.RUNTIME);
             connection.<PorkClient>getEndpoint().postConnectCallback(null);
         }
 

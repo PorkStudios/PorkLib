@@ -22,9 +22,11 @@ import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.channel.Channel;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
+import net.daporkchop.lib.network.protocol.netty.NettyChannel;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 
 import java.util.Collection;
@@ -40,7 +42,7 @@ import java.util.Collections;
  */
 @RequiredArgsConstructor
 @Getter
-public class TcpChannel implements Channel, Logging {
+public class TcpChannel extends NettyChannel implements Logging {
     private static final Collection<Reliability> RELIABLE_ORDERED_ONLY = Collections.singleton(Reliability.RELIABLE_ORDERED);
 
     @NonNull
@@ -50,10 +52,10 @@ public class TcpChannel implements Channel, Logging {
     public void send(@NonNull Packet packet, boolean blocking, Void callback, Reliability reliability) {
         ChannelFuture future = this.realChannel.writeAndFlush(packet);
         //future.addListener(f -> logger.debug("[] Send packet: ${0}", packet.getClass()));
-        if (callback != null)   {
+        if (callback != null) {
             future.addListener(f -> callback.run());
         }
-        if (blocking)   {
+        if (blocking) {
             future.syncUninterruptibly();
         }
     }
@@ -91,5 +93,10 @@ public class TcpChannel implements Channel, Logging {
     @Override
     public Collection<Reliability> supportedReliabilities() {
         return RELIABLE_ORDERED_ONLY;
+    }
+
+    @Override
+    public UnderlyingNetworkConnection getConnection() {
+        return this.realChannel;
     }
 }

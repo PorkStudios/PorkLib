@@ -13,28 +13,36 @@
  *
  */
 
-package net.daporkchop.lib.network.endpoint.builder;
+package net.daporkchop.lib.network.protocol.netty;
 
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import lombok.experimental.Accessors;
 import net.daporkchop.lib.crypto.CryptographySettings;
-import net.daporkchop.lib.encoding.compression.Compression;
-import net.daporkchop.lib.encoding.compression.CompressionHelper;
-import net.daporkchop.lib.network.conn.UserConnection;
-import net.daporkchop.lib.network.endpoint.server.PorkServer;
-import net.daporkchop.lib.network.endpoint.server.Server;
+import net.daporkchop.lib.network.channel.ChannelImplementation;
+import net.daporkchop.lib.network.util.PacketReprocessor;
 
 /**
  * @author DaPorkchop_
  */
-@Accessors(chain = true)
 @Getter
-@Setter
-public class ServerBuilder extends AbstractBuilder<Server, ServerBuilder> {
+public abstract class NettyChannel implements ChannelImplementation {
+    private final PacketReprocessor packetReprocessor = new PacketReprocessor(this);
+    @Setter
+    private volatile boolean encryptionReady;
+
     @Override
-    Server doBuild() {
-        return new PorkServer(this);
+    public boolean isEncrypted() {
+        return this.packetReprocessor.getCipher() != null && this.encryptionReady;
+    }
+
+    @Override
+    public synchronized void startEncryption(@NonNull CryptographySettings cryptographySettings) {
+        if (this.packetReprocessor.getCryptographySettings() != null)   {
+            //cryptography settings will be set even before encryption is completely enabled
+            throw new IllegalStateException("encryption already enabled");
+        }
+        this.packetReprocessor.setCryptographySettings(cryptographySettings);
+
     }
 }

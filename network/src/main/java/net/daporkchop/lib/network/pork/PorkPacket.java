@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.network.pork;
 
+import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.packet.Packet;
 
 /**
@@ -22,5 +23,5 @@ import net.daporkchop.lib.network.packet.Packet;
  *
  * @author DaPorkchop_
  */
-public interface PorkPacket extends Packet {
+public interface PorkPacket extends Packet, Logging {
 }

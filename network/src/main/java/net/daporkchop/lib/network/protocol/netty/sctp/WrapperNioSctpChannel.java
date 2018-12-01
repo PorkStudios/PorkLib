@@ -45,19 +45,27 @@ public class WrapperNioSctpChannel extends NioSctpChannel implements NettyConnec
     private final Endpoint endpoint;
     private final Map<Class<? extends UserProtocol>, UserConnection> connections = new IdentityHashMap<>();
     private final SctpChannel defaultChannel;
+    private final SctpChannel controlChannel;
 
     final SparseBitSet channelIds = new SparseBitSet();
     final IntegerObjectMap<SctpChannel> channels = PorkMaps.synchronize(new IntegerObjectHashMap<>());
 
     public WrapperNioSctpChannel(@NonNull Client client)    {
         this.endpoint = client;
+        this.controlChannel = this.openChannel(Reliability.RELIABLE_ORDERED);
         this.defaultChannel = this.openChannel(Reliability.RELIABLE_ORDERED);
     }
 
     public WrapperNioSctpChannel(io.netty.channel.Channel parent, com.sun.nio.sctp.SctpChannel sctpChannel, @NonNull Server server) {
         super(parent, sctpChannel);
         this.endpoint = server;
+        this.controlChannel = this.openChannel(Reliability.RELIABLE_ORDERED);
         this.defaultChannel = this.openChannel(Reliability.RELIABLE_ORDERED);
+    }
+
+    private void initChannels() {
+        this.defaultChannel.flags = 1 << SctpChannel.FLAG_DEFAULT;
+        this.controlChannel.flags = 1 << SctpChannel.FLAG_CONTROL;
     }
 
     @Override

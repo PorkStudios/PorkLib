@@ -16,10 +16,7 @@
 package net.daporkchop.lib.network.pork;
 
 import net.daporkchop.lib.network.packet.UserProtocol;
-import net.daporkchop.lib.network.pork.packet.DisconnectPacket;
-import net.daporkchop.lib.network.pork.packet.HandshakeCompletePacket;
-import net.daporkchop.lib.network.pork.packet.HandshakeInitPacket;
-import net.daporkchop.lib.network.pork.packet.HandshakeResponsePacket;
+import net.daporkchop.lib.network.pork.packet.*;
 
 /**
  * @author DaPorkchop_
@@ -28,15 +25,18 @@ public class PorkProtocol extends UserProtocol<PorkConnection> {
     public static final PorkProtocol INSTANCE = new PorkProtocol();
 
     private PorkProtocol() {
-        super("PorkLib Networking", 1);
+        super("PorkLib Networking", 2);
     }
 
     @Override
     protected void registerPackets() {
         //handshake packets
         this.register(new HandshakeInitPacket.HandshakeInitCodec());
-        this.register(new HandshakeResponsePacket.HandshakeReponseCodec());
+        this.register(new HandshakeResponsePacket.HandshakeResponseCodec());
         this.register(new HandshakeCompletePacket.HandshakeCompleteCodec());
+        //encryption packets
+        this.register(new EncryptionStartedPacket.EncryptionStartedCodec());
+        this.register(new StartEncryptionPacket.StartEncryptionHandler());
         //misc. packets
         this.register(new DisconnectPacket.DisconnectCodec());
     }

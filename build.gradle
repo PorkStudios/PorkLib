@@ -106,5 +106,7 @@ allprojects {
         }
     }
 
-    build.dependsOn(publishToMavenLocal)
+    if (!project.name.contains("generator")) {
+        build.dependsOn(publishToMavenLocal)
+    }
 }

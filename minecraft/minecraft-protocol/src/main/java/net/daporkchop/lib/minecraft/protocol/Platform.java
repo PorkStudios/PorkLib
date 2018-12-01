@@ -10,34 +10,13 @@
  * Any persons and/or organizations using this software must disclose their source code and have it publicly available, include this license, provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
-rootProject.name = 'PorkLib'
+package net.daporkchop.lib.minecraft.protocol;
 
-include 'binary'
-include 'crypto'
-include 'common'
-include 'db'
-include 'encoding'
-include 'hash'
-include 'http'
-include 'logging'
-include 'math'
-include 'minecraft'
-include 'minecraft:minecraft-text'
-include 'minecraft:minecraft-worldscanner'
-include 'minecraft:minecraft-protocol'
-include 'minecraft:minecraft-protocol:generator'
-include 'nbt'
-include 'network'
-include 'noise'
-include 'primitive'
-include 'primitive:generator'
-
-findProject(':minecraft:minecraft-worldscanner')?.name = 'minecraft-worldscanner'
-findProject(':minecraft:minecraft-text')?.name = 'minecraft-text'
-findProject(':minecraft:minecraft-protocol')?.name = 'minecraft-protocol'
-findProject(':minecraft:minecraft-protocol:generator')?.name = 'minecraft-protocol-generator'
-findProject(':primitive:generator')?.name = 'primitive-generator'
-
+/**
+ * @author DaPorkchop_
+ */
+public interface Platform {
+    String getName();
+}

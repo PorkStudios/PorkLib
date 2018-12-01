@@ -62,7 +62,6 @@ public class SctpChannel extends NettyChannel implements Logging {
     private final WrapperNioSctpChannel channel;
 
     volatile boolean closed;
-    int flags;
 
     @Override
     public void send(@NonNull Packet packet, boolean blocking, Void callback, Reliability reliability) {
@@ -130,11 +129,11 @@ public class SctpChannel extends NettyChannel implements Logging {
 
     @Override
     public boolean isDefaultChannel() {
-        return ((this.flags >>> FLAG_DEFAULT) & 1) == 1;
+        return this.id == WrapperNioSctpChannel.CHANNEL_ID_DEFAULT;
     }
 
     @Override
     public boolean isControlChannel() {
-        return ((this.flags >>> FLAG_CONTROL) & 1) == 1;
+        return this.id == WrapperNioSctpChannel.CHANNEL_ID_CONTROL;
     }
 }

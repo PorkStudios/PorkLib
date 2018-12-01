@@ -19,7 +19,11 @@ import com.nukkitx.network.raknet.RakNet;
 import com.nukkitx.network.raknet.RakNetClient;
 import com.nukkitx.network.raknet.RakNetServer;
 import com.nukkitx.network.raknet.RakNetServerEventListener;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.channel.ServerChannel;
@@ -36,7 +40,10 @@ import net.daporkchop.lib.network.protocol.api.EndpointManager;
 import net.daporkchop.lib.network.protocol.api.ProtocolManager;
 
 import java.net.InetSocketAddress;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
@@ -117,30 +124,6 @@ public class RakNetProtocolManager implements ProtocolManager {
         }
 
         @RequiredArgsConstructor
-        @Getter
-        private class RakNetServerChannel implements ServerChannel  {
-            @NonNull
-            private final Server server;
-
-            @Override
-            public Collection<UnderlyingNetworkConnection> getUnderlyingNetworkConnections() {
-                return RakNetServerManager.this.sessionManager.all().stream()
-                        .map(UnderlyingNetworkConnection.class::cast)
-                        .collect(Collectors.toList());
-            }
-
-            @Override
-            public Stream<UnderlyingNetworkConnection> getUnderlyingNetworkConnectionsAsStream() {
-                return RakNetServerManager.this.sessionManager.all().stream().map(UnderlyingNetworkConnection.class::cast);
-            }
-
-            @Override
-            public void close(String reason) {
-                RakNetServerManager.this.close(reason);
-            }
-        }
-
-        @RequiredArgsConstructor
         private static class EventHandler implements RakNetServerEventListener {
             private static final Advertisement advertisement = new Advertisement(
                     "PorkLib network - RakNet mode",
@@ -180,6 +163,9 @@ public class RakNetProtocolManager implements ProtocolManager {
                 if (this.connections.containsKey(address)) {
                     return false;
                 } else {
+                    this.server.getPacketRegistry().getProtocols().forEach(protocol -> session.putUserConnection(protocol.getClass(), protocol.newConnection()));
+                    session.registerTheUnderlyingConnection();
+
                     this.connections.put(address, session);
                     this.theseAreAlsoConnections.put(session, address);
                     session.getConnection().sendPacket(new RakNetPacketWrapper());
@@ -212,6 +198,30 @@ public class RakNetProtocolManager implements ProtocolManager {
             public void onTick() {
             }
         }
+
+        @RequiredArgsConstructor
+        @Getter
+        private class RakNetServerChannel implements ServerChannel {
+            @NonNull
+            private final Server server;
+
+            @Override
+            public Collection<UnderlyingNetworkConnection> getUnderlyingNetworkConnections() {
+                return RakNetServerManager.this.sessionManager.all().stream()
+                        .map(UnderlyingNetworkConnection.class::cast)
+                        .collect(Collectors.toList());
+            }
+
+            @Override
+            public Stream<UnderlyingNetworkConnection> getUnderlyingNetworkConnectionsAsStream() {
+                return RakNetServerManager.this.sessionManager.all().stream().map(UnderlyingNetworkConnection.class::cast);
+            }
+
+            @Override
+            public void close(String reason) {
+                RakNetServerManager.this.close(reason);
+            }
+        }
     }
 
     private static class RakNetClientManager extends RakNetEndpointManager<Client, RakNetClient<RakNetPorkSession>> implements EndpointManager.ClientEndpointManager {
@@ -235,7 +245,7 @@ public class RakNetProtocolManager implements ProtocolManager {
                     .build();
             try {
                 this.rakNet.connect(address);
-            } catch (Exception e)   {
+            } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
@@ -263,6 +273,10 @@ public class RakNetProtocolManager implements ProtocolManager {
                     if (this.address == null) {
                         this.address = address;
                         RakNetClientManager.this.session = session;
+
+                        this.client.getPacketRegistry().getProtocols().forEach(protocol -> session.putUserConnection(protocol.getClass(), protocol.newConnection()));
+                        session.registerTheUnderlyingConnection();
+
                         ((PorkClient) this.client).postConnectCallback(null); //TODO!!!
                         return true;
                     } else {

@@ -25,6 +25,8 @@ import net.daporkchop.lib.network.endpoint.client.Client;
 import net.daporkchop.lib.network.endpoint.server.Server;
 import net.daporkchop.lib.network.protocol.api.ProtocolManager;
 import net.daporkchop.lib.network.protocol.netty.sctp.SctpProtocolManager;
+import net.daporkchop.lib.network.protocol.netty.tcp.TcpProtocolManager;
+import net.daporkchop.lib.network.protocol.raknet.RakNetProtocolManager;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 import org.junit.Test;
 
@@ -39,8 +41,8 @@ import java.util.Collection;
 public class NetworkTest implements Logging {
     private static final Collection<ProtocolManager> MANAGERS = Arrays.asList(
             null
-            //, TcpProtocolManager.INSTANCE
-            //, RakNetProtocolManager.INSTANCE
+            , TcpProtocolManager.INSTANCE
+            //TODO: make RakNet work , RakNetProtocolManager.INSTANCE
             , SctpProtocolManager.INSTANCE
     );
 

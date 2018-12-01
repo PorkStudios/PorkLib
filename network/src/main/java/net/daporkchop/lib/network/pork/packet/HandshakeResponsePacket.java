@@ -20,12 +20,11 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.crypto.CryptographySettings;
+import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.packet.Codec;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.PacketRegistry;
 import net.daporkchop.lib.network.pork.PorkConnection;
-import net.daporkchop.lib.network.util.ConnectionState;
 import net.daporkchop.lib.network.util.Version;
 
 import java.io.IOException;
@@ -38,15 +37,10 @@ import java.util.Collection;
 @NoArgsConstructor
 @AllArgsConstructor
 public class HandshakeResponsePacket implements Packet {
-    @NonNull
-    public CryptographySettings cryptographySettings;
-
     public Collection<Version> protocolVersions;
 
     @Override
     public void read(@NonNull DataIn in) throws IOException {
-        this.cryptographySettings = new CryptographySettings();
-        this.cryptographySettings.read(in);
         this.protocolVersions = new ArrayList<>();
         for (int i = in.readVarInt(true) - 1; i >= 0; i--) {
             this.protocolVersions.add(new Version(in.readUTF(), in.readVarInt(true)));
@@ -55,7 +49,6 @@ public class HandshakeResponsePacket implements Packet {
 
     @Override
     public void write(@NonNull DataOut out) throws IOException {
-        this.cryptographySettings.write(out);
         out.writeVarInt(this.protocolVersions.size(), true);
         for (Version version : this.protocolVersions) {
             out.writeUTF(version.getName());
@@ -63,9 +56,9 @@ public class HandshakeResponsePacket implements Packet {
         }
     }
 
-    public static class HandshakeReponseCodec implements Codec.Simple<HandshakeResponsePacket, PorkConnection> {
+    public static class HandshakeResponseCodec implements Codec<HandshakeResponsePacket, PorkConnection> {
         @Override
-        public void handle(@NonNull HandshakeResponsePacket packet, @NonNull PorkConnection connection) {
+        public void handle(@NonNull HandshakeResponsePacket packet, @NonNull Channel channel, @NonNull PorkConnection connection) {
             PacketRegistry registry = connection.getEndpoint().getPacketRegistry();
             if (registry.getProtocols().size() != packet.protocolVersions.size())   {
                 connection.closeConnection("invalid protocol count");
@@ -77,7 +70,7 @@ public class HandshakeResponsePacket implements Packet {
                     throw new IllegalStateException();
                 }
             });
-            connection.send(connection.getPacketReprocessor().initServer(packet), () -> connection.setState(ConnectionState.RUNTIME));
+            channel.send(new HandshakeCompletePacket());
         }
 
         @Override

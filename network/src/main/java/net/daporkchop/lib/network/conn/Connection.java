@@ -110,6 +110,19 @@ public interface Connection {
         return this.getOpenChannel(0);
     }
 
+    /**
+     * Gets this connection's control channel.
+     * <p>
+     * This is the channel that PorkLib network sends internal packets on, and should be avoided as much as possible.
+     * <p>
+     * For some implementations (e.g. TCP) this will return the only accessible channel (as TCP only has one channel)
+     *
+     * @return this connection's control channel
+     */
+    default Channel getControlChannel() {
+        return this.getDefaultChannel();
+    }
+
     //
     //
     // Convenience methods

@@ -18,6 +18,7 @@ package net.daporkchop.lib.network.protocol.api;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.network.channel.ChannelImplementation;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.endpoint.client.PorkClient;
@@ -35,8 +36,8 @@ import java.io.OutputStream;
 public interface PacketEncoder extends Logging {
     <E extends Endpoint> E getEndpoint();
 
-    default void writePacket(@NonNull UnderlyingNetworkConnection connection, @NonNull Packet packet, @NonNull OutputStream stream) throws IOException {
-        try (DataOut out = DataOut.wrap(connection.getUserConnection(PorkProtocol.class).getPacketReprocessor().wrap(stream))) {
+    default void writePacket(@NonNull ChannelImplementation channel, @NonNull Packet packet, @NonNull OutputStream stream) throws IOException {
+        try (DataOut out = DataOut.wrap(channel.getPacketReprocessor().wrap(stream))) {
             //try (DataOut out = DataOut.wrap(stream))   {
             //logger.debug("[${0}] Writing ${1}...", this.getEndpoint().getName(), packet.getClass());
             int id = this.getEndpoint().getPacketRegistry().getId(packet.getClass());
@@ -51,7 +52,7 @@ public interface PacketEncoder extends Logging {
             if (this.getEndpoint() instanceof PorkClient) {
                 ((PorkClient) this.getEndpoint()).postConnectCallback(e);
             }
-            connection.closeConnection();
+            channel.getConnection().closeConnection(e.toString());
             throw e;
         }
     }

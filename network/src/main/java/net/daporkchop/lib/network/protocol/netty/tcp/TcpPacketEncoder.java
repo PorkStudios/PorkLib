@@ -22,6 +22,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.NettyByteBufUtil;
+import net.daporkchop.lib.network.channel.ChannelImplementation;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Packet;
@@ -38,6 +39,6 @@ public class TcpPacketEncoder extends MessageToByteEncoder<Packet> implements Pa
 
     @Override
     protected void encode(ChannelHandlerContext ctx, Packet packet, ByteBuf buf) throws Exception {
-        this.writePacket((UnderlyingNetworkConnection) ctx.channel(), packet, NettyByteBufUtil.wrapOut(buf));
+        this.writePacket((ChannelImplementation) ((UnderlyingNetworkConnection) ctx.channel()).getDefaultChannel(), packet, NettyByteBufUtil.wrapOut(buf));
     }
 }

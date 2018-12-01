@@ -15,44 +15,59 @@
 
 package net.daporkchop.lib.network.pork.packet;
 
+import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.crypto.CryptographySettings;
+import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.channel.Channel;
+import net.daporkchop.lib.network.channel.ChannelImplementation;
 import net.daporkchop.lib.network.packet.Codec;
-import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.pork.PorkConnection;
-import net.daporkchop.lib.network.util.Version;
+import net.daporkchop.lib.network.pork.PorkPacket;
 
 import java.io.IOException;
-import java.util.stream.Collectors;
 
 /**
  * @author DaPorkchop_
  */
-//@AllArgsConstructor
+@AllArgsConstructor
 @NoArgsConstructor
-public class HandshakeInitPacket implements Packet {
+public class StartEncryptionPacket implements PorkPacket {
+    @NonNull
+    public CryptographySettings cryptographySettings;
+    public int channelId;
+
     @Override
     public void read(@NonNull DataIn in) throws IOException {
+        this.cryptographySettings = new CryptographySettings();
+        this.cryptographySettings.read(in);
+        this.channelId = in.readVarInt(true);
     }
 
     @Override
     public void write(@NonNull DataOut out) throws IOException {
+        this.cryptographySettings.write(out);
+        out.writeVarInt(this.channelId, true);
     }
 
-    public static class HandshakeInitCodec implements Codec<HandshakeInitPacket, PorkConnection> {
+    public static class StartEncryptionHandler implements Codec<StartEncryptionPacket, PorkConnection>, Logging {
         @Override
-        public void handle(@NonNull HandshakeInitPacket packet, @NonNull Channel channel, @NonNull PorkConnection connection) {
-            channel.send(new HandshakeResponsePacket(
-                    connection.getEndpoint().getPacketRegistry().getProtocols().stream().map(Version::new).collect(Collectors.toList())
-            ));
+        public void handle(@NonNull StartEncryptionPacket packet, @NonNull Channel channel, @NonNull PorkConnection connection) {
+            //get actual channel, as this will be received on the control channel
+            ChannelImplementation theChannel = (ChannelImplementation) connection.getOpenChannel(packet.channelId);
+            if (theChannel == null) {
+                throw this.exception("unknown channel: ${0}", packet.channelId);
+            }
+            channel.send(theChannel.getPacketReprocessor().init(packet));
         }
 
         @Override
-        public HandshakeInitPacket createInstance() {
-            return new HandshakeInitPacket();
+        public StartEncryptionPacket createInstance() {
+            return new StartEncryptionPacket();
         }
     }
 }

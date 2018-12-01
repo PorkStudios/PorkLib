@@ -17,8 +17,11 @@ package net.daporkchop.lib.network.channel;
 
 import lombok.NonNull;
 import net.daporkchop.lib.common.function.Void;
+import net.daporkchop.lib.crypto.CryptographySettings;
 import net.daporkchop.lib.network.conn.Connection;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
+import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.util.reliability.Reliability;
@@ -126,7 +129,16 @@ public interface Channel {
      * @return whether or not this is the default channel
      */
     default boolean isDefaultChannel() {
-        return this.getId() == 0;
+        return this.getConnection().getDefaultChannel() == this;
+    }
+
+    /**
+     * Checks if this is the control channel
+     *
+     * @return whether or not this is the control channel
+     */
+    default boolean isControlChannel() {
+        return this.getConnection().getControlChannel() == this;
     }
 
     /**
@@ -135,6 +147,39 @@ public interface Channel {
      * @return all reliabilities supported by this channel
      */
     Collection<Reliability> supportedReliabilities();
+
+    /**
+     * Checks if encryption is enabled
+     *
+     * @return whether or not encryption is enabled on this channel
+     */
+    boolean isEncrypted();
+
+    /**
+     * Initializes encryption for this channel.
+     * <p>
+     * Be aware that (((currently))) encryption is only supported for messages sent via {@link Reliability#RELIABLE_ORDERED}.
+     *
+     * @param cryptographySettings the cryptography settings to use
+     */
+    void startEncryption(@NonNull CryptographySettings cryptographySettings);
+
+    /**
+     * Gets this channel's endpoint
+     *
+     * @param <E> convenience cast
+     * @return this channel's endpoint
+     */
+    default <E extends Endpoint> E getEndpoint() {
+        return this.getConnection().getEndpoint();
+    }
+
+    /**
+     * Get this channel's connection
+     *
+     * @return this channel's connection
+     */
+    UnderlyingNetworkConnection getConnection();
 
     //
     //
@@ -180,5 +225,21 @@ public interface Channel {
 
     default boolean isDefault() {
         return this.getId() == 0;
+    }
+
+    /**
+     * Waits for encryption to be enabled on this channel.
+     * <p>
+     * WARNING: calling this without first invoking {@link #startEncryption(CryptographySettings)} will cause a deadlock!
+     */
+    default void waitForEncryption() {
+        while (!this.isEncrypted()) {
+            try {
+                synchronized (this) {
+                    this.wait(50L);
+                }
+            } catch (InterruptedException e) {
+            }
+        }
     }
 }

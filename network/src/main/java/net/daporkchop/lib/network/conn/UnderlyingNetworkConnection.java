@@ -51,7 +51,6 @@ public interface UnderlyingNetworkConnection extends Connection {
         PorkConnection porkConnection = this.getUserConnection(PorkProtocol.class);
         porkConnection.setRealConnection(this);
         this.getConnections().values().forEach(conn -> conn.setProtocolConnection(this));
-        porkConnection.setPacketReprocessor(new PacketReprocessor(porkConnection));
     }
 
     @Override

@@ -16,28 +16,43 @@
 package net.daporkchop.lib.network.pork;
 
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
+import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
-import net.daporkchop.lib.network.util.ConnectionState;
+import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.util.PacketReprocessor;
+
+import java.util.Map;
 
 /**
  * @author DaPorkchop_
  */
 @Getter
-public class PorkConnection extends UserConnection {
+public class PorkConnection extends UserConnection implements UnderlyingNetworkConnection {
     @Setter
     private String disconnectReason;
 
     @Setter
     private UnderlyingNetworkConnection realConnection;
 
-    @Setter
-    @NonNull
-    private ConnectionState state = ConnectionState.INIT;
+    @Override
+    public Map<Class<? extends UserProtocol>, UserConnection> getConnections() {
+        return this.realConnection.getConnections();
+    }
 
-    @Setter
-    private PacketReprocessor packetReprocessor;
+    @Override
+    public void disconnectAtNetworkLevel() {
+        this.realConnection.disconnectAtNetworkLevel();
+    }
+
+    @Override
+    public Channel getDefaultChannel() {
+        return this.realConnection.getDefaultChannel();
+    }
+
+    @Override
+    public void closeConnection() {
+        this.realConnection.closeConnection();
+    }
 }

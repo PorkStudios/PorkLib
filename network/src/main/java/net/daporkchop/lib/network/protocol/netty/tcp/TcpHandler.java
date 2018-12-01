@@ -32,7 +32,6 @@ import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.pork.PorkConnection;
 import net.daporkchop.lib.network.pork.PorkProtocol;
 import net.daporkchop.lib.network.pork.packet.HandshakeInitPacket;
-import net.daporkchop.lib.network.util.ConnectionState;
 
 /**
  * Handles events on a connection managed by {@link TcpProtocolManager}
@@ -96,13 +95,7 @@ public class TcpHandler extends ChannelInboundHandlerAdapter implements Logging 
                 .map(userProtocol -> realConnection.getUserConnection((Class<UserProtocol<UserConnection>>) userProtocol.getClass()))
                 .forEach(UserConnection::onConnect);*/
         if (this.endpoint instanceof PorkServer) {
-            realConnection.send(new HandshakeInitPacket(
-                    ((PorkServer) this.endpoint).getCryptographySettings(),
-                    ((PorkServer) this.endpoint).getCompression()
-            ), () -> {
-                PorkConnection connection = realConnection.getUserConnection(PorkProtocol.class);
-                connection.setState(ConnectionState.HANDSHAKE);
-            });
+            realConnection.send(new HandshakeInitPacket());
         } else if (false && this.endpoint instanceof PorkClient) {
             ((PorkClient) this.endpoint).postConnectCallback(null);
         }

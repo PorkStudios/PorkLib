@@ -20,7 +20,9 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.function.Void;
+import net.daporkchop.lib.crypto.CryptographySettings;
 import net.daporkchop.lib.network.channel.Channel;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
@@ -98,5 +100,20 @@ public class PorkRakNetChannel implements Channel {
     @Override
     public Collection<Reliability> supportedReliabilities() {
         return Reliability.ALL;
+    }
+
+    @Override
+    public boolean isEncrypted() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void startEncryption(CryptographySettings cryptographySettings) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public UnderlyingNetworkConnection getConnection() {
+        throw new UnsupportedOperationException();
     }
 }

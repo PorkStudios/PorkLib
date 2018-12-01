@@ -33,7 +33,6 @@ import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.pork.PorkConnection;
 import net.daporkchop.lib.network.pork.PorkProtocol;
 import net.daporkchop.lib.network.pork.packet.HandshakeInitPacket;
-import net.daporkchop.lib.network.util.ConnectionState;
 
 /**
  * Handles events on a connection managed by {@link SctpProtocolManager}
@@ -52,14 +51,7 @@ public class SctpHandler extends ChannelInboundHandlerAdapter implements Logging
 
         UnderlyingNetworkConnection realConnection = (UnderlyingNetworkConnection) ctx.channel();
         if (this.endpoint instanceof PorkServer) {
-            realConnection.send(new HandshakeInitPacket(
-                    ((PorkServer) this.endpoint).getCryptographySettings(),
-                    ((PorkServer) this.endpoint).getCompression()), () -> {
-                PorkConnection connection = realConnection.getUserConnection(PorkProtocol.class);
-                if (true)  {
-                    connection.setState(ConnectionState.HANDSHAKE);
-                }
-            });
+            realConnection.send(new HandshakeInitPacket());
         } else if (false && this.endpoint instanceof PorkClient) {
             ((PorkClient) this.endpoint).postConnectCallback(null);
         }

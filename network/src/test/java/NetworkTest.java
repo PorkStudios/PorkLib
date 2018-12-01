@@ -73,13 +73,6 @@ public class NetworkTest implements Logging {
                     .setManager(manager)
                     .setAddress(new InetSocketAddress("0.0.0.0", 12345))
                     .addProtocol(TestProtocol.INSTANCE)
-                    .setCompression(Compression.GZIP_HIGH)
-                    .setCryptographySettings(new CryptographySettings(
-                            CurveType.B_283,
-                            CipherType.BLOWFISH,
-                            CipherMode.CBC,
-                            CipherPadding.PKCS7
-                    ))
                     .build();
             logger.info("Server started.");
 
@@ -90,6 +83,9 @@ public class NetworkTest implements Logging {
                     .addProtocol(TestProtocol.INSTANCE)
                     .build();
             logger.info("Client started.");
+
+            client.getDefaultChannel().startEncryption(CryptographySettings.random());
+            client.getDefaultChannel().waitForEncryption();
 
             {
                 int count = 3;

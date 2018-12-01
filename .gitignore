@@ -11,7 +11,8 @@ out/
 /src/
 
 test_out/
-/primitive/src/
+
+/minecraft/minecraft-protocol/src/main/java/net/daporkchop/lib/minecraft/protocol/mc/*
 /minecraft/minecraft-worldscanner/run/testworld/region/r.0.1.mca
 /minecraft/minecraft-worldscanner/run/testworld/region/r.0.-1.mca
 /minecraft/minecraft-worldscanner/run/testworld/region/r.1.1.mca
@@ -21,3 +22,4 @@ test_out/
 /minecraft/minecraft-worldscanner/run/testworld/region/r.-1.0.mca
 /minecraft/minecraft-worldscanner/run/testworld/region/r.-1.-1.mca
 /minecraft/minecraft-worldscanner/run/out/
+/primitive/src/

@@ -14,3 +14,8 @@
 
 dependencies {
 }
+
+task gen(type: JavaExec, dependsOn: 'classes') {
+    main = 'net.daporkchop.lib.minecraft.protocol.generator.Generator'
+    classpath = sourceSets.main.runtimeClasspath
+}

@@ -20,3 +20,5 @@ task deleteSource(type: Delete) {
 }
 
 clean.dependsOn(deleteSource)
+
+compileJava.dependsOn("minecraft-protocol-generator:gen")

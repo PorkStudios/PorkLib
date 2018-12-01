@@ -10,21 +10,20 @@
  * Any persons and/or organizations using this software must disclose their source code and have it publicly available, include this license, provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
-dependencies {
-}
+package net.daporkchop.lib.minecraft.protocol.generator;
 
-task deleteSource(type: Delete) {
-    delete "src"
-}
+import java.io.File;
 
-clean.dependsOn(deleteSource)
+/**
+ * @author DaPorkchop_
+ */
+public class Generator {
+    private static final File ROOT = new File(".");
 
-compileJava.dependsOn("primitive-generator:gen")
-
-compileJava {
-    options.fork = true
-    options.forkOptions.setMemoryMaximumSize("2g")
+    public static void main(String... args) {
+        System.out.println("Hello world!");
+        System.out.printf("%s\n", ROOT.getAbsolutePath());
+    }
 }

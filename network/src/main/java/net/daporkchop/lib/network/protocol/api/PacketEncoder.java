@@ -37,7 +37,11 @@ public interface PacketEncoder extends Logging {
     <E extends Endpoint> E getEndpoint();
 
     default void writePacket(@NonNull ChannelImplementation channel, @NonNull Packet packet, @NonNull OutputStream stream) throws IOException {
-        try (DataOut out = DataOut.wrap(channel.getPacketReprocessor().wrap(stream))) {
+        this.writePacket(channel, packet, stream, true);
+    }
+
+    default void writePacket(@NonNull ChannelImplementation channel, @NonNull Packet packet, @NonNull OutputStream stream, boolean allowEncryption) throws IOException {
+        try (DataOut out = DataOut.wrap(channel.getPacketReprocessor().wrap(stream, allowEncryption))) {
             //try (DataOut out = DataOut.wrap(stream))   {
             //logger.debug("[${0}] Writing ${1}...", this.getEndpoint().getName(), packet.getClass());
             int id = this.getEndpoint().getPacketRegistry().getId(packet.getClass());

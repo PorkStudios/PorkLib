@@ -87,4 +87,14 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements NettyCo
     public void send(@NonNull Packet packet, boolean blocking, Void callback) {
         this.channel.send(packet, blocking, callback);
     }
+
+    @Override
+    public Channel getDefaultChannel() {
+        return this.channel;
+    }
+
+    @Override
+    public Channel getControlChannel() {
+        return this.channel;
+    }
 }

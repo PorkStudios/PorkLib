@@ -77,27 +77,27 @@ public class PacketReprocessor implements Logging {
         }
     }
 
-    public OutputStream wrap(@NonNull OutputStream out) throws IOException {
+    public OutputStream wrap(@NonNull OutputStream out, boolean allowEncryption) throws IOException {
         logger.debug(
                 "[${2}] Wrapping output. (${0} with ${1})",
                 this.compression,
-                this.cipher,
+                allowEncryption ? this.cipher : null,
                 this.channel.getEndpoint().getName()
         );
-        if (this.cipher != null && this.channel.isEncryptionReady()) {
+        if (allowEncryption && this.cipher != null && this.channel.isEncryptionReady()) {
             out = this.cipher.encrypt(out);
         }
         return this.compression.deflate(out);
     }
 
-    public InputStream wrap(@NonNull InputStream in) throws IOException {
+    public InputStream wrap(@NonNull InputStream in, boolean allowEncryption) throws IOException {
         logger.debug(
                 "[${2}] Wrapping input.  (${0} with ${1})",
                 this.compression,
-                this.cipher,
+                allowEncryption ? this.cipher : null,
                 this.channel.getEndpoint().getName()
         );
-        if (this.cipher != null && this.channel.isEncryptionReady()) {
+        if (allowEncryption && this.cipher != null && this.channel.isEncryptionReady()) {
             in = this.cipher.decrypt(in);
         }
         return this.compression.inflate(in);

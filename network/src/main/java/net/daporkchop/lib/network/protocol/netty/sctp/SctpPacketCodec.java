@@ -27,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.NettyByteBufUtil;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.network.channel.ChannelImplementation;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
@@ -46,23 +47,50 @@ public class SctpPacketCodec extends MessageToMessageCodec<SctpMessage, SctpPack
     private final Endpoint endpoint;
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, @NonNull SctpPacketWrapper msg, List<Object> out) throws Exception {
-        logger.debug("[${0} codec] Encoding packet ${1}", this.endpoint.getName(), msg.getPacket().getClass());
+    protected void encode(@NonNull ChannelHandlerContext ctx, @NonNull SctpPacketWrapper msg, @NonNull List<Object> out) throws Exception {
         ByteBuf buf = ByteBufAllocator.DEFAULT.buffer(256, Integer.MAX_VALUE);
         this.writePacket(
                 (ChannelImplementation) ((UnderlyingNetworkConnection) ctx.channel()).getOpenChannel(msg.getChannel()), //TODO: store the actual Channel object in SctpPacketWrapper
                 msg.getPacket(),
-                NettyByteBufUtil.wrapOut(buf)
+                NettyByteBufUtil.wrapOut(buf),
+                msg.isOrdered()
         );
         out.add(new SctpMessage(0, msg.getChannel(), !msg.isOrdered(), buf));
     }
 
     @Override
-    protected void decode(ChannelHandlerContext ctx, SctpMessage msg, List<Object> out) throws Exception {
+    protected void decode(@NonNull ChannelHandlerContext ctx, @NonNull SctpMessage msg, @NonNull List<Object> out) throws Exception {
+        if (false) {
+            logger.debug("Received packet: ${0}", this.toHex(msg.content()));
+            logger.debug("plain          : ${0}", this.toString(msg.content()));
+        }
         out.add(new SctpPacketWrapper(
-                this.getPacket((ChannelImplementation) ((UnderlyingNetworkConnection) ctx.channel()).getOpenChannel(msg.streamIdentifier()), NettyByteBufUtil.wrapIn(msg.content())),
+                this.getPacket(
+                        (ChannelImplementation) ((UnderlyingNetworkConnection) ctx.channel()).getOpenChannel(msg.streamIdentifier()),
+                        NettyByteBufUtil.wrapIn(msg.content()),
+                        !msg.isUnordered()),
                 msg.streamIdentifier(),
                 !msg.isUnordered()
         ));
+    }
+
+    private String toHex(@NonNull ByteBuf buf)  {
+        char[] hex = "0123456789abcdef".toCharArray();
+        char[] chars = new char[buf.readableBytes() << 1];
+        int j = buf.readerIndex();
+        for (int i = buf.readableBytes() - 1; i >= 0; i--)  {
+            chars[(i << 1)] = hex[buf.getByte(i + j) & 0xF];
+            chars[(i << 1) + 1] = hex[(buf.getByte(i + j) >>> 1) & 0xF];
+        }
+        return PorkUtil.wrap(chars);
+    }
+
+    private String toString(@NonNull ByteBuf buf)   {
+        byte[] b = new byte[buf.readableBytes()];
+        int j = buf.readerIndex();
+        for (int i = buf.readableBytes() - 1; i >= 0; i--)  {
+            b[i] = buf.getByte(i + j);
+        }
+        return new String(b).replace("\n", "\\n");
     }
 }

@@ -62,7 +62,7 @@ public class StartEncryptionPacket implements PorkPacket {
             if (theChannel == null) {
                 throw this.exception("unknown channel: ${0}", packet.channelId);
             }
-            channel.send(theChannel.getPacketReprocessor().init(packet));
+            channel.send(theChannel.getPacketReprocessor().init(packet), () -> theChannel.setEncryptionReady(true));
         }
 
         @Override

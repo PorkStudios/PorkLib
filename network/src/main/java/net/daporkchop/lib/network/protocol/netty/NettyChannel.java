@@ -20,6 +20,7 @@ import lombok.NonNull;
 import lombok.Setter;
 import net.daporkchop.lib.crypto.CryptographySettings;
 import net.daporkchop.lib.network.channel.ChannelImplementation;
+import net.daporkchop.lib.network.pork.packet.StartEncryptionPacket;
 import net.daporkchop.lib.network.util.PacketReprocessor;
 
 /**
@@ -43,6 +44,6 @@ public abstract class NettyChannel implements ChannelImplementation {
             throw new IllegalStateException("encryption already enabled");
         }
         this.packetReprocessor.setCryptographySettings(cryptographySettings);
-
+        this.getConnection().getControlChannel().send(new StartEncryptionPacket(cryptographySettings, this.getId()));
     }
 }

@@ -156,7 +156,7 @@ public class SctpProtocolManager implements ProtocolManager {
 
             @Override
             public void broadcast(@NonNull Packet packet, boolean blocking) {
-                super.broadcast(new SctpPacketWrapper(packet, 0, true), blocking);
+                super.broadcast(new SctpPacketWrapper(packet, WrapperNioSctpChannel.CHANNEL_ID_DEFAULT, true), blocking);
             }
         }
     }

@@ -76,4 +76,14 @@ public interface Client extends Endpoint, Connection {
     default Channel getOpenChannel(int id) {
         return this.getConnection(PorkProtocol.class).getOpenChannel(id);
     }
+
+    @Override
+    default Channel getDefaultChannel() {
+        return this.getConnection(PorkProtocol.class).getDefaultChannel();
+    }
+
+    @Override
+    default Channel getControlChannel() {
+        return this.getConnection(PorkProtocol.class).getControlChannel();
+    }
 }

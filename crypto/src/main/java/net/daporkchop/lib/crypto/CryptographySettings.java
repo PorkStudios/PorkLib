@@ -36,6 +36,7 @@ import net.daporkchop.lib.crypto.sig.ec.CurveType;
 import net.daporkchop.lib.crypto.sig.ec.EllipticCurveKeyCache;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -137,7 +138,7 @@ public class CryptographySettings implements Data {
                 return new CryptographySettings(
                         curveType,
                         CipherType.values()[random.nextInt(CipherType.values().length)],
-                        CipherMode.values()[random.nextInt(CipherMode.values().length)]
+                        CipherMode.streamableModes()[random.nextInt(CipherMode.streamableModes().length)]
                 );
             default:
                 throw new IllegalStateException();
@@ -174,13 +175,12 @@ public class CryptographySettings implements Data {
             return null;
         }
         byte[] commonSecret = ECDHHelper.generateCommonSecret(localPair.getPrivateKey(), this.keyPair.getPublicKey());
-        CipherKey key = this.streamCipherType == null ? KeyGen.gen(this.cipherType, commonSecret) : KeyGen.gen(this.streamCipherType, commonSecret);
         if (this.streamCipherType == null) {
-            return Cipher.createBlock(this.cipherType, this.cipherMode, this.cipherPadding, key, side);
+            return Cipher.createBlock(this.cipherType, this.cipherMode, this.cipherPadding, KeyGen.gen(this.cipherType, commonSecret), side);
         } else if (this.streamCipherType == StreamCipherType.BLOCK_CIPHER) {
-            return Cipher.createPseudoStream(this.cipherType, this.cipherMode, key, side);
+            return Cipher.createPseudoStream(this.cipherType, this.cipherMode, KeyGen.gen(this.cipherType, commonSecret), side);
         } else {
-            return Cipher.createStream(this.streamCipherType, key, side);
+            return Cipher.createStream(this.streamCipherType, KeyGen.gen(this.streamCipherType, commonSecret), side);
         }
     }
 }

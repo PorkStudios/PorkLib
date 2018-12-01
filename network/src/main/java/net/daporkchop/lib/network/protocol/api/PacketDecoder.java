@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.network.protocol.api;
 
+import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.logging.Logging;
@@ -41,8 +42,12 @@ public interface PacketDecoder extends Logging {
     <E extends Endpoint> E getEndpoint();
 
     default Packet getPacket(@NonNull ChannelImplementation channel, @NonNull InputStream stream) throws IOException {
+        return this.getPacket(channel, stream, true);
+    }
+
+    default Packet getPacket(@NonNull ChannelImplementation channel, @NonNull InputStream stream, boolean allowEncryption) throws IOException {
         // DataIn in = DataIn.wrap(((UnderlyingNetworkConnection) ctx.channel()).getUserConnection(PorkProtocol.class).getPacketReprocessor().wrap(NettyByteBufUtil.wrapIn(buf)))
-        try (DataIn in = DataIn.wrap(channel.getPacketReprocessor().wrap(stream)))  {
+        try (DataIn in = DataIn.wrap(channel.getPacketReprocessor().wrap(stream, allowEncryption)))  {
             int id = in.readVarInt(true);
             Codec<? extends Packet, ? extends UserConnection> codec = this.getEndpoint().getPacketRegistry().getCodec(id);
             if (codec == null) {

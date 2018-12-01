@@ -18,17 +18,14 @@ import net.daporkchop.lib.crypto.cipher.block.CipherMode;
 import net.daporkchop.lib.crypto.cipher.block.CipherPadding;
 import net.daporkchop.lib.crypto.cipher.block.CipherType;
 import net.daporkchop.lib.crypto.sig.ec.CurveType;
-import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.endpoint.client.Client;
 import net.daporkchop.lib.network.endpoint.server.Server;
 import net.daporkchop.lib.network.protocol.api.ProtocolManager;
 import net.daporkchop.lib.network.protocol.netty.sctp.SctpProtocolManager;
-import net.daporkchop.lib.network.protocol.netty.tcp.TcpProtocolManager;
-import net.daporkchop.lib.network.protocol.raknet.RakNetProtocolManager;
+import net.daporkchop.lib.network.util.reliability.Reliability;
 import org.junit.Test;
 
 import java.io.File;
@@ -42,7 +39,7 @@ import java.util.Collection;
 public class NetworkTest implements Logging {
     private static final Collection<ProtocolManager> MANAGERS = Arrays.asList(
             null
-            , TcpProtocolManager.INSTANCE
+            //, TcpProtocolManager.INSTANCE
             //, RakNetProtocolManager.INSTANCE
             , SctpProtocolManager.INSTANCE
     );
@@ -63,7 +60,7 @@ public class NetworkTest implements Logging {
     @Test
     public void test() {
         MANAGERS.forEach(manager -> {
-            if (manager == null)    {
+            if (manager == null) {
                 return;
             }
 
@@ -84,7 +81,12 @@ public class NetworkTest implements Logging {
                     .build();
             logger.info("Client started.");
 
-            client.getDefaultChannel().startEncryption(CryptographySettings.random());
+            client.getDefaultChannel().startEncryption(new CryptographySettings(
+                    CurveType.brainpoolp192r1,
+                    CipherType.AES,
+                    CipherMode.CBC,
+                    CipherPadding.PKCS7
+            ));
             client.getDefaultChannel().waitForEncryption();
 
             {
@@ -92,7 +94,8 @@ public class NetworkTest implements Logging {
                 logger.info("Sending ${0} random packets...", count);
                 for (int i = 0; i < count; i++) {
                     sleep(75L);
-                    client.getDefaultChannel().send(new TestPacket("hello from client!"), true);
+                    client.getDefaultChannel().send(new TestPacket("hello from client!"), true, Reliability.RELIABLE);
+                    //server.getConnections(TestProtocol.class).forEach(connection -> connection.send(new TestPacket("hello from server!")));
                     server.broadcast(new TestPacket("hello from server!"));
                 }
                 server.broadcast(
@@ -100,6 +103,8 @@ public class NetworkTest implements Logging {
                         true
                 );
             }
+            logger.info("Sent packets! Waiting a moment...");
+            sleep(1000L);
 
             logger.info("Closing...");
             client.close("client closing...");

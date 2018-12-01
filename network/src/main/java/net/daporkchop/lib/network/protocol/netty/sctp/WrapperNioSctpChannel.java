@@ -41,6 +41,9 @@ import java.util.Map;
  */
 @Getter
 public class WrapperNioSctpChannel extends NioSctpChannel implements NettyConnection, Logging {
+    static final int CHANNEL_ID_CONTROL = 0;
+    static final int CHANNEL_ID_DEFAULT = 1;
+
     @NonNull
     private final Endpoint endpoint;
     private final Map<Class<? extends UserProtocol>, UserConnection> connections = new IdentityHashMap<>();
@@ -52,34 +55,41 @@ public class WrapperNioSctpChannel extends NioSctpChannel implements NettyConnec
 
     public WrapperNioSctpChannel(@NonNull Client client)    {
         this.endpoint = client;
-        this.controlChannel = this.openChannel(Reliability.RELIABLE_ORDERED);
-        this.defaultChannel = this.openChannel(Reliability.RELIABLE_ORDERED);
+        this.controlChannel = this.openChannel(Reliability.RELIABLE_ORDERED, CHANNEL_ID_CONTROL);
+        this.defaultChannel = this.openChannel(Reliability.RELIABLE_ORDERED, CHANNEL_ID_DEFAULT);
     }
 
     public WrapperNioSctpChannel(io.netty.channel.Channel parent, com.sun.nio.sctp.SctpChannel sctpChannel, @NonNull Server server) {
         super(parent, sctpChannel);
         this.endpoint = server;
-        this.controlChannel = this.openChannel(Reliability.RELIABLE_ORDERED);
-        this.defaultChannel = this.openChannel(Reliability.RELIABLE_ORDERED);
+        this.controlChannel = this.openChannel(Reliability.RELIABLE_ORDERED, CHANNEL_ID_CONTROL);
+        this.defaultChannel = this.openChannel(Reliability.RELIABLE_ORDERED, CHANNEL_ID_DEFAULT);
     }
 
     private void initChannels() {
-        this.defaultChannel.flags = 1 << SctpChannel.FLAG_DEFAULT;
         this.controlChannel.flags = 1 << SctpChannel.FLAG_CONTROL;
+        this.defaultChannel.flags = 1 << SctpChannel.FLAG_DEFAULT;
     }
 
     @Override
     public SctpChannel openChannel(@NonNull Reliability reliability) {
+        synchronized (this.channelIds)  {
+            return this.openChannel(reliability, this.channelIds.nextClearBit(0));
+        }
+    }
+
+    private SctpChannel openChannel(@NonNull Reliability reliability, int requestedId)  {
         switch (reliability) {
             case RELIABLE:
             case RELIABLE_ORDERED: {
-                int id;
                 synchronized (this.channelIds) {
-                    id = this.channelIds.nextClearBit(0);
-                    this.channelIds.set(id);
+                    if (this.channelIds.get(requestedId))   {
+                        throw this.exception("channel id ${0} already taken!", requestedId);
+                    }
+                    this.channelIds.set(requestedId);
                 }
-                SctpChannel channel = new SctpChannel(id, reliability, this);
-                this.channels.put(id, channel);
+                SctpChannel channel = new SctpChannel(requestedId, reliability, this);
+                this.channels.put(requestedId, channel);
                 return channel;
             }
             default:

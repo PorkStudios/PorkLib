@@ -48,17 +48,22 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Getter
 public class RakNetPorkSession implements NetworkSession<RakNetSession>, UnderlyingNetworkConnection, RakNetConstants, Logging {
+    static final int CHANNEL_ID_CONTROL = 0;
+    static final int CHANNEL_ID_DEFAULT = 1;
+
     final BitSet channelIds = new BitSet(MAX_CHANNELS);
     final IntegerObjectMap<PorkRakNetChannel> channels = PorkMaps.synchronize(new IntegerObjectHashMap<>(), this);
     private final RakNetSession connection;
     private final Endpoint endpoint;
     private final Channel defaultChannel;
+    private final Channel controlChannel;
     private final Map<Class<? extends UserProtocol>, UserConnection> connections = new IdentityHashMap<>();
 
     public RakNetPorkSession(@NonNull RakNetSession connection, @NonNull Endpoint endpoint) {
         this.connection = connection;
         this.endpoint = endpoint;
-        this.defaultChannel = this.openChannel(Reliability.RELIABLE_ORDERED);
+        this.controlChannel = this.openChannel(Reliability.RELIABLE_ORDERED, CHANNEL_ID_CONTROL);
+        this.defaultChannel = this.openChannel(Reliability.RELIABLE_ORDERED, CHANNEL_ID_DEFAULT);
     }
 
     @Override
@@ -87,16 +92,21 @@ public class RakNetPorkSession implements NetworkSession<RakNetSession>, Underly
     }
 
     @Override
-    public Channel openChannel(@NonNull Reliability r) {
+    public PorkRakNetChannel openChannel(@NonNull Reliability r) {
+        synchronized (this) {
+            return this.openChannel(r, this.channelIds.nextClearBit(0));
+        }
+    }
+
+    private PorkRakNetChannel openChannel(@NonNull Reliability r, int requestedId) {
         synchronized (this) {
             RakNetReliability reliability = ReliabilityMap.RAKNET.get(r);
-            int nextId = this.channelIds.nextClearBit(0);
-            if (nextId >= MAX_CHANNELS) {
+            if (requestedId >= MAX_CHANNELS) {
                 throw new IllegalStateException(this.format("Too many channels open! (max: ${0})", MAX_CHANNELS));
             }
-            this.channelIds.set(nextId);
-            PorkRakNetChannel channel = new PorkRakNetChannel(nextId, reliability, this);
-            this.channels.put(nextId, channel);
+            this.channelIds.set(requestedId);
+            PorkRakNetChannel channel = new PorkRakNetChannel(requestedId, reliability, this);
+            this.channels.put(requestedId, channel);
             return channel;
         }
     }

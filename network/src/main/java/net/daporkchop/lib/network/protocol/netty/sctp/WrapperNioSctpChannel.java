@@ -66,11 +66,6 @@ public class WrapperNioSctpChannel extends NioSctpChannel implements NettyConnec
         this.defaultChannel = this.openChannel(Reliability.RELIABLE_ORDERED, CHANNEL_ID_DEFAULT);
     }
 
-    private void initChannels() {
-        this.controlChannel.flags = 1 << SctpChannel.FLAG_CONTROL;
-        this.defaultChannel.flags = 1 << SctpChannel.FLAG_DEFAULT;
-    }
-
     @Override
     public SctpChannel openChannel(@NonNull Reliability reliability) {
         synchronized (this.channelIds)  {

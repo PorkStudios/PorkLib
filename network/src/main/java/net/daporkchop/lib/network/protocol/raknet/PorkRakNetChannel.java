@@ -19,13 +19,17 @@ import com.nukkitx.network.raknet.datagram.RakNetReliability;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.crypto.CryptographySettings;
 import net.daporkchop.lib.network.channel.Channel;
+import net.daporkchop.lib.network.channel.ChannelImplementation;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
+import net.daporkchop.lib.network.pork.packet.StartEncryptionPacket;
+import net.daporkchop.lib.network.util.PacketReprocessor;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 import net.daporkchop.lib.network.util.reliability.ReliabilityMap;
 
@@ -38,12 +42,15 @@ import java.util.Collection;
  */
 @RequiredArgsConstructor
 @Getter
-public class PorkRakNetChannel implements Channel {
+public class PorkRakNetChannel implements ChannelImplementation {
     private final int id;
     private final RakNetReliability reliability;
     @NonNull
     private final RakNetPorkSession session;
     private volatile boolean closed;
+    private final PacketReprocessor packetReprocessor = new PacketReprocessor(this);
+    @Setter
+    private volatile boolean encryptionReady;
 
     private void send(@NonNull Packet packet, boolean blocking, Void callback, RakNetReliability reliability)    {
         //TODO: use correct channel and reliability!
@@ -104,16 +111,21 @@ public class PorkRakNetChannel implements Channel {
 
     @Override
     public boolean isEncrypted() {
-        throw new UnsupportedOperationException();
+        return this.packetReprocessor.getCipher() != null && this.encryptionReady;
     }
 
     @Override
     public void startEncryption(CryptographySettings cryptographySettings) {
-        throw new UnsupportedOperationException();
+        if (this.packetReprocessor.getCryptographySettings() != null)   {
+            //cryptography settings will be set even before encryption is completely enabled
+            throw new IllegalStateException("encryption already enabled");
+        }
+        this.packetReprocessor.setCryptographySettings(cryptographySettings);
+        this.getConnection().getControlChannel().send(new StartEncryptionPacket(cryptographySettings, this.id));
     }
 
     @Override
     public UnderlyingNetworkConnection getConnection() {
-        throw new UnsupportedOperationException();
+        return this.session;
     }
 }

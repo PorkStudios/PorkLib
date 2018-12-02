@@ -14,6 +14,7 @@
 
 package net.daporkchop.lib.minecraft.protocol.generator.data;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lombok.Getter;
@@ -96,20 +97,24 @@ public class JavaGenerator implements DataGenerator {
                     .write(String.format("return \"Java v%s\";", version.version)).pop().newline()
                     .write("@Override",
                             "public int getProtocolVersion()").pushBraces()
-                    .write(String.format("return %d;", version.object.getAsJsonObject("version").get("protocol").getAsInt()));
+                    .write(String.format("return %d;", version.object.getAsJsonObject("version").get("protocol").getAsInt())).pop().newline()
+                    .write("@Override",
+                            "public Sound[] getSounds()").pushBraces()
+                    .write(String.format("return Sounds%s.values();", version.versionDir));
         }
 
         this.generateSounds(version, out);
+        this.generateBiomes(version, out);
+        this.generateItems(version, out);
     }
 
     private void generateSounds(@NonNull Version version, @NonNull File out) throws IOException {
-        try (ClassWriter writer = new ClassWriter(this.ensureFileExists(out, "Sounds.java"),
-                "net.daporkchop.lib.minecraft.protocol.api.data.*")) {
+        try (ClassWriter writer = new ClassWriter(this.ensureFileExists(out, String.format("Sounds%s.java", version.versionDir)))) {
             writer.write("@RequiredArgsConstructor",
                     "@Getter",
-                    "public enum Sounds implements Sound").pushBraces();
+                    String.format("public enum Sounds%s implements Sound", version.versionDir)).pushBraces();
             for (Map.Entry<String, JsonElement> entry : version.object.getAsJsonObject("sounds").entrySet()) {
-                //kinda want to use a stream here but then i have to make yet another try/catch
+                //kinda want to use a stream here but then i'd have to make yet another try/catch
                 writer.write(String.format(
                         "%s(\"%s\", %d),",
                         entry.getKey().replace('.', '_').toUpperCase(),
@@ -121,6 +126,62 @@ public class JavaGenerator implements DataGenerator {
                     .write("@NonNull",
                             "private final String name;",
                             "private final int id;");
+        }
+    }
+
+    private void generateBiomes(@NonNull Version version, @NonNull File out) throws IOException {
+        try (ClassWriter writer = new ClassWriter(this.ensureFileExists(out, String.format("Biomes%s.java", version.versionDir)),
+                "net.daporkchop.lib.minecraft.registry.*")) {
+            writer.write("@RequiredArgsConstructor",
+                    "@Getter",
+                    String.format("public enum Biomes%s implements Biome", version.versionDir)).pushBraces();
+            for (Map.Entry<String, JsonElement> entry : version.object.getAsJsonObject("biomes").getAsJsonObject("biome").entrySet()) {
+                JsonObject obj = entry.getValue().getAsJsonObject();
+                JsonArray heights = obj.getAsJsonArray("height");
+                writer.write(String.format(
+                        "%s(new ResourceLocation(\"minecraft\", \"%s\"), %d, %ff, %ff, %ff, %ff),",
+                        entry.getKey().toUpperCase(),
+                        entry.getKey(),
+                        obj.get("id").getAsInt(),
+                        heights.get(0).getAsDouble(),
+                        heights.get(1).getAsDouble(),
+                        obj.get("rainfall").getAsDouble(),
+                        obj.get("temperature").getAsDouble()
+                ));
+            }
+            writer.write(";").newline()
+                    .write("@NonNull",
+                            "private final ResourceLocation registryName;",
+                            "private final int id;",
+                            "private final float minHeight;",
+                            "private final float maxHeight;",
+                            "private final float rainfall;",
+                            "private final float temperature;");
+        }
+    }
+
+    private void generateItems(@NonNull Version version, @NonNull File out) throws IOException {
+        try (ClassWriter writer = new ClassWriter(this.ensureFileExists(out, String.format("Items%s.java", version.versionDir)),
+                "net.daporkchop.lib.minecraft.registry.*")) {
+            writer.write("@RequiredArgsConstructor",
+                    "@Getter",
+                    String.format("public enum Items%s implements Item", version.versionDir)).pushBraces();
+            for (Map.Entry<String, JsonElement> entry : version.object.getAsJsonObject("items").getAsJsonObject("item").entrySet()) {
+                JsonObject obj = entry.getValue().getAsJsonObject();
+                String maxStackSize = obj.has("max_stack_size") ? String.valueOf(obj.get("max_stack_size").getAsInt()) : String.format("net.daporkchop.lib.minecraft.protocol.mc.java.v1_12_2.Items1_12_2.%s.getMaxStackSize()", entry.getKey().toUpperCase());
+                writer.write(String.format(
+                        "%s(new ResourceLocation(\"minecraft\", \"%s\"), %d, %s),",
+                        entry.getKey().toUpperCase(),
+                        entry.getKey(),
+                        obj.get("numeric_id").getAsInt(),
+                        maxStackSize
+                ));
+            }
+            writer.write(";").newline()
+                    .write("@NonNull",
+                            "private final ResourceLocation registryName;",
+                            "private final int id;",
+                            "private final int maxStackSize;");
         }
     }
 

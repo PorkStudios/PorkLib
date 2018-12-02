@@ -52,7 +52,7 @@ public class Generator {
                 .forEach(file -> {
                     deletedCount.incrementAndGet();
                     deletedSize.addAndGet(file.length());
-                    if (file.delete())  {
+                    if (file.exists() && !file.delete())  {
                         throw new IllegalStateException(String.format("Couldn't delete file: %s", file.getAbsolutePath()));
                     }
                 });

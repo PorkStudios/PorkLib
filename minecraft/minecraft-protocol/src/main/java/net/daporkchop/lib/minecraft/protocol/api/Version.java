@@ -14,6 +14,9 @@
 
 package net.daporkchop.lib.minecraft.protocol.api;
 
+import net.daporkchop.lib.minecraft.protocol.api.data.Sound;
+import net.daporkchop.lib.minecraft.protocol.api.util.Nameable;
+
 /**
  * Represents a single Minecraft version
  *
@@ -23,4 +26,16 @@ public interface Version extends Nameable {
     Platform getPlatform();
 
     int getProtocolVersion();
+
+    Sound[] getSounds();
+
+    default Sound getSoundById(int id)  {
+        Sound[] sounds = this.getSounds();
+        for (int i = sounds.length - 1; i >= 0; i--)    {
+            if (sounds[i].getId() == id)    {
+                return sounds[i];
+            }
+        }
+        return null;
+    }
 }

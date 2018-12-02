@@ -14,6 +14,8 @@
 
 package net.daporkchop.lib.minecraft.protocol.api;
 
+import net.daporkchop.lib.minecraft.protocol.api.util.Nameable;
+
 import java.util.Collection;
 
 /**

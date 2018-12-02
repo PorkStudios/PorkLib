@@ -14,13 +14,13 @@
 
 package net.daporkchop.lib.minecraft.protocol.api.data;
 
-import net.daporkchop.lib.minecraft.protocol.api.Nameable;
+import net.daporkchop.lib.minecraft.protocol.api.util.Nameable;
+import net.daporkchop.lib.minecraft.protocol.api.util.IdHolder;
 
 /**
  * A sound that can be played in a Minecraft world
  *
  * @author DaPorkchop_
  */
-public interface Sound extends Nameable {
-    int getId();
+public interface Sound extends Nameable, IdHolder {
 }

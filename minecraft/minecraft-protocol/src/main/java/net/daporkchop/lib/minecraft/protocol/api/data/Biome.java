@@ -10,18 +10,24 @@
  * Any persons and/or organizations using this software must disclose their source code and have it publicly available, include this license, provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile project(":http")
-    compile project(":minecraft:minecraft-protocol")
-    compile project(":minecraft:minecraft-text")
-    compile project(":primitive")
-    compile project(":nbt")
-    compile 'com.google.code.gson:gson:2.8.5'
+package net.daporkchop.lib.minecraft.protocol.api.data;
 
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+import net.daporkchop.lib.minecraft.protocol.api.util.IdHolder;
+import net.daporkchop.lib.minecraft.protocol.api.util.RegistryNameable;
+
+/**
+ * A biome in a Minecraft world
+ *
+ * @author DaPorkchop_
+ */
+public interface Biome extends RegistryNameable, IdHolder {
+    float getMinHeight();
+
+    float getMaxHeight();
+
+    float getRainfall();
+
+    float getTemperature();
 }

@@ -12,6 +12,7 @@ out/
 
 test_out/
 
+/minecraft/minecraft-protocol/generator/src/main/resources/mappings/*.srg
 /minecraft/minecraft-protocol/src/main/java/net/daporkchop/lib/minecraft/protocol/mc/*
 /minecraft/minecraft-worldscanner/run/testworld/region/r.0.1.mca
 /minecraft/minecraft-worldscanner/run/testworld/region/r.0.-1.mca

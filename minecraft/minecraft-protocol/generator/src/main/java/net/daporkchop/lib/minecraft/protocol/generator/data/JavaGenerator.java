@@ -22,6 +22,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.minecraft.protocol.generator.ClassWriter;
 import net.daporkchop.lib.minecraft.protocol.generator.DataGenerator;
+import net.daporkchop.lib.minecraft.protocol.generator.obf.Mappings;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -31,6 +32,7 @@ import java.io.Reader;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -112,7 +114,8 @@ public class JavaGenerator implements DataGenerator {
         this.generateSounds(version, out);
         this.generateBiomes(version, out);
         this.generateItems(version, out);
-        this.generateLocales(version, out);
+        this.generateLocales(version, new File(out, "locale"));
+        this.generatePackets(version, new File(out, "packet"));
     }
 
     private void generateSounds(@NonNull Version version, @NonNull File out) throws IOException {
@@ -193,13 +196,13 @@ public class JavaGenerator implements DataGenerator {
     }
 
     private void generateLocales(@NonNull Version version, @NonNull File out) throws IOException {
-        try (ClassWriter writer = new ClassWriter(this.ensureFileExists(out, "locale/EN_US.java"))) {
+        try (ClassWriter writer = new ClassWriter(this.ensureFileExists(out, "EN_US.java"))) {
             writer.write("@NoArgsConstructor(access = AccessLevel.PRIVATE)",
                     "@Getter",
                     "public class EN_US implements net.daporkchop.lib.minecraft.protocol.api.data.Locale").pushBraces()
                     .write("public static final EN_US INSTANCE = new EN_US();").newline().pushBraces();
-            for (Map.Entry<String, JsonElement> entry1 : version.object.get("language").getAsJsonObject().entrySet())   {
-                for (Map.Entry<String, JsonElement> entry2 : entry1.getValue().getAsJsonObject().entrySet())    {
+            for (Map.Entry<String, JsonElement> entry1 : version.object.get("language").getAsJsonObject().entrySet()) {
+                for (Map.Entry<String, JsonElement> entry2 : entry1.getValue().getAsJsonObject().entrySet()) {
                     writer.write(String.format(
                             "this.underlyingMap.put(\"%s\", \"%s\");",
                             entry2.getKey(),
@@ -209,6 +212,36 @@ public class JavaGenerator implements DataGenerator {
             }
             writer.pop().newline()
                     .write("private final Map<String, String> underlyingMap = new HashMap();");
+        }
+    }
+
+    private void generatePackets(@NonNull Version version, @NonNull File out) throws IOException {
+        Mappings mappings = Mappings.getMappings(version.version);
+        for (Map.Entry<String, JsonElement> entryPacket : version.object.getAsJsonObject("packets").getAsJsonObject("packet").entrySet()) {
+            JsonObject packetObj = entryPacket.getValue().getAsJsonObject();
+            String packetName = mappings.getClass(packetObj.get("class").getAsString().replace(".class", ""));
+            packetName = packetName.substring(packetName.lastIndexOf('.') + 1, packetName.length());
+            String owner = null;
+            if (packetName.contains("$"))   {
+                owner = packetName.substring(0, packetName.indexOf('$'));
+                packetName = packetName.substring(packetName.indexOf('$') + 1, packetName.length());
+                if (packetName.contains("Packet"))  {
+                    packetName = String.format("S%s", packetName.substring(packetName.indexOf("Packet"), packetName.length()));
+                } else {
+                    packetName = String.format("%cPacket%s", "SERVERBOUND".equals(packetObj.get("direction").getAsString()) ? 'S' : 'C', packetName);
+                }
+            }
+            try (ClassWriter writer = new ClassWriter(this.ensureFileExists(out, String.format("%s.java", packetName)))) {
+                writer.write("@AllArgsConstructor",
+                        "@NoArgsConstructor",
+                        String.format("public class %s%s implements MinecraftPacket", packetName, owner == null ? "" : String.format(" extends %s", owner))).pushBraces()
+                        .write("@Override",
+                                "public PacketDirection getDirection()").pushBraces()
+                        .write(String.format("return PacketDirection.%s;", packetObj.get("direction").getAsString())).pop().newline()
+                        .write("@Override",
+                                "public int getId()").pushBraces()
+                        .write(String.format("return %d;", packetObj.get("id").getAsInt()));
+            }
         }
     }
 

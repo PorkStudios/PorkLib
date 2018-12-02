@@ -21,10 +21,12 @@ import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.binary.stream.StreamUtil;
 
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -38,6 +40,7 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 /**
@@ -53,8 +56,8 @@ public class ClassWriter implements Closeable {
     private static final byte[] OPEN_BRACES = " {".getBytes(UTF8.utf8);
     private static final byte[] CLOSE_BRACES = "}".getBytes(UTF8.utf8);
 
-    private static final String LICENSE;
-    private static final String HEADER;
+    private static final List<String> LICENSE;
+    private static final List<String> HEADER;
     private static final Collection<String> DEFAULT_IMPORTS = Arrays.asList(
             "lombok.*",
             "java.util.*",
@@ -67,14 +70,14 @@ public class ClassWriter implements Closeable {
     );
 
     static {
-        String license = null;
-        String header = null;
+        List<String> license = null;
+        List<String> header = null;
         try {
-            try (InputStream in = new FileInputStream(new File(DataGenerator.IN_ROOT, "../templates/license.tmpl"))) {
-                license = new String(StreamUtil.readFully(in, -1, false), UTF8.utf8);
+            try (BufferedReader in = new BufferedReader(new FileReader(new File(DataGenerator.IN_ROOT, "../templates/license.tmpl")))) {
+                license = in.lines().collect(Collectors.toList());
             }
-            try (InputStream in = new FileInputStream(new File(DataGenerator.IN_ROOT, "../templates/header.tmpl"))) {
-                header = new String(StreamUtil.readFully(in, -1, false), UTF8.utf8);
+            try (BufferedReader in = new BufferedReader(new FileReader(new File(DataGenerator.IN_ROOT, "../templates/header.tmpl")))) {
+                header = in.lines().collect(Collectors.toList());
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -96,10 +99,11 @@ public class ClassWriter implements Closeable {
         this.file = out;
         this.out = new BufferedOutputStream(new FileOutputStream(out));
 
-        this.write(LICENSE);
-        this.newline().newline();
+        for (String s : LICENSE)    {
+            this.write(s).newline();
+        }
         String packageName = getPackageName(out);
-        this.write(String.format("package %s;", packageName));
+        this.newline().write(String.format("package %s;", packageName));
         GENERATED.add(String.format("%s.%s", packageName, out.getName()));
         this.newline().newline();
         HashSet<String> theImports = new HashSet<>(DEFAULT_IMPORTS);
@@ -117,8 +121,9 @@ public class ClassWriter implements Closeable {
                 throw new RuntimeException(e);
             }
         });
-        this.newline();
-        this.write(HEADER);
+        for (String s : HEADER) {
+            this.newline().write(s);
+        }
 
         this.withBraces = new HashSet<>();
     }

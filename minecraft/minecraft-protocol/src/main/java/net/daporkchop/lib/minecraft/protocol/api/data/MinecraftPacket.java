@@ -10,16 +10,16 @@
  * Any persons and/or organizations using this software must disclose their source code and have it publicly available, include this license, provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":http")
+package net.daporkchop.lib.minecraft.protocol.api.data;
 
-    compile 'com.google.code.gson:gson:2.8.5'
-}
+import net.daporkchop.lib.minecraft.protocol.api.util.IdHolder;
 
-task gen(type: JavaExec, dependsOn: 'classes') {
-    main = 'net.daporkchop.lib.minecraft.protocol.generator.Generator'
-    classpath = sourceSets.main.runtimeClasspath
+/**
+ * @author DaPorkchop_
+ */
+public interface MinecraftPacket extends IdHolder {
+    PacketDirection getDirection();
 }

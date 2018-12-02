@@ -174,6 +174,30 @@ public abstract class DataOut extends OutputStream {
         }
     }
 
+    public void writeMojangVarInt(int value) throws IOException {
+        do {
+            byte temp = (byte)(value & 0b01111111);
+            // Note: >>> means that the sign bit is shifted with the rest of the number rather than being left alone
+            value >>>= 7;
+            if (value != 0) {
+                temp |= (byte) 0b10000000;
+            }
+            this.writeByte(temp);
+        } while (value != 0);
+    }
+
+    public void writeMojangVarLong(long value) throws IOException    {
+        do {
+            byte temp = (byte)(value & 0b01111111L);
+            // Note: >>> means that the sign bit is shifted with the rest of the number rather than being left alone
+            value >>>= 7L;
+            if (value != 0L) {
+                temp |= 0b10000000L;
+            }
+            this.writeByte(temp);
+        } while (value != 0L);
+    }
+
     @Override
     public void write(byte[] b, int off, int len) throws IOException {
         for (int i = 0; i < len; i++) {

@@ -14,6 +14,8 @@
 
 package net.daporkchop.lib.minecraft.protocol.api;
 
+import net.daporkchop.lib.minecraft.protocol.api.data.Biome;
+import net.daporkchop.lib.minecraft.protocol.api.data.Item;
 import net.daporkchop.lib.minecraft.protocol.api.data.Sound;
 import net.daporkchop.lib.minecraft.protocol.api.util.Nameable;
 
@@ -34,6 +36,30 @@ public interface Version extends Nameable {
         for (int i = sounds.length - 1; i >= 0; i--)    {
             if (sounds[i].getId() == id)    {
                 return sounds[i];
+            }
+        }
+        return null;
+    }
+
+    Item[] getItems();
+
+    default Item getItemById(int id)  {
+        Item[] items = this.getItems();
+        for (int i = items.length - 1; i >= 0; i--)    {
+            if (items[i].getId() == id)    {
+                return items[i];
+            }
+        }
+        return null;
+    }
+
+    Biome[] getBiomes();
+
+    default Biome getBiomeById(int id)  {
+        Biome[] biomes = this.getBiomes();
+        for (int i = biomes.length - 1; i >= 0; i--)    {
+            if (biomes[i].getId() == id)    {
+                return biomes[i];
             }
         }
         return null;

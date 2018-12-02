@@ -144,6 +144,7 @@ public abstract class DataIn extends InputStream {
      *
      * @param f   a function to calculate the enum value from the name (i.e. MyEnum::valueOf)
      * @param <E> the enum type
+     *
      * @return a value of <E>, or null if input was null
      */
     public <E extends Enum<E>> E readEnum(@NonNull Function<String, E> f) throws IOException {
@@ -171,6 +172,42 @@ public abstract class DataIn extends InputStream {
             }
         }
         return optimizePositive ? v : ((v >>> 1) ^ -(v & 1));
+    }
+
+    public int readMojangVarInt() throws IOException {
+        int numRead = 0;
+        int result = 0;
+        int read;
+        do {
+            read = this.read();
+            int value = (read & 0b01111111);
+            result |= (value << (7 * numRead));
+
+            numRead++;
+            if (numRead > 5) {
+                throw new RuntimeException("VarInt is too big");
+            }
+        } while ((read & 0b10000000) != 0);
+
+        return result;
+    }
+
+    public long readMojangVarLong() throws IOException  {
+        int numRead = 0;
+        long result = 0L;
+        int read;
+        do {
+            read = this.read();
+            int value = (read & 0b01111111);
+            result |= ((long) value << (7L * (long) numRead));
+
+            numRead++;
+            if (numRead > 10) {
+                throw new RuntimeException("VarLong is too big");
+            }
+        } while ((read & 0b10000000) != 0);
+
+        return result;
     }
 
     public int readFully(byte[] b, int off, int len) throws IOException {
@@ -257,10 +294,10 @@ public abstract class DataIn extends InputStream {
             } else if (var1 <= 0L) {
                 return 0L;
             } else {
-                int var3 = (int)var1;
+                int var3 = (int) var1;
                 int var4 = Math.min(this.buffer.remaining(), var3);
                 this.buffer.position(this.buffer.position() + var4);
-                return (long)var3;
+                return (long) var3;
             }
         }
 

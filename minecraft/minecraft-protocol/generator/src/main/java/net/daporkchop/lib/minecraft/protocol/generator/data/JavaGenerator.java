@@ -100,12 +100,19 @@ public class JavaGenerator implements DataGenerator {
                     .write(String.format("return %d;", version.object.getAsJsonObject("version").get("protocol").getAsInt())).pop().newline()
                     .write("@Override",
                             "public Sound[] getSounds()").pushBraces()
-                    .write(String.format("return Sounds%s.values();", version.versionDir));
+                    .write(String.format("return Sounds%s.values();", version.versionDir)).pop().newline()
+                    .write("@Override",
+                            "public Item[] getItems()").pushBraces()
+                    .write(String.format("return Items%s.values();", version.versionDir)).pop().newline()
+                    .write("@Override",
+                            "public Biome[] getBiomes()").pushBraces()
+                    .write(String.format("return Biomes%s.values();", version.versionDir));
         }
 
         this.generateSounds(version, out);
         this.generateBiomes(version, out);
         this.generateItems(version, out);
+        this.generateLocales(version, out);
     }
 
     private void generateSounds(@NonNull Version version, @NonNull File out) throws IOException {
@@ -184,6 +191,28 @@ public class JavaGenerator implements DataGenerator {
                             "private final int maxStackSize;");
         }
     }
+
+    private void generateLocales(@NonNull Version version, @NonNull File out) throws IOException {
+        try (ClassWriter writer = new ClassWriter(this.ensureFileExists(out, "locale/EN_US.java"))) {
+            writer.write("@NoArgsConstructor(access = AccessLevel.PRIVATE)",
+                    "@Getter",
+                    "public class EN_US implements net.daporkchop.lib.minecraft.protocol.api.data.Locale").pushBraces()
+                    .write("public static final EN_US INSTANCE = new EN_US();").newline().pushBraces();
+            for (Map.Entry<String, JsonElement> entry1 : version.object.get("language").getAsJsonObject().entrySet())   {
+                for (Map.Entry<String, JsonElement> entry2 : entry1.getValue().getAsJsonObject().entrySet())    {
+                    writer.write(String.format(
+                            "this.underlyingMap.put(\"%s\", \"%s\");",
+                            entry2.getKey(),
+                            entry2.getValue().getAsString().replace("\"", "\\\"")
+                    ));
+                }
+            }
+            writer.pop().newline()
+                    .write("private final Map<String, String> underlyingMap = new HashMap();");
+        }
+    }
+
+    //TODO: implement packets, we'll need to get searge mappings in here somehow
 
     @RequiredArgsConstructor
     private static class Version {

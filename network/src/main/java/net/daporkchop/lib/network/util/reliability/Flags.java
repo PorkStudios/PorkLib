@@ -13,38 +13,13 @@
  *
  */
 
-package net.daporkchop.lib.network.pork;
-
-import net.daporkchop.lib.network.packet.UserProtocol;
-import net.daporkchop.lib.network.pork.packet.*;
+package net.daporkchop.lib.network.util.reliability;
 
 /**
  * @author DaPorkchop_
  */
-public class PorkProtocol extends UserProtocol<PorkConnection> {
-    public static final PorkProtocol INSTANCE = new PorkProtocol();
-
-    private PorkProtocol() {
-        super("PorkLib Networking", 3);
-    }
-
-    @Override
-    protected void registerPackets() {
-        //handshake packets
-        this.register(new HandshakeInitPacket.HandshakeInitCodec());
-        this.register(new HandshakeResponsePacket.HandshakeResponseCodec());
-        this.register(new HandshakeCompletePacket.HandshakeCompleteCodec());
-        //channel packets
-        this.register(new OpenChannelPacket.OpenChannelCodec());
-        this.register(new CloseChannelPacket.CloseChannelCodec());
-        this.register(new EncryptionStartedPacket.EncryptionStartedCodec());
-        this.register(new StartEncryptionPacket.StartEncryptionHandler());
-        //misc. packets
-        this.register(new DisconnectPacket.DisconnectCodec());
-    }
-
-    @Override
-    public PorkConnection newConnection() {
-        return new PorkConnection();
-    }
+interface Flags {
+    int FLAG_RELIABLE = 1;
+    int FLAG_SEQUENCED = 2;
+    int FLAG_ORDERED = 3;
 }

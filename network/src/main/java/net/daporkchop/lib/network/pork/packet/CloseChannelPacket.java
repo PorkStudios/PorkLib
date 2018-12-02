@@ -13,58 +13,52 @@
  *
  */
 
-package net.daporkchop.lib.network.pork;
+package net.daporkchop.lib.network.pork.packet;
 
-import lombok.Getter;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.Setter;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.channel.Channel;
-import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
-import net.daporkchop.lib.network.conn.UserConnection;
-import net.daporkchop.lib.network.packet.UserProtocol;
-import net.daporkchop.lib.network.util.PacketReprocessor;
-import net.daporkchop.lib.network.util.reliability.Reliability;
+import net.daporkchop.lib.network.packet.Codec;
+import net.daporkchop.lib.network.pork.PorkConnection;
+import net.daporkchop.lib.network.pork.PorkPacket;
 
-import java.util.Map;
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-@Getter
-public class PorkConnection extends UserConnection implements UnderlyingNetworkConnection {
-    private String disconnectReason;
-
-    @Setter
-    private UnderlyingNetworkConnection realConnection;
+@AllArgsConstructor
+@NoArgsConstructor
+public class CloseChannelPacket implements PorkPacket {
+    public int channelId;
 
     @Override
-    public Map<Class<? extends UserProtocol>, UserConnection> getConnections() {
-        return this.realConnection.getConnections();
+    public void read(@NonNull DataIn in) throws IOException {
+        this.channelId = in.readVarInt(true);
     }
 
     @Override
-    public void disconnectAtNetworkLevel() {
-        this.realConnection.disconnectAtNetworkLevel();
+    public void write(@NonNull DataOut out) throws IOException {
+        out.writeVarInt(this.channelId, true);
     }
 
-    @Override
-    public Channel getDefaultChannel() {
-        return this.realConnection.getDefaultChannel();
-    }
+    public static class CloseChannelCodec implements Codec<CloseChannelPacket, PorkConnection>, Logging {
+        @Override
+        public void handle(CloseChannelPacket packet, Channel channel, PorkConnection connection) {
+            Channel theChannel = connection.getOpenChannel(packet.channelId);
+            if (theChannel == null) {
+                throw this.exception("Invalid channel: ${0}", packet.channelId);
+            }
+            theChannel.close();
+        }
 
-    @Override
-    public void closeConnection() {
-        this.realConnection.closeConnection();
-    }
-
-    @Override
-    public Channel openChannel(@NonNull Reliability reliability, int requestedId) {
-        return this.realConnection.openChannel(reliability, requestedId);
-    }
-
-    public void setDisconnectReason(String reason)  {
-        if (this.disconnectReason == null || reason != null)  {
-            this.disconnectReason = reason;
+        @Override
+        public CloseChannelPacket createInstance() {
+            return new CloseChannelPacket();
         }
     }
 }

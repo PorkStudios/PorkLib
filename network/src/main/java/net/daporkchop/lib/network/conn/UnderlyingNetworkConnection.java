@@ -17,11 +17,12 @@ package net.daporkchop.lib.network.conn;
 
 import lombok.NonNull;
 import net.daporkchop.lib.common.function.Void;
+import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.pork.PorkConnection;
 import net.daporkchop.lib.network.pork.PorkProtocol;
-import net.daporkchop.lib.network.util.PacketReprocessor;
+import net.daporkchop.lib.network.util.reliability.Reliability;
 
 import java.util.Map;
 
@@ -43,11 +44,11 @@ public interface UnderlyingNetworkConnection extends Connection {
 
     //<C extends UserConnection> void putUserConnection(@NonNull Class<UserProtocol<C>> clazz, @NonNull C connection);
     //xd screw good coding
-    default void putUserConnection(@NonNull Class<? extends UserProtocol> clazz, @NonNull UserConnection connection)    {
+    default void putUserConnection(@NonNull Class<? extends UserProtocol> clazz, @NonNull UserConnection connection) {
         this.getConnections().put(clazz, connection);
     }
 
-    default void registerTheUnderlyingConnection()  {
+    default void registerTheUnderlyingConnection() {
         PorkConnection porkConnection = this.getUserConnection(PorkProtocol.class);
         porkConnection.setRealConnection(this);
         this.getConnections().values().forEach(conn -> conn.setProtocolConnection(this));
@@ -57,4 +58,6 @@ public interface UnderlyingNetworkConnection extends Connection {
     default void send(@NonNull Packet packet, boolean blocking, Void callback) {
         this.getDefaultChannel().send(packet, blocking, callback);
     }
+
+    Channel openChannel(Reliability reliability, int requestedId);
 }

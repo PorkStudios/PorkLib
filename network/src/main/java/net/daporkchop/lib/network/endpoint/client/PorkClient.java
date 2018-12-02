@@ -96,6 +96,7 @@ public class PorkClient implements Client, Logging {
             }
 
             this.send(new DisconnectPacket(reason));
+            this.getConnection(PorkProtocol.class).setDisconnectReason(reason);
             this.manager.close();
         }
     }

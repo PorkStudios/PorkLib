@@ -13,58 +13,52 @@
  *
  */
 
-package net.daporkchop.lib.network.pork;
+package net.daporkchop.lib.network.pork.packet;
 
-import lombok.Getter;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.Setter;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.network.channel.Channel;
-import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
-import net.daporkchop.lib.network.conn.UserConnection;
-import net.daporkchop.lib.network.packet.UserProtocol;
-import net.daporkchop.lib.network.util.PacketReprocessor;
+import net.daporkchop.lib.network.packet.Codec;
+import net.daporkchop.lib.network.pork.PorkConnection;
+import net.daporkchop.lib.network.pork.PorkPacket;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 
-import java.util.Map;
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-@Getter
-public class PorkConnection extends UserConnection implements UnderlyingNetworkConnection {
-    private String disconnectReason;
-
-    @Setter
-    private UnderlyingNetworkConnection realConnection;
+@AllArgsConstructor
+@NoArgsConstructor
+public class OpenChannelPacket implements PorkPacket {
+    @NonNull
+    public Reliability reliability;
+    public int channelId;
 
     @Override
-    public Map<Class<? extends UserProtocol>, UserConnection> getConnections() {
-        return this.realConnection.getConnections();
+    public void read(DataIn in) throws IOException {
+        this.reliability = in.readEnum(Reliability::valueOf);
+        this.channelId = in.readVarInt(true);
     }
 
     @Override
-    public void disconnectAtNetworkLevel() {
-        this.realConnection.disconnectAtNetworkLevel();
+    public void write(DataOut out) throws IOException {
+        out.writeEnum(this.reliability);
+        out.writeVarInt(this.channelId, true);
     }
 
-    @Override
-    public Channel getDefaultChannel() {
-        return this.realConnection.getDefaultChannel();
-    }
+    public static class OpenChannelCodec implements Codec<OpenChannelPacket, PorkConnection>    {
+        @Override
+        public void handle(@NonNull OpenChannelPacket packet, @NonNull Channel channel, @NonNull PorkConnection connection) {
+            connection.openChannel(packet.reliability, packet.channelId);
+        }
 
-    @Override
-    public void closeConnection() {
-        this.realConnection.closeConnection();
-    }
-
-    @Override
-    public Channel openChannel(@NonNull Reliability reliability, int requestedId) {
-        return this.realConnection.openChannel(reliability, requestedId);
-    }
-
-    public void setDisconnectReason(String reason)  {
-        if (this.disconnectReason == null || reason != null)  {
-            this.disconnectReason = reason;
+        @Override
+        public OpenChannelPacket createInstance() {
+            return new OpenChannelPacket();
         }
     }
 }

@@ -15,9 +15,16 @@
 
 package net.daporkchop.lib.network.util.reliability;
 
+import lombok.Getter;
+import lombok.NonNull;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+
+import static net.daporkchop.lib.network.util.reliability.Flags.FLAG_ORDERED;
+import static net.daporkchop.lib.network.util.reliability.Flags.FLAG_RELIABLE;
+import static net.daporkchop.lib.network.util.reliability.Flags.FLAG_SEQUENCED;
 
 /**
  * Allows specifying the reliability that a packet will arrive at its destination.
@@ -26,30 +33,30 @@ import java.util.Collections;
  *
  * @author DaPorkchop_
  */
+@Getter
 public enum Reliability {
     /**
      * No guarantees that the data will arrive
      */
-    UNRELIABLE,
+    UNRELIABLE(),
     /**
      * No guarantees that the data will arrive, however when it arrives, older packets will be discarded
      */
-    UNRELIABLE_SEQUENCED,
+    UNRELIABLE_SEQUENCED(FLAG_SEQUENCED),
     /**
      * Guarantees that the packets will arrive
      */
-    RELIABLE,
+    RELIABLE(FLAG_RELIABLE),
     /**
      * Guarantees that the packets will arrive, however when they arrive, older packets will be discarded
      */
-    RELIABLE_SEQUENCED,
+    RELIABLE_SEQUENCED(FLAG_RELIABLE, FLAG_SEQUENCED),
     /**
      * Guarantees that the packets will arrive and be processed in the order they were sent in
      */
-    RELIABLE_ORDERED;
+    RELIABLE_ORDERED(FLAG_RELIABLE, FLAG_ORDERED);
 
     public static final Collection<Reliability> NONE = Collections.emptyList();
-
     public static final Collection<Reliability> ALL = Arrays.asList(
             UNRELIABLE,
             UNRELIABLE_SEQUENCED,
@@ -57,4 +64,26 @@ public enum Reliability {
             RELIABLE_SEQUENCED,
             RELIABLE_ORDERED
     );
+
+    private final int flags;
+
+    Reliability(@NonNull int... flags) {
+        int i = 0;
+        for (int j : flags) {
+            i |= 1 << j;
+        }
+        this.flags = i;
+    }
+
+    public boolean isReliable() {
+        return ((this.flags >>> FLAG_RELIABLE) & 1) == 1;
+    }
+
+    public boolean isOrdered() {
+        return ((this.flags >>> FLAG_ORDERED) & 1) == 1;
+    }
+
+    public boolean isSequenced() {
+        return ((this.flags >>> FLAG_SEQUENCED) & 1) == 1;
+    }
 }

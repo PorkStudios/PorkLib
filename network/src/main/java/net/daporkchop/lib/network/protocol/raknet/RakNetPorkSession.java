@@ -28,6 +28,7 @@ import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
+import net.daporkchop.lib.network.pork.PorkProtocol;
 import net.daporkchop.lib.network.pork.packet.DisconnectPacket;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 import net.daporkchop.lib.network.util.reliability.ReliabilityMap;
@@ -77,6 +78,8 @@ public class RakNetPorkSession implements NetworkSession<RakNetSession>, Underly
 
     @Override
     public void closeConnection(String reason) {
+        //actually set the disconnect reason here
+        this.getUserConnection(PorkProtocol.class).setDisconnectReason(reason);
         this.send(new DisconnectPacket(reason));
         this.disconnectAtNetworkLevel();
     }
@@ -98,7 +101,8 @@ public class RakNetPorkSession implements NetworkSession<RakNetSession>, Underly
         }
     }
 
-    private PorkRakNetChannel openChannel(@NonNull Reliability r, int requestedId) {
+    @Override
+    public PorkRakNetChannel openChannel(@NonNull Reliability r, int requestedId) {
         synchronized (this) {
             RakNetReliability reliability = ReliabilityMap.RAKNET.get(r);
             if (requestedId >= MAX_CHANNELS) {

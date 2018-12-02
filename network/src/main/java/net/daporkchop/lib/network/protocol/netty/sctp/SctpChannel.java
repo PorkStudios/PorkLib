@@ -26,6 +26,7 @@ import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
+import net.daporkchop.lib.network.pork.packet.CloseChannelPacket;
 import net.daporkchop.lib.network.protocol.netty.NettyChannel;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 
@@ -114,7 +115,7 @@ public class SctpChannel extends NettyChannel implements Logging {
             this.channel.channelIds.clear(this.id);
         }
         this.channel.channels.remove(this.id, this);
-        //TODO: notify remote end of channel close
+        this.channel.getControlChannel().send(new CloseChannelPacket(this.id));
     }
 
     @Override

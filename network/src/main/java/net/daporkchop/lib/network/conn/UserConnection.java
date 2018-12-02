@@ -48,8 +48,6 @@ public abstract class UserConnection implements Connection, Logging {
 
     @Override
     public final void closeConnection(String reason) {
-        //actually set the disconnect reason here
-        this.protocolConnection.getUserConnection(PorkProtocol.class).setDisconnectReason(reason);
         this.protocolConnection.closeConnection(reason);
     }
 

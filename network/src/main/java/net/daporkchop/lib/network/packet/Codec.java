@@ -16,13 +16,42 @@
 package net.daporkchop.lib.network.packet;
 
 import lombok.NonNull;
-import net.daporkchop.lib.network.conn.Session;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.network.channel.Channel;
+import net.daporkchop.lib.network.conn.UserConnection;
+
+import java.util.function.Supplier;
 
 /**
  * @author DaPorkchop_
  */
-public interface Codec<P extends Packet, S extends Session> {
-    void handle(@NonNull P packet, @NonNull S session);
+public interface Codec<P extends Packet, C extends UserConnection> extends PacketHandler<P, C> {
+    /**
+     * Create a new instance of this codec's packet
+     *
+     * @return a new, blank instance of this codec's packet
+     */
+    P createInstance();
 
-    P newPacket();
+    interface Simple<P extends Packet, C extends UserConnection> extends PacketHandler.Simple<P, C>, Codec<P, C> {
+    }
+
+    @RequiredArgsConstructor
+    class SimpleCodec<P extends Packet, C extends UserConnection> implements Codec<P, C> {
+        @NonNull
+        private final PacketHandler<P, C> handler;
+
+        @NonNull
+        private final Supplier<P> packetSupplier;
+
+        @Override
+        public void handle(@NonNull P packet, @NonNull Channel channel, @NonNull C connection) {
+            this.handler.handle(packet, channel, connection);
+        }
+
+        @Override
+        public P createInstance() {
+            return this.packetSupplier.get();
+        }
+    }
 }

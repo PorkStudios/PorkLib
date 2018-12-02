@@ -16,20 +16,34 @@
 package net.daporkchop.lib.network.endpoint;
 
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.network.conn.Connection;
-import net.daporkchop.lib.network.conn.Session;
-import net.daporkchop.lib.network.packet.protocol.PacketProtocol;
+import net.daporkchop.lib.network.EndpointType;
+import net.daporkchop.lib.network.conn.UserConnection;
+import net.daporkchop.lib.network.packet.PacketRegistry;
+import net.daporkchop.lib.network.packet.UserProtocol;
 
 import java.util.Collection;
 
-@RequiredArgsConstructor
-public abstract class Endpoint<S extends Session> {
-    @NonNull
-    public final EndpointType type;
+/**
+ * @author DaPorkchop_
+ */
+public interface Endpoint {
+    EndpointType getType();
 
-    @NonNull
-    public final PacketProtocol<S> protocol;
+    <C extends UserConnection> Collection<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass);
 
-    protected abstract Collection<Connection> getConnections();
+    PacketRegistry getPacketRegistry();
+
+    default void close() {
+        this.close(null);
+    }
+
+    void close(String reason);
+
+    boolean isRunning();
+
+    String getName();
+
+    default boolean isClosed() {
+        return !this.isRunning();
+    }
 }

@@ -48,6 +48,18 @@ allprojects {
 
     sourceCompatibility = 1.8
 
+    ext {
+        apacheCommonsCompressVersion = '1.16.1'
+        bouncycastleVersion = '1.59'
+        googleHttpClientVersion = '1.23.0'
+        gsonVersion = '2.8.5'
+        guavaVersion = '27.0-jre'
+        nettyVersion = '4.1.32.Final'
+        raknetVersion = '1.2.1-SNAPSHOT'
+        sparseBitSetVersion = '1.1'
+        xzVersion = '1.8'
+    }
+
     repositories {
         mavenLocal()
         maven {
@@ -76,11 +88,11 @@ allprojects {
     }
 
     dependencies {
-        if (!("root".equalsIgnoreCase(project.name) || "common".equalsIgnoreCase(project.name)))    {
+        if (!("root".equalsIgnoreCase(project.name) || "common".equalsIgnoreCase(project.name))) {
             compile project(":common")
         }
 
-        testCompile group: 'junit', name: 'junit', version: '4.12'
+        testCompile "junit:junit:4.12"
     }
 
     task sourceJar(type: Jar) {

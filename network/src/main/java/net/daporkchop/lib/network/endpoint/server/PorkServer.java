@@ -17,13 +17,9 @@ package net.daporkchop.lib.network.endpoint.server;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.common.function.Void;
-import net.daporkchop.lib.crypto.CryptographySettings;
-import net.daporkchop.lib.encoding.compression.CompressionHelper;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
-import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.PacketRegistry;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.protocol.api.EndpointManager;

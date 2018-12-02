@@ -27,7 +27,8 @@ import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.encoding.compression.CompressionHelper;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.channel.ChannelImplementation;
-import net.daporkchop.lib.network.pork.packet.*;
+import net.daporkchop.lib.network.pork.packet.EncryptionStartedPacket;
+import net.daporkchop.lib.network.pork.packet.StartEncryptionPacket;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -54,9 +55,9 @@ public class PacketReprocessor implements Logging {
     }
 
     public EncryptionStartedPacket init(@NonNull StartEncryptionPacket packet) {
-        if (this.cryptographySettings != null)  {
+        if (this.cryptographySettings != null) {
             throw new IllegalStateException("cryptography already initialized!");
-        } else if (packet.channelId != this.channel.getId())    {
+        } else if (packet.channelId != this.channel.getId()) {
             throw new IllegalStateException("invalid channel id!");
         }
         this.cryptographySettings = packet.cryptographySettings;

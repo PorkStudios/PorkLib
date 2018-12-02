@@ -47,12 +47,12 @@ public class PorkRakNetChannel implements ChannelImplementation {
     private final RakNetReliability reliability;
     @NonNull
     private final RakNetPorkSession session;
-    private volatile boolean closed;
     private final PacketReprocessor packetReprocessor = new PacketReprocessor(this);
+    private volatile boolean closed;
     @Setter
     private volatile boolean encryptionReady;
 
-    private void send(@NonNull Packet packet, boolean blocking, Void callback, RakNetReliability reliability)    {
+    private void send(@NonNull Packet packet, boolean blocking, Void callback, RakNetReliability reliability) {
         //TODO: use correct channel and reliability!
         this.session.getConnection().sendPacket(new RakNetPacketWrapper(packet, this.session));
     }
@@ -116,7 +116,7 @@ public class PorkRakNetChannel implements ChannelImplementation {
 
     @Override
     public void startEncryption(CryptographySettings cryptographySettings) {
-        if (this.packetReprocessor.getCryptographySettings() != null)   {
+        if (this.packetReprocessor.getCryptographySettings() != null) {
             //cryptography settings will be set even before encryption is completely enabled
             throw new IllegalStateException("encryption already enabled");
         }

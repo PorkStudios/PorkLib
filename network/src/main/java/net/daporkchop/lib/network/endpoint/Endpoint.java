@@ -33,7 +33,7 @@ public interface Endpoint {
 
     PacketRegistry getPacketRegistry();
 
-    default void close()    {
+    default void close() {
         this.close(null);
     }
 

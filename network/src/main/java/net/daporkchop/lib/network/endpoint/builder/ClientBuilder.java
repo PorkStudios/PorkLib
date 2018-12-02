@@ -15,7 +15,6 @@
 
 package net.daporkchop.lib.network.endpoint.builder;
 
-import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.client.Client;
 import net.daporkchop.lib.network.endpoint.client.PorkClient;
 

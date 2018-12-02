@@ -17,7 +17,9 @@ package net.daporkchop.lib.network.protocol.netty.tcp;
 
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.internal.SocketUtils;
-import lombok.*;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 
 import java.nio.channels.SocketChannel;

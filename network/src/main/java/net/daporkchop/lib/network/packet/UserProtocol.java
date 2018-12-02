@@ -42,11 +42,11 @@ public abstract class UserProtocol<C extends UserConnection> {
         this.registerPackets();
     }
 
-    public boolean isCompatible(@NonNull UserProtocol<C> protocol)  {
+    public boolean isCompatible(@NonNull UserProtocol<C> protocol) {
         return this.isCompatible(protocol.name, protocol.version);
     }
 
-    public boolean isCompatible(@NonNull String name, int version)  {
+    public boolean isCompatible(@NonNull String name, int version) {
         return this.name.equals(name) && this.version == version;
     }
 

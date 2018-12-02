@@ -81,7 +81,7 @@ public abstract class AbstractBuilder<E extends Endpoint, B extends AbstractBuil
 
     /**
      * An {@link Executor} for handling threading on connections.
-     *
+     * <p>
      * Some implementations of {@link ProtocolManager} may ignore this setting.
      */
     @NonNull

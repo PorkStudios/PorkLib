@@ -23,7 +23,6 @@ import net.daporkchop.lib.primitive.map.ObjectIntegerMap;
 import net.daporkchop.lib.primitive.map.hashmap.IntegerObjectHashMap;
 import net.daporkchop.lib.primitive.map.hashmap.ObjectIntegerHashMap;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -40,11 +39,11 @@ public class PacketRegistry {
     private final Collection<UserProtocol> protocols;
 
     @SuppressWarnings("unchecked")
-    public PacketRegistry(@NonNull Collection<UserProtocol> protocols)    {
+    public PacketRegistry(@NonNull Collection<UserProtocol> protocols) {
         this.protocols = protocols;
         AtomicInteger idCounter = new AtomicInteger(0);
-        for (UserProtocol<UserConnection> protocol : protocols)  {
-            if (protocol == null)   {
+        for (UserProtocol<UserConnection> protocol : protocols) {
+            if (protocol == null) {
                 throw new NullPointerException();
             }
             protocol.registered.forEach(codec -> {
@@ -61,20 +60,20 @@ public class PacketRegistry {
     }
 
     @SuppressWarnings("unchecked")
-    public <C extends UserConnection> Codec<Packet, C> getCodec(int id)  {
+    public <C extends UserConnection> Codec<Packet, C> getCodec(int id) {
         return (Codec<Packet, C>) this.registeredCodecs.get(id);
     }
 
-    public int getId(@NonNull Class<? extends Packet> clazz)    {
+    public int getId(@NonNull Class<? extends Packet> clazz) {
         return this.packetIds.getOrDefault(clazz, -1);
     }
 
-    public <C extends UserConnection> Codec<Packet, C> getCodec(@NonNull Class<? extends Packet> clazz)  {
+    public <C extends UserConnection> Codec<Packet, C> getCodec(@NonNull Class<? extends Packet> clazz) {
         return this.getCodec(this.getId(clazz));
     }
 
     @SuppressWarnings("unchecked")
-    public <C extends UserConnection> Class<? extends UserProtocol<C>> getOwningProtocol(@NonNull Class<? extends Packet> clazz)  {
+    public <C extends UserConnection> Class<? extends UserProtocol<C>> getOwningProtocol(@NonNull Class<? extends Packet> clazz) {
         return (Class<? extends UserProtocol<C>>) this.supplyingProtocol.get(clazz);
     }
 }

@@ -20,15 +20,11 @@ import io.netty.buffer.ByteBuf;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.NettyByteBufUtil;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.network.conn.Connection;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.protocol.api.PacketEncoder;
 
-import java.io.IOException;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**

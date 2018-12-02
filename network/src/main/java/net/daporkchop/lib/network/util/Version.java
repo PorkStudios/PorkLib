@@ -38,7 +38,7 @@ public class Version implements Data, Logging {
     private String name;
     private int version;
 
-    public Version(@NonNull UserProtocol protocol)  {
+    public Version(@NonNull UserProtocol protocol) {
         this(protocol.getName(), protocol.getVersion());
     }
 
@@ -56,10 +56,10 @@ public class Version implements Data, Logging {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof UserProtocol)    {
+        if (obj instanceof UserProtocol) {
             UserProtocol protocol = (UserProtocol) obj;
             return protocol.getName().equals(this.name) && protocol.getVersion() == this.version;
-        } else if (obj instanceof Version)  {
+        } else if (obj instanceof Version) {
             Version version = (Version) obj;
             return version.name.equals(this.name) && version.version == this.version;
         } else {

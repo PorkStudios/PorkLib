@@ -97,7 +97,7 @@ public class SctpHandler extends ChannelInboundHandlerAdapter implements Logging
         UserConnection connection = ((UnderlyingNetworkConnection) ctx.channel()).getUserConnection(protocolClass);
 
         Channel channel = connection.getOpenChannel(wrapper.getChannel());
-        if(channel == null) {
+        if (channel == null) {
             throw this.exception("Received packet ${0} on channel ${1}, but no open channel with the ID ${1} was found!", packet.getClass(), wrapper.getChannel());
         }
 
@@ -107,7 +107,7 @@ public class SctpHandler extends ChannelInboundHandlerAdapter implements Logging
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        if (cause != null)  {
+        if (cause != null) {
             logger.error(cause);
         }
 

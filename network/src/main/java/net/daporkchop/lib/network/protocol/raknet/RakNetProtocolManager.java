@@ -51,6 +51,10 @@ import java.util.stream.Stream;
 
 /**
  * https://en.wikipedia.org/wiki/RakNet
+ * <p>
+ * !!! WARNING !!!
+ * This is currently non-functional, due to the fact that NukkitX's RakNet doesn't support channels or multiple reliabilites yet.
+ * Will be implemented Soon(tm)
  *
  * @author DaPorkchop_
  */

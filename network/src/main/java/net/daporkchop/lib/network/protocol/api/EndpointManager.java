@@ -73,7 +73,7 @@ public interface EndpointManager<E extends Endpoint> {
          * @param <C>           the connection type
          * @return all currently open connections to this server
          */
-        default <C extends UserConnection> Collection<C> getConnections(Class<? extends UserProtocol<C>> protocolClass)    {
+        default <C extends UserConnection> Collection<C> getConnections(Class<? extends UserProtocol<C>> protocolClass) {
             return this.getChannel().getUnderlyingNetworkConnectionsAsStream()
                     .map(connection -> connection.getUserConnection(protocolClass))
                     .collect(Collectors.toList());
@@ -85,7 +85,7 @@ public interface EndpointManager<E extends Endpoint> {
          * @param packet   the packet to send
          * @param blocking whether or not this method will block the invoking thread until the packet has been flushed
          */
-        default void broadcast(@NonNull Packet packet, boolean blocking)    {
+        default void broadcast(@NonNull Packet packet, boolean blocking) {
             this.getChannel().broadcast(packet, blocking);
         }
 
@@ -95,7 +95,7 @@ public interface EndpointManager<E extends Endpoint> {
          * @param reason the reason for disconnecting
          * @see EndpointManager#close()
          */
-        default void close(String reason)   {
+        default void close(String reason) {
             this.getChannel().close(reason);
         }
 
@@ -106,6 +106,7 @@ public interface EndpointManager<E extends Endpoint> {
 
         /**
          * Gets this server's channel
+         *
          * @return this server's channel
          */
         ServerChannel getChannel();

@@ -14,7 +14,7 @@
  */
 
 repositories {
-    maven   {
+    maven {
         name = "NukkitX Snapshots"
         url = "https://repo.nukkitx.com/snapshot/"
     }
@@ -29,7 +29,7 @@ dependencies {
 
     compile "com.zaxxer:SparseBitSet:$sparseBitSetVersion"
 
-    compile ("com.nukkitx.network:raknet:$raknetVersion") {
+    compile("com.nukkitx.network:raknet:$raknetVersion") {
         exclude group: "io.netty"
     }
 

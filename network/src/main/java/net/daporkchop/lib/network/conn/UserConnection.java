@@ -24,7 +24,6 @@ import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.Packet;
-import net.daporkchop.lib.network.pork.PorkProtocol;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 
 import java.net.InetSocketAddress;

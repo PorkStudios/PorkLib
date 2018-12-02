@@ -15,14 +15,10 @@
 
 package net.daporkchop.lib.network.endpoint.server;
 
-import lombok.NonNull;
-import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.network.EndpointType;
 import net.daporkchop.lib.network.channel.ServerChannel;
-import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
-import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
 
 import java.util.Collection;

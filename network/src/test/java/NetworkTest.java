@@ -26,9 +26,10 @@ import net.daporkchop.lib.network.endpoint.server.Server;
 import net.daporkchop.lib.network.protocol.api.ProtocolManager;
 import net.daporkchop.lib.network.protocol.netty.sctp.SctpProtocolManager;
 import net.daporkchop.lib.network.protocol.netty.tcp.TcpProtocolManager;
-import net.daporkchop.lib.network.protocol.raknet.RakNetProtocolManager;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 import org.junit.Test;
+import protocol.TestPacket;
+import protocol.TestProtocol;
 
 import java.io.File;
 import java.net.InetSocketAddress;
@@ -97,7 +98,7 @@ public class NetworkTest implements Logging {
                 for (int i = 0; i < count; i++) {
                     sleep(75L);
                     client.getDefaultChannel().send(new TestPacket("hello from client!"), true, Reliability.RELIABLE);
-                    //server.getConnections(TestProtocol.class).forEach(connection -> connection.send(new TestPacket("hello from server!")));
+                    //server.getConnections(protocol.TestProtocol.class).forEach(connection -> connection.send(new protocol.TestPacket("hello from server!")));
                     server.broadcast(new TestPacket("hello from server!"));
                 }
                 server.broadcast(

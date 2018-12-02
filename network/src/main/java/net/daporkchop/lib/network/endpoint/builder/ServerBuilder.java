@@ -16,13 +16,8 @@
 package net.daporkchop.lib.network.endpoint.builder;
 
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.crypto.CryptographySettings;
-import net.daporkchop.lib.encoding.compression.Compression;
-import net.daporkchop.lib.encoding.compression.CompressionHelper;
-import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.server.PorkServer;
 import net.daporkchop.lib.network.endpoint.server.Server;
 

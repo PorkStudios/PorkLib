@@ -22,7 +22,6 @@ import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.packet.UserProtocol;
-import net.daporkchop.lib.network.util.PacketReprocessor;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 
 import java.util.Map;
@@ -62,8 +61,8 @@ public class PorkConnection extends UserConnection implements UnderlyingNetworkC
         return this.realConnection.openChannel(reliability, requestedId);
     }
 
-    public void setDisconnectReason(String reason)  {
-        if (this.disconnectReason == null || reason != null)  {
+    public void setDisconnectReason(String reason) {
+        if (this.disconnectReason == null || reason != null) {
             this.disconnectReason = reason;
         }
     }

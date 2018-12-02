@@ -53,7 +53,7 @@ public class TcpPacketDecoder extends ByteToMessageDecoder implements PacketDeco
             logger.debug("[${0}] Read packet: ${1} (${2} bytes)", this.endpoint.getName(), packet.getClass(), size - buf.readableBytes());
             list.add(packet);
             readRemainingBuffer(buf);
-        } catch (Exception e)    {
+        } catch (Exception e) {
             logger.error(e);
             throw e;
         }

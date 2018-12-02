@@ -15,22 +15,56 @@
 
 package net.daporkchop.lib.network.endpoint.server;
 
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.network.conn.Connection;
-import net.daporkchop.lib.network.conn.Session;
-import net.daporkchop.lib.network.endpoint.Endpoint;
-import net.daporkchop.lib.network.endpoint.EndpointType;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
+import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
+import net.daporkchop.lib.network.packet.PacketRegistry;
+import net.daporkchop.lib.network.packet.UserProtocol;
+import net.daporkchop.lib.network.protocol.api.EndpointManager;
 
 import java.util.Collection;
 
-public class PorkServer<S extends Session> extends Endpoint<S> {
-    public PorkServer(@NonNull ServerBuilder<S> builder) {
-        super(EndpointType.SERVER, builder.getProtocol());
+/**
+ * @author DaPorkchop_
+ */
+@Getter
+public class PorkServer implements Server {
+    private final PacketRegistry packetRegistry;
+    private final EndpointManager.ServerEndpointManager manager;
+
+    @SuppressWarnings("unchecked")
+    public PorkServer(@NonNull ServerBuilder builder) {
+        this.packetRegistry = new PacketRegistry(builder.getProtocols());
+        this.manager = builder.getManager().createServerManager();
+
+        this.manager.start(builder.getAddress(), builder.getExecutor(), this);
     }
 
     @Override
-    protected Collection<Connection> getConnections() {
-        return null;
+    public <C extends UserConnection> Collection<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass) {
+        return this.manager.getConnections(protocolClass);
+    }
+
+    @Override
+    public void close(String reason) {
+        synchronized (this) {
+            if (!this.isRunning()) {
+                throw new IllegalStateException("Already closed!");
+            }
+
+            this.manager.close(reason);
+        }
+    }
+
+    @Override
+    public boolean isRunning() {
+        return this.manager.isRunning();
+    }
+
+    @Override
+    public Collection<UnderlyingNetworkConnection> getUnderlyingNetworkConnections() {
+        return this.manager.getChannel().getUnderlyingNetworkConnections();
     }
 }

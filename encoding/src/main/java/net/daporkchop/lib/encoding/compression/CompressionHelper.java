@@ -32,10 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Hashtable;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
@@ -47,6 +44,7 @@ import java.util.stream.Stream;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class CompressionHelper<ParamType> {
     static final Map<String, CompressionHelper> nameLookup = Collections.synchronizedMap(new Hashtable<>());
+    static final Map<CompressionHelper, String> reverseNameLookup = Collections.synchronizedMap(new IdentityHashMap<>());
 
     @NonNull
     @Getter
@@ -61,11 +59,15 @@ public class CompressionHelper<ParamType> {
     private final IOBiFunction<OutputStream, ParamType, OutputStream> outputStreamWrapper;
 
     static boolean registerCompressionType(@NonNull String name, @NonNull CompressionHelper helper) {
-        return nameLookup.putIfAbsent(name, helper) == null;
+        return nameLookup.putIfAbsent(name, helper) == null && reverseNameLookup.put(helper, name) == null;
     }
 
     public static CompressionHelper forName(@NonNull String name) {
         return nameLookup.get(name);
+    }
+
+    public static String getName(@NonNull CompressionHelper name) {
+        return reverseNameLookup.get(name);
     }
 
     public static void forAllRegisteredAlgs(@NonNull BiConsumer<String, CompressionHelper> consumer) {
@@ -146,7 +148,7 @@ public class CompressionHelper<ParamType> {
     @Setter
     @Accessors(chain = true)
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-    public static final class Builder<ParamType> {
+    public static class Builder<ParamType> {
         @NonNull
         private final String name;
         @NonNull

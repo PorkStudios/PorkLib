@@ -27,7 +27,6 @@ public class StreamCipherOutput extends OutputStream {
 
     @Override
     public void write(int b) throws IOException {
-        this.writeLock.lock();
         this.stream.write(this.cipher.returnByte((byte) b) & 0xFF);
     }
 

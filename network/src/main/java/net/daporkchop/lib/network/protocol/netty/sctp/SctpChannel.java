@@ -107,7 +107,7 @@ public class SctpChannel extends NettyChannel implements Logging {
         if (!this.closed) {
             throw new IllegalArgumentException("already closed!");
         }
-        if (this.isDefaultChannel())    {
+        if (this.isDefaultChannel()) {
             this.channel.close();
         }
         this.closed = true;

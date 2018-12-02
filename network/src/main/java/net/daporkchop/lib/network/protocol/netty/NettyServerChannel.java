@@ -21,7 +21,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.network.channel.ServerChannel;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
-import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.endpoint.server.Server;
 import net.daporkchop.lib.network.packet.Packet;
 
@@ -44,7 +43,7 @@ public abstract class NettyServerChannel implements ServerChannel {
 
     @Override
     public void broadcast(@NonNull Packet packet, boolean blocking) {
-        if (blocking)   {
+        if (blocking) {
             this.channels.writeAndFlush(packet).syncUninterruptibly();
         } else {
             this.channels.writeAndFlush(packet);

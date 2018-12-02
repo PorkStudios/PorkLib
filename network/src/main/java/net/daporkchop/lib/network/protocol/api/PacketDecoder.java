@@ -15,25 +15,22 @@
 
 package net.daporkchop.lib.network.protocol.api;
 
-import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.channel.ChannelImplementation;
-import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.endpoint.client.PorkClient;
 import net.daporkchop.lib.network.packet.Codec;
 import net.daporkchop.lib.network.packet.Packet;
-import net.daporkchop.lib.network.pork.PorkProtocol;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 /**
  * Decodes packets ye dummy
- *
+ * <p>
  * Hah! You came here looking for a useful javadoc, but all you got was this LOUSY insult!
  *
  * @author DaPorkchop_
@@ -47,7 +44,7 @@ public interface PacketDecoder extends Logging {
 
     default Packet getPacket(@NonNull ChannelImplementation channel, @NonNull InputStream stream, boolean allowEncryption) throws IOException {
         // DataIn in = DataIn.wrap(((UnderlyingNetworkConnection) ctx.channel()).getUserConnection(PorkProtocol.class).getPacketReprocessor().wrap(NettyByteBufUtil.wrapIn(buf)))
-        try (DataIn in = DataIn.wrap(channel.getPacketReprocessor().wrap(stream, allowEncryption)))  {
+        try (DataIn in = DataIn.wrap(channel.getPacketReprocessor().wrap(stream, allowEncryption))) {
             int id = in.readVarInt(true);
             Codec<? extends Packet, ? extends UserConnection> codec = this.getEndpoint().getPacketRegistry().getCodec(id);
             if (codec == null) {

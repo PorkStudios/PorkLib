@@ -13,20 +13,45 @@
  *
  */
 
-import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.conn.UserConnection;
+package protocol;
 
-/**
- * @author DaPorkchop_
- */
-public class TestConnection extends UserConnection implements Logging {
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.network.channel.Channel;
+import net.daporkchop.lib.network.packet.Codec;
+import net.daporkchop.lib.network.packet.Packet;
+
+import java.io.IOException;
+
+@NoArgsConstructor
+@AllArgsConstructor
+public class TestPacket implements Packet {
+    @NonNull
+    public String message;
+
     @Override
-    public void onConnect() {
-        logger.info("[${0}] Connection ${1} opened", this.getEndpoint().getName(), this.getAddress());
+    public void read(DataIn in) throws IOException {
+        this.message = in.readUTF();
     }
 
     @Override
-    public void onDisconnect(String reason) {
-        logger.info("[${0}] Connection ${1} closed because: ${2}", this.getEndpoint().getName(), this.getAddress(), reason);
+    public void write(DataOut out) throws IOException {
+        out.writeUTF(this.message);
+    }
+
+    public static class TestCodec implements Codec<TestPacket, TestConnection>, Logging {
+        @Override
+        public void handle(@NonNull TestPacket packet, @NonNull Channel channel, @NonNull TestConnection connection) {
+            logger.info("[${0}] Received test packet on channel ${2}: ${1}", connection.getEndpoint().getName(), packet.message, channel.getId());
+        }
+
+        @Override
+        public TestPacket createInstance() {
+            return new TestPacket();
+        }
     }
 }

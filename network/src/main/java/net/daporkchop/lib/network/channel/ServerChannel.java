@@ -16,10 +16,8 @@
 package net.daporkchop.lib.network.channel;
 
 import lombok.NonNull;
-import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
-import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.endpoint.server.Server;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
@@ -42,7 +40,7 @@ public interface ServerChannel {
      * @param <C>           the connection type
      * @return all currently open connections to this server
      */
-    default <C extends UserConnection> Collection<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass)    {
+    default <C extends UserConnection> Collection<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass) {
         return this.getUnderlyingNetworkConnections().stream()
                 .map(connection -> connection.getUserConnection(protocolClass))
                 .collect(Collectors.toList());
@@ -50,13 +48,15 @@ public interface ServerChannel {
 
     /**
      * Get a list of all currently open connections
+     *
      * @return a list of all currently open connections
      */
     Collection<UnderlyingNetworkConnection> getUnderlyingNetworkConnections();
 
     /**
      * Broadcasts a packet to all connections
-     * @param packet the packet to send
+     *
+     * @param packet   the packet to send
      * @param blocking whether or not the send operation will be blocking. this will block until the packet has been sent to ALL clients.
      */
     default void broadcast(@NonNull Packet packet, boolean blocking) {
@@ -73,6 +73,7 @@ public interface ServerChannel {
 
     /**
      * Gets this server channel's server
+     *
      * @param <S> convenience cast
      * @return this server channel's server
      */
@@ -84,26 +85,26 @@ public interface ServerChannel {
     //
     //
     default void broadcast(@NonNull Packet... packets) {
-        for (Packet packet : packets)   {
+        for (Packet packet : packets) {
             this.broadcast(packet);
         }
     }
 
     default void broadcastBlocking(@NonNull Packet... packets) {
-        for (Packet packet : packets)   {
+        for (Packet packet : packets) {
             this.broadcastBlocking(packet);
         }
     }
 
-    default void broadcast(@NonNull Packet packet)   {
+    default void broadcast(@NonNull Packet packet) {
         this.broadcast(packet, false);
     }
 
-    default void broadcastBlocking(@NonNull Packet packet)   {
+    default void broadcastBlocking(@NonNull Packet packet) {
         this.broadcast(packet, true);
     }
 
-    default Stream<UnderlyingNetworkConnection> getUnderlyingNetworkConnectionsAsStream()   {
+    default Stream<UnderlyingNetworkConnection> getUnderlyingNetworkConnectionsAsStream() {
         return this.getUnderlyingNetworkConnections().stream();
     }
 }

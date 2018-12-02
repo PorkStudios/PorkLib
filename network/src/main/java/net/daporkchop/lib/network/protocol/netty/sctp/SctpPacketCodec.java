@@ -19,19 +19,15 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.sctp.SctpMessage;
-import io.netty.handler.codec.MessageToByteEncoder;
 import io.netty.handler.codec.MessageToMessageCodec;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.NettyByteBufUtil;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.network.channel.ChannelImplementation;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
-import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.protocol.api.PacketDecoder;
 import net.daporkchop.lib.network.protocol.api.PacketEncoder;
 
@@ -74,21 +70,21 @@ public class SctpPacketCodec extends MessageToMessageCodec<SctpMessage, SctpPack
         ));
     }
 
-    private String toHex(@NonNull ByteBuf buf)  {
+    private String toHex(@NonNull ByteBuf buf) {
         char[] hex = "0123456789abcdef".toCharArray();
         char[] chars = new char[buf.readableBytes() << 1];
         int j = buf.readerIndex();
-        for (int i = buf.readableBytes() - 1; i >= 0; i--)  {
+        for (int i = buf.readableBytes() - 1; i >= 0; i--) {
             chars[(i << 1)] = hex[buf.getByte(i + j) & 0xF];
             chars[(i << 1) + 1] = hex[(buf.getByte(i + j) >>> 1) & 0xF];
         }
         return PorkUtil.wrap(chars);
     }
 
-    private String toString(@NonNull ByteBuf buf)   {
+    private String toString(@NonNull ByteBuf buf) {
         byte[] b = new byte[buf.readableBytes()];
         int j = buf.readerIndex();
-        for (int i = buf.readableBytes() - 1; i >= 0; i--)  {
+        for (int i = buf.readableBytes() - 1; i >= 0; i--) {
             b[i] = buf.getByte(i + j);
         }
         return new String(b).replace("\n", "\\n");

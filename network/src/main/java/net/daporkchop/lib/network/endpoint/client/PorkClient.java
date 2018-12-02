@@ -24,10 +24,10 @@ import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.PacketRegistry;
 import net.daporkchop.lib.network.packet.UserProtocol;
-import net.daporkchop.lib.network.protocol.api.EndpointManager;
 import net.daporkchop.lib.network.pork.PorkConnection;
 import net.daporkchop.lib.network.pork.PorkProtocol;
 import net.daporkchop.lib.network.pork.packet.DisconnectPacket;
+import net.daporkchop.lib.network.protocol.api.EndpointManager;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.CompletableFuture;

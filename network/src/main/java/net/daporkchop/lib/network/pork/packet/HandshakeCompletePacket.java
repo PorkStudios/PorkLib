@@ -41,7 +41,7 @@ public class HandshakeCompletePacket implements Packet {
         //out.writeBytesSimple(new byte[0xFFFFFF]);
     }
 
-    public static class HandshakeCompleteCodec implements Codec.Simple<HandshakeCompletePacket, PorkConnection>    {
+    public static class HandshakeCompleteCodec implements Codec.Simple<HandshakeCompletePacket, PorkConnection> {
         @Override
         public void handle(@NonNull HandshakeCompletePacket packet, @NonNull PorkConnection connection) {
             connection.<PorkClient>getEndpoint().postConnectCallback(null);

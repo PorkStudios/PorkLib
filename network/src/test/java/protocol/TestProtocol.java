@@ -13,6 +13,8 @@
  *
  */
 
+package protocol;
+
 import net.daporkchop.lib.network.packet.UserProtocol;
 
 /**

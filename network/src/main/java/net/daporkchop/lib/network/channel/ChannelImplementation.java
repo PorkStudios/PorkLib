@@ -23,7 +23,7 @@ import net.daporkchop.lib.network.util.PacketReprocessor;
 public interface ChannelImplementation extends Channel {
     PacketReprocessor getPacketReprocessor();
 
-    void setEncryptionReady(boolean state);
-
     boolean isEncryptionReady();
+
+    void setEncryptionReady(boolean state);
 }

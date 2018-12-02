@@ -33,7 +33,7 @@ public interface Codec<P extends Packet, C extends UserConnection> extends Packe
      */
     P createInstance();
 
-    interface Simple<P extends Packet, C extends UserConnection> extends PacketHandler.Simple<P, C>, Codec<P, C>    {
+    interface Simple<P extends Packet, C extends UserConnection> extends PacketHandler.Simple<P, C>, Codec<P, C> {
     }
 
     @RequiredArgsConstructor

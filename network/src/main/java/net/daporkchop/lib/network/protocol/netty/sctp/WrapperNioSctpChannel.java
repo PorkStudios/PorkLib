@@ -19,7 +19,6 @@ import com.zaxxer.sparsebits.SparseBitSet;
 import io.netty.channel.sctp.nio.NioSctpChannel;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.conn.UserConnection;
@@ -44,17 +43,15 @@ import java.util.Map;
 public class WrapperNioSctpChannel extends NioSctpChannel implements NettyConnection, Logging {
     static final int CHANNEL_ID_CONTROL = 0;
     static final int CHANNEL_ID_DEFAULT = 1;
-
+    final SparseBitSet channelIds = new SparseBitSet();
+    final IntegerObjectMap<SctpChannel> channels = PorkMaps.synchronize(new IntegerObjectHashMap<>());
     @NonNull
     private final Endpoint endpoint;
     private final Map<Class<? extends UserProtocol>, UserConnection> connections = new IdentityHashMap<>();
     private final SctpChannel defaultChannel;
     private final SctpChannel controlChannel;
 
-    final SparseBitSet channelIds = new SparseBitSet();
-    final IntegerObjectMap<SctpChannel> channels = PorkMaps.synchronize(new IntegerObjectHashMap<>());
-
-    public WrapperNioSctpChannel(@NonNull Client client)    {
+    public WrapperNioSctpChannel(@NonNull Client client) {
         this.endpoint = client;
         this.controlChannel = this.openChannel(Reliability.RELIABLE_ORDERED, CHANNEL_ID_CONTROL);
         this.defaultChannel = this.openChannel(Reliability.RELIABLE_ORDERED, CHANNEL_ID_DEFAULT);
@@ -69,18 +66,18 @@ public class WrapperNioSctpChannel extends NioSctpChannel implements NettyConnec
 
     @Override
     public SctpChannel openChannel(@NonNull Reliability reliability) {
-        synchronized (this.channelIds)  {
+        synchronized (this.channelIds) {
             return this.openChannel(reliability, this.channelIds.nextClearBit(0));
         }
     }
 
     @Override
-    public SctpChannel openChannel(@NonNull Reliability reliability, int requestedId)  {
+    public SctpChannel openChannel(@NonNull Reliability reliability, int requestedId) {
         switch (reliability) {
             case RELIABLE:
             case RELIABLE_ORDERED: {
                 synchronized (this.channelIds) {
-                    if (this.channelIds.get(requestedId))   {
+                    if (this.channelIds.get(requestedId)) {
                         throw this.exception("channel id ${0} already taken!", requestedId);
                     }
                     this.channelIds.set(requestedId);

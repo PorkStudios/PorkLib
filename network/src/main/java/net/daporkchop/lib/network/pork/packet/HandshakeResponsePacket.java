@@ -60,12 +60,12 @@ public class HandshakeResponsePacket implements Packet {
         @Override
         public void handle(@NonNull HandshakeResponsePacket packet, @NonNull Channel channel, @NonNull PorkConnection connection) {
             PacketRegistry registry = connection.getEndpoint().getPacketRegistry();
-            if (registry.getProtocols().size() != packet.protocolVersions.size())   {
+            if (registry.getProtocols().size() != packet.protocolVersions.size()) {
                 connection.closeConnection("invalid protocol count");
                 throw new IllegalStateException();
             }
             registry.getProtocols().stream().map(Version::new).forEach(protocolVersion -> {
-                if (!packet.protocolVersions.contains(protocolVersion))    {
+                if (!packet.protocolVersions.contains(protocolVersion)) {
                     connection.closeConnection("invalid protocol version/name");
                     throw new IllegalStateException();
                 }

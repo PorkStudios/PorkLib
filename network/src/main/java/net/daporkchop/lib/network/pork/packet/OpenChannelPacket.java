@@ -50,7 +50,7 @@ public class OpenChannelPacket implements PorkPacket {
         out.writeVarInt(this.channelId, true);
     }
 
-    public static class OpenChannelCodec implements Codec<OpenChannelPacket, PorkConnection>    {
+    public static class OpenChannelCodec implements Codec<OpenChannelPacket, PorkConnection> {
         @Override
         public void handle(@NonNull OpenChannelPacket packet, @NonNull Channel channel, @NonNull PorkConnection connection) {
             connection.openChannel(packet.reliability, packet.channelId);

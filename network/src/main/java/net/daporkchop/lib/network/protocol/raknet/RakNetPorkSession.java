@@ -20,13 +20,11 @@ import com.nukkitx.network.raknet.datagram.RakNetReliability;
 import com.nukkitx.network.raknet.session.RakNetSession;
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
-import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.pork.PorkProtocol;
 import net.daporkchop.lib.network.pork.packet.DisconnectPacket;
@@ -40,7 +38,6 @@ import java.net.InetSocketAddress;
 import java.util.BitSet;
 import java.util.IdentityHashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A session for RakNet connections

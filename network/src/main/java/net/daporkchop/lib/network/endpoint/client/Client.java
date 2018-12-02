@@ -50,7 +50,7 @@ public interface Client extends Endpoint, Connection {
     }
 
     @Override
-    default  <C extends UserConnection> Collection<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass) {
+    default <C extends UserConnection> Collection<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass) {
         return Collections.singletonList(this.getConnection(protocolClass));
     }
 

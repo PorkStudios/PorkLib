@@ -39,7 +39,7 @@ public abstract class NettyChannel implements ChannelImplementation {
 
     @Override
     public synchronized void startEncryption(@NonNull CryptographySettings cryptographySettings) {
-        if (this.packetReprocessor.getCryptographySettings() != null)   {
+        if (this.packetReprocessor.getCryptographySettings() != null) {
             //cryptography settings will be set even before encryption is completely enabled
             throw new IllegalStateException("encryption already enabled");
         }

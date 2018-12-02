@@ -17,9 +17,11 @@ package net.daporkchop.lib.network.protocol.netty.sctp;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.group.ChannelGroup;
-import io.netty.channel.group.ChannelGroupFuture;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.sctp.SctpChannelOption;
@@ -40,14 +42,10 @@ import net.daporkchop.lib.network.pork.packet.DisconnectPacket;
 import net.daporkchop.lib.network.protocol.api.EndpointManager;
 import net.daporkchop.lib.network.protocol.api.ProtocolManager;
 import net.daporkchop.lib.network.protocol.netty.NettyServerChannel;
-import net.daporkchop.lib.network.protocol.netty.tcp.WrapperNioSocketChannel;
 
 import java.net.InetSocketAddress;
-import java.util.ArrayDeque;
-import java.util.Collection;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 /**
  * An implementation of {@link ProtocolManager} for the SCTP transport protocol.
@@ -144,7 +142,7 @@ public class SctpProtocolManager implements ProtocolManager {
             this.bossGroup.shutdownGracefully();
         }
 
-        private class SctpServerChannel extends NettyServerChannel  {
+        private class SctpServerChannel extends NettyServerChannel {
             private SctpServerChannel(ChannelGroup channels, Server server) {
                 super(channels, server);
             }

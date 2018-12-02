@@ -27,6 +27,7 @@ import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.endpoint.client.Client;
 import net.daporkchop.lib.network.endpoint.server.Server;
 import net.daporkchop.lib.network.packet.UserProtocol;
+import net.daporkchop.lib.network.pork.packet.OpenChannelPacket;
 import net.daporkchop.lib.network.protocol.netty.NettyConnection;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 import net.daporkchop.lib.primitive.map.IntegerObjectMap;
@@ -73,7 +74,8 @@ public class WrapperNioSctpChannel extends NioSctpChannel implements NettyConnec
         }
     }
 
-    private SctpChannel openChannel(@NonNull Reliability reliability, int requestedId)  {
+    @Override
+    public SctpChannel openChannel(@NonNull Reliability reliability, int requestedId)  {
         switch (reliability) {
             case RELIABLE:
             case RELIABLE_ORDERED: {
@@ -85,6 +87,9 @@ public class WrapperNioSctpChannel extends NioSctpChannel implements NettyConnec
                 }
                 SctpChannel channel = new SctpChannel(requestedId, reliability, this);
                 this.channels.put(requestedId, channel);
+                if (requestedId != CHANNEL_ID_CONTROL && requestedId != CHANNEL_ID_DEFAULT) {
+                    this.controlChannel.send(new OpenChannelPacket(reliability, requestedId));
+                }
                 return channel;
             }
             default:

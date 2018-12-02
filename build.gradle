@@ -54,7 +54,7 @@ allprojects {
         googleHttpClientVersion = '1.23.0'
         gsonVersion = '2.8.5'
         guavaVersion = '27.0-jre'
-        nettyVersion = '4.1.24.Final'
+        nettyVersion = '4.1.32.Final'
         raknetVersion = '1.2.1-SNAPSHOT'
         sparseBitSetVersion = '1.1'
         xzVersion = '1.8'
@@ -88,7 +88,7 @@ allprojects {
     }
 
     dependencies {
-        if (!("root".equalsIgnoreCase(project.name) || "common".equalsIgnoreCase(project.name)))    {
+        if (!("root".equalsIgnoreCase(project.name) || "common".equalsIgnoreCase(project.name))) {
             compile project(":common")
         }
 

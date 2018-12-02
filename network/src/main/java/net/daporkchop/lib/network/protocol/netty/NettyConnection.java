@@ -16,10 +16,8 @@
 package net.daporkchop.lib.network.protocol.netty;
 
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
-import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.pork.PorkProtocol;
 import net.daporkchop.lib.network.pork.packet.DisconnectPacket;
 
 import java.net.InetSocketAddress;
@@ -38,7 +36,9 @@ public interface NettyConnection extends Channel, UnderlyingNetworkConnection {
 
     @Override
     default void closeConnection(String reason) {
-        this.writeAndFlush(new DisconnectPacket(reason));
+        //actually set the disconnect reason here
+        this.getUserConnection(PorkProtocol.class).setDisconnectReason(reason);
+        this.getControlChannel().send(new DisconnectPacket(reason));
         this.disconnectAtNetworkLevel();
     }
 

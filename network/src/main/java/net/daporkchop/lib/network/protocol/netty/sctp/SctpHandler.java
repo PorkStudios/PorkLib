@@ -51,7 +51,7 @@ public class SctpHandler extends ChannelInboundHandlerAdapter implements Logging
 
         UnderlyingNetworkConnection realConnection = (UnderlyingNetworkConnection) ctx.channel();
         if (this.endpoint instanceof PorkServer) {
-            realConnection.send(new HandshakeInitPacket());
+            realConnection.getControlChannel().send(new HandshakeInitPacket());
         } else if (false && this.endpoint instanceof PorkClient) {
             ((PorkClient) this.endpoint).postConnectCallback(null);
         }

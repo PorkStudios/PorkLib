@@ -31,7 +31,7 @@ import java.util.function.Function;
  * @author DaPorkchop_
  */
 public interface DataGenerator {
-    Map<String, BiFunction<String, File, DataGenerator>> GENERATORS = new HashMap<String, BiFunction<String, File, DataGenerator>>() {
+    Map<String, Function<File, DataGenerator>> GENERATORS = new HashMap<String, Function<File, DataGenerator>>() {
         {
             this.put("java", JavaGenerator::new);
         }
@@ -79,5 +79,13 @@ public interface DataGenerator {
             }
         }
         return file;
+    }
+
+    default File ensureFileExists(@NonNull File parent, @NonNull String name) throws IOException {
+        return this.ensureFileExists(new File(parent, name));
+    }
+
+    default File ensureFileExists(@NonNull String parent, @NonNull String name) throws IOException  {
+        return this.ensureFileExists(new File(parent, name));
     }
 }

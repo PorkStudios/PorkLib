@@ -26,36 +26,84 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.stream.Collectors;
 
 /**
  * @author DaPorkchop_
  */
+@RequiredArgsConstructor
 @Getter
 public class JavaGenerator implements DataGenerator {
-    private final String versionName;
-    private final String versionNameDir;
+    @NonNull
     private final File input;
-
-    public JavaGenerator(@NonNull String versionName, @NonNull File input)  {
-        this.versionName = versionName;
-        this.input = input;
-        this.versionNameDir = this.versionName.replace('.', '_');
-    }
 
     @Override
     public void run(@NonNull File out) throws IOException {
-        JsonObject object;
-        try (Reader reader = new InputStreamReader(new FileInputStream(this.input))) {
-            object = JSON_PARSER.parse(reader).getAsJsonArray().get(0).getAsJsonObject();
+        Collection<Version> versions = Arrays.stream(this.input.listFiles())
+                .filter(File::isFile)
+                .map(file -> {
+                    String version = file.getName().substring(0, file.getName().lastIndexOf('.'));
+                    System.out.printf("Reading data for version java -> v%s\n", version);
+                    JsonObject object;
+                    try (Reader reader = new InputStreamReader(new FileInputStream(file))) {
+                        object = JSON_PARSER.parse(reader).getAsJsonArray().get(0).getAsJsonObject();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    return new Version(object, version, version.replace('.', '_'));
+                })
+                .collect(Collectors.toList());
+
+        try (ClassWriter writer = new ClassWriter(this.ensureFileExists(out, "JavaPlatform.java"))) {
+            writer
+                    .write("@NoArgsConstructor(access = AccessLevel.PRIVATE)",
+                            "public class JavaPlatform implements Platform").pushBraces()
+                    .write("public static final JavaPlatform INSTANCE = new JavaPlatform();").newline()
+                    .write("private static final Collection<Version> VERSIONS = Stream.of(null").push();
+            for (Version version : versions) {
+                writer.write(String.format(", net.daporkchop.lib.minecraft.protocol.mc.java.v%s.Java%s.INSTANCE", version.versionDir, version.versionDir));
+            }
+            writer
+                    .pop().write(").filter(Objects::nonNull).collect(Collectors.toList());")
+                    .newline().write("@Override",
+                    "public String getName()").pushBraces()
+                    .write("return \"Minecraft: Java Edition\"; //actually just minecraft but i'll go with this new fake gay name because mojang decided it's now called that").pop()
+                    .newline().write("@Override",
+                    "public Collection<Version> getVersions()").pushBraces()
+                    .write("return VERSIONS;").pop()
+                    .pop();
+        }
+
+        for (Version version : versions) {
+            try (ClassWriter writer = new ClassWriter(this.ensureFileExists(out, String.format("v%s/Java%s.java", version.versionDir, version.versionDir)))) {
+                writer.write("@NoArgsConstructor(access = AccessLevel.PRIVATE)",
+                        String.format("public class Java%s implements Version", version.versionDir)).pushBraces()
+                        .write(String.format("public static final Java%s INSTANCE = new Java%s();", version.versionDir, version.versionDir)).newline()
+                        .write("@Override",
+                                "public Platform getPlatform()").pushBraces()
+                        .write("return net.daporkchop.lib.minecraft.protocol.mc.java.JavaPlatform.INSTANCE;").pop().newline()
+                        .write("@Override",
+                                "public String getName()").pushBraces()
+                        .write(String.format("return \"Java v%s\";", version.version)).pop().newline()
+                        .write("@Override",
+                                "public int getProtocolVersion()").pushBraces()
+                        .write(String.format("return %d;", version.object.getAsJsonObject("version").get("protocol").getAsInt())).pop()
+                        .pop();
+            }
         }
 
         //TODO: my amazing formatter from dev/network-revamp-v6 would be nice here
-        try (ClassWriter writer = new ClassWriter(this.ensureFileExists(new File(out, String.format("mc/java/v%s/Java%s.java", this.versionNameDir, this.versionNameDir))), "protocol")) {
-            writer
-                    .write(String.format("public class Java%s {", this.versionNameDir))
-                    .push()
-                    .write(String.format("public static final Platform INSTANCE = Platform.DefaultImpl.builder().name(\"Java v%s\").build();", this.versionNameDir))
-                    .pop().write("}");
-        }
+    }
+
+    @RequiredArgsConstructor
+    private static class Version {
+        @NonNull
+        private final JsonObject object;
+        @NonNull
+        private final String version;
+        @NonNull
+        private final String versionDir;
     }
 }

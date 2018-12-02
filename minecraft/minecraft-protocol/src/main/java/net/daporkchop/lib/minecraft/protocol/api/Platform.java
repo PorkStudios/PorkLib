@@ -12,30 +12,23 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.minecraft.protocol.generator;
+package net.daporkchop.lib.minecraft.protocol.api;
 
-import net.daporkchop.lib.common.util.PorkUtil;
-
-import java.io.File;
-import java.io.IOException;
+import java.util.Collection;
 
 /**
+ * Represents a Minecraft platform (e.g. Java, Bedrock)
+ *
  * @author DaPorkchop_
  */
-public class Generator {
-    public static void main(String... args) throws IOException {
-        System.out.println("Cleaning output directory...");
-        PorkUtil.rm(DataGenerator.OUT_ROOT);
+public interface Platform {
+    String getName();
 
-        for (File platformDir : DataGenerator.IN_ROOT.listFiles()) {
-            if (!platformDir.isDirectory()) {
-                continue;
-            }
-            String platform = platformDir.getName();
-            System.out.printf("Generating data for platform: %s\n", platform);
-            DataGenerator.GENERATORS.get(platform)
-                    .apply(platformDir)
-                    .run(new File(DataGenerator.OUT_ROOT, platform));
-        }
+    Collection<Version> getVersions();
+
+    default Version get(int protocol) {
+        return this.getVersions().stream()
+                .filter(version -> version.getProtocolVersion() == protocol)
+                .findFirst().orElseGet(() -> null);
     }
 }

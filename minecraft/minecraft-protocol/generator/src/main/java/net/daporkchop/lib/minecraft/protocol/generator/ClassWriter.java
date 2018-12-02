@@ -29,10 +29,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.StreamSupport;
 
 /**
  * @author DaPorkchop_
@@ -41,33 +46,72 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ClassWriter implements Closeable {
     private static final byte[] SPACES = "    ".getBytes(UTF8.utf8);
     private static final byte[] NEWLINE = "\n".getBytes(UTF8.utf8);
-    private static final Map<String, Data> DATA_CAHE = new ConcurrentHashMap<>();
+    private static final byte[] OPEN_BRACES = " {".getBytes(UTF8.utf8);
+    private static final byte[] CLOSE_BRACES = "}".getBytes(UTF8.utf8);
+
+    private static final String LICENSE;
+    private static final String HEADER;
+    private static final Collection<String> DEFAULT_IMPORTS = Arrays.asList(
+            "lombok.*",
+            "java.util.*",
+            "java.util.stream.*",
+            "java.util.concurrent.*",
+            "java.io.*",
+            "java.nio.*",
+            "net.daporkchop.lib.minecraft.protocol.api.*"
+    );
+
+    static {
+        String license = null;
+        String header = null;
+        try {
+            try (InputStream in = new FileInputStream(new File(DataGenerator.IN_ROOT, "../templates/license.tmpl"))) {
+                license = new String(StreamUtil.readFully(in, -1, false), UTF8.utf8);
+            }
+            try (InputStream in = new FileInputStream(new File(DataGenerator.IN_ROOT, "../templates/header.tmpl"))) {
+                header = new String(StreamUtil.readFully(in, -1, false), UTF8.utf8);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            LICENSE = license;
+            HEADER = header;
+        }
+    }
 
     private final OutputStream out;
-    private final String templateName;
-    private final Data data;
+    private final Set<Integer> withBraces;
     private int indentCounter = 0;
 
-    public ClassWriter(@NonNull File out, @NonNull String templateName) throws IOException {
+    public ClassWriter(@NonNull File out, @NonNull String... imports) throws IOException {
+        if (!out.getName().endsWith(".java"))   {
+            out = new File(String.format("%s.java", out.getAbsolutePath()));
+        }
         this.out = new BufferedOutputStream(new FileOutputStream(out));
-        this.templateName = templateName;
-        this.data = DATA_CAHE.computeIfAbsent(templateName, name -> {
+
+        this.write(LICENSE);
+        this.newline().newline();
+        this.write(String.format("package %s;", getPackageName(out)));
+        this.newline().newline();
+        HashSet<String> theImports = new HashSet<>(DEFAULT_IMPORTS);
+        for (String s : imports)    {
+            if (s == null)  {
+                throw new NullPointerException();
+            }
+            theImports.add(s);
+        }
+        theImports.stream().sorted().filter(s -> !s.isEmpty()).forEach(s -> {
             try {
-                File root = new File(DataGenerator.IN_ROOT, String.format("../templates/%s/", name));
-
-                String header;
-                try (InputStream in = new FileInputStream(new File(root, "header.tmpl"))) {
-                    header = new String(StreamUtil.readFully(in, -1, false), UTF8.utf8);
-                }
-
-                return new Data(header);
+                this.write(String.format("import %s;", s));
+                this.newline();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         });
+        this.newline();
+        this.write(HEADER);
 
-        this.write(this.data.header
-                .replace("${package}", getPackageName(out)));
+        this.withBraces = new HashSet<>();
     }
 
     private static boolean contains(@NonNull String s, int c) {
@@ -95,27 +139,45 @@ public class ClassWriter implements Closeable {
         return joiner.toString();
     }
 
+    public ClassWriter pushBraces() throws IOException  {
+        this.withBraces.add(++this.indentCounter);
+        this.write(OPEN_BRACES);
+        return this;
+    }
+
+    public ClassWriter newline() throws IOException {
+        this.write(NEWLINE);
+        return this;
+    }
+
     public ClassWriter push() {
         this.indentCounter++;
         return this;
     }
 
-    public ClassWriter pop() {
-        this.indentCounter--;
+    public ClassWriter pop() throws IOException {
+        if (this.withBraces.remove(this.indentCounter--))   {
+            this.indent();
+            this.write(CLOSE_BRACES);
+        }
         return this;
     }
 
     public ClassWriter write(@NonNull String s) throws IOException {
         if (contains(s, (int) '\n')) {
-            for (String s1 : s.split("\n")) {
-                this.write(s1);
-            }
+            this.write(s.split("\n"));
         } else {
-            for (int i = this.indentCounter - 1; i >= 0; i--) {
-                this.write(SPACES);
+            if (this.withBraces != null)    {
+                this.indent();
             }
             this.write(s.getBytes(UTF8.utf8));
-            this.write(NEWLINE);
+        }
+        return this;
+    }
+
+    public ClassWriter write(@NonNull String... strings) throws IOException {
+        for (String s : strings)    {
+            this.write(s);
         }
         return this;
     }
@@ -127,7 +189,15 @@ public class ClassWriter implements Closeable {
 
     @Override
     public void close() throws IOException {
+        this.newline();
         this.out.close();
+    }
+
+    private void indent() throws IOException    {
+        this.newline();
+        for (int i = this.indentCounter - 1; i >= 0; i--) {
+            this.write(SPACES);
+        }
     }
 
     @RequiredArgsConstructor

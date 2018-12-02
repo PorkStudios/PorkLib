@@ -16,31 +16,20 @@
 package net.daporkchop.lib.network.endpoint.builder;
 
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.crypto.CryptographySettings;
-import net.daporkchop.lib.network.conn.Session;
 import net.daporkchop.lib.network.endpoint.server.PorkServer;
+import net.daporkchop.lib.network.endpoint.server.Server;
 
+/**
+ * @author DaPorkchop_
+ */
 @Accessors(chain = true)
 @Getter
 @Setter
-public class ServerBuilder<S extends Session> extends AbstractBuilder<ServerBuilder<S>, S, PorkServer<S>> {
-    @NonNull
-    private CryptographySettings encryption = new CryptographySettings();
-
-    private int readerThreads = 2;
-
-    private int maxConnections = 100;
-
+public class ServerBuilder extends AbstractBuilder<Server, ServerBuilder> {
     @Override
-    protected PorkServer<S> doBuild() {
-        if (this.readerThreads <= 0)    {
-            throw new IllegalArgumentException(String.format("Invalid reader thread count: %d (must be at least 1)", this.readerThreads));
-        } else if (this.maxConnections <= 0)    {
-            throw new IllegalArgumentException(String.format("Invalid maximum connection count: %d (must be at least 1)", this.maxConnections));
-        }
-        return new PorkServer<>(this);
+    Server doBuild() {
+        return new PorkServer(this);
     }
 }

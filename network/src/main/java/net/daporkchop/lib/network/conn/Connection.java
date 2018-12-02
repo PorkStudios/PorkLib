@@ -15,5 +15,150 @@
 
 package net.daporkchop.lib.network.conn;
 
-public class Connection {
+import lombok.NonNull;
+import net.daporkchop.lib.common.function.Void;
+import net.daporkchop.lib.network.channel.Channel;
+import net.daporkchop.lib.network.endpoint.Endpoint;
+import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.util.reliability.Reliability;
+
+import java.net.InetSocketAddress;
+
+/**
+ * A connection between two {@link Endpoint}s
+ * <p>
+ * To be more precise, a connection between exactly one {@link net.daporkchop.lib.network.endpoint.server.Server} and
+ * one {@link net.daporkchop.lib.network.endpoint.client.Client}. This applies even in p2p scenarios.
+ *
+ * @author DaPorkchop_
+ */
+public interface Connection {
+    //
+    //
+    // Actual methods to implement
+    //
+    //
+
+    /**
+     * Get the local endpoint for this connection
+     *
+     * @param <E> convenience cast to a desired {@link Endpoint} type
+     * @return the local endpoint for this connection
+     */
+    <E extends Endpoint> E getEndpoint();
+
+    /**
+     * Close this connection
+     *
+     * @param reason the reason for closing
+     */
+    void closeConnection(String reason);
+
+    /**
+     * Checks if the connection is open
+     *
+     * @return whether or not the connection is open
+     */
+    boolean isConnected();
+
+    /**
+     * Send a packet to the remote endpoint
+     *
+     * @param packet   the packet to send
+     * @param blocking whether or not to block the invoking thread until the underlying network channel has been flushed
+     * @param callback a function to run after the underlying network channel has been flushed. if {@code null}, this
+     *                 parameter is ignored.
+     */
+    void send(@NonNull Packet packet, boolean blocking, Void callback);
+
+    /**
+     * Get the network address of the remote endpoint
+     *
+     * @return the network address of the remote endpoint
+     */
+    InetSocketAddress getAddress();
+
+    /**
+     * Open a new {@link Channel} on this connection
+     *
+     * @param reliability the desired channel reliability. depending on the underlying network protocol, this reliability may be
+     *                    enforced for all packets, used merely as a default, or ignored entirely.
+     * @return a new {@link Channel}
+     */
+    Channel openChannel(@NonNull Reliability reliability);
+
+    /**
+     * Gets a currently open {@link Channel} on this connection
+     *
+     * @param id the id of the desired {@link Channel}
+     * @return the channel with the given id, or {@code null} if no such channel was found.
+     * @see Channel#getId()
+     */
+    Channel getOpenChannel(int id);
+
+    /**
+     * Gets this connection's default channel.
+     * <p>
+     * For most implementations, this will return the same channel that PorkLib network uses for sending control messages, and
+     * should therefore be avoided in applications where performance is critical.
+     * <p>
+     * For some implementations (e.g. TCP) this will return the only accessible channel (as TCP only has one channel)
+     *
+     * @return this connection's default channel
+     */
+    default Channel getDefaultChannel() {
+        return this.getOpenChannel(0);
+    }
+
+    /**
+     * Gets this connection's control channel.
+     * <p>
+     * This is the channel that PorkLib network sends internal packets on, and should be avoided as much as possible.
+     * <p>
+     * For some implementations (e.g. TCP) this will return the only accessible channel (as TCP only has one channel)
+     *
+     * @return this connection's control channel
+     */
+    default Channel getControlChannel() {
+        return this.getDefaultChannel();
+    }
+
+    //
+    //
+    // Convenience methods
+    //
+    //
+    default void send(@NonNull Packet... packets) {
+        for (Packet packet : packets) {
+            this.send(packet);
+        }
+    }
+
+    default void send(@NonNull Packet packet) {
+        this.send(packet, false, null);
+    }
+
+    default void send(@NonNull Packet packet, Void callback) {
+        this.send(packet, false, callback);
+    }
+
+    default void sendBlocking(@NonNull Packet packet) {
+        this.send(packet, true, null);
+    }
+
+    default void sendBlocking(@NonNull Packet packet, Void callback) {
+        this.send(packet, true, callback);
+    }
+
+    default void send(@NonNull Packet packet, boolean blocking) {
+        this.send(packet, blocking, null);
+    }
+
+    default void closeConnection() {
+        this.closeConnection(null);
+    }
+
+    default Channel openChannel() {
+        return this.openChannel(Reliability.RELIABLE_ORDERED);
+    }
 }

@@ -192,7 +192,7 @@ public class EncryptionTest {
             {
                 byte[] encrypted1;
                 {
-                    OutputStream os = cipher1.encryptionStream(baos);
+                    OutputStream os = cipher1.encrypt(baos);
                     os.write(b.length & 0xFF);
                     os.write((b.length >> 8) & 0xFF);
                     os.write(b);
@@ -201,7 +201,7 @@ public class EncryptionTest {
                 }
                 byte[] decrypted;
                 {
-                    InputStream is = cipher2.decryptionStream(new ByteArrayInputStream(encrypted1));
+                    InputStream is = cipher2.decrypt(new ByteArrayInputStream(encrypted1));
                     decrypted = new byte[is.read() | (is.read() << 8)];
                     for (int i = 0; i < decrypted.length; i++) {
                         decrypted[i] = (byte) is.read();
@@ -213,7 +213,7 @@ public class EncryptionTest {
                 }
                 for (Cipher cipher : new Cipher[]{cipher3, cipher4}) {
                     try {
-                        InputStream is = cipher.decryptionStream(new ByteArrayInputStream(encrypted1));
+                        InputStream is = cipher.decrypt(new ByteArrayInputStream(encrypted1));
                         decrypted = new byte[is.read() | (is.read() << 8)];
                         for (int i = 0; i < decrypted.length; i++) {
                             decrypted[i] = (byte) is.read();

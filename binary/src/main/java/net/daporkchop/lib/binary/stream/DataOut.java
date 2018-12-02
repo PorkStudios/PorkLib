@@ -30,7 +30,11 @@ import java.nio.ByteBuffer;
  */
 public abstract class DataOut extends OutputStream {
     public static DataOut wrap(OutputStream out) {
-        return new StreamOut(out);
+        return out instanceof DataOut ? (DataOut) out : new StreamOut(out);
+    }
+
+    public static DataOut wrapNonClosing(OutputStream out) {
+        return out instanceof NonClosingStreamOut ? (NonClosingStreamOut) out : new NonClosingStreamOut(out);
     }
 
     public static DataOut wrap(ByteBuffer buffer) {
@@ -174,6 +178,26 @@ public abstract class DataOut extends OutputStream {
         }
     }
 
+    public void writeVarLong(long l) throws IOException {
+        this.writeVarLong(l, false);
+    }
+
+    public void writeVarLong(long l, boolean optimizePositive) throws IOException {
+        if (!optimizePositive) {
+            l = (l << 1L) ^ (l >> 63L);
+        }
+        if (l == 0L) {
+            this.write(0);
+            return;
+        }
+        long next = 0L;
+        while (l != 0) {
+            next = l & 0x7FL;
+            l >>>= 7L;
+            this.write((int) (next | (l == 0L ? 0L : 0x80L)));
+        }
+    }
+
     @Override
     public void write(byte[] b, int off, int len) throws IOException {
         for (int i = 0; i < len; i++) {
@@ -206,8 +230,27 @@ public abstract class DataOut extends OutputStream {
 
         @Override
         public void close() throws IOException {
-            this.flush();
             this.out.close();
+        }
+
+        @Override
+        public void write(int b) throws IOException {
+            this.out.write(b);
+        }
+
+        @Override
+        public void flush() throws IOException {
+            this.out.flush();
+        }
+    }
+
+    @AllArgsConstructor
+    private static class NonClosingStreamOut extends DataOut {
+        @NonNull
+        private final OutputStream out;
+
+        @Override
+        public void close() throws IOException {
         }
 
         @Override

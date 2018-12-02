@@ -79,9 +79,9 @@ public interface Cipher {
 
     byte[] decrypt(@NonNull byte[] ciphertext);
 
-    OutputStream encryptionStream(@NonNull OutputStream outputStream);
+    OutputStream encrypt(@NonNull OutputStream outputStream);
 
-    InputStream decryptionStream(@NonNull InputStream inputStream);
+    InputStream decrypt(@NonNull InputStream inputStream);
 }
 
 class BlockCipherImpl implements Cipher {
@@ -158,7 +158,7 @@ class BlockCipherImpl implements Cipher {
     }
 
     @Override
-    public OutputStream encryptionStream(OutputStream outputStream) {
+    public OutputStream encrypt(OutputStream outputStream) {
         BufferedBlockCipher cipher = this.get();
 
         synchronized (this.encrypt) {
@@ -172,7 +172,7 @@ class BlockCipherImpl implements Cipher {
     }
 
     @Override
-    public InputStream decryptionStream(InputStream inputStream) {
+    public InputStream decrypt(InputStream inputStream) {
         BufferedBlockCipher cipher = this.get();
 
         synchronized (this.decrypt) {
@@ -252,12 +252,14 @@ class StreamCipherImpl implements Cipher {
     }
 
     @Override
-    public OutputStream encryptionStream(OutputStream outputStream) {
+    public OutputStream encrypt(OutputStream outputStream) {
+        this.outLock.lock();
         return new StreamCipherOutput(this.outLock, this.outCipher, outputStream);
     }
 
     @Override
-    public InputStream decryptionStream(InputStream inputStream) {
+    public InputStream decrypt(InputStream inputStream) {
+        this.inLock.lock();
         return new StreamCipherInput(this.inLock, this.inCipher, inputStream);
     }
 

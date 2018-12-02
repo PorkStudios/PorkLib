@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.StreamSupport;
 
 /**
@@ -44,6 +45,9 @@ import java.util.stream.StreamSupport;
  */
 @Getter
 public class ClassWriter implements Closeable {
+    public static final Collection<String> GENERATED = new HashSet<>();
+    public static final AtomicLong GENERATED_SIZE = new AtomicLong(0L);
+
     private static final byte[] SPACES = "    ".getBytes(UTF8.utf8);
     private static final byte[] NEWLINE = "\n".getBytes(UTF8.utf8);
     private static final byte[] OPEN_BRACES = " {".getBytes(UTF8.utf8);
@@ -79,6 +83,7 @@ public class ClassWriter implements Closeable {
         }
     }
 
+    private final File file;
     private final OutputStream out;
     private final Set<Integer> withBraces;
     private int indentCounter = 0;
@@ -87,11 +92,14 @@ public class ClassWriter implements Closeable {
         if (!out.getName().endsWith(".java"))   {
             out = new File(String.format("%s.java", out.getAbsolutePath()));
         }
+        this.file = out;
         this.out = new BufferedOutputStream(new FileOutputStream(out));
 
         this.write(LICENSE);
         this.newline().newline();
-        this.write(String.format("package %s;", getPackageName(out)));
+        String packageName = getPackageName(out);
+        this.write(String.format("package %s;", packageName));
+        GENERATED.add(String.format("%s.%s", packageName, out.getName()));
         this.newline().newline();
         HashSet<String> theImports = new HashSet<>(DEFAULT_IMPORTS);
         for (String s : imports)    {
@@ -123,7 +131,7 @@ public class ClassWriter implements Closeable {
         return false;
     }
 
-    private static String getPackageName(@NonNull File file) {
+    public static String getPackageName(@NonNull File file) {
         List<String> strings = new ArrayList<>();
         if (file.isFile()) {
             file = file.getParentFile();
@@ -189,8 +197,12 @@ public class ClassWriter implements Closeable {
 
     @Override
     public void close() throws IOException {
+        while (this.indentCounter > 0)  {
+            this.pop();
+        }
         this.newline();
         this.out.close();
+        GENERATED_SIZE.addAndGet(this.file.length());
     }
 
     private void indent() throws IOException    {

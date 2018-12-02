@@ -12,15 +12,15 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.minecraft.protocol.api;
+package net.daporkchop.lib.minecraft.protocol.api.data;
+
+import net.daporkchop.lib.minecraft.protocol.api.Nameable;
 
 /**
- * Represents a single Minecraft version
+ * A sound that can be played in a Minecraft world
  *
  * @author DaPorkchop_
  */
-public interface Version extends Nameable {
-    Platform getPlatform();
-
-    int getProtocolVersion();
+public interface Sound extends Nameable {
+    int getId();
 }

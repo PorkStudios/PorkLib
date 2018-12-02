@@ -15,12 +15,8 @@
 package net.daporkchop.lib.minecraft.protocol.api;
 
 /**
- * Represents a single Minecraft version
- *
  * @author DaPorkchop_
  */
-public interface Version extends Nameable {
-    Platform getPlatform();
-
-    int getProtocolVersion();
+public interface Nameable {
+    String getName();
 }

@@ -21,9 +21,7 @@ import java.util.Collection;
  *
  * @author DaPorkchop_
  */
-public interface Platform {
-    String getName();
-
+public interface Platform extends Nameable {
     Collection<Version> getVersions();
 
     default Version get(int protocol) {

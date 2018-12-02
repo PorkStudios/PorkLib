@@ -14,19 +14,21 @@
 
 package net.daporkchop.lib.minecraft.protocol.generator;
 
+import lombok.NonNull;
 import net.daporkchop.lib.common.util.PorkUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author DaPorkchop_
  */
 public class Generator {
     public static void main(String... args) throws IOException {
-        System.out.println("Cleaning output directory...");
-        PorkUtil.rm(DataGenerator.OUT_ROOT);
-
         for (File platformDir : DataGenerator.IN_ROOT.listFiles()) {
             if (!platformDir.isDirectory()) {
                 continue;
@@ -36,6 +38,34 @@ public class Generator {
             DataGenerator.GENERATORS.get(platform)
                     .apply(platformDir)
                     .run(new File(DataGenerator.OUT_ROOT, platform));
+        }
+
+        System.out.printf("Generated %d files (%d bytes, %.2fMB)\n", ClassWriter.GENERATED.size(), ClassWriter.GENERATED_SIZE.get(), (double) ClassWriter.GENERATED_SIZE.get() / (1024.0d * 1024.0d));
+        Map<String, File> onDisk = new HashMap<>();
+        findOnDisk(DataGenerator.OUT_ROOT, onDisk);
+        System.out.printf("Found %d files\n", onDisk.size());
+        AtomicLong deletedCount = new AtomicLong(0L);
+        AtomicLong deletedSize = new AtomicLong(0L);
+        onDisk.entrySet().stream()
+                .filter(e -> !ClassWriter.GENERATED.contains(e.getKey()))
+                .map(Map.Entry::getValue)
+                .forEach(file -> {
+                    deletedCount.incrementAndGet();
+                    deletedSize.addAndGet(file.length());
+                    if (file.delete())  {
+                        throw new IllegalStateException(String.format("Couldn't delete file: %s", file.getAbsolutePath()));
+                    }
+                });
+        System.out.printf("Deleted %d old files (%d bytes, %.2fMB)\n", deletedCount.get(), deletedSize.get(), (double) deletedSize.get() / (1024.0d * 1024.0d));
+    }
+
+    private static void findOnDisk(@NonNull File file, @NonNull Map<String, File> map)    {
+        if (file.isDirectory()) {
+            for (File f : file.listFiles()) {
+                findOnDisk(f, map);
+            }
+        } else if (file.isFile())   {
+            map.put(String.format("%s.%s", ClassWriter.getPackageName(file), file.getName()), file);
         }
     }
 }

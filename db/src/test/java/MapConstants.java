@@ -13,18 +13,18 @@
  *
  */
 
-dependencies {
-    compile project(":encoding")
-    compile project(":binary")
-    compile project(":nbt")
-    compile project(":hash")
-    compile project(":logging")
-    compile project(":primitive")
+import net.daporkchop.lib.logging.Logging;
 
-    compile "com.zaxxer:SparseBitSet:1.1"
-    compile "com.google.guava:guava:27.0-jre"
+import java.io.File;
 
-    provided "de.schlichtherle.truezip:truezip-file:7.7.10"
-    provided "de.schlichtherle.truezip:truezip-driver-zip:7.7.10"
-    provided "de.schlichtherle.truezip:truezip-driver-tar:7.7.10"
+/**
+ * @author DaPorkchop_
+ */
+public interface MapConstants extends Logging {
+    File ROOT_DIR = new File(".", "test_out");
+
+    static void init() {
+        logger.setLevel(5);
+        logger.add(new File(ROOT_DIR, "test_log.log"), true);
+    }
 }

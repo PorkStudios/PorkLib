@@ -19,12 +19,14 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.function.IOFunction;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -56,7 +58,7 @@ public class PorkDB {
      * @return a blank instance of {@link Builder}
      */
     public static Builder builder() {
-        return new Builder();
+        return new Builder(null);
     }
 
     /**
@@ -66,7 +68,7 @@ public class PorkDB {
      * @return a new instance of {@link Builder} with the given root
      */
     public static Builder builder(@NonNull File root) {
-        return new Builder().setRoot(root);
+        return new Builder(null).setRoot(root);
     }
 
     /**
@@ -137,15 +139,21 @@ public class PorkDB {
         return builder.build();
     }
 
-    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     @Accessors(chain = true)
     @Getter
     @Setter
     public static final class Builder {
         /**
+         * The remote address of this database.
+         *
+         * If this is a local database, this will be {@code null}
+         */
+        private final InetSocketAddress remoteAddress;
+
+        /**
          * The root directory of the database.
          */
-        @NonNull
         private File root;
 
         /**

@@ -18,23 +18,40 @@ package net.daporkchop.lib.db.container.map.key;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.hash.HashAlg;
+import net.daporkchop.lib.hash.util.Digest;
+import net.daporkchop.lib.logging.Logging;
 
 /**
- * Allows hashing a byte array using one of the hashing algorithms defined in {@link HashAlg}
+ * Allows hashing a byte array using a {@link Digest}
  *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
 @Getter
 public class ByteArrayKeyHasher implements KeyHasher<byte[]> {
+    @NonNull
+    private final Digest digest;
+
+    @Override
+    public byte[] hash(@NonNull byte[] key) {
+        return this.digest.hash(key).getHash();
+    }
+
+    @Override
+    public int getHashLength() {
+        return this.digest.getHashSize();
+    }
+
     @RequiredArgsConstructor
     @Getter
-    public static class ConstantLength implements KeyHasher<byte[]> {
+    public static class ConstantLength implements KeyHasher<byte[]>, Logging {
         private final int hashLength;
 
         @Override
         public byte[] hash(@NonNull byte[] key) {
+            if (key.length != this.hashLength)  {
+                throw this.exception("Invalid byte[] size: ${0} (expected: ${1}", key.length, this.hashLength);
+            }
             return key.clone();
         }
 
@@ -45,20 +62,10 @@ public class ByteArrayKeyHasher implements KeyHasher<byte[]> {
 
         @Override
         public byte[] reconstructFromHash(@NonNull byte[] hash) {
+            if (hash.length != this.hashLength)  {
+                throw this.exception("Invalid byte[] size: ${0} (expected: ${1}", hash.length, this.hashLength);
+            }
             return hash.clone();
         }
-    }
-
-    @NonNull
-    private final HashAlg alg;
-
-    @Override
-    public byte[] hash(@NonNull byte[] key) {
-        return this.alg.hash(key);
-    }
-
-    @Override
-    public int getHashLength() {
-        return this.alg.getLength();
     }
 }

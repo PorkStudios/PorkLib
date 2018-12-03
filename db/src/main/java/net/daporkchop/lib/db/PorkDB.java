@@ -17,12 +17,12 @@ package net.daporkchop.lib.db;
 
 import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.function.IOFunction;
+import net.daporkchop.lib.db.remote.RemoteDB;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,7 +39,7 @@ import java.util.function.Function;
  *
  * @author DaPorkchop_
  */
-public class PorkDB {
+public abstract class PorkDB {
     final Map<String, Container> loadedContainers = new ConcurrentHashMap<>();
     private final Map<Class<? extends Container>, Function<String, ? extends Container.Builder>> builderCache = new IdentityHashMap<>();
     @Getter
@@ -48,7 +48,7 @@ public class PorkDB {
     @Getter
     private volatile boolean open = true;
 
-    private PorkDB(@NonNull Builder builder) {
+    protected PorkDB(@NonNull Builder builder) {
         this.root = builder.root;
     }
 
@@ -139,6 +139,13 @@ public class PorkDB {
         return builder.build();
     }
 
+    /**
+     * Checks if this database is remote
+     *
+     * @return whether or not this is a remote database
+     */
+    public abstract boolean isRemote();
+
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     @Accessors(chain = true)
     @Getter
@@ -146,7 +153,7 @@ public class PorkDB {
     public static final class Builder {
         /**
          * The remote address of this database.
-         *
+         * <p>
          * If this is a local database, this will be {@code null}
          */
         private final InetSocketAddress remoteAddress;
@@ -162,11 +169,11 @@ public class PorkDB {
          * @return a new instance of {@link PorkDB} based on this builder
          */
         public PorkDB build() {
-            if (this.root == null) {
+            if (this.remoteAddress == null && this.root == null) {
                 throw new IllegalStateException("root must be set!");
             }
 
-            return new PorkDB(this);
+            return this.remoteAddress == null ? new LocalDB(this) : new RemoteDB(this);
         }
     }
 }

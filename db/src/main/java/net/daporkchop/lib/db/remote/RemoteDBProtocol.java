@@ -13,18 +13,33 @@
  *
  */
 
-dependencies {
-    compile project(":encoding")
-    compile project(":nbt")
-    compile project(":hash")
-    compile project(":network")
-    compile project(":logging")
-    compile project(":primitive")
+package net.daporkchop.lib.db.remote;
 
-    compile "com.zaxxer:SparseBitSet:1.1"
-    compile "com.google.guava:guava:27.0-jre"
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.network.packet.UserProtocol;
 
-    provided "de.schlichtherle.truezip:truezip-file:7.7.10"
-    provided "de.schlichtherle.truezip:truezip-driver-zip:7.7.10"
-    provided "de.schlichtherle.truezip:truezip-driver-tar:7.7.10"
+/**
+ * @author DaPorkchop_
+ */
+@Getter
+public class RemoteDBProtocol extends UserProtocol<RemoteDBConnection> {
+    @NonNull
+    private final RemoteDB db;
+
+    public RemoteDBProtocol(@NonNull RemoteDB db) {
+        super("PorkLib DB - remote", 2);
+        this.db = db;
+    }
+
+    @Override
+    protected void registerPackets() {
+
+    }
+
+    @Override
+    public RemoteDBConnection newConnection() {
+        return new RemoteDBConnection();
+    }
 }

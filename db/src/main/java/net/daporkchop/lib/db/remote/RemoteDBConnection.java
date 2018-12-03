@@ -13,18 +13,12 @@
  *
  */
 
-dependencies {
-    compile project(":encoding")
-    compile project(":nbt")
-    compile project(":hash")
-    compile project(":network")
-    compile project(":logging")
-    compile project(":primitive")
+package net.daporkchop.lib.db.remote;
 
-    compile "com.zaxxer:SparseBitSet:1.1"
-    compile "com.google.guava:guava:27.0-jre"
+import net.daporkchop.lib.network.conn.UserConnection;
 
-    provided "de.schlichtherle.truezip:truezip-file:7.7.10"
-    provided "de.schlichtherle.truezip:truezip-driver-zip:7.7.10"
-    provided "de.schlichtherle.truezip:truezip-driver-tar:7.7.10"
+/**
+ * @author DaPorkchop_
+ */
+public class RemoteDBConnection extends UserConnection {
 }

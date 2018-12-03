@@ -23,6 +23,7 @@ import lombok.Setter;
 import net.daporkchop.lib.binary.Persistent;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.logging.Logging;
 
 import java.io.*;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -33,7 +34,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 @Getter
 @RequiredArgsConstructor
-public class PersistentSparseBitSet implements Persistent {
+public class PersistentSparseBitSet implements Persistent, Logging {
     @Setter
     private volatile boolean dirty;
     private final File file;
@@ -44,7 +45,7 @@ public class PersistentSparseBitSet implements Persistent {
     public void load() throws IOException {
         if (this.file.exists()) {
             if (!this.file.isFile())    {
-                throw new IllegalStateException(String.format("Not a file: %s", this.file.getAbsolutePath()));
+                throw this.exception("Not a file: ${0}", this.file);
             }
             if (this.file.length() != 0L) {
                 try (ObjectInput in = new ObjectInputStream(DataIn.wrap(this.file))) {
@@ -55,7 +56,7 @@ public class PersistentSparseBitSet implements Persistent {
                 }
             }
         } else if (!this.file.createNewFile())  {
-            throw new IllegalStateException(String.format("Could not create file: %s", this.file.getAbsolutePath()));
+            throw this.exception("Could not create file: ${0}", this.file);
         }
         this.bitSet = new SparseBitSet();
     }

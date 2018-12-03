@@ -13,18 +13,44 @@
  *
  */
 
-dependencies {
-    compile project(":encoding")
-    compile project(":nbt")
-    compile project(":hash")
-    compile project(":network")
-    compile project(":logging")
-    compile project(":primitive")
+package net.daporkchop.lib.db.remote;
 
-    compile "com.zaxxer:SparseBitSet:1.1"
-    compile "com.google.guava:guava:27.0-jre"
+import lombok.Getter;
+import net.daporkchop.lib.db.PorkDB;
+import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
+import net.daporkchop.lib.network.endpoint.client.Client;
+import net.daporkchop.lib.network.protocol.netty.sctp.SctpProtocolManager;
 
-    provided "de.schlichtherle.truezip:truezip-file:7.7.10"
-    provided "de.schlichtherle.truezip:truezip-driver-zip:7.7.10"
-    provided "de.schlichtherle.truezip:truezip-driver-tar:7.7.10"
+import java.net.InetSocketAddress;
+
+/**
+ * An implementation of {@link PorkDB} which runs on a remote machine
+ *
+ * @author DaPorkchop_
+ */
+public class RemoteDB extends PorkDB {
+    @Getter
+    private final InetSocketAddress remoteAddress;
+    @Getter
+    private final Client netClient;
+
+    protected RemoteDB(Builder builder) {
+        super(builder);
+
+        if (builder.getRemoteAddress() == null) {
+            throw new IllegalArgumentException("Remote address must be set!");
+        } else {
+            this.remoteAddress = builder.getRemoteAddress();
+        }
+        this.netClient = new ClientBuilder()
+                .setAddress(this.remoteAddress)
+                .addProtocol(new RemoteDBProtocol(this))
+                .setManager(SctpProtocolManager.INSTANCE)
+                .build();
+    }
+
+    @Override
+    public boolean isRemote() {
+        return true;
+    }
 }

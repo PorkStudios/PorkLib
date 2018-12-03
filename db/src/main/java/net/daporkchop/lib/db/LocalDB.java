@@ -13,18 +13,20 @@
  *
  */
 
-dependencies {
-    compile project(":encoding")
-    compile project(":nbt")
-    compile project(":hash")
-    compile project(":network")
-    compile project(":logging")
-    compile project(":primitive")
+package net.daporkchop.lib.db;
 
-    compile "com.zaxxer:SparseBitSet:1.1"
-    compile "com.google.guava:guava:27.0-jre"
+/**
+ * An implementation of {@link PorkDB} that runs on the local machine
+ *
+ * @author DaPorkchop_
+ */
+public class LocalDB extends PorkDB {
+    protected LocalDB(Builder builder) {
+        super(builder);
+    }
 
-    provided "de.schlichtherle.truezip:truezip-file:7.7.10"
-    provided "de.schlichtherle.truezip:truezip-driver-zip:7.7.10"
-    provided "de.schlichtherle.truezip:truezip-driver-tar:7.7.10"
+    @Override
+    public boolean isRemote() {
+        return false;
+    }
 }

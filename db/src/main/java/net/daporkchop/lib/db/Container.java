@@ -15,7 +15,11 @@
 
 package net.daporkchop.lib.db;
 
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
@@ -63,29 +67,30 @@ public abstract class Container<V, B extends Container.Builder<V, ? extends Cont
 
     public abstract void save() throws IOException;
 
-    protected File getFile(@NonNull String name) throws IOException    {
+    protected File getFile(@NonNull String name) throws IOException {
         return this.getFile(name, null, true);
     }
 
-    protected File getFile(@NonNull String name, boolean create) throws IOException    {
+    protected File getFile(@NonNull String name, boolean create) throws IOException {
         return this.getFile(name, null, create);
     }
 
-    protected File getFile(@NonNull String name, IOConsumer<DataOut> initializer, boolean create) throws IOException    {
-        if (!this.usesDirectory())  {
+    protected File getFile(@NonNull String name, IOConsumer<DataOut> initializer, boolean create) throws IOException {
+        if (!this.usesDirectory()) {
             throw new IllegalStateException();
         } else {
             File file = new File(this.file, name);
             if (create && !file.exists()) {
                 File parent = file.getParentFile();
-                if (!parent.exists() && !parent.mkdirs())   {
-                    throw new IOException(String.format("Could not create file: %s", parent.getAbsolutePath()));
-                } else if (parent.exists() && !parent.isDirectory())    {
+                boolean parentExists = parent.exists();
+                if (parentExists && !parent.isDirectory()) {
                     throw new IOException(String.format("Not a directory: %s", parent.getAbsolutePath()));
-                } else if (!file.createNewFile())   {
+                } else if (!parentExists && !parent.mkdirs()) {
+                    throw new IOException(String.format("Could not create directory: %s", parent.getAbsolutePath()));
+                } else if (!file.createNewFile()) {
                     throw new IOException(String.format("Could not create file: %s", file.getAbsolutePath()));
                 } else if (initializer != null) {
-                    try (DataOut out = DataOut.wrap(file))  {
+                    try (DataOut out = DataOut.wrap(file)) {
                         initializer.acceptThrowing(out);
                     }
                 }

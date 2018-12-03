@@ -45,12 +45,11 @@ public class PorkUtil {
     public static void rm(@NonNull File file)   {
         while (file.exists()) {
             if (file.isDirectory()) {
-                File[] files = file.listFiles();
-                if (files == null) {
-                    throw new NullPointerException(file.getAbsolutePath());
-                }
-                for (File f : files) {
-                    rm(f);
+                File[] files;
+                while ((files = file.listFiles()) != null && files.length != 0) {
+                    for (File f : files) {
+                        rm(f);
+                    }
                 }
             }
             if (!file.delete()) {

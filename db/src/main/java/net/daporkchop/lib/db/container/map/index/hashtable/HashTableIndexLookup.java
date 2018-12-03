@@ -68,13 +68,16 @@ public class HashTableIndexLookup<K> extends BaseHashTableIndexLookup<K> {
 
     @Override
     protected long getDiskValue(long hashBits) throws IOException {
-        long pos = hashBits;
-        pos *= this.pointerBytes;
+        long pos = hashBits * this.pointerBytes;
         ByteBuffer buffer = this.valueBufferCache.get();
         buffer.clear();
         this.tableChannel.read(buffer, pos);
         buffer.flip();
-        return this.readFromBuffer(buffer);
+        long l = this.readFromBuffer(buffer);
+        if (l != 0) {
+            l = l;
+        }
+        return l;
     }
 
     protected long readFromBuffer(@NonNull ByteBuffer buffer)   {

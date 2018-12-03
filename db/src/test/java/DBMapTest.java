@@ -13,6 +13,7 @@
  *
  */
 
+import com.zaxxer.sparsebits.SparseBitSet;
 import net.daporkchop.lib.binary.data.Serializer;
 import net.daporkchop.lib.binary.data.impl.ByteArraySerializer;
 import net.daporkchop.lib.common.function.IOConsumer;
@@ -26,12 +27,15 @@ import net.daporkchop.lib.db.container.map.data.SectoredDataLookup;
 import net.daporkchop.lib.db.container.map.index.IndexLookup;
 import net.daporkchop.lib.db.container.map.index.hashtable.HashTableIndexLookup;
 import net.daporkchop.lib.db.container.map.index.hashtable.MappedHashTableIndexLookup;
+import net.daporkchop.lib.db.container.map.key.ByteArrayKeyHasher;
+import net.daporkchop.lib.encoding.Hexadecimal;
 import net.daporkchop.lib.encoding.basen.Base58;
 import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.encoding.compression.CompressionHelper;
 import org.junit.Test;
 
 import java.io.File;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -48,6 +52,7 @@ import java.util.stream.Collectors;
  * @author DaPorkchop_
  */
 public class DBMapTest {
+    private static final int TABLE_SIZE_BITS = 16;
     private static final File ROOT_DIR = new File(".", "test_out/map");
 
     private static final Collection<Supplier<Serializer<byte[]>>> SERIALIZERS = Arrays.asList(
@@ -61,39 +66,50 @@ public class DBMapTest {
             , OneTimeWriteDataLookup::new
             , () -> new SectoredDataLookup(4096)
     );
-    private static final Collection<Supplier<IndexLookup<String>>> INDEX_LOOKUPS = Arrays.asList(
+    private static final Collection<Supplier<IndexLookup<byte[]>>> INDEX_LOOKUPS = Arrays.asList(
             null
             //, () -> new BucketingHashTableIndexLookup<>(2, 4),
-            , () -> new HashTableIndexLookup<>(16, 4)
-            , () -> new MappedHashTableIndexLookup<>(16, 4)
+            , () -> new HashTableIndexLookup<>(TABLE_SIZE_BITS, 4)
+            , () -> new MappedHashTableIndexLookup<>(TABLE_SIZE_BITS, 4)
     );
     private static final Collection<Supplier<CompressionHelper>> COMPRESSIONS = Arrays.asList(
             null
             , () -> Compression.NONE
     );
     private static final Supplier<Random> RANDOM = () -> new Random(123456789L);
-    private static final Collection<BiConsumer<Random, Map<String, byte[]>>> POPULATORS = Arrays.asList(
+    private static final Collection<BiConsumer<Random, Map<byte[], byte[]>>> POPULATORS = Arrays.asList(
             null
             , (random, map) -> {
-                for (int i = 0; i < 513; i++) {
-                    byte[] b1 = new byte[16];
-                    byte[] b2 = new byte[1024];
-                    random.nextBytes(b1);
+                for (int i = 0; i < 512; i++) {
+                    byte[] b1 = new byte[TABLE_SIZE_BITS];
+                    byte[] b2 = new byte[random.nextInt(1024) + 128];
+                    do { //TODO: distinct finder thing is borked
+                        random.nextBytes(b1);
+                    } while (map.keySet().stream()
+                            .map(ByteBuffer::wrap)
+                            .map(buf -> buf.getLong(TABLE_SIZE_BITS - 8) & ((1 << TABLE_SIZE_BITS) - 1))
+                            .distinct().count() != map.size());
                     random.nextBytes(b2);
-                    map.put(Base58.encodeBase58(b1), b2);
+                    map.put(b1, b2);
                 }
+                int fullSize = map.size();
+                int individualSize = (int) map.keySet().stream()
+                        .map(ByteBuffer::wrap)
+                        .map(buf -> buf.getLong(TABLE_SIZE_BITS - 8) & ((1 << TABLE_SIZE_BITS) - 1))
+                        .distinct().count();
+                System.out.printf("Full: %d, indiviudual: %d\n", fullSize, individualSize);
             }
             , (random, map) -> {
                 if (false) {
-                    byte[] b1 = new byte[16];
+                    byte[] b1 = new byte[TABLE_SIZE_BITS];
                     byte[] b2 = new byte[0xFFFFFF];
                     random.nextBytes(b1);
-                    map.put(Base58.encodeBase58(b1), b2);
-                    b1 = new byte[16];
+                    map.put(b1, b2);
+                    b1 = new byte[TABLE_SIZE_BITS];
                     b2 = new byte[0xFFFFFF];
                     random.nextBytes(b1);
                     random.nextBytes(b2);
-                    map.put(Base58.encodeBase58(b1), b2);
+                    map.put(b1, b2);
                 }
             }
     );
@@ -127,28 +143,36 @@ public class DBMapTest {
                         PorkUtil.rm(ROOT_DIR);
 
                         Random random = RANDOM.get();
-                        Map<String, byte[]> data = new HashMap<>();
+                        Map<byte[], byte[]> data = new HashMap<>();
                         POPULATORS.forEach(populator -> {
                             if (populator == null) {
                                 return;
                             }
                             populator.accept(random, data);
                         });
-                        Map<String, byte[]> oldData = new HashMap<>(data);
+                        Map<byte[], byte[]> oldData = new HashMap<>(data);
                         {
                             PorkDB db = PorkDB.builder()
                                     .setRoot(ROOT_DIR)
                                     .build();
 
                             try {
-                                DBMap<String, byte[]> dbMap = DBMap.<String, byte[]>builder(db, "map")
+                                DBMap<byte[], byte[]> dbMap = DBMap.<byte[], byte[]>builder(db, "map")
                                         .setValueSerializer(serializer.get())
                                         .setDataLookup(dataLookup.get())
                                         .setIndexLookup(indexLookup.get())
                                         .setCompression(compression.get())
+                                        .setKeyHasher(new ByteArrayKeyHasher.ConstantLength(TABLE_SIZE_BITS))
                                         .build();
 
-                                dbMap.putAll(data);
+                                data.forEach((key, val) -> {
+                                    if (dbMap.containsKey(key)) {
+                                        throw new IllegalStateException(String.format("Key %s already contained!", Hexadecimal.encode(key)));
+                                    } else {
+                                        dbMap.put(key, val);
+                                    }
+                                });
+                                //dbMap.putAll(data);
                             } finally {
                                 db.close();
                             }
@@ -159,20 +183,21 @@ public class DBMapTest {
                                     .build();
 
                             try {
-                                DBMap<String, byte[]> dbMap = DBMap.<String, byte[]>builder(db, "map")
+                                DBMap<byte[], byte[]> dbMap = DBMap.<byte[], byte[]>builder(db, "map")
                                         .setValueSerializer(serializer.get())
                                         .setDataLookup(dataLookup.get())
                                         .setIndexLookup(indexLookup.get())
                                         .setCompression(compression.get())
+                                        .setKeyHasher(new ByteArrayKeyHasher.ConstantLength(TABLE_SIZE_BITS))
                                         .build();
 
                                 data.forEach((key, val) -> {
                                     if (!dbMap.containsKey(key)) {
-                                        throw new IllegalStateException(String.format("Missing key: %s", key));
+                                        throw new IllegalStateException(String.format("Missing key: %s", Hexadecimal.encode(key)));
                                     }
                                     byte[] diskVal = dbMap.get(key);
                                     if (!Arrays.equals(val, diskVal)) {
-                                        throw new IllegalStateException(String.format("Value for key %s is incorrect!", key));
+                                        throw new IllegalStateException(String.format("Value for key %s is incorrect!", Hexadecimal.encode(key)));
                                     }
                                 });
 
@@ -194,25 +219,26 @@ public class DBMapTest {
                                     .build();
 
                             try {
-                                DBMap<String, byte[]> dbMap = DBMap.<String, byte[]>builder(db, "map")
+                                DBMap<byte[], byte[]> dbMap = DBMap.<byte[], byte[]>builder(db, "map")
                                         .setValueSerializer(serializer.get())
                                         .setDataLookup(dataLookup.get())
                                         .setIndexLookup(indexLookup.get())
                                         .setCompression(compression.get())
+                                        .setKeyHasher(new ByteArrayKeyHasher.ConstantLength(TABLE_SIZE_BITS))
                                         .build();
 
                                 oldData.forEach((key, val) -> {
                                     if (data.containsKey(key)) {
                                         if (!dbMap.containsKey(key)) {
-                                            throw new IllegalStateException(String.format("Missing key: %s", key));
+                                            throw new IllegalStateException(String.format("Missing key: %s", Hexadecimal.encode(key)));
                                         }
                                         byte[] diskVal = dbMap.get(key);
                                         if (!Arrays.equals(val, diskVal)) {
-                                            throw new IllegalStateException(String.format("Value for key %s is incorrect!", key));
+                                            throw new IllegalStateException(String.format("Value for key %s is incorrect!", Hexadecimal.encode(key)));
                                         }
                                     } else {
                                         if (dbMap.containsKey(key)) {
-                                            throw new IllegalStateException(String.format("Key %s is present even though it was removed!", key));
+                                            throw new IllegalStateException(String.format("Key %s is present even though it was removed!", Hexadecimal.encode(key)));
                                         }
                                     }
                                 });
@@ -224,6 +250,5 @@ public class DBMapTest {
                 });
             });
         });
-        PorkUtil.rm(ROOT_DIR);
     }
 }

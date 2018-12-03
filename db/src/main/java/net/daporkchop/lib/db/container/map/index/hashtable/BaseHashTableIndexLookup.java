@@ -180,6 +180,9 @@ public abstract class BaseHashTableIndexLookup<K> implements IndexLookup<K> {
 
     protected boolean doContains(@NonNull K key) throws IOException {
         long l = this.getDiskValue(key);
+        if (l != 0L)    {
+             l = l;
+        }
         return l != 0L;
     }
 
@@ -260,16 +263,11 @@ public abstract class BaseHashTableIndexLookup<K> implements IndexLookup<K> {
     protected long getRelevantHashBits(@NonNull byte[] hash) {
         //get required number of bytes into hash thing
         long bits = 0L;
-        for (int i = this.usedBits >> 3; i >= 0; i--) {
+        for (int i = (this.usedBits >>> 3) - 1; i >= 0; i--) {
             bits = ((bits << 8L) | (hash[i] & 0xFFL));
         }
         //remove excessive bits at the end
         return bits & ((1L << this.usedBits) - 1L);
-        /*int x = (hash[0] & 0xFF) |
-                ((hash[1] & 0xFF) << 8) |
-                ((hash[2] & 0xFF) << 16) |
-                ((hash[3] & 0xFF) << 24);
-        return x & ((1 << this.usedBits) - 1);*/
     }
 
     protected long getDiskValue(@NonNull K key) throws IOException {

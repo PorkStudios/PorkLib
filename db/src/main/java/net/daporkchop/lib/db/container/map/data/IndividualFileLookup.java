@@ -86,8 +86,12 @@ public class IndividualFileLookup implements DataLookup {
         }
         File file = this.getFile(id);
         if (!file.exists()) {
-            if (!file.getParentFile().exists() && !file.getParentFile().mkdirs()) {
-                throw new IllegalStateException(String.format("Couldn't create directory: %s", file.getParentFile().getAbsolutePath()));
+            File parent = file.getParentFile();
+            boolean parentExists = parent.exists();
+            if (!parentExists && !parent.mkdirs()) {
+                throw new IllegalStateException(String.format("Couldn't create directory: %s", parent.getAbsolutePath()));
+            } else if (parentExists && !parent.isDirectory())       {
+                throw new IllegalStateException(String.format("Not a directory: %s", parent.getAbsolutePath()));
             } else if (!file.createNewFile()) {
                 throw new IllegalStateException(String.format("Couldn't create new file: %s", file.getAbsolutePath()));
             }

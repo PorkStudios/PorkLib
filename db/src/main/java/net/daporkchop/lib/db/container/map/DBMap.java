@@ -200,7 +200,10 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
         try {
             AtomicReference<V> oldValue = loadOldValue ? new AtomicReference<>(null) : null;
             this.indexLookup.change(key, id -> {
-                if (id != -1L && loadOldValue) {
+                if (id == -1L)  {
+                    this.size.incrementAndGet();
+                    this.dirty = true;
+                } else if (loadOldValue) {
                     try (DataIn in = this.wrap(this.dataLookup.read(id))) {
                         oldValue.set(this.valueSerializer.read(in));
                     }
@@ -241,6 +244,8 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
                         old = this.valueSerializer.read(in);
                     }
                 }
+                this.size.decrementAndGet();
+                this.dirty = true;
                 this.dataLookup.remove(id);
             }
             return old;
@@ -260,6 +265,7 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
         try {
             this.indexLookup.clear();
             this.dataLookup.clear();
+            this.dirty = true;
             this.save();
         } catch (IOException e) {
             throw new RuntimeException(e);

@@ -25,9 +25,30 @@ import net.daporkchop.lib.hash.HashAlg;
  *
  * @author DaPorkchop_
  */
-@Getter
 @RequiredArgsConstructor
+@Getter
 public class ByteArrayKeyHasher implements KeyHasher<byte[]> {
+    @RequiredArgsConstructor
+    @Getter
+    public static class ConstantLength implements KeyHasher<byte[]> {
+        private final int hashLength;
+
+        @Override
+        public byte[] hash(@NonNull byte[] key) {
+            return key.clone();
+        }
+
+        @Override
+        public boolean canReconstructFromHash() {
+            return true;
+        }
+
+        @Override
+        public byte[] reconstructFromHash(@NonNull byte[] hash) {
+            return hash.clone();
+        }
+    }
+
     @NonNull
     private final HashAlg alg;
 

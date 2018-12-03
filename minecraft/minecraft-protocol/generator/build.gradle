@@ -18,6 +18,8 @@ dependencies {
     compile project(":logging")
 
     compile 'com.google.code.gson:gson:2.8.5'
+    compile 'org.ow2.asm:asm:6.0'
+    compile 'org.ow2.asm:asm-util:6.0'
 }
 
 task gen(type: JavaExec, dependsOn: 'classes') {

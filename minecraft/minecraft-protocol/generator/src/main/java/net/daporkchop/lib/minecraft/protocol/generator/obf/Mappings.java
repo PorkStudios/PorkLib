@@ -27,6 +27,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -49,7 +50,7 @@ public class Mappings {
     private static final Map<String, Mappings> MAPPINGS = new ConcurrentHashMap<>();
 
     private Map<String, String> classes = new HashMap<>();
-    private Map<String, String> fields = new HashMap<>();
+    private Map<String, Map<String, String>> fields = new HashMap<>();
 
     public static Mappings getMappings(@NonNull String inVersion) {
         return MAPPINGS.computeIfAbsent(inVersion, version -> {
@@ -65,7 +66,9 @@ public class Mappings {
                             }
                             break;
                             case "FD:": {
-                                mappings.fields.put(split[1], split[2].replace('/', '.'));
+                                String clazz = split[2].substring(0, split[2].lastIndexOf('/')).replace('/', '.');
+                                String field = split[2].substring(split[2].lastIndexOf('/') + 1, split[2].length());
+                                mappings.fields.computeIfAbsent(clazz, a -> new HashMap<>()).put(split[1].split("/")[1], field);
                             }
                             break;
                         }
@@ -82,7 +85,7 @@ public class Mappings {
         return this.classes.getOrDefault(name, name);
     }
 
-    public String getField(@NonNull String name)    {
-        return this.classes.getOrDefault(name, name);
+    public String getField(@NonNull String clazz, @NonNull String field)    {
+        return this.fields.getOrDefault(clazz, Collections.emptyMap()).get(field);
     }
 }

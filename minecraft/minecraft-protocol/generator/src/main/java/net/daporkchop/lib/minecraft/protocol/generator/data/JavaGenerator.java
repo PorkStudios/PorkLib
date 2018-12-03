@@ -24,15 +24,24 @@ import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.minecraft.protocol.generator.Cache;
 import net.daporkchop.lib.minecraft.protocol.generator.ClassWriter;
 import net.daporkchop.lib.minecraft.protocol.generator.DataGenerator;
+import net.daporkchop.lib.minecraft.protocol.generator.obf.Mappings;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.Opcodes;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.StringJoiner;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.zip.ZipFile;
 
@@ -49,7 +58,7 @@ public class JavaGenerator implements DataGenerator, Logging {
             this.put("1.12.2", "https://raw.githubusercontent.com/Pokechu22/Burger/gh-pages/1.12.2.json");
         }
     };
-    private static final Map<String, String> CLIENT_JAR_URLS = new HashMap<String, String>()    {
+    private static final Map<String, String> CLIENT_JAR_URLS = new HashMap<String, String>() {
         {
             this.put("1.10", "https://launcher.mojang.com/v1/objects/ba038efbc6d9e4a046927a7658413d0276895739/client.jar");
             this.put("1.11.2", "https://launcher.mojang.com/v1/objects/db5aa600f0b0bf508aaf579509b345c4e34087be/client.jar");
@@ -66,6 +75,21 @@ public class JavaGenerator implements DataGenerator, Logging {
             this.put("varlong", "long");
             this.put("byte", "byte");
             this.put("byte[]", "byte[]");
+        }
+    };
+    private static final Map<String, BiFunction<String, Mappings, String>> NAME_TRANSLATORS = new HashMap<String, BiFunction<String, Mappings, String>>() {
+        {
+            this.put("Z", (s, m) -> "boolean");
+            this.put("B", (s, m) -> "byte");
+            this.put("C", (s, m) -> "char");
+            this.put("D", (s, m) -> "double");
+            this.put("F", (s, m) -> "float");
+            this.put("I", (s, m) -> "int");
+            this.put("J", (s, m) -> "long");
+            this.put("L", (s, m) -> m.getClass(s.substring(1, s.length() - 1)));
+            this.put("S", (s, m) -> "short");
+            this.put("V", (s, m) -> "void");
+            this.put("[", (s, m) -> String.format("%s[]", this.get(String.valueOf(s.charAt(1))).apply(s.substring(1, s.length()), m)));
         }
     };
     @NonNull
@@ -246,40 +270,98 @@ public class JavaGenerator implements DataGenerator, Logging {
     }
 
     private void generatePackets(@NonNull Version version, @NonNull File out) throws IOException {
-        /*Mappings mappings = Mappings.getMappings(version.version);
-        for (Map.Entry<String, JsonElement> entryPacket : version.object.getAsJsonObject("packets").getAsJsonObject("packet").entrySet()) {
-            JsonObject packetObj = entryPacket.getValue().getAsJsonObject();
-            String packetName = mappings.getClass(packetObj.get("class").getAsString().replace(".class", ""));
-            packetName = packetName.substring(packetName.lastIndexOf('.') + 1, packetName.length());
-            String owner = null;
-            if (packetName.contains("$")) {
-                owner = packetName.substring(0, packetName.indexOf('$'));
-                packetName = packetName.substring(packetName.indexOf('$') + 1, packetName.length());
-                if (packetName.contains("Packet")) {
-                    packetName = String.format("S%s", packetName.substring(packetName.indexOf("Packet"), packetName.length()));
-                } else {
-                    packetName = String.format("%cPacket%s", "SERVERBOUND".equals(packetObj.get("direction").getAsString()) ? 'S' : 'C', packetName);
-                }
-            }
-            try (ClassWriter writer = new ClassWriter(this.ensureFileExists(out, String.format("%s.java", packetName)))) {
-                writer.write("//@AllArgsConstructor",
-                        "@NoArgsConstructor",
-                        String.format("public class %s%s implements MinecraftPacket", packetName, owner == null ? "" : String.format(" extends %s", owner))).pushBraces();
-                for (JsonObject object : StreamSupport.stream(packetObj.getAsJsonArray("instructions").spliterator(), false).map(JsonElement::getAsJsonObject).collect(Collectors.toList())) {
-                    if ("write".equals(object.get("operation").getAsString())) {
-                        String fieldName = object.get("field").getAsString();
-                        writer.write(String.format("%spublic %s %s;", fieldName.contains(".") || fieldName.contains(" ") || fieldName.contains(".") || fieldName.contains("(") ? "//" : "", PACKET_FIELD_TYPES.getOrDefault(object.get("type").getAsString(), "Object"), fieldName));
+        Mappings mappings = Mappings.getMappings(version.version);
+        mappings.getClasses().entrySet().stream()
+                .filter(entry -> entry.getValue().startsWith("net.minecraft.network"))
+                .filter(entry -> entry.getValue().contains("SPacket") || entry.getValue().contains("CPacket"))
+                .forEach(entry -> {
+                    logger.trace("Packet class: ${0} -> ${1}", entry.getKey(), entry.getValue());
+                    try (InputStream in = version.clientJar.getInputStream(version.clientJar.getEntry(this.format("${0}.class", entry.getKey())))) {
+                        ClassReader reader = new ClassReader(in);
+                        if ((reader.getAccess() & Opcodes.ACC_ENUM) != 0) {
+                            logger.trace(" Enum: ${0}", entry.getValue());
+                        }
+                        reader.accept(new ClassVisitor(Opcodes.ASM4) {
+                            @Override
+                            public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
+                                BiFunction<String, Mappings, String> func = NAME_TRANSLATORS.get(String.valueOf(desc.charAt(0)));
+                                StringJoiner joiner = new StringJoiner(" ");
+                                if ((access & Opcodes.ACC_PUBLIC) != 0) {
+                                    joiner.add("public");
+                                }
+                                if ((access & Opcodes.ACC_PRIVATE) != 0) {
+                                    joiner.add("private");
+                                }
+                                if ((access & Opcodes.ACC_PROTECTED) != 0) {
+                                    joiner.add("protected");
+                                }
+                                if ((access & Opcodes.ACC_STATIC) != 0) {
+                                    joiner.add("static");
+                                }
+                                if ((access & Opcodes.ACC_FINAL) != 0) {
+                                    joiner.add("final");
+                                }
+                                if ((access & Opcodes.ACC_TRANSIENT) != 0) {
+                                    joiner.add("transient");
+                                }
+                                if ((access & Opcodes.ACC_VOLATILE) != 0) {
+                                    joiner.add("volatile");
+                                }
+                                if ((access & Opcodes.ACC_SYNTHETIC) != 0) {
+                                    joiner.add("synthetic");
+                                }
+
+                                logger.debug("    ${0} ${2} ${1}", joiner.toString(), mappings.getField(entry.getValue(), name), func.apply(desc, mappings).replace('/', '.'));
+                                return super.visitField(access, name, desc, signature, value);
+                            }
+                        }, 0);
+                    } catch (IOException e) {
+                        throw this.exception(e);
                     }
-                }
-                writer.newline()
-                        .write("@Override",
-                                "public PacketDirection getDirection()").pushBraces()
-                        .write(String.format("return PacketDirection.%s;", packetObj.get("direction").getAsString())).pop().newline()
-                        .write("@Override",
-                                "public int getId()").pushBraces()
-                        .write(String.format("return %d;", packetObj.get("id").getAsInt()));
-            }
-        }*/
+                });
+    }
+
+    @RequiredArgsConstructor
+    @Getter
+    private enum AccessModifier {
+        PUBLIC(Opcodes.ACC_PUBLIC),
+        PRIVATE(Opcodes.ACC_PRIVATE),
+        PROTECTED(Opcodes.ACC_PROTECTED),
+        STATIC(Opcodes.ACC_STATIC),
+        FINAL(Opcodes.ACC_FINAL),
+        TRANSIENT(Opcodes.ACC_TRANSIENT),
+        VOLATILE(Opcodes.ACC_VOLATILE),
+        SYNTHETIC(Opcodes.ACC_SYNTHETIC);
+
+        private final int mask;
+    }
+
+    @Getter
+    private static class FieldFindingClassVisitor extends ClassVisitor {
+        private final String classNameMCP;
+        private final String classNameObf;
+        private final Collection<Field> fields = new ArrayDeque<>();
+
+        public FieldFindingClassVisitor(@NonNull String classNameMCP, @NonNull String classNameObf) {
+            super(Opcodes.ASM6);
+            this.classNameMCP = classNameMCP;
+            this.classNameObf = classNameObf;
+        }
+
+        @Override
+        public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
+            BiFunction<String, Mappings, String> func = NAME_TRANSLATORS.get(String.valueOf(desc.charAt(0)));
+
+            return super.visitField(access, name, desc, signature, value);
+        }
+    }
+
+    @RequiredArgsConstructor
+    @Getter
+    private static class Field {
+        @NonNull
+        private final String name;
+        private final Collection<AccessModifier> modifiers = new ArrayDeque<>();
     }
 
     @RequiredArgsConstructor

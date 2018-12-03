@@ -24,20 +24,17 @@ import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.minecraft.protocol.generator.Cache;
 import net.daporkchop.lib.minecraft.protocol.generator.ClassWriter;
 import net.daporkchop.lib.minecraft.protocol.generator.DataGenerator;
-import net.daporkchop.lib.minecraft.protocol.generator.obf.Mappings;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
+import java.util.zip.ZipFile;
 
 /**
  * @author DaPorkchop_
@@ -50,6 +47,13 @@ public class JavaGenerator implements DataGenerator, Logging {
             this.put("1.10", "https://raw.githubusercontent.com/Pokechu22/Burger/gh-pages/1.10.json");
             this.put("1.11.2", "https://raw.githubusercontent.com/Pokechu22/Burger/gh-pages/1.11.2.json");
             this.put("1.12.2", "https://raw.githubusercontent.com/Pokechu22/Burger/gh-pages/1.12.2.json");
+        }
+    };
+    private static final Map<String, String> CLIENT_JAR_URLS = new HashMap<String, String>()    {
+        {
+            this.put("1.10", "https://launcher.mojang.com/v1/objects/ba038efbc6d9e4a046927a7658413d0276895739/client.jar");
+            this.put("1.11.2", "https://launcher.mojang.com/v1/objects/db5aa600f0b0bf508aaf579509b345c4e34087be/client.jar");
+            this.put("1.12.2", "https://launcher.mojang.com/v1/objects/0f275bc1547d01fa5f56ba34bdc87d981ee12daf/client.jar");
         }
     };
     private static final Map<String, String> PACKET_FIELD_TYPES = new HashMap<String, String>() {
@@ -70,18 +74,20 @@ public class JavaGenerator implements DataGenerator, Logging {
     @Override
     public void run(@NonNull File out) throws IOException {
         Collection<Version> versions = BURGER_URLS.keySet().stream()
-                .map(s -> this.format("java/${0}.json", s))
-                .map(s -> new File(IN_ROOT, s))
+                .map(s -> new File(this.input, s))
                 .map(file -> {
-                    String version = file.getName().substring(0, file.getName().lastIndexOf('.'));
-                    System.out.printf("  Reading data for java -> v%s\n", version);
-                    JsonObject object;
-                    try (Reader reader = new InputStreamReader(new ByteArrayInputStream(Cache.INSTANCE.getOrLoad(file, BURGER_URLS.get(version))))) {
-                        object = JSON_PARSER.parse(reader).getAsJsonArray().get(0).getAsJsonObject();
+                    try {
+                        String version = file.getName().substring(0, file.getName().length());
+                        System.out.printf("  Reading data for java -> v%s\n", version);
+                        JsonObject object;
+                        try (Reader reader = new InputStreamReader(new ByteArrayInputStream(Cache.INSTANCE.getBytes(new File(file, this.format("${0}.json", version)), BURGER_URLS.get(version))))) {
+                            object = JSON_PARSER.parse(reader).getAsJsonArray().get(0).getAsJsonObject();
+                        }
+                        ZipFile clientJar = new ZipFile(Cache.INSTANCE.getFile(new File(file, this.format("${0}.jar", version)), CLIENT_JAR_URLS.get(version)));
+                        return new Version(object, version, version.replace('.', '_'), clientJar);
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
-                    return new Version(object, version, version.replace('.', '_'));
                 })
                 .collect(Collectors.toList());
 
@@ -240,7 +246,7 @@ public class JavaGenerator implements DataGenerator, Logging {
     }
 
     private void generatePackets(@NonNull Version version, @NonNull File out) throws IOException {
-        Mappings mappings = Mappings.getMappings(version.version);
+        /*Mappings mappings = Mappings.getMappings(version.version);
         for (Map.Entry<String, JsonElement> entryPacket : version.object.getAsJsonObject("packets").getAsJsonObject("packet").entrySet()) {
             JsonObject packetObj = entryPacket.getValue().getAsJsonObject();
             String packetName = mappings.getClass(packetObj.get("class").getAsString().replace(".class", ""));
@@ -273,10 +279,8 @@ public class JavaGenerator implements DataGenerator, Logging {
                                 "public int getId()").pushBraces()
                         .write(String.format("return %d;", packetObj.get("id").getAsInt()));
             }
-        }
+        }*/
     }
-
-    //TODO: implement packets, we'll need to get searge mappings in here somehow
 
     @RequiredArgsConstructor
     private static class Version {
@@ -286,5 +290,7 @@ public class JavaGenerator implements DataGenerator, Logging {
         private final String version;
         @NonNull
         private final String versionDir;
+        @NonNull
+        private final ZipFile clientJar;
     }
 }

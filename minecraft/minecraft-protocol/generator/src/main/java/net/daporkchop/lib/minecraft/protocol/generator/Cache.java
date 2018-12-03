@@ -40,30 +40,52 @@ public class Cache implements Logging {
 
     private static final Map<File, byte[]> CACHE = new ConcurrentHashMap<>();
 
-    public byte[] getOrLoad(@NonNull File file, @NonNull String url)  {
+    public byte[] getBytes(@NonNull File file, @NonNull String url) {
         return CACHE.computeIfAbsent(file, sdkljflkdjf -> {
             try {
                 byte[] b;
-                if (file.exists())  {
-                    try (InputStream in = new FileInputStream(file))    {
+                if (file.exists()) {
+                    try (InputStream in = new FileInputStream(file)) {
                         b = StreamUtil.readFully(in, -1, false);
                     }
                 } else {
                     File parent = file.getParentFile();
-                    if (!parent.exists() && !parent.mkdirs())   {
+                    if (!parent.exists() && !parent.mkdirs()) {
                         throw this.exception("Couldn't create directory: ${0}", parent);
-                    } else if (!file.createNewFile())   {
+                    } else if (!file.createNewFile()) {
                         throw this.exception("Couldn't create file: ${0}", file);
                     } else {
+                        logger.trace("Downloading ${0}...", url);
                         try (OutputStream out = new FileOutputStream(file)) {
                             out.write(b = SimpleHTTP.get(url));
                         }
                     }
                 }
                 return b;
-            } catch (IOException e)  {
+            } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         });
+    }
+
+    public File getFile(@NonNull File file, @NonNull String url) throws IOException {
+        if (file.exists()) {
+            try (InputStream in = new FileInputStream(file)) {
+                StreamUtil.readFully(in, -1, false);
+            }
+        } else {
+            File parent = file.getParentFile();
+            if (!parent.exists() && !parent.mkdirs()) {
+                throw this.exception("Couldn't create directory: ${0}", parent);
+            } else if (!file.createNewFile()) {
+                throw this.exception("Couldn't create file: ${0}", file);
+            } else {
+                logger.trace("Downloading ${0}...", url);
+                try (OutputStream out = new FileOutputStream(file)) {
+                    out.write(SimpleHTTP.get(url));
+                }
+            }
+        }
+        return file;
     }
 }

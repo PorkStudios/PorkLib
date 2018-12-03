@@ -16,19 +16,31 @@ package net.daporkchop.lib.minecraft.protocol.generator;
 
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.logging.Logging;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Stream;
 
 /**
  * @author DaPorkchop_
  */
-public class Generator {
+public class Generator implements Logging {
     public static void main(String... args) throws IOException {
+        logger.setLevel(5);
+        Stream.of("java")
+                .map(s -> new File(DataGenerator.IN_ROOT, s))
+                .forEach(file -> {
+                    if (!file.exists() && !file.mkdirs())   {
+                        throw new IllegalStateException(String.format("Couldn't create directory: %s", file.getAbsolutePath()));
+                    }
+                });
+
         for (File platformDir : DataGenerator.IN_ROOT.listFiles()) {
             if (!platformDir.isDirectory()) {
                 continue;

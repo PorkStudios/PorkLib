@@ -19,6 +19,5 @@ dependencies {
 
 task gen(type: JavaExec, dependsOn: 'classes') {
     main = 'net.daporkchop.lib.primitive.generator.Generator'
-    //classpath = configurations.runtime
     classpath = sourceSets.main.runtimeClasspath
 }

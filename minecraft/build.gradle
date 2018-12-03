@@ -20,7 +20,6 @@ dependencies {
     compile project(":minecraft:minecraft-text")
     compile project(":primitive")
     compile project(":nbt")
-    compile 'com.google.code.gson:gson:2.8.5'
 
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+    compile "com.google.code.gson:gson:$gsonVersion"
 }

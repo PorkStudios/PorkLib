@@ -8,6 +8,7 @@ build/
 out/
 test_out/
 /porklib.daporkchop.net/
+run/
 
 /src/
 

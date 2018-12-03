@@ -235,4 +235,16 @@ public interface _P0__P1_Map_gH_ extends PrimitiveConstants {
         return newValue;
     }
     */
+
+    default _P0__P1_Map_gH_ synchronize() {
+        return new _P0__P1_LockedMap_gH_(this);
+    }
+
+    default _P0__P1_Map_gH_ synchronize(@NonNull Lock lock) {
+        return new _P0__P1_LockedMap_gH_(this, lock);
+    }
+
+    default _P0__P1_Map_gH_ synchronize(@NonNull Object lock) {
+        return new _P0__P1_SynchronizedMap_gH_(this, lock);
+    }
 }

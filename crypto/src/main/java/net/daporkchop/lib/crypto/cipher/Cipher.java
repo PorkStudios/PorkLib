@@ -23,7 +23,7 @@ import net.daporkchop.lib.crypto.cipher.stream.StreamCipherInput;
 import net.daporkchop.lib.crypto.cipher.stream.StreamCipherOutput;
 import net.daporkchop.lib.crypto.cipher.stream.StreamCipherType;
 import net.daporkchop.lib.crypto.key.CipherKey;
-import net.daporkchop.lib.hash.helper.sha.Sha256Helper;
+import net.daporkchop.lib.hash.util.Digest;
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.BufferedBlockCipher;
 import org.bouncycastle.crypto.CryptoException;
@@ -48,7 +48,7 @@ public interface Cipher {
 
     static Cipher createBlock(@NonNull CipherType type, @NonNull CipherMode mode, @NonNull CipherPadding padding, @NonNull CipherKey key, @NonNull CipherInitSide side) {
         return createBlock(type, mode, padding, key, side, b -> {
-            byte[] hash = Sha256Helper.sha256(b);
+            byte[] hash = Digest.SHA3_256.hash(b).getHash();
             for (int i = 0; i < b.length; i++) {
                 b[i] = hash[i % hash.length];
             }
@@ -79,9 +79,9 @@ public interface Cipher {
 
     byte[] decrypt(@NonNull byte[] ciphertext);
 
-    OutputStream encryptionStream(@NonNull OutputStream outputStream);
+    OutputStream encrypt(@NonNull OutputStream outputStream);
 
-    InputStream decryptionStream(@NonNull InputStream inputStream);
+    InputStream decrypt(@NonNull InputStream inputStream);
 }
 
 class BlockCipherImpl implements Cipher {
@@ -158,7 +158,7 @@ class BlockCipherImpl implements Cipher {
     }
 
     @Override
-    public OutputStream encryptionStream(OutputStream outputStream) {
+    public OutputStream encrypt(OutputStream outputStream) {
         BufferedBlockCipher cipher = this.get();
 
         synchronized (this.encrypt) {
@@ -172,7 +172,7 @@ class BlockCipherImpl implements Cipher {
     }
 
     @Override
-    public InputStream decryptionStream(InputStream inputStream) {
+    public InputStream decrypt(InputStream inputStream) {
         BufferedBlockCipher cipher = this.get();
 
         synchronized (this.decrypt) {
@@ -252,12 +252,14 @@ class StreamCipherImpl implements Cipher {
     }
 
     @Override
-    public OutputStream encryptionStream(OutputStream outputStream) {
+    public OutputStream encrypt(OutputStream outputStream) {
+        this.outLock.lock();
         return new StreamCipherOutput(this.outLock, this.outCipher, outputStream);
     }
 
     @Override
-    public InputStream decryptionStream(InputStream inputStream) {
+    public InputStream decrypt(InputStream inputStream) {
+        this.inLock.lock();
         return new StreamCipherInput(this.inLock, this.inCipher, inputStream);
     }
 

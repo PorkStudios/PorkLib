@@ -16,7 +16,7 @@
 dependencies {
     compile project(":binary")
 
-    compile 'com.google.http-client:google-http-client:1.23.0'
+    compile "com.google.http-client:google-http-client:$googleHttpClientVersion"
 
-    testCompile 'com.google.code.gson:gson:2.8.5'
+    testCompile "com.google.code.gson:gson:$gsonVersion"
 }

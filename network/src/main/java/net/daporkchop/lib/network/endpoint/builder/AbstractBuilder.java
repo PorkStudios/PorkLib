@@ -17,36 +17,81 @@ package net.daporkchop.lib.network.endpoint.builder;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.network.conn.Session;
+import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
-import net.daporkchop.lib.network.packet.protocol.PacketProtocol;
+import net.daporkchop.lib.network.packet.UserProtocol;
+import net.daporkchop.lib.network.pork.PorkProtocol;
+import net.daporkchop.lib.network.protocol.api.ProtocolManager;
+import net.daporkchop.lib.network.protocol.netty.tcp.TcpProtocolManager;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.concurrent.Executor;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Shared code for all endpoint builders
+ *
+ * @author DaPorkchop_
+ * @see ClientBuilder
+ * @see ServerBuilder
+ */
 @Getter
-abstract class AbstractBuilder<B extends AbstractBuilder<B, S, E>, S extends Session, E extends Endpoint<S>> {
-    protected static final Executor DEFAULT_EXECUTOR = new ThreadPoolExecutor(
-            0, Runtime.getRuntime().availableProcessors() << 1,
-            60L, TimeUnit.SECONDS,
-            new SynchronousQueue<>()
+public abstract class AbstractBuilder<E extends Endpoint, B extends AbstractBuilder<E, B>> {
+    private static final AtomicInteger DEFAULT_EXECUTOR_THREAD_COUNTER = new AtomicInteger(0);
+    private static final Executor DEFAULT_EXECUTOR = new ThreadPoolExecutor(
+            0, Integer.MAX_VALUE,
+            0, TimeUnit.SECONDS,
+            new SynchronousQueue<>(),
+            runnable -> new Thread(runnable, String.format("PorkLib network executor #%d", DEFAULT_EXECUTOR_THREAD_COUNTER.getAndIncrement()))
     );
 
-    @NonNull
-    private PacketProtocol<S> protocol;
+    private final Collection<UserProtocol> protocols = new ArrayDeque<UserProtocol>() {
+        {
+            this.add(PorkProtocol.INSTANCE);
+        }
+    };
 
+    /**
+     * The address of the endpoint.
+     * <p>
+     * For clients, this is the address of the target server.
+     * For servers, this is the bind address.
+     */
     @NonNull
     private InetSocketAddress address;
 
+    /**
+     * The protocol manager to use for creating connections.
+     * <p>
+     * This defines most behaviors of the connection, for example the transport protocol or packet reliability.
+     * <p>
+     * Default implementations:
+     *
+     * @see net.daporkchop.lib.network.protocol.netty.tcp.TcpProtocolManager#INSTANCE
+     * @see net.daporkchop.lib.network.protocol.netty.sctp.SctpProtocolManager#INSTANCE
+     * @see net.daporkchop.lib.network.protocol.raknet.RakNetProtocolManager#INSTANCE
+     */
+    @NonNull
+    private ProtocolManager manager = TcpProtocolManager.INSTANCE;
+
+    /**
+     * An {@link Executor} for handling threading on connections.
+     * <p>
+     * Some implementations of {@link ProtocolManager} may ignore this setting.
+     */
     @NonNull
     private Executor executor = DEFAULT_EXECUTOR;
 
     @SuppressWarnings("unchecked")
-    public B setProtocol(@NonNull PacketProtocol<S> protocol) {
-        this.protocol = protocol;
+    public <C extends UserConnection> B addProtocol(@NonNull UserProtocol<C> protocol) {
+        synchronized (this.protocols) {
+            this.protocols.add(protocol);
+        }
         return (B) this;
     }
 
@@ -57,19 +102,26 @@ abstract class AbstractBuilder<B extends AbstractBuilder<B, S, E>, S extends Ses
     }
 
     @SuppressWarnings("unchecked")
+    public B setManager(@NonNull ProtocolManager manager) {
+        this.manager = manager;
+        return (B) this;
+    }
+
+    @SuppressWarnings("unchecked")
     public B setExecutor(@NonNull Executor executor) {
         this.executor = executor;
         return (B) this;
     }
 
     public E build() {
-        if (this.protocol == null) {
-            throw new IllegalStateException("Protocol must be set!");
+        if (this.protocols.isEmpty()) {
+            throw new IllegalStateException("At least one protocol must be registered!");
         } else if (this.address == null) {
-            throw new IllegalStateException("Address must be set!");
+            throw new IllegalStateException("address must be set!");
         }
+
         return this.doBuild();
     }
 
-    protected abstract E doBuild();
+    abstract E doBuild();
 }

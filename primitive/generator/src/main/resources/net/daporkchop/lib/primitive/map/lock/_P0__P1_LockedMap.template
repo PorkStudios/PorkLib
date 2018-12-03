@@ -1,0 +1,207 @@
+_headers_
+
+public class _P0__P1_LockedMap_gH_ implements _P0__P1_Map_gH_ {
+    private final Lock lock;
+    private final _P0__P1_Map_gH_ backing;
+
+    public _P0__P1_LockedMap(@NonNull _P0__P1_Map_gH_ backing)    {
+        this(backing, new ReentrantLock());
+    }
+
+    public _P0__P1_LockedMap(@NonNull _P0__P1_Map_gH_ backing, @NonNull Lock lock)    {
+        this.backing = backing;
+        this.lock = lock;
+    }
+
+    @Override
+    public int size()   {
+        this.lock.lock();
+        try {
+            return this.backing.size();
+        } finally {
+            this.lock.unlock();
+        }
+    }
+
+    @Override
+    public boolean isEmpty()    {
+        this.lock.lock();
+        try {
+            return this.backing.isEmpty();
+        } finally {
+            this.lock.unlock();
+        }
+    }
+
+    @Override
+    public boolean containsKey(_nameP0_ key)    {
+        this.lock.lock();
+        try {
+            return this.backing.containsKey(key);
+        } finally {
+            this.lock.unlock();
+        }
+    }
+
+    @Override
+    public boolean containsValue(_nameP1_ value)    {
+        this.lock.lock();
+        try {
+            return this.backing.containsValue(value);
+        } finally {
+            this.lock.unlock();
+        }
+    }
+
+    @Override
+    public _p1_ get(_nameP0_ key)   {
+        this.lock.lock();
+        try {
+            return this.backing.get(key);
+        } finally {
+            this.lock.unlock();
+        }
+    }
+
+    // Modification Operations
+
+    @Override
+    public _p1_ put(_p0_ key, _p1_ value)   {
+        this.lock.lock();
+        try {
+            return this.backing.put(key, value);
+        } finally {
+            this.lock.unlock();
+        }
+    }
+
+    @Override
+    public _p1_ remove(_nameP0_ key)    {
+        this.lock.lock();
+        try {
+            return this.backing.remove(key);
+        } finally {
+            this.lock.unlock();
+        }
+    }
+
+    // Bulk Operations
+
+    @Override
+    public void putAll(@NonNull _P0__P1_Map_gExtends_ m) {
+        this.lock.lock();
+        try {
+            m.forEach(this.backing::put);
+        } finally {
+            this.lock.unlock();
+        }
+    }
+
+    @Override
+    public void clear() {
+        this.lock.lock();
+        try {
+            this.backing.clear();
+        } finally {
+            this.lock.unlock();
+        }
+    }
+
+    // Views
+
+    @Override
+    public _P0_Set_GP0_ keySet()    {
+        this.lock.lock();
+        try {
+            return this.backing.keySet();
+            //TODO: override set with synchronized implementation
+        } finally {
+            this.lock.unlock();
+        }
+    }
+
+    @Override
+    public _P1_Collection_GP1_ values() {
+        this.lock.lock();
+        try {
+            return this.backing.values();
+            //TODO: override collection with synchronized implementation
+        } finally {
+            this.lock.unlock();
+        }
+    }
+
+    @Override
+    public ObjectSet<_P0__P1_Map.Entry_gH_> entrySet()  {
+        this.lock.lock();
+        try {
+            return this.backing.entrySet();
+            //TODO: override set with synchronized implementation
+        } finally {
+            this.lock.unlock();
+        }
+    }
+
+
+    @Override
+    public _p1_ getOrDefault(_nameP0_ key, _p1_ defaultValue) {
+        this.lock.lock();
+        try {
+            return this.backing.getOrDefault(key, defaultValue);
+        } finally {
+            this.lock.unlock();
+        }
+    }
+
+    @Override
+    public void forEach(@NonNull _P0__P1_BiConsumer_gSuper_ action) {
+        this.lock.lock();
+        try {
+            this.backing.forEach(action);
+        } finally {
+            this.lock.unlock();
+        }
+    }
+
+    //TODO: other methods after adding params to generator
+
+    @Override
+    public _p1_ putIfAbsent(_p0_ key, _p1_ value) {
+        this.lock.lock();
+        try {
+            return this.backing.putIfAbsent(key, value);
+        } finally {
+            this.lock.unlock();
+        }
+    }
+
+    @Override
+    public boolean remove(_nameP0_ key, _nameP1_ value) {
+        this.lock.lock();
+        try {
+            return this.backing.remove(key, value);
+        } finally {
+            this.lock.unlock();
+        }
+    }
+
+    @Override
+    public boolean replace(_p0_ key, _p1_ oldValue, _p1_ newValue) {
+        this.lock.lock();
+        try {
+            return this.backing.replace(key, oldValue, newValue);
+        } finally {
+            this.lock.unlock();
+        }
+    }
+
+    @Override
+    public _p1_ replace(_p0_ key, _p1_ value) {
+        this.lock.lock();
+        try {
+            return this.backing.replace(key, value);
+        } finally {
+            this.lock.unlock();
+        }
+    }
+}

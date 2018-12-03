@@ -47,6 +47,24 @@ public class TestMain {
     }
 
     @Test
+    public void testVarLong() throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        for (int i = 500; i >= 0; i--)   {
+            long j = ThreadLocalRandom.current().nextLong();
+            DataOut out = DataOut.wrap(baos);
+            out.writeVarLong(j);
+            out.close();
+            DataIn in = DataIn.wrap(new ByteArrayInputStream(baos.toByteArray()));
+            long k = in.readVarLong();
+            if (j != k)   {
+                throw new IllegalStateException(String.format("%d %d", j, k));
+            }
+            in.close();
+            baos.reset();
+        }
+    }
+
+    @Test
     public void a() throws IOException {
         ByteArrayInputStream bais = new ByteArrayInputStream(new byte[1024]);
         BitInputStream bis = new BitInputStream(bais);

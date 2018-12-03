@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.encoding.basen;
 
+import lombok.NonNull;
 import net.daporkchop.lib.encoding.util.FastCharIntMap;
 import net.daporkchop.lib.math.primitive.DivMod;
 
@@ -26,6 +27,10 @@ import java.util.Arrays;
  * @author DaPorkchop_
  */
 public class BaseN {
+    public static BaseN of(@NonNull String alphabet)    {
+        return new BaseN(alphabet);
+    }
+
     public final char[] alphabet;
     public final int length;
     public final FastCharIntMap indexes = new FastCharIntMap();

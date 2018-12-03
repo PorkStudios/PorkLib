@@ -32,7 +32,11 @@ import java.util.function.Function;
  */
 public abstract class DataIn extends InputStream {
     public static DataIn wrap(InputStream in) {
-        return new StreamIn(in);
+        return in instanceof DataIn ? (DataIn) in : new StreamIn(in);
+    }
+
+    public static DataIn wrapNonClosing(InputStream in) {
+        return in instanceof NonClosingStreamIn ? (NonClosingStreamIn) in : new NonClosingStreamIn(in);
     }
 
     public static DataIn wrap(ByteBuffer buffer) {
@@ -174,6 +178,25 @@ public abstract class DataIn extends InputStream {
         return optimizePositive ? v : ((v >>> 1) ^ -(v & 1));
     }
 
+    public long readVarLong() throws IOException {
+        return this.readVarLong(false);
+    }
+
+    public long readVarLong(boolean optimizePositive) throws IOException {
+        long v = 0L;
+        int i;
+        int o = 0;
+        while (true) {
+            i = this.read();
+            v |= (i & 0x7FL) << o;
+            o += 7;
+            if ((i & 0x80) == 0) {
+                break;
+            }
+        }
+        return optimizePositive ? v : ((v >>> 1L) ^ -(v & 1L));
+    }
+
     public int readFully(byte[] b, int off, int len) throws IOException {
         if (len != 0) {
             for (int i = 0; i < len; i++) {
@@ -196,6 +219,26 @@ public abstract class DataIn extends InputStream {
         @Override
         public void close() throws IOException {
             this.in.close();
+        }
+
+        @Override
+        public int read() throws IOException {
+            return this.in.read();
+        }
+
+        @Override
+        public int available() throws IOException {
+            return this.in.available();
+        }
+    }
+
+    @AllArgsConstructor
+    private static class NonClosingStreamIn extends DataIn {
+        @NonNull
+        private final InputStream in;
+
+        @Override
+        public void close() throws IOException {
         }
 
         @Override

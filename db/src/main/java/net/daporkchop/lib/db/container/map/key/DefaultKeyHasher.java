@@ -16,16 +16,22 @@
 package net.daporkchop.lib.db.container.map.key;
 
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.stream.optimizations.FastByteArrayOutputStream;
-import net.daporkchop.lib.hash.HashAlg;
+import net.daporkchop.lib.hash.util.Digest;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 
 /**
+ * Hashes a byte array to a constant-length hash.
+ * <p>
+ * Cannot get key from hashed value.
+ *
  * @author DaPorkchop_
  */
+@RequiredArgsConstructor
 public class DefaultKeyHasher<K> implements KeyHasher<K> {
     @Override
     public byte[] hash(@NonNull K key) {
@@ -35,11 +41,11 @@ public class DefaultKeyHasher<K> implements KeyHasher<K> {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return HashAlg.MD5.hash(baos.toByteArray());
+        return Digest.MD5.hash(baos.toByteArray()).getHash();
     }
 
     @Override
     public int getHashLength() {
-        return HashAlg.MD5.getLength();
+        return Digest.MD5.getHashSize();
     }
 }

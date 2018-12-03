@@ -15,6 +15,7 @@
 dependencies {
     compile project(":binary")
     compile project(":http")
+    compile project(":logging")
 
     compile 'com.google.code.gson:gson:2.8.5'
 }

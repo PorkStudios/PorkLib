@@ -20,10 +20,13 @@ import com.google.gson.JsonObject;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.minecraft.protocol.generator.Cache;
 import net.daporkchop.lib.minecraft.protocol.generator.ClassWriter;
 import net.daporkchop.lib.minecraft.protocol.generator.DataGenerator;
 import net.daporkchop.lib.minecraft.protocol.generator.obf.Mappings;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -31,28 +34,49 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
 @Getter
-public class JavaGenerator implements DataGenerator {
+public class JavaGenerator implements DataGenerator, Logging {
+    private static final Map<String, String> BURGER_URLS = new HashMap<String, String>() {
+        {
+            this.put("1.10", "https://raw.githubusercontent.com/Pokechu22/Burger/gh-pages/1.10.json");
+            this.put("1.11.2", "https://raw.githubusercontent.com/Pokechu22/Burger/gh-pages/1.11.2.json");
+            this.put("1.12.2", "https://raw.githubusercontent.com/Pokechu22/Burger/gh-pages/1.12.2.json");
+        }
+    };
+    private static final Map<String, String> PACKET_FIELD_TYPES = new HashMap<String, String>() {
+        {
+            this.put("int", "int");
+            this.put("varint", "int");
+            this.put("boolean", "boolean");
+            this.put("short", "short");
+            this.put("long", "long");
+            this.put("varlong", "long");
+            this.put("byte", "byte");
+            this.put("byte[]", "byte[]");
+        }
+    };
     @NonNull
     private final File input;
 
     @Override
     public void run(@NonNull File out) throws IOException {
-        Collection<Version> versions = Arrays.stream(this.input.listFiles())
-                .filter(File::isFile)
+        Collection<Version> versions = BURGER_URLS.keySet().stream()
+                .map(s -> this.format("java/${0}.json", s))
+                .map(s -> new File(IN_ROOT, s))
                 .map(file -> {
                     String version = file.getName().substring(0, file.getName().lastIndexOf('.'));
-                    System.out.printf("  Reading data for version java -> v%s\n", version);
+                    System.out.printf("  Reading data for java -> v%s\n", version);
                     JsonObject object;
-                    try (Reader reader = new InputStreamReader(new FileInputStream(file))) {
+                    try (Reader reader = new InputStreamReader(new ByteArrayInputStream(Cache.INSTANCE.getOrLoad(file, BURGER_URLS.get(version))))) {
                         object = JSON_PARSER.parse(reader).getAsJsonArray().get(0).getAsJsonObject();
                     } catch (IOException e) {
                         throw new RuntimeException(e);
@@ -222,19 +246,26 @@ public class JavaGenerator implements DataGenerator {
             String packetName = mappings.getClass(packetObj.get("class").getAsString().replace(".class", ""));
             packetName = packetName.substring(packetName.lastIndexOf('.') + 1, packetName.length());
             String owner = null;
-            if (packetName.contains("$"))   {
+            if (packetName.contains("$")) {
                 owner = packetName.substring(0, packetName.indexOf('$'));
                 packetName = packetName.substring(packetName.indexOf('$') + 1, packetName.length());
-                if (packetName.contains("Packet"))  {
+                if (packetName.contains("Packet")) {
                     packetName = String.format("S%s", packetName.substring(packetName.indexOf("Packet"), packetName.length()));
                 } else {
                     packetName = String.format("%cPacket%s", "SERVERBOUND".equals(packetObj.get("direction").getAsString()) ? 'S' : 'C', packetName);
                 }
             }
             try (ClassWriter writer = new ClassWriter(this.ensureFileExists(out, String.format("%s.java", packetName)))) {
-                writer.write("@AllArgsConstructor",
+                writer.write("//@AllArgsConstructor",
                         "@NoArgsConstructor",
-                        String.format("public class %s%s implements MinecraftPacket", packetName, owner == null ? "" : String.format(" extends %s", owner))).pushBraces()
+                        String.format("public class %s%s implements MinecraftPacket", packetName, owner == null ? "" : String.format(" extends %s", owner))).pushBraces();
+                for (JsonObject object : StreamSupport.stream(packetObj.getAsJsonArray("instructions").spliterator(), false).map(JsonElement::getAsJsonObject).collect(Collectors.toList())) {
+                    if ("write".equals(object.get("operation").getAsString())) {
+                        String fieldName = object.get("field").getAsString();
+                        writer.write(String.format("%spublic %s %s;", fieldName.contains(".") || fieldName.contains(" ") || fieldName.contains(".") || fieldName.contains("(") ? "//" : "", PACKET_FIELD_TYPES.getOrDefault(object.get("type").getAsString(), "Object"), fieldName));
+                    }
+                }
+                writer.newline()
                         .write("@Override",
                                 "public PacketDirection getDirection()").pushBraces()
                         .write(String.format("return PacketDirection.%s;", packetObj.get("direction").getAsString())).pop().newline()

@@ -19,13 +19,16 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.http.SimpleHTTP;
+import net.daporkchop.lib.minecraft.protocol.generator.Cache;
 import net.daporkchop.lib.minecraft.protocol.generator.DataGenerator;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -53,24 +56,8 @@ public class Mappings {
     public static Mappings getMappings(@NonNull String inVersion) {
         return MAPPINGS.computeIfAbsent(inVersion, version -> {
             try {
-                File mappingsFile = new File(DataGenerator.IN_ROOT, String.format("../mappings/%s.srg", version));
-                if (!mappingsFile.exists()) {
-                    {
-                        File parent = mappingsFile.getParentFile();
-                        if (!parent.exists() && !parent.mkdirs()) {
-                            throw new IllegalStateException(String.format("Couldn't create directory: %s", parent.getAbsolutePath()));
-                        }
-                    }
-                    if (!mappingsFile.createNewFile()) {
-                        throw new IllegalStateException(String.format("Couldn't create file: %s", mappingsFile.getAbsolutePath()));
-                    }
-                    System.out.printf("   Fetching mappings for java -> %s\n", inVersion);
-                    try (OutputStream out = new FileOutputStream(mappingsFile)) {
-                        out.write(SimpleHTTP.get(URLS.get(version)));
-                    }
-                }
                 Mappings mappings = new Mappings();
-                try (BufferedReader reader = new BufferedReader(new FileReader(mappingsFile))) {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(Cache.INSTANCE.getOrLoad(new File(DataGenerator.IN_ROOT, String.format("../mappings/%s.srg", version)), URLS.get(version)))))) {
                     String s;
                     while ((s = reader.readLine()) != null && !s.isEmpty()) {
                         String[] split = s.split(" ");

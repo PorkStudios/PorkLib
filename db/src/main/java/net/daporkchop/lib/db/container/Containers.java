@@ -18,7 +18,13 @@ package net.daporkchop.lib.db.container;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.db.Container;
+import net.daporkchop.lib.db.container.atomiclong.DBAtomicLong;
+import net.daporkchop.lib.db.container.atomiclong.LocalDBAtomicLong;
+import net.daporkchop.lib.db.container.atomiclong.RemoteDBAtomicLong;
 import net.daporkchop.lib.db.container.map.DBMap;
+import net.daporkchop.lib.db.local.LocalContainer;
+import net.daporkchop.lib.db.remote.RemoteContainer;
 
 /**
  * A list of all currently implemented containers (for use by the remote extensions)
@@ -28,9 +34,14 @@ import net.daporkchop.lib.db.container.map.DBMap;
 @RequiredArgsConstructor
 @Getter
 public enum Containers {
-    MAP(DBMap.class)
+    //MAP(DBMap.class)
+    ATOMICLONG(DBAtomicLong.class, LocalDBAtomicLong.class, RemoteDBAtomicLong.class)
     ;
 
     @NonNull
-    private final Class<? extends AbstractContainer> clazz;
+    private final Class<? extends Container> baseClass;
+    @NonNull
+    private final Class<? extends LocalContainer> localClass;
+    @NonNull
+    private final Class<? extends RemoteContainer> remoteClass;
 }

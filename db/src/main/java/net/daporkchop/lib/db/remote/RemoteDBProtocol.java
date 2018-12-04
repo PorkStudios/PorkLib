@@ -17,8 +17,10 @@ package net.daporkchop.lib.db.remote;
 
 import lombok.Getter;
 import lombok.NonNull;
+import net.daporkchop.lib.db.PorkDB;
 import net.daporkchop.lib.db.container.AbstractContainer;
 import net.daporkchop.lib.db.container.Containers;
+import net.daporkchop.lib.db.remote.protocol.SaveContainerPacket;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.packet.Codec;
 import net.daporkchop.lib.network.packet.Packet;
@@ -35,9 +37,9 @@ import java.util.Collection;
 @Getter
 public class RemoteDBProtocol extends UserProtocol<RemoteDBConnection> implements Logging {
     @NonNull
-    private final RemoteDB db;
+    private final PorkDB db;
 
-    public RemoteDBProtocol(@NonNull RemoteDB db) {
+    public RemoteDBProtocol(@NonNull PorkDB db) {
         super("PorkLib DB - remote", 2);
         this.db = db;
     }
@@ -48,9 +50,10 @@ public class RemoteDBProtocol extends UserProtocol<RemoteDBConnection> implement
         //authentication packets
 
         //container packets
+        this.register(new SaveContainerPacket.SaveContainerCodec());
         try {
             for (Containers containerContainer : Containers.values()) {
-                Class<? extends AbstractContainer> clazz = containerContainer.getClazz();
+                Class<? extends RemoteContainer> clazz = containerContainer.getRemoteClass();
                 Field field = clazz.getDeclaredField("PACKETS");
                 if (field == null)  {
                     logger.debug("No additional packets found for ${0}", clazz);

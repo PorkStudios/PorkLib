@@ -78,5 +78,14 @@ public abstract class AbstractLocalContainer<V, B extends AbstractLocalContainer
         protected Builder(LocalDB db, String name) {
             super(db, name);
         }
+
+        @Override
+        public C buildIfPresent() throws IOException {
+            if (new File(this.db.getRoot(), this.name).exists()) {
+                return this.build();
+            } else {
+                return null;
+            }
+        }
     }
 }

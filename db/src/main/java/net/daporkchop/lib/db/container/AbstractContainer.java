@@ -17,11 +17,14 @@ package net.daporkchop.lib.db.container;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import net.daporkchop.lib.db.Container;
 import net.daporkchop.lib.db.PorkDB;
 import net.daporkchop.lib.logging.Logging;
 
 import java.io.IOException;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * @author DaPorkchop_
@@ -30,6 +33,10 @@ import java.io.IOException;
 public abstract class AbstractContainer<V, B extends Container.Builder<V, ? extends AbstractContainer<V, B, DB>, DB>, DB extends PorkDB> implements Container<V, B, DB>, Logging {
     protected final DB db;
     protected final String name;
+
+    @Setter
+    protected volatile boolean dirty;
+    protected final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     @SuppressWarnings("unchecked")
     public AbstractContainer(@NonNull B builder) throws IOException {

@@ -13,98 +13,57 @@
  *
  */
 
-package net.daporkchop.lib.db.container;
+package net.daporkchop.lib.db.container.atomiclong;
 
 import lombok.Getter;
-import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.db.PorkDB;
+import net.daporkchop.lib.db.Container;
+import net.daporkchop.lib.db.container.AbstractContainer;
+import net.daporkchop.lib.db.local.AbstractLocalContainer;
+import net.daporkchop.lib.db.local.LocalContainer;
+import net.daporkchop.lib.db.local.LocalDB;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author DaPorkchop_
  */
-@Getter
-public class DBAtomicLong extends AbstractContainer<AtomicLong, DBAtomicLong.Builder> {
-    public static Builder builder(@NonNull PorkDB db, @NonNull String name) {
-        return new Builder(db, name);
-    }
+public class LocalDBAtomicLong extends AbstractLocalContainer<AtomicLong, LocalDBAtomicLong.Builder> implements DBAtomicLong<LocalDBAtomicLong, LocalDBAtomicLong.Builder, LocalDB> {
+    @Getter
+    private final AtomicLong value = new AtomicLong(0L);
 
-    private final AtomicLong value = new AtomicLong();
-
-    public DBAtomicLong(Builder builder) throws IOException {
+    public LocalDBAtomicLong(Builder builder) throws IOException {
         super(builder);
 
-        try (DataIn in = DataIn.wrap(new FileInputStream(this.file))) {
+        try (DataIn in = this.getIn("value", out -> {
+            out.writeLong(0L);
+        })) {
             this.value.set(in.readLong());
         }
     }
 
-    public long get() {
-        return this.value.get();
-    }
-
-    public void set(long l) {
-        this.value.set(l);
-    }
-
-    public long getAndSet(long l) {
-        return this.value.getAndSet(l);
-    }
-
-    public long addAndGet(long l) {
-        return this.value.addAndGet(l);
-    }
-
-    public long getAndAdd(long l) {
-        return this.value.getAndAdd(l);
-    }
-
-    public long getAndIncrement() {
-        return this.value.getAndIncrement();
-    }
-
-    public long incrementAndGet() {
-        return this.value.incrementAndGet();
-    }
-
-    public long getAndDecrement() {
-        return this.value.getAndDecrement();
-    }
-
-    public long decrementAndGet() {
-        return this.value.decrementAndGet();
-    }
-
     @Override
-    protected boolean usesDirectory() {
-        return false;
-    }
-
-    @Override
-    public void save() throws IOException {
-        try (DataOut out = DataOut.wrap(new FileOutputStream(this.file))) {
+    protected void doSave() throws IOException {
+        try (DataOut out = this.getOut("value"))    {
             out.writeLong(this.value.get());
         }
     }
 
-    public static final class Builder extends AbstractContainer.Builder<AtomicLong, DBAtomicLong> {
-        private Builder(PorkDB db, String name) {
+    public static class Builder extends AbstractLocalContainer.Builder<AtomicLong, LocalDBAtomicLong>  {
+        protected Builder(LocalDB db, String name) {
             super(db, name);
         }
 
-        public String getTest() {
-            return "";
+        @Override
+        public LocalDBAtomicLong buildIfPresent() throws IOException {
+            return null;
         }
 
         @Override
-        protected DBAtomicLong buildImpl() throws IOException {
-            return new DBAtomicLong(this);
+        protected LocalDBAtomicLong buildImpl() throws IOException {
+            return null;
         }
     }
 }

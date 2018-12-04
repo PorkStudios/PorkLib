@@ -13,58 +13,53 @@
  *
  */
 
-package net.daporkchop.lib.db;
+package net.daporkchop.lib.db.container.atomiclong;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.db.util.Dirtiable;
-import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.db.Container;
+import net.daporkchop.lib.db.PorkDB;
 
-import java.io.IOException;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author DaPorkchop_
  */
-public interface Container<V, B extends Container.Builder<V, ? extends Container<V, B, DB>, DB>, DB extends PorkDB> extends Dirtiable, Logging {
-    String getName();
-
-    DB getDb();
-
-    V getValue();
-
-    void save() throws IOException;
-
-    default boolean usesDirectory() {
-        return true;
+public interface DBAtomicLong<C extends DBAtomicLong<? extends DBAtomicLong, B, DB>, B extends Container.Builder<AtomicLong, C, DB>, DB extends PorkDB<DB, ? extends Container>> extends Container<AtomicLong, B, DB> {
+    default long get() {
+        return this.getValue().get();
     }
 
-    default void close() throws IOException {
-        this.save();
+    default long getAndSet(long val) {
+        this.markDirty();
+        return this.getValue().getAndSet(val);
     }
 
-    @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
-    @Accessors(chain = true)
-    @Setter
-    @Getter
-    abstract class Builder<V, C extends Container<V, ? extends Builder<V, C, DB>, DB>, DB extends PorkDB> {
-        @NonNull
-        protected final DB db;
+    default long addAndGet(long val) {
+        this.markDirty();
+        return this.getValue().addAndGet(val);
+    }
 
-        @NonNull
-        protected final String name;
+    default long getAndAdd(long val) {
+        this.markDirty();
+        return this.getValue().getAndAdd(val);
+    }
 
-        public abstract C buildIfPresent() throws IOException;
+    default long getAndIncrement() {
+        this.markDirty();
+        return this.getValue().getAndIncrement();
+    }
 
-        public final C build() throws IOException {
-            C built = this.buildImpl();
-            this.db.getLoadedContainers().put(this.name, built);
-            return built;
-        }
+    default long incrementAndGet() {
+        this.markDirty();
+        return this.getValue().incrementAndGet();
+    }
 
-        protected abstract C buildImpl() throws IOException;
+    default long getAndDecrement() {
+        this.markDirty();
+        return this.getValue().getAndDecrement();
+    }
+
+    default long decrementAndGet() {
+        this.markDirty();
+        return this.getValue().decrementAndGet();
     }
 }

@@ -13,58 +13,13 @@
  *
  */
 
-package net.daporkchop.lib.db;
+package net.daporkchop.lib.db.remote;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.db.util.Dirtiable;
-import net.daporkchop.lib.logging.Logging;
-
-import java.io.IOException;
+import net.daporkchop.lib.db.Container;
+import net.daporkchop.lib.db.PorkDB;
 
 /**
  * @author DaPorkchop_
  */
-public interface Container<V, B extends Container.Builder<V, ? extends Container<V, B, DB>, DB>, DB extends PorkDB> extends Dirtiable, Logging {
-    String getName();
-
-    DB getDb();
-
-    V getValue();
-
-    void save() throws IOException;
-
-    default boolean usesDirectory() {
-        return true;
-    }
-
-    default void close() throws IOException {
-        this.save();
-    }
-
-    @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
-    @Accessors(chain = true)
-    @Setter
-    @Getter
-    abstract class Builder<V, C extends Container<V, ? extends Builder<V, C, DB>, DB>, DB extends PorkDB> {
-        @NonNull
-        protected final DB db;
-
-        @NonNull
-        protected final String name;
-
-        public abstract C buildIfPresent() throws IOException;
-
-        public final C build() throws IOException {
-            C built = this.buildImpl();
-            this.db.getLoadedContainers().put(this.name, built);
-            return built;
-        }
-
-        protected abstract C buildImpl() throws IOException;
-    }
+public interface RemoteContainer<V, B extends Container.Builder<V, ? extends RemoteContainer<V, B, DB>, DB>, DB extends RemoteDB> extends Container<V, B, DB> {
 }

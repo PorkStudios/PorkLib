@@ -162,7 +162,7 @@ public class DBMapTest implements Logging {
                         });
                         Map<byte[], byte[]> oldData = new HashMap<>(data);
                         {
-                            PorkDB db = PorkDB.builder()
+                            PorkDB db = PorkDB.local()
                                     .setRoot(ROOT_DIR)
                                     .build();
 
@@ -189,7 +189,7 @@ public class DBMapTest implements Logging {
                             }
                         }
                         {
-                            PorkDB db = PorkDB.builder()
+                            PorkDB db = PorkDB.local()
                                     .setRoot(ROOT_DIR)
                                     .build();
 
@@ -226,7 +226,7 @@ public class DBMapTest implements Logging {
                             }
                         }
                         {
-                            PorkDB db = PorkDB.builder()
+                            PorkDB db = PorkDB.local()
                                     .setRoot(ROOT_DIR)
                                     .build();
 

@@ -18,57 +18,47 @@ package net.daporkchop.lib.db;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.function.IOFunction;
+import net.daporkchop.lib.db.container.AbstractContainer;
+import net.daporkchop.lib.db.local.LocalDB;
 import net.daporkchop.lib.db.remote.RemoteDB;
+import net.daporkchop.lib.logging.Logging;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
- * Manages the various {@link Container}s for a database
+ * Manages the various {@link AbstractContainer}s for a database
  *
  * @author DaPorkchop_
  */
-public abstract class PorkDB {
-    final Map<String, Container> loadedContainers = new ConcurrentHashMap<>();
-    private final Map<Class<? extends Container>, Function<String, ? extends Container.Builder>> builderCache = new IdentityHashMap<>();
+public abstract class PorkDB<DB extends PorkDB<DB, CC>, CC extends Container<?, ?, DB>> implements Logging {
+    @Getter(AccessLevel.PACKAGE)
+    protected final Map<String, CC> loadedContainers = new ConcurrentHashMap<>();
     @Getter
-    private final File root;
-    private final Object saveLock = new Object();
-    @Getter
-    private volatile boolean open = true;
+    protected volatile boolean open = true;
 
     protected PorkDB(@NonNull Builder builder) {
-        this.root = builder.root;
     }
 
-    /**
-     * Constructs a new {@link Builder}
-     *
-     * @return a blank instance of {@link Builder}
-     */
-    public static Builder builder() {
-        return new Builder(null);
+    public static LocalDB.Builder local() {
+        return new LocalDB.Builder();
     }
 
-    /**
-     * Constructs a new {@link Builder}
-     *
-     * @param root the root folder of the {@link PorkDB} to be constructed
-     * @return a new instance of {@link Builder} with the given root
-     */
-    public static Builder builder(@NonNull File root) {
-        return new Builder(null).setRoot(root);
+    public static LocalDB.Builder local(@NonNull File root) {
+        return new LocalDB.Builder(root);
+    }
+
+    public static RemoteDB.Builder remote() {
+        return new RemoteDB.Builder();
+    }
+
+    public static RemoteDB.Builder remote(@NonNull InetSocketAddress remoteAddress) {
+        return new RemoteDB.Builder(remoteAddress);
     }
 
     /**
@@ -79,64 +69,30 @@ public abstract class PorkDB {
      * @return a container with the given name, or null if none was currently loaded.
      */
     @SuppressWarnings("unchecked")
-    public <C extends Container> C get(@NonNull String name) {
+    public <C extends CC> C get(@NonNull String name) {
         this.ensureOpen();
         return (C) this.loadedContainers.get(name);
     }
 
     /**
      * Saves the content of every loaded container to disk. The exact behavior of this may vary across
-     * various {@link Container} implementations.
+     * various {@link AbstractContainer} implementations.
      *
      * @throws IOException if a IO exception occurs you dummy
      */
-    public void save() throws IOException {
-        this.ensureOpen();
-        synchronized (this.saveLock) {
-            for (Container container : this.loadedContainers.values()) {
-                container.save();
-            }
-        }
-    }
+    public abstract void save() throws IOException;
 
     /**
      * Closes the database, unloading all currently loaded containers.
      *
      * @throws IOException if a IO exception occurs you dummy
      */
-    public void close() throws IOException {
-        this.ensureOpen();
-        synchronized (this.saveLock) { //TODO: read-write locking implementation
-            this.open = false;
-            try {
-                for (Iterator<Container> iter = this.loadedContainers.values().iterator(); iter.hasNext(); iter.next().close()) {
-                }
-            } finally {
-                this.loadedContainers.clear();
-            }
-        }
-    }
+    public abstract void close() throws IOException;
 
-    private void ensureOpen() {
+    protected void ensureOpen() {
         if (!this.isOpen()) {
             throw new IllegalStateException("Database already closed!");
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    private <V, C extends Container<V, ? extends Container.Builder<V, C>>> C computeIfAbsent(@NonNull String name, @NonNull IOFunction<String, C> creator) {
-        return (C) this.loadedContainers.computeIfAbsent(name, creator);
-    }
-
-    @SuppressWarnings("unchecked")
-    private <V, C extends Container<V, B>, B extends Container.Builder<V, C>> C load(@NonNull B builder, @NonNull Consumer<B>... populators) throws IOException {
-        for (Consumer<B> p : populators) {
-            if (p == null) {
-                throw new NullPointerException();
-            }
-            p.accept(builder);
-        }
-        return builder.build();
     }
 
     /**
@@ -146,34 +102,15 @@ public abstract class PorkDB {
      */
     public abstract boolean isRemote();
 
-    @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     @Accessors(chain = true)
     @Getter
     @Setter
-    public static final class Builder {
-        /**
-         * The remote address of this database.
-         * <p>
-         * If this is a local database, this will be {@code null}
-         */
-        private final InetSocketAddress remoteAddress;
-
-        /**
-         * The root directory of the database.
-         */
-        private File root;
-
+    public static abstract class Builder<B extends Builder<B, DB>, DB extends PorkDB> {
         /**
          * Constructs a new {@link PorkDB} using the settings from this builder
          *
          * @return a new instance of {@link PorkDB} based on this builder
          */
-        public PorkDB build() {
-            if (this.remoteAddress == null && this.root == null) {
-                throw new IllegalStateException("root must be set!");
-            }
-
-            return this.remoteAddress == null ? new LocalDB(this) : new RemoteDB(this);
-        }
+        public abstract DB build();
     }
 }

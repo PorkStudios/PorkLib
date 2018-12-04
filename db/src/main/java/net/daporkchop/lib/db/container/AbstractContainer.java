@@ -13,20 +13,27 @@
  *
  */
 
-package net.daporkchop.lib.db;
+package net.daporkchop.lib.db.container;
+
+import lombok.Getter;
+import lombok.NonNull;
+import net.daporkchop.lib.db.Container;
+import net.daporkchop.lib.db.PorkDB;
+import net.daporkchop.lib.logging.Logging;
+
+import java.io.IOException;
 
 /**
- * An implementation of {@link PorkDB} that runs on the local machine
- *
  * @author DaPorkchop_
  */
-public class LocalDB extends PorkDB {
-    protected LocalDB(Builder builder) {
-        super(builder);
-    }
+@Getter
+public abstract class AbstractContainer<V, B extends Container.Builder<V, ? extends AbstractContainer<V, B, DB>, DB>, DB extends PorkDB> implements Container<V, B, DB>, Logging {
+    protected final DB db;
+    protected final String name;
 
-    @Override
-    public boolean isRemote() {
-        return false;
+    @SuppressWarnings("unchecked")
+    public AbstractContainer(@NonNull B builder) throws IOException {
+        this.db = builder.getDb();
+        this.name = builder.getName();
     }
 }

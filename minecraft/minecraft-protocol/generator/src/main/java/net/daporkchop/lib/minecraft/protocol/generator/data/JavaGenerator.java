@@ -17,9 +17,11 @@ package net.daporkchop.lib.minecraft.protocol.generator.data;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.Singular;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.minecraft.protocol.generator.Cache;
 import net.daporkchop.lib.minecraft.protocol.generator.ClassWriter;
@@ -40,8 +42,8 @@ import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.StringJoiner;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.zip.ZipFile;
 
@@ -271,54 +273,86 @@ public class JavaGenerator implements DataGenerator, Logging {
 
     private void generatePackets(@NonNull Version version, @NonNull File out) throws IOException {
         Mappings mappings = Mappings.getMappings(version.version);
+        Map<String, JsonObject> toBurgerMappings = new HashMap<>();
+        version.object.getAsJsonObject("packets").getAsJsonObject("packet").entrySet().stream()
+                .map(Map.Entry::getValue)
+                .map(JsonElement::getAsJsonObject)
+                .forEach(jsonObject -> {
+                    String className = jsonObject.get("class").getAsString();
+                    toBurgerMappings.put(className.substring(0, className.indexOf('.')), jsonObject);
+                });
+        Collection<JavaClass> packetClasses = new ArrayDeque<>();
         mappings.getClasses().entrySet().stream()
                 .filter(entry -> entry.getValue().startsWith("net.minecraft.network"))
                 .filter(entry -> entry.getValue().contains("SPacket") || entry.getValue().contains("CPacket"))
                 .forEach(entry -> {
-                    logger.trace("Packet class: ${0} -> ${1}", entry.getKey(), entry.getValue());
                     try (InputStream in = version.clientJar.getInputStream(version.clientJar.getEntry(this.format("${0}.class", entry.getKey())))) {
                         ClassReader reader = new ClassReader(in);
-                        if ((reader.getAccess() & Opcodes.ACC_ENUM) != 0) {
-                            logger.trace(" Enum: ${0}", entry.getValue());
-                        }
-                        reader.accept(new ClassVisitor(Opcodes.ASM4) {
-                            @Override
-                            public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
-                                BiFunction<String, Mappings, String> func = NAME_TRANSLATORS.get(String.valueOf(desc.charAt(0)));
-                                StringJoiner joiner = new StringJoiner(" ");
-                                if ((access & Opcodes.ACC_PUBLIC) != 0) {
-                                    joiner.add("public");
-                                }
-                                if ((access & Opcodes.ACC_PRIVATE) != 0) {
-                                    joiner.add("private");
-                                }
-                                if ((access & Opcodes.ACC_PROTECTED) != 0) {
-                                    joiner.add("protected");
-                                }
-                                if ((access & Opcodes.ACC_STATIC) != 0) {
-                                    joiner.add("static");
-                                }
-                                if ((access & Opcodes.ACC_FINAL) != 0) {
-                                    joiner.add("final");
-                                }
-                                if ((access & Opcodes.ACC_TRANSIENT) != 0) {
-                                    joiner.add("transient");
-                                }
-                                if ((access & Opcodes.ACC_VOLATILE) != 0) {
-                                    joiner.add("volatile");
-                                }
-                                if ((access & Opcodes.ACC_SYNTHETIC) != 0) {
-                                    joiner.add("synthetic");
-                                }
-
-                                logger.debug("    ${0} ${2} ${1}", joiner.toString(), mappings.getField(entry.getValue(), name), func.apply(desc, mappings).replace('/', '.'));
-                                return super.visitField(access, name, desc, signature, value);
-                            }
-                        }, 0);
+                        JavaClass.JavaClassBuilder classBuilder = JavaClass.builder()
+                                .nameObf(entry.getKey())
+                                .nameMCP(entry.getValue())
+                                .isEnum((reader.getAccess() & Opcodes.ACC_ENUM) != 0);
+                        reader.accept(new FieldFindingClassVisitor(classBuilder, mappings), 0);
+                        packetClasses.add(classBuilder.build());
                     } catch (IOException e) {
                         throw this.exception(e);
                     }
                 });
+
+        packetClasses.stream()
+                .filter(c -> c.nameMCP.contains("$"))
+                .forEach(clazz -> {
+                    logger.info("Found subclass: ${0} -> ${1}", clazz.nameObf, clazz.nameMCP);
+                    String[] split = clazz.nameMCP.split("\\$");
+                    try {
+                        Integer.parseInt(split[1]);
+                        logger.trace("Invalid class name: ${0}", clazz.nameMCP);
+                    } catch (NumberFormatException e)   {
+                        JavaClass parentClass = packetClasses.stream()
+                                .filter(clazz1 -> clazz1.nameMCP.equals(split[0]))
+                                .findAny().get();
+                        parentClass.subClasses.add(clazz);
+                    }
+                });
+        packetClasses.removeIf(clazz -> clazz.nameMCP.contains("$"));
+
+        packetClasses.stream()
+                .filter(clazz -> !clazz.isEnum)
+                .filter(JavaClass::doesntHaveSyntheticField)
+                .forEach(clazz -> {
+                    String className = clazz.nameMCP.substring(clazz.nameMCP.lastIndexOf('.') + 1, clazz.nameMCP.length());
+                    try (ClassWriter writer = new ClassWriter(this.ensureFileExists(new File(out, String.format("%s.java", className))))) {
+                        this.writePacket(clazz, toBurgerMappings, writer, false);
+                    } catch (IOException e) {
+                        throw this.exception(e);
+                    }
+                });
+    }
+
+    private void writePacket(@NonNull JavaClass clazz, @NonNull Map<String, JsonObject> toBurgerMappings, @NonNull ClassWriter writer, boolean sub) throws IOException  {
+        if (sub)    {
+            writer.newline();
+        }
+        String className = clazz.nameMCP.substring(clazz.nameMCP.lastIndexOf('.') + 1, clazz.nameMCP.length());
+        JsonObject burger = toBurgerMappings.get(clazz.nameObf);
+        if (burger == null || !burger.has("id"))    {
+            logger.trace("Skipping packet: ${0} -> ${1}", clazz.nameObf, clazz.nameMCP);
+            return;
+        }
+        if (clazz.fields.isEmpty()) {
+            writer.write("@NoArgsConstructor");
+        } else {
+            writer.write("@AllArgsConstructor", "@NoArgsConstructor");
+        }
+        writer.write(String.format("public %sclass %s", sub ? "static " : "", className)).pushBraces();
+        writer.write(String.format("public static final int ID = %d;", burger.get("id").getAsInt()));
+        for (JavaClass subClass : clazz.subClasses) {
+            if (subClass.isEnum)    {
+                continue; //TODO
+            }
+            this.writePacket(subClass, toBurgerMappings, writer, true);
+        }
+        writer.pop();
     }
 
     @RequiredArgsConstructor
@@ -334,34 +368,99 @@ public class JavaGenerator implements DataGenerator, Logging {
         SYNTHETIC(Opcodes.ACC_SYNTHETIC);
 
         private final int mask;
+
+        private static void forEachModifier(int flags, @NonNull Consumer<AccessModifier> consumer) {
+            for (AccessModifier modifier : values()) {
+                if ((flags & modifier.mask) != 0) {
+                    consumer.accept(modifier);
+                }
+            }
+        }
     }
 
     @Getter
     private static class FieldFindingClassVisitor extends ClassVisitor {
-        private final String classNameMCP;
-        private final String classNameObf;
-        private final Collection<Field> fields = new ArrayDeque<>();
+        private final JavaClass.JavaClassBuilder classBuilder;
+        private final Mappings mappings;
 
-        public FieldFindingClassVisitor(@NonNull String classNameMCP, @NonNull String classNameObf) {
+        public FieldFindingClassVisitor(@NonNull JavaClass.JavaClassBuilder classBuilder, @NonNull Mappings mappings) {
             super(Opcodes.ASM6);
-            this.classNameMCP = classNameMCP;
-            this.classNameObf = classNameObf;
+            this.classBuilder = classBuilder;
+            this.mappings = mappings;
         }
 
         @Override
         public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
             BiFunction<String, Mappings, String> func = NAME_TRANSLATORS.get(String.valueOf(desc.charAt(0)));
-
+            JavaField.JavaFieldBuilder fieldBuilder = JavaField.builder()
+                    .nameObf(name)
+                    .nameMCP(this.mappings.getField(this.classBuilder.nameMCP, name))
+                    .type(func.apply(desc, this.mappings));
+            AccessModifier.forEachModifier(access, fieldBuilder::modifier);
+            this.classBuilder.field(fieldBuilder.build());
             return super.visitField(access, name, desc, signature, value);
         }
     }
 
-    @RequiredArgsConstructor
+    @Builder
     @Getter
-    private static class Field {
+    private static class JavaField {
         @NonNull
-        private final String name;
-        private final Collection<AccessModifier> modifiers = new ArrayDeque<>();
+        private final String nameMCP;
+        @NonNull
+        private final String nameObf;
+        @NonNull
+        private final String type;
+        @Singular
+        private final Collection<AccessModifier> modifiers;
+    }
+
+    @Builder
+    @Getter
+    private static class JavaClass {
+        @NonNull
+        private final String nameMCP;
+        @NonNull
+        private final String nameObf;
+        @Singular
+        private final Collection<JavaField> fields;
+        private final boolean isEnum;
+        @Builder.Default
+        private final Collection<JavaClass> subClasses = new ArrayDeque<>();
+
+        public boolean hasSyntheticField() {
+            for (JavaField field : this.fields) {
+                if (field.modifiers.contains(AccessModifier.SYNTHETIC)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public boolean doesntHaveSyntheticField() {
+            return !this.hasSyntheticField();
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.nameObf);
+            builder.append(" -> ");
+            builder.append(this.nameMCP);
+            builder.append('\n');
+            for (JavaField field : this.fields) {
+                builder.append("  ");
+                for (AccessModifier modifier : field.modifiers) {
+                    builder.append(modifier.name().toLowerCase());
+                    builder.append(' ');
+                }
+                builder.append(field.type);
+                builder.append(' ');
+                builder.append(field.nameMCP);
+                builder.append('\n');
+            }
+            return builder.toString();
+        }
     }
 
     @RequiredArgsConstructor

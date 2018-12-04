@@ -13,52 +13,49 @@
  *
  */
 
-package net.daporkchop.lib.db.container.atomiclong;
+package net.daporkchop.lib.db.remote.protocol;
 
-import lombok.Getter;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.db.Container;
-import net.daporkchop.lib.db.container.AbstractContainer;
-import net.daporkchop.lib.db.local.AbstractLocalContainer;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import net.daporkchop.lib.db.local.LocalContainer;
 import net.daporkchop.lib.db.local.LocalDB;
+import net.daporkchop.lib.db.remote.RemoteDBConnection;
+import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.network.channel.Channel;
+import net.daporkchop.lib.network.packet.Codec;
 
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author DaPorkchop_
  */
-public class LocalDBAtomicLong extends AbstractLocalContainer<AtomicLong, LocalDBAtomicLong.Builder> implements DBAtomicLong<LocalDBAtomicLong, LocalDBAtomicLong.Builder, LocalDB> {
-    @Getter
-    private final AtomicLong value = new AtomicLong(0L);
-
-    public LocalDBAtomicLong(Builder builder) throws IOException {
-        super(builder);
-
-        try (DataIn in = this.getIn("value", out -> {
-            out.writeLong(0L);
-        })) {
-            this.value.set(in.readLong());
-        }
+@NoArgsConstructor
+public class SaveContainerPacket extends ContainerPacket {
+    public SaveContainerPacket(String name, long actionId, boolean response) {
+        super(name, actionId, response);
     }
 
-    @Override
-    protected void doSave() throws IOException {
-        try (DataOut out = this.getOut("value"))    {
-            out.writeLong(this.value.get());
-        }
-    }
-
-    public static class Builder extends AbstractLocalContainer.Builder<AtomicLong, LocalDBAtomicLong>  {
-        protected Builder(LocalDB db, String name) {
-            super(db, name);
+    public static class SaveContainerCodec implements Codec<SaveContainerPacket, RemoteDBConnection>, Logging {
+        @Override
+        public void handle(@NonNull SaveContainerPacket packet, @NonNull Channel channel, @NonNull RemoteDBConnection connection) {
+            if (packet.response)    {
+            } else {
+                LocalContainer container = connection.<LocalDB>getDb().get(packet.name);
+                if (container == null)  {
+                    throw this.exception("Unknown container: ${0}", packet.name);
+                }
+                try {
+                    container.save();
+                } catch (IOException e) {
+                    throw this.exception("Unable to save container: ${0}", e, packet.name);
+                }
+                channel.send(new SaveContainerPacket(packet.name, packet.actionId, true));
+            }
         }
 
         @Override
-        protected LocalDBAtomicLong buildImpl() throws IOException {
-            return new LocalDBAtomicLong(this);
+        public SaveContainerPacket createInstance() {
+            return new SaveContainerPacket();
         }
     }
 }

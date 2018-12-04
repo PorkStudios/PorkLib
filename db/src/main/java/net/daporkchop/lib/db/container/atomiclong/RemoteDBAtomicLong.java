@@ -16,54 +16,41 @@
 package net.daporkchop.lib.db.container.atomiclong;
 
 import net.daporkchop.lib.db.Container;
-import net.daporkchop.lib.db.PorkDB;
+import net.daporkchop.lib.db.container.atomiclong.remote.PacketDBAtomicLong;
+import net.daporkchop.lib.db.remote.AbstractRemoteContainer;
+import net.daporkchop.lib.db.remote.RemoteDB;
+import net.daporkchop.lib.network.packet.Codec;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author DaPorkchop_
  */
-public interface DBAtomicLong<C extends DBAtomicLong<? extends DBAtomicLong, B, DB>, B extends Container.Builder<AtomicLong, C, DB>, DB extends PorkDB<DB, ? extends Container>> extends Container<AtomicLong, B, DB> {
-    default void set(long val)  {
-        this.getValue().set(val);
+public class RemoteDBAtomicLong extends AbstractRemoteContainer<AtomicLong, RemoteDBAtomicLong.Builder> implements DBAtomicLong<RemoteDBAtomicLong, RemoteDBAtomicLong.Builder, RemoteDB> {
+    private static final Collection<Class<? extends Codec>> PACKETS = Arrays.asList(
+            PacketDBAtomicLong.DBAtomicLongCodec.class
+    );
+
+    public RemoteDBAtomicLong(Builder builder) throws IOException {
+        super(builder);
     }
 
-    default long get() {
-        return this.getValue().get();
+    @Override
+    public AtomicLong getValue() {
+        return new AtomicLong(this.get());
     }
 
-    default long getAndSet(long val) {
-        this.markDirty();
-        return this.getValue().getAndSet(val);
-    }
+    public static class Builder extends AbstractRemoteContainer.Builder<AtomicLong, RemoteDBAtomicLong> {
+        protected Builder(RemoteDB db, String name) {
+            super(db, name);
+        }
 
-    default long addAndGet(long val) {
-        this.markDirty();
-        return this.getValue().addAndGet(val);
-    }
-
-    default long getAndAdd(long val) {
-        this.markDirty();
-        return this.getValue().getAndAdd(val);
-    }
-
-    default long getAndIncrement() {
-        this.markDirty();
-        return this.getValue().getAndIncrement();
-    }
-
-    default long incrementAndGet() {
-        this.markDirty();
-        return this.getValue().incrementAndGet();
-    }
-
-    default long getAndDecrement() {
-        this.markDirty();
-        return this.getValue().getAndDecrement();
-    }
-
-    default long decrementAndGet() {
-        this.markDirty();
-        return this.getValue().decrementAndGet();
+        @Override
+        protected RemoteDBAtomicLong buildImpl() throws IOException {
+            return new RemoteDBAtomicLong(this);
+        }
     }
 }

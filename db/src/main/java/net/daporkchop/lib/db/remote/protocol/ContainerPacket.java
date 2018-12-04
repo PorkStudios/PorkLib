@@ -13,57 +13,37 @@
  *
  */
 
-package net.daporkchop.lib.db.container.atomiclong;
+package net.daporkchop.lib.db.remote.protocol;
 
-import net.daporkchop.lib.db.Container;
-import net.daporkchop.lib.db.PorkDB;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.network.packet.Packet;
 
-import java.util.concurrent.atomic.AtomicLong;
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-public interface DBAtomicLong<C extends DBAtomicLong<? extends DBAtomicLong, B, DB>, B extends Container.Builder<AtomicLong, C, DB>, DB extends PorkDB<DB, ? extends Container>> extends Container<AtomicLong, B, DB> {
-    default void set(long val)  {
-        this.getValue().set(val);
+@AllArgsConstructor
+@NoArgsConstructor
+public abstract class ContainerPacket implements Packet {
+    @NonNull
+    public String name;
+    public long actionId;
+    public boolean response;
+
+    @Override
+    public void read(@NonNull DataIn in) throws IOException {
+        this.name = in.readUTF();
+        this.actionId = in.readVarLong(true);
     }
 
-    default long get() {
-        return this.getValue().get();
-    }
-
-    default long getAndSet(long val) {
-        this.markDirty();
-        return this.getValue().getAndSet(val);
-    }
-
-    default long addAndGet(long val) {
-        this.markDirty();
-        return this.getValue().addAndGet(val);
-    }
-
-    default long getAndAdd(long val) {
-        this.markDirty();
-        return this.getValue().getAndAdd(val);
-    }
-
-    default long getAndIncrement() {
-        this.markDirty();
-        return this.getValue().getAndIncrement();
-    }
-
-    default long incrementAndGet() {
-        this.markDirty();
-        return this.getValue().incrementAndGet();
-    }
-
-    default long getAndDecrement() {
-        this.markDirty();
-        return this.getValue().getAndDecrement();
-    }
-
-    default long decrementAndGet() {
-        this.markDirty();
-        return this.getValue().decrementAndGet();
+    @Override
+    public void write(@NonNull DataOut out) throws IOException {
+        out.writeUTF(this.name);
+        out.writeVarLong(this.actionId, true);
     }
 }

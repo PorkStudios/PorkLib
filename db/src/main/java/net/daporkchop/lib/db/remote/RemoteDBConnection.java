@@ -18,14 +18,20 @@ package net.daporkchop.lib.db.remote;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.db.Container;
+import net.daporkchop.lib.db.PorkDB;
 import net.daporkchop.lib.network.conn.UserConnection;
 
 /**
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-@Getter
 public class RemoteDBConnection extends UserConnection {
     @NonNull
-    private final RemoteDB db;
+    private final PorkDB db;
+
+    @SuppressWarnings("unchecked")
+    public <DB extends PorkDB> DB getDb()   {
+        return (DB) this.db;
+    }
 }

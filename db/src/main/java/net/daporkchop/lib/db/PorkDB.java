@@ -36,7 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author DaPorkchop_
  */
-public abstract class PorkDB<DB extends PorkDB<DB, CC>, CC extends Container<?, ? extends Container.Builder<?, CC, DB>, DB>> implements Logging {
+public abstract class PorkDB<DB extends PorkDB<DB, CC>, CC extends Container> implements Logging {
     @Getter(AccessLevel.PACKAGE)
     protected final Map<String, CC> loadedContainers = new ConcurrentHashMap<>();
     @Getter

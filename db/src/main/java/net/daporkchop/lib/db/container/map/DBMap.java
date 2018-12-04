@@ -23,7 +23,7 @@ import net.daporkchop.lib.binary.data.Serializer;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.function.IOConsumer;
-import net.daporkchop.lib.db.Container;
+import net.daporkchop.lib.db.container.AbstractContainer;
 import net.daporkchop.lib.db.PorkDB;
 import net.daporkchop.lib.db.container.map.data.DataLookup;
 import net.daporkchop.lib.db.container.map.data.IndividualFileLookup;
@@ -56,7 +56,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  *
  * @author DaPorkchop_
  */
-public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> implements Map<K, V> {
+public class DBMap<K, V> extends AbstractContainer<Map<K, V>, DBMap.Builder<K, V>> implements Map<K, V> {
     private final AtomicLong size = new AtomicLong(0L);
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
     @Getter
@@ -324,7 +324,7 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
     @Getter
     @Setter
     @Accessors(chain = true)
-    public static class Builder<K, V> extends Container.Builder<Map<K, V>, DBMap<K, V>> {
+    public static class Builder<K, V> extends AbstractContainer.Builder<Map<K, V>, DBMap<K, V>> {
         //TODO: private Serializer<K> keySerializer;
 
         /**

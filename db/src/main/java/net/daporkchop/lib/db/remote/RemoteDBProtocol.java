@@ -17,14 +17,23 @@ package net.daporkchop.lib.db.remote;
 
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.db.container.AbstractContainer;
+import net.daporkchop.lib.db.container.Containers;
+import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.network.packet.Codec;
+import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
 
 /**
  * @author DaPorkchop_
  */
 @Getter
-public class RemoteDBProtocol extends UserProtocol<RemoteDBConnection> {
+public class RemoteDBProtocol extends UserProtocol<RemoteDBConnection> implements Logging {
     @NonNull
     private final RemoteDB db;
 
@@ -34,12 +43,39 @@ public class RemoteDBProtocol extends UserProtocol<RemoteDBConnection> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected void registerPackets() {
+        //authentication packets
 
+        //container packets
+        try {
+            for (Containers containerContainer : Containers.values()) {
+                Class<? extends AbstractContainer> clazz = containerContainer.getClazz();
+                Field field = clazz.getDeclaredField("PACKETS");
+                if (field == null)  {
+                    logger.debug("No additional packets found for ${0}", clazz);
+                } else {
+                    field.setAccessible(true);
+                    Collection<Class<Codec<? extends Packet, RemoteDBConnection>>> packetClasses = (Collection<Class<Codec<? extends Packet, RemoteDBConnection>>>) field.get(null);
+                    for (Class<Codec<? extends Packet, RemoteDBConnection>> packetClass : packetClasses)   {
+                        Constructor<? extends Codec> constructor = packetClass.getDeclaredConstructor();
+                        constructor.setAccessible(true);
+                        this.register((Codec<? extends Packet, RemoteDBConnection>) constructor.newInstance());
+                    }
+                    logger.debug("Registered ${0} extra packets for ${1}", packetClasses.size(), clazz);
+                }
+            }
+        } catch (NoSuchFieldException
+                | IllegalAccessException
+                | NoSuchMethodException
+                | InstantiationException
+                | InvocationTargetException e)    {
+            throw this.exception(e);
+        }
     }
 
     @Override
     public RemoteDBConnection newConnection() {
-        return new RemoteDBConnection();
+        return new RemoteDBConnection(this.db);
     }
 }

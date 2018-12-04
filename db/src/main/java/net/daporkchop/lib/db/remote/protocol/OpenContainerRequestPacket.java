@@ -13,19 +13,34 @@
  *
  */
 
-package net.daporkchop.lib.db.remote;
+package net.daporkchop.lib.db.remote.protocol;
 
-import lombok.Getter;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.network.conn.UserConnection;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.network.packet.Packet;
+
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-public class RemoteDBConnection extends UserConnection {
+@AllArgsConstructor
+@NoArgsConstructor
+public abstract class OpenContainerRequestPacket implements Packet {
     @NonNull
-    private final RemoteDB db;
+    public String name;
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void read(@NonNull DataIn in) throws IOException {
+        this.name = in.readUTF();
+    }
+
+    @Override
+    public void write(@NonNull DataOut out) throws IOException {
+        out.writeUTF(this.name);
+    }
 }

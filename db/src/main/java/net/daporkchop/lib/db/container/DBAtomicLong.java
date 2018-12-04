@@ -20,7 +20,6 @@ import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.db.PorkDB;
-import net.daporkchop.lib.db.Container;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -31,7 +30,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author DaPorkchop_
  */
 @Getter
-public class DBAtomicLong extends Container<AtomicLong, DBAtomicLong.Builder> {
+public class DBAtomicLong extends AbstractContainer<AtomicLong, DBAtomicLong.Builder> {
     public static Builder builder(@NonNull PorkDB db, @NonNull String name) {
         return new Builder(db, name);
     }
@@ -94,7 +93,7 @@ public class DBAtomicLong extends Container<AtomicLong, DBAtomicLong.Builder> {
         }
     }
 
-    public static final class Builder extends Container.Builder<AtomicLong, DBAtomicLong> {
+    public static final class Builder extends AbstractContainer.Builder<AtomicLong, DBAtomicLong> {
         private Builder(PorkDB db, String name) {
             super(db, name);
         }

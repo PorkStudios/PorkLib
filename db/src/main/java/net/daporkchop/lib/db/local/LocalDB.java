@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.db.remote;
+package net.daporkchop.lib.db.local;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,42 +21,56 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.db.container.AbstractContainer;
 import net.daporkchop.lib.db.PorkDB;
-import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
-import net.daporkchop.lib.network.endpoint.client.Client;
-import net.daporkchop.lib.network.protocol.netty.sctp.SctpProtocolManager;
 
-import java.net.InetSocketAddress;
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
 
 /**
- * An implementation of {@link PorkDB} which runs on a remote machine
+ * An implementation of {@link PorkDB} that runs on the local machine
  *
  * @author DaPorkchop_
  */
-public class RemoteDB extends PorkDB {
-    @Getter
-    private final InetSocketAddress remoteAddress;
-    @Getter
-    private final Client netClient;
+@Getter
+public class LocalDB extends PorkDB<LocalDB, LocalContainer<?, ?, LocalDB>> {
+    private final File root;
+    private final Object saveLock = new Object();
 
-    protected RemoteDB(@NonNull Builder builder) {
+    protected LocalDB(@NonNull Builder builder) {
         super(builder);
 
-        if (builder.remoteAddress == null) {
-            throw new IllegalArgumentException("Remote address must be set!");
-        } else {
-            this.remoteAddress = builder.remoteAddress;
-        }
-        this.netClient = new ClientBuilder()
-                .setAddress(this.remoteAddress)
-                .addProtocol(new RemoteDBProtocol(this))
-                .setManager(SctpProtocolManager.INSTANCE)
-                .build();
+        this.root = builder.root;
     }
 
     @Override
     public boolean isRemote() {
-        return true;
+        return false;
+    }
+
+    @Override
+    public void close() throws IOException {
+        this.ensureOpen();
+        synchronized (this.saveLock) { //TODO: read-write locking implementation
+            this.open = false;
+            try {
+                for (Iterator<LocalContainer<?, ?, LocalDB>> iter = this.loadedContainers.values().iterator(); iter.hasNext(); iter.next().close()) {
+                }
+            } finally {
+                this.loadedContainers.clear();
+            }
+        }
+    }
+
+    @Override
+    public void save() throws IOException {
+        this.ensureOpen();
+        synchronized (this.saveLock) {
+            for (LocalContainer<?, ?, LocalDB> container : this.loadedContainers.values()) {
+                container.save();
+            }
+        }
     }
 
     @RequiredArgsConstructor
@@ -64,22 +78,20 @@ public class RemoteDB extends PorkDB {
     @Accessors(chain = true)
     @Getter
     @Setter
-    public static class Builder extends PorkDB.Builder<Builder, RemoteDB>   {
+    public static class Builder extends PorkDB.Builder<Builder, LocalDB>  {
         /**
-         * The remote address of this database.
-         * <p>
-         * If this is a local database, this will be {@code null}
+         * The root directory of the database.
          */
         @NonNull
-        private InetSocketAddress remoteAddress;
+        private File root;
 
         @Override
-        public RemoteDB build() {
-            if (this.remoteAddress == null) {
-                throw new IllegalStateException("remote address must be set!");
+        public LocalDB build() {
+            if (this.root == null)  {
+                throw new IllegalStateException("root must be set!");
             }
 
-            return new RemoteDB(this);
+            return new LocalDB(this);
         }
     }
 }

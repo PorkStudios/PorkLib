@@ -13,19 +13,24 @@
  *
  */
 
-package net.daporkchop.lib.db.remote;
+package net.daporkchop.lib.db.container;
 
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.network.conn.UserConnection;
+import net.daporkchop.lib.db.container.map.DBMap;
 
 /**
+ * A list of all currently implemented containers (for use by the remote extensions)
+ *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
 @Getter
-public class RemoteDBConnection extends UserConnection {
+public enum Containers {
+    MAP(DBMap.class)
+    ;
+
     @NonNull
-    private final RemoteDB db;
+    private final Class<? extends AbstractContainer> clazz;
 }

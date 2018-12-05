@@ -18,7 +18,6 @@ package net.daporkchop.lib.parallel.protocol;
 import lombok.Getter;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.parallel.Parallelified;
-import net.daporkchop.lib.parallel.lock.ParallelLock;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,7 +35,6 @@ public class ParallelProtocol extends UserProtocol<ParallelConnection> {
 
     @Override
     protected void registerPackets() {
-        this.register(new ParallelLock.ParallelLockRequest.ParallelLockCodec());
     }
 
     @Override
@@ -45,7 +43,7 @@ public class ParallelProtocol extends UserProtocol<ParallelConnection> {
     }
 
     @SuppressWarnings("unchecked")
-    public <P extends Parallelified> P get(int id)  {
+    public <P extends Parallelified> P get(int id) {
         return (P) this.registered.get(id);
     }
 }

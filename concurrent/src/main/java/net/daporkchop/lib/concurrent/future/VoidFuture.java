@@ -16,8 +16,13 @@
 package net.daporkchop.lib.concurrent.future;
 
 import lombok.Getter;
+import lombok.NonNull;
+import net.daporkchop.lib.common.function.Void;
 
+import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
 
 /**
  * Similar to {@link java.util.concurrent.CompletableFuture}, however without a return
@@ -29,6 +34,7 @@ import java.util.concurrent.ExecutionException;
 public class VoidFuture implements PorkFuture {
     private volatile boolean complete = false;
     private volatile Throwable exception = null;
+    private Collection<Void> listeners = null;
 
     @Override
     public Object get() throws InterruptedException, ExecutionException {
@@ -74,5 +80,26 @@ public class VoidFuture implements PorkFuture {
     public void completeExceptionally(Throwable exception) {
         this.exception = exception;
         this.complete();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public VoidFuture addListener(@NonNull Consumer consumer) {
+        this.addListener(() -> consumer.accept(null));
+        return this;
+    }
+
+    public VoidFuture addListener(@NonNull Void func) {
+        if (this.complete)  {
+            func.run();
+        } else {
+            synchronized (this) {
+                if (this.listeners == null) {
+                    this.listeners = new ArrayDeque<>();
+                }
+                this.listeners.add(func);
+            }
+        }
+        return this;
     }
 }

@@ -102,7 +102,7 @@ public class DBMapTest implements Logging {
                 int individualSize = (int) map.keySet().stream()
                         .map(b -> getRelevantHashBits(b, TABLE_SIZE_BITS))
                         .distinct().count();
-                logger.trace("Full: ${0}, individual: ${1}", fullSize, individualSize);
+                logger.debug("Full: ${0}, individual: ${1}", fullSize, individualSize);
             }
             , (random, map) -> {
                 if (false) {
@@ -144,13 +144,7 @@ public class DBMapTest implements Logging {
                                 "Testing DBMap with (serializer=${0}, dataLookup=${1}, indexLookup=${2}, compression=${3})...",
                                 serializer.get().getClass(), dataLookup.get().getClass(), indexLookup.get().getClass(), compression.get()
                         );
-                        logger.debug("Deleting ${0}...", ROOT_DIR);
                         PorkUtil.rm(ROOT_DIR);
-                        try {
-                            logger.debug("Sleeping to let deleted files sync...");
-                            Thread.sleep(1000L);
-                        } catch (InterruptedException e)    {
-                        }
 
                         Random random = RANDOM.get();
                         Map<byte[], byte[]> data = new HashMap<>();

@@ -26,15 +26,15 @@ import java.util.function.Supplier;
  * @author DaPorkchop_
  */
 public interface Codec<P extends Packet, C extends UserConnection> extends PacketHandler<P, C> {
+    @Override
+    void handle(P packet, Channel channel, C connection);
+
     /**
      * Create a new instance of this codec's packet
      *
      * @return a new, blank instance of this codec's packet
      */
     P createInstance();
-
-    interface Simple<P extends Packet, C extends UserConnection> extends PacketHandler.Simple<P, C>, Codec<P, C> {
-    }
 
     @RequiredArgsConstructor
     class SimpleCodec<P extends Packet, C extends UserConnection> implements Codec<P, C> {

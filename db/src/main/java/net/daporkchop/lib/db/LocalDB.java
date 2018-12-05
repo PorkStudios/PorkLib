@@ -13,24 +13,20 @@
  *
  */
 
-package net.daporkchop.lib.db.container;
-
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.db.container.map.DBMap;
+package net.daporkchop.lib.db;
 
 /**
- * A list of all currently implemented containers (for use by the remote extensions)
+ * An implementation of {@link PorkDB} that runs on the local machine
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-public enum Containers {
-    MAP(DBMap.class)
-    ;
+public class LocalDB extends PorkDB {
+    protected LocalDB(Builder builder) {
+        super(builder);
+    }
 
-    @NonNull
-    private final Class<? extends AbstractContainer> clazz;
+    @Override
+    public boolean isRemote() {
+        return false;
+    }
 }

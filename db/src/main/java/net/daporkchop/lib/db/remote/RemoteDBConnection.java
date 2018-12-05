@@ -15,17 +15,10 @@
 
 package net.daporkchop.lib.db.remote;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.network.conn.UserConnection;
 
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
 public class RemoteDBConnection extends UserConnection {
-    @NonNull
-    private final RemoteDB db;
 }

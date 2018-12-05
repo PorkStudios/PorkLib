@@ -13,44 +13,44 @@
  *
  */
 
-package net.daporkchop.lib.network.pork.packet;
+package net.daporkchop.lib.concurrent.future;
 
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.network.channel.Channel;
-import net.daporkchop.lib.network.endpoint.client.PorkClient;
-import net.daporkchop.lib.network.packet.Codec;
-import net.daporkchop.lib.network.packet.Packet;
-import net.daporkchop.lib.network.pork.PorkConnection;
 
-import java.io.IOException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 /**
  * @author DaPorkchop_
  */
-@NoArgsConstructor
-public class HandshakeCompletePacket implements Packet {
-    @Override
-    public void read(DataIn in) throws IOException {
-        //in.readBytesSimple();
+public interface PorkFuture<T> {
+    boolean isComplete();
+
+    void complete(T value);
+
+    T get() throws InterruptedException, ExecutionException;
+
+    default T get(long time, @NonNull TimeUnit unit) throws InterruptedException, ExecutionException    {
+        return this.get(unit.toMillis(time));
     }
 
-    @Override
-    public void write(DataOut out) throws IOException {
-        //out.writeBytesSimple(new byte[0xFFFFFF]);
-    }
-
-    public static class HandshakeCompleteCodec implements Codec<HandshakeCompletePacket, PorkConnection> {
-        @Override
-        public void handle(@NonNull HandshakeCompletePacket packet, @NonNull Channel channel, @NonNull PorkConnection connection) {
-            connection.<PorkClient>getEndpoint().postConnectCallback(null);
-        }
-
-        @Override
-        public HandshakeCompletePacket createInstance() {
-            return new HandshakeCompletePacket();
+    default T getUnchecked()    {
+        try {
+            return this.get();
+        } catch (InterruptedException
+                | ExecutionException e) {
+            throw new IllegalStateException(e);
         }
     }
+
+    T get(long millis) throws InterruptedException, ExecutionException;
+
+    default void complete() {
+        this.complete(null);
+    }
+
+    void completeExceptionally(Throwable exception);
+
+    PorkFuture<T> addListener(@NonNull Consumer<T> consumer);
 }

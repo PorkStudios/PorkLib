@@ -13,44 +13,39 @@
  *
  */
 
-package net.daporkchop.lib.network.pork.packet;
+package net.daporkchop.lib.parallel.protocol;
 
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.network.channel.Channel;
-import net.daporkchop.lib.network.endpoint.client.PorkClient;
-import net.daporkchop.lib.network.packet.Codec;
-import net.daporkchop.lib.network.packet.Packet;
-import net.daporkchop.lib.network.pork.PorkConnection;
+import net.daporkchop.lib.network.conn.UserConnection;
+import net.daporkchop.lib.network.endpoint.server.Server;
+import net.daporkchop.lib.network.util.reliability.Reliability;
 
-import java.io.IOException;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author DaPorkchop_
  */
-@NoArgsConstructor
-public class HandshakeCompletePacket implements Packet {
-    @Override
-    public void read(DataIn in) throws IOException {
-        //in.readBytesSimple();
-    }
+@RequiredArgsConstructor
+public class ParallelConnection extends UserConnection {
+    @NonNull
+    @Getter
+    private final ParallelProtocol protocol;
+    private final AtomicLong idCounter = new AtomicLong(0L);
+    @Getter
+    private Channel channel;
+    @Getter
+    private boolean server;
 
     @Override
-    public void write(DataOut out) throws IOException {
-        //out.writeBytesSimple(new byte[0xFFFFFF]);
+    public void onConnect() {
+        this.server = this.getEndpoint() instanceof Server;
+        this.channel = this.openChannel(Reliability.RELIABLE_ORDERED);
     }
 
-    public static class HandshakeCompleteCodec implements Codec<HandshakeCompletePacket, PorkConnection> {
-        @Override
-        public void handle(@NonNull HandshakeCompletePacket packet, @NonNull Channel channel, @NonNull PorkConnection connection) {
-            connection.<PorkClient>getEndpoint().postConnectCallback(null);
-        }
-
-        @Override
-        public HandshakeCompletePacket createInstance() {
-            return new HandshakeCompletePacket();
-        }
+    public long allocateNewTask() {
+        return this.idCounter.incrementAndGet();
     }
 }

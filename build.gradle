@@ -63,6 +63,10 @@ allprojects {
     repositories {
         mavenLocal()
         maven {
+            name = "NukkitX Snapshots"
+            url = "https://repo.nukkitx.com/snapshot/"
+        }
+        maven {
             name = "DaPorkchop_"
             url = "https://maven.daporkchop.net/"
         }

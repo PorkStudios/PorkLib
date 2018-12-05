@@ -67,7 +67,6 @@ public class RemoteDB extends PorkDB<RemoteDB, RemoteContainer> {
 
     @Override
     public void close() throws IOException {
-        super.close();
         this.netClient.close("user disconnect");
     }
 

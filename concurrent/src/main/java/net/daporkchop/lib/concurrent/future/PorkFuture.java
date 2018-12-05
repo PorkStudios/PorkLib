@@ -19,6 +19,7 @@ import lombok.NonNull;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 /**
  * @author DaPorkchop_
@@ -50,4 +51,6 @@ public interface PorkFuture<T> {
     }
 
     void completeExceptionally(Throwable exception);
+
+    PorkFuture<T> addListener(@NonNull Consumer<T> consumer);
 }

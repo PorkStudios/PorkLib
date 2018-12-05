@@ -22,12 +22,7 @@ import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.server.Server;
 import net.daporkchop.lib.network.util.reliability.Reliability;
-import net.daporkchop.lib.parallel.Parallelified;
-import net.daporkchop.lib.parallel.future.ParallelFuture;
-import net.daporkchop.lib.parallel.future.ParallelVoidFuture;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -39,7 +34,6 @@ public class ParallelConnection extends UserConnection {
     @Getter
     private final ParallelProtocol protocol;
     private final AtomicLong idCounter = new AtomicLong(0L);
-    private final Map<Long, ParallelFuture> waitingTasks = new ConcurrentHashMap<>(); //TODO: finish primitive
     @Getter
     private Channel channel;
     @Getter
@@ -53,26 +47,5 @@ public class ParallelConnection extends UserConnection {
 
     public long allocateNewTask() {
         return this.idCounter.incrementAndGet();
-    }
-
-    public ParallelVoidFuture allocateVoid() {
-        return this.allocateVoid(this.allocateNewTask());
-    }
-
-    public ParallelVoidFuture allocateVoid(long taskId) {
-        ParallelVoidFuture future = new ParallelVoidFuture(taskId, this);
-        this.waitingTasks.put(taskId, future);
-        return future;
-    }
-
-    @SuppressWarnings("unchecked")
-    public boolean complete(long id, Object obj) {
-        ParallelFuture future = this.waitingTasks.get(id);
-        if (future == null) {
-            return false;
-        } else {
-            future.complete(obj);
-            return true;
-        }
     }
 }

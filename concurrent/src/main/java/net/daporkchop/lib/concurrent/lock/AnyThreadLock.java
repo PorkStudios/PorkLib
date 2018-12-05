@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.concurrent.lock;
 
+import lombok.Getter;
 import lombok.NonNull;
 
 import java.util.concurrent.TimeUnit;
@@ -30,7 +31,8 @@ import java.util.concurrent.locks.Lock;
  *
  * @author DaPorkchop_
  */
-public class AnyThreadLock implements Lock {
+@Getter
+public class AnyThreadLock implements Lock, SimplifiedLock {
     private volatile boolean locked = false;
 
     @Override

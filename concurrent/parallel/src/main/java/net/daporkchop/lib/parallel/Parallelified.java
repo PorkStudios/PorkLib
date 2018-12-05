@@ -25,11 +25,21 @@ import net.daporkchop.lib.parallel.protocol.ParallelConnection;
 public interface Parallelified {
     boolean isServer();
 
-    default boolean isClient()  {
-        return !this.isServer();
-    }
+    boolean isClient();
 
     int getId();
+
+    interface Server extends Parallelified  {
+        @Override
+        default boolean isServer() {
+            return true;
+        }
+
+        @Override
+        default boolean isClient() {
+            return false;
+        }
+    }
 
     interface Client extends Parallelified  {
         ParallelConnection getConnection();

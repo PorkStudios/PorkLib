@@ -21,7 +21,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.db.util.Dirtiable;
 import net.daporkchop.lib.logging.Logging;
 
 import java.io.IOException;
@@ -29,7 +28,7 @@ import java.io.IOException;
 /**
  * @author DaPorkchop_
  */
-public interface Container<V, B extends Container.Builder<V, ? extends Container<V, B, DB>, DB>, DB extends PorkDB> extends Dirtiable, Logging {
+public interface Container<V, B extends Container.Builder<V, ? extends Container<V, B, DB>, DB>, DB extends PorkDB> extends Logging {
     String getName();
 
     DB getDb();

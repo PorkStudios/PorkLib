@@ -29,7 +29,7 @@ import java.io.RandomAccessFile;
 /**
  * @author DaPorkchop_
  */
-public interface LocalContainer<V, B extends Container.Builder<V, ? extends LocalContainer<V, B>, LocalDB>> extends Container<V, B, LocalDB> {
+public interface LocalContainer<V, B extends Container.Builder<V, ? extends LocalContainer<V, B, DB>, DB>, DB extends LocalDB> extends Container<V, B, DB> {
     File getFile();
     
     default File getFile(@NonNull String name) throws IOException {

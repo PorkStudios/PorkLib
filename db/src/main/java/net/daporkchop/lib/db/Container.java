@@ -21,46 +21,134 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.common.function.IOConsumer;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 
 /**
  * @author DaPorkchop_
  */
-public interface Container<V, B extends Container.Builder<V, ? extends Container<V, B, DB>, DB>, DB extends PorkDB> extends Logging {
-    String getName();
+public abstract class Container<V, B extends Container.Builder<V, ? extends Container<V, B>>> {
+    protected final PorkDB db;
+    protected final String name;
+    protected final File file;
 
-    DB getDb();
+    public Container(@NonNull B builder) throws IOException {
+        this.db = builder.db;
+        this.name = builder.name;
+        this.file = new File(db.getRoot(), this.name);
+        if (this.file.exists()) {
+            if (this.usesDirectory()) {
+                if (!this.file.isDirectory()) {
+                    throw new IllegalStateException(String.format("Not a directory: %s", this.file.getAbsolutePath()));
+                }
+            } else if (!this.file.isFile()) {
+                throw new IllegalStateException(String.format("Not a file: %s", this.file.getAbsolutePath()));
+            }
+        } else if (this.usesDirectory() && !this.file.mkdirs()) {
+            throw new IllegalStateException(String.format("Could not create directory: %s", this.file.getAbsolutePath()));
+        } else {
+            File parent = this.file.getParentFile();
+            if ((parent.exists() && !parent.isDirectory()) || (!parent.exists() && !parent.mkdirs()) || !this.file.createNewFile()) {
+                //throw new IllegalStateException(String.format("Could not create file: %s", this.file.getAbsolutePath()));
+            }
+        }
+    }
 
-    V getValue();
+    public abstract V getValue();
 
-    void save() throws IOException;
-
-    default boolean usesDirectory() {
+    protected boolean usesDirectory() {
         return true;
     }
 
-    default void close() throws IOException {
+    public abstract void save() throws IOException;
+
+    protected File getFile(@NonNull String name) throws IOException {
+        return this.getFile(name, null, true);
+    }
+
+    protected File getFile(@NonNull String name, boolean create) throws IOException {
+        return this.getFile(name, null, create);
+    }
+
+    protected File getFile(@NonNull String name, IOConsumer<DataOut> initializer, boolean create) throws IOException {
+        if (!this.usesDirectory()) {
+            throw new IllegalStateException();
+        } else {
+            File file = new File(this.file, name);
+            if (create && !file.exists()) {
+                File parent = file.getParentFile();
+                boolean parentExists = parent.exists();
+                if (parentExists && !parent.isDirectory()) {
+                    throw new IOException(String.format("Not a directory: %s", parent.getAbsolutePath()));
+                } else if (!parentExists && !parent.mkdirs()) {
+                    throw new IOException(String.format("Could not create directory: %s", parent.getAbsolutePath()));
+                } else if (!file.createNewFile()) {
+                    throw new IOException(String.format("Could not create file: %s", file.getAbsolutePath()));
+                } else if (initializer != null) {
+                    try (DataOut out = DataOut.wrap(file)) {
+                        initializer.acceptThrowing(out);
+                    }
+                }
+            }
+            return file;
+        }
+    }
+
+    protected DataIn getIn(@NonNull String name) throws IOException {
+        return this.getIn(name, null);
+    }
+
+    protected DataIn getIn(@NonNull String name, IOConsumer<DataOut> initializer) throws IOException {
+        return DataIn.wrap(this.getFile(name, initializer, true));
+    }
+
+    protected DataOut getOut(@NonNull String name) throws IOException {
+        return this.getOut(name, null);
+    }
+
+    protected DataOut getOut(@NonNull String name, IOConsumer<DataOut> initializer) throws IOException {
+        return DataOut.wrap(this.getFile(name, initializer, true));
+    }
+
+    protected RandomAccessFile getRAF(@NonNull String name) throws IOException {
+        return this.getRAF(name, null);
+    }
+
+    protected RandomAccessFile getRAF(@NonNull String name, IOConsumer<DataOut> initializer) throws IOException {
+        return new RandomAccessFile(this.getFile(name, initializer, true), "rw");
+    }
+
+    public void close() throws IOException {
         this.save();
     }
 
-    @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
     @Accessors(chain = true)
     @Setter
     @Getter
-    abstract class Builder<V, C extends Container<V, ? extends Builder<V, C, DB>, DB>, DB extends PorkDB> {
+    @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
+    public static abstract class Builder<V, C extends Container<V, ? extends Builder<V, C>>> {
         @NonNull
-        protected final DB db;
+        protected final PorkDB db;
 
         @NonNull
         protected final String name;
 
-        public abstract C buildIfPresent() throws IOException;
+        public final C buildIfPresent() throws IOException {
+            if (new File(this.db.getRoot(), this.name).exists()) {
+                return this.build();
+            } else {
+                return null;
+            }
+        }
 
         public final C build() throws IOException {
             C built = this.buildImpl();
-            this.db.getLoadedContainers().put(this.name, built);
+            this.db.loadedContainers.put(this.name, built);
             return built;
         }
 

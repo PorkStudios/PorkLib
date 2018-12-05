@@ -16,11 +16,6 @@
 package net.daporkchop.lib.db.remote;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 import net.daporkchop.lib.db.PorkDB;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.endpoint.client.Client;
@@ -39,13 +34,13 @@ public class RemoteDB extends PorkDB {
     @Getter
     private final Client netClient;
 
-    protected RemoteDB(@NonNull Builder builder) {
+    protected RemoteDB(Builder builder) {
         super(builder);
 
-        if (builder.remoteAddress == null) {
+        if (builder.getRemoteAddress() == null) {
             throw new IllegalArgumentException("Remote address must be set!");
         } else {
-            this.remoteAddress = builder.remoteAddress;
+            this.remoteAddress = builder.getRemoteAddress();
         }
         this.netClient = new ClientBuilder()
                 .setAddress(this.remoteAddress)
@@ -57,29 +52,5 @@ public class RemoteDB extends PorkDB {
     @Override
     public boolean isRemote() {
         return true;
-    }
-
-    @RequiredArgsConstructor
-    @NoArgsConstructor
-    @Accessors(chain = true)
-    @Getter
-    @Setter
-    public static class Builder extends PorkDB.Builder<Builder, RemoteDB>   {
-        /**
-         * The remote address of this database.
-         * <p>
-         * If this is a local database, this will be {@code null}
-         */
-        @NonNull
-        private InetSocketAddress remoteAddress;
-
-        @Override
-        public RemoteDB build() {
-            if (this.remoteAddress == null) {
-                throw new IllegalStateException("remote address must be set!");
-            }
-
-            return new RemoteDB(this);
-        }
     }
 }

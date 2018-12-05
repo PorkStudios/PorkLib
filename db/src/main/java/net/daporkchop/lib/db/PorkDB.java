@@ -23,7 +23,10 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.db.container.AbstractContainer;
 import net.daporkchop.lib.db.local.LocalDB;
 import net.daporkchop.lib.db.remote.RemoteDB;
+import net.daporkchop.lib.db.remote.RemoteDBProtocol;
 import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
+import net.daporkchop.lib.network.endpoint.server.Server;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,6 +44,7 @@ public abstract class PorkDB<DB extends PorkDB<DB, CC>, CC extends Container> im
     protected final Map<String, CC> loadedContainers = new ConcurrentHashMap<>();
     @Getter
     protected volatile boolean open = true;
+    protected Server netServer;
 
     protected PorkDB(@NonNull Builder builder) {
     }
@@ -87,7 +91,12 @@ public abstract class PorkDB<DB extends PorkDB<DB, CC>, CC extends Container> im
      *
      * @throws IOException if a IO exception occurs you dummy
      */
-    public abstract void close() throws IOException;
+    public void close() throws IOException  {
+        this.ensureOpen();
+        if (this.netServer != null){
+            this.netServer.close("database shutdown");
+        }
+    }
 
     protected void ensureOpen() {
         if (!this.isOpen()) {
@@ -101,6 +110,21 @@ public abstract class PorkDB<DB extends PorkDB<DB, CC>, CC extends Container> im
      * @return whether or not this is a remote database
      */
     public abstract boolean isRemote();
+
+    /**
+     * Starts a database server
+     *
+     * @param listenAddress the address to listen on
+     */
+    public synchronized void openServer(@NonNull InetSocketAddress listenAddress) {
+        if (this.netServer != null) {
+            throw new IllegalStateException("server already running!");
+        }
+        this.netServer = new ServerBuilder()
+                .setAddress(listenAddress)
+                .addProtocol(new RemoteDBProtocol(this))
+                .build();
+    }
 
     @Accessors(chain = true)
     @Getter

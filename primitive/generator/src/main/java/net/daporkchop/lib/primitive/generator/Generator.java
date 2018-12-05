@@ -18,25 +18,52 @@ package net.daporkchop.lib.primitive.generator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.UTF8;
+import net.daporkchop.lib.logging.Logging;
 import sun.misc.IOUtils;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.NumberFormat;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.StringJoiner;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import static java.lang.Math.max;
-import static net.daporkchop.lib.primitive.generator.Primitive.*;
+import static net.daporkchop.lib.primitive.generator.Primitive.FULLNAME_DEF;
+import static net.daporkchop.lib.primitive.generator.Primitive.GENERIC_EXTENDS_DEF;
+import static net.daporkchop.lib.primitive.generator.Primitive.GENERIC_HEADER_DEF;
+import static net.daporkchop.lib.primitive.generator.Primitive.GENERIC_SUPER_DEF;
+import static net.daporkchop.lib.primitive.generator.Primitive.HEADERS_DEF;
+import static net.daporkchop.lib.primitive.generator.Primitive.IMPORTS_DEF;
+import static net.daporkchop.lib.primitive.generator.Primitive.LICENSE_DEF;
+import static net.daporkchop.lib.primitive.generator.Primitive.METHODS_DEF;
+import static net.daporkchop.lib.primitive.generator.Primitive.PACKAGE_DEF;
+import static net.daporkchop.lib.primitive.generator.Primitive.primitives;
 
 /**
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-public class Generator {
+public class Generator implements Logging {
     public static final AtomicLong FILES = new AtomicLong(0L);
     public static final AtomicLong SIZE = new AtomicLong(0L);
+    private static final Collection<String> TREE_ROOTS = Arrays.asList(
+            "main",
+            "test"
+    );
     public static String LICENSE;
 
     static {
@@ -135,27 +162,6 @@ public class Generator {
         }
     }
 
-    public static void main(String... args) throws IOException {
-        /*Generator generator = new Generator(
-                new File(".", "primitive/generator/src/main/resources"),
-                new File(".", "primitive/src/main/java/net/daporkchop/lib/primitive")
-        );*/
-        Generator generator = new Generator(
-                new File(".", "src/main/resources"),
-                new File(".", "../src/main/java")
-                //new File(".", "../src/main/java/net/daporkchop/lib/primitive")
-        );
-        generator.generate();
-
-        //System.out.println("Generated " + FILES + " files, totalling " + SIZE + " bytes (" + (SIZE / 1024D / 1024D) + " megabytes)");
-        System.out.printf(
-                "Generated %d files, totalling %s bytes (%.2f megabytes)\n",
-                FILES.get(),
-                NumberFormat.getInstance(Locale.US).format(SIZE.get()),
-                SIZE.get() / 1024.0d / 1024.0d
-        );
-    }
-
     @NonNull
     public final File inRoot;
     @NonNull
@@ -164,6 +170,28 @@ public class Generator {
     private final Collection<String> existing = new ArrayDeque<>();
     private final Collection<String> generated = new ArrayDeque<>();
     private String imports;
+
+    public static void main(String... args) throws IOException {
+        /*Generator generator = new Generator(
+                new File(".", "primitive/generator/src/main/resources"),
+                new File(".", "primitive/src/main/java/net/daporkchop/lib/primitive")
+        );*/
+        for (String s : TREE_ROOTS) {
+            Generator generator = new Generator(
+                    new File(".", String.format("src/main/resources/%s/java/", s)),
+                    new File(".", String.format("../src/%s/java/", s))
+            );
+            generator.generate();
+        }
+
+        //System.out.println("Generated " + FILES + " files, totalling " + SIZE + " bytes (" + (SIZE / 1024D / 1024D) + " megabytes)");
+        System.out.printf(
+                "Generated %d files, totalling %s bytes (%.2f megabytes)\n",
+                FILES.get(),
+                NumberFormat.getInstance(Locale.US).format(SIZE.get()),
+                (double) SIZE.get() / 1024.0d / 1024.0d
+        );
+    }
 
     public void generate() {
         if (false && this.outRoot.exists()) {
@@ -226,7 +254,7 @@ public class Generator {
             if (file.getName().endsWith("_methods")) {
                 return;
             }
-            if (!"resources".equals(file.getName())) {
+            if (!"java".equals(file.getName())) {
                 out = new File(out, file.getName());
             }
             File[] files = file.listFiles();
@@ -396,19 +424,13 @@ public class Generator {
             file = file.getParentFile();
         }
         String name;
-        while (!"resources".equals(name = file.getName()) && !"java".equals(name)) {
+        while (!"java".equals(name = file.getName())) {
             list.add(0, name);
             file = file.getParentFile();
         }
-        StringBuilder builder = new StringBuilder();
-        int size = list.size();
-        for (int i = 0; i < size; i++) {
-            builder.append(list.get(i));
-            if (i + 1 != size) {
-                builder.append('.');
-            }
-        }
-        return builder.toString();
+        StringJoiner joiner = new StringJoiner(".");
+        list.forEach(joiner::add);
+        return joiner.toString();
     }
 
     private void getImports() {

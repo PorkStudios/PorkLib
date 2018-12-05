@@ -51,7 +51,7 @@ public class LocalDB extends PorkDB<LocalDB, LocalContainer> {
 
     @Override
     public void close() throws IOException {
-        this.ensureOpen();
+        super.close();
         synchronized (this.saveLock) { //TODO: read-write locking implementation
             this.open = false;
             try {

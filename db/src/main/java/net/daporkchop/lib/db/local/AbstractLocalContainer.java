@@ -15,7 +15,6 @@
 
 package net.daporkchop.lib.db.local;
 
-import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
@@ -31,8 +30,7 @@ import java.io.RandomAccessFile;
 /**
  * @author DaPorkchop_
  */
-@Getter
-public abstract class AbstractLocalContainer<V, B extends AbstractLocalContainer.Builder<V, ? extends AbstractLocalContainer<V, B>>> extends AbstractContainer<V, B, LocalDB> implements LocalContainer<V, B> {
+public abstract class AbstractLocalContainer<V, B extends AbstractLocalContainer.Builder<V, ? extends AbstractLocalContainer<V, B, DB>, DB>, DB extends LocalDB> extends AbstractContainer<V, B, DB> implements LocalContainer<V, B, DB> {
     protected final File file;
 
     public AbstractLocalContainer(@NonNull B builder) throws IOException {
@@ -59,23 +57,8 @@ public abstract class AbstractLocalContainer<V, B extends AbstractLocalContainer
         }
     }
 
-    @Override
-    public void save() throws IOException {
-        this.lock.writeLock().lock();
-        try {
-            if (this.dirty) {
-                this.doSave();
-                this.dirty = false;
-            }
-        } finally {
-            this.lock.writeLock().unlock();
-        }
-    }
-
-    protected abstract void doSave() throws IOException;
-
-    public static abstract class Builder<V, C extends LocalContainer<V, ? extends AbstractLocalContainer.Builder<V, C>>> extends Container.Builder<V, C, LocalDB>    {
-        protected Builder(LocalDB db, String name) {
+    public static abstract class Builder<V, C extends LocalContainer<V, ? extends AbstractLocalContainer.Builder<V, C, DB>, DB>, DB extends LocalDB> extends Container.Builder<V, C, DB>    {
+        protected Builder(DB db, String name) {
             super(db, name);
         }
     }

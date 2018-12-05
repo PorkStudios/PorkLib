@@ -34,7 +34,7 @@ import java.util.Iterator;
  * @author DaPorkchop_
  */
 @Getter
-public class LocalDB extends PorkDB<LocalDB, LocalContainer> {
+public class LocalDB extends PorkDB<LocalDB, LocalContainer<?, ?, LocalDB>> {
     private final File root;
     private final Object saveLock = new Object();
 
@@ -55,7 +55,7 @@ public class LocalDB extends PorkDB<LocalDB, LocalContainer> {
         synchronized (this.saveLock) { //TODO: read-write locking implementation
             this.open = false;
             try {
-                for (Iterator<LocalContainer> iter = this.loadedContainers.values().iterator(); iter.hasNext(); iter.next().close()) {
+                for (Iterator<LocalContainer<?, ?, LocalDB>> iter = this.loadedContainers.values().iterator(); iter.hasNext(); iter.next().close()) {
                 }
             } finally {
                 this.loadedContainers.clear();
@@ -67,7 +67,7 @@ public class LocalDB extends PorkDB<LocalDB, LocalContainer> {
     public void save() throws IOException {
         this.ensureOpen();
         synchronized (this.saveLock) {
-            for (LocalContainer container : this.loadedContainers.values()) {
+            for (LocalContainer<?, ?, LocalDB> container : this.loadedContainers.values()) {
                 container.save();
             }
         }

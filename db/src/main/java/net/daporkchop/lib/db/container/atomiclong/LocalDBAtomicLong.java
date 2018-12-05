@@ -57,8 +57,13 @@ public class LocalDBAtomicLong extends AbstractLocalContainer<AtomicLong, LocalD
         }
 
         @Override
+        public LocalDBAtomicLong buildIfPresent() throws IOException {
+            return null;
+        }
+
+        @Override
         protected LocalDBAtomicLong buildImpl() throws IOException {
-            return new LocalDBAtomicLong(this);
+            return null;
         }
     }
 }

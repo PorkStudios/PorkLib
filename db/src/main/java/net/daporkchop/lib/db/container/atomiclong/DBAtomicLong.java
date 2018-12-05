@@ -24,10 +24,6 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author DaPorkchop_
  */
 public interface DBAtomicLong<C extends DBAtomicLong<? extends DBAtomicLong, B, DB>, B extends Container.Builder<AtomicLong, C, DB>, DB extends PorkDB<DB, ? extends Container>> extends Container<AtomicLong, B, DB> {
-    default void set(long val)  {
-        this.getValue().set(val);
-    }
-
     default long get() {
         return this.getValue().get();
     }

@@ -26,7 +26,6 @@ import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.endpoint.client.Client;
 import net.daporkchop.lib.network.protocol.netty.sctp.SctpProtocolManager;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 
 /**
@@ -34,7 +33,7 @@ import java.net.InetSocketAddress;
  *
  * @author DaPorkchop_
  */
-public class RemoteDB extends PorkDB<RemoteDB, RemoteContainer> {
+public class RemoteDB extends PorkDB {
     @Getter
     private final InetSocketAddress remoteAddress;
     @Getter
@@ -58,16 +57,6 @@ public class RemoteDB extends PorkDB<RemoteDB, RemoteContainer> {
     @Override
     public boolean isRemote() {
         return true;
-    }
-
-    @Override
-    public void save() throws IOException {
-        //TODO
-    }
-
-    @Override
-    public void close() throws IOException {
-        this.netClient.close("user disconnect");
     }
 
     @RequiredArgsConstructor

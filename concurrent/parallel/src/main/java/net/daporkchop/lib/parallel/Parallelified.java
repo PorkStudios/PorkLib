@@ -13,44 +13,35 @@
  *
  */
 
-package net.daporkchop.lib.network.pork.packet;
+package net.daporkchop.lib.parallel;
 
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.network.channel.Channel;
-import net.daporkchop.lib.network.endpoint.client.PorkClient;
-import net.daporkchop.lib.network.packet.Codec;
-import net.daporkchop.lib.network.packet.Packet;
-import net.daporkchop.lib.network.pork.PorkConnection;
-
-import java.io.IOException;
+import net.daporkchop.lib.parallel.protocol.ParallelConnection;
 
 /**
+ * Something which has been given parallel abilities!
+ *
  * @author DaPorkchop_
  */
-@NoArgsConstructor
-public class HandshakeCompletePacket implements Packet {
-    @Override
-    public void read(DataIn in) throws IOException {
-        //in.readBytesSimple();
+public interface Parallelified {
+    boolean isServer();
+
+    default boolean isClient()  {
+        return !this.isServer();
     }
 
-    @Override
-    public void write(DataOut out) throws IOException {
-        //out.writeBytesSimple(new byte[0xFFFFFF]);
-    }
+    int getId();
 
-    public static class HandshakeCompleteCodec implements Codec<HandshakeCompletePacket, PorkConnection> {
+    interface Client extends Parallelified  {
+        ParallelConnection getConnection();
+
         @Override
-        public void handle(@NonNull HandshakeCompletePacket packet, @NonNull Channel channel, @NonNull PorkConnection connection) {
-            connection.<PorkClient>getEndpoint().postConnectCallback(null);
+        default boolean isServer()  {
+            return false;
         }
 
         @Override
-        public HandshakeCompletePacket createInstance() {
-            return new HandshakeCompletePacket();
+        default boolean isClient() {
+            return true;
         }
     }
 }

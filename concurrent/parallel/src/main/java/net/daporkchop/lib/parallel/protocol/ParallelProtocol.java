@@ -13,44 +13,39 @@
  *
  */
 
-package net.daporkchop.lib.network.pork.packet;
+package net.daporkchop.lib.parallel.protocol;
 
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.network.channel.Channel;
-import net.daporkchop.lib.network.endpoint.client.PorkClient;
-import net.daporkchop.lib.network.packet.Codec;
-import net.daporkchop.lib.network.packet.Packet;
-import net.daporkchop.lib.network.pork.PorkConnection;
+import lombok.Getter;
+import net.daporkchop.lib.network.packet.UserProtocol;
+import net.daporkchop.lib.parallel.Parallelified;
+import net.daporkchop.lib.parallel.lock.ParallelLock;
 
-import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author DaPorkchop_
  */
-@NoArgsConstructor
-public class HandshakeCompletePacket implements Packet {
-    @Override
-    public void read(DataIn in) throws IOException {
-        //in.readBytesSimple();
+@Getter
+public class ParallelProtocol extends UserProtocol<ParallelConnection> {
+    private final Map<Integer, Parallelified> registered = new ConcurrentHashMap<>();
+
+    public ParallelProtocol() {
+        super("PorkLib - parallel", 2);
     }
 
     @Override
-    public void write(DataOut out) throws IOException {
-        //out.writeBytesSimple(new byte[0xFFFFFF]);
+    protected void registerPackets() {
+        this.register(new ParallelLock.ParallelLockRequest.ParallelLockCodec());
     }
 
-    public static class HandshakeCompleteCodec implements Codec<HandshakeCompletePacket, PorkConnection> {
-        @Override
-        public void handle(@NonNull HandshakeCompletePacket packet, @NonNull Channel channel, @NonNull PorkConnection connection) {
-            connection.<PorkClient>getEndpoint().postConnectCallback(null);
-        }
+    @Override
+    public ParallelConnection newConnection() {
+        return new ParallelConnection(this);
+    }
 
-        @Override
-        public HandshakeCompletePacket createInstance() {
-            return new HandshakeCompletePacket();
-        }
+    @SuppressWarnings("unchecked")
+    public <P extends Parallelified> P get(int id)  {
+        return (P) this.registered.get(id);
     }
 }

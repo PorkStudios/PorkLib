@@ -20,6 +20,7 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.packet.Codec;
 import net.daporkchop.lib.network.pork.PorkConnection;
 import net.daporkchop.lib.network.pork.PorkPacket;
@@ -46,9 +47,9 @@ public class DisconnectPacket implements PorkPacket {
         out.writeUTF(this.reason);
     }
 
-    public static class DisconnectCodec implements Codec.Simple<DisconnectPacket, PorkConnection> {
+    public static class DisconnectCodec implements Codec<DisconnectPacket, PorkConnection> {
         @Override
-        public void handle(@NonNull DisconnectPacket packet, @NonNull PorkConnection connection) {
+        public void handle(@NonNull DisconnectPacket packet, @NonNull Channel channel, @NonNull PorkConnection connection) {
             connection.setDisconnectReason(packet.reason);
             connection.getRealConnection().disconnectAtNetworkLevel(); //disconnecting at network level prevents an endless ping/pong of disconnect packets
         }

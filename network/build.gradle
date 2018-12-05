@@ -14,10 +14,6 @@
  */
 
 repositories {
-    maven {
-        name = "NukkitX Snapshots"
-        url = "https://repo.nukkitx.com/snapshot/"
-    }
 }
 
 dependencies {

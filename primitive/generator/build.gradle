@@ -15,6 +15,7 @@
 
 dependencies {
     compile project(":binary")
+    compile project(":logging")
 }
 
 task gen(type: JavaExec, dependsOn: 'classes') {

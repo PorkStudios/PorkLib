@@ -66,7 +66,8 @@ public class ClassWriter implements Closeable {
             "java.io.*",
             "java.nio.*",
             "net.daporkchop.lib.minecraft.protocol.api.*",
-            "net.daporkchop.lib.minecraft.protocol.api.data.*"
+            "net.daporkchop.lib.minecraft.protocol.api.data.*",
+            "net.daporkchop.lib.binary.stream.*"
     );
 
     static {

@@ -15,11 +15,17 @@
 
 package net.daporkchop.lib.minecraft.protocol.api.data;
 
+import lombok.NonNull;
+import net.daporkchop.lib.binary.Data;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.minecraft.protocol.api.util.IdHolder;
+
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-public interface MinecraftPacket extends IdHolder {
+public interface MinecraftPacket extends IdHolder, Data {
     PacketDirection getDirection();
 }

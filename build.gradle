@@ -50,6 +50,7 @@ allprojects {
 
     ext {
         apacheCommonsCompressVersion = '1.16.1'
+        asmVersion = '6.0'
         bouncycastleVersion = '1.59'
         googleHttpClientVersion = '1.23.0'
         gsonVersion = '2.8.5'

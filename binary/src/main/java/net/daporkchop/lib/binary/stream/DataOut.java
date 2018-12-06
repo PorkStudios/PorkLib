@@ -222,6 +222,12 @@ public abstract class DataOut extends OutputStream {
         } while (value != 0L);
     }
 
+    public void writeMojangString(@NonNull String string) throws IOException    {
+        byte[] b = string.getBytes(UTF8.utf8);
+        this.writeMojangVarInt(b.length);
+        this.write(b);
+    }
+
     @Override
     public void write(byte[] b, int off, int len) throws IOException {
         for (int i = 0; i < len; i++) {

@@ -12,7 +12,7 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.minecraft.protocol.generator.data;
+package net.daporkchop.lib.minecraft.protocol.generator.data.java;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -21,6 +21,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.Singular;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.minecraft.protocol.generator.Cache;
@@ -39,12 +40,15 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.StringJoiner;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import java.util.zip.ZipFile;
 
 /**
@@ -53,30 +57,19 @@ import java.util.zip.ZipFile;
 @RequiredArgsConstructor
 @Getter
 public class JavaGenerator implements DataGenerator, Logging {
-    private static final Map<String, String> BURGER_URLS = new HashMap<String, String>() {
+    private static final Map<String, String> PACKET_IO_NAMES = new HashMap<String, String>() {
         {
-            this.put("1.10", "https://raw.githubusercontent.com/Pokechu22/Burger/gh-pages/1.10.json");
-            this.put("1.11.2", "https://raw.githubusercontent.com/Pokechu22/Burger/gh-pages/1.11.2.json");
-            this.put("1.12.2", "https://raw.githubusercontent.com/Pokechu22/Burger/gh-pages/1.12.2.json");
-        }
-    };
-    private static final Map<String, String> CLIENT_JAR_URLS = new HashMap<String, String>() {
-        {
-            this.put("1.10", "https://launcher.mojang.com/v1/objects/ba038efbc6d9e4a046927a7658413d0276895739/client.jar");
-            this.put("1.11.2", "https://launcher.mojang.com/v1/objects/db5aa600f0b0bf508aaf579509b345c4e34087be/client.jar");
-            this.put("1.12.2", "https://launcher.mojang.com/v1/objects/0f275bc1547d01fa5f56ba34bdc87d981ee12daf/client.jar");
-        }
-    };
-    private static final Map<String, String> PACKET_FIELD_TYPES = new HashMap<String, String>() {
-        {
-            this.put("int", "int");
-            this.put("varint", "int");
-            this.put("boolean", "boolean");
-            this.put("short", "short");
-            this.put("long", "long");
-            this.put("varlong", "long");
-            this.put("byte", "byte");
-            this.put("byte[]", "byte[]");
+            this.put("int", "Int");
+            this.put("varint", "MojangVarInt");
+            this.put("boolean", "Boolean");
+            this.put("short", "Short");
+            this.put("long", "Long");
+            this.put("varlong", "MojangVarLong");
+            this.put("byte", "");
+            this.put("byte[]", "");
+            this.put("string", "MojangString");
+            this.put("float", "Float");
+            this.put("double", "Double");
         }
     };
     private static final Map<String, BiFunction<String, Mappings, String>> NAME_TRANSLATORS = new HashMap<String, BiFunction<String, Mappings, String>>() {
@@ -88,7 +81,14 @@ public class JavaGenerator implements DataGenerator, Logging {
             this.put("F", (s, m) -> "float");
             this.put("I", (s, m) -> "int");
             this.put("J", (s, m) -> "long");
-            this.put("L", (s, m) -> m.getClass(s.substring(1, s.length() - 1)));
+            this.put("L", (s, m) -> {
+                String s1 = m.getClass(s.substring(1, s.length() - 1)).replace('/', '.');
+                if (s1.contains("$")) {
+                    return s1.substring(s1.lastIndexOf('$') + 1, s1.length());
+                } else {
+                    return s1;
+                }
+            });
             this.put("S", (s, m) -> "short");
             this.put("V", (s, m) -> "void");
             this.put("[", (s, m) -> String.format("%s[]", this.get(String.valueOf(s.charAt(1))).apply(s.substring(1, s.length()), m)));
@@ -99,22 +99,27 @@ public class JavaGenerator implements DataGenerator, Logging {
 
     @Override
     public void run(@NonNull File out) throws IOException {
-        Collection<Version> versions = BURGER_URLS.keySet().stream()
-                .map(s -> new File(this.input, s))
-                .map(file -> {
-                    try {
-                        String version = file.getName().substring(0, file.getName().length());
-                        System.out.printf("  Reading data for java -> v%s\n", version);
-                        JsonObject object;
-                        try (Reader reader = new InputStreamReader(new ByteArrayInputStream(Cache.INSTANCE.getBytes(new File(file, this.format("${0}.json", version)), BURGER_URLS.get(version))))) {
-                            object = JSON_PARSER.parse(reader).getAsJsonArray().get(0).getAsJsonObject();
-                        }
-                        ZipFile clientJar = new ZipFile(Cache.INSTANCE.getFile(new File(file, this.format("${0}.jar", version)), CLIENT_JAR_URLS.get(version)));
-                        return new Version(object, version, version.replace('.', '_'), clientJar);
+        Collection<JavaVersion> versions = JavaVersion.VERSIONS.stream()
+                .map(version -> JavaVersion.builder()
+                        .version(version)
+                        .versionDir(version.replace('.', '_')))
+                .map(builder -> {
+                    System.out.printf("  Reading data for java -> v%s\n", builder.version);
+                    try (Reader reader = new InputStreamReader(new ByteArrayInputStream(Cache.INSTANCE.getBytes(Cache.InfoType.JAVA_BURGER, builder.version)))) {
+                        return builder.object(JSON_PARSER.parse(reader).getAsJsonArray().get(0).getAsJsonObject());
                     } catch (IOException e) {
-                        throw new RuntimeException(e);
+                        throw this.exception(e);
                     }
                 })
+                .map(builder -> {
+                    try {
+                        return builder.clientJar(new ZipFile(Cache.INSTANCE.getFile(Cache.InfoType.JAVA_CLIENT, builder.version)));
+                    } catch (IOException e) {
+                        throw this.exception(e);
+                    }
+                })
+                .map(builder -> builder.mappings(Mappings.getMappings(builder.version)))
+                .map(JavaVersion.JavaVersionBuilder::build)
                 .collect(Collectors.toList());
 
         try (ClassWriter writer = new ClassWriter(this.ensureFileExists(out, "JavaPlatform.java"))) {
@@ -122,7 +127,7 @@ public class JavaGenerator implements DataGenerator, Logging {
                     "public class JavaPlatform implements Platform").pushBraces()
                     .write("public static final JavaPlatform INSTANCE = new JavaPlatform();").newline()
                     .write("private static final Collection<Version> VERSIONS = Stream.of(null").push();
-            for (Version version : versions) {
+            for (JavaVersion version : versions) {
                 writer.write(String.format(", net.daporkchop.lib.minecraft.protocol.mc.java.v%s.Java%s.INSTANCE", version.versionDir, version.versionDir));
             }
             writer.pop().write(").filter(Objects::nonNull).collect(Collectors.toList());")
@@ -134,14 +139,14 @@ public class JavaGenerator implements DataGenerator, Logging {
                     .write("return VERSIONS;");
         }
 
-        for (Version version : versions) {
+        for (JavaVersion version : versions) {
             this.generate(version, new File(out, String.format("v%s", version.versionDir)));
         }
 
         //TODO: my amazing formatter from dev/network-revamp-v6 would be nice here
     }
 
-    private void generate(@NonNull Version version, @NonNull File out) throws IOException {
+    private void generate(@NonNull JavaVersion version, @NonNull File out) throws IOException {
         System.out.printf("  Generating classes for java -> %s\n", version.version);
         try (ClassWriter writer = new ClassWriter(this.ensureFileExists(out, String.format("Java%s.java", version.versionDir)))) {
             writer.write("@NoArgsConstructor(access = AccessLevel.PRIVATE)",
@@ -174,7 +179,7 @@ public class JavaGenerator implements DataGenerator, Logging {
         this.generatePackets(version, new File(out, "packet"));
     }
 
-    private void generateSounds(@NonNull Version version, @NonNull File out) throws IOException {
+    private void generateSounds(@NonNull JavaVersion version, @NonNull File out) throws IOException {
         try (ClassWriter writer = new ClassWriter(this.ensureFileExists(out, String.format("Sounds%s.java", version.versionDir)))) {
             writer.write("@RequiredArgsConstructor",
                     "@Getter",
@@ -195,7 +200,7 @@ public class JavaGenerator implements DataGenerator, Logging {
         }
     }
 
-    private void generateBiomes(@NonNull Version version, @NonNull File out) throws IOException {
+    private void generateBiomes(@NonNull JavaVersion version, @NonNull File out) throws IOException {
         try (ClassWriter writer = new ClassWriter(this.ensureFileExists(out, String.format("Biomes%s.java", version.versionDir)),
                 "net.daporkchop.lib.minecraft.registry.*")) {
             writer.write("@RequiredArgsConstructor",
@@ -226,7 +231,7 @@ public class JavaGenerator implements DataGenerator, Logging {
         }
     }
 
-    private void generateItems(@NonNull Version version, @NonNull File out) throws IOException {
+    private void generateItems(@NonNull JavaVersion version, @NonNull File out) throws IOException {
         try (ClassWriter writer = new ClassWriter(this.ensureFileExists(out, String.format("Items%s.java", version.versionDir)),
                 "net.daporkchop.lib.minecraft.registry.*")) {
             writer.write("@RequiredArgsConstructor",
@@ -251,7 +256,7 @@ public class JavaGenerator implements DataGenerator, Logging {
         }
     }
 
-    private void generateLocales(@NonNull Version version, @NonNull File out) throws IOException {
+    private void generateLocales(@NonNull JavaVersion version, @NonNull File out) throws IOException {
         try (ClassWriter writer = new ClassWriter(this.ensureFileExists(out, "EN_US.java"))) {
             writer.write("@NoArgsConstructor(access = AccessLevel.PRIVATE)",
                     "@Getter",
@@ -271,8 +276,7 @@ public class JavaGenerator implements DataGenerator, Logging {
         }
     }
 
-    private void generatePackets(@NonNull Version version, @NonNull File out) throws IOException {
-        Mappings mappings = Mappings.getMappings(version.version);
+    private void generatePackets(@NonNull JavaVersion version, @NonNull File out) throws IOException {
         Map<String, JsonObject> toBurgerMappings = new HashMap<>();
         version.object.getAsJsonObject("packets").getAsJsonObject("packet").entrySet().stream()
                 .map(Map.Entry::getValue)
@@ -282,7 +286,7 @@ public class JavaGenerator implements DataGenerator, Logging {
                     toBurgerMappings.put(className.substring(0, className.indexOf('.')), jsonObject);
                 });
         Collection<JavaClass> packetClasses = new ArrayDeque<>();
-        mappings.getClasses().entrySet().stream()
+        version.mappings.getClasses().entrySet().stream()
                 .filter(entry -> entry.getValue().startsWith("net.minecraft.network"))
                 .filter(entry -> entry.getValue().contains("SPacket") || entry.getValue().contains("CPacket"))
                 .forEach(entry -> {
@@ -292,10 +296,12 @@ public class JavaGenerator implements DataGenerator, Logging {
                                 .nameObf(entry.getKey())
                                 .nameMCP(entry.getValue())
                                 .isEnum((reader.getAccess() & Opcodes.ACC_ENUM) != 0);
-                        reader.accept(new FieldFindingClassVisitor(classBuilder, mappings), 0);
+                        reader.accept(new FieldFindingClassVisitor(classBuilder, version.mappings), 0);
                         packetClasses.add(classBuilder.build());
                     } catch (IOException e) {
                         throw this.exception(e);
+                    } catch (NullPointerException e) {
+                        throw this.exception("Invalid class name: ${0}", entry.getKey());
                     }
                 });
 
@@ -307,50 +313,172 @@ public class JavaGenerator implements DataGenerator, Logging {
                     try {
                         Integer.parseInt(split[1]);
                         logger.trace("Invalid class name: ${0}", clazz.nameMCP);
-                    } catch (NumberFormatException e)   {
+                    } catch (NumberFormatException e) {
                         JavaClass parentClass = packetClasses.stream()
                                 .filter(clazz1 -> clazz1.nameMCP.equals(split[0]))
                                 .findAny().get();
                         parentClass.subClasses.add(clazz);
+                        clazz.setParent(parentClass);
                     }
                 });
         packetClasses.removeIf(clazz -> clazz.nameMCP.contains("$"));
 
         packetClasses.stream()
-                .filter(clazz -> !clazz.isEnum)
                 .filter(JavaClass::doesntHaveSyntheticField)
                 .forEach(clazz -> {
                     String className = clazz.nameMCP.substring(clazz.nameMCP.lastIndexOf('.') + 1, clazz.nameMCP.length());
                     try (ClassWriter writer = new ClassWriter(this.ensureFileExists(new File(out, String.format("%s.java", className))))) {
-                        this.writePacket(clazz, toBurgerMappings, writer, false);
+                        this.writePacket(clazz, version.mappings, toBurgerMappings, writer, false, null, null);
                     } catch (IOException e) {
                         throw this.exception(e);
                     }
                 });
     }
 
-    private void writePacket(@NonNull JavaClass clazz, @NonNull Map<String, JsonObject> toBurgerMappings, @NonNull ClassWriter writer, boolean sub) throws IOException  {
-        if (sub)    {
+    private void writePacket(@NonNull JavaClass clazz, @NonNull Mappings mappings, @NonNull Map<String, JsonObject> toBurgerMappings, @NonNull ClassWriter writer, boolean sub, String parentName, JavaClass parent) throws IOException {
+        if (sub) {
             writer.newline();
         }
-        String className = clazz.nameMCP.substring(clazz.nameMCP.lastIndexOf('.') + 1, clazz.nameMCP.length());
-        JsonObject burger = toBurgerMappings.get(clazz.nameObf);
-        if (burger == null || !burger.has("id"))    {
-            logger.trace("Skipping packet: ${0} -> ${1}", clazz.nameObf, clazz.nameMCP);
-            return;
+        if (!sub && clazz.isEnum) {
+            throw this.exception("Base class ${0} is not a subclass!");
         }
-        if (clazz.fields.isEmpty()) {
-            writer.write("@NoArgsConstructor");
-        } else {
-            writer.write("@AllArgsConstructor", "@NoArgsConstructor");
-        }
-        writer.write(String.format("public %sclass %s", sub ? "static " : "", className)).pushBraces();
-        writer.write(String.format("public static final int ID = %d;", burger.get("id").getAsInt()));
-        for (JavaClass subClass : clazz.subClasses) {
-            if (subClass.isEnum)    {
-                continue; //TODO
+        String className = clazz.nameMCP.substring(clazz.nameMCP.lastIndexOf(sub ? '$' : '.') + 1, clazz.nameMCP.length());
+        if (clazz.isEnum) {
+            writer.write(String.format("public enum %s", className)).pushBraces();
+            for (JavaField field : clazz.fields) {
+                writer.write(String.format("%s,", field.nameMCP));
             }
-            this.writePacket(subClass, toBurgerMappings, writer, true);
+            writer.write(";").pop();
+        } else {
+            JsonObject burger = toBurgerMappings.get(clazz.nameObf);
+            if (burger == null || !burger.has("id")) {
+                logger.trace("Skipping packet: ${0} -> ${1}", clazz.nameObf, clazz.nameMCP);
+                return;
+            }
+            if (clazz.fields.isEmpty() || sub) {
+                writer.write("@NoArgsConstructor");
+            } else {
+                writer.write("@AllArgsConstructor", "@NoArgsConstructor");
+            }
+            writer.write(String.format("public %sclass %s %s %s", sub ? "static " : "", className, sub ? "extends" : "implements", sub ? parentName : "MinecraftPacket")).pushBraces();
+            writer.write(String.format("public static final int ID = %d;", burger.get("id").getAsInt()));
+
+            if (sub) {
+                if (!parent.fields.isEmpty()) {
+                    Collection<JavaField> mergedFields = new ArrayDeque<>(parent.fields);
+                    mergedFields.addAll(clazz.fields);
+                    StringJoiner joiner = new StringJoiner(", ");
+                    mergedFields.stream().map(field -> String.format("%s %s", field.type, field.nameMCP)).forEachOrdered(joiner::add);
+                    writer.newline().write(String.format("public %s(%s)", className, joiner.toString())).pushBraces();
+                    joiner = new StringJoiner(", ");
+                    parent.fields.stream().map(JavaField::getNameMCP).forEach(joiner::add);
+                    writer.write(String.format("super(%s);", joiner.toString()));
+                    for (JavaField field : clazz.fields) {
+                        writer.write(this.format("this.${0} = ${0};", field.nameMCP));
+                    }
+                    writer.pop();
+                }
+            }
+
+            if (!clazz.fields.isEmpty()) {
+                writer.newline();
+                for (JavaField field : clazz.fields) {
+                    writer.write(String.format("public %s %s;", field.type, field.nameMCP));
+                }
+            }
+
+            writer.newline()
+                    .write("@Override",
+                            "public void write(@NonNull DataOut out) throws IOException").pushBraces().pop();
+            //this.writePacketInstructions(burger.getAsJsonArray("instructions"), writer, mappings, clazz);
+
+            writer.newline()
+                    .write("@Override",
+                            "public void read(@NonNull DataIn in) throws IOException").pushBraces().pop();
+            //this.readPacketInstructions(burger.getAsJsonArray("instructions"), writer, mappings, clazz);
+
+            writer.newline()
+                    .write("@Override",
+                            "public int getId()").pushBraces()
+                    .write("return ID;").pop();
+
+            writer.newline().write("@Override",
+                    "public PacketDirection getDirection()").pushBraces()
+                    .write(String.format("return PacketDirection.%s;", burger.get("direction").getAsString())).pop();
+
+            for (JavaClass subClass : clazz.subClasses) {
+                this.writePacket(subClass, mappings, toBurgerMappings, writer, true, className, clazz);
+            }
+            writer.pop();
+        }
+    }
+
+    private void writePacketInstructions(@NonNull JsonArray array, @NonNull ClassWriter writer, @NonNull Mappings mappings, @NonNull JavaClass clazz) throws IOException {
+        writer.pushBraces();
+        for (JsonObject object : StreamSupport.stream(array.spliterator(), false).map(JsonElement::getAsJsonObject).collect(Collectors.toList())) {
+            String operation = object.get("operation").getAsString();
+            switch (operation) {
+                case "write": {
+                    String field = object.get("field").getAsString();
+                    String type = object.get("type").getAsString();
+                    if (field.contains(".")) {
+                        int i = field.indexOf('.');
+                        field = String.format("%s%s", clazz.deobfuscate(field.substring(0, i), mappings), field.substring(i, field.length()));
+                    } else if (field.startsWith("(")) {
+                        int i = field.indexOf(')');
+                        field = String.format("%s%s", clazz.deobfuscate(field.substring(1, i), mappings), field.substring(i + 1, field.length()));
+                    } else {
+                        field = clazz.deobfuscate(field, mappings);
+                    }
+                    if (field.contains(" ? 1 : 0")) {
+                        field = field.replace(" ? 1 : 0", "");
+                        type = "boolean";
+                    }
+                    String func = PACKET_IO_NAMES.get(type);
+                    writer.write(String.format(
+                            "%sout.write%s(%s);",
+                            func == null ? "// " : "",
+                            func == null ? String.format(" \"%s\" ", type) : func,
+                            field
+                    ));
+                }
+                break;
+            }
+        }
+        writer.pop();
+    }
+
+    private void readPacketInstructions(@NonNull JsonArray array, @NonNull ClassWriter writer, @NonNull Mappings mappings, @NonNull JavaClass clazz) throws IOException {
+        writer.pushBraces();
+        for (JsonObject object : StreamSupport.stream(array.spliterator(), false).map(JsonElement::getAsJsonObject).collect(Collectors.toList())) {
+            String operation = object.get("operation").getAsString();
+            switch (operation) {
+                case "write": {
+                    String field = object.get("field").getAsString();
+                    String type = object.get("type").getAsString();
+                    if (field.contains(".")) {
+                        int i = field.indexOf('.');
+                        field = String.format("%s%s", clazz.deobfuscate(field.substring(0, i), mappings), field.substring(i, field.length()));
+                    } else if (field.startsWith("(")) {
+                        int i = field.indexOf(')');
+                        field = String.format("%s%s", clazz.deobfuscate(field.substring(1, i), mappings), field.substring(i + 1, field.length()));
+                    } else {
+                        field = clazz.deobfuscate(field, mappings);
+                    }
+                    if (field.contains(" ? 1 : 0")) {
+                        field = field.replace(" ? 1 : 0", "");
+                        type = "boolean";
+                    }
+                    String func = PACKET_IO_NAMES.get(type);
+                    writer.write(String.format(
+                            "%s%s = in.read%s();",
+                            func == null ? "// " : "",
+                            field,
+                            func == null ? String.format(" \"%s\" ", type) : func
+                    ));
+                }
+                break;
+            }
         }
         writer.pop();
     }
@@ -396,6 +524,9 @@ public class JavaGenerator implements DataGenerator, Logging {
                     .nameObf(name)
                     .nameMCP(this.mappings.getField(this.classBuilder.nameMCP, name))
                     .type(func.apply(desc, this.mappings));
+            if (fieldBuilder.nameMCP.startsWith("$")) {
+                return super.visitField(access, name, desc, signature, value);
+            }
             AccessModifier.forEachModifier(access, fieldBuilder::modifier);
             this.classBuilder.field(fieldBuilder.build());
             return super.visitField(access, name, desc, signature, value);
@@ -427,6 +558,8 @@ public class JavaGenerator implements DataGenerator, Logging {
         private final boolean isEnum;
         @Builder.Default
         private final Collection<JavaClass> subClasses = new ArrayDeque<>();
+        @Setter
+        private JavaClass parent;
 
         public boolean hasSyntheticField() {
             for (JavaField field : this.fields) {
@@ -461,17 +594,39 @@ public class JavaGenerator implements DataGenerator, Logging {
             }
             return builder.toString();
         }
+
+        public String deobfuscate(@NonNull String s, @NonNull Mappings mappings) {
+            JavaClass clazz = this;
+            String s1;
+            do {
+                s1 = mappings.getField(clazz.getNameMCP(), s);
+                clazz = clazz.parent;
+            } while (s1 == null && clazz != null);
+            return s1 == null ? s : s1;
+        }
     }
 
+    /**
+     * @author DaPorkchop_
+     */
     @RequiredArgsConstructor
-    private static class Version {
+    @Builder
+    public static class JavaVersion {
+        public static final Collection<String> VERSIONS = Arrays.asList(
+                "1.10",
+                "1.11.2",
+                "1.12.2"
+        );
+
         @NonNull
-        private final JsonObject object;
+        public final JsonObject object;
         @NonNull
-        private final String version;
+        public final String version;
         @NonNull
-        private final String versionDir;
+        public final String versionDir;
         @NonNull
-        private final ZipFile clientJar;
+        public final ZipFile clientJar;
+        @NonNull
+        private final Mappings mappings;
     }
 }

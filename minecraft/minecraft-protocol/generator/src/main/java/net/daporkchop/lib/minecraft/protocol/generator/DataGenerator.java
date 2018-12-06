@@ -16,7 +16,7 @@ package net.daporkchop.lib.minecraft.protocol.generator;
 
 import com.google.gson.JsonParser;
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.protocol.generator.data.JavaGenerator;
+import net.daporkchop.lib.minecraft.protocol.generator.data.java.JavaGenerator;
 
 import java.io.File;
 import java.io.IOException;

@@ -233,6 +233,12 @@ public abstract class DataIn extends InputStream {
         return result;
     }
 
+    public String readMojangString() throws IOException {
+        byte[] b = new byte[this.readMojangVarInt()];
+        this.readFully(b, 0, b.length);
+        return new String(b, UTF8.utf8);
+    }
+
     public int readFully(byte[] b, int off, int len) throws IOException {
         if (len != 0) {
             for (int i = 0; i < len; i++) {

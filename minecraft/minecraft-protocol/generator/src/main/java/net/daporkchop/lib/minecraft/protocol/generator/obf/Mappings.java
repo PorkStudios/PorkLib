@@ -20,17 +20,16 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.minecraft.protocol.generator.Cache;
-import net.daporkchop.lib.minecraft.protocol.generator.DataGenerator;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Set;
 
 /**
  * A (rather incomplete) parser for SRG mappings. Currently only used to translate class names
@@ -40,52 +39,58 @@ import java.util.concurrent.ConcurrentHashMap;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
 public class Mappings {
-    private static final Map<String, String> URLS = new HashMap<String, String>() {
+    private static final Set<String> FLIPPED = new HashSet<String>() {
         {
-            this.put("1.10", "https://gist.githubusercontent.com/DaMatrix/cc72576c095d6099794f9ada5e7aa381/raw/d1f0b110533fe549df5725e81c7f01c1a517157e/1.10.srg");
-            this.put("1.11.2", "https://gist.githubusercontent.com/DaMatrix/cc72576c095d6099794f9ada5e7aa381/raw/d1f0b110533fe549df5725e81c7f01c1a517157e/1.11.2.srg");
-            this.put("1.12.2", "https://gist.githubusercontent.com/DaMatrix/cc72576c095d6099794f9ada5e7aa381/raw/076945713b3ad73ced1b87c791a243f3035d318b/1.12.2.srg");
+            this.add("1.12.2");
         }
     };
-    private static final Map<String, Mappings> MAPPINGS = new ConcurrentHashMap<>();
 
     private Map<String, String> classes = new HashMap<>();
     private Map<String, Map<String, String>> fields = new HashMap<>();
 
-    public static Mappings getMappings(@NonNull String inVersion) {
-        return MAPPINGS.computeIfAbsent(inVersion, version -> {
-            try {
-                Mappings mappings = new Mappings();
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(Cache.INSTANCE.getBytes(new File(DataGenerator.IN_ROOT, String.format("../mappings/%s.srg", version)), URLS.get(version)))))) {
-                    String s;
-                    while ((s = reader.readLine()) != null && !s.isEmpty()) {
-                        String[] split = s.split(" ");
-                        switch (split[0]) {
-                            case "CL:": {
+    public static Mappings getMappings(@NonNull String version) {
+        try {
+            Mappings mappings = new Mappings();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(Cache.INSTANCE.getBytes(Cache.InfoType.JAVA_SRG, version))))) {
+                String s;
+                boolean flipped = FLIPPED.contains(version);
+                while ((s = reader.readLine()) != null && !s.isEmpty()) {
+                    String[] split = s.split(" ");
+                    switch (split[0]) {
+                        case "CL:": {
+                            if (flipped) {
+                                mappings.classes.put(split[2], split[1].replace('/', '.'));
+                            } else {
                                 mappings.classes.put(split[1], split[2].replace('/', '.'));
                             }
-                            break;
-                            case "FD:": {
+                        }
+                        break;
+                        case "FD:": {
+                            if (flipped) {
+                                String clazz = split[1].substring(0, split[1].lastIndexOf('/')).replace('/', '.');
+                                String field = split[1].substring(split[1].lastIndexOf('/') + 1, split[1].length());
+                                mappings.fields.computeIfAbsent(clazz, a -> new HashMap<>()).put(split[2].split("/")[1], field);
+                            } else {
                                 String clazz = split[2].substring(0, split[2].lastIndexOf('/')).replace('/', '.');
                                 String field = split[2].substring(split[2].lastIndexOf('/') + 1, split[2].length());
                                 mappings.fields.computeIfAbsent(clazz, a -> new HashMap<>()).put(split[1].split("/")[1], field);
                             }
-                            break;
                         }
+                        break;
                     }
                 }
-                return mappings;
-            } catch (IOException e) {
-                throw new RuntimeException(e);
             }
-        });
+            return mappings;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public String getClass(@NonNull String name)    {
+    public String getClass(@NonNull String name) {
         return this.classes.getOrDefault(name, name);
     }
 
-    public String getField(@NonNull String clazz, @NonNull String field)    {
+    public String getField(@NonNull String clazz, @NonNull String field) {
         return this.fields.getOrDefault(clazz, Collections.emptyMap()).get(field);
     }
 }

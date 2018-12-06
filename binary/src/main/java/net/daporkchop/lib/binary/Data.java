@@ -15,17 +15,8 @@
 
 package net.daporkchop.lib.binary;
 
-import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-
-import java.io.IOException;
-
 /**
  * @author DaPorkchop_
  */
-public interface Data {
-    void read(@NonNull DataIn in) throws IOException;
-
-    void write(@NonNull DataOut out) throws IOException;
+public interface Data extends Readable, Writeable {
 }

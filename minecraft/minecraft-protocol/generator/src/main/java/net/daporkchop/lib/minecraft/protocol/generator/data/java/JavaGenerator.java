@@ -18,21 +18,33 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lombok.Builder;
+import lombok.Data;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.Singular;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.minecraft.protocol.generator.Cache;
 import net.daporkchop.lib.minecraft.protocol.generator.ClassWriter;
 import net.daporkchop.lib.minecraft.protocol.generator.DataGenerator;
 import net.daporkchop.lib.minecraft.protocol.generator.obf.Mappings;
+import net.daporkchop.lib.primitive.map.IntegerObjectMap;
+import net.daporkchop.lib.primitive.map.hashmap.IntegerObjectHashMap;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Opcodes;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -44,11 +56,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.StringJoiner;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 import java.util.zip.ZipFile;
 
 /**
@@ -106,8 +116,21 @@ public class JavaGenerator implements DataGenerator, Logging {
                 .map(builder -> {
                     System.out.printf("  Reading data for java -> v%s\n", builder.version);
                     try (Reader reader = new InputStreamReader(new ByteArrayInputStream(Cache.INSTANCE.getBytes(Cache.InfoType.JAVA_BURGER, builder.version)))) {
-                        return builder.object(JSON_PARSER.parse(reader).getAsJsonArray().get(0).getAsJsonObject());
+                        return builder.burgerData(JSON_PARSER.parse(reader).getAsJsonArray().get(0).getAsJsonObject());
                     } catch (IOException e) {
+                        throw this.exception(e);
+                    }
+                })
+                .map(builder -> {
+                    try (InputStream in = new ByteArrayInputStream(new String(Cache.INSTANCE.getBytes(Cache.InfoType.JAVA_SOUPPLY, builder.version), UTF8.utf8)
+                            .replace("<xyz>", "[xyz]")
+                            .replace("<xz>", "[xz]").getBytes(UTF8.utf8))) {
+                        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+                        DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+                        return builder.soupplyData(documentBuilder.parse(in));
+                    } catch (SAXException
+                            | ParserConfigurationException
+                            | IOException e) {
                         throw this.exception(e);
                     }
                 })
@@ -160,7 +183,7 @@ public class JavaGenerator implements DataGenerator, Logging {
                     .write(String.format("return \"Java v%s\";", version.version)).pop().newline()
                     .write("@Override",
                             "public int getProtocolVersion()").pushBraces()
-                    .write(String.format("return %d;", version.object.getAsJsonObject("version").get("protocol").getAsInt())).pop().newline()
+                    .write(String.format("return %d;", version.burgerData.getAsJsonObject("version").get("protocol").getAsInt())).pop().newline()
                     .write("@Override",
                             "public Sound[] getSounds()").pushBraces()
                     .write(String.format("return Sounds%s.values();", version.versionDir)).pop().newline()
@@ -184,7 +207,7 @@ public class JavaGenerator implements DataGenerator, Logging {
             writer.write("@RequiredArgsConstructor",
                     "@Getter",
                     String.format("public enum Sounds%s implements Sound", version.versionDir)).pushBraces();
-            for (Map.Entry<String, JsonElement> entry : version.object.getAsJsonObject("sounds").entrySet()) {
+            for (Map.Entry<String, JsonElement> entry : version.burgerData.getAsJsonObject("sounds").entrySet()) {
                 //kinda want to use a stream here but then i'd have to make yet another try/catch
                 writer.write(String.format(
                         "%s(\"%s\", %d),",
@@ -206,7 +229,7 @@ public class JavaGenerator implements DataGenerator, Logging {
             writer.write("@RequiredArgsConstructor",
                     "@Getter",
                     String.format("public enum Biomes%s implements Biome", version.versionDir)).pushBraces();
-            for (Map.Entry<String, JsonElement> entry : version.object.getAsJsonObject("biomes").getAsJsonObject("biome").entrySet()) {
+            for (Map.Entry<String, JsonElement> entry : version.burgerData.getAsJsonObject("biomes").getAsJsonObject("biome").entrySet()) {
                 JsonObject obj = entry.getValue().getAsJsonObject();
                 JsonArray heights = obj.getAsJsonArray("height");
                 writer.write(String.format(
@@ -237,7 +260,7 @@ public class JavaGenerator implements DataGenerator, Logging {
             writer.write("@RequiredArgsConstructor",
                     "@Getter",
                     String.format("public enum Items%s implements Item", version.versionDir)).pushBraces();
-            for (Map.Entry<String, JsonElement> entry : version.object.getAsJsonObject("items").getAsJsonObject("item").entrySet()) {
+            for (Map.Entry<String, JsonElement> entry : version.burgerData.getAsJsonObject("items").getAsJsonObject("item").entrySet()) {
                 JsonObject obj = entry.getValue().getAsJsonObject();
                 String maxStackSize = obj.has("max_stack_size") ? String.valueOf(obj.get("max_stack_size").getAsInt()) : String.format("net.daporkchop.lib.minecraft.protocol.mc.java.v1_12_2.Items1_12_2.%s.getMaxStackSize()", entry.getKey().toUpperCase());
                 writer.write(String.format(
@@ -262,7 +285,7 @@ public class JavaGenerator implements DataGenerator, Logging {
                     "@Getter",
                     "public class EN_US implements net.daporkchop.lib.minecraft.protocol.api.data.Locale").pushBraces()
                     .write("public static final EN_US INSTANCE = new EN_US();").newline().pushBraces();
-            for (Map.Entry<String, JsonElement> entry1 : version.object.get("language").getAsJsonObject().entrySet()) {
+            for (Map.Entry<String, JsonElement> entry1 : version.burgerData.get("language").getAsJsonObject().entrySet()) {
                 for (Map.Entry<String, JsonElement> entry2 : entry1.getValue().getAsJsonObject().entrySet()) {
                     writer.write(String.format(
                             "this.underlyingMap.put(\"%s\", \"%s\");",
@@ -278,10 +301,12 @@ public class JavaGenerator implements DataGenerator, Logging {
 
     private void generatePackets(@NonNull JavaVersion version, @NonNull File out) throws IOException {
         Map<String, JsonObject> toBurgerMappings = new HashMap<>();
-        version.object.getAsJsonObject("packets").getAsJsonObject("packet").entrySet().stream()
-                .map(Map.Entry::getValue)
-                .map(JsonElement::getAsJsonObject)
-                .forEach(jsonObject -> {
+        version.burgerData.getAsJsonObject("packets").getAsJsonObject("packet").entrySet().stream()
+                .forEach(entry -> {
+                    JsonObject jsonObject = entry.getValue().getAsJsonObject();
+                    if (!jsonObject.has("state")) {
+                        jsonObject.addProperty("state", entry.getKey().substring(0, entry.getKey().indexOf('_')).toUpperCase());
+                    }
                     String className = jsonObject.get("class").getAsString();
                     toBurgerMappings.put(className.substring(0, className.indexOf('.')), jsonObject);
                 });
@@ -323,7 +348,58 @@ public class JavaGenerator implements DataGenerator, Logging {
                 });
         packetClasses.removeIf(clazz -> clazz.nameMCP.contains("$"));
 
+        Map<String, Map<String, IntegerObjectMap<PacketData>>> packets = new HashMap<>();
         packetClasses.stream()
+                .filter(JavaClass::doesntHaveSyntheticField)
+                .forEach(clazz -> {
+                    //String className = clazz.nameMCP.substring(clazz.nameMCP.lastIndexOf('.') + 1, clazz.nameMCP.length());
+                    JsonObject burger = toBurgerMappings.get(clazz.nameObf);
+                    int id = burger.get("id").getAsInt();
+                    packets
+                            .computeIfAbsent(burger.get("state").getAsString(), s -> new HashMap<>())
+                            .computeIfAbsent(burger.get("direction").getAsString(), s -> new IntegerObjectHashMap<>())
+                            .put(id, PacketData.builder()
+                                    .id(id)
+                                    .clazz(clazz)
+                                    .burger(burger)
+                                    .version(version)
+                                    .build());
+                });
+        packets.values().forEach(map -> map.put("BOTH", new IntegerObjectHashMap<>()));
+
+        int i = 0;
+        for (NodeList sectionList = ((Element) version.soupplyData.getElementsByTagName("packets").item(0)).getElementsByTagName("section"); i < sectionList.getLength(); i++) {
+            Element sectionElement = (Element) sectionList.item(i);
+            String state = sectionElement.getAttribute("name").toUpperCase();
+            switch (state) {
+                case "CLIENTBOUND":
+                case "SERVERBOUND":
+                    state = "PLAY";
+            }
+            Map<String, IntegerObjectMap<PacketData>> statePackets = packets.get(state);
+            int j = 0;
+            for (NodeList packetList = sectionElement.getElementsByTagName("packet"); j < packetList.getLength(); j++) {
+                Element packetElement = (Element) packetList.item(j);
+                boolean clientbound = "true".equals(packetElement.getAttribute("clientbound"));
+                boolean serverbound = "true".equals(packetElement.getAttribute("serverbound"));
+                String direction = clientbound && serverbound ? "BOTH" : clientbound ? "CLIENTBOUND" : serverbound ? "SERVERBOUND" : null;
+                IntegerObjectMap<PacketData> directionPackets = statePackets.get(direction);
+                int id = Integer.parseInt(packetElement.getAttribute("id"));
+                if (directionPackets.containsKey(id)) {
+                    directionPackets.get(id).soupply = packetElement;
+                } else {
+                    logger.warn("Found unknown packet with id ${0} for subprotocol ${1}!", id, state);
+                }
+            }
+        }
+        i = 0;
+        for (NodeList list = version.soupplyData.getElementsByTagName("packet"); i < list.getLength(); i++) {
+            Element element = (Element) list.item(i);
+            try (ClassWriter writer = new ClassWriter(this.ensureFileExists(new File(out, String.format("%s.java", element.getAttribute("name")))))) {
+                this.writePacket(element, null, version.mappings, toBurgerMappings, writer, false, null, null);
+            }
+        }
+        /*packetClasses.stream()
                 .filter(JavaClass::doesntHaveSyntheticField)
                 .forEach(clazz -> {
                     String className = clazz.nameMCP.substring(clazz.nameMCP.lastIndexOf('.') + 1, clazz.nameMCP.length());
@@ -332,154 +408,17 @@ public class JavaGenerator implements DataGenerator, Logging {
                     } catch (IOException e) {
                         throw this.exception(e);
                     }
-                });
+                });*/
     }
 
-    private void writePacket(@NonNull JavaClass clazz, @NonNull Mappings mappings, @NonNull Map<String, JsonObject> toBurgerMappings, @NonNull ClassWriter writer, boolean sub, String parentName, JavaClass parent) throws IOException {
+    private void writePacket(@NonNull Element element, JavaClass clazz, @NonNull Mappings mappings, @NonNull Map<String, JsonObject> toBurgerMappings, @NonNull ClassWriter writer, boolean sub, String parentName, JavaClass parent) throws IOException {
         if (sub) {
             writer.newline();
         }
-        if (!sub && clazz.isEnum) {
+        /*if (!sub && clazz.isEnum) {
             throw this.exception("Base class ${0} is not a subclass!");
-        }
-        String className = clazz.nameMCP.substring(clazz.nameMCP.lastIndexOf(sub ? '$' : '.') + 1, clazz.nameMCP.length());
-        if (clazz.isEnum) {
-            writer.write(String.format("public enum %s", className)).pushBraces();
-            for (JavaField field : clazz.fields) {
-                writer.write(String.format("%s,", field.nameMCP));
-            }
-            writer.write(";").pop();
-        } else {
-            JsonObject burger = toBurgerMappings.get(clazz.nameObf);
-            if (burger == null || !burger.has("id")) {
-                logger.trace("Skipping packet: ${0} -> ${1}", clazz.nameObf, clazz.nameMCP);
-                return;
-            }
-            if (clazz.fields.isEmpty() || sub) {
-                writer.write("@NoArgsConstructor");
-            } else {
-                writer.write("@AllArgsConstructor", "@NoArgsConstructor");
-            }
-            writer.write(String.format("public %sclass %s %s %s", sub ? "static " : "", className, sub ? "extends" : "implements", sub ? parentName : "MinecraftPacket")).pushBraces();
-            writer.write(String.format("public static final int ID = %d;", burger.get("id").getAsInt()));
+        }*/
 
-            if (sub) {
-                if (!parent.fields.isEmpty()) {
-                    Collection<JavaField> mergedFields = new ArrayDeque<>(parent.fields);
-                    mergedFields.addAll(clazz.fields);
-                    StringJoiner joiner = new StringJoiner(", ");
-                    mergedFields.stream().map(field -> String.format("%s %s", field.type, field.nameMCP)).forEachOrdered(joiner::add);
-                    writer.newline().write(String.format("public %s(%s)", className, joiner.toString())).pushBraces();
-                    joiner = new StringJoiner(", ");
-                    parent.fields.stream().map(JavaField::getNameMCP).forEach(joiner::add);
-                    writer.write(String.format("super(%s);", joiner.toString()));
-                    for (JavaField field : clazz.fields) {
-                        writer.write(this.format("this.${0} = ${0};", field.nameMCP));
-                    }
-                    writer.pop();
-                }
-            }
-
-            if (!clazz.fields.isEmpty()) {
-                writer.newline();
-                for (JavaField field : clazz.fields) {
-                    writer.write(String.format("public %s %s;", field.type, field.nameMCP));
-                }
-            }
-
-            writer.newline()
-                    .write("@Override",
-                            "public void write(@NonNull DataOut out) throws IOException").pushBraces().pop();
-            //this.writePacketInstructions(burger.getAsJsonArray("instructions"), writer, mappings, clazz);
-
-            writer.newline()
-                    .write("@Override",
-                            "public void read(@NonNull DataIn in) throws IOException").pushBraces().pop();
-            //this.readPacketInstructions(burger.getAsJsonArray("instructions"), writer, mappings, clazz);
-
-            writer.newline()
-                    .write("@Override",
-                            "public int getId()").pushBraces()
-                    .write("return ID;").pop();
-
-            writer.newline().write("@Override",
-                    "public PacketDirection getDirection()").pushBraces()
-                    .write(String.format("return PacketDirection.%s;", burger.get("direction").getAsString())).pop();
-
-            for (JavaClass subClass : clazz.subClasses) {
-                this.writePacket(subClass, mappings, toBurgerMappings, writer, true, className, clazz);
-            }
-            writer.pop();
-        }
-    }
-
-    private void writePacketInstructions(@NonNull JsonArray array, @NonNull ClassWriter writer, @NonNull Mappings mappings, @NonNull JavaClass clazz) throws IOException {
-        writer.pushBraces();
-        for (JsonObject object : StreamSupport.stream(array.spliterator(), false).map(JsonElement::getAsJsonObject).collect(Collectors.toList())) {
-            String operation = object.get("operation").getAsString();
-            switch (operation) {
-                case "write": {
-                    String field = object.get("field").getAsString();
-                    String type = object.get("type").getAsString();
-                    if (field.contains(".")) {
-                        int i = field.indexOf('.');
-                        field = String.format("%s%s", clazz.deobfuscate(field.substring(0, i), mappings), field.substring(i, field.length()));
-                    } else if (field.startsWith("(")) {
-                        int i = field.indexOf(')');
-                        field = String.format("%s%s", clazz.deobfuscate(field.substring(1, i), mappings), field.substring(i + 1, field.length()));
-                    } else {
-                        field = clazz.deobfuscate(field, mappings);
-                    }
-                    if (field.contains(" ? 1 : 0")) {
-                        field = field.replace(" ? 1 : 0", "");
-                        type = "boolean";
-                    }
-                    String func = PACKET_IO_NAMES.get(type);
-                    writer.write(String.format(
-                            "%sout.write%s(%s);",
-                            func == null ? "// " : "",
-                            func == null ? String.format(" \"%s\" ", type) : func,
-                            field
-                    ));
-                }
-                break;
-            }
-        }
-        writer.pop();
-    }
-
-    private void readPacketInstructions(@NonNull JsonArray array, @NonNull ClassWriter writer, @NonNull Mappings mappings, @NonNull JavaClass clazz) throws IOException {
-        writer.pushBraces();
-        for (JsonObject object : StreamSupport.stream(array.spliterator(), false).map(JsonElement::getAsJsonObject).collect(Collectors.toList())) {
-            String operation = object.get("operation").getAsString();
-            switch (operation) {
-                case "write": {
-                    String field = object.get("field").getAsString();
-                    String type = object.get("type").getAsString();
-                    if (field.contains(".")) {
-                        int i = field.indexOf('.');
-                        field = String.format("%s%s", clazz.deobfuscate(field.substring(0, i), mappings), field.substring(i, field.length()));
-                    } else if (field.startsWith("(")) {
-                        int i = field.indexOf(')');
-                        field = String.format("%s%s", clazz.deobfuscate(field.substring(1, i), mappings), field.substring(i + 1, field.length()));
-                    } else {
-                        field = clazz.deobfuscate(field, mappings);
-                    }
-                    if (field.contains(" ? 1 : 0")) {
-                        field = field.replace(" ? 1 : 0", "");
-                        type = "boolean";
-                    }
-                    String func = PACKET_IO_NAMES.get(type);
-                    writer.write(String.format(
-                            "%s%s = in.read%s();",
-                            func == null ? "// " : "",
-                            field,
-                            func == null ? String.format(" \"%s\" ", type) : func
-                    ));
-                }
-                break;
-            }
-        }
         writer.pop();
     }
 
@@ -504,6 +443,22 @@ public class JavaGenerator implements DataGenerator, Logging {
                 }
             }
         }
+    }
+
+    @Builder
+    @Getter
+    @Data
+    @Setter
+    @Accessors(chain = true)
+    private static class PacketData {
+        private final int id;
+        @NonNull
+        private final JavaClass clazz;
+        @NonNull
+        private final JavaVersion version;
+        @NonNull
+        private final JsonObject burger;
+        private Element soupply;
     }
 
     @Getter
@@ -619,7 +574,9 @@ public class JavaGenerator implements DataGenerator, Logging {
         );
 
         @NonNull
-        public final JsonObject object;
+        public final JsonObject burgerData;
+        @NonNull
+        public final Document soupplyData;
         @NonNull
         public final String version;
         @NonNull

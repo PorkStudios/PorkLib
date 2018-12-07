@@ -16,6 +16,8 @@
 dependencies {
     compile project(":binary")
     compile project(":logging")
+
+    compile "com.google.code.gson:gson:$gsonVersion"
 }
 
 task gen(type: JavaExec, dependsOn: 'classes') {

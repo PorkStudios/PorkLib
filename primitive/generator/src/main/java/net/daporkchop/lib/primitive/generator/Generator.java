@@ -15,18 +15,25 @@
 
 package net.daporkchop.lib.primitive.generator;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.logging.Logging;
 import sun.misc.IOUtils;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.Reader;
 import java.text.NumberFormat;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -222,7 +229,7 @@ public class Generator implements Logging {
                             s1 = s1.replaceAll(String.format(FULLNAME_DEF, i), primitives[i].getFullName());
                         }
                         this.generated.add(s1.replaceAll("\\.template", ".java"));
-                    }, count);
+                    }, count, new JsonObject());
                 }
             }
             this.existing.removeAll(this.generated);
@@ -326,18 +333,49 @@ public class Generator implements Logging {
             if (!out.exists() && !out.mkdirs()) {
                 throw new IllegalStateException();
             }
+            JsonObject settings;
+            {
+                File settingsFile = new File(file.getAbsolutePath().replace(".template", ".json"));
+                if (settingsFile.exists())  {
+                    try (Reader reader = new InputStreamReader(new BufferedInputStream(new FileInputStream(settingsFile)))) {
+                        settings = JSON_PARSER.parse(reader).getAsJsonObject();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                } else {
+                    settings = new JsonObject();
+                }
+            }
             System.out.printf("Generating %s\n", name);
-            this.populateToDepth(out, name, content, String.format("package %s;", packageName), methods, count);
+            this.populateToDepth(out, name, content, String.format("package %s;", packageName), methods, count, settings);
         }
     }
 
-    private void populateToDepth(@NonNull File path, @NonNull String name, @NonNull String content, @NonNull String packageName, @NonNull String[] methods, int depth, Primitive... primitives) {
+    private static final JsonParser JSON_PARSER = new JsonParser();
+    private static final JsonArray EMPTY_JSON_ARRAY = new JsonArray();
+
+    private void populateToDepth(@NonNull File path, @NonNull String name, @NonNull String content, @NonNull String packageName, @NonNull String[] methods, int depth, @NonNull JsonObject settings, Primitive... primitives) {
         if (depth > primitives.length) {
             Primitive[] p = new Primitive[primitives.length + 1];
             System.arraycopy(primitives, 0, p, 0, primitives.length);
+            JsonArray validRoot = settings.has("valid") ? settings.getAsJsonArray("valid") : EMPTY_JSON_ARRAY;
+            JsonArray valid = validRoot.size() >= p.length ? validRoot.get(p.length - 1).getAsJsonArray() : EMPTY_JSON_ARRAY;
             Primitive.primitives.forEach(primitive -> {
+                if (valid.size() != 0)  {
+                    //only if not empty
+                    String primitiveFullName = primitive.getFullName();
+                    boolean flag = false;
+                    for (JsonElement element : valid)   {
+                        if (element.getAsString().equalsIgnoreCase(primitiveFullName))  {
+                            flag = true;
+                        }
+                    }
+                    if (!flag)  {
+                        return;
+                    }
+                }
                 p[p.length - 1] = primitive;
-                this.populateToDepth(path, name, content, packageName, methods, depth, p);
+                this.populateToDepth(path, name, content, packageName, methods, depth, settings, p);
             });
         } else {
             String nameOut = name.replaceAll(".template", ".java");
@@ -362,7 +400,7 @@ public class Generator implements Logging {
                                 .replaceAll(GENERIC_HEADER_DEF, Primitive.getGenericHeader(primitives1))
                                 .replaceAll(GENERIC_SUPER_DEF, Primitive.getGenericSuper(primitives1))
                                 .replaceAll(GENERIC_EXTENDS_DEF, Primitive.getGenericExtends(primitives1)));
-                    }, depth);
+                    }, depth, settings);
                 }
                 contentOut = contentOut.replaceAll(METHODS_DEF, builder.toString());
             }
@@ -394,7 +432,7 @@ public class Generator implements Logging {
             try (OutputStream os = new FileOutputStream(file)) {
                 byte[] b = contentOut.getBytes(UTF8.utf8);
                 os.write(b);
-                SIZE.addAndGet(b.length);
+                SIZE.addAndGet(file.length());
                 FILES.incrementAndGet();
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -496,13 +534,28 @@ public class Generator implements Logging {
         }
     }
 
-    private void forEachPrimitiveRecursive(@NonNull Consumer<Primitive[]> consumer, int depth, Primitive... primitives) {
+    private void forEachPrimitiveRecursive(@NonNull Consumer<Primitive[]> consumer, int depth, @NonNull JsonObject settings, Primitive... primitives) {
         if (depth > primitives.length) {
             Primitive[] p = new Primitive[primitives.length + 1];
             System.arraycopy(primitives, 0, p, 0, primitives.length);
+            JsonArray validRoot = settings.has("valid") ? settings.getAsJsonArray("valid") : EMPTY_JSON_ARRAY;
+            JsonArray valid = validRoot.size() >= p.length ? validRoot.get(p.length - 1).getAsJsonArray() : EMPTY_JSON_ARRAY;
             Primitive.primitives.forEach(primitive -> {
+                if (valid.size() != 0)  {
+                    //only if not empty
+                    String primitiveFullName = primitive.getFullName();
+                    boolean flag = false;
+                    for (JsonElement element : valid)   {
+                        if (element.getAsString().equalsIgnoreCase(primitiveFullName))  {
+                            flag = true;
+                        }
+                    }
+                    if (!flag)  {
+                        return;
+                    }
+                }
                 p[p.length - 1] = primitive;
-                this.forEachPrimitiveRecursive(consumer, depth, p);
+                this.forEachPrimitiveRecursive(consumer, depth, settings, p);
             });
         } else {
             consumer.accept(primitives);

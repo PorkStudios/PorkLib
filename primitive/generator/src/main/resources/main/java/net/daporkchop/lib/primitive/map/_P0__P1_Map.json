@@ -1,0 +1,22 @@
+{
+  "valid": [
+    [
+      "Object",
+      "Integer",
+      "Short",
+      "Byte",
+      "Long",
+      "Character"
+    ],
+    [
+      "Object",
+      "Byte",
+      "Short",
+      "Integer",
+      "Long",
+      "Character",
+      "Float",
+      "Double"
+    ]
+  ]
+}

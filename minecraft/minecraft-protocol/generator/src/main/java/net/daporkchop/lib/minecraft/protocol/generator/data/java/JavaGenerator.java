@@ -348,7 +348,7 @@ public class JavaGenerator implements DataGenerator, Logging {
                 });
         packetClasses.removeIf(clazz -> clazz.nameMCP.contains("$"));
 
-        Map<String, Map<String, IntegerObjectMap<PacketData>>> packets = new HashMap<>();
+        Map<String, Map<String, Map<Integer, PacketData>>> packets = new HashMap<>();
         packetClasses.stream()
                 .filter(JavaClass::doesntHaveSyntheticField)
                 .forEach(clazz -> {
@@ -357,7 +357,7 @@ public class JavaGenerator implements DataGenerator, Logging {
                     int id = burger.get("id").getAsInt();
                     packets
                             .computeIfAbsent(burger.get("state").getAsString(), s -> new HashMap<>())
-                            .computeIfAbsent(burger.get("direction").getAsString(), s -> new IntegerObjectHashMap<>())
+                            .computeIfAbsent(burger.get("direction").getAsString(), s -> new HashMap<>())
                             .put(id, PacketData.builder()
                                     .id(id)
                                     .clazz(clazz)
@@ -365,7 +365,7 @@ public class JavaGenerator implements DataGenerator, Logging {
                                     .version(version)
                                     .build());
                 });
-        packets.values().forEach(map -> map.put("BOTH", new IntegerObjectHashMap<>()));
+        packets.values().forEach(map -> map.put("BOTH", new HashMap<>()));
 
         int i = 0;
         for (NodeList sectionList = ((Element) version.soupplyData.getElementsByTagName("packets").item(0)).getElementsByTagName("section"); i < sectionList.getLength(); i++) {
@@ -376,14 +376,14 @@ public class JavaGenerator implements DataGenerator, Logging {
                 case "SERVERBOUND":
                     state = "PLAY";
             }
-            Map<String, IntegerObjectMap<PacketData>> statePackets = packets.get(state);
+            Map<String, Map<Integer, PacketData>> statePackets = packets.get(state);
             int j = 0;
             for (NodeList packetList = sectionElement.getElementsByTagName("packet"); j < packetList.getLength(); j++) {
                 Element packetElement = (Element) packetList.item(j);
                 boolean clientbound = "true".equals(packetElement.getAttribute("clientbound"));
                 boolean serverbound = "true".equals(packetElement.getAttribute("serverbound"));
                 String direction = clientbound && serverbound ? "BOTH" : clientbound ? "CLIENTBOUND" : serverbound ? "SERVERBOUND" : null;
-                IntegerObjectMap<PacketData> directionPackets = statePackets.get(direction);
+                Map<Integer, PacketData> directionPackets = statePackets.get(direction);
                 int id = Integer.parseInt(packetElement.getAttribute("id"));
                 if (directionPackets.containsKey(id)) {
                     directionPackets.get(id).soupply = packetElement;

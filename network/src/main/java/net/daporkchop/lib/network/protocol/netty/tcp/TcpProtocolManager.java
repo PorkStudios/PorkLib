@@ -35,6 +35,9 @@ import lombok.NonNull;
 import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
+import net.daporkchop.lib.network.endpoint.builder.AbstractBuilder;
+import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
+import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.endpoint.client.Client;
 import net.daporkchop.lib.network.endpoint.server.Server;
 import net.daporkchop.lib.network.packet.Packet;
@@ -80,7 +83,7 @@ public class TcpProtocolManager implements ProtocolManager {
         return true;
     }
 
-    private abstract static class TcpEndpointManager<E extends Endpoint> implements EndpointManager<E> {
+    private abstract static class TcpEndpointManager<E extends Endpoint, B extends AbstractBuilder<E, B>> implements EndpointManager<E, B> {
         protected Channel channel;
         protected EventLoopGroup workerGroup;
 
@@ -91,7 +94,6 @@ public class TcpProtocolManager implements ProtocolManager {
             }
             this.channel.flush();
             this.channel.close().syncUninterruptibly();
-            this.workerGroup.shutdownGracefully();
         }
 
         @Override
@@ -100,33 +102,29 @@ public class TcpProtocolManager implements ProtocolManager {
         }
     }
 
-    private static class TcpServerManager extends TcpEndpointManager<Server> implements EndpointManager.ServerEndpointManager {
-        private EventLoopGroup bossGroup;
+    private static class TcpServerManager extends TcpEndpointManager<Server, ServerBuilder> implements EndpointManager.ServerEndpointManager {
         private ChannelGroup channels;
         @Getter
         private TcpServerChannel channel;
 
         @Override
         @SuppressWarnings("unchecked")
-        public void start(@NonNull InetSocketAddress address, @NonNull Executor executor, @NonNull Server server) {
-            this.bossGroup = new NioEventLoopGroup(0, executor);
-            this.workerGroup = new NioEventLoopGroup(0, executor);
+        public void start(@NonNull ServerBuilder builder, @NonNull Server server) {
+            this.workerGroup = builder.getEventGroup();
             this.channels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
             try {
                 ServerBootstrap bootstrap = new ServerBootstrap();
-                bootstrap.group(this.bossGroup, this.workerGroup);
+                bootstrap.group(this.workerGroup);
                 bootstrap.channelFactory(() -> new WrapperNioServerSocketChannel(server));
                 bootstrap.childHandler(new TcpChannelInitializer(server, this.channels::add, this.channels::remove));
                 bootstrap.option(ChannelOption.SO_BACKLOG, 256);
                 bootstrap.childOption(ChannelOption.SO_KEEPALIVE, true);
-                //bootstrap.childOption(ChannelOption.TCP_NODELAY, true);
+                bootstrap.childOption(ChannelOption.TCP_NODELAY, true);
 
-                super.channel = bootstrap.bind(address).syncUninterruptibly().channel();
+                super.channel = bootstrap.bind(builder.getAddress()).syncUninterruptibly().channel();
                 this.channel = new TcpServerChannel(this.channels, server);
             } catch (Throwable t) {
-                this.workerGroup.shutdownGracefully();
-                this.bossGroup.shutdownGracefully();
                 this.channels.close();
                 throw new RuntimeException(t);
             }
@@ -136,7 +134,6 @@ public class TcpProtocolManager implements ProtocolManager {
         public void close() {
             this.channels.close();
             super.close();
-            this.bossGroup.shutdownGracefully();
         }
 
         @Override
@@ -157,11 +154,11 @@ public class TcpProtocolManager implements ProtocolManager {
         }
     }
 
-    private static class TcpClientManager extends TcpEndpointManager<Client> implements EndpointManager.ClientEndpointManager {
+    private static class TcpClientManager extends TcpEndpointManager<Client, ClientBuilder> implements EndpointManager.ClientEndpointManager {
         @Override
         @SuppressWarnings("unchecked")
-        public void start(@NonNull InetSocketAddress address, @NonNull Executor executor, @NonNull Client client) {
-            this.workerGroup = new NioEventLoopGroup(0, executor);
+        public void start(@NonNull ClientBuilder builder, @NonNull Client client) {
+            this.workerGroup = builder.getEventGroup();
 
             try {
                 Bootstrap bootstrap = new Bootstrap();
@@ -169,11 +166,10 @@ public class TcpProtocolManager implements ProtocolManager {
                 bootstrap.channelFactory(() -> new WrapperNioSocketChannel(client));
                 bootstrap.handler(new TcpChannelInitializer(client));
                 bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
-                //bootstrap.option(ChannelOption.TCP_NODELAY, true);
+                bootstrap.option(ChannelOption.TCP_NODELAY, true);
 
-                this.channel = bootstrap.connect(address).syncUninterruptibly().channel();
+                this.channel = bootstrap.connect(builder.getAddress()).syncUninterruptibly().channel();
             } catch (Throwable t) {
-                this.workerGroup.shutdownGracefully();
                 throw new RuntimeException(t);
             }
         }

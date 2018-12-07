@@ -20,14 +20,15 @@ import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.network.channel.ServerChannel;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
+import net.daporkchop.lib.network.endpoint.builder.AbstractBuilder;
+import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
+import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.endpoint.client.Client;
 import net.daporkchop.lib.network.endpoint.server.Server;
 import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
 
-import java.net.InetSocketAddress;
 import java.util.Collection;
-import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 /**
@@ -36,7 +37,7 @@ import java.util.stream.Collectors;
  * @author DaPorkchop_
  * @see ProtocolManager
  */
-public interface EndpointManager<E extends Endpoint> {
+public interface EndpointManager<E extends Endpoint, B extends AbstractBuilder<E, B>> {
     /**
      * Closes the endpoint, removing all connected sessions
      */
@@ -56,16 +57,15 @@ public interface EndpointManager<E extends Endpoint> {
     /**
      * Starts this endpoint
      *
-     * @param address  the address to bind/connect to
-     * @param executor the executor to use for threading
+     * @param builder  the {@link AbstractBuilder} the builder used to initiate the endpoint
      * @param endpoint the actual endpoint object
      */
-    void start(@NonNull InetSocketAddress address, @NonNull Executor executor, @NonNull E endpoint);
+    void start(@NonNull B builder, @NonNull E endpoint);
 
     /**
      * Manages a server
      */
-    interface ServerEndpointManager extends EndpointManager<Server> {
+    interface ServerEndpointManager extends EndpointManager<Server, ServerBuilder> {
         /**
          * Gets a list of all currently open connections to this server
          *
@@ -115,7 +115,7 @@ public interface EndpointManager<E extends Endpoint> {
     /**
      * Manages a client
      */
-    interface ClientEndpointManager extends EndpointManager<Client> {
+    interface ClientEndpointManager extends EndpointManager<Client, ClientBuilder> {
         /**
          * Gets the client's connection
          *

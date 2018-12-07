@@ -39,7 +39,7 @@ public class PorkServer implements Server {
         this.packetRegistry = new PacketRegistry(builder.getProtocols());
         this.manager = builder.getManager().createServerManager();
 
-        this.manager.start(builder.getAddress(), builder.getExecutor(), this);
+        this.manager.start(builder, this);
     }
 
     @Override

@@ -15,8 +15,11 @@
 
 package net.daporkchop.lib.network.endpoint.builder;
 
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import lombok.Getter;
 import lombok.NonNull;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.UserProtocol;
@@ -28,10 +31,6 @@ import java.net.InetSocketAddress;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.concurrent.Executor;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Shared code for all endpoint builders
@@ -42,13 +41,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Getter
 public abstract class AbstractBuilder<E extends Endpoint, B extends AbstractBuilder<E, B>> {
-    private static final AtomicInteger DEFAULT_EXECUTOR_THREAD_COUNTER = new AtomicInteger(0);
-    private static final Executor DEFAULT_EXECUTOR = new ThreadPoolExecutor(
-            0, Integer.MAX_VALUE,
-            0, TimeUnit.SECONDS,
-            new SynchronousQueue<>(),
-            runnable -> new Thread(runnable, String.format("PorkLib network executor #%d", DEFAULT_EXECUTOR_THREAD_COUNTER.getAndIncrement()))
-    );
+    private static final EventLoopGroup DEFAULT_GROUP = new NioEventLoopGroup(0, PorkUtil.DEFAULT_EXECUTOR);
 
     private final Collection<UserProtocol> protocols = new ArrayDeque<UserProtocol>() {
         {
@@ -79,12 +72,12 @@ public abstract class AbstractBuilder<E extends Endpoint, B extends AbstractBuil
     private ProtocolManager manager = TcpProtocolManager.INSTANCE;
 
     /**
-     * An {@link Executor} for handling threading on connections.
+     * An {@link EventLoopGroup} for handling threading on connections.
      * <p>
      * Some implementations of {@link ProtocolManager} may ignore this setting.
      */
     @NonNull
-    private Executor executor = DEFAULT_EXECUTOR;
+    private EventLoopGroup eventGroup = DEFAULT_GROUP;
 
     @SuppressWarnings("unchecked")
     public <C extends UserConnection> B addProtocol(@NonNull UserProtocol<C> protocol) {
@@ -107,8 +100,8 @@ public abstract class AbstractBuilder<E extends Endpoint, B extends AbstractBuil
     }
 
     @SuppressWarnings("unchecked")
-    public B setExecutor(@NonNull Executor executor) {
-        this.executor = executor;
+    public B setEventGroup(@NonNull EventLoopGroup eventGroup) {
+        this.eventGroup = eventGroup;
         return (B) this;
     }
 

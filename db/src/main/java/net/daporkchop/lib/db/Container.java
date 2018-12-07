@@ -67,15 +67,15 @@ public abstract class Container<V, B extends Container.Builder<V, ? extends Cont
 
     public abstract void save() throws IOException;
 
-    protected File getFile(@NonNull String name) throws IOException {
+    public File getFile(@NonNull String name) throws IOException {
         return this.getFile(name, null, true);
     }
 
-    protected File getFile(@NonNull String name, boolean create) throws IOException {
+    public File getFile(@NonNull String name, boolean create) throws IOException {
         return this.getFile(name, null, create);
     }
 
-    protected File getFile(@NonNull String name, IOConsumer<DataOut> initializer, boolean create) throws IOException {
+    public File getFile(@NonNull String name, IOConsumer<DataOut> initializer, boolean create) throws IOException {
         if (!this.usesDirectory()) {
             throw new IllegalStateException();
         } else {
@@ -99,27 +99,27 @@ public abstract class Container<V, B extends Container.Builder<V, ? extends Cont
         }
     }
 
-    protected DataIn getIn(@NonNull String name) throws IOException {
+    public DataIn getIn(@NonNull String name) throws IOException {
         return this.getIn(name, null);
     }
 
-    protected DataIn getIn(@NonNull String name, IOConsumer<DataOut> initializer) throws IOException {
+    public DataIn getIn(@NonNull String name, IOConsumer<DataOut> initializer) throws IOException {
         return DataIn.wrap(this.getFile(name, initializer, true));
     }
 
-    protected DataOut getOut(@NonNull String name) throws IOException {
+    public DataOut getOut(@NonNull String name) throws IOException {
         return this.getOut(name, null);
     }
 
-    protected DataOut getOut(@NonNull String name, IOConsumer<DataOut> initializer) throws IOException {
+    public DataOut getOut(@NonNull String name, IOConsumer<DataOut> initializer) throws IOException {
         return DataOut.wrap(this.getFile(name, initializer, true));
     }
 
-    protected RandomAccessFile getRAF(@NonNull String name) throws IOException {
+    public RandomAccessFile getRAF(@NonNull String name) throws IOException {
         return this.getRAF(name, null);
     }
 
-    protected RandomAccessFile getRAF(@NonNull String name, IOConsumer<DataOut> initializer) throws IOException {
+    public RandomAccessFile getRAF(@NonNull String name, IOConsumer<DataOut> initializer) throws IOException {
         return new RandomAccessFile(this.getFile(name, initializer, true), "rw");
     }
 

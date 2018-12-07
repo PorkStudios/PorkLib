@@ -290,21 +290,6 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    public File getFile(String name) throws IOException {
-        return super.getFile(name);
-    }
-
-    @Override
-    public File getFile(String name, IOConsumer<DataOut> initializer, boolean create) throws IOException {
-        return super.getFile(name, initializer, create);
-    }
-
-    @Override
-    public RandomAccessFile getRAF(String name) throws IOException {
-        return super.getRAF(name);
-    }
-
     private DataIn wrap(@NonNull DataIn in) throws IOException {
         if (this.dataLookup.allowsCompression() && this.compression != Compression.NONE) {
             return DataIn.wrap(this.compression.inflate(in));

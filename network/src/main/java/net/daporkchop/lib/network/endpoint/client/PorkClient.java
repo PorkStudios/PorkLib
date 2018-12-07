@@ -51,7 +51,7 @@ public class PorkClient implements Client, Logging {
         this.packetRegistry = new PacketRegistry(builder.getProtocols());
         this.manager = builder.getManager().createClientManager();
 
-        this.manager.start(builder.getAddress(), builder.getExecutor(), this);
+        this.manager.start(builder, this);
 
         try {
             logger.debug("Client waiting...");

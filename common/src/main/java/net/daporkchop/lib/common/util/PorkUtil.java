@@ -6,6 +6,11 @@ import sun.misc.Unsafe;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.concurrent.Executor;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 /**
@@ -15,6 +20,13 @@ public class PorkUtil {
     public static final Unsafe unsafe;
     private static final Function<char[], String> CHAR_ARRAY_WRAPPER;
     private static final Function<Throwable, StackTraceElement[]> GET_STACK_TRACE_WRAPPER;
+    private static final AtomicInteger DEFAULT_EXECUTOR_THREAD_COUNTER = new AtomicInteger(0);
+    public static final Executor DEFAULT_EXECUTOR = new ThreadPoolExecutor(
+            0, Integer.MAX_VALUE,
+            2, TimeUnit.SECONDS,
+            new SynchronousQueue<>(),
+            runnable -> new Thread(runnable, String.format("PorkLib executor #%d", DEFAULT_EXECUTOR_THREAD_COUNTER.getAndIncrement()))
+    );
 
     static {
         {

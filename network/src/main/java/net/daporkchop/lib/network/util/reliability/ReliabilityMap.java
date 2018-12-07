@@ -15,7 +15,6 @@
 
 package net.daporkchop.lib.network.util.reliability;
 
-import com.nukkitx.network.raknet.datagram.RakNetReliability;
 import lombok.NonNull;
 
 import java.lang.reflect.Array;
@@ -28,12 +27,12 @@ import java.util.Map;
  * @author DaPorkchop_
  */
 public class ReliabilityMap<T> {
-    public static final ReliabilityMap<RakNetReliability> RAKNET = new ReliabilityMap<>(RakNetReliability.class)
+    /*public static final ReliabilityMap<RakNetReliability> RAKNET = new ReliabilityMap<>(RakNetReliability.class)
             .put(Reliability.UNRELIABLE, RakNetReliability.UNRELIABLE)
             .put(Reliability.UNRELIABLE_SEQUENCED, RakNetReliability.UNRELIABLE_SEQUENCED)
             .put(Reliability.RELIABLE, RakNetReliability.RELIABLE)
             .put(Reliability.RELIABLE_SEQUENCED, RakNetReliability.RELIABLE_SEQUENCED)
-            .put(Reliability.RELIABLE_ORDERED, RakNetReliability.RELIABLE_ORDERED);
+            .put(Reliability.RELIABLE_ORDERED, RakNetReliability.RELIABLE_ORDERED);*/
 
     private final T[] values;
     private final Map<T, Reliability> reverseLookup;

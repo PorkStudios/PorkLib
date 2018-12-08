@@ -16,5 +16,8 @@
       "Float",
       "Double"
     ]
+  ],
+  "imports": [
+    "com.zaxxer.sparsebits.SparseBitSet"
   ]
 }

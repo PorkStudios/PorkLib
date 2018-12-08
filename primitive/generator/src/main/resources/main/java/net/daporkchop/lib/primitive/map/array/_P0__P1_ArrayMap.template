@@ -2,8 +2,8 @@ _headers_
 
 /**
  * A very simple map implementation that uses an array lookup table.
- *
- * This achieves pretty much the highest speed you can get from a map, however it comes at the cost of much
+ * <p>
+ * This achieves pretty much the highest speed you can get from a map, however it comes at the cost of high
  * memory overhead. Only use for values you know will be very low.
  *
  * @author DaPorkchop_
@@ -11,7 +11,7 @@ _headers_
 public class _P0__P1_ArrayMap_gH_ implements _P0__P1_Map_gH_ {
     private _nameP0_[] keys;
     private _nameP1_[] values;
-    private final BitSet index = new BitSet(); //TODO: use a SparseBitSet
+    private final SparseBitSet index = new SparseBitSet();
     private int bits;
 
     public _P0__P1_ArrayMap(@NonNull _P0__P1_Map_gH_ backing)    {

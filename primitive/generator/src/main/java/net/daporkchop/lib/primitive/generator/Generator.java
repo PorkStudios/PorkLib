@@ -173,6 +173,8 @@ public class Generator implements Logging {
     public final File inRoot;
     @NonNull
     public final File outRoot;
+    @NonNull
+    public final Collection<String> additionalImports;
     private final List<String> importList = new ArrayList<>();
     private final Collection<String> existing = new ArrayDeque<>();
     private final Collection<String> generated = new ArrayDeque<>();
@@ -186,7 +188,11 @@ public class Generator implements Logging {
         for (String s : TREE_ROOTS) {
             Generator generator = new Generator(
                     new File(".", String.format("src/main/resources/%s/java/", s)),
-                    new File(".", String.format("../src/%s/java/", s))
+                    new File(".", String.format("../src/%s/java/", s)),
+                    "test".equalsIgnoreCase(s) ? Arrays.asList(
+                            "org.junit.*"
+                    ) : Arrays.asList(
+                    )
             );
             generator.generate();
         }
@@ -484,6 +490,7 @@ public class Generator implements Logging {
                     "java.io.*",
                     "java.nio.*"
             );
+            this.importList.addAll(this.additionalImports);
             this.getImportsRecursive(this.inRoot);
             this.importList.sort(String::compareTo);
 

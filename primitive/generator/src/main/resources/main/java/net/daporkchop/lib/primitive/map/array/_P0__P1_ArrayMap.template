@@ -1,0 +1,156 @@
+_headers_
+
+/**
+ * A very simple map implementation that uses an array lookup table.
+ *
+ * This achieves pretty much the highest speed you can get from a map, however it comes at the cost of much
+ * memory overhead. Only use for values you know will be very low.
+ *
+ * @author DaPorkchop_
+ */
+public class _P0__P1_ArrayMap_gH_ implements _P0__P1_Map_gH_ {
+    private _nameP0_[] keys;
+    private _nameP1_[] values;
+    private final BitSet index = new BitSet(); //TODO: use a SparseBitSet
+    private int bits;
+
+    public _P0__P1_ArrayMap(@NonNull _P0__P1_Map_gH_ backing)    {
+        this.clear();
+    }
+
+    @Override
+    public int size()   {
+        return this.index.cardinality();
+    }
+
+    @Override
+    public boolean isEmpty()    {
+        return this.index.isEmpty();
+    }
+
+    @Override
+    public boolean containsKey(_nameP0_ key)    {
+        return this.index.get((key & 0xFFFFFFFF) & ((1 << this.bits) - 1));
+    }
+
+    @Override
+    public boolean containsValue(_nameP1_ value)    {
+        for (int i = this.index.nextSetBit(0); i != -1; i = this.index.nextSetBit(i + 1))   {
+            if (this.equals_P1_(this.values[i], value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public _p1_ get(_nameP0_ key)   {
+        int i = (key & 0xFFFFFFFF) & ((1 << this.bits) - 1);
+        if (this.index.get(i))  {
+            return _castP1_this.values[i];
+        } else {
+            return _P1E_;
+        }
+    }
+
+    // Modification Operations
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public _p1_ put(_p0_ key, _p1_ value)   {
+        int i = (key & 0xFFFFFFFF) & ((1 << this.bits) - 1);
+        if (this.index.get(i))  {
+            _p1_ oldValue = _castP1_this.values[i];
+            this.values[i] = value;
+            return oldValue;
+        } else {
+            while (this.values.length < i) {
+                //grow array
+                _nameP0_[] newKeys = new _nameP0_[this.keys.length << 1];
+                System.arraycopy(this.keys, 0, newKeys, 0, this.keys.length);
+                _nameP1_[] newValues = new _nameP1_[this.values.length << 1];
+                System.arraycopy(this.values, 0, newValues, 0, this.values.length);
+                this.keys = newKeys;
+                this.values = newValues;
+                this.bits <<= 1;
+            }
+            this.index.set(i);
+            this.values[i] = value;
+            return _P1E_;
+        }
+    }
+
+    @Override
+    public void putAll(@NonNull _P0__P1_Map_gExtends_ map)    {
+        map.forEach(this::put);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public _p1_ remove(_nameP0_ key)    {
+        int i = (key & 0xFFFFFFFF) & ((1 << this.bits) - 1);
+        if (this.index.get(i))  {
+            this.index.clear(i);
+            _p1_ oldValue = _castP1_this.values[i];
+            //shrink array
+            while ((this.index.length() >>> 1) < ((1 << this.bits) - 1))    {
+                _nameP0_[] newKeys = new _nameP0_[this.keys.length >>> 1];
+                System.arraycopy(this.keys, 0, newKeys, 0, this.keys.length >>> 1);
+                _nameP1_[] newValues = new _nameP1_[this.values.length >>> 1];
+                System.arraycopy(this.values, 0, newValues, 0, this.values.length >>> 1);
+                this.keys = newKeys;
+                this.values = newValues;
+                this.bits >>>= 1;
+            }
+            return oldValue;
+        } else {
+            return _P1E_;
+        }
+    }
+
+    // Bulk Operations
+
+    @Override
+    public void clear() {
+        this.index.clear();
+        this.values = new _nameP1_[32];
+        this.bits = 5;
+    }
+
+    // Views
+
+    @Override
+    public _P0_Set_GP0_ keySet()    {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public _P1_Collection_GP1_ values() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ObjectSet<_P0__P1_Map.Entry_gH_> entrySet()  {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public _p1_ getOrDefault(_nameP0_ key, _p1_ defaultValue) {
+        int i = (key & 0xFFFFFFFF) & ((1 << this.bits) - 1);
+        if (this.index.get(i))  {
+            return _castP1_this.values[i];
+        } else {
+            return _P1E_;
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void forEach(@NonNull _P0__P1_BiConsumer_gSuper_ action) {
+        for (int i = this.index.nextSetBit(0); i < this.index.length(); i = this.index.nextSetBit(i + 1))   {
+            action.accept(this.keys[i], _castP1_this.values[i]);
+        }
+    }
+}

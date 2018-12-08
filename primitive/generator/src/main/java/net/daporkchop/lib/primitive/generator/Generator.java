@@ -47,6 +47,8 @@ import java.util.StringJoiner;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static java.lang.Math.max;
 import static net.daporkchop.lib.primitive.generator.Primitive.FULLNAME_DEF;
@@ -352,15 +354,23 @@ public class Generator implements Logging {
                     settings = new JsonObject();
                 }
             }
+            String imports = this.imports;
+            if (settings.has("imports"))    {
+                Collection<String> toAdd = StreamSupport.stream(settings.getAsJsonArray("imports").spliterator(), false)
+                        .map(JsonElement::getAsString).collect(Collectors.toList());
+                for (String s : toAdd)  {
+                    imports += String.format("\nimport %s;", s);
+                }
+            }
             System.out.printf("Generating %s\n", name);
-            this.populateToDepth(out, name, content, String.format("package %s;", packageName), methods, count, settings);
+            this.populateToDepth(out, name, content, String.format("package %s;", packageName), methods, count, settings, imports);
         }
     }
 
     private static final JsonParser JSON_PARSER = new JsonParser();
     private static final JsonArray EMPTY_JSON_ARRAY = new JsonArray();
 
-    private void populateToDepth(@NonNull File path, @NonNull String name, @NonNull String content, @NonNull String packageName, @NonNull String[] methods, int depth, @NonNull JsonObject settings, Primitive... primitives) {
+    private void populateToDepth(@NonNull File path, @NonNull String name, @NonNull String content, @NonNull String packageName, @NonNull String[] methods, int depth, @NonNull JsonObject settings, @NonNull String imports, Primitive... primitives) {
         if (depth > primitives.length) {
             Primitive[] p = new Primitive[primitives.length + 1];
             System.arraycopy(primitives, 0, p, 0, primitives.length);
@@ -381,7 +391,7 @@ public class Generator implements Logging {
                     }
                 }
                 p[p.length - 1] = primitive;
-                this.populateToDepth(path, name, content, packageName, methods, depth, settings, p);
+                this.populateToDepth(path, name, content, packageName, methods, depth, settings, imports, p);
             });
         } else {
             String nameOut = name.replaceAll(".template", ".java");
@@ -432,7 +442,7 @@ public class Generator implements Logging {
                     .replaceAll(GENERIC_EXTENDS_DEF, Primitive.getGenericExtends(primitives))
                     .replaceAll(HEADERS_DEF, String.format("%s\n\n%s\n\n%s", LICENSE_DEF, PACKAGE_DEF, IMPORTS_DEF))
                     .replaceAll(PACKAGE_DEF, packageName)
-                    .replaceAll(IMPORTS_DEF, this.imports)
+                    .replaceAll(IMPORTS_DEF, imports)
                     .replaceAll(LICENSE_DEF, LICENSE);
 
             try (OutputStream os = new FileOutputStream(file)) {

@@ -13,31 +13,49 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.netty.sctp;
+package net.daporkchop.lib.network.packet.handler.codec;
 
 import io.netty.buffer.ByteBuf;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.binary.NettyByteBufUtil;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
 
 /**
- * Used so that reliability parameters and so forth can be processed in encoders/decoders
+ * A {@link Codec} that uses a {@link DataIn} and {@link DataOut} instead of {@link ByteBuf} to read and write data
  *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-@Getter
-public class SctpPacketWrapper implements Logging {
-    @NonNull
-    private final ByteBuf data;
-
-    private final int channel;
-    private final int id;
-    private final boolean ordered;
+public interface DataCodec<V> extends Codec<V> {
+    @Override
+    default void encode(@NonNull V value, @NonNull ByteBuf buf) throws Exception {
+        try (DataOut out = NettyByteBufUtil.wrapOut(buf)) {
+            this.encode(value, out);
+        }
+    }
 
     @Override
-    public String toString() {
-        return this.format("packet=${0}, channel=${1}, ordered=${2}, id=${3}", this.data, this.channel, this.ordered, this.id);
+    default V decode(@NonNull ByteBuf buf) throws Exception {
+        try (DataIn in = NettyByteBufUtil.wrapIn(buf)) {
+            return this.decode(in);
+        }
     }
+
+    /**
+     * Encodes a value
+     *
+     * @param value the value to encode
+     * @param out   the stream to write data to
+     * @throws Exception if an exception occurs
+     */
+    void encode(@NonNull V value, @NonNull DataOut out) throws Exception;
+
+    /**
+     * Decodes a value
+     *
+     * @param in the stream to read data from
+     * @return the decoded value
+     * @throws Exception if an exception occurs
+     */
+    V decode(@NonNull DataIn in) throws Exception;
 }

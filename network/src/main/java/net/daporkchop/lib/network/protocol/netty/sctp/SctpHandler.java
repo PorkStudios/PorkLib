@@ -21,14 +21,11 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.endpoint.client.PorkClient;
 import net.daporkchop.lib.network.endpoint.server.PorkServer;
-import net.daporkchop.lib.network.packet.Packet;
-import net.daporkchop.lib.network.packet.PacketRegistry;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.pork.PorkConnection;
 import net.daporkchop.lib.network.pork.PorkProtocol;
@@ -86,23 +83,9 @@ public class SctpHandler extends ChannelInboundHandlerAdapter implements Logging
             throw new IllegalArgumentException(this.format("Expected ${0}, but got ${1}!", SctpPacketWrapper.class, msg.getClass()));
         }
 
-        SctpPacketWrapper wrapper = (SctpPacketWrapper) msg;
-        Packet packet = wrapper.getPacket();
-        PacketRegistry registry = this.endpoint.getPacketRegistry();
-        Class<? extends UserProtocol<UserConnection>> protocolClass = registry.getOwningProtocol(packet.getClass());
-        if (protocolClass == null) {
-            throw new IllegalArgumentException(this.format("Unregistered inbound packet: ${0}", packet.getClass()));
-        }
-
-        UserConnection connection = ((UnderlyingNetworkConnection) ctx.channel()).getUserConnection(protocolClass);
-
-        Channel channel = connection.getOpenChannel(wrapper.getChannel());
-        if (channel == null) {
-            throw this.exception("Received packet ${0} on channel ${1}, but no open channel with the ID ${1} was found!", packet.getClass(), wrapper.getChannel());
-        }
-
-        logger.debug("Handling ${0}...", packet.getClass());
-        registry.getCodec(packet.getClass()).handle(packet, channel, connection);
+        SctpPacketWrapper packet = (SctpPacketWrapper) msg;
+        UnderlyingNetworkConnection connection = (UnderlyingNetworkConnection) ctx.channel();
+        this.endpoint.getPacketRegistry().getHandler(packet.getId()).handle(packet.getData(), connection, packet.getChannel());
     }
 
     @Override

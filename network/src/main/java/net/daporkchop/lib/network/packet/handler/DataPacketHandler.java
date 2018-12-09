@@ -13,12 +13,40 @@
  *
  */
 
-package net.daporkchop.lib.network.packet;
+package net.daporkchop.lib.network.packet.handler;
 
-import net.daporkchop.lib.binary.Data;
+import io.netty.buffer.ByteBuf;
+import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
+import net.daporkchop.lib.network.packet.handler.codec.DataCodec;
 
 /**
+ * A {@link PacketHandler} with the traits of a {@link DataCodec}
+ *
  * @author DaPorkchop_
  */
-public interface Packet extends Data {
+public interface DataPacketHandler<P> extends PacketHandler<P>, DataCodec<P> {
+    @Override
+    default void encode(@NonNull P packet, @NonNull ByteBuf buf) throws Exception {
+        DataCodec.super.encode(packet, buf);
+    }
+
+    @Override
+    default P decode(@NonNull ByteBuf buf) throws Exception {
+        return DataCodec.super.decode(buf);
+    }
+
+    @Override
+    void handle(@NonNull P packet, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception;
+
+    @Override
+    void encode(@NonNull P value, @NonNull DataOut out) throws Exception;
+
+    @Override
+    P decode(@NonNull DataIn in) throws Exception;
+
+    @Override
+    Class<P> getPacketClass();
 }

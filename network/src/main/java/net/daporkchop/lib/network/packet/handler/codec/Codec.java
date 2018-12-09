@@ -13,31 +13,32 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.netty.sctp;
+package net.daporkchop.lib.network.packet.handler.codec;
 
 import io.netty.buffer.ByteBuf;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.logging.Logging;
 
 /**
- * Used so that reliability parameters and so forth can be processed in encoders/decoders
+ * Encodes and decodes an object
  *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-@Getter
-public class SctpPacketWrapper implements Logging {
-    @NonNull
-    private final ByteBuf data;
+public interface Codec<V> {
+    /**
+     * Encodes a value
+     *
+     * @param value the value to encode
+     * @param buf   the buffer to write the data to
+     * @throws Exception if an exception occurs
+     */
+    void encode(@NonNull V value, @NonNull ByteBuf buf) throws Exception;
 
-    private final int channel;
-    private final int id;
-    private final boolean ordered;
-
-    @Override
-    public String toString() {
-        return this.format("packet=${0}, channel=${1}, ordered=${2}, id=${3}", this.data, this.channel, this.ordered, this.id);
-    }
+    /**
+     * Decodes a value
+     *
+     * @param buf the buffer to read the data from
+     * @return the decoded value
+     * @throws Exception if an exception occurs
+     */
+    V decode(@NonNull ByteBuf buf) throws Exception;
 }

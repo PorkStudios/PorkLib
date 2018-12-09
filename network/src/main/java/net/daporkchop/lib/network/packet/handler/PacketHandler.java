@@ -13,15 +13,44 @@
  *
  */
 
-package net.daporkchop.lib.network.pork;
+package net.daporkchop.lib.network.packet.handler;
 
-import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.packet.Packet;
+import io.netty.buffer.ByteBuf;
+import lombok.NonNull;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
+import net.daporkchop.lib.network.packet.handler.codec.Codec;
 
 /**
- * Doesn't actually do anything, serves simply as a quick way of flagging porklib packets from user packets
+ * A {@link MessageHandler} that decodes messages into packets before handling them
  *
  * @author DaPorkchop_
  */
-public interface PorkPacket extends Packet, Logging {
+public interface PacketHandler<P> extends MessageHandler, Codec<P> {
+    @Override
+    default void handle(@NonNull ByteBuf msg, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception {
+        this.handle(this.decode(msg), connection, channelId);
+    }
+
+    /**
+     * Handle a packet
+     *
+     * @param packet     the packet that was received
+     * @param connection the connection that the packet was received on
+     * @param channelId  the reliability that the packet was sent with
+     * @throws Exception if an exception occurs
+     */
+    void handle(@NonNull P packet, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception;
+
+    @Override
+    void encode(@NonNull P packet, @NonNull ByteBuf buf) throws Exception;
+
+    @Override
+    P decode(@NonNull ByteBuf buf) throws Exception;
+
+    /**
+     * Gets the packet class
+     *
+     * @return the class of the packet
+     */
+    Class<P> getPacketClass();
 }

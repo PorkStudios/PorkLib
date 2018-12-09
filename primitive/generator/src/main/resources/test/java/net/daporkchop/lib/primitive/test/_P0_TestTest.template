@@ -1,0 +1,8 @@
+_headers_
+
+public class _P0_TestTest {
+    @Test
+    public void test()  {
+        System.out.printf("Hello world! Testing \"%s\"...\n", "_nameP0_");
+    }
+}

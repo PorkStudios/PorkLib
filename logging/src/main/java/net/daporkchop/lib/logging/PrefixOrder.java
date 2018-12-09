@@ -22,7 +22,6 @@ import lombok.RequiredArgsConstructor;
 import java.text.DateFormat;
 import java.time.Instant;
 import java.util.Date;
-import java.util.function.BiFunction;
 
 /**
  * Used for sorting the prefixes on log messages.

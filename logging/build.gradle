@@ -15,5 +15,4 @@
 
 dependencies {
     compile project(":binary")
-    compile project(":primitive")
 }

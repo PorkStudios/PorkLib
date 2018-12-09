@@ -19,7 +19,6 @@ import lombok.NonNull;
 import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.endpoint.Endpoint;
-import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 
 import java.net.InetSocketAddress;
@@ -69,7 +68,7 @@ public interface Connection {
      * @param callback a function to run after the underlying network channel has been flushed. if {@code null}, this
      *                 parameter is ignored.
      */
-    void send(@NonNull Packet packet, boolean blocking, Void callback);
+    void send(@NonNull Object packet, boolean blocking, Void callback);
 
     /**
      * Get the network address of the remote endpoint
@@ -128,29 +127,29 @@ public interface Connection {
     // Convenience methods
     //
     //
-    default void send(@NonNull Packet... packets) {
-        for (Packet packet : packets) {
+    default void send(@NonNull Object... packets) {
+        for (Object packet : packets) {
             this.send(packet);
         }
     }
 
-    default void send(@NonNull Packet packet) {
+    default void send(@NonNull Object packet) {
         this.send(packet, false, null);
     }
 
-    default void send(@NonNull Packet packet, Void callback) {
+    default void send(@NonNull Object packet, Void callback) {
         this.send(packet, false, callback);
     }
 
-    default void sendBlocking(@NonNull Packet packet) {
+    default void sendBlocking(@NonNull Object packet) {
         this.send(packet, true, null);
     }
 
-    default void sendBlocking(@NonNull Packet packet, Void callback) {
+    default void sendBlocking(@NonNull Object packet, Void callback) {
         this.send(packet, true, callback);
     }
 
-    default void send(@NonNull Packet packet, boolean blocking) {
+    default void send(@NonNull Object packet, boolean blocking) {
         this.send(packet, blocking, null);
     }
 

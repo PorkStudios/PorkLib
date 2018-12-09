@@ -16,20 +16,15 @@
 package net.daporkchop.lib.network.protocol.netty.sctp;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.sctp.SctpMessage;
 import io.netty.handler.codec.MessageToMessageCodec;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.NettyByteBufUtil;
 import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.network.channel.ChannelImplementation;
-import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
+import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.endpoint.Endpoint;
-import net.daporkchop.lib.network.protocol.api.PacketDecoder;
-import net.daporkchop.lib.network.protocol.api.PacketEncoder;
 
 import java.util.List;
 
@@ -38,20 +33,13 @@ import java.util.List;
  */
 @RequiredArgsConstructor
 @Getter
-public class SctpPacketCodec extends MessageToMessageCodec<SctpMessage, SctpPacketWrapper> implements PacketEncoder, PacketDecoder {
+public class SctpPacketCodec extends MessageToMessageCodec<SctpMessage, SctpPacketWrapper> implements Logging {
     @NonNull
     private final Endpoint endpoint;
 
     @Override
     protected void encode(@NonNull ChannelHandlerContext ctx, @NonNull SctpPacketWrapper msg, @NonNull List<Object> out) throws Exception {
-        ByteBuf buf = ByteBufAllocator.DEFAULT.buffer(256, Integer.MAX_VALUE);
-        this.writePacket(
-                (ChannelImplementation) ((UnderlyingNetworkConnection) ctx.channel()).getOpenChannel(msg.getChannel()), //TODO: store the actual Channel object in SctpPacketWrapper
-                msg.getPacket(),
-                NettyByteBufUtil.wrapOut(buf),
-                msg.isOrdered()
-        );
-        out.add(new SctpMessage(0, msg.getChannel(), !msg.isOrdered(), buf));
+        out.add(new SctpMessage(msg.getId(), msg.getChannel(), !msg.isOrdered(), msg.getData()));
     }
 
     @Override
@@ -60,14 +48,7 @@ public class SctpPacketCodec extends MessageToMessageCodec<SctpMessage, SctpPack
             logger.debug("Received packet: ${0}", this.toHex(msg.content()));
             logger.debug("plain          : ${0}", this.toString(msg.content()));
         }
-        out.add(new SctpPacketWrapper(
-                this.getPacket(
-                        (ChannelImplementation) ((UnderlyingNetworkConnection) ctx.channel()).getOpenChannel(msg.streamIdentifier()),
-                        NettyByteBufUtil.wrapIn(msg.content()),
-                        !msg.isUnordered()),
-                msg.streamIdentifier(),
-                !msg.isUnordered()
-        ));
+        out.add(new SctpPacketWrapper(msg.content(), msg.streamIdentifier(), msg.protocolIdentifier(), !msg.isUnordered()));
     }
 
     private String toHex(@NonNull ByteBuf buf) {

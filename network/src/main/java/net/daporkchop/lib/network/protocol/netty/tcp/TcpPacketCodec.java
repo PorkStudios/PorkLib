@@ -13,42 +13,25 @@
  *
  */
 
-package net.daporkchop.lib.network.packet;
+package net.daporkchop.lib.network.protocol.netty.tcp;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.ByteToMessageCodec;
 import lombok.NonNull;
-import net.daporkchop.lib.network.channel.Channel;
-import net.daporkchop.lib.network.conn.UserConnection;
+import net.daporkchop.lib.logging.Logging;
+
+import java.util.List;
 
 /**
- * Handles received packets
- *
  * @author DaPorkchop_
  */
-public interface PacketHandler<P extends Packet, C extends UserConnection> {
-    /**
-     * Handles a packet
-     *
-     * @param packet     the packet that was received
-     * @param channel    the channel the packet was received on
-     * @param connection the connection the packet was received on
-     */
-    void handle(@NonNull P packet, @NonNull Channel channel, @NonNull C connection);
+public class TcpPacketCodec extends ByteToMessageCodec<TcpPacketWrapper> implements Logging {
+    @Override
+    protected void encode(@NonNull ChannelHandlerContext ctx, @NonNull TcpPacketWrapper msg, @NonNull ByteBuf out) throws Exception {
+    }
 
-    /**
-     * A shorthand wrapper around {@link PacketHandler} for protocol's that don't make use of channels
-     */
-    interface Simple<P extends Packet, C extends UserConnection> extends PacketHandler<P, C> {
-        @Override
-        default void handle(@NonNull P packet, @NonNull Channel channel, @NonNull C connection) {
-            this.handle(packet, connection);
-        }
-
-        /**
-         * Handles a packet
-         *
-         * @param packet     the packet that was received
-         * @param connection the connection the packet was received on
-         */
-        void handle(@NonNull P packet, @NonNull C connection);
+    @Override
+    protected void decode(@NonNull ChannelHandlerContext ctx, @NonNull ByteBuf in, @NonNull List<Object> out) throws Exception {
     }
 }

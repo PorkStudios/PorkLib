@@ -13,45 +13,39 @@
  *
  */
 
-package net.daporkchop.lib.network.packet;
+package net.daporkchop.lib.network.packet.handler;
 
+import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.network.channel.Channel;
-import net.daporkchop.lib.network.conn.UserConnection;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 
-import java.util.function.Supplier;
+import java.util.Queue;
 
 /**
+ * Processes incoming and outgoing messages
+ *
  * @author DaPorkchop_
  */
-public interface Codec<P extends Packet, C extends UserConnection> extends PacketHandler<P, C> {
-    @Override
-    void handle(P packet, Channel channel, C connection);
+public interface MessageHandler {
+    /**
+     * Handle an incoming message
+     *
+     * @param msg        the message data that was received
+     * @param connection the connection that the message was received on
+     * @param channelId  the id of the channel that the message was received on
+     * @throws Exception if an exception occurs
+     */
+    void handle(@NonNull ByteBuf msg, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception;
 
     /**
-     * Create a new instance of this codec's packet
+     * Encode an outgoing message
      *
-     * @return a new, blank instance of this codec's packet
+     * @param msg the message to write
+     * @param out a queue that outgoing data needs to be added to
+     * @throws Exception if an exception occurs
      */
-    P createInstance();
-
-    @RequiredArgsConstructor
-    class SimpleCodec<P extends Packet, C extends UserConnection> implements Codec<P, C> {
-        @NonNull
-        private final PacketHandler<P, C> handler;
-
-        @NonNull
-        private final Supplier<P> packetSupplier;
-
-        @Override
-        public void handle(@NonNull P packet, @NonNull Channel channel, @NonNull C connection) {
-            this.handler.handle(packet, channel, connection);
-        }
-
-        @Override
-        public P createInstance() {
-            return this.packetSupplier.get();
-        }
+    default void write(@NonNull ByteBuf msg, @NonNull Queue<ByteBuf> out) throws Exception {
+        //by default we just send the data
+        out.add(msg);
     }
 }

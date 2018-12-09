@@ -26,8 +26,6 @@ import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.endpoint.client.PorkClient;
 import net.daporkchop.lib.network.endpoint.server.PorkServer;
-import net.daporkchop.lib.network.packet.Packet;
-import net.daporkchop.lib.network.packet.PacketRegistry;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.pork.PorkConnection;
 import net.daporkchop.lib.network.pork.PorkProtocol;
@@ -54,21 +52,14 @@ public class TcpHandler extends ChannelInboundHandlerAdapter implements Logging 
     @Override
     @SuppressWarnings("unchecked")
     public void channelRead(ChannelHandlerContext ctx, @NonNull Object msg) throws Exception {
-        if (!(msg instanceof Packet)) {
-            logger.error("Expected ${0}, but got ${1}!", Packet.class, msg.getClass());
-            throw new IllegalArgumentException(this.format("Expected ${0}, but got ${1}!", Packet.class, msg.getClass()));
+        if (!(msg instanceof TcpPacketWrapper)) {
+            logger.error("Expected ${0}, but got ${1}!", TcpPacketWrapper.class, msg.getClass());
+            throw new IllegalArgumentException(this.format("Expected ${0}, but got ${1}!", TcpPacketWrapper.class, msg.getClass()));
         }
 
-        Packet packet = (Packet) msg;
-        PacketRegistry registry = this.endpoint.getPacketRegistry();
-        Class<? extends UserProtocol<UserConnection>> protocolClass = registry.getOwningProtocol(packet.getClass());
-        if (protocolClass == null) {
-            throw new IllegalArgumentException(this.format("Unregistered inbound packet: ${0}", packet.getClass()));
-        }
-
-        UserConnection connection = ((UnderlyingNetworkConnection) ctx.channel()).getUserConnection(protocolClass);
-        logger.debug("Handling ${0}...", packet.getClass());
-        registry.getCodec(packet.getClass()).handle(packet, connection.getDefaultChannel(), connection);
+        TcpPacketWrapper packet = (TcpPacketWrapper) msg;
+        UnderlyingNetworkConnection connection = (UnderlyingNetworkConnection) ctx.channel();
+        this.endpoint.getPacketRegistry().getHandler(packet.getId()).handle(packet.getData(), connection, packet.getChannel());
     }
 
     @Override

@@ -15,31 +15,39 @@
 
 package net.daporkchop.lib.network.packet;
 
+import com.zaxxer.sparsebits.SparseBitSet;
 import lombok.Getter;
 import lombok.NonNull;
+import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.conn.UserConnection;
-
-import java.util.LinkedList;
-import java.util.List;
-import java.util.function.Supplier;
+import net.daporkchop.lib.network.packet.handler.MessageHandler;
+import net.daporkchop.lib.network.packet.handler.PacketHandler;
+import net.daporkchop.lib.network.util.Version;
+import net.daporkchop.lib.primitive.map.ObjectShortMap;
+import net.daporkchop.lib.primitive.map.ShortObjectMap;
+import net.daporkchop.lib.primitive.map.array.ShortObjectArrayMap;
+import net.daporkchop.lib.primitive.map.hashmap.ObjectShortHashMap;
 
 /**
  * @author DaPorkchop_
  */
-public abstract class UserProtocol<C extends UserConnection> {
-    final List<Codec<Packet, C>> registered = new LinkedList<>();
+public abstract class UserProtocol<C extends UserConnection> implements Logging {
+    final ShortObjectMap<MessageHandler> registered = new ShortObjectArrayMap<>();
+    final ObjectShortMap<Class<?>> packets = new ObjectShortHashMap<>();
 
     @Getter
     private final String name;
-
     @Getter
     private final int version;
+    private SparseBitSet ids;
 
     public UserProtocol(@NonNull String name, int version) {
         this.name = name;
         this.version = version;
 
+        this.ids = new SparseBitSet();
         this.registerPackets();
+        this.ids = null;
     }
 
     public boolean isCompatible(@NonNull UserProtocol<C> protocol) {
@@ -52,22 +60,88 @@ public abstract class UserProtocol<C extends UserConnection> {
 
     protected abstract void registerPackets();
 
-    @SuppressWarnings("unchecked")
-    protected <P extends Packet> void register(@NonNull Codec<P, C> codec) {
-        synchronized (this.registered) {
-            this.registered.add((Codec<Packet, C>) codec);
+    protected void register(@NonNull MessageHandler handler) {
+        if (this.ids == null) {
+            throw new IllegalStateException("Protocol has already been populated!");
+        } else {
+            synchronized (this.registered) {
+                int id = this.ids.nextClearBit(0);
+                if (id > 0xFFFF) {
+                    throw new IllegalStateException("Too many packets registered!");
+                } else {
+                    this.ids.set(id);
+                    this.registered.put((short) id, handler);
+                    if (handler instanceof PacketHandler) {
+                        this.packets.put(((PacketHandler) handler).getPacketClass(), (short) id);
+                    }
+                }
+            }
         }
     }
 
-    protected <P extends Packet> void register(@NonNull Codec<P, C>... codecs) {
-        for (Codec<P, C> codec : codecs) {
-            this.register(codec);
+    protected void register(@NonNull MessageHandler handler, int id) {
+        if (id < 0 || id > 0xFFFF) {
+            throw this.exception("Id must be in range 0-65535, but found: ${0}!", id);
+        } else if (this.ids == null) {
+            throw new IllegalStateException("Protocol has already been populated!");
+        } else {
+            synchronized (this.registered) {
+                if (this.ids.get(id)) {
+                    throw this.exception("Packet id ${0} already taken!", id);
+                } else {
+                    this.ids.set(id);
+                    this.registered.put((short) id, handler);
+                    if (handler instanceof PacketHandler) {
+                        this.packets.put(((PacketHandler) handler).getPacketClass(), (short) id);
+                    }
+                }
+            }
         }
     }
 
-    protected <P extends Packet> void register(@NonNull PacketHandler<P, C> handler, @NonNull Supplier<P> supplier) {
-        this.register(new Codec.SimpleCodec<>(handler, supplier));
+    protected void register(@NonNull MessageHandler... handlers) {
+        for (MessageHandler handler : handlers) {
+            this.register(handler);
+        }
     }
 
     public abstract C newConnection();
+
+    public MessageHandler getHandler(int id) {
+        return this.getHandler(PacketRegistry.getPacketId(id));
+    }
+
+    public MessageHandler getHandler(short packetId) {
+        MessageHandler handler = this.registered.get(packetId);
+        if (handler == null) {
+            throw this.exception("Invalid packet id: ${0}", packetId & 0xFFFF);
+        } else {
+            return handler;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return this.name.hashCode() * 31 + this.version;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        } else if (obj instanceof UserProtocol) {
+            UserProtocol other = (UserProtocol) obj;
+            return this.name.equals(other.name) && this.version == other.version;
+        } else if (obj instanceof Version) {
+            Version other = (Version) obj;
+            return this.name.equals(other.getName()) && this.version == other.getVersion();
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return this.format("${0} v${1}", this.name, this.version);
+    }
 }

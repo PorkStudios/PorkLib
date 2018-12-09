@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.netty.sctp;
+package net.daporkchop.lib.network.protocol.netty.tcp;
 
 import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
@@ -22,22 +22,19 @@ import lombok.NonNull;
 import net.daporkchop.lib.logging.Logging;
 
 /**
- * Used so that reliability parameters and so forth can be processed in encoders/decoders
- *
  * @author DaPorkchop_
  */
 @AllArgsConstructor
 @Getter
-public class SctpPacketWrapper implements Logging {
+public class TcpPacketWrapper implements Logging {
     @NonNull
     private final ByteBuf data;
 
     private final int channel;
     private final int id;
-    private final boolean ordered;
 
     @Override
     public String toString() {
-        return this.format("packet=${0}, channel=${1}, ordered=${2}, id=${3}", this.data, this.channel, this.ordered, this.id);
+        return this.format("packet=${0}, channel=${1}, id=${2}", this.data, this.channel, this.id);
     }
 }

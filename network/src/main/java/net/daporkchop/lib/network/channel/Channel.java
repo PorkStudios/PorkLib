@@ -22,7 +22,6 @@ import net.daporkchop.lib.network.conn.Connection;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
-import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 
@@ -44,7 +43,7 @@ public interface Channel {
     //
 
     /**
-     * Send a {@link Packet} over this channel.
+     * Send a packet over this channel.
      *
      * @param packet      the packet to send
      * @param blocking    whether or not to block the invoking thread until the underlying network channel has been flushed
@@ -53,7 +52,7 @@ public interface Channel {
      * @param reliability the desired channel reliability. depending on the underlying network protocol, this reliability may be
      *                    enforced for all packet, used merely as a default, or ignored entirely.
      */
-    void send(@NonNull Packet packet, boolean blocking, Void callback, @NonNull Reliability reliability);
+    void send(@NonNull Object packet, boolean blocking, Void callback, @NonNull Reliability reliability);
 
     /**
      * Get this channel's reliability.
@@ -186,40 +185,40 @@ public interface Channel {
     // Convenience methods
     //
     //
-    default void send(@NonNull Packet packet, boolean blocking, Void callback) {
+    default void send(@NonNull Object packet, boolean blocking, Void callback) {
         this.send(packet, blocking, callback, this.getReliability());
     }
 
-    default void send(@NonNull Packet packet, boolean blocking, @NonNull Reliability reliability) {
+    default void send(@NonNull Object packet, boolean blocking, @NonNull Reliability reliability) {
         if (this.isReliabilityEnforced() && reliability != this.getReliability()) {
             throw new IllegalArgumentException(String.format("Invalid reliability: %s (channel setting: %s)", reliability.name(), this.getReliability().name()));
         }
         this.send(packet, blocking, null, reliability);
     }
 
-    default void send(@NonNull Packet packet, Void callback, @NonNull Reliability reliability) {
+    default void send(@NonNull Object packet, Void callback, @NonNull Reliability reliability) {
         if (this.isReliabilityEnforced() && reliability != this.getReliability()) {
             throw new IllegalArgumentException(String.format("Invalid reliability: %s (channel setting: %s)", reliability.name(), this.getReliability().name()));
         }
         this.send(packet, false, callback, reliability);
     }
 
-    default void send(@NonNull Packet packet, boolean blocking) {
+    default void send(@NonNull Object packet, boolean blocking) {
         this.send(packet, blocking, null, this.getReliability());
     }
 
-    default void send(@NonNull Packet packet, @NonNull Reliability reliability) {
+    default void send(@NonNull Object packet, @NonNull Reliability reliability) {
         if (this.isReliabilityEnforced() && reliability != this.getReliability()) {
             throw new IllegalArgumentException(String.format("Invalid reliability: %s (channel setting: %s)", reliability.name(), this.getReliability().name()));
         }
         this.send(packet, false, null, reliability);
     }
 
-    default void send(@NonNull Packet packet, Void callback) {
+    default void send(@NonNull Object packet, Void callback) {
         this.send(packet, false, callback, this.getReliability());
     }
 
-    default void send(@NonNull Packet packet) {
+    default void send(@NonNull Object packet) {
         this.send(packet, false, null, this.getReliability());
     }
 

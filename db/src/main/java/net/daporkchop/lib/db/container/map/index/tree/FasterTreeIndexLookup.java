@@ -61,7 +61,7 @@ public class FasterTreeIndexLookup<K> implements IndexLookup<K>, Logging {
     protected RandomAccessFile tableRaf;
     protected FileChannel tableChannel;
     protected MappedByteBuffer rootNode;
-    protected final AtomicLong offset = new AtomicLong(0L);
+    protected final AtomicLong offset = new AtomicLong(1L);
     @Getter
     protected DBMap<K, ?> map;
     @Getter
@@ -87,7 +87,7 @@ public class FasterTreeIndexLookup<K> implements IndexLookup<K>, Logging {
             if (this.keyHasher.getHashLength() < 2) {
                 throw this.exception("Hash size must be at least 2 bytes!");
             }
-            this.buffer = ThreadLocal.withInitial(() -> ByteBuffer.allocateDirect(this.keyHasher.getHashLength() * VALUES_PER_SECTOR));
+            this.buffer = ThreadLocal.withInitial(() -> ByteBuffer.allocateDirect(this.pointerBytes * VALUES_PER_SECTOR));
             this.file = file;
             this.tableRaf = new RandomAccessFile(map.getFile("index/tree"), "rw");
             this.tableChannel = this.tableRaf.getChannel();
@@ -100,7 +100,7 @@ public class FasterTreeIndexLookup<K> implements IndexLookup<K>, Logging {
 
     @Override
     public void load() throws IOException {
-        try (DataIn in = this.map.getIn("index/offset", out -> out.writeLong(0L)))  {
+        try (DataIn in = this.map.getIn("index/offset", out -> out.writeLong(1L)))  {
             this.offset.set(in.readLong());
         }
         this.rootNode = this.tableChannel.map(FileChannel.MapMode.READ_WRITE, 0, VALUES_PER_SECTOR * this.pointerBytes);
@@ -154,13 +154,10 @@ public class FasterTreeIndexLookup<K> implements IndexLookup<K>, Logging {
         this.lock.readLock().lock();
         try {
             long next = this.readFromBuffer(this.rootNode, hash[0] & 0xFF);
-            for (int i = 1; i < hash.length; i++)   {
+            for (int i = 1; next != 0L && i < hash.length; i++)   {
                 buffer.clear();
                 this.tableChannel.read(buffer, next * VALUES_PER_SECTOR * this.pointerBytes);
                 next = this.readFromBuffer(buffer, hash[i] & 0xFF);
-                if (next == 0L) {
-                    return -1L;
-                }
             }
             if (next != 0L) {
                 next = next;
@@ -173,12 +170,17 @@ public class FasterTreeIndexLookup<K> implements IndexLookup<K>, Logging {
 
     @Override
     public void set(@NonNull K key, long val) throws IOException {
+        val += 1L;
         byte[] hash = this.keyHasher.hash(key);
         ByteBuffer buffer = this.buffer.get();
         //this.lock.readLock().lock();
         try {
+            long prev = -1L;
             long next = this.readFromBuffer(this.rootNode, hash[0] & 0xFF);
             for (int i = 1; i < hash.length - 1; i++)   {
+                if (prev == 0L) {
+                    throw new IllegalStateException();
+                }
                 buffer.clear();
                 this.tableChannel.read(buffer, next * VALUES_PER_SECTOR * this.pointerBytes);
                 next = this.readFromBuffer(buffer, hash[i] & 0xFF);
@@ -190,12 +192,15 @@ public class FasterTreeIndexLookup<K> implements IndexLookup<K>, Logging {
                     long newPos = this.offset.getAndIncrement();
                     //this.lock.writeLock().lock();
                     try {
-                        if (i == 1) {
-                            this.writeToBuffer(this.rootNode, newPos, hash[i] & 0xFF);
+                        if (prev == -1L) {
+                            this.writeToBuffer(this.rootNode, newPos, hash[0] & 0xFF);
+                            this.markDirty();
                         } else {
-                            this.writeToBuffer(buffer, newPos, hash[i] & 0xFF);
+                            //buffer.clear();
+                            //this.tableChannel.read(buffer, prev * VALUES_PER_SECTOR * this.pointerBytes);
+                            this.writeToBuffer(buffer, newPos, hash[i - 1] & 0xFF);
                             buffer.flip();
-                            this.tableChannel.write(buffer, next * VALUES_PER_SECTOR * this.pointerBytes);
+                            this.tableChannel.write(buffer, prev * VALUES_PER_SECTOR * this.pointerBytes);
                         }
                         this.tableChannel.write(ByteBuffer.wrap(this.emptySector), newPos * VALUES_PER_SECTOR * this.pointerBytes);
                         next = newPos;
@@ -203,12 +208,13 @@ public class FasterTreeIndexLookup<K> implements IndexLookup<K>, Logging {
                         //this.lock.writeLock().unlock();
                     }
                 }
+                prev = next;
             }
             buffer.clear();
             //this.lock.writeLock().lock();
             try {
                 this.tableChannel.read(buffer, next * VALUES_PER_SECTOR * this.pointerBytes);
-                this.writeToBuffer(buffer, val + 1L, hash[hash.length - 1] & 0xFF);
+                this.writeToBuffer(buffer, val, hash[hash.length - 1] & 0xFF);
                 buffer.flip();
                 this.tableChannel.write(buffer, next * VALUES_PER_SECTOR * this.pointerBytes);
                 this.markDirty();
@@ -273,6 +279,7 @@ public class FasterTreeIndexLookup<K> implements IndexLookup<K>, Logging {
     }
 
     protected long readFromBuffer(@NonNull ByteBuffer buffer, int pos)   {
+        pos *= this.pointerBytes;
         switch (this.pointerBytes)  {
             case 1:
                 return buffer.get(pos) & 0xFFL;
@@ -312,6 +319,7 @@ public class FasterTreeIndexLookup<K> implements IndexLookup<K>, Logging {
     }
 
     protected void writeToBuffer(@NonNull ByteBuffer buffer, long val, int pos)  {
+        pos *= this.pointerBytes;
         switch (this.pointerBytes)  {
             case 1: {
                 buffer.put(pos, (byte) (val & 0xFFL));

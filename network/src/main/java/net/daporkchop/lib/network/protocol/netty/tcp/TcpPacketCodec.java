@@ -18,20 +18,32 @@ package net.daporkchop.lib.network.protocol.netty.tcp;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageCodec;
+import io.netty.handler.codec.MessageToMessageCodec;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.network.endpoint.Endpoint;
 
 import java.util.List;
 
 /**
  * @author DaPorkchop_
  */
-public class TcpPacketCodec extends ByteToMessageCodec<TcpPacketWrapper> implements Logging {
+@RequiredArgsConstructor
+@Getter
+public class TcpPacketCodec extends MessageToMessageCodec<ByteBuf, TcpPacketWrapper> implements Logging {
+    @NonNull
+    private final Endpoint endpoint;
+
     @Override
-    protected void encode(@NonNull ChannelHandlerContext ctx, @NonNull TcpPacketWrapper msg, @NonNull ByteBuf out) throws Exception {
+    protected void encode(@NonNull ChannelHandlerContext ctx, @NonNull TcpPacketWrapper msg, @NonNull List<Object> out) throws Exception {
+        out.add(ctx.alloc().buffer(8).writeInt(msg.getChannel()).writeInt(msg.getId()));
+        out.add(msg.getData().retain());
     }
 
     @Override
     protected void decode(@NonNull ChannelHandlerContext ctx, @NonNull ByteBuf in, @NonNull List<Object> out) throws Exception {
+        out.add(new TcpPacketWrapper(in.retain(), in.readInt(), in.readInt()));
     }
 }

@@ -22,9 +22,11 @@ import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.packet.handler.MessageHandler;
 import net.daporkchop.lib.network.packet.handler.PacketHandler;
 import net.daporkchop.lib.primitive.map.ObjectIntegerMap;
+import net.daporkchop.lib.primitive.map.ObjectShortMap;
 import net.daporkchop.lib.primitive.map.ShortObjectMap;
 import net.daporkchop.lib.primitive.map.array.ShortObjectArrayMap;
 import net.daporkchop.lib.primitive.map.hashmap.ObjectIntegerHashMap;
+import net.daporkchop.lib.primitive.map.hashmap.ObjectShortHashMap;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -35,6 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class PacketRegistry implements Logging {
     private final ShortObjectMap<UserProtocol> idToProtocol = new ShortObjectArrayMap<>();
+    private final ObjectShortMap<Class<? extends UserProtocol>> protocolToId = new ObjectShortHashMap<>();
     private final ObjectIntegerMap<Class<?>> packetToProtocolId = new ObjectIntegerHashMap<>(); //TODO: identityHashMap
     @Getter
     private final Collection<UserProtocol> protocols;
@@ -52,6 +55,11 @@ public class PacketRegistry implements Logging {
             }
             short protocolId = (short) idCounter.getAndIncrement();
             this.idToProtocol.put(protocolId, protocol);
+            if (this.protocolToId.containsKey(protocol.getClass())) {
+                throw this.exception("Protocol ${0} is registered twice!", protocol.getClass());
+            } else {
+                this.protocolToId.put(protocol.getClass(), protocolId);
+            }
             protocol.registered.forEach((packetId, codec) -> {
                 if (codec instanceof PacketHandler) {
                     this.packetToProtocolId.put(((PacketHandler) codec).getPacketClass(), combine(protocolId, packetId));
@@ -88,6 +96,14 @@ public class PacketRegistry implements Logging {
 
     public MessageHandler getHandler(int id) {
         return this.getProtocol(id).getHandler(id);
+    }
+
+    public <C extends UserConnection> short getProtocolId(@NonNull Class<? extends UserProtocol<C>> protocolClass) {
+        if (this.protocolToId.containsKey(protocolClass)) {
+            return this.protocolToId.get(protocolClass);
+        } else {
+            throw this.exception("Unregistered protocol: ${0}", protocolClass);
+        }
     }
 
     public <P> int getId(@NonNull Class<P> clazz) {

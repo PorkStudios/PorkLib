@@ -54,8 +54,8 @@ public interface UnderlyingNetworkConnection extends Connection {
     }
 
     @Override
-    default void send(@NonNull Object packet, boolean blocking, Void callback) {
-        this.getDefaultChannel().send(packet, blocking, callback);
+    default void send(@NonNull Object message, boolean blocking, Void callback) {
+        this.getDefaultChannel().send(message, blocking, callback);
     }
 
     Channel openChannel(Reliability reliability, int requestedId);

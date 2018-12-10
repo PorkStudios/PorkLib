@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.network.protocol.api;
 
+import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.network.channel.ServerChannel;
@@ -25,7 +26,6 @@ import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.endpoint.client.Client;
 import net.daporkchop.lib.network.endpoint.server.Server;
-import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
 
 import java.util.Collection;
@@ -82,11 +82,23 @@ public interface EndpointManager<E extends Endpoint, B extends AbstractBuilder<E
         /**
          * Send a message to all connected clients on the default channel
          *
-         * @param packet   the packet to send
+         * @param message  the packet to send
          * @param blocking whether or not this method will block the invoking thread until the packet has been flushed
          */
-        default void broadcast(@NonNull Packet packet, boolean blocking) {
-            this.getChannel().broadcast(packet, blocking);
+        default void broadcast(@NonNull Object message, boolean blocking) {
+            this.getChannel().broadcast(message, blocking);
+        }
+
+        /**
+         * Broadcasts a raw packet to all connections on the default channel
+         *
+         * @param data          the data to send
+         * @param id            the id of the packet
+         * @param protocolClass the class of the protocol that the packet should be sent on
+         * @param <C>           the protocol's connection type
+         */
+        default <C extends UserConnection> void broadcast(@NonNull ByteBuf data, short id, @NonNull Class<? extends UserProtocol<C>> protocolClass) {
+            this.getChannel().broadcast(data, id, protocolClass);
         }
 
         /**
@@ -126,12 +138,12 @@ public interface EndpointManager<E extends Endpoint, B extends AbstractBuilder<E
         <C extends UserConnection> C getConnection(@NonNull Class<? extends UserProtocol<C>> protocolClass);
 
         /**
-         * Send a packet to the server
+         * Send a packet to the server on the default channel
          *
-         * @param packet   the packet to send
+         * @param message  the packet to send
          * @param blocking whether or not this method will block the invoking thread until the packet has been flushed
          * @param callback a function to run once the packet has been flushed
          */
-        void send(@NonNull Packet packet, boolean blocking, Void callback);
+        void send(@NonNull Object message, boolean blocking, Void callback);
     }
 }

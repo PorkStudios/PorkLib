@@ -17,6 +17,7 @@ package net.daporkchop.lib.network.protocol.netty.tcp;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
@@ -24,7 +25,6 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
 import io.netty.util.concurrent.GlobalEventExecutor;
@@ -40,15 +40,13 @@ import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.endpoint.client.Client;
 import net.daporkchop.lib.network.endpoint.server.Server;
-import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.packet.PacketRegistry;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.pork.packet.DisconnectPacket;
 import net.daporkchop.lib.network.protocol.api.EndpointManager;
 import net.daporkchop.lib.network.protocol.api.ProtocolManager;
 import net.daporkchop.lib.network.protocol.netty.NettyServerChannel;
 
-import java.net.InetSocketAddress;
-import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
 /**
@@ -151,6 +149,16 @@ public class TcpProtocolManager implements ProtocolManager {
             public void close(String reason) {
                 TcpServerManager.this.close(reason);
             }
+
+            @Override
+            public <C extends UserConnection> void broadcast(@NonNull ByteBuf data, short id, @NonNull Class<? extends UserProtocol<C>> protocolClass) {
+                TcpPacketWrapper wrapper = new TcpPacketWrapper(
+                        data,
+                        1, //default channel
+                        PacketRegistry.combine(this.server.getPacketRegistry().getProtocolId(protocolClass), id)
+                );
+                this.channels.writeAndFlush(wrapper);
+            }
         }
     }
 
@@ -180,8 +188,8 @@ public class TcpProtocolManager implements ProtocolManager {
         }
 
         @Override
-        public void send(@NonNull Packet packet, boolean blocking, Void callback) {
-            ((WrapperNioSocketChannel) this.channel).send(packet, blocking, callback);
+        public void send(@NonNull Object message, boolean blocking, Void callback) {
+            ((WrapperNioSocketChannel) this.channel).send(message, blocking, callback);
         }
     }
 
@@ -205,10 +213,9 @@ public class TcpProtocolManager implements ProtocolManager {
 
         @Override
         protected void initChannel(Channel c) throws Exception {
-            c.pipeline().addLast(new LengthFieldPrepender(3));
-            c.pipeline().addLast(new LengthFieldBasedFrameDecoder(0xFFFFFF, 0, 3, 0, 3));
-            c.pipeline().addLast(new TcpPacketEncoder(this.endpoint));
-            c.pipeline().addLast(new TcpPacketDecoder(this.endpoint));
+            c.pipeline().addLast(new LengthFieldPrepender(4));
+            c.pipeline().addLast(new LengthFieldBasedFrameDecoder(0xFFFFFFFF, 0, 4, 0, 4));
+            c.pipeline().addLast(new TcpPacketCodec(this.endpoint));
             c.pipeline().addLast(new TcpHandler(this.endpoint));
             this.registerHook.accept(c);
 

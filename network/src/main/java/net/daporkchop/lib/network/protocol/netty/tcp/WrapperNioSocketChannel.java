@@ -19,12 +19,10 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
-import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.protocol.netty.NettyConnection;
 import net.daporkchop.lib.network.util.reliability.Reliability;
@@ -81,13 +79,6 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements NettyCo
     @Override
     public Channel openChannel(Reliability reliability, int requestedId) {
         return this.channel;
-    }
-
-    //minor optimization (removes overhead of calling getOpenChannel())
-
-    @Override
-    public void send(@NonNull Packet packet, boolean blocking, Void callback) {
-        this.channel.send(packet, blocking, callback);
     }
 
     @Override

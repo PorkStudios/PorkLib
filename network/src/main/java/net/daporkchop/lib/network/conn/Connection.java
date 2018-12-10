@@ -63,12 +63,12 @@ public interface Connection {
     /**
      * Send a packet to the remote endpoint
      *
-     * @param packet   the packet to send
+     * @param message   the packet to send
      * @param blocking whether or not to block the invoking thread until the underlying network channel has been flushed
      * @param callback a function to run after the underlying network channel has been flushed. if {@code null}, this
      *                 parameter is ignored.
      */
-    void send(@NonNull Object packet, boolean blocking, Void callback);
+    void send(@NonNull Object message, boolean blocking, Void callback);
 
     /**
      * Get the network address of the remote endpoint
@@ -127,30 +127,30 @@ public interface Connection {
     // Convenience methods
     //
     //
-    default void send(@NonNull Object... packets) {
-        for (Object packet : packets) {
-            this.send(packet);
+    default void send(@NonNull Object... messages) {
+        for (Object message : messages) {
+            this.send(message);
         }
     }
 
-    default void send(@NonNull Object packet) {
-        this.send(packet, false, null);
+    default void send(@NonNull Object message) {
+        this.send(message, false, null);
     }
 
-    default void send(@NonNull Object packet, Void callback) {
-        this.send(packet, false, callback);
+    default void send(@NonNull Object message, Void callback) {
+        this.send(message, false, callback);
     }
 
-    default void sendBlocking(@NonNull Object packet) {
-        this.send(packet, true, null);
+    default void sendBlocking(@NonNull Object message) {
+        this.send(message, true, null);
     }
 
-    default void sendBlocking(@NonNull Object packet, Void callback) {
-        this.send(packet, true, callback);
+    default void sendBlocking(@NonNull Object message, Void callback) {
+        this.send(message, true, callback);
     }
 
-    default void send(@NonNull Object packet, boolean blocking) {
-        this.send(packet, blocking, null);
+    default void send(@NonNull Object message, boolean blocking) {
+        this.send(message, blocking, null);
     }
 
     default void closeConnection() {

@@ -15,14 +15,18 @@
 
 package net.daporkchop.lib.network.protocol.netty;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.group.ChannelGroup;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.network.channel.ServerChannel;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
+import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.server.Server;
-import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.packet.PacketRegistry;
+import net.daporkchop.lib.network.packet.UserProtocol;
+import net.daporkchop.lib.network.protocol.netty.tcp.TcpPacketWrapper;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -37,16 +41,16 @@ import java.util.stream.Stream;
 @Getter
 public abstract class NettyServerChannel implements ServerChannel {
     @NonNull
-    private final ChannelGroup channels;
+    protected final ChannelGroup channels;
     @NonNull
-    private final Server server;
+    protected final Server server;
 
     @Override
-    public void broadcast(@NonNull Packet packet, boolean blocking) {
+    public void broadcast(@NonNull Object message, boolean blocking) {
         if (blocking) {
-            this.channels.writeAndFlush(packet).syncUninterruptibly();
+            this.channels.writeAndFlush(message).syncUninterruptibly();
         } else {
-            this.channels.writeAndFlush(packet);
+            this.channels.writeAndFlush(message);
         }
     }
 

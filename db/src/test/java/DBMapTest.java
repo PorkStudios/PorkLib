@@ -87,7 +87,7 @@ public class DBMapTest implements Logging {
     private static final Collection<BiConsumer<Random, Map<byte[], byte[]>>> POPULATORS = Arrays.asList(
             null
             , (random, map) -> {
-                for (int i = 0; i < 512; i++) {
+                for (int i = 0; i < 4; i++) {
                     byte[] b1 = new byte[TABLE_SIZE_BITS];
                     byte[] b2 = new byte[random.nextInt(1024) + 128];
                     random.nextBytes(b2);

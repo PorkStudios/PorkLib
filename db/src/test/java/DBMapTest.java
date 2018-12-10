@@ -13,7 +13,6 @@
  *
  */
 
-import com.zaxxer.sparsebits.SparseBitSet;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.data.Serializer;
 import net.daporkchop.lib.binary.data.impl.ByteArraySerializer;
@@ -26,22 +25,15 @@ import net.daporkchop.lib.db.container.map.data.IndividualFileLookup;
 import net.daporkchop.lib.db.container.map.data.OneTimeWriteDataLookup;
 import net.daporkchop.lib.db.container.map.data.SectoredDataLookup;
 import net.daporkchop.lib.db.container.map.index.IndexLookup;
-import net.daporkchop.lib.db.container.map.index.hashtable.BucketingHashTableIndexLookup;
-import net.daporkchop.lib.db.container.map.index.hashtable.HashTableIndexLookup;
-import net.daporkchop.lib.db.container.map.index.hashtable.MappedHashTableIndexLookup;
 import net.daporkchop.lib.db.container.map.index.tree.FasterTreeIndexLookup;
 import net.daporkchop.lib.db.container.map.key.ByteArrayKeyHasher;
-import net.daporkchop.lib.db.container.map.key.DefaultKeyHasher;
-import net.daporkchop.lib.db.container.map.key.KeyHasher;
 import net.daporkchop.lib.encoding.Hexadecimal;
-import net.daporkchop.lib.encoding.basen.Base58;
 import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.encoding.compression.CompressionHelper;
 import net.daporkchop.lib.logging.Logging;
 import org.junit.Test;
 
 import java.io.File;
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -77,7 +69,7 @@ public class DBMapTest implements Logging {
             //, () -> new BucketingHashTableIndexLookup<>(2, 4)
             //, () -> new HashTableIndexLookup<>(TABLE_SIZE_BITS, 4)
             //, () -> new MappedHashTableIndexLookup<>(TABLE_SIZE_BITS, 4)
-            , () -> new FasterTreeIndexLookup<>(4)
+            , () -> new FasterTreeIndexLookup<>(4, 2)
     );
     private static final Collection<Supplier<CompressionHelper>> COMPRESSIONS = Arrays.asList(
             null
@@ -120,6 +112,16 @@ public class DBMapTest implements Logging {
                 }
             }
     );
+
+    protected static long getRelevantHashBits(@NonNull byte[] hash, int usedBits) {
+        //get required number of bytes into hash thing
+        long bits = 0L;
+        for (int i = (usedBits >>> 3) - 1; i >= 0; i--) {
+            bits = ((bits << 8L) | (hash[i] & 0xFFL));
+        }
+        //remove excessive bits at the end
+        return bits & ((1L << usedBits) - 1L);
+    }
 
     @Test
     @SuppressWarnings("unchecked")
@@ -221,7 +223,7 @@ public class DBMapTest implements Logging {
                                 db.close();
                             }
                         }
-                        {
+                        if (false) {
                             PorkDB db = PorkDB.builder()
                                     .setRoot(ROOT_DIR)
                                     .build();
@@ -259,15 +261,5 @@ public class DBMapTest implements Logging {
                 });
             });
         });
-    }
-
-    protected static long getRelevantHashBits(@NonNull byte[] hash, int usedBits) {
-        //get required number of bytes into hash thing
-        long bits = 0L;
-        for (int i = (usedBits >>> 3) - 1; i >= 0; i--) {
-            bits = ((bits << 8L) | (hash[i] & 0xFFL));
-        }
-        //remove excessive bits at the end
-        return bits & ((1L << usedBits) - 1L);
     }
 }

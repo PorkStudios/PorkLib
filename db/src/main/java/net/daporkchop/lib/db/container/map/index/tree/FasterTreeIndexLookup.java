@@ -20,6 +20,8 @@ import lombok.NonNull;
 import lombok.Setter;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.common.function.IOConsumer;
+import net.daporkchop.lib.common.function.IOFunction;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.db.container.map.DBMap;
 import net.daporkchop.lib.db.container.map.index.IndexLookup;
@@ -226,18 +228,7 @@ public class FasterTreeIndexLookup<K> implements IndexLookup<K>, Logging {
 
     @Override
     public boolean contains(@NonNull K key) throws IOException {
-        if (false) {
-            byte[] hash = this.keyHasher.hash(key);
-            ByteBuffer buffer = this.buffer.get();
-            this.lock.readLock().lock();
-            try {
-                return false;
-            } finally {
-                this.lock.readLock().unlock();
-            }
-        } else {
-            return this.get(key) != -1L;
-        }
+        return this.get(key) != -1L;
     }
 
     @Override
@@ -246,6 +237,7 @@ public class FasterTreeIndexLookup<K> implements IndexLookup<K>, Logging {
         ByteBuffer buffer = this.buffer.get();
         this.lock.writeLock().lock();
         try {
+            long prev = 0L;
             long next = this.readFromBuffer(this.rootNode, this.getNextStep(hash, 0));
             for (int i = 1; i < this.totalDepth; i++) {
                 if (next == 0L) {
@@ -255,13 +247,124 @@ public class FasterTreeIndexLookup<K> implements IndexLookup<K>, Logging {
                     if (this.channel.read(buffer, next * this.nodeSize) != this.nodeSize) {
                         throw new IllegalStateException("Couldn't read enough data!");
                     } else {
+                        prev = next;
                         next = this.readFromBuffer(buffer, this.getNextStep(hash, i));
                     }
                 }
-            }if (next == 0L) {
+            }
+            if (next == 0L) {
                 return -1L;
             } else {
-                return -1L;//TODO
+                if (this.totalDepth <= 1) {
+                    this.writeToBuffer(this.rootNode, 0L, this.getNextStep(hash, 0));
+                } else {
+                    this.writeToBuffer(buffer, 0, this.getNextStep(hash, this.totalDepth - 1));
+                    buffer.rewind();
+                    this.channel.write(buffer, prev * this.nodeSize);
+                }
+                return next - 1L;
+            }
+        } finally {
+            this.lock.writeLock().unlock();
+        }
+    }
+
+    @Override
+    public boolean runIfContains(@NonNull K key, @NonNull IOConsumer<Long> func) throws IOException {
+        long l = this.get(key);
+        if (l == -1L)   {
+            return false;
+        } else {
+            func.acceptThrowing(l);
+            return true;
+        }
+    }
+
+    @Override
+    public boolean changeIfContains(@NonNull K key, @NonNull IOFunction<Long, Long> func) throws IOException {
+        byte[] hash = this.keyHasher.hash(key);
+        ByteBuffer buffer = this.buffer.get();
+        this.lock.writeLock().lock();
+        try {
+            long prev = 0L;
+            long next = this.readFromBuffer(this.rootNode, this.getNextStep(hash, 0));
+            for (int i = 1; i < this.totalDepth; i++) {
+                if (next == 0L) {
+                    //allocate new sector
+                    long newSector = this.offset.getAndIncrement();
+                    if (i == 1) {
+                        this.writeToBuffer(this.rootNode, newSector, this.getNextStep(hash, 0));
+                    } else {
+                        this.writeToBuffer(buffer, newSector, this.getNextStep(hash, i - 1));
+                        buffer.rewind();
+                        this.channel.write(buffer, prev * this.nodeSize);
+                    }
+                    this.channel.write(ByteBuffer.wrap(this.emptySector), newSector * this.nodeSize);
+                    next = newSector;
+                }
+                buffer.clear();
+                if (this.channel.read(buffer, next * this.nodeSize) != this.nodeSize) {
+                    throw new IllegalStateException("Couldn't read enough data!");
+                } else {
+                    prev = next;
+                    next = this.readFromBuffer(buffer, this.getNextStep(hash, i));
+                }
+            }
+            if (next == 0L)    {
+                return false;
+            } else {
+                next = func.apply(next - 1L) + 1L;
+            }
+            if (this.totalDepth <= 1) {
+                this.writeToBuffer(this.rootNode, next, this.getNextStep(hash, 0));
+            } else {
+                this.writeToBuffer(buffer, next, this.getNextStep(hash, this.totalDepth - 1));
+                buffer.rewind();
+                this.channel.write(buffer, prev * this.nodeSize);
+            }
+            return true;
+        } finally {
+            this.lock.writeLock().unlock();
+        }
+    }
+
+    @Override
+    public void change(@NonNull K key, @NonNull IOFunction<Long, Long> func) throws IOException {
+        byte[] hash = this.keyHasher.hash(key);
+        ByteBuffer buffer = this.buffer.get();
+        this.lock.writeLock().lock();
+        try {
+            long prev = 0L;
+            long next = this.readFromBuffer(this.rootNode, this.getNextStep(hash, 0));
+            for (int i = 1; i < this.totalDepth; i++) {
+                if (next == 0L) {
+                    //allocate new sector
+                    long newSector = this.offset.getAndIncrement();
+                    if (i == 1) {
+                        this.writeToBuffer(this.rootNode, newSector, this.getNextStep(hash, 0));
+                    } else {
+                        this.writeToBuffer(buffer, newSector, this.getNextStep(hash, i - 1));
+                        buffer.rewind();
+                        this.channel.write(buffer, prev * this.nodeSize);
+                    }
+                    this.channel.write(ByteBuffer.wrap(this.emptySector), newSector * this.nodeSize);
+                    next = newSector;
+                }
+                buffer.clear();
+                if (this.channel.read(buffer, next * this.nodeSize) != this.nodeSize) {
+                    throw new IllegalStateException("Couldn't read enough data!");
+                } else {
+                    prev = next;
+                    next = this.readFromBuffer(buffer, this.getNextStep(hash, i));
+                }
+            }
+            next = func.apply(next - 1L) + 1L;
+            if (this.totalDepth <= 1) {
+                this.writeToBuffer(this.rootNode, next, this.getNextStep(hash, 0));
+            } else {
+                this.writeToBuffer(buffer, next, this.getNextStep(hash, this.totalDepth - 1));
+                buffer.rewind();
+                this.channel.write(buffer, prev * this.nodeSize);
             }
         } finally {
             this.lock.writeLock().unlock();

@@ -20,7 +20,7 @@ import lombok.NonNull;
 import lombok.Setter;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.binary.stream.HugeBufferOut;
+import net.daporkchop.lib.binary.stream.data.HugeBufferOut;
 import net.daporkchop.lib.binary.stream.file.BufferingFileInput;
 import net.daporkchop.lib.common.function.IOConsumer;
 import net.daporkchop.lib.common.util.PorkUtil;

@@ -21,8 +21,8 @@ import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.function.IOConsumer;
 import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.db.util.PersistentSparseBitSet;
 import net.daporkchop.lib.db.container.map.DBMap;
+import net.daporkchop.lib.db.util.PersistentSparseBitSet;
 
 import java.io.File;
 import java.io.IOException;
@@ -90,7 +90,7 @@ public class IndividualFileLookup implements DataLookup {
             boolean parentExists = parent.exists();
             if (!parentExists && !parent.mkdirs()) {
                 throw new IllegalStateException(String.format("Couldn't create directory: %s", parent.getAbsolutePath()));
-            } else if (parentExists && !parent.isDirectory())       {
+            } else if (parentExists && !parent.isDirectory()) {
                 throw new IllegalStateException(String.format("Not a directory: %s", parent.getAbsolutePath()));
             } else if (!file.createNewFile()) {
                 throw new IllegalStateException(String.format("Couldn't create new file: %s", file.getAbsolutePath()));

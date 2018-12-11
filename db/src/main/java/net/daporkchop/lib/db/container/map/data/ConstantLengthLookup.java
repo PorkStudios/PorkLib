@@ -17,12 +17,12 @@ package net.daporkchop.lib.db.container.map.data;
 
 import lombok.Getter;
 import lombok.NonNull;
+import net.daporkchop.lib.binary.data.impl.ConstantLengthSerializer;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.function.IOConsumer;
-import net.daporkchop.lib.db.util.PersistentSparseBitSet;
 import net.daporkchop.lib.db.container.map.DBMap;
-import net.daporkchop.lib.binary.data.impl.ConstantLengthSerializer;
+import net.daporkchop.lib.db.util.PersistentSparseBitSet;
 
 import java.io.File;
 import java.io.IOException;

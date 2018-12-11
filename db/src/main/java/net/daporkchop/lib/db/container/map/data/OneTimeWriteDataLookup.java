@@ -42,13 +42,12 @@ import java.nio.channels.FileChannel;
  * @author DaPorkchop_
  */
 public class OneTimeWriteDataLookup implements DataLookup {
+    private static boolean HAS_WARNED = false;
     private MappedByteBuffer lengthWriteBuffer;
-
     @Getter
     private File file;
     private RandomAccessFile raf;
     private FileChannel channel;
-
     @Getter
     @Setter
     private volatile boolean dirty;
@@ -142,11 +141,9 @@ public class OneTimeWriteDataLookup implements DataLookup {
         }
     }
 
-    private static boolean HAS_WARNED = false;
-
     @Override
     public void remove(long id) throws IOException {
-        if (!HAS_WARNED)    {
+        if (!HAS_WARNED) {
             HAS_WARNED = true;
             System.out.println("[Warning] OneTimeWriteDataLookup does not support the remove() operation, and disk resources will not be freed!");
         }

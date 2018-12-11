@@ -272,7 +272,7 @@ public class FasterTreeIndexLookup<K> implements IndexLookup<K>, Logging {
     @Override
     public boolean runIfContains(@NonNull K key, @NonNull IOConsumer<Long> func) throws IOException {
         long l = this.get(key);
-        if (l == -1L)   {
+        if (l == -1L) {
             return false;
         } else {
             func.acceptThrowing(l);
@@ -310,7 +310,7 @@ public class FasterTreeIndexLookup<K> implements IndexLookup<K>, Logging {
                     next = this.readFromBuffer(buffer, this.getNextStep(hash, i));
                 }
             }
-            if (next == 0L)    {
+            if (next == 0L) {
                 return false;
             } else {
                 next = func.apply(next - 1L) + 1L;

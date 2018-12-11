@@ -29,7 +29,7 @@ public class ObjectHashCodeKeyHasher<K> implements KeyHasher<K> {
     private static final ObjectHashCodeKeyHasher INSTANCE = new ObjectHashCodeKeyHasher();
 
     @SuppressWarnings("unchecked")
-    public static <K> ObjectHashCodeKeyHasher<K> getInstance()  {
+    public static <K> ObjectHashCodeKeyHasher<K> getInstance() {
         return (ObjectHashCodeKeyHasher<K>) INSTANCE;
     }
 

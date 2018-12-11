@@ -80,8 +80,8 @@ public class HashTableIndexLookup<K> extends BaseHashTableIndexLookup<K> {
         return l;
     }
 
-    protected long readFromBuffer(@NonNull ByteBuffer buffer)   {
-        switch (this.pointerBytes)  {
+    protected long readFromBuffer(@NonNull ByteBuffer buffer) {
+        switch (this.pointerBytes) {
             case 1:
                 return buffer.get() & 0xFFL;
             case 2:
@@ -130,8 +130,8 @@ public class HashTableIndexLookup<K> extends BaseHashTableIndexLookup<K> {
         this.tableChannel.write(buffer, pos);
     }
 
-    protected void writeToBuffer(@NonNull ByteBuffer buffer, long val)  {
-        switch (this.pointerBytes)  {
+    protected void writeToBuffer(@NonNull ByteBuffer buffer, long val) {
+        switch (this.pointerBytes) {
             case 1: {
                 buffer.put((byte) (val & 0xFFL));
             }

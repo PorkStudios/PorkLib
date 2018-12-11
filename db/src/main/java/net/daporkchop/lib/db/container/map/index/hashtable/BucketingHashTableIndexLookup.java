@@ -61,7 +61,7 @@ public class BucketingHashTableIndexLookup<K> extends HashTableIndexLookup<K> {
         this.dataFile = map.getFile("index/bucket.meta", out -> {
             out.writeLong(0L);
         }, true);
-        try (DataIn in = DataIn.wrap(this.dataFile))    {
+        try (DataIn in = DataIn.wrap(this.dataFile)) {
             this.offset.set(in.readLong());
         }
     }
@@ -123,7 +123,7 @@ public class BucketingHashTableIndexLookup<K> extends HashTableIndexLookup<K> {
         //first, check if the hash is currently present on disk
         if (disk == 0L) {
             //the hash is not on disk, so we can add it ourselves
-            if (val == 0L)  {
+            if (val == 0L) {
                 return; //no need to add something that we're about to remove
             }
             long bucketPos = this.offset.getAndIncrement();

@@ -23,7 +23,6 @@ import net.daporkchop.lib.db.container.map.DBMap;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 
 /**
  * A simple mapping of objects to 64-bit values

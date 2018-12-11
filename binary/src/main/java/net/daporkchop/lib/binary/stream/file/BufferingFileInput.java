@@ -13,5 +13,52 @@
  *
  */
 
-dependencies {
+package net.daporkchop.lib.binary.stream.file;
+
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.binary.stream.DataIn;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+
+/**
+ * Allows reading from a {@link FileChannel} using a native byte buffer
+ *
+ * @author DaPorkchop_
+ */
+@RequiredArgsConstructor
+@Getter
+public class BufferingFileInput extends DataIn {
+    @NonNull
+    private final FileChannel channel;
+
+    @NonNull
+    private long offset;
+
+    private final int bufferSize;
+
+    @Getter(AccessLevel.PRIVATE)
+    private ByteBuffer buffer;
+
+    @Override
+    public int read() throws IOException {
+        if (this.buffer == null || !this.buffer.hasRemaining())    {
+            if (this.buffer == null){
+                this.buffer = ByteBuffer.allocateDirect(this.bufferSize);
+            }
+            this.buffer.clear();
+            this.offset += this.channel.read(this.buffer, this.offset);
+            this.buffer.flip();
+        }
+        return this.buffer.get() & 0xFF;
+    }
+
+    @Override
+    public void close() throws IOException {
+        this.buffer = null;
+    }
 }

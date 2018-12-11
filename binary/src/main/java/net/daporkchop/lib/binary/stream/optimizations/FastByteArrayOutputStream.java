@@ -13,5 +13,31 @@
  *
  */
 
-dependencies {
+package net.daporkchop.lib.binary.stream.optimizations;
+
+import net.daporkchop.lib.encoding.Hexadecimal;
+
+import java.io.ByteArrayOutputStream;
+
+/**
+ * @author DaPorkchop_
+ */
+public class FastByteArrayOutputStream extends ByteArrayOutputStream {
+    public FastByteArrayOutputStream() {
+        super();
+    }
+
+    public FastByteArrayOutputStream(int size) {
+        super(size);
+    }
+
+    @Override
+    public synchronized byte[] toByteArray() {
+        return this.buf;
+    }
+
+    @Override
+    public synchronized String toString() {
+        return Hexadecimal.encode(this.buf);
+    }
 }

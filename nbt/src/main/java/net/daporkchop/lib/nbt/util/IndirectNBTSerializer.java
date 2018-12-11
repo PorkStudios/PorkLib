@@ -13,5 +13,37 @@
  *
  */
 
-dependencies {
+package net.daporkchop.lib.nbt.util;
+
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.binary.data.Serializer;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.nbt.NBTIO;
+import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
+
+import java.io.IOException;
+import java.util.function.Supplier;
+
+/**
+ * @author DaPorkchop_
+ */
+@RequiredArgsConstructor
+public class IndirectNBTSerializer<V extends NBTSerializable> implements Serializer<V> {
+    @NonNull
+    private final Supplier<V> blankInstanceSupplier;
+
+    @Override
+    public void write(@NonNull V val, @NonNull DataOut out) throws IOException {
+        CompoundTag tag = new CompoundTag("");
+        NBTIO.write(out, tag);
+    }
+
+    @Override
+    public V read(@NonNull DataIn in) throws IOException {
+        V val = this.blankInstanceSupplier.get();
+        val.read(NBTIO.read(in));
+        return val;
+    }
 }

@@ -13,5 +13,33 @@
  *
  */
 
-dependencies {
+package net.daporkchop.lib.binary.data.impl;
+
+import lombok.NonNull;
+import net.daporkchop.lib.binary.data.Serializer;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+
+import java.io.IOException;
+
+/**
+ * An implementation of {@link Serializer} that can serialize a variable-length byte array
+ *
+ * @author DaPorkchop_
+ */
+public class ByteArraySerializer implements Serializer<byte[]> {
+    /**
+     * A shared instance of {@link ByteArraySerializer}
+     */
+    public static final Serializer<byte[]> INSTANCE = new ByteArraySerializer();
+
+    @Override
+    public void write(@NonNull byte[] val, @NonNull DataOut out) throws IOException {
+        out.writeBytesSimple(val);
+    }
+
+    @Override
+    public byte[] read(@NonNull DataIn in) throws IOException {
+        return in.readBytesSimple();
+    }
 }

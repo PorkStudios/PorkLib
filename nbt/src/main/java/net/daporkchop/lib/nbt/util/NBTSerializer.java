@@ -15,14 +15,33 @@
 package net.daporkchop.lib.nbt.util;
 
 import lombok.NonNull;
+import net.daporkchop.lib.binary.data.Serializer;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.nbt.NBTIO;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
+
+import java.io.IOException;
 
 /**
  * Defines a class that can load and save objects of type <V> to/from an NBT tag.
  *
  * @author DaPorkchop_
  */
-public interface NBTSerializer<V> {
+public interface NBTSerializer<V> extends Serializer<V> {
+    @Override
+    default void write(@NonNull V val, @NonNull DataOut out) throws IOException {
+        CompoundTag tag = new CompoundTag("");
+        this.write(val, tag);
+        NBTIO.write(out, tag);
+    }
+
+    @Override
+    default V read(@NonNull DataIn in) throws IOException {
+        CompoundTag tag = NBTIO.read(in);
+        return this.read(tag);
+    }
+
     void write(@NonNull V val, @NonNull CompoundTag tag);
 
     V read(@NonNull CompoundTag tag);

@@ -19,6 +19,7 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.UTF8;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -43,6 +44,10 @@ public abstract class DataOut extends OutputStream {
 
     public static DataOut wrap(@NonNull File file) throws IOException {
         return wrap(new FileOutputStream(file));
+    }
+
+    public static DataOut wrap(@NonNull File file, int bufferSize) throws IOException {
+        return wrap(new BufferedOutputStream(new FileOutputStream(file), bufferSize));
     }
 
     /**

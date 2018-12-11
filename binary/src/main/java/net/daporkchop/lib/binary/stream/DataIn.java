@@ -19,6 +19,7 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.UTF8;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -43,7 +44,7 @@ public abstract class DataIn extends InputStream {
     }
 
     public static DataIn wrap(@NonNull File file) throws IOException {
-        return wrap(new FileInputStream(file));
+        return wrap(new BufferedInputStream(new FileInputStream(file))); //TODO: reuse buffer
     }
 
     /**

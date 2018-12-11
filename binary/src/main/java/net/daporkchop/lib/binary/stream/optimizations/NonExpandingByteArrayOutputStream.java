@@ -13,51 +13,48 @@
  *
  */
 
-package net.daporkchop.lib.crypto.cipher.stream;
+package net.daporkchop.lib.binary.stream.optimizations;
 
-import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import org.bouncycastle.crypto.StreamCipher;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.io.OutputStream;
+import java.nio.BufferOverflowException;
+import java.nio.BufferUnderflowException;
 
 /**
+ * An implementation of {@link java.io.ByteArrayOutputStream} that doesn't expand, and
+ * will therefore only be able to write the number of bytes it was initialized with
+ *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-public class StreamCipherInput extends InputStream {
+@RequiredArgsConstructor
+@Getter
+public class NonExpandingByteArrayOutputStream extends OutputStream {
     @NonNull
-    private final Lock readLock;
+    private final byte[] buf;
+    private int pos;
 
-    @NonNull
-    private final StreamCipher cipher;
-
-    @NonNull
-    private final InputStream input;
-
-    @Override
-    public int read() throws IOException {
-        return this.cipher.returnByte((byte) this.input.read()) & 0xFF;
+    /**
+     * Creates a new {@link NonExpandingByteArrayOutputStream}, wrapping a given buffer.
+     * <p>
+     * This has no advantage over the normal constructor, just a convenience method if you prefer
+     * static constructor-like things
+     *
+     * @param buf the buffer to use
+     * @return an instance of {@link NonExpandingByteArrayOutputStream} wrapping the given buffer
+     */
+    public static NonExpandingByteArrayOutputStream wrap(@NonNull byte[] buf) {
+        return new NonExpandingByteArrayOutputStream(buf);
     }
 
     @Override
-    public long skip(long n) throws IOException {
-        return this.input.skip(n);
-    }
-
-    @Override
-    public int available() throws IOException {
-        return this.input.available();
-    }
-
-    @Override
-    public void close() throws IOException {
-        this.input.close();
-        this.readLock.unlock();
+    public void write(int b) throws IOException {
+        if (this.pos >= this.buf.length)    {
+            throw new BufferOverflowException();
+        }
+        this.buf[this.pos++] = (byte) b;
     }
 }

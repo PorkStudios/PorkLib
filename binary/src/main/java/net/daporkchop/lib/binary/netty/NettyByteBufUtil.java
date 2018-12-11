@@ -30,7 +30,7 @@ public class NettyByteBufUtil {
     static {
         try {
             Class.forName("io.netty.buffer.ByteBuf");
-        } catch (ClassNotFoundException e)  {
+        } catch (ClassNotFoundException e) {
             throw new RuntimeException("netty-buffer not found in classpath!", e);
         }
     }
@@ -43,11 +43,11 @@ public class NettyByteBufUtil {
         return new NettyByteBufOut(buf);
     }
 
-    public static ByteBuf alloc(int size)   {
+    public static ByteBuf alloc(int size) {
         return ByteBufAllocator.DEFAULT.directBuffer(size);
     }
 
-    public static ByteBuf alloc(int size, int max)   {
+    public static ByteBuf alloc(int size, int max) {
         return ByteBufAllocator.DEFAULT.directBuffer(size, max);
     }
 }

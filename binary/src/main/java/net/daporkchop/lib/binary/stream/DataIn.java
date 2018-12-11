@@ -79,9 +79,10 @@ public abstract class DataIn extends InputStream {
 
     /**
      * Reads a medium (24-bit) value
+     *
      * @return a medium
      */
-    public int readMedium() throws IOException  {
+    public int readMedium() throws IOException {
         return ((this.read() & 0xFF) << 16)
                 | ((this.read() & 0xFF) << 8)
                 | (this.read() & 0xFF);

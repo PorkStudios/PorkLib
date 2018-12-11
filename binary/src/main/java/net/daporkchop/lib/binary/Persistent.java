@@ -15,10 +15,6 @@
 
 package net.daporkchop.lib.binary;
 
-import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -39,13 +35,13 @@ public interface Persistent {
 
     void setDirty(boolean dirty);
 
-    default void markDirty()    {
+    default void markDirty() {
         this.setDirty(true);
     }
 
     File getFile();
 
-    default RandomAccessFile getRandomAccessFile()  {
+    default RandomAccessFile getRandomAccessFile() {
         throw new UnsupportedOperationException();
     }
 }

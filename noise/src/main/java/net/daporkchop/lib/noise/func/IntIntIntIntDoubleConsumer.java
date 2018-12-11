@@ -16,8 +16,10 @@
 package net.daporkchop.lib.noise.func;
 
 /**
+ * A function that accepts 4 ints and a double as parameters
+ *
  * @author DaPorkchop_
  */
-public interface QuadDoubleConsumer {
-    void accept(int x, int y, int z, double d);
+public interface IntIntIntIntDoubleConsumer {
+    void accept(int x, int y, int z, int w, double d);
 }

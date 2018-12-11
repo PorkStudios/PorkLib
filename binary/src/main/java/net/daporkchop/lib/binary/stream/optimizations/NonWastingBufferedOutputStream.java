@@ -35,6 +35,7 @@ public class NonWastingBufferedOutputStream extends FilterOutputStream {
     public NonWastingBufferedOutputStream(@NonNull OutputStream out) {
         this(out, BUFFER_CACHE.get());
     }
+
     public NonWastingBufferedOutputStream(@NonNull OutputStream out, @NonNull byte[] buf) {
         super(out);
         if (buf.length <= 0) {

@@ -22,7 +22,6 @@ import lombok.RequiredArgsConstructor;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.BufferOverflowException;
-import java.nio.BufferUnderflowException;
 
 /**
  * An implementation of {@link java.io.ByteArrayOutputStream} that doesn't expand, and
@@ -52,7 +51,7 @@ public class NonExpandingByteArrayOutputStream extends OutputStream {
 
     @Override
     public void write(int b) throws IOException {
-        if (this.pos >= this.buf.length)    {
+        if (this.pos >= this.buf.length) {
             throw new BufferOverflowException();
         }
         this.buf[this.pos++] = (byte) b;

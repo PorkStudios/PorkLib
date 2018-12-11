@@ -35,19 +35,16 @@ import java.nio.channels.FileChannel;
 public class BufferingFileInput extends DataIn {
     @NonNull
     private final FileChannel channel;
-
+    private final int bufferSize;
     @NonNull
     private long offset;
-
-    private final int bufferSize;
-
     @Getter(AccessLevel.PRIVATE)
     private ByteBuffer buffer;
 
     @Override
     public int read() throws IOException {
-        if (this.buffer == null || !this.buffer.hasRemaining())    {
-            if (this.buffer == null){
+        if (this.buffer == null || !this.buffer.hasRemaining()) {
+            if (this.buffer == null) {
                 this.buffer = ByteBuffer.allocateDirect(this.bufferSize);
             }
             this.buffer.clear();

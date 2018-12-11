@@ -19,7 +19,6 @@ import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;

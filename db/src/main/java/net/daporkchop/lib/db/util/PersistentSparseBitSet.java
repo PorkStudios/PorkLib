@@ -29,6 +29,8 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
+ * A wrapper around {@link SparseBitSet} that supports reading and writing from disk
+ *
  * @author DaPorkchop_
  */
 @Getter

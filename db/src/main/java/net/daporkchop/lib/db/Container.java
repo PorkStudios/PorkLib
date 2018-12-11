@@ -30,6 +30,8 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 
 /**
+ * A container is a single entry in a {@link PorkDB}
+ *
  * @author DaPorkchop_
  */
 public abstract class Container<V, B extends Container.Builder<V, ? extends Container<V, B>>> {

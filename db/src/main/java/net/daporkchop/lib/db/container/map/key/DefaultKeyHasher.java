@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.db.container.map.key;
 
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.stream.optimizations.FastByteArrayOutputStream;
@@ -23,16 +24,23 @@ import net.daporkchop.lib.hash.util.Digest;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
 /**
- * Hashes a byte array to a constant-length hash.
+ * Hashes a {@link Serializable} to a constant-length hash.
  * <p>
  * Cannot get key from hashed value.
  *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-public class DefaultKeyHasher<K> implements KeyHasher<K> {
+@Getter
+public class DefaultKeyHasher<K extends Serializable> implements KeyHasher<K> {
+    public static final DefaultKeyHasher<Serializable> DEFAULT = new DefaultKeyHasher<>(Digest.MD5);
+
+    @NonNull
+    private final Digest digest;
+
     @Override
     public byte[] hash(@NonNull K key) {
         ByteArrayOutputStream baos = new FastByteArrayOutputStream();
@@ -41,11 +49,11 @@ public class DefaultKeyHasher<K> implements KeyHasher<K> {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return Digest.MD5.hash(baos.toByteArray()).getHash();
+        return this.digest.hash(baos.toByteArray()).getHash();
     }
 
     @Override
     public int getHashLength() {
-        return Digest.MD5.getHashSize();
+        return this.digest.getHashSize();
     }
 }

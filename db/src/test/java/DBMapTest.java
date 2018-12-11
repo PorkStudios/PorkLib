@@ -39,9 +39,11 @@ import org.junit.Test;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -54,8 +56,6 @@ import java.util.stream.Collectors;
  */
 public class DBMapTest implements Logging {
     private static final int TABLE_SIZE_BITS = 16;
-    private static final File ROOT_DIR = new File(MapConstants.ROOT_DIR, "map");
-
     private static final Collection<Supplier<Serializer<byte[]>>> SERIALIZERS = Arrays.asList(
             null
             , () -> ByteArraySerializer.INSTANCE
@@ -82,7 +82,7 @@ public class DBMapTest implements Logging {
     private static final Collection<BiConsumer<Random, Map<byte[], byte[]>>> POPULATORS = Arrays.asList(
             null
             , (random, map) -> {
-                for (int i = 0; i < 4; i++) {
+                for (int i = 0; i < 513; i++) {
                     byte[] b1 = new byte[TABLE_SIZE_BITS];
                     byte[] b2 = new byte[random.nextInt(1024) + 128];
                     random.nextBytes(b2);
@@ -95,11 +95,11 @@ public class DBMapTest implements Logging {
                             .distinct().count() != map.size());
                     //map.put(b1, b2);
                 }
-                int fullSize = map.size();
+                /*int fullSize = map.size();
                 int individualSize = (int) map.keySet().stream()
                         .map(b -> getRelevantHashBits(b, TABLE_SIZE_BITS))
                         .distinct().count();
-                logger.debug("Full: ${0}, individual: ${1}", fullSize, individualSize);
+                logger.debug("Full: ${0}, individual: ${1}", fullSize, individualSize);*/
             }
             , (random, map) -> {
                 if (false) {
@@ -126,11 +126,23 @@ public class DBMapTest implements Logging {
         return bits & ((1L << usedBits) - 1L);
     }
 
+    private File getFile(@NonNull Supplier<Serializer<byte[]>> serializer, @NonNull Supplier<DataLookup> dataLookup, @NonNull Supplier<IndexLookup<byte[]>> indexLookup, @NonNull Supplier<CompressionHelper> compression) {
+        return new File(TestConstants.ROOT_DIR, this.format(
+                "map-${0}-${1}-${2}-${3}",
+                serializer.get().getClass(),
+                dataLookup.get().getClass(),
+                indexLookup.get().getClass(),
+                compression.get()
+        ));
+    }
+
     @Test
     @SuppressWarnings("unchecked")
     public void test() {
-        MapConstants.init();
+        TestConstants.init();
         logger.alert("Testing ${0}", DBMap.class);
+
+        logger.info("Deleting output dirs...");
         SERIALIZERS.forEach(serializer -> {
             if (serializer == null) {
                 return;
@@ -147,11 +159,37 @@ public class DBMapTest implements Logging {
                         if (compression == null) {
                             return;
                         }
+                        File out = this.getFile(serializer, dataLookup, indexLookup, compression);
+                        for (int i = 0; i < 5; i++) {
+                            PorkUtil.rm(out);
+                        }
+                    });
+                });
+            });
+        });
+        logger.info("Running tests...");
+        Map<String, Long> requiredTimes = new ConcurrentHashMap<>();
+        SERIALIZERS.parallelStream().forEach(serializer -> {
+            if (serializer == null) {
+                return;
+            }
+            DATA_LOOKUPS.parallelStream().forEach(dataLookup -> {
+                if (dataLookup == null) {
+                    return;
+                }
+                INDEX_LOOKUPS.parallelStream().forEach(indexLookup -> {
+                    if (indexLookup == null) {
+                        return;
+                    }
+                    COMPRESSIONS.parallelStream().forEach((IOConsumer<Supplier<CompressionHelper>>) compression -> {
+                        if (compression == null) {
+                            return;
+                        }
                         logger.info(
                                 "Testing DBMap with (serializer=${0}, dataLookup=${1}, indexLookup=${2}, compression=${3})...",
                                 serializer.get().getClass(), dataLookup.get().getClass(), indexLookup.get().getClass(), compression.get()
                         );
-                        PorkUtil.rm(ROOT_DIR);
+                        File out = this.getFile(serializer, dataLookup, indexLookup, compression);
 
                         Random random = RANDOM.get();
                         Map<byte[], byte[]> data = new HashMap<>();
@@ -162,13 +200,12 @@ public class DBMapTest implements Logging {
                             populator.accept(random, data);
                         });
                         Map<byte[], byte[]> oldData = new HashMap<>(data);
+                        long startTime = System.currentTimeMillis();
                         {
-                            PorkDB db = PorkDB.builder()
-                                    .setRoot(ROOT_DIR)
-                                    .build();
+                            PorkDB db = PorkDB.builder().setRoot(out).build();
 
                             try {
-                                DBMap<byte[], byte[]> dbMap = DBMap.<byte[], byte[]>builder(db, "map")
+                                DBMap<byte[], byte[]> dbMap = db.<byte[], byte[]>map("map")
                                         .setKeyHasher(new ByteArrayKeyHasher.ConstantLength(TABLE_SIZE_BITS))
                                         .setValueSerializer(serializer.get())
                                         .setDataLookup(dataLookup.get())
@@ -190,12 +227,10 @@ public class DBMapTest implements Logging {
                             }
                         }
                         {
-                            PorkDB db = PorkDB.builder()
-                                    .setRoot(ROOT_DIR)
-                                    .build();
+                            PorkDB db = PorkDB.builder().setRoot(out).build();
 
                             try {
-                                DBMap<byte[], byte[]> dbMap = DBMap.<byte[], byte[]>builder(db, "map")
+                                DBMap<byte[], byte[]> dbMap = db.<byte[], byte[]>map("map")
                                         .setKeyHasher(new ByteArrayKeyHasher.ConstantLength(TABLE_SIZE_BITS))
                                         .setValueSerializer(serializer.get())
                                         .setDataLookup(dataLookup.get())
@@ -227,12 +262,10 @@ public class DBMapTest implements Logging {
                             }
                         }
                         {
-                            PorkDB db = PorkDB.builder()
-                                    .setRoot(ROOT_DIR)
-                                    .build();
+                            PorkDB db = PorkDB.builder().setRoot(out).build();
 
                             try {
-                                DBMap<byte[], byte[]> dbMap = DBMap.<byte[], byte[]>builder(db, "map")
+                                DBMap<byte[], byte[]> dbMap = db.<byte[], byte[]>map("map")
                                         .setKeyHasher(new ByteArrayKeyHasher.ConstantLength(TABLE_SIZE_BITS))
                                         .setValueSerializer(serializer.get())
                                         .setDataLookup(dataLookup.get())
@@ -260,9 +293,25 @@ public class DBMapTest implements Logging {
                                 db.close();
                             }
                         }
+                        requiredTimes.put(this.format(
+                                "map-${0}-${1}-${2}-${3}",
+                                serializer.get().getClass(),
+                                dataLookup.get().getClass(),
+                                indexLookup.get().getClass(),
+                                compression.get()
+                        ), System.currentTimeMillis() - startTime);
                     });
                 });
             });
         });
+        logger.trace("");
+        logger.trace("");
+        logger.trace("Required times:");
+        requiredTimes.entrySet().stream()
+                .sorted(Comparator.comparingLong(Map.Entry::getValue))
+                .forEachOrdered(entry -> logger.trace(String.format("  %06dms: %s", entry.getValue(), entry.getKey())));
+        logger.trace("");
+        logger.trace("");
+        logger.info("Test for ${0} finished!", DBMap.class);
     }
 }

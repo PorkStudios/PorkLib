@@ -17,12 +17,14 @@ package net.daporkchop.lib.db;
 
 import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.function.IOFunction;
+import net.daporkchop.lib.db.container.DBAtomicLong;
+import net.daporkchop.lib.db.container.map.DBMap;
+import net.daporkchop.lib.logging.Logging;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,7 +41,7 @@ import java.util.function.Function;
  *
  * @author DaPorkchop_
  */
-public class PorkDB {
+public class PorkDB implements Logging {
     final Map<String, Container> loadedContainers = new ConcurrentHashMap<>();
     private final Map<Class<? extends Container>, Function<String, ? extends Container.Builder>> builderCache = new IdentityHashMap<>();
     @Getter
@@ -82,6 +84,40 @@ public class PorkDB {
     public <C extends Container> C get(@NonNull String name) {
         this.ensureOpen();
         return (C) this.loadedContainers.get(name);
+    }
+
+    /**
+     * Get a new builder for a {@link DBAtomicLong}
+     * <p>
+     * Convenience wrapper around {@link DBAtomicLong#builder(PorkDB, String)}
+     *
+     * @param name the name of the new entry
+     * @return a new builder
+     */
+    public DBAtomicLong.Builder atomicLong(@NonNull String name) {
+        if (this.loadedContainers.containsKey(name)) {
+            throw this.exception("Name \"${0}\" already taken!", name);
+        } else {
+            return DBAtomicLong.builder(this, name);
+        }
+    }
+
+    /**
+     * Get a new builder for a {@link DBMap}
+     * <p>
+     * Convenience wrapper around {@link DBMap#builder(PorkDB, String)}
+     *
+     * @param name the name of the new entry
+     * @param <K>  the key type
+     * @param <V>  the value type
+     * @return a new builder
+     */
+    public <K, V> DBMap.Builder<K, V> map(@NonNull String name) {
+        if (this.loadedContainers.containsKey(name)) {
+            throw this.exception("Name \"${0}\" already taken!", name);
+        } else {
+            return DBMap.builder(this, name);
+        }
     }
 
     /**
@@ -146,7 +182,7 @@ public class PorkDB {
     public static final class Builder {
         /**
          * The remote address of this database.
-         *
+         * <p>
          * If this is a local database, this will be {@code null}
          */
         private final InetSocketAddress remoteAddress;

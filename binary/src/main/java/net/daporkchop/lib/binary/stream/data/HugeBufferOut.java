@@ -55,7 +55,7 @@ public class HugeBufferOut extends DataOut {
             this.currentBuffer = ByteBuffer.allocateDirect(this.bufferSize);
         }
         this.currentBuffer.put((byte) b);
-        if (this.currentBuffer.position() == this.currentBuffer.limit())    {
+        if (this.currentBuffer.position() == this.currentBuffer.limit()) {
             this.flush();
         }
     }

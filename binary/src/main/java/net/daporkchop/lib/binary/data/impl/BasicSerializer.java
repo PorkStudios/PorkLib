@@ -40,7 +40,7 @@ public class BasicSerializer<T extends Serializable> implements Serializer<T> {
     public T read(DataIn in) throws IOException {
         try (ObjectInputStream oIn = new ObjectInputStream(in)) {
             return (T) oIn.readObject();
-        } catch (ClassNotFoundException e)  {
+        } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
     }

@@ -34,12 +34,12 @@ public class BufferIn extends DataIn {
 
     @Override
     public int read() throws IOException {
-            return this.buffer.remaining() == 0 ? -1 : this.buffer.get() & 255;
+        return this.buffer.remaining() == 0 ? -1 : this.buffer.get() & 255;
     }
 
     @Override
     public int read(@NonNull byte[] b, int off, int len) throws IOException {
-        if( off >= 0 && len >= 0 && len <= b.length - off) {
+        if (off >= 0 && len >= 0 && len <= b.length - off) {
             if (len == 0) {
                 return 0;
             } else {
@@ -70,7 +70,7 @@ public class BufferIn extends DataIn {
 
     @Override
     public int available() throws IOException {
-            return this.buffer.remaining();
+        return this.buffer.remaining();
     }
 
     @Override

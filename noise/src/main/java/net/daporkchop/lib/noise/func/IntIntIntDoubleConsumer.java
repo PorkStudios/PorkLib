@@ -16,8 +16,10 @@
 package net.daporkchop.lib.noise.func;
 
 /**
+ * A function that accepts 3 ints and a double as parameters
+ *
  * @author DaPorkchop_
  */
-public interface BiDoubleConsumer {
-    void accept(int x, double d);
+public interface IntIntIntDoubleConsumer {
+    void accept(int x, int y, int z, double d);
 }

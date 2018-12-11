@@ -15,370 +15,194 @@
 
 package net.daporkchop.lib.db;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.db.io.FileManager;
-import net.daporkchop.lib.db.object.key.KeyHasher;
-import net.daporkchop.lib.db.object.serializer.ValueSerializer;
-import net.daporkchop.lib.db.util.LoadedEntry;
-import net.daporkchop.lib.db.util.exception.DatabaseClosedException;
-import net.daporkchop.lib.db.util.exception.WrappedException;
-import net.daporkchop.lib.encoding.compression.EnumCompression;
-import net.daporkchop.lib.nbt.NBTIO;
-import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.function.IOFunction;
+import net.daporkchop.lib.db.container.DBAtomicLong;
+import net.daporkchop.lib.db.container.map.DBMap;
+import net.daporkchop.lib.logging.Logging;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
- * Common methods for all database format implementations
+ * Manages the various {@link Container}s for a database
  *
  * @author DaPorkchop_
  */
-public abstract class PorkDB<K, V> {
-    /**
-     * The file name extension for entry files.
-     * <p>
-     * dbe stands for Database Entry
-     */
-    public static final String ENTRY_ENDING = ".dbe";
-
-    /**
-     * The file name extension for the root database file.
-     */
-    public static final String ROOT_ENDING = ".porkdb";
-
-    /**
-     * The manager for open files on the file system.
-     */
+public class PorkDB implements Logging {
+    final Map<String, Container> loadedContainers = new ConcurrentHashMap<>();
+    private final Map<Class<? extends Container>, Function<String, ? extends Container.Builder>> builderCache = new IdentityHashMap<>();
     @Getter
-    private final FileManager fileManager;
-
-    /**
-     * See respective javadoc in {@link DBBuilder}
-     */
-    @Getter
-    private final KeyHasher<K> keyHasher;
-
-    /**
-     * See respective javadoc in {@link DBBuilder}
-     */
-    @Getter
-    private final ValueSerializer<V> valueSerializer;
-
-    /**
-     * See respective javadoc in {@link DBBuilder}
-     */
-    @Getter
-    private final File rootFolder;
-
-    /**
-     * The database's main settings file
-     */
-    private final File rootFile;
-
-    /**
-     * Used to prevent many redundant byte array allocations for key hashes. The
-     * byte array containing the key hash is perpetually recycled from this {@link ThreadLocal}
-     */
-    private final ThreadLocal<byte[]> keyHashBuf;
-    /**
-     * All entries that are currently loaded.
-     * <p>
-     * If the {@link KeyHasher} is incapable of deserializing key hashes and no key serializer is set, the
-     * key parameter of the {@link LoadedEntry} instances will always be null.
-     */
-    private final Map<Long, LoadedEntry<K, V>> loadedEntries = new ConcurrentHashMap<>();
-    /**
-     * Whether or not this database instance is currently open.
-     */
+    private final File root;
+    private final Object saveLock = new Object();
     @Getter
     private volatile boolean open = true;
 
+    private PorkDB(@NonNull Builder builder) {
+        this.root = builder.root;
+    }
+
     /**
-     * Constructs a PorkDB instance from a database builder.
+     * Constructs a new {@link Builder}
      *
-     * @param builder the database builder to grab settings from.
+     * @return a blank instance of {@link Builder}
      */
-    public PorkDB(@NonNull DBBuilder<K, V> builder, @NonNull FileManager manager) {
-        if (builder.getRootFolder() == null
-                || builder.getKeyHasher() == null
-                || builder.getValueSerializer() == null) {
-            throw new IllegalArgumentException("Builder not initialized!");
-        }
-
-        this.valueSerializer = builder.getValueSerializer();
-        this.rootFolder = builder.getRootFolder();
-        if (!this.rootFolder.exists() && !this.rootFolder.mkdirs()) {
-            throw new IllegalStateException("Unable to create folder: " + this.rootFolder.getAbsoluteFile().getAbsolutePath());
-        }
-        this.fileManager = manager;
-        this.keyHasher = builder.getKeyHasher();
-        this.keyHashBuf = ThreadLocal.withInitial(() -> new byte[this.keyHasher.getKeyLength()]);
-
-        try {
-            this.rootFile = new File(this.rootFolder, "root" + ROOT_ENDING);
-            if (this.rootFile.exists()) {
-                CompoundTag tag = NBTIO.read(this.rootFile);
-                if (!builder.isForceOpen()) {
-                    if (tag.getByte("closed") != 1) {
-                        throw new IllegalStateException("Database was not closed safely! Use DBBuilder#setForceOpen to force opening this database.");
-                    }
-                }
-                tag.putByte("closed", (byte) 0);
-
-                NBTIO.write(this.rootFile, tag);
-            } else {
-                CompoundTag tag = new CompoundTag();
-                tag.putByte("closed", (byte) 1);
-                NBTIO.write(this.rootFile, tag);
-            }
-            this.fileManager.setDb(this);
-            this.fileManager.init();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static Long hash(@NonNull byte[] bytes) {
-        long l = 524287L;
-        for (byte b : bytes) {
-            l *= (b == 0 ? 31 : b) * 63L;
-        }
-        return l;
+    public static Builder builder() {
+        return new Builder(null);
     }
 
     /**
-     * Gets a value from the database.
+     * Constructs a new {@link Builder}
      *
-     * @param key the key to get
-     * @return an instance of V, or null if no entry was found.
+     * @param root the root folder of the {@link PorkDB} to be constructed
+     * @return a new instance of {@link Builder} with the given root
      */
-    public V get(@NonNull K key) {
-        this.ensureDatabaseOpen();
-
-        byte[] keyHash = this.keyHashBuf.get();
-        this.keyHasher.hash(key, keyHash);
-
-        Long hash = hash(keyHash);
-        if (this.loadedEntries.containsKey(hash)) {
-            return this.loadedEntries.get(hash).getValue();
-        }
-
-        try {
-            InputStream in = this.fileManager.getStream(keyHash, hash);
-            if (in == null) {
-                return null;
-            }
-            EnumCompression compression = EnumCompression.values()[in.read()];
-            DataIn dataIn = DataIn.wrap(compression.inflateStream(in));
-            V val = this.valueSerializer.read(dataIn);
-            dataIn.close();
-            return val;
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new WrappedException(e);
-        }
+    public static Builder builder(@NonNull File root) {
+        return new Builder(null).setRoot(root);
     }
 
     /**
-     * Puts a value to the database, overwriting existing values if already present.
+     * Get a currently loaded container
      *
-     * @param key   the key to put at
-     * @param value the value to put
+     * @param name the name of the container to load
+     * @param <C>  the type of the container to get (for convenience)
+     * @return a container with the given name, or null if none was currently loaded.
      */
-    public void put(@NonNull K key, @NonNull V value) {
-        this.put(key, value, EnumCompression.NONE);
+    @SuppressWarnings("unchecked")
+    public <C extends Container> C get(@NonNull String name) {
+        this.ensureOpen();
+        return (C) this.loadedContainers.get(name);
     }
 
     /**
-     * Puts a value to the database, overwriting existing values if already present.
-     *
-     * @param key         the key to put at
-     * @param value       the value to put
-     * @param compression the compression to use
-     */
-    public void put(@NonNull K key, @NonNull V value, @NonNull EnumCompression compression) {
-        this.ensureDatabaseOpen();
-
-        byte[] keyHash = this.keyHashBuf.get();
-        this.keyHasher.hash(key, keyHash);
-
-        Long hash = hash(keyHash);
-        if (this.loadedEntries.containsKey(hash)) {
-            this.loadedEntries.get(hash).setValue(value);
-            return;
-        }
-
-        try {
-            OutputStream out = this.fileManager.putStream(keyHash, hash);
-            out.write(compression.ordinal());
-            DataOut dataOut = DataOut.wrap(compression.compressStream(out));
-            this.valueSerializer.write(value, dataOut);
-            dataOut.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Removes an element from the database
-     *
-     * @param key the key to remove
-     */
-    public void remove(@NonNull K key) {
-        this.ensureDatabaseOpen();
-
-        byte[] keyHash = this.keyHashBuf.get();
-        this.keyHasher.hash(key, keyHash);
-
-        Long hash = hash(keyHash);
-        this.loadedEntries.remove(hash);
-
-        this.fileManager.remove(keyHash, hash);
-    }
-
-    /**
-     * Checks if the database contains a given key
-     *
-     * @param key the key to check for
-     * @return whether or not the database contains the given key
-     */
-    public boolean contains(@NonNull K key) {
-        this.ensureDatabaseOpen();
-
-        byte[] keyHash = this.keyHashBuf.get();
-        this.keyHasher.hash(key, keyHash);
-
-        Long hash = hash(keyHash);
-        return this.loadedEntries.containsKey(hash) || this.fileManager.contains(keyHash, hash);
-    }
-
-    /**
-     * Loads the given entry into memory.
+     * Get a new builder for a {@link DBAtomicLong}
      * <p>
-     * Methods such as {@link #get(Object)} and {@link #contains(Object)} will use the cached entry
-     * instead of the one on disk until the entry is unloaded.
-     * <p>
-     * When unloaded, the entry will be serialized and written to disk unless otherwise specified.
-     * <p>
-     * All loaded entries are unloaded and written when the database is shut down.
+     * Convenience wrapper around {@link DBAtomicLong#builder(PorkDB, String)}
      *
-     * @param key the key of the entry to load
-     * @return the newly loaded entry
+     * @param name the name of the new entry
+     * @return a new builder
      */
-    public LoadedEntry<K, V> load(@NonNull K key) {
-        this.ensureDatabaseOpen();
-
-        byte[] keyHash = this.keyHashBuf.get();
-        this.keyHasher.hash(key, keyHash);
-
-        Long hash = hash(keyHash);
-        if (this.loadedEntries.containsKey(hash)) {
-            return this.loadedEntries.get(hash);
+    public DBAtomicLong.Builder atomicLong(@NonNull String name) {
+        if (this.loadedContainers.containsKey(name)) {
+            throw this.exception("Name \"${0}\" already taken!", name);
+        } else {
+            return DBAtomicLong.builder(this, name);
         }
-        LoadedEntry<K, V> entry = new LoadedEntry<>(key, this.get(key));
-        this.loadedEntries.put(hash, entry);
-        return entry;
     }
 
     /**
-     * Unloads a loaded entry from memory.
+     * Get a new builder for a {@link DBMap}
      * <p>
-     * If the entry with the given key is not loaded, nothing is done.
+     * Convenience wrapper around {@link DBMap#builder(PorkDB, String)}
      *
-     * @param key the key of the entry to unload
+     * @param name the name of the new entry
+     * @param <K>  the key type
+     * @param <V>  the value type
+     * @return a new builder
      */
-    public void unload(@NonNull K key) {
-        this.unload(key, true);
+    public <K, V> DBMap.Builder<K, V> map(@NonNull String name) {
+        if (this.loadedContainers.containsKey(name)) {
+            throw this.exception("Name \"${0}\" already taken!", name);
+        } else {
+            return DBMap.builder(this, name);
+        }
     }
 
     /**
-     * Unloads a loaded entry from memory.
-     * <p>
-     * If the entry with the given key is not loaded, nothing is done.
+     * Saves the content of every loaded container to disk. The exact behavior of this may vary across
+     * various {@link Container} implementations.
      *
-     * @param key   the key of the entry to unload
-     * @param write whether or not to serialize and write the current in-memory value to disk
+     * @throws IOException if a IO exception occurs you dummy
      */
-    public void unload(@NonNull K key, boolean write) {
-        this.ensureDatabaseOpen();
-
-        byte[] keyHash = this.keyHashBuf.get();
-        this.keyHasher.hash(key, keyHash);
-
-        Long hash = hash(keyHash);
-        if (this.loadedEntries.containsKey(hash)) {
-            LoadedEntry<K, V> entry = this.loadedEntries.remove(hash);
-            if (write) {
-                this.put(key, entry.getValue());
+    public void save() throws IOException {
+        this.ensureOpen();
+        synchronized (this.saveLock) {
+            for (Container container : this.loadedContainers.values()) {
+                container.save();
             }
         }
     }
 
     /**
-     * Checks if the given key is loaded
+     * Closes the database, unloading all currently loaded containers.
      *
-     * @param key the key to check for
-     * @return whether or not the key is loaded
+     * @throws IOException if a IO exception occurs you dummy
      */
-    public boolean isLoaded(@NonNull K key) {
-        this.ensureDatabaseOpen();
-
-        byte[] keyHash = this.keyHashBuf.get();
-        this.keyHasher.hash(key, keyHash);
-
-        Long hash = hash(keyHash);
-        return this.loadedEntries.containsKey(hash);
-    }
-
-    /**
-     * Iterates over every entry in the database, and executes a function on them
-     *
-     * @param consumer the function to run
-     */
-    public void forEach(@NonNull BiConsumer<K, V> consumer) {
-        boolean keyDeserialize = this.keyHasher.canGetKeyFromHash();
-        this.fileManager.forEach((keyBytes, stream) -> {
+    public void close() throws IOException {
+        this.ensureOpen();
+        synchronized (this.saveLock) { //TODO: read-write locking implementation
+            this.open = false;
             try {
-                stream = EnumCompression.values()[stream.read()].inflateStream(stream);
-                V value = this.valueSerializer.read(DataIn.wrap(stream));
-                stream.close();
-                consumer.accept(keyDeserialize ? this.keyHasher.getKeyFromHash(keyBytes) : null, value);
-            } catch (IOException e) {
-                e.printStackTrace();
+                for (Iterator<Container> iter = this.loadedContainers.values().iterator(); iter.hasNext(); iter.next().close()) {
+                }
+            } finally {
+                this.loadedContainers.clear();
             }
-        });
+        }
     }
 
-    /**
-     * Shuts down the database, blocking until all files have been closed.
-     * <p>
-     * The database is no longer usable after calling this method.
-     */
-    public void shutdown() {
-        this.ensureDatabaseOpen();
-
-        this.open = false;
-
-        this.loadedEntries.values().stream().map(LoadedEntry::getKey).forEach(this::unload);
-        this.loadedEntries.clear();
-        this.fileManager.shutdown();
+    private void ensureOpen() {
+        if (!this.isOpen()) {
+            throw new IllegalStateException("Database already closed!");
+        }
     }
 
-    /**
-     * Throws a {@link DatabaseClosedException} if the database is closed.
-     */
-    private void ensureDatabaseOpen() {
-        if (!this.open) {
-            throw new DatabaseClosedException();
+    @SuppressWarnings("unchecked")
+    private <V, C extends Container<V, ? extends Container.Builder<V, C>>> C computeIfAbsent(@NonNull String name, @NonNull IOFunction<String, C> creator) {
+        return (C) this.loadedContainers.computeIfAbsent(name, creator);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <V, C extends Container<V, B>, B extends Container.Builder<V, C>> C load(@NonNull B builder, @NonNull Consumer<B>... populators) throws IOException {
+        for (Consumer<B> p : populators) {
+            if (p == null) {
+                throw new NullPointerException();
+            }
+            p.accept(builder);
+        }
+        return builder.build();
+    }
+
+    @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+    @Accessors(chain = true)
+    @Getter
+    @Setter
+    public static final class Builder {
+        /**
+         * The remote address of this database.
+         * <p>
+         * If this is a local database, this will be {@code null}
+         */
+        private final InetSocketAddress remoteAddress;
+
+        /**
+         * The root directory of the database.
+         */
+        private File root;
+
+        /**
+         * Constructs a new {@link PorkDB} using the settings from this builder
+         *
+         * @return a new instance of {@link PorkDB} based on this builder
+         */
+        public PorkDB build() {
+            if (this.root == null) {
+                throw new IllegalStateException("root must be set!");
+            }
+
+            return new PorkDB(this);
         }
     }
 }

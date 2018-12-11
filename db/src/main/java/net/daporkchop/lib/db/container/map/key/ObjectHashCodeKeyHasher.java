@@ -13,5 +13,39 @@
  *
  */
 
-dependencies {
+package net.daporkchop.lib.db.container.map.key;
+
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+
+/**
+ * Hashes a key using {@link Object#hashCode()}
+ *
+ * @author DaPorkchop_
+ */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class ObjectHashCodeKeyHasher<K> implements KeyHasher<K> {
+    private static final ObjectHashCodeKeyHasher INSTANCE = new ObjectHashCodeKeyHasher();
+
+    @SuppressWarnings("unchecked")
+    public static <K> ObjectHashCodeKeyHasher<K> getInstance() {
+        return (ObjectHashCodeKeyHasher<K>) INSTANCE;
+    }
+
+    @Override
+    public byte[] hash(@NonNull K key) {
+        int hash = key.hashCode();
+        return new byte[]{
+                (byte) (hash & 0xFF),
+                (byte) ((hash >>> 8) & 0xFF),
+                (byte) ((hash >>> 16) & 0xFF),
+                (byte) ((hash >>> 24) & 0xFF)
+        };
+    }
+
+    @Override
+    public int getHashLength() {
+        return 4;
+    }
 }

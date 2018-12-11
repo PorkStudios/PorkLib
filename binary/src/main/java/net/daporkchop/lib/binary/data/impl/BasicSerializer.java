@@ -13,5 +13,35 @@
  *
  */
 
-dependencies {
+package net.daporkchop.lib.binary.data.impl;
+
+import net.daporkchop.lib.binary.data.Serializer;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+
+/**
+ * @author DaPorkchop_
+ */
+public class BasicSerializer<T extends Serializable> implements Serializer<T> {
+    @Override
+    public void write(T val, DataOut out) throws IOException {
+        try (ObjectOutputStream oOut = new ObjectOutputStream(out)) {
+            oOut.writeObject(val);
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public T read(DataIn in) throws IOException {
+        try (ObjectInputStream oIn = new ObjectInputStream(in)) {
+            return (T) oIn.readObject();
+        } catch (ClassNotFoundException e)  {
+            throw new RuntimeException(e);
+        }
+    }
 }

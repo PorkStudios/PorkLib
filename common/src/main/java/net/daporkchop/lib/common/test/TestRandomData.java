@@ -15,10 +15,12 @@
 
 package net.daporkchop.lib.common.test;
 
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
+ * A bunch of random byte arrays for use in test classes. Probably doesn't have any practical
+ * use in normal applications, as none of this is constant.
+ *
  * @author DaPorkchop_
  */
 public class TestRandomData {
@@ -26,7 +28,7 @@ public class TestRandomData {
 
     static {
         ThreadLocalRandom r = ThreadLocalRandom.current();
-        for (int i = randomBytes.length - 1; i >= 0; i--)   {
+        for (int i = randomBytes.length - 1; i >= 0; i--) {
             r.nextBytes(randomBytes[i] = new byte[r.nextInt(1024, 8192)]);
         }
     }

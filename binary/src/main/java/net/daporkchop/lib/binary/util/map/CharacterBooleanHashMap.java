@@ -106,7 +106,7 @@ public class CharacterBooleanHashMap implements CharacterBooleanMap {
             //increment size and check if we need to grow the backing arrays
             this.size++;
             this.grow(false);
-            //return empty value, as there was no old value to return
+            //return empty value, as there was no old impl to return
             return false;
         }
     }

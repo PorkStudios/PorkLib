@@ -13,5 +13,39 @@
  *
  */
 
-dependencies {
+package net.daporkchop.lib.binary;
+
+import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+
+/**
+ * @author DaPorkchop_
+ */
+public interface Persistent {
+    void load() throws IOException;
+
+    void save() throws IOException;
+
+    default void close() throws IOException {
+        this.save();
+    }
+
+    boolean isDirty();
+
+    void setDirty(boolean dirty);
+
+    default void markDirty()    {
+        this.setDirty(true);
+    }
+
+    File getFile();
+
+    default RandomAccessFile getRandomAccessFile()  {
+        throw new UnsupportedOperationException();
+    }
 }

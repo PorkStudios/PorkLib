@@ -13,5 +13,33 @@
  *
  */
 
-dependencies {
+import net.daporkchop.lib.logging.Logging;
+
+import java.io.File;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+/**
+ * Some shared constants for all tests
+ *
+ * @author DaPorkchop_
+ */
+public interface TestConstants extends Logging {
+    /**
+     * The output folder for test data
+     */
+    File ROOT_DIR = new File(".", "test_out");
+    AtomicBoolean INITIALIZED = new AtomicBoolean(false);
+
+    /**
+     * Initializes test stuff
+     */
+    static void init() {
+        synchronized (INITIALIZED) {
+            if (!INITIALIZED.get()) {
+                INITIALIZED.set(true);
+                logger.setLevel(5);
+                logger.add(new File(ROOT_DIR, "test_log.log"), true);
+            }
+        }
+    }
 }

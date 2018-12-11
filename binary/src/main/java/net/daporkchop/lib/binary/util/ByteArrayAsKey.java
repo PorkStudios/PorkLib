@@ -13,5 +13,51 @@
  *
  */
 
-dependencies {
+package net.daporkchop.lib.binary.util;
+
+import lombok.Getter;
+import lombok.NonNull;
+import net.daporkchop.lib.encoding.Hexadecimal;
+
+import java.util.Arrays;
+
+/**
+ * A wrapper for a byte[] which allows using it as a key in a {@link java.util.Map}
+ *
+ * @author DaPorkchop_
+ */
+@Getter
+public class ByteArrayAsKey {
+    private final byte[] array;
+
+    private ByteArrayAsKey(@NonNull byte[] array) {
+        this(array, 0, array.length);
+    }
+
+    public ByteArrayAsKey(@NonNull byte[] array, int start, int len) {
+        this.array = Arrays.copyOfRange(array, start, start + len + 1);
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(this.array);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        } else if (obj instanceof byte[]) {
+            return Arrays.equals(this.array, (byte[]) obj);
+        } else if (obj instanceof ByteArrayAsKey) {
+            return Arrays.equals(this.array, ((ByteArrayAsKey) obj).array);
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return Hexadecimal.encode(this.array);
+    }
 }

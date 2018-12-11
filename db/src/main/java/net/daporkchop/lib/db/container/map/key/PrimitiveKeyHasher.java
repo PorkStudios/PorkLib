@@ -29,7 +29,7 @@ public class PrimitiveKeyHasher {
     /**
      * A key hasher that can hash a 1-byte (8-bit) {@link Byte} integral value
      */
-    public static final KeyHasher<Byte> BYTE = new KeyHasher.BaseKeyHasher<Byte>(1) {
+    public static final KeyHasher<Byte> BYTE = new KeyHasher.ThreadLocalKeyHasher<Byte>(1) {
         @Override
         protected void doHash(@NonNull Byte key, @NonNull byte[] b) {
             b[0] = key;
@@ -49,7 +49,7 @@ public class PrimitiveKeyHasher {
     /**
      * A key hasher that can hash a 2-byte (16-bit) {@link Short} integral value
      */
-    public static final KeyHasher<Short> SHORT = new KeyHasher.BaseKeyHasher<Short>(2) {
+    public static final KeyHasher<Short> SHORT = new KeyHasher.ThreadLocalKeyHasher<Short>(2) {
         @Override
         protected void doHash(@NonNull Short key, @NonNull byte[] b) {
             short s = key; //prevent tons of unboxing
@@ -72,7 +72,7 @@ public class PrimitiveKeyHasher {
     /**
      * A key hasher that can hash a 4-byte (32-bit) {@link Integer} integral value
      */
-    public static final KeyHasher<Integer> INTEGER = new KeyHasher.BaseKeyHasher<Integer>(4) {
+    public static final KeyHasher<Integer> INTEGER = new KeyHasher.ThreadLocalKeyHasher<Integer>(4) {
         @Override
         protected void doHash(@NonNull Integer key, @NonNull byte[] b) {
             int i = key; //prevent tons of unboxing
@@ -99,7 +99,7 @@ public class PrimitiveKeyHasher {
     /**
      * A key hasher that can hash a 8-byte (64-bit) {@link Long} integral value
      */
-    public static final KeyHasher<Long> LONG = new KeyHasher.BaseKeyHasher<Long>(8) {
+    public static final KeyHasher<Long> LONG = new KeyHasher.ThreadLocalKeyHasher<Long>(8) {
         @Override
         protected void doHash(@NonNull Long key, @NonNull byte[] b) {
             long l = key; //prevent tons of unboxing
@@ -134,7 +134,7 @@ public class PrimitiveKeyHasher {
     /**
      * A key hasher that can hash a 4-byte (32-bit) {@link Float} floating-point value
      */
-    public static final KeyHasher<Float> FLOAT = new KeyHasher.BaseKeyHasher<Float>(4) {
+    public static final KeyHasher<Float> FLOAT = new KeyHasher.ThreadLocalKeyHasher<Float>(4) {
         @Override
         protected void doHash(@NonNull Float key, @NonNull byte[] b) {
             int i = Float.floatToIntBits(key); //prevent tons of unboxing
@@ -161,7 +161,7 @@ public class PrimitiveKeyHasher {
     /**
      * A key hasher that can hash a 8-byte (64-bit) {@link Double} floating-point value
      */
-    public static final KeyHasher<Double> DOUBLE = new KeyHasher.BaseKeyHasher<Double>(8) {
+    public static final KeyHasher<Double> DOUBLE = new KeyHasher.ThreadLocalKeyHasher<Double>(8) {
         @Override
         protected void doHash(@NonNull Double key, @NonNull byte[] b) {
             long l = Double.doubleToLongBits(key); //prevent tons of unboxing

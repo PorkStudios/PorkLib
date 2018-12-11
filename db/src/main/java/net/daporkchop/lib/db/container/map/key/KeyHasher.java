@@ -19,27 +19,58 @@ import lombok.Getter;
 import lombok.NonNull;
 
 /**
+ * A key hasher can take an instance of a key and hash it to a constant-length byte array.
+ *
  * @author DaPorkchop_
  */
 public interface KeyHasher<K> {
+    /**
+     * Hashes a key
+     *
+     * @param key the key to hash
+     * @return the hash
+     */
     byte[] hash(@NonNull K key);
 
+    /**
+     * Get the size of the hash (in bytes)
+     *
+     * @return the size of the hash (in bytes)
+     */
     int getHashLength();
 
-    default boolean canReconstructFromHash()    {
+    /**
+     * Checks if this key hasher can reconstruct a key instance from a hash.
+     * <p>
+     * If {@code true}, then {@link #reconstructFromHash(byte[])} must be implemented.
+     *
+     * @return whether or not this key hasher can reconstruct a key instance from a hash
+     */
+    default boolean canReconstructFromHash() {
         return false;
     }
 
+    /**
+     * Reconstructs a key from a hash
+     *
+     * @param hash the hash
+     * @return a new instance of a key
+     */
     default K reconstructFromHash(@NonNull byte[] hash) {
         throw new UnsupportedOperationException("reconstruct from hash");
     }
 
-    abstract class BaseKeyHasher<K> implements KeyHasher<K> {
+    /**
+     * A key hasher that reuses its hash
+     *
+     * @param <K> the key type
+     */
+    abstract class ThreadLocalKeyHasher<K> implements KeyHasher<K> {
         @Getter
         private final int hashLength;
         private final ThreadLocal<byte[]> hashCache;
 
-        public BaseKeyHasher(int hashLength) {
+        public ThreadLocalKeyHasher(int hashLength) {
             if (hashLength <= 0) {
                 throw new IllegalArgumentException(String.format("Invalid hash length: %d", hashLength));
             }
@@ -54,6 +85,12 @@ public interface KeyHasher<K> {
             return b;
         }
 
+        /**
+         * Hashes a key
+         *
+         * @param key the key to hash
+         * @param b   the byte array that the hash is to be written to
+         */
         protected abstract void doHash(@NonNull K key, @NonNull byte[] b);
     }
 }

@@ -22,21 +22,20 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.data.Serializer;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.common.function.IOConsumer;
 import net.daporkchop.lib.db.Container;
 import net.daporkchop.lib.db.PorkDB;
 import net.daporkchop.lib.db.container.map.data.DataLookup;
 import net.daporkchop.lib.db.container.map.data.IndividualFileLookup;
 import net.daporkchop.lib.db.container.map.index.IndexLookup;
+import net.daporkchop.lib.db.container.map.index.tree.FasterTreeIndexLookup;
 import net.daporkchop.lib.db.container.map.index.tree.SlowAndInefficientTreeIndexLookup;
 import net.daporkchop.lib.db.container.map.key.DefaultKeyHasher;
 import net.daporkchop.lib.db.container.map.key.KeyHasher;
+import net.daporkchop.lib.db.container.map.key.ObjectHashCodeKeyHasher;
 import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.encoding.compression.CompressionHelper;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -200,7 +199,7 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
         try {
             AtomicReference<V> oldValue = loadOldValue ? new AtomicReference<>(null) : null;
             this.indexLookup.change(key, id -> {
-                if (id == -1L)  {
+                if (id == -1L) {
                     this.size.incrementAndGet();
                     this.dirty = true;
                 } else if (loadOldValue) {
@@ -338,19 +337,19 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
          * @see net.daporkchop.lib.db.container.map.key.PrimitiveKeyHasher
          */
         @NonNull
-        private KeyHasher<K> keyHasher = new DefaultKeyHasher<>();
+        private KeyHasher<K> keyHasher = ObjectHashCodeKeyHasher.getInstance();
 
         /**
          * The {@link IndexLookup} used for mapping keys to long ids as used by
          * implementations of {@link DataLookup}
          *
-         * @see SlowAndInefficientTreeIndexLookup (don't use this, really)
          * @see net.daporkchop.lib.db.container.map.index.hashtable.HashTableIndexLookup
          * @see net.daporkchop.lib.db.container.map.index.hashtable.MappedHashTableIndexLookup
          * @see net.daporkchop.lib.db.container.map.index.hashtable.BucketingHashTableIndexLookup
+         * @see net.daporkchop.lib.db.container.map.index.tree.FasterTreeIndexLookup
          */
         @NonNull
-        private IndexLookup<K> indexLookup = new SlowAndInefficientTreeIndexLookup<>();
+        private IndexLookup<K> indexLookup = new FasterTreeIndexLookup<>(4, 1);
 
         /**
          * The {@link DataLookup} used for reading values.

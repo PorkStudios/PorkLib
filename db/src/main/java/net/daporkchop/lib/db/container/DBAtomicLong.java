@@ -28,6 +28,8 @@ import java.io.IOException;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
+ * An {@link AtomicLong} stored in a database
+ *
  * @author DaPorkchop_
  */
 @Getter

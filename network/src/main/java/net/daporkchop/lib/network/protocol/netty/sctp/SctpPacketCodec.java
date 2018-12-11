@@ -23,7 +23,7 @@ import io.netty.handler.codec.MessageToMessageCodec;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.NettyByteBufUtil;
+import net.daporkchop.lib.binary.netty.NettyByteBufUtil;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.network.channel.ChannelImplementation;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;

@@ -13,18 +13,17 @@
  *
  */
 
-package net.daporkchop.lib.binary;
+package net.daporkchop.lib.binary.netty;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 
-import java.io.IOException;
-
 /**
+ * Some methods for dealing with Netty's {@link ByteBuf} class
+ *
  * @author DaPorkchop_
  */
 public class NettyByteBufUtil {
@@ -36,12 +35,12 @@ public class NettyByteBufUtil {
         }
     }
 
-    public static DataIn wrapIn(ByteBuf buf) {
-        return new ByteBufIn(buf);
+    public static DataIn wrapIn(@NonNull ByteBuf buf) {
+        return new NettyByteBufIn(buf);
     }
 
-    public static DataOut wrapOut(ByteBuf buf) {
-        return new ByteBufOut(buf);
+    public static DataOut wrapOut(@NonNull ByteBuf buf) {
+        return new NettyByteBufOut(buf);
     }
 
     public static ByteBuf alloc(int size)   {
@@ -50,41 +49,5 @@ public class NettyByteBufUtil {
 
     public static ByteBuf alloc(int size, int max)   {
         return ByteBufAllocator.DEFAULT.directBuffer(size, max);
-    }
-
-    @AllArgsConstructor
-    private static class ByteBufIn extends DataIn {
-        @NonNull
-        private final ByteBuf buf;
-
-        @Override
-        public void close() throws IOException {
-            //this.buf.release();
-        }
-
-        @Override
-        public int read() throws IOException {
-            return this.buf.isReadable() ? this.buf.readByte() & 0xFF : -1;
-        }
-
-        @Override
-        public int available() throws IOException {
-            return this.buf.readableBytes();
-        }
-    }
-
-    @AllArgsConstructor
-    private static class ByteBufOut extends DataOut {
-        @NonNull
-        private final ByteBuf buf;
-
-        @Override
-        public void close() throws IOException {
-        }
-
-        @Override
-        public void write(int b) throws IOException {
-            this.buf.writeByte(b);
-        }
     }
 }

@@ -15,9 +15,11 @@
 
 package net.daporkchop.lib.binary.stream;
 
-import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.UTF8;
+import net.daporkchop.lib.binary.stream.data.BufferOut;
+import net.daporkchop.lib.binary.stream.data.NonClosingStreamOut;
+import net.daporkchop.lib.binary.stream.data.StreamOut;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -60,7 +62,7 @@ public abstract class DataOut extends OutputStream {
     }
 
     /**
-     * Writes a byte
+     * Writes a byte (8-bit) value
      *
      * @param b the byte to write
      */
@@ -69,7 +71,7 @@ public abstract class DataOut extends OutputStream {
     }
 
     /**
-     * Writes a short
+     * Writes a short (16-bit) value
      *
      * @param s the short to write
      */
@@ -79,7 +81,18 @@ public abstract class DataOut extends OutputStream {
     }
 
     /**
-     * Writes an int
+     * Writes an medium (24-bit) value
+     *
+     * @param m the medium to write
+     */
+    public void writeMedium(int m) throws IOException {
+        this.write((m >>> 16) & 0xFF);
+        this.write((m >>> 8) & 0xFF);
+        this.write(m & 0xFF);
+    }
+
+    /**
+     * Writes an int (32-bit) value
      *
      * @param i the int to write
      */
@@ -91,7 +104,7 @@ public abstract class DataOut extends OutputStream {
     }
 
     /**
-     * Writes a long
+     * Writes a long (64-bit) value
      *
      * @param l the long to write
      */
@@ -107,7 +120,7 @@ public abstract class DataOut extends OutputStream {
     }
 
     /**
-     * Writes a float
+     * Writes a float (32-bit floating point) value
      *
      * @param f the float to write
      */
@@ -116,7 +129,7 @@ public abstract class DataOut extends OutputStream {
     }
 
     /**
-     * Writes a double
+     * Writes a double (64-bit floating point) value
      *
      * @param d the double to write
      */
@@ -125,7 +138,7 @@ public abstract class DataOut extends OutputStream {
     }
 
     /**
-     * Writes a UTF-8 encoded string, along with a 4-byte length prefix
+     * Writes a UTF-8 encoded string, including a null header and the length in bytes encoded as a varInt
      *
      * @param s the string to write
      */
@@ -139,7 +152,7 @@ public abstract class DataOut extends OutputStream {
     }
 
     /**
-     * Writes a plain byte array
+     * Writes a plain byte array with a length prefix encoded as a varInt
      *
      * @param b the bytes to write
      */
@@ -213,59 +226,4 @@ public abstract class DataOut extends OutputStream {
     @Override
     public abstract void close() throws IOException;
 
-    @AllArgsConstructor
-    private static class BufferOut extends DataOut {
-        @NonNull
-        private final ByteBuffer buffer;
-
-        @Override
-        public void close() throws IOException {
-        }
-
-        @Override
-        public void write(int b) throws IOException {
-            this.buffer.put((byte) b);
-        }
-    }
-
-    @AllArgsConstructor
-    private static class StreamOut extends DataOut {
-        @NonNull
-        private final OutputStream out;
-
-        @Override
-        public void close() throws IOException {
-            this.out.close();
-        }
-
-        @Override
-        public void write(int b) throws IOException {
-            this.out.write(b);
-        }
-
-        @Override
-        public void flush() throws IOException {
-            this.out.flush();
-        }
-    }
-
-    @AllArgsConstructor
-    private static class NonClosingStreamOut extends DataOut {
-        @NonNull
-        private final OutputStream out;
-
-        @Override
-        public void close() throws IOException {
-        }
-
-        @Override
-        public void write(int b) throws IOException {
-            this.out.write(b);
-        }
-
-        @Override
-        public void flush() throws IOException {
-            this.out.flush();
-        }
-    }
 }

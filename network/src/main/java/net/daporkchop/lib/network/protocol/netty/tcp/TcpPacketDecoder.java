@@ -21,7 +21,7 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.NettyByteBufUtil;
+import net.daporkchop.lib.binary.netty.NettyByteBufUtil;
 import net.daporkchop.lib.network.channel.ChannelImplementation;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;

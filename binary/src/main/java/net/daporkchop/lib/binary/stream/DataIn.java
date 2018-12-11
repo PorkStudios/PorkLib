@@ -15,9 +15,11 @@
 
 package net.daporkchop.lib.binary.stream;
 
-import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.UTF8;
+import net.daporkchop.lib.binary.stream.data.BufferIn;
+import net.daporkchop.lib.binary.stream.data.NonClosingStreamIn;
+import net.daporkchop.lib.binary.stream.data.StreamIn;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -57,7 +59,7 @@ public abstract class DataIn extends InputStream {
     }
 
     /**
-     * Read a byte
+     * Read a byte (8-bit) value
      *
      * @return a byte
      */
@@ -66,7 +68,7 @@ public abstract class DataIn extends InputStream {
     }
 
     /**
-     * Read a short
+     * Read a short (16-bit) value
      *
      * @return a short
      */
@@ -76,7 +78,17 @@ public abstract class DataIn extends InputStream {
     }
 
     /**
-     * Read an int
+     * Reads a medium (24-bit) value
+     * @return a medium
+     */
+    public int readMedium() throws IOException  {
+        return ((this.read() & 0xFF) << 16)
+                | ((this.read() & 0xFF) << 8)
+                | (this.read() & 0xFF);
+    }
+
+    /**
+     * Read an int (32-bit) value
      *
      * @return an int
      */
@@ -88,7 +100,7 @@ public abstract class DataIn extends InputStream {
     }
 
     /**
-     * Read a long
+     * Read a long (64-bit) value
      *
      * @return a long
      */
@@ -104,7 +116,7 @@ public abstract class DataIn extends InputStream {
     }
 
     /**
-     * Read a float
+     * Read a float (32-bit floating point) value
      *
      * @return a float
      */
@@ -113,7 +125,7 @@ public abstract class DataIn extends InputStream {
     }
 
     /**
-     * Read a double
+     * Read a double (64-bit floating point) value
      *
      * @return a double
      */
@@ -131,7 +143,7 @@ public abstract class DataIn extends InputStream {
     }
 
     /**
-     * Reads a plain byte array
+     * Reads a plain byte array with a length prefix encoded as a varInt
      *
      * @return a byte array
      */
@@ -211,124 +223,4 @@ public abstract class DataIn extends InputStream {
     @Override
     public abstract void close() throws IOException;
 
-    @AllArgsConstructor
-    private static class StreamIn extends DataIn {
-        @NonNull
-        private final InputStream in;
-
-        @Override
-        public void close() throws IOException {
-            this.in.close();
-        }
-
-        @Override
-        public int read() throws IOException {
-            return this.in.read();
-        }
-
-        @Override
-        public int available() throws IOException {
-            return this.in.available();
-        }
-    }
-
-    @AllArgsConstructor
-    private static class NonClosingStreamIn extends DataIn {
-        @NonNull
-        private final InputStream in;
-
-        @Override
-        public void close() throws IOException {
-        }
-
-        @Override
-        public int read() throws IOException {
-            return this.in.read();
-        }
-
-        @Override
-        public int available() throws IOException {
-            return this.in.available();
-        }
-    }
-
-    @AllArgsConstructor
-    private static class BufferIn extends DataIn {
-        @NonNull
-        private ByteBuffer buffer;
-
-        public int read() throws IOException {
-            if (this.buffer == null) {
-                throw new IOException("read on a closed InputStream");
-            } else {
-                return this.buffer.remaining() == 0 ? -1 : this.buffer.get() & 255;
-            }
-        }
-
-        public int read(byte[] var1) throws IOException {
-            if (this.buffer == null) {
-                throw new IOException("read on a closed InputStream");
-            } else {
-                return this.read(var1, 0, var1.length);
-            }
-        }
-
-        public int read(byte[] var1, int var2, int var3) throws IOException {
-            if (this.buffer == null) {
-                throw new IOException("read on a closed InputStream");
-            } else if (var1 == null) {
-                throw new NullPointerException();
-            } else if (var2 >= 0 && var3 >= 0 && var3 <= var1.length - var2) {
-                if (var3 == 0) {
-                    return 0;
-                } else {
-                    int var4 = Math.min(this.buffer.remaining(), var3);
-                    if (var4 == 0) {
-                        return -1;
-                    } else {
-                        this.buffer.get(var1, var2, var4);
-                        return var4;
-                    }
-                }
-            } else {
-                throw new IndexOutOfBoundsException();
-            }
-        }
-
-        public long skip(long var1) throws IOException {
-            if (this.buffer == null) {
-                throw new IOException("skip on a closed InputStream");
-            } else if (var1 <= 0L) {
-                return 0L;
-            } else {
-                int var3 = (int)var1;
-                int var4 = Math.min(this.buffer.remaining(), var3);
-                this.buffer.position(this.buffer.position() + var4);
-                return (long)var3;
-            }
-        }
-
-        public int available() throws IOException {
-            if (this.buffer == null) {
-                throw new IOException("available on a closed InputStream");
-            } else {
-                return this.buffer.remaining();
-            }
-        }
-
-        public void close() throws IOException {
-            this.buffer = null;
-        }
-
-        public synchronized void mark(int var1) {
-        }
-
-        public synchronized void reset() throws IOException {
-            throw new IOException("mark/reset not supported");
-        }
-
-        public boolean markSupported() {
-            return false;
-        }
-    }
 }

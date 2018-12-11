@@ -13,32 +13,37 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.netty.tcp;
+package net.daporkchop.lib.binary.stream.data;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.MessageToByteEncoder;
-import lombok.Getter;
+import lombok.AllArgsConstructor;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.netty.NettyByteBufUtil;
-import net.daporkchop.lib.network.channel.ChannelImplementation;
-import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
-import net.daporkchop.lib.network.endpoint.Endpoint;
-import net.daporkchop.lib.network.packet.Packet;
-import net.daporkchop.lib.network.protocol.api.PacketEncoder;
+import net.daporkchop.lib.binary.stream.DataOut;
+
+import java.io.IOException;
+import java.io.OutputStream;
 
 /**
+ * An implementation of {@link DataOut} that can write data to an {@link OutputStream}
+ *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-public class TcpPacketEncoder extends MessageToByteEncoder<Packet> implements PacketEncoder {
+@AllArgsConstructor
+public class StreamOut extends DataOut {
     @NonNull
-    private final Endpoint endpoint;
+    private final OutputStream out;
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, Packet packet, ByteBuf buf) throws Exception {
-        this.writePacket((ChannelImplementation) ((UnderlyingNetworkConnection) ctx.channel()).getDefaultChannel(), packet, NettyByteBufUtil.wrapOut(buf));
+    public void close() throws IOException {
+        this.out.close();
+    }
+
+    @Override
+    public void write(int b) throws IOException {
+        this.out.write(b);
+    }
+
+    @Override
+    public void flush() throws IOException {
+        this.out.flush();
     }
 }

@@ -13,9 +13,10 @@
  *
  */
 
-package net.daporkchop.lib.binary.stream;
+package net.daporkchop.lib.binary.stream.data;
 
 import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.function.IOConsumer;
 
 import java.io.IOException;

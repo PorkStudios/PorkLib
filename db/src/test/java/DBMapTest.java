@@ -25,6 +25,9 @@ import net.daporkchop.lib.db.container.map.data.IndividualFileLookup;
 import net.daporkchop.lib.db.container.map.data.OneTimeWriteDataLookup;
 import net.daporkchop.lib.db.container.map.data.SectoredDataLookup;
 import net.daporkchop.lib.db.container.map.index.IndexLookup;
+import net.daporkchop.lib.db.container.map.index.hashtable.BucketingHashTableIndexLookup;
+import net.daporkchop.lib.db.container.map.index.hashtable.HashTableIndexLookup;
+import net.daporkchop.lib.db.container.map.index.hashtable.MappedHashTableIndexLookup;
 import net.daporkchop.lib.db.container.map.index.tree.FasterTreeIndexLookup;
 import net.daporkchop.lib.db.container.map.key.ByteArrayKeyHasher;
 import net.daporkchop.lib.encoding.Hexadecimal;
@@ -66,9 +69,9 @@ public class DBMapTest implements Logging {
     );
     private static final Collection<Supplier<IndexLookup<byte[]>>> INDEX_LOOKUPS = Arrays.asList(
             null
-            //, () -> new BucketingHashTableIndexLookup<>(2, 4)
-            //, () -> new HashTableIndexLookup<>(TABLE_SIZE_BITS, 4)
-            //, () -> new MappedHashTableIndexLookup<>(TABLE_SIZE_BITS, 4)
+            , () -> new BucketingHashTableIndexLookup<>(2, 4)
+            , () -> new HashTableIndexLookup<>(TABLE_SIZE_BITS, 4)
+            , () -> new MappedHashTableIndexLookup<>(TABLE_SIZE_BITS, 4)
             , () -> new FasterTreeIndexLookup<>(4, 2)
     );
     private static final Collection<Supplier<CompressionHelper>> COMPRESSIONS = Arrays.asList(
@@ -223,7 +226,7 @@ public class DBMapTest implements Logging {
                                 db.close();
                             }
                         }
-                        if (false) {
+                        {
                             PorkDB db = PorkDB.builder()
                                     .setRoot(ROOT_DIR)
                                     .build();

@@ -28,8 +28,6 @@ import net.daporkchop.lib.db.container.map.data.DataLookup;
 import net.daporkchop.lib.db.container.map.data.IndividualFileLookup;
 import net.daporkchop.lib.db.container.map.index.IndexLookup;
 import net.daporkchop.lib.db.container.map.index.tree.FasterTreeIndexLookup;
-import net.daporkchop.lib.db.container.map.index.tree.SlowAndInefficientTreeIndexLookup;
-import net.daporkchop.lib.db.container.map.key.DefaultKeyHasher;
 import net.daporkchop.lib.db.container.map.key.KeyHasher;
 import net.daporkchop.lib.db.container.map.key.ObjectHashCodeKeyHasher;
 import net.daporkchop.lib.encoding.compression.Compression;

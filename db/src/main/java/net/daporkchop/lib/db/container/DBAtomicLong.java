@@ -19,8 +19,8 @@ import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.db.PorkDB;
 import net.daporkchop.lib.db.Container;
+import net.daporkchop.lib.db.PorkDB;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -34,10 +34,6 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 @Getter
 public class DBAtomicLong extends Container<AtomicLong, DBAtomicLong.Builder> {
-    public static Builder builder(@NonNull PorkDB db, @NonNull String name) {
-        return new Builder(db, name);
-    }
-
     private final AtomicLong value = new AtomicLong();
 
     public DBAtomicLong(Builder builder) throws IOException {
@@ -46,6 +42,10 @@ public class DBAtomicLong extends Container<AtomicLong, DBAtomicLong.Builder> {
         try (DataIn in = DataIn.wrap(new FileInputStream(this.file))) {
             this.value.set(in.readLong());
         }
+    }
+
+    public static Builder builder(@NonNull PorkDB db, @NonNull String name) {
+        return new Builder(db, name);
     }
 
     public long get() {

@@ -35,7 +35,7 @@ public interface TestConstants extends Logging {
      */
     static void init() {
         synchronized (INITIALIZED) {
-            if (!INITIALIZED.get())  {
+            if (!INITIALIZED.get()) {
                 INITIALIZED.set(true);
                 logger.setLevel(5);
                 logger.add(new File(ROOT_DIR, "test_log.log"), true);

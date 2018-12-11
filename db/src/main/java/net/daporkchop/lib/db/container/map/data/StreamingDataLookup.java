@@ -21,8 +21,8 @@ import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.binary.stream.HugeBufferIn;
 import net.daporkchop.lib.binary.stream.HugeBufferOut;
 import net.daporkchop.lib.common.function.IOConsumer;
-import net.daporkchop.lib.db.util.PersistentSparseBitSet;
 import net.daporkchop.lib.db.container.map.DBMap;
+import net.daporkchop.lib.db.util.PersistentSparseBitSet;
 import net.daporkchop.lib.math.primitive.RoundUp;
 
 import java.io.File;
@@ -43,6 +43,7 @@ public class StreamingDataLookup implements DataLookup {
     protected DBMap<?, ?> map;
     protected RandomAccessFile file;
     protected FileChannel channel;
+
     public StreamingDataLookup(int sectorSize) {
         if (sectorSize <= 64) {
             throw new IllegalArgumentException(String.format("Invalid sector size: %d", sectorSize));

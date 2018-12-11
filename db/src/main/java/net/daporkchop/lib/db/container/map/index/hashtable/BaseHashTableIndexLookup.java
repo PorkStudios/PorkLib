@@ -20,8 +20,8 @@ import lombok.NonNull;
 import lombok.Setter;
 import net.daporkchop.lib.common.function.IOFunction;
 import net.daporkchop.lib.db.container.map.DBMap;
-import net.daporkchop.lib.db.container.map.key.KeyHasher;
 import net.daporkchop.lib.db.container.map.index.IndexLookup;
+import net.daporkchop.lib.db.container.map.key.KeyHasher;
 
 import java.io.File;
 import java.io.IOException;
@@ -180,8 +180,8 @@ public abstract class BaseHashTableIndexLookup<K> implements IndexLookup<K> {
 
     protected boolean doContains(@NonNull K key) throws IOException {
         long l = this.getDiskValue(key);
-        if (l != 0L)    {
-             l = l;
+        if (l != 0L) {
+            l = l;
         }
         return l != 0L;
     }

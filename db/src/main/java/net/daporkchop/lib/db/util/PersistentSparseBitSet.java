@@ -17,14 +17,18 @@ package net.daporkchop.lib.db.util;
 
 import com.zaxxer.sparsebits.SparseBitSet;
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import net.daporkchop.lib.binary.Persistent;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -36,27 +40,27 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 @Getter
 @RequiredArgsConstructor
 public class PersistentSparseBitSet implements Persistent {
-    @Setter
-    private volatile boolean dirty;
     private final File file;
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
+    @Setter
+    private volatile boolean dirty;
     private SparseBitSet bitSet;
 
     @Override
     public void load() throws IOException {
         if (this.file.exists()) {
-            if (!this.file.isFile())    {
+            if (!this.file.isFile()) {
                 throw new IllegalStateException(String.format("Not a file: %s", this.file.getAbsolutePath()));
             }
             if (this.file.length() != 0L) {
                 try (ObjectInput in = new ObjectInputStream(DataIn.wrap(this.file))) {
                     this.bitSet = (SparseBitSet) in.readObject();
                     return;
-                } catch (ClassNotFoundException e)  {
+                } catch (ClassNotFoundException e) {
                     throw new RuntimeException(e);
                 }
             }
-        } else if (!this.file.createNewFile())  {
+        } else if (!this.file.createNewFile()) {
             throw new IllegalStateException(String.format("Could not create file: %s", this.file.getAbsolutePath()));
         }
         this.bitSet = new SparseBitSet();

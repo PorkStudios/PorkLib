@@ -32,7 +32,7 @@ import java.nio.channels.FileChannel;
  * <p>
  * This can use a significant amount of memory for large tables. If you want a large table and can accept a
  * small decrease in performance, look at {@link HashTableIndexLookup}.
- *
+ * <p>
  * This does not allow for tables than 2^31 bytes. To use a massive table of that size (although if you're
  * doing that, you're probably doing something wrong), use {@link HashTableIndexLookup}
  * <p>
@@ -78,13 +78,13 @@ public class MappedHashTableIndexLookup<K> extends BaseHashTableIndexLookup<K> {
     }
 
     @Override
-    protected long getDiskValue(long hashBits)  throws IOException{
+    protected long getDiskValue(long hashBits) throws IOException {
         int pos = (int) hashBits;
         if (hashBits < 0L || pos < 0 || hashBits > Integer.MAX_VALUE) {
             throw new IllegalArgumentException(String.format("index too big: %d", hashBits));
         }
         pos *= this.pointerBytes;
-        switch (this.pointerBytes)  {
+        switch (this.pointerBytes) {
             case 1:
                 return this.buffer.get(pos) & 0xFFL;
             case 2:
@@ -129,7 +129,7 @@ public class MappedHashTableIndexLookup<K> extends BaseHashTableIndexLookup<K> {
             throw new IllegalArgumentException(String.format("index too big: %d", hashBits));
         }
         pos *= this.pointerBytes;
-        switch (this.pointerBytes)  {
+        switch (this.pointerBytes) {
             case 1: {
                 this.buffer.put(pos, (byte) (val & 0xFFL));
             }

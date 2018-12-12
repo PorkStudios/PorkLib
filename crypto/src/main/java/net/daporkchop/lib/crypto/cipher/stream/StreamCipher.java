@@ -85,15 +85,15 @@ public class StreamCipher implements Cipher {
     }
 
     @Override
-    public OutputStream encrypt(OutputStream outputStream) {
+    public OutputStream encrypt(OutputStream out) {
         this.outLock.lock();
-        return new StreamCipherOutput(this.outLock, this.outCipher, outputStream);
+        return new StreamCipherOutput(this.outLock, this.outCipher, out);
     }
 
     @Override
-    public InputStream decrypt(InputStream inputStream) {
+    public InputStream decrypt(InputStream in) {
         this.inLock.lock();
-        return new StreamCipherInput(this.inLock, this.inCipher, inputStream);
+        return new StreamCipherInput(this.inLock, this.inCipher, in);
     }
 
     @Override

@@ -111,7 +111,7 @@ public class BlockCipher implements Cipher {
     }
 
     @Override
-    public OutputStream encrypt(OutputStream outputStream) {
+    public OutputStream encrypt(OutputStream out) {
         BufferedBlockCipher cipher = this.get();
 
         synchronized (this.encrypt) {
@@ -121,11 +121,11 @@ public class BlockCipher implements Cipher {
             cipher.init(true, this.encrypt);
         }
 
-        return new CipherOutputStream(outputStream, cipher);
+        return new CipherOutputStream(out, cipher);
     }
 
     @Override
-    public InputStream decrypt(InputStream inputStream) {
+    public InputStream decrypt(InputStream in) {
         BufferedBlockCipher cipher = this.get();
 
         synchronized (this.decrypt) {
@@ -135,7 +135,7 @@ public class BlockCipher implements Cipher {
             cipher.init(false, this.decrypt);
         }
 
-        return new CipherInputStream(inputStream, cipher);
+        return new CipherInputStream(in, cipher);
     }
 
     private BufferedBlockCipher get() {

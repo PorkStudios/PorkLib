@@ -77,6 +77,7 @@ public class PacketRegistry implements Logging {
                 }
             });
         }
+        logger.debug("Registered ${0} protocols!", protocols.size());
     }
 
     public static short getProtocolId(int id) {

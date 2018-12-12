@@ -26,6 +26,7 @@ import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.UserProtocol;
+import net.daporkchop.lib.network.pork.packet.OpenChannelPacket;
 import net.daporkchop.lib.network.protocol.netty.NettyConnection;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 import net.daporkchop.lib.primitive.map.IntegerObjectMap;
@@ -94,6 +95,9 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements NettyCo
                 this.channelIds.set(requestedId);
                 TcpChannel channel = new TcpChannel(this, requestedId);
                 this.channels.put(requestedId, channel);
+                if (requestedId > 1)    {
+                    this.controlChannel.send(new OpenChannelPacket(Reliability.RELIABLE_ORDERED, requestedId));
+                }
                 return channel;
             }
         }

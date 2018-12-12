@@ -19,6 +19,7 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.packet.PacketRegistry;
 import net.daporkchop.lib.network.packet.handler.DataPacketHandler;
@@ -38,6 +39,7 @@ public class HandshakeResponsePacket {
     public static class HandshakeResponseCodec implements DataPacketHandler<HandshakeResponsePacket> {
         @Override
         public void handle(@NonNull HandshakeResponsePacket packet, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception {
+            Logging.logger.debug("handling handshake response...");
             PacketRegistry registry = connection.getEndpoint().getPacketRegistry();
             if (registry.getProtocols().size() != packet.protocolVersions.size()) {
                 connection.closeConnection("invalid protocol count");
@@ -49,7 +51,7 @@ public class HandshakeResponsePacket {
                     throw new IllegalStateException();
                 }
             });
-            connection.getControlChannel().send(new HandshakeCompletePacket());
+            connection.getControlChannel().send(new HandshakeCompletePacket(), () -> Logging.logger.debug("sent handshake complete!"));
         }
 
         @Override

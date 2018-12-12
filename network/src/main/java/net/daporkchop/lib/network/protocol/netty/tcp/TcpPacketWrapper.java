@@ -45,8 +45,8 @@ class UnencodedTcpPacket implements Logging {
     @NonNull
     private final Object message;
 
-    private final int id;
     private final int channel;
+    private final int id;
 
     @Override
     public String toString() {

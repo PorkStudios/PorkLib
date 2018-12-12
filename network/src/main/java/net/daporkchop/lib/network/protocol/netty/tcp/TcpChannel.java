@@ -26,6 +26,7 @@ import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.packet.UserProtocol;
+import net.daporkchop.lib.network.pork.packet.CloseChannelPacket;
 import net.daporkchop.lib.network.protocol.netty.NettyChannel;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 
@@ -51,8 +52,9 @@ public class TcpChannel extends NettyChannel implements Logging {
 
     @Override
     public void send(@NonNull Object message, boolean blocking, Void callback, Reliability reliability) {
+        logger.debug("Writing ${0} (${1}blocking)...", message.getClass(), blocking ? "" : "non-");
         int id = this.channel.getEndpoint().getPacketRegistry().getId(message.getClass());
-        ChannelFuture future = this.channel.writeAndFlush(new UnencodedTcpPacket(message, id, this.id));
+        ChannelFuture future = this.channel.writeAndFlush(new UnencodedTcpPacket(message, this.id, id));
         if (callback != null) {
             future.addListener(f -> callback.run());
         }
@@ -93,6 +95,7 @@ public class TcpChannel extends NettyChannel implements Logging {
             this.channel.channels.remove(this.id);
             this.channel.channelIds.clear(this.id);
         }
+        this.send(new CloseChannelPacket(this.id));
     }
 
     @Override

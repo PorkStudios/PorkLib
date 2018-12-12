@@ -13,19 +13,35 @@
  *
  */
 
-package net.daporkchop.lib.binary.data;
+package net.daporkchop.lib.binary.serialization.impl;
 
-import lombok.NonNull;
+import net.daporkchop.lib.binary.serialization.Serializer;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
 /**
  * @author DaPorkchop_
  */
-public interface Serializer<T> {
-    void write(@NonNull T val, @NonNull DataOut out) throws IOException;
+public class BasicSerializer<T extends Serializable> implements Serializer<T> {
+    @Override
+    public void write(T val, DataOut out) throws IOException {
+        try (ObjectOutputStream oOut = new ObjectOutputStream(out)) {
+            oOut.writeObject(val);
+        }
+    }
 
-    T read(@NonNull DataIn in) throws IOException;
+    @Override
+    @SuppressWarnings("unchecked")
+    public T read(DataIn in) throws IOException {
+        try (ObjectInputStream oIn = new ObjectInputStream(in)) {
+            return (T) oIn.readObject();
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

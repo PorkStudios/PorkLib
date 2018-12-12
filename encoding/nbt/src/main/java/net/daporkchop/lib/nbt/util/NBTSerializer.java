@@ -15,7 +15,7 @@
 package net.daporkchop.lib.nbt.util;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.data.Serializer;
+import net.daporkchop.lib.binary.serialization.Serializer;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.nbt.NBTIO;

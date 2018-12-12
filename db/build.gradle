@@ -18,7 +18,13 @@ dependencies {
     compile project(":binary")
     compile project(":nbt")
     compile project(":hash")
-    compile "de.schlichtherle.truezip:truezip-file:7.7.10"
-    compile "de.schlichtherle.truezip:truezip-driver-zip:7.7.10"
-    compile "de.schlichtherle.truezip:truezip-driver-tar:7.7.10"
+    compile project(":logging")
+    compile project(":primitive")
+
+    compile "com.zaxxer:SparseBitSet:1.1"
+    compile "com.google.guava:guava:27.0-jre"
+
+    provided "de.schlichtherle.truezip:truezip-file:7.7.10"
+    provided "de.schlichtherle.truezip:truezip-driver-zip:7.7.10"
+    provided "de.schlichtherle.truezip:truezip-driver-tar:7.7.10"
 }

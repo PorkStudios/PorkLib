@@ -29,10 +29,10 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class TestMain {
     @Test
-    public void testVarInt() throws IOException {
+    public void test() throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        for (int i = 500; i >= 0; i--)   {
-            int j = ThreadLocalRandom.current().nextInt();
+        for (int i = 50; i >= 0; i--)   {
+            int j = ThreadLocalRandom.current().nextInt(Integer.MAX_VALUE);
             DataOut out = DataOut.wrap(baos);
             out.writeVarInt(j);
             out.close();

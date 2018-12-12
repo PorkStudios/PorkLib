@@ -18,9 +18,9 @@ package net.daporkchop.lib.noise;
 import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.noise.engine.INoiseEngine;
-import net.daporkchop.lib.noise.func.BiDoubleConsumer;
-import net.daporkchop.lib.noise.func.QuadDoubleConsumer;
-import net.daporkchop.lib.noise.func.TriDoubleConsumer;
+import net.daporkchop.lib.noise.func.IntDoubleConsumer;
+import net.daporkchop.lib.noise.func.IntIntIntDoubleConsumer;
+import net.daporkchop.lib.noise.func.IntIntDoubleConsumer;
 
 /**
  * A wrapper for an {@link INoiseEngine}, providing useful helper methods
@@ -318,7 +318,7 @@ public class Noise {
      *                 values.
      * @param consumer the function to execute on all the noise values.
      */
-    public void forEach(double x, int sizeX, int distX, @NonNull BiDoubleConsumer consumer) {
+    public void forEach(double x, int sizeX, int distX, @NonNull IntDoubleConsumer consumer) {
         if (sizeX / distX == 0) {
             throw new IllegalArgumentException("sizeX / distX may not be 0! (distX must be a multiple of sizeX)");
         }
@@ -352,7 +352,7 @@ public class Noise {
      *                 values.
      * @param consumer the function to execute on all the noise values.
      */
-    public void forEach(double x, double y, int sizeX, int sizeY, int distX, int distY, @NonNull TriDoubleConsumer consumer) {
+    public void forEach(double x, double y, int sizeX, int sizeY, int distX, int distY, @NonNull IntIntDoubleConsumer consumer) {
         if (sizeX / distX == 0) {
             throw new IllegalArgumentException("sizeX / distX may not be 0! (distX must be a multiple of sizeX)");
         }
@@ -416,7 +416,7 @@ public class Noise {
      *                 values.
      * @param consumer the function to execute on all the noise values.
      */
-    public void forEach(double x, double y, double z, int sizeX, int sizeY, int sizeZ, int distX, int distY, int distZ, @NonNull QuadDoubleConsumer consumer) {
+    public void forEach(double x, double y, double z, int sizeX, int sizeY, int sizeZ, int distX, int distY, int distZ, @NonNull IntIntIntDoubleConsumer consumer) {
         if (sizeX / distX == 0) {
             throw new IllegalArgumentException("sizeX / distX may not be 0! (distX must be a multiple of sizeX)");
         }

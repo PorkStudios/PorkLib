@@ -58,8 +58,12 @@ public class TcpHandler extends ChannelInboundHandlerAdapter implements Logging 
         }
 
         TcpPacketWrapper packet = (TcpPacketWrapper) msg;
-        UnderlyingNetworkConnection connection = (UnderlyingNetworkConnection) ctx.channel();
-        this.endpoint.getPacketRegistry().getHandler(packet.getId()).handle(packet.getData(), connection, packet.getChannel());
+        try {
+            UnderlyingNetworkConnection connection = (UnderlyingNetworkConnection) ctx.channel();
+            this.endpoint.getPacketRegistry().getHandler(packet.getId()).handle(packet.getData(), connection, packet.getChannel());
+        } finally {
+            packet.getData().release();
+        }
     }
 
     @Override

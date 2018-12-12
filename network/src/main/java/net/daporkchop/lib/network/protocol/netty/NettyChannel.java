@@ -28,9 +28,11 @@ import net.daporkchop.lib.network.util.PacketReprocessor;
  */
 @Getter
 public abstract class NettyChannel implements ChannelImplementation {
-    private final PacketReprocessor packetReprocessor = new PacketReprocessor(this);
+    protected final PacketReprocessor packetReprocessor = new PacketReprocessor(this);
     @Setter
-    private volatile boolean encryptionReady;
+    protected volatile boolean encryptionReady;
+    @Setter
+    protected short protocolId;
 
     @Override
     public boolean isEncrypted() {

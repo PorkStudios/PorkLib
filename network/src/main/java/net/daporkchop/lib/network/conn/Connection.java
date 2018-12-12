@@ -19,6 +19,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.endpoint.Endpoint;
+import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 
 import java.net.InetSocketAddress;

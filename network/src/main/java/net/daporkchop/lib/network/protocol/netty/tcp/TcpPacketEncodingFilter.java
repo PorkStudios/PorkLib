@@ -17,35 +17,32 @@ package net.daporkchop.lib.network.protocol.netty.tcp;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.MessageToMessageCodec;
+import io.netty.handler.codec.MessageToMessageEncoder;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.endpoint.Endpoint;
+import net.daporkchop.lib.network.packet.PacketRegistry;
+import net.daporkchop.lib.network.packet.handler.PacketHandler;
 
 import java.util.List;
 
 /**
- * Prefixes outgoing messages
+ * Encodes unencoded packets
  *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
 @Getter
-public class TcpPacketCodec extends MessageToMessageCodec<ByteBuf, TcpPacketWrapper> implements Logging {
+public class TcpPacketEncodingFilter extends MessageToMessageEncoder<UnencodedTcpPacket> {
     @NonNull
-    private final Endpoint endpoint;
+    private final PacketRegistry registry;
 
     @Override
-    protected void encode(@NonNull ChannelHandlerContext ctx, @NonNull TcpPacketWrapper msg, @NonNull List<Object> out) throws Exception {
-        //TODO: should we add a length prefix here?
-        out.add(ctx.alloc().buffer(8).writeInt(msg.getChannel()).writeInt(msg.getId()));
-        out.add(msg.getData().retain());
-    }
-
-    @Override
-    protected void decode(@NonNull ChannelHandlerContext ctx, @NonNull ByteBuf in, @NonNull List<Object> out) throws Exception {
-        out.add(new TcpPacketWrapper(in.retain(), in.readInt(), in.readInt()));
+    @SuppressWarnings("unchecked")
+    protected void encode(@NonNull ChannelHandlerContext ctx, @NonNull UnencodedTcpPacket msg, List<Object> out) throws Exception {
+        ByteBuf buf = ctx.alloc().ioBuffer();
+        PacketHandler handler = (PacketHandler) this.registry.getHandler(msg.getId());
+        handler.encode(msg.getMessage(), buf);
+        out.add(new TcpPacketWrapper(buf.retain(), msg.getId(), msg.getChannel()));
     }
 }

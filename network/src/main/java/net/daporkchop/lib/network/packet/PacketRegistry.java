@@ -38,7 +38,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class PacketRegistry implements Logging {
     private final ShortObjectMap<UserProtocol> idToProtocol = new ShortObjectArrayMap<>();
     private final ObjectShortMap<Class<? extends UserProtocol>> protocolToId = new ObjectShortHashMap<>();
-    private final ObjectIntegerMap<Class<?>> packetToProtocolId = new ObjectIntegerHashMap<>(); //TODO: identityHashMap
+    private final ObjectIntegerMap<Class<?>> packetToFullId = new ObjectIntegerHashMap<>(); //TODO: identityHashMap
     @Getter
     private final Collection<UserProtocol> protocols;
 
@@ -62,7 +62,7 @@ public class PacketRegistry implements Logging {
             }
             protocol.registered.forEach((packetId, codec) -> {
                 if (codec instanceof PacketHandler) {
-                    this.packetToProtocolId.put(((PacketHandler) codec).getPacketClass(), combine(protocolId, packetId));
+                    this.packetToFullId.put(((PacketHandler) codec).getPacketClass(), combine(protocolId, packetId));
                 }
             });
         }
@@ -107,8 +107,8 @@ public class PacketRegistry implements Logging {
     }
 
     public <P> int getId(@NonNull Class<P> clazz) {
-        if (this.packetToProtocolId.containsKey(clazz)) {
-            return this.packetToProtocolId.get(clazz);
+        if (this.packetToFullId.containsKey(clazz)) {
+            return this.packetToFullId.get(clazz);
         } else {
             throw this.exception("Unregistered packet: ${0}", clazz);
         }

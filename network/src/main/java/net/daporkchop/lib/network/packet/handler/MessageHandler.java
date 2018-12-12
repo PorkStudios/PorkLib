@@ -36,16 +36,4 @@ public interface MessageHandler {
      * @throws Exception if an exception occurs
      */
     void handle(@NonNull ByteBuf msg, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception;
-
-    /**
-     * Encode an outgoing message
-     *
-     * @param msg the message to write
-     * @param out a queue that outgoing data needs to be added to
-     * @throws Exception if an exception occurs
-     */
-    default void write(@NonNull ByteBuf msg, @NonNull Queue<ByteBuf> out) throws Exception {
-        //by default we just send the data
-        out.add(msg);
-    }
 }

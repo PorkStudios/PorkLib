@@ -216,6 +216,7 @@ public class TcpProtocolManager implements ProtocolManager {
             c.pipeline().addLast(new LengthFieldPrepender(4));
             c.pipeline().addLast(new LengthFieldBasedFrameDecoder(0xFFFFFFFF, 0, 4, 0, 4));
             c.pipeline().addLast(new TcpPacketCodec(this.endpoint));
+            c.pipeline().addLast(new TcpPacketEncodingFilter(this.endpoint.getPacketRegistry()));
             c.pipeline().addLast(new TcpHandler(this.endpoint));
             this.registerHook.accept(c);
 

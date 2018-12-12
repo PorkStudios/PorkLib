@@ -15,10 +15,12 @@
 
 package net.daporkchop.lib.network.protocol.netty.tcp;
 
+import com.zaxxer.sparsebits.SparseBitSet;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
@@ -26,6 +28,9 @@ import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.protocol.netty.NettyConnection;
 import net.daporkchop.lib.network.util.reliability.Reliability;
+import net.daporkchop.lib.primitive.map.IntegerObjectMap;
+import net.daporkchop.lib.primitive.map.PorkMaps;
+import net.daporkchop.lib.primitive.map.array.IntegerObjectArrayMap;
 
 import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
@@ -37,27 +42,29 @@ import java.util.Map;
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
 @Getter
-public class WrapperNioSocketChannel extends NioSocketChannel implements NettyConnection {
+public class WrapperNioSocketChannel extends NioSocketChannel implements NettyConnection, Logging {
     private final Map<Class<? extends UserProtocol>, UserConnection> connections = new IdentityHashMap<>();
+    final IntegerObjectMap<TcpChannel> channels = PorkMaps.synchronize(new IntegerObjectArrayMap<>());
+    final SparseBitSet channelIds = new SparseBitSet();
     @NonNull
     private final Endpoint endpoint;
-    private final TcpChannel channel = new TcpChannel(this);
+    private final TcpChannel controlChannel;
+    private final TcpChannel defaultChannel;
 
-    public WrapperNioSocketChannel(SelectorProvider provider, @NonNull Endpoint endpoint) {
-        super(provider);
+    public WrapperNioSocketChannel(@NonNull Endpoint endpoint)  {
         this.endpoint = endpoint;
-    }
 
-    public WrapperNioSocketChannel(SocketChannel socket, @NonNull Endpoint endpoint) {
-        super(socket);
-        this.endpoint = endpoint;
+        this.controlChannel = (TcpChannel) this.openChannel(Reliability.RELIABLE_ORDERED, 0);
+        this.defaultChannel = (TcpChannel) this.openChannel(Reliability.RELIABLE_ORDERED, 1);
     }
 
     public WrapperNioSocketChannel(io.netty.channel.Channel parent, SocketChannel socket, @NonNull Endpoint endpoint) {
         super(parent, socket);
         this.endpoint = endpoint;
+
+        this.controlChannel = (TcpChannel) this.openChannel(Reliability.RELIABLE_ORDERED, 0);
+        this.defaultChannel = (TcpChannel) this.openChannel(Reliability.RELIABLE_ORDERED, 1);
     }
 
     //
@@ -68,26 +75,27 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements NettyCo
 
     @Override
     public Channel openChannel(Reliability reliability) {
-        return this.channel;
+        synchronized (this.channelIds)  {
+            return this.openChannel(reliability, this.channelIds.nextClearBit(0));
+        }
     }
 
     @Override
     public Channel getOpenChannel(int id) {
-        return id == 0 ? this.channel : null;
+        return this.channels.get(id);
     }
 
     @Override
     public Channel openChannel(Reliability reliability, int requestedId) {
-        return this.channel;
-    }
-
-    @Override
-    public Channel getDefaultChannel() {
-        return this.channel;
-    }
-
-    @Override
-    public Channel getControlChannel() {
-        return this.channel;
+        synchronized (this.channelIds)  {
+            if (this.channelIds.get(requestedId)) {
+                throw this.exception("Channel id ${0} already taken!", requestedId);
+            } else {
+                this.channelIds.set(requestedId);
+                TcpChannel channel = new TcpChannel(this, requestedId);
+                this.channels.put(requestedId, channel);
+                return channel;
+            }
+        }
     }
 }

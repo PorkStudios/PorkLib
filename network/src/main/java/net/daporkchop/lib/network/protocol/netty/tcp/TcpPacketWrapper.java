@@ -38,3 +38,18 @@ public class TcpPacketWrapper implements Logging {
         return this.format("packet=${0}, channel=${1}, id=${2}", this.data, this.channel, this.id);
     }
 }
+
+@AllArgsConstructor
+@Getter
+class UnencodedTcpPacket implements Logging {
+    @NonNull
+    private final Object message;
+
+    private final int id;
+    private final int channel;
+
+    @Override
+    public String toString() {
+        return this.format("packet=${0}, channel=${1}, id=${2}", this.message.getClass(), this.channel, this.id);
+    }
+}

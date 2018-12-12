@@ -26,4 +26,8 @@ public interface ChannelImplementation extends Channel {
     boolean isEncryptionReady();
 
     void setEncryptionReady(boolean state);
+
+    short getProtocolId();
+
+    void setProtocolId(short id);
 }

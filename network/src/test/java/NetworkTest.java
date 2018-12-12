@@ -24,7 +24,6 @@ import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.endpoint.client.Client;
 import net.daporkchop.lib.network.endpoint.server.Server;
 import net.daporkchop.lib.network.protocol.api.ProtocolManager;
-import net.daporkchop.lib.network.protocol.netty.sctp.SctpProtocolManager;
 import net.daporkchop.lib.network.protocol.netty.tcp.TcpProtocolManager;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 import org.junit.Test;
@@ -44,7 +43,7 @@ public class NetworkTest implements Logging {
             null
             , TcpProtocolManager.INSTANCE
             //TODO: make RakNet work , RakNetProtocolManager.INSTANCE
-            , SctpProtocolManager.INSTANCE
+            //, SctpProtocolManager.INSTANCE
     );
 
     static {
@@ -83,14 +82,6 @@ public class NetworkTest implements Logging {
                     .addProtocol(TestProtocol.INSTANCE)
                     .build();
             logger.info("Client started.");
-
-            client.getDefaultChannel().startEncryption(new CryptographySettings(
-                    CurveType.brainpoolp192r1,
-                    CipherType.AES,
-                    CipherMode.CBC,
-                    CipherPadding.PKCS7
-            ));
-            client.getDefaultChannel().waitForEncryption();
 
             {
                 int count = 3;

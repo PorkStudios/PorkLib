@@ -86,4 +86,14 @@ public interface Client extends Endpoint, Connection {
     default Channel getControlChannel() {
         return this.getConnection(PorkProtocol.class).getControlChannel();
     }
+
+    @Override
+    default boolean isClient() {
+        return true;
+    }
+
+    @Override
+    default boolean isServer() {
+        return false;
+    }
 }

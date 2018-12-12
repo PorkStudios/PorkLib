@@ -15,19 +15,14 @@
 
 package net.daporkchop.lib.network.channel;
 
-import net.daporkchop.lib.network.util.PacketReprocessor;
-
 /**
+ * Methods that are used across all channel implementations but are too internal to be included in {@link Channel}
+ *
  * @author DaPorkchop_
  */
 public interface ChannelImplementation extends Channel {
-    PacketReprocessor getPacketReprocessor();
+    /*boolean isEncryptionReady();
 
-    boolean isEncryptionReady();
-
-    void setEncryptionReady(boolean state);
-
-    short getProtocolId();
-
-    void setProtocolId(short id);
+    void setEncryptionReady(boolean state);*/
+    //TODO
 }

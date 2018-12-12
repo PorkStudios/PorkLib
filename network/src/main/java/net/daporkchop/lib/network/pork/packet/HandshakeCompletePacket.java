@@ -15,42 +15,36 @@
 
 package net.daporkchop.lib.network.pork.packet;
 
-import lombok.NoArgsConstructor;
+import io.netty.buffer.ByteBuf;
+import lombok.AllArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.network.channel.Channel;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.endpoint.client.PorkClient;
-import net.daporkchop.lib.network.packet.Codec;
-import net.daporkchop.lib.network.packet.Packet;
-import net.daporkchop.lib.network.pork.PorkConnection;
-
-import java.io.IOException;
+import net.daporkchop.lib.network.packet.handler.PacketHandler;
 
 /**
  * @author DaPorkchop_
  */
-@NoArgsConstructor
-public class HandshakeCompletePacket implements Packet {
-    @Override
-    public void read(DataIn in) throws IOException {
-        //in.readBytesSimple();
-    }
-
-    @Override
-    public void write(DataOut out) throws IOException {
-        //out.writeBytesSimple(new byte[0xFFFFFF]);
-    }
-
-    public static class HandshakeCompleteCodec implements Codec<HandshakeCompletePacket, PorkConnection> {
+@AllArgsConstructor
+public class HandshakeCompletePacket {
+    public static class HandshakeCompleteCodec implements PacketHandler<HandshakeCompletePacket> {
         @Override
-        public void handle(@NonNull HandshakeCompletePacket packet, @NonNull Channel channel, @NonNull PorkConnection connection) {
+        public void handle(@NonNull HandshakeCompletePacket packet, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception {
             connection.<PorkClient>getEndpoint().postConnectCallback(null);
         }
 
         @Override
-        public HandshakeCompletePacket createInstance() {
+        public void encode(@NonNull HandshakeCompletePacket packet, @NonNull ByteBuf buf) throws Exception {
+        }
+
+        @Override
+        public HandshakeCompletePacket decode(@NonNull ByteBuf buf) throws Exception {
             return new HandshakeCompletePacket();
+        }
+
+        @Override
+        public Class<HandshakeCompletePacket> getPacketClass() {
+            return HandshakeCompletePacket.class;
         }
     }
 }

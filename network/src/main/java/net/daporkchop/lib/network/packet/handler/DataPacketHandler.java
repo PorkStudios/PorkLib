@@ -42,7 +42,7 @@ public interface DataPacketHandler<P> extends PacketHandler<P>, DataCodec<P> {
     void handle(@NonNull P packet, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception;
 
     @Override
-    void encode(@NonNull P value, @NonNull DataOut out) throws Exception;
+    void encode(@NonNull P packet, @NonNull DataOut out) throws Exception;
 
     @Override
     P decode(@NonNull DataIn in) throws Exception;

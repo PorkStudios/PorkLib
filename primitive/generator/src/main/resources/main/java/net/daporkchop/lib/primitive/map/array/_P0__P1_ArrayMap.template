@@ -114,8 +114,9 @@ public class _P0__P1_ArrayMap_gH_ implements _P0__P1_Map_gH_ {
     @Override
     public void clear() {
         this.index.clear();
-        this.values = new _nameP1_[32];
         this.bits = 5;
+        this.keys = new _nameP0_[1 << this.bits];
+        this.values = new _nameP1_[1 << this.bits];
     }
 
     // Views
@@ -149,7 +150,7 @@ public class _P0__P1_ArrayMap_gH_ implements _P0__P1_Map_gH_ {
     @Override
     @SuppressWarnings("unchecked")
     public void forEach(@NonNull _P0__P1_BiConsumer_gSuper_ action) {
-        for (int i = this.index.nextSetBit(0); i < this.index.length(); i = this.index.nextSetBit(i + 1))   {
+        for (int i = this.index.nextSetBit(0); i != -1 && i < this.index.length(); i = this.index.nextSetBit(i + 1))   {
             action.accept(this.keys[i], _castP1_this.values[i]);
         }
     }

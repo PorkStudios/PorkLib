@@ -58,6 +58,7 @@ public class TcpHandler extends ChannelInboundHandlerAdapter implements Logging 
         }
 
         TcpPacketWrapper packet = (TcpPacketWrapper) msg;
+        logger.debug("Received message!");
         try {
             UnderlyingNetworkConnection connection = (UnderlyingNetworkConnection) ctx.channel();
             this.endpoint.getPacketRegistry().getHandler(packet.getId()).handle(packet.getData(), connection, packet.getChannel());
@@ -89,8 +90,8 @@ public class TcpHandler extends ChannelInboundHandlerAdapter implements Logging 
         /*this.endpoint.getPacketRegistry().getProtocols().stream() //TODO: implement this
                 .map(userProtocol -> realConnection.getUserConnection((Class<UserProtocol<UserConnection>>) userProtocol.getClass()))
                 .forEach(UserConnection::onConnect);*/
-        if (this.endpoint instanceof PorkServer) {
-            realConnection.send(new HandshakeInitPacket());
+        if (this.endpoint.isServer()) {
+            realConnection.send(new HandshakeInitPacket(), () -> logger.debug("Sent handshake init!"));
         } else if (false && this.endpoint instanceof PorkClient) {
             ((PorkClient) this.endpoint).postConnectCallback(null);
         }

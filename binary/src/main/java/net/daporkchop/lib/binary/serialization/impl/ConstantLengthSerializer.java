@@ -13,11 +13,11 @@
  *
  */
 
-package net.daporkchop.lib.binary.data.impl;
+package net.daporkchop.lib.binary.serialization.impl;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.data.Serializer;
+import net.daporkchop.lib.binary.serialization.Serializer;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.binary.stream.optimizations.NonExpandingByteArrayOutputStream;

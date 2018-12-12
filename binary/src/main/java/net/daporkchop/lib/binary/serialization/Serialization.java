@@ -14,10 +14,15 @@
 
 package net.daporkchop.lib.binary.serialization;
 
+import java.util.IdentityHashMap;
+import java.util.Map;
+
 /**
  * Maps {@link Serializer}s to ids and then does cool things with them
  *
  * @author DaPorkchop_
  */
 public class Serialization {
+    private final Map<Class<?>, Integer> classToId = new IdentityHashMap<>();
+    private final Map<Class<?>, Serializer<?>> classToSerializer = new IdentityHashMap<>();
 }

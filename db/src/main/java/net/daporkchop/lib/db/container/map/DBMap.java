@@ -19,7 +19,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.binary.data.Serializer;
+import net.daporkchop.lib.binary.serialization.Serializer;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.db.Container;
@@ -313,14 +313,14 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
          * The {@link Serializer} used for writing values to disk.
          * <p>
          * If the {@link DataLookup} expects constant-length values, this must
-         * be set to an instance of {@link net.daporkchop.lib.binary.data.impl.ConstantLengthSerializer}.
+         * be set to an instance of {@link net.daporkchop.lib.binary.serialization.impl.ConstantLengthSerializer}.
          * <p>
          * MUST BE SET! Unlike all other fields in this class, this one is NOT set to a
          * default value.
          *
-         * @see net.daporkchop.lib.binary.data.impl.BasicSerializer
-         * @see net.daporkchop.lib.binary.data.impl.ConstantLengthSerializer
-         * @see net.daporkchop.lib.binary.data.impl.ByteArraySerializer
+         * @see net.daporkchop.lib.binary.serialization.impl.BasicSerializer
+         * @see net.daporkchop.lib.binary.serialization.impl.ConstantLengthSerializer
+         * @see net.daporkchop.lib.binary.serialization.impl.ByteArraySerializer
          * @see net.daporkchop.lib.nbt.util.NBTSerializer
          * @see net.daporkchop.lib.nbt.util.IndirectNBTSerializer
          */

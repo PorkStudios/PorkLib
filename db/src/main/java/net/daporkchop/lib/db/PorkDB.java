@@ -159,22 +159,6 @@ public class PorkDB implements Logging {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private <V, C extends Container<V, ? extends Container.Builder<V, C>>> C computeIfAbsent(@NonNull String name, @NonNull IOFunction<String, C> creator) {
-        return (C) this.loadedContainers.computeIfAbsent(name, creator);
-    }
-
-    @SuppressWarnings("unchecked")
-    private <V, C extends Container<V, B>, B extends Container.Builder<V, C>> C load(@NonNull B builder, @NonNull Consumer<B>... populators) throws IOException {
-        for (Consumer<B> p : populators) {
-            if (p == null) {
-                throw new NullPointerException();
-            }
-            p.accept(builder);
-        }
-        return builder.build();
-    }
-
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     @Accessors(chain = true)
     @Getter

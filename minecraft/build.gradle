@@ -19,7 +19,7 @@ dependencies {
     compile project(":http")
     compile project(":minecraft:minecraft-text")
     compile project(":primitive")
-    compile project(":nbt")
+    compile project(":encoding:nbt")
 
     compile "com.google.code.gson:gson:$gsonVersion"
 }

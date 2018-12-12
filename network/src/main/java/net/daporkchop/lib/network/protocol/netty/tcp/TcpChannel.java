@@ -26,7 +26,6 @@ import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.packet.UserProtocol;
-import net.daporkchop.lib.network.packet.handler.PacketHandler;
 import net.daporkchop.lib.network.protocol.netty.NettyChannel;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 
@@ -47,13 +46,13 @@ public class TcpChannel extends NettyChannel implements Logging {
     private static final Collection<Reliability> RELIABLE_ORDERED_ONLY = Collections.singleton(Reliability.RELIABLE_ORDERED);
 
     @NonNull
-    private final WrapperNioSocketChannel realChannel;
+    private final WrapperNioSocketChannel channel;
     private final int id;
 
     @Override
     public void send(@NonNull Object message, boolean blocking, Void callback, Reliability reliability) {
-        int id = this.realChannel.getEndpoint().getPacketRegistry().getId(message.getClass());
-        ChannelFuture future = this.realChannel.writeAndFlush(new UnencodedTcpPacket(message, id, this.id));
+        int id = this.channel.getEndpoint().getPacketRegistry().getId(message.getClass());
+        ChannelFuture future = this.channel.writeAndFlush(new UnencodedTcpPacket(message, id, this.id));
         if (callback != null) {
             future.addListener(f -> callback.run());
         }
@@ -64,7 +63,7 @@ public class TcpChannel extends NettyChannel implements Logging {
 
     @Override
     public void send(@NonNull ByteBuf data, int id, boolean blocking, Void callback, Reliability reliability) {
-        ChannelFuture future = this.realChannel.writeAndFlush(new TcpPacketWrapper(data, this.id, id));
+        ChannelFuture future = this.channel.writeAndFlush(new TcpPacketWrapper(data, this.id, id));
         if (callback != null) {
             future.addListener(f -> callback.run());
         }
@@ -85,14 +84,14 @@ public class TcpChannel extends NettyChannel implements Logging {
 
     @Override
     public <C extends UserConnection> C getConnection(@NonNull Class<? extends UserProtocol<C>> protocolClass) {
-        return this.realChannel.getUserConnection(protocolClass);
+        return this.channel.getUserConnection(protocolClass);
     }
 
     @Override
     public void close() {
-        synchronized (this.realChannel.channelIds) {
-            this.realChannel.channels.remove(this.id);
-            this.realChannel.channelIds.clear(this.id);
+        synchronized (this.channel.channelIds) {
+            this.channel.channels.remove(this.id);
+            this.channel.channelIds.clear(this.id);
         }
     }
 
@@ -103,6 +102,6 @@ public class TcpChannel extends NettyChannel implements Logging {
 
     @Override
     public UnderlyingNetworkConnection getConnection() {
-        return this.realChannel;
+        return this.channel;
     }
 }

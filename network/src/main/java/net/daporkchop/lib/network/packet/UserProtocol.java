@@ -22,6 +22,7 @@ import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.packet.handler.MessageHandler;
 import net.daporkchop.lib.network.packet.handler.PacketHandler;
+import net.daporkchop.lib.network.pork.PorkProtocol;
 import net.daporkchop.lib.network.util.Version;
 import net.daporkchop.lib.primitive.map.ObjectShortMap;
 import net.daporkchop.lib.primitive.map.ShortObjectMap;
@@ -29,6 +30,9 @@ import net.daporkchop.lib.primitive.map.array.ShortObjectArrayMap;
 import net.daporkchop.lib.primitive.map.hashmap.ObjectShortHashMap;
 
 /**
+ * A {@link UserProtocol} defines a mapping of packet IDs to packet handlers, and can be used to contain per-connection data
+ * via a {@link UserConnection}.
+ *
  * @author DaPorkchop_
  */
 public abstract class UserProtocol<C extends UserConnection> implements Logging {
@@ -39,15 +43,28 @@ public abstract class UserProtocol<C extends UserConnection> implements Logging 
     private final String name;
     @Getter
     private final int version;
+    @Getter
+    private final int requestedId;
     private SparseBitSet ids;
 
     public UserProtocol(@NonNull String name, int version) {
-        this.name = name;
-        this.version = version;
+        this(name, version, -1);
+    }
 
-        this.ids = new SparseBitSet();
-        this.registerPackets();
-        this.ids = null;
+    public UserProtocol(@NonNull String name, int version, int requestedId) {
+        if (requestedId > 0xFFFF || requestedId < -1)   {
+            throw new IllegalArgumentException("Requested ID must be in range 0-65535, or -1 to ignore!");
+        } else if (requestedId == 0 && !(this instanceof PorkProtocol)) {
+            throw new IllegalArgumentException("Protocol ID 0 is reserved for PorkLib network!");
+        } else {
+            this.name = name;
+            this.version = version;
+            this.requestedId = requestedId;
+
+            this.ids = new SparseBitSet();
+            this.registerPackets();
+            this.ids = null;
+        }
     }
 
     public boolean isCompatible(@NonNull UserProtocol<C> protocol) {

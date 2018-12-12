@@ -163,22 +163,6 @@ public interface Channel {
     Collection<Reliability> supportedReliabilities();
 
     /**
-     * Checks if encryption is enabled
-     *
-     * @return whether or not encryption is enabled on this channel
-     */
-    boolean isEncrypted();
-
-    /**
-     * Initializes encryption for this channel.
-     * <p>
-     * Be aware that (((currently))) encryption is only supported for messages sent via {@link Reliability#RELIABLE_ORDERED}.
-     *
-     * @param cryptographySettings the cryptography settings to use
-     */
-    void startEncryption(@NonNull CryptographySettings cryptographySettings);
-
-    /**
      * Gets this channel's endpoint
      *
      * @param <E> convenience cast

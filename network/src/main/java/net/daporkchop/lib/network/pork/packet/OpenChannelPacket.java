@@ -16,49 +16,45 @@
 package net.daporkchop.lib.network.pork.packet;
 
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.network.channel.Channel;
-import net.daporkchop.lib.network.packet.Codec;
-import net.daporkchop.lib.network.pork.PorkConnection;
-import net.daporkchop.lib.network.pork.PorkPacket;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
+import net.daporkchop.lib.network.packet.handler.DataPacketHandler;
 import net.daporkchop.lib.network.util.reliability.Reliability;
-
-import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
 @AllArgsConstructor
-@NoArgsConstructor
-public class OpenChannelPacket implements PorkPacket {
+public class OpenChannelPacket {
     @NonNull
-    public Reliability reliability;
-    public int channelId;
+    public final Reliability reliability;
+    public final int channelId;
 
-    @Override
-    public void read(DataIn in) throws IOException {
-        this.reliability = in.readEnum(Reliability::valueOf);
-        this.channelId = in.readVarInt(true);
-    }
-
-    @Override
-    public void write(DataOut out) throws IOException {
-        out.writeEnum(this.reliability);
-        out.writeVarInt(this.channelId, true);
-    }
-
-    public static class OpenChannelCodec implements Codec<OpenChannelPacket, PorkConnection> {
+    public static class OpenChannelCodec implements DataPacketHandler<OpenChannelPacket> {
         @Override
-        public void handle(@NonNull OpenChannelPacket packet, @NonNull Channel channel, @NonNull PorkConnection connection) {
+        public void handle(@NonNull OpenChannelPacket packet, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception {
             connection.openChannel(packet.reliability, packet.channelId);
         }
 
         @Override
-        public OpenChannelPacket createInstance() {
-            return new OpenChannelPacket();
+        public void encode(@NonNull OpenChannelPacket packet, @NonNull DataOut out) throws Exception {
+            out.writeEnum(packet.reliability);
+            out.writeVarInt(packet.channelId, true);
+        }
+
+        @Override
+        public OpenChannelPacket decode(@NonNull DataIn in) throws Exception {
+            return new OpenChannelPacket(
+                    in.readEnum(Reliability::valueOf),
+                    in.readVarInt(true)
+            );
+        }
+
+        @Override
+        public Class<OpenChannelPacket> getPacketClass() {
+            return OpenChannelPacket.class;
         }
     }
 }

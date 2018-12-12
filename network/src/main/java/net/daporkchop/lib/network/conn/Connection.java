@@ -19,7 +19,6 @@ import lombok.NonNull;
 import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.endpoint.Endpoint;
-import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 
 import java.net.InetSocketAddress;
@@ -64,7 +63,7 @@ public interface Connection {
     /**
      * Send a packet to the remote endpoint
      *
-     * @param message   the packet to send
+     * @param message  the packet to send
      * @param blocking whether or not to block the invoking thread until the underlying network channel has been flushed
      * @param callback a function to run after the underlying network channel has been flushed. if {@code null}, this
      *                 parameter is ignored.
@@ -101,8 +100,6 @@ public interface Connection {
      * <p>
      * For most implementations, this will return the same channel that PorkLib network uses for sending control messages, and
      * should therefore be avoided in applications where performance is critical.
-     * <p>
-     * For some implementations (e.g. TCP) this will return the only accessible channel (as TCP only has one channel)
      *
      * @return this connection's default channel
      */
@@ -113,9 +110,8 @@ public interface Connection {
     /**
      * Gets this connection's control channel.
      * <p>
-     * This is the channel that PorkLib network sends internal packets on, and should be avoided as much as possible.
-     * <p>
-     * For some implementations (e.g. TCP) this will return the only accessible channel (as TCP only has one channel)
+     * !!! WARNING !!!
+     * This is the channel that PorkLib network sends internal packets on! Do not use unless you know what you're doing!
      *
      * @return this connection's control channel
      */

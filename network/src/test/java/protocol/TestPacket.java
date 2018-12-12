@@ -16,42 +16,39 @@
 package protocol;
 
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.channel.Channel;
-import net.daporkchop.lib.network.packet.Codec;
-import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
+import net.daporkchop.lib.network.packet.handler.DataPacketHandler;
 
-import java.io.IOException;
-
-@NoArgsConstructor
 @AllArgsConstructor
-public class TestPacket implements Packet {
+public class TestPacket {
     @NonNull
-    public String message;
+    public final String message;
 
-    @Override
-    public void read(DataIn in) throws IOException {
-        this.message = in.readUTF();
-    }
-
-    @Override
-    public void write(DataOut out) throws IOException {
-        out.writeUTF(this.message);
-    }
-
-    public static class TestCodec implements Codec<TestPacket, TestConnection>, Logging {
+    public static class TestCodec implements DataPacketHandler<TestPacket>, Logging {
         @Override
-        public void handle(@NonNull TestPacket packet, @NonNull Channel channel, @NonNull TestConnection connection) {
-            logger.info("[${0}] Received test packet on channel ${2}: ${1}", connection.getEndpoint().getName(), packet.message, channel.getId());
+        public void handle(@NonNull TestPacket packet, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception {
+            logger.info("[${0}] Received test packet on channel ${2}: ${1}", connection.getEndpoint().getName(), packet.message, channelId);
         }
 
         @Override
-        public TestPacket createInstance() {
-            return new TestPacket();
+        public void encode(@NonNull TestPacket packet, @NonNull DataOut out) throws Exception {
+            out.writeUTF(packet.message);
+        }
+
+        @Override
+        public TestPacket decode(@NonNull DataIn in) throws Exception {
+            return new TestPacket(
+                    in.readUTF()
+            );
+        }
+
+        @Override
+        public Class<TestPacket> getPacketClass() {
+            return TestPacket.class;
         }
     }
 }

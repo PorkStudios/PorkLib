@@ -104,6 +104,10 @@ public class CryptographySettings implements Data {
         this.streamCipherType = cryptographySettings.streamCipherType;
     }
 
+    public CryptographySettings(@NonNull DataIn in) throws IOException {
+        this.read(in);
+    }
+
     /**
      * @see #random(Random)
      */

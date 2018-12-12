@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.network.packet;
 
+import com.zaxxer.sparsebits.SparseBitSet;
 import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.logging.Logging;
@@ -30,9 +31,10 @@ import net.daporkchop.lib.primitive.map.hashmap.ObjectShortHashMap;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
+ * A collection of {@link UserProtocol}s
+ *
  * @author DaPorkchop_
  */
 public class PacketRegistry implements Logging {
@@ -48,12 +50,21 @@ public class PacketRegistry implements Logging {
             throw this.exception("Too many protocols: ${0}", protocols.size());
         }
         this.protocols = Collections.unmodifiableCollection(protocols);
-        AtomicInteger idCounter = new AtomicInteger(1); //start at id 1 so that we can leave id 0 for raw channels
+        SparseBitSet ids = new SparseBitSet();
         for (UserProtocol<UserConnection> protocol : protocols) {
             if (protocol == null) {
                 throw new NullPointerException();
             }
-            short protocolId = (short) idCounter.getAndIncrement();
+            short protocolId;
+            int requestedId = protocol.getRequestedId();
+            if (requestedId == -1) {
+                protocolId = (short) ids.nextClearBit(0);
+            } else if (ids.get(requestedId)) {
+                throw this.exception("Protocol ID ${0} already taken by ${1}!", requestedId, this.idToProtocol.get((short) requestedId));
+            } else {
+                protocolId = (short) requestedId;
+            }
+            ids.set(protocolId & 0xFFFF);
             this.idToProtocol.put(protocolId, protocol);
             if (this.protocolToId.containsKey(protocol.getClass())) {
                 throw this.exception("Protocol ${0} is registered twice!", protocol.getClass());

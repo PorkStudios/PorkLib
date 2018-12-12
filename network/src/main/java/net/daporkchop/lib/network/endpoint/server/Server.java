@@ -47,4 +47,14 @@ public interface Server extends Endpoint, ServerChannel {
     default <S extends Server> S getServer() {
         return (S) this;
     }
+
+    @Override
+    default boolean isClient() {
+        return false;
+    }
+
+    @Override
+    default boolean isServer() {
+        return true;
+    }
 }

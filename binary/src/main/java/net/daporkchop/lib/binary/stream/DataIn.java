@@ -19,6 +19,7 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.UTF8;
 
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -166,14 +167,15 @@ public abstract class DataIn extends InputStream {
         int v = 0;
         int i;
         int o = 0;
-        while (true) {
+        do {
             i = this.read();
-            v |= (i & 0x7F) << o;
-            o += 7;
-            if ((i & 0x80) == 0) {
-                break;
+            if (i == -1) {
+                throw new IllegalStateException("reached end of stream!");
+            } else {
+                v |= (i & 0x7F) << o;
+                o += 7;
             }
-        }
+        } while ((i & 0x80) != 0);
         return optimizePositive ? v : ((v >>> 1) ^ -(v & 1));
     }
 
@@ -185,26 +187,23 @@ public abstract class DataIn extends InputStream {
         long v = 0L;
         int i;
         int o = 0;
-        while (true) {
+        do {
             i = this.read();
-            v |= (i & 0x7FL) << o;
-            o += 7;
-            if ((i & 0x80) == 0) {
-                break;
+            if (i == -1) {
+                throw new IllegalStateException("reached end of stream!");
+            } else {
+                v |= (i & 0x7FL) << o;
+                o += 7;
             }
-        }
+        } while ((i & 0x80) != 0);
         return optimizePositive ? v : ((v >>> 1L) ^ -(v & 1L));
     }
 
-    public int readFully(byte[] b, int off, int len) throws IOException {
-        if (len != 0) {
-            for (int i = 0; i < len; i++) {
-                b[i + off] = (byte) this.read();
-            }
-            return len;
-        } else {
-            return 0;
+    public int readFully(@NonNull byte[] b, int off, int len) throws IOException {
+        if (len >= 0 && StreamUtil.read(this, b, off, len) != len) {
+            throw new EOFException();
         }
+        return len;
     }
 
     @Override
@@ -300,10 +299,10 @@ public abstract class DataIn extends InputStream {
             } else if (var1 <= 0L) {
                 return 0L;
             } else {
-                int var3 = (int)var1;
+                int var3 = (int) var1;
                 int var4 = Math.min(this.buffer.remaining(), var3);
                 this.buffer.position(this.buffer.position() + var4);
-                return (long)var3;
+                return (long) var3;
             }
         }
 

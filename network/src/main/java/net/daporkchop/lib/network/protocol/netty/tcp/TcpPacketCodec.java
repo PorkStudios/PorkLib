@@ -21,9 +21,6 @@ import io.netty.handler.codec.MessageToMessageCodec;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.netty.NettyByteBufUtil;
-import net.daporkchop.lib.network.channel.ChannelImplementation;
-import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 
@@ -42,13 +39,24 @@ public class TcpPacketCodec extends MessageToMessageCodec<ByteBuf, TcpPacketWrap
 
     @Override
     protected void encode(@NonNull ChannelHandlerContext ctx, @NonNull TcpPacketWrapper msg, @NonNull List<Object> out) throws Exception {
-        //TODO: should we add a length prefix here?
-        out.add(ctx.alloc().buffer(8).writeInt(msg.getChannel()).writeInt(msg.getId()));
-        out.add(msg.getData().retain());
+        try {
+            out.add(ctx.alloc().buffer(12).writeInt(msg.getData().readableBytes() + 8).writeInt(msg.getChannel()).writeInt(msg.getId()));
+            out.add(msg.getData().retain());
+        } catch (Exception e) {
+            logger.error(e);
+            throw e;
+        }
     }
 
     @Override
     protected void decode(@NonNull ChannelHandlerContext ctx, @NonNull ByteBuf in, @NonNull List<Object> out) throws Exception {
-        out.add(new TcpPacketWrapper(in.retain(), in.readInt(), in.readInt()));
+        try {
+            int channelId = in.readInt();
+            int packetId = in.readInt();
+            out.add(new TcpPacketWrapper(in.retain(), channelId, packetId));
+        } catch (Exception e) {
+            logger.error(e);
+            throw e;
+        }
     }
 }

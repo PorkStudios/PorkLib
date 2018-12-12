@@ -13,6 +13,7 @@
  *
  */
 
+import io.netty.util.ResourceLeakDetector;
 import net.daporkchop.lib.crypto.CryptographySettings;
 import net.daporkchop.lib.crypto.cipher.block.CipherMode;
 import net.daporkchop.lib.crypto.cipher.block.CipherPadding;
@@ -47,6 +48,8 @@ public class NetworkTest implements Logging {
     );
 
     static {
+        ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.PARANOID);
+
         logger.setLevel(4);
         logger.add(new File("./test_out/test_network.log"), true);
     }

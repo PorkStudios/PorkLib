@@ -21,6 +21,7 @@ import io.netty.handler.codec.MessageToMessageEncoder;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.packet.PacketRegistry;
 import net.daporkchop.lib.network.packet.handler.PacketHandler;
 
@@ -40,9 +41,14 @@ public class TcpPacketEncodingFilter extends MessageToMessageEncoder<UnencodedTc
     @Override
     @SuppressWarnings("unchecked")
     protected void encode(@NonNull ChannelHandlerContext ctx, @NonNull UnencodedTcpPacket msg, List<Object> out) throws Exception {
-        ByteBuf buf = ctx.alloc().ioBuffer();
-        PacketHandler handler = (PacketHandler) this.registry.getHandler(msg.getId());
-        handler.encode(msg.getMessage(), buf);
-        out.add(new TcpPacketWrapper(buf.retain(), msg.getId(), msg.getChannel()));
+        try {
+            ByteBuf buf = ctx.alloc().ioBuffer();
+            PacketHandler handler = (PacketHandler) this.registry.getHandler(msg.getId());
+            handler.encode(msg.getMessage(), buf);
+            out.add(new TcpPacketWrapper(buf.retain(), msg.getChannel(), msg.getId()));
+        } catch (Exception e)   {
+            Logging.logger.error(e);
+            throw e;
+        }
     }
 }

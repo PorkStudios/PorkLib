@@ -213,7 +213,7 @@ public class TcpProtocolManager implements ProtocolManager {
 
         @Override
         protected void initChannel(Channel c) throws Exception {
-            c.pipeline().addLast(new LengthFieldPrepender(4));
+            //c.pipeline().addLast(new LengthFieldPrepender(4));
             c.pipeline().addLast(new LengthFieldBasedFrameDecoder(0x7FFFFFFF, 0, 4, 0, 4));
             c.pipeline().addLast(new TcpPacketCodec(this.endpoint));
             c.pipeline().addLast(new TcpPacketEncodingFilter(this.endpoint.getPacketRegistry()));

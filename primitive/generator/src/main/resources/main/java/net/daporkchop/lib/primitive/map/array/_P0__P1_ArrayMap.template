@@ -76,6 +76,7 @@ public class _P0__P1_ArrayMap_gH_ implements _P0__P1_Map_gH_ {
                 this.bits <<= 1;
             }
             this.index.set(i);
+            this.keys[i] = key;
             this.values[i] = value;
             return _P1E_;
         }

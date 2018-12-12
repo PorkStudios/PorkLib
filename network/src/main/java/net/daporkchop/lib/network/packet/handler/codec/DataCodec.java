@@ -17,7 +17,7 @@ package net.daporkchop.lib.network.packet.handler.codec;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.NettyByteBufUtil;
+import net.daporkchop.lib.binary.netty.NettyByteBufUtil;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 

@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.crypto;
 
+import net.daporkchop.lib.common.test.TestRandomData;
 import net.daporkchop.lib.crypto.key.EllipticCurveKeyPair;
 import net.daporkchop.lib.crypto.keygen.KeyGen;
 import net.daporkchop.lib.crypto.sig.ec.CurveType;
@@ -26,11 +27,10 @@ import org.junit.Test;
 public class SignatureTest {
     @Test
     public void testEC() {
-        byte[][] randomData = EncryptionTest.generateRandomBytes();
         ECDSAHelper helper = new ECDSAHelper(Digest.SHA256);
         for (CurveType type : CurveType.values()) {
             EllipticCurveKeyPair keyPair = KeyGen.gen(type);
-            for (byte[] b : randomData) {
+            for (byte[] b : TestRandomData.randomBytes) {
                 byte[] sig = helper.sign(b, keyPair);
                 if (!helper.verify(sig, b, keyPair)) {
                     throw new IllegalStateException(String.format("Invalid signature on curve type %s", type.name));

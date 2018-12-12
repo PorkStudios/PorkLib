@@ -16,7 +16,7 @@
 dependencies {
     compile project(":encoding")
     compile project(":binary")
-    compile project(":nbt")
+    compile project(":encoding:nbt")
     compile project(":hash")
     compile project(":logging")
     compile project(":primitive")

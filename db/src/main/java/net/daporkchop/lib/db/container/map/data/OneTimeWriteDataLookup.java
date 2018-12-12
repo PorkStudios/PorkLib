@@ -114,7 +114,7 @@ public class OneTimeWriteDataLookup implements DataLookup {
 
     @Override
     public DataIn read(long id) throws IOException {
-        return new BufferingFileInput(this.channel, id, 4096);
+        return new BufferingFileInput(this.channel, 4096, id);
     }
 
     @Override

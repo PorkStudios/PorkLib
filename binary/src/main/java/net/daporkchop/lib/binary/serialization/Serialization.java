@@ -10,29 +10,14 @@
  * Any persons and/or organizations using this software must disclose their source code and have it publicly available, include this license, provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
-package net.daporkchop.lib.common.function;
-
-import java.io.IOException;
-import java.util.function.BiFunction;
-import java.util.function.Function;
+package net.daporkchop.lib.binary.serialization;
 
 /**
- * A {@link Function} that can throw an {@link IOException}
+ * Maps {@link Serializer}s to ids and then does cool things with them
  *
  * @author DaPorkchop_
  */
-public interface IOBiFunction<T, U, R> extends BiFunction<T, U, R> {
-    @Override
-    default R apply(T t, U u) {
-        try {
-            return this.applyThrowing(t, u);
-        } catch (IOException e)  {
-            throw new RuntimeException(e);
-        }
-    }
-
-    R applyThrowing(T t, U u) throws IOException;
+public class Serialization {
 }

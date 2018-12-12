@@ -20,7 +20,7 @@ import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.binary.stream.data.HugeBufferIn;
 import net.daporkchop.lib.binary.stream.data.HugeBufferOut;
-import net.daporkchop.lib.common.function.IOConsumer;
+import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.db.container.map.DBMap;
 import net.daporkchop.lib.db.util.PersistentSparseBitSet;
 import net.daporkchop.lib.math.primitive.RoundUp;

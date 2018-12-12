@@ -17,8 +17,8 @@ package net.daporkchop.lib.db.container.map.index;
 
 import lombok.NonNull;
 import net.daporkchop.lib.binary.Persistent;
-import net.daporkchop.lib.common.function.IOConsumer;
-import net.daporkchop.lib.common.function.IOFunction;
+import net.daporkchop.lib.common.function.io.IOConsumer;
+import net.daporkchop.lib.common.function.io.IOFunction;
 import net.daporkchop.lib.db.container.map.DBMap;
 
 import java.io.File;

@@ -27,7 +27,6 @@ import com.google.api.client.http.InputStreamContent;
 import com.google.api.client.http.apache.ApacheHttpTransport;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.UTF8;
-import net.daporkchop.lib.binary.stream.FastByteArrayOutputStream;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

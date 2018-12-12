@@ -17,7 +17,7 @@ package net.daporkchop.lib.binary.stream.data;
 
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.common.function.IOConsumer;
+import net.daporkchop.lib.common.function.io.IOConsumer;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

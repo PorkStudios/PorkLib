@@ -23,7 +23,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.common.function.IOConsumer;
+import net.daporkchop.lib.common.function.io.IOConsumer;
 
 import java.io.File;
 import java.io.IOException;

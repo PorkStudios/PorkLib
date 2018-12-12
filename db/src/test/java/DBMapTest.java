@@ -16,7 +16,7 @@
 import lombok.NonNull;
 import net.daporkchop.lib.binary.data.Serializer;
 import net.daporkchop.lib.binary.data.impl.ByteArraySerializer;
-import net.daporkchop.lib.common.function.IOConsumer;
+import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.db.PorkDB;
 import net.daporkchop.lib.db.container.map.DBMap;

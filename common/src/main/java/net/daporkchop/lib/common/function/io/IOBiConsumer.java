@@ -10,28 +10,26 @@
  * Any persons and/or organizations using this software must disclose their source code and have it publicly available, include this license, provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
-package net.daporkchop.lib.common.function;
+package net.daporkchop.lib.common.function.io;
 
 import java.io.IOException;
-import java.util.function.Function;
+import java.util.function.BiConsumer;
 
 /**
- * A {@link Function} that can throw an {@link IOException}
- *
  * @author DaPorkchop_
  */
-public interface IOFunction<T, R> extends Function<T, R> {
+@FunctionalInterface
+public interface IOBiConsumer<T, U> extends BiConsumer<T, U> {
     @Override
-    default R apply(T t)    {
+    default void accept(T t, U u) {
         try {
-            return this.applyThrowing(t);
-        } catch (IOException e)  {
+            this.acceptThrowing(t, u);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    R applyThrowing(T t) throws IOException;
+    void acceptThrowing(T t, U u) throws IOException;
 }

@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.crypto.cipher.seek;
+package net.daporkchop.lib.crypto.cipher.seekable;
 
 import lombok.NonNull;
 import net.daporkchop.lib.crypto.cipher.Cipher;

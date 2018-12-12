@@ -60,20 +60,44 @@ public interface Cipher {
         return new StreamCipher(type, key, side);
     }
 
-    static Cipher createPseudoStream(@NonNull CipherType type, @NonNull CipherMode mode, @NonNull CipherKey key)  {
+    static Cipher createPseudoStream(@NonNull CipherType type, @NonNull CipherMode mode, @NonNull CipherKey key) {
         return createPseudoStream(type, mode, key, CipherInitSide.ONE_WAY);
     }
 
-    static Cipher createPseudoStream(@NonNull CipherType type, @NonNull CipherMode mode, @NonNull CipherKey key, @NonNull CipherInitSide side)  {
+    static Cipher createPseudoStream(@NonNull CipherType type, @NonNull CipherMode mode, @NonNull CipherKey key, @NonNull CipherInitSide side) {
         return new StreamCipher(type, mode, key, side);
     }
 
+    /**
+     * Encrypt a message
+     *
+     * @param plaintext the plaintext (unencrypted) message
+     * @return the encrypted ciphertext
+     */
     byte[] encrypt(@NonNull byte[] plaintext);
 
+    /**
+     * Decrypt a message
+     *
+     * @param ciphertext the ciphertext (encrypted) message
+     * @return the decrypted plaintext
+     */
     byte[] decrypt(@NonNull byte[] ciphertext);
 
-    OutputStream encrypt(@NonNull OutputStream outputStream);
+    /**
+     * Gets an {@link OutputStream} that will encrypt data written to it
+     *
+     * @param out an {@link OutputStream} to write encrypted data to
+     * @return an {@link OutputStream} that will encrypt data written to it
+     */
+    OutputStream encrypt(@NonNull OutputStream out);
 
-    InputStream decrypt(@NonNull InputStream inputStream);
+    /**
+     * Gets an {@link InputStream} that will decrypt data read from it
+     *
+     * @param in an {@link InputStream} to read encrypted data from
+     * @return an {@link InputStream} that will decrypt data read from it
+     */
+    InputStream decrypt(@NonNull InputStream in);
 }
 

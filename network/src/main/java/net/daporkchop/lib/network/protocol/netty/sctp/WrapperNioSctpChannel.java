@@ -44,7 +44,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @Getter
 public class WrapperNioSctpChannel extends NioSctpChannel implements NettyConnection, Logging {
     final SparseBitSet channelIds = new SparseBitSet();
-    final IntegerObjectMap<SctpChannel> channels = PorkMaps.synchronize(new IntegerObjectHashMap<>(), new ReentrantLock());
+    final IntegerObjectMap<SctpChannel> channels = PorkMaps.synchronize(new IntegerObjectArrayMap<>(), new ReentrantLock());
     @NonNull
     private final Endpoint endpoint;
     private final Map<Class<? extends UserProtocol>, UserConnection> connections = new IdentityHashMap<>();
@@ -107,7 +107,7 @@ public class WrapperNioSctpChannel extends NioSctpChannel implements NettyConnec
 
     @Override
     public void disconnectAtNetworkLevel() {
-        this.channels.values().forEach(channel -> channel.closed = true);
+        this.channels.forEach((id, channel) -> channel.closed = true);
         this.channels.clear();
         NettyConnection.super.disconnectAtNetworkLevel();
     }

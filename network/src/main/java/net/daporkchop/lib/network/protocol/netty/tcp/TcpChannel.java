@@ -56,19 +56,15 @@ public class TcpChannel extends NettyChannel implements Logging {
         if (this.closed) {
             throw new IllegalStateException("channel closed!");
         } else {
-            this.doSend(message, blocking, callback);
-        }
-    }
-
-    private void doSend(@NonNull Object message, boolean blocking, Void callback)   {
-        //logger.debug("Writing ${0} (${1}blocking)...", message.getClass(), blocking ? "" : "non-");
-        int id = this.channel.getEndpoint().getPacketRegistry().getId(message.getClass());
-        ChannelFuture future = this.channel.writeAndFlush(new UnencodedTcpPacket(message, this.id, id));
-        if (callback != null) {
-            future.addListener(f -> callback.run());
-        }
-        if (blocking) {
-            future.syncUninterruptibly();
+            //logger.debug("Writing ${0} (${1}blocking)...", message.getClass(), blocking ? "" : "non-");
+            int id = this.channel.getEndpoint().getPacketRegistry().getId(message.getClass());
+            ChannelFuture future = this.channel.writeAndFlush(new UnencodedTcpPacket(message, this.id, id));
+            if (callback != null) {
+                future.addListener(f -> callback.run());
+            }
+            if (blocking) {
+                future.syncUninterruptibly();
+            }
         }
     }
 
@@ -118,7 +114,7 @@ public class TcpChannel extends NettyChannel implements Logging {
                 }
                 this.closed = true;
                 if (notifyRemote) {
-                    this.doSend(new CloseChannelPacket(this.id), true, null);
+                    this.channel.getControlChannel().send(new CloseChannelPacket(this.id), true);
                 }
             }
         }

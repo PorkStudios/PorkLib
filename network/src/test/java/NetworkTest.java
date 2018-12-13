@@ -22,6 +22,7 @@ import net.daporkchop.lib.network.endpoint.client.Client;
 import net.daporkchop.lib.network.endpoint.server.Server;
 import net.daporkchop.lib.network.pork.PorkProtocol;
 import net.daporkchop.lib.network.protocol.api.ProtocolManager;
+import net.daporkchop.lib.network.protocol.netty.sctp.SctpProtocolManager;
 import net.daporkchop.lib.network.protocol.netty.tcp.TcpProtocolManager;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 import org.junit.Test;
@@ -45,7 +46,7 @@ public class NetworkTest implements Logging {
             null
             , TcpProtocolManager.INSTANCE
             //TODO: make RakNet work , RakNetProtocolManager.INSTANCE
-            //, SctpProtocolManager.INSTANCE
+            , SctpProtocolManager.INSTANCE
     );
 
     static {
@@ -108,6 +109,7 @@ public class NetworkTest implements Logging {
                     channelIds.add(i + j);
                 }
                 logger.info("Testing if packets arrive on the correct channels...");
+                logger.trace("  Closing channels again...");
                 channelIds.forEach(i -> {
                     if (ThreadLocalRandom.current().nextBoolean())  {
                         client.getConnection(PorkProtocol.class).openChannel(Reliability.RELIABLE, i, true);
@@ -116,6 +118,7 @@ public class NetworkTest implements Logging {
                     }
                 });
                 sleep(1000L);
+                logger.trace("Sending some packets...");
                 channelIds.forEach(i -> {
                     if (ThreadLocalRandom.current().nextBoolean()) {
                         client.getOpenChannel(i).send(new TestChannelsPacket(i));
@@ -124,7 +127,7 @@ public class NetworkTest implements Logging {
                     }
                 });
                 sleep(1000L);
-                logger.info("Closing channels again...");
+                logger.trace("Closing channels again...");
                 channelIds.forEach(i -> {
                     if (ThreadLocalRandom.current().nextBoolean()) {
                         client.getOpenChannel(i).close();
@@ -133,6 +136,7 @@ public class NetworkTest implements Logging {
                     }
                 });
                 sleep(1000L);
+                logger.trace("Checking if channels are open...");
                 channelIds.forEach(i -> {
                     if (client.getOpenChannel(i) != null)   {
                         throw this.exception("Channel ${0} is still open on client!", i);

@@ -22,12 +22,12 @@ import io.netty.handler.codec.MessageToMessageCodec;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.netty.NettyByteBufUtil;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * @author DaPorkchop_
@@ -40,16 +40,33 @@ public class SctpPacketCodec extends MessageToMessageCodec<SctpMessage, SctpPack
 
     @Override
     protected void encode(@NonNull ChannelHandlerContext ctx, @NonNull SctpPacketWrapper msg, @NonNull List<Object> out) throws Exception {
-        out.add(new SctpMessage(msg.getId(), msg.getChannel(), !msg.isOrdered(), msg.getData()));
+        try {
+            //sctp won't send packets with no content, so we can just write some random data
+            //in theory the call to nextInt should't be of any performance relevance whatsoever
+            // (((in theory)))
+            if (msg.getData().readableBytes() == 0) {
+                msg.getData().writeByte(ThreadLocalRandom.current().nextInt() & 0xFF);
+            }
+            out.add(new SctpMessage(msg.getId(), msg.getChannel(), !msg.isOrdered(), msg.getData().retain()));
+        } catch (Exception e) {
+            logger.error(e);
+            throw e;
+        }
     }
 
     @Override
     protected void decode(@NonNull ChannelHandlerContext ctx, @NonNull SctpMessage msg, @NonNull List<Object> out) throws Exception {
-        if (false) {
-            logger.debug("Received packet: ${0}", this.toHex(msg.content()));
-            logger.debug("plain          : ${0}", this.toString(msg.content()));
+        logger.debug("Received message on channel ${0}", msg.streamIdentifier());
+        try {
+            if (false) {
+                logger.debug("Received packet: ${0}", this.toHex(msg.content()));
+                logger.debug("plain          : ${0}", this.toString(msg.content()));
+            }
+            out.add(new SctpPacketWrapper(msg.content().retain(), msg.streamIdentifier(), msg.protocolIdentifier(), !msg.isUnordered()));
+        } catch (Exception e) {
+            logger.error(e);
+            throw e;
         }
-        out.add(new SctpPacketWrapper(msg.content(), msg.streamIdentifier(), msg.protocolIdentifier(), !msg.isUnordered()));
     }
 
     private String toHex(@NonNull ByteBuf buf) {

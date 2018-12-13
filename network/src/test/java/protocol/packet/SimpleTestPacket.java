@@ -13,50 +13,42 @@
  *
  */
 
-package net.daporkchop.lib.network.pork.packet;
+package protocol.packet;
 
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.packet.handler.DataPacketHandler;
 
-/**
- * @author DaPorkchop_
- */
 @AllArgsConstructor
-public class CloseChannelPacket {
-    public final int channelId;
+public class SimpleTestPacket {
+    @NonNull
+    public final String message;
 
-    public static class CloseChannelCodec implements DataPacketHandler<CloseChannelPacket>, Logging {
+    public static class MessageHandler implements DataPacketHandler<SimpleTestPacket>, Logging {
         @Override
-        public void handle(@NonNull CloseChannelPacket packet, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception {
-            Channel theChannel = connection.getOpenChannel(packet.channelId);
-            if (theChannel == null) {
-                throw this.exception("Invalid channel: ${0}", packet.channelId);
-            } else {
-                theChannel.close(false);
-            }
+        public void handle(@NonNull SimpleTestPacket packet, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception {
+            logger.info("[${0}] Received test packet on channel ${2}: ${1}", connection.getEndpoint().getName(), packet.message, channelId);
         }
 
         @Override
-        public void encode(@NonNull CloseChannelPacket packet, @NonNull DataOut out) throws Exception {
-            out.writeVarInt(packet.channelId, true);
+        public void encode(@NonNull SimpleTestPacket packet, @NonNull DataOut out) throws Exception {
+            out.writeUTF(packet.message);
         }
 
         @Override
-        public CloseChannelPacket decode(@NonNull DataIn in) throws Exception {
-            return new CloseChannelPacket(
-                    in.readVarInt(true)
+        public SimpleTestPacket decode(@NonNull DataIn in) throws Exception {
+            return new SimpleTestPacket(
+                    in.readUTF()
             );
         }
 
         @Override
-        public Class<CloseChannelPacket> getPacketClass() {
-            return CloseChannelPacket.class;
+        public Class<SimpleTestPacket> getPacketClass() {
+            return SimpleTestPacket.class;
         }
     }
 }

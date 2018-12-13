@@ -58,5 +58,5 @@ public interface UnderlyingNetworkConnection extends Connection {
         this.getDefaultChannel().send(message, blocking, callback);
     }
 
-    Channel openChannel(Reliability reliability, int requestedId);
+    Channel openChannel(Reliability reliability, int requestedId, boolean notifyRemote);
 }

@@ -25,7 +25,6 @@ import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.endpoint.client.PorkClient;
-import net.daporkchop.lib.network.endpoint.server.PorkServer;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.pork.PorkConnection;
 import net.daporkchop.lib.network.pork.PorkProtocol;
@@ -52,18 +51,19 @@ public class TcpHandler extends ChannelInboundHandlerAdapter implements Logging 
     @Override
     @SuppressWarnings("unchecked")
     public void channelRead(ChannelHandlerContext ctx, @NonNull Object msg) throws Exception {
-        if (!(msg instanceof TcpPacketWrapper)) {
-            logger.error("Expected ${0}, but got ${1}!", TcpPacketWrapper.class, msg.getClass());
-            throw new IllegalArgumentException(this.format("Expected ${0}, but got ${1}!", TcpPacketWrapper.class, msg.getClass()));
-        }
-
-        TcpPacketWrapper packet = (TcpPacketWrapper) msg;
-        logger.debug("Received message!");
         try {
+            if (!(msg instanceof TcpPacketWrapper)) {
+                logger.error("Expected ${0}, but got ${1}!", TcpPacketWrapper.class, msg.getClass());
+                throw new IllegalArgumentException(this.format("Expected ${0}, but got ${1}!", TcpPacketWrapper.class, msg.getClass()));
+            }
+
+            TcpPacketWrapper packet = (TcpPacketWrapper) msg;
+            //logger.debug("Received message!");
             UnderlyingNetworkConnection connection = (UnderlyingNetworkConnection) ctx.channel();
             this.endpoint.getPacketRegistry().getHandler(packet.getId()).handle(packet.getData(), connection, packet.getChannel());
-        } finally {
-            //packet.getData().release();
+        } catch (Exception e) {
+            logger.error(e);
+            throw e;
         }
     }
 

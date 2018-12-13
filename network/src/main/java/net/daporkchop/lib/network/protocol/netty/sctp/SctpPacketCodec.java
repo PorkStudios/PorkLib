@@ -47,7 +47,7 @@ public class SctpPacketCodec extends MessageToMessageCodec<SctpMessage, SctpPack
             if (msg.getData().readableBytes() == 0) {
                 msg.getData().writeByte(ThreadLocalRandom.current().nextInt() & 0xFF);
             }
-            out.add(new SctpMessage(msg.getId(), msg.getChannel(), !msg.isOrdered(), msg.getData().retain()));
+            out.add(new SctpMessage(msg.getId(), msg.getChannel(), !msg.isOrdered(), msg.getData()));
         } catch (Exception e) {
             logger.error(e);
             throw e;
@@ -56,7 +56,7 @@ public class SctpPacketCodec extends MessageToMessageCodec<SctpMessage, SctpPack
 
     @Override
     protected void decode(@NonNull ChannelHandlerContext ctx, @NonNull SctpMessage msg, @NonNull List<Object> out) throws Exception {
-        logger.debug("Received message on channel ${0}", msg.streamIdentifier());
+        //logger.debug("Received message on channel ${0}", msg.streamIdentifier());
         try {
             if (false) {
                 logger.debug("Received packet: ${0}", this.toHex(msg.content()));

@@ -24,6 +24,7 @@ import net.daporkchop.lib.network.packet.PacketRegistry;
 import net.daporkchop.lib.network.packet.UserProtocol;
 
 import java.util.Collection;
+import java.util.stream.Stream;
 
 /**
  * @author DaPorkchop_
@@ -31,7 +32,7 @@ import java.util.Collection;
 public interface Endpoint {
     EndpointType getType();
 
-    <C extends UserConnection> Collection<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass);
+    <C extends UserConnection> Stream<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass);
 
     PacketRegistry getPacketRegistry();
 

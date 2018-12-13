@@ -30,6 +30,7 @@ import net.daporkchop.lib.network.packet.UserProtocol;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Manages a specific endpoint
@@ -73,10 +74,8 @@ public interface EndpointManager<E extends Endpoint, B extends AbstractBuilder<E
          * @param <C>           the connection type
          * @return all currently open connections to this server
          */
-        default <C extends UserConnection> Collection<C> getConnections(Class<? extends UserProtocol<C>> protocolClass) {
-            return this.getChannel().getUnderlyingNetworkConnectionsAsStream()
-                    .map(connection -> connection.getUserConnection(protocolClass))
-                    .collect(Collectors.toList());
+        default <C extends UserConnection> Stream<C> getConnections(Class<? extends UserProtocol<C>> protocolClass) {
+            return this.getChannel().getUnderlyingNetworkConnectionsAsStream().map(connection -> connection.getUserConnection(protocolClass));
         }
 
         /**

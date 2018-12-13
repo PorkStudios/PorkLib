@@ -22,6 +22,7 @@ import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.UserProtocol;
 
 import java.util.Collection;
+import java.util.stream.Stream;
 
 /**
  * @author DaPorkchop_
@@ -38,7 +39,7 @@ public interface Server extends Endpoint, ServerChannel {
     }
 
     @Override
-    default <C extends UserConnection> Collection<C> getConnections(Class<? extends UserProtocol<C>> protocolClass) {
+    default <C extends UserConnection> Stream<C> getConnections(Class<? extends UserProtocol<C>> protocolClass) {
         return ServerChannel.super.getConnections(protocolClass);
     }
 

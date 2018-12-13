@@ -15,9 +15,15 @@
 
 package protocol;
 
+import io.netty.buffer.ByteBuf;
+import net.daporkchop.lib.common.test.TestRandomData;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.packet.UserProtocol;
+import net.daporkchop.lib.network.packet.handler.MessageHandler;
 import protocol.packet.SimpleTestPacket;
 import protocol.packet.TestChannelsPacket;
+
+import java.util.Arrays;
 
 /**
  * @author DaPorkchop_
@@ -26,7 +32,7 @@ public class TestProtocol extends UserProtocol<TestConnection> {
     public static final TestProtocol INSTANCE = new TestProtocol();
 
     private TestProtocol() {
-        super("Test", 1);
+        super("Test", 1, 123);
     }
 
     @Override
@@ -35,6 +41,19 @@ public class TestProtocol extends UserProtocol<TestConnection> {
                 new SimpleTestPacket.MessageHandler(),
                 new TestChannelsPacket.TestChannelsHandler()
         );
+        this.register((msg, connection, channelId) -> {
+                    int id = msg.readMedium();
+                    int len = TestRandomData.randomBytes[id].length;
+                    if (msg.readableBytes() != len) {
+                        throw new IllegalStateException("Invalid data length!");
+                    } else {
+                        byte[] b = new byte[len];
+                        msg.readBytes(b);
+                        if(!Arrays.equals(b, TestRandomData.randomBytes[id]))   {
+                            throw new IllegalStateException("Invalid data received!");
+                        }
+                    }
+                }, 25);
     }
 
     @Override

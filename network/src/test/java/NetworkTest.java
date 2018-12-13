@@ -13,7 +13,11 @@
  *
  */
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.util.ResourceLeakDetector;
+import net.daporkchop.lib.binary.netty.NettyByteBufUtil;
+import net.daporkchop.lib.common.test.TestRandomData;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
@@ -149,6 +153,35 @@ public class NetworkTest implements Logging {
                     }
                 });
             }
+            {
+                logger.info("Sending some packets to verify integrity...");
+                for (int i = 0; i < TestRandomData.randomBytes.length; i++)   {
+                    ByteBuf buf = NettyByteBufUtil.alloc(3 + TestRandomData.randomBytes[i].length);
+                    buf.writeMedium(i);
+                    buf.writeBytes(TestRandomData.randomBytes[i]);
+                    if (ThreadLocalRandom.current().nextBoolean()) {
+                        client.getDefaultChannel().send(buf, (short) 25, Reliability.RELIABLE, TestProtocol.class);
+                    } else {
+                        server.getConnections(TestProtocol.class).forEach(conn -> conn.getDefaultChannel().send(buf, (short) 25, Reliability.RELIABLE, TestProtocol.class));
+                    }
+                }
+            }
+            /*
+            java.lang.NullPointerException
+	at NetworkTest.lambda$9(NetworkTest.java:165)
+	at java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:193)
+	at java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:193)
+	at java.util.Iterator.forEachRemaining(Iterator.java:116)
+	at java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1801)
+	at java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:481)
+	at java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:471)
+	at java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:418)
+	at NetworkTest.lambda$0(NetworkTest.java:165)
+             */
             logger.info("Tests completed! Waiting a moment...");
             sleep(1000L);
 

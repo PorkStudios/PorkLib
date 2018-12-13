@@ -71,7 +71,7 @@ public class SctpChannel extends NettyChannel implements Logging {
         } else {
             int id = this.channel.getEndpoint().getPacketRegistry().getId(message.getClass());
             boolean ordered = reliability.isReliable() ? reliability.isOrdered() : this.reliability.isOrdered();
-            logger.debug("[${0}] Sending message: ${1}", this.channel.getEndpoint().getName(), message.getClass());
+            //logger.debug("[${0}] Sending message: ${1}", this.channel.getEndpoint().getName(), message.getClass());
             ChannelFuture future = this.channel.writeAndFlush(new UnencodedSctpPacket(message, this.id, id, ordered));
             if (callback != null) {
                 future.addListener(f -> callback.run());

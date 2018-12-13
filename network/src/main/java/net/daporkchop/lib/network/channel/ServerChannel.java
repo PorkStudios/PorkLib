@@ -40,10 +40,8 @@ public interface ServerChannel {
      * @param <C>           the connection type
      * @return all currently open connections to this server
      */
-    default <C extends UserConnection> Collection<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass) {
-        return this.getUnderlyingNetworkConnections().stream()
-                .map(connection -> connection.getUserConnection(protocolClass))
-                .collect(Collectors.toList());
+    default <C extends UserConnection> Stream<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass) {
+        return this.getUnderlyingNetworkConnections().stream().map(connection -> connection.getUserConnection(protocolClass));
     }
 
     /**

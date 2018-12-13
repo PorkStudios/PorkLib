@@ -26,6 +26,7 @@ import java.util.Queue;
  *
  * @author DaPorkchop_
  */
+@FunctionalInterface
 public interface MessageHandler {
     /**
      * Handle an incoming message

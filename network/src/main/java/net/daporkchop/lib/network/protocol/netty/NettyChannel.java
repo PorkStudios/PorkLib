@@ -25,7 +25,7 @@ import net.daporkchop.lib.network.channel.ChannelImplementation;
  * @author DaPorkchop_
  */
 @Getter
+@Setter
 public abstract class NettyChannel implements ChannelImplementation {
-    @Setter
     protected short protocolId;
 }

@@ -16,6 +16,8 @@
 package protocol;
 
 import net.daporkchop.lib.network.packet.UserProtocol;
+import protocol.packet.SimpleTestPacket;
+import protocol.packet.TestChannelsPacket;
 
 /**
  * @author DaPorkchop_
@@ -29,7 +31,10 @@ public class TestProtocol extends UserProtocol<TestConnection> {
 
     @Override
     protected void registerPackets() {
-        this.register(new TestPacket.TestCodec());
+        this.register(
+                new SimpleTestPacket.MessageHandler(),
+                new TestChannelsPacket.TestChannelsHandler()
+        );
     }
 
     @Override

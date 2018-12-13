@@ -57,8 +57,8 @@ public class PorkConnection extends UserConnection implements UnderlyingNetworkC
     }
 
     @Override
-    public Channel openChannel(@NonNull Reliability reliability, int requestedId) {
-        return this.realConnection.openChannel(reliability, requestedId);
+    public Channel openChannel(@NonNull Reliability reliability, int requestedId, boolean notifyRemote) {
+        return this.realConnection.openChannel(reliability, requestedId, notifyRemote);
     }
 
     public void setDisconnectReason(String reason) {

@@ -35,7 +35,7 @@ public class OpenChannelPacket {
     public static class OpenChannelCodec implements DataPacketHandler<OpenChannelPacket> {
         @Override
         public void handle(@NonNull OpenChannelPacket packet, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception {
-            connection.openChannel(packet.reliability, packet.channelId);
+            connection.openChannel(packet.reliability, packet.channelId, false);
         }
 
         @Override

@@ -32,11 +32,13 @@ import net.daporkchop.lib.network.util.reliability.Reliability;
 import net.daporkchop.lib.primitive.map.IntegerObjectMap;
 import net.daporkchop.lib.primitive.map.PorkMaps;
 import net.daporkchop.lib.primitive.map.array.IntegerObjectArrayMap;
+import net.daporkchop.lib.primitive.map.hashmap.IntegerObjectHashMap;
 
 import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * A wrapper on top of {@link NioSocketChannel} that allows to store extra data (i.e. implement {@link UnderlyingNetworkConnection})
@@ -46,7 +48,7 @@ import java.util.Map;
 @Getter
 public class WrapperNioSocketChannel extends NioSocketChannel implements NettyConnection, Logging {
     private final Map<Class<? extends UserProtocol>, UserConnection> connections = new IdentityHashMap<>();
-    final IntegerObjectMap<TcpChannel> channels = PorkMaps.synchronize(new IntegerObjectArrayMap<>());
+    final IntegerObjectMap<TcpChannel> channels = PorkMaps.synchronize(new IntegerObjectHashMap<>());
     final SparseBitSet channelIds = new SparseBitSet();
     @NonNull
     private final Endpoint endpoint;
@@ -56,16 +58,16 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements NettyCo
     public WrapperNioSocketChannel(@NonNull Endpoint endpoint)  {
         this.endpoint = endpoint;
 
-        this.controlChannel = (TcpChannel) this.openChannel(Reliability.RELIABLE_ORDERED, 0);
-        this.defaultChannel = (TcpChannel) this.openChannel(Reliability.RELIABLE_ORDERED, 1);
+        this.controlChannel = (TcpChannel) this.openChannel(Reliability.RELIABLE_ORDERED, 0, false);
+        this.defaultChannel = (TcpChannel) this.openChannel(Reliability.RELIABLE_ORDERED, 1, false);
     }
 
     public WrapperNioSocketChannel(io.netty.channel.Channel parent, SocketChannel socket, @NonNull Endpoint endpoint) {
         super(parent, socket);
         this.endpoint = endpoint;
 
-        this.controlChannel = (TcpChannel) this.openChannel(Reliability.RELIABLE_ORDERED, 0);
-        this.defaultChannel = (TcpChannel) this.openChannel(Reliability.RELIABLE_ORDERED, 1);
+        this.controlChannel = (TcpChannel) this.openChannel(Reliability.RELIABLE_ORDERED, 0, false);
+        this.defaultChannel = (TcpChannel) this.openChannel(Reliability.RELIABLE_ORDERED, 1, false);
     }
 
     //
@@ -77,7 +79,7 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements NettyCo
     @Override
     public Channel openChannel(Reliability reliability) {
         synchronized (this.channelIds)  {
-            return this.openChannel(reliability, this.channelIds.nextClearBit(0));
+            return this.openChannel(reliability, this.channelIds.nextClearBit(0), true);
         }
     }
 
@@ -87,18 +89,21 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements NettyCo
     }
 
     @Override
-    public Channel openChannel(Reliability reliability, int requestedId) {
-        synchronized (this.channelIds)  {
-            if (this.channelIds.get(requestedId)) {
-                throw this.exception("Channel id ${0} already taken!", requestedId);
-            } else {
-                this.channelIds.set(requestedId);
-                TcpChannel channel = new TcpChannel(this, requestedId);
-                this.channels.put(requestedId, channel);
-                if (requestedId > 1)    {
-                    this.controlChannel.send(new OpenChannelPacket(Reliability.RELIABLE_ORDERED, requestedId));
+    public Channel openChannel(Reliability reliability, int requestedId, boolean notifyRemote) {
+        try {
+            synchronized (this.channelIds) {
+                if (this.channelIds.get(requestedId)) {
+                    throw this.exception("Channel id ${0} already taken!", requestedId);
+                } else {
+                    this.channelIds.set(requestedId);
+                    TcpChannel channel = new TcpChannel(this, requestedId);
+                    this.channels.put(requestedId, channel);
+                    return channel;
                 }
-                return channel;
+            }
+        } finally {
+            if (notifyRemote && requestedId > 1)    {
+                this.controlChannel.send(new OpenChannelPacket(Reliability.RELIABLE_ORDERED, requestedId), true);
             }
         }
     }

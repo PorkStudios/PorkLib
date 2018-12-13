@@ -18,7 +18,6 @@ package net.daporkchop.lib.network.channel;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.common.function.Void;
-import net.daporkchop.lib.crypto.CryptographySettings;
 import net.daporkchop.lib.network.conn.Connection;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
@@ -126,16 +125,16 @@ public interface Channel {
     /**
      * Closes this channel.
      * <p>
-     * Depending on the underlying network connection, this can do one of multiple things:
-     * - for transports that do not natively support channels (such as TCP), this will do nothing
-     * - for transports that have native support for channels (such as RakNet), this will either
-     * --- close the connection (if this is the default channel)
-     * --- close this channel, and only this channel (if this is not the default channel)
+     * This will only close the channel, not the connection.
      * <p>
      * To close the actual connection, use {@link Connection#closeConnection()} (a dummy connection can be obtained from
      * {@link #getConnection(Class)} with {@link net.daporkchop.lib.network.pork.PorkProtocol}.class as a parameter)
      */
-    void close();
+    default void close()    {
+        this.close(true);
+    }
+
+    void close(boolean notifyRemote);
 
     /**
      * Checks if this is the default channel

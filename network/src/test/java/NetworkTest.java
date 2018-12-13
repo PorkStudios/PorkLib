@@ -14,27 +14,28 @@
  */
 
 import io.netty.util.ResourceLeakDetector;
-import net.daporkchop.lib.crypto.CryptographySettings;
-import net.daporkchop.lib.crypto.cipher.block.CipherMode;
-import net.daporkchop.lib.crypto.cipher.block.CipherPadding;
-import net.daporkchop.lib.crypto.cipher.block.CipherType;
-import net.daporkchop.lib.crypto.sig.ec.CurveType;
 import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.endpoint.client.Client;
 import net.daporkchop.lib.network.endpoint.server.Server;
+import net.daporkchop.lib.network.pork.PorkProtocol;
 import net.daporkchop.lib.network.protocol.api.ProtocolManager;
 import net.daporkchop.lib.network.protocol.netty.tcp.TcpProtocolManager;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 import org.junit.Test;
-import protocol.TestPacket;
+import protocol.packet.SimpleTestPacket;
 import protocol.TestProtocol;
+import protocol.packet.TestChannelsPacket;
 
 import java.io.File;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * @author DaPorkchop_
@@ -91,16 +92,60 @@ public class NetworkTest implements Logging {
                 logger.info("Sending ${0} random packets...", count);
                 for (int i = 0; i < count; i++) {
                     sleep(75L);
-                    client.getDefaultChannel().send(new TestPacket("hello from client!"), true, Reliability.RELIABLE);
-                    //server.getConnections(protocol.TestProtocol.class).forEach(connection -> connection.send(new protocol.TestPacket("hello from server!")));
-                    server.broadcast(new TestPacket("hello from server!"));
+                    client.getDefaultChannel().send(new SimpleTestPacket("hello from client!"), true, Reliability.RELIABLE);
+                    //server.getConnections(protocol.TestProtocol.class).forEach(connection -> connection.send(new protocol.packet.SimpleTestPacket("hello from server!")));
+                    server.broadcast(new SimpleTestPacket("hello from server!"));
                 }
                 server.broadcast(
-                        new TestPacket("\nI'd just like to interject for moment. What you're referring to as Linux, is in fact, GNU/Linux, or as I've recently taken to calling it, GNU plus Linux. Linux is not an operating system unto itself, but rather another free component of a fully functioning GNU system made useful by the GNU corelibs, shell utilities and vital system components comprising a full OS as defined by POSIX.\n\nMany computer users run a modified version of the GNU system every day, without realizing it. Through a peculiar turn of events, the version of GNU which is widely used today is often called Linux, and many of its users are not aware that it is basically the GNU system, developed by the GNU Project.\n\nThere really is a Linux, and these people are using it, but it is just a part of the system they use. Linux is the kernel: the program in the system that allocates the machine's resources to the other programs that you run. The kernel is an essential part of an operating system, but useless by itself; it can only function in the context of a complete operating system. Linux is normally used in combination with the GNU operating system: the whole system is basically GNU with Linux added, or GNU/Linux. All the so-called Linux distributions are really distributions of GNU/Linux!"),
+                        new SimpleTestPacket("\nI'd just like to interject for moment. What you're referring to as Linux, is in fact, GNU/Linux, or as I've recently taken to calling it, GNU plus Linux. Linux is not an operating system unto itself, but rather another free component of a fully functioning GNU system made useful by the GNU corelibs, shell utilities and vital system components comprising a full OS as defined by POSIX.\n\nMany computer users run a modified version of the GNU system every day, without realizing it. Through a peculiar turn of events, the version of GNU which is widely used today is often called Linux, and many of its users are not aware that it is basically the GNU system, developed by the GNU Project.\n\nThere really is a Linux, and these people are using it, but it is just a part of the system they use. Linux is the kernel: the program in the system that allocates the machine's resources to the other programs that you run. The kernel is an essential part of an operating system, but useless by itself; it can only function in the context of a complete operating system. Linux is normally used in combination with the GNU operating system: the whole system is basically GNU with Linux added, or GNU/Linux. All the so-called Linux distributions are really distributions of GNU/Linux!"),
                         true
                 );
             }
-            logger.info("Sent packets! Waiting a moment...");
+            {
+
+                Set<Integer> channelIds = new HashSet<>();
+                for (int i = 0, j = ThreadLocalRandom.current().nextInt(200) + 15; i < 5; i++) {
+                    channelIds.add(i + j);
+                }
+                logger.info("Testing if packets arrive on the correct channels...");
+                channelIds.forEach(i -> {
+                    if (ThreadLocalRandom.current().nextBoolean())  {
+                        client.getConnection(PorkProtocol.class).openChannel(Reliability.RELIABLE, i, true);
+                    } else {
+                        server.getConnections(PorkProtocol.class).forEach(conn -> conn.openChannel(Reliability.RELIABLE, i, true));
+                    }
+                });
+                sleep(1000L);
+                channelIds.forEach(i -> {
+                    if (ThreadLocalRandom.current().nextBoolean()) {
+                        client.getOpenChannel(i).send(new TestChannelsPacket(i));
+                    } else {
+                        server.getConnections(TestProtocol.class).forEach(conn -> conn.getOpenChannel(i).send(new TestChannelsPacket(i)));
+                    }
+                });
+                sleep(1000L);
+                logger.info("Closing channels again...");
+                channelIds.forEach(i -> {
+                    if (ThreadLocalRandom.current().nextBoolean()) {
+                        client.getOpenChannel(i).close();
+                    } else {
+                        server.getConnections(TestProtocol.class).forEach(conn -> conn.getOpenChannel(i).close());
+                    }
+                });
+                sleep(1000L);
+                channelIds.forEach(i -> {
+                    if (client.getOpenChannel(i) != null)   {
+                        throw this.exception("Channel ${0} is still open on client!", i);
+                    } else {
+                        server.getConnections(TestProtocol.class).forEach(conn -> {
+                            if (conn.getOpenChannel(i) != null) {
+                                throw this.exception("Channel ${0} is still open on server!", i);
+                            }
+                        });
+                    }
+                });
+            }
+            logger.info("Tests completed! Waiting a moment...");
             sleep(1000L);
 
             logger.info("Closing...");

@@ -13,42 +13,47 @@
  *
  */
 
-package protocol;
+package protocol.packet;
 
+import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
-import net.daporkchop.lib.network.packet.handler.DataPacketHandler;
+import net.daporkchop.lib.network.packet.handler.PacketHandler;
 
+/**
+ * @author DaPorkchop_
+ */
 @AllArgsConstructor
-public class TestPacket {
-    @NonNull
-    public final String message;
+public class TestChannelsPacket {
+    public final int theIdOfTheChannelThatThePacketWasSupposedToBeSentOn; //man i love making variable names
 
-    public static class TestCodec implements DataPacketHandler<TestPacket>, Logging {
+    public static class TestChannelsHandler implements PacketHandler<TestChannelsPacket>    {
         @Override
-        public void handle(@NonNull TestPacket packet, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception {
-            logger.info("[${0}] Received test packet on channel ${2}: ${1}", connection.getEndpoint().getName(), packet.message, channelId);
+        public void handle(@NonNull TestChannelsPacket packet, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception {
+            if (channelId == packet.theIdOfTheChannelThatThePacketWasSupposedToBeSentOn)    {
+                Logging.logger.info("Received packet on correct channel: ${0}", channelId);
+            } else {
+                throw new IllegalStateException("wrong id!");
+            }
         }
 
         @Override
-        public void encode(@NonNull TestPacket packet, @NonNull DataOut out) throws Exception {
-            out.writeUTF(packet.message);
+        public void encode(@NonNull TestChannelsPacket packet, @NonNull ByteBuf buf) throws Exception {
+            buf.writeInt(packet.theIdOfTheChannelThatThePacketWasSupposedToBeSentOn);
         }
 
         @Override
-        public TestPacket decode(@NonNull DataIn in) throws Exception {
-            return new TestPacket(
-                    in.readUTF()
+        public TestChannelsPacket decode(@NonNull ByteBuf buf) throws Exception {
+            return new TestChannelsPacket(
+                    buf.readInt()
             );
         }
 
         @Override
-        public Class<TestPacket> getPacketClass() {
-            return TestPacket.class;
+        public Class<TestChannelsPacket> getPacketClass() {
+            return TestChannelsPacket.class;
         }
     }
 }

@@ -16,44 +16,39 @@
 package net.daporkchop.lib.network.protocol.netty.sctp;
 
 import io.netty.buffer.ByteBuf;
-import lombok.AllArgsConstructor;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.MessageToMessageEncoder;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.network.packet.PacketRegistry;
+import net.daporkchop.lib.network.packet.handler.PacketHandler;
+
+import java.util.List;
 
 /**
- * Used so that reliability parameters and so forth can be processed in encoders/decoders
+ * Encodes unencoded packets
  *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Getter
-public class SctpPacketWrapper implements Logging {
+public class SctpPacketEncodingFilter extends MessageToMessageEncoder<UnencodedSctpPacket> {
     @NonNull
-    private final ByteBuf data;
-
-    private final int channel;
-    private final int id;
-    private final boolean ordered;
+    private final PacketRegistry registry;
 
     @Override
-    public String toString() {
-        return this.format("packet=${0}, channel=${1}, ordered=${2}, id=${3}", this.data, this.channel, this.ordered, this.id);
-    }
-}
-
-@AllArgsConstructor
-@Getter
-class UnencodedSctpPacket implements Logging {
-    @NonNull
-    private final Object message;
-
-    private final int channel;
-    private final int id;
-    private final boolean ordered;
-
-    @Override
-    public String toString() {
-        return this.format("message=${0}, channel=${1}, ordered=${2}, id=${3}", this.message.getClass(), this.channel, this.ordered, this.id);
+    @SuppressWarnings("unchecked")
+    protected void encode(@NonNull ChannelHandlerContext ctx, @NonNull UnencodedSctpPacket msg, List<Object> out) throws Exception {
+        try {
+            ByteBuf buf = ctx.alloc().ioBuffer();
+            PacketHandler handler = (PacketHandler) this.registry.getHandler(msg.getId());
+            handler.encode(msg.getMessage(), buf);
+            out.add(new SctpPacketWrapper(buf.retain(), msg.getChannel(), msg.getId(), msg.isOrdered()));
+        } catch (Exception e) {
+            Logging.logger.error(e);
+            throw e;
+        }
     }
 }

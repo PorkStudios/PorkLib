@@ -29,6 +29,9 @@ import java.util.Map;
  * @author DaPorkchop_
  */
 public interface UnderlyingNetworkConnection extends Connection {
+    int ID_CONTROL_CHANNEL = 0;
+    int ID_DEFAULT_CHANNEL = 1;
+
     Map<Class<? extends UserProtocol>, UserConnection> getConnections();
 
     /**

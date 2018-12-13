@@ -17,13 +17,13 @@ package net.daporkchop.lib.network.protocol.netty.sctp;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.sctp.SctpChannelOption;
 import io.netty.handler.codec.sctp.SctpMessageCompletionHandler;
 import io.netty.util.concurrent.GlobalEventExecutor;
@@ -32,6 +32,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.common.function.Void;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.endpoint.builder.AbstractBuilder;
@@ -39,15 +40,14 @@ import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.endpoint.client.Client;
 import net.daporkchop.lib.network.endpoint.server.Server;
-import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.packet.PacketRegistry;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.pork.packet.DisconnectPacket;
 import net.daporkchop.lib.network.protocol.api.EndpointManager;
 import net.daporkchop.lib.network.protocol.api.ProtocolManager;
 import net.daporkchop.lib.network.protocol.netty.NettyServerChannel;
+import net.daporkchop.lib.network.protocol.netty.tcp.TcpPacketWrapper;
 
-import java.net.InetSocketAddress;
-import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
 /**
@@ -150,8 +150,20 @@ public class SctpProtocolManager implements ProtocolManager {
             }
 
             @Override
-            public void broadcast(@NonNull Packet packet, boolean blocking) {
-                super.broadcast(new SctpPacketWrapper(packet, WrapperNioSctpChannel.CHANNEL_ID_DEFAULT, true), blocking);
+            public void broadcast(@NonNull Object message, boolean blocking) {
+                int id = this.server.getPacketRegistry().getId(message.getClass());
+                super.broadcast(new UnencodedSctpPacket(message, UnderlyingNetworkConnection.ID_DEFAULT_CHANNEL, id, true), blocking);
+            }
+
+            @Override
+            public <C extends UserConnection> void broadcast(@NonNull ByteBuf data, short id, @NonNull Class<? extends UserProtocol<C>> protocolClass) {
+                SctpPacketWrapper wrapper = new SctpPacketWrapper(
+                        data,
+                        UnderlyingNetworkConnection.ID_DEFAULT_CHANNEL,
+                        PacketRegistry.combine(this.server.getPacketRegistry().getProtocolId(protocolClass), id),
+                        true
+                );
+                this.channels.writeAndFlush(wrapper);
             }
         }
     }
@@ -180,8 +192,8 @@ public class SctpProtocolManager implements ProtocolManager {
         }
 
         @Override
-        public void send(@NonNull Packet packet, boolean blocking, Void callback) {
-            ((WrapperNioSctpChannel) this.channel).send(packet, blocking, callback);
+        public void send(@NonNull Object message, boolean blocking, Void callback) {
+            ((WrapperNioSctpChannel) this.channel).send(message, blocking, callback);
         }
     }
 
@@ -207,6 +219,7 @@ public class SctpProtocolManager implements ProtocolManager {
         protected void initChannel(Channel c) throws Exception {
             c.pipeline().addLast(new SctpMessageCompletionHandler());
             c.pipeline().addLast(new SctpPacketCodec(this.endpoint));
+            c.pipeline().addLast(new SctpPacketEncodingFilter(this.endpoint.getPacketRegistry()));
             c.pipeline().addLast(new SctpHandler(this.endpoint));
             this.registerHook.accept(c);
 

@@ -49,9 +49,18 @@ public class TcpChannel extends NettyChannel implements Logging {
     @NonNull
     private final WrapperNioSocketChannel channel;
     private final int id;
+    volatile boolean closed;
 
     @Override
     public void send(@NonNull Object message, boolean blocking, Void callback, Reliability reliability) {
+        if (this.closed) {
+            throw new IllegalStateException("channel closed!");
+        } else {
+            this.doSend(message, blocking, callback);
+        }
+    }
+
+    private void doSend(@NonNull Object message, boolean blocking, Void callback)   {
         //logger.debug("Writing ${0} (${1}blocking)...", message.getClass(), blocking ? "" : "non-");
         int id = this.channel.getEndpoint().getPacketRegistry().getId(message.getClass());
         ChannelFuture future = this.channel.writeAndFlush(new UnencodedTcpPacket(message, this.id, id));
@@ -65,12 +74,16 @@ public class TcpChannel extends NettyChannel implements Logging {
 
     @Override
     public void send(@NonNull ByteBuf data, int id, boolean blocking, Void callback, Reliability reliability) {
-        ChannelFuture future = this.channel.writeAndFlush(new TcpPacketWrapper(data, this.id, id));
-        if (callback != null) {
-            future.addListener(f -> callback.run());
-        }
-        if (blocking) {
-            future.syncUninterruptibly();
+        if (this.closed) {
+            throw new IllegalStateException("channel closed!");
+        } else {
+            ChannelFuture future = this.channel.writeAndFlush(new TcpPacketWrapper(data, this.id, id));
+            if (callback != null) {
+                future.addListener(f -> callback.run());
+            }
+            if (blocking) {
+                future.syncUninterruptibly();
+            }
         }
     }
 
@@ -90,13 +103,24 @@ public class TcpChannel extends NettyChannel implements Logging {
     }
 
     @Override
-    public void close(boolean notifyRemote) {
-        synchronized (this.channel.channelIds) {
-            this.channel.channels.remove(this.id);
-            this.channel.channelIds.clear(this.id);
-        }
-        if (notifyRemote)   {
-            this.send(new CloseChannelPacket(this.id), true);
+    public synchronized void close(boolean notifyRemote) {
+        if (this.isDefaultChannel())    {
+            throw new IllegalStateException("Cannot close default channel!");
+        } else if (this.isControlChannel()) {
+            throw new IllegalStateException("Cannot close control channel!");
+        } else {
+            if (this.closed) {
+                throw new IllegalArgumentException("already closed!");
+            } else {
+                synchronized (this.channel.channelIds) {
+                    this.channel.channels.remove(this.id);
+                    this.channel.channelIds.clear(this.id);
+                }
+                this.closed = true;
+                if (notifyRemote) {
+                    this.doSend(new CloseChannelPacket(this.id), true, null);
+                }
+            }
         }
     }
 

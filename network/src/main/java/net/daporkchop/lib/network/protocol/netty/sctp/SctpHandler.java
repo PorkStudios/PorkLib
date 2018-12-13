@@ -47,7 +47,7 @@ public class SctpHandler extends ChannelInboundHandlerAdapter implements Logging
         logger.trace("[${0}] New connection: ${1}", this.endpoint.getName(), ctx.channel().remoteAddress());
 
         UnderlyingNetworkConnection realConnection = (UnderlyingNetworkConnection) ctx.channel();
-        if (this.endpoint instanceof PorkServer) {
+        if (this.endpoint.isServer()) {
             realConnection.getControlChannel().send(new HandshakeInitPacket());
         } else if (false && this.endpoint instanceof PorkClient) {
             ((PorkClient) this.endpoint).postConnectCallback(null);
@@ -76,16 +76,20 @@ public class SctpHandler extends ChannelInboundHandlerAdapter implements Logging
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        logger.debug("[${0}] Received message: ${1} (class: ${2})", this.endpoint.getName(), msg, msg.getClass());
+        try {
+            if (!(msg instanceof SctpPacketWrapper)) {
+                logger.error("Expected ${0}, but got ${1}!", SctpPacketWrapper.class, msg.getClass());
+                throw new IllegalArgumentException(this.format("Expected ${0}, but got ${1}!", SctpPacketWrapper.class, msg.getClass()));
+            }
 
-        if (!(msg instanceof SctpPacketWrapper)) {
-            logger.error("Expected ${0}, but got ${1}!", SctpPacketWrapper.class, msg.getClass());
-            throw new IllegalArgumentException(this.format("Expected ${0}, but got ${1}!", SctpPacketWrapper.class, msg.getClass()));
+            SctpPacketWrapper packet = (SctpPacketWrapper) msg;
+            //logger.debug("Received message!");
+            UnderlyingNetworkConnection connection = (UnderlyingNetworkConnection) ctx.channel();
+            this.endpoint.getPacketRegistry().getHandler(packet.getId()).handle(packet.getData(), connection, packet.getChannel());
+        } catch (Exception e) {
+            logger.error(e);
+            throw e;
         }
-
-        SctpPacketWrapper packet = (SctpPacketWrapper) msg;
-        UnderlyingNetworkConnection connection = (UnderlyingNetworkConnection) ctx.channel();
-        this.endpoint.getPacketRegistry().getHandler(packet.getId()).handle(packet.getData(), connection, packet.getChannel());
     }
 
     @Override

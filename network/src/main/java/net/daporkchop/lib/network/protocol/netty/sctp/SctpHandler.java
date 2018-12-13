@@ -48,9 +48,7 @@ public class SctpHandler extends ChannelInboundHandlerAdapter implements Logging
 
         UnderlyingNetworkConnection realConnection = (UnderlyingNetworkConnection) ctx.channel();
         if (this.endpoint.isServer()) {
-            realConnection.getControlChannel().send(new HandshakeInitPacket());
-        } else if (false && this.endpoint instanceof PorkClient) {
-            ((PorkClient) this.endpoint).postConnectCallback(null);
+            realConnection.getControlChannel().send(new HandshakeInitPacket(), () -> logger.debug("sent handshake init!"));
         }
 
         super.channelRegistered(ctx);
@@ -76,6 +74,7 @@ public class SctpHandler extends ChannelInboundHandlerAdapter implements Logging
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        logger.debug("Received ${0}", msg.getClass());
         try {
             if (!(msg instanceof SctpPacketWrapper)) {
                 logger.error("Expected ${0}, but got ${1}!", SctpPacketWrapper.class, msg.getClass());

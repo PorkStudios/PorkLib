@@ -35,6 +35,7 @@ public class TestChannelsPacket {
             if (channelId == packet.theIdOfTheChannelThatThePacketWasSupposedToBeSentOn)    {
                 Logging.logger.info("Received packet on correct channel: ${0}", channelId);
             } else {
+                Logging.logger.info("Received packet on incorrect channel: ${0}", channelId);
                 throw new IllegalStateException("wrong id!");
             }
         }

@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.network.protocol.netty.sctp;
 
+import com.sun.nio.sctp.SctpStandardSocketOptions;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
@@ -61,6 +62,8 @@ import java.util.function.Consumer;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SctpProtocolManager implements ProtocolManager {
+    private static final SctpStandardSocketOptions.InitMaxStreams MAX_STREAMS = SctpStandardSocketOptions.InitMaxStreams.create(0xFFFF, 0xFFFF);
+
     public static final SctpProtocolManager INSTANCE = new SctpProtocolManager();
 
     @Override
@@ -117,7 +120,9 @@ public class SctpProtocolManager implements ProtocolManager {
                 bootstrap.group(this.workerGroup);
                 bootstrap.channelFactory(() -> new WrapperNioSctpServerChannel(server));
                 bootstrap.childHandler(new SctpChannelInitializer(server, this.channels::add, this.channels::remove));
+                bootstrap.option(SctpChannelOption.SCTP_INIT_MAXSTREAMS, MAX_STREAMS);
                 bootstrap.childOption(SctpChannelOption.SCTP_NODELAY, true);
+                bootstrap.childOption(SctpChannelOption.SCTP_INIT_MAXSTREAMS, MAX_STREAMS);
 
                 super.channel = bootstrap.bind(builder.getAddress()).syncUninterruptibly().channel();
                 this.channel = new SctpServerChannel(this.channels, server);
@@ -179,6 +184,7 @@ public class SctpProtocolManager implements ProtocolManager {
                 bootstrap.channelFactory(() -> new WrapperNioSctpChannel(client));
                 bootstrap.handler(new SctpChannelInitializer(client));
                 bootstrap.option(SctpChannelOption.SCTP_NODELAY, true);
+                bootstrap.option(SctpChannelOption.SCTP_INIT_MAXSTREAMS, MAX_STREAMS);
 
                 this.channel = bootstrap.connect(builder.getAddress()).syncUninterruptibly().channel();
             } catch (Throwable t) {

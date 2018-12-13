@@ -67,6 +67,10 @@ allprojects {
             url = "https://maven.daporkchop.net/"
         }
         maven {
+            name = "Sonatype Snapshots"
+            url = "https://oss.sonatype.org/content/repositories/snapshots/"
+        }
+        maven {
             name = "NukkitX Snapshots"
             url = "https://repo.nukkitx.com/snapshot/"
         }

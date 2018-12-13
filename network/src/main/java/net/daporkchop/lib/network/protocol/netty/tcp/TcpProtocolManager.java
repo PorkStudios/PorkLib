@@ -33,6 +33,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.common.function.Void;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.endpoint.builder.AbstractBuilder;
@@ -151,10 +152,16 @@ public class TcpProtocolManager implements ProtocolManager {
             }
 
             @Override
+            public void broadcast(@NonNull Object message, boolean blocking) {
+                int id = this.server.getPacketRegistry().getId(message.getClass());
+                super.broadcast(new UnencodedTcpPacket(message, UnderlyingNetworkConnection.ID_DEFAULT_CHANNEL, id), blocking);
+            }
+
+            @Override
             public <C extends UserConnection> void broadcast(@NonNull ByteBuf data, short id, @NonNull Class<? extends UserProtocol<C>> protocolClass) {
                 TcpPacketWrapper wrapper = new TcpPacketWrapper(
                         data,
-                        1, //default channel
+                        UnderlyingNetworkConnection.ID_DEFAULT_CHANNEL,
                         PacketRegistry.combine(this.server.getPacketRegistry().getProtocolId(protocolClass), id)
                 );
                 this.channels.writeAndFlush(wrapper);

@@ -39,6 +39,7 @@ import java.nio.channels.spi.SelectorProvider;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A wrapper on top of {@link NioSocketChannel} that allows to store extra data (i.e. implement {@link UnderlyingNetworkConnection})
@@ -48,7 +49,7 @@ import java.util.concurrent.ThreadLocalRandom;
 @Getter
 public class WrapperNioSocketChannel extends NioSocketChannel implements NettyConnection, Logging {
     private final Map<Class<? extends UserProtocol>, UserConnection> connections = new IdentityHashMap<>();
-    final IntegerObjectMap<TcpChannel> channels = PorkMaps.synchronize(new IntegerObjectHashMap<>());
+    final IntegerObjectMap<TcpChannel> channels = PorkMaps.synchronize(new IntegerObjectHashMap<>(), new ReentrantLock());
     final SparseBitSet channelIds = new SparseBitSet();
     @NonNull
     private final Endpoint endpoint;
@@ -101,6 +102,9 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements NettyCo
                     return channel;
                 }
             }
+        } catch (Exception e)   {
+            notifyRemote = false;
+            throw e;
         } finally {
             if (notifyRemote && requestedId > 1)    {
                 this.controlChannel.send(new OpenChannelPacket(Reliability.RELIABLE_ORDERED, requestedId), true);

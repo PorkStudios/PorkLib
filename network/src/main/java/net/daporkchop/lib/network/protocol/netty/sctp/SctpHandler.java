@@ -30,6 +30,7 @@ import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.pork.PorkConnection;
 import net.daporkchop.lib.network.pork.PorkProtocol;
 import net.daporkchop.lib.network.pork.packet.HandshakeInitPacket;
+import net.daporkchop.lib.network.util.NetworkConstants;
 
 /**
  * Handles events on a connection managed by {@link SctpProtocolManager}
@@ -74,7 +75,7 @@ public class SctpHandler extends ChannelInboundHandlerAdapter implements Logging
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        logger.debug("Received ${0}", msg.getClass());
+        //logger.debug("Received ${0}", msg.getClass());
         try {
             if (!(msg instanceof SctpPacketWrapper)) {
                 logger.error("Expected ${0}, but got ${1}!", SctpPacketWrapper.class, msg.getClass());
@@ -84,7 +85,14 @@ public class SctpHandler extends ChannelInboundHandlerAdapter implements Logging
             SctpPacketWrapper packet = (SctpPacketWrapper) msg;
             //logger.debug("Received message!");
             UnderlyingNetworkConnection connection = (UnderlyingNetworkConnection) ctx.channel();
-            this.endpoint.getPacketRegistry().getHandler(packet.getId()).handle(packet.getData(), connection, packet.getChannel());
+            if (NetworkConstants.DEBUG_REF_COUNT) {
+                int oldRefCount = packet.getData().refCnt();
+                this.endpoint.getPacketRegistry().getHandler(packet.getId()).handle(packet.getData(), connection, packet.getChannel());
+                logger.debug("Received packet with ${0} references! (pre-handle: ${1})", packet.getData().refCnt(), oldRefCount);
+            } else {
+                this.endpoint.getPacketRegistry().getHandler(packet.getId()).handle(packet.getData(), connection, packet.getChannel());
+            }
+            packet.getData().release();
         } catch (Exception e) {
             logger.error(e);
             throw e;

@@ -103,7 +103,6 @@ public class SctpChannel extends NettyChannel implements Logging {
         return this.channel.getUserConnection(protocolClass);
     }
 
-
     @Override
     public synchronized void close(boolean notifyRemote) {
         if (this.isDefaultChannel()) {

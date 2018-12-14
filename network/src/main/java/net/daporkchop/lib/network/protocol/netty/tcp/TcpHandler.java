@@ -29,6 +29,7 @@ import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.pork.PorkConnection;
 import net.daporkchop.lib.network.pork.PorkProtocol;
 import net.daporkchop.lib.network.pork.packet.HandshakeInitPacket;
+import net.daporkchop.lib.network.util.NetworkConstants;
 
 /**
  * Handles events on a connection managed by {@link TcpProtocolManager}
@@ -60,7 +61,14 @@ public class TcpHandler extends ChannelInboundHandlerAdapter implements Logging 
             TcpPacketWrapper packet = (TcpPacketWrapper) msg;
             //logger.debug("Received message!");
             UnderlyingNetworkConnection connection = (UnderlyingNetworkConnection) ctx.channel();
-            this.endpoint.getPacketRegistry().getHandler(packet.getId()).handle(packet.getData(), connection, packet.getChannel());
+            if (NetworkConstants.DEBUG_REF_COUNT) {
+                int oldRefCount = packet.getData().refCnt();
+                this.endpoint.getPacketRegistry().getHandler(packet.getId()).handle(packet.getData(), connection, packet.getChannel());
+                logger.debug("Received packet with ${0} references! (pre-handle: ${1})", packet.getData().refCnt(), oldRefCount);
+            } else {
+                this.endpoint.getPacketRegistry().getHandler(packet.getId()).handle(packet.getData(), connection, packet.getChannel());
+            }
+            packet.getData().release();
         } catch (Exception e) {
             logger.error(e);
             throw e;

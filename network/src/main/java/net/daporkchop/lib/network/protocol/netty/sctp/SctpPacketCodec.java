@@ -25,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.endpoint.Endpoint;
+import net.daporkchop.lib.network.util.NetworkConstants;
 
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -47,7 +48,10 @@ public class SctpPacketCodec extends MessageToMessageCodec<SctpMessage, SctpPack
             if (msg.getData().readableBytes() == 0) {
                 msg.getData().writeByte(ThreadLocalRandom.current().nextInt() & 0xFF);
             }
-            out.add(new SctpMessage(msg.getId(), msg.getChannel(), !msg.isOrdered(), msg.getData()));
+            if (NetworkConstants.DEBUG_REF_COUNT)   {
+                logger.debug("Writing message with ${0} references!", msg.getData().refCnt());
+            }
+            out.add(new SctpMessage(msg.getId(), msg.getChannel(), !msg.isOrdered(), msg.getData().retain()));
         } catch (Exception e) {
             logger.error(e);
             throw e;
@@ -63,6 +67,9 @@ public class SctpPacketCodec extends MessageToMessageCodec<SctpMessage, SctpPack
                 logger.debug("plain          : ${0}", this.toString(msg.content()));
             }
             out.add(new SctpPacketWrapper(msg.content().retain(), msg.streamIdentifier(), msg.protocolIdentifier(), !msg.isUnordered()));
+            if (NetworkConstants.DEBUG_REF_COUNT)   {
+                logger.debug("Received message with ${0} references!", msg.content().refCnt());
+            }
         } catch (Exception e) {
             logger.error(e);
             throw e;

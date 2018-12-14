@@ -13,45 +13,48 @@
  *
  */
 
-package protocol;
+package protocol.packet;
 
+import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.channel.Channel;
-import net.daporkchop.lib.network.packet.Codec;
-import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
+import net.daporkchop.lib.network.packet.handler.PacketHandler;
 
-import java.io.IOException;
-
-@NoArgsConstructor
+/**
+ * @author DaPorkchop_
+ */
 @AllArgsConstructor
-public class TestPacket implements Packet {
-    @NonNull
-    public String message;
+public class TestChannelsPacket {
+    public final int theIdOfTheChannelThatThePacketWasSupposedToBeSentOn; //man i love making variable names
 
-    @Override
-    public void read(DataIn in) throws IOException {
-        this.message = in.readUTF();
-    }
-
-    @Override
-    public void write(DataOut out) throws IOException {
-        out.writeUTF(this.message);
-    }
-
-    public static class TestCodec implements Codec<TestPacket, TestConnection>, Logging {
+    public static class TestChannelsHandler implements PacketHandler<TestChannelsPacket>    {
         @Override
-        public void handle(@NonNull TestPacket packet, @NonNull Channel channel, @NonNull TestConnection connection) {
-            logger.info("[${0}] Received test packet on channel ${2}: ${1}", connection.getEndpoint().getName(), packet.message, channel.getId());
+        public void handle(@NonNull TestChannelsPacket packet, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception {
+            if (channelId == packet.theIdOfTheChannelThatThePacketWasSupposedToBeSentOn)    {
+                Logging.logger.info("Received packet on correct channel: ${0}", channelId);
+            } else {
+                Logging.logger.info("Received packet on incorrect channel: ${0}", channelId);
+                throw new IllegalStateException("wrong id!");
+            }
         }
 
         @Override
-        public TestPacket createInstance() {
-            return new TestPacket();
+        public void encode(@NonNull TestChannelsPacket packet, @NonNull ByteBuf buf) throws Exception {
+            buf.writeInt(packet.theIdOfTheChannelThatThePacketWasSupposedToBeSentOn);
+        }
+
+        @Override
+        public TestChannelsPacket decode(@NonNull ByteBuf buf) throws Exception {
+            return new TestChannelsPacket(
+                    buf.readInt()
+            );
+        }
+
+        @Override
+        public Class<TestChannelsPacket> getPacketClass() {
+            return TestChannelsPacket.class;
         }
     }
 }

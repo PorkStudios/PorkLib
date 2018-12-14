@@ -25,8 +25,7 @@ import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.pork.PorkProtocol;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 
-import java.util.Collection;
-import java.util.Collections;
+import java.util.stream.Stream;
 
 /**
  * Represents a network client
@@ -50,8 +49,8 @@ public interface Client extends Endpoint, Connection {
     }
 
     @Override
-    default <C extends UserConnection> Collection<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass) {
-        return Collections.singletonList(this.getConnection(protocolClass));
+    default <C extends UserConnection> Stream<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass) {
+        return Stream.<C>builder().add(this.getConnection(protocolClass)).build();
     }
 
     <C extends UserConnection> C getConnection(@NonNull Class<? extends UserProtocol<C>> protocolClass);
@@ -85,5 +84,15 @@ public interface Client extends Endpoint, Connection {
     @Override
     default Channel getControlChannel() {
         return this.getConnection(PorkProtocol.class).getControlChannel();
+    }
+
+    @Override
+    default boolean isClient() {
+        return true;
+    }
+
+    @Override
+    default boolean isServer() {
+        return false;
     }
 }

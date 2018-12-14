@@ -17,42 +17,50 @@ package net.daporkchop.lib.network.protocol.netty.tcp;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.ByteToMessageDecoder;
+import io.netty.handler.codec.MessageToMessageCodec;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.netty.NettyByteBufUtil;
-import net.daporkchop.lib.network.channel.ChannelImplementation;
-import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
+import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.endpoint.Endpoint;
-import net.daporkchop.lib.network.packet.Packet;
-import net.daporkchop.lib.network.protocol.api.PacketDecoder;
+import net.daporkchop.lib.network.util.NetworkConstants;
 
 import java.util.List;
 
 /**
+ * Prefixes outgoing messages
+ *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
 @Getter
-public class TcpPacketDecoder extends ByteToMessageDecoder implements PacketDecoder {
+public class TcpPacketCodec extends MessageToMessageCodec<ByteBuf, TcpPacketWrapper> implements Logging {
     @NonNull
     private final Endpoint endpoint;
 
-    private static void readRemainingBuffer(@NonNull ByteBuf buf) {
-        while (buf.isReadable()) {
-            buf.readByte();
+    @Override
+    protected void encode(@NonNull ChannelHandlerContext ctx, @NonNull TcpPacketWrapper msg, @NonNull List<Object> out) throws Exception {
+        try {
+            out.add(ctx.alloc().buffer(12).writeInt(msg.getData().readableBytes() + 8).writeInt(msg.getChannel()).writeInt(msg.getId()));
+            out.add(msg.getData().retain());
+            if (NetworkConstants.DEBUG_REF_COUNT) {
+                logger.debug("Writing message with ${0} references!", msg.getData().refCnt());
+            }
+        } catch (Exception e) {
+            logger.error(e);
+            throw e;
         }
     }
 
     @Override
-    protected void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> list) throws Exception {
+    protected void decode(@NonNull ChannelHandlerContext ctx, @NonNull ByteBuf in, @NonNull List<Object> out) throws Exception {
         try {
-            int size = buf.readableBytes();
-            Packet packet = this.getPacket((ChannelImplementation) ((UnderlyingNetworkConnection) ctx.channel()).getDefaultChannel(), NettyByteBufUtil.wrapIn(buf));
-            logger.debug("[${0}] Read packet: ${1} (${2} bytes)", this.endpoint.getName(), packet.getClass(), size - buf.readableBytes());
-            list.add(packet);
-            readRemainingBuffer(buf);
+            int channelId = in.readInt();
+            int packetId = in.readInt();
+            out.add(new TcpPacketWrapper(in.retain(), channelId, packetId));
+            if (NetworkConstants.DEBUG_REF_COUNT) {
+                logger.debug("Received message with ${0} references!", in.refCnt());
+            }
         } catch (Exception e) {
             logger.error(e);
             throw e;

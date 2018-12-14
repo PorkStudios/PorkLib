@@ -13,32 +13,46 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.netty.tcp;
+package net.daporkchop.lib.network.protocol.netty.sctp;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.MessageToByteEncoder;
+import io.netty.handler.codec.MessageToMessageEncoder;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.netty.NettyByteBufUtil;
-import net.daporkchop.lib.network.channel.ChannelImplementation;
-import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
-import net.daporkchop.lib.network.endpoint.Endpoint;
-import net.daporkchop.lib.network.packet.Packet;
-import net.daporkchop.lib.network.protocol.api.PacketEncoder;
+import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.network.packet.PacketRegistry;
+import net.daporkchop.lib.network.packet.handler.PacketHandler;
+import net.daporkchop.lib.network.util.NetworkConstants;
+
+import java.util.List;
 
 /**
+ * Encodes unencoded packets
+ *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
 @Getter
-public class TcpPacketEncoder extends MessageToByteEncoder<Packet> implements PacketEncoder {
+public class SctpPacketEncodingFilter extends MessageToMessageEncoder<UnencodedSctpPacket> implements Logging {
     @NonNull
-    private final Endpoint endpoint;
+    private final PacketRegistry registry;
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, Packet packet, ByteBuf buf) throws Exception {
-        this.writePacket((ChannelImplementation) ((UnderlyingNetworkConnection) ctx.channel()).getDefaultChannel(), packet, NettyByteBufUtil.wrapOut(buf));
+    @SuppressWarnings("unchecked")
+    protected void encode(@NonNull ChannelHandlerContext ctx, @NonNull UnencodedSctpPacket msg, List<Object> out) throws Exception {
+        try {
+            ByteBuf buf = ctx.alloc().ioBuffer();
+            PacketHandler handler = (PacketHandler) this.registry.getHandler(msg.getId());
+            handler.encode(msg.getMessage(), buf);
+            out.add(new SctpPacketWrapper(buf, msg.getChannel(), msg.getId(), msg.isOrdered()));
+            if (NetworkConstants.DEBUG_REF_COUNT) {
+                logger.debug("Encoded packet with ${0} references!", buf.refCnt());
+            }
+        } catch (Exception e) {
+            Logging.logger.error(e);
+            throw e;
+        }
     }
 }

@@ -21,7 +21,29 @@ package net.daporkchop.lib.network;
  * @author DaPorkchop_
  */
 public enum EndpointType {
+    /**
+     * An endpoint that has a single outgoing connection.
+     * <p>
+     * A client can connect to either a {@link #SERVER} or {@link #MULTI} endpoint
+     */
     CLIENT,
+    /**
+     * An endpoint that accepts incoming connections.
+     * <p>
+     * A server can accept connections from either a {@link #CLIENT} or {@link #MULTI} endpoint
+     */
     SERVER,
+    /**
+     * A mixture of {@link #CLIENT} and {@link #SERVER}.
+     * <p>
+     * Multi endpoints can accept incoming connections and connect to multiple remote endpoints at the same time.
+     */
+    MULTI,
+    /**
+     * An endpoint designed for use in p2p (peer-to-peer) applications.
+     * <p>
+     * Unlike {@link #MULTI}, p2p endpoints automagically exchange peer IDs with each other in order to build up a
+     * decentralized swarm. Additionally, they can only connect with other p2p endpoints.
+     */
     P2P;
 }

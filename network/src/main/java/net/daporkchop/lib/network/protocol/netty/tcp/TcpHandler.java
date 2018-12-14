@@ -22,16 +22,12 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
-import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.endpoint.client.PorkClient;
-import net.daporkchop.lib.network.endpoint.server.PorkServer;
-import net.daporkchop.lib.network.packet.Packet;
-import net.daporkchop.lib.network.packet.PacketRegistry;
-import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.pork.PorkConnection;
 import net.daporkchop.lib.network.pork.PorkProtocol;
 import net.daporkchop.lib.network.pork.packet.HandshakeInitPacket;
+import net.daporkchop.lib.network.util.NetworkConstants;
 
 /**
  * Handles events on a connection managed by {@link TcpProtocolManager}
@@ -54,21 +50,27 @@ public class TcpHandler extends ChannelInboundHandlerAdapter implements Logging 
     @Override
     @SuppressWarnings("unchecked")
     public void channelRead(ChannelHandlerContext ctx, @NonNull Object msg) throws Exception {
-        if (!(msg instanceof Packet)) {
-            logger.error("Expected ${0}, but got ${1}!", Packet.class, msg.getClass());
-            throw new IllegalArgumentException(this.format("Expected ${0}, but got ${1}!", Packet.class, msg.getClass()));
-        }
+        try {
+            if (!(msg instanceof TcpPacketWrapper)) {
+                logger.error("Expected ${0}, but got ${1}!", TcpPacketWrapper.class, msg.getClass());
+                throw new IllegalArgumentException(this.format("Expected ${0}, but got ${1}!", TcpPacketWrapper.class, msg.getClass()));
+            }
 
-        Packet packet = (Packet) msg;
-        PacketRegistry registry = this.endpoint.getPacketRegistry();
-        Class<? extends UserProtocol<UserConnection>> protocolClass = registry.getOwningProtocol(packet.getClass());
-        if (protocolClass == null) {
-            throw new IllegalArgumentException(this.format("Unregistered inbound packet: ${0}", packet.getClass()));
+            TcpPacketWrapper packet = (TcpPacketWrapper) msg;
+            //logger.debug("Received message!");
+            UnderlyingNetworkConnection connection = (UnderlyingNetworkConnection) ctx.channel();
+            if (NetworkConstants.DEBUG_REF_COUNT) {
+                int oldRefCount = packet.getData().refCnt();
+                this.endpoint.getPacketRegistry().getHandler(packet.getId()).handle(packet.getData(), connection, packet.getChannel());
+                logger.debug("Received packet with ${0} references! (pre-handle: ${1})", packet.getData().refCnt(), oldRefCount);
+            } else {
+                this.endpoint.getPacketRegistry().getHandler(packet.getId()).handle(packet.getData(), connection, packet.getChannel());
+            }
+            packet.getData().release();
+        } catch (Exception e) {
+            logger.error(e);
+            throw e;
         }
-
-        UserConnection connection = ((UnderlyingNetworkConnection) ctx.channel()).getUserConnection(protocolClass);
-        logger.debug("Handling ${0}...", packet.getClass());
-        registry.getCodec(packet.getClass()).handle(packet, connection.getDefaultChannel(), connection);
     }
 
     @Override
@@ -91,11 +93,8 @@ public class TcpHandler extends ChannelInboundHandlerAdapter implements Logging 
         logger.trace("[${0}] New connection: ${1}", this.endpoint.getName(), ctx.channel().remoteAddress());
 
         UnderlyingNetworkConnection realConnection = (UnderlyingNetworkConnection) ctx.channel();
-        /*this.endpoint.getPacketRegistry().getProtocols().stream() //TODO: implement this
-                .map(userProtocol -> realConnection.getUserConnection((Class<UserProtocol<UserConnection>>) userProtocol.getClass()))
-                .forEach(UserConnection::onConnect);*/
-        if (this.endpoint instanceof PorkServer) {
-            realConnection.send(new HandshakeInitPacket());
+        if (this.endpoint.isServer()) {
+            realConnection.getControlChannel().send(new HandshakeInitPacket(), () -> logger.debug("Sent handshake init!"));
         } else if (false && this.endpoint instanceof PorkClient) {
             ((PorkClient) this.endpoint).postConnectCallback(null);
         }
@@ -108,8 +107,6 @@ public class TcpHandler extends ChannelInboundHandlerAdapter implements Logging 
 
         UnderlyingNetworkConnection realConnection = (UnderlyingNetworkConnection) ctx.channel();
         String disconnectReason = realConnection.getUserConnection(PorkProtocol.class).getDisconnectReason();
-        this.endpoint.getPacketRegistry().getProtocols().stream()
-                .map(userProtocol -> realConnection.getUserConnection((Class<UserProtocol<UserConnection>>) userProtocol.getClass()))
-                .forEach(c -> c.onDisconnect(disconnectReason));
+        realConnection.getConnections().forEach((protocolClass, c) -> c.onDisconnect(disconnectReason));
     }
 }

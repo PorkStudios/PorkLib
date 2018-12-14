@@ -25,6 +25,7 @@ import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.protocol.api.EndpointManager;
 
 import java.util.Collection;
+import java.util.stream.Stream;
 
 /**
  * @author DaPorkchop_
@@ -39,11 +40,11 @@ public class PorkServer implements Server {
         this.packetRegistry = new PacketRegistry(builder.getProtocols());
         this.manager = builder.getManager().createServerManager();
 
-        this.manager.start(builder.getAddress(), builder.getExecutor(), this);
+        this.manager.start(builder, this);
     }
 
     @Override
-    public <C extends UserConnection> Collection<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass) {
+    public <C extends UserConnection> Stream<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass) {
         return this.manager.getConnections(protocolClass);
     }
 

@@ -13,43 +13,32 @@
  *
  */
 
-package net.daporkchop.lib.network.pork.packet;
+package net.daporkchop.lib.network.packet.handler.codec;
 
 import io.netty.buffer.ByteBuf;
-import lombok.AllArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
-import net.daporkchop.lib.network.packet.handler.PacketHandler;
-import net.daporkchop.lib.network.util.Version;
-
-import java.util.stream.Collectors;
 
 /**
+ * Encodes and decodes an object
+ *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-public class HandshakeInitPacket {
-    public static class HandshakeInitCodec implements PacketHandler<HandshakeInitPacket> {
-        @Override
-        public void handle(@NonNull HandshakeInitPacket packet, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception {
-            connection.getControlChannel().send(new HandshakeResponsePacket(
-                    connection.getEndpoint().getPacketRegistry().getProtocols().stream().map(Version::new).collect(Collectors.toList())
-            ), () -> Logging.logger.debug("Sent handshake response!"));
-        }
+public interface Codec<V> {
+    /**
+     * Encodes a value
+     *
+     * @param value the value to encode
+     * @param buf   the buffer to write the data to
+     * @throws Exception if an exception occurs
+     */
+    void encode(@NonNull V value, @NonNull ByteBuf buf) throws Exception;
 
-        @Override
-        public void encode(@NonNull HandshakeInitPacket packet, @NonNull ByteBuf buf) throws Exception {
-        }
-
-        @Override
-        public HandshakeInitPacket decode(@NonNull ByteBuf buf) throws Exception {
-            return new HandshakeInitPacket();
-        }
-
-        @Override
-        public Class<HandshakeInitPacket> getPacketClass() {
-            return HandshakeInitPacket.class;
-        }
-    }
+    /**
+     * Decodes a value
+     *
+     * @param buf the buffer to read the data from
+     * @return the decoded value
+     * @throws Exception if an exception occurs
+     */
+    V decode(@NonNull ByteBuf buf) throws Exception;
 }

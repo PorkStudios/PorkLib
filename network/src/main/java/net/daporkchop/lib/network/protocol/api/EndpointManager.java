@@ -15,20 +15,20 @@
 
 package net.daporkchop.lib.network.protocol.api;
 
+import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.network.channel.ServerChannel;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
+import net.daporkchop.lib.network.endpoint.builder.AbstractBuilder;
+import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
+import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.endpoint.client.Client;
 import net.daporkchop.lib.network.endpoint.server.Server;
-import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
 
-import java.net.InetSocketAddress;
-import java.util.Collection;
-import java.util.concurrent.Executor;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Manages a specific endpoint
@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
  * @author DaPorkchop_
  * @see ProtocolManager
  */
-public interface EndpointManager<E extends Endpoint> {
+public interface EndpointManager<E extends Endpoint, B extends AbstractBuilder<E, B>> {
     /**
      * Closes the endpoint, removing all connected sessions
      */
@@ -56,16 +56,15 @@ public interface EndpointManager<E extends Endpoint> {
     /**
      * Starts this endpoint
      *
-     * @param address  the address to bind/connect to
-     * @param executor the executor to use for threading
+     * @param builder  the {@link AbstractBuilder} the builder used to initiate the endpoint
      * @param endpoint the actual endpoint object
      */
-    void start(@NonNull InetSocketAddress address, @NonNull Executor executor, @NonNull E endpoint);
+    void start(@NonNull B builder, @NonNull E endpoint);
 
     /**
      * Manages a server
      */
-    interface ServerEndpointManager extends EndpointManager<Server> {
+    interface ServerEndpointManager extends EndpointManager<Server, ServerBuilder> {
         /**
          * Gets a list of all currently open connections to this server
          *
@@ -73,20 +72,30 @@ public interface EndpointManager<E extends Endpoint> {
          * @param <C>           the connection type
          * @return all currently open connections to this server
          */
-        default <C extends UserConnection> Collection<C> getConnections(Class<? extends UserProtocol<C>> protocolClass) {
-            return this.getChannel().getUnderlyingNetworkConnectionsAsStream()
-                    .map(connection -> connection.getUserConnection(protocolClass))
-                    .collect(Collectors.toList());
+        default <C extends UserConnection> Stream<C> getConnections(Class<? extends UserProtocol<C>> protocolClass) {
+            return this.getChannel().getUnderlyingNetworkConnectionsAsStream().map(connection -> connection.getUserConnection(protocolClass));
         }
 
         /**
          * Send a message to all connected clients on the default channel
          *
-         * @param packet   the packet to send
+         * @param message  the packet to send
          * @param blocking whether or not this method will block the invoking thread until the packet has been flushed
          */
-        default void broadcast(@NonNull Packet packet, boolean blocking) {
-            this.getChannel().broadcast(packet, blocking);
+        default void broadcast(@NonNull Object message, boolean blocking) {
+            this.getChannel().broadcast(message, blocking);
+        }
+
+        /**
+         * Broadcasts a raw packet to all connections on the default channel
+         *
+         * @param data          the data to send
+         * @param id            the id of the packet
+         * @param protocolClass the class of the protocol that the packet should be sent on
+         * @param <C>           the protocol's connection type
+         */
+        default <C extends UserConnection> void broadcast(@NonNull ByteBuf data, short id, @NonNull Class<? extends UserProtocol<C>> protocolClass) {
+            this.getChannel().broadcast(data, id, protocolClass);
         }
 
         /**
@@ -115,7 +124,7 @@ public interface EndpointManager<E extends Endpoint> {
     /**
      * Manages a client
      */
-    interface ClientEndpointManager extends EndpointManager<Client> {
+    interface ClientEndpointManager extends EndpointManager<Client, ClientBuilder> {
         /**
          * Gets the client's connection
          *
@@ -126,12 +135,12 @@ public interface EndpointManager<E extends Endpoint> {
         <C extends UserConnection> C getConnection(@NonNull Class<? extends UserProtocol<C>> protocolClass);
 
         /**
-         * Send a packet to the server
+         * Send a packet to the server on the default channel
          *
-         * @param packet   the packet to send
+         * @param message  the packet to send
          * @param blocking whether or not this method will block the invoking thread until the packet has been flushed
          * @param callback a function to run once the packet has been flushed
          */
-        void send(@NonNull Packet packet, boolean blocking, Void callback);
+        void send(@NonNull Object message, boolean blocking, Void callback);
     }
 }

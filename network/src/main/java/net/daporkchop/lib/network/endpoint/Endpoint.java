@@ -18,10 +18,12 @@ package net.daporkchop.lib.network.endpoint;
 import lombok.NonNull;
 import net.daporkchop.lib.network.EndpointType;
 import net.daporkchop.lib.network.conn.UserConnection;
+import net.daporkchop.lib.network.endpoint.client.Client;
+import net.daporkchop.lib.network.endpoint.server.Server;
 import net.daporkchop.lib.network.packet.PacketRegistry;
 import net.daporkchop.lib.network.packet.UserProtocol;
 
-import java.util.Collection;
+import java.util.stream.Stream;
 
 /**
  * @author DaPorkchop_
@@ -29,7 +31,7 @@ import java.util.Collection;
 public interface Endpoint {
     EndpointType getType();
 
-    <C extends UserConnection> Collection<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass);
+    <C extends UserConnection> Stream<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass);
 
     PacketRegistry getPacketRegistry();
 
@@ -45,5 +47,13 @@ public interface Endpoint {
 
     default boolean isClosed() {
         return !this.isRunning();
+    }
+
+    default boolean isClient() {
+        return this instanceof Client;
+    }
+
+    default boolean isServer() {
+        return this instanceof Server;
     }
 }

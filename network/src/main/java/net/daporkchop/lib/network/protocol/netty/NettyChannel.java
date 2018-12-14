@@ -16,34 +16,14 @@
 package net.daporkchop.lib.network.protocol.netty;
 
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
-import net.daporkchop.lib.crypto.CryptographySettings;
 import net.daporkchop.lib.network.channel.ChannelImplementation;
-import net.daporkchop.lib.network.pork.packet.StartEncryptionPacket;
-import net.daporkchop.lib.network.util.PacketReprocessor;
 
 /**
  * @author DaPorkchop_
  */
 @Getter
+@Setter
 public abstract class NettyChannel implements ChannelImplementation {
-    private final PacketReprocessor packetReprocessor = new PacketReprocessor(this);
-    @Setter
-    private volatile boolean encryptionReady;
-
-    @Override
-    public boolean isEncrypted() {
-        return this.packetReprocessor.getCipher() != null && this.encryptionReady;
-    }
-
-    @Override
-    public synchronized void startEncryption(@NonNull CryptographySettings cryptographySettings) {
-        if (this.packetReprocessor.getCryptographySettings() != null) {
-            //cryptography settings will be set even before encryption is completely enabled
-            throw new IllegalStateException("encryption already enabled");
-        }
-        this.packetReprocessor.setCryptographySettings(cryptographySettings);
-        this.getConnection().getControlChannel().send(new StartEncryptionPacket(cryptographySettings, this.getId()));
-    }
+    protected short protocolId;
 }

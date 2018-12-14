@@ -13,28 +13,11 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.api;
-
-import net.daporkchop.lib.crypto.CryptographySettings;
-import net.daporkchop.lib.encoding.compression.CompressionHelper;
+package net.daporkchop.lib.network.util;
 
 /**
- * Implements a network protocol
- *
  * @author DaPorkchop_
  */
-public interface ProtocolManager {
-    /**
-     * Create and get a new {@link EndpointManager.ServerEndpointManager}
-     *
-     * @return a new server manager
-     */
-    EndpointManager.ServerEndpointManager createServerManager();
-
-    /**
-     * Create and get a new {@link EndpointManager.ClientEndpointManager}
-     *
-     * @return a new client manager
-     */
-    EndpointManager.ClientEndpointManager createClientManager();
+public interface NetworkConstants {
+    boolean DEBUG_REF_COUNT = false;
 }

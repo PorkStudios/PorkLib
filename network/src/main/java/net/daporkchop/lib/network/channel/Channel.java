@@ -15,14 +15,14 @@
 
 package net.daporkchop.lib.network.channel;
 
+import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.common.function.Void;
-import net.daporkchop.lib.crypto.CryptographySettings;
 import net.daporkchop.lib.network.conn.Connection;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
-import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.packet.PacketRegistry;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 
@@ -44,16 +44,30 @@ public interface Channel {
     //
 
     /**
-     * Send a {@link Packet} over this channel.
+     * Send a packet over this channel.
      *
-     * @param packet      the packet to send
+     * @param message     the packet to send
      * @param blocking    whether or not to block the invoking thread until the underlying network channel has been flushed
      * @param callback    a function to run after the underlying network channel has been flushed. if {@code null}, this
      *                    parameter is ignored.
      * @param reliability the desired channel reliability. depending on the underlying network protocol, this reliability may be
      *                    enforced for all packet, used merely as a default, or ignored entirely.
      */
-    void send(@NonNull Packet packet, boolean blocking, Void callback, @NonNull Reliability reliability);
+    void send(@NonNull Object message, boolean blocking, Void callback, @NonNull Reliability reliability);
+
+    /**
+     * Sends a raw packet over this channel
+     *
+     * @param data        the data to send. this buffer will not be released by this, even though the reference count may change it
+     *                    will be set to the original state after the packet is written.
+     * @param id          the full id of the packet. See {@link net.daporkchop.lib.network.packet.PacketRegistry#combine(short, short)}
+     * @param blocking    whether or not to block the invoking thread until the underlying network channel has been flushed
+     * @param callback    a function to run after the underlying network channel has been flushed. if {@code null}, this
+     *                    parameter is ignored.
+     * @param reliability the desired channel reliability. depending on the underlying network protocol, this reliability may be
+     *                    enforced for all packet, used merely as a default, or ignored entirely.
+     */
+    void send(@NonNull ByteBuf data, int id, boolean blocking, Void callback, @NonNull Reliability reliability);
 
     /**
      * Get this channel's reliability.
@@ -112,16 +126,16 @@ public interface Channel {
     /**
      * Closes this channel.
      * <p>
-     * Depending on the underlying network connection, this can do one of multiple things:
-     * - for transports that do not natively support channels (such as TCP), this will do nothing
-     * - for transports that have native support for channels (such as RakNet), this will either
-     * --- close the connection (if this is the default channel)
-     * --- close this channel, and only this channel (if this is not the default channel)
+     * This will only close the channel, not the connection.
      * <p>
      * To close the actual connection, use {@link Connection#closeConnection()} (a dummy connection can be obtained from
      * {@link #getConnection(Class)} with {@link net.daporkchop.lib.network.pork.PorkProtocol}.class as a parameter)
      */
-    void close();
+    default void close() {
+        this.close(true);
+    }
+
+    void close(boolean notifyRemote);
 
     /**
      * Checks if this is the default channel
@@ -149,22 +163,6 @@ public interface Channel {
     Collection<Reliability> supportedReliabilities();
 
     /**
-     * Checks if encryption is enabled
-     *
-     * @return whether or not encryption is enabled on this channel
-     */
-    boolean isEncrypted();
-
-    /**
-     * Initializes encryption for this channel.
-     * <p>
-     * Be aware that (((currently))) encryption is only supported for messages sent via {@link Reliability#RELIABLE_ORDERED}.
-     *
-     * @param cryptographySettings the cryptography settings to use
-     */
-    void startEncryption(@NonNull CryptographySettings cryptographySettings);
-
-    /**
      * Gets this channel's endpoint
      *
      * @param <E> convenience cast
@@ -186,60 +184,113 @@ public interface Channel {
     // Convenience methods
     //
     //
-    default void send(@NonNull Packet packet, boolean blocking, Void callback) {
-        this.send(packet, blocking, callback, this.getReliability());
+
+    // message send methods
+
+    default void send(@NonNull Object message, boolean blocking, Void callback) {
+        this.send(message, blocking, callback, this.getReliability());
     }
 
-    default void send(@NonNull Packet packet, boolean blocking, @NonNull Reliability reliability) {
+    default void send(@NonNull Object message, boolean blocking, @NonNull Reliability reliability) {
         if (this.isReliabilityEnforced() && reliability != this.getReliability()) {
             throw new IllegalArgumentException(String.format("Invalid reliability: %s (channel setting: %s)", reliability.name(), this.getReliability().name()));
         }
-        this.send(packet, blocking, null, reliability);
+        this.send(message, blocking, null, reliability);
     }
 
-    default void send(@NonNull Packet packet, Void callback, @NonNull Reliability reliability) {
+    default void send(@NonNull Object message, Void callback, @NonNull Reliability reliability) {
         if (this.isReliabilityEnforced() && reliability != this.getReliability()) {
             throw new IllegalArgumentException(String.format("Invalid reliability: %s (channel setting: %s)", reliability.name(), this.getReliability().name()));
         }
-        this.send(packet, false, callback, reliability);
+        this.send(message, false, callback, reliability);
     }
 
-    default void send(@NonNull Packet packet, boolean blocking) {
-        this.send(packet, blocking, null, this.getReliability());
+    default void send(@NonNull Object message, boolean blocking) {
+        this.send(message, blocking, null, this.getReliability());
     }
 
-    default void send(@NonNull Packet packet, @NonNull Reliability reliability) {
+    default void send(@NonNull Object message, @NonNull Reliability reliability) {
         if (this.isReliabilityEnforced() && reliability != this.getReliability()) {
             throw new IllegalArgumentException(String.format("Invalid reliability: %s (channel setting: %s)", reliability.name(), this.getReliability().name()));
         }
-        this.send(packet, false, null, reliability);
+        this.send(message, false, null, reliability);
     }
 
-    default void send(@NonNull Packet packet, Void callback) {
-        this.send(packet, false, callback, this.getReliability());
+    default void send(@NonNull Object message, Void callback) {
+        this.send(message, false, callback, this.getReliability());
     }
 
-    default void send(@NonNull Packet packet) {
-        this.send(packet, false, null, this.getReliability());
+    default void send(@NonNull Object message) {
+        this.send(message, false, null, this.getReliability());
     }
+
+    //raw packet w. protocol send methods
+
+    default <C extends UserConnection> void send(@NonNull ByteBuf data, short id, boolean blocking, Void callback, @NonNull Class<? extends UserProtocol<C>> protocolClass) {
+        this.send(data, PacketRegistry.combine(this.getEndpoint().getPacketRegistry().getProtocolId(protocolClass), id), blocking, callback, this.getReliability());
+    }
+
+    default <C extends UserConnection> void send(@NonNull ByteBuf data, short id, boolean blocking, @NonNull Class<? extends UserProtocol<C>> protocolClass) {
+        this.send(data, PacketRegistry.combine(this.getEndpoint().getPacketRegistry().getProtocolId(protocolClass), id), blocking, null, this.getReliability());
+    }
+
+    default <C extends UserConnection> void send(@NonNull ByteBuf data, short id, Void callback, @NonNull Class<? extends UserProtocol<C>> protocolClass) {
+        this.send(data, PacketRegistry.combine(this.getEndpoint().getPacketRegistry().getProtocolId(protocolClass), id), false, callback, this.getReliability());
+    }
+
+    default <C extends UserConnection> void send(@NonNull ByteBuf data, short id, @NonNull Reliability reliability, @NonNull Class<? extends UserProtocol<C>> protocolClass) {
+        this.send(data, PacketRegistry.combine(this.getEndpoint().getPacketRegistry().getProtocolId(protocolClass), id), false, null, reliability);
+    }
+
+    default <C extends UserConnection> void send(@NonNull ByteBuf data, short id, boolean blocking, @NonNull Reliability reliability, @NonNull Class<? extends UserProtocol<C>> protocolClass) {
+        this.send(data, PacketRegistry.combine(this.getEndpoint().getPacketRegistry().getProtocolId(protocolClass), id), blocking, null, reliability);
+    }
+
+    default <C extends UserConnection> void send(@NonNull ByteBuf data, short id, Void callback, @NonNull Reliability reliability, @NonNull Class<? extends UserProtocol<C>> protocolClass) {
+        this.send(data, PacketRegistry.combine(this.getEndpoint().getPacketRegistry().getProtocolId(protocolClass), id), false, callback, reliability);
+    }
+
+    default <C extends UserConnection> void send(@NonNull ByteBuf data, short id, @NonNull Class<? extends UserProtocol<C>> protocolClass) {
+        this.send(data, PacketRegistry.combine(this.getEndpoint().getPacketRegistry().getProtocolId(protocolClass), id), false, null, this.getReliability());
+    }
+
+    default <C extends UserConnection> void send(@NonNull ByteBuf data, short id, boolean blocking, Void callback, @NonNull Reliability reliability, @NonNull Class<? extends UserProtocol<C>> protocolClass) {
+        this.send(data, PacketRegistry.combine(this.getEndpoint().getPacketRegistry().getProtocolId(protocolClass), id), blocking, callback, reliability);
+    }
+
+    //raw packet w/o. protocol send methods
+
+    default void send(@NonNull ByteBuf data, int id, boolean blocking, Void callback) {
+        this.send(data, id, blocking, callback, this.getReliability());
+    }
+
+    default void send(@NonNull ByteBuf data, int id, boolean blocking) {
+        this.send(data, id, blocking, null, this.getReliability());
+    }
+
+    default void send(@NonNull ByteBuf data, int id, Void callback) {
+        this.send(data, id, false, callback, this.getReliability());
+    }
+
+    default void send(@NonNull ByteBuf data, int id, @NonNull Reliability reliability) {
+        this.send(data, id, false, null, reliability);
+    }
+
+    default void send(@NonNull ByteBuf data, int id, boolean blocking, @NonNull Reliability reliability) {
+        this.send(data, id, blocking, null, reliability);
+    }
+
+    default void send(@NonNull ByteBuf data, int id, Void callback, @NonNull Reliability reliability) {
+        this.send(data, id, false, callback, reliability);
+    }
+
+    default void send(@NonNull ByteBuf data, int id) {
+        this.send(data, id, false, null, this.getReliability());
+    }
+
+    //other methods
 
     default boolean isDefault() {
         return this.getId() == 0;
-    }
-
-    /**
-     * Waits for encryption to be enabled on this channel.
-     * <p>
-     * WARNING: calling this without first invoking {@link #startEncryption(CryptographySettings)} will cause a deadlock!
-     */
-    default void waitForEncryption() {
-        while (!this.isEncrypted()) {
-            try {
-                synchronized (this) {
-                    this.wait(50L);
-                }
-            } catch (InterruptedException e) {
-            }
-        }
     }
 }

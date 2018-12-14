@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.network.protocol.netty.tcp;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import lombok.Getter;
 import lombok.NonNull;
@@ -24,8 +25,8 @@ import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
-import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
+import net.daporkchop.lib.network.pork.packet.CloseChannelPacket;
 import net.daporkchop.lib.network.protocol.netty.NettyChannel;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 
@@ -46,17 +47,39 @@ public class TcpChannel extends NettyChannel implements Logging {
     private static final Collection<Reliability> RELIABLE_ORDERED_ONLY = Collections.singleton(Reliability.RELIABLE_ORDERED);
 
     @NonNull
-    private final WrapperNioSocketChannel realChannel;
+    private final WrapperNioSocketChannel channel;
+    private final int id;
+    volatile boolean closed;
 
     @Override
-    public void send(@NonNull Packet packet, boolean blocking, Void callback, Reliability reliability) {
-        ChannelFuture future = this.realChannel.writeAndFlush(packet);
-        //future.addListener(f -> logger.debug("[] Send packet: ${0}", packet.getClass()));
-        if (callback != null) {
-            future.addListener(f -> callback.run());
+    public void send(@NonNull Object message, boolean blocking, Void callback, Reliability reliability) {
+        if (this.closed) {
+            throw new IllegalStateException("channel closed!");
+        } else {
+            //logger.debug("Writing ${0} (${1}blocking)...", message.getClass(), blocking ? "" : "non-");
+            int id = this.channel.getEndpoint().getPacketRegistry().getId(message.getClass());
+            ChannelFuture future = this.channel.writeAndFlush(new UnencodedTcpPacket(message, this.id, id));
+            if (callback != null) {
+                future.addListener(f -> callback.run());
+            }
+            if (blocking) {
+                future.syncUninterruptibly();
+            }
         }
-        if (blocking) {
-            future.syncUninterruptibly();
+    }
+
+    @Override
+    public void send(@NonNull ByteBuf data, int id, boolean blocking, Void callback, Reliability reliability) {
+        if (this.closed) {
+            throw new IllegalStateException("channel closed!");
+        } else {
+            ChannelFuture future = this.channel.writeAndFlush(new TcpPacketWrapper(data, this.id, id));
+            if (callback != null) {
+                future.addListener(f -> callback.run());
+            }
+            if (blocking) {
+                future.syncUninterruptibly();
+            }
         }
     }
 
@@ -71,23 +94,30 @@ public class TcpChannel extends NettyChannel implements Logging {
     }
 
     @Override
-    public int getId() {
-        return 0; //TCP only has one channel
-    }
-
-    @Override
     public <C extends UserConnection> C getConnection(@NonNull Class<? extends UserProtocol<C>> protocolClass) {
-        return this.realChannel.getUserConnection(protocolClass);
+        return this.channel.getUserConnection(protocolClass);
     }
 
     @Override
-    public void close() {
-        //don't close anything because TCP only has one channel
-    }
-
-    @Override
-    public boolean isDefaultChannel() {
-        return true;
+    public synchronized void close(boolean notifyRemote) {
+        if (this.isDefaultChannel()) {
+            throw new IllegalStateException("Cannot close default channel!");
+        } else if (this.isControlChannel()) {
+            throw new IllegalStateException("Cannot close control channel!");
+        } else {
+            if (this.closed) {
+                throw new IllegalArgumentException("already closed!");
+            } else {
+                synchronized (this.channel.channelIds) {
+                    this.channel.channels.remove(this.id);
+                    this.channel.channelIds.clear(this.id);
+                }
+                this.closed = true;
+                if (notifyRemote) {
+                    this.channel.getControlChannel().send(new CloseChannelPacket(this.id), true);
+                }
+            }
+        }
     }
 
     @Override
@@ -97,6 +127,6 @@ public class TcpChannel extends NettyChannel implements Logging {
 
     @Override
     public UnderlyingNetworkConnection getConnection() {
-        return this.realChannel;
+        return this.channel;
     }
 }

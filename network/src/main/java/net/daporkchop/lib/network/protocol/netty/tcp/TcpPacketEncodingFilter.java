@@ -13,15 +13,46 @@
  *
  */
 
-package net.daporkchop.lib.network.pork;
+package net.daporkchop.lib.network.protocol.netty.tcp;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.MessageToMessageEncoder;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.packet.PacketRegistry;
+import net.daporkchop.lib.network.packet.handler.PacketHandler;
+import net.daporkchop.lib.network.util.NetworkConstants;
+
+import java.util.List;
 
 /**
- * Doesn't actually do anything, serves simply as a quick way of flagging porklib packets from user packets
+ * Encodes unencoded packets
  *
  * @author DaPorkchop_
  */
-public interface PorkPacket extends Packet, Logging {
+@RequiredArgsConstructor
+@Getter
+public class TcpPacketEncodingFilter extends MessageToMessageEncoder<UnencodedTcpPacket> implements Logging {
+    @NonNull
+    private final PacketRegistry registry;
+
+    @Override
+    @SuppressWarnings("unchecked")
+    protected void encode(@NonNull ChannelHandlerContext ctx, @NonNull UnencodedTcpPacket msg, List<Object> out) throws Exception {
+        try {
+            ByteBuf buf = ctx.alloc().ioBuffer();
+            PacketHandler handler = (PacketHandler) this.registry.getHandler(msg.getId());
+            handler.encode(msg.getMessage(), buf);
+            out.add(new TcpPacketWrapper(buf, msg.getChannel(), msg.getId()));
+            if (NetworkConstants.DEBUG_REF_COUNT) {
+                logger.debug("Encoded packet with ${0} references!", buf.refCnt());
+            }
+        } catch (Exception e) {
+            Logging.logger.error(e);
+            throw e;
+        }
+    }
 }

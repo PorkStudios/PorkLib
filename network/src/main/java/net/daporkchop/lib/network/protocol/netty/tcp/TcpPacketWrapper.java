@@ -13,43 +13,43 @@
  *
  */
 
-package net.daporkchop.lib.network.pork.packet;
+package net.daporkchop.lib.network.protocol.netty.tcp;
 
 import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
-import net.daporkchop.lib.network.packet.handler.PacketHandler;
-import net.daporkchop.lib.network.util.Version;
-
-import java.util.stream.Collectors;
 
 /**
  * @author DaPorkchop_
  */
 @AllArgsConstructor
-public class HandshakeInitPacket {
-    public static class HandshakeInitCodec implements PacketHandler<HandshakeInitPacket> {
-        @Override
-        public void handle(@NonNull HandshakeInitPacket packet, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception {
-            connection.getControlChannel().send(new HandshakeResponsePacket(
-                    connection.getEndpoint().getPacketRegistry().getProtocols().stream().map(Version::new).collect(Collectors.toList())
-            ), () -> Logging.logger.debug("Sent handshake response!"));
-        }
+@Getter
+public class TcpPacketWrapper implements Logging {
+    @NonNull
+    private final ByteBuf data;
 
-        @Override
-        public void encode(@NonNull HandshakeInitPacket packet, @NonNull ByteBuf buf) throws Exception {
-        }
+    private final int channel;
+    private final int id;
 
-        @Override
-        public HandshakeInitPacket decode(@NonNull ByteBuf buf) throws Exception {
-            return new HandshakeInitPacket();
-        }
+    @Override
+    public String toString() {
+        return this.format("packet=${0}, channel=${1}, id=${2}", this.data, this.channel, this.id);
+    }
+}
 
-        @Override
-        public Class<HandshakeInitPacket> getPacketClass() {
-            return HandshakeInitPacket.class;
-        }
+@AllArgsConstructor
+@Getter
+class UnencodedTcpPacket implements Logging {
+    @NonNull
+    private final Object message;
+
+    private final int channel;
+    private final int id;
+
+    @Override
+    public String toString() {
+        return this.format("packet=${0}, channel=${1}, id=${2}", this.message.getClass(), this.channel, this.id);
     }
 }

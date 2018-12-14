@@ -19,8 +19,6 @@ import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 
-import java.util.Queue;
-
 /**
  * Processes incoming and outgoing messages
  *

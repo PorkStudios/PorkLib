@@ -100,7 +100,7 @@ public class TcpChannel extends NettyChannel implements Logging {
 
     @Override
     public synchronized void close(boolean notifyRemote) {
-        if (this.isDefaultChannel())    {
+        if (this.isDefaultChannel()) {
             throw new IllegalStateException("Cannot close default channel!");
         } else if (this.isControlChannel()) {
             throw new IllegalStateException("Cannot close control channel!");

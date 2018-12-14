@@ -31,7 +31,6 @@ import net.daporkchop.lib.network.protocol.netty.NettyConnection;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 import net.daporkchop.lib.primitive.map.IntegerObjectMap;
 import net.daporkchop.lib.primitive.map.PorkMaps;
-import net.daporkchop.lib.primitive.map.array.IntegerObjectArrayMap;
 import net.daporkchop.lib.primitive.map.hashmap.IntegerObjectHashMap;
 
 import java.util.IdentityHashMap;

@@ -19,7 +19,6 @@ import com.zaxxer.sparsebits.SparseBitSet;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
@@ -31,14 +30,11 @@ import net.daporkchop.lib.network.protocol.netty.NettyConnection;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 import net.daporkchop.lib.primitive.map.IntegerObjectMap;
 import net.daporkchop.lib.primitive.map.PorkMaps;
-import net.daporkchop.lib.primitive.map.array.IntegerObjectArrayMap;
 import net.daporkchop.lib.primitive.map.hashmap.IntegerObjectHashMap;
 
 import java.nio.channels.SocketChannel;
-import java.nio.channels.spi.SelectorProvider;
 import java.util.IdentityHashMap;
 import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -48,15 +44,15 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 @Getter
 public class WrapperNioSocketChannel extends NioSocketChannel implements NettyConnection, Logging {
-    private final Map<Class<? extends UserProtocol>, UserConnection> connections = new IdentityHashMap<>();
     final IntegerObjectMap<TcpChannel> channels = PorkMaps.synchronize(new IntegerObjectHashMap<>(), new ReentrantLock());
     final SparseBitSet channelIds = new SparseBitSet();
+    private final Map<Class<? extends UserProtocol>, UserConnection> connections = new IdentityHashMap<>();
     @NonNull
     private final Endpoint endpoint;
     private final TcpChannel controlChannel;
     private final TcpChannel defaultChannel;
 
-    public WrapperNioSocketChannel(@NonNull Endpoint endpoint)  {
+    public WrapperNioSocketChannel(@NonNull Endpoint endpoint) {
         this.endpoint = endpoint;
 
         this.controlChannel = (TcpChannel) this.openChannel(Reliability.RELIABLE_ORDERED, 0, false);
@@ -79,7 +75,7 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements NettyCo
 
     @Override
     public Channel openChannel(Reliability reliability) {
-        synchronized (this.channelIds)  {
+        synchronized (this.channelIds) {
             return this.openChannel(reliability, this.channelIds.nextClearBit(0), true);
         }
     }
@@ -102,11 +98,11 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements NettyCo
                     return channel;
                 }
             }
-        } catch (Exception e)   {
+        } catch (Exception e) {
             notifyRemote = false;
             throw e;
         } finally {
-            if (notifyRemote && requestedId > 1)    {
+            if (notifyRemote && requestedId > 1) {
                 this.controlChannel.send(new OpenChannelPacket(Reliability.RELIABLE_ORDERED, requestedId), true);
             }
         }

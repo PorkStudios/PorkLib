@@ -47,10 +47,10 @@ public class TcpPacketEncodingFilter extends MessageToMessageEncoder<UnencodedTc
             PacketHandler handler = (PacketHandler) this.registry.getHandler(msg.getId());
             handler.encode(msg.getMessage(), buf);
             out.add(new TcpPacketWrapper(buf, msg.getChannel(), msg.getId()));
-            if (NetworkConstants.DEBUG_REF_COUNT)   {
+            if (NetworkConstants.DEBUG_REF_COUNT) {
                 logger.debug("Encoded packet with ${0} references!", buf.refCnt());
             }
-        } catch (Exception e)   {
+        } catch (Exception e) {
             Logging.logger.error(e);
             throw e;
         }

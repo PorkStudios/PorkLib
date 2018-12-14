@@ -22,10 +22,8 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
-import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.endpoint.client.PorkClient;
-import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.pork.PorkConnection;
 import net.daporkchop.lib.network.pork.PorkProtocol;
 import net.daporkchop.lib.network.pork.packet.HandshakeInitPacket;
@@ -112,8 +110,6 @@ public class TcpHandler extends ChannelInboundHandlerAdapter implements Logging 
 
         UnderlyingNetworkConnection realConnection = (UnderlyingNetworkConnection) ctx.channel();
         String disconnectReason = realConnection.getUserConnection(PorkProtocol.class).getDisconnectReason();
-        this.endpoint.getPacketRegistry().getProtocols().stream()
-                .map(userProtocol -> realConnection.getUserConnection((Class<UserProtocol<UserConnection>>) userProtocol.getClass()))
-                .forEach(c -> c.onDisconnect(disconnectReason));
+        realConnection.getConnections().forEach((protocolClass, c) -> c.onDisconnect(disconnectReason));
     }
 }

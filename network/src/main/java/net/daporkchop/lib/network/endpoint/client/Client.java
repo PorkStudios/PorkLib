@@ -25,8 +25,6 @@ import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.pork.PorkProtocol;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.stream.Stream;
 
 /**

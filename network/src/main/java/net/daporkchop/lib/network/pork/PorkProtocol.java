@@ -16,12 +16,7 @@
 package net.daporkchop.lib.network.pork;
 
 import net.daporkchop.lib.network.packet.UserProtocol;
-import net.daporkchop.lib.network.pork.packet.CloseChannelPacket;
-import net.daporkchop.lib.network.pork.packet.DisconnectPacket;
-import net.daporkchop.lib.network.pork.packet.HandshakeCompletePacket;
-import net.daporkchop.lib.network.pork.packet.HandshakeInitPacket;
-import net.daporkchop.lib.network.pork.packet.HandshakeResponsePacket;
-import net.daporkchop.lib.network.pork.packet.OpenChannelPacket;
+import net.daporkchop.lib.network.pork.packet.*;
 
 /**
  * The protocol used by PorkLib network for internal messaging

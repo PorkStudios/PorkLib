@@ -23,7 +23,6 @@ import net.daporkchop.lib.network.endpoint.server.Server;
 import net.daporkchop.lib.network.packet.PacketRegistry;
 import net.daporkchop.lib.network.packet.UserProtocol;
 
-import java.util.Collection;
 import java.util.stream.Stream;
 
 /**

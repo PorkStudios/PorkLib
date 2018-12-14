@@ -21,7 +21,6 @@ import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.packet.UserProtocol;
 
-import java.util.Collection;
 import java.util.stream.Stream;
 
 /**

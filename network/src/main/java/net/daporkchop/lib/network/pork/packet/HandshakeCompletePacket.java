@@ -31,6 +31,7 @@ public class HandshakeCompletePacket {
         @Override
         public void handle(@NonNull HandshakeCompletePacket packet, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception {
             connection.<PorkClient>getEndpoint().postConnectCallback(null);
+            connection.getConnections().forEach((protocolClass, c) -> c.onConnect());
         }
 
         @Override

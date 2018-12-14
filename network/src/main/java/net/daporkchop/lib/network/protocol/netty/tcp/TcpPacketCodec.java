@@ -43,7 +43,7 @@ public class TcpPacketCodec extends MessageToMessageCodec<ByteBuf, TcpPacketWrap
         try {
             out.add(ctx.alloc().buffer(12).writeInt(msg.getData().readableBytes() + 8).writeInt(msg.getChannel()).writeInt(msg.getId()));
             out.add(msg.getData().retain());
-            if (NetworkConstants.DEBUG_REF_COUNT)   {
+            if (NetworkConstants.DEBUG_REF_COUNT) {
                 logger.debug("Writing message with ${0} references!", msg.getData().refCnt());
             }
         } catch (Exception e) {
@@ -58,7 +58,7 @@ public class TcpPacketCodec extends MessageToMessageCodec<ByteBuf, TcpPacketWrap
             int channelId = in.readInt();
             int packetId = in.readInt();
             out.add(new TcpPacketWrapper(in.retain(), channelId, packetId));
-            if (NetworkConstants.DEBUG_REF_COUNT)   {
+            if (NetworkConstants.DEBUG_REF_COUNT) {
                 logger.debug("Received message with ${0} references!", in.refCnt());
             }
         } catch (Exception e) {

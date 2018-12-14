@@ -15,18 +15,13 @@
 
 package net.daporkchop.lib.network.protocol.netty;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.group.ChannelGroup;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.network.channel.ServerChannel;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
-import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.server.Server;
-import net.daporkchop.lib.network.packet.PacketRegistry;
-import net.daporkchop.lib.network.packet.UserProtocol;
-import net.daporkchop.lib.network.protocol.netty.tcp.TcpPacketWrapper;
 
 import java.util.Collection;
 import java.util.stream.Collectors;

@@ -36,10 +36,10 @@ public class HandshakeResponsePacket {
     @NonNull
     public final Collection<Version> protocolVersions;
 
-    public static class HandshakeResponseCodec implements DataPacketHandler<HandshakeResponsePacket> {
+    public static class HandshakeResponseCodec implements DataPacketHandler<HandshakeResponsePacket>, Logging {
         @Override
         public void handle(@NonNull HandshakeResponsePacket packet, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception {
-            Logging.logger.debug("handling handshake response...");
+            logger.debug("handling handshake response...");
             PacketRegistry registry = connection.getEndpoint().getPacketRegistry();
             if (registry.getProtocols().size() != packet.protocolVersions.size()) {
                 connection.closeConnection("invalid protocol count");
@@ -51,7 +51,10 @@ public class HandshakeResponsePacket {
                     throw new IllegalStateException();
                 }
             });
-            connection.getControlChannel().send(new HandshakeCompletePacket(), () -> Logging.logger.debug("sent handshake complete!"));
+            connection.getControlChannel().send(new HandshakeCompletePacket(), () -> {
+                logger.debug("sent handshake complete!");
+                connection.getConnections().forEach((protocolClass, c) -> c.onConnect());
+            });
         }
 
         @Override

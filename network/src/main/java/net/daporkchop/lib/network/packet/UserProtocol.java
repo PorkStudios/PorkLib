@@ -52,7 +52,7 @@ public abstract class UserProtocol<C extends UserConnection> implements Logging 
     }
 
     public UserProtocol(@NonNull String name, int version, int requestedId) {
-        if (requestedId > 0xFFFF || requestedId < -1)   {
+        if (requestedId > 0xFFFF || requestedId < -1) {
             throw new IllegalArgumentException("Requested ID must be in range 0-65535, or -1 to ignore!");
         } else if (requestedId == 0 && !(this instanceof PorkProtocol)) {
             throw new IllegalArgumentException("Protocol ID 0 is reserved for PorkLib network!");

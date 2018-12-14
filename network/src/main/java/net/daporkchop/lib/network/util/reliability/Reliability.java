@@ -22,9 +22,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
-import static net.daporkchop.lib.network.util.reliability.Flags.FLAG_ORDERED;
-import static net.daporkchop.lib.network.util.reliability.Flags.FLAG_RELIABLE;
-import static net.daporkchop.lib.network.util.reliability.Flags.FLAG_SEQUENCED;
+import static net.daporkchop.lib.network.util.reliability.Flags.*;
 
 /**
  * Allows specifying the reliability that a packet will arrive at its destination.

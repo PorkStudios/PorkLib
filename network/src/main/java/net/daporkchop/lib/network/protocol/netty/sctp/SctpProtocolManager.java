@@ -47,7 +47,6 @@ import net.daporkchop.lib.network.pork.packet.DisconnectPacket;
 import net.daporkchop.lib.network.protocol.api.EndpointManager;
 import net.daporkchop.lib.network.protocol.api.ProtocolManager;
 import net.daporkchop.lib.network.protocol.netty.NettyServerChannel;
-import net.daporkchop.lib.network.protocol.netty.tcp.TcpPacketWrapper;
 
 import java.util.function.Consumer;
 
@@ -62,9 +61,8 @@ import java.util.function.Consumer;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SctpProtocolManager implements ProtocolManager {
-    private static final SctpStandardSocketOptions.InitMaxStreams MAX_STREAMS = SctpStandardSocketOptions.InitMaxStreams.create(0xFFFF, 0xFFFF);
-
     public static final SctpProtocolManager INSTANCE = new SctpProtocolManager();
+    private static final SctpStandardSocketOptions.InitMaxStreams MAX_STREAMS = SctpStandardSocketOptions.InitMaxStreams.create(0xFFFF, 0xFFFF);
 
     @Override
     public EndpointManager.ServerEndpointManager createServerManager() {

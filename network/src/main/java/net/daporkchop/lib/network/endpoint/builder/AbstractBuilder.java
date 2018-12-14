@@ -30,7 +30,6 @@ import net.daporkchop.lib.network.protocol.netty.tcp.TcpProtocolManager;
 import java.net.InetSocketAddress;
 import java.util.ArrayDeque;
 import java.util.Collection;
-import java.util.concurrent.Executor;
 
 /**
  * Shared code for all endpoint builders

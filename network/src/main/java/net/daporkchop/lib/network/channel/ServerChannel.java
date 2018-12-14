@@ -24,7 +24,6 @@ import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.protocol.api.EndpointManager;
 
 import java.util.Collection;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -54,7 +53,7 @@ public interface ServerChannel {
     /**
      * Broadcasts a packet to all connections
      *
-     * @param message   the packet to send
+     * @param message  the packet to send
      * @param blocking whether or not the send operation will be blocking. this will block until the packet has been sent to ALL clients.
      */
     default void broadcast(@NonNull Object message, boolean blocking) {

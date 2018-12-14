@@ -16,9 +16,7 @@
 package net.daporkchop.lib.network.protocol.netty;
 
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
-import net.daporkchop.lib.crypto.CryptographySettings;
 import net.daporkchop.lib.network.channel.ChannelImplementation;
 
 /**

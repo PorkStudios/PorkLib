@@ -47,7 +47,7 @@ public class SctpPacketEncodingFilter extends MessageToMessageEncoder<UnencodedS
             PacketHandler handler = (PacketHandler) this.registry.getHandler(msg.getId());
             handler.encode(msg.getMessage(), buf);
             out.add(new SctpPacketWrapper(buf, msg.getChannel(), msg.getId(), msg.isOrdered()));
-            if (NetworkConstants.DEBUG_REF_COUNT)   {
+            if (NetworkConstants.DEBUG_REF_COUNT) {
                 logger.debug("Encoded packet with ${0} references!", buf.refCnt());
             }
         } catch (Exception e) {

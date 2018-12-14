@@ -67,16 +67,6 @@ public class TcpProtocolManager implements ProtocolManager {
         return new TcpClientManager();
     }
 
-    @Override
-    public boolean areEncryptionSettingsRespected() {
-        return true;
-    }
-
-    @Override
-    public boolean areCompressionSettingsRespected() {
-        return true;
-    }
-
     private abstract static class TcpEndpointManager<E extends Endpoint, B extends AbstractBuilder<E, B>> implements EndpointManager<E, B> {
         protected Channel channel;
         protected EventLoopGroup workerGroup;

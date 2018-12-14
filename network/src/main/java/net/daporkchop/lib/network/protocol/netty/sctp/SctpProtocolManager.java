@@ -74,16 +74,6 @@ public class SctpProtocolManager implements ProtocolManager {
         return new SctpClientManager();
     }
 
-    @Override
-    public boolean areEncryptionSettingsRespected() {
-        return false;
-    }
-
-    @Override
-    public boolean areCompressionSettingsRespected() {
-        return false;
-    }
-
     private abstract static class SctpEndpointManager<E extends Endpoint, B extends AbstractBuilder<E, B>> implements EndpointManager<E, B> {
         protected Channel channel;
         protected EventLoopGroup workerGroup;

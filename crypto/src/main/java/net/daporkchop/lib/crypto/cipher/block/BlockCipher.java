@@ -33,7 +33,11 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
- * A {@link Cipher} used for block ciphers
+ * A {@link Cipher} used for block ciphers.
+ *
+ * This implementation currently updates the IV with every message encrypted, I should probably make
+ * that configurable
+ * //TODO: the above
  *
  * @author DaPorkchop_
  */
@@ -76,7 +80,7 @@ public class BlockCipher implements Cipher {
     }
 
     @Override
-    public byte[] encrypt(byte[] plaintext) {
+    public byte[] encrypt(@NonNull byte[] plaintext) {
         BufferedBlockCipher cipher = this.get();
 
         synchronized (this.encrypt) {
@@ -94,7 +98,7 @@ public class BlockCipher implements Cipher {
     }
 
     @Override
-    public byte[] decrypt(byte[] ciphertext) {
+    public byte[] decrypt(@NonNull byte[] ciphertext) {
         BufferedBlockCipher cipher = this.get();
 
         synchronized (this.decrypt) {

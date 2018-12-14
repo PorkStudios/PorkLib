@@ -21,8 +21,4 @@ package net.daporkchop.lib.network.channel;
  * @author DaPorkchop_
  */
 public interface ChannelImplementation extends Channel {
-    /*boolean isEncryptionReady();
-
-    void setEncryptionReady(boolean state);*/
-    //TODO
 }

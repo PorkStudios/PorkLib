@@ -37,26 +37,4 @@ public interface ProtocolManager {
      * @return a new client manager
      */
     EndpointManager.ClientEndpointManager createClientManager();
-
-    //TODO: use an enum for the following methods:
-
-    /**
-     * Checks if this protocol manager respects the encryption settings as defined in
-     * {@link net.daporkchop.lib.network.endpoint.builder.ServerBuilder#setCryptographySettings(CryptographySettings)}
-     * <p>
-     * (i.e. if it supports encryption)
-     *
-     * @return whether or not this protocol supports encryption
-     */
-    boolean areEncryptionSettingsRespected();
-
-    /**
-     * Checks if this protocol manager respects the compression settings as defined in
-     * {@link net.daporkchop.lib.network.endpoint.builder.ServerBuilder#setCompression(CompressionHelper)}
-     * <p>
-     * (i.e. if it supports compression)
-     *
-     * @return whether or not this protocol supports compression
-     */
-    boolean areCompressionSettingsRespected();
 }

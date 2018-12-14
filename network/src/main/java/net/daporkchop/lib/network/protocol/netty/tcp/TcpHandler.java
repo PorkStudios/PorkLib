@@ -93,9 +93,6 @@ public class TcpHandler extends ChannelInboundHandlerAdapter implements Logging 
         logger.trace("[${0}] New connection: ${1}", this.endpoint.getName(), ctx.channel().remoteAddress());
 
         UnderlyingNetworkConnection realConnection = (UnderlyingNetworkConnection) ctx.channel();
-        /*this.endpoint.getPacketRegistry().getProtocols().stream() //TODO: implement this
-                .map(userProtocol -> realConnection.getUserConnection((Class<UserProtocol<UserConnection>>) userProtocol.getClass()))
-                .forEach(UserConnection::onConnect);*/
         if (this.endpoint.isServer()) {
             realConnection.getControlChannel().send(new HandshakeInitPacket(), () -> logger.debug("Sent handshake init!"));
         } else if (false && this.endpoint instanceof PorkClient) {

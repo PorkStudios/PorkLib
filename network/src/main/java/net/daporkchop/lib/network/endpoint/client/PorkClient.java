@@ -21,7 +21,6 @@ import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
-import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.PacketRegistry;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.pork.PorkConnection;
@@ -51,7 +50,7 @@ public class PorkClient implements Client, Logging {
         this.packetRegistry = new PacketRegistry(builder.getProtocols());
         this.manager = builder.getManager().createClientManager();
 
-        this.manager.start(builder.getAddress(), builder.getExecutor(), this);
+        this.manager.start(builder, this);
 
         try {
             logger.debug("Client waiting...");
@@ -102,8 +101,8 @@ public class PorkClient implements Client, Logging {
     }
 
     @Override
-    public void send(@NonNull Packet packet, boolean blocking, Void callback) {
-        this.manager.send(packet, blocking, callback);
+    public void send(@NonNull Object message, boolean blocking, Void callback) {
+        this.manager.send(message, blocking, callback);
     }
 
     @Override

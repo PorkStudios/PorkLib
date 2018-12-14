@@ -13,42 +13,45 @@
  *
  */
 
-package net.daporkchop.lib.network.packet;
+package net.daporkchop.lib.network.packet.handler;
 
+import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.network.channel.Channel;
-import net.daporkchop.lib.network.conn.UserConnection;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
+import net.daporkchop.lib.network.packet.handler.codec.Codec;
 
 /**
- * Handles received packets
+ * A {@link MessageHandler} that decodes messages into packets before handling them
  *
  * @author DaPorkchop_
  */
-public interface PacketHandler<P extends Packet, C extends UserConnection> {
+public interface PacketHandler<P> extends MessageHandler, Codec<P> {
+    @Override
+    default void handle(@NonNull ByteBuf msg, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception {
+        //Logging.logger.debug("Handling message on channel ${0}...", channelId);
+        this.handle(this.decode(msg), connection, channelId);
+    }
+
     /**
-     * Handles a packet
+     * Handle a packet
      *
      * @param packet     the packet that was received
-     * @param channel    the channel the packet was received on
-     * @param connection the connection the packet was received on
+     * @param connection the connection that the packet was received on
+     * @param channelId  the reliability that the packet was sent with
+     * @throws Exception if an exception occurs
      */
-    void handle(@NonNull P packet, @NonNull Channel channel, @NonNull C connection);
+    void handle(@NonNull P packet, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception;
+
+    @Override
+    void encode(@NonNull P packet, @NonNull ByteBuf buf) throws Exception;
+
+    @Override
+    P decode(@NonNull ByteBuf buf) throws Exception;
 
     /**
-     * A shorthand wrapper around {@link PacketHandler} for protocol's that don't make use of channels
+     * Gets the packet class
+     *
+     * @return the class of the packet
      */
-    interface Simple<P extends Packet, C extends UserConnection> extends PacketHandler<P, C> {
-        @Override
-        default void handle(@NonNull P packet, @NonNull Channel channel, @NonNull C connection) {
-            this.handle(packet, connection);
-        }
-
-        /**
-         * Handles a packet
-         *
-         * @param packet     the packet that was received
-         * @param connection the connection the packet was received on
-         */
-        void handle(@NonNull P packet, @NonNull C connection);
-    }
+    Class<P> getPacketClass();
 }

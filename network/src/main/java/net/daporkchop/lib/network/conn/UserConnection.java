@@ -23,7 +23,6 @@ import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.endpoint.Endpoint;
-import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 
 import java.net.InetSocketAddress;
@@ -61,8 +60,8 @@ public abstract class UserConnection implements Connection, Logging {
     }
 
     @Override
-    public final void send(@NonNull Packet packet, boolean blocking, Void callback) {
-        this.protocolConnection.send(packet, blocking, callback);
+    public final void send(@NonNull Object message, boolean blocking, Void callback) {
+        this.protocolConnection.send(message, blocking, callback);
     }
 
     @Override

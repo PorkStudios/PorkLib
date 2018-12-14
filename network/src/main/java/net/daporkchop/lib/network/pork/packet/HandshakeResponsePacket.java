@@ -16,49 +16,30 @@
 package net.daporkchop.lib.network.pork.packet;
 
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.network.channel.Channel;
-import net.daporkchop.lib.network.packet.Codec;
-import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.packet.PacketRegistry;
-import net.daporkchop.lib.network.pork.PorkConnection;
+import net.daporkchop.lib.network.packet.handler.DataPacketHandler;
 import net.daporkchop.lib.network.util.Version;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
 /**
  * @author DaPorkchop_
  */
-@NoArgsConstructor
 @AllArgsConstructor
-public class HandshakeResponsePacket implements Packet {
-    public Collection<Version> protocolVersions;
+public class HandshakeResponsePacket {
+    @NonNull
+    public final Collection<Version> protocolVersions;
 
-    @Override
-    public void read(@NonNull DataIn in) throws IOException {
-        this.protocolVersions = new ArrayList<>();
-        for (int i = in.readVarInt(true) - 1; i >= 0; i--) {
-            this.protocolVersions.add(new Version(in.readUTF(), in.readVarInt(true)));
-        }
-    }
-
-    @Override
-    public void write(@NonNull DataOut out) throws IOException {
-        out.writeVarInt(this.protocolVersions.size(), true);
-        for (Version version : this.protocolVersions) {
-            out.writeUTF(version.getName());
-            out.writeVarInt(version.getVersion(), true);
-        }
-    }
-
-    public static class HandshakeResponseCodec implements Codec<HandshakeResponsePacket, PorkConnection> {
+    public static class HandshakeResponseCodec implements DataPacketHandler<HandshakeResponsePacket>, Logging {
         @Override
-        public void handle(@NonNull HandshakeResponsePacket packet, @NonNull Channel channel, @NonNull PorkConnection connection) {
+        public void handle(@NonNull HandshakeResponsePacket packet, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception {
+            logger.debug("handling handshake response...");
             PacketRegistry registry = connection.getEndpoint().getPacketRegistry();
             if (registry.getProtocols().size() != packet.protocolVersions.size()) {
                 connection.closeConnection("invalid protocol count");
@@ -70,12 +51,33 @@ public class HandshakeResponsePacket implements Packet {
                     throw new IllegalStateException();
                 }
             });
-            channel.send(new HandshakeCompletePacket());
+            connection.getControlChannel().send(new HandshakeCompletePacket(), () -> {
+                logger.debug("sent handshake complete!");
+                connection.getConnections().forEach((protocolClass, c) -> c.onConnect());
+            });
         }
 
         @Override
-        public HandshakeResponsePacket createInstance() {
-            return new HandshakeResponsePacket();
+        public void encode(@NonNull HandshakeResponsePacket packet, @NonNull DataOut out) throws Exception {
+            out.writeVarInt(packet.protocolVersions.size(), true);
+            for (Version version : packet.protocolVersions) {
+                out.writeUTF(version.getName());
+                out.writeVarInt(version.getVersion(), true);
+            }
+        }
+
+        @Override
+        public HandshakeResponsePacket decode(@NonNull DataIn in) throws Exception {
+            Collection<Version> protocolVersions = new ArrayList<>();
+            for (int i = in.readVarInt(true) - 1; i >= 0; i--) {
+                protocolVersions.add(new Version(in.readUTF(), in.readVarInt(true)));
+            }
+            return new HandshakeResponsePacket(protocolVersions);
+        }
+
+        @Override
+        public Class<HandshakeResponsePacket> getPacketClass() {
+            return HandshakeResponsePacket.class;
         }
     }
 }

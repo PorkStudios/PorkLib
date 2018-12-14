@@ -13,43 +13,42 @@
  *
  */
 
-package net.daporkchop.lib.network.pork.packet;
+package protocol.packet;
 
-import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
-import net.daporkchop.lib.network.packet.handler.PacketHandler;
-import net.daporkchop.lib.network.util.Version;
+import net.daporkchop.lib.network.packet.handler.DataPacketHandler;
 
-import java.util.stream.Collectors;
-
-/**
- * @author DaPorkchop_
- */
 @AllArgsConstructor
-public class HandshakeInitPacket {
-    public static class HandshakeInitCodec implements PacketHandler<HandshakeInitPacket> {
+public class SimpleTestPacket {
+    @NonNull
+    public final String message;
+
+    public static class MessageHandler implements DataPacketHandler<SimpleTestPacket>, Logging {
         @Override
-        public void handle(@NonNull HandshakeInitPacket packet, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception {
-            connection.getControlChannel().send(new HandshakeResponsePacket(
-                    connection.getEndpoint().getPacketRegistry().getProtocols().stream().map(Version::new).collect(Collectors.toList())
-            ), () -> Logging.logger.debug("Sent handshake response!"));
+        public void handle(@NonNull SimpleTestPacket packet, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception {
+            logger.info("[${0}] Received test packet on channel ${2}: ${1}", connection.getEndpoint().getName(), packet.message, channelId);
         }
 
         @Override
-        public void encode(@NonNull HandshakeInitPacket packet, @NonNull ByteBuf buf) throws Exception {
+        public void encode(@NonNull SimpleTestPacket packet, @NonNull DataOut out) throws Exception {
+            out.writeUTF(packet.message);
         }
 
         @Override
-        public HandshakeInitPacket decode(@NonNull ByteBuf buf) throws Exception {
-            return new HandshakeInitPacket();
+        public SimpleTestPacket decode(@NonNull DataIn in) throws Exception {
+            return new SimpleTestPacket(
+                    in.readUTF()
+            );
         }
 
         @Override
-        public Class<HandshakeInitPacket> getPacketClass() {
-            return HandshakeInitPacket.class;
+        public Class<SimpleTestPacket> getPacketClass() {
+            return SimpleTestPacket.class;
         }
     }
 }

@@ -16,49 +16,47 @@
 package net.daporkchop.lib.network.pork.packet;
 
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.channel.Channel;
-import net.daporkchop.lib.network.packet.Codec;
-import net.daporkchop.lib.network.pork.PorkConnection;
-import net.daporkchop.lib.network.pork.PorkPacket;
-
-import java.io.IOException;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
+import net.daporkchop.lib.network.packet.handler.DataPacketHandler;
 
 /**
  * @author DaPorkchop_
  */
 @AllArgsConstructor
-@NoArgsConstructor
-public class CloseChannelPacket implements PorkPacket {
-    public int channelId;
+public class CloseChannelPacket {
+    public final int channelId;
 
-    @Override
-    public void read(@NonNull DataIn in) throws IOException {
-        this.channelId = in.readVarInt(true);
-    }
-
-    @Override
-    public void write(@NonNull DataOut out) throws IOException {
-        out.writeVarInt(this.channelId, true);
-    }
-
-    public static class CloseChannelCodec implements Codec<CloseChannelPacket, PorkConnection>, Logging {
+    public static class CloseChannelCodec implements DataPacketHandler<CloseChannelPacket>, Logging {
         @Override
-        public void handle(CloseChannelPacket packet, Channel channel, PorkConnection connection) {
+        public void handle(@NonNull CloseChannelPacket packet, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception {
             Channel theChannel = connection.getOpenChannel(packet.channelId);
             if (theChannel == null) {
                 throw this.exception("Invalid channel: ${0}", packet.channelId);
+            } else {
+                theChannel.close(false);
             }
-            theChannel.close();
         }
 
         @Override
-        public CloseChannelPacket createInstance() {
-            return new CloseChannelPacket();
+        public void encode(@NonNull CloseChannelPacket packet, @NonNull DataOut out) throws Exception {
+            out.writeVarInt(packet.channelId, true);
+        }
+
+        @Override
+        public CloseChannelPacket decode(@NonNull DataIn in) throws Exception {
+            return new CloseChannelPacket(
+                    in.readVarInt(true)
+            );
+        }
+
+        @Override
+        public Class<CloseChannelPacket> getPacketClass() {
+            return CloseChannelPacket.class;
         }
     }
 }

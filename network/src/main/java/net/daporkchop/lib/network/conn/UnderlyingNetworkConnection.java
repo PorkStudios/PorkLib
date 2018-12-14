@@ -18,7 +18,6 @@ package net.daporkchop.lib.network.conn;
 import lombok.NonNull;
 import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.network.channel.Channel;
-import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.pork.PorkConnection;
 import net.daporkchop.lib.network.pork.PorkProtocol;
@@ -30,6 +29,9 @@ import java.util.Map;
  * @author DaPorkchop_
  */
 public interface UnderlyingNetworkConnection extends Connection {
+    int ID_CONTROL_CHANNEL = 0;
+    int ID_DEFAULT_CHANNEL = 1;
+
     Map<Class<? extends UserProtocol>, UserConnection> getConnections();
 
     /**
@@ -55,9 +57,9 @@ public interface UnderlyingNetworkConnection extends Connection {
     }
 
     @Override
-    default void send(@NonNull Packet packet, boolean blocking, Void callback) {
-        this.getDefaultChannel().send(packet, blocking, callback);
+    default void send(@NonNull Object message, boolean blocking, Void callback) {
+        this.getDefaultChannel().send(message, blocking, callback);
     }
 
-    Channel openChannel(Reliability reliability, int requestedId);
+    Channel openChannel(Reliability reliability, int requestedId, boolean notifyRemote);
 }

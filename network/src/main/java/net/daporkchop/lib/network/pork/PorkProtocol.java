@@ -16,23 +16,18 @@
 package net.daporkchop.lib.network.pork;
 
 import net.daporkchop.lib.network.packet.UserProtocol;
-import net.daporkchop.lib.network.pork.packet.CloseChannelPacket;
-import net.daporkchop.lib.network.pork.packet.DisconnectPacket;
-import net.daporkchop.lib.network.pork.packet.EncryptionStartedPacket;
-import net.daporkchop.lib.network.pork.packet.HandshakeCompletePacket;
-import net.daporkchop.lib.network.pork.packet.HandshakeInitPacket;
-import net.daporkchop.lib.network.pork.packet.HandshakeResponsePacket;
-import net.daporkchop.lib.network.pork.packet.OpenChannelPacket;
-import net.daporkchop.lib.network.pork.packet.StartEncryptionPacket;
+import net.daporkchop.lib.network.pork.packet.*;
 
 /**
+ * The protocol used by PorkLib network for internal messaging
+ *
  * @author DaPorkchop_
  */
 public class PorkProtocol extends UserProtocol<PorkConnection> {
     public static final PorkProtocol INSTANCE = new PorkProtocol();
 
     private PorkProtocol() {
-        super("PorkLib Networking", 3);
+        super("PorkLib Networking", 4, 0);
     }
 
     @Override
@@ -44,8 +39,8 @@ public class PorkProtocol extends UserProtocol<PorkConnection> {
         //channel packets
         this.register(new OpenChannelPacket.OpenChannelCodec());
         this.register(new CloseChannelPacket.CloseChannelCodec());
-        this.register(new EncryptionStartedPacket.EncryptionStartedCodec());
-        this.register(new StartEncryptionPacket.StartEncryptionHandler());
+        //TODO: this.register(new EncryptionStartedPacket.EncryptionStartedCodec());
+        //TODO: this.register(new StartEncryptionPacket.StartEncryptionHandler());
         //misc. packets
         this.register(new DisconnectPacket.DisconnectCodec());
     }

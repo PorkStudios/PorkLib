@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.network.protocol.netty.sctp;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import lombok.Getter;
 import lombok.NonNull;
@@ -24,7 +25,6 @@ import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
-import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.pork.packet.CloseChannelPacket;
 import net.daporkchop.lib.network.protocol.netty.NettyChannel;
@@ -65,35 +65,36 @@ public class SctpChannel extends NettyChannel implements Logging {
     volatile boolean closed;
 
     @Override
-    public void send(@NonNull Packet packet, boolean blocking, Void callback, Reliability reliability) {
+    public void send(@NonNull Object message, boolean blocking, Void callback, @NonNull Reliability reliability) {
         if (this.closed) {
             throw new IllegalStateException("channel closed!");
-        }
-        //logger.debug("[${0}] Sending packet: ${1}", this.channel.getEndpoint().getName(), packet.getClass());
-        ChannelFuture future;
-        if (reliability == null) {
-            reliability = this.reliability;
-        }
-        switch (reliability) {
-            case RELIABLE: {
-                future = this.channel.writeAndFlush(new SctpPacketWrapper(packet, this.id, false));
+        } else {
+            int id = this.channel.getEndpoint().getPacketRegistry().getId(message.getClass());
+            boolean ordered = reliability.isReliable() ? reliability.isOrdered() : this.reliability.isOrdered();
+            //logger.debug("[${0}] Sending message: ${1}", this.channel.getEndpoint().getName(), message.getClass());
+            ChannelFuture future = this.channel.writeAndFlush(new UnencodedSctpPacket(message, this.id, id, ordered));
+            if (callback != null) {
+                future.addListener(f -> callback.run());
             }
-            break;
-            case RELIABLE_ORDERED: {
-                future = this.channel.writeAndFlush(new SctpPacketWrapper(packet, this.id, true));
-            }
-            break;
-            default: {
-                //silently override unsupported reliabilities with channel default
-                this.send(packet, blocking, callback, this.reliability);
-                return;
+            if (blocking) {
+                future.syncUninterruptibly();
             }
         }
-        if (callback != null) {
-            future.addListener(f -> callback.run());
-        }
-        if (blocking) {
-            future.syncUninterruptibly();
+    }
+
+    @Override
+    public void send(@NonNull ByteBuf data, int id, boolean blocking, Void callback, @NonNull Reliability reliability) {
+        if (this.closed) {
+            throw new IllegalStateException("channel closed!");
+        } else {
+            boolean ordered = reliability.isReliable() ? reliability.isOrdered() : this.reliability.isOrdered();
+            ChannelFuture future = this.channel.writeAndFlush(new SctpPacketWrapper(data, this.id, id, ordered));
+            if (callback != null) {
+                future.addListener(f -> callback.run());
+            }
+            if (blocking) {
+                future.syncUninterruptibly();
+            }
         }
     }
 
@@ -103,19 +104,25 @@ public class SctpChannel extends NettyChannel implements Logging {
     }
 
     @Override
-    public synchronized void close() {
-        if (!this.closed) {
-            throw new IllegalArgumentException("already closed!");
-        }
+    public synchronized void close(boolean notifyRemote) {
         if (this.isDefaultChannel()) {
-            this.channel.close();
+            throw new IllegalStateException("Cannot close default channel!");
+        } else if (this.isControlChannel()) {
+            throw new IllegalStateException("Cannot close control channel!");
+        } else {
+            if (this.closed) {
+                throw new IllegalArgumentException("already closed!");
+            } else {
+                this.closed = true;
+                synchronized (this.channel.channelIds) {
+                    this.channel.channelIds.clear(this.id);
+                    this.channel.channels.remove(this.id, this);
+                }
+                if (notifyRemote) {
+                    this.channel.getControlChannel().send(new CloseChannelPacket(this.id), true);
+                }
+            }
         }
-        this.closed = true;
-        synchronized (this.channel.channelIds) {
-            this.channel.channelIds.clear(this.id);
-        }
-        this.channel.channels.remove(this.id, this);
-        this.channel.getControlChannel().send(new CloseChannelPacket(this.id));
     }
 
     @Override
@@ -126,15 +133,5 @@ public class SctpChannel extends NettyChannel implements Logging {
     @Override
     public UnderlyingNetworkConnection getConnection() {
         return this.channel;
-    }
-
-    @Override
-    public boolean isDefaultChannel() {
-        return this.id == WrapperNioSctpChannel.CHANNEL_ID_DEFAULT;
-    }
-
-    @Override
-    public boolean isControlChannel() {
-        return this.id == WrapperNioSctpChannel.CHANNEL_ID_CONTROL;
     }
 }

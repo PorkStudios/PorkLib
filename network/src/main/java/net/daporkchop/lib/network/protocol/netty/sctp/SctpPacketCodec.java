@@ -16,58 +16,64 @@
 package net.daporkchop.lib.network.protocol.netty.sctp;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.sctp.SctpMessage;
 import io.netty.handler.codec.MessageToMessageCodec;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.netty.NettyByteBufUtil;
 import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.network.channel.ChannelImplementation;
-import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
+import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.endpoint.Endpoint;
-import net.daporkchop.lib.network.protocol.api.PacketDecoder;
-import net.daporkchop.lib.network.protocol.api.PacketEncoder;
+import net.daporkchop.lib.network.util.NetworkConstants;
 
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
 @Getter
-public class SctpPacketCodec extends MessageToMessageCodec<SctpMessage, SctpPacketWrapper> implements PacketEncoder, PacketDecoder {
+public class SctpPacketCodec extends MessageToMessageCodec<SctpMessage, SctpPacketWrapper> implements Logging {
     @NonNull
     private final Endpoint endpoint;
 
     @Override
     protected void encode(@NonNull ChannelHandlerContext ctx, @NonNull SctpPacketWrapper msg, @NonNull List<Object> out) throws Exception {
-        ByteBuf buf = ByteBufAllocator.DEFAULT.buffer(256, Integer.MAX_VALUE);
-        this.writePacket(
-                (ChannelImplementation) ((UnderlyingNetworkConnection) ctx.channel()).getOpenChannel(msg.getChannel()), //TODO: store the actual Channel object in SctpPacketWrapper
-                msg.getPacket(),
-                NettyByteBufUtil.wrapOut(buf),
-                msg.isOrdered()
-        );
-        out.add(new SctpMessage(0, msg.getChannel(), !msg.isOrdered(), buf));
+        try {
+            //sctp won't send packets with no content, so we can just write some random data
+            //in theory the call to nextInt should't be of any performance relevance whatsoever
+            // (((in theory)))
+            if (msg.getData().readableBytes() == 0) {
+                msg.getData().writeByte(ThreadLocalRandom.current().nextInt() & 0xFF);
+            }
+            if (NetworkConstants.DEBUG_REF_COUNT) {
+                logger.debug("Writing message with ${0} references!", msg.getData().refCnt());
+            }
+            out.add(new SctpMessage(msg.getId(), msg.getChannel(), !msg.isOrdered(), msg.getData().retain()));
+        } catch (Exception e) {
+            logger.error(e);
+            throw e;
+        }
     }
 
     @Override
     protected void decode(@NonNull ChannelHandlerContext ctx, @NonNull SctpMessage msg, @NonNull List<Object> out) throws Exception {
-        if (false) {
-            logger.debug("Received packet: ${0}", this.toHex(msg.content()));
-            logger.debug("plain          : ${0}", this.toString(msg.content()));
+        //logger.debug("Received message on channel ${0}", msg.streamIdentifier());
+        try {
+            if (false) {
+                logger.debug("Received packet: ${0}", this.toHex(msg.content()));
+                logger.debug("plain          : ${0}", this.toString(msg.content()));
+            }
+            out.add(new SctpPacketWrapper(msg.content().retain(), msg.streamIdentifier(), msg.protocolIdentifier(), !msg.isUnordered()));
+            if (NetworkConstants.DEBUG_REF_COUNT) {
+                logger.debug("Received message with ${0} references!", msg.content().refCnt());
+            }
+        } catch (Exception e) {
+            logger.error(e);
+            throw e;
         }
-        out.add(new SctpPacketWrapper(
-                this.getPacket(
-                        (ChannelImplementation) ((UnderlyingNetworkConnection) ctx.channel()).getOpenChannel(msg.streamIdentifier()),
-                        NettyByteBufUtil.wrapIn(msg.content()),
-                        !msg.isUnordered()),
-                msg.streamIdentifier(),
-                !msg.isUnordered()
-        ));
     }
 
     private String toHex(@NonNull ByteBuf buf) {

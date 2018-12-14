@@ -25,6 +25,8 @@ import net.daporkchop.lib.crypto.key.CipherKey;
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.InvalidCipherTextException;
+import org.bouncycastle.crypto.io.CipherInputStream;
+import org.bouncycastle.crypto.io.CipherOutputStream;
 import org.bouncycastle.crypto.modes.KCTRBlockCipher;
 import org.bouncycastle.crypto.paddings.PaddedBufferedBlockCipher;
 
@@ -82,45 +84,24 @@ public class SeekableBlockCipher extends SeekableCipher {
 
     protected final CipherKey encryptionKey;
     protected final CipherKey decryptionKey;
-    //protected final long ivRootEncrypt;
-    //protected final long ivRootDecrypt;
     @Getter
     protected final int blockSize;
-    //protected final ThreadLocal<CTRSeekable> encryptionSettings;
     protected final ThreadLocal<CTRSeekable> cipherCache;
 
     public SeekableBlockCipher(@NonNull CipherType type, @NonNull CipherPadding padding, @NonNull CipherKey key, @NonNull CipherInitSide side) {
         this.encryptionKey = new CipherKey(side.ivSetter.apply(key.getKey(), true), side.ivSetter.apply(key.getIV(), false));
         this.decryptionKey = new CipherKey(side.ivSetter.apply(key.getKey(), false), side.ivSetter.apply(key.getIV(), true));
-
-        //this.ivRootEncrypt = getIvRoot(this.encryptionKey.getIV());
-        //this.ivRootDecrypt = getIvRoot(this.decryptionKey.getIV());
         this.blockSize = type.blockSize;
 
         this.cipherCache = ThreadLocal.withInitial(() -> new CTRSeekable(type.create(), padding));
     }
 
-    /*private static long getIvRoot(@NonNull byte[] iv) {
-        if (iv.length < 8) {
-            throw new IllegalArgumentException("IV must be at least 8 bytes long!");
-        } else {
-            return (iv[0] & 0xFFL) |
-                    ((iv[1] & 0xFFL) << 8L) |
-                    ((iv[2] & 0xFFL) << 16L) |
-                    ((iv[3] & 0xFFL) << 24L) |
-                    ((iv[4] & 0xFFL) << 32L) |
-                    ((iv[5] & 0xFFL) << 40L) |
-                    ((iv[6] & 0xFFL) << 48L) |
-                    ((iv[7] & 0xFFL) << 56L);
-        }
-    }*/
-
     @Override
     public byte[] encrypt(@NonNull byte[] plaintext, long offset) {
         CTRSeekable seekable = this.cipherCache.get();
         PaddedBufferedBlockCipher cipher = seekable.cipher;
-        cipher.init(true, this.encryptionKey);
         seekable.seek(offset);
+        cipher.init(true, this.encryptionKey);
         byte[] encrypted = new byte[cipher.getOutputSize(plaintext.length)];
         int tam = cipher.processBytes(plaintext, 0, plaintext.length, encrypted, 0);
         try {
@@ -135,8 +116,8 @@ public class SeekableBlockCipher extends SeekableCipher {
     public byte[] decrypt(@NonNull byte[] ciphertext, long offset) {
         CTRSeekable seekable = this.cipherCache.get();
         PaddedBufferedBlockCipher cipher = seekable.cipher;
-        cipher.init(false, this.decryptionKey);
         seekable.seek(offset);
+        cipher.init(false, this.decryptionKey);
         byte[] decrypted = new byte[cipher.getOutputSize(ciphertext.length)];
         int tam = cipher.processBytes(ciphertext, 0, ciphertext.length, decrypted, 0);
         try {
@@ -148,13 +129,23 @@ public class SeekableBlockCipher extends SeekableCipher {
     }
 
     @Override
-    public OutputStream encrypt(OutputStream out, long offset, long messageLength) {
-        return null;
+    public OutputStream encrypt(@NonNull OutputStream out, long offset, long messageLength) {
+        //we don't actually use messageLength here, it's up to the end user to do something with it
+        CTRSeekable seekable = this.cipherCache.get();
+        PaddedBufferedBlockCipher cipher = seekable.cipher;
+        seekable.seek(offset);
+        cipher.init(true, this.encryptionKey);
+        return new CipherOutputStream(out, cipher);
     }
 
     @Override
-    public InputStream decrypt(InputStream in, long offset, long messageLength) {
-        return null;
+    public InputStream decrypt(@NonNull InputStream in, long offset, long messageLength) {
+        //we don't actually use messageLength here, it's up to the end user to do something with it
+        CTRSeekable seekable = this.cipherCache.get();
+        PaddedBufferedBlockCipher cipher = seekable.cipher;
+        seekable.seek(offset);
+        cipher.init(false, this.decryptionKey);
+        return new CipherInputStream(in, cipher);
     }
 
     /**
@@ -164,23 +155,14 @@ public class SeekableBlockCipher extends SeekableCipher {
         protected final PaddedBufferedBlockCipher cipher;
         protected final byte[] the_iv;
         protected final byte[] the_ofbV;
-        //protected final byte[] ofbOutV;
-        //protected final boolean forEncryption;
-        //protected final long ivRoot;
+        protected long pos;
 
         public CTRSeekable(@NonNull BlockCipher cipher, @NonNull CipherPadding padding) {
             super(cipher);
             this.cipher = new PaddedBufferedBlockCipher(this, padding.create());
-            /*this.forEncryption = forEncryption;
-            if (forEncryption)  {
-                this.ivRoot = SeekableBlockCipher.this.ivRootEncrypt;
-            } else {
-                this.ivRoot = SeekableBlockCipher.this.ivRootDecrypt;
-            }*/
             try {
                 this.the_iv = (byte[]) kctr_iv.get(this);
                 this.the_ofbV = (byte[]) kctr_ofbV.get(this);
-                //this.ofbOutV = (byte[]) kctr_ofbOutV.get(cipher);
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
@@ -195,17 +177,22 @@ public class SeekableBlockCipher extends SeekableCipher {
             }
         }
 
-        public void seek(long pos) {
-            //TODO: update IV
-            this.the_ofbV[0] = (byte) (((this.the_iv[0] & 0xFFL) + (pos & 0xFFL)) & 0xFFL);
-            this.the_ofbV[1] = (byte) (((this.the_iv[1] & 0xFFL) + ((pos >>> 8L) & 0xFFL)) & 0xFFL);
-            this.the_ofbV[2] = (byte) (((this.the_iv[2] & 0xFFL) + ((pos >>> 16L) & 0xFFL)) & 0xFFL);
-            this.the_ofbV[3] = (byte) (((this.the_iv[3] & 0xFFL) + ((pos >>> 24L) & 0xFFL)) & 0xFFL);
-            this.the_ofbV[4] = (byte) (((this.the_iv[4] & 0xFFL) + ((pos >>> 32L) & 0xFFL)) & 0xFFL);
-            this.the_ofbV[5] = (byte) (((this.the_iv[5] & 0xFFL) + ((pos >>> 40L) & 0xFFL)) & 0xFFL);
-            this.the_ofbV[6] = (byte) (((this.the_iv[6] & 0xFFL) + ((pos >>> 48L) & 0xFFL)) & 0xFFL);
-            this.the_ofbV[7] = (byte) (((this.the_iv[7] & 0xFFL) + ((pos >>> 56L) & 0xFFL)) & 0xFFL);
+        @Override
+        public void reset() {
+            super.reset();
+            this.the_ofbV[0] = (byte) (((this.the_iv[0] & 0xFFL) + (this.pos & 0xFFL)) & 0xFFL);
+            this.the_ofbV[1] = (byte) (((this.the_iv[1] & 0xFFL) + ((this.pos >>> 8L) & 0xFFL)) & 0xFFL);
+            this.the_ofbV[2] = (byte) (((this.the_iv[2] & 0xFFL) + ((this.pos >>> 16L) & 0xFFL)) & 0xFFL);
+            this.the_ofbV[3] = (byte) (((this.the_iv[3] & 0xFFL) + ((this.pos >>> 24L) & 0xFFL)) & 0xFFL);
+            this.the_ofbV[4] = (byte) (((this.the_iv[4] & 0xFFL) + ((this.pos >>> 32L) & 0xFFL)) & 0xFFL);
+            this.the_ofbV[5] = (byte) (((this.the_iv[5] & 0xFFL) + ((this.pos >>> 40L) & 0xFFL)) & 0xFFL);
+            this.the_ofbV[6] = (byte) (((this.the_iv[6] & 0xFFL) + ((this.pos >>> 48L) & 0xFFL)) & 0xFFL);
+            this.the_ofbV[7] = (byte) (((this.the_iv[7] & 0xFFL) + ((this.pos >>> 56L) & 0xFFL)) & 0xFFL);
             this.setByteCount(0);
+        }
+
+        public void seek(long pos) {
+            this.pos = pos;
         }
 
         public int getByteCount() {

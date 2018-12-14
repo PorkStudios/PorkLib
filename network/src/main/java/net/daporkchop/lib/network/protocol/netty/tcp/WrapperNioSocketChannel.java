@@ -49,7 +49,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @Getter
 public class WrapperNioSocketChannel extends NioSocketChannel implements NettyConnection, Logging {
     private final Map<Class<? extends UserProtocol>, UserConnection> connections = new IdentityHashMap<>();
-    final IntegerObjectMap<TcpChannel> channels = PorkMaps.synchronize(new IntegerObjectArrayMap<>(), new ReentrantLock());
+    final IntegerObjectMap<TcpChannel> channels = PorkMaps.synchronize(new IntegerObjectHashMap<>(), new ReentrantLock());
     final SparseBitSet channelIds = new SparseBitSet();
     @NonNull
     private final Endpoint endpoint;

@@ -58,7 +58,8 @@ public interface Channel {
     /**
      * Sends a raw packet over this channel
      *
-     * @param data        the data to send
+     * @param data        the data to send. this buffer will not be released by this, even though the reference count may change it
+     *                    will be set to the original state after the packet is written.
      * @param id          the full id of the packet. See {@link net.daporkchop.lib.network.packet.PacketRegistry#combine(short, short)}
      * @param blocking    whether or not to block the invoking thread until the underlying network channel has been flushed
      * @param callback    a function to run after the underlying network channel has been flushed. if {@code null}, this
@@ -130,7 +131,7 @@ public interface Channel {
      * To close the actual connection, use {@link Connection#closeConnection()} (a dummy connection can be obtained from
      * {@link #getConnection(Class)} with {@link net.daporkchop.lib.network.pork.PorkProtocol}.class as a parameter)
      */
-    default void close()    {
+    default void close() {
         this.close(true);
     }
 

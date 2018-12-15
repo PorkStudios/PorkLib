@@ -16,10 +16,7 @@
 package net.daporkchop.lib.crypto.cipher;
 
 import lombok.NonNull;
-import net.daporkchop.lib.crypto.cipher.block.BlockCipher;
-import net.daporkchop.lib.crypto.cipher.block.CipherMode;
-import net.daporkchop.lib.crypto.cipher.block.CipherPadding;
-import net.daporkchop.lib.crypto.cipher.block.CipherType;
+import net.daporkchop.lib.crypto.cipher.block.*;
 import net.daporkchop.lib.crypto.cipher.stream.StreamCipher;
 import net.daporkchop.lib.crypto.cipher.stream.StreamCipherType;
 import net.daporkchop.lib.crypto.key.CipherKey;
@@ -40,15 +37,10 @@ public interface Cipher {
     }
 
     static Cipher createBlock(@NonNull CipherType type, @NonNull CipherMode mode, @NonNull CipherPadding padding, @NonNull CipherKey key, @NonNull CipherInitSide side) {
-        return createBlock(type, mode, padding, key, side, b -> {
-            byte[] hash = Digest.SHA3_256.hash(b).getHash();
-            for (int i = 0; i < b.length; i++) {
-                b[i] = hash[i % hash.length];
-            }
-        });
+        return createBlock(type, mode, padding, key, side, IVUpdater.SHA3_256);
     }
 
-    static Cipher createBlock(@NonNull CipherType type, @NonNull CipherMode mode, @NonNull CipherPadding padding, @NonNull CipherKey key, @NonNull CipherInitSide side, @NonNull Consumer<byte[]> ivUpdater) {
+    static Cipher createBlock(@NonNull CipherType type, @NonNull CipherMode mode, @NonNull CipherPadding padding, @NonNull CipherKey key, @NonNull CipherInitSide side, @NonNull IVUpdater ivUpdater) {
         return new BlockCipher(type, mode, padding, key, side, ivUpdater);
     }
 

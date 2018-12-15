@@ -32,7 +32,7 @@ import java.util.function.Supplier;
 public class Digest implements BaseDigest {
     public static final Digest MD5 = new Digest(net.daporkchop.lib.hash.alg.MD5::new);
     public static final Digest SHA1 = new Digest(net.daporkchop.lib.hash.alg.SHA1::new);
-    public static final Digest SHA256 = new Digest(net.daporkchop.lib.hash.alg.SHA256::new);
+    public static final Digest SHA_256 = new Digest(net.daporkchop.lib.hash.alg.SHA256::new);
     public static final Digest SHA512 = new Digest(net.daporkchop.lib.hash.alg.SHA512::new);
     public static final Digest SHA3_256 = new Digest(net.daporkchop.lib.hash.alg.SHA3::new);
     public static final Digest SHA3_512 = new Digest(() -> new SHA3(512));

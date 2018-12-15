@@ -21,6 +21,7 @@ import net.daporkchop.lib.crypto.cipher.CipherInitSide;
 import net.daporkchop.lib.crypto.cipher.block.CipherMode;
 import net.daporkchop.lib.crypto.cipher.block.CipherPadding;
 import net.daporkchop.lib.crypto.cipher.block.CipherType;
+import net.daporkchop.lib.crypto.cipher.block.IVUpdater;
 import net.daporkchop.lib.crypto.key.CipherKey;
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
@@ -41,6 +42,9 @@ import java.lang.reflect.Field;
  * <p>
  * This also makes use of a large amount of reflection. This class should explain pretty well why I almost
  * always make things protected when I can :/
+ * <p>
+ * Updating the IV (nonce in this case) automatically is not supported, as it would defeat the purpose of having a random access
+ * cipher. It can still be updated manually by calling {@link IVUpdater#accept(byte[])} on {@link CipherKey#getIV()}
  *
  * @author DaPorkchop_
  */
@@ -107,7 +111,7 @@ public class SeekableBlockCipher extends SeekableCipher {
         try {
             cipher.doFinal(encrypted, tam);
             return encrypted;
-        } catch (InvalidCipherTextException e)  {
+        } catch (InvalidCipherTextException e) {
             throw new RuntimeException(e);
         }
     }
@@ -123,7 +127,7 @@ public class SeekableBlockCipher extends SeekableCipher {
         try {
             cipher.doFinal(decrypted, tam);
             return decrypted;
-        } catch (InvalidCipherTextException e)  {
+        } catch (InvalidCipherTextException e) {
             throw new RuntimeException(e);
         }
     }

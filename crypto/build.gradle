@@ -20,4 +20,6 @@ dependencies {
     compile project(":math")
 
     compile "org.bouncycastle:bcprov-jdk15on:$bouncycastleVersion"
+
+    provided "io.netty:netty-buffer:$nettyVersion"
 }

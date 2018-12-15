@@ -184,7 +184,7 @@ public abstract class DataIn extends InputStream {
             i = this.read();
             v |= (i & 0x7F) << o;
             o += 7;
-            if ((i & 0x80) == 0) {
+            if ((i & 0x80) == 0 || o > 32) {
                 break;
             }
         }
@@ -203,7 +203,7 @@ public abstract class DataIn extends InputStream {
             i = this.read();
             v |= (i & 0x7FL) << o;
             o += 7;
-            if ((i & 0x80) == 0) {
+            if ((i & 0x80) == 0 || o > 64) {
                 break;
             }
         }

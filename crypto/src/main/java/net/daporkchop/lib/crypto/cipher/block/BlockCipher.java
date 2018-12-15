@@ -54,11 +54,11 @@ public class BlockCipher implements Cipher {
     private final CipherMode mode;
     private final CipherPadding padding;
     private final ThreadLocal<SoftReference<BufferedBlockCipher>> tl;
-    private final Consumer<byte[]> ivUpdater;
+    private final IVUpdater ivUpdater;
     private final Supplier<BufferedBlockCipher> supplier;
     private final CipherKey encrypt, decrypt;
 
-    public BlockCipher(@NonNull CipherType type, @NonNull CipherMode mode, @NonNull CipherPadding padding, @NonNull CipherKey key, @NonNull CipherInitSide side, @NonNull Consumer<byte[]> ivUpdater) {
+    public BlockCipher(@NonNull CipherType type, @NonNull CipherMode mode, @NonNull CipherPadding padding, @NonNull CipherKey key, @NonNull CipherInitSide side, @NonNull IVUpdater ivUpdater) {
         this(() -> {
             org.bouncycastle.crypto.BlockCipher cipher = type.create();
             cipher = mode.wrap(cipher);
@@ -66,7 +66,7 @@ public class BlockCipher implements Cipher {
         }, type, mode, padding, key, side, ivUpdater);
     }
 
-    public BlockCipher(@NonNull Supplier<BufferedBlockCipher> supplier, @NonNull CipherType type, @NonNull CipherMode mode, @NonNull CipherPadding padding, @NonNull CipherKey key, @NonNull CipherInitSide side, @NonNull Consumer<byte[]> ivUpdater) {
+    public BlockCipher(@NonNull Supplier<BufferedBlockCipher> supplier, @NonNull CipherType type, @NonNull CipherMode mode, @NonNull CipherPadding padding, @NonNull CipherKey key, @NonNull CipherInitSide side, @NonNull IVUpdater ivUpdater) {
         this.type = type;
         this.mode = mode;
         this.padding = padding;

@@ -15,7 +15,9 @@
 
 package net.daporkchop.lib.crypto.cipher.seekable;
 
+import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
+import net.daporkchop.lib.binary.netty.NettyByteBufUtil;
 import net.daporkchop.lib.crypto.cipher.Cipher;
 import net.daporkchop.lib.math.primitive.RoundUp;
 

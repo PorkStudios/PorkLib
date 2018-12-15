@@ -13,30 +13,34 @@
  *
  */
 
-package net.daporkchop.lib.crypto;
+package net.daporkchop.lib.crypto.cipher.block;
 
-import net.daporkchop.lib.common.test.TestRandomData;
-import net.daporkchop.lib.crypto.key.EllipticCurveKeyPair;
-import net.daporkchop.lib.crypto.keygen.KeyGen;
-import net.daporkchop.lib.crypto.sig.ec.CurveType;
-import net.daporkchop.lib.crypto.sig.ec.impl.ECDSAHelper;
+import lombok.NonNull;
 import net.daporkchop.lib.hash.util.Digest;
-import org.junit.Test;
 
+import java.util.function.Consumer;
 
-public class SignatureTest {
-    @Test
-    public void testEC() {
-        ECDSAHelper helper = new ECDSAHelper(Digest.SHA_256);
-        for (CurveType type : CurveType.values()) {
-            EllipticCurveKeyPair keyPair = KeyGen.gen(type);
-            for (byte[] b : TestRandomData.randomBytes) {
-                byte[] sig = helper.sign(b, keyPair);
-                if (!helper.verify(sig, b, keyPair)) {
-                    throw new IllegalStateException(String.format("Invalid signature on curve type %s", type.name));
+/**
+ * A function that updates a block cipher's IV (initialization vector) before initialization
+ *
+ * @author DaPorkchop_
+ */
+public interface IVUpdater extends Consumer<byte[]> {
+    IVUpdater SHA_256 = ofHash(Digest.SHA_256);
+    IVUpdater SHA3_256 = ofHash(Digest.SHA3_256);
+
+    static IVUpdater ofHash(@NonNull Digest digest) {
+        return iv -> {
+            byte[] buf = new byte[digest.getHashSize()]; //TODO: cache this!
+            for (int i = 0; i < iv.length; i += buf.length)   {
+                digest.start(buf).append(iv).hash();
+                for (int j = 0; j < buf.length && j + i < iv.length; j++)   {
+                    iv[i + j] = buf[j];
                 }
             }
-            System.out.printf("Successful test of %s\n", type.name);
-        }
+        };
     }
+
+    @Override
+    void accept(byte[] iv);
 }

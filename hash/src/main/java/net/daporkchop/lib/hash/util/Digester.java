@@ -16,6 +16,7 @@ package net.daporkchop.lib.hash.util;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.common.util.PorkUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,7 +30,6 @@ import java.io.InputStream;
  */
 @RequiredArgsConstructor
 public class Digester {
-    private static final ThreadLocal<byte[]> READ_BUF_CACHE = ThreadLocal.withInitial(() -> new byte[256]);
 
     @NonNull
     private DigestAlg digest;
@@ -70,7 +70,7 @@ public class Digester {
     }
 
     public Digester append(@NonNull InputStream in) throws IOException  {
-        byte[] b = READ_BUF_CACHE.get();
+        byte[] b = PorkUtil.BUFFER_CACHE_SMALL.get();
         int i;
         while ((i = in.read(b)) != -1)  {
             this.append(b, 0, i);

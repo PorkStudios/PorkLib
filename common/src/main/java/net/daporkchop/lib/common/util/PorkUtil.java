@@ -36,6 +36,7 @@ import java.util.function.Function;
  */
 public class PorkUtil {
     public static final Unsafe unsafe;
+    public static final ThreadLocal<byte[]> BUFFER_CACHE_SMALL = ThreadLocal.withInitial(() -> new byte[256]);
     private static final Function<char[], String> CHAR_ARRAY_WRAPPER;
     private static final Function<Throwable, StackTraceElement[]> GET_STACK_TRACE_WRAPPER;
     private static final AtomicInteger DEFAULT_EXECUTOR_THREAD_COUNTER = new AtomicInteger(0);

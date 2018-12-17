@@ -19,6 +19,11 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import java.security.Security;
 
+/**
+ * This class isn't really needed any more, but I'm keeping it around because why not :P
+ *
+ * @author DaPorkchop_
+ */
 public class BouncyCastleInit {
     static {
         Security.addProvider(new BouncyCastleProvider());

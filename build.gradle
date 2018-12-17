@@ -95,6 +95,9 @@ allprojects {
         if (!("root".equalsIgnoreCase(project.name) || "common".equalsIgnoreCase(project.name))) {
             compile project(":common")
         }
+        if(!"logging".equalsIgnoreCase(project.name))   {
+            testCompile project(":logging")
+        }
 
         testCompile "junit:junit:4.12"
     }

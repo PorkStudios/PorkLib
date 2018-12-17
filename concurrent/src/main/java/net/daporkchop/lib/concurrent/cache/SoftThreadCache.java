@@ -13,14 +13,47 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":concurrent")
-    compile project(":encoding")
-    compile project(":hash")
-    compile project(":math")
+package net.daporkchop.lib.concurrent.cache;
 
-    compile "org.bouncycastle:bcprov-jdk15on:$bouncycastleVersion"
+import lombok.NonNull;
 
-    provided "io.netty:netty-buffer:$nettyVersion"
+import java.lang.ref.SoftReference;
+import java.util.function.Supplier;
+
+/**
+ * A {@link ThreadCache} that keeps only a soft reference to objects.
+ *
+ * Soft references will only be garbage collected when the JVM is running low on memory, and as such a soft cache should not
+ * be more cpu-intensive than a plain thread-local cache unless the heap is mostly full (or just too small).
+ *
+ * @author DaPorkchop_
+ */
+public class SoftThreadCache<T> implements ThreadCache<T> {
+    private final Supplier<T> supplier;
+    private final ThreadLocal<SoftReference<T>> threadLocal;
+
+    public static <T> SoftThreadCache<T> of(@NonNull Supplier<T> supplier)  {
+        return new SoftThreadCache<>(supplier);
+    }
+
+    private SoftThreadCache(@NonNull Supplier<T> supplier)  {
+        this.supplier = supplier;
+        this.threadLocal = ThreadLocal.withInitial(() -> null);
+    }
+
+    @Override
+    public T get() {
+        SoftReference<T> ref = this.threadLocal.get();
+        T val;
+        if (ref == null || (val = ref.get()) == null)   {
+            val = this.supplier.get();
+            this.threadLocal.set(new SoftReference<>(val));
+        }
+        return val;
+    }
+
+    @Override
+    public T getUncached() {
+        return this.supplier.get();
+    }
 }

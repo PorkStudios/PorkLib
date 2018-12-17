@@ -16,6 +16,8 @@
 package net.daporkchop.lib.crypto.cipher.block;
 
 import lombok.NonNull;
+import net.daporkchop.lib.concurrent.cache.SoftThreadCache;
+import net.daporkchop.lib.concurrent.cache.ThreadCache;
 import net.daporkchop.lib.hash.util.Digest;
 
 import java.util.function.Consumer;
@@ -30,11 +32,12 @@ public interface IVUpdater extends Consumer<byte[]> {
     IVUpdater SHA3_256 = ofHash(Digest.SHA3_256);
 
     static IVUpdater ofHash(@NonNull Digest digest) {
+        ThreadCache<byte[]> cache = SoftThreadCache.of(() -> new byte[digest.getHashSize()]);
         return iv -> {
-            byte[] buf = new byte[digest.getHashSize()]; //TODO: cache this!
-            for (int i = 0; i < iv.length; i += buf.length)   {
+            byte[] buf = cache.get();
+            for (int i = 0; i < iv.length; i += buf.length) {
                 digest.start(buf).append(iv).hash();
-                for (int j = 0; j < buf.length && j + i < iv.length; j++)   {
+                for (int j = 0; j < buf.length && j + i < iv.length; j++) {
                     iv[i + j] = buf[j];
                 }
             }

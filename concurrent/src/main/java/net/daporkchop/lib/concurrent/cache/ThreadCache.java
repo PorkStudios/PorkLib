@@ -13,14 +13,53 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":concurrent")
-    compile project(":encoding")
-    compile project(":hash")
-    compile project(":math")
+package net.daporkchop.lib.concurrent.cache;
 
-    compile "org.bouncycastle:bcprov-jdk15on:$bouncycastleVersion"
+import lombok.NonNull;
 
-    provided "io.netty:netty-buffer:$nettyVersion"
+import java.util.function.Supplier;
+
+/**
+ * A thread cache is essentially a {@link ThreadLocal}, able to store objects per-thread
+ *
+ * @author DaPorkchop_
+ */
+public interface ThreadCache<T> {
+    /**
+     * Creates a new {@link ThreadCache} using a given supplier
+     *
+     * @param theSupplier the supplier to use
+     * @param <T>         the type to be cached
+     * @return a {@link ThreadCache} for the given type using the given supplier
+     */
+    static <T> ThreadCache<T> of(@NonNull Supplier<T> theSupplier) {
+        return new ThreadCache<T>() {
+            private final Supplier<T> supplier = theSupplier;
+            private final ThreadLocal<T> threadLocal = ThreadLocal.withInitial(this.supplier);
+
+            @Override
+            public T get() {
+                return this.threadLocal.get();
+            }
+
+            @Override
+            public T getUncached() {
+                return this.supplier.get();
+            }
+        };
+    }
+
+    /**
+     * Get a thread-local instance
+     *
+     * @return a thread-local instance
+     */
+    T get();
+
+    /**
+     * Create a new instance, regardless of thread-local state
+     *
+     * @return a new instance
+     */
+    T getUncached();
 }

@@ -29,15 +29,21 @@ import net.daporkchop.lib.crypto.cipher.stream.StreamCipherType;
 import net.daporkchop.lib.crypto.key.CipherKey;
 import net.daporkchop.lib.crypto.keygen.KeyGen;
 import net.daporkchop.lib.crypto.keygen.KeyRandom;
-import org.bouncycastle.crypto.engines.ChaChaEngine;
+import net.daporkchop.lib.logging.Logging;
 import org.junit.Test;
 import sun.misc.IOUtils;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
-public class EncryptionTest {
+public class EncryptionTest implements Logging {
     private static boolean isInvalid(@NonNull byte[] original, @NonNull byte[] decrypted) {
         if (decrypted.length < original.length) {
             return true;
@@ -255,50 +261,38 @@ public class EncryptionTest {
 
     @Test
     public void testSeekableStream() throws IOException {
-        byte[] seed = KeyRandom.getBytes(1024);
-        CipherKey key1 = KeyGen.gen(StreamCipherType.CHACHA10_256, seed);
-        CipherKey key2 = KeyGen.gen(StreamCipherType.CHACHA10_256, seed);
-        SeekableCipher cipher1 = new SeekableStreamCipher(() -> new ChaChaEngine(10), key1, CipherInitSide.SERVER);
-        SeekableCipher cipher2 = new SeekableStreamCipher(() -> new ChaChaEngine(10), key2, CipherInitSide.CLIENT);
-        Arrays.stream(TestRandomData.randomBytes).parallel().forEachOrdered(b -> {
-            long offset = ThreadLocalRandom.current().nextLong(0L, Long.MAX_VALUE >>> 1L);
-            byte[] encrypted = cipher1.encrypt(b, offset);
-            byte[] decrypted = cipher2.decrypt(encrypted, offset);
-            if (isInvalid(b, decrypted)) {
-                throw new IllegalStateException("Decrypted data isn't the same!");
-            }
-        });
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        Arrays.stream(TestRandomData.randomBytes).parallel().forEachOrdered(b -> {
-            baos.reset();
-            try {
-                long offset = ThreadLocalRandom.current().nextLong(0L, Long.MAX_VALUE >>> 1L);
-                try (OutputStream out = cipher1.encrypt(baos, offset, b.length)) {
-                    out.write(b);
-                }
-                byte[] encrypted = baos.toByteArray();
-                byte[] decrypted;
-                try (InputStream in = cipher2.decrypt(new ByteArrayInputStream(encrypted), offset, b.length)) {
-                    decrypted = IOUtils.readFully(in, -1, false);
-                }
-                if (isInvalid(b, decrypted)) {
-                    throw new IllegalStateException("Decrypted data isn't the same!");
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        logger.info("Testing seekable stream ciphers...");
+        Arrays.stream(StreamCipherType.values())
+                .filter(t -> t != StreamCipherType.BLOCK_CIPHER)
+                .parallel().forEach(type -> {
+            logger.info("  Testing ${0}...", type);
+            this.testSeekable(
+                    seed -> KeyGen.gen(type, seed),
+                    (key, side) -> new SeekableStreamCipher(type::create, key, side)
+            );
         });
     }
 
     @Test
     public void testSeekableBlock() throws IOException {
-        CipherType type = CipherType.AES;
-        CipherPadding padding = CipherPadding.PKCS7;
+        logger.info("Testing seekable block ciphers...");
+        Arrays.stream(CipherType.values())
+                .filter(t -> t != CipherType.NONE)
+                .parallel().forEach(type -> Arrays.stream(CipherPadding.values()).parallel().forEach(padding -> {
+            logger.info("  Testing ${0} with ${1} padding...", type, padding);
+            this.testSeekable(
+                    seed -> KeyGen.gen(type, seed),
+                    (key, side) -> new SeekableBlockCipher(type, padding, key, side)
+            );
+        }));
+    }
+
+    private void testSeekable(@NonNull Function<byte[], CipherKey> keyGenerator, @NonNull BiFunction<CipherKey, CipherInitSide, SeekableCipher> cipherSupplier) {
         byte[] seed = KeyRandom.getBytes(1024);
-        CipherKey key1 = KeyGen.gen(type, seed);
-        CipherKey key2 = KeyGen.gen(type, seed);
-        SeekableCipher cipher1 = new SeekableBlockCipher(type, padding, key1, CipherInitSide.SERVER);
-        SeekableCipher cipher2 = new SeekableBlockCipher(type, padding, key2, CipherInitSide.CLIENT);
+        CipherKey key1 = keyGenerator.apply(seed);
+        CipherKey key2 = keyGenerator.apply(seed);
+        SeekableCipher cipher1 = cipherSupplier.apply(key1, CipherInitSide.SERVER);
+        SeekableCipher cipher2 = cipherSupplier.apply(key2, CipherInitSide.CLIENT);
         Arrays.stream(TestRandomData.randomBytes).parallel().forEachOrdered(b -> {
             long offset = ThreadLocalRandom.current().nextLong(0L, Long.MAX_VALUE >>> 1L);
             byte[] encrypted = cipher1.encrypt(b, offset);

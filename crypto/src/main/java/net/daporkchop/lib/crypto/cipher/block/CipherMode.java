@@ -23,11 +23,17 @@ import org.bouncycastle.crypto.modes.*;
 import java.util.Arrays;
 import java.util.function.BiFunction;
 
+/**
+ * A block cipher can operate with one of many modes. The mode defines how individual blocks are
+ * related to each other
+ *
+ * @author DaPorkchop_
+ */
 public enum CipherMode {
     CBC("CBC", (cipher, integer) -> new CBCBlockCipher(cipher)),
     OFB("OFB", OFBBlockCipher::new),
     CFB("CFB", CFBBlockCipher::new, true),
-    KCTR("KCTR", (cipher, integer) -> new KCTRBlockCipher(cipher), true),
+    CTR("CTR", (cipher, integer) -> new KCTRBlockCipher(cipher), true),
     PGP_CFB("PGP_CFB", (cipher, integer) -> new PGPCFBBlockCipher(cipher, false)),
     SIC("SIC", (cipher, integer) -> new SICBlockCipher(cipher), true)
     ;

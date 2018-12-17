@@ -15,9 +15,12 @@
 
 dependencies {
     compile project(":binary")
-    compile project(":hash")
+    compile project(":concurrent")
     compile project(":encoding")
+    compile project(":hash")
     compile project(":math")
 
     compile "org.bouncycastle:bcprov-jdk15on:$bouncycastleVersion"
+
+    provided "io.netty:netty-buffer:$nettyVersion"
 }

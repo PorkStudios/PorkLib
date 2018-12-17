@@ -13,30 +13,53 @@
  *
  */
 
-package net.daporkchop.lib.crypto;
+package net.daporkchop.lib.concurrent.cache;
 
-import net.daporkchop.lib.common.test.TestRandomData;
-import net.daporkchop.lib.crypto.key.EllipticCurveKeyPair;
-import net.daporkchop.lib.crypto.keygen.KeyGen;
-import net.daporkchop.lib.crypto.sig.ec.CurveType;
-import net.daporkchop.lib.crypto.sig.ec.impl.ECDSAHelper;
-import net.daporkchop.lib.hash.util.Digest;
-import org.junit.Test;
+import lombok.NonNull;
 
+import java.util.function.Supplier;
 
-public class SignatureTest {
-    @Test
-    public void testEC() {
-        ECDSAHelper helper = new ECDSAHelper(Digest.SHA_256);
-        for (CurveType type : CurveType.values()) {
-            EllipticCurveKeyPair keyPair = KeyGen.gen(type);
-            for (byte[] b : TestRandomData.randomBytes) {
-                byte[] sig = helper.sign(b, keyPair);
-                if (!helper.verify(sig, b, keyPair)) {
-                    throw new IllegalStateException(String.format("Invalid signature on curve type %s", type.name));
-                }
+/**
+ * A thread cache is essentially a {@link ThreadLocal}, able to store objects per-thread
+ *
+ * @author DaPorkchop_
+ */
+public interface ThreadCache<T> {
+    /**
+     * Creates a new {@link ThreadCache} using a given supplier
+     *
+     * @param theSupplier the supplier to use
+     * @param <T>         the type to be cached
+     * @return a {@link ThreadCache} for the given type using the given supplier
+     */
+    static <T> ThreadCache<T> of(@NonNull Supplier<T> theSupplier) {
+        return new ThreadCache<T>() {
+            private final Supplier<T> supplier = theSupplier;
+            private final ThreadLocal<T> threadLocal = ThreadLocal.withInitial(this.supplier);
+
+            @Override
+            public T get() {
+                return this.threadLocal.get();
             }
-            System.out.printf("Successful test of %s\n", type.name);
-        }
+
+            @Override
+            public T getUncached() {
+                return this.supplier.get();
+            }
+        };
     }
+
+    /**
+     * Get a thread-local instance
+     *
+     * @return a thread-local instance
+     */
+    T get();
+
+    /**
+     * Create a new instance, regardless of thread-local state
+     *
+     * @return a new instance
+     */
+    T getUncached();
 }

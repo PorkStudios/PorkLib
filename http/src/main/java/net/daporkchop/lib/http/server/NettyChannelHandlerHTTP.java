@@ -13,18 +13,46 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":logging")
+package net.daporkchop.lib.http.server;
 
-    compile "com.google.http-client:google-http-client:$googleHttpClientVersion"
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.logging.Logging;
 
-    compile "io.netty:netty-transport:$nettyVersion"
-    compile "io.netty:netty-transport-native-epoll:$nettyVersion:linux-x86_64"
-    compile "io.netty:netty-transport-native-kqueue:$nettyVersion:osx-x86_64"
+/**
+ * @author DaPorkchop_
+ */
+@RequiredArgsConstructor
+@Getter
+public class NettyChannelHandlerHTTP extends ChannelInboundHandlerAdapter implements Logging {
+    @NonNull
+    private final HTTPServer server;
 
-    compile "io.netty:netty-codec-http:$nettyVersion"
-    compile "io.netty:netty-codec-http2:$nettyVersion"
+    @Override
+    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
+        logger.trace("Incoming connection: ${0}", ctx.channel().remoteAddress());
+        this.server.channels.add(ctx.channel());
+    }
 
-    testCompile "com.google.code.gson:gson:$gsonVersion"
+    @Override
+    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
+        logger.trace("Connection closed: ${0}", ctx.channel().remoteAddress());
+        this.server.channels.remove(ctx.channel());
+    }
+
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        super.channelRead(ctx, msg);
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        if (cause != null)  {
+            logger.error(cause);
+        }
+        super.exceptionCaught(ctx, cause);
+    }
 }

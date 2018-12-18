@@ -13,18 +13,17 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":logging")
+package net.daporkchop.lib.http;
 
-    compile "com.google.http-client:google-http-client:$googleHttpClientVersion"
-
-    compile "io.netty:netty-transport:$nettyVersion"
-    compile "io.netty:netty-transport-native-epoll:$nettyVersion:linux-x86_64"
-    compile "io.netty:netty-transport-native-kqueue:$nettyVersion:osx-x86_64"
-
-    compile "io.netty:netty-codec-http:$nettyVersion"
-    compile "io.netty:netty-codec-http2:$nettyVersion"
-
-    testCompile "com.google.code.gson:gson:$gsonVersion"
+/**
+ * Supported request types
+ *
+ * @author DaPorkchop_
+ */
+public enum RequestType {
+    GET,
+    HEAD,
+    POST,
+    PUT,
+    DELETE
 }

@@ -43,7 +43,7 @@ public class HTTPServer implements Logging {
         try {
             ServerBootstrap bootstrap = new ServerBootstrap();
             bootstrap.group(builder.getGroup());
-            bootstrap.channel(NioServerSocketChannel.class);
+            bootstrap.channelFactory(() -> new HTTPServerSocketChannel(this));
             bootstrap.childHandler(new NettyChannelHandlerHTTP(this));
             bootstrap.option(ChannelOption.SO_BACKLOG, 256);
             bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
@@ -63,8 +63,9 @@ public class HTTPServer implements Logging {
         } else {
             synchronized (this.shutdownLock) {
                 this.shutdownLock.set(true);
-                this.channels.close();
                 this.channel.close().syncUninterruptibly();
+                this.channels.close().syncUninterruptibly();
+                this.channel.eventLoop().shutdownGracefully();
             }
         }
     }

@@ -13,50 +13,28 @@
  *
  */
 
-package net.daporkchop.lib.http.server;
+package net.daporkchop.lib.http.parameter.def;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.UTF8;
-import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.http.parameter.Parameter;
+
+import java.util.Arrays;
+import java.util.Collection;
 
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
 @Getter
-public class NettyChannelHandlerHTTP extends ChannelInboundHandlerAdapter implements Logging {
-    @NonNull
-    private final HTTPServer server;
+public class ParameterAcceptEncoding implements Parameter<Collection<String>> {
+    private final Collection<String> value;
 
-    @Override
-    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-        logger.trace("Incoming connection: ${0}", ctx.channel().remoteAddress());
-        this.server.channels.add(ctx.channel());
+    public ParameterAcceptEncoding(@NonNull String content) {
+        this.value = Arrays.asList(content.split(", "));
     }
 
     @Override
-    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-        logger.trace("Connection closed: ${0}", ctx.channel().remoteAddress());
-        this.server.channels.remove(ctx.channel());
-    }
-
-    @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        ((HTTPServerChannel) ctx.channel()).handle((ByteBuf) msg);
-        logger.debug("Received message: ${0}", ((ByteBuf) msg).toString(UTF8.utf8));
-        super.channelRead(ctx, msg);
-    }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        if (cause != null)  {
-            logger.error(cause);
-        }
-        super.exceptionCaught(ctx, cause);
+    public String getName() {
+        return "Accept-Encoding";
     }
 }

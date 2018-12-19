@@ -15,13 +15,22 @@
 
 package net.daporkchop.lib.http;
 
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
 /**
  * Supported HTTP versions
  *
  * @author DaPorkchop_
  */
+@RequiredArgsConstructor
+@Getter
 public enum HTTPVersion {
-    V1_1,
-    V2_0 //currently unsupported
+    V1_1("HTTP/1.1"),
+    V2_0("HTTP/2.0") //currently unsupported
     ;
+
+    @NonNull
+    private final String identifierName;
 }

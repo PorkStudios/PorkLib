@@ -44,7 +44,11 @@ public class PorkUtil {
             0, Integer.MAX_VALUE,
             2, TimeUnit.SECONDS,
             new SynchronousQueue<>(),
-            runnable -> new Thread(runnable, String.format("PorkLib executor #%d", DEFAULT_EXECUTOR_THREAD_COUNTER.getAndIncrement()))
+            runnable -> {
+                Thread t = new Thread(runnable, String.format("PorkLib executor #%d", DEFAULT_EXECUTOR_THREAD_COUNTER.getAndIncrement()));
+                //t.setDaemon(true);
+                return t;
+            }
     );
 
     static {

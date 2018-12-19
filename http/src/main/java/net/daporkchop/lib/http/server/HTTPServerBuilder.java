@@ -36,7 +36,7 @@ import java.util.concurrent.Executor;
 @Setter
 @Accessors(chain = true)
 public class HTTPServerBuilder {
-    private static final EventLoopGroup DEFAULT_GROUP;
+    public static final EventLoopGroup DEFAULT_GROUP;
 
     static {
         EventLoopGroup defaultGroup = null;

@@ -13,50 +13,40 @@
  *
  */
 
-package net.daporkchop.lib.http.server;
+package net.daporkchop.lib.http.parameter;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.logging.Logging;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-public class NettyChannelHandlerHTTP extends ChannelInboundHandlerAdapter implements Logging {
-    @NonNull
-    private final HTTPServer server;
+public class Parameters implements Logging {
+    private final Map<String, Parameter> map = new HashMap<>();
 
-    @Override
-    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-        logger.trace("Incoming connection: ${0}", ctx.channel().remoteAddress());
-        this.server.channels.add(ctx.channel());
-    }
-
-    @Override
-    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-        logger.trace("Connection closed: ${0}", ctx.channel().remoteAddress());
-        this.server.channels.remove(ctx.channel());
-    }
-
-    @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        ((HTTPServerChannel) ctx.channel()).handle((ByteBuf) msg);
-        logger.debug("Received message: ${0}", ((ByteBuf) msg).toString(UTF8.utf8));
-        super.channelRead(ctx, msg);
-    }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        if (cause != null)  {
-            logger.error(cause);
+    public Parameters(@NonNull List<String> entries, @NonNull ParameterRegistry registry)   {
+        for (String entry : entries)    {
+            int off = entry.indexOf(": ");
+            if (off == -1)  {
+                throw this.exception("Invalid entry: ${0}", entry);
+            }
+            String name = entry.substring(0, off);
+            this.map.put(name, registry.parse(name, entry.substring(off + 2, entry.length())));
         }
-        super.exceptionCaught(ctx, cause);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> Parameter<T> getParam(@NonNull String name)  {
+        return (Parameter<T>) this.map.get(name);
+    }
+
+    public <T> T getValue(@NonNull String name) {
+        Parameter<T> param = this.getParam(name);
+        return param == null ? null : param.getValue();
     }
 }

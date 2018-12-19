@@ -15,48 +15,46 @@
 
 package net.daporkchop.lib.http.server;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.util.internal.SocketUtils;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.UTF8;
-import net.daporkchop.lib.logging.Logging;
+
+import java.nio.channels.SocketChannel;
+import java.util.List;
 
 /**
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
 @Getter
-public class NettyChannelHandlerHTTP extends ChannelInboundHandlerAdapter implements Logging {
+class HTTPServerSocketChannel extends NioServerSocketChannel {
     @NonNull
     private final HTTPServer server;
 
     @Override
-    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-        logger.trace("Incoming connection: ${0}", ctx.channel().remoteAddress());
-        this.server.channels.add(ctx.channel());
-    }
+    protected int doReadMessages(List<Object> buf) throws Exception {
+        SocketChannel ch = SocketUtils.accept(this.javaChannel());
 
-    @Override
-    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-        logger.trace("Connection closed: ${0}", ctx.channel().remoteAddress());
-        this.server.channels.remove(ctx.channel());
-    }
+        try {
+            if (ch != null) {
+                HTTPServerChannel wrapper = new HTTPServerChannel(this, ch, this.server);
+                buf.add(wrapper);
+                return 1;
+            }
+        } catch (Throwable t) {
+            t.printStackTrace();
+            System.err.println("Failed to create a new channel from an accepted socket.");
 
-    @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        ((HTTPServerChannel) ctx.channel()).handle((ByteBuf) msg);
-        logger.debug("Received message: ${0}", ((ByteBuf) msg).toString(UTF8.utf8));
-        super.channelRead(ctx, msg);
-    }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        if (cause != null)  {
-            logger.error(cause);
+            try {
+                ch.close();
+            } catch (Throwable t2) {
+                t2.printStackTrace();
+                System.err.println("Failed to close a socket.");
+            }
         }
-        super.exceptionCaught(ctx, cause);
+
+        return 0;
     }
 }

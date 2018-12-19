@@ -13,50 +13,39 @@
  *
  */
 
-package net.daporkchop.lib.http.server;
+package net.daporkchop.lib.http.test;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.UTF8;
+import net.daporkchop.lib.http.server.HTTPServer;
+import net.daporkchop.lib.http.server.HTTPServerBuilder;
 import net.daporkchop.lib.logging.Logging;
+
+import java.io.File;
+import java.util.Scanner;
 
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-public class NettyChannelHandlerHTTP extends ChannelInboundHandlerAdapter implements Logging {
-    @NonNull
-    private final HTTPServer server;
+public class ServerTestMain implements Logging {
+    public static void main(String... args) {
+        logger.setLevel(5);
+        logger.add(new File("./http/test_out/serverTest.log"), true);
 
-    @Override
-    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-        logger.trace("Incoming connection: ${0}", ctx.channel().remoteAddress());
-        this.server.channels.add(ctx.channel());
-    }
+        logger.info("Server starting...");
+        HTTPServer server = HTTPServerBuilder.of(8081).build();
 
-    @Override
-    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-        logger.trace("Connection closed: ${0}", ctx.channel().remoteAddress());
-        this.server.channels.remove(ctx.channel());
-    }
-
-    @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        ((HTTPServerChannel) ctx.channel()).handle((ByteBuf) msg);
-        logger.debug("Received message: ${0}", ((ByteBuf) msg).toString(UTF8.utf8));
-        super.channelRead(ctx, msg);
-    }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        if (cause != null)  {
-            logger.error(cause);
+        logger.info("Server started on port 8081!");
+        {
+            Thread t = new Thread(() -> {
+                try (Scanner s = new Scanner(System.in)) {
+                    s.nextLine();
+                }
+                logger.info("Server closing...");
+                server.shutdown();
+                logger.info("Server closed!");
+                HTTPServerBuilder.DEFAULT_GROUP.shutdownGracefully().syncUninterruptibly(); //TODO: figure out what to do about this
+            }, "keyboard interrupt listener");
+            t.setDaemon(true);
+            t.start();
         }
-        super.exceptionCaught(ctx, cause);
     }
 }

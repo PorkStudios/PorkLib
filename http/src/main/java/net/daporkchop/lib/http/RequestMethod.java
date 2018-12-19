@@ -16,11 +16,11 @@
 package net.daporkchop.lib.http;
 
 /**
- * Supported request types
+ * Supported request methods
  *
  * @author DaPorkchop_
  */
-public enum RequestType {
+public enum RequestMethod {
     GET,
     HEAD,
     POST,

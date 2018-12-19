@@ -31,7 +31,7 @@ public class Request {
     @NonNull
     private final HTTPVersion version;
     @NonNull
-    private final RequestType type;
+    private final RequestMethod method;
     @NonNull
     private final Parameters parameters;
     @NonNull

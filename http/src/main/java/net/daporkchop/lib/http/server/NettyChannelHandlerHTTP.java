@@ -25,7 +25,6 @@ import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.http.HTTPVersion;
 import net.daporkchop.lib.http.Request;
-import net.daporkchop.lib.http.RequestType;
 import net.daporkchop.lib.http.server.handler.Response;
 import net.daporkchop.lib.logging.Logging;
 
@@ -58,7 +57,7 @@ public class NettyChannelHandlerHTTP extends ChannelInboundHandlerAdapter implem
         logger.debug("Received message: ${0}", ((ByteBuf) msg).toString(UTF8.utf8));
         this.server.handler.handle(new Request(
                 HTTPVersion.V1_1,
-                channel.getType(),
+                channel.getMethod(),
                 channel.getParameters(),
                 channel.getPath(),
                 null

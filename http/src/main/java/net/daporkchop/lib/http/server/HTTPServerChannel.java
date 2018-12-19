@@ -22,7 +22,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.UTF8;
-import net.daporkchop.lib.http.RequestType;
+import net.daporkchop.lib.http.RequestMethod;
 import net.daporkchop.lib.http.parameter.ParameterRegistry;
 import net.daporkchop.lib.http.parameter.Parameters;
 import net.daporkchop.lib.logging.Logging;
@@ -41,7 +41,7 @@ class HTTPServerChannel extends NioSocketChannel implements Logging {
     private final HTTPServer server;
 
     @NonNull
-    private RequestType type;
+    private RequestMethod method;
     @NonNull
     private String path;
     private Parameters parameters;
@@ -58,9 +58,9 @@ class HTTPServerChannel extends NioSocketChannel implements Logging {
         int i2 = s.lastIndexOf(' ');
         String s1 = s.substring(0, i1);
         try {
-            this.type = RequestType.valueOf(s1);
+            this.method = RequestMethod.valueOf(s1);
         } catch (IllegalArgumentException e) {
-            throw this.exception("Unknown request type: ${0}", s1);
+            throw this.exception("Unknown request method: ${0}", s1);
         }
         this.path = s.substring(i1 + 1, i2 + 1);
         this.parameters = new Parameters(

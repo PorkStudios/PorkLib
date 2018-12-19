@@ -16,12 +16,17 @@
 package net.daporkchop.lib.http.server;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.UTF8;
+import net.daporkchop.lib.http.HTTPVersion;
+import net.daporkchop.lib.http.Request;
+import net.daporkchop.lib.http.RequestType;
+import net.daporkchop.lib.http.server.handler.Response;
 import net.daporkchop.lib.logging.Logging;
 
 /**
@@ -29,6 +34,7 @@ import net.daporkchop.lib.logging.Logging;
  */
 @RequiredArgsConstructor
 @Getter
+@ChannelHandler.Sharable
 public class NettyChannelHandlerHTTP extends ChannelInboundHandlerAdapter implements Logging {
     @NonNull
     private final HTTPServer server;
@@ -47,14 +53,22 @@ public class NettyChannelHandlerHTTP extends ChannelInboundHandlerAdapter implem
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        ((HTTPServerChannel) ctx.channel()).handle((ByteBuf) msg);
+        HTTPServerChannel channel = (HTTPServerChannel) ctx.channel();
+        channel.handle((ByteBuf) msg);
         logger.debug("Received message: ${0}", ((ByteBuf) msg).toString(UTF8.utf8));
+        this.server.handler.handle(new Request(
+                HTTPVersion.V1_1,
+                channel.getType(),
+                channel.getParameters(),
+                channel.getPath(),
+                null
+        ), new Response(channel));
         super.channelRead(ctx, msg);
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        if (cause != null)  {
+        if (cause != null) {
             logger.error(cause);
         }
         super.exceptionCaught(ctx, cause);

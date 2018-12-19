@@ -23,6 +23,7 @@ import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import lombok.NonNull;
+import net.daporkchop.lib.http.server.handler.RequestHandler;
 import net.daporkchop.lib.logging.Logging;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -36,6 +37,11 @@ public class HTTPServer implements Logging {
     final ChannelGroup channels;
     final Channel channel;
     final AtomicBoolean shutdownLock = new AtomicBoolean(false);
+
+    final RequestHandler handler = (request, response) -> {
+        logger.debug("Received ${0} request to ${1}", request.getType(), request.getPath());
+        response.setStatus(404).send().close();
+    };
 
     public HTTPServer(@NonNull HTTPServerBuilder builder) {
         this.channels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);

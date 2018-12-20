@@ -16,6 +16,7 @@
 package net.daporkchop.lib.http.server;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -25,8 +26,13 @@ import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.http.HTTPVersion;
 import net.daporkchop.lib.http.Request;
+import net.daporkchop.lib.http.RequestMethod;
+import net.daporkchop.lib.http.parameter.ParameterRegistry;
+import net.daporkchop.lib.http.parameter.Parameters;
 import net.daporkchop.lib.http.server.handler.Response;
 import net.daporkchop.lib.logging.Logging;
+
+import java.util.Collections;
 
 /**
  * @author DaPorkchop_
@@ -52,16 +58,21 @@ public class NettyChannelHandlerHTTP extends ChannelInboundHandlerAdapter implem
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        HTTPServerChannel channel = (HTTPServerChannel) ctx.channel();
-        channel.handle((ByteBuf) msg);
+        Channel channel = ctx.channel();
         logger.debug("Received message: ${0}", ((ByteBuf) msg).toString(UTF8.utf8));
-        this.server.handler.handle(new Request(
-                HTTPVersion.V1_1,
-                channel.getMethod(),
-                channel.getParameters(),
-                channel.getPath(),
-                null
-        ), new Response(channel));
+        RequestReader reader = new RequestReader((ByteBuf) msg);
+        RequestMethod method = RequestMethod.valueOf(reader.readUntilSpace());
+        String path = reader.readUntilSpace();
+        logger.debug("Skipped ${0} bytes!", reader.skipUntil('\r'));
+        try (Response response = new Response(channel)) {
+            this.server.handler.handle(new Request(
+                    HTTPVersion.V1_1,
+                    method,
+                    new Parameters(Collections.emptyList(), ParameterRegistry.def()),
+                    path,
+                    null
+            ), response);
+        }
         super.channelRead(ctx, msg);
     }
 
@@ -70,6 +81,7 @@ public class NettyChannelHandlerHTTP extends ChannelInboundHandlerAdapter implem
         if (cause != null) {
             logger.error(cause);
         }
+        ctx.close();
         super.exceptionCaught(ctx, cause);
     }
 }

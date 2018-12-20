@@ -13,19 +13,32 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":concurrent")
-    compile project(":logging")
+package net.daporkchop.lib.http.parameter.def;
 
-    compile "com.google.http-client:google-http-client:$googleHttpClientVersion"
+import lombok.Getter;
+import lombok.NonNull;
+import net.daporkchop.lib.http.parameter.Parameter;
 
-    compile "io.netty:netty-transport:$nettyVersion"
-    compile "io.netty:netty-transport-native-epoll:$nettyVersion:linux-x86_64"
-    compile "io.netty:netty-transport-native-kqueue:$nettyVersion:osx-x86_64"
+import java.net.InetSocketAddress;
 
-    compile "io.netty:netty-codec-http:$nettyVersion"
-    compile "io.netty:netty-codec-http2:$nettyVersion"
+/**
+ * @author DaPorkchop_
+ */
+@Getter
+public class ParameterHost implements Parameter<InetSocketAddress> {
+    private final InetSocketAddress value;
 
-    testCompile "com.google.code.gson:gson:$gsonVersion"
+    public ParameterHost(@NonNull String content) {
+        int i = content.indexOf(':');
+        if (i == -1)    {
+            this.value = new InetSocketAddress(content, 80);
+        } else {
+            this.value = new InetSocketAddress(content.substring(0, i), Integer.parseInt(content.substring(i + 1, content.length())));
+        }
+    }
+
+    @Override
+    public String getName() {
+        return "Host";
+    }
 }

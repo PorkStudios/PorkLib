@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.parameter.def.ParameterAcceptEncoding;
+import net.daporkchop.lib.http.parameter.def.ParameterHost;
 import net.daporkchop.lib.logging.Logging;
 
 import java.util.HashMap;
@@ -36,6 +37,7 @@ public class ParameterRegistry implements Logging {
     public static ParameterRegistry def()   {
         return new Builder()
                 .register("Accept-Encoding", ParameterAcceptEncoding::new)
+                .register("Host", ParameterHost::new)
                 .build();
     }
 

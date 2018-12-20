@@ -13,19 +13,36 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":concurrent")
-    compile project(":logging")
+package net.daporkchop.lib.http.server;
 
-    compile "com.google.http-client:google-http-client:$googleHttpClientVersion"
+import io.netty.buffer.ByteBuf;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.binary.UTF8;
 
-    compile "io.netty:netty-transport:$nettyVersion"
-    compile "io.netty:netty-transport-native-epoll:$nettyVersion:linux-x86_64"
-    compile "io.netty:netty-transport-native-kqueue:$nettyVersion:osx-x86_64"
+/**
+ * @author DaPorkchop_
+ */
+@RequiredArgsConstructor
+@Getter
+public class RequestReader {
+    @NonNull
+    private final ByteBuf buf;
 
-    compile "io.netty:netty-codec-http:$nettyVersion"
-    compile "io.netty:netty-codec-http2:$nettyVersion"
+    public String readUntilSpace()  {
+        int i = this.buf.readerIndex();
+        int j = 0;
+        for (; (this.buf.readByte() & 0xFF) != 0x20; j++)   {
+        }
+        return this.buf.slice(i, j).toString(UTF8.utf8);
+    }
 
-    testCompile "com.google.code.gson:gson:$gsonVersion"
+    public int skipUntil(int c) {
+        int i = 0;
+        for (int j = this.buf.readByte() & 0xFF; j != c; j = this.buf.readByte() & 0xFF)    {
+            i++;
+        }
+        return i;
+    }
 }

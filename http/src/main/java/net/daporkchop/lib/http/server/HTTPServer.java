@@ -20,8 +20,10 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import lombok.NonNull;
+import net.daporkchop.lib.http.ResponseCode;
 import net.daporkchop.lib.http.server.handler.RequestHandler;
 import net.daporkchop.lib.logging.Logging;
 
@@ -39,7 +41,11 @@ public class HTTPServer implements Logging {
 
     final RequestHandler handler = (request, response) -> {
         logger.debug("Received ${0} request to ${1}", request.getMethod(), request.getPath());
-        response.setStatus(404).send().close();
+        response.setStatus(ResponseCode.OK)
+                .setContentType("text/plain")
+                .setParameter("Test-Header", "name_jeff_lol")
+                .send()
+                .close();
     };
 
     public HTTPServer(@NonNull HTTPServerBuilder builder) {
@@ -48,7 +54,7 @@ public class HTTPServer implements Logging {
         try {
             ServerBootstrap bootstrap = new ServerBootstrap();
             bootstrap.group(builder.getGroup());
-            bootstrap.channelFactory(() -> new HTTPServerSocketChannel(this));
+            bootstrap.channel(NioServerSocketChannel.class);
             bootstrap.childHandler(new NettyChannelHandlerHTTP(this));
             bootstrap.option(ChannelOption.SO_BACKLOG, 256);
             bootstrap.option(ChannelOption.SO_KEEPALIVE, true);

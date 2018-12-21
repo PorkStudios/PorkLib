@@ -45,4 +45,20 @@ public class RequestReader {
         }
         return i;
     }
+
+    public String readUntil(int c)  {
+        int i = this.buf.readerIndex();
+        int j = 0;
+        for (; (this.buf.readByte() & 0xFF) != c; j++)   {
+        }
+        return this.buf.slice(i, j).toString(UTF8.utf8);
+    }
+
+    public void skip(int bytes) {
+        this.buf.skipBytes(bytes);
+    }
+
+    public int next()   {
+        return this.buf.getByte(this.buf.readerIndex());
+    }
 }

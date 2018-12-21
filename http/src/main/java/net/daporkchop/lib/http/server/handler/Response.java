@@ -28,7 +28,9 @@ import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.concurrent.cache.SoftThreadCache;
 import net.daporkchop.lib.concurrent.cache.ThreadCache;
 import net.daporkchop.lib.http.HTTPVersion;
+import net.daporkchop.lib.http.Request;
 import net.daporkchop.lib.http.ResponseCode;
+import net.daporkchop.lib.http.parameter.Parameter;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -77,6 +79,30 @@ public class Response implements AutoCloseable {
      */
     public Response setParameter(@NonNull String name, @NonNull String value) {
         this.parameters.put(name, value.getBytes(UTF8.utf8));
+        return this;
+    }
+
+    /**
+     * Sets a parameter to a value
+     *
+     * @param parameter the parameter to set
+     * @return this response
+     */
+    public Response setParameter(@NonNull Parameter parameter) {
+        this.parameters.put(parameter.getName(), parameter.getValueEncoded());
+        return this;
+    }
+
+    /**
+     * Copies all the parameters from a request and queues them to be sent
+     *
+     * @param request the request to copy parameters from
+     * @return this response
+     */
+    public Response copyParameters(@NonNull Request request) {
+        request.getParameters().forEach((name, parameter) -> {
+            this.setParameter(name, parameter.getValueEncoded());
+        });
         return this;
     }
 

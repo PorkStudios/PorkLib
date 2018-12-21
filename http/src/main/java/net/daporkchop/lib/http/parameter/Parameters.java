@@ -22,6 +22,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * @author DaPorkchop_
@@ -48,5 +50,13 @@ public class Parameters implements Logging {
     public <T> T getValue(@NonNull String name) {
         Parameter<T> param = this.getParam(name);
         return param == null ? null : param.getValue();
+    }
+
+    public void forEach(@NonNull BiConsumer<String, Parameter> func)    {
+        this.map.forEach(func);
+    }
+
+    public void forEach(@NonNull Consumer<Parameter> func)  {
+        this.map.forEach((name, parameter) -> func.accept(parameter));
     }
 }

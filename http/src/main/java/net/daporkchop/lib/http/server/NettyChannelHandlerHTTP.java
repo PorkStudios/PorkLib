@@ -33,6 +33,8 @@ import net.daporkchop.lib.http.server.handler.Response;
 import net.daporkchop.lib.logging.Logging;
 
 import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * @author DaPorkchop_
@@ -64,14 +66,19 @@ public class NettyChannelHandlerHTTP extends ChannelInboundHandlerAdapter implem
         RequestMethod method = RequestMethod.valueOf(reader.readUntilSpace());
         String path = reader.readUntilSpace();
         logger.debug("Skipped ${0} bytes!", reader.skipUntil('\r'));
+        reader.skip(1);
+        Parameters parameters;
+        {
+            List<String> params = new LinkedList<>();
+            while (reader.next() != '\r') {
+                logger.debug("Next: ${0}", reader.next());
+                params.add(reader.readUntil('\r'));
+                reader.skip(1);
+            }
+            parameters = new Parameters(params, ParameterRegistry.def());
+        }
         try (Response response = new Response(channel)) {
-            this.server.handler.handle(new Request(
-                    HTTPVersion.V1_1,
-                    method,
-                    new Parameters(Collections.emptyList(), ParameterRegistry.def()),
-                    path,
-                    null
-            ), response);
+            this.server.handler.handle(new Request(HTTPVersion.V1_1, method, parameters, path, null), response);
         }
         super.channelRead(ctx, msg);
     }

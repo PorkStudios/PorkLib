@@ -43,9 +43,8 @@ public class HTTPServer implements Logging {
         logger.debug("Received ${0} request to ${1}", request.getMethod(), request.getPath());
         response.setStatus(ResponseCode.OK)
                 .setContentType("text/plain")
-                .setParameter("Test-Header", "name_jeff_lol")
-                .send()
-                .close();
+                .setParameter("Test-Header", "name_jeff_lol").send()
+                .write("Hello world! v5");
     };
 
     public HTTPServer(@NonNull HTTPServerBuilder builder) {

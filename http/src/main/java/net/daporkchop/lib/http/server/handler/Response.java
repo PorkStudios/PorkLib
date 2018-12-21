@@ -16,7 +16,9 @@
 package net.daporkchop.lib.http.server.handler;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +30,7 @@ import net.daporkchop.lib.concurrent.cache.ThreadCache;
 import net.daporkchop.lib.http.HTTPVersion;
 import net.daporkchop.lib.http.ResponseCode;
 
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,8 +50,11 @@ public class Response implements AutoCloseable {
 
     @NonNull
     private final Channel channel;
+
     private final Map<String, byte[]> parameters = PARAMETER_MAP_CACHE.get();
     private ResponseCode status = ResponseCode.Internal_Server_Error;
+    @Setter(AccessLevel.PRIVATE)
+    private boolean sent = false;
 
     /**
      * Sets a parameter to a given value
@@ -82,13 +88,18 @@ public class Response implements AutoCloseable {
      * @return this response
      */
     public Response send() {
-        ByteBuf buf = this.channel.alloc().ioBuffer();
-        buf.writeBytes(String.format("%s %d OK", HTTPVersion.V1_1.getIdentifierName(), this.status.getCode()).getBytes(UTF8.utf8));
-        this.parameters.forEach((key, value) -> buf.writeBytes(NEWLINE).writeBytes(key.getBytes(UTF8.utf8)).writeBytes(PARAMETER_SEPARATOR).writeBytes(value));
-        buf.writeBytes(NEWLINE).writeBytes(NEWLINE);
-        buf.writeBytes("Hello world v2!".getBytes(UTF8.utf8));
-        this.channel.writeAndFlush(buf);
-        return this;
+        if (this.sent) {
+            throw new IllegalStateException("Already sent request!");
+        } else {
+            ByteBuf buf = this.channel.alloc().ioBuffer();
+            buf.writeBytes(String.format("%s %d OK", HTTPVersion.V1_1.getIdentifierName(), this.status.getCode()).getBytes(UTF8.utf8));
+            this.parameters.forEach((key, value) -> buf.writeBytes(NEWLINE).writeBytes(key.getBytes(UTF8.utf8)).writeBytes(PARAMETER_SEPARATOR).writeBytes(value));
+            buf.writeBytes(NEWLINE).writeBytes(NEWLINE);
+            //buf.writeBytes("Hello world v2!".getBytes(UTF8.utf8));
+            this.channel.write(buf);
+            this.sent = true;
+            return this;
+        }
     }
 
     /**
@@ -96,8 +107,12 @@ public class Response implements AutoCloseable {
      */
     @Override
     public void close() {
+        if (!this.sent) {
+            this.send();
+        }
         if (this.channel.isOpen()) {
             this.channel.flush().close();
+            this.parameters.clear();
         }
     }
 
@@ -110,5 +125,132 @@ public class Response implements AutoCloseable {
     public Response setContentType(@NonNull String contentType) {
         this.setParameter("Content-Type", contentType);
         return this;
+    }
+
+    /**
+     * Writes raw bytes to this connection as part of the message body.
+     * <p>
+     * May not be called until the {@link #send()} has been called.
+     *
+     * @param buf the data to write
+     * @return this response
+     */
+    public Response write(@NonNull ByteBuf buf) {
+        if (this.sent) {
+            if (buf.readableBytes() > 0) {
+                this.channel.write(buf);
+            }
+        } else {
+            throw new IllegalStateException("send() not called before writing data!");
+        }
+        return this;
+    }
+
+    /**
+     * Writes raw bytes to this connection as part of the message body.
+     * <p>
+     * May not be called until the {@link #send()} has been called.
+     *
+     * @param b the data to write
+     * @return this response
+     */
+    public Response write(@NonNull byte[] b) {
+        return this.write(Unpooled.wrappedBuffer(b));
+    }
+
+    /**
+     * Writes raw bytes to this connection as part of the message body.
+     * <p>
+     * May not be called until the {@link #send()} has been called.
+     *
+     * @param buf the data to write
+     * @return this response
+     */
+    public Response write(@NonNull ByteBuffer buf) {
+        return this.write(Unpooled.wrappedBuffer(buf));
+    }
+
+    /**
+     * Writes a single byte to this connection as part of the message body.
+     * <p>
+     * May not be called until the {@link #send()} has been called.
+     *
+     * @param b the byte to write
+     * @return this response
+     */
+    public Response write(byte b) {
+        return this.write(this.channel.alloc().buffer(1).writeByte(b & 0xFF));
+    }
+
+    /**
+     * Writes a single short to this connection as part of the message body.
+     * <p>
+     * May not be called until the {@link #send()} has been called.
+     *
+     * @param s the short to write
+     * @return this response
+     */
+    public Response write(short s) {
+        return this.write(this.channel.alloc().buffer(2).writeShort(s & 0xFFFF));
+    }
+
+    /**
+     * Writes a single int to this connection as part of the message body.
+     * <p>
+     * May not be called until the {@link #send()} has been called.
+     *
+     * @param i the int to write
+     * @return this response
+     */
+    public Response write(int i) {
+        return this.write(this.channel.alloc().buffer(4).writeInt(i));
+    }
+
+    /**
+     * Writes a single long to this connection as part of the message body.
+     * <p>
+     * May not be called until the {@link #send()} has been called.
+     *
+     * @param l the long to write
+     * @return this response
+     */
+    public Response write(long l) {
+        return this.write(this.channel.alloc().buffer(8).writeLong(l));
+    }
+
+    /**
+     * Writes a single float to this connection as part of the message body.
+     * <p>
+     * May not be called until the {@link #send()} has been called.
+     *
+     * @param f the float to write
+     * @return this response
+     */
+    public Response write(float f) {
+        return this.write(this.channel.alloc().buffer(4).writeFloat(f));
+    }
+
+    /**
+     * Writes a single double to this connection as part of the message body.
+     * <p>
+     * May not be called until the {@link #send()} has been called.
+     *
+     * @param d the double to write
+     * @return this response
+     */
+    public Response write(double d) {
+        return this.write(this.channel.alloc().buffer(8).writeDouble(d));
+    }
+
+    /**
+     * Writes a UTF-8 encoded string to this connection as part of the message body.
+     * <p>
+     * May not be called until the {@link #send()} has been called.
+     *
+     * @param s the {@link String} to write
+     * @return this response
+     */
+    public Response write(@NonNull String s) {
+        return this.write(s.getBytes(UTF8.utf8));
     }
 }

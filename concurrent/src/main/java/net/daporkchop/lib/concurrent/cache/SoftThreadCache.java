@@ -36,7 +36,7 @@ public class SoftThreadCache<T> implements ThreadCache<T> {
         return new SoftThreadCache<>(supplier);
     }
 
-    private SoftThreadCache(@NonNull Supplier<T> supplier)  {
+    protected SoftThreadCache(@NonNull Supplier<T> supplier)  {
         this.supplier = supplier;
         this.threadLocal = ThreadLocal.withInitial(() -> null);
     }

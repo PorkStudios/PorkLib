@@ -18,6 +18,8 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.encoding.Hexadecimal;
+import net.daporkchop.lib.encoding.basen.Base34;
+import net.daporkchop.lib.encoding.basen.Base58;
 
 import java.util.Arrays;
 import java.util.Base64;
@@ -39,6 +41,18 @@ public class Hash {
 
     public String toBase64()   {
         return Base64.getEncoder().encodeToString(this.hash);
+    }
+
+    public String toBase58()   {
+        return Base58.encodeBase58(this.hash);
+    }
+
+    public String toBase58WithHeaders(byte version, @NonNull String prefix)   {
+        return Base58WithHeaders.encode(version, prefix, this.hash);
+    }
+
+    public String toBase34()   {
+        return Base34.encodeBase34(this.hash);
     }
 
     @Override

@@ -17,22 +17,18 @@ package net.daporkchop.lib.encoding.basen;
 
 /**
  * About 2x more efficient than hexadecimal, but doesn't use capital letters (i.e. this is
- * safe to use on non-case-sensitive platforms while {@link Base58} is not)
+ * safe to use on case-insensitive platforms while {@link Base58} is not)
  *
  * @author DaPorkchop_
  */
-public class Base34 extends BaseN {
-    public static final Base34 INSTANCE = new Base34();
+public interface Base34 {
+    BaseN INSTANCE = BaseN.of("123456789abcdefghijkmnopqrstuvwxyz");
 
-    private Base34() {
-        super("123456789abcdefghijkmnopqrstuvwxyz");
-    }
-
-    public static String encodeBase34(byte[] data) {
+    static String encodeBase34(byte[] data) {
         return INSTANCE.encode(data);
     }
 
-    public static byte[] decodeBase34(String data) {
+    static byte[] decodeBase34(String data) {
         return INSTANCE.decode(data);
     }
 }

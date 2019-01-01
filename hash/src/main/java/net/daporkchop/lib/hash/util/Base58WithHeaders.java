@@ -14,6 +14,7 @@
 
 package net.daporkchop.lib.hash.util;
 
+import lombok.NonNull;
 import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.encoding.basen.Base58;
 
@@ -36,7 +37,7 @@ public class Base58WithHeaders {
      * @param content The actual data
      * @return A string encoded in Base58
      */
-    public static String encode(byte version, String prefix, byte[] content) {
+    public static String encode(byte version, @NonNull String prefix, @NonNull byte[] content) {
         if (prefix == null) {
             prefix = "";
         }
@@ -66,7 +67,7 @@ public class Base58WithHeaders {
      * @param pork58 Input string, Pork58-encoded
      * @return Decoded data!
      */
-    public static Decoded decode(String pork58) {
+    public static Decoded decode(@NonNull String pork58) {
         List<Character> chars = pork58.chars().mapToObj(e -> (char) e).collect(Collectors.toList());
         char prefixLengthChar = chars.remove(0);
         int prefixLength = -1;

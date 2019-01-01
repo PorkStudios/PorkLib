@@ -13,8 +13,6 @@
  *
  */
 
-/**
- * @author DaPorkchop_
- */
-public class ToBytesTest {
+dependencies {
+    compile "nl.sandergielisse:mythan:1.0-SNAPSHOT"
 }

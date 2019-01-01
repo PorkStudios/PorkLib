@@ -17,20 +17,18 @@ package net.daporkchop.lib.encoding.basen;
 import lombok.NonNull;
 
 /**
+ * Untested, you should probably use {@link java.util.Base64}
+ *
  * @author DaPorkchop_
  */
-public class Base64 extends BaseN {
-    public static final Base64 INSTANCE = new Base64();
+public interface Base64 {
+    BaseN INSTANCE = BaseN.of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
 
-    protected Base64() {
-        super("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
-    }
-
-    public static String encodeBase64(@NonNull byte[] data)   {
+    static String encodeBase64(@NonNull byte[] data)   {
         return INSTANCE.encode(data);
     }
 
-    public static byte[] decodeBase64(@NonNull String data) {
+    static byte[] decodeBase64(@NonNull String data) {
         return INSTANCE.decode(data);
     }
 }

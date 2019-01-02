@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -16,23 +16,18 @@
 package net.daporkchop.lib.network.pork;
 
 import net.daporkchop.lib.network.packet.UserProtocol;
-import net.daporkchop.lib.network.pork.packet.CloseChannelPacket;
-import net.daporkchop.lib.network.pork.packet.DisconnectPacket;
-import net.daporkchop.lib.network.pork.packet.EncryptionStartedPacket;
-import net.daporkchop.lib.network.pork.packet.HandshakeCompletePacket;
-import net.daporkchop.lib.network.pork.packet.HandshakeInitPacket;
-import net.daporkchop.lib.network.pork.packet.HandshakeResponsePacket;
-import net.daporkchop.lib.network.pork.packet.OpenChannelPacket;
-import net.daporkchop.lib.network.pork.packet.StartEncryptionPacket;
+import net.daporkchop.lib.network.pork.packet.*;
 
 /**
+ * The protocol used by PorkLib network for internal messaging
+ *
  * @author DaPorkchop_
  */
 public class PorkProtocol extends UserProtocol<PorkConnection> {
     public static final PorkProtocol INSTANCE = new PorkProtocol();
 
     private PorkProtocol() {
-        super("PorkLib Networking", 3);
+        super("PorkLib Networking", 4, 0);
     }
 
     @Override
@@ -44,8 +39,8 @@ public class PorkProtocol extends UserProtocol<PorkConnection> {
         //channel packets
         this.register(new OpenChannelPacket.OpenChannelCodec());
         this.register(new CloseChannelPacket.CloseChannelCodec());
-        this.register(new EncryptionStartedPacket.EncryptionStartedCodec());
-        this.register(new StartEncryptionPacket.StartEncryptionHandler());
+        //TODO: this.register(new EncryptionStartedPacket.EncryptionStartedCodec());
+        //TODO: this.register(new StartEncryptionPacket.StartEncryptionHandler());
         //misc. packets
         this.register(new DisconnectPacket.DisconnectCodec());
     }

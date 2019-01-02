@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -37,26 +37,4 @@ public interface ProtocolManager {
      * @return a new client manager
      */
     EndpointManager.ClientEndpointManager createClientManager();
-
-    //TODO: use an enum for the following methods:
-
-    /**
-     * Checks if this protocol manager respects the encryption settings as defined in
-     * {@link net.daporkchop.lib.network.endpoint.builder.ServerBuilder#setCryptographySettings(CryptographySettings)}
-     * <p>
-     * (i.e. if it supports encryption)
-     *
-     * @return whether or not this protocol supports encryption
-     */
-    boolean areEncryptionSettingsRespected();
-
-    /**
-     * Checks if this protocol manager respects the compression settings as defined in
-     * {@link net.daporkchop.lib.network.endpoint.builder.ServerBuilder#setCompression(CompressionHelper)}
-     * <p>
-     * (i.e. if it supports compression)
-     *
-     * @return whether or not this protocol supports compression
-     */
-    boolean areCompressionSettingsRespected();
 }

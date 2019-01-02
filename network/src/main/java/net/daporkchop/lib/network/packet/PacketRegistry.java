@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -15,65 +15,123 @@
 
 package net.daporkchop.lib.network.packet;
 
+import com.zaxxer.sparsebits.SparseBitSet;
 import lombok.Getter;
 import lombok.NonNull;
+import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.conn.UserConnection;
-import net.daporkchop.lib.primitive.map.IntegerObjectMap;
+import net.daporkchop.lib.network.packet.handler.MessageHandler;
+import net.daporkchop.lib.network.packet.handler.PacketHandler;
 import net.daporkchop.lib.primitive.map.ObjectIntegerMap;
-import net.daporkchop.lib.primitive.map.hashmap.IntegerObjectHashMap;
+import net.daporkchop.lib.primitive.map.ObjectShortMap;
+import net.daporkchop.lib.primitive.map.ShortObjectMap;
+import net.daporkchop.lib.primitive.map.array.ShortObjectArrayMap;
 import net.daporkchop.lib.primitive.map.hashmap.ObjectIntegerHashMap;
+import net.daporkchop.lib.primitive.map.hashmap.ObjectShortHashMap;
 
 import java.util.Collection;
-import java.util.IdentityHashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Collections;
 
 /**
+ * A collection of {@link UserProtocol}s
+ *
  * @author DaPorkchop_
  */
-public class PacketRegistry {
-    private final IntegerObjectMap<Codec<Packet, UserConnection>> registeredCodecs = new IntegerObjectHashMap<>();
-    private final ObjectIntegerMap<Class<? extends Packet>> packetIds = new ObjectIntegerHashMap<>();
-    private final Map<Class<? extends Packet>, Class<? extends UserProtocol>> supplyingProtocol = new IdentityHashMap<>();
+public class PacketRegistry implements Logging {
+    private final ShortObjectMap<UserProtocol> idToProtocol = new ShortObjectArrayMap<>();
+    private final ObjectShortMap<Class<? extends UserProtocol>> protocolToId = new ObjectShortHashMap<>();
+    private final ObjectIntegerMap<Class<?>> packetToFullId = new ObjectIntegerHashMap<>(); //TODO: identityHashMap
     @Getter
     private final Collection<UserProtocol> protocols;
 
     @SuppressWarnings("unchecked")
     public PacketRegistry(@NonNull Collection<UserProtocol> protocols) {
-        this.protocols = protocols;
-        AtomicInteger idCounter = new AtomicInteger(0);
+        if (protocols.size() > 0xFFFF - 1) {
+            throw this.exception("Too many protocols: ${0}", protocols.size());
+        }
+        this.protocols = Collections.unmodifiableCollection(protocols);
+        SparseBitSet ids = new SparseBitSet();
         for (UserProtocol<UserConnection> protocol : protocols) {
             if (protocol == null) {
                 throw new NullPointerException();
             }
-            protocol.registered.forEach(codec -> {
-                int id = idCounter.getAndIncrement();
-                this.registeredCodecs.put(id, codec);
-                Packet packet = codec.createInstance();
-                if (packet == null) {
-                    throw new NullPointerException();
+            short protocolId;
+            int requestedId = protocol.getRequestedId();
+            if (requestedId == -1) {
+                protocolId = (short) ids.nextClearBit(0);
+            } else if (ids.get(requestedId)) {
+                throw this.exception("Protocol ID ${0} already taken by ${1}!", requestedId, this.idToProtocol.get((short) requestedId));
+            } else {
+                protocolId = (short) requestedId;
+            }
+            ids.set(protocolId & 0xFFFF);
+            this.idToProtocol.put(protocolId, protocol);
+            if (this.protocolToId.containsKey(protocol.getClass())) {
+                throw this.exception("Protocol ${0} is registered twice!", protocol.getClass());
+            } else {
+                this.protocolToId.put(protocol.getClass(), protocolId);
+            }
+            protocol.registered.forEach((packetId, codec) -> {
+                if (codec instanceof PacketHandler) {
+                    this.packetToFullId.put(((PacketHandler) codec).getPacketClass(), combine(protocolId, packetId));
                 }
-                this.packetIds.put(packet.getClass(), id);
-                this.supplyingProtocol.put(packet.getClass(), protocol.getClass());
             });
+        }
+        logger.debug("Registered ${0} protocols!", protocols.size());
+    }
+
+    public static short getProtocolId(int id) {
+        return (short) ((id >>> 16) & 0xFFFF);
+    }
+
+    public static short getPacketId(int id) {
+        return (short) (id & 0xFFFF);
+    }
+
+    public static int combine(short protocolId, short packetId) {
+        return ((protocolId & 0xFFFF) << 16) | (packetId & 0xFFFF);
+    }
+
+    public <C extends UserConnection> UserProtocol<C> getProtocol(int id) {
+        return this.getProtocol(getProtocolId(id));
+    }
+
+    @SuppressWarnings("unchecked")
+    public <C extends UserConnection> UserProtocol<C> getProtocol(short protocolId) {
+        UserProtocol<C> protocol = (UserProtocol<C>) this.idToProtocol.get(protocolId);
+        if (protocol == null) {
+            throw this.exception("Invalid protocol id: ${0}", protocolId & 0xFFFF);
+        } else {
+            return protocol;
         }
     }
 
+    public MessageHandler getHandler(int id) {
+        return this.getProtocol(id).getHandler(id);
+    }
+
+    public <C extends UserConnection> short getProtocolId(@NonNull Class<? extends UserProtocol<C>> protocolClass) {
+        if (this.protocolToId.containsKey(protocolClass)) {
+            return this.protocolToId.get(protocolClass);
+        } else {
+            throw this.exception("Unregistered protocol: ${0}", protocolClass);
+        }
+    }
+
+    public <P> int getId(@NonNull Class<P> clazz) {
+        if (this.packetToFullId.containsKey(clazz)) {
+            return this.packetToFullId.get(clazz);
+        } else {
+            throw this.exception("Unregistered packet: ${0}", clazz);
+        }
+    }
+
+    public <P, C extends UserConnection> Class<? extends UserProtocol<C>> getOwningProtocol(@NonNull Class<P> clazz) {
+        return this.getOwningProtocol(getProtocolId(this.getId(clazz)));
+    }
+
     @SuppressWarnings("unchecked")
-    public <C extends UserConnection> Codec<Packet, C> getCodec(int id) {
-        return (Codec<Packet, C>) this.registeredCodecs.get(id);
-    }
-
-    public int getId(@NonNull Class<? extends Packet> clazz) {
-        return this.packetIds.getOrDefault(clazz, -1);
-    }
-
-    public <C extends UserConnection> Codec<Packet, C> getCodec(@NonNull Class<? extends Packet> clazz) {
-        return this.getCodec(this.getId(clazz));
-    }
-
-    @SuppressWarnings("unchecked")
-    public <C extends UserConnection> Class<? extends UserProtocol<C>> getOwningProtocol(@NonNull Class<? extends Packet> clazz) {
-        return (Class<? extends UserProtocol<C>>) this.supplyingProtocol.get(clazz);
+    public <C extends UserConnection> Class<? extends UserProtocol<C>> getOwningProtocol(short protocolId) {
+        return (Class<? extends UserProtocol<C>>) this.getProtocol(protocolId).getClass();
     }
 }

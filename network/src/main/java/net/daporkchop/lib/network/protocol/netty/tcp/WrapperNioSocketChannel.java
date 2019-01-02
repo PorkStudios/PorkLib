@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -15,51 +15,56 @@
 
 package net.daporkchop.lib.network.protocol.netty.tcp;
 
+import com.zaxxer.sparsebits.SparseBitSet;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.common.function.Void;
+import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
-import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
+import net.daporkchop.lib.network.pork.packet.OpenChannelPacket;
 import net.daporkchop.lib.network.protocol.netty.NettyConnection;
 import net.daporkchop.lib.network.util.reliability.Reliability;
+import net.daporkchop.lib.primitive.map.IntegerObjectMap;
+import net.daporkchop.lib.primitive.map.PorkMaps;
+import net.daporkchop.lib.primitive.map.hashmap.IntegerObjectHashMap;
 
 import java.nio.channels.SocketChannel;
-import java.nio.channels.spi.SelectorProvider;
 import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A wrapper on top of {@link NioSocketChannel} that allows to store extra data (i.e. implement {@link UnderlyingNetworkConnection})
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
 @Getter
-public class WrapperNioSocketChannel extends NioSocketChannel implements NettyConnection {
+public class WrapperNioSocketChannel extends NioSocketChannel implements NettyConnection, Logging {
+    final IntegerObjectMap<TcpChannel> channels = PorkMaps.synchronize(new IntegerObjectHashMap<>(), new ReentrantLock());
+    final SparseBitSet channelIds = new SparseBitSet();
     private final Map<Class<? extends UserProtocol>, UserConnection> connections = new IdentityHashMap<>();
     @NonNull
     private final Endpoint endpoint;
-    private final TcpChannel channel = new TcpChannel(this);
+    private final TcpChannel controlChannel;
+    private final TcpChannel defaultChannel;
 
-    public WrapperNioSocketChannel(SelectorProvider provider, @NonNull Endpoint endpoint) {
-        super(provider);
+    public WrapperNioSocketChannel(@NonNull Endpoint endpoint) {
         this.endpoint = endpoint;
-    }
 
-    public WrapperNioSocketChannel(SocketChannel socket, @NonNull Endpoint endpoint) {
-        super(socket);
-        this.endpoint = endpoint;
+        this.controlChannel = (TcpChannel) this.openChannel(Reliability.RELIABLE_ORDERED, 0, false);
+        this.defaultChannel = (TcpChannel) this.openChannel(Reliability.RELIABLE_ORDERED, 1, false);
     }
 
     public WrapperNioSocketChannel(io.netty.channel.Channel parent, SocketChannel socket, @NonNull Endpoint endpoint) {
         super(parent, socket);
         this.endpoint = endpoint;
+
+        this.controlChannel = (TcpChannel) this.openChannel(Reliability.RELIABLE_ORDERED, 0, false);
+        this.defaultChannel = (TcpChannel) this.openChannel(Reliability.RELIABLE_ORDERED, 1, false);
     }
 
     //
@@ -70,33 +75,43 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements NettyCo
 
     @Override
     public Channel openChannel(Reliability reliability) {
-        return this.channel;
+        synchronized (this.channelIds) {
+            return this.openChannel(reliability, this.channelIds.nextClearBit(0), true);
+        }
     }
 
     @Override
     public Channel getOpenChannel(int id) {
-        return id == 0 ? this.channel : null;
+        return this.channels.get(id);
     }
 
     @Override
-    public Channel openChannel(Reliability reliability, int requestedId) {
-        return this.channel;
+    public Channel openChannel(Reliability reliability, int requestedId, boolean notifyRemote) {
+        try {
+            synchronized (this.channelIds) {
+                if (this.channelIds.get(requestedId)) {
+                    throw this.exception("Channel id ${0} already taken!", requestedId);
+                } else {
+                    this.channelIds.set(requestedId);
+                    TcpChannel channel = new TcpChannel(this, requestedId);
+                    this.channels.put(requestedId, channel);
+                    return channel;
+                }
+            }
+        } catch (Exception e) {
+            notifyRemote = false;
+            throw e;
+        } finally {
+            if (notifyRemote && requestedId > 1) {
+                this.controlChannel.send(new OpenChannelPacket(Reliability.RELIABLE_ORDERED, requestedId), true);
+            }
+        }
     }
 
-    //minor optimization (removes overhead of calling getOpenChannel())
-
     @Override
-    public void send(@NonNull Packet packet, boolean blocking, Void callback) {
-        this.channel.send(packet, blocking, callback);
-    }
-
-    @Override
-    public Channel getDefaultChannel() {
-        return this.channel;
-    }
-
-    @Override
-    public Channel getControlChannel() {
-        return this.channel;
+    public void disconnectAtNetworkLevel() {
+        this.channels.forEach((id, channel) -> channel.closed = true);
+        this.channels.clear();
+        NettyConnection.super.disconnectAtNetworkLevel();
     }
 }

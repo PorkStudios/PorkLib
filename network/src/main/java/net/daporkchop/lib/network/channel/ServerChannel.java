@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -15,16 +15,15 @@
 
 package net.daporkchop.lib.network.channel;
 
+import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.server.Server;
-import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.protocol.api.EndpointManager;
 
 import java.util.Collection;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -40,10 +39,8 @@ public interface ServerChannel {
      * @param <C>           the connection type
      * @return all currently open connections to this server
      */
-    default <C extends UserConnection> Collection<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass) {
-        return this.getUnderlyingNetworkConnections().stream()
-                .map(connection -> connection.getUserConnection(protocolClass))
-                .collect(Collectors.toList());
+    default <C extends UserConnection> Stream<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass) {
+        return this.getUnderlyingNetworkConnections().stream().map(connection -> connection.getUserConnection(protocolClass));
     }
 
     /**
@@ -56,11 +53,25 @@ public interface ServerChannel {
     /**
      * Broadcasts a packet to all connections
      *
-     * @param packet   the packet to send
+     * @param message  the packet to send
      * @param blocking whether or not the send operation will be blocking. this will block until the packet has been sent to ALL clients.
      */
-    default void broadcast(@NonNull Packet packet, boolean blocking) {
-        this.getUnderlyingNetworkConnectionsAsStream().forEach(connection -> connection.send(packet, blocking));
+    default void broadcast(@NonNull Object message, boolean blocking) {
+        this.getUnderlyingNetworkConnectionsAsStream().forEach(connection -> connection.send(message, blocking));
+    }
+
+    /**
+     * Broadcasts a raw packet to all connections on the default channel
+     *
+     * @param data          the data to send
+     * @param id            the id of the packet
+     * @param protocolClass the class of the protocol that the packet should be sent on
+     * @param <C>           the protocol's connection type
+     */
+    default <C extends UserConnection> void broadcast(@NonNull ByteBuf data, short id, @NonNull Class<? extends UserProtocol<C>> protocolClass) {
+        this.getUnderlyingNetworkConnectionsAsStream()
+                .map(connection -> connection.getUserConnection(protocolClass).getDefaultChannel())
+                .forEach(channel -> channel.send(data, id));
     }
 
     /**
@@ -84,23 +95,23 @@ public interface ServerChannel {
     // Convenience methods
     //
     //
-    default void broadcast(@NonNull Packet... packets) {
-        for (Packet packet : packets) {
+    default void broadcast(@NonNull Object... packets) {
+        for (Object packet : packets) {
             this.broadcast(packet);
         }
     }
 
-    default void broadcastBlocking(@NonNull Packet... packets) {
-        for (Packet packet : packets) {
+    default void broadcastBlocking(@NonNull Object... packets) {
+        for (Object packet : packets) {
             this.broadcastBlocking(packet);
         }
     }
 
-    default void broadcast(@NonNull Packet packet) {
+    default void broadcast(@NonNull Object packet) {
         this.broadcast(packet, false);
     }
 
-    default void broadcastBlocking(@NonNull Packet packet) {
+    default void broadcastBlocking(@NonNull Object packet) {
         this.broadcast(packet, true);
     }
 

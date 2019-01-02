@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -25,8 +25,7 @@ import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.pork.PorkProtocol;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 
-import java.util.Collection;
-import java.util.Collections;
+import java.util.stream.Stream;
 
 /**
  * Represents a network client
@@ -50,8 +49,8 @@ public interface Client extends Endpoint, Connection {
     }
 
     @Override
-    default <C extends UserConnection> Collection<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass) {
-        return Collections.singletonList(this.getConnection(protocolClass));
+    default <C extends UserConnection> Stream<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass) {
+        return Stream.<C>builder().add(this.getConnection(protocolClass)).build();
     }
 
     <C extends UserConnection> C getConnection(@NonNull Class<? extends UserProtocol<C>> protocolClass);
@@ -85,5 +84,15 @@ public interface Client extends Endpoint, Connection {
     @Override
     default Channel getControlChannel() {
         return this.getConnection(PorkProtocol.class).getControlChannel();
+    }
+
+    @Override
+    default boolean isClient() {
+        return true;
+    }
+
+    @Override
+    default boolean isServer() {
+        return false;
     }
 }

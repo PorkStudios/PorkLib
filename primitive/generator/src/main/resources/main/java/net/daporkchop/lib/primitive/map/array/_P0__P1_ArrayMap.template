@@ -14,7 +14,7 @@ public class _P0__P1_ArrayMap_gH_ implements _P0__P1_Map_gH_ {
     private final SparseBitSet index = new SparseBitSet();
     private int bits;
 
-    public _P0__P1_ArrayMap(@NonNull _P0__P1_Map_gH_ backing)    {
+    public _P0__P1_ArrayMap()    {
         this.clear();
     }
 
@@ -76,6 +76,7 @@ public class _P0__P1_ArrayMap_gH_ implements _P0__P1_Map_gH_ {
                 this.bits <<= 1;
             }
             this.index.set(i);
+            this.keys[i] = key;
             this.values[i] = value;
             return _P1E_;
         }
@@ -94,7 +95,7 @@ public class _P0__P1_ArrayMap_gH_ implements _P0__P1_Map_gH_ {
             this.index.clear(i);
             _p1_ oldValue = _castP1_this.values[i];
             //shrink array
-            while ((this.index.length() >>> 1) < ((1 << this.bits) - 1))    {
+            /*while ((this.index.length() >>> 1) < ((1 << this.bits) - 1))    {
                 _nameP0_[] newKeys = new _nameP0_[this.keys.length >>> 1];
                 System.arraycopy(this.keys, 0, newKeys, 0, this.keys.length >>> 1);
                 _nameP1_[] newValues = new _nameP1_[this.values.length >>> 1];
@@ -102,7 +103,7 @@ public class _P0__P1_ArrayMap_gH_ implements _P0__P1_Map_gH_ {
                 this.keys = newKeys;
                 this.values = newValues;
                 this.bits >>>= 1;
-            }
+            }*/
             return oldValue;
         } else {
             return _P1E_;
@@ -114,8 +115,9 @@ public class _P0__P1_ArrayMap_gH_ implements _P0__P1_Map_gH_ {
     @Override
     public void clear() {
         this.index.clear();
-        this.values = new _nameP1_[32];
         this.bits = 5;
+        this.keys = new _nameP0_[1 << this.bits];
+        this.values = new _nameP1_[1 << this.bits];
     }
 
     // Views
@@ -149,7 +151,7 @@ public class _P0__P1_ArrayMap_gH_ implements _P0__P1_Map_gH_ {
     @Override
     @SuppressWarnings("unchecked")
     public void forEach(@NonNull _P0__P1_BiConsumer_gSuper_ action) {
-        for (int i = this.index.nextSetBit(0); i < this.index.length(); i = this.index.nextSetBit(i + 1))   {
+        for (int i = this.index.nextSetBit(0); i != -1 && i < this.index.length(); i = this.index.nextSetBit(i + 1))   {
             action.accept(this.keys[i], _castP1_this.values[i]);
         }
     }

@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -16,24 +16,50 @@
 package net.daporkchop.lib.crypto;
 
 import lombok.NonNull;
+import net.daporkchop.lib.common.test.TestRandomData;
 import net.daporkchop.lib.crypto.cipher.Cipher;
 import net.daporkchop.lib.crypto.cipher.CipherInitSide;
 import net.daporkchop.lib.crypto.cipher.block.CipherMode;
 import net.daporkchop.lib.crypto.cipher.block.CipherPadding;
 import net.daporkchop.lib.crypto.cipher.block.CipherType;
+import net.daporkchop.lib.crypto.cipher.seekable.SeekableBlockCipher;
+import net.daporkchop.lib.crypto.cipher.seekable.SeekableCipher;
+import net.daporkchop.lib.crypto.cipher.seekable.SeekableStreamCipher;
 import net.daporkchop.lib.crypto.cipher.stream.StreamCipherType;
 import net.daporkchop.lib.crypto.key.CipherKey;
 import net.daporkchop.lib.crypto.keygen.KeyGen;
+import net.daporkchop.lib.crypto.keygen.KeyRandom;
+import net.daporkchop.lib.logging.Logging;
 import org.junit.Test;
+import sun.misc.IOUtils;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
-public class EncryptionTest {
+public class EncryptionTest implements Logging {
+    private static boolean isInvalid(@NonNull byte[] original, @NonNull byte[] decrypted) {
+        if (decrypted.length < original.length) {
+            return true;
+        } else {
+            for (int i = original.length - 1; i >= 0; i--) {
+                if (original[i] != decrypted[i]) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
     @Test
     public void testBlockCipher() {
-        byte[][] randomData = this.generateRandomBytes();
+        byte[][] randomData = TestRandomData.randomBytes;
         for (CipherType type : CipherType.values()) {
             if (type == CipherType.NONE) {
                 continue;
@@ -64,7 +90,7 @@ public class EncryptionTest {
 
     @Test
     public void testStreamCipher() {
-        byte[][] randomData = this.generateRandomBytes();
+        byte[][] randomData = TestRandomData.randomBytes;
         for (StreamCipherType type : StreamCipherType.values()) {
             if (type == StreamCipherType.BLOCK_CIPHER) {
                 continue;
@@ -88,7 +114,7 @@ public class EncryptionTest {
 
     @Test
     public void testPseudoStreamCipher() {
-        byte[][] randomData = this.generateRandomBytes();
+        byte[][] randomData = TestRandomData.randomBytes;
         for (CipherType type : CipherType.values()) {
             if (type == CipherType.NONE) {
                 continue;
@@ -187,7 +213,7 @@ public class EncryptionTest {
     }
 
     private void runInputOutputStreamTests(@NonNull Cipher cipher1, @NonNull Cipher cipher2, @NonNull Cipher cipher3, @NonNull Cipher cipher4, @NonNull ByteArrayOutputStream baos, @NonNull String cipherName) throws IOException {
-        for (byte[] b : this.generateRandomBytes()) {
+        for (byte[] b : TestRandomData.randomBytes) {
             baos.reset();
             {
                 byte[] encrypted1;
@@ -233,13 +259,67 @@ public class EncryptionTest {
         }
     }
 
-    public static byte[][] generateRandomBytes()  {
-        byte[][] randomData = new byte[32][];
-        for (int i = randomData.length - 1; i >= 0; i--)  {
-            byte[] b = new byte[ThreadLocalRandom.current().nextInt(1024, 8192)];
-            ThreadLocalRandom.current().nextBytes(b);
-            randomData[i] = b;
-        }
-        return randomData;
+    @Test
+    public void testSeekableStream() throws IOException {
+        logger.info("Testing seekable stream ciphers...");
+        Arrays.stream(StreamCipherType.values())
+                .filter(t -> t != StreamCipherType.BLOCK_CIPHER)
+                .parallel().forEach(type -> {
+            logger.info("  Testing ${0}...", type);
+            this.testSeekable(
+                    seed -> KeyGen.gen(type, seed),
+                    (key, side) -> new SeekableStreamCipher(type::create, key, side)
+            );
+        });
+    }
+
+    @Test
+    public void testSeekableBlock() throws IOException {
+        logger.info("Testing seekable block ciphers...");
+        Arrays.stream(CipherType.values())
+                .filter(t -> t != CipherType.NONE)
+                .parallel().forEach(type -> Arrays.stream(CipherPadding.values()).parallel().forEach(padding -> {
+            logger.info("  Testing ${0} with ${1} padding...", type, padding);
+            this.testSeekable(
+                    seed -> KeyGen.gen(type, seed),
+                    (key, side) -> new SeekableBlockCipher(type, padding, key, side)
+            );
+        }));
+    }
+
+    private void testSeekable(@NonNull Function<byte[], CipherKey> keyGenerator, @NonNull BiFunction<CipherKey, CipherInitSide, SeekableCipher> cipherSupplier) {
+        byte[] seed = KeyRandom.getBytes(1024);
+        CipherKey key1 = keyGenerator.apply(seed);
+        CipherKey key2 = keyGenerator.apply(seed);
+        SeekableCipher cipher1 = cipherSupplier.apply(key1, CipherInitSide.SERVER);
+        SeekableCipher cipher2 = cipherSupplier.apply(key2, CipherInitSide.CLIENT);
+        Arrays.stream(TestRandomData.randomBytes).parallel().forEachOrdered(b -> {
+            long offset = ThreadLocalRandom.current().nextLong(0L, Long.MAX_VALUE >>> 1L);
+            byte[] encrypted = cipher1.encrypt(b, offset);
+            byte[] decrypted = cipher2.decrypt(encrypted, offset);
+            if (isInvalid(b, decrypted)) {
+                throw new IllegalStateException("Decrypted data isn't the same!");
+            }
+        });
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Arrays.stream(TestRandomData.randomBytes).parallel().forEachOrdered(b -> {
+            baos.reset();
+            try {
+                long offset = ThreadLocalRandom.current().nextLong(0L, Long.MAX_VALUE >>> 1L);
+                try (OutputStream out = cipher1.encrypt(baos, offset, b.length)) {
+                    out.write(b);
+                }
+                byte[] encrypted = baos.toByteArray();
+                byte[] decrypted;
+                try (InputStream in = cipher2.decrypt(new ByteArrayInputStream(encrypted), offset, b.length)) {
+                    decrypted = IOUtils.readFully(in, -1, false);
+                }
+                if (isInvalid(b, decrypted)) {
+                    throw new IllegalStateException("Decrypted data isn't the same!");
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 }

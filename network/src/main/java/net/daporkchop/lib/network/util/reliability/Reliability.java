@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -22,9 +22,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
-import static net.daporkchop.lib.network.util.reliability.Flags.FLAG_ORDERED;
-import static net.daporkchop.lib.network.util.reliability.Flags.FLAG_RELIABLE;
-import static net.daporkchop.lib.network.util.reliability.Flags.FLAG_SEQUENCED;
+import static net.daporkchop.lib.network.util.reliability.Flags.*;
 
 /**
  * Allows specifying the reliability that a packet will arrive at its destination.

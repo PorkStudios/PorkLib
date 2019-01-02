@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -22,6 +22,7 @@ import net.daporkchop.lib.binary.stream.data.NonClosingStreamIn;
 import net.daporkchop.lib.binary.stream.data.StreamIn;
 
 import java.io.BufferedInputStream;
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -180,14 +181,15 @@ public abstract class DataIn extends InputStream {
         int v = 0;
         int i;
         int o = 0;
-        while (true) {
+        do {
             i = this.read();
-            v |= (i & 0x7F) << o;
-            o += 7;
-            if ((i & 0x80) == 0 || o > 32) {
-                break;
+            if (i == -1) {
+                throw new IllegalStateException("reached end of stream!");
+            } else {
+                v |= (i & 0x7F) << o;
+                o += 7;
             }
-        }
+        } while ((i & 0x80) != 0 && o > 32);
         return optimizePositive ? v : ((v >>> 1) ^ -(v & 1));
     }
 
@@ -199,26 +201,23 @@ public abstract class DataIn extends InputStream {
         long v = 0L;
         int i;
         int o = 0;
-        while (true) {
+        do {
             i = this.read();
-            v |= (i & 0x7FL) << o;
-            o += 7;
-            if ((i & 0x80) == 0 || o > 64) {
-                break;
+            if (i == -1) {
+                throw new IllegalStateException("reached end of stream!");
+            } else {
+                v |= (i & 0x7FL) << o;
+                o += 7;
             }
-        }
+        } while ((i & 0x80) != 0 && o > 64);
         return optimizePositive ? v : ((v >>> 1L) ^ -(v & 1L));
     }
 
-    public int readFully(byte[] b, int off, int len) throws IOException {
-        if (len != 0) {
-            for (int i = 0; i < len; i++) {
-                b[i + off] = (byte) this.read();
-            }
-            return len;
-        } else {
-            return 0;
+    public int readFully(@NonNull byte[] b, int off, int len) throws IOException {
+        if (len >= 0 && StreamUtil.read(this, b, off, len) != len) {
+            throw new EOFException();
         }
+        return len;
     }
 
     @Override

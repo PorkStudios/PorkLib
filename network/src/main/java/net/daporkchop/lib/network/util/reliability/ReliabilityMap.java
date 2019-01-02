@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -15,7 +15,6 @@
 
 package net.daporkchop.lib.network.util.reliability;
 
-import com.nukkitx.network.raknet.datagram.RakNetReliability;
 import lombok.NonNull;
 
 import java.lang.reflect.Array;
@@ -28,12 +27,12 @@ import java.util.Map;
  * @author DaPorkchop_
  */
 public class ReliabilityMap<T> {
-    public static final ReliabilityMap<RakNetReliability> RAKNET = new ReliabilityMap<>(RakNetReliability.class)
+    /*public static final ReliabilityMap<RakNetReliability> RAKNET = new ReliabilityMap<>(RakNetReliability.class)
             .put(Reliability.UNRELIABLE, RakNetReliability.UNRELIABLE)
             .put(Reliability.UNRELIABLE_SEQUENCED, RakNetReliability.UNRELIABLE_SEQUENCED)
             .put(Reliability.RELIABLE, RakNetReliability.RELIABLE)
             .put(Reliability.RELIABLE_SEQUENCED, RakNetReliability.RELIABLE_SEQUENCED)
-            .put(Reliability.RELIABLE_ORDERED, RakNetReliability.RELIABLE_ORDERED);
+            .put(Reliability.RELIABLE_ORDERED, RakNetReliability.RELIABLE_ORDERED);*/
 
     private final T[] values;
     private final Map<T, Reliability> reverseLookup;

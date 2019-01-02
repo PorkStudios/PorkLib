@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -19,7 +19,6 @@ import lombok.NonNull;
 import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.endpoint.Endpoint;
-import net.daporkchop.lib.network.packet.Packet;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 
 import java.net.InetSocketAddress;
@@ -64,12 +63,12 @@ public interface Connection {
     /**
      * Send a packet to the remote endpoint
      *
-     * @param packet   the packet to send
+     * @param message  the packet to send
      * @param blocking whether or not to block the invoking thread until the underlying network channel has been flushed
      * @param callback a function to run after the underlying network channel has been flushed. if {@code null}, this
      *                 parameter is ignored.
      */
-    void send(@NonNull Packet packet, boolean blocking, Void callback);
+    void send(@NonNull Object message, boolean blocking, Void callback);
 
     /**
      * Get the network address of the remote endpoint
@@ -101,8 +100,6 @@ public interface Connection {
      * <p>
      * For most implementations, this will return the same channel that PorkLib network uses for sending control messages, and
      * should therefore be avoided in applications where performance is critical.
-     * <p>
-     * For some implementations (e.g. TCP) this will return the only accessible channel (as TCP only has one channel)
      *
      * @return this connection's default channel
      */
@@ -113,9 +110,8 @@ public interface Connection {
     /**
      * Gets this connection's control channel.
      * <p>
-     * This is the channel that PorkLib network sends internal packets on, and should be avoided as much as possible.
-     * <p>
-     * For some implementations (e.g. TCP) this will return the only accessible channel (as TCP only has one channel)
+     * !!! WARNING !!!
+     * This is the channel that PorkLib network sends internal packets on! Do not use unless you know what you're doing!
      *
      * @return this connection's control channel
      */
@@ -128,30 +124,30 @@ public interface Connection {
     // Convenience methods
     //
     //
-    default void send(@NonNull Packet... packets) {
-        for (Packet packet : packets) {
-            this.send(packet);
+    default void send(@NonNull Object... messages) {
+        for (Object message : messages) {
+            this.send(message);
         }
     }
 
-    default void send(@NonNull Packet packet) {
-        this.send(packet, false, null);
+    default void send(@NonNull Object message) {
+        this.send(message, false, null);
     }
 
-    default void send(@NonNull Packet packet, Void callback) {
-        this.send(packet, false, callback);
+    default void send(@NonNull Object message, Void callback) {
+        this.send(message, false, callback);
     }
 
-    default void sendBlocking(@NonNull Packet packet) {
-        this.send(packet, true, null);
+    default void sendBlocking(@NonNull Object message) {
+        this.send(message, true, null);
     }
 
-    default void sendBlocking(@NonNull Packet packet, Void callback) {
-        this.send(packet, true, callback);
+    default void sendBlocking(@NonNull Object message, Void callback) {
+        this.send(message, true, callback);
     }
 
-    default void send(@NonNull Packet packet, boolean blocking) {
-        this.send(packet, blocking, null);
+    default void send(@NonNull Object message, boolean blocking) {
+        this.send(message, blocking, null);
     }
 
     default void closeConnection() {

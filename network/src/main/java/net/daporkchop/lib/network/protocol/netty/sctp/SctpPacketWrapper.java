@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -15,42 +15,45 @@
 
 package net.daporkchop.lib.network.protocol.netty.sctp;
 
+import io.netty.buffer.ByteBuf;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.packet.Packet;
-
-import java.io.IOException;
 
 /**
  * Used so that reliability parameters and so forth can be processed in encoders/decoders
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
+@AllArgsConstructor
 @Getter
-public class SctpPacketWrapper implements Packet, Logging {
+public class SctpPacketWrapper implements Logging {
     @NonNull
-    private final Packet packet;
+    private final ByteBuf data;
 
     private final int channel;
+    private final int id;
     private final boolean ordered;
 
     @Override
-    public void read(DataIn in) throws IOException {
-        throw new UnsupportedOperationException("read");
+    public String toString() {
+        return this.format("packet=${0}, channel=${1}, ordered=${2}, id=${3}", this.data, this.channel, this.ordered, this.id);
     }
+}
 
-    @Override
-    public void write(DataOut out) throws IOException {
-        throw new UnsupportedOperationException("write");
-    }
+@AllArgsConstructor
+@Getter
+class UnencodedSctpPacket implements Logging {
+    @NonNull
+    private final Object message;
+
+    private final int channel;
+    private final int id;
+    private final boolean ordered;
 
     @Override
     public String toString() {
-        return this.format("packet=${0}, channel=${1}, ordered=${2}", this.packet.getClass(), this.channel, this.ordered);
+        return this.format("message=${0}, channel=${1}, ordered=${2}, id=${3}", this.message.getClass(), this.channel, this.ordered, this.id);
     }
 }

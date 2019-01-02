@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -18,10 +18,12 @@ package net.daporkchop.lib.network.endpoint;
 import lombok.NonNull;
 import net.daporkchop.lib.network.EndpointType;
 import net.daporkchop.lib.network.conn.UserConnection;
+import net.daporkchop.lib.network.endpoint.client.Client;
+import net.daporkchop.lib.network.endpoint.server.Server;
 import net.daporkchop.lib.network.packet.PacketRegistry;
 import net.daporkchop.lib.network.packet.UserProtocol;
 
-import java.util.Collection;
+import java.util.stream.Stream;
 
 /**
  * @author DaPorkchop_
@@ -29,7 +31,7 @@ import java.util.Collection;
 public interface Endpoint {
     EndpointType getType();
 
-    <C extends UserConnection> Collection<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass);
+    <C extends UserConnection> Stream<C> getConnections(@NonNull Class<? extends UserProtocol<C>> protocolClass);
 
     PacketRegistry getPacketRegistry();
 
@@ -45,5 +47,13 @@ public interface Endpoint {
 
     default boolean isClosed() {
         return !this.isRunning();
+    }
+
+    default boolean isClient() {
+        return this instanceof Client;
+    }
+
+    default boolean isServer() {
+        return this instanceof Server;
     }
 }

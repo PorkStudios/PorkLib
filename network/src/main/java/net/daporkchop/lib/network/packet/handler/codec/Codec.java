@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -13,42 +13,32 @@
  *
  */
 
-package net.daporkchop.lib.network.packet;
+package net.daporkchop.lib.network.packet.handler.codec;
 
+import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.network.channel.Channel;
-import net.daporkchop.lib.network.conn.UserConnection;
 
 /**
- * Handles received packets
+ * Encodes and decodes an object
  *
  * @author DaPorkchop_
  */
-public interface PacketHandler<P extends Packet, C extends UserConnection> {
+public interface Codec<V> {
     /**
-     * Handles a packet
+     * Encodes a value
      *
-     * @param packet     the packet that was received
-     * @param channel    the channel the packet was received on
-     * @param connection the connection the packet was received on
+     * @param value the value to encode
+     * @param buf   the buffer to write the data to
+     * @throws Exception if an exception occurs
      */
-    void handle(@NonNull P packet, @NonNull Channel channel, @NonNull C connection);
+    void encode(@NonNull V value, @NonNull ByteBuf buf) throws Exception;
 
     /**
-     * A shorthand wrapper around {@link PacketHandler} for protocol's that don't make use of channels
+     * Decodes a value
+     *
+     * @param buf the buffer to read the data from
+     * @return the decoded value
+     * @throws Exception if an exception occurs
      */
-    interface Simple<P extends Packet, C extends UserConnection> extends PacketHandler<P, C> {
-        @Override
-        default void handle(@NonNull P packet, @NonNull Channel channel, @NonNull C connection) {
-            this.handle(packet, connection);
-        }
-
-        /**
-         * Handles a packet
-         *
-         * @param packet     the packet that was received
-         * @param connection the connection the packet was received on
-         */
-        void handle(@NonNull P packet, @NonNull C connection);
-    }
+    V decode(@NonNull ByteBuf buf) throws Exception;
 }

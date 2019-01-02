@@ -22,13 +22,16 @@ import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.netty.NettyByteBufUtil;
 import net.daporkchop.lib.binary.serialization.impl.BasicSerializer;
 import net.daporkchop.lib.binary.serialization.impl.ByteArraySerializer;
+import net.daporkchop.lib.binary.serialization.impl.ConstantLengthSerializer;
 import net.daporkchop.lib.binary.serialization.impl.StringSerializer;
 import net.daporkchop.lib.binary.serialization.impl.UUIDSerializer;
 import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -39,7 +42,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
- * Maps {@link Serializer}s to ids and then does cool things with them
+ * Maps {@link Serializer}s to ids
  *
  * @author DaPorkchop_
  */
@@ -53,7 +56,14 @@ public class Serialization {
     public static final Serialization DEFAULT_REGISTRY = new Serialization(true)
             .register(String.class, StringSerializer.INSTANCE)
             .register(byte[].class, ByteArraySerializer.INSTANCE)
-            .register(UUID.class, UUIDSerializer.INSTANCE);
+            .register(UUID.class, UUIDSerializer.INSTANCE)
+            .register(Boolean.class, ConstantLengthSerializer.BOOLEAN)
+            .register(Byte.class, ConstantLengthSerializer.BYTE)
+            .register(Short.class, ConstantLengthSerializer.SHORT)
+            .register(Integer.class, ConstantLengthSerializer.INT)
+            .register(Long.class, ConstantLengthSerializer.LONG)
+            .register(Float.class, ConstantLengthSerializer.FLOAT)
+            .register(Double.class, ConstantLengthSerializer.DOUBLE);
 
     private final Map<Class<?>, Integer> classToId = new IdentityHashMap<>();
     private final Map<Class<?>, Serializer<?>> classToSerializer = new IdentityHashMap<>();
@@ -64,6 +74,13 @@ public class Serialization {
     @Getter
     private final boolean useVarInt;
 
+    /**
+     * Registers a {@link Serializable} to the registry
+     *
+     * @param clazz the serializable class to register
+     * @param <T>   the type
+     * @return this {@link Serialization} instance
+     */
     public <T extends Serializable> Serialization register(@NonNull Class<T> clazz) {
         this.mapAccessLock.writeLock().lock();
         try {
@@ -73,6 +90,14 @@ public class Serialization {
         }
     }
 
+    /**
+     * Registers a {@link Serializable} to the registry with a specific id
+     *
+     * @param clazz the serializable class to register
+     * @param id    the id to register it with
+     * @param <T>   the type
+     * @return this {@link Serialization} instance
+     */
     public <T extends Serializable> Serialization register(@NonNull Class<T> clazz, int id) {
         this.mapAccessLock.writeLock().lock();
         try {
@@ -82,6 +107,14 @@ public class Serialization {
         }
     }
 
+    /**
+     * Registers a type to the registry
+     *
+     * @param clazz      the class to register
+     * @param serializer the serializer to use for reading and writing values
+     * @param <T>        the type
+     * @return this {@link Serialization} instance
+     */
     public <T> Serialization register(@NonNull Class<T> clazz, @NonNull Serializer<T> serializer) {
         this.mapAccessLock.writeLock().lock();
         try {
@@ -91,6 +124,15 @@ public class Serialization {
         }
     }
 
+    /**
+     * Registers a type to the registry with a specific id
+     *
+     * @param clazz      the class to register
+     * @param serializer the serializer to use for reading and writing values
+     * @param id         the id to register it with
+     * @param <T>        the type
+     * @return this {@link Serialization} instance
+     */
     public <T> Serialization register(@NonNull Class<T> clazz, @NonNull Serializer<T> serializer, int id) {
         this.mapAccessLock.writeLock().lock();
         try {
@@ -109,14 +151,37 @@ public class Serialization {
         }
     }
 
+    /**
+     * Reads an object
+     *
+     * @param in  an {@link InputStream} to read data from
+     * @param <T> the type of the object to be read
+     * @return the object that was read
+     * @throws IOException if an IO exception occurs you dummy
+     */
     public <T> T read(@NonNull InputStream in) throws IOException {
         return this.read(DataIn.wrap(in));
     }
 
+    /**
+     * Reads an object
+     *
+     * @param in  a {@link File} to read data from
+     * @param <T> the type of the object to be read
+     * @return the object that was read
+     * @throws IOException if an IO exception occurs you dummy
+     */
     public <T> T read(@NonNull File in) throws IOException {
         return this.read(DataIn.wrap(in));
     }
 
+    /**
+     * Reads an object
+     *
+     * @param in  a {@link ByteBuffer} to read data from
+     * @param <T> the type of the object to be read
+     * @return the object that was read
+     */
     public <T> T read(@NonNull ByteBuffer in) {
         try {
             return this.read(DataIn.wrap(in));
@@ -125,6 +190,13 @@ public class Serialization {
         }
     }
 
+    /**
+     * Reads an object
+     *
+     * @param in  a {@link ByteBuf} to read data from
+     * @param <T> the type of the object to be read
+     * @return the object that was read
+     */
     public <T> T read(@NonNull ByteBuf in) {
         try {
             return this.read(NettyByteBufUtil.wrapIn(in));
@@ -133,10 +205,25 @@ public class Serialization {
         }
     }
 
+    /**
+     * Reads an object
+     *
+     * @param in  a {@link DataIn} to read data from
+     * @param <T> the type of the object to be read
+     * @return the object that was read
+     */
     public <T> T read(@NonNull DataIn in) throws IOException {
         return this.read(in, this.useVarInt ? in.readVarInt(true) : in.readInt());
     }
 
+    /**
+     * Reads an object with a specific id
+     *
+     * @param in  a {@link DataIn} to read data from
+     * @param id  the id of the object type to be read
+     * @param <T> the type of the object to be read
+     * @return the object that was read
+     */
     @SuppressWarnings("unchecked")
     public <T> T read(@NonNull DataIn in, int id) throws IOException {
         Serializer<T> serializer;
@@ -151,6 +238,80 @@ public class Serialization {
             throw new IllegalArgumentException(String.format("Unregistered ID: %d", id));
         } else {
             return serializer.read(in);
+        }
+    }
+
+    /**
+     * Writes an object
+     *
+     * @param value the value to write
+     * @param out   an {@link OutputStream} to write data to
+     * @throws IOException if an IO exception occurs you dummy
+     */
+    public void write(@NonNull Object value, @NonNull OutputStream out) throws IOException {
+        this.write(value, DataOut.wrap(out));
+    }
+
+    /**
+     * Writes an object
+     *
+     * @param value the value to write
+     * @param out   a {@link File} to write data to
+     * @throws IOException if an IO exception occurs you dummy
+     */
+    public void write(@NonNull Object value, @NonNull File out) throws IOException {
+        this.write(value, DataOut.wrap(out));
+    }
+
+    /**
+     * Writes an object
+     *
+     * @param value the value to write
+     * @param out   a {@link ByteBuffer} to write data to
+     */
+    public void write(@NonNull Object value, @NonNull ByteBuffer out) {
+        try {
+            this.write(value, DataOut.wrap(out));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Writes an object
+     *
+     * @param value the value to write
+     * @param out   a {@link ByteBuf} to write data to
+     */
+    public void write(@NonNull Object value, @NonNull ByteBuf out) {
+        try {
+            this.write(value, NettyByteBufUtil.wrapOut(out));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Writes an object
+     *
+     * @param value the value to write
+     * @param out   a {@link DataOut} to write data to
+     * @throws IOException if an IO exception occurs you dummy
+     */
+    @SuppressWarnings("unchecked")
+    public void write(@NonNull Object value, @NonNull DataOut out) throws IOException {
+        Serializer serializer;
+        this.mapAccessLock.readLock().lock();
+        try {
+            serializer = this.classToSerializer.get(value.getClass());
+        } finally {
+            this.mapAccessLock.readLock().unlock();
+        }
+
+        if (serializer == null) {
+            throw new IllegalArgumentException(String.format("Unregistered class: %s", value.getClass().getCanonicalName()));
+        } else {
+            serializer.write(value, out);
         }
     }
 }

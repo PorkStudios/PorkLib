@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -13,8 +13,53 @@
  *
  */
 
+package net.daporkchop.lib.concurrent.cache;
+
+import lombok.NonNull;
+
+import java.util.function.Supplier;
+
 /**
+ * A thread cache is essentially a {@link ThreadLocal}, able to store objects per-thread
+ *
  * @author DaPorkchop_
  */
-public class ToBytesTest {
+public interface ThreadCache<T> {
+    /**
+     * Creates a new {@link ThreadCache} using a given supplier
+     *
+     * @param theSupplier the supplier to use
+     * @param <T>         the type to be cached
+     * @return a {@link ThreadCache} for the given type using the given supplier
+     */
+    static <T> ThreadCache<T> of(@NonNull Supplier<T> theSupplier) {
+        return new ThreadCache<T>() {
+            private final Supplier<T> supplier = theSupplier;
+            private final ThreadLocal<T> threadLocal = ThreadLocal.withInitial(this.supplier);
+
+            @Override
+            public T get() {
+                return this.threadLocal.get();
+            }
+
+            @Override
+            public T getUncached() {
+                return this.supplier.get();
+            }
+        };
+    }
+
+    /**
+     * Get a thread-local instance
+     *
+     * @return a thread-local instance
+     */
+    T get();
+
+    /**
+     * Create a new instance, regardless of thread-local state
+     *
+     * @return a new instance
+     */
+    T getUncached();
 }

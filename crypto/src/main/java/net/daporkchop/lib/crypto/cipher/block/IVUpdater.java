@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -13,45 +13,37 @@
  *
  */
 
-package protocol;
+package net.daporkchop.lib.crypto.cipher.block;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.channel.Channel;
-import net.daporkchop.lib.network.packet.Codec;
-import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.concurrent.cache.SoftThreadCache;
+import net.daporkchop.lib.concurrent.cache.ThreadCache;
+import net.daporkchop.lib.hash.util.Digest;
 
-import java.io.IOException;
+import java.util.function.Consumer;
 
-@NoArgsConstructor
-@AllArgsConstructor
-public class TestPacket implements Packet {
-    @NonNull
-    public String message;
+/**
+ * A function that updates a block cipher's IV (initialization vector) before initialization
+ *
+ * @author DaPorkchop_
+ */
+public interface IVUpdater extends Consumer<byte[]> {
+    IVUpdater SHA_256 = ofHash(Digest.SHA_256);
+    IVUpdater SHA3_256 = ofHash(Digest.SHA3_256);
 
-    @Override
-    public void read(DataIn in) throws IOException {
-        this.message = in.readUTF();
+    static IVUpdater ofHash(@NonNull Digest digest) {
+        ThreadCache<byte[]> cache = SoftThreadCache.of(() -> new byte[digest.getHashSize()]);
+        return iv -> {
+            byte[] buf = cache.get();
+            for (int i = 0; i < iv.length; i += buf.length) {
+                digest.start(buf).append(iv).hash();
+                for (int j = 0; j < buf.length && j + i < iv.length; j++) {
+                    iv[i + j] = buf[j];
+                }
+            }
+        };
     }
 
     @Override
-    public void write(DataOut out) throws IOException {
-        out.writeUTF(this.message);
-    }
-
-    public static class TestCodec implements Codec<TestPacket, TestConnection>, Logging {
-        @Override
-        public void handle(@NonNull TestPacket packet, @NonNull Channel channel, @NonNull TestConnection connection) {
-            logger.info("[${0}] Received test packet on channel ${2}: ${1}", connection.getEndpoint().getName(), packet.message, channel.getId());
-        }
-
-        @Override
-        public TestPacket createInstance() {
-            return new TestPacket();
-        }
-    }
+    void accept(byte[] iv);
 }

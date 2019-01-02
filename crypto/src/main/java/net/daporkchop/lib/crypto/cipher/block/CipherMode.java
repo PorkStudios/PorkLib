@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -23,11 +23,17 @@ import org.bouncycastle.crypto.modes.*;
 import java.util.Arrays;
 import java.util.function.BiFunction;
 
+/**
+ * A block cipher can operate with one of many modes. The mode defines how individual blocks are
+ * related to each other
+ *
+ * @author DaPorkchop_
+ */
 public enum CipherMode {
     CBC("CBC", (cipher, integer) -> new CBCBlockCipher(cipher)),
     OFB("OFB", OFBBlockCipher::new),
     CFB("CFB", CFBBlockCipher::new, true),
-    KCTR("KCTR", (cipher, integer) -> new KCTRBlockCipher(cipher), true),
+    CTR("CTR", (cipher, integer) -> new KCTRBlockCipher(cipher), true),
     PGP_CFB("PGP_CFB", (cipher, integer) -> new PGPCFBBlockCipher(cipher, false)),
     SIC("SIC", (cipher, integer) -> new SICBlockCipher(cipher), true)
     ;

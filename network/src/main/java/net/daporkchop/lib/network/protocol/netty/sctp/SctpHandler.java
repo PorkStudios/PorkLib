@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -21,18 +21,13 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.channel.Channel;
 import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
-import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
 import net.daporkchop.lib.network.endpoint.client.PorkClient;
-import net.daporkchop.lib.network.endpoint.server.PorkServer;
-import net.daporkchop.lib.network.packet.Packet;
-import net.daporkchop.lib.network.packet.PacketRegistry;
-import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.pork.PorkConnection;
 import net.daporkchop.lib.network.pork.PorkProtocol;
 import net.daporkchop.lib.network.pork.packet.HandshakeInitPacket;
+import net.daporkchop.lib.network.util.NetworkConstants;
 
 /**
  * Handles events on a connection managed by {@link SctpProtocolManager}
@@ -50,10 +45,8 @@ public class SctpHandler extends ChannelInboundHandlerAdapter implements Logging
         logger.trace("[${0}] New connection: ${1}", this.endpoint.getName(), ctx.channel().remoteAddress());
 
         UnderlyingNetworkConnection realConnection = (UnderlyingNetworkConnection) ctx.channel();
-        if (this.endpoint instanceof PorkServer) {
-            realConnection.getControlChannel().send(new HandshakeInitPacket());
-        } else if (false && this.endpoint instanceof PorkClient) {
-            ((PorkClient) this.endpoint).postConnectCallback(null);
+        if (this.endpoint.isServer()) {
+            realConnection.getControlChannel().send(new HandshakeInitPacket(), () -> logger.debug("sent handshake init!"));
         }
 
         super.channelRegistered(ctx);
@@ -66,9 +59,7 @@ public class SctpHandler extends ChannelInboundHandlerAdapter implements Logging
 
         UnderlyingNetworkConnection realConnection = (UnderlyingNetworkConnection) ctx.channel();
         String disconnectReason = realConnection.getUserConnection(PorkProtocol.class).getDisconnectReason();
-        this.endpoint.getPacketRegistry().getProtocols().stream()
-                .map(userProtocol -> realConnection.getUserConnection((Class<UserProtocol<UserConnection>>) userProtocol.getClass()))
-                .forEach(c -> c.onDisconnect(disconnectReason));
+        realConnection.getConnections().forEach((protocolClass, c) -> c.onDisconnect(disconnectReason));
     }
 
     @Override
@@ -79,30 +70,28 @@ public class SctpHandler extends ChannelInboundHandlerAdapter implements Logging
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        logger.debug("[${0}] Received message: ${1} (class: ${2})", this.endpoint.getName(), msg, msg.getClass());
+        //logger.debug("Received ${0}", msg.getClass());
+        try {
+            if (!(msg instanceof SctpPacketWrapper)) {
+                logger.error("Expected ${0}, but got ${1}!", SctpPacketWrapper.class, msg.getClass());
+                throw new IllegalArgumentException(this.format("Expected ${0}, but got ${1}!", SctpPacketWrapper.class, msg.getClass()));
+            }
 
-        if (!(msg instanceof SctpPacketWrapper)) {
-            logger.error("Expected ${0}, but got ${1}!", SctpPacketWrapper.class, msg.getClass());
-            throw new IllegalArgumentException(this.format("Expected ${0}, but got ${1}!", SctpPacketWrapper.class, msg.getClass()));
+            SctpPacketWrapper packet = (SctpPacketWrapper) msg;
+            //logger.debug("Received message!");
+            UnderlyingNetworkConnection connection = (UnderlyingNetworkConnection) ctx.channel();
+            if (NetworkConstants.DEBUG_REF_COUNT) {
+                int oldRefCount = packet.getData().refCnt();
+                this.endpoint.getPacketRegistry().getHandler(packet.getId()).handle(packet.getData(), connection, packet.getChannel());
+                logger.debug("Received packet with ${0} references! (pre-handle: ${1})", packet.getData().refCnt(), oldRefCount);
+            } else {
+                this.endpoint.getPacketRegistry().getHandler(packet.getId()).handle(packet.getData(), connection, packet.getChannel());
+            }
+            packet.getData().release();
+        } catch (Exception e) {
+            logger.error(e);
+            throw e;
         }
-
-        SctpPacketWrapper wrapper = (SctpPacketWrapper) msg;
-        Packet packet = wrapper.getPacket();
-        PacketRegistry registry = this.endpoint.getPacketRegistry();
-        Class<? extends UserProtocol<UserConnection>> protocolClass = registry.getOwningProtocol(packet.getClass());
-        if (protocolClass == null) {
-            throw new IllegalArgumentException(this.format("Unregistered inbound packet: ${0}", packet.getClass()));
-        }
-
-        UserConnection connection = ((UnderlyingNetworkConnection) ctx.channel()).getUserConnection(protocolClass);
-
-        Channel channel = connection.getOpenChannel(wrapper.getChannel());
-        if (channel == null) {
-            throw this.exception("Received packet ${0} on channel ${1}, but no open channel with the ID ${1} was found!", packet.getClass(), wrapper.getChannel());
-        }
-
-        logger.debug("Handling ${0}...", packet.getClass());
-        registry.getCodec(packet.getClass()).handle(packet, channel, connection);
     }
 
     @Override

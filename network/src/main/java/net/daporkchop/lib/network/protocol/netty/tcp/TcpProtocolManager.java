@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -17,35 +17,32 @@ package net.daporkchop.lib.network.protocol.netty.tcp;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.*;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
-import io.netty.handler.codec.LengthFieldPrepender;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.common.function.Void;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.endpoint.Endpoint;
+import net.daporkchop.lib.network.endpoint.builder.AbstractBuilder;
+import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
+import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.endpoint.client.Client;
 import net.daporkchop.lib.network.endpoint.server.Server;
-import net.daporkchop.lib.network.packet.Packet;
+import net.daporkchop.lib.network.packet.PacketRegistry;
 import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.pork.packet.DisconnectPacket;
 import net.daporkchop.lib.network.protocol.api.EndpointManager;
 import net.daporkchop.lib.network.protocol.api.ProtocolManager;
 import net.daporkchop.lib.network.protocol.netty.NettyServerChannel;
 
-import java.net.InetSocketAddress;
-import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
 /**
@@ -70,17 +67,7 @@ public class TcpProtocolManager implements ProtocolManager {
         return new TcpClientManager();
     }
 
-    @Override
-    public boolean areEncryptionSettingsRespected() {
-        return true;
-    }
-
-    @Override
-    public boolean areCompressionSettingsRespected() {
-        return true;
-    }
-
-    private abstract static class TcpEndpointManager<E extends Endpoint> implements EndpointManager<E> {
+    private abstract static class TcpEndpointManager<E extends Endpoint, B extends AbstractBuilder<E, B>> implements EndpointManager<E, B> {
         protected Channel channel;
         protected EventLoopGroup workerGroup;
 
@@ -91,7 +78,6 @@ public class TcpProtocolManager implements ProtocolManager {
             }
             this.channel.flush();
             this.channel.close().syncUninterruptibly();
-            this.workerGroup.shutdownGracefully();
         }
 
         @Override
@@ -100,33 +86,29 @@ public class TcpProtocolManager implements ProtocolManager {
         }
     }
 
-    private static class TcpServerManager extends TcpEndpointManager<Server> implements EndpointManager.ServerEndpointManager {
-        private EventLoopGroup bossGroup;
+    private static class TcpServerManager extends TcpEndpointManager<Server, ServerBuilder> implements EndpointManager.ServerEndpointManager {
         private ChannelGroup channels;
         @Getter
         private TcpServerChannel channel;
 
         @Override
         @SuppressWarnings("unchecked")
-        public void start(@NonNull InetSocketAddress address, @NonNull Executor executor, @NonNull Server server) {
-            this.bossGroup = new NioEventLoopGroup(0, executor);
-            this.workerGroup = new NioEventLoopGroup(0, executor);
+        public void start(@NonNull ServerBuilder builder, @NonNull Server server) {
+            this.workerGroup = builder.getEventGroup();
             this.channels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
             try {
                 ServerBootstrap bootstrap = new ServerBootstrap();
-                bootstrap.group(this.bossGroup, this.workerGroup);
+                bootstrap.group(this.workerGroup);
                 bootstrap.channelFactory(() -> new WrapperNioServerSocketChannel(server));
                 bootstrap.childHandler(new TcpChannelInitializer(server, this.channels::add, this.channels::remove));
                 bootstrap.option(ChannelOption.SO_BACKLOG, 256);
                 bootstrap.childOption(ChannelOption.SO_KEEPALIVE, true);
-                //bootstrap.childOption(ChannelOption.TCP_NODELAY, true);
+                bootstrap.childOption(ChannelOption.TCP_NODELAY, true);
 
-                super.channel = bootstrap.bind(address).syncUninterruptibly().channel();
+                super.channel = bootstrap.bind(builder.getAddress()).syncUninterruptibly().channel();
                 this.channel = new TcpServerChannel(this.channels, server);
             } catch (Throwable t) {
-                this.workerGroup.shutdownGracefully();
-                this.bossGroup.shutdownGracefully();
                 this.channels.close();
                 throw new RuntimeException(t);
             }
@@ -136,7 +118,6 @@ public class TcpProtocolManager implements ProtocolManager {
         public void close() {
             this.channels.close();
             super.close();
-            this.bossGroup.shutdownGracefully();
         }
 
         @Override
@@ -154,14 +135,30 @@ public class TcpProtocolManager implements ProtocolManager {
             public void close(String reason) {
                 TcpServerManager.this.close(reason);
             }
+
+            @Override
+            public void broadcast(@NonNull Object message, boolean blocking) {
+                int id = this.server.getPacketRegistry().getId(message.getClass());
+                super.broadcast(new UnencodedTcpPacket(message, UnderlyingNetworkConnection.ID_DEFAULT_CHANNEL, id), blocking);
+            }
+
+            @Override
+            public <C extends UserConnection> void broadcast(@NonNull ByteBuf data, short id, @NonNull Class<? extends UserProtocol<C>> protocolClass) {
+                TcpPacketWrapper wrapper = new TcpPacketWrapper(
+                        data,
+                        UnderlyingNetworkConnection.ID_DEFAULT_CHANNEL,
+                        PacketRegistry.combine(this.server.getPacketRegistry().getProtocolId(protocolClass), id)
+                );
+                this.channels.writeAndFlush(wrapper);
+            }
         }
     }
 
-    private static class TcpClientManager extends TcpEndpointManager<Client> implements EndpointManager.ClientEndpointManager {
+    private static class TcpClientManager extends TcpEndpointManager<Client, ClientBuilder> implements EndpointManager.ClientEndpointManager {
         @Override
         @SuppressWarnings("unchecked")
-        public void start(@NonNull InetSocketAddress address, @NonNull Executor executor, @NonNull Client client) {
-            this.workerGroup = new NioEventLoopGroup(0, executor);
+        public void start(@NonNull ClientBuilder builder, @NonNull Client client) {
+            this.workerGroup = builder.getEventGroup();
 
             try {
                 Bootstrap bootstrap = new Bootstrap();
@@ -169,11 +166,10 @@ public class TcpProtocolManager implements ProtocolManager {
                 bootstrap.channelFactory(() -> new WrapperNioSocketChannel(client));
                 bootstrap.handler(new TcpChannelInitializer(client));
                 bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
-                //bootstrap.option(ChannelOption.TCP_NODELAY, true);
+                bootstrap.option(ChannelOption.TCP_NODELAY, true);
 
-                this.channel = bootstrap.connect(address).syncUninterruptibly().channel();
+                this.channel = bootstrap.connect(builder.getAddress()).syncUninterruptibly().channel();
             } catch (Throwable t) {
-                this.workerGroup.shutdownGracefully();
                 throw new RuntimeException(t);
             }
         }
@@ -184,8 +180,8 @@ public class TcpProtocolManager implements ProtocolManager {
         }
 
         @Override
-        public void send(@NonNull Packet packet, boolean blocking, Void callback) {
-            ((WrapperNioSocketChannel) this.channel).send(packet, blocking, callback);
+        public void send(@NonNull Object message, boolean blocking, Void callback) {
+            ((WrapperNioSocketChannel) this.channel).send(message, blocking, callback);
         }
     }
 
@@ -209,10 +205,10 @@ public class TcpProtocolManager implements ProtocolManager {
 
         @Override
         protected void initChannel(Channel c) throws Exception {
-            c.pipeline().addLast(new LengthFieldPrepender(3));
-            c.pipeline().addLast(new LengthFieldBasedFrameDecoder(0xFFFFFF, 0, 3, 0, 3));
-            c.pipeline().addLast(new TcpPacketEncoder(this.endpoint));
-            c.pipeline().addLast(new TcpPacketDecoder(this.endpoint));
+            //c.pipeline().addLast(new LengthFieldPrepender(4));
+            c.pipeline().addLast(new LengthFieldBasedFrameDecoder(0x7FFFFFFF, 0, 4, 0, 4));
+            c.pipeline().addLast(new TcpPacketCodec(this.endpoint));
+            c.pipeline().addLast(new TcpPacketEncodingFilter(this.endpoint.getPacketRegistry()));
             c.pipeline().addLast(new TcpHandler(this.endpoint));
             this.registerHook.accept(c);
 

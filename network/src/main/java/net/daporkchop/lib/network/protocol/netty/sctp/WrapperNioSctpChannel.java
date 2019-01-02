@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -35,16 +35,15 @@ import net.daporkchop.lib.primitive.map.hashmap.IntegerObjectHashMap;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author DaPorkchop_
  */
 @Getter
 public class WrapperNioSctpChannel extends NioSctpChannel implements NettyConnection, Logging {
-    static final int CHANNEL_ID_CONTROL = 0;
-    static final int CHANNEL_ID_DEFAULT = 1;
     final SparseBitSet channelIds = new SparseBitSet();
-    final IntegerObjectMap<SctpChannel> channels = PorkMaps.synchronize(new IntegerObjectHashMap<>());
+    final IntegerObjectMap<SctpChannel> channels = PorkMaps.synchronize(new IntegerObjectHashMap<>(), new ReentrantLock());
     @NonNull
     private final Endpoint endpoint;
     private final Map<Class<? extends UserProtocol>, UserConnection> connections = new IdentityHashMap<>();
@@ -53,41 +52,47 @@ public class WrapperNioSctpChannel extends NioSctpChannel implements NettyConnec
 
     public WrapperNioSctpChannel(@NonNull Client client) {
         this.endpoint = client;
-        this.controlChannel = this.openChannel(Reliability.RELIABLE_ORDERED, CHANNEL_ID_CONTROL);
-        this.defaultChannel = this.openChannel(Reliability.RELIABLE_ORDERED, CHANNEL_ID_DEFAULT);
+        this.controlChannel = this.openChannel(Reliability.RELIABLE_ORDERED, ID_CONTROL_CHANNEL, false);
+        this.defaultChannel = this.openChannel(Reliability.RELIABLE_ORDERED, ID_DEFAULT_CHANNEL, false);
     }
 
     public WrapperNioSctpChannel(io.netty.channel.Channel parent, com.sun.nio.sctp.SctpChannel sctpChannel, @NonNull Server server) {
         super(parent, sctpChannel);
         this.endpoint = server;
-        this.controlChannel = this.openChannel(Reliability.RELIABLE_ORDERED, CHANNEL_ID_CONTROL);
-        this.defaultChannel = this.openChannel(Reliability.RELIABLE_ORDERED, CHANNEL_ID_DEFAULT);
+        this.controlChannel = this.openChannel(Reliability.RELIABLE_ORDERED, ID_CONTROL_CHANNEL, false);
+        this.defaultChannel = this.openChannel(Reliability.RELIABLE_ORDERED, ID_DEFAULT_CHANNEL, false);
     }
 
     @Override
     public SctpChannel openChannel(@NonNull Reliability reliability) {
         synchronized (this.channelIds) {
-            return this.openChannel(reliability, this.channelIds.nextClearBit(0));
+            return this.openChannel(reliability, this.channelIds.nextClearBit(0), true);
         }
     }
 
     @Override
-    public SctpChannel openChannel(@NonNull Reliability reliability, int requestedId) {
+    public SctpChannel openChannel(@NonNull Reliability reliability, int requestedId, boolean notifyRemote) {
         switch (reliability) {
             case RELIABLE:
             case RELIABLE_ORDERED: {
-                synchronized (this.channelIds) {
-                    if (this.channelIds.get(requestedId)) {
-                        throw this.exception("channel id ${0} already taken!", requestedId);
+                try {
+                    synchronized (this.channelIds) {
+                        if (this.channelIds.get(requestedId)) {
+                            throw this.exception("channel id ${0} already taken!", requestedId);
+                        }
+                        this.channelIds.set(requestedId);
                     }
-                    this.channelIds.set(requestedId);
+                    SctpChannel channel = new SctpChannel(requestedId, reliability, this);
+                    this.channels.put(requestedId, channel);
+                    return channel;
+                } catch (Exception e) {
+                    notifyRemote = false;
+                    throw e;
+                } finally {
+                    if (notifyRemote && requestedId > 1) {
+                        this.controlChannel.send(new OpenChannelPacket(reliability, requestedId), true);
+                    }
                 }
-                SctpChannel channel = new SctpChannel(requestedId, reliability, this);
-                this.channels.put(requestedId, channel);
-                if (requestedId != CHANNEL_ID_CONTROL && requestedId != CHANNEL_ID_DEFAULT) {
-                    this.controlChannel.send(new OpenChannelPacket(reliability, requestedId));
-                }
-                return channel;
             }
             default:
                 throw new IllegalArgumentException(this.format("SCTP only supports RELIABLE and RELIABLE_ORDERED, but ${0} was given!", reliability.name()));
@@ -101,7 +106,7 @@ public class WrapperNioSctpChannel extends NioSctpChannel implements NettyConnec
 
     @Override
     public void disconnectAtNetworkLevel() {
-        this.channels.values().forEach(channel -> channel.closed = true);
+        this.channels.forEach((id, channel) -> channel.closed = true);
         this.channels.clear();
         NettyConnection.super.disconnectAtNetworkLevel();
     }

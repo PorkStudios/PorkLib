@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -18,6 +18,7 @@ package net.daporkchop.lib.crypto.cipher.stream;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.bouncycastle.crypto.SkippingStreamCipher;
 import org.bouncycastle.crypto.StreamCipher;
 import org.bouncycastle.crypto.engines.ChaChaEngine;
 import org.bouncycastle.crypto.engines.Grain128Engine;
@@ -42,22 +43,22 @@ public enum StreamCipherType {
     }, -1);
 
     public final String name;
-    private final Supplier<StreamCipher> cipherSupplier;
+    private final Supplier<SkippingStreamCipher> cipherSupplier;
     public final int keySize;
     public final int ivSize;
 
-    StreamCipherType(@NonNull String name, @NonNull Supplier<StreamCipher> cipherSupplier, int keySize) {
+    StreamCipherType(@NonNull String name, @NonNull Supplier<SkippingStreamCipher> cipherSupplier, int keySize) {
         this(name, cipherSupplier, keySize, keySize);
     }
 
-    StreamCipherType(@NonNull String name, @NonNull Supplier<StreamCipher> cipherSupplier, int keySize, int ivSize) {
+    StreamCipherType(@NonNull String name, @NonNull Supplier<SkippingStreamCipher> cipherSupplier, int keySize, int ivSize) {
         this.name = name;
         this.cipherSupplier = cipherSupplier;
         this.keySize = keySize;
         this.ivSize = ivSize;
     }
 
-    public StreamCipher create()   {
+    public SkippingStreamCipher create()   {
         return this.cipherSupplier.get();
     }
 }

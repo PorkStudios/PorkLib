@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.crypto;
 
+import net.daporkchop.lib.common.test.TestRandomData;
 import net.daporkchop.lib.crypto.key.EllipticCurveKeyPair;
 import net.daporkchop.lib.crypto.keygen.KeyGen;
 import net.daporkchop.lib.crypto.sig.ec.CurveType;
@@ -26,11 +27,10 @@ import org.junit.Test;
 public class SignatureTest {
     @Test
     public void testEC() {
-        byte[][] randomData = EncryptionTest.generateRandomBytes();
-        ECDSAHelper helper = new ECDSAHelper(Digest.SHA256);
+        ECDSAHelper helper = new ECDSAHelper(Digest.SHA_256);
         for (CurveType type : CurveType.values()) {
             EllipticCurveKeyPair keyPair = KeyGen.gen(type);
-            for (byte[] b : randomData) {
+            for (byte[] b : TestRandomData.randomBytes) {
                 byte[] sig = helper.sign(b, keyPair);
                 if (!helper.verify(sig, b, keyPair)) {
                     throw new IllegalStateException(String.format("Invalid signature on curve type %s", type.name));

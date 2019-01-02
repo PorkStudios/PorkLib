@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -15,42 +15,37 @@
 
 package net.daporkchop.lib.network.pork.packet;
 
-import lombok.NoArgsConstructor;
+import io.netty.buffer.ByteBuf;
+import lombok.AllArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.network.channel.Channel;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.endpoint.client.PorkClient;
-import net.daporkchop.lib.network.packet.Codec;
-import net.daporkchop.lib.network.packet.Packet;
-import net.daporkchop.lib.network.pork.PorkConnection;
-
-import java.io.IOException;
+import net.daporkchop.lib.network.packet.handler.PacketHandler;
 
 /**
  * @author DaPorkchop_
  */
-@NoArgsConstructor
-public class HandshakeCompletePacket implements Packet {
-    @Override
-    public void read(DataIn in) throws IOException {
-        //in.readBytesSimple();
-    }
-
-    @Override
-    public void write(DataOut out) throws IOException {
-        //out.writeBytesSimple(new byte[0xFFFFFF]);
-    }
-
-    public static class HandshakeCompleteCodec implements Codec<HandshakeCompletePacket, PorkConnection> {
+@AllArgsConstructor
+public class HandshakeCompletePacket {
+    public static class HandshakeCompleteCodec implements PacketHandler<HandshakeCompletePacket> {
         @Override
-        public void handle(@NonNull HandshakeCompletePacket packet, @NonNull Channel channel, @NonNull PorkConnection connection) {
+        public void handle(@NonNull HandshakeCompletePacket packet, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception {
             connection.<PorkClient>getEndpoint().postConnectCallback(null);
+            connection.getConnections().forEach((protocolClass, c) -> c.onConnect());
         }
 
         @Override
-        public HandshakeCompletePacket createInstance() {
+        public void encode(@NonNull HandshakeCompletePacket packet, @NonNull ByteBuf buf) throws Exception {
+        }
+
+        @Override
+        public HandshakeCompletePacket decode(@NonNull ByteBuf buf) throws Exception {
             return new HandshakeCompletePacket();
+        }
+
+        @Override
+        public Class<HandshakeCompletePacket> getPacketClass() {
+            return HandshakeCompletePacket.class;
         }
     }
 }

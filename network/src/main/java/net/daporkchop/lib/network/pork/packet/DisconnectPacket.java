@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -16,47 +16,46 @@
 package net.daporkchop.lib.network.pork.packet;
 
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.network.channel.Channel;
-import net.daporkchop.lib.network.packet.Codec;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
+import net.daporkchop.lib.network.packet.handler.DataPacketHandler;
 import net.daporkchop.lib.network.pork.PorkConnection;
-import net.daporkchop.lib.network.pork.PorkPacket;
-
-import java.io.IOException;
+import net.daporkchop.lib.network.pork.PorkProtocol;
 
 /**
  * Sent before a connection is closed to inform the remote end of the reason for the disconnection
  *
  * @author DaPorkchop_
  */
-@NoArgsConstructor
 @AllArgsConstructor
-public class DisconnectPacket implements PorkPacket {
-    public String reason;
+public class DisconnectPacket {
+    public final String reason;
 
-    @Override
-    public void read(DataIn in) throws IOException {
-        this.reason = in.readUTF();
-    }
-
-    @Override
-    public void write(DataOut out) throws IOException {
-        out.writeUTF(this.reason);
-    }
-
-    public static class DisconnectCodec implements Codec<DisconnectPacket, PorkConnection> {
+    public static class DisconnectCodec implements DataPacketHandler<DisconnectPacket> {
         @Override
-        public void handle(@NonNull DisconnectPacket packet, @NonNull Channel channel, @NonNull PorkConnection connection) {
-            connection.setDisconnectReason(packet.reason);
-            connection.getRealConnection().disconnectAtNetworkLevel(); //disconnecting at network level prevents an endless ping/pong of disconnect packets
+        public void handle(@NonNull DisconnectPacket packet, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception {
+            PorkConnection porkConnection = connection.getUserConnection(PorkProtocol.class);
+            porkConnection.setDisconnectReason(packet.reason);
+            porkConnection.getRealConnection().disconnectAtNetworkLevel(); //disconnecting at network level prevents an endless ping/pong of disconnect packets
         }
 
         @Override
-        public DisconnectPacket createInstance() {
-            return new DisconnectPacket();
+        public void encode(@NonNull DisconnectPacket packet, @NonNull DataOut out) throws Exception {
+            out.writeUTF(packet.reason);
+        }
+
+        @Override
+        public DisconnectPacket decode(@NonNull DataIn in) throws Exception {
+            return new DisconnectPacket(
+                    in.readUTF()
+            );
+        }
+
+        @Override
+        public Class<DisconnectPacket> getPacketClass() {
+            return DisconnectPacket.class;
         }
     }
 }

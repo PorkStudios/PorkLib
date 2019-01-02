@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -13,45 +13,42 @@
  *
  */
 
-package net.daporkchop.lib.network.packet;
+package protocol.packet;
 
+import lombok.AllArgsConstructor;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.network.channel.Channel;
-import net.daporkchop.lib.network.conn.UserConnection;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
+import net.daporkchop.lib.network.packet.handler.DataPacketHandler;
 
-import java.util.function.Supplier;
+@AllArgsConstructor
+public class SimpleTestPacket {
+    @NonNull
+    public final String message;
 
-/**
- * @author DaPorkchop_
- */
-public interface Codec<P extends Packet, C extends UserConnection> extends PacketHandler<P, C> {
-    @Override
-    void handle(P packet, Channel channel, C connection);
-
-    /**
-     * Create a new instance of this codec's packet
-     *
-     * @return a new, blank instance of this codec's packet
-     */
-    P createInstance();
-
-    @RequiredArgsConstructor
-    class SimpleCodec<P extends Packet, C extends UserConnection> implements Codec<P, C> {
-        @NonNull
-        private final PacketHandler<P, C> handler;
-
-        @NonNull
-        private final Supplier<P> packetSupplier;
-
+    public static class MessageHandler implements DataPacketHandler<SimpleTestPacket>, Logging {
         @Override
-        public void handle(@NonNull P packet, @NonNull Channel channel, @NonNull C connection) {
-            this.handler.handle(packet, channel, connection);
+        public void handle(@NonNull SimpleTestPacket packet, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception {
+            logger.info("[${0}] Received test packet on channel ${2}: ${1}", connection.getEndpoint().getName(), packet.message, channelId);
         }
 
         @Override
-        public P createInstance() {
-            return this.packetSupplier.get();
+        public void encode(@NonNull SimpleTestPacket packet, @NonNull DataOut out) throws Exception {
+            out.writeUTF(packet.message);
+        }
+
+        @Override
+        public SimpleTestPacket decode(@NonNull DataIn in) throws Exception {
+            return new SimpleTestPacket(
+                    in.readUTF()
+            );
+        }
+
+        @Override
+        public Class<SimpleTestPacket> getPacketClass() {
+            return SimpleTestPacket.class;
         }
     }
 }

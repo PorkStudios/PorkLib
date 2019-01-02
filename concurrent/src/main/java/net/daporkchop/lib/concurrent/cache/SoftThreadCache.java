@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -13,15 +13,47 @@
  *
  */
 
-package net.daporkchop.lib.network.pork;
+package net.daporkchop.lib.concurrent.cache;
 
-import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.packet.Packet;
+import lombok.NonNull;
+
+import java.lang.ref.SoftReference;
+import java.util.function.Supplier;
 
 /**
- * Doesn't actually do anything, serves simply as a quick way of flagging porklib packets from user packets
+ * A {@link ThreadCache} that keeps only a soft reference to objects.
+ *
+ * Soft references will only be garbage collected when the JVM is running low on memory, and as such a soft cache should not
+ * be more cpu-intensive than a plain thread-local cache unless the heap is mostly full (or just too small).
  *
  * @author DaPorkchop_
  */
-public interface PorkPacket extends Packet, Logging {
+public class SoftThreadCache<T> implements ThreadCache<T> {
+    private final Supplier<T> supplier;
+    private final ThreadLocal<SoftReference<T>> threadLocal;
+
+    public static <T> SoftThreadCache<T> of(@NonNull Supplier<T> supplier)  {
+        return new SoftThreadCache<>(supplier);
+    }
+
+    protected SoftThreadCache(@NonNull Supplier<T> supplier)  {
+        this.supplier = supplier;
+        this.threadLocal = ThreadLocal.withInitial(() -> null);
+    }
+
+    @Override
+    public T get() {
+        SoftReference<T> ref = this.threadLocal.get();
+        T val;
+        if (ref == null || (val = ref.get()) == null)   {
+            val = this.supplier.get();
+            this.threadLocal.set(new SoftReference<>(val));
+        }
+        return val;
+    }
+
+    @Override
+    public T getUncached() {
+        return this.supplier.get();
+    }
 }

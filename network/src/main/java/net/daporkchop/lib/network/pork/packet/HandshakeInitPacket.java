@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -15,44 +15,41 @@
 
 package net.daporkchop.lib.network.pork.packet;
 
-import lombok.NoArgsConstructor;
+import io.netty.buffer.ByteBuf;
+import lombok.AllArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.network.channel.Channel;
-import net.daporkchop.lib.network.packet.Codec;
-import net.daporkchop.lib.network.packet.Packet;
-import net.daporkchop.lib.network.pork.PorkConnection;
+import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
+import net.daporkchop.lib.network.packet.handler.PacketHandler;
 import net.daporkchop.lib.network.util.Version;
 
-import java.io.IOException;
 import java.util.stream.Collectors;
 
 /**
  * @author DaPorkchop_
  */
-//@AllArgsConstructor
-@NoArgsConstructor
-public class HandshakeInitPacket implements Packet {
-    @Override
-    public void read(@NonNull DataIn in) throws IOException {
-    }
-
-    @Override
-    public void write(@NonNull DataOut out) throws IOException {
-    }
-
-    public static class HandshakeInitCodec implements Codec<HandshakeInitPacket, PorkConnection> {
+@AllArgsConstructor
+public class HandshakeInitPacket {
+    public static class HandshakeInitCodec implements PacketHandler<HandshakeInitPacket> {
         @Override
-        public void handle(@NonNull HandshakeInitPacket packet, @NonNull Channel channel, @NonNull PorkConnection connection) {
-            channel.send(new HandshakeResponsePacket(
+        public void handle(@NonNull HandshakeInitPacket packet, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception {
+            connection.getControlChannel().send(new HandshakeResponsePacket(
                     connection.getEndpoint().getPacketRegistry().getProtocols().stream().map(Version::new).collect(Collectors.toList())
-            ));
+            ), () -> Logging.logger.debug("Sent handshake response!"));
         }
 
         @Override
-        public HandshakeInitPacket createInstance() {
+        public void encode(@NonNull HandshakeInitPacket packet, @NonNull ByteBuf buf) throws Exception {
+        }
+
+        @Override
+        public HandshakeInitPacket decode(@NonNull ByteBuf buf) throws Exception {
             return new HandshakeInitPacket();
+        }
+
+        @Override
+        public Class<HandshakeInitPacket> getPacketClass() {
+            return HandshakeInitPacket.class;
         }
     }
 }

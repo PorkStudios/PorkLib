@@ -53,7 +53,7 @@ public class ScannerTest {
                 .build();
     }
 
-    @Test
+    //@Test
     public void findAverageHeight() throws IOException {
         try (MinecraftSave save = this.getTestWorld()) {
             AtomicLong h = new AtomicLong(0L);
@@ -86,7 +86,7 @@ public class ScannerTest {
         }
     }
 
-    @Test
+    //@Test
     public void findDoubleChests() throws IOException {
         try (MinecraftSave save = this.getTestWorld()) {
             Registry blocksRegistry = save.getRegistry(new ResourceLocation("minecraft:blocks"));
@@ -128,7 +128,7 @@ public class ScannerTest {
         }
     }
 
-    @Test
+    //@Test
     public void findTileEntities() throws IOException {
         try (MinecraftSave save = this.getTestWorld()) {
             new WorldScanner(save.getWorld(0))
@@ -150,7 +150,7 @@ public class ScannerTest {
         }
     }
 
-    @Test
+    //@Test
     public void makeSimpleMap() throws IOException {
         Map<ResourceLocation, Color[]> colorMap = new Hashtable<>();
         {

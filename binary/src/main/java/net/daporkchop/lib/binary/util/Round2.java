@@ -16,9 +16,6 @@
 package net.daporkchop.lib.binary.util;
 
 public class Round2 {
-    private Round2() {
-    }
-
     public static long roundLong(long value) {
         long l = value - 1;
         l = l | l >> 1;
@@ -47,5 +44,8 @@ public class Round2 {
         s = (short) (s | s >> 4);
         s = (short) (s | s >> 8);
         return (short) (s + 1);
+    }
+
+    private Round2() {
     }
 }

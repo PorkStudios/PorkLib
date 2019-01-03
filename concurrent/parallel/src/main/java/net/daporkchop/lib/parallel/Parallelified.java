@@ -29,7 +29,7 @@ public interface Parallelified {
 
     int getId();
 
-    interface Server extends Parallelified  {
+    interface Server extends Parallelified {
         @Override
         default boolean isServer() {
             return true;
@@ -41,11 +41,11 @@ public interface Parallelified {
         }
     }
 
-    interface Client extends Parallelified  {
+    interface Client extends Parallelified {
         ParallelConnection getConnection();
 
         @Override
-        default boolean isServer()  {
+        default boolean isServer() {
             return false;
         }
 

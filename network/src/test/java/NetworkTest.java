@@ -14,12 +14,10 @@
  */
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
 import io.netty.util.ResourceLeakDetector;
 import net.daporkchop.lib.binary.netty.NettyByteBufUtil;
 import net.daporkchop.lib.common.test.TestRandomData;
 import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.endpoint.client.Client;
@@ -30,8 +28,8 @@ import net.daporkchop.lib.network.protocol.netty.sctp.SctpProtocolManager;
 import net.daporkchop.lib.network.protocol.netty.tcp.TcpProtocolManager;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 import org.junit.Test;
-import protocol.packet.SimpleTestPacket;
 import protocol.TestProtocol;
+import protocol.packet.SimpleTestPacket;
 import protocol.packet.TestChannelsPacket;
 
 import java.io.File;
@@ -114,7 +112,7 @@ public class NetworkTest implements Logging {
                 logger.info("Testing if packets arrive on the correct channels...");
                 logger.trace("  Closing channels again...");
                 channelIds.forEach(i -> {
-                    if (ThreadLocalRandom.current().nextBoolean())  {
+                    if (ThreadLocalRandom.current().nextBoolean()) {
                         client.getConnection(PorkProtocol.class).openChannel(Reliability.RELIABLE, i, true);
                     } else {
                         server.getConnections(PorkProtocol.class).forEach(conn -> conn.openChannel(Reliability.RELIABLE, i, true));
@@ -141,7 +139,7 @@ public class NetworkTest implements Logging {
                 sleep(1000L);
                 logger.trace("Checking if channels are open...");
                 channelIds.forEach(i -> {
-                    if (client.getOpenChannel(i) != null)   {
+                    if (client.getOpenChannel(i) != null) {
                         throw this.exception("Channel ${0} is still open on client!", i);
                     } else {
                         server.getConnections(TestProtocol.class).forEach(conn -> {
@@ -154,7 +152,7 @@ public class NetworkTest implements Logging {
             }
             {
                 logger.info("Sending some packets to verify integrity...");
-                for (int i = 0; i < TestRandomData.randomBytes.length; i++)   {
+                for (int i = 0; i < TestRandomData.randomBytes.length; i++) {
                     ByteBuf buf = NettyByteBufUtil.alloc(3 + TestRandomData.randomBytes[i].length);
                     buf.writeMedium(i);
                     buf.writeBytes(TestRandomData.randomBytes[i]);
@@ -163,7 +161,7 @@ public class NetworkTest implements Logging {
                     } else {
                         server.getConnections(TestProtocol.class).forEach(conn -> conn.getDefaultChannel().send(buf, (short) 25, true, Reliability.RELIABLE, TestProtocol.class));
                     }
-                    if (buf.refCnt() != 1)  {
+                    if (buf.refCnt() != 1) {
                         throw new IllegalStateException("Reference count invalid!");
                     }
                     buf.release();

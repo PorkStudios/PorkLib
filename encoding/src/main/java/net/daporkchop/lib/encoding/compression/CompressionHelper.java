@@ -22,16 +22,20 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.function.ThrowingSupplier;
 import net.daporkchop.lib.common.function.io.IOBiFunction;
 import net.daporkchop.lib.common.function.io.IOFunction;
-import net.daporkchop.lib.common.function.ThrowingSupplier;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Hashtable;
+import java.util.IdentityHashMap;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
@@ -44,18 +48,6 @@ import java.util.stream.Stream;
 public class CompressionHelper<ParamType> {
     static final Map<String, CompressionHelper> nameLookup = Collections.synchronizedMap(new Hashtable<>());
     static final Map<CompressionHelper, String> reverseNameLookup = Collections.synchronizedMap(new IdentityHashMap<>());
-
-    @NonNull
-    @Getter
-    private final String name;
-    @NonNull
-    @Getter
-    private final String level;
-    private final ParamType params;
-    @NonNull
-    private final IOBiFunction<InputStream, ParamType, InputStream> inputStreamWrapper;
-    @NonNull
-    private final IOBiFunction<OutputStream, ParamType, OutputStream> outputStreamWrapper;
 
     static boolean registerCompressionType(@NonNull String name, @NonNull CompressionHelper helper) {
         return nameLookup.putIfAbsent(name, helper) == null && reverseNameLookup.put(helper, name) == null;
@@ -90,6 +82,17 @@ public class CompressionHelper<ParamType> {
     public static <ParamType> Builder<ParamType> builder(@NonNull String name, @NonNull String level) {
         return new Builder<>(name, level);
     }
+    @NonNull
+    @Getter
+    private final String name;
+    @NonNull
+    @Getter
+    private final String level;
+    private final ParamType params;
+    @NonNull
+    private final IOBiFunction<InputStream, ParamType, InputStream> inputStreamWrapper;
+    @NonNull
+    private final IOBiFunction<OutputStream, ParamType, OutputStream> outputStreamWrapper;
 
     public InputStream inflate(@NonNull InputStream in) throws IOException {
         return this.inputStreamWrapper.applyThrowing(in, this.params);

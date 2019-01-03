@@ -64,41 +64,6 @@ public enum TextFormatting {
         }
     }
 
-    /**
-     * The name of this color/formatting
-     */
-    private final String name;
-    private final boolean fancyStyling;
-    /**
-     * The control string (section sign + formatting code) that can be inserted into client-side text to display
-     * subsequent text in this format.
-     */
-    private final String controlString;
-    /**
-     * The numerical index that represents this color
-     */
-    private final int colorIndex;
-
-    TextFormatting(String formattingName, char formattingCodeIn, int colorIndex) {
-        this(formattingName, formattingCodeIn, false, colorIndex);
-    }
-
-    TextFormatting(String formattingName, char formattingCodeIn, boolean fancyStylingIn) {
-        this(formattingName, formattingCodeIn, fancyStylingIn, -1);
-    }
-
-    TextFormatting(String formattingName, char formattingCodeIn, boolean fancyStylingIn, int colorIndex) {
-        this.name = formattingName;
-        /*
-      The formatting code that produces this format.
-     */ /**
-         * The formatting code that produces this format.
-         */char formattingCode = formattingCodeIn;
-        this.fancyStyling = fancyStylingIn;
-        this.colorIndex = colorIndex;
-        this.controlString = "\u00a7" + formattingCodeIn;
-    }
-
     private static String lowercaseAlpha(String p_175745_0_) {
         return p_175745_0_.toLowerCase(Locale.ROOT).replaceAll("[^a-z]", "");
     }
@@ -147,6 +112,40 @@ public enum TextFormatting {
         }
 
         return list;
+    }
+    /**
+     * The name of this color/formatting
+     */
+    private final String name;
+    private final boolean fancyStyling;
+    /**
+     * The control string (section sign + formatting code) that can be inserted into client-side text to display
+     * subsequent text in this format.
+     */
+    private final String controlString;
+    /**
+     * The numerical index that represents this color
+     */
+    private final int colorIndex;
+
+    TextFormatting(String formattingName, char formattingCodeIn, int colorIndex) {
+        this(formattingName, formattingCodeIn, false, colorIndex);
+    }
+
+    TextFormatting(String formattingName, char formattingCodeIn, boolean fancyStylingIn) {
+        this(formattingName, formattingCodeIn, fancyStylingIn, -1);
+    }
+
+    TextFormatting(String formattingName, char formattingCodeIn, boolean fancyStylingIn, int colorIndex) {
+        this.name = formattingName;
+        /*
+      The formatting code that produces this format.
+     */ /**
+         * The formatting code that produces this format.
+         */char formattingCode = formattingCodeIn;
+        this.fancyStyling = fancyStylingIn;
+        this.colorIndex = colorIndex;
+        this.controlString = "\u00a7" + formattingCodeIn;
     }
 
     /**

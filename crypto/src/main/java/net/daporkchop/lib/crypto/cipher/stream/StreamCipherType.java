@@ -15,13 +15,9 @@
 
 package net.daporkchop.lib.crypto.cipher.stream;
 
-import lombok.AllArgsConstructor;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import org.bouncycastle.crypto.SkippingStreamCipher;
-import org.bouncycastle.crypto.StreamCipher;
 import org.bouncycastle.crypto.engines.ChaChaEngine;
-import org.bouncycastle.crypto.engines.Grain128Engine;
 import org.bouncycastle.crypto.engines.Salsa20Engine;
 import org.bouncycastle.crypto.engines.XSalsa20Engine;
 
@@ -58,7 +54,7 @@ public enum StreamCipherType {
         this.ivSize = ivSize;
     }
 
-    public SkippingStreamCipher create()   {
+    public SkippingStreamCipher create() {
         return this.cipherSupplier.get();
     }
 }

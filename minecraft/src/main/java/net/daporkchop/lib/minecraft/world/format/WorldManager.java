@@ -24,11 +24,11 @@ import net.daporkchop.lib.minecraft.world.World;
  * @author DaPorkchop_
  */
 public interface WorldManager {
-    default int getMinChunkY()  {
+    default int getMinChunkY() {
         return 0;
     }
 
-    default int getMaxChunkY()  {
+    default int getMaxChunkY() {
         return 15;
     }
 
@@ -40,11 +40,11 @@ public interface WorldManager {
 
     void saveColumn(@NonNull Column column);
 
-    default void loadChunk(@NonNull Column column, int y)    {
+    default void loadChunk(@NonNull Column column, int y) {
         throw new UnsupportedOperationException();
     }
 
-    default void saveChunk(@NonNull Chunk chunk)    {
+    default void saveChunk(@NonNull Chunk chunk) {
         throw new UnsupportedOperationException();
     }
 

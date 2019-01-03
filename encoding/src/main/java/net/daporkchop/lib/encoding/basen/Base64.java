@@ -25,7 +25,7 @@ import lombok.NonNull;
 public interface Base64 {
     BaseN INSTANCE = BaseN.of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
 
-    static String encodeBase64(@NonNull byte[] data)   {
+    static String encodeBase64(@NonNull byte[] data) {
         return INSTANCE.encode(data);
     }
 

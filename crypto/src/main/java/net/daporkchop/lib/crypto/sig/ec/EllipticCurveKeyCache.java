@@ -33,9 +33,9 @@ import java.util.concurrent.ForkJoinPool;
 public class EllipticCurveKeyCache {
     private static final Map<CurveType, CompletableFuture<EllipticCurveKeyPair>> cache = new EnumMap<>(CurveType.class);
 
-    public static CompletableFuture<EllipticCurveKeyPair> getFutureKeyPair(@NonNull CurveType curveType)    {
-        synchronized (cache)    {
-            if (cache.containsKey(curveType))   {
+    public static CompletableFuture<EllipticCurveKeyPair> getFutureKeyPair(@NonNull CurveType curveType) {
+        synchronized (cache) {
+            if (cache.containsKey(curveType)) {
                 return cache.get(curveType);
             } else {
                 CompletableFuture<EllipticCurveKeyPair> future = new CompletableFuture<>();
@@ -46,10 +46,10 @@ public class EllipticCurveKeyCache {
         }
     }
 
-    public static EllipticCurveKeyPair getKeyPair(@NonNull CurveType type)  {
+    public static EllipticCurveKeyPair getKeyPair(@NonNull CurveType type) {
         try {
             return getFutureKeyPair(type).get();
-        } catch (Exception e)   {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }

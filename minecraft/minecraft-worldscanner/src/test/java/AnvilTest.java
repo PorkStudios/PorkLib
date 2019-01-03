@@ -42,8 +42,8 @@ public class AnvilTest {
         Column column = save.getWorld(0).getColumn(30, 6);
         column.load();
         int id;
-        for (int y = 255; y >= 0; y--)  {
-            if ((id = column.getBlockId(7, y, 7)) != 0)    {
+        for (int y = 255; y >= 0; y--) {
+            if ((id = column.getBlockId(7, y, 7)) != 0) {
                 System.out.printf("Surface in column (%d,%d) is at y=%d\n", column.getX(), column.getZ(), y);
                 System.out.printf("Surface block id id %d (registry name: %s)\n", id, blockRegistry.getName(id).toString());
                 break;

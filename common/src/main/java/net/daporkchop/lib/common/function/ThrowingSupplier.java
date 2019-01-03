@@ -25,7 +25,7 @@ public interface ThrowingSupplier<T> extends Supplier<T> {
     default T get() {
         try {
             return this.getThrowing();
-        } catch (Exception e)    {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }

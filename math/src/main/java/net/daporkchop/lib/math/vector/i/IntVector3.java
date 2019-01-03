@@ -30,7 +30,7 @@ public interface IntVector3 {
 
     IntVector3 divide(int x, int y, int z);
 
-    interface AddressableXYZ   {
+    interface AddressableXYZ {
         int getX();
 
         int getY();

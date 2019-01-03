@@ -19,7 +19,6 @@ import net.daporkchop.lib.crypto.key.EllipticCurveKeyPair;
 import net.daporkchop.lib.crypto.sig.ec.hackery.ECSignatureSpi;
 
 import java.lang.ref.SoftReference;
-import java.lang.ref.WeakReference;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 import java.util.function.Supplier;

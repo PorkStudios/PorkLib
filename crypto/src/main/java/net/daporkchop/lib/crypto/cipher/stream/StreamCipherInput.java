@@ -17,14 +17,11 @@ package net.daporkchop.lib.crypto.cipher.stream;
 
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import org.bouncycastle.crypto.StreamCipher;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author DaPorkchop_

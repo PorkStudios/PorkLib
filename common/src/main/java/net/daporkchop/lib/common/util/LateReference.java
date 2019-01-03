@@ -28,8 +28,6 @@ import java.util.function.Supplier;
  */
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class LateReference<T> {
-    private T value;
-
     public static <T> LateReference<T> empty() {
         return new LateReference<>(null);
     }
@@ -37,16 +35,17 @@ public class LateReference<T> {
     public static <T> LateReference<T> create(@NonNull T value) {
         return new LateReference<>(value);
     }
+    private T value;
 
-    public boolean contains()   {
+    public boolean contains() {
         return this.value != null;
     }
 
-    public T get()  {
+    public T get() {
         return this.value;
     }
 
-    public T getOrDefault(T def)    {
+    public T getOrDefault(T def) {
         return this.value == null ? def : this.value;
     }
 

@@ -73,9 +73,17 @@ package net.daporkchop.lib.minecraft.world.format.anvil;
 
  */
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
-import java.util.zip.*;
+import java.util.zip.DeflaterOutputStream;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.InflaterInputStream;
 
 public class RegionFile {
 
@@ -257,24 +265,6 @@ public class RegionFile {
         return new DataOutputStream(new DeflaterOutputStream(new ChunkBuffer(x, z)));
     }
 
-    /*
-     * lets chunk writing be multithreaded by not locking the whole file as a
-     * chunk is serializing -- only writes when serialization is over
-     */
-    class ChunkBuffer extends ByteArrayOutputStream {
-        private int x, z;
-
-        public ChunkBuffer(int x, int z) {
-            super(8096); // initialize to 8KB
-            this.x = x;
-            this.z = z;
-        }
-
-        public void close() {
-            RegionFile.this.write(x, z, buf, count);
-        }
-    }
-
     /* write a chunk at (x,z) with length bytes of data to disk */
     protected synchronized void write(int x, int z, byte[] data, int length) {
         try {
@@ -387,5 +377,23 @@ public class RegionFile {
 
     public void close() throws IOException {
         file.close();
+    }
+
+    /*
+     * lets chunk writing be multithreaded by not locking the whole file as a
+     * chunk is serializing -- only writes when serialization is over
+     */
+    class ChunkBuffer extends ByteArrayOutputStream {
+        private int x, z;
+
+        public ChunkBuffer(int x, int z) {
+            super(8096); // initialize to 8KB
+            this.x = x;
+            this.z = z;
+        }
+
+        public void close() {
+            RegionFile.this.write(x, z, buf, count);
+        }
     }
 }

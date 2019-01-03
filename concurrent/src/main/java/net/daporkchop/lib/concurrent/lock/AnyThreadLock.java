@@ -61,7 +61,7 @@ public class AnyThreadLock implements Lock, SimplifiedLock {
     @Override
     public boolean tryLock() {
         synchronized (this) {
-            if (this.locked)    {
+            if (this.locked) {
                 return false;
             } else {
                 this.locked = true;
@@ -81,7 +81,7 @@ public class AnyThreadLock implements Lock, SimplifiedLock {
     @Override
     public void unlock() {
         synchronized (this) {
-            if (this.locked)    {
+            if (this.locked) {
                 this.locked = false;
                 this.notify();
             } else {

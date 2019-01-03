@@ -16,9 +16,6 @@
 package net.daporkchop.lib.math.primitive;
 
 public class Pow {
-    private Pow() {
-    }
-
     public static long powLong(long val, long exp) {
         if (val == 0) return 0;
         if (exp == 0) return 0;
@@ -67,5 +64,8 @@ public class Pow {
         if (val == 0) return 0;
         if (exp == 0) return 0;
         return Math.pow(val, exp);
+    }
+
+    private Pow() {
     }
 }

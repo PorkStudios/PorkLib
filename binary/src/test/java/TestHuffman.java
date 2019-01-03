@@ -13,8 +13,8 @@
  *
  */
 
-import net.daporkchop.lib.binary.bit.Huffman;
 import net.daporkchop.lib.binary.UTF8;
+import net.daporkchop.lib.binary.bit.Huffman;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;

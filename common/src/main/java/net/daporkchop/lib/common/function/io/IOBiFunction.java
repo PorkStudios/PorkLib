@@ -32,7 +32,7 @@ public interface IOBiFunction<T, U, R> extends BiFunction<T, U, R>, PConstants {
     default R apply(T t, U u) {
         try {
             return this.applyThrowing(t, u);
-        } catch (IOException e)  {
+        } catch (IOException e) {
             throw this.exception(e);
         }
     }

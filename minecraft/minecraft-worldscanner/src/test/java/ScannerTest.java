@@ -99,20 +99,20 @@ public class ScannerTest {
                         }
                     })
                     .addProcessor((current, estimatedTotal, world, x, z) -> {
-                        for (int xx = 15; xx >= 0; xx--)    {
-                            for (int zz = (xx & 1) == 0 ? 15 : 14; zz >= 0; zz -= 2)    {
-                                for (int y = 255; y >= 0; y--)  {
+                        for (int xx = 15; xx >= 0; xx--) {
+                            for (int zz = (xx & 1) == 0 ? 15 : 14; zz >= 0; zz -= 2) {
+                                for (int y = 255; y >= 0; y--) {
                                     int id = world.getBlockId(x + xx, y, z + zz);
-                                    if (id == chestId)  {
-                                        if (false)   {
+                                    if (id == chestId) {
+                                        if (false) {
                                             System.out.printf("Found chest at (%d,%d,%d)\n", x + xx, y, z + zz);
                                         }
                                         if (world.getBlockId(x + xx + 1, y, z + zz) == chestId
                                                 || world.getBlockId(x + xx, y, z + zz + 1) == chestId) {
                                             System.out.printf("Found double chest at (%d,%d,%d)\n", x + xx, y, z + zz);
                                         }
-                                    } else if (id == trappedChestId)    {
-                                        if (false)   {
+                                    } else if (id == trappedChestId) {
+                                        if (false) {
                                             System.out.printf("Found trapped chest at (%d,%d,%d)\n", x + xx, y, z + zz);
                                         }
                                         if (world.getBlockId(x + xx + 1, y, z + zz) == trappedChestId
@@ -138,10 +138,10 @@ public class ScannerTest {
                         }
                     })
                     .addProcessor(col -> col.getTileEntities().forEach(tileEntity -> {
-                        if (false)  {
+                        if (false) {
                             System.out.printf("Found TileEntity (id=%s, class=%s) at (%d,%d,%d)\n", tileEntity.getId().toString(), tileEntity.getClass().getCanonicalName(), tileEntity.getX(), tileEntity.getY(), tileEntity.getZ());
                         }
-                        if (tileEntity instanceof TileEntitySign)   {
+                        if (tileEntity instanceof TileEntitySign) {
                             TileEntitySign sign = (TileEntitySign) tileEntity;
                             System.out.printf("Found sign at (%d,%d,%d). Content: \n%s\n%s\n%s\n%s\n", tileEntity.getX(), tileEntity.getY(), tileEntity.getZ(), sign.getLine1(), sign.getLine2(), sign.getLine3(), sign.getLine4());
                         }
@@ -236,7 +236,7 @@ public class ScannerTest {
                                                 continue;
                                             }*/
                                         int color = 0xFF000000 | colors[meta].getRGB();
-                                        if (color == 0xFF000000)    {
+                                        if (color == 0xFF000000) {
                                             continue;
                                         }
                                         realOut.setRGB(x + ((col.getX() & 0x7F) << 4), z + ((col.getZ() & 0x7F) << 4), color);

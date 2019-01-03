@@ -65,26 +65,26 @@ public class Formatter {
     public static String format(@NonNull String message, @NonNull Object... params) {
         String[] values = VALUE_CACHE.get().computeIfAbsent(params.length, String[]::new);
         boolean reentrant = false;
-        for (int i = params.length - 1; i >= 0; i--)    {
-            if (values[i] != null)  {
+        for (int i = params.length - 1; i >= 0; i--) {
+            if (values[i] != null) {
                 reentrant = true;
                 break;
             }
         }
-        if (reentrant)  {
+        if (reentrant) {
             values = new String[params.length];
         }
         int valuesConsecutiveLength = 0;
         for (int i = params.length - 1; i >= 0; i--) {
             Object o = params[i];
             String s;
-            if (o == null)  {
+            if (o == null) {
                 s = "null";
             } else if (o instanceof String) {
                 s = (String) o;
             } else if (o instanceof Class) {
                 s = ((Class) o).getCanonicalName();
-            } else if (o instanceof File)   {
+            } else if (o instanceof File) {
                 s = ((File) o).getAbsolutePath();
             } else {
                 s = Objects.toString(o);

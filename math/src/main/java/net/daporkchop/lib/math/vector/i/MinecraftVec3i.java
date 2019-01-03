@@ -192,9 +192,6 @@ public class MinecraftVec3i {
     static class Log2 {
         private static final int[] DE_BRUIJN = {0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8, 31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9};
 
-        private Log2() {
-        }
-
         private static int calculateDeBruijn(int value) {
             value = IsPow2.checkInt(value) ? value : Round2.roundInt(value);
             return DE_BRUIJN[(int) ((long) value * 125613361L >> 27) & 31];
@@ -203,12 +200,12 @@ public class MinecraftVec3i {
         public static int log2(int value) {
             return calculateDeBruijn(value) - (IsPow2.checkInt(value) ? 0 : 1);
         }
+
+        private Log2() {
+        }
     }
 
     static class Round2 {
-        private Round2() {
-        }
-
         public static long roundLong(long value) {
             long l = value - 1;
             l = l | l >> 1;
@@ -238,12 +235,12 @@ public class MinecraftVec3i {
             s = (short) (s | s >> 8);
             return (short) (s + 1);
         }
+
+        private Round2() {
+        }
     }
 
     static class IsPow2 {
-        private IsPow2() {
-        }
-
         public static boolean checkLong(long value) {
             return value != 0L && (value & value - 1L) == 0L;
         }
@@ -258,6 +255,9 @@ public class MinecraftVec3i {
 
         public static boolean checkByte(byte value) {
             return value != 0 && (value & value - 1) == 0;
+        }
+
+        private IsPow2() {
         }
     }
 }

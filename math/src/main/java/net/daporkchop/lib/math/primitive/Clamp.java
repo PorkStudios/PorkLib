@@ -16,9 +16,6 @@
 package net.daporkchop.lib.math.primitive;
 
 public class Clamp {
-    private Clamp() {
-    }
-
     public static long clampLong(long val, long min, long max) {
         return Min.minLong(Max.maxLong(val, min), max);
     }
@@ -41,5 +38,8 @@ public class Clamp {
 
     public static double clampDouble(double val, double min, double max) {
         return Min.minDouble(Max.maxDouble(val, min), max);
+    }
+
+    private Clamp() {
     }
 }

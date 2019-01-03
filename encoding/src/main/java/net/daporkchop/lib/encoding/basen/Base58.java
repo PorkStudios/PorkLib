@@ -21,7 +21,7 @@ package net.daporkchop.lib.encoding.basen;
  * Base58 is better than Base64 for one main reason: no non-alphanumeric characters!
  * Because all characters are alphanumeric, the data will be picked up as a single word by pretty much every system.
  * That means that there won't be any line breaks, you can double-click to select the whole thing, etc.
- *
+ * <p>
  * Base58 will not work correctly on system that aren't case-sensitive. For an encoding system that WILL work on case-insensitive
  * systems, use {@link Base34}
  *

@@ -16,9 +16,6 @@
 package net.daporkchop.lib.math.primitive;
 
 public class Max {
-    private Max() {
-    }
-
     public static long maxLong(long a, long b) {
         return a > b ? a : b;
     }
@@ -41,5 +38,8 @@ public class Max {
 
     public static double maxDouble(double a, double b) {
         return a > b ? a : b;
+    }
+
+    private Max() {
     }
 }

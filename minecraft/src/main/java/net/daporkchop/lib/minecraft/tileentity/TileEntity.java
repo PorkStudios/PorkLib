@@ -31,7 +31,7 @@ public interface TileEntity extends IntVector3.AddressableXYZ {
 
     CompoundTag getData();
 
-    default Vec3i getPos()  {
+    default Vec3i getPos() {
         return new Vec3i(this.getX(), this.getY(), this.getZ());
     }
 }

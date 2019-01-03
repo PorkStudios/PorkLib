@@ -43,7 +43,6 @@ public class KeyGen {
      *
      * @param seed  The seed to use for random generation
      * @param curve The type of curve to generate
-     *
      * @return An instance of SecretKey for use by EC key exchange methods
      */
     public static EllipticCurveKeyPair gen(byte[] seed, CurveType curve) {
@@ -63,7 +62,6 @@ public class KeyGen {
      * Generate a random EC key pair, using 1024 bytes of random data as a seed
      *
      * @param curve The type of curve to generate
-     *
      * @return An instance of SecretKey for use by EC key exchange methods
      */
     public static EllipticCurveKeyPair gen(CurveType curve) {
@@ -75,7 +73,6 @@ public class KeyGen {
      *
      * @param type the block cipher algorithm to generate for
      * @param seed the seed to use for random generation
-     *
      * @return a random CipherKey
      */
     public static CipherKey gen(@NonNull CipherType type, byte[] seed) {
@@ -100,7 +97,6 @@ public class KeyGen {
      * Generates a random block cipher key
      *
      * @param type the block cipher algorithm to generate for
-     *
      * @return a random CipherKey
      */
     public static CipherKey gen(@NonNull CipherType type) {

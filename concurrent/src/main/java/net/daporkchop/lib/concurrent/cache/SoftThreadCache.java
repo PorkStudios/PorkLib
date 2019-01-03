@@ -46,8 +46,10 @@ public class SoftThreadCache<T> implements ThreadCache<T> {
         SoftReference<T> ref = this.threadLocal.get();
         T val;
         if (ref == null || (val = ref.get()) == null)   {
-            val = this.supplier.get();
-            this.threadLocal.set(new SoftReference<>(val));
+            this.threadLocal.set(new SoftReference<>(val = this.supplier.get()));
+        }
+        if (val == null)    {
+            throw new NullPointerException();
         }
         return val;
     }

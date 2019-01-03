@@ -93,6 +93,12 @@ public class ClickEvent {
             }
         }
 
+        /**
+         * Gets a value by its canonical name.
+         */
+        public static ClickEvent.Action getValueByCanonicalName(String canonicalNameIn) {
+            return NAME_MAPPING.get(canonicalNameIn);
+        }
         private final boolean allowedInChat;
         /**
          * The canonical name used to refer to this action.
@@ -102,13 +108,6 @@ public class ClickEvent {
         Action(String canonicalNameIn, boolean allowedInChatIn) {
             this.canonicalName = canonicalNameIn;
             this.allowedInChat = allowedInChatIn;
-        }
-
-        /**
-         * Gets a value by its canonical name.
-         */
-        public static ClickEvent.Action getValueByCanonicalName(String canonicalNameIn) {
-            return NAME_MAPPING.get(canonicalNameIn);
         }
 
         /**

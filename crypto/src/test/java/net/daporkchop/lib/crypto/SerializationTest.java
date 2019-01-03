@@ -31,12 +31,12 @@ public class SerializationTest {
     @Test
     public void testEC() throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        for (CurveType type : CurveType.values())   {
+        for (CurveType type : CurveType.values()) {
             EllipticCurveKeyPair keyPair = KeyGen.gen(type);
             KeySerialization.encodeEC(DataOut.wrap(baos), keyPair);
             EllipticCurveKeyPair decoded = KeySerialization.decodeEC(DataIn.wrap(new ByteArrayInputStream(baos.toByteArray())));
             baos.reset();
-            if (!keyPair.equals(decoded))   {
+            if (!keyPair.equals(decoded)) {
                 throw new IllegalStateException(String.format("Decoded key pair was different from original on curve type %s", type.name));
             }
             System.out.printf("Successful test of %s\n", type.name);

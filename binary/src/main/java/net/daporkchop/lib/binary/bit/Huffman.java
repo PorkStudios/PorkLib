@@ -17,8 +17,6 @@ package net.daporkchop.lib.binary.bit;
 
 import lombok.NonNull;
 import net.daporkchop.lib.binary.UTF8;
-import net.daporkchop.lib.binary.bit.BitInputStream;
-import net.daporkchop.lib.binary.bit.BitOutputStream;
 import net.daporkchop.lib.binary.util.RequiredBits;
 import net.daporkchop.lib.binary.util.map.CharacterBooleanHashMap;
 import net.daporkchop.lib.binary.util.map.CharacterBooleanMap;

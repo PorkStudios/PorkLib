@@ -15,9 +15,6 @@
 
 package net.daporkchop.lib.network.protocol.api;
 
-import net.daporkchop.lib.crypto.CryptographySettings;
-import net.daporkchop.lib.encoding.compression.CompressionHelper;
-
 /**
  * Implements a network protocol
  *

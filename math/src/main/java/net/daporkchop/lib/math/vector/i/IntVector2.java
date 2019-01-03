@@ -28,7 +28,7 @@ public interface IntVector2 {
 
     IntVector2 divide(int x, int y);
 
-    interface AddressableXZ   {
+    interface AddressableXZ {
         int getX();
 
         int getZ();

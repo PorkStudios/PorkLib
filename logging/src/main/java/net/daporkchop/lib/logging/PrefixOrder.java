@@ -32,9 +32,9 @@ import java.util.Date;
 @Getter
 public enum PrefixOrder {
     DATE_LEVEL((dateFormat, level, levelFormat, message) -> {
-        if (dateFormat == null && levelFormat == null)  {
+        if (dateFormat == null && levelFormat == null) {
             return String.format("%s\n", message);
-        } else if (dateFormat == null)  {
+        } else if (dateFormat == null) {
             return String.format("%s%s\n", String.format(levelFormat, level.name()), message);
         } else if (levelFormat == null) {
             return String.format("%s%s\n", dateFormat.format(Date.from(Instant.now())), message);
@@ -43,9 +43,9 @@ public enum PrefixOrder {
         }
     }),
     LEVEL_DATE((dateFormat, level, levelFormat, message) -> {
-        if (dateFormat == null && levelFormat == null)  {
+        if (dateFormat == null && levelFormat == null) {
             return String.format("%s\n", message);
-        } else if (dateFormat == null)  {
+        } else if (dateFormat == null) {
             return String.format("%s%s\n", String.format(levelFormat, level.name()), message);
         } else if (levelFormat == null) {
             return String.format("%s%s\n", dateFormat.format(Date.from(Instant.now())), message);
@@ -55,13 +55,12 @@ public enum PrefixOrder {
     }),
     LEVEL((dateFormat, level, levelFormat, message) -> levelFormat == null ? String.format("%s\n", message) : String.format("%s%s\n", String.format(levelFormat, level.name()), message)),
     DATE((dateFormat, level, levelFormat, message) -> dateFormat == null ? String.format("%s\n", message) : String.format("%s%s\n", dateFormat.format(Date.from(Instant.now())), message)),
-    NO_PREFIX((dateFormat, level, levelFormat, message) -> String.format("%s\n", message));
-    ;
+    NO_PREFIX((dateFormat, level, levelFormat, message) -> String.format("%s\n", message));;
 
     @NonNull
     private final MessagePrefixer prefixer;
 
-    interface MessagePrefixer   {
+    interface MessagePrefixer {
         String prefix(DateFormat dateFormat, @NonNull LogLevel level, String levelFormat, @NonNull String message);
     }
 }

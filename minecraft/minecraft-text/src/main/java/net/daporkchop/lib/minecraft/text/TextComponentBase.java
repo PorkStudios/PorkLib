@@ -24,13 +24,6 @@ import java.util.List;
 
 public abstract class TextComponentBase implements ITextComponent {
     /**
-     * The later siblings of this component.  If this component turns the text bold, that will apply to all the siblings
-     * until a later sibling turns the text something else.
-     */
-    protected List<ITextComponent> siblings = Lists.newArrayList();
-    private Style style;
-
-    /**
      * Creates an iterator that iterates over the given components, returning deep copies of each component in turn so
      * that the properties of the returned objects will remain externally consistent after being returned.
      */
@@ -49,6 +42,12 @@ public abstract class TextComponentBase implements ITextComponent {
         });
         return iterator;
     }
+    /**
+     * The later siblings of this component.  If this component turns the text bold, that will apply to all the siblings
+     * until a later sibling turns the text something else.
+     */
+    protected List<ITextComponent> siblings = Lists.newArrayList();
+    private Style style;
 
     /**
      * Adds a new component to the end of the sibling list, setting that component's style's parent style to this

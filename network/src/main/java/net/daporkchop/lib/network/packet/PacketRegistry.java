@@ -38,6 +38,17 @@ import java.util.Collections;
  * @author DaPorkchop_
  */
 public class PacketRegistry implements Logging {
+    public static short getProtocolId(int id) {
+        return (short) ((id >>> 16) & 0xFFFF);
+    }
+
+    public static short getPacketId(int id) {
+        return (short) (id & 0xFFFF);
+    }
+
+    public static int combine(short protocolId, short packetId) {
+        return ((protocolId & 0xFFFF) << 16) | (packetId & 0xFFFF);
+    }
     private final ShortObjectMap<UserProtocol> idToProtocol = new ShortObjectArrayMap<>();
     private final ObjectShortMap<Class<? extends UserProtocol>> protocolToId = new ObjectShortHashMap<>();
     private final ObjectIntegerMap<Class<?>> packetToFullId = new ObjectIntegerHashMap<>(); //TODO: identityHashMap
@@ -78,18 +89,6 @@ public class PacketRegistry implements Logging {
             });
         }
         logger.debug("Registered ${0} protocols!", protocols.size());
-    }
-
-    public static short getProtocolId(int id) {
-        return (short) ((id >>> 16) & 0xFFFF);
-    }
-
-    public static short getPacketId(int id) {
-        return (short) (id & 0xFFFF);
-    }
-
-    public static int combine(short protocolId, short packetId) {
-        return ((protocolId & 0xFFFF) << 16) | (packetId & 0xFFFF);
     }
 
     public <C extends UserConnection> UserProtocol<C> getProtocol(int id) {

@@ -27,15 +27,15 @@ public class StreamUtil {
     public static int read(@NonNull InputStream input, @NonNull byte[] buffer, int offset, int length) throws IOException {
         if (length < 0) {
             throw new IllegalArgumentException("Length must not be negative: " + length);
-        } else if (length == 0)  {
+        } else if (length == 0) {
             return 0;
         } else if (offset + length > buffer.length) {
             throw new IndexOutOfBoundsException(String.format("Out of bounds: offset=%d,length=%d,buffer=%d", offset, length, buffer.length));
         } else {
             int j = offset;
             int i;
-            while ((i = input.read(buffer, j, length)) != -1)   {
-                if (i > 0)  {
+            while (length > 0 && (i = input.read(buffer, j, length)) != -1) {
+                if (i > 0) {
                     length -= i;
                     j += i;
                 }

@@ -32,10 +32,6 @@ import java.nio.BufferOverflowException;
 @RequiredArgsConstructor
 @Getter
 public class NonExpandingByteArrayOutputStream extends OutputStream {
-    @NonNull
-    private final byte[] buf;
-    private int pos;
-
     /**
      * Creates a new {@link NonExpandingByteArrayOutputStream}, wrapping a given buffer.
      * <p>
@@ -48,6 +44,9 @@ public class NonExpandingByteArrayOutputStream extends OutputStream {
     public static NonExpandingByteArrayOutputStream wrap(@NonNull byte[] buf) {
         return new NonExpandingByteArrayOutputStream(buf);
     }
+    @NonNull
+    private final byte[] buf;
+    private int pos;
 
     @Override
     public void write(int b) throws IOException {

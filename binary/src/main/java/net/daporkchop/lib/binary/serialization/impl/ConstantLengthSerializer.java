@@ -142,17 +142,6 @@ public abstract class ConstantLengthSerializer<T> implements Serializer<T> {
             return in.readDouble();
         }
     };
-    @Getter
-    private final int size;
-    private final ThreadLocal<byte[]> bufferCache;
-
-    public ConstantLengthSerializer(int size) {
-        if (size <= 0) {
-            throw new IllegalArgumentException(String.format("Illegal size: %d (must be more than 0)", size));
-        }
-        this.size = size;
-        this.bufferCache = ThreadLocal.withInitial(() -> new byte[this.size]);
-    }
 
     /**
      * Gets a {@link ConstantLengthSerializer} for constant-length byte arrays
@@ -180,6 +169,17 @@ public abstract class ConstantLengthSerializer<T> implements Serializer<T> {
                 return b;
             }
         };
+    }
+    @Getter
+    private final int size;
+    private final ThreadLocal<byte[]> bufferCache;
+
+    public ConstantLengthSerializer(int size) {
+        if (size <= 0) {
+            throw new IllegalArgumentException(String.format("Illegal size: %d (must be more than 0)", size));
+        }
+        this.size = size;
+        this.bufferCache = ThreadLocal.withInitial(() -> new byte[this.size]);
     }
 
     @Override

@@ -23,7 +23,13 @@ import net.daporkchop.lib.nbt.tag.notch.ListTag;
 import org.apache.commons.compress.utils.IOUtils;
 import org.junit.Test;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * @author DaPorkchop_

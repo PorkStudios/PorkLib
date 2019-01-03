@@ -37,6 +37,15 @@ public enum EnumCompression {
         return new WeakReference<>(b);
     });
 
+    static byte[] getBuf() {
+        WeakReference<byte[]> reference = buf.get();
+        byte[] bytes = reference.get();
+        if (bytes == null) {
+            bytes = new byte[1024];
+            buf.set(new WeakReference<>(bytes));
+        }
+        return bytes;
+    }
     private final Function<byte[], byte[]> compress;
     private final Function<byte[], byte[]> inflate;
     private final Function<OutputStream, OutputStream> compressStream;
@@ -47,16 +56,6 @@ public enum EnumCompression {
         this.inflate = inflate;
         this.compressStream = compressStream;
         this.inflateStream = inflateStream;
-    }
-
-    static byte[] getBuf() {
-        WeakReference<byte[]> reference = buf.get();
-        byte[] bytes = reference.get();
-        if (bytes == null) {
-            bytes = new byte[1024];
-            buf.set(new WeakReference<>(bytes));
-        }
-        return bytes;
     }
 
     public byte[] compress(@NonNull byte[] input) {

@@ -40,19 +40,19 @@ public class TileEntityBase implements TileEntity {
 
     protected ResourceLocation id;
 
-    public TileEntityBase(@NonNull World world, @NonNull CompoundTag data)  {
+    public TileEntityBase(@NonNull World world, @NonNull CompoundTag data) {
         this.world = world;
         this.data = data;
         this.init();
     }
 
-    protected void init()   {
+    protected void init() {
         this.id = new ResourceLocation(this.data.<StringTag>get("id").getValue());
         this.x = this.data.<IntTag>get("x").getValue();
         this.y = this.data.<IntTag>get("y").getValue();
         this.z = this.data.<IntTag>get("z").getValue();
     }
 
-    public void save()   {
+    public void save() {
     }
 }

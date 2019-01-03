@@ -18,7 +18,12 @@ package net.daporkchop.lib.crypto.cipher.block;
 import lombok.NonNull;
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.StreamCipher;
-import org.bouncycastle.crypto.modes.*;
+import org.bouncycastle.crypto.modes.CBCBlockCipher;
+import org.bouncycastle.crypto.modes.CFBBlockCipher;
+import org.bouncycastle.crypto.modes.KCTRBlockCipher;
+import org.bouncycastle.crypto.modes.OFBBlockCipher;
+import org.bouncycastle.crypto.modes.PGPCFBBlockCipher;
+import org.bouncycastle.crypto.modes.SICBlockCipher;
 
 import java.util.Arrays;
 import java.util.function.BiFunction;
@@ -35,8 +40,7 @@ public enum CipherMode {
     CFB("CFB", CFBBlockCipher::new, true),
     CTR("CTR", (cipher, integer) -> new KCTRBlockCipher(cipher), true),
     PGP_CFB("PGP_CFB", (cipher, integer) -> new PGPCFBBlockCipher(cipher, false)),
-    SIC("SIC", (cipher, integer) -> new SICBlockCipher(cipher), true)
-    ;
+    SIC("SIC", (cipher, integer) -> new SICBlockCipher(cipher), true);
 
     private static final CipherMode[] STREAMABLE_MODES;
 
@@ -44,6 +48,9 @@ public enum CipherMode {
         STREAMABLE_MODES = Arrays.stream(values()).filter(mode -> mode.streamSupported).toArray(CipherMode[]::new);
     }
 
+    public static CipherMode[] streamableModes() {
+        return STREAMABLE_MODES;
+    }
     public final String name;
     public final boolean streamSupported;
     private final BiFunction<BlockCipher, Integer, BlockCipher> cipherFunction;
@@ -62,14 +69,10 @@ public enum CipherMode {
         return this.cipherFunction.apply(cipher, cipher.getBlockSize());
     }
 
-    public StreamCipher streamify(@NonNull BlockCipher cipher)  {
-        if (!this.streamSupported)  {
+    public StreamCipher streamify(@NonNull BlockCipher cipher) {
+        if (!this.streamSupported) {
             throw new IllegalStateException(String.format("Cipher mode %s cannot be used as a stream!", this.name));
         }
         return (StreamCipher) this.wrap(cipher);
-    }
-
-    public static CipherMode[] streamableModes()    {
-        return STREAMABLE_MODES;
     }
 }

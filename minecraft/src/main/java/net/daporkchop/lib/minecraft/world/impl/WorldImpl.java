@@ -31,7 +31,6 @@ import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.format.WorldManager;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -52,7 +51,7 @@ public class WorldImpl implements World {
             .maximumSize(34 * 34 * Runtime.getRuntime().availableProcessors())
             .expireAfterAccess(30L, TimeUnit.SECONDS) //TODO: configurable
             .removalListener((RemovalListener<Vec2i, Column>) n -> {
-                if (n.getCause() != RemovalCause.REPLACED)  {
+                if (n.getCause() != RemovalCause.REPLACED) {
                     n.getValue().unload();
                 }
             })

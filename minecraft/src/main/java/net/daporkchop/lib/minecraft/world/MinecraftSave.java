@@ -23,7 +23,6 @@ import net.daporkchop.lib.minecraft.world.impl.InitFunctions;
 import net.daporkchop.lib.primitive.map.IntegerObjectMap;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -37,13 +36,13 @@ public interface MinecraftSave extends Closeable {
     Map<ResourceLocation, Registry> getRegistries();
 
     @SuppressWarnings("unchecked")
-    default Registry getRegistry(@NonNull ResourceLocation name)   {
+    default Registry getRegistry(@NonNull ResourceLocation name) {
         return this.getRegistries().get(name);
     }
 
     IntegerObjectMap<World> getWorlds();
 
-    default World getWorld(int id)  {
+    default World getWorld(int id) {
         return this.getWorlds().get(id);
     }
 }

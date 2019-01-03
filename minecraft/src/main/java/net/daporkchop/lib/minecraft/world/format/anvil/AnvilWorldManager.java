@@ -31,7 +31,11 @@ import net.daporkchop.lib.minecraft.world.format.WorldManager;
 import net.daporkchop.lib.minecraft.world.impl.ChunkImpl;
 import net.daporkchop.lib.minecraft.world.impl.ColumnImpl;
 import net.daporkchop.lib.nbt.NBTInputStream;
-import net.daporkchop.lib.nbt.tag.notch.*;
+import net.daporkchop.lib.nbt.tag.notch.ByteArrayTag;
+import net.daporkchop.lib.nbt.tag.notch.ByteTag;
+import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
+import net.daporkchop.lib.nbt.tag.notch.IntArrayTag;
+import net.daporkchop.lib.nbt.tag.notch.ListTag;
 
 import java.io.File;
 import java.io.IOException;

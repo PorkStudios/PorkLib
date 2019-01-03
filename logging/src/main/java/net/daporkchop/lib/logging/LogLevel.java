@@ -31,8 +31,7 @@ public enum LogLevel {
     WARN(1),
     NOTIFY(1),
     TRACE(2),
-    DEBUG(3)
-    ;
+    DEBUG(3);
 
     private final int level;
 }

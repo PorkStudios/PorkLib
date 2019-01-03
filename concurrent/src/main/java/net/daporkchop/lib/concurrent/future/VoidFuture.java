@@ -90,7 +90,7 @@ public class VoidFuture implements PorkFuture {
     }
 
     public VoidFuture addListener(@NonNull Void func) {
-        if (this.complete)  {
+        if (this.complete) {
             func.run();
         } else {
             synchronized (this) {

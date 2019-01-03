@@ -124,12 +124,12 @@ public class ColumnImpl implements Column {
         //TODO: update heightmap
     }
 
-    public void recalculateHeightMap()  {
+    public void recalculateHeightMap() {
         if (this.heightMap == null) {
             this.heightMap = new byte[16 * 16];
         }
-        for (int x = 15; x >= 0; x--)   {
-            for (int z = 15; z >= 0; z--)   {
+        for (int x = 15; x >= 0; x--) {
+            for (int z = 15; z >= 0; z--) {
                 this.heightMap[z << 4 | x] = (byte) Column.super.getHighestBlock(x, z);
             }
         }

@@ -36,23 +36,23 @@ public class Hash {
     @NonNull
     private final byte[] hash;
 
-    public String toHex()    {
+    public String toHex() {
         return Hexadecimal.encode(this.hash);
     }
 
-    public String toBase64()   {
+    public String toBase64() {
         return Base64.getEncoder().encodeToString(this.hash);
     }
 
-    public String toBase58()   {
+    public String toBase58() {
         return Base58.encodeBase58(this.hash);
     }
 
-    public String toBase58WithHeaders(byte version, @NonNull String prefix)   {
+    public String toBase58WithHeaders(byte version, @NonNull String prefix) {
         return Base58WithHeaders.encode(version, prefix, this.hash);
     }
 
-    public String toBase34()   {
+    public String toBase34() {
         return Base34.encodeBase34(this.hash);
     }
 
@@ -68,7 +68,7 @@ public class Hash {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof Hash)    {
+        if (obj instanceof Hash) {
             obj = ((Hash) obj).hash;
         }
         return obj instanceof byte[] && Arrays.equals(this.hash, (byte[]) obj);

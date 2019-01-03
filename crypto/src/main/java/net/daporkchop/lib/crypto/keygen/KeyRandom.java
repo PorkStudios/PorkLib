@@ -25,9 +25,6 @@ import java.security.SecureRandom;
 public class KeyRandom {
     private static final SecureRandom random = new SecureRandom();
 
-    private KeyRandom() {
-    }
-
     public static byte[] getBytes(int length) {
         synchronized (random) {
             byte[] b = new byte[length];
@@ -55,5 +52,8 @@ public class KeyRandom {
             random.setSeed(seed);
             random.nextBytes(bytes);
         }
+    }
+
+    private KeyRandom() {
     }
 }

@@ -37,7 +37,7 @@ public class SoftCache<T> implements Cache<T> {
         if (this.ref == null || (val = this.ref.get()) == null) {
             this.ref = new SoftReference<>(val = this.supplier.get());
         }
-        if (val == null)    {
+        if (val == null) {
             throw new NullPointerException();
         }
         return val;

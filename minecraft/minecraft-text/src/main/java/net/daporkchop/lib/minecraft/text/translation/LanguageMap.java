@@ -36,17 +36,6 @@ public class LanguageMap {
      * Is the private singleton instance of StringTranslate.
      */
     private static final LanguageMap instance = new LanguageMap();
-    private final Map<String, String> languageList = Maps.newHashMap();
-    /**
-     * The time, in milliseconds since epoch, that this instance was last updated
-     */
-    private long lastUpdateTimeInMilliseconds;
-
-    public LanguageMap() {
-        super();
-        InputStream inputstream = LanguageMap.class.getResourceAsStream("/assets/minecraft/lang/en_us.lang");
-        inject(this, inputstream);
-    }
 
     public static void inject(InputStream inputstream) {
         inject(instance, inputstream);
@@ -78,6 +67,17 @@ public class LanguageMap {
         instance.languageList.clear();
         instance.languageList.putAll(p_135063_0_);
         instance.lastUpdateTimeInMilliseconds = System.currentTimeMillis();
+    }
+    private final Map<String, String> languageList = Maps.newHashMap();
+    /**
+     * The time, in milliseconds since epoch, that this instance was last updated
+     */
+    private long lastUpdateTimeInMilliseconds;
+
+    public LanguageMap() {
+        super();
+        InputStream inputstream = LanguageMap.class.getResourceAsStream("/assets/minecraft/lang/en_us.lang");
+        inject(this, inputstream);
     }
 
     /**

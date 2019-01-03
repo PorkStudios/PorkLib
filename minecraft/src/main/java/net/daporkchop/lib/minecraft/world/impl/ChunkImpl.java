@@ -24,7 +24,7 @@ import net.daporkchop.lib.minecraft.world.Column;
 
 /**
  * A chunk as defined in Minecraft 1.12.
- *
+ * <p>
  * This will need a rework in 1.13 to work with the new local registry system
  *
  * @author DaPorkchop_
@@ -66,7 +66,7 @@ public class ChunkImpl implements Chunk {
     @Override
     public void setBlockId(int x, int y, int z, int id) {
         this.blockIds[y << 8 | z << 4 | x] = (byte) (id & 0xFF);
-        if (this.add != null)   {
+        if (this.add != null) {
             this.add.set(x, y, z, (id >> 8) & 0xF);
         }
     }

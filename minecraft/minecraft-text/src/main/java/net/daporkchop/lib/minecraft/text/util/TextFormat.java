@@ -137,22 +137,6 @@ public enum TextFormat {
         }
     }
 
-    private final int intCode;
-    private final char code;
-    private final boolean isFormat;
-    private final String toString;
-
-    TextFormat(char code, int intCode) {
-        this(code, intCode, false);
-    }
-
-    TextFormat(char code, int intCode, boolean isFormat) {
-        this.code = code;
-        this.intCode = intCode;
-        this.isFormat = isFormat;
-        this.toString = new String(new char[]{ESCAPE, code});
-    }
-
     /**
      * Gets the TextFormat represented by the specified format code.
      *
@@ -280,6 +264,21 @@ public enum TextFormat {
         }
 
         return result;
+    }
+    private final int intCode;
+    private final char code;
+    private final boolean isFormat;
+    private final String toString;
+
+    TextFormat(char code, int intCode) {
+        this(code, intCode, false);
+    }
+
+    TextFormat(char code, int intCode, boolean isFormat) {
+        this.code = code;
+        this.intCode = intCode;
+        this.isFormat = isFormat;
+        this.toString = new String(new char[]{ESCAPE, code});
     }
 
     /**

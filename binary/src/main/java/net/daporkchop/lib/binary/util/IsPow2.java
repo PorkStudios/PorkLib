@@ -16,9 +16,6 @@
 package net.daporkchop.lib.binary.util;
 
 public class IsPow2 {
-    private IsPow2() {
-    }
-
     public static boolean checkLong(long value) {
         return value != 0L && (value & value - 1L) == 0L;
     }
@@ -33,5 +30,8 @@ public class IsPow2 {
 
     public static boolean checkByte(byte value) {
         return value != 0 && (value & value - 1) == 0;
+    }
+
+    private IsPow2() {
     }
 }

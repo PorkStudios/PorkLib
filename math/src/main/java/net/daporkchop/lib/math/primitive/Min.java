@@ -16,9 +16,6 @@
 package net.daporkchop.lib.math.primitive;
 
 public class Min {
-    private Min() {
-    }
-
     public static long minLong(long a, long b) {
         return a > b ? b : a;
     }
@@ -41,5 +38,8 @@ public class Min {
 
     public static double minDouble(double a, double b) {
         return a > b ? b : a;
+    }
+
+    private Min() {
     }
 }

@@ -31,6 +31,18 @@ public class SHA1 extends BlockDigest {
     private static final int Y2 = 0x6ed9eba1;
     private static final int Y3 = 0x8f1bbcdc;
     private static final int Y4 = 0xca62c1d6;
+
+    private static int f(int u, int v, int w) {
+        return (u & v) | ((~u) & w);
+    }
+
+    private static int h(int u, int v, int w) {
+        return u ^ v ^ w;
+    }
+
+    private static int g(int u, int v, int w) {
+        return (u & v) | (u & w) | (v & w);
+    }
     private int H1;
     private int H2;
     private int H3;
@@ -107,18 +119,6 @@ public class SHA1 extends BlockDigest {
         for (int i = 0; i != this.X.length; i++) {
             this.X[i] = 0;
         }
-    }
-
-    private static int f(int u, int v, int w) {
-        return (u & v) | ((~u) & w);
-    }
-
-    private static int h(int u, int v, int w) {
-        return u ^ v ^ w;
-    }
-
-    private static int g(int u, int v, int w) {
-        return (u & v) | (u & w) | (v & w);
     }
 
     @Override

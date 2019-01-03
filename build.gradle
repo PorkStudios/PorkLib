@@ -99,7 +99,7 @@ allprojects {
         if (!("root".equalsIgnoreCase(project.name) || "common".equalsIgnoreCase(project.name))) {
             compile project(":common")
         }
-        if(!"logging".equalsIgnoreCase(project.name))   {
+        if (!"logging".equalsIgnoreCase(project.name)) {
             testCompile project(":logging")
         }
 
@@ -130,4 +130,15 @@ allprojects {
     }
 
     build.dependsOn(publishToMavenLocal)
+
+    test {
+        testLogging {
+            //show System.out calls in tests in gradle output
+            showStandardStreams = true
+
+            showExceptions = true
+            showStackTraces = true
+            showCauses = true
+        }
+    }
 }

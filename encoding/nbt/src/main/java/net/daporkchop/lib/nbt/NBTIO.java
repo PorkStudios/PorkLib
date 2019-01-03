@@ -20,7 +20,14 @@ import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.nbt.tag.TagRegistry;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  * A lot of helper methods for dealing with reading and writing NBT tags

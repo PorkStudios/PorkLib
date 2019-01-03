@@ -16,8 +16,24 @@
 package net.daporkchop.lib.nbt.tag;
 
 import lombok.NonNull;
-import net.daporkchop.lib.nbt.tag.notch.*;
-import net.daporkchop.lib.nbt.tag.pork.*;
+import net.daporkchop.lib.nbt.tag.notch.ByteArrayTag;
+import net.daporkchop.lib.nbt.tag.notch.ByteTag;
+import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
+import net.daporkchop.lib.nbt.tag.notch.DoubleTag;
+import net.daporkchop.lib.nbt.tag.notch.FloatTag;
+import net.daporkchop.lib.nbt.tag.notch.IntArrayTag;
+import net.daporkchop.lib.nbt.tag.notch.IntTag;
+import net.daporkchop.lib.nbt.tag.notch.ListTag;
+import net.daporkchop.lib.nbt.tag.notch.LongArrayTag;
+import net.daporkchop.lib.nbt.tag.notch.LongTag;
+import net.daporkchop.lib.nbt.tag.notch.ShortTag;
+import net.daporkchop.lib.nbt.tag.notch.StringTag;
+import net.daporkchop.lib.nbt.tag.pork.BooleanTag;
+import net.daporkchop.lib.nbt.tag.pork.CharArrayTag;
+import net.daporkchop.lib.nbt.tag.pork.CharTag;
+import net.daporkchop.lib.nbt.tag.pork.DoubleArrayTag;
+import net.daporkchop.lib.nbt.tag.pork.FloatArrayTag;
+import net.daporkchop.lib.nbt.tag.pork.ShortArrayTag;
 import net.daporkchop.lib.primitive.map.ByteObjectMap;
 import net.daporkchop.lib.primitive.map.ObjectByteMap;
 import net.daporkchop.lib.primitive.map.hashmap.ByteObjectHashMap;

@@ -62,26 +62,26 @@ public class Digest implements BaseDigest {
         return new Digester(this.digestCache.get());
     }
 
-    public Digester start(@NonNull byte[] hashOut)  {
+    public Digester start(@NonNull byte[] hashOut) {
         if (hashOut.length < this.hashSize) {
             throw new IllegalStateException(String.format("Hash size must be at least %d bytes, but found %d!", this.hashSize, hashOut.length));
         }
         return new Digester(this.digestCache.get(), hashOut);
     }
 
-    public Hash hash()  {
+    public Hash hash() {
         return new Digester(this.digestCache.get()).hash();
     }
 
-    public Hash hash(@NonNull byte[] data)  {
+    public Hash hash(@NonNull byte[] data) {
         return new Digester(this.digestCache.get())
                 .append(data)
                 .hash();
     }
 
-    public Hash hash(@NonNull byte[]... data)  {
+    public Hash hash(@NonNull byte[]... data) {
         Digester digester = new Digester(this.digestCache.get());
-        for (byte[] b : data)   {
+        for (byte[] b : data) {
             digester.append(b);
         }
         return digester.hash();

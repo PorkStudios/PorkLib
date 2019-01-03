@@ -22,7 +22,6 @@ import lombok.Setter;
 import net.daporkchop.lib.math.vector.i.Vec2i;
 import net.daporkchop.lib.math.vector.i.Vec3i;
 import net.daporkchop.lib.minecraft.tileentity.TileEntity;
-import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Column;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.World;

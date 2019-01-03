@@ -21,14 +21,6 @@ package net.daporkchop.lib.hash.alg;
  * @author Some BouncyCastle dev
  */
 public class SHA3 extends Keccak {
-    public SHA3() {
-        this(256);
-    }
-
-    public SHA3(int bitLength) {
-        super(checkBitLength(bitLength));
-    }
-
     private static int checkBitLength(int bitLength) {
         switch (bitLength) {
             case 224:
@@ -39,6 +31,14 @@ public class SHA3 extends Keccak {
             default:
                 throw new IllegalArgumentException("'bitLength' " + bitLength + " not supported for SHA-3");
         }
+    }
+
+    public SHA3() {
+        this(256);
+    }
+
+    public SHA3(int bitLength) {
+        super(checkBitLength(bitLength));
     }
 
     @Override

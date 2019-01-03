@@ -28,10 +28,10 @@ import java.util.function.Function;
 @FunctionalInterface
 public interface IOFunction<T, R> extends Function<T, R>, PConstants {
     @Override
-    default R apply(T t)    {
+    default R apply(T t) {
         try {
             return this.applyThrowing(t);
-        } catch (IOException e)  {
+        } catch (IOException e) {
             throw this.exception(e);
         }
     }

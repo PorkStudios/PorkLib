@@ -29,12 +29,11 @@ import javax.crypto.spec.SecretKeySpec;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.ref.SoftReference;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
  * A {@link Cipher} used for block ciphers.
- *
+ * <p>
  * This implementation currently updates the IV with every message encrypted, I should probably make
  * that configurable
  * //TODO: the above

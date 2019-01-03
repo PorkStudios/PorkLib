@@ -51,7 +51,7 @@ public class TileEntitySign extends TileEntityBase {
             this.line2 = ChatUtils.getOldText(this.data.<StringTag>get("Text2").getValue());
             this.line3 = ChatUtils.getOldText(this.data.<StringTag>get("Text3").getValue());
             this.line4 = ChatUtils.getOldText(this.data.<StringTag>get("Text4").getValue());
-        } catch (JsonParseException e)  {
+        } catch (JsonParseException e) {
             //invalid sign data, can happen sometimes so just ignore
             this.line1 = this.line2 = this.line3 = this.line4 = "";
         }

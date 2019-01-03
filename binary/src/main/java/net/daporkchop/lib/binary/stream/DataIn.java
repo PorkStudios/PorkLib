@@ -47,7 +47,19 @@ public abstract class DataIn extends InputStream {
     }
 
     public static DataIn wrap(@NonNull File file) throws IOException {
-        return wrap(new BufferedInputStream(new FileInputStream(file))); //TODO: reuse buffer
+        return wrapBuffered(file);
+    }
+
+    public static DataIn wrapBuffered(@NonNull File file) throws IOException {
+        return wrap(new BufferedInputStream(new FileInputStream(file)));
+    }
+
+    public static DataIn wrapBuffered(@NonNull File file, int bufferSize) throws IOException {
+        return wrap(new BufferedInputStream(new FileInputStream(file), bufferSize));
+    }
+
+    public static DataIn wrapNonBuffered(@NonNull File file) throws IOException {
+        return wrap(new FileInputStream(file));
     }
 
     /**

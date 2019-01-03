@@ -45,11 +45,19 @@ public abstract class DataOut extends OutputStream {
     }
 
     public static DataOut wrap(@NonNull File file) throws IOException {
-        return wrap(new FileOutputStream(file));
+        return wrapBuffered(file);
     }
 
-    public static DataOut wrap(@NonNull File file, int bufferSize) throws IOException {
+    public static DataOut wrapBuffered(@NonNull File file) throws IOException {
+        return wrap(new BufferedOutputStream(new FileOutputStream(file)));
+    }
+
+    public static DataOut wrapBuffered(@NonNull File file, int bufferSize) throws IOException {
         return wrap(new BufferedOutputStream(new FileOutputStream(file), bufferSize));
+    }
+
+    public static DataOut wrapNonBuffered(@NonNull File file) throws IOException {
+        return wrap(new FileOutputStream(file));
     }
 
     /**

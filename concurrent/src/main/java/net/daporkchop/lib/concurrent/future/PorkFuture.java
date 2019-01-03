@@ -31,11 +31,11 @@ public interface PorkFuture<T> {
 
     T get() throws InterruptedException, ExecutionException;
 
-    default T get(long time, @NonNull TimeUnit unit) throws InterruptedException, ExecutionException    {
+    default T get(long time, @NonNull TimeUnit unit) throws InterruptedException, ExecutionException {
         return this.get(unit.toMillis(time));
     }
 
-    default T getUnchecked()    {
+    default T getUnchecked() {
         try {
             return this.get();
         } catch (InterruptedException

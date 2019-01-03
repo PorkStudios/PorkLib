@@ -54,6 +54,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * @author DaPorkchop_
  */
 public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> implements Map<K, V> {
+    public static <K, V> Builder<K, V> builder(@NonNull PorkDB db, @NonNull String name) {
+        return new Builder<>(db, name);
+    }
     private final AtomicLong size = new AtomicLong(0L);
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
     @Getter
@@ -87,10 +90,6 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
 
         this.indexLookup.init(this, this.getFile("index", false));
         this.dataLookup.init(this, this.getFile("data", false));
-    }
-
-    public static <K, V> Builder<K, V> builder(@NonNull PorkDB db, @NonNull String name) {
-        return new Builder<>(db, name);
     }
 
     @Override

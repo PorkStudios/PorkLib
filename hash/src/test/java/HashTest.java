@@ -23,7 +23,7 @@ import java.util.Map;
  * @author DaPorkchop_
  */
 public class HashTest {
-    private static final Map<Digest, String> EMPTY_HASHES = new HashMap<Digest, String>(){
+    private static final Map<Digest, String> EMPTY_HASHES = new HashMap<Digest, String>() {
         {
             this.put(Digest.MD5, "d41d8cd98f00b204e9800998ecf8427e");
             this.put(Digest.SHA1, "da39a3ee5e6b4b0d3255bfef95601890afd80709");
@@ -35,7 +35,7 @@ public class HashTest {
         }
     };
 
-    private static final Map<Digest, String> QUICK_BROWN_FOX = new HashMap<Digest, String>(){
+    private static final Map<Digest, String> QUICK_BROWN_FOX = new HashMap<Digest, String>() {
         {
             this.put(Digest.MD5, "9e107d9d372bb6826bd81d3542a419d6");
             this.put(Digest.SHA1, "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
@@ -48,16 +48,16 @@ public class HashTest {
     };
 
     @Test
-    public void test()  {
+    public void test() {
         EMPTY_HASHES.forEach((digest, emptyHash) -> {
             String computed = digest.hash().toHex();
-            if (!emptyHash.equals(computed))    {
+            if (!emptyHash.equals(computed)) {
                 throw new IllegalStateException(String.format("Invalid empty hash! Expected %s but calculated %s", emptyHash, computed));
             }
         });
         QUICK_BROWN_FOX.forEach((digest, emptyHash) -> {
             String computed = digest.hash("The quick brown fox jumps over the lazy dog".getBytes()).toHex();
-            if (!emptyHash.equals(computed))    {
+            if (!emptyHash.equals(computed)) {
                 throw new IllegalStateException(String.format("Invalid hash for \"The quick brown fox...\"! Expected %s but calculated %s", emptyHash, computed));
             }
         });

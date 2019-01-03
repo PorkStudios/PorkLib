@@ -25,6 +25,43 @@ import static net.daporkchop.lib.math.primitive.Floor.floorI;
  * @author DaPorkchop_
  */
 public class PerlinEngine extends BasicSeedEngine {
+    private static double lerp(double t, double a, double b) {
+        return a + t * (b - a);
+    }
+
+    private static double fade(double t) {
+        return t * t * t * (t * (t * 6.0d - 15.0d) + 10.0d);
+    }
+
+    private static double grad(int hash, double x) {
+        int h = hash & 15;
+        double grad = 1.0f + (h & 7);  // Gradient value 1.0, 2.0, ..., 8.0
+        if ((h & 8) == 0) grad = -grad;         // and a random sign for the gradient
+        return (grad * x);           // Multiply the gradient with the distance
+    }
+
+    private static double grad(int hash, double x, double y) {
+        int h = hash & 7;      // Convert low 3 bits of hash code
+        double u = h < 4 ? x : y;  // into 8 simple gradient directions,
+        double v = h < 4 ? y : x;  // and compute the dot product with (x,y).
+        return ((h & 1) == 0 ? -u : u) + ((h & 2) == 0 ? -2.0f * v : 2.0f * v);
+    }
+
+    private static double grad(int hash, double x, double y, double z) {
+        int h = hash & 15;     // Convert low 4 bits of hash code into 12 simple
+        double u = h < 8 ? x : y; // gradient directions, and compute dot product.
+        double v = h < 4 ? y : h == 12 || h == 14 ? x : z; // Fix repeats at h = 12 to 15
+        return ((h & 1) == 0 ? -u : u) + ((h & 2) == 0 ? -v : v);
+    }
+
+    private static double grad(int hash, double x, double y, double z, double t) {
+        int h = hash & 31;      // Convert low 5 bits of hash code into 32 simple
+        double u = h < 24 ? x : y; // gradient directions, and compute dot product.
+        double v = h < 16 ? y : z;
+        double w = h < 8 ? z : t;
+        return ((h & 1) == 0 ? -u : u) + ((h & 2) == 0 ? -v : v) + ((h & 4) == 0 ? -w : w);
+    }
+
     public PerlinEngine(long seed) {
         super(seed);
     }
@@ -189,42 +226,5 @@ public class PerlinEngine extends BasicSeedEngine {
         double n1 = PerlinEngine.lerp(t, nx0, nx1);
 
         return PerlinEngine.lerp(s, n0, n1) * 0.835370364d;
-    }
-
-    private static double lerp(double t, double a, double b) {
-        return a + t * (b - a);
-    }
-
-    private static double fade(double t) {
-        return t * t * t * (t * (t * 6.0d - 15.0d) + 10.0d);
-    }
-
-    private static double grad(int hash, double x) {
-        int h = hash & 15;
-        double grad = 1.0f + (h & 7);  // Gradient value 1.0, 2.0, ..., 8.0
-        if ((h & 8) == 0) grad = -grad;         // and a random sign for the gradient
-        return (grad * x);           // Multiply the gradient with the distance
-    }
-
-    private static double grad(int hash, double x, double y) {
-        int h = hash & 7;      // Convert low 3 bits of hash code
-        double u = h < 4 ? x : y;  // into 8 simple gradient directions,
-        double v = h < 4 ? y : x;  // and compute the dot product with (x,y).
-        return ((h & 1) == 0 ? -u : u) + ((h & 2) == 0 ? -2.0f * v : 2.0f * v);
-    }
-
-    private static double grad(int hash, double x, double y, double z) {
-        int h = hash & 15;     // Convert low 4 bits of hash code into 12 simple
-        double u = h < 8 ? x : y; // gradient directions, and compute dot product.
-        double v = h < 4 ? y : h == 12 || h == 14 ? x : z; // Fix repeats at h = 12 to 15
-        return ((h & 1) == 0 ? -u : u) + ((h & 2) == 0 ? -v : v);
-    }
-
-    private static double grad(int hash, double x, double y, double z, double t) {
-        int h = hash & 31;      // Convert low 5 bits of hash code into 32 simple
-        double u = h < 24 ? x : y; // gradient directions, and compute dot product.
-        double v = h < 16 ? y : z;
-        double w = h < 8 ? z : t;
-        return ((h & 1) == 0 ? -u : u) + ((h & 2) == 0 ? -v : v) + ((h & 4) == 0 ? -w : w);
     }
 }

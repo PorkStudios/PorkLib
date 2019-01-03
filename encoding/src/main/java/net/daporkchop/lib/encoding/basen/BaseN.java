@@ -27,7 +27,7 @@ import java.util.Arrays;
  * @author DaPorkchop_
  */
 public class BaseN {
-    public static BaseN of(@NonNull String alphabet)    {
+    public static BaseN of(@NonNull String alphabet) {
         return new BaseN(alphabet);
     }
 

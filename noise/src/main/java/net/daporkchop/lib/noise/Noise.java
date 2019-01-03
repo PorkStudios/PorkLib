@@ -19,8 +19,8 @@ import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.noise.engine.INoiseEngine;
 import net.daporkchop.lib.noise.func.IntDoubleConsumer;
-import net.daporkchop.lib.noise.func.IntIntIntDoubleConsumer;
 import net.daporkchop.lib.noise.func.IntIntDoubleConsumer;
+import net.daporkchop.lib.noise.func.IntIntIntDoubleConsumer;
 
 /**
  * A wrapper for an {@link INoiseEngine}, providing useful helper methods

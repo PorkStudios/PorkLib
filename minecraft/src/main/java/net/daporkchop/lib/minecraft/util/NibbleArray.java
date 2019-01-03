@@ -31,7 +31,7 @@ public class NibbleArray {
     @NonNull
     private final byte[] data;
 
-    public NibbleArray()    {
+    public NibbleArray() {
         this(new byte[2048]);
     }
 

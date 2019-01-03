@@ -23,12 +23,12 @@ import lombok.NonNull;
  * @author DaPorkchop_
  */
 public interface PConstants {
-    default RuntimeException exception(@NonNull Throwable t)    {
-        return p_exception(t);
-    }
-
-    static RuntimeException p_exception(@NonNull Throwable t)    {
+    static RuntimeException p_exception(@NonNull Throwable t) {
         PUnsafe.throwException(t);
         return new RuntimeException(t); //unreachable code
+    }
+
+    default RuntimeException exception(@NonNull Throwable t) {
+        return p_exception(t);
     }
 }

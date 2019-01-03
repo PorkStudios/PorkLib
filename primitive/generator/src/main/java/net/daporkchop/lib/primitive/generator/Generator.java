@@ -51,16 +51,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static java.lang.Math.max;
-import static net.daporkchop.lib.primitive.generator.Primitive.FULLNAME_DEF;
-import static net.daporkchop.lib.primitive.generator.Primitive.GENERIC_EXTENDS_DEF;
-import static net.daporkchop.lib.primitive.generator.Primitive.GENERIC_HEADER_DEF;
-import static net.daporkchop.lib.primitive.generator.Primitive.GENERIC_SUPER_DEF;
-import static net.daporkchop.lib.primitive.generator.Primitive.HEADERS_DEF;
-import static net.daporkchop.lib.primitive.generator.Primitive.IMPORTS_DEF;
-import static net.daporkchop.lib.primitive.generator.Primitive.LICENSE_DEF;
-import static net.daporkchop.lib.primitive.generator.Primitive.METHODS_DEF;
-import static net.daporkchop.lib.primitive.generator.Primitive.PACKAGE_DEF;
-import static net.daporkchop.lib.primitive.generator.Primitive.primitives;
+import static net.daporkchop.lib.primitive.generator.Primitive.*;
 
 /**
  * @author DaPorkchop_
@@ -74,6 +65,8 @@ public class Generator implements Logging {
             "test"
     );
     public static String LICENSE;
+    private static final JsonParser JSON_PARSER = new JsonParser();
+    private static final JsonArray EMPTY_JSON_ARRAY = new JsonArray();
 
     static {
         primitives.add(
@@ -171,17 +164,6 @@ public class Generator implements Logging {
         }
     }
 
-    @NonNull
-    public final File inRoot;
-    @NonNull
-    public final File outRoot;
-    @NonNull
-    public final Collection<String> additionalImports;
-    private final List<String> importList = new ArrayList<>();
-    private final Collection<String> existing = new ArrayDeque<>();
-    private final Collection<String> generated = new ArrayDeque<>();
-    private String imports;
-
     public static void main(String... args) throws IOException {
         /*Generator generator = new Generator(
                 new File(".", "primitive/generator/src/main/resources"),
@@ -207,6 +189,16 @@ public class Generator implements Logging {
                 (double) SIZE.get() / 1024.0d / 1024.0d
         );
     }
+    @NonNull
+    public final File inRoot;
+    @NonNull
+    public final File outRoot;
+    @NonNull
+    public final Collection<String> additionalImports;
+    private final List<String> importList = new ArrayList<>();
+    private final Collection<String> existing = new ArrayDeque<>();
+    private final Collection<String> generated = new ArrayDeque<>();
+    private String imports;
 
     public void generate() {
         if (false && this.outRoot.exists()) {
@@ -344,7 +336,7 @@ public class Generator implements Logging {
             JsonObject settings;
             {
                 File settingsFile = new File(file.getAbsolutePath().replace(".template", ".json"));
-                if (settingsFile.exists())  {
+                if (settingsFile.exists()) {
                     try (Reader reader = new InputStreamReader(new BufferedInputStream(new FileInputStream(settingsFile)))) {
                         settings = JSON_PARSER.parse(reader).getAsJsonObject();
                     } catch (IOException e) {
@@ -355,10 +347,10 @@ public class Generator implements Logging {
                 }
             }
             String imports = this.imports;
-            if (settings.has("imports"))    {
+            if (settings.has("imports")) {
                 Collection<String> toAdd = StreamSupport.stream(settings.getAsJsonArray("imports").spliterator(), false)
                         .map(JsonElement::getAsString).collect(Collectors.toList());
-                for (String s : toAdd)  {
+                for (String s : toAdd) {
                     imports += String.format("\nimport %s;", s);
                 }
             }
@@ -367,9 +359,6 @@ public class Generator implements Logging {
         }
     }
 
-    private static final JsonParser JSON_PARSER = new JsonParser();
-    private static final JsonArray EMPTY_JSON_ARRAY = new JsonArray();
-
     private void populateToDepth(@NonNull File path, @NonNull String name, @NonNull String content, @NonNull String packageName, @NonNull String[] methods, int depth, @NonNull JsonObject settings, @NonNull String imports, Primitive... primitives) {
         if (depth > primitives.length) {
             Primitive[] p = new Primitive[primitives.length + 1];
@@ -377,16 +366,16 @@ public class Generator implements Logging {
             JsonArray validRoot = settings.has("valid") ? settings.getAsJsonArray("valid") : EMPTY_JSON_ARRAY;
             JsonArray valid = validRoot.size() >= p.length ? validRoot.get(p.length - 1).getAsJsonArray() : EMPTY_JSON_ARRAY;
             Primitive.primitives.forEach(primitive -> {
-                if (valid.size() != 0)  {
+                if (valid.size() != 0) {
                     //only if not empty
                     String primitiveFullName = primitive.getFullName();
                     boolean flag = false;
-                    for (JsonElement element : valid)   {
-                        if (element.getAsString().equalsIgnoreCase(primitiveFullName))  {
+                    for (JsonElement element : valid) {
+                        if (element.getAsString().equalsIgnoreCase(primitiveFullName)) {
                             flag = true;
                         }
                     }
-                    if (!flag)  {
+                    if (!flag) {
                         return;
                     }
                 }
@@ -558,16 +547,16 @@ public class Generator implements Logging {
             JsonArray validRoot = settings.has("valid") ? settings.getAsJsonArray("valid") : EMPTY_JSON_ARRAY;
             JsonArray valid = validRoot.size() >= p.length ? validRoot.get(p.length - 1).getAsJsonArray() : EMPTY_JSON_ARRAY;
             Primitive.primitives.forEach(primitive -> {
-                if (valid.size() != 0)  {
+                if (valid.size() != 0) {
                     //only if not empty
                     String primitiveFullName = primitive.getFullName();
                     boolean flag = false;
-                    for (JsonElement element : valid)   {
-                        if (element.getAsString().equalsIgnoreCase(primitiveFullName))  {
+                    for (JsonElement element : valid) {
+                        if (element.getAsString().equalsIgnoreCase(primitiveFullName)) {
                             flag = true;
                         }
                     }
-                    if (!flag)  {
+                    if (!flag) {
                         return;
                     }
                 }

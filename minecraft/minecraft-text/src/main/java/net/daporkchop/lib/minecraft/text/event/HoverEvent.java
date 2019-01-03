@@ -92,19 +92,18 @@ public class HoverEvent {
             }
         }
 
+        /**
+         * Gets a value by its canonical name.
+         */
+        public static HoverEvent.Action getValueByCanonicalName(String canonicalNameIn) {
+            return NAME_MAPPING.get(canonicalNameIn);
+        }
         private final boolean allowedInChat;
         private final String canonicalName;
 
         Action(String canonicalNameIn, boolean allowedInChatIn) {
             this.canonicalName = canonicalNameIn;
             this.allowedInChat = allowedInChatIn;
-        }
-
-        /**
-         * Gets a value by its canonical name.
-         */
-        public static HoverEvent.Action getValueByCanonicalName(String canonicalNameIn) {
-            return NAME_MAPPING.get(canonicalNameIn);
         }
 
         /**

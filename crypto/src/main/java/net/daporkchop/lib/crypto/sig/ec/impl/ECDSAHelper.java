@@ -19,12 +19,11 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.crypto.key.EllipticCurveKeyPair;
-import net.daporkchop.lib.crypto.sig.ec.SignatureHelper;
 import net.daporkchop.lib.crypto.sig.SignatureAlgorithms;
+import net.daporkchop.lib.crypto.sig.ec.SignatureHelper;
 import net.daporkchop.lib.crypto.sig.ec.hackery.ECSignatureSpi;
 import net.daporkchop.lib.hash.util.Digest;
 import net.daporkchop.lib.hash.util.DigestAlg;
-import net.daporkchop.lib.hash.util.Digester;
 import org.bouncycastle.jcajce.provider.asymmetric.util.DSAEncoder;
 
 import java.io.IOException;
@@ -37,7 +36,7 @@ public class ECDSAHelper extends SignatureHelper<EllipticCurveKeyPair> {
 
     @RequiredArgsConstructor
     @Getter
-    private static class AsBouncyCastleDigestWrapper implements org.bouncycastle.crypto.Digest  {
+    private static class AsBouncyCastleDigestWrapper implements org.bouncycastle.crypto.Digest {
         @NonNull
         private final DigestAlg digest;
 

@@ -97,12 +97,12 @@ public class SeekableStreamCipher extends SeekableCipher {
             public void write(@NonNull byte[] b, int off, int len) throws IOException {
                 if (off < 0 || len < 0) {
                     throw new IllegalArgumentException();
-                } else if (b.length < off + len)   {
+                } else if (b.length < off + len) {
                     throw new BufferUnderflowException();
                 } else {
                     byte[] buf = PorkUtil.BUFFER_CACHE_SMALL.get();
                     int bytes;
-                    for (int i = 0; i < len; i += bytes)   {
+                    for (int i = 0; i < len; i += bytes) {
                         bytes = Math.min(len - i, buf.length);
                         this.cipher.processBytes(b, off + i, bytes, buf, 0);
                         this.out.write(buf, 0, bytes);
@@ -139,7 +139,7 @@ public class SeekableStreamCipher extends SeekableCipher {
             @Override
             public int read() throws IOException {
                 int i = this.in.read();
-                if (i == -1)    {
+                if (i == -1) {
                     return -1;
                 } else {
                     return this.cipher.returnByte((byte) i) & 0xFF;
@@ -150,20 +150,20 @@ public class SeekableStreamCipher extends SeekableCipher {
             public int read(@NonNull byte[] b, int off, int len) throws IOException {
                 if (off < 0 || len < 0) {
                     throw new IllegalArgumentException();
-                } else if (b.length < off + len)   {
+                } else if (b.length < off + len) {
                     throw new BufferUnderflowException();
                 } else {
                     byte[] buf = PorkUtil.BUFFER_CACHE_SMALL.get();
                     int i;
                     int j = -1;
                     int bytes = Math.min(len, buf.length);
-                    while ((i = this.in.read(buf, 0, bytes)) != -1)  {
-                        if(j == -1) {
+                    while ((i = this.in.read(buf, 0, bytes)) != -1) {
+                        if (j == -1) {
                             j = 0;
                         }
                         this.cipher.processBytes(buf, 0, bytes, b, off + j);
                         j += i;
-                        if ((bytes = Math.min(len - j, buf.length)) == 0)   {
+                        if ((bytes = Math.min(len - j, buf.length)) == 0) {
                             //we're done!
                             break;
                         }
@@ -174,9 +174,9 @@ public class SeekableStreamCipher extends SeekableCipher {
 
             @Override
             public long skip(long n) throws IOException {
-                if (this.in.skip(n) != n)   {
+                if (this.in.skip(n) != n) {
                     throw new IllegalStateException("InputStream didn't skip bytes!");
-                } else if (this.cipher.skip(n) != n)    {
+                } else if (this.cipher.skip(n) != n) {
                     throw new IllegalStateException("Cipher didn't skip bytes!");
                 } else {
                     return n;

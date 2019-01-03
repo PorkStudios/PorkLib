@@ -29,20 +29,6 @@ import java.io.OutputStream;
  */
 public class NonWastingBufferedOutputStream extends FilterOutputStream {
     private static final ThreadLocal<byte[]> BUFFER_CACHE = ThreadLocal.withInitial(() -> new byte[8192]);
-    protected byte[] buf;
-    protected int count;
-
-    public NonWastingBufferedOutputStream(@NonNull OutputStream out) {
-        this(out, BUFFER_CACHE.get());
-    }
-
-    public NonWastingBufferedOutputStream(@NonNull OutputStream out, @NonNull byte[] buf) {
-        super(out);
-        if (buf.length <= 0) {
-            throw new IllegalArgumentException("Buffer size <= 0");
-        }
-        this.buf = buf;
-    }
 
     /**
      * Buffers an {@link OutputStream} with a default buffer size of 8192
@@ -73,6 +59,20 @@ public class NonWastingBufferedOutputStream extends FilterOutputStream {
             BUFFER_CACHE.set(buf);
         }
         return new NonWastingBufferedOutputStream(os, buf);
+    }
+    protected byte[] buf;
+    protected int count;
+
+    public NonWastingBufferedOutputStream(@NonNull OutputStream out) {
+        this(out, BUFFER_CACHE.get());
+    }
+
+    public NonWastingBufferedOutputStream(@NonNull OutputStream out, @NonNull byte[] buf) {
+        super(out);
+        if (buf.length <= 0) {
+            throw new IllegalArgumentException("Buffer size <= 0");
+        }
+        this.buf = buf;
     }
 
     private void flushBuffer() throws IOException {

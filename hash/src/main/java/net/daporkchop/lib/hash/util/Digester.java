@@ -37,17 +37,17 @@ public class Digester {
     @NonNull
     private final byte[] hashBuf;
 
-    public Digester(@NonNull DigestAlg digest)  {
+    public Digester(@NonNull DigestAlg digest) {
         this(digest, new byte[digest.getHashSize()]);
     }
 
-    public Digester append(byte b)  {
+    public Digester append(byte b) {
         this.digest.update(b);
         return this;
     }
 
-    public Digester append(int b)   {
-        if (b >= 256 || b < 0)  {
+    public Digester append(int b) {
+        if (b >= 256 || b < 0) {
             throw new IllegalStateException("input value must be in range 0-255!");
         }
         this.digest.update((byte) b);
@@ -64,23 +64,23 @@ public class Digester {
         return this;
     }
 
-    public Digester append(@NonNull File file) throws IOException  {
-        try (InputStream in = new FileInputStream(file))    {
+    public Digester append(@NonNull File file) throws IOException {
+        try (InputStream in = new FileInputStream(file)) {
             return this.append(in);
         }
     }
 
-    public Digester append(@NonNull InputStream in) throws IOException  {
+    public Digester append(@NonNull InputStream in) throws IOException {
         byte[] b = PorkUtil.BUFFER_CACHE_SMALL.get();
         int i;
-        while ((i = in.read(b)) != -1)  {
+        while ((i = in.read(b)) != -1) {
             this.append(b, 0, i);
         }
         in.close();
         return this;
     }
 
-    public Hash hash()  {
+    public Hash hash() {
         this.digest.doFinal(this.hashBuf, 0);
         this.digest = null;
         return new Hash(this.hashBuf);

@@ -77,6 +77,11 @@ public class OpenSimplexEngine implements INoiseEngine {
             3, -1, -1, -1, 1, -3, -1, -1, 1, -1, -3, -1, 1, -1, -1, -3,
             -3, -1, -1, -1, -1, -3, -1, -1, -1, -1, -3, -1, -1, -1, -1, -3,
     };
+
+    private static int fastFloor(double x) {
+        int xi = (int) x;
+        return x < xi ? xi - 1 : xi;
+    }
     /**
      * The current seed
      */
@@ -90,11 +95,6 @@ public class OpenSimplexEngine implements INoiseEngine {
 
     public OpenSimplexEngine(long seed) {
         this.setSeed(seed);
-    }
-
-    private static int fastFloor(double x) {
-        int xi = (int) x;
-        return x < xi ? xi - 1 : xi;
     }
 
     @Override

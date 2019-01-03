@@ -28,7 +28,6 @@ import net.daporkchop.lib.crypto.cipher.block.CipherPadding;
 import net.daporkchop.lib.crypto.cipher.block.CipherType;
 import net.daporkchop.lib.crypto.cipher.stream.StreamCipherType;
 import net.daporkchop.lib.crypto.exchange.ECDHHelper;
-import net.daporkchop.lib.crypto.key.CipherKey;
 import net.daporkchop.lib.crypto.key.EllipticCurveKeyPair;
 import net.daporkchop.lib.crypto.key.KeySerialization;
 import net.daporkchop.lib.crypto.keygen.KeyGen;
@@ -36,7 +35,6 @@ import net.daporkchop.lib.crypto.sig.ec.CurveType;
 import net.daporkchop.lib.crypto.sig.ec.EllipticCurveKeyCache;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -46,6 +44,46 @@ import java.util.concurrent.ThreadLocalRandom;
 @NoArgsConstructor
 @Getter
 public class CryptographySettings implements Data {
+    /**
+     * @see #random(Random)
+     */
+    public static CryptographySettings random() {
+        return random(ThreadLocalRandom.current());
+    }
+
+    /**
+     * Creates a new instance of {@link CryptographySettings} with randomly chosen settings.
+     * <p>
+     * This doesn't really have many practical applications aside from unit tests.
+     *
+     * @param random an instance of {@link Random} for choosing random numbers
+     * @return an instance of {@link CryptographySettings} with randomly chosen settings
+     */
+    public static CryptographySettings random(@NonNull Random random) {
+        CurveType curveType = CurveType.values()[random.nextInt(CurveType.values().length)];
+        switch (random.nextInt(3)) {
+            case 0: //block cipher
+                return new CryptographySettings(
+                        curveType,
+                        CipherType.values()[random.nextInt(CipherType.values().length)],
+                        CipherMode.values()[random.nextInt(CipherMode.values().length)],
+                        CipherPadding.values()[random.nextInt(CipherPadding.values().length)]
+                );
+            case 1: //stream cipher
+                return new CryptographySettings(
+                        curveType,
+                        StreamCipherType.values()[random.nextInt(StreamCipherType.values().length)]
+                );
+            case 2: //pseudo-stream cipher
+                return new CryptographySettings(
+                        curveType,
+                        CipherType.values()[random.nextInt(CipherType.values().length)],
+                        CipherMode.streamableModes()[random.nextInt(CipherMode.streamableModes().length)]
+                );
+            default:
+                throw new IllegalStateException();
+        }
+    }
     private EllipticCurveKeyPair keyPair;
     private CipherType cipherType;
     private CipherMode cipherMode;
@@ -106,47 +144,6 @@ public class CryptographySettings implements Data {
 
     public CryptographySettings(@NonNull DataIn in) throws IOException {
         this.read(in);
-    }
-
-    /**
-     * @see #random(Random)
-     */
-    public static CryptographySettings random() {
-        return random(ThreadLocalRandom.current());
-    }
-
-    /**
-     * Creates a new instance of {@link CryptographySettings} with randomly chosen settings.
-     * <p>
-     * This doesn't really have many practical applications aside from unit tests.
-     *
-     * @param random an instance of {@link Random} for choosing random numbers
-     * @return an instance of {@link CryptographySettings} with randomly chosen settings
-     */
-    public static CryptographySettings random(@NonNull Random random) {
-        CurveType curveType = CurveType.values()[random.nextInt(CurveType.values().length)];
-        switch (random.nextInt(3)) {
-            case 0: //block cipher
-                return new CryptographySettings(
-                        curveType,
-                        CipherType.values()[random.nextInt(CipherType.values().length)],
-                        CipherMode.values()[random.nextInt(CipherMode.values().length)],
-                        CipherPadding.values()[random.nextInt(CipherPadding.values().length)]
-                );
-            case 1: //stream cipher
-                return new CryptographySettings(
-                        curveType,
-                        StreamCipherType.values()[random.nextInt(StreamCipherType.values().length)]
-                );
-            case 2: //pseudo-stream cipher
-                return new CryptographySettings(
-                        curveType,
-                        CipherType.values()[random.nextInt(CipherType.values().length)],
-                        CipherMode.streamableModes()[random.nextInt(CipherMode.streamableModes().length)]
-                );
-            default:
-                throw new IllegalStateException();
-        }
     }
 
     @Override

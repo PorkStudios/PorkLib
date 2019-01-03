@@ -29,10 +29,10 @@ import net.daporkchop.lib.network.packet.handler.PacketHandler;
 public class TestChannelsPacket {
     public final int theIdOfTheChannelThatThePacketWasSupposedToBeSentOn; //man i love making variable names
 
-    public static class TestChannelsHandler implements PacketHandler<TestChannelsPacket>    {
+    public static class TestChannelsHandler implements PacketHandler<TestChannelsPacket> {
         @Override
         public void handle(@NonNull TestChannelsPacket packet, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception {
-            if (channelId == packet.theIdOfTheChannelThatThePacketWasSupposedToBeSentOn)    {
+            if (channelId == packet.theIdOfTheChannelThatThePacketWasSupposedToBeSentOn) {
                 Logging.logger.info("Received packet on correct channel: ${0}", channelId);
             } else {
                 Logging.logger.info("Received packet on incorrect channel: ${0}", channelId);

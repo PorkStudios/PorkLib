@@ -16,15 +16,17 @@
 package net.daporkchop.lib.crypto.cipher;
 
 import lombok.NonNull;
-import net.daporkchop.lib.crypto.cipher.block.*;
+import net.daporkchop.lib.crypto.cipher.block.BlockCipher;
+import net.daporkchop.lib.crypto.cipher.block.CipherMode;
+import net.daporkchop.lib.crypto.cipher.block.CipherPadding;
+import net.daporkchop.lib.crypto.cipher.block.CipherType;
+import net.daporkchop.lib.crypto.cipher.block.IVUpdater;
 import net.daporkchop.lib.crypto.cipher.stream.StreamCipher;
 import net.daporkchop.lib.crypto.cipher.stream.StreamCipherType;
 import net.daporkchop.lib.crypto.key.CipherKey;
-import net.daporkchop.lib.hash.util.Digest;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.function.Consumer;
 
 /**
  * A cipher can encrypt and decrypt messages

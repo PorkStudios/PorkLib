@@ -31,14 +31,14 @@ public class TestMain {
     @Test
     public void test() throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        for (int i = 50; i >= 0; i--)   {
+        for (int i = 50; i >= 0; i--) {
             int j = ThreadLocalRandom.current().nextInt(Integer.MAX_VALUE);
             DataOut out = DataOut.wrap(baos);
             out.writeVarInt(j);
             out.close();
             DataIn in = DataIn.wrap(new ByteArrayInputStream(baos.toByteArray()));
             int k = in.readVarInt();
-            if (j != k)   {
+            if (j != k) {
                 throw new IllegalStateException(String.format("%d %d", j, k));
             }
             in.close();
@@ -49,14 +49,14 @@ public class TestMain {
     @Test
     public void testVarLong() throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        for (int i = 500; i >= 0; i--)   {
+        for (int i = 500; i >= 0; i--) {
             long j = ThreadLocalRandom.current().nextLong();
             DataOut out = DataOut.wrap(baos);
             out.writeVarLong(j);
             out.close();
             DataIn in = DataIn.wrap(new ByteArrayInputStream(baos.toByteArray()));
             long k = in.readVarLong();
-            if (j != k)   {
+            if (j != k) {
                 throw new IllegalStateException(String.format("%d %d", j, k));
             }
             in.close();

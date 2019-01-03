@@ -17,7 +17,30 @@ package net.daporkchop.lib.crypto.cipher.block;
 
 import lombok.AllArgsConstructor;
 import org.bouncycastle.crypto.BlockCipher;
-import org.bouncycastle.crypto.engines.*;
+import org.bouncycastle.crypto.engines.AESEngine;
+import org.bouncycastle.crypto.engines.ARIAEngine;
+import org.bouncycastle.crypto.engines.BlowfishEngine;
+import org.bouncycastle.crypto.engines.CAST5Engine;
+import org.bouncycastle.crypto.engines.CAST6Engine;
+import org.bouncycastle.crypto.engines.CamelliaEngine;
+import org.bouncycastle.crypto.engines.DESEngine;
+import org.bouncycastle.crypto.engines.DSTU7624Engine;
+import org.bouncycastle.crypto.engines.GOST28147Engine;
+import org.bouncycastle.crypto.engines.GOST3412_2015Engine;
+import org.bouncycastle.crypto.engines.IDEAEngine;
+import org.bouncycastle.crypto.engines.NoekeonEngine;
+import org.bouncycastle.crypto.engines.RC2Engine;
+import org.bouncycastle.crypto.engines.RC6Engine;
+import org.bouncycastle.crypto.engines.RijndaelEngine;
+import org.bouncycastle.crypto.engines.SEEDEngine;
+import org.bouncycastle.crypto.engines.SM4Engine;
+import org.bouncycastle.crypto.engines.SerpentEngine;
+import org.bouncycastle.crypto.engines.Shacal2Engine;
+import org.bouncycastle.crypto.engines.SkipjackEngine;
+import org.bouncycastle.crypto.engines.TEAEngine;
+import org.bouncycastle.crypto.engines.ThreefishEngine;
+import org.bouncycastle.crypto.engines.TwofishEngine;
+import org.bouncycastle.crypto.engines.XTEAEngine;
 
 import java.util.function.Supplier;
 

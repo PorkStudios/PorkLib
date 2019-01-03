@@ -40,18 +40,6 @@ import java.util.function.Function;
  * @author DaPorkchop_
  */
 public class PorkDB implements Logging {
-    final Map<String, Container> loadedContainers = new ConcurrentHashMap<>();
-    private final Map<Class<? extends Container>, Function<String, ? extends Container.Builder>> builderCache = new IdentityHashMap<>();
-    @Getter
-    private final File root;
-    private final Object saveLock = new Object();
-    @Getter
-    private volatile boolean open = true;
-
-    private PorkDB(@NonNull Builder builder) {
-        this.root = builder.root;
-    }
-
     /**
      * Constructs a new {@link Builder}
      *
@@ -69,6 +57,17 @@ public class PorkDB implements Logging {
      */
     public static Builder builder(@NonNull File root) {
         return new Builder(null).setRoot(root);
+    }
+    final Map<String, Container> loadedContainers = new ConcurrentHashMap<>();
+    private final Map<Class<? extends Container>, Function<String, ? extends Container.Builder>> builderCache = new IdentityHashMap<>();
+    @Getter
+    private final File root;
+    private final Object saveLock = new Object();
+    @Getter
+    private volatile boolean open = true;
+
+    private PorkDB(@NonNull Builder builder) {
+        this.root = builder.root;
     }
 
     /**

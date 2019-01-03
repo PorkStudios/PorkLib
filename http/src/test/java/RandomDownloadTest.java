@@ -20,7 +20,6 @@ import net.daporkchop.lib.http.SimpleHTTP;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 /**
  * @author DaPorkchop_
@@ -29,10 +28,10 @@ public class RandomDownloadTest {
     @Test
     public void test() throws IOException {
         String data = SimpleHTTP.getString("https://raw.githubusercontent.com/DaMatrix/betterMapArt/master/src/main/resources/colors.json");
-        if (false)   {
+        if (false) {
             System.out.println(data);
         } else {
-            if (!data.trim().endsWith("}"))    {
+            if (!data.trim().endsWith("}")) {
                 throw new IllegalStateException();
             }
         }
@@ -44,25 +43,25 @@ public class RandomDownloadTest {
                 "https://www.daporkchop.net/contact",
                 "User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/70.0.3538.77 Chrome/70.0.3538.77 Safari/537.36"
         );
-        if (false)   {
+        if (false) {
             System.out.println(data);
         }
     }
 
     @Test
-    public void testGET()  throws IOException  {
+    public void testGET() throws IOException {
         String text = Base58.encodeBase58(TestRandomData.getRandomBytes(64, 128));
         String response = new JsonParser().parse(SimpleHTTP.getString(String.format("http://httpbin.org/get?data=%s", text))).getAsJsonObject().get("args").getAsJsonObject().get("data").getAsString();
-        if (!text.equals(response))  {
+        if (!text.equals(response)) {
             throw new IllegalStateException(String.format("Data not identical! Sent=%s Received=%s", text, response));
         }
     }
 
     @Test
-    public void testPOST()  throws IOException  {
+    public void testPOST() throws IOException {
         String text = String.format("{\"value\":\"%s\"}", Base58.encodeBase58(TestRandomData.getRandomBytes(64, 128)));
         String response = new JsonParser().parse(SimpleHTTP.postJsonAsString("http://httpbin.org/post", text)).getAsJsonObject().get("data").getAsString();
-        if (!text.equals(response))  {
+        if (!text.equals(response)) {
             throw new IllegalStateException(String.format("Data not identical! Sent=%s Received=%s", text, response));
         }
     }

@@ -30,7 +30,11 @@ import org.apache.commons.compress.compressors.gzip.GzipParameters;
 import org.apache.commons.compress.compressors.lz4.BlockLZ4CompressorInputStream;
 import org.apache.commons.compress.compressors.lz4.BlockLZ4CompressorOutputStream;
 import org.apache.commons.compress.compressors.lz4.FramedLZ4CompressorOutputStream;
-import org.tukaani.xz.*;
+import org.tukaani.xz.LZMA2Options;
+import org.tukaani.xz.LZMAInputStream;
+import org.tukaani.xz.LZMAOutputStream;
+import org.tukaani.xz.XZInputStream;
+import org.tukaani.xz.XZOutputStream;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -221,7 +225,7 @@ public class Compression {
     }
 
     @RequiredArgsConstructor
-    private static class LZMAWrapperOut extends OutputStream   {
+    private static class LZMAWrapperOut extends OutputStream {
         @NonNull
         private final LZMAOutputStream out;
 

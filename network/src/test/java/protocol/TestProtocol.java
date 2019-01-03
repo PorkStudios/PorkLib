@@ -15,11 +15,8 @@
 
 package protocol;
 
-import io.netty.buffer.ByteBuf;
 import net.daporkchop.lib.common.test.TestRandomData;
-import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
 import net.daporkchop.lib.network.packet.UserProtocol;
-import net.daporkchop.lib.network.packet.handler.MessageHandler;
 import protocol.packet.SimpleTestPacket;
 import protocol.packet.TestChannelsPacket;
 
@@ -42,18 +39,18 @@ public class TestProtocol extends UserProtocol<TestConnection> {
                 new TestChannelsPacket.TestChannelsHandler()
         );
         this.register((msg, connection, channelId) -> {
-                    int id = msg.readMedium();
-                    int len = TestRandomData.randomBytes[id].length;
-                    if (msg.readableBytes() != len) {
-                        throw new IllegalStateException("Invalid data length!");
-                    } else {
-                        byte[] b = new byte[len];
-                        msg.readBytes(b);
-                        if(!Arrays.equals(b, TestRandomData.randomBytes[id]))   {
-                            throw new IllegalStateException("Invalid data received!");
-                        }
-                    }
-                }, 25);
+            int id = msg.readMedium();
+            int len = TestRandomData.randomBytes[id].length;
+            if (msg.readableBytes() != len) {
+                throw new IllegalStateException("Invalid data length!");
+            } else {
+                byte[] b = new byte[len];
+                msg.readBytes(b);
+                if (!Arrays.equals(b, TestRandomData.randomBytes[id])) {
+                    throw new IllegalStateException("Invalid data received!");
+                }
+            }
+        }, 25);
     }
 
     @Override

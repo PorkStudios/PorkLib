@@ -20,12 +20,6 @@ public enum ChatType {
     SYSTEM((byte) 1),
     GAME_INFO((byte) 2);
 
-    private final byte id;
-
-    ChatType(byte id) {
-        this.id = id;
-    }
-
     public static ChatType byId(byte idIn) {
         for (ChatType chattype : values()) {
             if (idIn == chattype.id) {
@@ -34,6 +28,11 @@ public enum ChatType {
         }
 
         return CHAT;
+    }
+    private final byte id;
+
+    ChatType(byte id) {
+        this.id = id;
     }
 
     public byte getId() {

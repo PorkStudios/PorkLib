@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.common.function;
+package net.daporkchop.lib.common.function.io;
 
 import java.io.IOException;
 import java.util.function.Consumer;

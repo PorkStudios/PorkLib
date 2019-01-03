@@ -13,37 +13,55 @@
  *
  */
 
-package net.daporkchop.lib.nbt.util;
+package net.daporkchop.lib.binary.serialization.impl;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.serialization.Serializer;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.nbt.NBTIO;
-import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 
 import java.io.IOException;
-import java.util.function.Supplier;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
 /**
+ * A {@link Serializer} that uses java's built-in {@link Serializable} interface to read and write
+ * objects.
+ *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-public class IndirectNBTSerializer<V extends NBTSerializable> implements Serializer<V> {
-    @NonNull
-    private final Supplier<V> blankInstanceSupplier;
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class BasicSerializer<T extends Serializable> implements Serializer<T> {
+    private static final BasicSerializer INSTANCE = new BasicSerializer();
 
-    @Override
-    public void write(@NonNull V val, @NonNull DataOut out) throws IOException {
-        CompoundTag tag = new CompoundTag("");
-        NBTIO.write(out, tag);
+    /**
+     * Get an instance of {@link BasicSerializer}
+     *
+     * @param <T> the type of object to serialize
+     * @return an instance of {@link BasicSerializer} with the requested type
+     */
+    @SuppressWarnings("unchecked")
+    public static <T extends Serializable> BasicSerializer<T> getInstance() {
+        return (BasicSerializer<T>) INSTANCE;
     }
 
     @Override
-    public V read(@NonNull DataIn in) throws IOException {
-        V val = this.blankInstanceSupplier.get();
-        val.read(NBTIO.read(in));
-        return val;
+    public void write(@NonNull T val, @NonNull DataOut out) throws IOException {
+        try (ObjectOutputStream oOut = new ObjectOutputStream(out)) {
+            oOut.writeObject(val);
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public T read(@NonNull DataIn in) throws IOException {
+        try (ObjectInputStream oIn = new ObjectInputStream(in)) {
+            return (T) oIn.readObject();
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

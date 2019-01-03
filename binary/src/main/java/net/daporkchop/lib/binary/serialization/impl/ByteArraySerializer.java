@@ -13,10 +13,12 @@
  *
  */
 
-package net.daporkchop.lib.binary.data.impl;
+package net.daporkchop.lib.binary.serialization.impl;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.data.Serializer;
+import net.daporkchop.lib.binary.serialization.Serializer;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 
@@ -27,6 +29,7 @@ import java.io.IOException;
  *
  * @author DaPorkchop_
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ByteArraySerializer implements Serializer<byte[]> {
     /**
      * A shared instance of {@link ByteArraySerializer}

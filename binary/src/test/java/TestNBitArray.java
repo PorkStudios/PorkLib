@@ -13,7 +13,7 @@
  *
  */
 
-import net.daporkchop.lib.binary.NBitArray;
+import net.daporkchop.lib.binary.bit.NBitArray;
 import org.junit.Test;
 
 import java.util.concurrent.ThreadLocalRandom;

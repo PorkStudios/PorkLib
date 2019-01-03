@@ -47,7 +47,19 @@ public abstract class DataIn extends InputStream {
     }
 
     public static DataIn wrap(@NonNull File file) throws IOException {
-        return wrap(new BufferedInputStream(new FileInputStream(file))); //TODO: reuse buffer
+        return wrapBuffered(file);
+    }
+
+    public static DataIn wrapBuffered(@NonNull File file) throws IOException {
+        return wrap(new BufferedInputStream(new FileInputStream(file)));
+    }
+
+    public static DataIn wrapBuffered(@NonNull File file, int bufferSize) throws IOException {
+        return wrap(new BufferedInputStream(new FileInputStream(file), bufferSize));
+    }
+
+    public static DataIn wrapNonBuffered(@NonNull File file) throws IOException {
+        return wrap(new FileInputStream(file));
     }
 
     /**
@@ -189,7 +201,7 @@ public abstract class DataIn extends InputStream {
                 v |= (i & 0x7F) << o;
                 o += 7;
             }
-        } while ((i & 0x80) != 0);
+        } while ((i & 0x80) != 0 && o > 32);
         return optimizePositive ? v : ((v >>> 1) ^ -(v & 1));
     }
 
@@ -209,7 +221,7 @@ public abstract class DataIn extends InputStream {
                 v |= (i & 0x7FL) << o;
                 o += 7;
             }
-        } while ((i & 0x80) != 0);
+        } while ((i & 0x80) != 0 && o > 64);
         return optimizePositive ? v : ((v >>> 1L) ^ -(v & 1L));
     }
 

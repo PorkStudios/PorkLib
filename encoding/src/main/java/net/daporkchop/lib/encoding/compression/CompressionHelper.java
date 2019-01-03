@@ -22,8 +22,8 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.function.IOBiFunction;
-import net.daporkchop.lib.common.function.IOFunction;
+import net.daporkchop.lib.common.function.io.IOBiFunction;
+import net.daporkchop.lib.common.function.io.IOFunction;
 import net.daporkchop.lib.common.function.ThrowingSupplier;
 
 import java.io.ByteArrayInputStream;
@@ -31,7 +31,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.Field;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;

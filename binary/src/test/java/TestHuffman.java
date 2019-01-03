@@ -13,7 +13,7 @@
  *
  */
 
-import net.daporkchop.lib.binary.Huffman;
+import net.daporkchop.lib.binary.bit.Huffman;
 import net.daporkchop.lib.binary.UTF8;
 import org.junit.Test;
 

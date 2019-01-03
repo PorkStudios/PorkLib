@@ -13,26 +13,22 @@
  *
  */
 
-package net.daporkchop.lib.common.function.io;
+package net.daporkchop.lib.common.util;
 
-import net.daporkchop.lib.common.util.PConstants;
-
-import java.io.IOException;
-import java.util.function.Supplier;
+import lombok.NonNull;
 
 /**
+ * Some constants that may be used in a lot of classes
+ *
  * @author DaPorkchop_
  */
-@FunctionalInterface
-public interface IOSupplier<T> extends Supplier<T>, PConstants {
-    @Override
-    default T get() {
-        try {
-            return this.getThrowing();
-        } catch (IOException e) {
-            throw this.exception(e);
-        }
+public interface PConstants {
+    default RuntimeException exception(@NonNull Throwable t)    {
+        return p_exception(t);
     }
 
-    T getThrowing() throws IOException;
+    static RuntimeException p_exception(@NonNull Throwable t)    {
+        PUnsafe.throwException(t);
+        return new RuntimeException(t); //unreachable code
+    }
 }

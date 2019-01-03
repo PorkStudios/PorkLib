@@ -15,6 +15,8 @@
 
 package net.daporkchop.lib.common.function.io;
 
+import net.daporkchop.lib.common.util.PConstants;
+
 import java.io.IOException;
 import java.util.function.Consumer;
 
@@ -22,13 +24,13 @@ import java.util.function.Consumer;
  * @author DaPorkchop_
  */
 @FunctionalInterface
-public interface IOConsumer<T> extends Consumer<T> {
+public interface IOConsumer<T> extends Consumer<T>, PConstants {
     @Override
     default void accept(T t) {
         try {
             this.acceptThrowing(t);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw this.exception(e);
         }
     }
 

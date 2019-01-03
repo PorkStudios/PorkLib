@@ -15,6 +15,8 @@
 
 package net.daporkchop.lib.common.function.io;
 
+import net.daporkchop.lib.common.util.PConstants;
+
 import java.io.IOException;
 import java.util.function.BiConsumer;
 
@@ -22,13 +24,13 @@ import java.util.function.BiConsumer;
  * @author DaPorkchop_
  */
 @FunctionalInterface
-public interface IOBiConsumer<T, U> extends BiConsumer<T, U> {
+public interface IOBiConsumer<T, U> extends BiConsumer<T, U>, PConstants {
     @Override
     default void accept(T t, U u) {
         try {
             this.acceptThrowing(t, u);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw this.exception(e);
         }
     }
 

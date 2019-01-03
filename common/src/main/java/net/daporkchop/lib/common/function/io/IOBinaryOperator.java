@@ -18,21 +18,21 @@ package net.daporkchop.lib.common.function.io;
 import net.daporkchop.lib.common.util.PConstants;
 
 import java.io.IOException;
-import java.util.function.Supplier;
+import java.util.function.BinaryOperator;
 
 /**
  * @author DaPorkchop_
  */
 @FunctionalInterface
-public interface IOSupplier<T> extends Supplier<T>, PConstants {
+public interface IOBinaryOperator<T> extends BinaryOperator<T>, PConstants {
     @Override
-    default T get() {
+    default T apply(T t, T t2) {
         try {
-            return this.getThrowing();
+            return this.applyThrowing(t, t2);
         } catch (IOException e) {
             throw this.exception(e);
         }
     }
 
-    T getThrowing() throws IOException;
+    T applyThrowing(T t, T t2) throws IOException;
 }

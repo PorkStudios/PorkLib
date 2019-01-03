@@ -18,21 +18,21 @@ package net.daporkchop.lib.common.function.io;
 import net.daporkchop.lib.common.util.PConstants;
 
 import java.io.IOException;
-import java.util.function.Supplier;
+import java.util.function.BiPredicate;
 
 /**
  * @author DaPorkchop_
  */
 @FunctionalInterface
-public interface IOSupplier<T> extends Supplier<T>, PConstants {
+public interface IOBiPredicate<T, U> extends BiPredicate<T, U>, PConstants {
     @Override
-    default T get() {
+    default boolean test(T t, U u) {
         try {
-            return this.getThrowing();
+            return this.testThrowing(t, u);
         } catch (IOException e) {
             throw this.exception(e);
         }
     }
 
-    T getThrowing() throws IOException;
+    boolean testThrowing(T t, U u) throws IOException;
 }

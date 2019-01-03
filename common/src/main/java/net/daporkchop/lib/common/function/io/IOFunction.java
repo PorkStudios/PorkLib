@@ -15,6 +15,8 @@
 
 package net.daporkchop.lib.common.function.io;
 
+import net.daporkchop.lib.common.util.PConstants;
+
 import java.io.IOException;
 import java.util.function.Function;
 
@@ -24,13 +26,13 @@ import java.util.function.Function;
  * @author DaPorkchop_
  */
 @FunctionalInterface
-public interface IOFunction<T, R> extends Function<T, R> {
+public interface IOFunction<T, R> extends Function<T, R>, PConstants {
     @Override
     default R apply(T t)    {
         try {
             return this.applyThrowing(t);
         } catch (IOException e)  {
-            throw new RuntimeException(e);
+            throw this.exception(e);
         }
     }
 

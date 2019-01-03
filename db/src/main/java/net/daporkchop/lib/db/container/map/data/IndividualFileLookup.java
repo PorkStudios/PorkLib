@@ -96,7 +96,7 @@ public class IndividualFileLookup implements DataLookup {
                 throw new IllegalStateException(String.format("Couldn't create new file: %s", file.getAbsolutePath()));
             }
         }
-        try (DataOut out = DataOut.wrap(file, 4096)) {
+        try (DataOut out = DataOut.wrapBuffered(file, 4096)) {
             writer.accept(out);
         }
         return id;

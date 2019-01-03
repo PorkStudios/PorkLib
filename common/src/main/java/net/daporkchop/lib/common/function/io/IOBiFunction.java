@@ -13,37 +13,27 @@
  *
  */
 
-package net.daporkchop.lib.nbt.util;
-
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.serialization.Serializer;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.nbt.NBTIO;
-import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
+package net.daporkchop.lib.common.function.io;
 
 import java.io.IOException;
-import java.util.function.Supplier;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 /**
+ * A {@link Function} that can throw an {@link IOException}
+ *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-public class IndirectNBTSerializer<V extends NBTSerializable> implements Serializer<V> {
-    @NonNull
-    private final Supplier<V> blankInstanceSupplier;
-
+@FunctionalInterface
+public interface IOBiFunction<T, U, R> extends BiFunction<T, U, R> {
     @Override
-    public void write(@NonNull V val, @NonNull DataOut out) throws IOException {
-        CompoundTag tag = new CompoundTag("");
-        NBTIO.write(out, tag);
+    default R apply(T t, U u) {
+        try {
+            return this.applyThrowing(t, u);
+        } catch (IOException e)  {
+            throw new RuntimeException(e);
+        }
     }
 
-    @Override
-    public V read(@NonNull DataIn in) throws IOException {
-        V val = this.blankInstanceSupplier.get();
-        val.read(NBTIO.read(in));
-        return val;
-    }
+    R applyThrowing(T t, U u) throws IOException;
 }

@@ -13,10 +13,9 @@
  *
  */
 
-package net.daporkchop.lib.common.function;
+package net.daporkchop.lib.common.function.io;
 
 import java.io.IOException;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
@@ -24,15 +23,16 @@ import java.util.function.Function;
  *
  * @author DaPorkchop_
  */
-public interface IOBiFunction<T, U, R> extends BiFunction<T, U, R> {
+@FunctionalInterface
+public interface IOFunction<T, R> extends Function<T, R> {
     @Override
-    default R apply(T t, U u) {
+    default R apply(T t)    {
         try {
-            return this.applyThrowing(t, u);
+            return this.applyThrowing(t);
         } catch (IOException e)  {
             throw new RuntimeException(e);
         }
     }
 
-    R applyThrowing(T t, U u) throws IOException;
+    R applyThrowing(T t) throws IOException;
 }

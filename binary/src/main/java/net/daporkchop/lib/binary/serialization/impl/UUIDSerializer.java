@@ -13,19 +13,38 @@
  *
  */
 
-package net.daporkchop.lib.binary.data;
+package net.daporkchop.lib.binary.serialization.impl;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import net.daporkchop.lib.binary.serialization.Serializer;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 
 import java.io.IOException;
+import java.util.UUID;
 
 /**
+ * A {@link Serializer} that can read and write {@link UUID}s
+ *
  * @author DaPorkchop_
  */
-public interface Serializer<T> {
-    void write(@NonNull T val, @NonNull DataOut out) throws IOException;
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class UUIDSerializer implements Serializer<UUID> {
+    public static final UUIDSerializer INSTANCE = new UUIDSerializer();
 
-    T read(@NonNull DataIn in) throws IOException;
+    @Override
+    public void write(@NonNull UUID value, @NonNull DataOut out) throws IOException {
+        out.writeLong(value.getMostSignificantBits());
+        out.writeLong(value.getLeastSignificantBits());
+    }
+
+    @Override
+    public UUID read(@NonNull DataIn in) throws IOException {
+        return new UUID(
+                in.readLong(),
+                in.readLong()
+        );
+    }
 }

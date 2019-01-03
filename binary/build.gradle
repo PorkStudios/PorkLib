@@ -18,4 +18,6 @@ dependencies {
     compile project(":encoding")
 
     provided "io.netty:netty-buffer:$nettyVersion"
+
+    compile "com.zaxxer:SparseBitSet:$sparseBitSetVersion"
 }

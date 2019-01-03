@@ -13,25 +13,33 @@
  *
  */
 
-package net.daporkchop.lib.common.function;
+package net.daporkchop.lib.binary.serialization.impl;
+
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import net.daporkchop.lib.binary.serialization.Serializer;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
 
 import java.io.IOException;
-import java.util.function.Function;
 
 /**
- * A {@link Function} that can throw an {@link IOException}
+ * A {@link Serializer} that can read and write {@link String}s
  *
  * @author DaPorkchop_
  */
-public interface IOFunction<T, R> extends Function<T, R> {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class StringSerializer implements Serializer<String> {
+    public static final StringSerializer INSTANCE = new StringSerializer();
+
     @Override
-    default R apply(T t)    {
-        try {
-            return this.applyThrowing(t);
-        } catch (IOException e)  {
-            throw new RuntimeException(e);
-        }
+    public void write(@NonNull String value, @NonNull DataOut out) throws IOException {
+        out.writeUTF(value);
     }
 
-    R applyThrowing(T t) throws IOException;
+    @Override
+    public String read(@NonNull DataIn in) throws IOException {
+        return in.readUTF();
+    }
 }

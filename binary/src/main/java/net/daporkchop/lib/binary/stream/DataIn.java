@@ -276,7 +276,7 @@ public abstract class DataIn extends InputStream {
                 v |= (i & 0x7F) << o;
                 o += 7;
             }
-        } while ((i & 0x80) != 0 && o > 32);
+        } while ((i & 0x80) != 0 && o < 32);
         return optimizePositive ? v : ((v >>> 1) ^ -(v & 1));
     }
 
@@ -315,7 +315,7 @@ public abstract class DataIn extends InputStream {
                 v |= (i & 0x7FL) << o;
                 o += 7;
             }
-        } while ((i & 0x80) != 0 && o > 64);
+        } while ((i & 0x80) != 0 && o < 64);
         return optimizePositive ? v : ((v >>> 1L) ^ -(v & 1L));
     }
 

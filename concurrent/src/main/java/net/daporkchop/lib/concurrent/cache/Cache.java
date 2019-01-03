@@ -20,39 +20,36 @@ import lombok.NonNull;
 import java.util.function.Supplier;
 
 /**
- * A thread cache is essentially a {@link ThreadLocal}, able to store objects per-thread
+ * A cache holds a reference to an object
  *
  * @author DaPorkchop_
  */
-public interface ThreadCache<T> extends Cache<T> {
+public interface Cache<T> {
     /**
-     * Creates a new {@link ThreadCache} using a given supplier
+     * Gets a simple cache that won't hold a reference to the object until requested
      *
-     * @param theSupplier the supplier to use
-     * @param <T>         the type to be cached
-     * @return a {@link ThreadCache} for the given type using the given supplier
+     * @param supplier the supplier for the object type
+     * @param <T>      the type
+     * @return a cache
      */
-    static <T> ThreadCache<T> of(@NonNull Supplier<T> theSupplier) {
-        return new ThreadCache<T>() {
-            private final Supplier<T> supplier = theSupplier;
-            private final ThreadLocal<T> threadLocal = ThreadLocal.withInitial(this.supplier);
+    static <T> Cache<T> of(@NonNull Supplier<T> supplier) {
+        return new Cache<T>() {
+            private T val;
 
             @Override
-            public T get() {
-                return this.threadLocal.get();
-            }
-
-            @Override
-            public T getUncached() {
-                return this.supplier.get();
+            public synchronized T get() {
+                if (this.val == null && (this.val = supplier.get()) == null) {
+                    throw new NullPointerException();
+                }
+                return this.val;
             }
         };
     }
 
     /**
-     * Create a new instance, regardless of thread-local state
+     * Get an instance
      *
-     * @return a new instance
+     * @return an instance
      */
-    T getUncached();
+    T get();
 }

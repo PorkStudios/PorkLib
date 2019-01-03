@@ -16,43 +16,30 @@
 package net.daporkchop.lib.concurrent.cache;
 
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
+import java.lang.ref.SoftReference;
 import java.util.function.Supplier;
 
 /**
- * A thread cache is essentially a {@link ThreadLocal}, able to store objects per-thread
- *
  * @author DaPorkchop_
  */
-public interface ThreadCache<T> extends Cache<T> {
-    /**
-     * Creates a new {@link ThreadCache} using a given supplier
-     *
-     * @param theSupplier the supplier to use
-     * @param <T>         the type to be cached
-     * @return a {@link ThreadCache} for the given type using the given supplier
-     */
-    static <T> ThreadCache<T> of(@NonNull Supplier<T> theSupplier) {
-        return new ThreadCache<T>() {
-            private final Supplier<T> supplier = theSupplier;
-            private final ThreadLocal<T> threadLocal = ThreadLocal.withInitial(this.supplier);
+@RequiredArgsConstructor
+public class SoftCache<T> implements Cache<T> {
+    @NonNull
+    protected final Supplier<T> supplier;
 
-            @Override
-            public T get() {
-                return this.threadLocal.get();
-            }
+    protected SoftReference<T> ref;
 
-            @Override
-            public T getUncached() {
-                return this.supplier.get();
-            }
-        };
+    @Override
+    public synchronized T get() {
+        T val;
+        if (this.ref == null || (val = this.ref.get()) == null) {
+            this.ref = new SoftReference<>(val = this.supplier.get());
+        }
+        if (val == null)    {
+            throw new NullPointerException();
+        }
+        return val;
     }
-
-    /**
-     * Create a new instance, regardless of thread-local state
-     *
-     * @return a new instance
-     */
-    T getUncached();
 }

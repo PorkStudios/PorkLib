@@ -13,8 +13,8 @@
  *
  */
 
-package binary;import net.daporkchop.lib.binary.bit.BitInputStream;
-import net.daporkchop.lib.binary.bit.BitOutputStream;
+package binary;import net.daporkchop.lib.binary.stream.bit.BitInputStream;
+import net.daporkchop.lib.binary.stream.bit.BitOutputStream;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import org.junit.Test;

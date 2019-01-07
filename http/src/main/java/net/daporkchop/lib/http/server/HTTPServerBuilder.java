@@ -17,6 +17,7 @@ package net.daporkchop.lib.http.server;
 
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.handler.ssl.SslHandler;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -26,6 +27,7 @@ import net.daporkchop.lib.common.util.PorkUtil;
 import java.lang.reflect.Field;
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executor;
+import java.util.function.Supplier;
 
 /**
  * A builder for {@link HTTPServer}
@@ -85,6 +87,14 @@ public class HTTPServerBuilder {
      */
     @NonNull
     private EventLoopGroup group = DEFAULT_GROUP;
+
+    /**
+     * Creates instances of {@link SslHandler} to enable ssl on the connection.
+     *
+     * If this function returns null, SSL will not be enabled.
+     */
+    @NonNull
+    private Supplier<SslHandler> sslHandlerSupplier = () -> null;
 
     public HTTPServerBuilder setGroup(@NonNull Executor executor)   {
         this.group = new NioEventLoopGroup(0, executor);

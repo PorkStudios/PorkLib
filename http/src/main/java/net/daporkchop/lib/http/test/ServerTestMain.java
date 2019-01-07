@@ -15,23 +15,49 @@
 
 package net.daporkchop.lib.http.test;
 
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.ssl.util.SelfSignedCertificate;
+import net.daporkchop.lib.common.util.OperatingSystem;
+import net.daporkchop.lib.common.util.PConstants;
 import net.daporkchop.lib.http.server.HTTPServer;
 import net.daporkchop.lib.http.server.HTTPServerBuilder;
 import net.daporkchop.lib.logging.Logging;
 
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLException;
 import java.io.File;
+import java.security.cert.CertificateException;
 import java.util.Scanner;
 
 /**
  * @author DaPorkchop_
  */
 public class ServerTestMain implements Logging {
-    public static void main(String... args) {
+    public static void main(String... args) throws CertificateException {
         logger.setLevel(5);
         logger.add(new File("./http/test_out/serverTest.log"), true);
 
+        logger.info("Starting on ${0}...", OperatingSystem.NAME_CURRENT);
+        SelfSignedCertificate certificate = new SelfSignedCertificate();
+
         logger.info("Server starting...");
-        HTTPServer server = HTTPServerBuilder.of(8081).build();
+        HTTPServer server = HTTPServerBuilder.of(8081)
+                .setSslHandlerSupplier(() -> {
+                    try {
+                        SslContext context = SslContextBuilder.forServer(
+                                new File("Z:\\keyutil_example.com_4009288149713550083.crt"),
+                                new File("Z:\\keyutil_example.com_489464357434398085.key")
+                        ).build();
+                        SSLEngine engine = context.newEngine(ByteBufAllocator.DEFAULT);
+                        return new SslHandler(engine);
+                    } catch (SSLException e) {
+                        throw PConstants.p_exception(e);
+                    }
+                })
+                .build();
 
         logger.info("Server started on port 8081!");
         {

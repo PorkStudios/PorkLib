@@ -21,6 +21,7 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.ssl.SslHandler;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import lombok.NonNull;
 import net.daporkchop.lib.http.ResponseCode;
@@ -28,6 +29,7 @@ import net.daporkchop.lib.http.server.handler.RequestHandler;
 import net.daporkchop.lib.logging.Logging;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 /**
  * A server for HTTP requests
@@ -38,6 +40,7 @@ public class HTTPServer implements Logging {
     final ChannelGroup channels;
     final Channel channel;
     final AtomicBoolean shutdownLock = new AtomicBoolean(false);
+    final Supplier<SslHandler> sslHandlerSupplier;
 
     final RequestHandler handler = (request, response) -> {
         logger.debug("Received ${0} request to ${1}", request.getMethod(), request.getPath());
@@ -49,6 +52,7 @@ public class HTTPServer implements Logging {
 
     public HTTPServer(@NonNull HTTPServerBuilder builder) {
         this.channels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
+        this.sslHandlerSupplier = builder.getSslHandlerSupplier();
 
         try {
             ServerBootstrap bootstrap = new ServerBootstrap();

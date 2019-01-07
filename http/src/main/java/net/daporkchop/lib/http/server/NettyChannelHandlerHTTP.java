@@ -20,6 +20,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.ssl.SslHandler;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -50,6 +51,11 @@ public class NettyChannelHandlerHTTP extends ChannelInboundHandlerAdapter implem
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
         logger.trace("Incoming connection: ${0}", ctx.channel().remoteAddress());
         this.server.channels.add(ctx.channel());
+
+        SslHandler sslHandler = this.server.sslHandlerSupplier.get();
+        if (sslHandler != null) {
+            ctx.channel().pipeline().addFirst("ssl", sslHandler);
+        }
     }
 
     @Override
@@ -61,17 +67,17 @@ public class NettyChannelHandlerHTTP extends ChannelInboundHandlerAdapter implem
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         Channel channel = ctx.channel();
-        logger.debug("Received message: ${0}", ((ByteBuf) msg).toString(UTF8.utf8));
+        //logger.debug("Received message: ${0}", ((ByteBuf) msg).toString(UTF8.utf8));
         RequestReader reader = new RequestReader((ByteBuf) msg);
         RequestMethod method = RequestMethod.valueOf(reader.readUntilSpace());
         String path = reader.readUntilSpace();
-        logger.debug("Skipped ${0} bytes!", reader.skipUntil('\r'));
+        //logger.debug("Skipped ${0} bytes!", reader.skipUntil('\r'));
         reader.skip(1);
         Parameters parameters;
         {
             List<String> params = new LinkedList<>();
             while (reader.next() != '\r') {
-                logger.debug("Next: ${0}", reader.next());
+                //logger.debug("Next: ${0}", reader.next());
                 params.add(reader.readUntil('\r'));
                 reader.skip(1);
             }

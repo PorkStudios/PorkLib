@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -65,26 +65,26 @@ public class Formatter {
     public static String format(@NonNull String message, @NonNull Object... params) {
         String[] values = VALUE_CACHE.get().computeIfAbsent(params.length, String[]::new);
         boolean reentrant = false;
-        for (int i = params.length - 1; i >= 0; i--)    {
-            if (values[i] != null)  {
+        for (int i = params.length - 1; i >= 0; i--) {
+            if (values[i] != null) {
                 reentrant = true;
                 break;
             }
         }
-        if (reentrant)  {
+        if (reentrant) {
             values = new String[params.length];
         }
         int valuesConsecutiveLength = 0;
         for (int i = params.length - 1; i >= 0; i--) {
             Object o = params[i];
             String s;
-            if (o == null)  {
+            if (o == null) {
                 s = "null";
             } else if (o instanceof String) {
                 s = (String) o;
             } else if (o instanceof Class) {
                 s = ((Class) o).getCanonicalName();
-            } else if (o instanceof File)   {
+            } else if (o instanceof File) {
                 s = ((File) o).getAbsolutePath();
             } else {
                 s = Objects.toString(o);

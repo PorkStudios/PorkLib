@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -24,11 +24,11 @@ import net.daporkchop.lib.minecraft.world.World;
  * @author DaPorkchop_
  */
 public interface WorldManager {
-    default int getMinChunkY()  {
+    default int getMinChunkY() {
         return 0;
     }
 
-    default int getMaxChunkY()  {
+    default int getMaxChunkY() {
         return 15;
     }
 
@@ -40,11 +40,11 @@ public interface WorldManager {
 
     void saveColumn(@NonNull Column column);
 
-    default void loadChunk(@NonNull Column column, int y)    {
+    default void loadChunk(@NonNull Column column, int y) {
         throw new UnsupportedOperationException();
     }
 
-    default void saveChunk(@NonNull Chunk chunk)    {
+    default void saveChunk(@NonNull Chunk chunk) {
         throw new UnsupportedOperationException();
     }
 

@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -92,19 +92,18 @@ public class HoverEvent {
             }
         }
 
+        /**
+         * Gets a value by its canonical name.
+         */
+        public static HoverEvent.Action getValueByCanonicalName(String canonicalNameIn) {
+            return NAME_MAPPING.get(canonicalNameIn);
+        }
         private final boolean allowedInChat;
         private final String canonicalName;
 
         Action(String canonicalNameIn, boolean allowedInChatIn) {
             this.canonicalName = canonicalNameIn;
             this.allowedInChat = allowedInChatIn;
-        }
-
-        /**
-         * Gets a value by its canonical name.
-         */
-        public static HoverEvent.Action getValueByCanonicalName(String canonicalNameIn) {
-            return NAME_MAPPING.get(canonicalNameIn);
         }
 
         /**

@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -43,7 +43,6 @@ public class KeyGen {
      *
      * @param seed  The seed to use for random generation
      * @param curve The type of curve to generate
-     *
      * @return An instance of SecretKey for use by EC key exchange methods
      */
     public static EllipticCurveKeyPair gen(byte[] seed, CurveType curve) {
@@ -63,7 +62,6 @@ public class KeyGen {
      * Generate a random EC key pair, using 1024 bytes of random data as a seed
      *
      * @param curve The type of curve to generate
-     *
      * @return An instance of SecretKey for use by EC key exchange methods
      */
     public static EllipticCurveKeyPair gen(CurveType curve) {
@@ -75,7 +73,6 @@ public class KeyGen {
      *
      * @param type the block cipher algorithm to generate for
      * @param seed the seed to use for random generation
-     *
      * @return a random CipherKey
      */
     public static CipherKey gen(@NonNull CipherType type, byte[] seed) {
@@ -100,7 +97,6 @@ public class KeyGen {
      * Generates a random block cipher key
      *
      * @param type the block cipher algorithm to generate for
-     *
      * @return a random CipherKey
      */
     public static CipherKey gen(@NonNull CipherType type) {

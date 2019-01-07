@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -16,7 +16,12 @@
 package net.daporkchop.lib.network.pork;
 
 import net.daporkchop.lib.network.packet.UserProtocol;
-import net.daporkchop.lib.network.pork.packet.*;
+import net.daporkchop.lib.network.pork.packet.CloseChannelPacket;
+import net.daporkchop.lib.network.pork.packet.DisconnectPacket;
+import net.daporkchop.lib.network.pork.packet.HandshakeCompletePacket;
+import net.daporkchop.lib.network.pork.packet.HandshakeInitPacket;
+import net.daporkchop.lib.network.pork.packet.HandshakeResponsePacket;
+import net.daporkchop.lib.network.pork.packet.OpenChannelPacket;
 
 /**
  * The protocol used by PorkLib network for internal messaging

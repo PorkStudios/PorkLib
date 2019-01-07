@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -31,7 +31,6 @@ import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.format.WorldManager;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -52,7 +51,7 @@ public class WorldImpl implements World {
             .maximumSize(34 * 34 * Runtime.getRuntime().availableProcessors())
             .expireAfterAccess(30L, TimeUnit.SECONDS) //TODO: configurable
             .removalListener((RemovalListener<Vec2i, Column>) n -> {
-                if (n.getCause() != RemovalCause.REPLACED)  {
+                if (n.getCause() != RemovalCause.REPLACED) {
                     n.getValue().unload();
                 }
             })

@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -21,7 +21,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.function.IOFunction;
 import net.daporkchop.lib.db.container.DBAtomicLong;
 import net.daporkchop.lib.db.container.map.DBMap;
 import net.daporkchop.lib.logging.Logging;
@@ -33,7 +32,6 @@ import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -42,18 +40,6 @@ import java.util.function.Function;
  * @author DaPorkchop_
  */
 public class PorkDB implements Logging {
-    final Map<String, Container> loadedContainers = new ConcurrentHashMap<>();
-    private final Map<Class<? extends Container>, Function<String, ? extends Container.Builder>> builderCache = new IdentityHashMap<>();
-    @Getter
-    private final File root;
-    private final Object saveLock = new Object();
-    @Getter
-    private volatile boolean open = true;
-
-    private PorkDB(@NonNull Builder builder) {
-        this.root = builder.root;
-    }
-
     /**
      * Constructs a new {@link Builder}
      *
@@ -71,6 +57,17 @@ public class PorkDB implements Logging {
      */
     public static Builder builder(@NonNull File root) {
         return new Builder(null).setRoot(root);
+    }
+    final Map<String, Container> loadedContainers = new ConcurrentHashMap<>();
+    private final Map<Class<? extends Container>, Function<String, ? extends Container.Builder>> builderCache = new IdentityHashMap<>();
+    @Getter
+    private final File root;
+    private final Object saveLock = new Object();
+    @Getter
+    private volatile boolean open = true;
+
+    private PorkDB(@NonNull Builder builder) {
+        this.root = builder.root;
     }
 
     /**

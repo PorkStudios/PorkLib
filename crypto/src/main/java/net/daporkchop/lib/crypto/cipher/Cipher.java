@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -16,15 +16,17 @@
 package net.daporkchop.lib.crypto.cipher;
 
 import lombok.NonNull;
-import net.daporkchop.lib.crypto.cipher.block.*;
+import net.daporkchop.lib.crypto.cipher.block.BlockCipher;
+import net.daporkchop.lib.crypto.cipher.block.CipherMode;
+import net.daporkchop.lib.crypto.cipher.block.CipherPadding;
+import net.daporkchop.lib.crypto.cipher.block.CipherType;
+import net.daporkchop.lib.crypto.cipher.block.IVUpdater;
 import net.daporkchop.lib.crypto.cipher.stream.StreamCipher;
 import net.daporkchop.lib.crypto.cipher.stream.StreamCipherType;
 import net.daporkchop.lib.crypto.key.CipherKey;
-import net.daporkchop.lib.hash.util.Digest;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.function.Consumer;
 
 /**
  * A cipher can encrypt and decrypt messages

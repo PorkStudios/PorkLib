@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -22,17 +22,20 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.function.IOBiFunction;
-import net.daporkchop.lib.common.function.IOFunction;
 import net.daporkchop.lib.common.function.ThrowingSupplier;
+import net.daporkchop.lib.common.function.io.IOBiFunction;
+import net.daporkchop.lib.common.function.io.IOFunction;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.Field;
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Hashtable;
+import java.util.IdentityHashMap;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
@@ -45,18 +48,6 @@ import java.util.stream.Stream;
 public class CompressionHelper<ParamType> {
     static final Map<String, CompressionHelper> nameLookup = Collections.synchronizedMap(new Hashtable<>());
     static final Map<CompressionHelper, String> reverseNameLookup = Collections.synchronizedMap(new IdentityHashMap<>());
-
-    @NonNull
-    @Getter
-    private final String name;
-    @NonNull
-    @Getter
-    private final String level;
-    private final ParamType params;
-    @NonNull
-    private final IOBiFunction<InputStream, ParamType, InputStream> inputStreamWrapper;
-    @NonNull
-    private final IOBiFunction<OutputStream, ParamType, OutputStream> outputStreamWrapper;
 
     static boolean registerCompressionType(@NonNull String name, @NonNull CompressionHelper helper) {
         return nameLookup.putIfAbsent(name, helper) == null && reverseNameLookup.put(helper, name) == null;
@@ -91,6 +82,17 @@ public class CompressionHelper<ParamType> {
     public static <ParamType> Builder<ParamType> builder(@NonNull String name, @NonNull String level) {
         return new Builder<>(name, level);
     }
+    @NonNull
+    @Getter
+    private final String name;
+    @NonNull
+    @Getter
+    private final String level;
+    private final ParamType params;
+    @NonNull
+    private final IOBiFunction<InputStream, ParamType, InputStream> inputStreamWrapper;
+    @NonNull
+    private final IOBiFunction<OutputStream, ParamType, OutputStream> outputStreamWrapper;
 
     public InputStream inflate(@NonNull InputStream in) throws IOException {
         return this.inputStreamWrapper.applyThrowing(in, this.params);

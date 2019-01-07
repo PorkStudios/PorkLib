@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -34,6 +34,9 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 @Getter
 public class DBAtomicLong extends Container<AtomicLong, DBAtomicLong.Builder> {
+    public static Builder builder(@NonNull PorkDB db, @NonNull String name) {
+        return new Builder(db, name);
+    }
     private final AtomicLong value = new AtomicLong();
 
     public DBAtomicLong(Builder builder) throws IOException {
@@ -42,10 +45,6 @@ public class DBAtomicLong extends Container<AtomicLong, DBAtomicLong.Builder> {
         try (DataIn in = DataIn.wrap(new FileInputStream(this.file))) {
             this.value.set(in.readLong());
         }
-    }
-
-    public static Builder builder(@NonNull PorkDB db, @NonNull String name) {
-        return new Builder(db, name);
     }
 
     public long get() {

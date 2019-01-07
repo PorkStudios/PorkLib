@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -10,6 +10,7 @@
  * Any persons and/or organizations using this software must disclose their source code and have it publicly available, include this license, provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  */
 
 package net.daporkchop.lib.hash.alg;
@@ -35,20 +36,6 @@ public class SHA256 extends BlockDigest {
             0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
             0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
     };
-    private int H1;
-    private int H2;
-    private int H3;
-    private int H4;
-    private int H5;
-    private int H6;
-    private int H7;
-    private int H8;
-    private final int[] X = new int[64];
-    private int xOff;
-
-    public SHA256() {
-        this.reset();
-    }
 
     //i made all these methods static so that they're more likely to be inlined by JIT
     private static int Ch(int x, int y, int z) {
@@ -73,6 +60,20 @@ public class SHA256 extends BlockDigest {
 
     private static int Theta1(int x) {
         return ((x >>> 17) | (x << 15)) ^ ((x >>> 19) | (x << 13)) ^ (x >>> 10);
+    }
+    private int H1;
+    private int H2;
+    private int H3;
+    private int H4;
+    private int H5;
+    private int H6;
+    private int H7;
+    private int H8;
+    private final int[] X = new int[64];
+    private int xOff;
+
+    public SHA256() {
+        this.reset();
     }
 
     @Override

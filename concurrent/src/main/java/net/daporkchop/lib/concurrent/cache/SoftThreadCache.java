@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -22,21 +22,20 @@ import java.util.function.Supplier;
 
 /**
  * A {@link ThreadCache} that keeps only a soft reference to objects.
- *
+ * <p>
  * Soft references will only be garbage collected when the JVM is running low on memory, and as such a soft cache should not
  * be more cpu-intensive than a plain thread-local cache unless the heap is mostly full (or just too small).
  *
  * @author DaPorkchop_
  */
 public class SoftThreadCache<T> implements ThreadCache<T> {
+    public static <T> SoftThreadCache<T> of(@NonNull Supplier<T> supplier) {
+        return new SoftThreadCache<>(supplier);
+    }
     private final Supplier<T> supplier;
     private final ThreadLocal<SoftReference<T>> threadLocal;
 
-    public static <T> SoftThreadCache<T> of(@NonNull Supplier<T> supplier)  {
-        return new SoftThreadCache<>(supplier);
-    }
-
-    private SoftThreadCache(@NonNull Supplier<T> supplier)  {
+    protected SoftThreadCache(@NonNull Supplier<T> supplier) {
         this.supplier = supplier;
         this.threadLocal = ThreadLocal.withInitial(() -> null);
     }
@@ -45,9 +44,11 @@ public class SoftThreadCache<T> implements ThreadCache<T> {
     public T get() {
         SoftReference<T> ref = this.threadLocal.get();
         T val;
-        if (ref == null || (val = ref.get()) == null)   {
-            val = this.supplier.get();
-            this.threadLocal.set(new SoftReference<>(val));
+        if (ref == null || (val = ref.get()) == null) {
+            this.threadLocal.set(new SoftReference<>(val = this.supplier.get()));
+        }
+        if (val == null) {
+            throw new NullPointerException();
         }
         return val;
     }

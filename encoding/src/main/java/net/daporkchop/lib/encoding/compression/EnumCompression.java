@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -37,6 +37,15 @@ public enum EnumCompression {
         return new WeakReference<>(b);
     });
 
+    static byte[] getBuf() {
+        WeakReference<byte[]> reference = buf.get();
+        byte[] bytes = reference.get();
+        if (bytes == null) {
+            bytes = new byte[1024];
+            buf.set(new WeakReference<>(bytes));
+        }
+        return bytes;
+    }
     private final Function<byte[], byte[]> compress;
     private final Function<byte[], byte[]> inflate;
     private final Function<OutputStream, OutputStream> compressStream;
@@ -47,16 +56,6 @@ public enum EnumCompression {
         this.inflate = inflate;
         this.compressStream = compressStream;
         this.inflateStream = inflateStream;
-    }
-
-    static byte[] getBuf() {
-        WeakReference<byte[]> reference = buf.get();
-        byte[] bytes = reference.get();
-        if (bytes == null) {
-            bytes = new byte[1024];
-            buf.set(new WeakReference<>(bytes));
-        }
-        return bytes;
     }
 
     public byte[] compress(@NonNull byte[] input) {

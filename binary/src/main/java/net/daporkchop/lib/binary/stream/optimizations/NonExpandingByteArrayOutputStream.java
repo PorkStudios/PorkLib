@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -32,10 +32,6 @@ import java.nio.BufferOverflowException;
 @RequiredArgsConstructor
 @Getter
 public class NonExpandingByteArrayOutputStream extends OutputStream {
-    @NonNull
-    private final byte[] buf;
-    private int pos;
-
     /**
      * Creates a new {@link NonExpandingByteArrayOutputStream}, wrapping a given buffer.
      * <p>
@@ -48,6 +44,9 @@ public class NonExpandingByteArrayOutputStream extends OutputStream {
     public static NonExpandingByteArrayOutputStream wrap(@NonNull byte[] buf) {
         return new NonExpandingByteArrayOutputStream(buf);
     }
+    @NonNull
+    private final byte[] buf;
+    private int pos;
 
     @Override
     public void write(int b) throws IOException {

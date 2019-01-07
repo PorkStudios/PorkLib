@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -17,10 +17,10 @@ package net.daporkchop.lib.db.container.map.data;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.data.impl.ConstantLengthSerializer;
+import net.daporkchop.lib.binary.serialization.impl.ConstantLengthSerializer;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.common.function.IOConsumer;
+import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.db.container.map.DBMap;
 import net.daporkchop.lib.db.util.PersistentSparseBitSet;
 
@@ -34,7 +34,7 @@ import java.nio.channels.FileChannel;
  * An implementation of {@link DataLookup} that stores everything in a single file with
  * minimal overhead.
  * <p>
- * This requires that a subclass of {@link net.daporkchop.lib.binary.data.impl.ConstantLengthSerializer} is used.
+ * This requires that a subclass of {@link net.daporkchop.lib.binary.serialization.impl.ConstantLengthSerializer} is used.
  *
  * @author DaPorkchop_
  */

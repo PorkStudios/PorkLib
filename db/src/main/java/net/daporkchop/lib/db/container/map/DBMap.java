@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -19,7 +19,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.binary.data.Serializer;
+import net.daporkchop.lib.binary.serialization.Serializer;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.db.Container;
@@ -54,6 +54,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * @author DaPorkchop_
  */
 public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> implements Map<K, V> {
+    public static <K, V> Builder<K, V> builder(@NonNull PorkDB db, @NonNull String name) {
+        return new Builder<>(db, name);
+    }
     private final AtomicLong size = new AtomicLong(0L);
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
     @Getter
@@ -87,10 +90,6 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
 
         this.indexLookup.init(this, this.getFile("index", false));
         this.dataLookup.init(this, this.getFile("data", false));
-    }
-
-    public static <K, V> Builder<K, V> builder(@NonNull PorkDB db, @NonNull String name) {
-        return new Builder<>(db, name);
     }
 
     @Override
@@ -313,14 +312,14 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
          * The {@link Serializer} used for writing values to disk.
          * <p>
          * If the {@link DataLookup} expects constant-length values, this must
-         * be set to an instance of {@link net.daporkchop.lib.binary.data.impl.ConstantLengthSerializer}.
+         * be set to an instance of {@link net.daporkchop.lib.binary.serialization.impl.ConstantLengthSerializer}.
          * <p>
          * MUST BE SET! Unlike all other fields in this class, this one is NOT set to a
          * default value.
          *
-         * @see net.daporkchop.lib.binary.data.impl.BasicSerializer
-         * @see net.daporkchop.lib.binary.data.impl.ConstantLengthSerializer
-         * @see net.daporkchop.lib.binary.data.impl.ByteArraySerializer
+         * @see net.daporkchop.lib.binary.serialization.impl.BasicSerializer
+         * @see net.daporkchop.lib.binary.serialization.impl.ConstantLengthSerializer
+         * @see net.daporkchop.lib.binary.serialization.impl.ByteArraySerializer
          * @see net.daporkchop.lib.nbt.util.NBTSerializer
          * @see net.daporkchop.lib.nbt.util.IndirectNBTSerializer
          */

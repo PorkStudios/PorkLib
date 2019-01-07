@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -19,12 +19,11 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.crypto.key.EllipticCurveKeyPair;
-import net.daporkchop.lib.crypto.sig.ec.SignatureHelper;
 import net.daporkchop.lib.crypto.sig.SignatureAlgorithms;
+import net.daporkchop.lib.crypto.sig.ec.SignatureHelper;
 import net.daporkchop.lib.crypto.sig.ec.hackery.ECSignatureSpi;
 import net.daporkchop.lib.hash.util.Digest;
 import net.daporkchop.lib.hash.util.DigestAlg;
-import net.daporkchop.lib.hash.util.Digester;
 import org.bouncycastle.jcajce.provider.asymmetric.util.DSAEncoder;
 
 import java.io.IOException;
@@ -37,7 +36,7 @@ public class ECDSAHelper extends SignatureHelper<EllipticCurveKeyPair> {
 
     @RequiredArgsConstructor
     @Getter
-    private static class AsBouncyCastleDigestWrapper implements org.bouncycastle.crypto.Digest  {
+    private static class AsBouncyCastleDigestWrapper implements org.bouncycastle.crypto.Digest {
         @NonNull
         private final DigestAlg digest;
 

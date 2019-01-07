@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -15,12 +15,20 @@
 
 package net.daporkchop.lib.logging;
 
-import lombok.*;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
 import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.common.util.Formatter;
 import net.daporkchop.lib.common.util.PorkUtil;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.HashSet;
@@ -100,10 +108,10 @@ public class Logger implements Logging {
     {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
-                for (OutputStream out : this.otherOutputs)  {
+                for (OutputStream out : this.otherOutputs) {
                     out.close();
                 }
-            } catch (IOException e)  {
+            } catch (IOException e) {
                 throw this.exception(e);
             }
         }));
@@ -148,7 +156,7 @@ public class Logger implements Logging {
     public void log(@NonNull String message, @NonNull LogLevel level) {
         if (level.getLevel() <= this.level) {
             if (message.indexOf('\n') == -1) {
-                if (level == LogLevel.ALERT)    {
+                if (level == LogLevel.ALERT) {
                     this.actuallyDoTheLoggingThing(this.format(ALERT_HEADER, LogLevel.ALERT).getBytes(UTF8.utf8));
                     this.actuallyDoTheLoggingThing(this.format(ALERT_PREFIX, LogLevel.ALERT).getBytes(UTF8.utf8));
                     this.actuallyDoTheLoggingThing(this.format(String.format("%s%s", ALERT_PREFIX, message), level).getBytes(UTF8.utf8));
@@ -161,7 +169,7 @@ public class Logger implements Logging {
             } else {
                 this.lock.lock();
                 try {
-                    if (level == LogLevel.ALERT)    {
+                    if (level == LogLevel.ALERT) {
                         this.actuallyDoTheLoggingThing(this.format(ALERT_HEADER, LogLevel.ALERT).getBytes(UTF8.utf8));
                         this.actuallyDoTheLoggingThing(this.format(ALERT_PREFIX, LogLevel.ALERT).getBytes(UTF8.utf8));
                         for (String subMsg : message.split("\n")) {

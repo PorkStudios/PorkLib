@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -51,7 +51,7 @@ public class TileEntitySign extends TileEntityBase {
             this.line2 = ChatUtils.getOldText(this.data.<StringTag>get("Text2").getValue());
             this.line3 = ChatUtils.getOldText(this.data.<StringTag>get("Text3").getValue());
             this.line4 = ChatUtils.getOldText(this.data.<StringTag>get("Text4").getValue());
-        } catch (JsonParseException e)  {
+        } catch (JsonParseException e) {
             //invalid sign data, can happen sometimes so just ignore
             this.line1 = this.line2 = this.line3 = this.line4 = "";
         }

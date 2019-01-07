@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -23,7 +23,6 @@ import net.daporkchop.lib.minecraft.world.impl.InitFunctions;
 import net.daporkchop.lib.primitive.map.IntegerObjectMap;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -37,13 +36,13 @@ public interface MinecraftSave extends Closeable {
     Map<ResourceLocation, Registry> getRegistries();
 
     @SuppressWarnings("unchecked")
-    default Registry getRegistry(@NonNull ResourceLocation name)   {
+    default Registry getRegistry(@NonNull ResourceLocation name) {
         return this.getRegistries().get(name);
     }
 
     IntegerObjectMap<World> getWorlds();
 
-    default World getWorld(int id)  {
+    default World getWorld(int id) {
         return this.getWorlds().get(id);
     }
 }

@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -57,66 +57,6 @@ public class Primitive {
     public static final String IMPORTS_DEF = "_imports_";
 
     public static final String METHODS_DEF = "_methods_";
-
-    @NonNull
-    private String fullName;
-    @NonNull
-    private String name;
-    @NonNull
-    private String hashCode;
-    private boolean generic;
-    @NonNull
-    private String emptyValue;
-    @NonNull
-    private String equals;
-    @NonNull
-    private String serializationName;
-    @NonNull
-    private String stringFormat;
-
-    public String format(@NonNull String text, int i) {
-        return this.format(text, i, true);
-    }
-
-    public String format(@NonNull String text, int i, boolean removeGenericThings) {
-        if (i == 0) {
-            if (this.generic) {
-                if (removeGenericThings){
-                    text = text
-                            .replaceAll("<%", "")
-                            .replaceAll("%>", "");
-                }
-            } else {
-                text = text.replaceAll("<%([\\s\\S]*?)%>", "");
-            }
-        }
-        return text
-                .replaceAll(String.format(FULLNAME_DEF, i), this.fullName)
-                .replaceAll(String.format(FULLNAME_FORCE_DEF, i), this.generic ? String.valueOf((char) ('A' + i)) : this.fullName)
-                .replaceAll(String.format(NAME_DEF, i), this.generic ? String.valueOf((char) ('A' + i)) : this.name)
-                .replaceAll(String.format(NAME_FORCE_DEF, i), this.name)
-                .replaceAll(String.format(HASHCODE_DEF, i), this.hashCode)
-                .replaceAll(String.format(EQUALS_DEF, i), this.equals)
-                .replaceAll(String.format(CAST_DEF, i), this.generic ? "(" + (char) ('A' + i) + ") " : "")
-                .replaceAll(String.format(EMPTYVALUE_DEF, i), this.emptyValue)
-                .replaceAll(String.format(NON_GENERIC_DEF, i), this.generic ? "" : this.name)
-                .replaceAll(String.format(GENERIC_DEF, i), this.generic ? "<" + ((char) ('A' + i)) + "> " : "")
-                .replaceAll(String.format(GENERIC_SUPER_P_DEF, i), getGenericSuper(i, this))
-                .replaceAll(String.format(GENERIC_EXTENDS_P_DEF, i), getGenericExtends(i, this))
-                .replaceAll(String.format(WRITE_P_DEF, i), String.format("write%s", this.serializationName == null ? this.fullName : this.serializationName))
-                .replaceAll(String.format(READ_P_DEF, i), String.format("read%s", this.serializationName == null ? this.fullName : this.serializationName))
-                .replaceAll(String.format(STRING_FORMAT_DEF, i), this.stringFormat);
-    }
-
-    public Primitive setGeneric() {
-        this.generic = true;
-        return this;
-    }
-
-    @Override
-    public String toString() {
-        return this.fullName;
-    }
 
     public static int countVariables(@NonNull String filename) {
         for (int i = 0; ; i++) {
@@ -256,5 +196,64 @@ public class Primitive {
             s = s.substring(0, s.length() - 2);
         }
         return s + '>';
+    }
+    @NonNull
+    private String fullName;
+    @NonNull
+    private String name;
+    @NonNull
+    private String hashCode;
+    private boolean generic;
+    @NonNull
+    private String emptyValue;
+    @NonNull
+    private String equals;
+    @NonNull
+    private String serializationName;
+    @NonNull
+    private String stringFormat;
+
+    public String format(@NonNull String text, int i) {
+        return this.format(text, i, true);
+    }
+
+    public String format(@NonNull String text, int i, boolean removeGenericThings) {
+        if (i == 0) {
+            if (this.generic) {
+                if (removeGenericThings) {
+                    text = text
+                            .replaceAll("<%", "")
+                            .replaceAll("%>", "");
+                }
+            } else {
+                text = text.replaceAll("<%([\\s\\S]*?)%>", "");
+            }
+        }
+        return text
+                .replaceAll(String.format(FULLNAME_DEF, i), this.fullName)
+                .replaceAll(String.format(FULLNAME_FORCE_DEF, i), this.generic ? String.valueOf((char) ('A' + i)) : this.fullName)
+                .replaceAll(String.format(NAME_DEF, i), this.generic ? String.valueOf((char) ('A' + i)) : this.name)
+                .replaceAll(String.format(NAME_FORCE_DEF, i), this.name)
+                .replaceAll(String.format(HASHCODE_DEF, i), this.hashCode)
+                .replaceAll(String.format(EQUALS_DEF, i), this.equals)
+                .replaceAll(String.format(CAST_DEF, i), this.generic ? "(" + (char) ('A' + i) + ") " : "")
+                .replaceAll(String.format(EMPTYVALUE_DEF, i), this.emptyValue)
+                .replaceAll(String.format(NON_GENERIC_DEF, i), this.generic ? "" : this.name)
+                .replaceAll(String.format(GENERIC_DEF, i), this.generic ? "<" + ((char) ('A' + i)) + "> " : "")
+                .replaceAll(String.format(GENERIC_SUPER_P_DEF, i), getGenericSuper(i, this))
+                .replaceAll(String.format(GENERIC_EXTENDS_P_DEF, i), getGenericExtends(i, this))
+                .replaceAll(String.format(WRITE_P_DEF, i), String.format("write%s", this.serializationName == null ? this.fullName : this.serializationName))
+                .replaceAll(String.format(READ_P_DEF, i), String.format("read%s", this.serializationName == null ? this.fullName : this.serializationName))
+                .replaceAll(String.format(STRING_FORMAT_DEF, i), this.stringFormat);
+    }
+
+    public Primitive setGeneric() {
+        this.generic = true;
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        return this.fullName;
     }
 }

@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -36,17 +36,6 @@ public class LanguageMap {
      * Is the private singleton instance of StringTranslate.
      */
     private static final LanguageMap instance = new LanguageMap();
-    private final Map<String, String> languageList = Maps.newHashMap();
-    /**
-     * The time, in milliseconds since epoch, that this instance was last updated
-     */
-    private long lastUpdateTimeInMilliseconds;
-
-    public LanguageMap() {
-        super();
-        InputStream inputstream = LanguageMap.class.getResourceAsStream("/assets/minecraft/lang/en_us.lang");
-        inject(this, inputstream);
-    }
 
     public static void inject(InputStream inputstream) {
         inject(instance, inputstream);
@@ -78,6 +67,17 @@ public class LanguageMap {
         instance.languageList.clear();
         instance.languageList.putAll(p_135063_0_);
         instance.lastUpdateTimeInMilliseconds = System.currentTimeMillis();
+    }
+    private final Map<String, String> languageList = Maps.newHashMap();
+    /**
+     * The time, in milliseconds since epoch, that this instance was last updated
+     */
+    private long lastUpdateTimeInMilliseconds;
+
+    public LanguageMap() {
+        super();
+        InputStream inputstream = LanguageMap.class.getResourceAsStream("/assets/minecraft/lang/en_us.lang");
+        inject(this, inputstream);
     }
 
     /**

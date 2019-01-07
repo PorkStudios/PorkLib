@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -44,7 +44,7 @@ allprojects {
     apply plugin: 'com.github.johnrengelman.shadow'
 
     group 'net.daporkchop.lib'
-    version '0.2.1-SNAPSHOT'
+    version '0.3.0-SNAPSHOT'
 
     sourceCompatibility = 1.8
 
@@ -99,7 +99,7 @@ allprojects {
         if (!("root".equalsIgnoreCase(project.name) || "common".equalsIgnoreCase(project.name))) {
             compile project(":common")
         }
-        if(!"logging".equalsIgnoreCase(project.name))   {
+        if (!"logging".equalsIgnoreCase(project.name)) {
             testCompile project(":logging")
         }
 
@@ -130,4 +130,15 @@ allprojects {
     }
 
     build.dependsOn(publishToMavenLocal)
+
+    test {
+        testLogging {
+            //show System.out calls in tests in gradle output
+            showStandardStreams = true
+
+            showExceptions = true
+            showStackTraces = true
+            showCauses = true
+        }
+    }
 }

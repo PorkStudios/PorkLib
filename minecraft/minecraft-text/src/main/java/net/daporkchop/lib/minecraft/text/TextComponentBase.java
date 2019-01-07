@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -24,13 +24,6 @@ import java.util.List;
 
 public abstract class TextComponentBase implements ITextComponent {
     /**
-     * The later siblings of this component.  If this component turns the text bold, that will apply to all the siblings
-     * until a later sibling turns the text something else.
-     */
-    protected List<ITextComponent> siblings = Lists.newArrayList();
-    private Style style;
-
-    /**
      * Creates an iterator that iterates over the given components, returning deep copies of each component in turn so
      * that the properties of the returned objects will remain externally consistent after being returned.
      */
@@ -49,6 +42,12 @@ public abstract class TextComponentBase implements ITextComponent {
         });
         return iterator;
     }
+    /**
+     * The later siblings of this component.  If this component turns the text bold, that will apply to all the siblings
+     * until a later sibling turns the text something else.
+     */
+    protected List<ITextComponent> siblings = Lists.newArrayList();
+    private Style style;
 
     /**
      * Adds a new component to the end of the sibling list, setting that component's style's parent style to this

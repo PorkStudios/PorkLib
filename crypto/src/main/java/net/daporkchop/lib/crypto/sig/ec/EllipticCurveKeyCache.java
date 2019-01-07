@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -33,9 +33,9 @@ import java.util.concurrent.ForkJoinPool;
 public class EllipticCurveKeyCache {
     private static final Map<CurveType, CompletableFuture<EllipticCurveKeyPair>> cache = new EnumMap<>(CurveType.class);
 
-    public static CompletableFuture<EllipticCurveKeyPair> getFutureKeyPair(@NonNull CurveType curveType)    {
-        synchronized (cache)    {
-            if (cache.containsKey(curveType))   {
+    public static CompletableFuture<EllipticCurveKeyPair> getFutureKeyPair(@NonNull CurveType curveType) {
+        synchronized (cache) {
+            if (cache.containsKey(curveType)) {
                 return cache.get(curveType);
             } else {
                 CompletableFuture<EllipticCurveKeyPair> future = new CompletableFuture<>();
@@ -46,10 +46,10 @@ public class EllipticCurveKeyCache {
         }
     }
 
-    public static EllipticCurveKeyPair getKeyPair(@NonNull CurveType type)  {
+    public static EllipticCurveKeyPair getKeyPair(@NonNull CurveType type) {
         try {
             return getFutureKeyPair(type).get();
-        } catch (Exception e)   {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }

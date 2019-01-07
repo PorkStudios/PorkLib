@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -29,27 +29,89 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 /**
+ * Provides simple methods for encoding data to a binary form
+ *
  * @author DaPorkchop_
+ * @see DataIn
  */
 public abstract class DataOut extends OutputStream {
-    public static DataOut wrap(OutputStream out) {
+    /**
+     * Wraps an {@link OutputStream} to make it a {@link DataOut}
+     *
+     * @param out the {@link OutputStream} to wrap
+     * @return the wrapped stream, or the original stream if it was already an instance of {@link DataOut}
+     */
+    public static DataOut wrap(@NonNull OutputStream out) {
         return out instanceof DataOut ? (DataOut) out : new StreamOut(out);
     }
 
-    public static DataOut wrapNonClosing(OutputStream out) {
+    /**
+     * Wraps an {@link OutputStream} to make it a {@link DataOut}.
+     * <p>
+     * Calling {@link #close()} on the returned {@link DataOut} will not cause the wrapped stream to be closed.
+     *
+     * @param out the {@link OutputStream} to wrap
+     * @return the wrapped stream, or the original stream if it was already an instance of {@link DataOut}
+     */
+    public static DataOut wrapNonClosing(@NonNull OutputStream out) {
         return out instanceof NonClosingStreamOut ? (NonClosingStreamOut) out : new NonClosingStreamOut(out);
     }
 
-    public static DataOut wrap(ByteBuffer buffer) {
+    /**
+     * Wraps a {@link ByteBuffer} to make it a {@link DataOut}
+     *
+     * @param buffer the buffer to wrap
+     * @return the wrapped buffer
+     */
+    public static DataOut wrap(@NonNull ByteBuffer buffer) {
         return new BufferOut(buffer);
     }
 
+    /**
+     * @see #wrapBuffered(File)
+     */
     public static DataOut wrap(@NonNull File file) throws IOException {
-        return wrap(new FileOutputStream(file));
+        return wrapBuffered(file);
     }
 
-    public static DataOut wrap(@NonNull File file, int bufferSize) throws IOException {
+    /**
+     * Gets a {@link DataOut} for writing to a {@link File}.
+     * <p>
+     * This stream will additionally be buffered for faster write access, using the default buffer size of 8192 bytes.
+     *
+     * @param file the file to write to
+     * @return a buffered {@link DataOut} that will write to the given file
+     * @throws IOException if an IO exception occurs you dummy
+     */
+    public static DataOut wrapBuffered(@NonNull File file) throws IOException {
+        return wrap(new BufferedOutputStream(new FileOutputStream(file)));
+    }
+
+    /**
+     * Gets a {@link DataOut} for writing to a {@link File}.
+     * <p>
+     * This stream will additionally be buffered for faster write access, using the given buffer size.
+     *
+     * @param file       the file to write to
+     * @param bufferSize the size of the buffer to use
+     * @return a buffered {@link DataOut} that will write to the given file
+     * @throws IOException if an IO exception occurs you dummy
+     */
+    public static DataOut wrapBuffered(@NonNull File file, int bufferSize) throws IOException {
         return wrap(new BufferedOutputStream(new FileOutputStream(file), bufferSize));
+    }
+
+    /**
+     * Gets a {@link DataOut} for writing to a {@link File}.
+     * <p>
+     * {@link DataOut} instances returned by this method will NOT be buffered.
+     *
+     * @param file the file to write to
+     * @return a direct {@link DataOut} that will write to the given file
+     * @throws IOException if an IO exception occurs you dummy
+     */
+    public static DataOut wrapNonBuffered(@NonNull File file) throws IOException {
+        return wrap(new FileOutputStream(file));
     }
 
     /**
@@ -176,10 +238,16 @@ public abstract class DataOut extends OutputStream {
         }
     }
 
+    /**
+     * @see DataIn#readVarInt()
+     */
     public void writeVarInt(int i) throws IOException {
         this.writeVarInt(i, false);
     }
 
+    /**
+     * @see DataIn#readVarInt(boolean)
+     */
     public void writeVarInt(int i, boolean optimizePositive) throws IOException {
         if (!optimizePositive) {
             i = (i << 1) ^ (i >> 31);
@@ -196,10 +264,16 @@ public abstract class DataOut extends OutputStream {
         }
     }
 
+    /**
+     * @see DataIn#readVarLong()
+     */
     public void writeVarLong(long l) throws IOException {
         this.writeVarLong(l, false);
     }
 
+    /**
+     * @see DataIn#readVarLong(boolean)
+     */
     public void writeVarLong(long l, boolean optimizePositive) throws IOException {
         if (!optimizePositive) {
             l = (l << 1L) ^ (l >> 63L);

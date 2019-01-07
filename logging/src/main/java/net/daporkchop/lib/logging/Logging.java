@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -24,31 +24,31 @@ import net.daporkchop.lib.common.util.Formatter;
 public interface Logging {
     Logger logger = Logger.DEFAULT_LOG;
 
-    default String format(@NonNull String text, @NonNull Object... params)     {
+    default String format(@NonNull String text, @NonNull Object... params) {
         return Formatter.format(text, params);
     }
 
-    default String javaFormat(@NonNull String text, @NonNull Object... params)  {
+    default String javaFormat(@NonNull String text, @NonNull Object... params) {
         return String.format(text, params);
     }
 
-    default RuntimeException exception(@NonNull String text)    {
+    default RuntimeException exception(@NonNull String text) {
         return new RuntimeException(text);
     }
 
-    default RuntimeException exception(@NonNull String text, @NonNull Object... params)    {
+    default RuntimeException exception(@NonNull String text, @NonNull Object... params) {
         return new RuntimeException(this.format(text, params));
     }
 
-    default RuntimeException exception(@NonNull String text, @NonNull Throwable t, @NonNull Object... params)    {
+    default RuntimeException exception(@NonNull String text, @NonNull Throwable t, @NonNull Object... params) {
         return new RuntimeException(this.format(text, params), t);
     }
 
-    default RuntimeException exception(@NonNull Throwable t)    {
+    default RuntimeException exception(@NonNull Throwable t) {
         return new RuntimeException(t);
     }
 
-    default String stringify(@NonNull Throwable t)  {
+    default String stringify(@NonNull Throwable t) {
         return this.format("${0}: ${1}", t.getClass(), t.getMessage());
     }
 }

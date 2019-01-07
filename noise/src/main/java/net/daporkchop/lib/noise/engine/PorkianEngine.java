@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -28,6 +28,9 @@ import static net.daporkchop.lib.math.primitive.Floor.floorI;
 public class PorkianEngine implements INoiseEngine {
     private static double shrinkFactor = 1.0d / 128.0d;
 
+    private static double s(double t) {
+        return t * t * t * (t * (t * 6.0d - 15.0d) + 10.0d);
+    }
     @Getter
     @Setter
     private volatile long seed;
@@ -81,10 +84,6 @@ public class PorkianEngine implements INoiseEngine {
                         (this.rand(xI, yI + 1, zI, wI + 1) * (1 - x) + this.rand(xI + 1, yI + 1, zI, wI + 1) * x) * y) * (1 - z) +
                         ((this.rand(xI, yI, zI + 1, wI + 1) * (1 - x) + this.rand(xI + 1, yI, zI + 1, wI + 1) * x) * (1 - y) +
                                 (this.rand(xI, yI + 1, zI + 1, wI + 1) * (1 - x) + this.rand(xI + 1, yI + 1, zI + 1, wI + 1) * x) * y) * z) * w) * shrinkFactor - 1.0d;
-    }
-
-    private static double s(double t) {
-        return t * t * t * (t * (t * 6.0d - 15.0d) + 10.0d);
     }
 
     private double rand(int x) {

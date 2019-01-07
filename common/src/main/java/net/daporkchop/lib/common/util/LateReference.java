@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -28,8 +28,6 @@ import java.util.function.Supplier;
  */
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class LateReference<T> {
-    private T value;
-
     public static <T> LateReference<T> empty() {
         return new LateReference<>(null);
     }
@@ -37,16 +35,17 @@ public class LateReference<T> {
     public static <T> LateReference<T> create(@NonNull T value) {
         return new LateReference<>(value);
     }
+    private T value;
 
-    public boolean contains()   {
+    public boolean contains() {
         return this.value != null;
     }
 
-    public T get()  {
+    public T get() {
         return this.value;
     }
 
-    public T getOrDefault(T def)    {
+    public T getOrDefault(T def) {
         return this.value == null ? def : this.value;
     }
 

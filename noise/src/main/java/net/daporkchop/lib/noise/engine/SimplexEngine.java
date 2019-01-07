@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -42,6 +42,37 @@ public class SimplexEngine extends BasicSeedEngine {
     private static final double G3 = 0.166666667d;
     private static final double F4 = (sqrt(5.0d) - 1.0d) / 4.0d;
     private static final double G4 = (5.0d - sqrt(5.0d)) / 20.0d;
+
+    private static double grad(int hash, double x) {
+        int h = hash & 15;
+        double grad = 1.0d + (h & 7);   // Gradient value 1.0, 2.0, ..., 8.0
+        if ((h & 8) == 0) {
+            grad = -grad;         // Set a random sign for the gradient
+        }
+        return (grad * x);           // Multiply the gradient with the distance
+    }
+
+    private static double grad(int hash, double x, double y) {
+        int h = hash & 7;      // Convert low 3 bits of hash code
+        double u = h < 4 ? x : y;  // into 8 simple gradient directions,
+        double v = h < 4 ? y : x;  // and compute the dot product with (x,y).
+        return ((h & 1) == 0 ? -u : u) + ((h & 2) == 0 ? -2.0d * v : 2.0d * v);
+    }
+
+    private static double grad(int hash, double x, double y, double z) {
+        int h = hash & 15;     // Convert low 4 bits of hash code into 12 simple
+        double u = h < 8 ? x : y; // gradient directions, and compute dot product.
+        double v = h < 4 ? y : h == 12 || h == 14 ? x : z; // Fix repeats at h = 12 to 15
+        return ((h & 1) == 0 ? -u : u) + ((h & 2) == 0 ? -v : v);
+    }
+
+    private static double grad(int hash, double x, double y, double z, double t) {
+        int h = hash & 31;      // Convert low 5 bits of hash code into 32 simple
+        double u = h < 24 ? x : y; // gradient directions, and compute dot product.
+        double v = h < 16 ? y : z;
+        double w = h < 8 ? z : t;
+        return ((h & 1) == 0 ? -u : u) + ((h & 2) == 0 ? -v : v) + ((h & 4) == 0 ? -w : w);
+    }
 
     public SimplexEngine(long seed) {
         super(seed);
@@ -399,36 +430,5 @@ public class SimplexEngine extends BasicSeedEngine {
 
         // Sum up and scale the result to cover the range [-1,1]
         return 27.0d * (n0 + n1 + n2 + n3 + n4);
-    }
-
-    private static double grad(int hash, double x) {
-        int h = hash & 15;
-        double grad = 1.0d + (h & 7);   // Gradient value 1.0, 2.0, ..., 8.0
-        if ((h & 8) == 0) {
-            grad = -grad;         // Set a random sign for the gradient
-        }
-        return (grad * x);           // Multiply the gradient with the distance
-    }
-
-    private static double grad(int hash, double x, double y) {
-        int h = hash & 7;      // Convert low 3 bits of hash code
-        double u = h < 4 ? x : y;  // into 8 simple gradient directions,
-        double v = h < 4 ? y : x;  // and compute the dot product with (x,y).
-        return ((h & 1) == 0 ? -u : u) + ((h & 2) == 0 ? -2.0d * v : 2.0d * v);
-    }
-
-    private static double grad(int hash, double x, double y, double z) {
-        int h = hash & 15;     // Convert low 4 bits of hash code into 12 simple
-        double u = h < 8 ? x : y; // gradient directions, and compute dot product.
-        double v = h < 4 ? y : h == 12 || h == 14 ? x : z; // Fix repeats at h = 12 to 15
-        return ((h & 1) == 0 ? -u : u) + ((h & 2) == 0 ? -v : v);
-    }
-
-    private static double grad(int hash, double x, double y, double z, double t) {
-        int h = hash & 31;      // Convert low 5 bits of hash code into 32 simple
-        double u = h < 24 ? x : y; // gradient directions, and compute dot product.
-        double v = h < 16 ? y : z;
-        double w = h < 8 ? z : t;
-        return ((h & 1) == 0 ? -u : u) + ((h & 2) == 0 ? -v : v) + ((h & 4) == 0 ? -w : w);
     }
 }

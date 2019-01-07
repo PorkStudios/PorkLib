@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -31,12 +31,12 @@ public class SerializationTest {
     @Test
     public void testEC() throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        for (CurveType type : CurveType.values())   {
+        for (CurveType type : CurveType.values()) {
             EllipticCurveKeyPair keyPair = KeyGen.gen(type);
             KeySerialization.encodeEC(DataOut.wrap(baos), keyPair);
             EllipticCurveKeyPair decoded = KeySerialization.decodeEC(DataIn.wrap(new ByteArrayInputStream(baos.toByteArray())));
             baos.reset();
-            if (!keyPair.equals(decoded))   {
+            if (!keyPair.equals(decoded)) {
                 throw new IllegalStateException(String.format("Decoded key pair was different from original on curve type %s", type.name));
             }
             System.out.printf("Successful test of %s\n", type.name);

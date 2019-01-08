@@ -52,7 +52,7 @@ public class NettyChannelHandlerHTTP extends ChannelInboundHandlerAdapter implem
         logger.trace("Incoming connection: ${0}", ctx.channel().remoteAddress());
         this.server.channels.add(ctx.channel());
 
-        SslHandler sslHandler = this.server.sslHandlerSupplier.get();
+        SslHandler sslHandler = this.server.sslHandlerSupplier.apply(ctx.channel());
         if (sslHandler != null) {
             ctx.channel().pipeline().addFirst("ssl", sslHandler);
         }
@@ -67,11 +67,12 @@ public class NettyChannelHandlerHTTP extends ChannelInboundHandlerAdapter implem
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         Channel channel = ctx.channel();
-        //logger.debug("Received message: ${0}", ((ByteBuf) msg).toString(UTF8.utf8));
+        logger.debug("Received message: ${0}", ((ByteBuf) msg).toString(UTF8.utf8));
         RequestReader reader = new RequestReader((ByteBuf) msg);
         RequestMethod method = RequestMethod.valueOf(reader.readUntilSpace());
         String path = reader.readUntilSpace();
-        //logger.debug("Skipped ${0} bytes!", reader.skipUntil('\r'));
+        //logger.debug("Skipped ${0} bytes!", );
+        reader.skipUntil('\r');
         reader.skip(1);
         Parameters parameters;
         {
@@ -84,7 +85,7 @@ public class NettyChannelHandlerHTTP extends ChannelInboundHandlerAdapter implem
             parameters = new Parameters(params, ParameterRegistry.def());
         }
         try (Response response = new Response(channel)) {
-            this.server.handler.handle(new Request(HTTPVersion.V1_1, method, parameters, path, null), response);
+            this.server.defaultHandler.handle(new Request(HTTPVersion.V1_1, method, parameters, path, null), response);
         }
         super.channelRead(ctx, msg);
     }

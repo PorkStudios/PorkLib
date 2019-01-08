@@ -35,6 +35,7 @@ import java.util.function.Function;
  * @author DaPorkchop_
  */
 public class PorkUtil {
+    public static final String PORKLIB_VERSION = "0.3.0-SNAPSHOT";
     public static final Unsafe unsafe;
     public static final ThreadLocal<byte[]> BUFFER_CACHE_SMALL = ThreadLocal.withInitial(() -> new byte[256]);
     private static final Function<char[], String> CHAR_ARRAY_WRAPPER;

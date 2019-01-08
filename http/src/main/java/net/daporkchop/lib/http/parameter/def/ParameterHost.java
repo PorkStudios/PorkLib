@@ -26,6 +26,7 @@ import java.net.InetSocketAddress;
  */
 @Getter
 public class ParameterHost implements Parameter<InetSocketAddress> {
+    public static final ParameterHost DEFAULT = new ParameterHost("127.0.0.1:80");
     private final InetSocketAddress value;
 
     public ParameterHost(@NonNull String content) {

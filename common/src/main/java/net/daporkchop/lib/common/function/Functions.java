@@ -13,45 +13,20 @@
  *
  */
 
-package net.daporkchop.lib.common.util;
+package net.daporkchop.lib.common.function;
+
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+
+import java.util.function.Predicate;
 
 /**
- * Used for identifying the current operating system
- *
  * @author DaPorkchop_
  */
-public enum OperatingSystem {
-    WINDOWS,
-    LINUX,
-    UNIX,
-    OSX_IS_BAD,
-    SOLARIS,
-    OTHER;
-
-    public static final OperatingSystem CURRENT;
-    public static final String NAME_CURRENT;
-
-    static {
-        OperatingSystem current = OTHER;
-        NAME_CURRENT = System.getProperty("os.name");
-        String name = NAME_CURRENT.toLowerCase();
-        if (name.contains("windows")) {
-            current = WINDOWS;
-        } else if (name.contains("linux")) {
-            current = LINUX;
-        } else if (name.contains("mpe/ix")
-                || name.contains("freebsd")
-                || name.contains("irix")
-                || name.contains("digital unix")
-                || name.contains("unix"))   {
-            current = UNIX;
-        } else if (name.contains("mac os")) {
-            current = OSX_IS_BAD;
-        } else if (name.contains("sun os")
-                || name.contains("sunos")
-                || name.contains("solaris")) {
-            current = SOLARIS;
-        }
-        CURRENT = current;
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public abstract class Functions {
+    public static <T> Predicate<T> negate(@NonNull Predicate<T> predicate)  {
+        return t -> !predicate.test(t);
     }
 }

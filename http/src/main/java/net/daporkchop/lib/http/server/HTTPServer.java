@@ -23,12 +23,17 @@ import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.util.concurrent.GlobalEventExecutor;
+import lombok.Getter;
 import lombok.NonNull;
+import net.daporkchop.lib.common.function.Functions;
 import net.daporkchop.lib.http.ResponseCode;
 import net.daporkchop.lib.http.server.handler.RequestHandler;
 import net.daporkchop.lib.logging.Logging;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -40,19 +45,15 @@ public class HTTPServer implements Logging {
     final ChannelGroup channels;
     final Channel channel;
     final AtomicBoolean shutdownLock = new AtomicBoolean(false);
-    final Supplier<SslHandler> sslHandlerSupplier;
-
-    final RequestHandler handler = (request, response) -> {
-        logger.debug("Received ${0} request to ${1}", request.getMethod(), request.getPath());
-        response.setStatus(ResponseCode.OK)
-                .setContentType("text/plain")
-                .setParameter("Test-Header", "name_jeff_lol").send()
-                .write("Hello world! v5");
-    };
+    final Function<Channel, SslHandler> sslHandlerSupplier;
+    @Getter
+    protected final Map<String, RequestHandler> handlers = new ConcurrentHashMap<>();
+    protected final RequestHandler defaultHandler;
 
     public HTTPServer(@NonNull HTTPServerBuilder builder) {
         this.channels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
         this.sslHandlerSupplier = builder.getSslHandlerSupplier();
+        this.defaultHandler = builder.getDefaultHandler();
 
         try {
             ServerBootstrap bootstrap = new ServerBootstrap();
@@ -82,5 +83,21 @@ public class HTTPServer implements Logging {
                 this.channel.eventLoop().shutdownGracefully();
             }
         }
+    }
+
+    public synchronized HTTPServer addHandler(@NonNull String path, @NonNull RequestHandler handler) {
+        this.handlers.put(path, handler);
+        return this;
+    }
+
+    public synchronized HTTPServer clearHandlers(@NonNull String path, @NonNull RequestHandler handler)  {
+        this.handlers.clear();
+        return this;
+    }
+
+    public synchronized HTTPServer setHandlers(@NonNull Map<String, RequestHandler> handlers)    {
+        this.handlers.putAll(handlers);
+        this.handlers.keySet().removeIf(Functions.negate(handlers::containsKey));
+        return this;
     }
 }

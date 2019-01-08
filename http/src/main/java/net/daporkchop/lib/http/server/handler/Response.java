@@ -25,12 +25,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.UTF8;
+import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.common.util.SystemInfo;
 import net.daporkchop.lib.concurrent.cache.SoftThreadCache;
 import net.daporkchop.lib.concurrent.cache.ThreadCache;
 import net.daporkchop.lib.http.HTTPVersion;
 import net.daporkchop.lib.http.Request;
 import net.daporkchop.lib.http.ResponseCode;
 import net.daporkchop.lib.http.parameter.Parameter;
+import net.daporkchop.lib.http.parameter.def.ParameterHost;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -278,5 +281,34 @@ public class Response implements AutoCloseable {
      */
     public Response write(@NonNull String s) {
         return this.write(s.getBytes(UTF8.utf8));
+    }
+
+    /**
+     * Sends a simple 404 error page, similar to that sent by Apache.
+     * <p>
+     * If this method is to be used, no other write methods may be used. After calling this method, this
+     * {@link Response} instance can be regarded as useless.
+     *
+     * @param request the request to respond to
+     */
+    public void writeSimple404(@NonNull Request request) {
+        if (this.sent) {
+            throw new IllegalStateException("already sent!");
+        } else if (this.channel.isOpen()) {
+            throw new IllegalStateException("closed!");
+        } else {
+            this.setContentType("text/html");
+            this.setStatus(ResponseCode.OK);
+            this.send();
+            this.write(String.format(
+                    "<html><head><title>404 Not Found</title></head><body><h1>Not Found</h1><p>The requested URL %s was not found on this server.</p><hr><address>PorkLib/%s on %s (%s) at %s</address></body></html>",
+                    request.getPath(),
+                    PorkUtil.PORKLIB_VERSION,
+                    SystemInfo.OS_NAME,
+                    SystemInfo.OS_VERSION,
+                    request.getParameters().getOrDefault("Host", ParameterHost.DEFAULT).getValue()
+            ));
+            this.close();
+        }
     }
 }

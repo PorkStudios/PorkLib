@@ -59,4 +59,9 @@ public class Parameters implements Logging {
     public void forEach(@NonNull Consumer<Parameter> func)  {
         this.map.forEach((name, parameter) -> func.accept(parameter));
     }
+
+    @SuppressWarnings("unchecked")
+    public <T> Parameter<T> getOrDefault(@NonNull String name, @NonNull Parameter<T> def)   {
+        return (Parameter<T>) this.map.getOrDefault(name, def);
+    }
 }

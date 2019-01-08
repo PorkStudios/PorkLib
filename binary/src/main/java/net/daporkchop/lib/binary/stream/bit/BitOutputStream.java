@@ -17,7 +17,7 @@ package net.daporkchop.lib.binary.stream.bit;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.util.RequiredBits;
+import net.daporkchop.lib.math.primitive.binary.RequiredBits;
 
 import java.io.IOException;
 import java.io.OutputStream;

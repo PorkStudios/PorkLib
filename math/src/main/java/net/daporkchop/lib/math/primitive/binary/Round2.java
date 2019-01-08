@@ -13,25 +13,39 @@
  *
  */
 
-package net.daporkchop.lib.binary.util;
+package net.daporkchop.lib.math.primitive.binary;
 
-public class IsPow2 {
-    public static boolean checkLong(long value) {
-        return value != 0L && (value & value - 1L) == 0L;
+public class Round2 {
+    public static long roundLong(long value) {
+        long l = value - 1;
+        l = l | l >> 1;
+        l = l | l >> 2;
+        l = l | l >> 4;
+        l = l | l >> 8;
+        l = l | l >> 16;
+        l = l | l >> 32;
+        return l + 1;
     }
 
-    public static boolean checkInt(int value) {
-        return value != 0 && (value & value - 1) == 0;
+    public static int roundInt(int value) {
+        int i = value - 1;
+        i = i | i >> 1;
+        i = i | i >> 2;
+        i = i | i >> 4;
+        i = i | i >> 8;
+        i = i | i >> 16;
+        return i + 1;
     }
 
-    public static boolean checkShort(short value) {
-        return value != 0 && (value & value - 1) == 0;
+    public static short roundShort(short value) {
+        short s = (short) (value - 1);
+        s = (short) (s | s >> 1);
+        s = (short) (s | s >> 2);
+        s = (short) (s | s >> 4);
+        s = (short) (s | s >> 8);
+        return (short) (s + 1);
     }
 
-    public static boolean checkByte(byte value) {
-        return value != 0 && (value & value - 1) == 0;
-    }
-
-    private IsPow2() {
+    private Round2() {
     }
 }

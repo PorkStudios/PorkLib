@@ -35,77 +35,77 @@ public interface PUnsafe {
      */
     Unsafe UNSAFE = PorkUtil.unsafe;
 
-    static int getInt(Object var1, long var2) {
-        return UNSAFE.getInt(var1, var2);
+    static int getInt(Object o, long pos) {
+        return UNSAFE.getInt(o, pos);
     }
 
-    static void putInt(Object var1, long var2, int var4) {
-        UNSAFE.putInt(var1, var2, var4);
+    static void putInt(Object o, long pos, int var4) {
+        UNSAFE.putInt(o, pos, var4);
     }
 
     @SuppressWarnings("unchecked")
-    static <T> T getObject(Object var1, long var2) {
-        return (T) UNSAFE.getObject(var1, var2);
+    static <T> T getObject(Object o, long pos) {
+        return (T) UNSAFE.getObject(o, pos);
     }
 
-    static void putObject(Object var1, long var2, Object var4) {
-        UNSAFE.putObject(var1, var2, var4);
+    static void putObject(Object o, long pos, Object var4) {
+        UNSAFE.putObject(o, pos, var4);
     }
 
-    static boolean getBoolean(Object var1, long var2) {
-        return UNSAFE.getBoolean(var1, var2);
+    static boolean getBoolean(Object o, long pos) {
+        return UNSAFE.getBoolean(o, pos);
     }
 
-    static void putBoolean(Object var1, long var2, boolean var4) {
-        UNSAFE.putBoolean(var1, var2, var4);
+    static void putBoolean(Object o, long pos, boolean var4) {
+        UNSAFE.putBoolean(o, pos, var4);
     }
 
-    static byte getByte(Object var1, long var2) {
-        return UNSAFE.getByte(var1, var2);
+    static byte getByte(Object o, long pos) {
+        return UNSAFE.getByte(o, pos);
     }
 
-    static void putByte(Object var1, long var2, byte var4) {
-        UNSAFE.putByte(var1, var2, var4);
+    static void putByte(Object o, long pos, byte var4) {
+        UNSAFE.putByte(o, pos, var4);
     }
 
-    static short getShort(Object var1, long var2) {
-        return UNSAFE.getShort(var1, var2);
+    static short getShort(Object o, long pos) {
+        return UNSAFE.getShort(o, pos);
     }
 
-    static void putShort(Object var1, long var2, short var4) {
-        UNSAFE.putShort(var1, var2, var4);
+    static void putShort(Object o, long pos, short var4) {
+        UNSAFE.putShort(o, pos, var4);
     }
 
-    static char getChar(Object var1, long var2) {
-        return UNSAFE.getChar(var1, var2);
+    static char getChar(Object o, long pos) {
+        return UNSAFE.getChar(o, pos);
     }
 
-    static void putChar(Object var1, long var2, char var4) {
-        UNSAFE.putChar(var1, var2, var4);
+    static void putChar(Object o, long pos, char var4) {
+        UNSAFE.putChar(o, pos, var4);
     }
 
-    static long getLong(Object var1, long var2) {
-        return UNSAFE.getLong(var1, var2);
+    static long getLong(Object o, long pos) {
+        return UNSAFE.getLong(o, pos);
     }
 
-    static void putLong(Object var1, long var2, long var4) {
-        UNSAFE.putLong(var1, var2, var4);
+    static void putLong(Object o, long pos, long var4) {
+        UNSAFE.putLong(o, pos, var4);
     }
 
-    static float getFloat(Object var1, long var2) {
-        return UNSAFE.getFloat(var1, var2);
+    static float getFloat(Object o, long pos) {
+        return UNSAFE.getFloat(o, pos);
     }
 
-    static void putFloat(Object var1, long var2, float var4) {
-        UNSAFE.putFloat(var1, var2, var4);
+    static void putFloat(Object o, long pos, float var4) {
+        UNSAFE.putFloat(o, pos, var4);
     }
 
-    static double getDouble(Object var1, long var2) {
-        return UNSAFE.getDouble(var1, var2);
+    static double getDouble(Object o, long pos) {
+        return UNSAFE.getDouble(o, pos);
     }
 
-    static void putDouble(Object var1, long var2, double var4) {
-        UNSAFE.putDouble(var1, var2, var4);
+    static void putDouble(Object o, long pos, double var4) {
+        UNSAFE.putDouble(o, pos, var4);
     }
 
     static int getInt(long var2) {

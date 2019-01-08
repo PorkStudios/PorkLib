@@ -13,24 +13,25 @@
  *
  */
 
-package net.daporkchop.lib.binary.util;
+package net.daporkchop.lib.math.primitive.binary;
 
-/**
- * @author DaPorkchop_
- */
-public class RequiredBits {
-    /**
-     * Gets the minimum number of bits required to storea given number
-     *
-     * @param value the number to store
-     * @return the minimum number of bits required
-     */
-    public static int getNumBitsNeededFor(int value) {
-        int count = 0;
-        while (value > 0) {
-            count++;
-            value = value >> 1;
-        }
-        return count;
+public class IsPow2 {
+    public static boolean checkLong(long value) {
+        return value != 0L && (value & value - 1L) == 0L;
+    }
+
+    public static boolean checkInt(int value) {
+        return value != 0 && (value & value - 1) == 0;
+    }
+
+    public static boolean checkShort(short value) {
+        return value != 0 && (value & value - 1) == 0;
+    }
+
+    public static boolean checkByte(byte value) {
+        return value != 0 && (value & value - 1) == 0;
+    }
+
+    private IsPow2() {
     }
 }

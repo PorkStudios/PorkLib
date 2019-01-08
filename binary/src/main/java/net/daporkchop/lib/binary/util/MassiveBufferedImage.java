@@ -15,6 +15,8 @@
 
 package net.daporkchop.lib.binary.util;
 
+import net.daporkchop.lib.math.primitive.binary.RequiredBits;
+
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.nio.ByteBuffer;

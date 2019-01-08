@@ -20,7 +20,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.util.RequiredBits;
+import net.daporkchop.lib.math.primitive.binary.RequiredBits;
 import net.daporkchop.lib.db.container.map.DBMap;
 import net.daporkchop.lib.db.container.map.index.IndexLookup;
 import net.daporkchop.lib.db.container.map.key.KeyHasher;

@@ -64,4 +64,9 @@ public class Parameters implements Logging {
     public <T> Parameter<T> getOrDefault(@NonNull String name, @NonNull Parameter<T> def)   {
         return (Parameter<T>) this.map.getOrDefault(name, def);
     }
+
+    @Override
+    public String toString() {
+        return this.map.toString();
+    }
 }

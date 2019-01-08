@@ -15,7 +15,7 @@
 
 package net.daporkchop.lib.http.test;
 
-import net.daporkchop.lib.common.util.SystemInfo;
+import net.daporkchop.lib.http.ResponseCode;
 import net.daporkchop.lib.http.server.HTTPServer;
 import net.daporkchop.lib.http.server.HTTPServerBuilder;
 import net.daporkchop.lib.logging.Logging;
@@ -35,7 +35,24 @@ public class ServerTestMain implements Logging {
         logger.info("Server starting...");
         HTTPServer server = HTTPServerBuilder.of(8081)
                 .enableSSL()
-                .build();
+                .build()
+                .addHandler("/test", (request, response) -> response
+                        .setStatus(ResponseCode.OK)
+                        .setContentType("text/plain")
+                        .send()
+                        .write(request.getPath())
+                        .write("\n\n\n")
+                        .write(request.getParameters().toString()))
+                .addHandler("/", (request, response) -> response
+                        .setStatus(ResponseCode.OK)
+                        .setContentType("text/html")
+                        .send()
+                        .write("<html><body><h1>got request to root</h1></body></html>"))
+                .addHandler("/test/override", (request, response) -> response
+                        .setStatus(ResponseCode.OK)
+                        .setContentType("text/plain")
+                        .send()
+                        .write("overridden content from /test!"));
 
         logger.info("Server started on port 8081!");
         {

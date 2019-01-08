@@ -294,11 +294,11 @@ public class Response implements AutoCloseable {
     public void writeSimple404(@NonNull Request request) {
         if (this.sent) {
             throw new IllegalStateException("already sent!");
-        } else if (this.channel.isOpen()) {
+        } else if (!this.channel.isOpen()) {
             throw new IllegalStateException("closed!");
         } else {
             this.setContentType("text/html");
-            this.setStatus(ResponseCode.OK);
+            this.setStatus(ResponseCode.Not_Found);
             this.send();
             this.write(String.format(
                     "<html><head><title>404 Not Found</title></head><body><h1>Not Found</h1><p>The requested URL %s was not found on this server.</p><hr><address>PorkLib/%s on %s (%s) at %s</address></body></html>",

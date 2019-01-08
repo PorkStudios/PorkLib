@@ -19,8 +19,17 @@ import lombok.NonNull;
 import net.daporkchop.lib.http.Request;
 
 /**
+ * Handles incoming requests
+ *
  * @author DaPorkchop_
  */
 public interface RequestHandler {
+    /**
+     * Handle a single request
+     *
+     * @param request  the request to handle
+     * @param response used for responding to the request
+     * @throws Exception if an exception occurs
+     */
     void handle(@NonNull Request request, @NonNull Response response) throws Exception;
 }

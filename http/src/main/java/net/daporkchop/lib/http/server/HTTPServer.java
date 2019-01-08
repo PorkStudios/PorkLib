@@ -86,18 +86,42 @@ public class HTTPServer implements Logging {
     }
 
     public synchronized HTTPServer addHandler(@NonNull String path, @NonNull RequestHandler handler) {
+        if (!path.startsWith("/"))  {
+            path = String.format("/%s", path);
+        }
+        if (path.endsWith("/") && !path.equals("/")) {
+            path = path.substring(0, path.length() - 1);
+        }
         this.handlers.put(path, handler);
         return this;
     }
 
-    public synchronized HTTPServer clearHandlers(@NonNull String path, @NonNull RequestHandler handler)  {
+    public synchronized HTTPServer clearHandlers()  {
         this.handlers.clear();
         return this;
     }
 
     public synchronized HTTPServer setHandlers(@NonNull Map<String, RequestHandler> handlers)    {
-        this.handlers.putAll(handlers);
+        handlers.forEach(this::addHandler);
         this.handlers.keySet().removeIf(Functions.negate(handlers::containsKey));
         return this;
+    }
+
+    public RequestHandler getHandler(@NonNull String path)  {
+        while (path.indexOf('/') != -1 && path.length() > 0)    {
+            RequestHandler handler;
+            if (path.length() == 1) {
+                break;
+            } else if ((handler = this.handlers.get(path)) != null) {
+                return handler;
+            } else {
+                path = path.substring(0, path.lastIndexOf('/'));
+            }
+        }
+        return this.getDefaultHandler();
+    }
+
+    public RequestHandler getDefaultHandler() {
+        return this.handlers.getOrDefault("/", this.defaultHandler);
     }
 }

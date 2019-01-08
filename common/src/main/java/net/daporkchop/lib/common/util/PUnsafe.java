@@ -39,8 +39,8 @@ public interface PUnsafe {
         return UNSAFE.getInt(o, pos);
     }
 
-    static void putInt(Object o, long pos, int var4) {
-        UNSAFE.putInt(o, pos, var4);
+    static void putInt(Object o, long pos, int val) {
+        UNSAFE.putInt(o, pos, val);
     }
 
     @SuppressWarnings("unchecked")
@@ -48,184 +48,184 @@ public interface PUnsafe {
         return (T) UNSAFE.getObject(o, pos);
     }
 
-    static void putObject(Object o, long pos, Object var4) {
-        UNSAFE.putObject(o, pos, var4);
+    static void putObject(Object o, long pos, Object val) {
+        UNSAFE.putObject(o, pos, val);
     }
 
     static boolean getBoolean(Object o, long pos) {
         return UNSAFE.getBoolean(o, pos);
     }
 
-    static void putBoolean(Object o, long pos, boolean var4) {
-        UNSAFE.putBoolean(o, pos, var4);
+    static void putBoolean(Object o, long pos, boolean val) {
+        UNSAFE.putBoolean(o, pos, val);
     }
 
     static byte getByte(Object o, long pos) {
         return UNSAFE.getByte(o, pos);
     }
 
-    static void putByte(Object o, long pos, byte var4) {
-        UNSAFE.putByte(o, pos, var4);
+    static void putByte(Object o, long pos, byte val) {
+        UNSAFE.putByte(o, pos, val);
     }
 
     static short getShort(Object o, long pos) {
         return UNSAFE.getShort(o, pos);
     }
 
-    static void putShort(Object o, long pos, short var4) {
-        UNSAFE.putShort(o, pos, var4);
+    static void putShort(Object o, long pos, short val) {
+        UNSAFE.putShort(o, pos, val);
     }
 
     static char getChar(Object o, long pos) {
         return UNSAFE.getChar(o, pos);
     }
 
-    static void putChar(Object o, long pos, char var4) {
-        UNSAFE.putChar(o, pos, var4);
+    static void putChar(Object o, long pos, char val) {
+        UNSAFE.putChar(o, pos, val);
     }
 
     static long getLong(Object o, long pos) {
         return UNSAFE.getLong(o, pos);
     }
 
-    static void putLong(Object o, long pos, long var4) {
-        UNSAFE.putLong(o, pos, var4);
+    static void putLong(Object o, long pos, long val) {
+        UNSAFE.putLong(o, pos, val);
     }
 
     static float getFloat(Object o, long pos) {
         return UNSAFE.getFloat(o, pos);
     }
 
-    static void putFloat(Object o, long pos, float var4) {
-        UNSAFE.putFloat(o, pos, var4);
+    static void putFloat(Object o, long pos, float val) {
+        UNSAFE.putFloat(o, pos, val);
     }
 
     static double getDouble(Object o, long pos) {
         return UNSAFE.getDouble(o, pos);
     }
 
-    static void putDouble(Object o, long pos, double var4) {
-        UNSAFE.putDouble(o, pos, var4);
+    static void putDouble(Object o, long pos, double val) {
+        UNSAFE.putDouble(o, pos, val);
     }
 
-    static int getInt(long var2) {
-        return UNSAFE.getInt(var2);
+    static int getInt(long pos) {
+        return UNSAFE.getInt(pos);
     }
 
-    static void putInt(long var2, int var4) {
-        UNSAFE.putInt(var2, var4);
+    static void putInt(long pos, int val) {
+        UNSAFE.putInt(pos, val);
     }
 
-    static byte getByte(long var2) {
-        return UNSAFE.getByte(var2);
+    static byte getByte(long pos) {
+        return UNSAFE.getByte(pos);
     }
 
-    static void putByte(long var2, byte var4) {
-        UNSAFE.putByte(var2, var4);
+    static void putByte(long pos, byte val) {
+        UNSAFE.putByte(pos, val);
     }
 
-    static short getShort(long var2) {
-        return UNSAFE.getShort(var2);
+    static short getShort(long pos) {
+        return UNSAFE.getShort(pos);
     }
 
-    static void putShort(long var2, short var4) {
-        UNSAFE.putShort(var2, var4);
+    static void putShort(long pos, short val) {
+        UNSAFE.putShort(pos, val);
     }
 
-    static char getChar(long var2) {
-        return UNSAFE.getChar(var2);
+    static char getChar(long pos) {
+        return UNSAFE.getChar(pos);
     }
 
-    static void putChar(long var2, char var4) {
-        UNSAFE.putChar(var2, var4);
+    static void putChar(long pos, char val) {
+        UNSAFE.putChar(pos, val);
     }
 
-    static long getLong(long var2) {
-        return UNSAFE.getLong(var2);
+    static long getLong(long pos) {
+        return UNSAFE.getLong(pos);
     }
 
-    static void putLong(long var2, long var4) {
-        UNSAFE.putLong(var2, var4);
+    static void putLong(long pos, long val) {
+        UNSAFE.putLong(pos, val);
     }
 
-    static float getFloat(long var2) {
-        return UNSAFE.getFloat(var2);
+    static float getFloat(long pos) {
+        return UNSAFE.getFloat(pos);
     }
 
-    static void putFloat(long var2, float var4) {
-        UNSAFE.putFloat(var2, var4);
+    static void putFloat(long pos, float val) {
+        UNSAFE.putFloat(pos, val);
     }
 
-    static double getDouble(long var2) {
-        return UNSAFE.getDouble(var2);
+    static double getDouble(long pos) {
+        return UNSAFE.getDouble(pos);
     }
 
-    static void putDouble(long var2, double var4) {
-        UNSAFE.putDouble(var2, var4);
+    static void putDouble(long pos, double val) {
+        UNSAFE.putDouble(pos, val);
     }
 
-    static long getAddress(long var1) {
-        return UNSAFE.getAddress(var1);
+    static long getAddress(long pos) {
+        return UNSAFE.getAddress(pos);
     }
 
-    static void putAddress(long var1, long var3) {
-        UNSAFE.putAddress(var1, var3);
+    static void putAddress(long pos, long val) {
+        UNSAFE.putAddress(pos, val);
     }
 
-    static long allocateMemory(long var1) {
-        return UNSAFE.allocateMemory(var1);
+    static long allocateMemory(long size) {
+        return UNSAFE.allocateMemory(size);
     }
 
-    static long reallocateMemory(long var1, long var3) {
-        return UNSAFE.reallocateMemory(var1, var3);
+    static long reallocateMemory(long oldAddress, long size) {
+        return UNSAFE.reallocateMemory(oldAddress, size);
     }
 
-    static void setMemory(Object var1, long var2, long var4, byte var6) {
-        UNSAFE.setMemory(var1, var2, var4, var6);
+    static void setMemory(Object o, long pos, long length, byte val) {
+        UNSAFE.setMemory(o, pos, length, val);
     }
 
-    static void setMemory(long var1, long var3, byte var5) {
-        UNSAFE.setMemory(null, var1, var3, var5);
+    static void setMemory(long pos, long length, byte val) {
+        UNSAFE.setMemory(null, pos, length, val);
     }
 
-    static void copyMemory(Object var1, long var2, Object var4, long var5, long var7) {
-        UNSAFE.copyMemory(var1, var2, var4, var5, var7);
+    static void copyMemory(Object src, long srcOffset, Object dst, long dstOffset, long length) {
+        UNSAFE.copyMemory(src, srcOffset, dst, dstOffset, length);
     }
 
-    static void copyMemory(long var1, long var3, long var5) {
-        UNSAFE.copyMemory(null, var1, null, var3, var5);
+    static void copyMemory(long src, long dst, long length) {
+        UNSAFE.copyMemory(null, src, null, dst, length);
     }
 
-    static void freeMemory(long var1) {
-        UNSAFE.freeMemory(var1);
+    static void freeMemory(long address) {
+        UNSAFE.freeMemory(address);
     }
 
-    static long staticFieldOffset(Field var1) {
-        return UNSAFE.staticFieldOffset(var1);
+    static long staticFieldOffset(Field field) {
+        return UNSAFE.staticFieldOffset(field);
     }
 
-    static long objectFieldOffset(Field var1) {
-        return UNSAFE.objectFieldOffset(var1);
+    static long objectFieldOffset(Field field) {
+        return UNSAFE.objectFieldOffset(field);
     }
 
-    static Object staticFieldBase(Field var1) {
-        return UNSAFE.staticFieldBase(var1);
+    static Object staticFieldBase(Field field) {
+        return UNSAFE.staticFieldBase(field);
     }
 
-    static boolean shouldBeInitialized(Class<?> var1) {
-        return UNSAFE.shouldBeInitialized(var1);
+    static boolean shouldBeInitialized(Class<?> clazz) {
+        return UNSAFE.shouldBeInitialized(clazz);
     }
 
-    static void ensureClassInitialized(Class<?> var1) {
-        UNSAFE.ensureClassInitialized(var1);
+    static void ensureClassInitialized(Class<?> clazz) {
+        UNSAFE.ensureClassInitialized(clazz);
     }
 
-    static int arrayBaseOffset(Class<?> var1) {
-        return UNSAFE.arrayBaseOffset(var1);
+    static int arrayBaseOffset(Class<?> clazz) {
+        return UNSAFE.arrayBaseOffset(clazz);
     }
 
-    static int arrayIndexScale(Class<?> var1) {
-        return UNSAFE.arrayIndexScale(var1);
+    static int arrayIndexScale(Class<?> clazz) {
+        return UNSAFE.arrayIndexScale(clazz);
     }
 
     static int addressSize() {
@@ -236,24 +236,24 @@ public interface PUnsafe {
         return UNSAFE.pageSize();
     }
 
-    static Class<?> defineClass(String var1, byte[] var2, int var3, int var4, ClassLoader var5, ProtectionDomain var6) {
-        return UNSAFE.defineClass(var1, var2, var3, var4, var5, var6);
+    static Class<?> defineClass(String name, byte[] var2, int var3, int var4, ClassLoader var5, ProtectionDomain var6) {
+        return UNSAFE.defineClass(name, var2, var3, var4, var5, var6);
     }
 
     static Class<?> defineAnonymousClass(Class<?> var1, byte[] var2, Object[] var3) {
         return UNSAFE.defineAnonymousClass(var1, var2, var3);
     }
 
-    static Object allocateInstance(Class<?> var1) throws InstantiationException {
-        return UNSAFE.allocateInstance(var1);
+    static Object allocateInstance(Class<?> clazz) throws InstantiationException {
+        return UNSAFE.allocateInstance(clazz);
     }
 
-    static void throwException(Throwable var1) {
-        UNSAFE.throwException(var1);
+    static void throwException(Throwable t) {
+        UNSAFE.throwException(t);
     }
 
-    static boolean compareAndSwapObject(Object var1, long var2, Object var4, Object var5) {
-        return UNSAFE.compareAndSwapObject(var1, var2, var4, var5);
+    static boolean compareAndSwapObject(Object o, long pos, Object var4, Object var5) {
+        return UNSAFE.compareAndSwapObject(o, pos, var4, var5);
     }
 
     static boolean compareAndSwapInt(Object var1, long var2, int var4, int var5) {

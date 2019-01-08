@@ -13,39 +13,24 @@
  *
  */
 
-package net.daporkchop.lib.binary.util;
+package net.daporkchop.lib.math.primitive.binary;
 
-public class Round2 {
-    public static long roundLong(long value) {
-        long l = value - 1;
-        l = l | l >> 1;
-        l = l | l >> 2;
-        l = l | l >> 4;
-        l = l | l >> 8;
-        l = l | l >> 16;
-        l = l | l >> 32;
-        return l + 1;
-    }
-
-    public static int roundInt(int value) {
-        int i = value - 1;
-        i = i | i >> 1;
-        i = i | i >> 2;
-        i = i | i >> 4;
-        i = i | i >> 8;
-        i = i | i >> 16;
-        return i + 1;
-    }
-
-    public static short roundShort(short value) {
-        short s = (short) (value - 1);
-        s = (short) (s | s >> 1);
-        s = (short) (s | s >> 2);
-        s = (short) (s | s >> 4);
-        s = (short) (s | s >> 8);
-        return (short) (s + 1);
-    }
-
-    private Round2() {
+/**
+ * @author DaPorkchop_
+ */
+public class RequiredBits {
+    /**
+     * Gets the minimum number of bits required to storea given number
+     *
+     * @param value the number to store
+     * @return the minimum number of bits required
+     */
+    public static int getNumBitsNeededFor(int value) {
+        int count = 0;
+        while (value > 0) {
+            count++;
+            value = value >> 1;
+        }
+        return count;
     }
 }

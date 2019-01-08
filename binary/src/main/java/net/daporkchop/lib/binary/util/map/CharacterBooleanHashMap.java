@@ -15,7 +15,7 @@
 
 package net.daporkchop.lib.binary.util.map;
 
-import net.daporkchop.lib.binary.util.IsPow2;
+import net.daporkchop.lib.math.primitive.binary.IsPow2;
 
 import java.util.BitSet;
 

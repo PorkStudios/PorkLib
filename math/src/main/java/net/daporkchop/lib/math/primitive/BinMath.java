@@ -13,10 +13,44 @@
  *
  */
 
-package net.daporkchop.lib.math.primitive.binary;
+package net.daporkchop.lib.math.primitive;
 
-public class Round2 {
-    public static long roundLong(long value) {
+/**
+ * @author DaPorkchop_
+ */
+public interface BinMath {
+    static boolean isPow2(long value) {
+        return value != 0L && (value & value - 1L) == 0L;
+    }
+
+    static boolean isPow2(int value) {
+        return value != 0 && (value & value - 1) == 0;
+    }
+
+    static boolean isPow2(short value) {
+        return value != 0 && (value & value - 1) == 0;
+    }
+
+    static boolean isPow2(byte value) {
+        return value != 0 && (value & value - 1) == 0;
+    }
+
+    /**
+     * Gets the minimum number of bits required to store a given number
+     *
+     * @param value the number to store
+     * @return the minimum number of bits required
+     */
+    static int getNumBitsNeededFor(int value) {
+        int count = 0;
+        while (value > 0) {
+            count++;
+            value = value >> 1;
+        }
+        return count;
+    }
+
+    static long roundToNearestPowerOf2(long value) {
         long l = value - 1;
         l = l | l >> 1;
         l = l | l >> 2;
@@ -27,7 +61,7 @@ public class Round2 {
         return l + 1;
     }
 
-    public static int roundInt(int value) {
+    static int roundToNearestPowerOf2(int value) {
         int i = value - 1;
         i = i | i >> 1;
         i = i | i >> 2;
@@ -37,15 +71,12 @@ public class Round2 {
         return i + 1;
     }
 
-    public static short roundShort(short value) {
+    static short roundToNearestPowerOf2(short value) {
         short s = (short) (value - 1);
         s = (short) (s | s >> 1);
         s = (short) (s | s >> 2);
         s = (short) (s | s >> 4);
         s = (short) (s | s >> 8);
         return (short) (s + 1);
-    }
-
-    private Round2() {
     }
 }

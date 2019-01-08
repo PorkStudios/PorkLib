@@ -21,14 +21,16 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
+ * Utilities for dealing with arrays
+ *
  * @author DaPorkchop_
  */
-public class ShuffleArray {
-    public static void shuffleB(@NonNull byte[] arr) {
-        shuffleB(arr, ThreadLocalRandom.current());
+public interface PArrays {
+    static void shuffle(@NonNull byte[] arr) {
+        shuffle(arr, ThreadLocalRandom.current());
     }
 
-    public static void shuffleB(@NonNull byte[] arr, @NonNull Random random) {
+    static void shuffle(@NonNull byte[] arr, @NonNull Random random) {
         for (int i = 0; i < arr.length; i++) {
             int j = random.nextInt(arr.length);
             byte curr = arr[i];
@@ -37,11 +39,11 @@ public class ShuffleArray {
         }
     }
 
-    public static void shuffleS(@NonNull short[] arr) {
-        shuffleS(arr, ThreadLocalRandom.current());
+    static void shuffle(@NonNull short[] arr) {
+        shuffle(arr, ThreadLocalRandom.current());
     }
 
-    public static void shuffleS(@NonNull short[] arr, @NonNull Random random) {
+    static void shuffle(@NonNull short[] arr, @NonNull Random random) {
         for (int i = 0; i < arr.length; i++) {
             int j = random.nextInt(arr.length);
             short curr = arr[i];
@@ -50,11 +52,11 @@ public class ShuffleArray {
         }
     }
 
-    public static void shuffleI(@NonNull int[] arr) {
-        shuffleI(arr, ThreadLocalRandom.current());
+    static void shuffle(@NonNull int[] arr) {
+        shuffle(arr, ThreadLocalRandom.current());
     }
 
-    public static void shuffleI(@NonNull int[] arr, @NonNull Random random) {
+    static void shuffle(@NonNull int[] arr, @NonNull Random random) {
         for (int i = 0; i < arr.length; i++) {
             int j = random.nextInt(arr.length);
             int curr = arr[i];
@@ -63,11 +65,11 @@ public class ShuffleArray {
         }
     }
 
-    public static void shuffle(@NonNull Object[] arr) {
+    static void shuffle(@NonNull Object[] arr) {
         shuffle(arr, ThreadLocalRandom.current());
     }
 
-    public static void shuffle(@NonNull Object[] arr, @NonNull Random random) {
+    static void shuffle(@NonNull Object[] arr, @NonNull Random random) {
         for (int i = 0; i < arr.length; i++) {
             int j = random.nextInt(arr.length);
             Object curr = arr[i];

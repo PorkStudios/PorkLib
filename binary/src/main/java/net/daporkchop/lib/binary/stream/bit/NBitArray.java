@@ -17,7 +17,7 @@ package net.daporkchop.lib.binary.stream.bit;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.math.primitive.RoundUp;
+import net.daporkchop.lib.math.primitive.PMath;
 
 /**
  * An array that stores integers using n bits per integer
@@ -39,7 +39,7 @@ public class NBitArray {
     private final int bitsPer;
 
     public NBitArray(int size, int bitsPer) {
-        this(new long[RoundUp.roundUp(size * bitsPer, 64) >> 6], bitsPer);
+        this(new long[PMath.roundUp(size * bitsPer, 64) >> 6], bitsPer);
     }
 
     public NBitArray(@NonNull long[] data, int bitsPer) {

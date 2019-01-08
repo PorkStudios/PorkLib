@@ -15,7 +15,7 @@
 
 package net.daporkchop.lib.binary.util.map;
 
-import net.daporkchop.lib.math.primitive.binary.IsPow2;
+import net.daporkchop.lib.math.primitive.BinMath;
 
 import java.util.BitSet;
 
@@ -53,7 +53,7 @@ public class CharacterBooleanHashMap implements CharacterBooleanMap {
     }
 
     public CharacterBooleanHashMap(int baseSize, CharacterToIntegerFunction keyHash) {
-        if (!IsPow2.checkInt(baseSize)) throw new IllegalArgumentException("baseSize must be a power of 2!");
+        if (!BinMath.isPow2(baseSize)) throw new IllegalArgumentException("baseSize must be a power of 2!");
         this.baseSize = baseSize;
         if (keyHash == null) {
             this.keyHash = in -> in & 0xFFFF;

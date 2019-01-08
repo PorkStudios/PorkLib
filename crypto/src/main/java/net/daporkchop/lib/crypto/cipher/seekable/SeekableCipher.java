@@ -17,7 +17,7 @@ package net.daporkchop.lib.crypto.cipher.seekable;
 
 import lombok.NonNull;
 import net.daporkchop.lib.crypto.cipher.Cipher;
-import net.daporkchop.lib.math.primitive.RoundUp;
+import net.daporkchop.lib.math.primitive.PMath;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -125,7 +125,7 @@ public abstract class SeekableCipher implements Cipher {
         } else if (this.getBlockSize() == -1) {
             return messageLength;
         } else {
-            return RoundUp.roundUp(messageLength, this.getBlockSize());
+            return PMath.roundUp(messageLength, this.getBlockSize());
         }
     }
 

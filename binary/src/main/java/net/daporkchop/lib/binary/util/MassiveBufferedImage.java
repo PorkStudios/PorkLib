@@ -15,7 +15,7 @@
 
 package net.daporkchop.lib.binary.util;
 
-import net.daporkchop.lib.math.primitive.binary.RequiredBits;
+import net.daporkchop.lib.math.primitive.BinMath;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
@@ -30,7 +30,7 @@ import java.nio.IntBuffer;
 public class MassiveBufferedImage extends BufferedImage {
     private static final int VAL = 1073741824;
     private static final int MASK = VAL - 1;
-    private static final int SHIFT = RequiredBits.getNumBitsNeededFor(MASK);
+    private static final int SHIFT = BinMath.getNumBitsNeededFor(MASK);
 
     private final int width;
     private final int height;

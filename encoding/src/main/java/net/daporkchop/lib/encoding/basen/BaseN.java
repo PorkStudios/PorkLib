@@ -17,7 +17,7 @@ package net.daporkchop.lib.encoding.basen;
 
 import lombok.NonNull;
 import net.daporkchop.lib.encoding.util.FastCharIntMap;
-import net.daporkchop.lib.math.primitive.DivMod;
+import net.daporkchop.lib.math.primitive.PMath;
 
 import java.util.Arrays;
 
@@ -71,7 +71,7 @@ public class BaseN {
         char[] encoded = new char[data.length * 2]; // upper bound
         int outputStart = encoded.length;
         for (int inputStart = zeros; inputStart < data.length; ) {
-            encoded[--outputStart] = this.alphabet[DivMod.divmod(data, inputStart, 256, this.length)];
+            encoded[--outputStart] = this.alphabet[PMath.divmod(data, inputStart, 256, this.length)];
             if (data[inputStart] == 0) {
                 ++inputStart; // optimization - skip leading zeros
             }
@@ -110,7 +110,7 @@ public class BaseN {
         byte[] decoded = new byte[input.length()];
         int outputStart = decoded.length;
         for (int inputStart = zeros; inputStart < inputn.length; ) {
-            decoded[--outputStart] = DivMod.divmod(inputn, inputStart, this.length, 256);
+            decoded[--outputStart] = PMath.divmod(inputn, inputStart, this.length, 256);
             if (inputn[inputStart] == 0) {
                 ++inputStart; // optimization - skip leading zeros
             }

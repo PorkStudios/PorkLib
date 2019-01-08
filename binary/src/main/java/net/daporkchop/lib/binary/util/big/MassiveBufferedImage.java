@@ -13,42 +13,30 @@
  *
  */
 
-package net.daporkchop.lib.binary.util;
+package net.daporkchop.lib.binary.util.big;
 
 import net.daporkchop.lib.math.primitive.BinMath;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
-import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import static net.daporkchop.lib.common.util.PUnsafe.*;
 
 /**
  * Allows storing a {@link BufferedImage} in RAM(/swap) with nearly no limit to maximum size
  *
  * @author DaPorkchop_
  */
-public class MassiveBufferedImage extends BufferedImage {
-    private static final int VAL = 1073741824;
-    private static final int MASK = VAL - 1;
-    private static final int SHIFT = BinMath.getNumBitsNeededFor(MASK);
-
+public class MassiveBufferedImage extends BufferedImage implements AutoCloseable {
     private final int width;
     private final int height;
 
-    private final IntBuffer[] buffers;
+    private final long address;
 
     public MassiveBufferedImage(int width, int height) {
-        super(1, 1, TYPE_INT_RGB);
+        super(1, 1, TYPE_INT_ARGB);
 
-        long size = (long) width * height * 4L;
-        this.buffers = new IntBuffer[(int) (size >> SHIFT) + 1];
-        for (int i = 0; i < this.buffers.length; i++) {
-            if (false && i < this.buffers.length - 3) {
-                continue;
-            }
-            int j = i + 1 == this.buffers.length ? (int) (size & MASK) : VAL;
-            this.buffers[i] = ByteBuffer.allocateDirect(j).asIntBuffer();
-        }
+        this.address = allocateMemory(((long) width * (long) height) << 2L);
 
         this.width = width;
         this.height = height;
@@ -61,21 +49,19 @@ public class MassiveBufferedImage extends BufferedImage {
         assert y >= 0;
         assert y < this.height;
 
-        long offset = y * (long) this.width + x;
-        IntBuffer buffer = this.buffers[(int) (offset >> (SHIFT - 2L))];
-        return buffer.get((int) (offset & (MASK >> 2L)));
+        long address = this.address + (((long) y * (long) this.width + x) << 2L);
+        return getInt(address);
     }
 
     @Override
-    public synchronized void setRGB(int x, int y, int rgb) {
+    public void setRGB(int x, int y, int rgb) {
         assert x >= 0;
         assert x < this.width;
         assert y >= 0;
         assert y < this.height;
 
-        long offset = y * (long) this.width + x;
-        IntBuffer buffer = this.buffers[(int) (offset >> (SHIFT - 2L))];
-        buffer.put((int) (offset & (MASK >> 2L)), rgb);
+        long address = this.address + (((long) y * (long) this.width + x) << 2L);
+        putInt(address, rgb);
     }
 
     @Override
@@ -106,5 +92,10 @@ public class MassiveBufferedImage extends BufferedImage {
     @Override
     public WritableRaster getRaster() {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void close() {
+        freeMemory(this.address);
     }
 }

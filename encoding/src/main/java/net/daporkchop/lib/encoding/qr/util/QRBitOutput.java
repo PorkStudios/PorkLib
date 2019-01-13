@@ -13,35 +13,45 @@
  *
  */
 
-package net.daporkchop.lib.encoding.test;
+package net.daporkchop.lib.encoding.qr.util;
 
-import net.daporkchop.lib.encoding.qr.QRCodeBuilder;
+import lombok.Getter;
+import lombok.NonNull;
 import net.daporkchop.lib.encoding.qr.QRConstants;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.BitSet;
+
+import static net.daporkchop.lib.encoding.qr.QRConstants.*;
 
 /**
  * @author DaPorkchop_
  */
-public class QRTest {
-    public static void main(String... args) {
-        if (true)   {
-            System.out.println(QRConstants.getContentBitCountForVersion(1));
+@Getter
+public class QRBitOutput {
+    protected final int version;
+    protected final int size;
+
+    protected final BitSet bits;
+
+    public QRBitOutput(int version, @NonNull BitSet bits)   {
+        this.version = ensureValidVersion(version);
+        this.bits = bits;
+
+        this.size = getSizeForVersion(version);
+    }
+
+    public void put(int i, int bits)    {
+        for (bits--; bits >= 0; bits--) {
+            this.put(((i >>> bits) & 1) != 0);
         }
+    }
 
-        byte[] data = new byte[32];
-        ThreadLocalRandom.current().nextBytes(data);
+    public void put(boolean val)    {
+        //TODO
+    }
 
-        BufferedImage img = new QRCodeBuilder().encode(data).asImage(8, 4);
-
-        JFrame frame = new JFrame();
-        frame.getContentPane().setLayout(new FlowLayout());
-        frame.getContentPane().add(new JLabel(new ImageIcon(img)));
-        frame.pack();
-        frame.setVisible(true);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    public int writerPos()  {
+        //TODO
+        return -1;
     }
 }

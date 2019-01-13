@@ -13,35 +13,54 @@
  *
  */
 
-package net.daporkchop.lib.encoding.test;
+package net.daporkchop.lib.encoding.util;
 
-import net.daporkchop.lib.encoding.qr.QRCodeBuilder;
-import net.daporkchop.lib.encoding.qr.QRConstants;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.BitSet;
 
 /**
  * @author DaPorkchop_
  */
-public class QRTest {
-    public static void main(String... args) {
-        if (true)   {
-            System.out.println(QRConstants.getContentBitCountForVersion(1));
+@RequiredArgsConstructor
+@Getter
+public class XYIndexedBitSet {
+    protected final int size;
+
+    @NonNull
+    protected final BitSet bitSet;
+
+    public boolean get(int x, int y) {
+        return this.bitSet.get(x * this.size + y);
+    }
+
+    public void set(int x, int y) {
+        this.bitSet.set(x * this.size + y);
+    }
+
+    public void set(int x, int y, boolean val) {
+        this.bitSet.set(x * this.size + y, val);
+    }
+
+    public void clear(int x, int y) {
+        this.bitSet.clear(x * this.size + y);
+    }
+
+    public void clear() {
+        this.bitSet.clear();
+    }
+
+    public void setArea(int x, int y, int w, int h) {
+        for (int yy = h - 1; yy >= 0; yy--)  {
+            this.bitSet.set(x * this.size + y + yy, (x + w) * this.size + y + yy);
         }
+    }
 
-        byte[] data = new byte[32];
-        ThreadLocalRandom.current().nextBytes(data);
-
-        BufferedImage img = new QRCodeBuilder().encode(data).asImage(8, 4);
-
-        JFrame frame = new JFrame();
-        frame.getContentPane().setLayout(new FlowLayout());
-        frame.getContentPane().add(new JLabel(new ImageIcon(img)));
-        frame.pack();
-        frame.setVisible(true);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    public void clearArea(int x, int y, int w, int h) {
+        for (int yy = h - 1; yy >= 0; yy--)  {
+            this.bitSet.clear(x * this.size + y + yy, (x + w) * this.size + y + yy);
+        }
     }
 }

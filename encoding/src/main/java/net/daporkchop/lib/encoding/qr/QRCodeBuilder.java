@@ -22,11 +22,15 @@ import lombok.NonNull;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.encoding.qr.util.QRBitOutput;
 import net.daporkchop.lib.encoding.qr.util.QRLevel;
 import net.daporkchop.lib.encoding.qr.util.QRMask;
+import net.daporkchop.lib.encoding.util.XYIndexedBitSet;
 
 import java.util.BitSet;
 import java.util.concurrent.ThreadLocalRandom;
+
+import static net.daporkchop.lib.encoding.qr.QRConstants.*;
 
 /**
  * Makes QR codes!
@@ -57,11 +61,31 @@ public class QRCodeBuilder {
     protected QRMask mask = QRMask.MASK_0;
 
     public QRCode encode(@NonNull byte[] data)   {
-        BitSet bitSet = new BitSet(data.length * data.length);
-        for (int i = bitSet.size() - 1; i >= 0; i--)  {
-            bitSet.set(i, ThreadLocalRandom.current().nextBoolean());
+        int version = getBestVersionForData(data.length, this.level);
+        int size = getSizeForVersion(version);
+        BitSet bits = new BitSet(size * size);
+        XYIndexedBitSet xyBits = new XYIndexedBitSet(size, bits);
+        QRBitOutput out = new QRBitOutput(version, bits);
+
+        out.put(0b0100, 4); //hard-coded to byte mode
+        out.put(data.length, getLengthPrefixBits(version));
+        for (int i = 0; i < data.length; i++)   {
+            out.put(data[i] & 0xFF, 8);
         }
-        bitSet.xor(this.mask.grid(data.length));
-        return new QRCode(bitSet, new QRInfo(0, 0, data.length));
+        out.put(0, 4); //pad to be multiple of 8
+        {
+            //pad again until the full data length has been reached
+            int required = getRequiredBits(version, this.level);
+            int last = 0b11101100;
+            while (out.writerPos() > required) {
+                out.put(last, 8);
+                if (last == 0b11101100) { //these constants are required by the spec
+                    last = 0b00010001;
+                } else {
+                    last = 0b11101100;
+                }
+            }
+        }
+        return null;
     }
 }

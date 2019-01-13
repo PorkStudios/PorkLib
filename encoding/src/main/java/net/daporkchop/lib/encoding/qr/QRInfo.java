@@ -15,15 +15,50 @@
 
 package net.daporkchop.lib.encoding.qr;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.ToString;
+import net.daporkchop.lib.encoding.qr.util.QRLevel;
+import net.daporkchop.lib.encoding.qr.util.QRMask;
+
 /**
- * See https://upload.wikimedia.org/wikipedia/commons/4/49/QRCode-4-Levels%2CMasks.png
+ * Info about a QR code
  *
  * @author DaPorkchop_
  */
-public enum QRLevel {
-    //sorted by bits in their identifier
-    Medium,
-    Low,
-    High,
-    Quality
+@AllArgsConstructor
+@Getter
+@ToString
+@Builder
+public class QRInfo {
+    /**
+     * The version of the QR code
+     */
+    protected final int version;
+    /**
+     * The number of alignment patterns in the QR code
+     */
+    protected final int alignmentPatterns;
+    /**
+     * The size (n*n) of the QR code grid
+     */
+    protected final int size;
+    /**
+     * The length of the encoded data (in bytes)
+     */
+    protected final int length;
+    /**
+     * The error correction level of the QR code
+     */
+    @NonNull
+    @Builder.Default
+    protected final QRLevel level = QRLevel.Medium;
+    /**
+     * The bitmask applied to the QR code
+     */
+    @NonNull
+    @Builder.Default
+    protected final QRMask mask = QRMask.MASK_0;
 }

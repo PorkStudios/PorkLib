@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.encoding.qr;
+package net.daporkchop.lib.encoding.qr.util;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;

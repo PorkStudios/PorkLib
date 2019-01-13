@@ -79,4 +79,20 @@ public interface BinMath {
         s = (short) (s | s >> 8);
         return (short) (s + 1);
     }
+
+    static int getFromFlags(int... flags)   {
+        int i = 0;
+        for (int flag : flags)  {
+            i |= 1 << flag;
+        }
+        return i;
+    }
+
+    static int setFlag(int i, int flag) {
+        return i | (1 << flag);
+    }
+
+    static boolean getFlag(int i, int flag)    {
+        return (i & (1 << flag)) != 0;
+    }
 }

@@ -13,55 +13,30 @@
  *
  */
 
-package net.daporkchop.lib.encoding.qr;
+package net.daporkchop.lib.encoding.test;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.Setter;
-import lombok.ToString;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.encoding.qr.util.QRLevel;
-import net.daporkchop.lib.encoding.qr.util.QRMask;
+import net.daporkchop.lib.encoding.qr.QRCodeBuilder;
 
-import java.util.BitSet;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Makes QR codes!
- *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-@NoArgsConstructor
-@Getter
-@Setter
-@Accessors(chain = true)
-@ToString
-public class QRCodeBuilder {
-    /**
-     * The level of redundancy in the output QR code.
-     * <p>
-     * Officially called "EDC Level", and it "Determines count/distribution of codewords in D-space & E-space".
-     * <p>
-     * The higher this is set, the higher the level of error correction the code can handle, at the expense of larger size.
-     */
-    @NonNull
-    protected QRLevel level = QRLevel.Medium;
+public class QRTest {
+    public static void main(String... args) {
+        byte[] data = new byte[32];
+        ThreadLocalRandom.current().nextBytes(data);
 
-    /**
-     * An additional bitmask that is applied (XOR-ed) onto the data.
-     */
-    @NonNull
-    protected QRMask mask = QRMask.MASK_0;
+        BufferedImage img = new QRCodeBuilder().encode(data).asImage(8, 4);
 
-    public QRCode encode(@NonNull byte[] data)   {
-        BitSet bitSet = new BitSet(data.length * data.length);
-        for (int i = bitSet.size() - 1; i >= 0; i--)  {
-            bitSet.set(i, ThreadLocalRandom.current().nextBoolean());
-        }
-        bitSet.xor(this.mask.grid(data.length));
-        return new QRCode(bitSet, new QRInfo(0, 0, data.length));
+        JFrame frame = new JFrame();
+        frame.getContentPane().setLayout(new FlowLayout());
+        frame.getContentPane().add(new JLabel(new ImageIcon(img)));
+        frame.pack();
+        frame.setVisible(true);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 }

@@ -13,37 +13,28 @@
  *
  */
 
-package net.daporkchop.lib.encoding.qr;
+package net.daporkchop.lib.encoding.qr.util;
 
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.common.function.PFunctions;
-
-import java.util.function.Function;
 
 /**
- * Encoding modes supported by a QR code
- *
- * Currently mostly unimplemented
- *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
 @Getter
-public enum QRMode {
-    NUMERIC(0b0001, PFunctions.throwing(UnsupportedOperationException::new)),
-    ALPHANUMERIC(0b0010, PFunctions.throwing(UnsupportedOperationException::new)),
-    BYTE(0b0100, b -> b),
-    KANJI(0b0010, PFunctions.throwing(UnsupportedOperationException::new)),
-    STRUCTURED_APPEND(0b0011, PFunctions.throwing(UnsupportedOperationException::new)),
-    EXTENDED_CHANNEL_INTERPRETATION(0b0111, PFunctions.throwing(UnsupportedOperationException::new)),
-    FNC1_IN_FIRST_POSITION(0b0101, PFunctions.throwing(UnsupportedOperationException::new)),
-    FNC1_IN_SECOND_POSITION(0b1001, PFunctions.throwing(UnsupportedOperationException::new)),
-    END_OF_MESSAGE(0b0000, PFunctions.throwing(UnsupportedOperationException::new));
+public class QRVersionCapacity {
+    protected final int version;
+    protected final int[] capacities;
 
-    private final int id;
+    public QRVersionCapacity(int version, int... capacities)    {
+        this.version = version;
+        this.capacities = capacities;
+        if (capacities.length != QRLevel.values().length)   {
+            throw new IllegalArgumentException(String.format("Invalid number of capacities! Expected %d but found %d!", QRLevel.values().length, capacities.length));
+        }
+    }
 
-    @NonNull
-    private final Function<byte[], Object> decoder;
+    public int getCapacity(@NonNull QRLevel level)  {
+        return this.capacities[level.ordinal()];
+    }
 }

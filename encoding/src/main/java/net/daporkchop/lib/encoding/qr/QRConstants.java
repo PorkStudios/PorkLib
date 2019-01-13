@@ -15,6 +15,8 @@
 
 package net.daporkchop.lib.encoding.qr;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.encoding.qr.util.QRLevel;
 import net.daporkchop.lib.encoding.qr.util.QRVersionCapacity;
@@ -22,25 +24,27 @@ import net.daporkchop.lib.encoding.qr.util.QRVersionCapacity;
 /**
  * @author DaPorkchop_
  */
-public interface QRConstants {
-    int SIZE_VERSION_1 = 21;
-    int INCREASE_PER_VERSION = 4;
-    int MAX_VERSION = 40;
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public abstract class QRConstants {
+    public static final int SIZE_VERSION_1 = 21;
+    public static final int INCREASE_PER_VERSION = 4;
+    public static final int MAX_VERSION = 40;
 
-    int ORIENTATION_COUNT = 3;
-    int ORIENTATION_SIZE = 7;
-    int ORIENTATION_PIXEL_COUNT = ORIENTATION_SIZE * ORIENTATION_SIZE * ORIENTATION_COUNT;
+    public static final int ORIENTATION_COUNT = 3;
+    public static final int ORIENTATION_SIZE = 7;
+    public static final int ORIENTATION_PIXEL_COUNT = ORIENTATION_SIZE * ORIENTATION_SIZE * ORIENTATION_COUNT;
 
-    int ALIGNMENT_SIZE = 5;
-    int ALIGNMENT_PIXEL_COUNT = ALIGNMENT_SIZE * ALIGNMENT_SIZE;
+    public static final int ALIGNMENT_SIZE = 5;
+    public static final int ALIGNMENT_PIXEL_COUNT = ALIGNMENT_SIZE * ALIGNMENT_SIZE;
 
-    int FORMAT_INFO_PIXEL_COUNT = 31;
+    public static final int FORMAT_INFO_PIXEL_COUNT = 31;
 
-    int VERSION_INFO_PIXEL_COUNT = 3 * 6;
-    int VERSION_INFO_THRESHOLD = 7;
+    public static final int VERSION_INFO_PIXEL_COUNT = 3 * 6;
+    public static final int VERSION_INFO_THRESHOLD = 7;
 
     //from https://www.thonky.com/qr-code-tutorial/character-capacities
-    QRVersionCapacity[] VERSION_CAPACITIES = {
+    //gosh darn it i didn't need to make this
+    public static final QRVersionCapacity[] VERSION_CAPACITIES = {
             new QRVersionCapacity(1, 17, 14, 11, 7),
             new QRVersionCapacity(2, 32, 26, 20, 14),
             new QRVersionCapacity(3, 53, 42, 32, 24),
@@ -83,18 +87,35 @@ public interface QRConstants {
             new QRVersionCapacity(40, 2953, 2331, 1663, 1273)
     };
 
-    static int getSizeForVersion(int version) {
+    public static final int[] GF = new int[256];
+    public static final int[] ANTI_GF = new int[GF.length];
+
+    static {
+        int val = GF[0] = 1;
+        ANTI_GF[0] = -1;
+        for (int i = 1; i < GF.length; i++) {
+            if ((val <<= 1) >= 256) {
+                val ^= 0b100011101;
+            }
+            GF[i] = val;
+            ANTI_GF[val] = i;
+        }
+        ANTI_GF[1] = 0;
+        val = 0;
+    }
+
+    public static int getSizeForVersion(int version) {
         return SIZE_VERSION_1 + INCREASE_PER_VERSION * (ensureValidVersion(version) - 1);
     }
 
-    static int getVersionForSize(int size) {
+    public static int getVersionForSize(int size) {
         if (size < 0) {
             throw new IllegalArgumentException("Size must be greater than 0!");
         }
         return ensureValidVersion((size - 17) >>> 2);
     }
 
-    static int ensureValidVersion(int version) {
+    public static int ensureValidVersion(int version) {
         if (version <= 0 || version > MAX_VERSION) {
             throw new IllegalArgumentException(String.format("Invalid version: %d (must be in range 1-%d)", version, MAX_VERSION));
         } else {
@@ -102,7 +123,7 @@ public interface QRConstants {
         }
     }
 
-    static int getAlignmentCountForVersion(int version) {
+    public static int getAlignmentCountForVersion(int version) {
         if (ensureValidVersion(version) == 1) {
             return 0;
         } else if (version >= 35) {
@@ -122,24 +143,24 @@ public interface QRConstants {
         }
     }
 
-    static int getTimingPixelsForVersion(int version) {
+    public static int getTimingPixelsForVersion(int version) {
         return (getSizeForVersion(version) - 16) << 1;
     }
 
-    static boolean hasVersionInfo(int version) {
+    public static boolean hasVersionInfo(int version) {
         return ensureValidVersion(version) >= VERSION_INFO_THRESHOLD;
     }
 
-    static int getVersionInfoPixelCount(int version) {
+    public static int getVersionInfoPixelCount(int version) {
         return hasVersionInfo(version) ? VERSION_INFO_PIXEL_COUNT : 0;
     }
 
-    static int getPixelCountForVersion(int version) {
+    public static int getPixelCountForVersion(int version) {
         int i = getSizeForVersion(version);
         return i * i;
     }
 
-    static int getContentBitCountForVersion(int version) {
+    public static int getContentBitCountForVersion(int version) {
         return getPixelCountForVersion(version)
                 - ORIENTATION_PIXEL_COUNT
                 - 45 //orientation separator things
@@ -149,11 +170,11 @@ public interface QRConstants {
                 - getVersionInfoPixelCount(version);
     }
 
-    static int getUsableByteCountForVersion(int version, @NonNull QRLevel level) {
+    public static int getUsableByteCountForVersion(int version, @NonNull QRLevel level) {
         return VERSION_CAPACITIES[ensureValidVersion(version)].getCapacity(level);
     }
 
-    static int getBestVersionForData(int dataLength, @NonNull QRLevel level) {
+    public static int getBestVersionForData(int dataLength, @NonNull QRLevel level) {
         if (dataLength <= 0) {
             throw new IllegalStateException("Must be at least 1 byte!");
         }
@@ -163,5 +184,20 @@ public interface QRConstants {
             }
         }
         throw new IllegalArgumentException(String.format("Data length too big: %d bytes", dataLength));
+    }
+
+    public static int getLengthPrefixBits(int version) {
+        if (ensureValidVersion(version) >= 10)  {
+            return 16;
+        } else if (version >= 1)    {
+            return 8;
+        } else {
+            throw new IllegalStateException();
+        }
+    }
+
+    public static int getRequiredBits(int version, @NonNull QRLevel level)  {
+        int diff = (getLengthPrefixBits(version) >>> 3) + 1;
+        return (getUsableByteCountForVersion(version, level) + diff) << 3;
     }
 }

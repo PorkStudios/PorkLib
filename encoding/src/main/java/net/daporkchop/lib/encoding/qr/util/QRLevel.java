@@ -15,15 +15,22 @@
 
 package net.daporkchop.lib.encoding.qr.util;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 /**
  * See https://upload.wikimedia.org/wikipedia/commons/4/49/QRCode-4-Levels%2CMasks.png
  *
  * @author DaPorkchop_
  */
+@AllArgsConstructor
+@Getter
 public enum QRLevel {
-    //sorted by bits in their identifier
-    Medium,
-    Low,
-    High,
-    Quality
+    Low(0b01),
+    Medium(0b00),
+    Quality(0b11),
+    High(0b10)
+    ;
+
+    private final int id;
 }

@@ -87,23 +87,6 @@ public abstract class QRConstants {
             new QRVersionCapacity(40, 2953, 2331, 1663, 1273)
     };
 
-    public static final int[] GF = new int[256];
-    public static final int[] ANTI_GF = new int[GF.length];
-
-    static {
-        int val = GF[0] = 1;
-        ANTI_GF[0] = -1;
-        for (int i = 1; i < GF.length; i++) {
-            if ((val <<= 1) >= 256) {
-                val ^= 0b100011101;
-            }
-            GF[i] = val;
-            ANTI_GF[val] = i;
-        }
-        ANTI_GF[1] = 0;
-        val = 0;
-    }
-
     public static int getSizeForVersion(int version) {
         return SIZE_VERSION_1 + INCREASE_PER_VERSION * (ensureValidVersion(version) - 1);
     }

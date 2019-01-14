@@ -19,6 +19,7 @@ import lombok.NonNull;
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static net.daporkchop.lib.common.util.PUnsafe.*;
 
@@ -29,12 +30,18 @@ public class EntropyPool implements AutoCloseable {
     protected final long offset;
     protected final long size;
     protected volatile boolean closed = false;
+    protected final AtomicLong count = new AtomicLong(0L);
 
     public EntropyPool(long bufferSize) {
         this.offset = allocateMemory(bufferSize);
         this.size = bufferSize;
 
-        for (long l = bufferSize - 1L; l >= 0L; l--) {
+        this.clear();
+    }
+
+    public void clear() {
+        this.count.set(0L);
+        for (long l = this.size - 1L; l >= 0L; l--) {
             putByte(this.offset + l, (byte) 0); //fill with zeroes
         }
     }
@@ -43,6 +50,7 @@ public class EntropyPool implements AutoCloseable {
         if (entropy.length == 0) {
             return;
         }
+        this.count.addAndGet(entropy.length);
         long limit = this.offset + this.size - 8L;
         for (long pos = this.offset; pos < limit; pos++) {
             long val = getLong(pos);
@@ -93,5 +101,9 @@ public class EntropyPool implements AutoCloseable {
             this.closed = true;
             freeMemory(this.offset);
         }
+    }
+
+    public long getCount()    {
+        return this.count.get();
     }
 }

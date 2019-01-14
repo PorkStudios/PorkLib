@@ -244,8 +244,12 @@ public interface PUnsafe {
         return UNSAFE.defineAnonymousClass(var1, var2, var3);
     }
 
-    static Object allocateInstance(Class<?> clazz) throws InstantiationException {
-        return UNSAFE.allocateInstance(clazz);
+    static Object allocateInstance(Class<?> clazz) {
+        try {
+            return UNSAFE.allocateInstance(clazz);
+        } catch (InstantiationException e)  {
+            throw PConstants.p_exception(e);
+        }
     }
 
     static void throwException(Throwable t) {

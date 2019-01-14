@@ -65,7 +65,7 @@ public class QRVersion {
             0x28C69
     };
 
-    protected static final QRVersion[] QR_VERSIONS = {
+    public static final QRVersion[] QR_VERSIONS = {
             new QRVersion(1, new int[]{},
                     new ECBlocks(7, new ECB(1, 19)),
                     new ECBlocks(10, new ECB(1, 16)),
@@ -433,12 +433,13 @@ public class QRVersion {
         }
         return null;
     }
+
     protected final int versionNumber;
     protected final int[] alignmentPatternCenters;
     protected final ECBlocks[] ecBlocks;
     protected final int totalCodewords;
 
-    private QRVersion(int versionNumber, @NonNull int[] alignmentPatternCenters, ECBlocks... ecBlocks) {
+    protected QRVersion(int versionNumber, @NonNull int[] alignmentPatternCenters, ECBlocks... ecBlocks) {
         this.versionNumber = versionNumber;
         this.alignmentPatternCenters = alignmentPatternCenters;
         this.ecBlocks = ecBlocks;
@@ -451,7 +452,7 @@ public class QRVersion {
         this.totalCodewords = total;
     }
 
-    public ECBlocks getBlocks(QRLevel ecLevel) {
+    public ECBlocks getBlocks(@NonNull QRLevel ecLevel) {
         return this.ecBlocks[ecLevel.ordinal()];
     }
 

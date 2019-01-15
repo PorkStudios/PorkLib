@@ -14,5 +14,8 @@
  */
 
 dependencies {
+    compile project(":binary")
     compile project(":reflection")
+
+    compile "com.google.code.gson:gson:$gsonVersion"
 }

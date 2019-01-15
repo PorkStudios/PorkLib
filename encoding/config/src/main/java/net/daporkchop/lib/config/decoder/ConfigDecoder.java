@@ -13,25 +13,27 @@
  *
  */
 
-package net.daporkchop.lib.config;
+package net.daporkchop.lib.config.decoder;
 
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.config.util.Element;
 
-import static net.daporkchop.lib.common.util.PUnsafe.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * @author DaPorkchop_
  */
-@NoArgsConstructor
-public class PConfig {
-    //TODO
-    /*@SuppressWarnings("unchecked")
-    public <C> C loadConfig(@NonNull Class<C> clazz)   {
-        return this.loadConfig((C) allocateInstance(clazz));
+public interface ConfigDecoder {
+    default Element.ContainerElement decode(@NonNull File file) throws IOException {
+        return this.decode(DataIn.wrap(file));
     }
 
-    public <C> C loadConfig(@NonNull C obj)   {
-        
-    }*/
+    default Element.ContainerElement decode(@NonNull InputStream in) throws IOException {
+        return this.decode(DataIn.wrap(in));
+    }
+
+    Element.ContainerElement decode(@NonNull DataIn in) throws IOException;
 }

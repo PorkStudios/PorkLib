@@ -13,25 +13,26 @@
  *
  */
 
-package net.daporkchop.lib.config;
+package encoding.config;
 
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.StreamUtil;
+import net.daporkchop.lib.config.decoder.JsonConfigDecoder;
+import net.daporkchop.lib.config.util.Element;
+import org.junit.Test;
+import sun.misc.IOUtils;
 
-import static net.daporkchop.lib.common.util.PUnsafe.*;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * @author DaPorkchop_
  */
-@NoArgsConstructor
-public class PConfig {
-    //TODO
-    /*@SuppressWarnings("unchecked")
-    public <C> C loadConfig(@NonNull Class<C> clazz)   {
-        return this.loadConfig((C) allocateInstance(clazz));
+public class JsonConfigTest {
+    @Test
+    public void test() throws IOException   {
+        try (InputStream in = JsonConfigTest.class.getResourceAsStream("/config.json")) {
+            Element.ContainerElement element = new JsonConfigDecoder().decode(in);
+            System.out.println(element.toString());
+        }
     }
-
-    public <C> C loadConfig(@NonNull C obj)   {
-        
-    }*/
 }

@@ -449,10 +449,56 @@ public class PField<V> implements Accessible, AnnotationHolder {
         putDoubleVolatile(o, this.offset, value);
     }
 
+    //char methods
+
+    /**
+     * Gets this field's value on a given object
+     *
+     * @param o the object to get from
+     * @return the value of this field on that object
+     */
+    public char getChar(@NonNull Object o) {
+        this.ensureType(Type.CHAR);
+        return PUnsafe.getChar(o, this.offset);
+    }
+
+    /**
+     * Gets this field's value on a given object
+     *
+     * @param o the object to get from
+     * @return the value of this field on that object
+     */
+    public char getCharVolatile(@NonNull Object o) {
+        this.ensureType(Type.CHAR);
+        return PUnsafe.getCharVolatile(o, this.offset);
+    }
+
+    /**
+     * Sets this field's value on a given object
+     *
+     * @param o     the object to set the field in
+     * @param value the value to set the field to
+     */
+    public void setChar(@NonNull Object o, char value) {
+        this.ensureType(Type.CHAR);
+        putChar(o, this.offset, value);
+    }
+
+    /**
+     * Sets this field's value on a given object
+     *
+     * @param o     the object to set the field in
+     * @param value the value to set the field to
+     */
+    public void setCharVolatile(@NonNull Object o, char value) {
+        this.ensureType(Type.CHAR);
+        putCharVolatile(o, this.offset, value);
+    }
+
     //misc
 
     protected void ensureType(Type type) {
-        if (this.type != type) {
+        if (this.type != type && !(type.isObject() && type.isObject())) {
             throw new IllegalStateException(String.format("Invalid field type! We're %s but %s is required!", this.type, type));
         }
     }

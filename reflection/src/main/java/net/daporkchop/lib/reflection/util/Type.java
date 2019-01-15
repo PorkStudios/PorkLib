@@ -15,7 +15,9 @@
 
 package net.daporkchop.lib.reflection.util;
 
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.Field;
 
@@ -24,17 +26,27 @@ import java.lang.reflect.Field;
  *
  * @author DaPorkchop_
  */
+@RequiredArgsConstructor
+@Getter
 public enum Type {
-    OBJECT,
-    ARRAY,
-    BOOLEAN,
-    BYTE,
-    SHORT,
-    INT,
-    LONG,
-    FLOAT,
-    DOUBLE,
-    CHAR;
+    OBJECT(true),
+    ARRAY_OBJECT(true),
+    ARRAY_BOOLEAN(true),
+    ARRAY_BYTE(true),
+    ARRAY_SHORT(true),
+    ARRAY_INT(true),
+    ARRAY_LONG(true),
+    ARRAY_FLOAT(true),
+    ARRAY_DOUBLE(true),
+    ARRAY_CHAR(true),
+    BOOLEAN(false),
+    BYTE(false),
+    SHORT(false),
+    INT(false),
+    LONG(false),
+    FLOAT(false),
+    DOUBLE(false),
+    CHAR(false);
 
     /**
      * Gets the type of a field
@@ -61,9 +73,29 @@ public enum Type {
         } else if (clazz == char.class) {
             return CHAR;
         } else if (clazz.isArray()) {
-            return ARRAY;
+            if (clazz == boolean[].class) {
+                return ARRAY_BOOLEAN;
+            } else if (clazz == byte[].class) {
+                return ARRAY_BYTE;
+            } else if (clazz == short[].class) {
+                return ARRAY_SHORT;
+            } else if (clazz == int[].class) {
+                return ARRAY_INT;
+            } else if (clazz == long[].class) {
+                return ARRAY_LONG;
+            } else if (clazz == float[].class) {
+                return ARRAY_FLOAT;
+            } else if (clazz == double[].class) {
+                return ARRAY_DOUBLE;
+            } else if (clazz == char[].class) {
+                return ARRAY_CHAR;
+            } else {
+                return ARRAY_OBJECT;
+            }
         } else {
             return OBJECT;
         }
     }
+
+    private final boolean object;
 }

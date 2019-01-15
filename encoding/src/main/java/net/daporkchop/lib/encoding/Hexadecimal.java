@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.encoding;
 
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.encoding.util.FastCharIntMap;
 
 /**
@@ -40,7 +41,7 @@ public class Hexadecimal {
             newText[a + 1] = ALPHABET[b & 0xF];
             newText[a] = ALPHABET[(b >> 4) & 0xF];
         }
-        return new String(newText);
+        return PorkUtil.wrap(newText);
     }
 
     public static String encode(byte[] data, int from, int length) {
@@ -51,7 +52,7 @@ public class Hexadecimal {
             newText[a + 1] = ALPHABET[b & 0xF];
             newText[a] = ALPHABET[(b >> 4) & 0xF];
         }
-        return new String(newText);
+        return PorkUtil.wrap(newText);
     }
 
     public static byte[] decode(String input) {

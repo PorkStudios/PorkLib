@@ -20,7 +20,6 @@ import sun.misc.Cleaner;
 import sun.misc.Unsafe;
 
 import java.io.File;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
@@ -37,7 +36,7 @@ import java.util.function.Function;
 public class PorkUtil {
     public static final Unsafe unsafe;
     public static final ThreadLocal<byte[]> BUFFER_CACHE_SMALL = ThreadLocal.withInitial(() -> new byte[256]);
-    private static final Function<char[], String> CHAR_ARRAY_WRAPPER;
+    private static long string_valueOffset;
     private static final Function<Throwable, StackTraceElement[]> GET_STACK_TRACE_WRAPPER;
     private static final AtomicInteger DEFAULT_EXECUTOR_THREAD_COUNTER = new AtomicInteger(0);
     public static final Executor DEFAULT_EXECUTOR = new ThreadPoolExecutor(
@@ -61,23 +60,14 @@ public class PorkUtil {
             }
         }
         {
-            Function<char[], String> func = chars -> {
-                throw new UnsupportedOperationException();
-            };
+            long l = -1L;
             try {
-                Constructor<String> f = String.class.getDeclaredConstructor(char[].class, boolean.class);
-                f.setAccessible(true);
-                func = chars -> {
-                    try {
-                        return f.newInstance(chars, true);
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                };
-            } catch (Exception e) {
+                Field f = String.class.getDeclaredField("value");
+                l = unsafe.objectFieldOffset(f);
+            } catch (NoSuchFieldException e) {
                 throw new RuntimeException(e);
             } finally {
-                CHAR_ARRAY_WRAPPER = func;
+                string_valueOffset = l;
             }
         }
         {
@@ -102,8 +92,16 @@ public class PorkUtil {
         }
     }
 
+    /**
+     * Wraps a char array into a {@link String} without copying the array.
+     *
+     * @param chars the char array to copy
+     * @return a new string
+     */
     public static String wrap(@NonNull char[] chars) {
-        return CHAR_ARRAY_WRAPPER.apply(chars);
+        String s = (String) PUnsafe.allocateInstance(String.class);
+        PUnsafe.putObject(s, string_valueOffset, chars);
+        return s;
     }
 
     public static StackTraceElement[] getStackTrace(@NonNull Throwable t) {

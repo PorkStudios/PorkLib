@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.config.util;
 
+import lombok.NonNull;
 import net.daporkchop.lib.config.attribute.Comment;
 import net.daporkchop.lib.reflection.util.Type;
 
@@ -44,7 +45,7 @@ public interface Element<V> {
 
     /**
      * Gets the element that contains this element
-     *
+     * <p>
      * This may return either a {@link ContainerElement} or a {@link ArrayElement}, or {@code null} if
      * this element is the root element.
      */
@@ -56,55 +57,100 @@ public interface Element<V> {
     Comment getComment();
 
     /**
+     * Sets this element's comment
+     *
+     * @param comment the new comment to set
+     */
+    void setComment(Comment comment);
+
+    /**
+     * Checks if this element has a comment
+     */
+    default boolean hasComment() {
+        return this.getComment() != null && this.getComment().isPresent() && !this.isRoot();
+    }
+
+    /**
      * Checks if this element is the root element in the config tree.
      */
-    default boolean isRoot()    {
+    default boolean isRoot() {
         return this.getParent() == null;
     }
 
-    default boolean booleanValue()  {
+    default boolean booleanValue() {
         return (Boolean) this.getValue();
     }
 
-    default byte byteValue()  {
+    default byte byteValue() {
         return (Byte) this.getValue();
     }
 
-    default short shortValue()  {
+    default short shortValue() {
         return (Short) this.getValue();
     }
 
-    default int intValue()  {
+    default int intValue() {
         return (Integer) this.getValue();
     }
 
-    default long longValue()  {
+    default long longValue() {
         return (Long) this.getValue();
     }
 
-    default float floatValue()  {
+    default float floatValue() {
         return (Float) this.getValue();
     }
 
-    default double doubleValue()  {
+    default double doubleValue() {
         return (Double) this.getValue();
     }
 
-    default char charValue()  {
+    default char charValue() {
         return (Character) this.getValue();
     }
 
-    default boolean isString()  {
+    default boolean isString() {
         return this.getValue() instanceof String;
     }
 
-    default String stringValue()  {
+    default String stringValue() {
         return (String) this.getValue();
     }
 
-    interface ContainerElement extends Element<Map<String, Element>> {
+    @SuppressWarnings("unchecked")
+    default <T> Element<T> getAs()  {
+        return (Element<T>) this;
     }
 
-    interface ArrayElement extends Element<List<Element>>   {
+    interface ContainerElement extends Element<Map<String, Element>> {
+        default Element getElement(@NonNull String name)    {
+            return this.getValue().get(name);
+        }
+
+        default void setElement(@NonNull String name, @NonNull Element element) {
+            this.getValue().put(name, element);
+        }
+
+        default boolean hasElement(@NonNull String name)    {
+            return this.getValue().containsKey(name);
+        }
+
+        default void removeElement(@NonNull String name)    {
+            this.getValue().remove(name);
+        }
+    }
+
+    interface ArrayElement extends Element<List<Element>> {
+        default Element getElement(int i)   {
+            return this.getValue().get(i);
+        }
+
+        default int getSize()   {
+            return this.getValue().size();
+        }
+
+        default void add(@NonNull Element element)  {
+            this.getValue().add(element);
+        }
     }
 }

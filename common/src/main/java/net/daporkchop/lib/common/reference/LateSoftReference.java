@@ -20,7 +20,7 @@ import java.lang.ref.SoftReference;
 /**
  * @author DaPorkchop_
  */
-public class LateSoftReference<T> extends Reference<T> {
+public class LateSoftReference<T> implements Reference<T> {
     protected SoftReference<T> ref = new SoftReference<>(null);
 
     @Override

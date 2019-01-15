@@ -46,29 +46,12 @@ public @interface Config {
 
     /**
      * Allows setting a custom name for a config category or value.
-     * <p>
-     * Only allows changing the name relative to the current namespace. To set the absolute
-     * name+path of the config element, use {@link FullName}
      */
     @Target({ElementType.TYPE, ElementType.FIELD})
     @Retention(RetentionPolicy.RUNTIME)
     @interface Name {
         /**
          * The name of this element relative to the current namespace
-         */
-        String value();
-    }
-
-    /**
-     * Allows setting the full name (path) to a config category or value.
-     * <p>
-     * This full name starts at the config root.
-     */
-    @Target({ElementType.TYPE, ElementType.FIELD})
-    @Retention(RetentionPolicy.RUNTIME)
-    @interface FullName {
-        /**
-         * The absolute (namespaced) name of this element
          */
         String value();
     }

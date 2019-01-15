@@ -247,7 +247,7 @@ public interface PUnsafe {
     static Object allocateInstance(Class<?> clazz) {
         try {
             return UNSAFE.allocateInstance(clazz);
-        } catch (InstantiationException e)  {
+        } catch (InstantiationException e) {
             throw PConstants.p_exception(e);
         }
     }
@@ -402,7 +402,7 @@ public interface PUnsafe {
     static long pork_getOffset(@NonNull Class clazz, @NonNull String fieldName) {
         try {
             return UNSAFE.objectFieldOffset(clazz.getDeclaredField(fieldName));
-        } catch (NoSuchFieldException e)    {
+        } catch (NoSuchFieldException e) {
             throw PConstants.p_exception(e);
         }
     }
@@ -411,7 +411,7 @@ public interface PUnsafe {
         int var5;
         do {
             var5 = UNSAFE.getIntVolatile(var1, var2);
-        } while(!UNSAFE.compareAndSwapInt(var1, var2, var5, Float.floatToIntBits(Float.intBitsToFloat(var5) + var4)));
+        } while (!UNSAFE.compareAndSwapInt(var1, var2, var5, Float.floatToIntBits(Float.intBitsToFloat(var5) + var4)));
 
         return var5;
     }
@@ -420,7 +420,8 @@ public interface PUnsafe {
         long var6;
         do {
             var6 = UNSAFE.getLongVolatile(var1, var2);
-        } while(!UNSAFE.compareAndSwapLong(var1, var2, var6, Double.doubleToLongBits(Double.longBitsToDouble(var6) + var4)));
+        }
+        while (!UNSAFE.compareAndSwapLong(var1, var2, var6, Double.doubleToLongBits(Double.longBitsToDouble(var6) + var4)));
 
         return var6;
     }

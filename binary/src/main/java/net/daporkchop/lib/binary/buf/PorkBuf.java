@@ -15,7 +15,15 @@
 
 package net.daporkchop.lib.binary.buf;
 
+import io.netty.buffer.ByteBuf;
+import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+
+import java.io.IOException;
 import java.nio.BufferOverflowException;
+import java.nio.BufferUnderflowException;
+import java.nio.ByteBuffer;
 
 /**
  * Version 2.0 of the PorkBuf! However, unlike the old one, this one isn't crap.
@@ -157,7 +165,7 @@ public interface PorkBuf {
      * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
      */
     default PorkBuf putBoolean(boolean b) {
-        if (!this.canWrite(2)) {
+        if (!this.isInBounds(2)) {
             throw new BufferOverflowException();
         }
         return this.putByte(b ? (byte) 1 : 0);
@@ -171,7 +179,7 @@ public interface PorkBuf {
      * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
      */
     default PorkBuf putShort(short s) {
-        if (!this.canWrite(2)) {
+        if (!this.isInBounds(2)) {
             throw new BufferOverflowException();
         }
         return this.putByte((byte) (s & 0xFF))
@@ -186,7 +194,7 @@ public interface PorkBuf {
      * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
      */
     default PorkBuf putMedium(int i) {
-        if (!this.canWrite(3)) {
+        if (!this.isInBounds(3)) {
             throw new BufferOverflowException();
         }
         return this.putByte((byte) (i & 0xFF))
@@ -202,7 +210,7 @@ public interface PorkBuf {
      * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
      */
     default PorkBuf putInt(int i) {
-        if (!this.canWrite(4)) {
+        if (!this.isInBounds(4)) {
             throw new BufferOverflowException();
         }
         return this.putByte((byte) (i & 0xFF))
@@ -219,7 +227,7 @@ public interface PorkBuf {
      * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
      */
     default PorkBuf putLong(long l) {
-        if (!this.canWrite(8)) {
+        if (!this.isInBounds(8)) {
             throw new BufferOverflowException();
         }
         return this.putByte((byte) (l & 0xFFL))
@@ -255,6 +263,68 @@ public interface PorkBuf {
     }
 
     /**
+     * Writes a byte array to the buffer at the current writer index, incrementing the writer index by the number of bytes
+     * in the array
+     *
+     * @param arr the byte array to write
+     * @return this buffer
+     * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
+     */
+    default PorkBuf putBytes(@NonNull byte[] arr) {
+        for (byte b : arr) {
+            this.putByte(b);
+        }
+        return this;
+    }
+
+    /**
+     * Writes a byte array to the buffer at the current writer index, incrementing the writer index by the number of bytes
+     * in the array
+     *
+     * @param arr the byte array to write
+     * @param off the offset in the byte array to start reading
+     * @param len the number of bytes to read
+     * @return this buffer
+     * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
+     */
+    default PorkBuf putBytes(@NonNull byte[] arr, int off, int len) {
+        for (int i = 0; i < len; i++) {
+            this.putByte(arr[off + i]);
+        }
+        return this;
+    }
+
+    /**
+     * Writes a {@link ByteBuf} to the buffer at the current writer index, incrementing the writer index by the number of
+     * readable bytes in the buffer
+     *
+     * @param buf the {@link ByteBuf} to write
+     * @return this buffer
+     * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
+     */
+    default PorkBuf putBytes(@NonNull ByteBuf buf) {
+        for (int i = buf.readableBytes() - 1; i >= 0; i--) {
+            this.putByte(buf.readByte());
+        }
+        return this;
+    }
+
+    /**
+     * Writes a {@link ByteBuffer} to the buffer at the current writer index, incrementing the writer index by the number of
+     * readable bytes in the buffer
+     *
+     * @param buf the {@link ByteBuffer} to write
+     * @return this buffer
+     * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
+     */
+    default PorkBuf putBytes(@NonNull ByteBuffer buf) {
+        for (int i = buf.remaining() - 1; i >= 0; i--) {
+            this.putByte(buf.get());
+        }
+        return this;
+    }
+
+    /**
      * Writes a single byte to the buffer at the given index
      *
      * @param index the index to write at
@@ -273,7 +343,7 @@ public interface PorkBuf {
      * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
      */
     default PorkBuf putBoolean(long index, boolean b) {
-        if (!this.canWrite(index, 1)) {
+        if (!this.isInBounds(index, 1)) {
             throw new BufferOverflowException();
         }
         return this.putByte(index, b ? (byte) 1 : 0);
@@ -288,7 +358,7 @@ public interface PorkBuf {
      * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
      */
     default PorkBuf putShort(long index, short s) {
-        if (!this.canWrite(index, 2)) {
+        if (!this.isInBounds(index, 2)) {
             throw new BufferOverflowException();
         }
         return this.putByte(index, (byte) (s & 0xFF))
@@ -304,7 +374,7 @@ public interface PorkBuf {
      * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
      */
     default PorkBuf putMedium(long index, int i) {
-        if (!this.canWrite(index, 3)) {
+        if (!this.isInBounds(index, 3)) {
             throw new BufferOverflowException();
         }
         return this.putByte(index, (byte) (i & 0xFF))
@@ -321,7 +391,7 @@ public interface PorkBuf {
      * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
      */
     default PorkBuf putInt(long index, int i) {
-        if (!this.canWrite(index, 4)) {
+        if (!this.isInBounds(index, 4)) {
             throw new BufferOverflowException();
         }
         return this.putByte(index, (byte) (i & 0xFF))
@@ -339,7 +409,7 @@ public interface PorkBuf {
      * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
      */
     default PorkBuf putLong(long index, long l) {
-        if (!this.canWrite(index, 8)) {
+        if (!this.isInBounds(index, 8)) {
             throw new BufferOverflowException();
         }
         return this.putByte(index, (byte) (l & 0xFFL))
@@ -376,51 +446,571 @@ public interface PorkBuf {
         return this.putLong(index, Double.doubleToRawLongBits(d));
     }
 
+    /**
+     * Writes a byte array to the buffer at the given index
+     *
+     * @param index the index to write at
+     * @param arr   the byte array to write
+     * @return this buffer
+     * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
+     */
+    default PorkBuf putBytes(long index, @NonNull byte[] arr) {
+        for (byte b : arr) {
+            this.putByte(index++, b);
+        }
+        return this;
+    }
+
+    /**
+     * Writes a byte array to the buffer at the given index
+     *
+     * @param index the index to write at
+     * @param arr   the byte array to write
+     * @param off   the offset in the byte array to start reading
+     * @param len   the number of bytes to read
+     * @return this buffer
+     * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
+     */
+    default PorkBuf putBytes(long index, @NonNull byte[] arr, int off, int len) {
+        for (int i = 0; i < len; i++) {
+            this.putByte(index++, arr[off + i]);
+        }
+        return this;
+    }
+
+    /**
+     * Writes a {@link ByteBuf} to the buffer at the given index
+     *
+     * @param index the index to write at
+     * @param buf   the {@link ByteBuf} to write
+     * @return this buffer
+     * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
+     */
+    default PorkBuf putBytes(long index, @NonNull ByteBuf buf) {
+        for (int i = buf.readableBytes() - 1; i >= 0; i--) {
+            this.putByte(index++, buf.readByte());
+        }
+        return this;
+    }
+
+    /**
+     * Writes a {@link ByteBuffer} to the buffer at the given index
+     *
+     * @param index the index to write at
+     * @param buf   the {@link ByteBuffer} to write
+     * @return this buffer
+     * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
+     */
+    default PorkBuf putBytes(long index, @NonNull ByteBuffer buf) {
+        for (int i = buf.remaining() - 1; i >= 0; i--) {
+            this.putByte(index++, buf.get());
+        }
+        return this;
+    }
+
+    //read operations
+
+    /**
+     * Reads a byte from the buffer at the current reader index
+     *
+     * @return a byte
+     */
+    byte readByte();
+
+    /**
+     * Reads a boolean from the buffer at the current reader index
+     *
+     * @return a boolean
+     */
+    default boolean readBoolean() {
+        return this.readByte() != 0;
+    }
+
+    /**
+     * Reads a short from the buffer at the current reader index
+     *
+     * @return a short
+     */
+    default short readShort() {
+        return (short) ((this.readByte() & 0xFF)
+                | ((this.readByte() & 0xFF) << 8));
+    }
+
+    /**
+     * Reads a medium from the buffer at the current reader index
+     *
+     * @return a medium
+     */
+    default int readMedium() {
+        return (this.readByte() & 0xFF)
+                | ((this.readByte() & 0xFF) << 8)
+                | ((this.readByte() & 0xFF) << 16);
+    }
+
+    /**
+     * Reads an int from the buffer at the current reader index
+     *
+     * @return an int
+     */
+    default int readInt() {
+        return (this.readByte() & 0xFF)
+                | ((this.readByte() & 0xFF) << 8)
+                | ((this.readByte() & 0xFF) << 16)
+                | ((this.readByte() & 0xFF) << 24);
+    }
+
+    /**
+     * Reads a long from the buffer at the current reader index
+     *
+     * @return a long
+     */
+    default long readLong() {
+        return (this.readByte() & 0xFFL)
+                | ((this.readByte() & 0xFFL) << 8L)
+                | ((this.readByte() & 0xFFL) << 16L)
+                | ((this.readByte() & 0xFFL) << 24L)
+                | ((this.readByte() & 0xFFL) << 32L)
+                | ((this.readByte() & 0xFFL) << 40L)
+                | ((this.readByte() & 0xFFL) << 48L)
+                | ((this.readByte() & 0xFFL) << 56L);
+    }
+
+    /**
+     * Reads a float from the buffer at the current reader index
+     *
+     * @return a float
+     */
+    default float readFloat() {
+        return Float.intBitsToFloat(this.readInt());
+    }
+
+    /**
+     * Reads a double from the buffer at the current reader index
+     *
+     * @return a double
+     */
+    default double readDouble() {
+        return Double.longBitsToDouble(this.readLong());
+    }
+
+    /**
+     * Fills a byte array with data, starting at the current reader index
+     *
+     * @param arr the byte array to fill
+     */
+    default void readBytes(@NonNull byte[] arr) {
+        for (int i = 0; i < arr.length; i++) {
+            arr[i] = this.readByte();
+        }
+    }
+
+    /**
+     * Fills a byte array with data, starting at the current reader index
+     *
+     * @param arr the byte array to fill
+     * @param off the offset in the byte array to start putting bytes in
+     * @param len the number of bytes to read
+     */
+    default void readBytes(@NonNull byte[] arr, int off, int len) {
+        for (int i = 0; i < len; i++) {
+            arr[off + i] = this.readByte();
+        }
+    }
+
+    /**
+     * Fills a {@link ByteBuf} with data, starting at the current reader index
+     *
+     * @param buf the {@link ByteBuf} to fill
+     */
+    default void readBytes(@NonNull ByteBuf buf) {
+        for (int i = buf.writableBytes() - 1; i >= 0; i--) {
+            buf.writeByte(this.readByte() & 0xFF);
+        }
+    }
+
+    /**
+     * Fills a {@link ByteBuffer} with data, starting at the current reader index
+     *
+     * @param buf the {@link ByteBuffer} to fill
+     */
+    default void readBytes(@NonNull ByteBuffer buf) {
+        for (int i = buf.remaining() - 1; i >= 0; i--) {
+            buf.put(this.readByte());
+        }
+    }
+
+    /**
+     * Reads a byte from the buffer at the given index
+     *
+     * @param index the index to read at
+     * @return a byte
+     */
+    byte readByte(long index);
+
+    /**
+     * Reads a boolean from the buffer at the given index
+     *
+     * @param index the index to read at
+     * @return a boolean
+     */
+    default boolean readBoolean(long index) {
+        return this.readByte(index) != 0;
+    }
+
+    /**
+     * Reads a short from the buffer at the given index
+     *
+     * @param index the index to read at
+     * @return a short
+     */
+    default short readShort(long index) {
+        return (short) ((this.readByte(index) & 0xFF)
+                | ((this.readByte(index + 1L) & 0xFF) << 8));
+    }
+
+    /**
+     * Reads a medium from the buffer at the given index
+     *
+     * @param index the index to read at
+     * @return a medium
+     */
+    default int readMedium(long index) {
+        return (this.readByte(index) & 0xFF)
+                | ((this.readByte(index + 1L) & 0xFF) << 8)
+                | ((this.readByte(index + 2L) & 0xFF) << 16);
+    }
+
+    /**
+     * Reads an int from the buffer at the given index
+     *
+     * @param index the index to read at
+     * @return an int
+     */
+    default int readInt(long index) {
+        return (this.readByte(index) & 0xFF)
+                | ((this.readByte(index + 1L) & 0xFF) << 8)
+                | ((this.readByte(index + 2L) & 0xFF) << 16)
+                | ((this.readByte(index + 3L) & 0xFF) << 24);
+    }
+
+    /**
+     * Reads a long from the buffer at the given index
+     *
+     * @param index the index to read at
+     * @return a long
+     */
+    default long readLong(long index) {
+        return (this.readByte(index) & 0xFFL)
+                | ((this.readByte(index + 1L) & 0xFFL) << 8L)
+                | ((this.readByte(index + 2L) & 0xFFL) << 16L)
+                | ((this.readByte(index + 3L) & 0xFFL) << 24L)
+                | ((this.readByte(index + 4L) & 0xFFL) << 32L)
+                | ((this.readByte(index + 5L) & 0xFFL) << 40L)
+                | ((this.readByte(index + 6L) & 0xFFL) << 48L)
+                | ((this.readByte(index + 7L) & 0xFFL) << 56L);
+    }
+
+    /**
+     * Reads a float from the buffer at the given index
+     *
+     * @param index the index to read at
+     * @return a float
+     */
+    default float readFloat(long index) {
+        return Float.intBitsToFloat(this.readInt(index));
+    }
+
+    /**
+     * Reads a double from the buffer at the given index
+     *
+     * @param index the index to read at
+     * @return a double
+     */
+    default double readDouble(long index) {
+        return Double.longBitsToDouble(this.readLong(index));
+    }
+
+    /**
+     * Fills a byte array with data, starting at the current reader index
+     *
+     * @param arr the byte array to fill
+     */
+    default void readBytes(long index, @NonNull byte[] arr) {
+        for (int i = 0; i < arr.length; i++) {
+            arr[i] = this.readByte(index++);
+        }
+    }
+
+    /**
+     * Fills a byte array with data, starting at the current reader index
+     *
+     * @param arr the byte array to fill
+     * @param off the offset in the byte array to start putting bytes in
+     * @param len the number of bytes to read
+     */
+    default void readBytes(long index, @NonNull byte[] arr, int off, int len) {
+        for (int i = 0; i < len; i++) {
+            arr[off + i] = this.readByte(index++);
+        }
+    }
+
+    /**
+     * Fills a {@link ByteBuf} with data, starting at the current reader index
+     *
+     * @param buf the {@link ByteBuf} to fill
+     */
+    default void readBytes(long index, @NonNull ByteBuf buf) {
+        for (int i = buf.writableBytes() - 1; i >= 0; i--) {
+            buf.writeByte(this.readByte(index++) & 0xFF);
+        }
+    }
+
+    /**
+     * Fills a {@link ByteBuffer} with data, starting at the current reader index
+     *
+     * @param buf the {@link ByteBuffer} to fill
+     */
+    default void readBytes(long index, @NonNull ByteBuffer buf) {
+        for (int i = buf.remaining() - 1; i >= 0; i--) {
+            buf.put(this.readByte(index++));
+        }
+    }
+
+    //stream methods
+
+    /**
+     * Gets a {@link DataOut} that can write to this buffer.
+     *
+     * @return a {@link DataOut} that can write to this buffer
+     */
+    default DataOut outputStream() {
+        return this.outputStream(0L, -1L);
+    }
+
+    /**
+     * Gets a {@link DataOut} that can write to this buffer.
+     *
+     * @param offset the index that the {@link DataOut} will start writing at
+     * @return a {@link DataOut} that can write to this buffer
+     */
+    default DataOut outputStream(long offset) {
+        return this.outputStream(offset, -1L);
+    }
+
+    /**
+     * Gets a {@link DataOut} that can write to this buffer.
+     *
+     * @param offset the index that the {@link DataOut} will start writing at
+     * @param limit  the maximum number of bytes that may be written to the {@link DataOut}. If less than 0, the limit
+     *               will not be enforced.
+     * @return a {@link DataOut} that can write to this buffer
+     */
+    default DataOut outputStream(long offset, long limit) {
+        return new DataOut() {
+            private long l;
+
+            @Override
+            public void close() throws IOException {
+            }
+
+            @Override
+            public void write(int b) throws IOException {
+                if (limit >= 0L && this.l > limit) {
+                    throw new BufferOverflowException();
+                }
+                PorkBuf.this.putByte(offset + this.l++, (byte) b);
+            }
+        };
+    }
+
+    /**
+     * Gets a {@link DataIn} that can read from this buffer.
+     *
+     * @return a {@link DataIn} that can read from this buffer
+     */
+    default DataIn inputStream() {
+        return this.inputStream(0L, -1L);
+    }
+
+    /**
+     * Gets a {@link DataIn} that can read from this buffer.
+     *
+     * @param offset the index that the {@link DataIn} will start reading at
+     * @return a {@link DataIn} that can read from this buffer
+     */
+    default DataIn inputStream(long offset) {
+        return this.inputStream(offset, -1L);
+    }
+
+    /**
+     * Gets a {@link DataIn} that can read from this buffer.
+     *
+     * @param offset the index that the {@link DataIn} will start reading at
+     * @param limit  the maximum number of bytes that may be read from the {@link DataIn}. If less than 0, the limit
+     *               will not be enforced.
+     * @return a {@link DataIn} that can read from this buffer
+     */
+    default DataIn inputStream(long offset, long limit) {
+        return new DataIn() {
+            private long l;
+
+            @Override
+            public void close() throws IOException {
+            }
+
+            @Override
+            public int read() throws IOException {
+                if (limit >= 0L && this.l > limit) {
+                    throw new BufferUnderflowException();
+                }
+                return PorkBuf.this.readByte(offset + this.l++) & 0xFF;
+            }
+        };
+    }
+
+    //mirroring methods
+
+    /**
+     * Gets this buffer as a byte array.
+     * <p>
+     * The byte array returned by this method will reflect changes to the buffer, and changes to the byte array will be reflected
+     * in the buffer.
+     * <p>
+     * Optional implementation.
+     *
+     * @return this buffer's contents as a byte array
+     */
+    default byte[] getAsByteArray() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Gets an instance of {@link ByteBuf} that will mirror a section of this buffer.
+     * <p>
+     * Modifying the {@link ByteBuf} will change the content of this buffer, and changes to this buffer will affect
+     * the {@link ByteBuf}.
+     *
+     * @return a mirror of a section of this buffer, stored in a {@link ByteBuf}
+     */
+    default ByteBuf netty() {
+        long cap = this.capacity();
+        return this.netty(0L, cap > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) cap);
+    }
+
+    /**
+     * Gets an instance of {@link ByteBuf} that will mirror a section of this buffer.
+     * <p>
+     * Modifying the {@link ByteBuf} will change the content of this buffer, and changes to this buffer will affect
+     * the {@link ByteBuf}.
+     *
+     * @param offset the offset to begin the mirror at
+     * @return a mirror of a section of this buffer, stored in a {@link ByteBuf}
+     */
+    default ByteBuf netty(long offset) {
+        long cap = this.capacity() - offset;
+        return this.netty(offset, cap > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) cap);
+    }
+
+    /**
+     * Gets an instance of {@link ByteBuf} that will mirror a section of this buffer.
+     * <p>
+     * Modifying the {@link ByteBuf} will change the content of this buffer, and changes to this buffer will affect
+     * the {@link ByteBuf}.
+     *
+     * @param offset the offset to begin the mirror at
+     * @param len    the size of the mirror.
+     * @return a mirror of a section of this buffer, stored in a {@link ByteBuf}
+     */
+    default ByteBuf netty(long offset, int len) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Gets an instance of {@link ByteBuffer} that will mirror a section of this buffer.
+     * <p>
+     * Modifying the {@link ByteBuffer} will change the content of this buffer, and changes to this buffer will affect
+     * the {@link ByteBuffer}.
+     *
+     * @return a mirror of a section of this buffer, stored in a {@link ByteBuffer}
+     */
+    default ByteBuffer nio() {
+        long cap = this.capacity();
+        return this.nio(0L, cap > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) cap);
+    }
+
+    /**
+     * Gets an instance of {@link ByteBuffer} that will mirror a section of this buffer.
+     * <p>
+     * Modifying the {@link ByteBuffer} will change the content of this buffer, and changes to this buffer will affect
+     * the {@link ByteBuffer}.
+     *
+     * @param offset the offset to begin the mirror at
+     * @return a mirror of a section of this buffer, stored in a {@link ByteBuffer}
+     */
+    default ByteBuffer nio(long offset) {
+        long cap = this.capacity() - offset;
+        return this.nio(offset, cap > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) cap);
+    }
+
+    /**
+     * Gets an instance of {@link ByteBuffer} that will mirror a section of this buffer.
+     * <p>
+     * Modifying the {@link ByteBuffer} will change the content of this buffer, and changes to this buffer will affect
+     * the {@link ByteBuffer}.
+     *
+     * @param offset the offset to begin the mirror at
+     * @param len    the size of the mirror.
+     * @return a mirror of a section of this buffer, stored in a {@link ByteBuffer}
+     */
+    default ByteBuffer nio(long offset, int len) {
+        throw new UnsupportedOperationException();
+    }
+
     //sanity checks
 
     /**
-     * Checks if the given number of bytes can be written at the current writer index without causing errors.
+     * Checks if the given number of bytes can be written at/read from the current writer index without causing errors.
      * <p>
      * 32-bit method for speed. Why? Because microoptimization.
      *
      * @param count the number of bytes to write
-     * @return whether or not the given number of bytes can be written at the current writer index without causing errors
+     * @return whether or not the given number of bytes can be written at/read from the current writer index without causing errors
      */
-    default boolean canWrite(int count) {
-        return this.canWrite(this.writerIndex(), count);
+    default boolean isInBounds(int count) {
+        return this.isInBounds(this.writerIndex(), count);
     }
 
     /**
-     * Checks if the given number of bytes can be written at the given position without causing errors.
+     * Checks if the given number of bytes can be written at/read from the given position without causing errors.
      * <p>
      * 32-bit method for speed. Why? Because microoptimization.
      *
      * @param writerIndex the index to start writing at
      * @param count       the number of bytes to write
-     * @return whether or not the given number of bytes can be written at the given position without causing errors
+     * @return whether or not the given number of bytes can be written at/read from the given position without causing errors
      */
-    default boolean canWrite(long writerIndex, int count) {
+    default boolean isInBounds(long writerIndex, int count) {
         return writerIndex >= 0L && writerIndex + count < this.maxCapacity();
     }
 
     /**
-     * Checks if the given number of bytes can be written at the current writer index without causing errors.
+     * Checks if the given number of bytes can be written at/read from the current writer index without causing errors.
      *
      * @param count the number of bytes to write
-     * @return whether or not the given number of bytes can be written at the current writer index without causing errors
+     * @return whether or not the given number of bytes can be written at/read from the current writer index without causing errors
      */
-    default boolean canWrite(long count) {
-        return this.canWrite(this.writerIndex(), count);
+    default boolean isInBounds(long count) {
+        return this.isInBounds(this.writerIndex(), count);
     }
 
     /**
-     * Checks if the given number of bytes can be written at the given position without causing errors.
+     * Checks if the given number of bytes can be written at/read from the given position without causing errors.
      *
      * @param writerIndex the index to start writing at
      * @param count       the number of bytes to write
-     * @return whether or not the given number of bytes can be written at the given position without causing errors
+     * @return whether or not the given number of bytes can be written at/read from the given position without causing errors
      */
-    default boolean canWrite(long writerIndex, long count) {
+    default boolean isInBounds(long writerIndex, long count) {
         return writerIndex >= 0L && writerIndex + count < this.maxCapacity();
     }
 }

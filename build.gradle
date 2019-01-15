@@ -93,6 +93,14 @@ allprojects {
         main {
             compileClasspath += configurations.provided
         }
+        example {
+            java {
+                compileClasspath += main.output
+                compileClasspath += main.compileClasspath
+                runtimeClasspath += main.output
+                runtimeClasspath += main.runtimeClasspath
+            }
+        }
     }
 
     dependencies {

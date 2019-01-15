@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.reflection;
+package net.daporkchop.lib.reflection.util;
 
 import lombok.NonNull;
 

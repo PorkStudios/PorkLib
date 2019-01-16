@@ -23,6 +23,8 @@ import java.nio.ByteBuffer;
 import java.util.function.IntFunction;
 
 /**
+ * haha get pranked this isn't even an example it's just me messing around
+ *
  * @author DaPorkchop_
  */
 public class TestingMethodThings {

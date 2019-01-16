@@ -187,7 +187,7 @@ public class PorkUtil {
                 //TODO: cache lookups per-class using something or other
                 Constructor<MethodHandles.Lookup> constructor = MethodHandles.Lookup.class.getDeclaredConstructor(Class.class, int.class);
                 constructor.setAccessible(true);
-                lookup = constructor.newInstance(methodHolder, -1);
+                //lookup = constructor.newInstance(methodHolder, -1);
                 lookup = constructor.newInstance(interfaz, -1);
             }
             MethodType type = MethodType.methodType(returnType, params);

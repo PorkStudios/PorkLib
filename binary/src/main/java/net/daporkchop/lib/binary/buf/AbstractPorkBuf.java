@@ -13,51 +13,59 @@
  *
  */
 
-package net.daporkchop.lib.binary.util;
+package net.daporkchop.lib.binary.buf;
 
-import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.encoding.Hexadecimal;
-
-import java.util.Arrays;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
 /**
- * A wrapper for a byte[] which allows using it as testMethodThing key in testMethodThing {@link java.util.Map}
+ * A simple implementation of PorkBuf
  *
  * @author DaPorkchop_
  */
-@Getter
-public class ByteArrayAsKey {
-    private final byte[] array;
+@RequiredArgsConstructor
+@NoArgsConstructor
+public abstract class AbstractPorkBuf implements PorkBuf {
+    @Setter
+    @Accessors(chain = true)
+    protected long capacity;
+    @NonNull
+    protected long maxCapacity;
+    protected long readerIndex;
+    protected long writerIndex;
 
-    private ByteArrayAsKey(@NonNull byte[] array) {
-        this(array, 0, array.length);
-    }
-
-    public ByteArrayAsKey(@NonNull byte[] array, int start, int len) {
-        this.array = Arrays.copyOfRange(array, start, start + len + 1);
+    @Override
+    public long capacity() {
+        return this.capacity;
     }
 
     @Override
-    public int hashCode() {
-        return Arrays.hashCode(this.array);
+    public long maxCapacity() {
+        return this.maxCapacity;
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        } else if (obj instanceof byte[]) {
-            return Arrays.equals(this.array, (byte[]) obj);
-        } else if (obj instanceof ByteArrayAsKey) {
-            return Arrays.equals(this.array, ((ByteArrayAsKey) obj).array);
-        } else {
-            return false;
-        }
+    public long writerIndex() {
+        return this.writerIndex;
     }
 
     @Override
-    public String toString() {
-        return Hexadecimal.encode(this.array);
+    public PorkBuf writerIndex(long index) {
+        this.writerIndex = index;
+        return this;
+    }
+
+    @Override
+    public long readerIndex() {
+        return this.readerIndex;
+    }
+
+    @Override
+    public PorkBuf readerIndex(long index) {
+        this.readerIndex = index;
+        return this;
     }
 }

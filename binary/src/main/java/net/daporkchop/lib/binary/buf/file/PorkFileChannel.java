@@ -13,51 +13,32 @@
  *
  */
 
-package net.daporkchop.lib.binary.util;
+package net.daporkchop.lib.binary.buf.file;
 
-import lombok.Getter;
-import lombok.NonNull;
-import net.daporkchop.lib.encoding.Hexadecimal;
-
-import java.util.Arrays;
+import net.daporkchop.lib.binary.buf.AbstractPorkBuf;
+import net.daporkchop.lib.binary.buf.PorkBuf;
 
 /**
- * A wrapper for a byte[] which allows using it as testMethodThing key in testMethodThing {@link java.util.Map}
- *
  * @author DaPorkchop_
  */
-@Getter
-public class ByteArrayAsKey {
-    private final byte[] array;
-
-    private ByteArrayAsKey(@NonNull byte[] array) {
-        this(array, 0, array.length);
-    }
-
-    public ByteArrayAsKey(@NonNull byte[] array, int start, int len) {
-        this.array = Arrays.copyOfRange(array, start, start + len + 1);
+public class PorkFileChannel extends AbstractPorkBuf {
+    @Override
+    public PorkBuf putByte(byte b) {
+        return null;
     }
 
     @Override
-    public int hashCode() {
-        return Arrays.hashCode(this.array);
+    public PorkBuf putByte(long index, byte b) {
+        return null;
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        } else if (obj instanceof byte[]) {
-            return Arrays.equals(this.array, (byte[]) obj);
-        } else if (obj instanceof ByteArrayAsKey) {
-            return Arrays.equals(this.array, ((ByteArrayAsKey) obj).array);
-        } else {
-            return false;
-        }
+    public byte readByte() {
+        return 0;
     }
 
     @Override
-    public String toString() {
-        return Hexadecimal.encode(this.array);
+    public byte readByte(long index) {
+        return 0;
     }
 }

@@ -22,7 +22,7 @@ import net.daporkchop.lib.hash.util.Digest;
 import net.daporkchop.lib.logging.Logging;
 
 /**
- * Allows hashing a byte array using a {@link Digest}
+ * Allows hashing a byte array using testMethodThing {@link Digest}
  *
  * @author DaPorkchop_
  */

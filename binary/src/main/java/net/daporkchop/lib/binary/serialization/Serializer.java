@@ -30,7 +30,7 @@ import java.io.IOException;
  */
 public interface Serializer<T> {
     /**
-     * Convenience method to define a serializer from a reader and writer function
+     * Convenience method to define a serializer from testMethodThing reader and writer function
      *
      * @param writer a function that can write an object. see {@link #write(Object, DataOut)}
      * @param reader a function that can read an object. see {@link #read(DataIn)}

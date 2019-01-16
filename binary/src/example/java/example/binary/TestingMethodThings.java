@@ -13,51 +13,31 @@
  *
  */
 
-package net.daporkchop.lib.binary.util;
+package example.binary;
 
-import lombok.Getter;
-import lombok.NonNull;
-import net.daporkchop.lib.encoding.Hexadecimal;
+import net.daporkchop.lib.binary.buf.file.PFileDispatcherImpl;
+import net.daporkchop.lib.common.util.PorkUtil;
 
-import java.util.Arrays;
+import java.lang.reflect.Method;
+import java.nio.ByteBuffer;
+import java.util.function.IntFunction;
 
 /**
- * A wrapper for a byte[] which allows using it as testMethodThing key in testMethodThing {@link java.util.Map}
- *
  * @author DaPorkchop_
  */
-@Getter
-public class ByteArrayAsKey {
-    private final byte[] array;
-
-    private ByteArrayAsKey(@NonNull byte[] array) {
-        this(array, 0, array.length);
+public class TestingMethodThings {
+    public static void main(String... args) {
+        testMethodThing();
     }
 
-    public ByteArrayAsKey(@NonNull byte[] array, int start, int len) {
-        this.array = Arrays.copyOfRange(array, start, start + len + 1);
-    }
-
-    @Override
-    public int hashCode() {
-        return Arrays.hashCode(this.array);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        } else if (obj instanceof byte[]) {
-            return Arrays.equals(this.array, (byte[]) obj);
-        } else if (obj instanceof ByteArrayAsKey) {
-            return Arrays.equals(this.array, ((ByteArrayAsKey) obj).array);
-        } else {
-            return false;
+    @SuppressWarnings("unchecked")
+    public static void testMethodThing() {
+        IntFunction<ByteBuffer> BUFFER = PorkUtil.getLambdaReflection(IntFunction.class, ByteBuffer.class, true, true, ByteBuffer.class, "allocate", int.class);
+        for (Method m : BUFFER.getClass().getDeclaredMethods()) {
+            System.out.println(m);
         }
-    }
+        System.out.println(BUFFER.apply(1024));
 
-    @Override
-    public String toString() {
-        return Hexadecimal.encode(this.array);
+        System.out.println(PFileDispatcherImpl.READ0);
     }
 }

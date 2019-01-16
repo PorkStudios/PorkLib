@@ -890,7 +890,7 @@ public interface PorkBuf {
      * Modifying the {@link ByteBuf} will change the content of this buffer, and changes to this buffer will affect
      * the {@link ByteBuf}.
      *
-     * @return a mirror of a section of this buffer, stored in a {@link ByteBuf}
+     * @return a mirror of testMethodThing section of this buffer, stored in testMethodThing {@link ByteBuf}
      */
     default ByteBuf netty() {
         long cap = this.capacity();
@@ -904,7 +904,7 @@ public interface PorkBuf {
      * the {@link ByteBuf}.
      *
      * @param offset the offset to begin the mirror at
-     * @return a mirror of a section of this buffer, stored in a {@link ByteBuf}
+     * @return a mirror of testMethodThing section of this buffer, stored in testMethodThing {@link ByteBuf}
      */
     default ByteBuf netty(long offset) {
         long cap = this.capacity() - offset;
@@ -919,7 +919,7 @@ public interface PorkBuf {
      *
      * @param offset the offset to begin the mirror at
      * @param len    the size of the mirror.
-     * @return a mirror of a section of this buffer, stored in a {@link ByteBuf}
+     * @return a mirror of testMethodThing section of this buffer, stored in testMethodThing {@link ByteBuf}
      */
     default ByteBuf netty(long offset, int len) {
         throw new UnsupportedOperationException();
@@ -931,7 +931,7 @@ public interface PorkBuf {
      * Modifying the {@link ByteBuffer} will change the content of this buffer, and changes to this buffer will affect
      * the {@link ByteBuffer}.
      *
-     * @return a mirror of a section of this buffer, stored in a {@link ByteBuffer}
+     * @return a mirror of testMethodThing section of this buffer, stored in testMethodThing {@link ByteBuffer}
      */
     default ByteBuffer nio() {
         long cap = this.capacity();
@@ -945,7 +945,7 @@ public interface PorkBuf {
      * the {@link ByteBuffer}.
      *
      * @param offset the offset to begin the mirror at
-     * @return a mirror of a section of this buffer, stored in a {@link ByteBuffer}
+     * @return a mirror of testMethodThing section of this buffer, stored in testMethodThing {@link ByteBuffer}
      */
     default ByteBuffer nio(long offset) {
         long cap = this.capacity() - offset;
@@ -960,10 +960,93 @@ public interface PorkBuf {
      *
      * @param offset the offset to begin the mirror at
      * @param len    the size of the mirror.
-     * @return a mirror of a section of this buffer, stored in a {@link ByteBuffer}
+     * @return a mirror of testMethodThing section of this buffer, stored in testMethodThing {@link ByteBuffer}
      */
     default ByteBuffer nio(long offset, int len) {
         throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Gets an instance of {@link PorkBuf} that will mirror a section of this buffer.
+     * <p>
+     * Modifying the {@link PorkBuf} will change the content of this buffer, and changes to this buffer will affect
+     * the {@link PorkBuf}.
+     *
+     * @return a mirror of testMethodThing section of this buffer, stored in testMethodThing {@link PorkBuf}
+     */
+    default PorkBuf snippet() {
+        long cap = this.capacity();
+        return this.snippet(0L, cap > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) cap);
+    }
+
+    /**
+     * Gets an instance of {@link PorkBuf} that will mirror a section of this buffer.
+     * <p>
+     * Modifying the {@link PorkBuf} will change the content of this buffer, and changes to this buffer will affect
+     * the {@link PorkBuf}.
+     *
+     * @param offset the offset to begin the mirror at
+     * @return a mirror of testMethodThing section of this buffer, stored in testMethodThing {@link PorkBuf}
+     */
+    default PorkBuf snippet(long offset) {
+        long cap = this.capacity() - offset;
+        return this.snippet(offset, cap > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) cap);
+    }
+
+    /**
+     * Gets an instance of {@link PorkBuf} that will mirror a section of this buffer.
+     * <p>
+     * Modifying the {@link PorkBuf} will change the content of this buffer, and changes to this buffer will affect
+     * the {@link PorkBuf}.
+     *
+     * @param offset the offset to begin the mirror at
+     * @param len    the size of the mirror.
+     * @return a mirror of testMethodThing section of this buffer, stored in testMethodThing {@link PorkBuf}
+     */
+    default PorkBuf snippet(long offset, long len) {
+        //TODO: optimize more (implement more methods)
+        return new AbstractPorkBuf() {
+            {
+                this.setCapacity(len);
+                this.setMaxCapacity(len);
+            }
+
+            @Override
+            public PorkBuf putByte(byte b) {
+                long l = this.writerIndex++;
+                if (this.isInBounds(l, 1)) {
+                    PorkBuf.this.putByte(offset + l, b);
+                    return this;
+                } else {
+                    throw new BufferOverflowException();
+                }
+            }
+
+            @Override
+            public PorkBuf putByte(long index, byte b) {
+                PorkBuf.this.putByte(offset + index, b);
+                return this;
+            }
+
+            @Override
+            public byte readByte() {
+                long l = this.readerIndex++;
+                if (this.isInBounds(l, 1)) {
+                    return PorkBuf.this.readByte(offset + l);
+                } else {
+                    throw new BufferOverflowException();
+                }
+            }
+
+            @Override
+            public byte readByte(long index) {
+                if (this.isInBounds(index, 1)) {
+                    return PorkBuf.this.readByte(offset + index);
+                } else {
+                    throw new BufferOverflowException();
+                }
+            }
+        };
     }
 
     //sanity checks
@@ -985,12 +1068,12 @@ public interface PorkBuf {
      * <p>
      * 32-bit method for speed. Why? Because microoptimization.
      *
-     * @param writerIndex the index to start writing at
-     * @param count       the number of bytes to write
+     * @param index the index to start writing at
+     * @param count the number of bytes to write
      * @return whether or not the given number of bytes can be written at/read from the given position without causing errors
      */
-    default boolean isInBounds(long writerIndex, int count) {
-        return writerIndex >= 0L && writerIndex + count < this.maxCapacity();
+    default boolean isInBounds(long index, int count) {
+        return index >= 0L && index + count < this.maxCapacity();
     }
 
     /**
@@ -1006,11 +1089,11 @@ public interface PorkBuf {
     /**
      * Checks if the given number of bytes can be written at/read from the given position without causing errors.
      *
-     * @param writerIndex the index to start writing at
-     * @param count       the number of bytes to write
+     * @param index the index to start writing at
+     * @param count the number of bytes to write
      * @return whether or not the given number of bytes can be written at/read from the given position without causing errors
      */
-    default boolean isInBounds(long writerIndex, long count) {
-        return writerIndex >= 0L && writerIndex + count < this.maxCapacity();
+    default boolean isInBounds(long index, long count) {
+        return index >= 0L && index + count < this.maxCapacity();
     }
 }

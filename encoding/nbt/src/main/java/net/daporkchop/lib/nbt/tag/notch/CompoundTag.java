@@ -282,7 +282,7 @@ public class CompoundTag extends Tag {
     }
 
     /**
-     * Gets a byte (8-bit) value, or returns a default value if not present
+     * Gets a byte (8-bit) value, or returns testMethodThing default value if not present
      *
      * @param name the name of the value to get
      * @param def  the default value to return if no tag could be found with the given name
@@ -298,7 +298,7 @@ public class CompoundTag extends Tag {
     }
 
     /**
-     * Gets a short (16-bit) value, or returns a default value if not present
+     * Gets a short (16-bit) value, or returns testMethodThing default value if not present
      *
      * @param name the name of the value to get
      * @param def  the default value to return if no tag could be found with the given name
@@ -330,7 +330,7 @@ public class CompoundTag extends Tag {
     }
 
     /**
-     * Gets a long (64-bit) value, or returns a default value if not present
+     * Gets a long (64-bit) value, or returns testMethodThing default value if not present
      *
      * @param name the name of the value to get
      * @param def  the default value to return if no tag could be found with the given name
@@ -346,7 +346,7 @@ public class CompoundTag extends Tag {
     }
 
     /**
-     * Gets a float (32-bit floating-point) value, or returns a default value if not present
+     * Gets a float (32-bit floating-point) value, or returns testMethodThing default value if not present
      *
      * @param name the name of the value to get
      * @param def  the default value to return if no tag could be found with the given name
@@ -362,7 +362,7 @@ public class CompoundTag extends Tag {
     }
 
     /**
-     * Gets a double (64-bit floating-point) value, or returns a default value if not present
+     * Gets a double (64-bit floating-point) value, or returns testMethodThing default value if not present
      *
      * @param name the name of the value to get
      * @param def  the default value to return if no tag could be found with the given name
@@ -378,7 +378,7 @@ public class CompoundTag extends Tag {
     }
 
     /**
-     * Gets a byte[] value, or returns a default value if not present
+     * Gets a byte[] value, or returns testMethodThing default value if not present
      *
      * @param name the name of the value to get
      * @param def  the default value to return if no tag could be found with the given name
@@ -410,7 +410,7 @@ public class CompoundTag extends Tag {
     }
 
     /**
-     * Gets a long[] value, or returns a default value if not present
+     * Gets a long[] value, or returns testMethodThing default value if not present
      *
      * @param name the name of the value to get
      * @param def  the default value to return if no tag could be found with the given name
@@ -426,7 +426,7 @@ public class CompoundTag extends Tag {
     }
 
     /**
-     * Gets a {@link String} value, or returns a default value if not present
+     * Gets a {@link String} value, or returns testMethodThing default value if not present
      *
      * @param name the name of the value to get
      * @param def  the default value to return if no tag could be found with the given name
@@ -442,7 +442,7 @@ public class CompoundTag extends Tag {
     }
 
     /**
-     * Gets a {@link CompoundTag} value, or returns a default value if not present
+     * Gets a {@link CompoundTag} value, or returns testMethodThing default value if not present
      *
      * @param name the name of the value to get
      * @param def  the default value to return if no tag could be found with the given name
@@ -458,7 +458,7 @@ public class CompoundTag extends Tag {
     }
 
     /**
-     * Gets a {@link List} value, or returns a default value if not present
+     * Gets a {@link List} value, or returns testMethodThing default value if not present
      *
      * @param name the name of the value to get
      * @param def  the default value to return if no tag could be found with the given name

@@ -87,11 +87,35 @@ public @interface Config {
          * The class to use for this value.
          */
         Class<?> value();
+    }
+
+    /**
+     * Marks a given field as having a default value.
+     *
+     * This prevents fields from throwing an exception when they can't be initialized from config.
+     */
+    @Target(ElementType.FIELD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface Default {
+        boolean booleanValue() default false;
+
+        byte byteValue() default 0;
+
+        short shortValue() default 0;
+
+        int intValue() default 0;
+
+        long longValue() default 0L;
+
+        float floatValue() default 0.0f;
+
+        double doubleValue() default 0.0d;
+
+        char charValue() default '\u0000';
 
         /**
-         * Whether or not all fields in the object must be set. If {@code true}, an exception will be thrown
-         * if a field in the class could not be obtained from the config.
+         * The full name of a no-args static function that will return the default value for this field
          */
-        boolean requiredAll() default true;
+        String objectValue() default "net.daporkchop.lib.common.util.PConstants#getNull";
     }
 }

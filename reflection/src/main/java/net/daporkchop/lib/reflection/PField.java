@@ -65,7 +65,15 @@ public class PField<V> implements Accessible, AnnotationHolder {
      * @return a field
      */
     public static <V> PField<V> of(@NonNull Field field) {
-        return new PField<>(objectFieldOffset(field), Type.getType(field), Access.getAccess(field), field.getModifiers(), field.getAnnotations());
+        return new PField<>(
+                objectFieldOffset(field),
+                Type.getType(field),
+                Access.getAccess(field),
+                field.getModifiers(),
+                field.getAnnotations(),
+                field.getName(),
+                field.getType()
+        );
     }
 
     protected final long offset;
@@ -76,6 +84,10 @@ public class PField<V> implements Accessible, AnnotationHolder {
     protected final int modifiers;
     @NonNull
     protected final Annotation[] annotations;
+    @NonNull
+    protected final String name;
+    @NonNull
+    protected final Class<?> classType;
 
     //object methods
 

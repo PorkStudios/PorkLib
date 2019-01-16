@@ -18,12 +18,15 @@ package net.daporkchop.lib.config.decoder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.internal.LazilyParsedNumber;
 import com.google.gson.internal.LinkedTreeMap;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.config.attribute.Comment;
 import net.daporkchop.lib.config.util.Element;
 import net.daporkchop.lib.reflection.PField;
@@ -32,6 +35,8 @@ import net.daporkchop.lib.reflection.util.Type;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Map;
 
 /**
@@ -40,6 +45,7 @@ import java.util.Map;
 public class JsonConfigDecoder implements ConfigDecoder {
     protected final JsonParser parser = new JsonParser();
     //protected final PField<LinkedTreeMap<String, JsonElement>> jsonObject_members = PField.of(JsonObject.class, "members");
+    protected final PField<Number> jsonPrimitive_value = PField.of(JsonPrimitive.class, "value");
 
     @Override
     public Element.ContainerElement decode(@NonNull DataIn in) throws IOException {
@@ -55,6 +61,7 @@ public class JsonConfigDecoder implements ConfigDecoder {
         return root;
     }
 
+    @SuppressWarnings("unchecked")
     protected void loadInto(@NonNull PJsonObject element, @NonNull JsonObject object) {
         for (Map.Entry<String, JsonElement> entry : object.entrySet()) {
             Element subElement;
@@ -68,8 +75,44 @@ public class JsonConfigDecoder implements ConfigDecoder {
             } else if (json.isJsonNull()) {
                 throw new UnsupportedOperationException("Null values!");
             } else {
-                //TODO
-                throw new UnsupportedOperationException();
+                //get the freaking value
+                JsonPrimitive primitive = json.getAsJsonPrimitive();
+                if (primitive.isString())   {
+                    subElement = new PJsonElement(Type.STRING, primitive.getAsString(), entry.getKey(), element);
+                } else if (primitive.isNumber()) {
+                    Number num = this.jsonPrimitive_value.get(primitive);
+                    if (num instanceof LazilyParsedNumber) {
+                        LazilyParsedNumber lazy = (LazilyParsedNumber) num;
+                        String s = lazy.toString();
+                        try { //no i'm not sorry about this
+                            num = Integer.parseInt(s);
+                        } catch (NumberFormatException e1) {
+                            try {
+                                num = Long.parseLong(s);
+                            } catch (NumberFormatException e2) {
+                                try {
+                                    num = new BigInteger(s);
+                                } catch (NumberFormatException e3) {
+                                    try {
+                                        num = Double.parseDouble(s);
+                                    } catch (NumberFormatException e4) {
+                                        try {
+                                            num = new BigDecimal(s);
+                                        } catch (NumberFormatException e5) {
+                                            throw new IllegalArgumentException(String.format("Invalid value: %s", s));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Type type = Type.getMoreAccurateType(num.getClass(), true, false);
+                    subElement = new PJsonElement(type, num, entry.getKey(), element);
+                } else if (primitive.isBoolean())   {
+                    subElement = new PJsonElement(Type.BOOLEAN, primitive.getAsBoolean(), entry.getKey(), element);
+                } else {
+                    throw new UnsupportedOperationException(String.format("Couldn't parse value: %s", primitive));
+                }
             }
             element.setElement(entry.getKey(), subElement);
         }

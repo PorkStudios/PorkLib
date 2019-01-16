@@ -1,5 +1,11 @@
 {
-  "hello world": {},
+  "hello world": {
+    "int": 12345,
+    "long": 12904798274593,
+    "biginteger": 12904798274540968307589732398572965786378650393000,
+    "double": 3.1415926,
+    "boolean": true
+  },
   "jef": {
     "subentry": {}
   }

@@ -13,33 +13,13 @@
  *
  */
 
-package net.daporkchop.lib.reflection.util;
-
-import lombok.NonNull;
-import net.daporkchop.lib.reflection.PReflection;
-
-import java.lang.annotation.Annotation;
+package encoding.config;
 
 /**
  * @author DaPorkchop_
  */
-public interface AnnotationHolder {
-
-    /**
-     * Gets all the annotations on this member
-     *
-     * @return all the annotations on this member
-     */
-    Annotation[] getAnnotations();
-
-    /**
-     * Gets an annotation on this member
-     *
-     * @param clazz the class of the annotation
-     * @param <A>   the type of the annotation
-     * @return the annotation instance on this member, or {@code null} if not found
-     */
-    default <A extends Annotation> A getAnnotation(@NonNull Class<A> clazz) {
-        return PReflection.getAnnotation(this.getAnnotations(), clazz);
+public class TestConstants {
+    public static String randomText()   {
+        return "name jef lol";
     }
 }

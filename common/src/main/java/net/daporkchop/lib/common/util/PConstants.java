@@ -31,4 +31,8 @@ public interface PConstants {
     default RuntimeException exception(@NonNull Throwable t) {
         return p_exception(t);
     }
+
+    static Object getNull() {
+        return null;
+    }
 }

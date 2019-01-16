@@ -20,6 +20,8 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 
 /**
  * Types that can be held by a field
@@ -46,7 +48,11 @@ public enum Type {
     LONG(false),
     FLOAT(false),
     DOUBLE(false),
-    CHAR(false);
+    CHAR(false),
+    STRING(true), //not used internally
+    BIGINTEGER(true), //not used internally
+    BIGDECIMAL(true), //not used internally
+    ;
 
     /**
      * Gets the type of a field
@@ -94,6 +100,62 @@ public enum Type {
             }
         } else {
             return OBJECT;
+        }
+    }
+
+    public static Type getMoreAccurateType(@NonNull Class<?> clazz, boolean mustBeNumber, boolean allowArrays) {
+        if (clazz == byte.class || clazz == Byte.class) {
+            return BYTE;
+        } else if (clazz == short.class || clazz == Short.class) {
+            return SHORT;
+        } else if (clazz == int.class || clazz == Integer.class) {
+            return INT;
+        } else if (clazz == long.class || clazz == Long.class) {
+            return LONG;
+        } else if (clazz == float.class || clazz == Float.class) {
+            return FLOAT;
+        } else if (clazz == double.class || clazz == Double.class) {
+            return DOUBLE;
+        } else if (clazz == char.class || clazz == Character.class) {
+            return CHAR;
+        } else if (clazz.isArray()) {
+            if (allowArrays)    {
+                if (clazz == boolean[].class) {
+                    return ARRAY_BOOLEAN;
+                } else if (clazz == byte[].class) {
+                    return ARRAY_BYTE;
+                } else if (clazz == short[].class) {
+                    return ARRAY_SHORT;
+                } else if (clazz == int[].class) {
+                    return ARRAY_INT;
+                } else if (clazz == long[].class) {
+                    return ARRAY_LONG;
+                } else if (clazz == float[].class) {
+                    return ARRAY_FLOAT;
+                } else if (clazz == double[].class) {
+                    return ARRAY_DOUBLE;
+                } else if (clazz == char[].class) {
+                    return ARRAY_CHAR;
+                } else {
+                    return ARRAY_OBJECT;
+                }
+            } else {
+                throw new IllegalArgumentException("arrays not allowed!");
+            }
+        } else if (clazz == String.class) {
+            return STRING;
+        } else if (clazz == BigInteger.class) {
+            return BIGINTEGER;
+        } else if (clazz == BigDecimal.class) {
+            return BIGDECIMAL;
+        } else {
+            if (mustBeNumber) {
+                throw new IllegalArgumentException(String.format("Not a number: %s", clazz.getCanonicalName()));
+            } else if (clazz == boolean.class || clazz == Boolean.class) {
+                return BOOLEAN;
+            } else {
+                return OBJECT;
+            }
         }
     }
 

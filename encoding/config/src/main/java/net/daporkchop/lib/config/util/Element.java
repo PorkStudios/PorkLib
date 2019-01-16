@@ -19,6 +19,8 @@ import lombok.NonNull;
 import net.daporkchop.lib.config.attribute.Comment;
 import net.daporkchop.lib.reflection.util.Type;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 
@@ -117,9 +119,17 @@ public interface Element<V> {
         return (String) this.getValue();
     }
 
+    default BigInteger bigIntegerValue() {
+        return (BigInteger) this.getValue();
+    }
+
+    default BigDecimal bigDecimalValue() {
+        return (BigDecimal) this.getValue();
+    }
+
     @SuppressWarnings("unchecked")
-    default <T> Element<T> getAs()  {
-        return (Element<T>) this;
+    default <T extends Element> T getAs()  {
+        return (T) this;
     }
 
     interface ContainerElement extends Element<Map<String, Element>> {

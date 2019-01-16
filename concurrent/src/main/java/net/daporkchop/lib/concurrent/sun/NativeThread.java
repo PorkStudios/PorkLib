@@ -13,51 +13,29 @@
  *
  */
 
-package net.daporkchop.lib.binary.util;
-
-import lombok.Getter;
-import lombok.NonNull;
-import net.daporkchop.lib.encoding.Hexadecimal;
-
-import java.util.Arrays;
+package net.daporkchop.lib.concurrent.sun;
 
 /**
- * A wrapper for a byte[] which allows using it as testMethodThing key in testMethodThing {@link java.util.Map}
+ * Wrapper around {@link sun.nio.ch.NativeThread} to prevent all the compile warnings
  *
  * @author DaPorkchop_
  */
-@Getter
-public class ByteArrayAsKey {
-    private final byte[] array;
-
-    private ByteArrayAsKey(@NonNull byte[] array) {
-        this(array, 0, array.length);
+public interface NativeThread {
+    /**
+     * Returns an opaque token representing the native thread underlying the
+     * invoking Java thread. On systems that do not require signalling, this
+     * method always returns -1.
+     */
+    static long current() {
+        return sun.nio.ch.NativeThread.current();
     }
 
-    public ByteArrayAsKey(@NonNull byte[] array, int start, int len) {
-        this.array = Arrays.copyOfRange(array, start, start + len + 1);
-    }
-
-    @Override
-    public int hashCode() {
-        return Arrays.hashCode(this.array);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        } else if (obj instanceof byte[]) {
-            return Arrays.equals(this.array, (byte[]) obj);
-        } else if (obj instanceof ByteArrayAsKey) {
-            return Arrays.equals(this.array, ((ByteArrayAsKey) obj).array);
-        } else {
-            return false;
-        }
-    }
-
-    @Override
-    public String toString() {
-        return Hexadecimal.encode(this.array);
+    /**
+     * Signals the given native thread so as to release it from a blocking I/O
+     * operation. On systems that do not require signalling, this method has
+     * no effect.
+     */
+    static void signal(long id) {
+        sun.nio.ch.NativeThread.signal(id);
     }
 }

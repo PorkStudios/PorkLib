@@ -20,9 +20,16 @@ import sun.misc.Cleaner;
 import sun.misc.Unsafe;
 
 import java.io.File;
+import java.lang.invoke.CallSite;
+import java.lang.invoke.LambdaMetafactory;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.concurrent.Executor;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -128,6 +135,99 @@ public class PorkUtil {
         Cleaner cleaner = ((sun.nio.ch.DirectBuffer) buffer).cleaner();
         if (cleaner != null) {
             cleaner.clean();
+        }
+    }
+
+    public static Class<?> classForName(@NonNull String name) {
+        try {
+            return Class.forName(name);
+        } catch (ClassNotFoundException e) {
+            throw PConstants.p_exception(e);
+        }
+    }
+
+    public static Method getMethod(@NonNull Class<?> clazz, @NonNull String name, @NonNull Class<?>... params) {
+        try {
+            return clazz.getDeclaredMethod(name, params);
+        } catch (NoSuchMethodException e) {
+            try {
+                return clazz.getMethod(name, params);
+            } catch (NoSuchMethodException e1) {
+                throw PConstants.p_exception(e);
+            }
+        }
+    }
+
+    //TODO: include this in PorkLib reflection, it's a bit of a mess because of generics
+    @SuppressWarnings("unchecked")
+    public static <T> T getLambdaReflection(@NonNull Class<T> interfaz, @NonNull Class<?> methodHolder, boolean isStatic, boolean isGeneric, @NonNull Class<?> returnType, @NonNull String methodName, @NonNull Class<?>... params) {
+        try {
+            Method reflected = getMethod(methodHolder, methodName, params);
+
+            Method real;
+            A:
+            try {
+                if (false)  {
+                    throw new NoSuchMethodException();
+                }
+                real = getMethod(interfaz, methodName, params);
+            } catch (NoSuchMethodException e) {
+                //not to worry, we'll try and find one ourselves!
+                for (Method method : interfaz.getMethods()) {
+                    if (Arrays.equals(method.getParameterTypes(), params)) {
+                        real = method;
+                        break A;
+                    }
+                }
+                throw new IllegalArgumentException(String.format("Unable to locate method matching %s in %s!", reflected, interfaz.getCanonicalName()));
+            }
+
+            MethodHandles.Lookup lookup;
+            {
+                //TODO: cache lookups per-class using something or other
+                Constructor<MethodHandles.Lookup> constructor = MethodHandles.Lookup.class.getDeclaredConstructor(Class.class, int.class);
+                constructor.setAccessible(true);
+                lookup = constructor.newInstance(methodHolder, -1);
+                lookup = constructor.newInstance(interfaz, -1);
+            }
+            MethodType type = MethodType.methodType(returnType, params);
+            MethodType actualType;
+            if (isGeneric)  {
+                Class<?> rClass;
+                if (returnType == boolean.class
+                        || returnType == byte.class
+                        || returnType == short.class
+                        || returnType == int.class
+                        || returnType == long.class
+                        || returnType == float.class
+                        || returnType == double.class
+                        || returnType == char.class
+                        || returnType == void.class)    {
+                    rClass = returnType;
+                } else {
+                    rClass = Object.class;
+                }
+                actualType = MethodType.methodType(rClass, params);
+            } else {
+                actualType = type;
+            }
+            MethodHandle handle = isStatic ?
+                    lookup.findStatic(methodHolder, methodName, type) :
+                    lookup.findVirtual(methodHolder, methodName, type);
+            PUnsafe.ensureClassInitialized(interfaz);
+            CallSite site = LambdaMetafactory.metafactory(
+                    lookup,
+                    real.getName(),
+                    MethodType.methodType(interfaz),
+                    actualType,
+                    handle,
+                    actualType
+            );
+            MethodHandle target = site.getTarget();
+            Object o = target.invoke();
+            return (T) o;
+        } catch (Throwable e) {
+            throw PConstants.p_exception(e);
         }
     }
 }

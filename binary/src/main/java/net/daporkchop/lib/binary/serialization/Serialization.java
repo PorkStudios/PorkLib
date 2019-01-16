@@ -92,7 +92,7 @@ public class Serialization {
     }
 
     /**
-     * Registers a {@link Serializable} to the registry with a specific id
+     * Registers a {@link Serializable} to the registry with testMethodThing specific id
      *
      * @param clazz the serializable class to register
      * @param id    the id to register it with
@@ -126,7 +126,7 @@ public class Serialization {
     }
 
     /**
-     * Registers a type to the registry with a specific id
+     * Registers a type to the registry with testMethodThing specific id
      *
      * @param clazz      the class to register
      * @param serializer the serializer to use for reading and writing values

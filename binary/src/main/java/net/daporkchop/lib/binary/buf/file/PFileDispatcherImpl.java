@@ -13,51 +13,36 @@
  *
  */
 
-package net.daporkchop.lib.binary.util;
+package net.daporkchop.lib.binary.buf.file;
 
-import lombok.Getter;
-import lombok.NonNull;
-import net.daporkchop.lib.encoding.Hexadecimal;
+import net.daporkchop.lib.common.util.PorkUtil;
 
-import java.util.Arrays;
+import java.io.FileDescriptor;
+import java.io.IOException;
 
 /**
- * A wrapper for a byte[] which allows using it as testMethodThing key in testMethodThing {@link java.util.Map}
+ * {@link sun.nio.ch.FileDispatcherImpl} can kiss my ass
  *
  * @author DaPorkchop_
  */
-@Getter
-public class ByteArrayAsKey {
-    private final byte[] array;
+public interface PFileDispatcherImpl {
+    Class<?> FILEDISPATCHER_CLASS = PorkUtil.classForName("sun.nio.ch.FileDispatcherImpl");
 
-    private ByteArrayAsKey(@NonNull byte[] array) {
-        this(array, 0, array.length);
-    }
+    Read0 READ0 = PorkUtil.getLambdaReflection(Read0.class, FILEDISPATCHER_CLASS, true, false, int.class, "read0", FileDescriptor.class, long.class, int.class);
 
-    public ByteArrayAsKey(@NonNull byte[] array, int start, int len) {
-        this.array = Arrays.copyOfRange(array, start, start + len + 1);
-    }
-
-    @Override
-    public int hashCode() {
-        return Arrays.hashCode(this.array);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        } else if (obj instanceof byte[]) {
-            return Arrays.equals(this.array, (byte[]) obj);
-        } else if (obj instanceof ByteArrayAsKey) {
-            return Arrays.equals(this.array, ((ByteArrayAsKey) obj).array);
-        } else {
-            return false;
-        }
-    }
-
-    @Override
-    public String toString() {
-        return Hexadecimal.encode(this.array);
+    @FunctionalInterface
+    interface Read0 {
+        /**
+         * Reads bytes from a file into memory
+         *
+         * @param fd      the file descriptor to read from
+         * @param address the address in memory to read to
+         * @param len     the number of bytes to read
+         * @return the number of bytes actually read
+         * @throws IOException if an IO exception occurs you dummy
+         * @see sun.nio.ch.FileDispatcherImpl#read(FileDescriptor, long, int)
+         * @see sun.nio.ch.FileDispatcherImpl#read0(FileDescriptor, long, int)
+         */
+        int read(FileDescriptor fd, long address, int len) throws IOException;
     }
 }

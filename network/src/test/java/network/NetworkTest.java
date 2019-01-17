@@ -15,7 +15,7 @@
 
 package network;import io.netty.buffer.ByteBuf;
 import io.netty.util.ResourceLeakDetector;
-import net.daporkchop.lib.binary.netty.NettyByteBufUtil;
+import net.daporkchop.lib.binary.netty.NettyUtil;
 import net.daporkchop.lib.common.test.TestRandomData;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
@@ -153,7 +153,7 @@ public class NetworkTest implements Logging {
             {
                 logger.info("Sending some packets to verify integrity...");
                 for (int i = 0; i < TestRandomData.randomBytes.length; i++) {
-                    ByteBuf buf = NettyByteBufUtil.alloc(3 + TestRandomData.randomBytes[i].length);
+                    ByteBuf buf = NettyUtil.alloc(3 + TestRandomData.randomBytes[i].length);
                     buf.writeMedium(i);
                     buf.writeBytes(TestRandomData.randomBytes[i]);
                     if (ThreadLocalRandom.current().nextBoolean()) {

@@ -21,7 +21,7 @@ import net.daporkchop.lib.binary.buf.PorkBuf;
 /**
  * @author DaPorkchop_
  */
-public class PorkFileChannel extends AbstractPorkBuf {
+public abstract class PorkFileChannel extends AbstractPorkBuf {
     @Override
     public PorkBuf putByte(byte b) {
         return null;

@@ -16,6 +16,7 @@
 package example.binary;
 
 import net.daporkchop.lib.binary.buf.file.PFileDispatcherImpl;
+import net.daporkchop.lib.binary.util.unsafe.offset.OffsetLookup;
 import net.daporkchop.lib.common.util.PorkUtil;
 
 import java.lang.reflect.Method;
@@ -30,13 +31,17 @@ import java.util.function.IntFunction;
 public class TestingMethodThings {
     public static void main(String... args) {
         testMethodThing();
+
+        OffsetLookup.INSTANCE.hashCode();
     }
 
     @SuppressWarnings("unchecked")
     public static void testMethodThing() {
         IntFunction<ByteBuffer> BUFFER = PorkUtil.getLambdaReflection(IntFunction.class, ByteBuffer.class, true, true, ByteBuffer.class, "allocate", int.class);
         for (Method m : BUFFER.getClass().getDeclaredMethods()) {
-            System.out.println(m);
+            if (false)  {
+                System.out.println(m);
+            }
         }
         System.out.println(BUFFER.apply(1024));
 

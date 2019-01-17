@@ -32,6 +32,10 @@ public class NettyByteBufIn extends DataIn {
     @NonNull
     private final ByteBuf buf;
 
+    {
+        NettyUtil.ensureNettyPresent();
+    }
+
     @Override
     public void close() throws IOException {
         this.buf.release();

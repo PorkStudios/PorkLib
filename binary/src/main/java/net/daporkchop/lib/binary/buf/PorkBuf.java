@@ -19,6 +19,7 @@ import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.util.unsafe.offset.Offsettable;
 
 import java.io.IOException;
 import java.nio.BufferOverflowException;
@@ -33,7 +34,7 @@ import java.nio.ByteBuffer;
  *
  * @author DaPorkchop_
  */
-public interface PorkBuf {
+public interface PorkBuf extends Offsettable {
     //size methods
 
     /**
@@ -1045,6 +1046,21 @@ public interface PorkBuf {
                 } else {
                     throw new BufferOverflowException();
                 }
+            }
+
+            @Override
+            public long memoryOffset() {
+                return PorkBuf.this.memoryOffset() + offset;
+            }
+
+            @Override
+            public long memoryLength() {
+                return len;
+            }
+
+            @Override
+            public Object refObj() {
+                return PorkBuf.this.refObj();
             }
         };
     }

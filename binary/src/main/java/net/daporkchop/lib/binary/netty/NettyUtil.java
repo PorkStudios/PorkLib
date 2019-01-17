@@ -20,34 +20,41 @@ import io.netty.buffer.ByteBufAllocator;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.common.util.PorkUtil;
 
 /**
  * Some methods for dealing with Netty's {@link ByteBuf} class
  *
  * @author DaPorkchop_
  */
-public class NettyByteBufUtil {
-    static {
-        try {
-            Class.forName("io.netty.buffer.ByteBuf");
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("netty-buffer not found in classpath!", e);
-        }
-    }
+public interface NettyUtil {
+    boolean NETTY_PRESENT = PorkUtil.classExistsWithName("io.netty.buffer.ByteBuf");
 
-    public static DataIn wrapIn(@NonNull ByteBuf buf) {
+    static DataIn wrapIn(@NonNull ByteBuf buf) {
+        ensureNettyPresent();
         return new NettyByteBufIn(buf);
     }
 
-    public static DataOut wrapOut(@NonNull ByteBuf buf) {
+    static DataOut wrapOut(@NonNull ByteBuf buf) {
+        ensureNettyPresent();
         return new NettyByteBufOut(buf);
     }
 
-    public static ByteBuf alloc(int size) {
+    @Deprecated
+    static ByteBuf alloc(int size) {
+        ensureNettyPresent();
         return ByteBufAllocator.DEFAULT.directBuffer(size);
     }
 
-    public static ByteBuf alloc(int size, int max) {
+    @Deprecated
+    static ByteBuf alloc(int size, int max) {
+        ensureNettyPresent();
         return ByteBufAllocator.DEFAULT.directBuffer(size, max);
+    }
+
+    static void ensureNettyPresent()    {
+        if (!NETTY_PRESENT) {
+            throw new IllegalStateException("Netty not found in classpath!");
+        }
     }
 }

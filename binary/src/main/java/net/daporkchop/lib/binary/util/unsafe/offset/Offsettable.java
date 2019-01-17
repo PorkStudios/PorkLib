@@ -37,4 +37,37 @@ public interface Offsettable {
      * @return the length of this container in bytes
      */
     long memoryLength();
+
+    /**
+     * Gets the object to use as a pointer when doing unsafe operations on this container (such as
+     * {@link net.daporkchop.lib.common.util.PUnsafe#putInt(Object, long, int)}).
+     * <p>
+     * If {@code null} is returned, the offset returned from {@link #memoryOffset()} may be treated as a direct
+     * memory address.
+     *
+     * @return the object to use, or {@code null} if the offset is an address
+     * @see #isAbsolute()
+     */
+    Object refObj();
+
+    /**
+     * Checks if the offset value returned from {@link #memoryOffset()} is absolute.
+     * <p>
+     * If it is absolute, then the offset should be treated as a direct memory address (as if it were returned by
+     * {@link net.daporkchop.lib.common.util.PUnsafe#allocateMemory(long)}).
+     *
+     * @return whether or not the offset value returned from {@link #memoryOffset()} is absolute
+     */
+    default boolean isAbsolute() {
+        return this.refObj() == null;
+    }
+
+    /**
+     * Gets this container's offset data
+     *
+     * @return offset data
+     */
+    default OffsetData data() {
+        return new OffsetData(this.memoryOffset(), this.memoryLength());
+    }
 }

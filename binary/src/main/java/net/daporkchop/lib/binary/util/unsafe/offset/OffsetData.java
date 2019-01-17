@@ -23,5 +23,5 @@ import lombok.Data;
 @Data
 public class OffsetData {
     protected final long offset;
-    protected final long size;
+    protected final long length;
 }

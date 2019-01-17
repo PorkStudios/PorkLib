@@ -41,9 +41,7 @@ public class EntropyPool implements AutoCloseable {
 
     public void clear() {
         this.count.set(0L);
-        for (long l = this.size - 1L; l >= 0L; l--) {
-            putByte(this.offset + l, (byte) 0); //fill with zeroes
-        }
+        setMemory(this.offset, this.size, (byte) 0);
     }
 
     public void update(@NonNull byte[] entropy) {

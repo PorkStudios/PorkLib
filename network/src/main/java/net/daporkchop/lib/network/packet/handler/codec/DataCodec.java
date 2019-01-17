@@ -17,7 +17,7 @@ package net.daporkchop.lib.network.packet.handler.codec;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.netty.NettyByteBufUtil;
+import net.daporkchop.lib.binary.netty.NettyUtil;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 
@@ -29,14 +29,14 @@ import net.daporkchop.lib.binary.stream.DataOut;
 public interface DataCodec<V> extends Codec<V> {
     @Override
     default void encode(@NonNull V value, @NonNull ByteBuf buf) throws Exception {
-        try (DataOut out = NettyByteBufUtil.wrapOut(buf)) {
+        try (DataOut out = NettyUtil.wrapOut(buf)) {
             this.encode(value, out);
         }
     }
 
     @Override
     default V decode(@NonNull ByteBuf buf) throws Exception {
-        try (DataIn in = NettyByteBufUtil.wrapIn(buf.retain())) {
+        try (DataIn in = NettyUtil.wrapIn(buf.retain())) {
             return this.decode(in);
         }
     }

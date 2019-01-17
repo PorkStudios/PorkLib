@@ -138,11 +138,21 @@ public class PorkUtil {
         }
     }
 
-    public static Class<?> classForName(@NonNull String name) {
+    @SuppressWarnings("unchecked")
+    public static <T> Class<T> classForName(@NonNull String name) {
         try {
-            return Class.forName(name);
+            return (Class<T>) Class.forName(name);
         } catch (ClassNotFoundException e) {
             throw PConstants.p_exception(e);
+        }
+    }
+
+    public static boolean classExistsWithName(@NonNull String name) {
+        try {
+            Class.forName(name);
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
         }
     }
 

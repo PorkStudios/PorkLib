@@ -22,7 +22,7 @@ import net.daporkchop.lib.hash.util.Digest;
 import java.util.function.BiFunction;
 
 /**
- * Used for setting a starting IV when initializing a cipher.
+ * Used for setting a starting IV when initializing testMethodThing cipher.
  *
  * @author DaPorkchop_
  */

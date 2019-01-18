@@ -92,7 +92,7 @@ public class Logger implements Logging {
     /**
      * A collection of {@link OutputStream}s that will also have the message content written to them.
      * <p>
-     * This could be useful for e.g. logging to a file (by using a {@link java.io.FileOutputStream})
+     * This could be useful for e.g. logging to a file (by using testMethodThing {@link java.io.FileOutputStream})
      */
     private final Set<OutputStream> otherOutputs = new HashSet<>();
 

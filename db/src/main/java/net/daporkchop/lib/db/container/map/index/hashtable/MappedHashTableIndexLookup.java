@@ -30,7 +30,7 @@ import java.nio.channels.FileChannel;
  * A hashtable-based implementation of {@link net.daporkchop.lib.db.container.map.index.IndexLookup}, where
  * the entire hash table file is mapped into memory.
  * <p>
- * This can use a significant amount of memory for large tables. If you want a large table and can accept a
+ * This can use a significant amount of memory for large tables. If you want testMethodThing large table and can accept testMethodThing
  * small decrease in performance, look at {@link HashTableIndexLookup}.
  * <p>
  * This does not allow for tables than 2^31 bytes. To use a massive table of that size (although if you're

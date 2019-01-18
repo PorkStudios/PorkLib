@@ -13,51 +13,48 @@
  *
  */
 
-package net.daporkchop.lib.binary.util;
+package net.daporkchop.lib.binary.netty;
 
-import lombok.Getter;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import lombok.NonNull;
-import net.daporkchop.lib.encoding.Hexadecimal;
-
-import java.util.Arrays;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.common.util.PorkUtil;
 
 /**
- * A wrapper for a byte[] which allows using it as testMethodThing key in testMethodThing {@link java.util.Map}
+ * Some methods for dealing with Netty's {@link ByteBuf} class
  *
  * @author DaPorkchop_
  */
-@Getter
-public class ByteArrayAsKey {
-    private final byte[] array;
+public interface NettyUtil {
+    boolean NETTY_PRESENT = PorkUtil.classExistsWithName("io.netty.buffer.ByteBuf");
 
-    private ByteArrayAsKey(@NonNull byte[] array) {
-        this(array, 0, array.length);
+    static DataIn wrapIn(@NonNull ByteBuf buf) {
+        ensureNettyPresent();
+        return new NettyByteBufIn(buf);
     }
 
-    public ByteArrayAsKey(@NonNull byte[] array, int start, int len) {
-        this.array = Arrays.copyOfRange(array, start, start + len + 1);
+    static DataOut wrapOut(@NonNull ByteBuf buf) {
+        ensureNettyPresent();
+        return new NettyByteBufOut(buf);
     }
 
-    @Override
-    public int hashCode() {
-        return Arrays.hashCode(this.array);
+    @Deprecated
+    static ByteBuf alloc(int size) {
+        ensureNettyPresent();
+        return ByteBufAllocator.DEFAULT.directBuffer(size);
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        } else if (obj instanceof byte[]) {
-            return Arrays.equals(this.array, (byte[]) obj);
-        } else if (obj instanceof ByteArrayAsKey) {
-            return Arrays.equals(this.array, ((ByteArrayAsKey) obj).array);
-        } else {
-            return false;
+    @Deprecated
+    static ByteBuf alloc(int size, int max) {
+        ensureNettyPresent();
+        return ByteBufAllocator.DEFAULT.directBuffer(size, max);
+    }
+
+    static void ensureNettyPresent()    {
+        if (!NETTY_PRESENT) {
+            throw new IllegalStateException("Netty not found in classpath!");
         }
-    }
-
-    @Override
-    public String toString() {
-        return Hexadecimal.encode(this.array);
     }
 }

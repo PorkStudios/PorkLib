@@ -65,6 +65,9 @@ public class JsonConfigTest {
 
         protected Sub2 jef;
 
+        //arrays are not a good thing
+        //protected final Sub3 arrays;
+
         @ToString
         public static class Sub1   {
         }
@@ -100,6 +103,14 @@ public class JsonConfigTest {
 
             public static class SubSub1 {
             }
+        }
+
+        @AllArgsConstructor
+        @ToString
+        private static class Sub3   {
+            private final int[] intArray;
+            private final double[] doubleArray;
+            private final String[] stringArray;
         }
     }
 }

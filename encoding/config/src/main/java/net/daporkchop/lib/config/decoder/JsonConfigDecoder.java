@@ -69,9 +69,9 @@ public class JsonConfigDecoder implements ConfigDecoder {
             if (json.isJsonObject()) {
                 subElement = new PJsonObject(Type.OBJECT, entry.getKey(), element);
                 this.loadInto((PJsonObject) subElement, json.getAsJsonObject());
-            } else if (json.isJsonArray()) {
-                //TODO
-                throw new UnsupportedOperationException();
+            } else if (json.isJsonArray())  {
+                System.err.println("[WARNING] Arrays not supported!");
+                continue;
             } else if (json.isJsonNull()) {
                 throw new UnsupportedOperationException("Null values!");
             } else {
@@ -108,7 +108,7 @@ public class JsonConfigDecoder implements ConfigDecoder {
                     }
                     Type type = Type.getMoreAccurateType(num.getClass(), true, false);
                     subElement = new PJsonElement(type, num, entry.getKey(), element);
-                } else if (primitive.isBoolean())   {
+                } else if (primitive.isBoolean()) {
                     subElement = new PJsonElement(Type.BOOLEAN, primitive.getAsBoolean(), entry.getKey(), element);
                 } else {
                     throw new UnsupportedOperationException(String.format("Couldn't parse value: %s", primitive));

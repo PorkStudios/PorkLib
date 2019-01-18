@@ -115,6 +115,8 @@ public interface MemoryBlock extends Freeable, Offsettable {
      */
     long size();
 
+    //read operations
+
     /**
      * Gets a single byte at a given index
      *
@@ -189,6 +191,178 @@ public interface MemoryBlock extends Freeable, Offsettable {
      *                                        operation would overflow beyond the limits of this memory block.
      */
     char getChar(long index);
+
+    //bulk read operations
+
+    /**
+     * Copies the contents of this buffer into a given byte array
+     *
+     * @param index the index (in bytes) to start reading from the buffer at
+     * @param arr   the byte array to read into
+     * @throws ArrayIndexOutOfBoundsException if the given index is larger than the size of this memory block, or the read
+     *                                        operation would overflow beyond the limits of this memory block.
+     */
+    default void getBytes(long index, @NonNull byte[] arr) {
+        this.getBytes(index, arr, 0, arr.length);
+    }
+
+    /**
+     * Copies the contents of this buffer into a given byte array
+     *
+     * @param index the index (in bytes) to start reading from the buffer at
+     * @param arr   the byte array to read into
+     * @param off   the offset in the byte array to start copying
+     * @param len   the total number of bytes to copy
+     * @throws ArrayIndexOutOfBoundsException if the given index is larger than the size of this memory block, or the read
+     *                                        operation would overflow beyond the limits of this memory block.
+     */
+    void getBytes(long index, @NonNull byte[] arr, int off, int len);
+
+    /**
+     * Copies the contents of this buffer into a given short array
+     *
+     * @param index the index (in bytes) to start reading from the buffer at
+     * @param arr   the short array to read into
+     * @throws ArrayIndexOutOfBoundsException if the given index is larger than the size of this memory block, or the read
+     *                                        operation would overflow beyond the limits of this memory block.
+     */
+    default void getShorts(long index, @NonNull short[] arr) {
+        this.getShorts(index, arr, 0, arr.length);
+    }
+
+    /**
+     * Copies the contents of this buffer into a given short array
+     *
+     * @param index the index (in bytes) to start reading from the buffer at
+     * @param arr   the short array to read into
+     * @param off   the offset in the short array to start copying
+     * @param len   the total number of shorts to copy
+     * @throws ArrayIndexOutOfBoundsException if the given index is larger than the size of this memory block, or the read
+     *                                        operation would overflow beyond the limits of this memory block.
+     */
+    void getShorts(long index, @NonNull short[] arr, int off, int len);
+
+    /**
+     * Copies the contents of this buffer into a given int array
+     *
+     * @param index the index (in bytes) to start reading from the buffer at
+     * @param arr   the int array to read into
+     * @throws ArrayIndexOutOfBoundsException if the given index is larger than the size of this memory block, or the read
+     *                                        operation would overflow beyond the limits of this memory block.
+     */
+    default void getInts(long index, @NonNull int[] arr) {
+        this.getInts(index, arr, 0, arr.length);
+    }
+
+    /**
+     * Copies the contents of this buffer into a given int array
+     *
+     * @param index the index (in bytes) to start reading from the buffer at
+     * @param arr   the int array to read into
+     * @param off   the offset in the int array to start copying
+     * @param len   the total number of ints to copy
+     * @throws ArrayIndexOutOfBoundsException if the given index is larger than the size of this memory block, or the read
+     *                                        operation would overflow beyond the limits of this memory block.
+     */
+    void getInts(long index, @NonNull int[] arr, int off, int len);
+
+    /**
+     * Copies the contents of this buffer into a given long array
+     *
+     * @param index the index (in bytes) to start reading from the buffer at
+     * @param arr   the long array to read into
+     * @throws ArrayIndexOutOfBoundsException if the given index is larger than the size of this memory block, or the read
+     *                                        operation would overflow beyond the limits of this memory block.
+     */
+    default void getLongs(long index, @NonNull long[] arr) {
+        this.getLongs(index, arr, 0, arr.length);
+    }
+
+    /**
+     * Copies the contents of this buffer into a given long array
+     *
+     * @param index the index (in bytes) to start reading from the buffer at
+     * @param arr   the long array to read into
+     * @param off   the offset in the long array to start copying
+     * @param len   the total number of longs to copy
+     * @throws ArrayIndexOutOfBoundsException if the given index is larger than the size of this memory block, or the read
+     *                                        operation would overflow beyond the limits of this memory block.
+     */
+    void getLongs(long index, @NonNull long[] arr, int off, int len);
+
+    /**
+     * Copies the contents of this buffer into a given float array
+     *
+     * @param index the index (in bytes) to start reading from the buffer at
+     * @param arr   the float array to read into
+     * @throws ArrayIndexOutOfBoundsException if the given index is larger than the size of this memory block, or the read
+     *                                        operation would overflow beyond the limits of this memory block.
+     */
+    default void getFloats(long index, @NonNull float[] arr) {
+        this.getFloats(index, arr, 0, arr.length);
+    }
+
+    /**
+     * Copies the contents of this buffer into a given float array
+     *
+     * @param index the index (in bytes) to start reading from the buffer at
+     * @param arr   the float array to read into
+     * @param off   the offset in the float array to start copying
+     * @param len   the total number of floats to copy
+     * @throws ArrayIndexOutOfBoundsException if the given index is larger than the size of this memory block, or the read
+     *                                        operation would overflow beyond the limits of this memory block.
+     */
+    void getFloats(long index, @NonNull float[] arr, int off, int len);
+
+    /**
+     * Copies the contents of this buffer into a given double array
+     *
+     * @param index the index (in bytes) to start reading from the buffer at
+     * @param arr   the double array to read into
+     * @throws ArrayIndexOutOfBoundsException if the given index is larger than the size of this memory block, or the read
+     *                                        operation would overflow beyond the limits of this memory block.
+     */
+    default void getDoubles(long index, @NonNull double[] arr) {
+        this.getDoubles(index, arr, 0, arr.length);
+    }
+
+    /**
+     * Copies the contents of this buffer into a given double array
+     *
+     * @param index the index (in bytes) to start reading from the buffer at
+     * @param arr   the double array to read into
+     * @param off   the offset in the double array to start copying
+     * @param len   the total number of doubles to copy
+     * @throws ArrayIndexOutOfBoundsException if the given index is larger than the size of this memory block, or the read
+     *                                        operation would overflow beyond the limits of this memory block.
+     */
+    void getDoubles(long index, @NonNull double[] arr, int off, int len);
+
+    /**
+     * Copies the contents of this buffer into a given char array
+     *
+     * @param index the index (in bytes) to start reading from the buffer at
+     * @param arr   the char array to read into
+     * @throws ArrayIndexOutOfBoundsException if the given index is larger than the size of this memory block, or the read
+     *                                        operation would overflow beyond the limits of this memory block.
+     */
+    default void getChars(long index, @NonNull char[] arr) {
+        this.getChars(index, arr, 0, arr.length);
+    }
+
+    /**
+     * Copies the contents of this buffer into a given char array
+     *
+     * @param index the index (in bytes) to start reading from the buffer at
+     * @param arr   the char array to read into
+     * @param off   the offset in the char array to start copying
+     * @param len   the total number of chars to copy
+     * @throws ArrayIndexOutOfBoundsException if the given index is larger than the size of this memory block, or the read
+     *                                        operation would overflow beyond the limits of this memory block.
+     */
+    void getChars(long index, @NonNull char[] arr, int off, int len);
+
+    //write operations
 
     /**
      * Sets a single byte at the given index
@@ -265,6 +439,164 @@ public interface MemoryBlock extends Freeable, Offsettable {
      *                                        operation would overflow beyond the limits of this memory block.
      */
     void setChar(long index, char val);
+
+    //bulk write operations
+
+    /**
+     * Copies the given bytes to this memory block
+     *
+     * @param index the index (in bytes) in the block to start writing bytes to
+     * @param arr   the array to copy bytes from
+     */
+    default void setBytes(long index, @NonNull byte[] arr) {
+        this.setBytes(index, arr, 0, arr.length);
+    }
+
+    /**
+     * Copies the given bytes to this memory block
+     *
+     * @param index the index (in bytes) in the block to start writing bytes to
+     * @param arr   the array to copy bytes from
+     * @param off   the offset in the byte array to start copying from
+     * @param len   the number of bytes to copy
+     * @throws ArrayIndexOutOfBoundsException if the given index is larger than the size of this memory block, or the write
+     *                                        operation would overflow beyond the limits of this memory block.
+     */
+    void setBytes(long index, @NonNull byte[] arr, int off, int len);
+
+    /**
+     * Copies the given shorts to this memory block
+     *
+     * @param index the index (in bytes) in the block to start writing shorts to
+     * @param arr   the array to copy shorts from
+     */
+    default void setShorts(long index, @NonNull short[] arr) {
+        this.setShorts(index, arr, 0, arr.length);
+    }
+
+    /**
+     * Copies the given shorts to this memory block
+     *
+     * @param index the index (in bytes) in the block to start writing shorts to
+     * @param arr   the array to copy shorts from
+     * @param off   the offset in the short array to start copying from
+     * @param len   the number of shorts to copy
+     * @throws ArrayIndexOutOfBoundsException if the given index is larger than the size of this memory block, or the write
+     *                                        operation would overflow beyond the limits of this memory block.
+     */
+    void setShorts(long index, @NonNull short[] arr, int off, int len);
+
+    /**
+     * Copies the given ints to this memory block
+     *
+     * @param index the index (in bytes) in the block to start writing ints to
+     * @param arr   the array to copy ints from
+     */
+    default void setInts(long index, @NonNull int[] arr) {
+        this.setInts(index, arr, 0, arr.length);
+    }
+
+    /**
+     * Copies the given ints to this memory block
+     *
+     * @param index the index (in bytes) in the block to start writing ints to
+     * @param arr   the array to copy ints from
+     * @param off   the offset in the int array to start copying from
+     * @param len   the number of ints to copy
+     * @throws ArrayIndexOutOfBoundsException if the given index is larger than the size of this memory block, or the write
+     *                                        operation would overflow beyond the limits of this memory block.
+     */
+    void setInts(long index, @NonNull int[] arr, int off, int len);
+
+    /**
+     * Copies the given longs to this memory block
+     *
+     * @param index the index (in bytes) in the block to start writing longs to
+     * @param arr   the array to copy longs from
+     */
+    default void setLongs(long index, @NonNull long[] arr) {
+        this.setLongs(index, arr, 0, arr.length);
+    }
+
+    /**
+     * Copies the given longs to this memory block
+     *
+     * @param index the index (in bytes) in the block to start writing longs to
+     * @param arr   the array to copy longs from
+     * @param off   the offset in the long array to start copying from
+     * @param len   the number of longs to copy
+     * @throws ArrayIndexOutOfBoundsException if the given index is larger than the size of this memory block, or the write
+     *                                        operation would overflow beyond the limits of this memory block.
+     */
+    void setLongs(long index, @NonNull long[] arr, int off, int len);
+
+    /**
+     * Copies the given floats to this memory block
+     *
+     * @param index the index (in bytes) in the block to start writing floats to
+     * @param arr   the array to copy floats from
+     */
+    default void setFloats(long index, @NonNull float[] arr) {
+        this.setFloats(index, arr, 0, arr.length);
+    }
+
+    /**
+     * Copies the given floats to this memory block
+     *
+     * @param index the index (in bytes) in the block to start writing floats to
+     * @param arr   the array to copy floats from
+     * @param off   the offset in the float array to start copying from
+     * @param len   the number of floats to copy
+     * @throws ArrayIndexOutOfBoundsException if the given index is larger than the size of this memory block, or the write
+     *                                        operation would overflow beyond the limits of this memory block.
+     */
+    void setFloats(long index, @NonNull float[] arr, int off, int len);
+
+    /**
+     * Copies the given doubles to this memory block
+     *
+     * @param index the index (in bytes) in the block to start writing doubles to
+     * @param arr   the array to copy doubles from
+     */
+    default void setDoubles(long index, @NonNull double[] arr) {
+        this.setDoubles(index, arr, 0, arr.length);
+    }
+
+    /**
+     * Copies the given doubles to this memory block
+     *
+     * @param index the index (in bytes) in the block to start writing doubles to
+     * @param arr   the array to copy doubles from
+     * @param off   the offset in the double array to start copying from
+     * @param len   the number of doubles to copy
+     * @throws ArrayIndexOutOfBoundsException if the given index is larger than the size of this memory block, or the write
+     *                                        operation would overflow beyond the limits of this memory block.
+     */
+    void setDoubles(long index, @NonNull double[] arr, int off, int len);
+
+    /**
+     * Copies the given chars to this memory block
+     *
+     * @param index the index (in bytes) in the block to start writing chars to
+     * @param arr   the array to copy chars from
+     */
+    default void setChars(long index, @NonNull char[] arr) {
+        this.setChars(index, arr, 0, arr.length);
+    }
+
+    /**
+     * Copies the given chars to this memory block
+     *
+     * @param index the index (in bytes) in the block to start writing chars to
+     * @param arr   the array to copy chars from
+     * @param off   the offset in the char array to start copying from
+     * @param len   the number of chars to copy
+     * @throws ArrayIndexOutOfBoundsException if the given index is larger than the size of this memory block, or the write
+     *                                        operation would overflow beyond the limits of this memory block.
+     */
+    void setChars(long index, @NonNull char[] arr, int off, int len);
+
+    //other things
 
     /**
      * Clears this block of memory, overwriting the entire contents with zeroes

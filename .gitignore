@@ -3,6 +3,7 @@
 *.iml
 *.ipr
 *.class
+*.log
 target/
 build/
 out/

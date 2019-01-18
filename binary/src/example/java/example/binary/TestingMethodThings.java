@@ -16,11 +16,13 @@
 package example.binary;
 
 import net.daporkchop.lib.binary.buf.file.PFileDispatcherImpl;
+import net.daporkchop.lib.binary.util.unsafe.block.MemoryBlock;
 import net.daporkchop.lib.binary.util.unsafe.offset.OffsetLookup;
 import net.daporkchop.lib.common.util.PorkUtil;
 
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.IntFunction;
 
 /**
@@ -30,9 +32,28 @@ import java.util.function.IntFunction;
  */
 public class TestingMethodThings {
     public static void main(String... args) {
-        testMethodThing();
+        //testMethodThing();
 
-        OffsetLookup.INSTANCE.hashCode();
+        //OffsetLookup.INSTANCE.hashCode();
+
+        MemoryBlock block = MemoryBlock.wrap(new byte[1024]);
+        for (int i = 1023; i >= 0; i--) {
+            block.setByte(i, (byte) ThreadLocalRandom.current().nextInt());
+        }
+        byte[] arr = new byte[1024];
+        block.getBytes(0L, arr);
+        for (int i = 1023; i >= 0; i--) {
+            if (arr[i] != block.getByte(i)) {
+                throw new IllegalStateException();
+            }
+        }
+        ThreadLocalRandom.current().nextBytes(arr);
+        block.setBytes(0L, arr);
+        for (int i = 1023; i >= 0; i--) {
+            if (arr[i] != block.getByte(i)) {
+                throw new IllegalStateException();
+            }
+        }
     }
 
     @SuppressWarnings("unchecked")

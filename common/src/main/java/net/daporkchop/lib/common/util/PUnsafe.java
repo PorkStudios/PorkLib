@@ -128,6 +128,7 @@ public interface PUnsafe {
     int ARRAY_OBJECT_INDEX_SCALE = arrayIndexScale(Object[].class);
 
     //methods
+    ThreadLocal<Object[]> objArrCache = ThreadLocal.withInitial(() -> new Object[1]);
 
     static int getInt(Object o, long pos) {
         return UNSAFE.getInt(o, pos);

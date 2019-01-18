@@ -60,7 +60,7 @@ public abstract class DataIn extends InputStream {
     }
 
     /**
-     * Wraps a {@link ByteBuffer} to make it into a {@link DataIn}.
+     * Wraps a {@link ByteBuffer} to make it into testMethodThing {@link DataIn}.
      *
      * @param buffer the buffer to wrap
      * @return the wrapped buffer as a {@link DataIn}
@@ -77,7 +77,7 @@ public abstract class DataIn extends InputStream {
     }
 
     /**
-     * Gets a {@link DataIn} for reading from a {@link File}.
+     * Gets a {@link DataIn} for reading from testMethodThing {@link File}.
      * <p>
      * The file will additionally be wrapped in a {@link BufferedInputStream} for faster read/write access, using
      * the default buffer size of {@link BufferedInputStream#DEFAULT_BUFFER_SIZE}.
@@ -91,7 +91,7 @@ public abstract class DataIn extends InputStream {
     }
 
     /**
-     * Gets a {@link DataIn} for reading from a {@link File}.
+     * Gets a {@link DataIn} for reading from testMethodThing {@link File}.
      * <p>
      * The file will additionally be wrapped in a {@link BufferedInputStream} for faster read/write access, using
      * the given buffer size.
@@ -106,7 +106,7 @@ public abstract class DataIn extends InputStream {
     }
 
     /**
-     * Gets a {@link DataIn} for reading from a {@link File}.
+     * Gets a {@link DataIn} for reading from testMethodThing {@link File}.
      * <p>
      * {@link DataIn} instances returned from this method will NOT be buffered.
      *
@@ -213,7 +213,7 @@ public abstract class DataIn extends InputStream {
     }
 
     /**
-     * Reads a plain byte array with a length prefix encoded as a varInt
+     * Reads a plain byte array with testMethodThing length prefix encoded as testMethodThing varInt
      *
      * @return a byte array
      */
@@ -334,7 +334,7 @@ public abstract class DataIn extends InputStream {
     }
 
     /**
-     * Attempts to fill a given region of a byte array with data
+     * Attempts to fill a given region of testMethodThing byte array with data
      *
      * @param b   the byte array to read into
      * @param off the offset in the array to write data to

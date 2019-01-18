@@ -13,41 +13,32 @@
  *
  */
 
-package net.daporkchop.lib.binary.netty;
+package net.daporkchop.lib.binary.buf.file;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
-import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.buf.AbstractPorkBuf;
+import net.daporkchop.lib.binary.buf.PorkBuf;
 
 /**
- * Some methods for dealing with Netty's {@link ByteBuf} class
- *
  * @author DaPorkchop_
  */
-public class NettyByteBufUtil {
-    static {
-        try {
-            Class.forName("io.netty.buffer.ByteBuf");
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("netty-buffer not found in classpath!", e);
-        }
+public abstract class PorkFileChannel extends AbstractPorkBuf {
+    @Override
+    public PorkBuf putByte(byte b) {
+        return null;
     }
 
-    public static DataIn wrapIn(@NonNull ByteBuf buf) {
-        return new NettyByteBufIn(buf);
+    @Override
+    public PorkBuf putByte(long index, byte b) {
+        return null;
     }
 
-    public static DataOut wrapOut(@NonNull ByteBuf buf) {
-        return new NettyByteBufOut(buf);
+    @Override
+    public byte readByte() {
+        return 0;
     }
 
-    public static ByteBuf alloc(int size) {
-        return ByteBufAllocator.DEFAULT.directBuffer(size);
-    }
-
-    public static ByteBuf alloc(int size, int max) {
-        return ByteBufAllocator.DEFAULT.directBuffer(size, max);
+    @Override
+    public byte readByte(long index) {
+        return 0;
     }
 }

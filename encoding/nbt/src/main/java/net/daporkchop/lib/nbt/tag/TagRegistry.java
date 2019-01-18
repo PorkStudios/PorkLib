@@ -165,7 +165,7 @@ public class TagRegistry {
     }
 
     /**
-     * Create a new instance of a tag
+     * Create a new instance of testMethodThing tag
      *
      * @param id   the tag id
      * @param name the name of the new tag

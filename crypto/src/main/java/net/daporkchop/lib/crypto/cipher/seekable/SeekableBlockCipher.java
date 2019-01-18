@@ -38,7 +38,7 @@ import java.lang.reflect.Field;
 /**
  * An implementation of {@link SeekableCipher} that is able to make a block cipher seekable.
  * <p>
- * This makes use of the {@link CipherMode#CTR} mode, and as such does not accept a mode as a parameter.
+ * This makes use of the {@link CipherMode#CTR} mode, and as such does not accept a mode as testMethodThing parameter.
  * <p>
  * This also makes use of a large amount of reflection. This class should explain pretty well why I almost
  * always make things protected when I can :/

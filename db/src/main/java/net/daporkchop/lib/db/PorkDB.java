@@ -84,7 +84,7 @@ public class PorkDB implements Logging {
     }
 
     /**
-     * Get a new builder for a {@link DBAtomicLong}
+     * Get a new builder for testMethodThing {@link DBAtomicLong}
      * <p>
      * Convenience wrapper around {@link DBAtomicLong#builder(PorkDB, String)}
      *
@@ -100,7 +100,7 @@ public class PorkDB implements Logging {
     }
 
     /**
-     * Get a new builder for a {@link DBMap}
+     * Get a new builder for testMethodThing {@link DBMap}
      * <p>
      * Convenience wrapper around {@link DBMap#builder(PorkDB, String)}
      *

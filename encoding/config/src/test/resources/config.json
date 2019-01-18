@@ -8,5 +8,18 @@
   },
   "jef": {
     "subentry": {}
+  },
+  "arrays": {
+    "intArray": [3,9,23],
+    "doubleArray": [395.4, 2.2, 0.00000001],
+    "strings": [
+      "name",
+      "jeff",
+      "lol",
+      "",
+      "me",
+      "too",
+      "thanks"
+    ]
   }
 }

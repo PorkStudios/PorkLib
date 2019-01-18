@@ -90,7 +90,8 @@ public class PConfig {
             Element subElement = entry.getValue();
             PField field = fields.remove(name);
             if (field == null)  {
-                throw new IllegalArgumentException(String.format("Couldn't find field in %s with name %s!", clazz.getCanonicalName(), name));
+                System.err.printf("[WARNING] Couldn't find field in %s with name %s!\n", clazz.getCanonicalName(), name);
+                continue;
             }
             Object val;
             if (subElement instanceof Element.ContainerElement) {

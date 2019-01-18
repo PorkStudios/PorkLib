@@ -16,18 +16,18 @@
 package encoding.config;
 
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
+import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.StreamUtil;
+import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.config.Config;
 import net.daporkchop.lib.config.PConfig;
 import net.daporkchop.lib.config.decoder.JsonConfigDecoder;
 import net.daporkchop.lib.config.util.Element;
 import org.junit.Test;
-import sun.misc.IOUtils;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
@@ -38,15 +38,20 @@ import java.math.BigInteger;
 public class JsonConfigTest {
     @Test
     public void test() throws IOException   {
+        PConfig config = new PConfig(new JsonConfigDecoder());
         try (InputStream in = JsonConfigTest.class.getResourceAsStream("/config.json")) {
             Element.ContainerElement element = new JsonConfigDecoder().decode(in);
-            System.out.println(element.toString());
+            //System.out.println(element.toString());
         }
         try (DataIn in = DataIn.wrap(JsonConfigTest.class.getResourceAsStream("/config.json"))) {
-            PConfig config = new PConfig(new JsonConfigDecoder());
-            Root rootInstance = config.loadConfig(Root.class, in);
+            Root rootInstance = config.load(Root.class, in);
             System.out.println(rootInstance);
             System.out.println(Root.INSTANCe);
+        }
+        {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            config.save(Root.INSTANCe, baos);
+            System.out.printf("Saved: \n%s\n", new String(baos.toByteArray(), UTF8.utf8));
         }
     }
 

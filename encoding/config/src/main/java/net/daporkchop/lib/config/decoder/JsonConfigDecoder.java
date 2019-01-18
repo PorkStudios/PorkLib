@@ -15,6 +15,8 @@
 
 package net.daporkchop.lib.config.decoder;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -25,7 +27,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.config.attribute.Comment;
 import net.daporkchop.lib.config.util.Element;
@@ -44,6 +48,7 @@ import java.util.Map;
  */
 public class JsonConfigDecoder implements ConfigDecoder {
     protected final JsonParser parser = new JsonParser();
+    protected final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     //protected final PField<LinkedTreeMap<String, JsonElement>> jsonObject_members = PField.of(JsonObject.class, "members");
     protected final PField<Number> jsonPrimitive_value = PField.of(JsonPrimitive.class, "value");
 
@@ -116,6 +121,34 @@ public class JsonConfigDecoder implements ConfigDecoder {
             }
             element.setElement(entry.getKey(), subElement);
         }
+    }
+
+    @Override
+    public void encode(@NonNull Element.ContainerElement root, @NonNull DataOut out) throws IOException {
+        JsonObject object = new JsonObject();
+        this.encodeRecursive(root, object);
+        out.write(this.gson.toJson(object).getBytes(UTF8.utf8));
+    }
+
+    protected void encodeRecursive(@NonNull Element.ContainerElement container, @NonNull JsonObject object) {
+        container.getValue().forEach((name, element) -> {
+            Object val = element.getValue();
+            if (val instanceof String)  {
+                object.addProperty(name, (String) val);
+            } else if (val instanceof Number)   {
+                object.addProperty(name, (Number) val);
+            } else if (val instanceof Boolean)  {
+                object.addProperty(name, (Boolean) val);
+            } else if (val instanceof Character)    {
+                object.addProperty(name, (Character) val);
+            } else if (val instanceof Map)  {
+                JsonObject sub = new JsonObject();
+                encodeRecursive((Element.ContainerElement) element, sub);
+                object.add(name, sub);
+            } else {
+                throw new IllegalStateException(String.format("Couldn't encode object: %s", val));
+            }
+        });
     }
 
     @AllArgsConstructor

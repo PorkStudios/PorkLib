@@ -15,7 +15,10 @@
 
 package net.daporkchop.lib.config.util;
 
+import com.google.gson.internal.LinkedTreeMap;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import net.daporkchop.lib.config.attribute.Comment;
 import net.daporkchop.lib.reflection.util.Type;
 
@@ -30,6 +33,41 @@ import java.util.Map;
  * @author DaPorkchop_
  */
 public interface Element<V> {
+    static ContainerElement dummyContainer(String nameIn, Element parentIn, Comment commentIn) {
+        return new ContainerElement() {
+            @Getter
+            private final Map<String, Element> value = new LinkedTreeMap<>();
+            @Getter
+            private final String name = nameIn;
+            @Getter
+            private final Element parent = parentIn;
+            @Getter
+            @Setter
+            private Comment comment = commentIn;
+
+            @Override
+            public Type getType() {
+                return Type.OBJECT;
+            }
+        };
+    }
+
+    static <V> Element<V> dummyElement(String nameIn, V valueIn, @NonNull Type typeIn, Element parentIn, Comment commentIn) {
+        return new Element<V>() {
+            @Getter
+            private final V value = valueIn;
+            @Getter
+            private final String name = nameIn;
+            @Getter
+            private final Type type = typeIn;
+            @Getter
+            private final Element parent = parentIn;
+            @Getter
+            @Setter
+            private Comment comment = commentIn;
+        };
+    }
+
     /**
      * Gets the type of data stored in the element
      */
@@ -128,12 +166,12 @@ public interface Element<V> {
     }
 
     @SuppressWarnings("unchecked")
-    default <T extends Element> T getAs()  {
+    default <T extends Element> T getAs() {
         return (T) this;
     }
 
     interface ContainerElement extends Element<Map<String, Element>> {
-        default Element getElement(@NonNull String name)    {
+        default Element getElement(@NonNull String name) {
             return this.getValue().get(name);
         }
 
@@ -141,25 +179,25 @@ public interface Element<V> {
             this.getValue().put(name, element);
         }
 
-        default boolean hasElement(@NonNull String name)    {
+        default boolean hasElement(@NonNull String name) {
             return this.getValue().containsKey(name);
         }
 
-        default void removeElement(@NonNull String name)    {
+        default void removeElement(@NonNull String name) {
             this.getValue().remove(name);
         }
     }
 
     interface ArrayElement extends Element<List<Element>> {
-        default Element getElement(int i)   {
+        default Element getElement(int i) {
             return this.getValue().get(i);
         }
 
-        default int getSize()   {
+        default int getSize() {
             return this.getValue().size();
         }
 
-        default void add(@NonNull Element element)  {
+        default void add(@NonNull Element element) {
             this.getValue().add(element);
         }
     }

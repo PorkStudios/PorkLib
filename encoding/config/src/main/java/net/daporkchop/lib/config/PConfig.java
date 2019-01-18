@@ -19,7 +19,9 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.util.PConstants;
+import net.daporkchop.lib.config.attribute.Comment;
 import net.daporkchop.lib.config.decoder.ConfigDecoder;
 import net.daporkchop.lib.config.util.Element;
 import net.daporkchop.lib.reflection.PField;
@@ -28,6 +30,7 @@ import net.daporkchop.lib.reflection.util.Type;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -49,20 +52,20 @@ public class PConfig {
     protected final ConfigDecoder decoder;
 
     @SuppressWarnings("unchecked")
-    public <C> C loadConfig(@NonNull Class<C> clazz, @NonNull File file) throws IOException   {
-        return this.loadConfig((C) allocateInstance(clazz), file);
+    public <C> C load(@NonNull Class<C> clazz, @NonNull File file) throws IOException   {
+        return this.load((C) allocateInstance(clazz), file);
     }
 
     @SuppressWarnings("unchecked")
-    public <C> C loadConfig(@NonNull Class<C> clazz, @NonNull DataIn in) throws IOException   {
-        return this.loadConfig((C) allocateInstance(clazz), in);
+    public <C> C load(@NonNull Class<C> clazz, @NonNull DataIn in) throws IOException   {
+        return this.load((C) allocateInstance(clazz), in);
     }
 
-    public <C> C loadConfig(@NonNull C obj, @NonNull File file) throws IOException {
-        return this.loadConfig(obj, DataIn.wrap(file));
+    public <C> C load(@NonNull C obj, @NonNull File file) throws IOException {
+        return this.load(obj, DataIn.wrap(file));
     }
 
-    public <C> C loadConfig(@NonNull C obj, @NonNull DataIn in) throws IOException   {
+    public <C> C load(@NonNull C obj, @NonNull DataIn in) throws IOException   {
         Element.ContainerElement root = this.decoder.decode(in);
         Config config = PReflection.getAnnotation(obj.getClass(), Config.class);
         if (config != null) {
@@ -223,6 +226,96 @@ public class PConfig {
                 break;
                 default:
                     throw new IllegalArgumentException(String.format("Invalid type: %s", type));
+            }
+        }
+    }
+
+    public void save(@NonNull Object obj, @NonNull OutputStream out) throws IOException    {
+        this.save(obj, DataOut.wrap(out));
+    }
+
+    public void save(@NonNull Object obj, @NonNull File file) throws IOException    {
+        this.save(obj, DataOut.wrap(file));
+    }
+
+    public void save(@NonNull Object obj, @NonNull DataOut out) throws IOException  {
+        Element.ContainerElement root = Element.dummyContainer(null, null, null);
+        this.saveRecursive(root, obj);
+        this.decoder.encode(root, out);
+    }
+
+    protected void saveRecursive(@NonNull Element.ContainerElement container, @NonNull Object obj)  {
+        Class<?> clazz = obj.getClass();
+        Map<String, PField> fields = Arrays.stream(clazz.getDeclaredFields())
+                .filter(field -> (field.getModifiers() & Modifier.STATIC) == 0)
+                .map(PField::of)
+                .collect(Collectors.toMap(
+                        field -> {
+                            Config.Name name = field.getAnnotation(Config.Name.class);
+                            return name == null ? field.getName() : name.value();
+                        },
+                        field -> field
+                ));
+        for (Map.Entry<String, PField> entry : fields.entrySet())   {
+            Config.Comment commentAnnotation = entry.getValue().getAnnotation(Config.Comment.class);
+            Comment comment = Comment.from(commentAnnotation == null ? new String[0] : commentAnnotation.value());
+            Element subElement = null;
+            switch (entry.getValue().getType()) {
+                case OBJECT: {
+                    Object subObj = entry.getValue().get(obj);
+                    if (subObj == null) {
+                        continue;
+                    } else {
+                        if (subObj instanceof Number
+                                || subObj instanceof String
+                                || subObj instanceof Boolean
+                                || subObj instanceof Character) {
+                            subElement = Element.dummyElement(entry.getKey(), subObj, Type.getMoreAccurateType(subObj.getClass(), false, true), container, comment);
+                        } else {
+                            Element.ContainerElement sub = Element.dummyContainer(entry.getKey(), container, comment);
+                            this.saveRecursive(sub, subObj);
+                            subElement = sub;
+                        }
+                    }
+                }
+                break;
+                case BOOLEAN: {
+                    subElement = Element.dummyElement(entry.getKey(), entry.getValue().getBoolean(obj), Type.BOOLEAN, container, comment);
+                }
+                break;
+                case BYTE: {
+                    subElement = Element.dummyElement(entry.getKey(), entry.getValue().getByte(obj), Type.BYTE, container, comment);
+                }
+                break;
+                case SHORT: {
+                    subElement = Element.dummyElement(entry.getKey(), entry.getValue().getShort(obj), Type.SHORT, container, comment);
+                }
+                break;
+                case INT: {
+                    subElement = Element.dummyElement(entry.getKey(), entry.getValue().getInt(obj), Type.INT, container, comment);
+                }
+                break;
+                case LONG: {
+                    subElement = Element.dummyElement(entry.getKey(), entry.getValue().getLong(obj), Type.LONG, container, comment);
+                }
+                break;
+                case FLOAT: {
+                    subElement = Element.dummyElement(entry.getKey(), entry.getValue().getFloat(obj), Type.FLOAT, container, comment);
+                }
+                break;
+                case DOUBLE: {
+                    subElement = Element.dummyElement(entry.getKey(), entry.getValue().getDouble(obj), Type.DOUBLE, container, comment);
+                }
+                break;
+                case CHAR: {
+                    subElement = Element.dummyElement(entry.getKey(), entry.getValue().getChar(obj), Type.CHAR, container, comment);
+                }
+                break;
+            }
+            if (subElement == null) {
+                throw new IllegalStateException(String.format("Unable to parse value in field: %s", entry.getValue().getName()));
+            } else {
+                container.setElement(entry.getKey(), subElement);
             }
         }
     }

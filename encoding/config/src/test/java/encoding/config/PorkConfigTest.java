@@ -27,6 +27,7 @@ import net.daporkchop.lib.config.decoder.PorkConfigDecoder;
 import net.daporkchop.lib.config.util.Element;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,10 +49,15 @@ public class PorkConfigTest {
             System.out.println(rootInstance);
             System.out.println(Root.INSTANCe);
         }
-        if (false){
+        {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             config.save(Root.INSTANCe, baos);
             System.out.printf("Saved: \n%s\n", new String(baos.toByteArray(), UTF8.utf8));
+            try (DataIn in = DataIn.wrap(new ByteArrayInputStream(baos.toByteArray()))) {
+                Root rootInstance = config.load(Root.class, in);
+                System.out.println(rootInstance);
+                System.out.println(Root.INSTANCe);
+            }
         }
     }
 
@@ -96,6 +102,10 @@ public class PorkConfigTest {
             @Config.Default(
                     objectValue = "encoding.config.TestConstants#randomText"
             )
+            @Config.Comment({
+                    "This field will be initialized at runtime with the text returned by the",
+                    "function specified in the annotation above."
+            })
             public String testingDefaultNotNull;
         }
 

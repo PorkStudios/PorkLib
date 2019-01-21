@@ -18,16 +18,22 @@ package net.daporkchop.lib.config.decoder;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.config.attribute.Comment;
 import net.daporkchop.lib.config.util.Element;
 import net.daporkchop.lib.reflection.util.Type;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintStream;
 import java.io.Reader;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A simple config system based on the one used by Minecraft Forge
@@ -205,6 +211,10 @@ public class PorkConfigDecoder implements ConfigDecoder {
                     val = valueText.charAt(0);
                 }
                 break;
+                case STRING: {
+                    val = valueText;
+                }
+                break;
                 default: {
                     throw new UnsupportedOperationException(expectedType.name());
                 }
@@ -217,6 +227,90 @@ public class PorkConfigDecoder implements ConfigDecoder {
 
     @Override
     public void encode(@NonNull Element.ContainerElement root, @NonNull DataOut out) throws IOException {
+        try (PrintStream stream = new PrintStream(DataOut.wrapNonClosing(out))) {
+            this.encodeRecursive(root, stream, 0);
+        }
+    }
 
+    protected void encodeRecursive(@NonNull Element.ContainerElement container, @NonNull PrintStream out, int depth) throws IOException  {
+        String indent = this.indent(depth);
+        boolean previousHadComment = false;
+        for (Map.Entry<String, Element> entry : container.getValue().entrySet())  {
+            if (previousHadComment) {
+                out.println();
+            }
+            if (previousHadComment = entry.getValue().getComment().isPresent())  {
+                for (String line : entry.getValue().getComment().getCommentLines())    {
+                    out.printf("%s# %s", indent, line);
+                    out.println();
+                }
+            }
+            switch (entry.getValue().getType()) {
+                case OBJECT: {
+                    out.printf("%sO:%s={", indent, entry.getKey());
+                    out.println();
+                    this.encodeRecursive((Element.ContainerElement) entry.getValue(), out, depth + 1);
+                }
+                break;
+                case BOOLEAN: {
+                    out.printf("%sZ:%s=%b", indent, entry.getKey(), entry.getValue().booleanValue());
+                    out.println();
+                }
+                break;
+                case BYTE: {
+                    out.printf("%sB:%s=%d", indent, entry.getKey(), entry.getValue().byteValue());
+                    out.println();
+                }
+                break;
+                case SHORT: {
+                    out.printf("%sT:%s=%d", indent, entry.getKey(), entry.getValue().shortValue());
+                    out.println();
+                }
+                break;
+                case INT: {
+                    out.printf("%sI:%s=%d", indent, entry.getKey(), entry.getValue().intValue());
+                    out.println();
+                }
+                break;
+                case LONG: {
+                    out.printf("%sL:%s=%d", indent, entry.getKey(), entry.getValue().longValue());
+                    out.println();
+                }
+                break;
+                case FLOAT: {
+                    out.printf("%sF:%s=%s", indent, entry.getKey(), String.valueOf(entry.getValue().floatValue()).replace(',', '.'));
+                    out.println();
+                }
+                break;
+                case DOUBLE: {
+                    out.printf("%sD:%s=%s", indent, entry.getKey(), String.valueOf(entry.getValue().doubleValue()).replace(',', '.'));
+                    out.println();
+                }
+                break;
+                case CHAR: {
+                    out.printf("%sC:%s=%c", indent, entry.getKey(), entry.getValue().charValue());
+                    out.println();
+                }
+                break;
+                case STRING: {
+                    out.printf("%sS:%s=%s", indent, entry.getKey(), entry.getValue().stringValue());
+                    out.println();
+                }
+                break;
+                default: {
+                    throw new UnsupportedOperationException(entry.getValue().getType().name());
+                }
+            }
+        }
+        if (depth > 0) {
+            out.printf("%s}", this.indent(depth - 1));
+            out.println();
+        }
+    }
+    
+    protected String indent(int depth)  {
+        char[] c = new char[Math.max(0, depth) * 4];
+        Arrays.fill(c, ' ');
+        return PorkUtil.wrap(c);
     }
 }

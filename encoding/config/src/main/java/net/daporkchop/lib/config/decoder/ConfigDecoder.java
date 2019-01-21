@@ -13,34 +13,30 @@
  *
  */
 
-rootProject.name = 'PorkLib'
+package net.daporkchop.lib.config.decoder;
 
-include 'ai'
-include 'binary'
-include 'crypto'
-include 'common'
-include 'concurrent'
-include 'concurrent:parallel'
-include 'db'
-include 'encoding'
-include 'encoding:config'
-include 'encoding:nbt'
-include 'hash'
-include 'http'
-include 'logging'
-include 'math'
-include 'minecraft'
-include 'minecraft:minecraft-text'
-include 'minecraft:minecraft-worldscanner'
-include 'network'
-include 'noise'
-include 'primitive'
-include 'primitive:generator'
-include 'reflection'
+import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.config.util.Element;
 
-findProject(':concurrent:parallel')?.name = 'parallel'
-findProject(':encoding:config')?.name = 'config'
-findProject(':encoding:nbt')?.name = 'nbt'
-findProject(':minecraft:minecraft-worldscanner')?.name = 'minecraft-worldscanner'
-findProject(':minecraft:minecraft-text')?.name = 'minecraft-text'
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 
+/**
+ * @author DaPorkchop_
+ */
+public interface ConfigDecoder {
+    default Element.ContainerElement decode(@NonNull File file) throws IOException {
+        return this.decode(DataIn.wrap(file));
+    }
+
+    default Element.ContainerElement decode(@NonNull InputStream in) throws IOException {
+        return this.decode(DataIn.wrap(in));
+    }
+
+    Element.ContainerElement decode(@NonNull DataIn in) throws IOException;
+
+    void encode(@NonNull Element.ContainerElement root, @NonNull DataOut out) throws IOException;
+}

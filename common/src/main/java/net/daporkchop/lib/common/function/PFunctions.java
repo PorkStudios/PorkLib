@@ -22,26 +22,52 @@ import net.daporkchop.lib.common.util.PConstants;
 
 import java.lang.reflect.Constructor;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
+ * Some useful methods for dealing with (((functions))) i.e. in this case functional interfaces, which in
+ * most cases will be lambda expressions
+ *
  * @author DaPorkchop_
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public abstract class PFunctions {
+    /**
+     * Creates a {@link Function} which will throw an exception when invoked
+     *
+     * @param clazz the class of the exception to throw. Must have a simple no-args constructor
+     * @return a {@link Function} which will throw an exception when invoked
+     */
     public static <T, R> Function<T, R> throwing(@NonNull Class<? extends Throwable> clazz) {
         try {
             Constructor<? extends Throwable> constructor = clazz.getDeclaredConstructor();
             constructor.setAccessible(true);
             return throwing((ThrowingSupplier<Throwable>) constructor::newInstance);
-        } catch (NoSuchMethodException e)   {
+        } catch (NoSuchMethodException e) {
             throw PConstants.p_exception(e);
         }
     }
 
+    /**
+     * Creates a {@link Function} which will throw an exception when invoked
+     *
+     * @param supplier a {@link Supplier} which will supply instances of {@link Throwable} to be thrown
+     * @return a {@link Function} which will throw an exception when invoked
+     */
     public static <T, R> Function<T, R> throwing(@NonNull Supplier<Throwable> supplier) {
         return t -> {
             throw PConstants.p_exception(supplier.get());
         };
+    }
+
+    /**
+     * Logically inverts a {@link Predicate}
+     *
+     * @param predicate the predicate to invert
+     * @return a {@link Predicate} that will return the opposite value of whatever is returned by the original
+     */
+    public static <T> Predicate<T> invert(@NonNull Predicate<T> predicate) {
+        return t -> !predicate.test(t);
     }
 }

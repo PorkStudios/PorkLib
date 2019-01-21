@@ -13,34 +13,24 @@
  *
  */
 
-rootProject.name = 'PorkLib'
+package net.daporkchop.lib.common.reference;
 
-include 'ai'
-include 'binary'
-include 'crypto'
-include 'common'
-include 'concurrent'
-include 'concurrent:parallel'
-include 'db'
-include 'encoding'
-include 'encoding:config'
-include 'encoding:nbt'
-include 'hash'
-include 'http'
-include 'logging'
-include 'math'
-include 'minecraft'
-include 'minecraft:minecraft-text'
-include 'minecraft:minecraft-worldscanner'
-include 'network'
-include 'noise'
-include 'primitive'
-include 'primitive:generator'
-include 'reflection'
+import java.lang.ref.SoftReference;
 
-findProject(':concurrent:parallel')?.name = 'parallel'
-findProject(':encoding:config')?.name = 'config'
-findProject(':encoding:nbt')?.name = 'nbt'
-findProject(':minecraft:minecraft-worldscanner')?.name = 'minecraft-worldscanner'
-findProject(':minecraft:minecraft-text')?.name = 'minecraft-text'
+/**
+ * @author DaPorkchop_
+ */
+public class LateSoftReference<T> implements Reference<T> {
+    protected SoftReference<T> ref = new SoftReference<>(null);
 
+    @Override
+    public T get() {
+        return this.ref.get();
+    }
+
+    @Override
+    public T set(T val) {
+        this.ref = new SoftReference<>(val);
+        return val;
+    }
+}

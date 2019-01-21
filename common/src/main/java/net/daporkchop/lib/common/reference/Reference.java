@@ -13,34 +13,60 @@
  *
  */
 
-rootProject.name = 'PorkLib'
+package net.daporkchop.lib.common.reference;
 
-include 'ai'
-include 'binary'
-include 'crypto'
-include 'common'
-include 'concurrent'
-include 'concurrent:parallel'
-include 'db'
-include 'encoding'
-include 'encoding:config'
-include 'encoding:nbt'
-include 'hash'
-include 'http'
-include 'logging'
-include 'math'
-include 'minecraft'
-include 'minecraft:minecraft-text'
-include 'minecraft:minecraft-worldscanner'
-include 'network'
-include 'noise'
-include 'primitive'
-include 'primitive:generator'
-include 'reflection'
+import lombok.NonNull;
 
-findProject(':concurrent:parallel')?.name = 'parallel'
-findProject(':encoding:config')?.name = 'config'
-findProject(':encoding:nbt')?.name = 'nbt'
-findProject(':minecraft:minecraft-worldscanner')?.name = 'minecraft-worldscanner'
-findProject(':minecraft:minecraft-text')?.name = 'minecraft-text'
+import java.util.function.Function;
+import java.util.function.Supplier;
 
+/**
+ * @author DaPorkchop_
+ */
+public interface Reference<T> {
+    T get();
+
+    T set(T val);
+
+    default T swap(T val) {
+        T old = this.get();
+        this.set(val);
+        return old;
+    }
+
+    default boolean missing() {
+        return this.get() == null;
+    }
+
+    default boolean has() {
+        return this.get() != null;
+    }
+
+    default T getOrDefault(T def) {
+        return this.missing() ? def : this.get();
+    }
+
+    default T getOrSet(T def) {
+        return this.missing() ? this.set(def) : this.get();
+    }
+
+    default T compute(@NonNull Supplier<T> supplier) {
+        return this.set(supplier.get());
+    }
+
+    default T computeIfAbsent(@NonNull Supplier<T> supplier) {
+        return this.missing() ? this.set(supplier.get()) : this.get();
+    }
+
+    default T computeIfPresent(@NonNull Supplier<T> supplier) {
+        return this.has() ? this.set(supplier.get()) : null;
+    }
+
+    default T map(@NonNull Function<T, T> function) {
+        return this.set(function.apply(this.get()));
+    }
+
+    default T mapIfPresent(@NonNull Function<T, T> function) {
+        return this.has() ? this.set(function.apply(this.get())) : null;
+    }
+}

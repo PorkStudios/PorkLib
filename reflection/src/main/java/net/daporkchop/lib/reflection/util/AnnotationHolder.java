@@ -13,34 +13,33 @@
  *
  */
 
-rootProject.name = 'PorkLib'
+package net.daporkchop.lib.reflection.util;
 
-include 'ai'
-include 'binary'
-include 'crypto'
-include 'common'
-include 'concurrent'
-include 'concurrent:parallel'
-include 'db'
-include 'encoding'
-include 'encoding:config'
-include 'encoding:nbt'
-include 'hash'
-include 'http'
-include 'logging'
-include 'math'
-include 'minecraft'
-include 'minecraft:minecraft-text'
-include 'minecraft:minecraft-worldscanner'
-include 'network'
-include 'noise'
-include 'primitive'
-include 'primitive:generator'
-include 'reflection'
+import lombok.NonNull;
+import net.daporkchop.lib.reflection.PReflection;
 
-findProject(':concurrent:parallel')?.name = 'parallel'
-findProject(':encoding:config')?.name = 'config'
-findProject(':encoding:nbt')?.name = 'nbt'
-findProject(':minecraft:minecraft-worldscanner')?.name = 'minecraft-worldscanner'
-findProject(':minecraft:minecraft-text')?.name = 'minecraft-text'
+import java.lang.annotation.Annotation;
 
+/**
+ * @author DaPorkchop_
+ */
+public interface AnnotationHolder {
+
+    /**
+     * Gets all the annotations on this member
+     *
+     * @return all the annotations on this member
+     */
+    Annotation[] getAnnotations();
+
+    /**
+     * Gets an annotation on this member
+     *
+     * @param clazz the class of the annotation
+     * @param <A>   the type of the annotation
+     * @return the annotation instance on this member, or {@code null} if not found
+     */
+    default <A extends Annotation> A getAnnotation(@NonNull Class<A> clazz) {
+        return PReflection.getAnnotation(this.getAnnotations(), clazz);
+    }
+}

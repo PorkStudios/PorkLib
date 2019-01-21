@@ -13,34 +13,53 @@
  *
  */
 
-rootProject.name = 'PorkLib'
+package net.daporkchop.lib.reflection.util;
 
-include 'ai'
-include 'binary'
-include 'crypto'
-include 'common'
-include 'concurrent'
-include 'concurrent:parallel'
-include 'db'
-include 'encoding'
-include 'encoding:config'
-include 'encoding:nbt'
-include 'hash'
-include 'http'
-include 'logging'
-include 'math'
-include 'minecraft'
-include 'minecraft:minecraft-text'
-include 'minecraft:minecraft-worldscanner'
-include 'network'
-include 'noise'
-include 'primitive'
-include 'primitive:generator'
-include 'reflection'
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
-findProject(':concurrent:parallel')?.name = 'parallel'
-findProject(':encoding:config')?.name = 'config'
-findProject(':encoding:nbt')?.name = 'nbt'
-findProject(':minecraft:minecraft-worldscanner')?.name = 'minecraft-worldscanner'
-findProject(':minecraft:minecraft-text')?.name = 'minecraft-text'
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 
+/**
+ * Access levels for class (members)
+ * <p>
+ * Sorted by order of how good they are
+ *
+ * @author DaPorkchop_
+ */
+@RequiredArgsConstructor
+@Getter
+public enum Access {
+    PUBLIC(Modifier.PUBLIC),
+    PROTECTED(Modifier.PROTECTED),
+    PRIVATE(Modifier.PRIVATE),
+    PACKAGE_PRIVATE(-1);
+
+    private final int mod;
+
+    public boolean matches(int modifier)    {
+        if (this.mod == -1) {
+            return (modifier & (Modifier.PUBLIC | Modifier.PRIVATE | Modifier.PROTECTED)) != 0;
+        } else {
+            return (modifier & this.mod) != 0;
+        }
+    }
+
+    public static Access getAccess(@NonNull Field field)   {
+        return getAccess(field.getModifiers());
+    }
+
+    public static Access getAccess(int modifiers)   {
+        if ((modifiers & Modifier.PUBLIC) != 0) {
+            return PUBLIC;
+        } else if ((modifiers & Modifier.PRIVATE) != 0) {
+            return PRIVATE;
+        } else if ((modifiers & Modifier.PROTECTED) != 0)   {
+            return PROTECTED;
+        } else {
+            return PACKAGE_PRIVATE;
+        }
+    }
+}

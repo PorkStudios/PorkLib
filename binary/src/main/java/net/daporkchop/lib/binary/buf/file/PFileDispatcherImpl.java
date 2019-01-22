@@ -16,6 +16,7 @@
 package net.daporkchop.lib.binary.buf.file;
 
 import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.reflection.lambda.LambdaBuilder;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -28,42 +29,50 @@ import java.io.IOException;
 public interface PFileDispatcherImpl {
     Class<?> FILEDISPATCHER_CLASS = PorkUtil.classForName("sun.nio.ch.FileDispatcherImpl");
 
-    Read0 READ0 = PorkUtil.getLambdaReflection(
-            Read0.class,
-            FILEDISPATCHER_CLASS,
-            true,
-            false,
-            int.class,
-            "read0",
-            FileDescriptor.class, //params
-            long.class,
-            int.class
-    );
+    Read0 READ0 = LambdaBuilder.of(Read0.class)
+            .setMethodHolder(FILEDISPATCHER_CLASS)
+            .setMethodName("read0")
+            .setStatic()
+            .setInterfaceName("read")
+            .returnType().setType(int.class).build()
+            .param().setType(FileDescriptor.class).build()
+            .param().setType(long.class).build()
+            .param().setType(int.class).build()
+            .build();
 
-    PRead0 PREAD0 = PorkUtil.getLambdaReflection(
-            PRead0.class,
-            FILEDISPATCHER_CLASS,
-            true,
-            false,
-            int.class,
-            "pread0",
-            FileDescriptor.class, //params
-            long.class,
-            int.class,
-            long.class
-    );
+    PRead0 PREAD0 = LambdaBuilder.of(PRead0.class)
+            .setMethodHolder(FILEDISPATCHER_CLASS)
+            .setMethodName("pread0")
+            .setStatic()
+            .setInterfaceName("pread")
+            .returnType().setType(int.class).build()
+            .param().setType(FileDescriptor.class).build()
+            .param().setType(long.class).build()
+            .param().setType(int.class).build()
+            .param().setType(long.class).build()
+            .build();
 
-    Write0 WRITE0 = PorkUtil.getLambdaReflection(
-            Write0.class,
-            FILEDISPATCHER_CLASS,
-            true,
-            false,
-            int.class,
-            "write0",
-            FileDescriptor.class, //params
-            long.class,
-            int.class
-    );
+    Write0 WRITE0 = LambdaBuilder.of(Write0.class)
+            .setMethodHolder(FILEDISPATCHER_CLASS)
+            .setMethodName("write0")
+            .setStatic()
+            .setInterfaceName("write")
+            .returnType().setType(int.class).build()
+            .param().setType(FileDescriptor.class).build()
+            .param().setType(long.class).build()
+            .param().setType(int.class).build()
+            .setFallback(() -> LambdaBuilder.of(Write0.class) //windows implementation has an extra boolean parameter
+                    .setMethodHolder(FILEDISPATCHER_CLASS)
+                    .setMethodName("write0")
+                    .setStatic()
+                    .setInterfaceName("write")
+                    .returnType().setType(int.class).build()
+                    .param().setType(FileDescriptor.class).build()
+                    .param().setType(long.class).build()
+                    .param().setType(int.class).build()
+                    .param().setType(boolean.class).build()
+                    .build())
+            .build();
 
     PWrite0 PWRITE0 = PorkUtil.getLambdaReflection(
             PWrite0.class,
@@ -199,7 +208,7 @@ public interface PFileDispatcherImpl {
         int pread(FileDescriptor fd, long address, int len, long position) throws IOException;
     }
 
-    @FunctionalInterface
+    //@FunctionalInterface
     interface Write0 {
         /**
          * Writes bytes from memory to a file
@@ -212,7 +221,25 @@ public interface PFileDispatcherImpl {
          * @see sun.nio.ch.FileDispatcherImpl#write(FileDescriptor, long, int)
          * @see sun.nio.ch.FileDispatcherImpl#write0(FileDescriptor, long, int)
          */
-        int write(FileDescriptor fd, long address, int len) throws IOException;
+        default int write(FileDescriptor fd, long address, int len) throws IOException {
+            return this.write(fd, address, len, false);
+        }
+
+        /**
+         * Writes bytes from memory to a file
+         *
+         * @param fd      the file descriptor to write to
+         * @param address the address in memory to write bytes from
+         * @param len     the number of bytes to write
+         * @param append  whether or not to append to the file
+         * @return the number of bytes actually written
+         * @throws IOException if an IO exception occurs you dummy
+         * @see sun.nio.ch.FileDispatcherImpl#write(FileDescriptor, long, int)
+         * @see sun.nio.ch.FileDispatcherImpl#write0(FileDescriptor, long, int, boolean)
+         */
+        default int write(FileDescriptor fd, long address, int len, boolean append) throws IOException {
+            return this.write(fd, address, len);
+        }
     }
 
     @FunctionalInterface
@@ -267,6 +294,7 @@ public interface PFileDispatcherImpl {
     interface Size0 {
         /**
          * Gets the current length of a file
+         *
          * @param fd the file descriptor whose name needs to be gotten
          * @return the size, or exit status
          * @throws IOException if an IO exception occurs you dummy
@@ -280,12 +308,13 @@ public interface PFileDispatcherImpl {
     interface Lock0 {
         /**
          * Attempts to acquire a lock on a region of a file
-         * @param fd the file descriptor of the file to lock
+         *
+         * @param fd       the file descriptor of the file to lock
          * @param blocking whether or not the lock operation should block
-         * @param pos the position in the file to begin the lock at
-         * @param size the size of the region to lock (can be longer than the current length of the file, set to
-         *             {@link Long#MAX_VALUE} to lock the entire file)
-         * @param shared whether or not the lock will be shared. Not all systems support shared locks
+         * @param pos      the position in the file to begin the lock at
+         * @param size     the size of the region to lock (can be longer than the current length of the file, set to
+         *                 {@link Long#MAX_VALUE} to lock the entire file)
+         * @param shared   whether or not the lock will be shared. Not all systems support shared locks
          * @return the exit status? i think
          * @throws IOException if an IO exception occurs you dummy
          * @see sun.nio.ch.FileDispatcherImpl#lock(FileDescriptor, boolean, long, long, boolean)
@@ -295,11 +324,12 @@ public interface PFileDispatcherImpl {
     }
 
     @FunctionalInterface
-    interface Release0  {
+    interface Release0 {
         /**
          * Releases a lock on a region of a file
-         * @param fd the file descriptor of the file to release a lock on
-         * @param pos the position in the file to begin releasing lock on
+         *
+         * @param fd   the file descriptor of the file to release a lock on
+         * @param pos  the position in the file to begin releasing lock on
          * @param size size of the region to unlock
          * @throws IOException if an IO exception occurs you dummy
          * @see sun.nio.ch.FileDispatcherImpl#release(FileDescriptor, long, long)
@@ -309,21 +339,23 @@ public interface PFileDispatcherImpl {
     }
 
     @FunctionalInterface
-    interface Close0    {
+    interface Close0 {
         /**
          * Closes an open file
+         *
          * @param fd the file descriptor of the file to close
          * @throws IOException if an IO exception occurs you dummy
          * @see sun.nio.ch.FileDispatcherImpl#close(FileDescriptor)
          * @see sun.nio.ch.FileDispatcherImpl#close0(FileDescriptor)
          */
-        void close(FileDescriptor fd)   throws IOException;
+        void close(FileDescriptor fd) throws IOException;
     }
 
     @FunctionalInterface
     interface PreClose0 {
         /**
          * Called before closing a file (I think?)
+         *
          * @param fd the file descriptor of the file to close
          * @throws IOException if an IO exception occurs you dummy
          * @see sun.nio.ch.FileDispatcherImpl#preClose(FileDescriptor)
@@ -333,9 +365,10 @@ public interface PFileDispatcherImpl {
     }
 
     @FunctionalInterface
-    interface CloseIntFD    {
+    interface CloseIntFD {
         /**
          * Closes a file using a 32-bit file descriptor
+         *
          * @param fd the file descriptor of the file to close
          * @throws IOException if an IO exception occurs you dummy
          * @see sun.nio.ch.FileDispatcherImpl#closeIntFD(int)

@@ -27,7 +27,8 @@ public interface NativeThread {
      * method always returns -1.
      */
     static long current() {
-        return sun.nio.ch.NativeThread.current();
+        return -1L;
+        //TODO: return sun.nio.ch.NativeThread.current();
     }
 
     /**
@@ -36,6 +37,6 @@ public interface NativeThread {
      * no effect.
      */
     static void signal(long id) {
-        sun.nio.ch.NativeThread.signal(id);
+        //TODO: sun.nio.ch.NativeThread.signal(id);
     }
 }

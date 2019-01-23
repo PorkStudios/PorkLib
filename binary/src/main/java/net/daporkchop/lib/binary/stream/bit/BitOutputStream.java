@@ -17,7 +17,7 @@ package net.daporkchop.lib.binary.stream.bit;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.util.RequiredBits;
+import net.daporkchop.lib.math.primitive.BinMath;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -87,7 +87,7 @@ public class BitOutputStream extends OutputStream {
     }
 
     public void writeLength(int length) throws IOException {
-        int bits = RequiredBits.getNumBitsNeededFor(length);
+        int bits = BinMath.getNumBitsNeededFor(length);
         this.writeBits(5, bits);
         this.writeBits(bits, length);
     }

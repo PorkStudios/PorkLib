@@ -23,7 +23,7 @@ import net.daporkchop.lib.binary.stream.data.HugeBufferOut;
 import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.db.container.map.DBMap;
 import net.daporkchop.lib.db.util.PersistentSparseBitSet;
-import net.daporkchop.lib.math.primitive.RoundUp;
+import net.daporkchop.lib.math.primitive.PMath;
 
 import java.io.File;
 import java.io.IOException;
@@ -89,7 +89,7 @@ public class StreamingDataLookup implements DataLookup {
             ByteBuffer inBuf = ByteBuffer.allocateDirect(8);
             this.channel.read(inBuf, id * this.sectorSize);
             inBuf.flip();
-            long oldLength = RoundUp.roundUp(inBuf.getLong(), this.sectorSize);
+            long oldLength = PMath.roundUp(inBuf.getLong(), this.sectorSize);
             long newLength = buffers.size() * this.sectorSize;
             if (oldLength >= newLength) {
                 oldLength /= this.sectorSize;

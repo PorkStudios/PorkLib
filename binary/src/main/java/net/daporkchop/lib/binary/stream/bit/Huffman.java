@@ -17,7 +17,7 @@ package net.daporkchop.lib.binary.stream.bit;
 
 import lombok.NonNull;
 import net.daporkchop.lib.binary.UTF8;
-import net.daporkchop.lib.binary.util.RequiredBits;
+import net.daporkchop.lib.math.primitive.BinMath;
 import net.daporkchop.lib.binary.util.map.CharacterBooleanHashMap;
 import net.daporkchop.lib.binary.util.map.CharacterBooleanMap;
 import net.daporkchop.lib.binary.util.map.CharacterIntegerHashMap;
@@ -65,7 +65,7 @@ public class Huffman {
             for (char c : text) {
                 map.put(c, true);
             }
-            int requiredBits = RequiredBits.getNumBitsNeededFor(map.getSize());
+            int requiredBits = BinMath.getNumBitsNeededFor(map.getSize());
 
             //map each letter to an index and write index
             CharacterIntegerMap indexes = new CharacterIntegerHashMap();
@@ -117,7 +117,7 @@ public class Huffman {
                 String s = new String(b, UTF8.utf8);
                 index = s.toCharArray();
             }
-            int indexBits = RequiredBits.getNumBitsNeededFor(index.length);
+            int indexBits = BinMath.getNumBitsNeededFor(index.length);
 
             int len = stream.readLength();
             char[] text = new char[len];

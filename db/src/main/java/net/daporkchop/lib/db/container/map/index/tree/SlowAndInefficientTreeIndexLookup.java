@@ -20,7 +20,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.util.RequiredBits;
+import net.daporkchop.lib.math.primitive.BinMath;
 import net.daporkchop.lib.db.container.map.DBMap;
 import net.daporkchop.lib.db.container.map.index.IndexLookup;
 import net.daporkchop.lib.db.container.map.key.KeyHasher;
@@ -54,7 +54,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class SlowAndInefficientTreeIndexLookup<K> implements IndexLookup<K> {
     protected static final int NODE_ENTRIES = 256;
     protected static final int NODE_ENTRY_BYTES = Long.BYTES;
-    protected static final int NODE_SIZE_SHIFT = RequiredBits.getNumBitsNeededFor(NODE_ENTRY_BYTES * NODE_ENTRIES);
+    protected static final int NODE_SIZE_SHIFT = BinMath.getNumBitsNeededFor(NODE_ENTRY_BYTES * NODE_ENTRIES);
     protected static final int NODE_LENGTH = 1 << NODE_SIZE_SHIFT;
     protected static final byte[] EMPTY_NODE = new byte[NODE_LENGTH];
     private static final RuntimeException NODE_NOT_FOUND_EXCEPTION = new RuntimeException();

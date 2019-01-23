@@ -16,7 +16,7 @@
 package net.daporkchop.lib.noise.engine;
 
 import lombok.Getter;
-import net.daporkchop.lib.math.arrays.ShuffleArray;
+import net.daporkchop.lib.math.arrays.PArrays;
 
 import java.util.Random;
 
@@ -39,7 +39,7 @@ abstract class BasicSeedEngine implements INoiseEngine {
         for (int i = 0; i < 256; i++) {
             p1[i] = i;
         }
-        ShuffleArray.shuffleI(p1, new Random(seed));
+        PArrays.shuffle(p1, new Random(seed));
         System.arraycopy(p1, 0, p2, 0, 256);
         System.arraycopy(p1, 0, p2, 256, 256);
 

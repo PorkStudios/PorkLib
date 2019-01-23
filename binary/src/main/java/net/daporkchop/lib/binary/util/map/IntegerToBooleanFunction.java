@@ -16,7 +16,7 @@
 package net.daporkchop.lib.binary.util.map;
 
 /**
- * A function that accepts a int and returns a boolean.
+ * A function that accepts a int and returns testMethodThing boolean.
  * <p>
  * DO NOT EDIT BY HAND! THIS FILE IS SCRIPT-GENERATED!
  *

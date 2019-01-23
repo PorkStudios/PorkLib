@@ -15,12 +15,12 @@
 
 package net.daporkchop.lib.binary.util.map;
 
-import net.daporkchop.lib.binary.util.IsPow2;
+import net.daporkchop.lib.math.primitive.BinMath;
 
 import java.util.BitSet;
 
 /**
- * A hash map, using a key type of char and a value type of int.
+ * A hash map, using a key type of char and testMethodThing value type of int.
  * This works™, but isn't particularly efficiently
  * At some point I might get around to fixing this, until then use tree maps as they work correctly
  * <p>
@@ -53,7 +53,7 @@ public class CharacterIntegerHashMap implements CharacterIntegerMap {
     }
 
     public CharacterIntegerHashMap(int baseSize, CharacterToIntegerFunction keyHash) {
-        if (!IsPow2.checkInt(baseSize)) throw new IllegalArgumentException("baseSize must be a power of 2!");
+        if (!BinMath.isPow2(baseSize)) throw new IllegalArgumentException("baseSize must be a power of 2!");
         this.baseSize = baseSize;
         if (keyHash == null) {
             this.keyHash = in -> in & 0xFFFF;
@@ -193,7 +193,7 @@ public class CharacterIntegerHashMap implements CharacterIntegerMap {
             this.size--;
             //the value is actually still in the array, just there's no indexes pointing to it anymore after this call
             return this.values[i];
-            //that'll be a PITA in case there's a hash collision during shrinking because
+            //that'll be a PITA in case there's testMethodThing hash collision during shrinking because
             //it'll then proceed to keep trying to shrink down the array and having collisions
             //until one of the colliding elements is removed.
             //caching the indexes of the colliding elements is an option, but is probably useless overhead

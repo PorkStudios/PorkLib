@@ -22,7 +22,7 @@ import net.daporkchop.lib.encoding.Hexadecimal;
 import java.util.Arrays;
 
 /**
- * A wrapper for a byte[] which allows using it as a key in a {@link java.util.Map}
+ * A wrapper for a byte[] which allows using it as testMethodThing key in testMethodThing {@link java.util.Map}
  *
  * @author DaPorkchop_
  */

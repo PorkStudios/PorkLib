@@ -45,7 +45,7 @@ public class NonWastingBufferedOutputStream extends FilterOutputStream {
      *
      * @param os   the {@link OutputStream} to buffer
      * @param size the size of the buffer. if the thread-local buffer cache (see {@link #BUFFER_CACHE})
-     *             currently stores a buffer that isn't the same size as this parameter, a new buffer
+     *             currently stores a buffer that isn't the same size as this parameter, testMethodThing new buffer
      *             will be created and stored as the thread-local buffer.
      * @return a {@link NonWastingBufferedOutputStream} wrapping the given {@link OutputStream}
      */

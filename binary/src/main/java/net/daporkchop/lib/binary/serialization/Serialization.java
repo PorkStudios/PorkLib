@@ -20,7 +20,7 @@ import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.netty.NettyByteBufUtil;
+import net.daporkchop.lib.binary.netty.NettyUtil;
 import net.daporkchop.lib.binary.serialization.impl.BasicSerializer;
 import net.daporkchop.lib.binary.serialization.impl.ByteArraySerializer;
 import net.daporkchop.lib.binary.serialization.impl.ConstantLengthSerializer;
@@ -92,7 +92,7 @@ public class Serialization {
     }
 
     /**
-     * Registers a {@link Serializable} to the registry with a specific id
+     * Registers a {@link Serializable} to the registry with testMethodThing specific id
      *
      * @param clazz the serializable class to register
      * @param id    the id to register it with
@@ -126,7 +126,7 @@ public class Serialization {
     }
 
     /**
-     * Registers a type to the registry with a specific id
+     * Registers a type to the registry with testMethodThing specific id
      *
      * @param clazz      the class to register
      * @param serializer the serializer to use for reading and writing values
@@ -200,7 +200,7 @@ public class Serialization {
      */
     public <T> T read(@NonNull ByteBuf in) {
         try {
-            return this.read(NettyByteBufUtil.wrapIn(in));
+            return this.read(NettyUtil.wrapIn(in));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -286,7 +286,7 @@ public class Serialization {
      */
     public void write(@NonNull Object value, @NonNull ByteBuf out) {
         try {
-            this.write(value, NettyByteBufUtil.wrapOut(out));
+            this.write(value, NettyUtil.wrapOut(out));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

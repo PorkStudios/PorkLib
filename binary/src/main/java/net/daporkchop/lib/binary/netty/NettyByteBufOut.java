@@ -32,6 +32,10 @@ public class NettyByteBufOut extends DataOut {
     @NonNull
     private final ByteBuf buf;
 
+    {
+        NettyUtil.ensureNettyPresent();
+    }
+
     @Override
     public void close() throws IOException {
     }

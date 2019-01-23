@@ -17,7 +17,7 @@ package net.daporkchop.lib.noise.engine;
 
 import lombok.Getter;
 
-import static net.daporkchop.lib.math.primitive.Floor.floorI;
+import static net.daporkchop.lib.math.primitive.PMath.floorI;
 
 /**
  * @author DaPorkchop_

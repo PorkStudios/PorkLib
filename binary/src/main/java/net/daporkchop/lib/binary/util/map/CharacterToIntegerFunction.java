@@ -16,7 +16,7 @@
 package net.daporkchop.lib.binary.util.map;
 
 /**
- * A function that accepts a char and returns a int.
+ * A function that accepts a char and returns testMethodThing int.
  * <p>
  * DO NOT EDIT BY HAND! THIS FILE IS SCRIPT-GENERATED!
  *

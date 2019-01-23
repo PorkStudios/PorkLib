@@ -25,6 +25,7 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.function.throwing.EFunction;
 import net.daporkchop.lib.common.util.PConstants;
 import net.daporkchop.lib.common.util.PUnsafe;
+import net.daporkchop.lib.common.util.PorkUtil;
 
 import java.lang.invoke.CallSite;
 import java.lang.invoke.LambdaMetafactory;
@@ -131,6 +132,38 @@ public class LambdaBuilder<T> {
     protected Supplier<T> fallback;
 
     /**
+     * Sets the interface class
+     *
+     * @param clazz the class
+     * @param <N>   the interface type
+     * @return this builder
+     */
+    @SuppressWarnings("unchecked")
+    public <N> LambdaBuilder<N> setInterfaceClass(@NonNull Class<N> clazz) {
+        ((LambdaBuilder<N>) this).interfaceClass = clazz;
+        return (LambdaBuilder<N>) this;
+    }
+
+    /**
+     * @return this builder
+     * @see #methodHolder
+     */
+    public LambdaBuilder<T> setMethodHolder(@NonNull Class<?> clazz) {
+        this.methodHolder = clazz;
+        return this;
+    }
+
+    /**
+     * @param className the name of the class to set as the method holder
+     * @return this builder
+     * @see #methodHolder
+     */
+    public LambdaBuilder<T> setMethodHolder(@NonNull String className) {
+        this.methodHolder = PorkUtil.classForName(className);
+        return this;
+    }
+
+    /**
      * Creates a builder for a new {@link LambdaParam} that will be added to this {@link LambdaBuilder} when
      * built.
      *
@@ -235,8 +268,8 @@ public class LambdaBuilder<T> {
             } catch (Throwable t) {
                 throw PConstants.p_exception(t);
             }
-        } catch (Throwable t)   {
-            if (this.fallback == null)  {
+        } catch (Throwable t) {
+            if (this.fallback == null) {
                 throw PConstants.p_exception(t);
             } else {
                 return this.fallback.get();

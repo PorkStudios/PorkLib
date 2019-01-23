@@ -74,106 +74,98 @@ public interface PFileDispatcherImpl {
                     .build())
             .build();
 
-    PWrite0 PWRITE0 = PorkUtil.getLambdaReflection(
-            PWrite0.class,
-            FILEDISPATCHER_CLASS,
-            true,
-            false,
-            int.class,
-            "pwrite0",
-            FileDescriptor.class, //params
-            long.class,
-            int.class,
-            long.class
-    );
+    PWrite0 PWRITE0 = LambdaBuilder.of(PWrite0.class)
+            .setMethodHolder(FILEDISPATCHER_CLASS)
+            .setMethodName("pwrite0")
+            .setStatic()
+            .setInterfaceName("pwrite")
+            .returnType().setType(int.class).build()
+            .param().setType(FileDescriptor.class).build()
+            .param().setType(long.class).build()
+            .param().setType(int.class).build()
+            .param().setType(long.class).build()
+            .build();
 
-    Force0 FORCE0 = PorkUtil.getLambdaReflection(
-            Force0.class,
-            FILEDISPATCHER_CLASS,
-            true,
-            false,
-            int.class,
-            "force0",
-            FileDescriptor.class, //params
-            boolean.class
-    );
+    Force0 FORCE0 = LambdaBuilder.of(Force0.class)
+            .setMethodHolder(FILEDISPATCHER_CLASS)
+            .setMethodName("force0")
+            .setStatic()
+            .setInterfaceName("force")
+            .returnType().setType(int.class).build()
+            .param().setType(FileDescriptor.class).build()
+            .param().setType(boolean.class).build()
+            .build();
 
-    Truncate0 TRUNCATE0 = PorkUtil.getLambdaReflection(
-            Truncate0.class,
-            FILEDISPATCHER_CLASS,
-            true,
-            false,
-            int.class,
-            "truncate0",
-            FileDescriptor.class, //params
-            long.class
-    );
+    Truncate0 TRUNCATE0 = LambdaBuilder.of(Truncate0.class)
+            .setMethodHolder(FILEDISPATCHER_CLASS)
+            .setMethodName("truncate0")
+            .setStatic()
+            .setInterfaceName("truncate")
+            .returnType().setType(int.class).build()
+            .param().setType(FileDescriptor.class).build()
+            .param().setType(long.class).build()
+            .build();
 
-    Size0 SIZE0 = PorkUtil.getLambdaReflection(
-            Size0.class,
-            FILEDISPATCHER_CLASS,
-            true,
-            false,
-            long.class,
-            "size0",
-            FileDescriptor.class //params
-    );
+    Size0 SIZE0 = LambdaBuilder.of(Size0.class)
+            .setMethodHolder(FILEDISPATCHER_CLASS)
+            .setMethodName("size0")
+            .setStatic()
+            .setInterfaceName("size")
+            .returnType().setType(long.class).build()
+            .param().setType(FileDescriptor.class).build()
+            .build();
 
-    Lock0 LOCK0 = PorkUtil.getLambdaReflection(
-            Lock0.class,
-            FILEDISPATCHER_CLASS,
-            true,
-            false,
-            int.class,
-            "lock0",
-            FileDescriptor.class, //params
-            boolean.class,
-            long.class,
-            long.class,
-            boolean.class
-    );
+    Lock0 LOCK0 = LambdaBuilder.of(Lock0.class)
+            .setMethodHolder(FILEDISPATCHER_CLASS)
+            .setMethodName("lock0")
+            .setStatic()
+            .setInterfaceName("lock")
+            .returnType().setType(int.class).build()
+            .param().setType(FileDescriptor.class).build()
+            .param().setType(boolean.class).build()
+            .param().setType(long.class).build()
+            .param().setType(long.class).build()
+            .param().setType(boolean.class).build()
+            .build();
 
-    Release0 RELEASE0 = PorkUtil.getLambdaReflection(
-            Release0.class,
-            FILEDISPATCHER_CLASS,
-            true,
-            false,
-            void.class,
-            "release0",
-            FileDescriptor.class, //params
-            long.class,
-            long.class
-    );
+    Release0 RELEASE0 = LambdaBuilder.of(Release0.class)
+            .setMethodHolder(FILEDISPATCHER_CLASS)
+            .setMethodName("release0")
+            .setStatic()
+            .setInterfaceName("release")
+            .returnType().setType(void.class).build()
+            .param().setType(FileDescriptor.class).build()
+            .param().setType(long.class).build()
+            .param().setType(long.class).build()
+            .build();
 
-    Close0 CLOSE0 = PorkUtil.getLambdaReflection(
-            Close0.class,
-            FILEDISPATCHER_CLASS,
-            true,
-            false,
-            void.class,
-            "close0",
-            FileDescriptor.class //params
-    );
+    Close0 CLOSE0 = LambdaBuilder.of(Close0.class)
+            .setMethodHolder(FILEDISPATCHER_CLASS)
+            .setMethodName("close0")
+            .setStatic()
+            .setInterfaceName("close")
+            .returnType().setType(void.class).build()
+            .param().setType(FileDescriptor.class).build()
+            .build();
 
-    PreClose0 PRECLOSE0 = PorkUtil.getLambdaReflection(
-            PreClose0.class,
-            FILEDISPATCHER_CLASS,
-            true,
-            false,
-            void.class,
-            "preClose0",
-            FileDescriptor.class //params
-    );
+    PreClose0 PRECLOSE0 = LambdaBuilder.of(PreClose0.class)
+            .setMethodHolder(FILEDISPATCHER_CLASS)
+            .setMethodName("preClose0")
+            .setStatic()
+            .setInterfaceName("preClose")
+            .returnType().setType(void.class).build()
+            .param().setType(FileDescriptor.class).build()
+            .setFallback(() -> fd -> {}) //this method doesn't exist on windows, so we have it default to doing nothing
+            .build();
 
-    CloseIntFD CLOSEINTFD = PorkUtil.getLambdaReflection(
-            CloseIntFD.class,
-            FILEDISPATCHER_CLASS,
-            true,
-            false,
-            void.class,
-            "closeIntFD",
-            int.class //params
-    );
+    CloseIntFD CLOSEINTFD = LambdaBuilder.of(CloseIntFD.class)
+            .setMethodHolder(FILEDISPATCHER_CLASS)
+            .setMethodName("closeIntFD")
+            .setStatic()
+            .returnType().setType(void.class).build()
+            .param().setType(int.class).build()
+            .setFallback(() -> fd -> {}) //this method doesn't exist on windows, so we have it default to doing nothing
+            .build();
 
     @FunctionalInterface
     interface Read0 {
@@ -253,8 +245,8 @@ public interface PFileDispatcherImpl {
          * @param position the position in the file to write at
          * @return the number of bytes actually written
          * @throws IOException if an IO exception occurs you dummy
-         * @see sun.nio.ch.FileDispatcherImpl#write(FileDescriptor, long, int)
-         * @see sun.nio.ch.FileDispatcherImpl#write0(FileDescriptor, long, int)
+         * @see sun.nio.ch.FileDispatcherImpl#pwrite(FileDescriptor, long, int, long)
+         * @see sun.nio.ch.FileDispatcherImpl#pwrite0(FileDescriptor, long, int, long)
          */
         int pwrite(FileDescriptor fd, long address, int len, long position) throws IOException;
     }

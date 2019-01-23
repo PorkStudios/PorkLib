@@ -34,7 +34,7 @@ public class ServerTestMain implements Logging {
 
         logger.info("Server starting...");
         HTTPServer server = HTTPServerBuilder.of(8081)
-                .enableSSL()
+                //.enableSSL()
                 .build()
                 .addHandler("/test", (request, response) -> response
                         .setStatus(ResponseCode.OK)

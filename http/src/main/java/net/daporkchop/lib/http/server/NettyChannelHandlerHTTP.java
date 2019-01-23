@@ -43,6 +43,8 @@ public class NettyChannelHandlerHTTP extends ChannelInboundHandlerAdapter implem
     @NonNull
     private final HTTPServer server;
 
+    protected ByteBuf requestBuf;
+
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
         logger.trace("Incoming connection: ${0}", ctx.channel().remoteAddress());
@@ -58,30 +60,63 @@ public class NettyChannelHandlerHTTP extends ChannelInboundHandlerAdapter implem
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
         logger.trace("Connection closed: ${0}", ctx.channel().remoteAddress());
         this.server.channels.remove(ctx.channel());
+        if (this.requestBuf != null)    {
+            this.requestBuf.release();
+        }
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         Channel channel = ctx.channel();
-        //logger.debug("Received message: ${0}", ((ByteBuf) msg).toString(UTF8.utf8));
-        RequestReader reader = new RequestReader((ByteBuf) msg);
-        RequestMethod method = RequestMethod.valueOf(reader.readUntilSpace());
-        String path = reader.readUntilSpace();
-        //logger.debug("Skipped ${0} bytes!", );
-        reader.skipUntil('\r');
-        reader.skip(1);
-        Parameters parameters;
-        {
-            List<String> params = new LinkedList<>();
-            while (reader.next() != '\r') {
-                //logger.debug("Next: ${0}", reader.next());
-                params.add(reader.readUntil('\r'));
-                reader.skip(1);
-            }
-            parameters = new Parameters(params, ParameterRegistry.def());
+        ByteBuf buf = (ByteBuf) msg;
+        if (this.requestBuf == null)    {
+            this.requestBuf = buf.retain();
+        } else {
+            this.requestBuf.writeBytes(buf);
         }
-        try (Response response = new Response(channel)) {
-            this.server.getHandler(path).handle(new Request(HTTPVersion.V1_1, method, parameters, path, null), response);
+        int len = this.requestBuf.writerIndex();
+
+        //int i1 = this.requestBuf.getByte(len - 1) & 0xFF;
+        //int i2 = this.requestBuf.getByte(len - 2) & 0xFF;
+        //int i3 = this.requestBuf.getByte(len - 3) & 0xFF;
+        //int i4 = this.requestBuf.getByte(len - 4) & 0xFF;
+        /*logger.info(
+                "${0} ${1} ${2} ${3}",
+                i1 == '\n' ? "n" : i1 == '\r' ? "r" : String.valueOf((char) i1),
+                i2 == '\n' ? "n" : i2 == '\r' ? "r" : String.valueOf((char) i2),
+                i3 == '\n' ? "n" : i3 == '\r' ? "r" : String.valueOf((char) i3),
+                i4 == '\n' ? "n" : i4 == '\r' ? "r" : String.valueOf((char) i4)
+        );
+        logger.info(
+                "${0} ${1} ${2} ${3}",
+                i1, i2, i3, i4
+        );*/
+        if (this.requestBuf.getByte(len - 1) == '\n'
+                && this.requestBuf.getByte(len - 2) == '\r'
+                && this.requestBuf.getByte(len - 3) == '\n'
+                && this.requestBuf.getByte(len - 4) == '\r')    {
+            logger.info("Received full request! ${0} bytes.", len);
+
+            //logger.debug("Received message: ${0}", ((ByteBuf) msg).toString(UTF8.utf8));
+            RequestReader reader = new RequestReader(this.requestBuf);
+            RequestMethod method = RequestMethod.valueOf(reader.readUntilSpace());
+            String path = reader.readUntilSpace();
+            //logger.debug("Skipped ${0} bytes!", );
+            reader.skipUntil('\r');
+            reader.skip(1);
+            Parameters parameters;
+            {
+                List<String> params = new LinkedList<>();
+                while (reader.next() != '\r') {
+                    //logger.debug("Next: ${0}", reader.next());
+                    params.add(reader.readUntil('\r'));
+                    reader.skip(1);
+                }
+                parameters = new Parameters(params, ParameterRegistry.def());
+            }
+            try (Response response = new Response(channel)) {
+                this.server.getHandler(path).handle(new Request(HTTPVersion.V1_1, method, parameters, path, null), response);
+            }
         }
         super.channelRead(ctx, msg);
     }

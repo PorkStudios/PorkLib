@@ -59,7 +59,6 @@ public class HTTPServer implements Logging {
             ServerBootstrap bootstrap = new ServerBootstrap();
             bootstrap.group(builder.getGroup());
             bootstrap.channel(NioServerSocketChannel.class);
-            //bootstrap.handler();
             bootstrap.childHandler(new NettyChannelInitializerHTTP(this));
             bootstrap.option(ChannelOption.SO_BACKLOG, 256);
             bootstrap.childOption(ChannelOption.SO_KEEPALIVE, true);

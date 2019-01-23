@@ -17,14 +17,12 @@ package net.daporkchop.lib.http.server;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.ssl.SslHandler;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.http.HTTPVersion;
 import net.daporkchop.lib.http.Request;
 import net.daporkchop.lib.http.RequestMethod;
@@ -33,7 +31,6 @@ import net.daporkchop.lib.http.parameter.Parameters;
 import net.daporkchop.lib.http.server.handler.Response;
 import net.daporkchop.lib.logging.Logging;
 
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -42,7 +39,6 @@ import java.util.List;
  */
 @RequiredArgsConstructor
 @Getter
-@ChannelHandler.Sharable
 public class NettyChannelHandlerHTTP extends ChannelInboundHandlerAdapter implements Logging {
     @NonNull
     private final HTTPServer server;

@@ -40,6 +40,8 @@ public class IconTitleNDS implements AutoCloseable {
     protected final int version;
     protected Map<RomLanguage, RomTitle> titles = new EnumMap<>(RomLanguage.class);
 
+    protected RomIcon icon;
+
     public IconTitleNDS(@NonNull RomHeadersNDS parent) throws IOException {
         this.parent = parent;
 
@@ -58,6 +60,8 @@ public class IconTitleNDS implements AutoCloseable {
                 this.titles.put(language, new RomTitle(buf));
             }
         }
+
+        this.icon = new RomIcon(this.map);
     }
 
     public RomTitle getTitle(@NonNull RomLanguage language) {

@@ -19,6 +19,9 @@ import net.daporkchop.lib.nds.RomNDS;
 import net.daporkchop.lib.nds.header.RomHeadersNDS;
 import net.daporkchop.lib.nds.header.RomLanguage;
 
+import javax.swing.*;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
@@ -36,5 +39,15 @@ public class ExampleLoadHeaders {
         System.out.printf("Unitcode: %d\nDSi: %b\n", headers.getUnitcode(), headers.isDSi());
         System.out.printf("Cartridge capacity: %d\n", headers.getDeviceCapacity());
         System.out.printf("Name:\n%s\n%s\n%s\n", headers.getIconTitle().getTitle(RomLanguage.ENGLISH).getTitle(), headers.getIconTitle().getTitle(RomLanguage.ENGLISH).getSubtitle(), headers.getIconTitle().getTitle(RomLanguage.ENGLISH).getManufacturer());
+
+        if (true) {
+            BufferedImage img = headers.getIconTitle().getIcon().getAsBufferedImage();
+            JFrame frame = new JFrame();
+            frame.getContentPane().setLayout(new FlowLayout());
+            frame.getContentPane().add(new JLabel(new ImageIcon(img)));
+            frame.pack();
+            frame.setVisible(true);
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        }
     }
 }

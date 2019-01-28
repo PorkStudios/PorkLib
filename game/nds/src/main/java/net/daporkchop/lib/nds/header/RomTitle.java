@@ -13,55 +13,26 @@
  *
  */
 
-package net.daporkchop.lib.nds;
+package net.daporkchop.lib.nds.header;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.nds.header.RomHeadersNDS;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
+import java.nio.charset.Charset;
 
 /**
- * A ROM for the Nintendo DS
- *
  * @author DaPorkchop_
  */
 @Getter
-public class RomNDS implements AutoCloseable {
-    protected final Path path;
-    protected final FileChannel channel;
-    protected RomHeadersNDS headers;
+public class RomTitle {
+    protected final String title;
+    protected final String subtitle;
+    protected final String manufacturer;
 
-    public RomNDS(@NonNull File file) throws IOException {
-        this(file.toPath());
-    }
-
-    public RomNDS(@NonNull Path path) throws IOException {
-        this.path = path;
-        this.channel = FileChannel.open(path, StandardOpenOption.READ, StandardOpenOption.WRITE);
-    }
-
-    public RomHeadersNDS getHeaders() throws IOException {
-        synchronized (this) {
-            if (this.headers == null)   {
-                this.headers = RomHeadersNDS.load(this.channel);
-            }
-        }
-        return this.headers;
-    }
-
-    @Override
-    public void close() throws IOException {
-        if (this.headers != null) {
-            this.headers.close();
-            this.headers = null;
-        }
-        this.channel.close();
+    public RomTitle(@NonNull byte[] arr)    {
+        String textFull = new String(arr, Charset.forName("UTF16"));
+        this.title = "";
+        this.subtitle = "";
+        this.manufacturer = "";
     }
 }

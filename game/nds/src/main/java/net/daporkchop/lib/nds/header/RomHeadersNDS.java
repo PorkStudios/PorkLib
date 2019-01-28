@@ -19,7 +19,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.common.util.PorkUtil;
 
+import java.io.IOException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
@@ -32,12 +34,10 @@ import java.nio.channels.FileChannel;
  */
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-public class RomHeadersNDS {
-    public static RomHeadersNDS load(@NonNull FileChannel channel, @NonNull MappedByteBuffer headersRegion) {
-        if (headersRegion.capacity() != 0x170 + 0x90) {
-            throw new IllegalArgumentException(String.format("Invalid map size: %d bytes", headersRegion.capacity()));
-        }
-        return new RomHeadersNDS(channel, headersRegion).load();
+public class RomHeadersNDS implements AutoCloseable {
+    public static RomHeadersNDS load(@NonNull FileChannel channel) throws IOException {
+        MappedByteBuffer headerMap = channel.map(FileChannel.MapMode.READ_WRITE, 0L, 0x170 + 0x90);
+        return new RomHeadersNDS(channel, headerMap).load();
     }
 
     @Getter(value = AccessLevel.PROTECTED)
@@ -67,9 +67,9 @@ public class RomHeadersNDS {
     protected int fntSize;
     protected int fatOffset;
     protected int fatSize;
-    protected int iconOffset;
+    protected IconTitleNDS iconTitle;
 
-    public synchronized RomHeadersNDS load() {
+    public synchronized RomHeadersNDS load() throws IOException {
         if (this.loaded) {
             throw new IllegalStateException("Already loaded!");
         } else {
@@ -126,12 +126,17 @@ public class RomHeadersNDS {
             this.fatOffset = this.headersRegion.getInt();
             this.fatSize = this.headersRegion.getInt();
             this.headersRegion.position(this.headersRegion.position() + 8);
-            this.iconOffset = this.headersRegion.getInt();
+            this.iconTitle = new IconTitleNDS(this);
         }
         return this;
     }
 
     public boolean isDSi()  {
         return (this.unitcode & 0x2) != 0;
+    }
+
+    @Override
+    public void close() {
+        PorkUtil.release(this.headersRegion);
     }
 }

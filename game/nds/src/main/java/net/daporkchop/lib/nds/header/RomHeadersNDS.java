@@ -48,6 +48,26 @@ public class RomHeadersNDS {
     protected final MappedByteBuffer headersRegion;
     protected boolean loaded;
     protected String name;
+    protected String gamecode;
+    protected String makercode;
+    protected int unitcode;
+    protected int encryptionSeedSelect;
+    protected int deviceCapacity;
+    protected RegionNDS region;
+    protected int version;
+    protected int arm9OffsetRom;
+    protected int arm9EntryAddress;
+    protected int arm9RAMAddress;
+    protected int arm9Size;
+    protected int arm7OffsetRom;
+    protected int arm7EntryAddress;
+    protected int arm7RAMAddress;
+    protected int arm7Size;
+    protected int fntOffset;
+    protected int fntSize;
+    protected int fatOffset;
+    protected int fatSize;
+    protected int iconOffset;
 
     public synchronized RomHeadersNDS load() {
         if (this.loaded) {
@@ -55,8 +75,9 @@ public class RomHeadersNDS {
         } else {
             this.loaded = true;
 
+            byte[] buf;
             {
-                byte[] buf = new byte[12];
+                buf = new byte[12];
                 this.headersRegion.get(buf);
                 int j;
                 for (j = 0; j < buf.length; j++)    {
@@ -66,7 +87,51 @@ public class RomHeadersNDS {
                 }
                 this.name = new String(buf, 0, j);
             }
+            {
+                buf = new byte[4];
+                this.headersRegion.get(buf);
+                this.gamecode = "NTR-" + new String(buf);
+            }
+            {
+                buf = new byte[2];
+                this.headersRegion.get(buf);
+                this.makercode = new String(buf);
+            }
+            this.unitcode = this.headersRegion.get() & 0xFF;
+            this.encryptionSeedSelect = this.headersRegion.get() & 0xFF;
+            this.deviceCapacity = 131072 << (this.headersRegion.get() & 0xFF);
+            this.headersRegion.position(this.headersRegion.position() + 8);
+            switch (this.headersRegion.get() & 0xFF) {
+                case 0x80:
+                    this.region = RegionNDS.CHINA;
+                    break;
+                case 0x40:
+                    this.region = RegionNDS.KOREA;
+                    break;
+                default:
+                    this.region = RegionNDS.NORMAL;
+            }
+            this.version = this.headersRegion.get() & 0xFF;
+            this.headersRegion.position(this.headersRegion.position() + 1);
+            this.arm9OffsetRom = this.headersRegion.getInt();
+            this.arm9EntryAddress = this.headersRegion.getInt();
+            this.arm9RAMAddress = this.headersRegion.getInt();
+            this.arm9Size = this.headersRegion.getInt();
+            this.arm7OffsetRom = this.headersRegion.getInt();
+            this.arm7EntryAddress = this.headersRegion.getInt();
+            this.arm7RAMAddress = this.headersRegion.getInt();
+            this.arm7Size = this.headersRegion.getInt();
+            this.fntOffset = this.headersRegion.getInt();
+            this.fntSize = this.headersRegion.getInt();
+            this.fatOffset = this.headersRegion.getInt();
+            this.fatSize = this.headersRegion.getInt();
+            this.headersRegion.position(this.headersRegion.position() + 8);
+            this.iconOffset = this.headersRegion.getInt();
         }
         return this;
+    }
+
+    public boolean isDSi()  {
+        return (this.unitcode & 0x2) != 0;
     }
 }

@@ -13,26 +13,13 @@
  *
  */
 
-package nds;
-
-import net.daporkchop.lib.nds.RomNDS;
-import net.daporkchop.lib.nds.header.RomHeadersNDS;
-
-import java.io.File;
-import java.io.IOException;
+package net.daporkchop.lib.nds.header;
 
 /**
  * @author DaPorkchop_
  */
-public class ExampleLoadHeaders {
-    public static final File ROM = new File("Z:\\Professor Layton and the Last Specter.nds");
-
-    public static void main(String... args) throws IOException {
-        RomNDS rom = new RomNDS(ROM);
-        RomHeadersNDS headers = rom.getHeaders();
-        System.out.printf("ROM Name: %s\nName length: %d\n", headers.getName(), headers.getName().length());
-        System.out.printf("Gamecode: %s\nMakercode: %s\n", headers.getGamecode(), headers.getMakercode());
-        System.out.printf("Unitcode: %d\nDSi: %b\n", headers.getUnitcode(), headers.isDSi());
-        System.out.printf("Cartridge capacity: %d\n", headers.getDeviceCapacity());
-    }
+public enum RegionNDS {
+    NORMAL,
+    CHINA,
+    KOREA;
 }

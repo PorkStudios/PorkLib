@@ -20,8 +20,12 @@ import lombok.NonNull;
 import net.daporkchop.lib.common.util.PorkUtil;
 
 import java.io.IOException;
+import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.Arrays;
+import java.util.EnumMap;
+import java.util.Map;
 
 /**
  * Stores the icon/title for an NDS rom
@@ -34,19 +38,30 @@ public class IconTitleNDS implements AutoCloseable {
     protected final MappedByteBuffer map;
 
     protected final int version;
-    protected final RomTitle title;
+    protected Map<RomLanguage, RomTitle> titles = new EnumMap<>(RomLanguage.class);
 
     public IconTitleNDS(@NonNull RomHeadersNDS parent) throws IOException {
         this.parent = parent;
+
         int offset = parent.headersRegion.getInt(0x68);
         int size = parent.isDSi() ? parent.headersRegion.getInt(0x208) : 0xA00;
         this.map = parent.channel.map(FileChannel.MapMode.READ_WRITE, offset, size);
+        this.map.order(ByteOrder.LITTLE_ENDIAN);
 
         this.version = this.map.getShort(0x00) & 0xFFFF;
         byte[] buf = new byte[0x100];
-        this.map.position(0x340);
-        this.map.get(buf);
-        this.title = new RomTitle(buf);
+        for (RomLanguage language : RomLanguage.values()) {
+            if (language.requiredAfterVersion <= this.version) {
+                Arrays.fill(buf, (byte) 0);
+                this.map.position(language.titleOffset);
+                this.map.get(buf);
+                this.titles.put(language, new RomTitle(buf));
+            }
+        }
+    }
+
+    public RomTitle getTitle(@NonNull RomLanguage language) {
+        return this.titles.computeIfAbsent(language, l -> this.titles.get(RomLanguage.ENGLISH));
     }
 
     @Override

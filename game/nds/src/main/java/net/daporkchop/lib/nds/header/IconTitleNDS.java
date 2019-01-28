@@ -13,55 +13,44 @@
  *
  */
 
-package net.daporkchop.lib.nds;
+package net.daporkchop.lib.nds.header;
 
 import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.nds.header.RomHeadersNDS;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 
 /**
- * A ROM for the Nintendo DS
+ * Stores the icon/title for an NDS rom
  *
  * @author DaPorkchop_
  */
 @Getter
-public class RomNDS implements AutoCloseable {
-    protected final Path path;
-    protected final FileChannel channel;
-    protected RomHeadersNDS headers;
+public class IconTitleNDS implements AutoCloseable {
+    protected final RomHeadersNDS parent;
+    protected final MappedByteBuffer map;
 
-    public RomNDS(@NonNull File file) throws IOException {
-        this(file.toPath());
-    }
+    protected final int version;
+    protected final RomTitle title;
 
-    public RomNDS(@NonNull Path path) throws IOException {
-        this.path = path;
-        this.channel = FileChannel.open(path, StandardOpenOption.READ, StandardOpenOption.WRITE);
-    }
+    public IconTitleNDS(@NonNull RomHeadersNDS parent) throws IOException {
+        this.parent = parent;
+        int offset = parent.headersRegion.getInt(0x68);
+        int size = parent.isDSi() ? parent.headersRegion.getInt(0x208) : 0xA00;
+        this.map = parent.channel.map(FileChannel.MapMode.READ_WRITE, offset, size);
 
-    public RomHeadersNDS getHeaders() throws IOException {
-        synchronized (this) {
-            if (this.headers == null)   {
-                this.headers = RomHeadersNDS.load(this.channel);
-            }
-        }
-        return this.headers;
+        this.version = this.map.getShort(0x00) & 0xFFFF;
+        byte[] buf = new byte[0x100];
+        this.map.position(0x340);
+        this.map.get(buf);
+        this.title = new RomTitle(buf);
     }
 
     @Override
-    public void close() throws IOException {
-        if (this.headers != null) {
-            this.headers.close();
-            this.headers = null;
-        }
-        this.channel.close();
+    public void close() {
+        PorkUtil.release(this.map);
     }
 }

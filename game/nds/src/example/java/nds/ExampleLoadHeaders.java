@@ -13,36 +13,23 @@
  *
  */
 
-rootProject.name = 'PorkLib'
+package nds;
 
-include 'ai'
-include 'binary'
-include 'crypto'
-include 'common'
-include 'concurrent'
-include 'concurrent:parallel'
-include 'db'
-include 'encoding'
-include 'encoding:config'
-include 'encoding:nbt'
-include 'game'
-include 'game:nds'
-include 'hash'
-include 'http'
-include 'logging'
-include 'math'
-include 'minecraft'
-include 'minecraft:minecraft-text'
-include 'minecraft:minecraft-worldscanner'
-include 'network'
-include 'noise'
-include 'primitive'
-include 'primitive:generator'
-include 'reflection'
+import net.daporkchop.lib.nds.RomNDS;
+import net.daporkchop.lib.nds.header.RomHeadersNDS;
 
-findProject(':concurrent:parallel')?.name = 'parallel'
-findProject(':encoding:config')?.name = 'config'
-findProject(':encoding:nbt')?.name = 'nbt'
-findProject(':game:nds')?.name = 'nds'
-findProject(':minecraft:minecraft-worldscanner')?.name = 'minecraft-worldscanner'
-findProject(':minecraft:minecraft-text')?.name = 'minecraft-text'
+import java.io.File;
+import java.io.IOException;
+
+/**
+ * @author DaPorkchop_
+ */
+public class ExampleLoadHeaders {
+    public static final File ROM = new File("Z:\\Professor Layton and the Last Specter.nds");
+
+    public static void main(String... args) throws IOException {
+        RomNDS rom = new RomNDS(ROM);
+        RomHeadersNDS headers = rom.getHeaders();
+        System.out.printf("ROM Name: %s\nName length: %d\n", headers.getName(), headers.getName().length());
+    }
+}

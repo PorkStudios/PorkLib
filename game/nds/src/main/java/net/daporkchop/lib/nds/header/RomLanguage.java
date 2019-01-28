@@ -13,28 +13,29 @@
  *
  */
 
-package nds;
+package net.daporkchop.lib.nds.header;
 
-import net.daporkchop.lib.nds.RomNDS;
-import net.daporkchop.lib.nds.header.RomHeadersNDS;
-import net.daporkchop.lib.nds.header.RomLanguage;
-
-import java.io.File;
-import java.io.IOException;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author DaPorkchop_
  */
-public class ExampleLoadHeaders {
-    public static final File ROM = new File("/home/daporkchop/192.168.1.119/Torrents/ROMs/New Super Mario Bros.nds");
+@RequiredArgsConstructor
+@AllArgsConstructor
+@Getter
+public enum RomLanguage {
+    JAPANESE(0x240),
+    ENGLISH(0x340),
+    FRENCH(0x440),
+    GERMAN(0x540),
+    ITALIAN(0x640),
+    SPANISH(0x740),
+    CHINESE(0x840, 2),
+    KOREAN(0x940, 3)
+    ;
 
-    public static void main(String... args) throws IOException {
-        RomNDS rom = new RomNDS(ROM);
-        RomHeadersNDS headers = rom.getHeaders();
-        System.out.printf("ROM Name: %s\nName length: %d\n", headers.getName(), headers.getName().length());
-        System.out.printf("Gamecode: %s\nMakercode: %s\n", headers.getGamecode(), headers.getMakercode());
-        System.out.printf("Unitcode: %d\nDSi: %b\n", headers.getUnitcode(), headers.isDSi());
-        System.out.printf("Cartridge capacity: %d\n", headers.getDeviceCapacity());
-        System.out.printf("Name:\n%s\n%s\n%s\n", headers.getIconTitle().getTitle(RomLanguage.ENGLISH).getTitle(), headers.getIconTitle().getTitle(RomLanguage.ENGLISH).getSubtitle(), headers.getIconTitle().getTitle(RomLanguage.ENGLISH).getManufacturer());
-    }
+    protected final int titleOffset;
+    protected int requiredAfterVersion = 0;
 }

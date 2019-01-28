@@ -30,9 +30,18 @@ public class RomTitle {
     protected final String manufacturer;
 
     public RomTitle(@NonNull byte[] arr)    {
-        String textFull = new String(arr, Charset.forName("UTF16"));
-        this.title = "";
-        this.subtitle = "";
-        this.manufacturer = "";
+        String textFull = new String(arr, Charset.forName("UTF-16LE"));
+        String[] split = textFull.trim().split("\\u000A");
+        if (split.length == 2)  {
+            this.title = split[0];
+            this.subtitle = "";
+            this.manufacturer = split[1];
+        } else if (split.length == 3)   {
+            this.title = split[0];
+            this.subtitle = split[1];
+            this.manufacturer = split[2];
+        } else {
+            throw new IllegalArgumentException(String.format("Couldn't parse title string: \"%s\"", textFull));
+        }
     }
 }

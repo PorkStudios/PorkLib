@@ -15,14 +15,14 @@
 
 package net.daporkchop.lib.gui.swing;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.gui.Window;
 import net.daporkchop.lib.gui.util.Dimensions;
 
 import javax.swing.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -36,12 +36,13 @@ public class SwingWindow extends Window {
     protected JFrame jFrame;
     protected Dimensions oldDimensions = null;
 
-    protected SwingWindow(@NonNull GuiSystemSwing system, @NonNull JFrame jFrame)    {
+    protected SwingWindow(@NonNull GuiSystemSwing system, @NonNull JFrame jFrame) {
         super(system);
         this.jFrame = jFrame;
 
         this.jFrame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         this.jFrame.addWindowListener(new SwingWindowListener());
+        this.jFrame.addComponentListener(new SwingComponentListener());
         this.jFrame.setResizable(true);
     }
 
@@ -51,7 +52,7 @@ public class SwingWindow extends Window {
             this.jFrame.setBounds(dimensions.getX(), dimensions.getY(), dimensions.getWidth(), dimensions.getHeight());
             this.dimensions = dimensions;
         }
-        return this.update();
+        return this.visible ? this.update() : this;
     }
 
     @Override
@@ -65,7 +66,10 @@ public class SwingWindow extends Window {
 
     @Override
     public SwingWindow setVisible(boolean visible) {
-        if (visible != this.visible)    {
+        if (visible != this.visible) {
+            if (visible) {
+                this.update();
+            }
             this.jFrame.setVisible(this.visible = visible);
         }
         return this;
@@ -73,7 +77,7 @@ public class SwingWindow extends Window {
 
     @Override
     public SwingWindow setResizeable(boolean resizeable) {
-        if (resizeable != this.resizeable)    {
+        if (resizeable != this.resizeable) {
             this.jFrame.setResizable(this.resizeable = resizeable);
         }
         return this;
@@ -81,10 +85,10 @@ public class SwingWindow extends Window {
 
     @Override
     public SwingWindow update() {
-        if (this.dimensions == null)    {
+        if (this.dimensions == null) {
             this.dimensions = new Dimensions(0, 0, 128, 128);
         }
-        if (this.oldDimensions == null || !this.oldDimensions.equals(this.dimensions))  {
+        if (this.oldDimensions == null || !this.oldDimensions.equals(this.dimensions)) {
             this.oldDimensions = this.dimensions;
         }
         this.componentMap.forEach((name, component) -> component.update(this.dimensions));
@@ -97,10 +101,32 @@ public class SwingWindow extends Window {
         this.jFrame = null;
     }
 
-    protected class SwingWindowListener extends WindowAdapter   {
+    protected class SwingWindowListener extends WindowAdapter {
         @Override
         public void windowClosing(WindowEvent e) {
             SwingWindow.this.closeHandler.run();
+        }
+    }
+
+    protected class SwingComponentListener extends ComponentAdapter {
+        @Override
+        public void componentResized(ComponentEvent e) {
+            SwingWindow.this.setDimensions(new Dimensions(
+                    e.getComponent().getX(),
+                    e.getComponent().getY(),
+                    e.getComponent().getWidth(),
+                    e.getComponent().getHeight()
+            ));
+        }
+
+        @Override
+        public void componentMoved(ComponentEvent e) {
+            SwingWindow.this.setDimensions(new Dimensions(
+                    e.getComponent().getX(),
+                    e.getComponent().getY(),
+                    e.getComponent().getWidth(),
+                    e.getComponent().getHeight()
+            ));
         }
     }
 }

@@ -15,65 +15,56 @@
 
 package net.daporkchop.lib.gui.component;
 
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.gui.util.DimensionCalculator;
 import net.daporkchop.lib.gui.util.Dimensions;
 
-import java.util.function.ToIntFunction;
-
 /**
- * A single component of a GUI
- *
  * @author DaPorkchop_
  */
-@SuppressWarnings("unchecked")
-public interface GuiComponent<Impl extends GuiComponent> {
-    DimensionCalculator getDimensionCalculator();
+@RequiredArgsConstructor
+@Getter
+public abstract class AbstractComponent<Impl extends GuiComponent> implements GuiComponent<Impl> {
+    protected Dimensions currentDimensions;
+    protected DimensionCalculator dimensionCalculator;
+    @NonNull
+    protected final String name;
+    @NonNull
+    protected String text = "";
+    @NonNull
+    protected String tooltip = "";
 
-    Impl setDimensionCalculator(@NonNull DimensionCalculator dimensionCalculator);
-
-    Dimensions getCurrentDimensions();
-
-    String getName();
-
-    String getText();
-    Impl setText(@NonNull String text);
-
-    String getTooltip();
-    Impl setTooltip(@NonNull String tooltip);
-
-    void update(@NonNull Dimensions windowDimensions);
-
-    //default methods
-    default Impl setX(@NonNull ToIntFunction<Dimensions> x) {
-        if (this.getDimensionCalculator() == null)  {
-            this.setDimensionCalculator(DimensionCalculator.defaultInstance());
+    @Override
+    public void update(@NonNull Dimensions windowDimensions) {
+        if (this.dimensionCalculator == null)   {
+            throw new IllegalStateException("Dimension calculator is not set!");
+        } else {
+            this.currentDimensions = this.dimensionCalculator.update(windowDimensions);
         }
-        this.getDimensionCalculator().setX(x);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public Impl setDimensionCalculator(@NonNull DimensionCalculator dimensionCalculator) {
+        this.dimensionCalculator = dimensionCalculator;
         return (Impl) this;
     }
 
-    default Impl setY(@NonNull ToIntFunction<Dimensions> y) {
-        if (this.getDimensionCalculator() == null)  {
-            this.setDimensionCalculator(DimensionCalculator.defaultInstance());
-        }
-        this.getDimensionCalculator().setY(y);
+    @Override
+    @SuppressWarnings("unchecked")
+    public Impl setText(@NonNull String text) {
+        this.text = text;
         return (Impl) this;
     }
 
-    default Impl setWidth(@NonNull ToIntFunction<Dimensions> width) {
-        if (this.getDimensionCalculator() == null)  {
-            this.setDimensionCalculator(DimensionCalculator.defaultInstance());
-        }
-        this.getDimensionCalculator().setWidth(width);
-        return (Impl) this;
-    }
-
-    default Impl setHeight(@NonNull ToIntFunction<Dimensions> height) {
-        if (this.getDimensionCalculator() == null)  {
-            this.setDimensionCalculator(DimensionCalculator.defaultInstance());
-        }
-        this.getDimensionCalculator().setHeight(height);
+    @Override
+    @SuppressWarnings("unchecked")
+    public Impl setTooltip(@NonNull String tooltip) {
+        this.tooltip = tooltip;
         return (Impl) this;
     }
 }

@@ -16,6 +16,7 @@
 package net.daporkchop.lib.gui.swing;
 
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.gui.Window;
@@ -30,14 +31,18 @@ import java.awt.event.WindowEvent;
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
+@Getter
 public class SwingWindow extends Window {
-    @NonNull
     protected JFrame jFrame;
+    protected Dimensions oldDimensions = null;
 
-    protected void setWindowListener()  {
+    protected SwingWindow(@NonNull GuiSystemSwing system, @NonNull JFrame jFrame)    {
+        super(system);
+        this.jFrame = jFrame;
+
         this.jFrame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         this.jFrame.addWindowListener(new SwingWindowListener());
+        this.jFrame.setResizable(true);
     }
 
     @Override
@@ -46,7 +51,7 @@ public class SwingWindow extends Window {
             this.jFrame.setBounds(dimensions.getX(), dimensions.getY(), dimensions.getWidth(), dimensions.getHeight());
             this.dimensions = dimensions;
         }
-        return this;
+        return this.update();
     }
 
     @Override
@@ -63,6 +68,26 @@ public class SwingWindow extends Window {
         if (visible != this.visible)    {
             this.jFrame.setVisible(this.visible = visible);
         }
+        return this;
+    }
+
+    @Override
+    public SwingWindow setResizeable(boolean resizeable) {
+        if (resizeable != this.resizeable)    {
+            this.jFrame.setResizable(this.resizeable = resizeable);
+        }
+        return this;
+    }
+
+    @Override
+    public SwingWindow update() {
+        if (this.dimensions == null)    {
+            this.dimensions = new Dimensions(0, 0, 128, 128);
+        }
+        if (this.oldDimensions == null || !this.oldDimensions.equals(this.dimensions))  {
+            this.oldDimensions = this.dimensions;
+        }
+        this.componentMap.forEach((name, component) -> component.update(this.dimensions));
         return this;
     }
 

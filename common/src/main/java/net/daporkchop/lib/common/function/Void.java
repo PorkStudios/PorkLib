@@ -16,8 +16,12 @@
 package net.daporkchop.lib.common.function;
 
 /**
+ * Deprecated in favor of {@link VoidFunction}
+ *
  * @author DaPorkchop_
  */
+@Deprecated
+@FunctionalInterface
 public interface Void {
     void run();
 }

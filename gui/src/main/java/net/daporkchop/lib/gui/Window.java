@@ -21,6 +21,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.function.VoidFunction;
 import net.daporkchop.lib.gui.util.Dimensions;
 
 /**
@@ -32,9 +33,28 @@ import net.daporkchop.lib.gui.util.Dimensions;
 @Accessors(chain = true)
 public abstract class Window {
     protected Dimensions dimensions;
-
     protected String title = "";
+    protected boolean visible = false;
+    protected boolean disposed = false;
+    protected VoidFunction closeHandler = this::dispose;
 
     public abstract Window setDimensions(@NonNull Dimensions dimensions);
     public abstract Window setTitle(@NonNull String title);
+    public abstract Window setVisible(boolean visible);
+    public abstract void dispose();
+
+    public Window show()    {
+        return this.setVisible(true);
+    }
+
+    public Window hide()    {
+        return this.setVisible(false);
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        if (!this.disposed) {
+            this.dispose();
+        }
+    }
 }

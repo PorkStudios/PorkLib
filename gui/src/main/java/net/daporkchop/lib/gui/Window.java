@@ -22,7 +22,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.function.VoidFunction;
+import net.daporkchop.lib.gui.component.GuiComponent;
 import net.daporkchop.lib.gui.util.Dimensions;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A GUI window
@@ -31,16 +36,25 @@ import net.daporkchop.lib.gui.util.Dimensions;
  */
 @Getter
 @Accessors(chain = true)
+@RequiredArgsConstructor
 public abstract class Window {
     protected Dimensions dimensions;
     protected String title = "";
     protected boolean visible = false;
     protected boolean disposed = false;
+    protected boolean resizeable = true;
+    @Setter
     protected VoidFunction closeHandler = this::dispose;
+    @Getter(AccessLevel.PROTECTED)
+    protected final Map<String, GuiComponent> componentMap = new HashMap<>();
+    @NonNull
+    protected final GuiSystem system;
 
     public abstract Window setDimensions(@NonNull Dimensions dimensions);
     public abstract Window setTitle(@NonNull String title);
     public abstract Window setVisible(boolean visible);
+    public abstract Window setResizeable(boolean resizeable);
+    public abstract Window update();
     public abstract void dispose();
 
     public Window show()    {
@@ -56,5 +70,23 @@ public abstract class Window {
         if (!this.disposed) {
             this.dispose();
         }
+    }
+
+    public Window addComponent(@NonNull String name, @NonNull GuiComponent component)    {
+        return this.addComponent(name, component, true);
+    }
+
+    public Window addComponent(@NonNull String name, @NonNull GuiComponent component, boolean update)    {
+        this.componentMap.put(name, component);
+        return update ? this.update() : this;
+    }
+
+    public Collection<GuiComponent> getComponents() {
+        return this.componentMap.values();
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends GuiComponent<T>> T getComponentByName(@NonNull String name)   {
+        return (T) this.componentMap.get(name);
     }
 }

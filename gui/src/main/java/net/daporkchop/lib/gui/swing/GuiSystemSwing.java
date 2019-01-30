@@ -42,8 +42,6 @@ public class GuiSystemSwing implements GuiSystem<SwingWindow> {
 
     @Override
     public SwingWindow newWindow(@NonNull Dimensions dimensions) {
-        SwingWindow window = new SwingWindow(new JFrame()).setDimensions(dimensions);
-        window.setWindowListener();
-        return window;
+        return new SwingWindow(this, new JFrame()).setDimensions(dimensions);
     }
 }

@@ -13,37 +13,18 @@
  *
  */
 
-package net.daporkchop.lib.gui.swing;
+package gui;
 
-import lombok.AccessLevel;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.common.reference.InstancePool;
 import net.daporkchop.lib.gui.GuiSystem;
+import net.daporkchop.lib.gui.Window;
 import net.daporkchop.lib.gui.util.Dimensions;
-
-import javax.swing.*;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
-public class GuiSystemSwing implements GuiSystem<SwingWindow> {
-    public static GuiSystemSwing getInstance()  {
-        return InstancePool.getInstance(GuiSystemSwing.class);
-    }
-
-    @Override
-    public String getName() {
-        return "Swing";
-    }
-
-    @Override
-    public SwingWindow newWindow(@NonNull Dimensions dimensions) {
-        SwingWindow window = new SwingWindow(new JFrame()).setDimensions(dimensions);
-        window.setWindowListener();
-        return window;
+public class GuiExample {
+    public static void main(String... args) {
+        Window window = GuiSystem.swing().newWindow(new Dimensions(0, 0, 512, 256));
+        window.setTitle("Example GUI").show();
     }
 }

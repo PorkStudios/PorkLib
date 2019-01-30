@@ -22,6 +22,8 @@ import net.daporkchop.lib.gui.Window;
 import net.daporkchop.lib.gui.util.Dimensions;
 
 import javax.swing.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 /**
  * An implementation of {@link Window} for use with JavaX's Swing
@@ -31,7 +33,12 @@ import javax.swing.*;
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class SwingWindow extends Window {
     @NonNull
-    protected final JFrame jFrame;
+    protected JFrame jFrame;
+
+    protected void setWindowListener()  {
+        this.jFrame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        this.jFrame.addWindowListener(new SwingWindowListener());
+    }
 
     @Override
     public SwingWindow setDimensions(@NonNull Dimensions dimensions) {
@@ -49,5 +56,26 @@ public class SwingWindow extends Window {
             this.title = title;
         }
         return this;
+    }
+
+    @Override
+    public SwingWindow setVisible(boolean visible) {
+        if (visible != this.visible)    {
+            this.jFrame.setVisible(this.visible = visible);
+        }
+        return this;
+    }
+
+    @Override
+    public void dispose() {
+        this.jFrame.dispose();
+        this.jFrame = null;
+    }
+
+    protected class SwingWindowListener extends WindowAdapter   {
+        @Override
+        public void windowClosing(WindowEvent e) {
+            SwingWindow.this.closeHandler.run();
+        }
     }
 }

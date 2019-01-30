@@ -16,6 +16,7 @@
 package net.daporkchop.lib.gui;
 
 import lombok.NonNull;
+import net.daporkchop.lib.gui.swing.GuiSystemSwing;
 import net.daporkchop.lib.gui.util.Dimensions;
 
 /**
@@ -33,4 +34,8 @@ public interface GuiSystem<T extends Window> {
      * @return the newly created window
      */
     T newWindow(@NonNull Dimensions dimensions);
+
+    static GuiSystemSwing swing()   {
+        return GuiSystemSwing.getInstance();
+    }
 }

@@ -17,19 +17,14 @@ package net.daporkchop.lib.common.util;
 
 import lombok.NonNull;
 import sun.misc.Cleaner;
+import sun.misc.SoftCache;
 import sun.misc.Unsafe;
 
 import java.io.File;
-import java.lang.invoke.CallSite;
-import java.lang.invoke.LambdaMetafactory;
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
+import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -166,5 +161,20 @@ public class PorkUtil {
                 throw PConstants.p_exception(e);
             }
         }
+    }
+
+    /**
+     * Creates a new instance of {@link SoftCache}.
+     * <p>
+     * This simply allows not showing compile-time warnings for using internal classes when creating
+     * new instances.
+     *
+     * @param <K> the key type
+     * @param <V> the value type
+     * @return a new {@link SoftCache}
+     */
+    @SuppressWarnings("unchecked")
+    public static <K, V> Map<K, V> newSoftCache() {
+        return (Map<K, V>) new SoftCache();
     }
 }

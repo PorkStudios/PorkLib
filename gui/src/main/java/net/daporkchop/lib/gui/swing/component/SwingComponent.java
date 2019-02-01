@@ -17,7 +17,7 @@ package net.daporkchop.lib.gui.swing.component;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.gui.component.AbstractComponent;
+import net.daporkchop.lib.gui.impl.AbstractComponent;
 
 import javax.swing.*;
 

@@ -17,8 +17,8 @@ package net.daporkchop.lib.gui.swing;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.gui.Window;
-import net.daporkchop.lib.gui.component.GuiComponent;
+import net.daporkchop.lib.gui.component.Window;
+import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.swing.component.SwingComponent;
 import net.daporkchop.lib.gui.util.Dimensions;
 
@@ -43,6 +43,7 @@ public class SwingWindow extends Window {
         super(system);
         this.jFrame = jFrame;
 
+        this.jFrame.setLayout(null);
         this.jFrame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         this.jFrame.addWindowListener(new SwingWindowListener());
         this.jFrame.addComponentListener(new SwingComponentListener());
@@ -52,7 +53,8 @@ public class SwingWindow extends Window {
     @Override
     public SwingWindow setDimensions(@NonNull Dimensions dimensions) {
         if (this.dimensions == null || !this.dimensions.equals(dimensions)) {
-            this.jFrame.setBounds(dimensions.getX(), dimensions.getY(), dimensions.getWidth(), dimensions.getHeight());
+            Insets insets = this.jFrame.getInsets();
+            this.jFrame.setBounds(dimensions.getX(), dimensions.getY(), dimensions.getWidth() + insets.left + insets.right, dimensions.getHeight() + insets.top + insets.bottom);
             this.dimensions = dimensions;
         }
         return this.visible ? this.update() : this;
@@ -94,14 +96,13 @@ public class SwingWindow extends Window {
         if (this.oldDimensions == null || !this.oldDimensions.equals(this.dimensions)) {
             this.oldDimensions = this.dimensions;
         }
-        this.jFrame.validate();
         this.componentMap.forEach((name, component) -> {
             component.update(this.dimensions);
             Dimensions updated = component.getCurrentDimensions();
             JComponent swing = ((SwingComponent) component).getSwing();
-            swing.setLocation(updated.getX(), updated.getY());
-            swing.setSize(updated.getWidth(), updated.getHeight());
+            swing.setBounds(updated.getX(), updated.getY(), updated.getWidth(), updated.getHeight());
         });
+        this.jFrame.revalidate();
         return this;
     }
 
@@ -112,7 +113,7 @@ public class SwingWindow extends Window {
     }
 
     @Override
-    public Window addComponent(String name, @NonNull GuiComponent component, boolean update) {
+    public Window addComponent(String name, @NonNull Component component, boolean update) {
         if (!(component instanceof SwingComponent)) {
             throw new IllegalStateException(String.format("Invalid component type: %s", component.getClass().getCanonicalName()));
         }
@@ -135,13 +136,16 @@ public class SwingWindow extends Window {
 
         @Override
         public void componentMoved(ComponentEvent e) {
-            Component component = e.getComponent();
-            SwingWindow.this.setDimensions(new Dimensions(
-                    component.getX(),
-                    component.getY(),
-                    component.getWidth(),
-                    component.getHeight()
-            ));
+            JFrame frame = SwingWindow.this.jFrame;
+            Insets insets = frame.getInsets();
+            SwingWindow.this.dimensions = SwingWindow.this.oldDimensions;
+            SwingWindow.this.dimensions = new Dimensions(
+                    frame.getX(),
+                    frame.getY(),
+                    frame.getWidth() - insets.left - insets.right,
+                    frame.getHeight() - insets.top - insets.bottom
+            );
+            SwingWindow.this.update();
         }
     }
 }

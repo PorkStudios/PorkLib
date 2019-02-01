@@ -13,13 +13,12 @@
  *
  */
 
-package net.daporkchop.lib.gui.component;
+package net.daporkchop.lib.gui.impl;
 
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
+import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.util.DimensionCalculator;
 import net.daporkchop.lib.gui.util.Dimensions;
 
@@ -28,7 +27,7 @@ import net.daporkchop.lib.gui.util.Dimensions;
  */
 @RequiredArgsConstructor
 @Getter
-public abstract class AbstractComponent<Impl extends GuiComponent> implements GuiComponent<Impl> {
+public abstract class AbstractComponent<Impl extends Component> implements Component<Impl> {
     protected Dimensions currentDimensions;
     protected DimensionCalculator dimensionCalculator;
     @NonNull

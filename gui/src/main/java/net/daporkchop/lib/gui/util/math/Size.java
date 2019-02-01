@@ -13,30 +13,68 @@
  *
  */
 
-package net.daporkchop.lib.gui;
+package net.daporkchop.lib.gui.util.math;
 
-import lombok.NonNull;
-import net.daporkchop.lib.gui.component.Window;
-import net.daporkchop.lib.gui.swing.GuiSystemSwing;
-import net.daporkchop.lib.gui.util.Dimensions;
+import lombok.Data;
 
 /**
- * A system for displaying Guis
+ * A size in 2D space
  *
  * @author DaPorkchop_
  */
-public interface GuiSystem<T extends Window> {
-    String getName();
+public interface Size<Impl extends Size> {
+    static Size at(int width, int height) {
+        return new Default(width, height);
+    }
 
-    /**
-     * Creates a new window with the given dimensions
-     *
-     * @param dimensions the dimensions of the new window to be created
-     * @return the newly created window
-     */
-    T newWindow(@NonNull Dimensions dimensions);
+    int getWidth();
 
-    static GuiSystemSwing swing()   {
-        return GuiSystemSwing.getInstance();
+    int getHeight();
+
+    Impl addWH(int width, int height);
+
+    default Impl addWH(int i) {
+        return this.addWH(i, i);
+    }
+
+    default Impl subtractWH(int width, int height) {
+        return this.addWH(-width, -height);
+    }
+
+    default Impl subtractWH(int i) {
+        return this.addWH(-i, -i);
+    }
+
+    Impl multiplyWH(int width, int height);
+
+    default Impl multiplyWH(int i) {
+        return this.multiplyWH(i, i);
+    }
+
+    Impl divideWH(int width, int height);
+
+    default Impl divideWH(int i) {
+        return this.divideWH(i, i);
+    }
+
+    @Data
+    class Default implements Size<Default> {
+        protected final int width;
+        protected final int height;
+
+        @Override
+        public Default addWH(int width, int height) {
+            return new Default(this.width + width, this.height + height);
+        }
+
+        @Override
+        public Default multiplyWH(int width, int height) {
+            return new Default(this.width * width, this.height * height);
+        }
+
+        @Override
+        public Default divideWH(int width, int height) {
+            return new Default(this.width / width, this.height / height);
+        }
     }
 }

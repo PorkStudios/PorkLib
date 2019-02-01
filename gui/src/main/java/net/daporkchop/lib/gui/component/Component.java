@@ -30,7 +30,7 @@ public interface Component<Impl extends Component> {
 
     Impl setUpdater(@NonNull ComponentUpdater<Impl> componentUpdater);
 
-    BoundingBox getCurrentDimensions();
+    BoundingBox getBounds();
 
     String getName();
 
@@ -52,5 +52,5 @@ public interface Component<Impl extends Component> {
         return this.setVisible(false);
     }
 
-    Impl update();
+    Impl update(@NonNull Container parent);
 }

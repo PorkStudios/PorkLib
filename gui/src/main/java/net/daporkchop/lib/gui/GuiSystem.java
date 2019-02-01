@@ -18,6 +18,7 @@ package net.daporkchop.lib.gui;
 import lombok.NonNull;
 import net.daporkchop.lib.gui.component.type.Window;
 import net.daporkchop.lib.gui.swing.GuiSystemSwing;
+import net.daporkchop.lib.gui.util.math.BoundingBox;
 
 /**
  * A system for displaying Guis
@@ -25,7 +26,15 @@ import net.daporkchop.lib.gui.swing.GuiSystemSwing;
  * @author DaPorkchop_
  */
 public interface GuiSystem<T extends Window> {
+    static GuiSystemSwing swing() {
+        return GuiSystemSwing.getInstance();
+    }
+
     String getName();
+
+    default T newWindow(int x, int y, int width, int height) {
+        return this.newWindow(new BoundingBox(x, y, width, height));
+    }
 
     /**
      * Creates a new window with the given dimensions
@@ -33,9 +42,5 @@ public interface GuiSystem<T extends Window> {
      * @param dimensions the dimensions of the new window to be created
      * @return the newly created window
      */
-    T newWindow(@NonNull Dimensions dimensions);
-
-    static GuiSystemSwing swing()   {
-        return GuiSystemSwing.getInstance();
-    }
+    T newWindow(@NonNull BoundingBox dimensions);
 }

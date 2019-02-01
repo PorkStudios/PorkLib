@@ -17,14 +17,25 @@ package gui;
 
 import net.daporkchop.lib.gui.GuiSystem;
 import net.daporkchop.lib.gui.Window;
+import net.daporkchop.lib.gui.swing.component.SwingButton;
 import net.daporkchop.lib.gui.util.Dimensions;
 
 /**
  * @author DaPorkchop_
  */
 public class GuiExample {
-    public static void main(String... args) {
+    public static void main(String... args) throws InterruptedException {
         Window window = GuiSystem.swing().newWindow(new Dimensions(0, 0, 512, 256));
         window.setTitle("Example GUI").show();
+        Thread.sleep(1000L);
+        SwingButton button = new SwingButton("button1")
+                .setClickHandler(() -> System.out.println("Clicked!"))
+                .setText("Example Button")
+                .setTooltip("This is a button!")
+                .setX(dim -> dim.getWidth() / 10 - 35)
+                .setY(dim -> dim.getHeight() / 10 - 10)
+                .setWidth(dim -> 70)
+                .setHeight(dim -> 20);
+        window.addComponent("button1", button);
     }
 }

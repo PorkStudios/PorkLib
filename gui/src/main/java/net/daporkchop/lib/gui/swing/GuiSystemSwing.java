@@ -31,6 +31,17 @@ import java.awt.event.WindowEvent;
  */
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class GuiSystemSwing implements GuiSystem<SwingWindow> {
+    static {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (ClassNotFoundException
+                | InstantiationException
+                | IllegalAccessException
+                | UnsupportedLookAndFeelException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static GuiSystemSwing getInstance()  {
         return InstancePool.getInstance(GuiSystemSwing.class);
     }

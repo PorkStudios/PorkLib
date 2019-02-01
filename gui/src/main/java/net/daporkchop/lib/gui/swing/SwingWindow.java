@@ -18,9 +18,12 @@ package net.daporkchop.lib.gui.swing;
 import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.gui.Window;
+import net.daporkchop.lib.gui.component.GuiComponent;
+import net.daporkchop.lib.gui.swing.component.SwingComponent;
 import net.daporkchop.lib.gui.util.Dimensions;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.WindowAdapter;
@@ -91,7 +94,14 @@ public class SwingWindow extends Window {
         if (this.oldDimensions == null || !this.oldDimensions.equals(this.dimensions)) {
             this.oldDimensions = this.dimensions;
         }
-        this.componentMap.forEach((name, component) -> component.update(this.dimensions));
+        this.jFrame.validate();
+        this.componentMap.forEach((name, component) -> {
+            component.update(this.dimensions);
+            Dimensions updated = component.getCurrentDimensions();
+            JComponent swing = ((SwingComponent) component).getSwing();
+            swing.setLocation(updated.getX(), updated.getY());
+            swing.setSize(updated.getWidth(), updated.getHeight());
+        });
         return this;
     }
 
@@ -99,6 +109,15 @@ public class SwingWindow extends Window {
     public void dispose() {
         this.jFrame.dispose();
         this.jFrame = null;
+    }
+
+    @Override
+    public Window addComponent(String name, @NonNull GuiComponent component, boolean update) {
+        if (!(component instanceof SwingComponent)) {
+            throw new IllegalStateException(String.format("Invalid component type: %s", component.getClass().getCanonicalName()));
+        }
+        this.jFrame.add(((SwingComponent) component).getSwing());
+        return super.addComponent(name, component, update);
     }
 
     protected class SwingWindowListener extends WindowAdapter {
@@ -111,21 +130,17 @@ public class SwingWindow extends Window {
     protected class SwingComponentListener extends ComponentAdapter {
         @Override
         public void componentResized(ComponentEvent e) {
-            SwingWindow.this.setDimensions(new Dimensions(
-                    e.getComponent().getX(),
-                    e.getComponent().getY(),
-                    e.getComponent().getWidth(),
-                    e.getComponent().getHeight()
-            ));
+            this.componentMoved(e);
         }
 
         @Override
         public void componentMoved(ComponentEvent e) {
+            Component component = e.getComponent();
             SwingWindow.this.setDimensions(new Dimensions(
-                    e.getComponent().getX(),
-                    e.getComponent().getY(),
-                    e.getComponent().getWidth(),
-                    e.getComponent().getHeight()
+                    component.getX(),
+                    component.getY(),
+                    component.getWidth(),
+                    component.getHeight()
             ));
         }
     }

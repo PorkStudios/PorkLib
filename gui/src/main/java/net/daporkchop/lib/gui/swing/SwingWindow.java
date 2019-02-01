@@ -19,7 +19,6 @@ import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.gui.component.type.Window;
 import net.daporkchop.lib.gui.impl.AbstractWindow;
-import net.daporkchop.lib.gui.swing.component.SwingComponent;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 
 import javax.swing.*;
@@ -28,6 +27,9 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * An implementation of {@link Window} for use with JavaX's Swing
@@ -35,9 +37,10 @@ import java.awt.event.WindowEvent;
  * @author DaPorkchop_
  */
 @Getter
-public class SwingWindow extends AbstractWindow<SwingWindow, SwingComponent> {
+public class SwingWindow extends AbstractWindow<SwingWindow, SwingComponent> implements SwingContainer<SwingWindow> {
     protected JFrame jFrame;
     protected BoundingBox oldDimensions = null;
+    protected final Map<String, SwingComponent> componentMap = Collections.synchronizedMap(new HashMap<>());
 
     protected SwingWindow(@NonNull GuiSystemSwing system, @NonNull JFrame jFrame) {
         super(system);

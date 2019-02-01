@@ -16,6 +16,7 @@
 package net.daporkchop.lib.gui.component;
 
 import lombok.NonNull;
+import net.daporkchop.lib.gui.component.type.Button;
 
 import java.util.Collection;
 
@@ -24,8 +25,10 @@ import java.util.Collection;
  *
  * @author DaPorkchop_
  */
-public interface Container<Impl extends Container, Comp extends Component> extends Component<Impl> {
+public interface Container<Impl extends Container<Impl, Comp>, Comp extends Component> extends Component<Impl> {
     Collection<Comp> getChildren();
 
-    Comp getComponent(@NonNull String name);
+    <T extends Comp> T getComponent(@NonNull String name);
+
+    Button addButton(@NonNull String name);
 }

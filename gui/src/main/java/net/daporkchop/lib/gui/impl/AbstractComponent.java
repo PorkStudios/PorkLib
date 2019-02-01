@@ -28,7 +28,7 @@ import net.daporkchop.lib.gui.util.math.ComponentUpdater;
  */
 @RequiredArgsConstructor
 @Getter
-public abstract class AbstractComponent<Impl extends Component> implements Component<Impl> {
+public abstract class AbstractComponent<Impl extends Component<Impl>> implements Component<Impl> {
     protected BoundingBox bounds;
     protected ComponentUpdater<Impl> updater;
     @NonNull
@@ -37,37 +37,33 @@ public abstract class AbstractComponent<Impl extends Component> implements Compo
     protected String text = "";
     @NonNull
     protected String tooltip = "";
-    protected boolean visible = false;
+    protected boolean visible = true;
 
     @Override
-    @SuppressWarnings("unchecked")
     public Impl update(@NonNull Container parent) {
         if (this.updater == null)   {
             throw new IllegalStateException("Dimension calculator is not set!");
         } else {
-            this.bounds = this.updater.update(parent.getBounds(), parent, (Impl) this);
+            this.bounds = this.updater.update(parent.getBounds(), parent, this.getThis());
         }
-        return (Impl) this;
+        return this.getThis();
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Impl setUpdater(@NonNull ComponentUpdater<Impl> updater) {
         this.updater = updater;
-        return (Impl) this;
+        return this.getThis();
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Impl setText(@NonNull String text) {
         this.text = text;
-        return (Impl) this;
+        return this.getThis();
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Impl setTooltip(@NonNull String tooltip) {
         this.tooltip = tooltip;
-        return (Impl) this;
+        return this.getThis();
     }
 }

@@ -26,7 +26,7 @@ import net.daporkchop.lib.gui.util.math.Constraint;
  *
  * @author DaPorkchop_
  */
-public interface Window<Impl extends Window, Comp extends Component> extends Component<Impl>, Container<Impl, Comp> {
+public interface Window<Impl extends Window<Impl, Comp>, Comp extends Component> extends Component<Impl>, Container<Impl, Comp> {
     Impl setBounds(@NonNull BoundingBox bb);
 
     default Impl setPos(int x, int y) {

@@ -13,54 +13,52 @@
  *
  */
 
-package net.daporkchop.lib.gui.impl;
+package net.daporkchop.lib.gui.swing.type;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.function.VoidFunction;
-import net.daporkchop.lib.gui.GuiSystem;
-import net.daporkchop.lib.gui.component.Component;
-import net.daporkchop.lib.gui.component.type.Window;
-import net.daporkchop.lib.gui.util.math.BoundingBox;
-import net.daporkchop.lib.gui.util.math.ComponentUpdater;
-import net.daporkchop.lib.gui.util.math.Constraint;
+import net.daporkchop.lib.gui.component.type.Button;
+import net.daporkchop.lib.gui.swing.SwingComponent;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import javax.swing.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 /**
  * @author DaPorkchop_
  */
 @Getter
+@Setter
 @Accessors(chain = true)
-public abstract class AbstractWindow<Impl extends AbstractWindow<Impl, Comp>, Comp extends Component> extends AbstractComponent<Impl> implements Window<Impl, Comp> {
-    protected String title = "";
-    protected boolean disposed = false;
-    protected boolean resizable = true;
-    @Setter
-    protected VoidFunction closeHandler = this::dispose;
-    @Getter(AccessLevel.PROTECTED)
-    protected final Map<String, Comp> componentMap = new HashMap<>();
-    protected final GuiSystem system;
+public class SwingButton extends SwingComponent<SwingButton, JButton> implements Button<SwingButton> {
+    @NonNull
+    protected VoidFunction clickHandler;
 
-    public AbstractWindow(@NonNull GuiSystem<Impl> system) {
-        super("");
-        this.system = system;
+    public SwingButton(@NonNull String name) {
+        super(name, new JButton());
+        this.swing.addMouseListener(new SwingButtonMouseHandler());
+        this.swing.setText("");
+        this.swing.setToolTipText("");
     }
 
     @Override
-    protected void finalize() throws Throwable {
-        if (!this.disposed) {
-            this.dispose();
+    public SwingButton setText(String text) {
+        super.setText(text);
+        this.swing.setText(text);
+        return this;
+    }
+
+    protected class SwingButtonMouseHandler extends MouseAdapter    {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            if (SwingButton.this.clickHandler == null)  {
+                throw new IllegalStateException("Click handler not set!");
+            } else {
+                SwingButton.this.clickHandler.run();
+            }
         }
-    }
-
-    @Override
-    public Impl setUpdater(@NonNull ComponentUpdater<Impl> updater) {
-        return this.getThis();
     }
 }

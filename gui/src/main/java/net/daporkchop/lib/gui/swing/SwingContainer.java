@@ -13,23 +13,44 @@
  *
  */
 
-package net.daporkchop.lib.gui.swing.component;
+package net.daporkchop.lib.gui.swing;
 
-import lombok.Getter;
 import lombok.NonNull;
+import net.daporkchop.lib.gui.component.Container;
+import net.daporkchop.lib.gui.component.type.Button;
 import net.daporkchop.lib.gui.impl.AbstractComponent;
+import net.daporkchop.lib.gui.swing.type.SwingButton;
 
 import javax.swing.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author DaPorkchop_
  */
-@Getter
-public abstract class SwingComponent<Impl extends SwingComponent, Swing extends JComponent> extends AbstractComponent<Impl> {
-    protected final Swing swing;
+public interface SwingContainer<Impl extends SwingContainer<Impl>> extends Container<Impl, SwingComponent> {
+    Map<String, SwingComponent> getComponentMap();
 
-    public SwingComponent(@NonNull String name, @NonNull Swing swing) {
-        super(name);
-        this.swing = swing;
+    @Override
+    default Collection<SwingComponent> getChildren() {
+        return this.getComponentMap().values();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    default <T extends SwingComponent> T getComponent(@NonNull String name) {
+        return (T) this.getComponentMap().get(name);
+    }
+
+    @Override
+    default SwingButton addButton(@NonNull String name) {
+        if (this.getComponentMap().containsKey(name))   {
+            throw new IllegalStateException(String.format("Already have child named: %s", name));
+        }
+        SwingButton button = new SwingButton(name);
+        this.getComponentMap().put(name, button);
+        return button;
     }
 }

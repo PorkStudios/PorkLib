@@ -16,6 +16,7 @@
 package net.daporkchop.lib.gui.util.math;
 
 import lombok.Data;
+import lombok.NonNull;
 
 /**
  * A 2D bounding box
@@ -28,6 +29,20 @@ public class BoundingBox implements Pos<BoundingBox>, Size<BoundingBox> {
     protected final int y;
     protected final int width;
     protected final int height;
+
+    public BoundingBox set(@NonNull Constraint constraint)  {
+        if (constraint instanceof BoundingBox)  {
+            return (BoundingBox) constraint;
+        } else if (constraint instanceof Pos)   {
+            Pos pos = (Pos) constraint;
+            return new BoundingBox(pos.getX(), pos.getY(), this.width, this.height);
+        } else if (constraint instanceof Size)   {
+            Size size = (Size) constraint;
+            return new BoundingBox(this.x, this.y, size.getWidth(), size.getHeight());
+        } else {
+            throw new IllegalArgumentException(String.format("Invalid constraint type: %s", constraint.getClass().getCanonicalName()));
+        }
+    }
 
     public BoundingBox add(int x, int y, int width, int height)   {
         return new BoundingBox(this.x + x, this.y + y,this.width + width, this.height + height);

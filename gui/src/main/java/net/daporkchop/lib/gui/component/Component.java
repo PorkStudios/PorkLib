@@ -16,10 +16,8 @@
 package net.daporkchop.lib.gui.component;
 
 import lombok.NonNull;
-import net.daporkchop.lib.gui.util.DimensionCalculator;
-import net.daporkchop.lib.gui.util.Dimensions;
-
-import java.util.function.ToIntFunction;
+import net.daporkchop.lib.gui.util.math.ComponentUpdater;
+import net.daporkchop.lib.gui.util.math.BoundingBox;
 
 /**
  * A single component of a GUI
@@ -28,52 +26,31 @@ import java.util.function.ToIntFunction;
  */
 @SuppressWarnings("unchecked")
 public interface Component<Impl extends Component> {
-    DimensionCalculator getDimensionCalculator();
+    ComponentUpdater<Impl> getUpdater();
 
-    Impl setDimensionCalculator(@NonNull DimensionCalculator dimensionCalculator);
+    Impl setUpdater(@NonNull ComponentUpdater<Impl> componentUpdater);
 
-    Dimensions getCurrentDimensions();
+    BoundingBox getCurrentDimensions();
 
     String getName();
 
     String getText();
+
     Impl setText(@NonNull String text);
 
     String getTooltip();
+
     Impl setTooltip(@NonNull String tooltip);
 
-    void update(@NonNull Dimensions windowDimensions);
+    Impl setVisible(boolean visible);
 
-    //default methods
-    default Impl setX(@NonNull ToIntFunction<Dimensions> x) {
-        if (this.getDimensionCalculator() == null)  {
-            this.setDimensionCalculator(DimensionCalculator.defaultInstance());
-        }
-        this.getDimensionCalculator().setX(x);
-        return (Impl) this;
+    default Impl show() {
+        return this.setVisible(true);
     }
 
-    default Impl setY(@NonNull ToIntFunction<Dimensions> y) {
-        if (this.getDimensionCalculator() == null)  {
-            this.setDimensionCalculator(DimensionCalculator.defaultInstance());
-        }
-        this.getDimensionCalculator().setY(y);
-        return (Impl) this;
+    default Impl hide() {
+        return this.setVisible(false);
     }
 
-    default Impl setWidth(@NonNull ToIntFunction<Dimensions> width) {
-        if (this.getDimensionCalculator() == null)  {
-            this.setDimensionCalculator(DimensionCalculator.defaultInstance());
-        }
-        this.getDimensionCalculator().setWidth(width);
-        return (Impl) this;
-    }
-
-    default Impl setHeight(@NonNull ToIntFunction<Dimensions> height) {
-        if (this.getDimensionCalculator() == null)  {
-            this.setDimensionCalculator(DimensionCalculator.defaultInstance());
-        }
-        this.getDimensionCalculator().setHeight(height);
-        return (Impl) this;
-    }
+    Impl update();
 }

@@ -22,7 +22,7 @@ import lombok.Data;
  *
  * @author DaPorkchop_
  */
-public interface Pos<Impl extends Pos> {
+public interface Pos<Impl extends Pos> extends Constraint {
     static Pos at(int x, int y) {
         return new Default(x, y);
     }

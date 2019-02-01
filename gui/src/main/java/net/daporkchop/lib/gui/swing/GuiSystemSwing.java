@@ -20,11 +20,8 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.reference.InstancePool;
 import net.daporkchop.lib.gui.GuiSystem;
-import net.daporkchop.lib.gui.util.Dimensions;
 
 import javax.swing.*;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 
 /**
  * @author DaPorkchop_

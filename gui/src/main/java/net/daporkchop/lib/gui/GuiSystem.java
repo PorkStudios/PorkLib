@@ -16,9 +16,8 @@
 package net.daporkchop.lib.gui;
 
 import lombok.NonNull;
-import net.daporkchop.lib.gui.component.Window;
+import net.daporkchop.lib.gui.component.type.Window;
 import net.daporkchop.lib.gui.swing.GuiSystemSwing;
-import net.daporkchop.lib.gui.util.Dimensions;
 
 /**
  * A system for displaying Guis

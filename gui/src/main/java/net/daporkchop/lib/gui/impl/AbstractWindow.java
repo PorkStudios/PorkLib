@@ -23,8 +23,10 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.function.VoidFunction;
 import net.daporkchop.lib.gui.GuiSystem;
 import net.daporkchop.lib.gui.component.Component;
-import net.daporkchop.lib.gui.component.Window;
-import net.daporkchop.lib.gui.util.Dimensions;
+import net.daporkchop.lib.gui.component.type.Window;
+import net.daporkchop.lib.gui.util.math.BoundingBox;
+import net.daporkchop.lib.gui.util.math.ComponentUpdater;
+import net.daporkchop.lib.gui.util.math.Constraint;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -35,8 +37,8 @@ import java.util.Map;
  */
 @Getter
 @Accessors(chain = true)
-public abstract class AbstractWindow<Impl extends AbstractWindow> extends AbstractComponent<Impl> implements Window<Impl> {
-    protected Dimensions dimensions;
+public abstract class AbstractWindow<Impl extends AbstractWindow, Comp extends Component> extends AbstractComponent<Impl> implements Window<Impl, Comp> {
+    protected BoundingBox currentDimensions;
     protected String title = "";
     protected boolean visible = false;
     protected boolean disposed = false;
@@ -44,19 +46,12 @@ public abstract class AbstractWindow<Impl extends AbstractWindow> extends Abstra
     @Setter
     protected VoidFunction closeHandler = this::dispose;
     @Getter(AccessLevel.PROTECTED)
-    protected final Map<String, Component> componentMap = new HashMap<>();
+    protected final Map<String, Comp> componentMap = new HashMap<>();
     protected final GuiSystem system;
+
     public AbstractWindow(@NonNull GuiSystem<Impl> system) {
         super("");
         this.system = system;
-    }
-
-    public Window show() {
-        return this.setVisible(true);
-    }
-
-    public Window hide() {
-        return this.setVisible(false);
     }
 
     @Override
@@ -66,21 +61,18 @@ public abstract class AbstractWindow<Impl extends AbstractWindow> extends Abstra
         }
     }
 
-    public Window addComponent(@NonNull String name, @NonNull Component component) {
-        return this.addComponent(name, component, true);
+    @Override
+    @SuppressWarnings("unchecked")
+    public Impl setUpdater(@NonNull ComponentUpdater<Impl> updater) {
+        return (Impl) this;
     }
 
-    public Window addComponent(@NonNull String name, @NonNull Component component, boolean update) {
-        this.componentMap.put(name, component);
-        return update ? this.update() : this;
-    }
-
-    public Collection<Component> getComponents() {
+    public Collection<Comp> getChildren() {
         return this.componentMap.values();
     }
 
-    @SuppressWarnings("unchecked")
-    public <T extends Component<T>> T getComponentByName(@NonNull String name) {
-        return (T) this.componentMap.get(name);
+    @Override
+    public Comp getComponent(@NonNull String name) {
+        return this.componentMap.get(name);
     }
 }

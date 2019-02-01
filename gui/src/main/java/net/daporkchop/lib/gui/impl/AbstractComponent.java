@@ -19,8 +19,8 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.gui.component.Component;
-import net.daporkchop.lib.gui.util.DimensionCalculator;
-import net.daporkchop.lib.gui.util.Dimensions;
+import net.daporkchop.lib.gui.util.math.BoundingBox;
+import net.daporkchop.lib.gui.util.math.ComponentUpdater;
 
 /**
  * @author DaPorkchop_
@@ -28,8 +28,8 @@ import net.daporkchop.lib.gui.util.Dimensions;
 @RequiredArgsConstructor
 @Getter
 public abstract class AbstractComponent<Impl extends Component> implements Component<Impl> {
-    protected Dimensions currentDimensions;
-    protected DimensionCalculator dimensionCalculator;
+    protected BoundingBox currentDimensions;
+    protected ComponentUpdater<Impl> updater;
     @NonNull
     protected final String name;
     @NonNull
@@ -38,18 +38,18 @@ public abstract class AbstractComponent<Impl extends Component> implements Compo
     protected String tooltip = "";
 
     @Override
-    public void update(@NonNull Dimensions windowDimensions) {
-        if (this.dimensionCalculator == null)   {
+    public Impl update() {
+        if (this.updater == null)   {
             throw new IllegalStateException("Dimension calculator is not set!");
         } else {
-            this.currentDimensions = this.dimensionCalculator.update(windowDimensions);
+            this.currentDimensions = this.updater.update(windowDimensions);
         }
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public Impl setDimensionCalculator(@NonNull DimensionCalculator dimensionCalculator) {
-        this.dimensionCalculator = dimensionCalculator;
+    public Impl setUpdater(@NonNull ComponentUpdater<Impl> updater) {
+        this.updater = updater;
         return (Impl) this;
     }
 

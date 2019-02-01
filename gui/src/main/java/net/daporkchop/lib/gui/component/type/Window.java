@@ -13,28 +13,36 @@
  *
  */
 
-package net.daporkchop.lib.gui.util.math;
+package net.daporkchop.lib.gui.component.type;
 
 import lombok.NonNull;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.Container;
+import net.daporkchop.lib.gui.util.math.Constraint;
 
 /**
- * Calculates a new bounding box for a component
+ * A GUI window
  *
  * @author DaPorkchop_
  */
-@FunctionalInterface
-public interface BBCalculator<Impl extends Component> {
-    /**
-     * Recalculates the bounding box of the component
-     *
-     * @param bb        the parent container's bounding box
-     * @param parent    the parent container
-     * @param component the component whose bounding box needs to be updated
-     * @return the new bounding box for the component
-     */
-    BoundingBox update(@NonNull BoundingBox bb, @NonNull Container parent, @NonNull Impl component);
+public interface Window<Impl extends Window, Comp extends Component> extends Component<Impl>, Container<Impl, Comp> {
+    Impl setDimensions(@NonNull Constraint constraint);
 
+    default Impl setPos(int x, int y) {
+        return this.setDimensions(Constraint.xy(x, y));
+    }
 
+    default Impl setSize(int width, int height) {
+        return this.setDimensions(Constraint.wh(width, height));
+    }
+
+    default Impl setBounds(int x, int y, int width, int height) {
+        return this.setDimensions(Constraint.bb(x, y, width, height));
+    }
+
+    Impl setTitle(@NonNull String title);
+
+    Impl setResizeable(boolean resizeable);
+
+    void dispose();
 }

@@ -24,5 +24,6 @@ import net.daporkchop.lib.gui.component.Component;
  */
 public interface Button<Impl extends Button> extends Component<Impl> {
     VoidFunction getClickHandler();
+
     Impl setClickHandler(@NonNull VoidFunction handler);
 }

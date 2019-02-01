@@ -23,6 +23,8 @@ import net.daporkchop.lib.common.function.VoidFunction;
 import net.daporkchop.lib.gui.component.type.Button;
 
 import javax.swing.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 /**
  * @author DaPorkchop_
@@ -36,6 +38,7 @@ public class SwingButton extends SwingComponent<SwingButton, JButton> implements
 
     public SwingButton(@NonNull String name) {
         super(name, new JButton());
+        this.swing.addMouseListener(new SwingButtonMouseHandler());
         this.swing.setText("");
         this.swing.setToolTipText("");
     }
@@ -52,5 +55,16 @@ public class SwingButton extends SwingComponent<SwingButton, JButton> implements
         super.setTooltip(tooltip);
         this.swing.setToolTipText(tooltip);
         return this;
+    }
+
+    protected class SwingButtonMouseHandler extends MouseAdapter    {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            if (SwingButton.this.clickHandler == null)  {
+                throw new IllegalStateException("Click handler not set!");
+            } else {
+                SwingButton.this.clickHandler.run();
+            }
+        }
     }
 }

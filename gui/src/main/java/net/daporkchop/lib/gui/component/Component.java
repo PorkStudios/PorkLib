@@ -27,7 +27,7 @@ import java.util.function.ToIntFunction;
  * @author DaPorkchop_
  */
 @SuppressWarnings("unchecked")
-public interface GuiComponent<Impl extends GuiComponent> {
+public interface Component<Impl extends Component> {
     DimensionCalculator getDimensionCalculator();
 
     Impl setDimensionCalculator(@NonNull DimensionCalculator dimensionCalculator);

@@ -13,6 +13,42 @@
  *
  */
 
-dependencies {
-    //compile project(":math")
+package net.daporkchop.lib.gui.component;
+
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.function.VoidFunction;
+import net.daporkchop.lib.gui.GuiSystem;
+import net.daporkchop.lib.gui.util.Dimensions;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * A GUI window
+ *
+ * @author DaPorkchop_
+ */
+public interface Window<Impl extends Window> extends Component<Impl> {
+    /**
+     * Sets the dimensions of this window
+     * @param dimensions
+     * @return
+     */
+    Window setDimensions(@NonNull Dimensions dimensions);
+
+    Window setTitle(@NonNull String title);
+
+    Window setVisible(boolean visible);
+
+    Window setResizeable(boolean resizeable);
+
+    Window update();
+
+    void dispose();
 }

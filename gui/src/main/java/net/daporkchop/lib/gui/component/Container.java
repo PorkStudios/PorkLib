@@ -13,6 +13,12 @@
  *
  */
 
-dependencies {
-    //compile project(":math")
+package net.daporkchop.lib.gui.component;
+
+/**
+ * A component that is able to store other components as children
+ *
+ * @author DaPorkchop_
+ */
+public interface Container<Impl extends Container> extends Component<Impl> {
 }

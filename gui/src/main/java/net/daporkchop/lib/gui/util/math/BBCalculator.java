@@ -13,6 +13,28 @@
  *
  */
 
-dependencies {
-    //compile project(":math")
+package net.daporkchop.lib.gui.util.math;
+
+import lombok.NonNull;
+import net.daporkchop.lib.gui.component.Component;
+import net.daporkchop.lib.gui.component.Container;
+
+/**
+ * Calculates a new bounding box for a component
+ *
+ * @author DaPorkchop_
+ */
+@FunctionalInterface
+public interface BBCalculator<Impl extends Component> {
+    /**
+     * Recalculates the bounding box of the component
+     *
+     * @param bb        the parent container's bounding box
+     * @param parent    the parent container
+     * @param component the component whose bounding box needs to be updated
+     * @return the new bounding box for the component
+     */
+    BoundingBox update(@NonNull BoundingBox bb, @NonNull Container parent, @NonNull Impl component);
+
+
 }

@@ -17,12 +17,12 @@ package net.daporkchop.lib.gui.component.type;
 
 import lombok.NonNull;
 import net.daporkchop.lib.common.function.VoidFunction;
-import net.daporkchop.lib.gui.component.GuiComponent;
+import net.daporkchop.lib.gui.component.Component;
 
 /**
  * @author DaPorkchop_
  */
-public interface Button<Impl extends Button> extends GuiComponent<Impl> {
+public interface Button<Impl extends Button> extends Component<Impl> {
     VoidFunction getClickHandler();
     Impl setClickHandler(@NonNull VoidFunction handler);
 }

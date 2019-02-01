@@ -16,7 +16,7 @@
 package gui;
 
 import net.daporkchop.lib.gui.GuiSystem;
-import net.daporkchop.lib.gui.Window;
+import net.daporkchop.lib.gui.component.Window;
 import net.daporkchop.lib.gui.swing.component.SwingButton;
 import net.daporkchop.lib.gui.util.Dimensions;
 
@@ -30,12 +30,14 @@ public class GuiExample {
         Thread.sleep(1000L);
         SwingButton button = new SwingButton("button1")
                 .setClickHandler(() -> System.out.println("Clicked!"))
-                .setText("Example Button")
-                .setTooltip("This is a button!")
-                .setX(dim -> dim.getWidth() / 10 - 35)
-                .setY(dim -> dim.getHeight() / 10 - 10)
-                .setWidth(dim -> 70)
+                .setX(dim -> dim.getWidth() / 2 - 150 / 2)
+                .setY(dim -> dim.getHeight() / 2 - 10)
+                .setWidth(dim -> 150)
                 .setHeight(dim -> 20);
         window.addComponent("button1", button);
+        button.setText("Example Button")
+                .setTooltip("This is a button!");
+        Thread.sleep(1000L);
+        window.setDimensions(new Dimensions(256, 256, 512, 10));
     }
 }

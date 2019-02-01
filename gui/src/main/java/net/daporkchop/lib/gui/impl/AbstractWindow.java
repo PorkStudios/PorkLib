@@ -13,16 +13,17 @@
  *
  */
 
-package net.daporkchop.lib.gui;
+package net.daporkchop.lib.gui.impl;
 
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.function.VoidFunction;
-import net.daporkchop.lib.gui.component.GuiComponent;
+import net.daporkchop.lib.gui.GuiSystem;
+import net.daporkchop.lib.gui.component.Component;
+import net.daporkchop.lib.gui.component.Window;
 import net.daporkchop.lib.gui.util.Dimensions;
 
 import java.util.Collection;
@@ -30,14 +31,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * A GUI window
- *
  * @author DaPorkchop_
  */
 @Getter
 @Accessors(chain = true)
-@RequiredArgsConstructor
-public abstract class Window {
+public abstract class AbstractWindow<Impl extends AbstractWindow> extends AbstractComponent<Impl> implements Window<Impl> {
     protected Dimensions dimensions;
     protected String title = "";
     protected boolean visible = false;
@@ -46,22 +44,18 @@ public abstract class Window {
     @Setter
     protected VoidFunction closeHandler = this::dispose;
     @Getter(AccessLevel.PROTECTED)
-    protected final Map<String, GuiComponent> componentMap = new HashMap<>();
-    @NonNull
+    protected final Map<String, Component> componentMap = new HashMap<>();
     protected final GuiSystem system;
+    public AbstractWindow(@NonNull GuiSystem<Impl> system) {
+        super("");
+        this.system = system;
+    }
 
-    public abstract Window setDimensions(@NonNull Dimensions dimensions);
-    public abstract Window setTitle(@NonNull String title);
-    public abstract Window setVisible(boolean visible);
-    public abstract Window setResizeable(boolean resizeable);
-    public abstract Window update();
-    public abstract void dispose();
-
-    public Window show()    {
+    public Window show() {
         return this.setVisible(true);
     }
 
-    public Window hide()    {
+    public Window hide() {
         return this.setVisible(false);
     }
 
@@ -72,21 +66,21 @@ public abstract class Window {
         }
     }
 
-    public Window addComponent(@NonNull String name, @NonNull GuiComponent component)    {
+    public Window addComponent(@NonNull String name, @NonNull Component component) {
         return this.addComponent(name, component, true);
     }
 
-    public Window addComponent(@NonNull String name, @NonNull GuiComponent component, boolean update)    {
+    public Window addComponent(@NonNull String name, @NonNull Component component, boolean update) {
         this.componentMap.put(name, component);
         return update ? this.update() : this;
     }
 
-    public Collection<GuiComponent> getComponents() {
+    public Collection<Component> getComponents() {
         return this.componentMap.values();
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends GuiComponent<T>> T getComponentByName(@NonNull String name)   {
+    public <T extends Component<T>> T getComponentByName(@NonNull String name) {
         return (T) this.componentMap.get(name);
     }
 }

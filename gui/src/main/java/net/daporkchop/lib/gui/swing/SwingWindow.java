@@ -18,9 +18,9 @@ package net.daporkchop.lib.gui.swing;
 import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.gui.component.type.Window;
-import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.impl.AbstractWindow;
 import net.daporkchop.lib.gui.swing.component.SwingComponent;
+import net.daporkchop.lib.gui.util.math.BoundingBox;
 
 import javax.swing.*;
 import java.awt.*;
@@ -35,9 +35,9 @@ import java.awt.event.WindowEvent;
  * @author DaPorkchop_
  */
 @Getter
-public class SwingWindow extends AbstractWindow<SwingWindow> {
+public class SwingWindow extends AbstractWindow<SwingWindow, SwingComponent> {
     protected JFrame jFrame;
-    protected Dimensions oldDimensions = null;
+    protected BoundingBox oldDimensions = null;
 
     protected SwingWindow(@NonNull GuiSystemSwing system, @NonNull JFrame jFrame) {
         super(system);
@@ -51,11 +51,11 @@ public class SwingWindow extends AbstractWindow<SwingWindow> {
     }
 
     @Override
-    public SwingWindow setDimensions(@NonNull Dimensions dimensions) {
-        if (this.dimensions == null || !this.dimensions.equals(dimensions)) {
+    public SwingWindow setBounds(@NonNull BoundingBox bb) {
+        if (this.bounds == null || !this.bounds.equals(bb)) {
             Insets insets = this.jFrame.getInsets();
-            this.jFrame.setBounds(dimensions.getX(), dimensions.getY(), dimensions.getWidth() + insets.left + insets.right, dimensions.getHeight() + insets.top + insets.bottom);
-            this.dimensions = dimensions;
+            this.jFrame.setBounds(bb.getX(), bb.getY(), bb.getWidth() + insets.left + insets.right, bb.getHeight() + insets.top + insets.bottom);
+            this.bounds = bb;
         }
         return this.visible ? this.update() : this;
     }
@@ -81,25 +81,25 @@ public class SwingWindow extends AbstractWindow<SwingWindow> {
     }
 
     @Override
-    public SwingWindow setResizeable(boolean resizeable) {
-        if (resizeable != this.resizeable) {
-            this.jFrame.setResizable(this.resizeable = resizeable);
+    public SwingWindow setResizable(boolean resizeable) {
+        if (resizeable != this.resizable) {
+            this.jFrame.setResizable(this.resizable = resizeable);
         }
         return this;
     }
 
     @Override
     public SwingWindow update() {
-        if (this.dimensions == null) {
-            this.dimensions = new Dimensions(0, 0, 128, 128);
+        if (this.bounds == null) {
+            this.bounds = new BoundingBox(0, 0, 128, 128);
         }
-        if (this.oldDimensions == null || !this.oldDimensions.equals(this.dimensions)) {
-            this.oldDimensions = this.dimensions;
+        if (this.oldDimensions == null || !this.oldDimensions.equals(this.bounds)) {
+            this.oldDimensions = this.bounds;
         }
         this.componentMap.forEach((name, component) -> {
-            component.update(this.dimensions);
-            Dimensions updated = component.getCurrentDimensions();
-            JComponent swing = ((SwingComponent) component).getSwing();
+            component.update(this);
+            BoundingBox updated = this.getBounds();
+            JComponent swing = component.getSwing();
             swing.setBounds(updated.getX(), updated.getY(), updated.getWidth(), updated.getHeight());
         });
         this.jFrame.revalidate();
@@ -110,15 +110,6 @@ public class SwingWindow extends AbstractWindow<SwingWindow> {
     public void dispose() {
         this.jFrame.dispose();
         this.jFrame = null;
-    }
-
-    @Override
-    public Window addComponent(String name, @NonNull Component component, boolean update) {
-        if (!(component instanceof SwingComponent)) {
-            throw new IllegalStateException(String.format("Invalid component type: %s", component.getClass().getCanonicalName()));
-        }
-        this.jFrame.add(((SwingComponent) component).getSwing());
-        return super.addComponent(name, component, update);
     }
 
     protected class SwingWindowListener extends WindowAdapter {
@@ -138,8 +129,8 @@ public class SwingWindow extends AbstractWindow<SwingWindow> {
         public void componentMoved(ComponentEvent e) {
             JFrame frame = SwingWindow.this.jFrame;
             Insets insets = frame.getInsets();
-            SwingWindow.this.dimensions = SwingWindow.this.oldDimensions;
-            SwingWindow.this.dimensions = new Dimensions(
+            SwingWindow.this.bounds = SwingWindow.this.oldDimensions;
+            SwingWindow.this.bounds = new BoundingBox(
                     frame.getX(),
                     frame.getY(),
                     frame.getWidth() - insets.left - insets.right,

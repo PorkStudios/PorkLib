@@ -18,6 +18,7 @@ package net.daporkchop.lib.gui.component.type;
 import lombok.NonNull;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.Container;
+import net.daporkchop.lib.gui.util.math.BoundingBox;
 import net.daporkchop.lib.gui.util.math.Constraint;
 
 /**
@@ -26,23 +27,36 @@ import net.daporkchop.lib.gui.util.math.Constraint;
  * @author DaPorkchop_
  */
 public interface Window<Impl extends Window, Comp extends Component> extends Component<Impl>, Container<Impl, Comp> {
-    Impl setDimensions(@NonNull Constraint constraint);
+    Impl setBounds(@NonNull BoundingBox bb);
 
     default Impl setPos(int x, int y) {
-        return this.setDimensions(Constraint.xy(x, y));
+        return this.setConstraints(Constraint.xy(x, y));
     }
 
     default Impl setSize(int width, int height) {
-        return this.setDimensions(Constraint.wh(width, height));
+        return this.setConstraints(Constraint.wh(width, height));
     }
 
     default Impl setBounds(int x, int y, int width, int height) {
-        return this.setDimensions(Constraint.bb(x, y, width, height));
+        return this.setBounds(Constraint.bb(x, y, width, height));
+    }
+
+    default Impl setConstraints(@NonNull Constraint constraint)  {
+        return this.setBounds(this.getBounds().set(constraint));
+    }
+
+    Impl update();
+
+    @Override
+    default Impl update(Container parent) {
+        return this.update();
     }
 
     Impl setTitle(@NonNull String title);
 
-    Impl setResizeable(boolean resizeable);
+    Impl setResizable(boolean resizable);
+
+    boolean isResizable();
 
     void dispose();
 }

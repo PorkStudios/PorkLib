@@ -20,6 +20,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.reference.InstancePool;
 import net.daporkchop.lib.gui.GuiSystem;
+import net.daporkchop.lib.gui.util.math.BoundingBox;
 
 import javax.swing.*;
 
@@ -49,7 +50,7 @@ public class GuiSystemSwing implements GuiSystem<SwingWindow> {
     }
 
     @Override
-    public SwingWindow newWindow(@NonNull Dimensions dimensions) {
-        return new SwingWindow(this, new JFrame()).setDimensions(dimensions);
+    public SwingWindow newWindow(@NonNull BoundingBox dimensions) {
+        return new SwingWindow(this, new JFrame()).setBounds(dimensions);
     }
 }

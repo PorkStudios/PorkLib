@@ -19,6 +19,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.gui.component.Component;
+import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 import net.daporkchop.lib.gui.util.math.ComponentUpdater;
 
@@ -28,7 +29,7 @@ import net.daporkchop.lib.gui.util.math.ComponentUpdater;
 @RequiredArgsConstructor
 @Getter
 public abstract class AbstractComponent<Impl extends Component> implements Component<Impl> {
-    protected BoundingBox currentDimensions;
+    protected BoundingBox bounds;
     protected ComponentUpdater<Impl> updater;
     @NonNull
     protected final String name;
@@ -36,14 +37,17 @@ public abstract class AbstractComponent<Impl extends Component> implements Compo
     protected String text = "";
     @NonNull
     protected String tooltip = "";
+    protected boolean visible = false;
 
     @Override
-    public Impl update() {
+    @SuppressWarnings("unchecked")
+    public Impl update(@NonNull Container parent) {
         if (this.updater == null)   {
             throw new IllegalStateException("Dimension calculator is not set!");
         } else {
-            this.currentDimensions = this.updater.update(windowDimensions);
+            this.bounds = this.updater.update(parent.getBounds(), parent, (Impl) this);
         }
+        return (Impl) this;
     }
 
     @Override

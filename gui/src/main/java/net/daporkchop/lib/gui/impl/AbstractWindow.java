@@ -38,11 +38,9 @@ import java.util.Map;
 @Getter
 @Accessors(chain = true)
 public abstract class AbstractWindow<Impl extends AbstractWindow, Comp extends Component> extends AbstractComponent<Impl> implements Window<Impl, Comp> {
-    protected BoundingBox currentDimensions;
     protected String title = "";
-    protected boolean visible = false;
     protected boolean disposed = false;
-    protected boolean resizeable = true;
+    protected boolean resizable = true;
     @Setter
     protected VoidFunction closeHandler = this::dispose;
     @Getter(AccessLevel.PROTECTED)

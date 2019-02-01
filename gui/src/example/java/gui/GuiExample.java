@@ -16,9 +16,8 @@
 package gui;
 
 import net.daporkchop.lib.gui.GuiSystem;
-import net.daporkchop.lib.gui.component.Window;
+import net.daporkchop.lib.gui.component.type.Window;
 import net.daporkchop.lib.gui.swing.component.SwingButton;
-import net.daporkchop.lib.gui.util.Dimensions;
 
 /**
  * @author DaPorkchop_

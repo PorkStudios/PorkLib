@@ -17,10 +17,10 @@ package net.daporkchop.lib.gui.swing;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.gui.component.Window;
+import net.daporkchop.lib.gui.component.type.Window;
 import net.daporkchop.lib.gui.component.Component;
+import net.daporkchop.lib.gui.impl.AbstractWindow;
 import net.daporkchop.lib.gui.swing.component.SwingComponent;
-import net.daporkchop.lib.gui.util.Dimensions;
 
 import javax.swing.*;
 import java.awt.*;
@@ -35,7 +35,7 @@ import java.awt.event.WindowEvent;
  * @author DaPorkchop_
  */
 @Getter
-public class SwingWindow extends Window {
+public class SwingWindow extends AbstractWindow<SwingWindow> {
     protected JFrame jFrame;
     protected Dimensions oldDimensions = null;
 

@@ -22,7 +22,7 @@ import lombok.Data;
  *
  * @author DaPorkchop_
  */
-public interface Size<Impl extends Size> {
+public interface Size<Impl extends Size> extends Constraint {
     static Size at(int width, int height) {
         return new Default(width, height);
     }

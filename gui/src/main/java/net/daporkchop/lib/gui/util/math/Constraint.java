@@ -13,42 +13,21 @@
  *
  */
 
-package net.daporkchop.lib.gui.component;
-
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.function.VoidFunction;
-import net.daporkchop.lib.gui.GuiSystem;
-import net.daporkchop.lib.gui.util.Dimensions;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+package net.daporkchop.lib.gui.util.math;
 
 /**
- * A GUI window
- *
  * @author DaPorkchop_
  */
-public interface Window<Impl extends Window> extends Component<Impl> {
-    /**
-     * Sets the dimensions of this window
-     * @param dimensions
-     * @return
-     */
-    Window setDimensions(@NonNull Dimensions dimensions);
+public interface Constraint {
+    static Pos xy(int x, int y) {
+        return new Pos.Default(x, y);
+    }
 
-    Window setTitle(@NonNull String title);
+    static Size wh(int width, int height)   {
+        return new Size.Default(width, height);
+    }
 
-    Window setVisible(boolean visible);
-
-    Window setResizeable(boolean resizeable);
-
-    Window update();
-
-    void dispose();
+    static BoundingBox bb(int x, int y, int width, int height)  {
+        return new BoundingBox(x, y, width, height);
+    }
 }

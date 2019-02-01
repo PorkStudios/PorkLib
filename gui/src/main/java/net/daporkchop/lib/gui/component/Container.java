@@ -15,10 +15,17 @@
 
 package net.daporkchop.lib.gui.component;
 
+import lombok.NonNull;
+
+import java.util.Collection;
+
 /**
  * A component that is able to store other components as children
  *
  * @author DaPorkchop_
  */
-public interface Container<Impl extends Container> extends Component<Impl> {
+public interface Container<Impl extends Container, Comp extends Component> extends Component<Impl> {
+    Collection<Comp> getChildren();
+
+    Comp getComponent(@NonNull String name);
 }

@@ -22,7 +22,7 @@ import net.daporkchop.lib.gui.component.Component;
 /**
  * @author DaPorkchop_
  */
-public interface Button<Impl extends Button> extends Component<Impl> {
+public interface Button<Impl extends Button<Impl>> extends Component<Impl> {
     VoidFunction getClickHandler();
 
     Impl setClickHandler(@NonNull VoidFunction handler);

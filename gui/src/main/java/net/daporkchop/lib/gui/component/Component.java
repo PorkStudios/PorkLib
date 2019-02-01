@@ -24,8 +24,7 @@ import net.daporkchop.lib.gui.util.math.BoundingBox;
  *
  * @author DaPorkchop_
  */
-@SuppressWarnings("unchecked")
-public interface Component<Impl extends Component> {
+public interface Component<Impl extends Component<Impl>> {
     ComponentUpdater<Impl> getUpdater();
 
     Impl setUpdater(@NonNull ComponentUpdater<Impl> componentUpdater);
@@ -53,4 +52,9 @@ public interface Component<Impl extends Component> {
     }
 
     Impl update(@NonNull Container parent);
+
+    @SuppressWarnings("unchecked")
+    default Impl getThis()  {
+        return (Impl) this;
+    }
 }

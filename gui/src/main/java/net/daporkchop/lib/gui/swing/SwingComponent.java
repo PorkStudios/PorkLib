@@ -13,58 +13,38 @@
  *
  */
 
-package net.daporkchop.lib.gui.swing.component;
+package net.daporkchop.lib.gui.swing;
 
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.function.VoidFunction;
-import net.daporkchop.lib.gui.component.type.Button;
+import net.daporkchop.lib.gui.impl.AbstractComponent;
 
 import javax.swing.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
 /**
  * @author DaPorkchop_
  */
 @Getter
-@Setter
-@Accessors(chain = true)
-public class SwingButton extends SwingComponent<SwingButton, JButton> implements Button<SwingButton> {
-    @NonNull
-    protected VoidFunction clickHandler;
+public abstract class SwingComponent<Impl extends SwingComponent<Impl, Swing>, Swing extends JComponent> extends AbstractComponent<Impl> {
+    protected final Swing swing;
 
-    public SwingButton(@NonNull String name) {
-        super(name, new JButton());
-        this.swing.addMouseListener(new SwingButtonMouseHandler());
-        this.swing.setText("");
-        this.swing.setToolTipText("");
+    public SwingComponent(@NonNull String name, Swing swing) {
+        super(name);
+        this.swing = swing;
     }
 
     @Override
-    public SwingButton setText(String text) {
-        super.setText(text);
-        this.swing.setText(text);
-        return this;
+    public Impl setVisible(boolean visible) {
+        if (this.visible != visible)    {
+            this.swing.setVisible(this.visible = visible);
+        }
+        return this.getThis();
     }
 
     @Override
-    public SwingButton setTooltip(String tooltip) {
+    public Impl setTooltip(String tooltip) {
         super.setTooltip(tooltip);
         this.swing.setToolTipText(tooltip);
-        return this;
-    }
-
-    protected class SwingButtonMouseHandler extends MouseAdapter    {
-        @Override
-        public void mouseClicked(MouseEvent e) {
-            if (SwingButton.this.clickHandler == null)  {
-                throw new IllegalStateException("Click handler not set!");
-            } else {
-                SwingButton.this.clickHandler.run();
-            }
-        }
+        return this.getThis();
     }
 }

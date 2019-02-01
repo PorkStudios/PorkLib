@@ -16,27 +16,26 @@
 package gui;
 
 import net.daporkchop.lib.gui.GuiSystem;
+import net.daporkchop.lib.gui.component.type.Button;
 import net.daporkchop.lib.gui.component.type.Window;
-import net.daporkchop.lib.gui.swing.component.SwingButton;
+import net.daporkchop.lib.gui.swing.type.SwingButton;
+import net.daporkchop.lib.gui.util.math.ComponentUpdater;
 
 /**
  * @author DaPorkchop_
  */
 public class GuiExample {
     public static void main(String... args) throws InterruptedException {
-        Window window = GuiSystem.swing().newWindow(new Dimensions(0, 0, 512, 256));
+        Window window = GuiSystem.swing().newWindow(0, 0, 512, 256);
         window.setTitle("Example GUI").show();
         Thread.sleep(1000L);
-        SwingButton button = new SwingButton("button1")
+        Button b = window.addButton("button1");
+        b = b.setClickHandler(() -> System.out.println("Clicked!"));
+        b = b.setText("Example Button");
+        /*Button b = window.addButton("button1")
                 .setClickHandler(() -> System.out.println("Clicked!"))
-                .setX(dim -> dim.getWidth() / 2 - 150 / 2)
-                .setY(dim -> dim.getHeight() / 2 - 10)
-                .setWidth(dim -> 150)
-                .setHeight(dim -> 20);
-        window.addComponent("button1", button);
-        button.setText("Example Button")
-                .setTooltip("This is a button!");
-        Thread.sleep(1000L);
-        window.setDimensions(new Dimensions(256, 256, 512, 10));
+                .setText("Example Button")
+                .setTooltip("Check out my cool button!")
+                .setUpdater(ComponentUpdater.<Button>of(40.0d, 45.0d, 20.0d, 10.0d));*/
     }
 }

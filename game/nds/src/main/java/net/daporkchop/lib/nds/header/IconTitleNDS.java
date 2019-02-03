@@ -38,8 +38,7 @@ public class IconTitleNDS implements AutoCloseable {
     protected final MappedByteBuffer map;
 
     protected final int version;
-    protected Map<RomLanguage, RomTitle> titles = new EnumMap<>(RomLanguage.class);
-
+    protected RomTitle title;
     protected RomIcon icon;
 
     public IconTitleNDS(@NonNull RomHeadersNDS parent) throws IOException {
@@ -51,21 +50,23 @@ public class IconTitleNDS implements AutoCloseable {
         this.map.order(ByteOrder.LITTLE_ENDIAN);
 
         this.version = this.map.getShort(0x00) & 0xFFFF;
-        byte[] buf = new byte[0x100];
-        for (RomLanguage language : RomLanguage.values()) {
-            if (language.requiredAfterVersion <= this.version) {
-                Arrays.fill(buf, (byte) 0);
-                this.map.position(language.titleOffset);
-                this.map.get(buf);
-                this.titles.put(language, new RomTitle(buf));
-            }
-        }
-
-        this.icon = new RomIcon(this.map);
     }
 
-    public RomTitle getTitle(@NonNull RomLanguage language) {
-        return this.titles.computeIfAbsent(language, l -> this.titles.get(RomLanguage.ENGLISH));
+    public synchronized RomTitle getTitle() {
+        if (this.title == null) {
+            byte[] buf = new byte[0x100];
+            this.map.position(RomLanguage.ENGLISH.titleOffset);
+            this.map.get(buf);
+            this.title = new RomTitle(buf);
+        }
+        return this.title;
+    }
+
+    public synchronized RomIcon getIcon() {
+        if (this.icon == null) {
+            this.icon = new RomIcon(this.map);
+        }
+        return this.icon;
     }
 
     @Override

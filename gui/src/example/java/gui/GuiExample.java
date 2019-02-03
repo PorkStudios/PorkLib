@@ -29,13 +29,10 @@ public class GuiExample {
         Window window = GuiSystem.swing().newWindow(0, 0, 512, 256);
         window.setTitle("Example GUI").show();
         Thread.sleep(1000L);
-        Button b = window.addButton("button1");
-        b = b.setClickHandler(() -> System.out.println("Clicked!"));
-        b = b.setText("Example Button");
-        /*Button b = window.addButton("button1")
+        Button b = window.addButton("button1")
                 .setClickHandler(() -> System.out.println("Clicked!"))
                 .setText("Example Button")
                 .setTooltip("Check out my cool button!")
-                .setUpdater(ComponentUpdater.<Button>of(40.0d, 45.0d, 20.0d, 10.0d));*/
+                .setUpdater(ComponentUpdater.of(40.0d, 45.0d, 20.0d, 10.0d));
     }
 }

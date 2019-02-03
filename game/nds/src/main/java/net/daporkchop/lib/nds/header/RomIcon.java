@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.nds.header;
 
+import lombok.Getter;
 import lombok.NonNull;
 
 import java.awt.image.BufferedImage;
@@ -24,6 +25,7 @@ import java.nio.ByteOrder;
 /**
  * @author DaPorkchop_
  */
+@Getter
 public class RomIcon {
     protected final short[] palette;
     protected final byte[] pixels;

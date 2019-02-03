@@ -38,7 +38,7 @@ public class ExampleLoadHeaders {
         System.out.printf("Gamecode: %s\nMakercode: %s\n", headers.getGamecode(), headers.getMakercode());
         System.out.printf("Unitcode: %d\nDSi: %b\n", headers.getUnitcode(), headers.isDSi());
         System.out.printf("Cartridge capacity: %d\n", headers.getDeviceCapacity());
-        System.out.printf("Name:\n%s\n%s\n%s\n", headers.getIconTitle().getTitle(RomLanguage.ENGLISH).getTitle(), headers.getIconTitle().getTitle(RomLanguage.ENGLISH).getSubtitle(), headers.getIconTitle().getTitle(RomLanguage.ENGLISH).getManufacturer());
+        System.out.printf("Name:\n%s\n%s\n%s\n", headers.getIconTitle().getTitle().getTitle(), headers.getIconTitle().getTitle().getSubtitle(), headers.getIconTitle().getTitle().getManufacturer());
 
         if (true) {
             BufferedImage img = headers.getIconTitle().getIcon().getAsBufferedImage();

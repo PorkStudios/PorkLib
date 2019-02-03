@@ -46,7 +46,7 @@ public class IconTitleNDS implements AutoCloseable {
         this.parent = parent;
 
         int offset = parent.headersRegion.getInt(0x68);
-        int size = parent.isDSi() ? parent.headersRegion.getInt(0x208) : 0xA00;
+        int size = 0xA00;
         this.map = parent.channel.map(FileChannel.MapMode.READ_WRITE, offset, size);
         this.map.order(ByteOrder.LITTLE_ENDIAN);
 

@@ -26,35 +26,35 @@ import net.daporkchop.lib.gui.util.math.Constraint;
  *
  * @author DaPorkchop_
  */
-public interface Window<Impl extends Window<Impl, Comp>, Comp extends Component> extends Component<Impl>, Container<Impl, Comp> {
-    Impl setBounds(@NonNull BoundingBox bb);
+public interface Window<Comp extends Component> extends Container<Window<Comp>, Comp> {
+    Window<Comp> setBounds(@NonNull BoundingBox bb);
 
-    default Impl setPos(int x, int y) {
+    default Window<Comp> setPos(int x, int y) {
         return this.setConstraints(Constraint.xy(x, y));
     }
 
-    default Impl setSize(int width, int height) {
+    default Window<Comp> setSize(int width, int height) {
         return this.setConstraints(Constraint.wh(width, height));
     }
 
-    default Impl setBounds(int x, int y, int width, int height) {
+    default Window<Comp> setBounds(int x, int y, int width, int height) {
         return this.setBounds(Constraint.bb(x, y, width, height));
     }
 
-    default Impl setConstraints(@NonNull Constraint constraint)  {
+    default Window<Comp> setConstraints(@NonNull Constraint constraint)  {
         return this.setBounds(this.getBounds().set(constraint));
     }
 
-    Impl update();
+    Window<Comp> update();
 
     @Override
-    default Impl update(Container parent) {
+    default Window<Comp> update(Container parent) {
         return this.update();
     }
 
-    Impl setTitle(@NonNull String title);
+    Window<Comp> setTitle(@NonNull String title);
 
-    Impl setResizable(boolean resizable);
+    Window<Comp> setResizable(boolean resizable);
 
     boolean isResizable();
 

@@ -22,8 +22,8 @@ import net.daporkchop.lib.gui.component.Component;
 /**
  * @author DaPorkchop_
  */
-public interface Button<Impl extends Button<Impl>> extends Component<Impl> {
+public interface Button extends Component<Button> {
     VoidFunction getClickHandler();
 
-    Impl setClickHandler(@NonNull VoidFunction handler);
+    Button setClickHandler(@NonNull VoidFunction handler);
 }

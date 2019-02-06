@@ -17,6 +17,7 @@ package net.daporkchop.lib.gui.swing;
 
 import lombok.Getter;
 import lombok.NonNull;
+import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.impl.AbstractComponent;
 
 import javax.swing.*;
@@ -25,7 +26,7 @@ import javax.swing.*;
  * @author DaPorkchop_
  */
 @Getter
-public abstract class SwingComponent<Impl extends SwingComponent<Impl, Swing>, Swing extends JComponent> extends AbstractComponent<Impl> {
+public abstract class SwingComponent<Impl extends Component<Impl>, Swing extends JComponent> extends AbstractComponent<Impl> {
     protected final Swing swing;
 
     public SwingComponent(@NonNull String name, Swing swing) {

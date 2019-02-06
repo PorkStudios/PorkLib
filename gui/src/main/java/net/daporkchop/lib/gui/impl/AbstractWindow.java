@@ -37,7 +37,7 @@ import java.util.Map;
  */
 @Getter
 @Accessors(chain = true)
-public abstract class AbstractWindow<Impl extends AbstractWindow<Impl, Comp>, Comp extends Component> extends AbstractComponent<Impl> implements Window<Impl, Comp> {
+public abstract class AbstractWindow<Comp extends Component> extends AbstractComponent<Window<Comp>> implements Window<Comp> {
     protected String title = "";
     protected boolean disposed = false;
     protected boolean resizable = true;
@@ -47,7 +47,7 @@ public abstract class AbstractWindow<Impl extends AbstractWindow<Impl, Comp>, Co
     protected final Map<String, Comp> componentMap = new HashMap<>();
     protected final GuiSystem system;
 
-    public AbstractWindow(@NonNull GuiSystem<Impl> system) {
+    public AbstractWindow(@NonNull GuiSystem<Window<Comp>> system) {
         super("");
         this.system = system;
     }
@@ -60,7 +60,7 @@ public abstract class AbstractWindow<Impl extends AbstractWindow<Impl, Comp>, Co
     }
 
     @Override
-    public Impl setUpdater(@NonNull ComponentUpdater<Impl> updater) {
+    public Window<Comp> setUpdater(@NonNull ComponentUpdater<Window<Comp>> updater) {
         return this.getThis();
     }
 }

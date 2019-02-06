@@ -30,7 +30,7 @@ import java.util.Map;
 /**
  * @author DaPorkchop_
  */
-public interface SwingContainer<Impl extends SwingContainer<Impl>> extends Container<Impl, SwingComponent> {
+public interface SwingContainer extends Container<SwingComponent> {
     Map<String, SwingComponent> getComponentMap();
 
     @Override

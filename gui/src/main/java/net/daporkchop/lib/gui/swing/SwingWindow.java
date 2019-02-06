@@ -36,8 +36,8 @@ import java.util.Map;
  *
  * @author DaPorkchop_
  */
-@Getter
-public class SwingWindow extends AbstractWindow<SwingWindow, SwingComponent> implements SwingContainer<SwingWindow> {
+@Getterg
+public class SwingWindow extends AbstractWindow<SwingComponent> implements SwingContainer<SwingWindow> {
     protected JFrame jFrame;
     protected BoundingBox oldDimensions = null;
     protected final Map<String, SwingComponent> componentMap = Collections.synchronizedMap(new HashMap<>());

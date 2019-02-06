@@ -27,7 +27,7 @@ import net.daporkchop.lib.gui.util.math.BoundingBox;
  *
  * @author DaPorkchop_
  */
-public interface GuiSystem<T extends Window<T, ? extends Component>> {
+public interface GuiSystem<T extends Window<? extends Component>> {
     static GuiSystemSwing swing() {
         return GuiSystemSwing.getInstance();
     }

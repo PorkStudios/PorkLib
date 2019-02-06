@@ -33,7 +33,7 @@ import java.awt.event.MouseEvent;
 @Getter
 @Setter
 @Accessors(chain = true)
-public class SwingButton extends SwingComponent<SwingButton, JButton> implements Button<SwingButton> {
+public class SwingButton extends SwingComponent<Button, JButton> implements Button {
     @NonNull
     protected VoidFunction clickHandler;
 

@@ -21,11 +21,24 @@ import net.daporkchop.lib.gui.GuiSystem;
 import net.daporkchop.lib.gui.swing.type.SwingWindow;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 
+import javax.swing.*;
+
 /**
  * @author DaPorkchop_
  */
 public class GuiSystemSwing implements GuiSystem<SwingWindow> {
-    public static GuiSystemSwing getInstance()  {
+    static {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (ClassNotFoundException
+                | InstantiationException
+                | IllegalAccessException
+                | UnsupportedLookAndFeelException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static GuiSystemSwing getInstance() {
         return InstancePool.getInstance(GuiSystemSwing.class);
     }
 

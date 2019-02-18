@@ -17,12 +17,14 @@ package net.daporkchop.lib.gui.component.type;
 
 import lombok.NonNull;
 import net.daporkchop.lib.gui.component.Container;
+import net.daporkchop.lib.gui.component.capability.IconHolder;
 import net.daporkchop.lib.gui.util.event.EventManager;
 
 /**
  * @author DaPorkchop_
  */
-public interface Window extends Container<Window> {
+public interface Window extends Container<Window>, IconHolder {
+    String getTitle();
     Window setTitle(@NonNull String title);
 
     EventManager getEventManager();

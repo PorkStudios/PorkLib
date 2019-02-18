@@ -26,7 +26,7 @@ import net.daporkchop.lib.gui.util.math.Constraint;
  * @author DaPorkchop_
  */
 @SuppressWarnings("unchecked")
-public interface SubElement<Impl extends SubElement<Impl>> extends Element<Impl> {
+public interface SubElement<Impl extends SubElement> extends Element<Impl> {
     Orientation getOrientation();
     Impl setOrientation(@NonNull Orientation<Impl> orientation);
 

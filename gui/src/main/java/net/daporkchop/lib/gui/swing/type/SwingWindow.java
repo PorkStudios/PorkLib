@@ -13,68 +13,55 @@
  *
  */
 
-package net.daporkchop.lib.gui.component;
+package net.daporkchop.lib.gui.swing.type;
 
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.gui.util.math.BoundingBox;
+import net.daporkchop.lib.gui.component.impl.AbstractContainer;
+import net.daporkchop.lib.gui.component.type.Window;
+import net.daporkchop.lib.gui.swing.impl.SwingContainer;
+import net.daporkchop.lib.gui.util.event.EventManager;
 
-import java.util.StringJoiner;
+import javax.swing.*;
 
 /**
  * @author DaPorkchop_
  */
-public interface Element<Impl extends Element> {
-    String getName();
+@Getter
+public class SwingWindow extends SwingContainer<Window, JFrame> implements Window {
+    protected final EventManager eventManager = new EventManager();
 
-    default String getFullName() {
-        StringJoiner joiner = new StringJoiner(".");
-        joiner.add(this.getName());
-        Container next = this.getParent();
-        while (next != null) {
-            joiner.add(next.getName());
-            next = next.getParent();
+    public SwingWindow(String name) {
+        super(name);
+
+        this.swing = new JFrame();
+        this.swing.setLayout(null);
+    }
+
+    @Override
+    public String getTitle() {
+        return this.swing.getTitle();
+    }
+
+    @Override
+    public Window setTitle(@NonNull String title) {
+        if (!title.equals(this.getTitle())) {
+            this.swing.setTitle(title);
         }
-        return joiner.toString();
+        return this;
     }
 
-    BoundingBox getBounds();
-
-    /**
-     * Gets this element's parent
-     *
-     * @return this element's parent, or {@code null} if (and only if) this element is a {@link net.daporkchop.lib.gui.component.type.Window}
-     */
-    Container getParent();
-
-    /**
-     * Updates this element.
-     * <p>
-     * If this element is a {@link Container}, this will also recursively update all child elements.
-     */
-    Impl update();
-
-    //visual things
-    String getTooltip();
-
-    Impl setTooltip(@NonNull String tooltip);
-
-    boolean isVisible();
-
-    Impl setVisible(boolean state);
-
-    default Impl show() {
-        return this.setVisible(true);
+    @Override
+    public SwingWindow update() {
+        return this;
     }
 
-    default Impl hide() {
-        return this.setVisible(false);
+    @Override
+    public void release() {
+        if (this.swing == null) {
+            throw new IllegalStateException("Window has already been disposed!");
+        }
+        this.swing.dispose();
+        this.swing = null;
     }
-
-    //position things
-
-    //other
-    /**
-     * Releases all resources associated with this element
-     */
-    void release();
 }

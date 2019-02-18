@@ -13,68 +13,30 @@
  *
  */
 
-package net.daporkchop.lib.gui.component;
+package net.daporkchop.lib.gui.swing.impl;
 
-import lombok.NonNull;
-import net.daporkchop.lib.gui.util.math.BoundingBox;
+import lombok.Getter;
+import net.daporkchop.lib.gui.component.Element;
+import net.daporkchop.lib.gui.component.impl.AbstractElement;
 
-import java.util.StringJoiner;
+import java.awt.*;
 
 /**
  * @author DaPorkchop_
  */
-public interface Element<Impl extends Element> {
-    String getName();
+@Getter
+public abstract class SwingElement<Impl extends Element, Swing extends Component> extends AbstractElement<Impl> {
+    protected Swing swing;
 
-    default String getFullName() {
-        StringJoiner joiner = new StringJoiner(".");
-        joiner.add(this.getName());
-        Container next = this.getParent();
-        while (next != null) {
-            joiner.add(next.getName());
-            next = next.getParent();
+    public SwingElement(String name) {
+        super(name);
+    }
+
+    @Override
+    public Impl setVisible(boolean state) {
+        if (state != this.visible)  {
+            this.swing.setVisible(state);
         }
-        return joiner.toString();
+        return super.setVisible(state);
     }
-
-    BoundingBox getBounds();
-
-    /**
-     * Gets this element's parent
-     *
-     * @return this element's parent, or {@code null} if (and only if) this element is a {@link net.daporkchop.lib.gui.component.type.Window}
-     */
-    Container getParent();
-
-    /**
-     * Updates this element.
-     * <p>
-     * If this element is a {@link Container}, this will also recursively update all child elements.
-     */
-    Impl update();
-
-    //visual things
-    String getTooltip();
-
-    Impl setTooltip(@NonNull String tooltip);
-
-    boolean isVisible();
-
-    Impl setVisible(boolean state);
-
-    default Impl show() {
-        return this.setVisible(true);
-    }
-
-    default Impl hide() {
-        return this.setVisible(false);
-    }
-
-    //position things
-
-    //other
-    /**
-     * Releases all resources associated with this element
-     */
-    void release();
 }

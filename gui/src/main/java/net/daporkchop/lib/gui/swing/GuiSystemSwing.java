@@ -35,7 +35,7 @@ public class GuiSystemSwing implements GuiSystem<SwingWindow> {
     }
 
     @Override
-    public SwingWindow newWindow(@NonNull BoundingBox dimensions) {
-        return null;
+    public SwingWindow newWindow(@NonNull BoundingBox bounds) {
+        return new SwingWindow("").setBounds(bounds);
     }
 }

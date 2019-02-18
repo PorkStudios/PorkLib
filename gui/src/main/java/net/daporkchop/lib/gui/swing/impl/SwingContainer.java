@@ -20,6 +20,8 @@ import lombok.NonNull;
 import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.Element;
 import net.daporkchop.lib.gui.component.SubElement;
+import net.daporkchop.lib.gui.component.type.Button;
+import net.daporkchop.lib.gui.swing.type.SwingButton;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -30,16 +32,20 @@ import java.util.Map;
  */
 @SuppressWarnings("unchecked")
 @Getter
-public abstract class SwingContainer<Impl extends Container, Swing extends java.awt.Container> extends SwingElement<Impl, Swing> implements Container<Impl> {
-    protected final Map<String, SubElement> children = Collections.synchronizedMap(new HashMap<>());
+public abstract class SwingContainer<Impl extends Container, Swing extends java.awt.Container> extends SwingElement<Impl, Swing> implements Container<Impl, SwingSubElement> {
+    protected final Map<String, SwingSubElement> children = Collections.synchronizedMap(new HashMap<>());
 
-    public SwingContainer(String name) {
-        super(name);
+    public SwingContainer(String name, Swing swing) {
+        super(name, swing);
     }
 
     @Override
-    public Impl addChild(@NonNull SubElement child, boolean update) {
+    public Impl addChild(@NonNull SwingSubElement child, boolean update) {
+        if (this.children.containsKey(child.getName()))  {
+            throw new IllegalArgumentException(String.format("Child with name %s exists!", child.getName()));
+        }
         this.children.put(child.getName(), child);
+        this.swing.add(child.swing);
         return update ? this.update() : (Impl) this;
     }
 
@@ -50,5 +56,12 @@ public abstract class SwingContainer<Impl extends Container, Swing extends java.
         } else {
             return update ? this.update() : (Impl) this;
         }
+    }
+
+    @Override
+    public Button button(@NonNull String name) {
+        SwingButton button = new SwingButton(name);
+        this.addChild(button);
+        return button;
     }
 }

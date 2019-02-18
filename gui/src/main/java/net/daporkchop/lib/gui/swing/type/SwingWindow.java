@@ -20,22 +20,33 @@ import lombok.NonNull;
 import net.daporkchop.lib.gui.component.impl.AbstractContainer;
 import net.daporkchop.lib.gui.component.type.Window;
 import net.daporkchop.lib.gui.swing.impl.SwingContainer;
+import net.daporkchop.lib.gui.swing.impl.SwingSubElement;
 import net.daporkchop.lib.gui.util.event.EventManager;
+import net.daporkchop.lib.gui.util.math.BoundingBox;
+import net.daporkchop.lib.gui.util.math.Constraint;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 
 /**
  * @author DaPorkchop_
  */
 @Getter
-public class SwingWindow extends SwingContainer<Window, JFrame> implements Window {
+public class SwingWindow extends SwingContainer<Window, JFrame> implements Window<SwingSubElement> {
     protected final EventManager eventManager = new EventManager();
 
-    public SwingWindow(String name) {
-        super(name);
+    protected BoundingBox oldDimensions;
 
-        this.swing = new JFrame();
+    public SwingWindow(String name) {
+        super(name, new JFrame());
+
         this.swing.setLayout(null);
+        this.swing.addWindowListener(new SwingWindowListener());
+        this.swing.addComponentListener(new SwingWindowComponentListener());
     }
 
     @Override
@@ -44,7 +55,7 @@ public class SwingWindow extends SwingContainer<Window, JFrame> implements Windo
     }
 
     @Override
-    public Window setTitle(@NonNull String title) {
+    public SwingWindow setTitle(@NonNull String title) {
         if (!title.equals(this.getTitle())) {
             this.swing.setTitle(title);
         }
@@ -52,16 +63,114 @@ public class SwingWindow extends SwingContainer<Window, JFrame> implements Windo
     }
 
     @Override
+    public boolean isResizable() {
+        return this.swing.isResizable();
+    }
+
+    @Override
+    public SwingWindow setResizable(boolean resizable) {
+        if (this.isResizable() != resizable)    {
+            this.swing.setResizable(resizable);
+        }
+        return this;
+    }
+
+    @Override
+    public SwingWindow setBounds(@NonNull BoundingBox bounds) {
+        if (this.bounds == null || !this.bounds.equals(bounds)) {
+            this.bounds = bounds;
+            Insets insets = this.swing.getInsets();
+            this.swing.setBounds(
+                    bounds.getX() + insets.left,
+                    bounds.getY() + insets.top,
+                    bounds.getWidth(),
+                    bounds.getHeight()
+            );
+            this.update();
+        }
+        return this;
+    }
+
+    @Override
     public SwingWindow update() {
+        if (this.bounds == null) {
+            this.bounds = new BoundingBox(0, 0, 128, 128);
+        }
+        if (this.oldDimensions == null || !this.oldDimensions.equals(this.bounds)) {
+            this.oldDimensions = this.bounds;
+        }
+        this.children.forEach((name, element) -> {
+            element.update();
+            BoundingBox updated = this.getBounds();
+            Component swing = element.getSwing();
+            swing.setBounds(updated.getX(), updated.getY(), updated.getWidth(), updated.getHeight());
+        });
+        this.swing.revalidate();
         return this;
     }
 
     @Override
     public void release() {
-        if (this.swing == null) {
-            throw new IllegalStateException("Window has already been disposed!");
-        }
         this.swing.dispose();
-        this.swing = null;
+    }
+
+    protected class SwingWindowListener implements WindowListener  {
+        @Override
+        public void windowOpened(WindowEvent e) {
+        }
+
+        @Override
+        public void windowClosing(WindowEvent e) {
+            SwingWindow.this.release(); //TODO: custom handling
+        }
+
+        @Override
+        public void windowClosed(WindowEvent e) {
+        }
+
+        @Override
+        public void windowIconified(WindowEvent e) {
+        }
+
+        @Override
+        public void windowDeiconified(WindowEvent e) {
+        }
+
+        @Override
+        public void windowActivated(WindowEvent e) {
+        }
+
+        @Override
+        public void windowDeactivated(WindowEvent e) {
+        }
+    }
+
+    protected class SwingWindowComponentListener implements ComponentListener {
+        @Override
+        public void componentResized(ComponentEvent e) {
+            this.componentMoved(e);
+        }
+
+        @Override
+        public void componentMoved(ComponentEvent e) {
+            JFrame frame = SwingWindow.this.swing;
+            Insets insets = frame.getInsets();
+            SwingWindow.this.bounds = SwingWindow.this.oldDimensions;
+            SwingWindow.this.bounds = new BoundingBox(
+                    frame.getX(),
+                    frame.getY(),
+                    frame.getWidth() - insets.left - insets.right,
+                    frame.getHeight() - insets.top - insets.bottom
+            );
+            SwingWindow.this.update();
+        }
+
+        @Override
+        public void componentShown(ComponentEvent e) {
+        }
+
+        @Override
+        public void componentHidden(ComponentEvent e) {
+        }
     }
 }

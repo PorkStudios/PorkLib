@@ -16,7 +16,9 @@
 package net.daporkchop.lib.gui.component;
 
 import lombok.NonNull;
+import net.daporkchop.lib.gui.component.type.Window;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
+import net.daporkchop.lib.gui.util.math.Constraint;
 
 import java.util.StringJoiner;
 
@@ -71,6 +73,11 @@ public interface Element<Impl extends Element> {
     }
 
     //position things
+    default Impl setConstraint(@NonNull Constraint constraint)  {
+        return this.setBounds(this.getBounds().set(constraint));
+    }
+
+    Impl setBounds(@NonNull BoundingBox bounds);
 
     //other
     /**

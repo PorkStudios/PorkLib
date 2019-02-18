@@ -42,10 +42,10 @@ public interface GuiSystem<T extends Window> {
     }
 
     /**
-     * Creates a new window with the given dimensions
+     * Creates a new window with the given bounds
      *
-     * @param dimensions the dimensions of the new window to be created
+     * @param bounds the bounds of the new window to be created
      * @return the newly created window
      */
-    T newWindow(@NonNull BoundingBox dimensions);
+    T newWindow(@NonNull BoundingBox bounds);
 }

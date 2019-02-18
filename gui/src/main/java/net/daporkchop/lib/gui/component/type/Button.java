@@ -22,5 +22,4 @@ import net.daporkchop.lib.gui.component.SubElement;
  * @author DaPorkchop_
  */
 public interface Button extends SubElement<Button> {
-    Button onClick();
 }

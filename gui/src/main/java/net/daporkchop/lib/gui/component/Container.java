@@ -16,20 +16,21 @@
 package net.daporkchop.lib.gui.component;
 
 import lombok.NonNull;
+import net.daporkchop.lib.gui.component.capability.ComponentAdder;
 
 import java.util.Map;
 
 /**
  * @author DaPorkchop_
  */
-public interface Container<Impl extends Container> extends Element<Impl> {
-    Map<String, SubElement> getChildren();
+public interface Container<Impl extends Container, Sub extends SubElement> extends Element<Impl>, ComponentAdder {
+    Map<String, Sub> getChildren();
 
-    default Impl addChild(@NonNull SubElement child) {
+    default Impl addChild(@NonNull Sub child) {
         return this.addChild(child, true);
     }
 
-    Impl addChild(@NonNull SubElement child, boolean update);
+    Impl addChild(@NonNull Sub child, boolean update);
 
     @SuppressWarnings("unchecked")
     default <T extends Element> T getChild(@NonNull String name) {

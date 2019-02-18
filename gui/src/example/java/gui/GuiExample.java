@@ -15,6 +15,7 @@
 
 package gui;
 
+import net.daporkchop.lib.gui.GuiSystem;
 import net.daporkchop.lib.gui.component.type.Button;
 import net.daporkchop.lib.gui.component.type.Window;
 
@@ -23,11 +24,8 @@ import net.daporkchop.lib.gui.component.type.Window;
  */
 public class GuiExample {
     public static void main(String... args) throws InterruptedException {
-        Window window = null;
-        Button button = null;
-
-        button = button.onClick();
-
-        window = window.setTitle("");
+        Window window = GuiSystem.swing().newWindow(64, 64, 512, 256)
+                .setTitle("Example GUI")
+                .show();
     }
 }

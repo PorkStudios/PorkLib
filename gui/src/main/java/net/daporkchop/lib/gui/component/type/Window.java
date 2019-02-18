@@ -17,13 +17,16 @@ package net.daporkchop.lib.gui.component.type;
 
 import lombok.NonNull;
 import net.daporkchop.lib.gui.component.Container;
+import net.daporkchop.lib.gui.component.SubElement;
 import net.daporkchop.lib.gui.component.capability.IconHolder;
+import net.daporkchop.lib.gui.component.capability.Resizable;
 import net.daporkchop.lib.gui.util.event.EventManager;
+import net.daporkchop.lib.gui.util.math.BoundingBox;
 
 /**
  * @author DaPorkchop_
  */
-public interface Window extends Container<Window>, IconHolder {
+public interface Window<Sub extends SubElement> extends Container<Window, Sub>, IconHolder, Resizable<Window> {
     String getTitle();
     Window setTitle(@NonNull String title);
 

@@ -70,6 +70,9 @@ public interface Element<Impl extends Element<Impl>> {
         return this.setVisible(false);
     }
 
+    //position things
+
+    //other
     /**
      * Releases all resources associated with this element
      */

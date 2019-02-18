@@ -13,33 +13,35 @@
  *
  */
 
-package net.daporkchop.lib.gui.component;
+package net.daporkchop.lib.gui.component.orientation;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.gui.component.orientation.Orientation;
-import net.daporkchop.lib.gui.component.orientation.SimpleDynamicOrientation;
-import net.daporkchop.lib.gui.component.orientation.StaticOrientation;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.gui.component.Container;
+import net.daporkchop.lib.gui.component.SubElement;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
-import net.daporkchop.lib.gui.util.math.Constraint;
 
 /**
  * @author DaPorkchop_
  */
-@SuppressWarnings("unchecked")
-public interface SubElement<Impl extends SubElement<Impl>> extends Element<Impl> {
-    Orientation getOrientation();
-    Impl setOrientation(@NonNull Orientation<Impl> orientation);
+@RequiredArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@Accessors(chain = true)
+public class StaticOrientation<Impl extends SubElement<Impl>> implements Orientation<Impl> {
+    @NonNull
+    protected BoundingBox bounds;
 
-    //convenience methods
-    default Impl setOrientation(@NonNull Object x, @NonNull Object y, @NonNull Object width, @NonNull Object height) {
-        return this.setOrientation(SimpleDynamicOrientation.of(x, y, width, height));
-    }
-
-    default Impl setOrientation(@NonNull Constraint constraint)    {
-        return this.setOrientation(this.getBounds().set(constraint));
-    }
-
-    default Impl setOrientation(@NonNull BoundingBox bounds)    {
-        return this.setOrientation(new StaticOrientation<>(bounds));
+    @Override
+    public BoundingBox update(@NonNull BoundingBox bb, @NonNull Container parent, @NonNull Impl component) {
+        if (this.bounds == null)    {
+            throw new IllegalStateException("bounds not set!");
+        }
+        return this.bounds;
     }
 }

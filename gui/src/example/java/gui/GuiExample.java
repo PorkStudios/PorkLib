@@ -27,9 +27,8 @@ public class GuiExample {
         GuiSystem.swing().newWindow(64, 64, 512, 256)
                 .setTitle("Example GUI")
                 .show()
-                .button("testButton")
-                .setOrientation(0.3d, 0.45d, 0.4d, 0.1d)
-                .setText("Example Button!")
-                .setTooltip("This is a tooltip that will be shown when hovering the mouse over the button.");
+                .button("testButton", button -> button.setOrientation(0.3d, 0.45d, 0.4d, 0.1d)
+                        .setText("Example Button!")
+                        .setTooltip("This is a tooltip that will be shown when hovering the mouse over the button."));
     }
 }

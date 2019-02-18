@@ -36,7 +36,7 @@ import java.awt.event.WindowListener;
  * @author DaPorkchop_
  */
 @Getter
-public class SwingWindow extends SwingContainer<Window, JFrame> implements Window<SwingSubElement> {
+public class SwingWindow extends SwingContainer<Window, JFrame> implements Window {
     protected final EventManager eventManager = new EventManager();
 
     protected BoundingBox oldDimensions;
@@ -102,7 +102,7 @@ public class SwingWindow extends SwingContainer<Window, JFrame> implements Windo
         this.children.forEach((name, element) -> {
             element.update();
             BoundingBox updated = element.getBounds();
-            Component swing = element.getSwing();
+            Component swing = ((SwingSubElement) element).getSwing();
             swing.setBounds(updated.getX(), updated.getY(), updated.getWidth(), updated.getHeight());
         });
         this.swing.revalidate();

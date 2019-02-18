@@ -22,7 +22,5 @@ import net.daporkchop.lib.gui.component.Container;
  * @author DaPorkchop_
  */
 public interface Window extends Container<Window> {
-
-
     Window setTitle(@NonNull String title);
 }

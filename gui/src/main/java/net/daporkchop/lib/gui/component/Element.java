@@ -15,12 +15,11 @@
 
 package net.daporkchop.lib.gui.component;
 
-import lombok.Getter;
 import lombok.NonNull;
 
 /**
  * @author DaPorkchop_
  */
-public interface Component<Impl extends Component<Impl>> {
+public interface Element<Impl extends Element<Impl>> {
     Impl setName(@NonNull String name);
 }

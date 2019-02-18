@@ -30,7 +30,7 @@ public class GuiExample {
                 .setClickHandler(() -> System.out.println("Clicked!"))
                 .setText("Example Button")
                 .setTooltip("Check out my cool button!")
-                .setUpdater(ComponentUpdater.of(40.0d, 45.0d, 20.0d, 10.0d));*/
+                .setUpdater(BBUpdater.of(40.0d, 45.0d, 20.0d, 10.0d));*/
         Window window = null;
         Button button = null;
 

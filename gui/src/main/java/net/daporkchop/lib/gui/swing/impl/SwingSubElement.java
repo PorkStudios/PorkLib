@@ -13,42 +13,45 @@
  *
  */
 
-package net.daporkchop.lib.gui.component.impl;
+package net.daporkchop.lib.gui.swing.impl;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.gui.component.Container;
+import lombok.Setter;
 import net.daporkchop.lib.gui.component.Element;
 import net.daporkchop.lib.gui.component.SubElement;
+import net.daporkchop.lib.gui.component.orientation.Orientation;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.awt.*;
 
 /**
  * @author DaPorkchop_
  */
 @Getter
+@Setter
 @SuppressWarnings("unchecked")
-public abstract class AbstractContainer<Impl extends AbstractContainer, Sub extends SubElement> extends AbstractElement<Impl> implements Container<Impl, Sub> {
-    protected final Map<String, Sub> children = Collections.synchronizedMap(new HashMap<>());
+public abstract class SwingSubElement<Impl extends SubElement, Swing extends Component> extends SwingElement<Impl, Swing> implements SubElement<Impl> {
+    protected Orientation<Impl> orientation;
+    @NonNull
+    protected SwingContainer parent;
 
-    public AbstractContainer(String name) {
-        super(name);
+    public SwingSubElement(String name, Swing swing) {
+        super(name, swing);
     }
 
     @Override
-    public Impl addChild(@NonNull Sub child, boolean update) {
-        this.children.put(child.getName(), child);
-        return update ? this.update() : (Impl) this;
+    public Impl setOrientation(@NonNull Orientation<Impl> orientation) {
+        this.orientation = orientation;
+        return (Impl) this;
     }
 
     @Override
-    public Impl removeChild(@NonNull String name, boolean update) {
-        if (this.children.remove(name) == null) {
-            throw new IllegalArgumentException(String.format("No such child: %s", name));
-        } else {
-            return update ? this.update() : (Impl) this;
-        }
+    public Impl update() {
+        this.bounds = this.orientation.update(this.bounds, this.parent, (Impl) this);
+        return (Impl) this;
+    }
+
+    @Override
+    public void release() {
     }
 }

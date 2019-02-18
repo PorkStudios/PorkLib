@@ -27,12 +27,17 @@ import net.daporkchop.lib.gui.util.math.Constraint;
  */
 @SuppressWarnings("unchecked")
 public interface SubElement<Impl extends SubElement> extends Element<Impl> {
-    Orientation getOrientation();
+    @Override
+    default Impl setBounds(@NonNull BoundingBox bounds) {
+        return this.setOrientation(bounds);
+    }
+
+    Orientation<Impl> getOrientation();
     Impl setOrientation(@NonNull Orientation<Impl> orientation);
 
     //convenience methods
     default Impl setOrientation(@NonNull Object x, @NonNull Object y, @NonNull Object width, @NonNull Object height) {
-        return this.setOrientation(SimpleDynamicOrientation.of(x, y, width, height));
+        return (Impl) this.setOrientation(SimpleDynamicOrientation.of(x, y, width, height));
     }
 
     default Impl setOrientation(@NonNull Constraint constraint)    {
@@ -40,6 +45,6 @@ public interface SubElement<Impl extends SubElement> extends Element<Impl> {
     }
 
     default Impl setOrientation(@NonNull BoundingBox bounds)    {
-        return this.setOrientation(new StaticOrientation<>(bounds));
+        return (Impl) this.setOrientation(new StaticOrientation<>(bounds));
     }
 }

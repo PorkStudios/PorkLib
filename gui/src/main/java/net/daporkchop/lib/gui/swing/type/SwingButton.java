@@ -13,42 +13,19 @@
  *
  */
 
-package net.daporkchop.lib.gui.component.impl;
+package net.daporkchop.lib.gui.swing.type;
 
-import lombok.Getter;
-import lombok.NonNull;
 import net.daporkchop.lib.gui.component.Container;
-import net.daporkchop.lib.gui.component.Element;
-import net.daporkchop.lib.gui.component.SubElement;
+import net.daporkchop.lib.gui.component.type.Button;
+import net.daporkchop.lib.gui.swing.impl.SwingSubElement;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import javax.swing.*;
 
 /**
  * @author DaPorkchop_
  */
-@Getter
-@SuppressWarnings("unchecked")
-public abstract class AbstractContainer<Impl extends AbstractContainer, Sub extends SubElement> extends AbstractElement<Impl> implements Container<Impl, Sub> {
-    protected final Map<String, Sub> children = Collections.synchronizedMap(new HashMap<>());
-
-    public AbstractContainer(String name) {
-        super(name);
-    }
-
-    @Override
-    public Impl addChild(@NonNull Sub child, boolean update) {
-        this.children.put(child.getName(), child);
-        return update ? this.update() : (Impl) this;
-    }
-
-    @Override
-    public Impl removeChild(@NonNull String name, boolean update) {
-        if (this.children.remove(name) == null) {
-            throw new IllegalArgumentException(String.format("No such child: %s", name));
-        } else {
-            return update ? this.update() : (Impl) this;
-        }
+public class SwingButton extends SwingSubElement<Button, JButton> implements Button {
+    public SwingButton(String name) {
+        super(name, new JButton());
     }
 }

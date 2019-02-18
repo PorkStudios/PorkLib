@@ -16,6 +16,7 @@
 package net.daporkchop.lib.gui.swing.impl;
 
 import lombok.Getter;
+import lombok.NonNull;
 import net.daporkchop.lib.gui.component.Element;
 import net.daporkchop.lib.gui.component.impl.AbstractElement;
 
@@ -26,10 +27,11 @@ import java.awt.*;
  */
 @Getter
 public abstract class SwingElement<Impl extends Element, Swing extends Component> extends AbstractElement<Impl> {
-    protected Swing swing;
+    protected final Swing swing;
 
-    public SwingElement(String name) {
+    public SwingElement(String name, @NonNull Swing swing) {
         super(name);
+        this.swing = swing;
     }
 
     @Override

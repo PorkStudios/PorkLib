@@ -15,11 +15,11 @@
 
 package net.daporkchop.lib.gui.component.type;
 
-import net.daporkchop.lib.gui.component.Component;
+import net.daporkchop.lib.gui.component.Element;
 
 /**
  * @author DaPorkchop_
  */
-public interface Button extends Component<Button> {
+public interface Button extends Element<Button> {
     Button onClick();
 }

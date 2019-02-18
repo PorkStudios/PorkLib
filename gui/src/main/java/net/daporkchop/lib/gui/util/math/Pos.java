@@ -57,6 +57,16 @@ public interface Pos<Impl extends Pos> extends Constraint {
         return this.divideXY(i, i);
     }
 
+    @Override
+    default boolean hasXY() {
+        return true;
+    }
+
+    @Override
+    default boolean hasWH() {
+        return false;
+    }
+
     @Data
     class Default implements Pos<Default> {
         protected final int x;

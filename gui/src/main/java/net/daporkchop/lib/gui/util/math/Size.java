@@ -57,6 +57,16 @@ public interface Size<Impl extends Size> extends Constraint {
         return this.divideWH(i, i);
     }
 
+    @Override
+    default boolean hasXY() {
+        return false;
+    }
+
+    @Override
+    default boolean hasWH() {
+        return true;
+    }
+
     @Data
     class Default implements Size<Default> {
         protected final int width;

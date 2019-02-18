@@ -89,4 +89,14 @@ public class BoundingBox implements Pos<BoundingBox>, Size<BoundingBox> {
     public BoundingBox divideWH(int width, int height) {
         return new BoundingBox(this.x, this.y, this.width / width, this.height / height);
     }
+
+    @Override
+    public boolean hasXY() {
+        return true;
+    }
+
+    @Override
+    public boolean hasWH() {
+        return true;
+    }
 }

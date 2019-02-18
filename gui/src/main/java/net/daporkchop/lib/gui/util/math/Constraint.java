@@ -30,4 +30,7 @@ public interface Constraint {
     static BoundingBox bb(int x, int y, int width, int height)  {
         return new BoundingBox(x, y, width, height);
     }
+
+    boolean hasXY();
+    boolean hasWH();
 }

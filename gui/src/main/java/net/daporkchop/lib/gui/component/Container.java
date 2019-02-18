@@ -20,6 +20,6 @@ import java.util.Collection;
 /**
  * @author DaPorkchop_
  */
-public interface Container<Impl extends Container<Impl>> extends Component<Impl> {
-    Collection<Component> getChildren();
+public interface Container<Impl extends Container<Impl>> extends Element<Impl> {
+    Collection<Element> getChildren();
 }

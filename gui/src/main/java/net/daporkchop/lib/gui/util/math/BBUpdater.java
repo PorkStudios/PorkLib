@@ -16,7 +16,7 @@
 package net.daporkchop.lib.gui.util.math;
 
 import lombok.NonNull;
-import net.daporkchop.lib.gui.component.Component;
+import net.daporkchop.lib.gui.component.Element;
 import net.daporkchop.lib.gui.component.Container;
 
 import static net.daporkchop.lib.math.primitive.PMath.floorI;
@@ -27,9 +27,9 @@ import static net.daporkchop.lib.math.primitive.PMath.floorI;
  * @author DaPorkchop_
  */
 @FunctionalInterface
-public interface ComponentUpdater<Impl extends Component<Impl>> {
+public interface BBUpdater<Impl extends Element<Impl>> {
     @SuppressWarnings("unchecked")
-    static <Impl extends Component<Impl>> ComponentUpdater<Impl> of(@NonNull Object x, @NonNull Object y, @NonNull Object width, @NonNull Object height) {
+    static <Impl extends Element<Impl>> BBUpdater<Impl> of(@NonNull Object x, @NonNull Object y, @NonNull Object width, @NonNull Object height) {
         if (x instanceof Integer) {
             int i = (int) x;
             x = (SingleValueCalculator<Impl>) (bb, parent, component) -> i;
@@ -73,7 +73,7 @@ public interface ComponentUpdater<Impl extends Component<Impl>> {
         return of((SingleValueCalculator<Impl>) x, (SingleValueCalculator<Impl>) y, (SingleValueCalculator<Impl>) width, (SingleValueCalculator<Impl>) height);
     }
 
-    static <Impl extends Component<Impl>> ComponentUpdater<Impl> of(@NonNull SingleValueCalculator<Impl> x, @NonNull SingleValueCalculator<Impl> y, @NonNull SingleValueCalculator<Impl> width, @NonNull SingleValueCalculator<Impl> height) {
+    static <Impl extends Element<Impl>> BBUpdater<Impl> of(@NonNull SingleValueCalculator<Impl> x, @NonNull SingleValueCalculator<Impl> y, @NonNull SingleValueCalculator<Impl> width, @NonNull SingleValueCalculator<Impl> height) {
         return (bb, parent, component) -> new BoundingBox(x.get(bb, parent, component), y.get(bb, parent, component), width.get(bb, parent, component), height.get(bb, parent, component));
     }
 
@@ -88,7 +88,7 @@ public interface ComponentUpdater<Impl extends Component<Impl>> {
     BoundingBox update(@NonNull BoundingBox bb, @NonNull Container parent, @NonNull Impl component);
 
     @FunctionalInterface
-    interface SingleValueCalculator<Impl extends Component<Impl>> {
+    interface SingleValueCalculator<Impl extends Element<Impl>> {
         /**
          * Recalculates a single value for the bounding box of a component
          *

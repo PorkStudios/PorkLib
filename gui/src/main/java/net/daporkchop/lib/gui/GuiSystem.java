@@ -16,8 +16,7 @@
 package net.daporkchop.lib.gui;
 
 import lombok.NonNull;
-import net.daporkchop.lib.gui.component.Component;
-import net.daporkchop.lib.gui.component.type.Button;
+import net.daporkchop.lib.gui.component.Element;
 import net.daporkchop.lib.gui.component.type.Window;
 import net.daporkchop.lib.gui.swing.GuiSystemSwing;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
@@ -27,7 +26,7 @@ import net.daporkchop.lib.gui.util.math.BoundingBox;
  *
  * @author DaPorkchop_
  */
-public interface GuiSystem<T extends Window<? extends Component>> {
+public interface GuiSystem<T extends Window<? extends Element>> {
     static GuiSystemSwing swing() {
         return GuiSystemSwing.getInstance();
     }

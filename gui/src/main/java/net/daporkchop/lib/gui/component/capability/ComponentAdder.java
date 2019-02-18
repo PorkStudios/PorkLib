@@ -18,9 +18,18 @@ package net.daporkchop.lib.gui.component.capability;
 import lombok.NonNull;
 import net.daporkchop.lib.gui.component.type.Button;
 
+import java.util.function.Consumer;
+
 /**
  * @author DaPorkchop_
  */
-public interface ComponentAdder {
+@SuppressWarnings("unchecked")
+public interface ComponentAdder<Impl> {
     Button button(@NonNull String name);
+
+    default Impl button(@NonNull String name, @NonNull Consumer<Button> initializer)    {
+        Button button = this.button(name);
+        initializer.accept(button);
+        return (Impl) this;
+    }
 }

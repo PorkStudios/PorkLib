@@ -15,11 +15,16 @@
 
 package net.daporkchop.lib.gui.component.type;
 
+import lombok.NonNull;
+import net.daporkchop.lib.common.function.VoidFunction;
 import net.daporkchop.lib.gui.component.Element;
 import net.daporkchop.lib.gui.component.SubElement;
+import net.daporkchop.lib.gui.util.event.handler.ClickHandler;
 
 /**
  * @author DaPorkchop_
  */
 public interface Button extends SubElement<Button> {
+    ClickHandler getClickHandler();
+    Button setClickHandler(@NonNull ClickHandler handler);
 }

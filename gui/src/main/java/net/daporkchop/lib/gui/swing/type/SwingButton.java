@@ -15,19 +15,33 @@
 
 package net.daporkchop.lib.gui.swing.type;
 
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.type.Button;
 import net.daporkchop.lib.gui.swing.impl.SwingSubElement;
+import net.daporkchop.lib.gui.util.event.handler.ClickHandler;
 
 import javax.swing.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
 /**
  * @author DaPorkchop_
  */
+@Getter
+@Setter
+@Accessors(chain = true)
 public class SwingButton extends SwingSubElement<Button, JButton> implements Button {
+    @NonNull
+    protected ClickHandler clickHandler = (button, x, y) -> {};
+
     public SwingButton(String name) {
         super(name, new JButton());
+
+        this.swing.addMouseListener(new SwingButtonMouseListener());
     }
 
     @Override
@@ -41,5 +55,28 @@ public class SwingButton extends SwingSubElement<Button, JButton> implements But
             this.swing.setText(text);
         }
         return this;
+    }
+
+    protected class SwingButtonMouseListener implements MouseListener   {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            SwingButton.this.clickHandler.onClick(e.getButton(), e.getX(), e.getY());
+        }
+
+        @Override
+        public void mousePressed(MouseEvent e) {
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e) {
+        }
+
+        @Override
+        public void mouseEntered(MouseEvent e) {
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e) {
+        }
     }
 }

@@ -30,15 +30,15 @@ import java.util.Map;
  */
 @Getter
 @SuppressWarnings("unchecked")
-public abstract class AbstractContainer<Impl extends AbstractContainer, Sub extends SubElement> extends AbstractElement<Impl> implements Container<Impl, Sub> {
-    protected final Map<String, Sub> children = Collections.synchronizedMap(new HashMap<>());
+public abstract class AbstractContainer<Impl extends AbstractContainer> extends AbstractElement<Impl> implements Container<Impl> {
+    protected final Map<String, SubElement> children = Collections.synchronizedMap(new HashMap<>());
 
     public AbstractContainer(String name) {
         super(name);
     }
 
     @Override
-    public Impl addChild(@NonNull Sub child, boolean update) {
+    public Impl addChild(@NonNull SubElement child, boolean update) {
         this.children.put(child.getName(), child);
         return update ? this.update() : (Impl) this;
     }

@@ -68,6 +68,17 @@ public abstract class SwingSubElement<Impl extends SubElement, Swing extends JCo
     }
 
     @Override
+    public boolean isEnabled() {
+        return this.swing.isEnabled();
+    }
+
+    @Override
+    public Impl setEnable(boolean enabled) {
+        this.swing.setEnabled(enabled);
+        return (Impl) this;
+    }
+
+    @Override
     public void release() {
     }
 }

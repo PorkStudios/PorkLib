@@ -16,6 +16,7 @@
 package net.daporkchop.lib.gui.component;
 
 import lombok.NonNull;
+import net.daporkchop.lib.gui.component.capability.Enableable;
 import net.daporkchop.lib.gui.component.orientation.Orientation;
 import net.daporkchop.lib.gui.component.orientation.SimpleDynamicOrientation;
 import net.daporkchop.lib.gui.component.orientation.StaticOrientation;
@@ -26,7 +27,7 @@ import net.daporkchop.lib.gui.util.math.Constraint;
  * @author DaPorkchop_
  */
 @SuppressWarnings("unchecked")
-public interface SubElement<Impl extends SubElement> extends Element<Impl> {
+public interface SubElement<Impl extends SubElement> extends Element<Impl>, Enableable<Impl> {
     @Override
     default Impl setBounds(@NonNull BoundingBox bounds) {
         return this.setOrientation(bounds);

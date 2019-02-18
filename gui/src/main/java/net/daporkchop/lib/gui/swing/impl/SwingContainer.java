@@ -30,22 +30,25 @@ import java.util.Map;
 /**
  * @author DaPorkchop_
  */
-@SuppressWarnings("unchecked")
 @Getter
-public abstract class SwingContainer<Impl extends Container, Swing extends java.awt.Container> extends SwingElement<Impl, Swing> implements Container<Impl, SwingSubElement> {
-    protected final Map<String, SwingSubElement> children = Collections.synchronizedMap(new HashMap<>());
+@SuppressWarnings("unchecked")
+public abstract class SwingContainer<Impl extends Container, Swing extends java.awt.Container> extends SwingElement<Impl, Swing> implements Container<Impl> {
+    protected final Map<String, SubElement> children = Collections.synchronizedMap(new HashMap<>());
 
     public SwingContainer(String name, Swing swing) {
         super(name, swing);
     }
 
     @Override
-    public Impl addChild(@NonNull SwingSubElement child, boolean update) {
-        if (this.children.containsKey(child.getName()))  {
+    public Impl addChild(@NonNull SubElement child, boolean update) {
+        if (!(child instanceof SwingSubElement))    {
+            throw new IllegalArgumentException(String.format("Invalid child type! Expected %s but found %s!", SwingSubElement.class.getCanonicalName(), child.getClass().getCanonicalName()));
+        }else if (this.children.containsKey(child.getName()))  {
             throw new IllegalArgumentException(String.format("Child with name %s exists!", child.getName()));
         }
-        this.children.put(child.getName(), child.setParent(this));
-        this.swing.add(child.swing);
+        SwingSubElement swing = (SwingSubElement) child;
+        this.children.put(child.getName(), swing.setParent(this));
+        this.swing.add(swing.swing);
         return update ? this.update() : (Impl) this;
     }
 

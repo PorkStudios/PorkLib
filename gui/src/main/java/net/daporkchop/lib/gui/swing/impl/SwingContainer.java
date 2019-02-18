@@ -44,7 +44,7 @@ public abstract class SwingContainer<Impl extends Container, Swing extends java.
         if (this.children.containsKey(child.getName()))  {
             throw new IllegalArgumentException(String.format("Child with name %s exists!", child.getName()));
         }
-        this.children.put(child.getName(), child);
+        this.children.put(child.getName(), child.setParent(this));
         this.swing.add(child.swing);
         return update ? this.update() : (Impl) this;
     }

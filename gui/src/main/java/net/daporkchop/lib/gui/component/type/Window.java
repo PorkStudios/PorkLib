@@ -36,4 +36,9 @@ public interface Window<Sub extends SubElement> extends Container<Window, Sub>, 
     default Container getParent() {
         return null;
     }
+
+    @Override
+    default Window considerUpdate() {
+        return this.isVisible() ? this.update() : this;
+    }
 }

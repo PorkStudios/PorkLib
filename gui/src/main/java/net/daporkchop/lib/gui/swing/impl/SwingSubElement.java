@@ -18,36 +18,52 @@ package net.daporkchop.lib.gui.swing.impl;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import net.daporkchop.lib.gui.component.Element;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.gui.component.SubElement;
 import net.daporkchop.lib.gui.component.orientation.Orientation;
+import net.daporkchop.lib.gui.util.math.BoundingBox;
 
-import java.awt.*;
+import javax.swing.*;
 
 /**
  * @author DaPorkchop_
  */
 @Getter
 @Setter
+@Accessors(chain = true)
 @SuppressWarnings("unchecked")
-public abstract class SwingSubElement<Impl extends SubElement, Swing extends Component> extends SwingElement<Impl, Swing> implements SubElement<Impl> {
+public abstract class SwingSubElement<Impl extends SubElement, Swing extends JComponent> extends SwingElement<Impl, Swing> implements SubElement<Impl> {
     protected Orientation<Impl> orientation;
     @NonNull
     protected SwingContainer parent;
 
     public SwingSubElement(String name, Swing swing) {
         super(name, swing);
+        this.swing.setToolTipText("");
     }
 
     @Override
     public Impl setOrientation(@NonNull Orientation<Impl> orientation) {
         this.orientation = orientation;
-        return (Impl) this;
+        return this.considerUpdate();
     }
 
     @Override
     public Impl update() {
-        this.bounds = this.orientation.update(this.bounds, this.parent, (Impl) this);
+        this.bounds = this.orientation == null ? new BoundingBox(0, 0, 0, 0) : this.orientation.update(this.bounds, this.parent, (Impl) this);
+        return (Impl) this;
+    }
+
+    @Override
+    public String getTooltip() {
+        return this.swing.getToolTipText();
+    }
+
+    @Override
+    public Impl setTooltip(String tooltip) {
+        if (this.getTooltip() == null || !this.getTooltip().equals(tooltip)) {
+            this.swing.setToolTipText(tooltip);
+        }
         return (Impl) this;
     }
 

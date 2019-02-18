@@ -24,8 +24,12 @@ import net.daporkchop.lib.gui.component.type.Window;
  */
 public class GuiExample {
     public static void main(String... args) throws InterruptedException {
-        Window window = GuiSystem.swing().newWindow(64, 64, 512, 256)
+        GuiSystem.swing().newWindow(64, 64, 512, 256)
                 .setTitle("Example GUI")
-                .show();
+                .show()
+                .button("testButton")
+                .setOrientation(30.0d, 45.0d, 40.0d, 10.0d)
+                .setText("Example Button!")
+                .setTooltip("This is a tooltip that will be shown when hovering the mouse over the button.");
     }
 }

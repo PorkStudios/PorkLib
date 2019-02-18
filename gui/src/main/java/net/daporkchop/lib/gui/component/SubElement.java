@@ -35,6 +35,13 @@ public interface SubElement<Impl extends SubElement> extends Element<Impl> {
     Orientation<Impl> getOrientation();
     Impl setOrientation(@NonNull Orientation<Impl> orientation);
 
+    default String getText()    {
+        return "";
+    }
+    default Impl setText(@NonNull String text)  {
+        return (Impl) this;
+    }
+
     //convenience methods
     default Impl setOrientation(@NonNull Object x, @NonNull Object y, @NonNull Object width, @NonNull Object height) {
         return (Impl) this.setOrientation(SimpleDynamicOrientation.of(x, y, width, height));

@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.gui.swing.type;
 
+import lombok.NonNull;
 import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.type.Button;
 import net.daporkchop.lib.gui.swing.impl.SwingSubElement;
@@ -27,5 +28,18 @@ import javax.swing.*;
 public class SwingButton extends SwingSubElement<Button, JButton> implements Button {
     public SwingButton(String name) {
         super(name, new JButton());
+    }
+
+    @Override
+    public String getText() {
+        return this.swing.getText();
+    }
+
+    @Override
+    public Button setText(@NonNull String text) {
+        if (!this.getText().equals(text))   {
+            this.swing.setText(text);
+        }
+        return this;
     }
 }

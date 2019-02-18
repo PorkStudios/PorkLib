@@ -55,10 +55,16 @@ public interface Element<Impl extends Element> {
      */
     Impl update();
 
+    @SuppressWarnings("unchecked")
+    default Impl considerUpdate()   {
+        this.getParent().considerUpdate();
+        return (Impl) this;
+    }
+
     //visual things
     String getTooltip();
 
-    Impl setTooltip(@NonNull String tooltip);
+    Impl setTooltip(String tooltip);
 
     boolean isVisible();
 

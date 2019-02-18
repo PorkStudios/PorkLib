@@ -44,12 +44,15 @@ public class SimpleDynamicOrientation<Impl extends SubElement<Impl>> implements 
      * - a double:                        if this is given, it will be treated as a percentage (i.e. using 0.5d as the width would make it be half the width of the parent element)
      * <p>
      * If none of the above types, an exception will be thrown.
+     * <p>
+     * Note that when a double is used, x and y will use the parent element's width and height rather than
+     * x and y, respectively.
      *
      * @param x      the element's x position
      * @param y      the element's y position
      * @param width  the element's width
      * @param height the element's height
-     * @param <T> the type of the element. Can generally be ignored
+     * @param <T>    the type of the element. Can generally be ignored
      * @return an instance of {@link SimpleDynamicOrientation} with the given settings
      */
     @SuppressWarnings("unchecked")
@@ -87,7 +90,7 @@ public class SimpleDynamicOrientation<Impl extends SubElement<Impl>> implements 
     }
 
     public SimpleDynamicOrientation<Impl> setX(double xMult) {
-        return this.setX((bb, parent, component) -> floorI(xMult * bb.getX()));
+        return this.setX((bb, parent, component) -> floorI(xMult * bb.getWidth()));
     }
 
     public SimpleDynamicOrientation<Impl> setX(@NonNull SingleValueCalculator<Impl> x) {
@@ -113,7 +116,7 @@ public class SimpleDynamicOrientation<Impl extends SubElement<Impl>> implements 
     }
 
     public SimpleDynamicOrientation<Impl> setY(double yMult) {
-        return this.setY((bb, parent, component) -> floorI(yMult * bb.getY()));
+        return this.setY((bb, parent, component) -> floorI(yMult * bb.getHeight()));
     }
 
     public SimpleDynamicOrientation<Impl> setY(@NonNull SingleValueCalculator<Impl> y) {

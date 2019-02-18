@@ -50,7 +50,7 @@ public abstract class SwingSubElement<Impl extends SubElement, Swing extends JCo
 
     @Override
     public Impl update() {
-        this.bounds = this.orientation == null ? new BoundingBox(0, 0, 0, 0) : this.orientation.update(this.bounds, this.parent, (Impl) this);
+        this.bounds = this.orientation == null ? new BoundingBox(0, 0, 0, 0) : this.orientation.update(this.parent.getBounds(), this.parent, (Impl) this);
         return (Impl) this;
     }
 

@@ -13,32 +13,13 @@
  *
  */
 
-package net.daporkchop.lib.gui.component;
-
-import lombok.NonNull;
-
-import java.util.Map;
+package net.daporkchop.lib.gui.component.capability;
 
 /**
+ * Specifies that a given element type may have an icon
+ *
  * @author DaPorkchop_
  */
-public interface Container<Impl extends Container> extends Element<Impl> {
-    Map<String, SubElement> getChildren();
-
-    default Impl addChild(@NonNull SubElement child) {
-        return this.addChild(child, true);
-    }
-
-    Impl addChild(@NonNull SubElement child, boolean update);
-
-    @SuppressWarnings("unchecked")
-    default <T extends Element> T getChild(@NonNull String name) {
-        return (T) this.getChildren().get(name);
-    }
-
-    default Impl removeChild(@NonNull String name) {
-        return this.removeChild(name, true);
-    }
-
-    Impl removeChild(@NonNull String name, boolean update);
+public interface IconHolder {
+    //TODO: custom icon class
 }

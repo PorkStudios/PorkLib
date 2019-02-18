@@ -13,68 +13,38 @@
  *
  */
 
-package net.daporkchop.lib.gui.component;
+package net.daporkchop.lib.gui.component.impl;
 
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.gui.component.Element;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
-
-import java.util.StringJoiner;
 
 /**
  * @author DaPorkchop_
  */
-public interface Element<Impl extends Element> {
-    String getName();
+@RequiredArgsConstructor
+@Getter
+@SuppressWarnings("unchecked")
+public abstract class AbstractElement<Impl extends Element> implements Element<Impl> {
+    @NonNull
+    protected final String name;
 
-    default String getFullName() {
-        StringJoiner joiner = new StringJoiner(".");
-        joiner.add(this.getName());
-        Container next = this.getParent();
-        while (next != null) {
-            joiner.add(next.getName());
-            next = next.getParent();
-        }
-        return joiner.toString();
+    protected BoundingBox bounds;
+
+    protected String tooltip = "";
+    protected boolean visible;
+
+    @Override
+    public Impl setTooltip(@NonNull String tooltip) {
+        this.tooltip = tooltip;
+        return (Impl) this;
     }
 
-    BoundingBox getBounds();
-
-    /**
-     * Gets this element's parent
-     *
-     * @return this element's parent, or {@code null} if (and only if) this element is a {@link net.daporkchop.lib.gui.component.type.Window}
-     */
-    Container getParent();
-
-    /**
-     * Updates this element.
-     * <p>
-     * If this element is a {@link Container}, this will also recursively update all child elements.
-     */
-    Impl update();
-
-    //visual things
-    String getTooltip();
-
-    Impl setTooltip(@NonNull String tooltip);
-
-    boolean isVisible();
-
-    Impl setVisible(boolean state);
-
-    default Impl show() {
-        return this.setVisible(true);
+    @Override
+    public Impl setVisible(boolean state) {
+        this.visible = state;
+        return (Impl) this;
     }
-
-    default Impl hide() {
-        return this.setVisible(false);
-    }
-
-    //position things
-
-    //other
-    /**
-     * Releases all resources associated with this element
-     */
-    void release();
 }

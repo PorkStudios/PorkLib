@@ -30,7 +30,7 @@ import static net.daporkchop.lib.math.primitive.PMath.floorI;
  * @author DaPorkchop_
  */
 @FunctionalInterface
-public interface Orientation<Impl extends SubElement<Impl>> {
+public interface Orientation<Impl extends SubElement> {
     /**
      * Recalculates the bounding box of the component
      *

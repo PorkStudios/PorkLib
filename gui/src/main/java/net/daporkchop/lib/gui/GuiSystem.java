@@ -26,12 +26,16 @@ import net.daporkchop.lib.gui.util.math.BoundingBox;
  *
  * @author DaPorkchop_
  */
-public interface GuiSystem<T extends Window<? extends Element>> {
+public interface GuiSystem<T extends Window> {
     static GuiSystemSwing swing() {
         return GuiSystemSwing.getInstance();
     }
 
     String getName();
+
+    default T newWindow(int width, int height) {
+        return this.newWindow(new BoundingBox(0, 0, width, height));
+    }
 
     default T newWindow(int x, int y, int width, int height) {
         return this.newWindow(new BoundingBox(x, y, width, height));

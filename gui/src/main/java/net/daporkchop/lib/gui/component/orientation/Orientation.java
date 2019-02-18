@@ -13,31 +13,31 @@
  *
  */
 
-package net.daporkchop.lib.gui.util.math;
+package net.daporkchop.lib.gui.component.orientation;
+
+import lombok.NonNull;
+import net.daporkchop.lib.gui.component.Container;
+import net.daporkchop.lib.gui.component.SubElement;
+import net.daporkchop.lib.gui.util.math.BoundingBox;
+
+import static net.daporkchop.lib.math.primitive.PMath.floorI;
 
 /**
+ * TODO: come up with a better name for this class
+ * The {@link Orientation} of a {@link net.daporkchop.lib.gui.component.SubElement} handles updating the
+ * position and size of the sub-element when it's updated.
+ *
  * @author DaPorkchop_
  */
-public interface Constraint {
-    static Pos xy(int x, int y) {
-        return new Pos.Default(x, y);
-    }
+public interface Orientation<Impl extends SubElement<Impl>> {
 
-    static Size wh(int width, int height)   {
-        return new Size.Default(width, height);
-    }
-
-    static BoundingBox bb(int x, int y, int width, int height)  {
-        return new BoundingBox(x, y, width, height);
-    }
-
-    boolean hasXY();
-    boolean hasWH();
-
-    enum Type   {
-        X,
-        Y,
-        WIDTH,
-        HEIGHT
-    }
+    /**
+     * Recalculates the bounding box of the component
+     *
+     * @param bb        the parent container's bounding box
+     * @param parent    the parent container
+     * @param component the component whose bounding box needs to be updated
+     * @return the new bounding box for the component
+     */
+    BoundingBox update(@NonNull BoundingBox bb, @NonNull Container parent, @NonNull Impl component);
 }

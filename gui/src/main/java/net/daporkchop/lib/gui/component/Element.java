@@ -16,10 +16,62 @@
 package net.daporkchop.lib.gui.component;
 
 import lombok.NonNull;
+import net.daporkchop.lib.gui.util.math.BoundingBox;
+
+import java.util.StringJoiner;
 
 /**
  * @author DaPorkchop_
  */
 public interface Element<Impl extends Element<Impl>> {
-    Impl setName(@NonNull String name);
+    String getName();
+
+    default String getFullName() {
+        StringJoiner joiner = new StringJoiner(".");
+        joiner.add(this.getName());
+        Container next = this.getParent();
+        while (next != null) {
+            joiner.add(next.getName());
+            next = next.getParent();
+        }
+        return joiner.toString();
+    }
+
+    BoundingBox getBounds();
+
+    /**
+     * Gets this element's parent
+     *
+     * @return this element's parent, or {@code null} if (and only if) this element is a {@link net.daporkchop.lib.gui.component.type.Window}
+     */
+    Container getParent();
+
+    /**
+     * Updates this element.
+     * <p>
+     * If this element is a {@link Container}, this will also recursively update all child elements.
+     */
+    Impl update();
+
+    //visual things
+    String getTooltip();
+
+    Impl setTooltip(@NonNull String tooltip);
+
+    boolean isVisible();
+
+    Impl setVisible(boolean state);
+
+    default Impl show() {
+        return this.setVisible(true);
+    }
+
+    default Impl hide() {
+        return this.setVisible(false);
+    }
+
+    /**
+     * Releases all resources associated with this element
+     */
+    void release();
 }

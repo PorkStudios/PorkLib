@@ -23,21 +23,11 @@ import net.daporkchop.lib.gui.component.type.Window;
  */
 public class GuiExample {
     public static void main(String... args) throws InterruptedException {
-        /*Window window = GuiSystem.swing().newWindow(0, 0, 512, 256);
-        window.setTitle("Example GUI").show();
-        Thread.sleep(1000L);
-        Button b = window.addButton("button1")
-                .setClickHandler(() -> System.out.println("Clicked!"))
-                .setText("Example Button")
-                .setTooltip("Check out my cool button!")
-                .setUpdater(BBUpdater.of(40.0d, 45.0d, 20.0d, 10.0d));*/
         Window window = null;
         Button button = null;
 
         button = button.onClick();
-        button = button.setName("");
 
         window = window.setTitle("");
-        window = window.setName("");
     }
 }

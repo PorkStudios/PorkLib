@@ -13,31 +13,14 @@
  *
  */
 
-package net.daporkchop.lib.gui.util.math;
+package net.daporkchop.lib.gui.component;
+
+import net.daporkchop.lib.gui.component.orientation.Orientation;
 
 /**
  * @author DaPorkchop_
  */
-public interface Constraint {
-    static Pos xy(int x, int y) {
-        return new Pos.Default(x, y);
-    }
-
-    static Size wh(int width, int height)   {
-        return new Size.Default(width, height);
-    }
-
-    static BoundingBox bb(int x, int y, int width, int height)  {
-        return new BoundingBox(x, y, width, height);
-    }
-
-    boolean hasXY();
-    boolean hasWH();
-
-    enum Type   {
-        X,
-        Y,
-        WIDTH,
-        HEIGHT
-    }
+public interface SubElement<Impl extends SubElement<Impl>> extends Element<Impl> {
+    Orientation getOrientation();
+    Impl setOrientation();
 }

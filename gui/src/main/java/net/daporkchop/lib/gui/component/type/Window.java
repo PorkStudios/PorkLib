@@ -17,10 +17,18 @@ package net.daporkchop.lib.gui.component.type;
 
 import lombok.NonNull;
 import net.daporkchop.lib.gui.component.Container;
+import net.daporkchop.lib.gui.util.event.EventManager;
 
 /**
  * @author DaPorkchop_
  */
 public interface Window extends Container<Window> {
     Window setTitle(@NonNull String title);
+
+    EventManager getEventManager();
+
+    @Override
+    default Container getParent() {
+        return null;
+    }
 }

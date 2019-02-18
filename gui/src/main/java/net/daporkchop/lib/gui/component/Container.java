@@ -15,11 +15,15 @@
 
 package net.daporkchop.lib.gui.component;
 
+import lombok.NonNull;
+
 import java.util.Collection;
 
 /**
  * @author DaPorkchop_
  */
 public interface Container<Impl extends Container<Impl>> extends Element<Impl> {
-    Collection<Element> getChildren();
+    Collection<SubElement> getChildren();
+
+    Impl add(@NonNull SubElement child);
 }

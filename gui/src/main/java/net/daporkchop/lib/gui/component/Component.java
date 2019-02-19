@@ -20,12 +20,19 @@ import net.daporkchop.lib.gui.component.capability.Enableable;
 import net.daporkchop.lib.gui.component.orientation.Orientation;
 import net.daporkchop.lib.gui.component.orientation.SimpleDynamicOrientation;
 import net.daporkchop.lib.gui.component.orientation.StaticOrientation;
+import net.daporkchop.lib.gui.component.type.Window;
 import net.daporkchop.lib.gui.util.HorizontalAlignment;
 import net.daporkchop.lib.gui.util.VerticalAlignment;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 import net.daporkchop.lib.gui.util.math.Constraint;
 
 /**
+ * An actual element in a GUI. Components may not be standalone, they must be held inside of
+ * a {@link Container}. Containers may also be nested inside each other by using {@link NestedContainer},
+ * which is also a component.
+ * <p>
+ * Components provide the actual content of the GUI, such as text, buttons, tick boxes, images, etc.
+ *
  * @author DaPorkchop_
  */
 @SuppressWarnings("unchecked")
@@ -36,25 +43,35 @@ public interface Component<Impl extends Component> extends Element<Impl>, Enable
     }
 
     Orientation<Impl> getOrientation();
+
+    default Impl setOrientation(@NonNull BoundingBox bounds) {
+        return (Impl) this.setOrientation(new StaticOrientation<>(bounds));
+    }
+
     Impl setOrientation(@NonNull Orientation<Impl> orientation);
 
-    default String getText()    {
+    Window getWindow();
+
+    default String getText() {
         return "";
     }
-    default Impl setText(@NonNull String text)  {
+
+    default Impl setText(@NonNull String text) {
         return (Impl) this;
     }
 
-    default VerticalAlignment getVerticalTextAlignment()    {
+    default VerticalAlignment getVerticalTextAlignment() {
         return VerticalAlignment.CENTER;
     }
+
     default Impl setVerticalTextAlignment(@NonNull VerticalAlignment alignment) {
         return (Impl) this;
     }
 
-    default HorizontalAlignment getHorizontalTextAlignment()    {
+    default HorizontalAlignment getHorizontalTextAlignment() {
         return HorizontalAlignment.CENTER;
     }
+
     default Impl setHorizontalTextAlignment(@NonNull HorizontalAlignment alignment) {
         return (Impl) this;
     }
@@ -64,11 +81,7 @@ public interface Component<Impl extends Component> extends Element<Impl>, Enable
         return (Impl) this.setOrientation(SimpleDynamicOrientation.of(x, y, width, height));
     }
 
-    default Impl setOrientation(@NonNull Constraint constraint)    {
+    default Impl setOrientation(@NonNull Constraint constraint) {
         return this.setOrientation(this.getBounds().set(constraint));
-    }
-
-    default Impl setOrientation(@NonNull BoundingBox bounds)    {
-        return (Impl) this.setOrientation(new StaticOrientation<>(bounds));
     }
 }

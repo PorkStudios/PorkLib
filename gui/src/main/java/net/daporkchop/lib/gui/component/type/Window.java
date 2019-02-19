@@ -34,6 +34,7 @@ import java.util.StringJoiner;
  */
 public interface Window extends Container<Window>, IconHolder<Window>, Resizable<Window> {
     String getTitle();
+
     Window setTitle(@NonNull String title);
 
     EventManager getEventManager();
@@ -51,13 +52,13 @@ public interface Window extends Container<Window>, IconHolder<Window>, Resizable
     //convenience methods
     @SuppressWarnings("unchecked")
     default <T extends Component> T getComponent(@NonNull String qualifiedName) {
-        if (qualifiedName.contains("."))    {
+        if (qualifiedName.contains(".")) {
             String[] split = qualifiedName.split(".");
             Component currentChild = null;
-            for (int i = 0; i < split.length; i++)  {
-                if (currentChild == null && i > 0)   {
+            for (int i = 0; i < split.length; i++) {
+                if (currentChild == null && i > 0) {
                     StringJoiner joiner = new StringJoiner(".");
-                    for (int j = 0; j <= i; j++)    {
+                    for (int j = 0; j <= i; j++) {
                         joiner.add(split[j]);
                     }
                     throw new IllegalArgumentException(String.format("Unable to locate element with name: %s", joiner.toString()));
@@ -66,7 +67,7 @@ public interface Window extends Container<Window>, IconHolder<Window>, Resizable
                     currentChild = this.getComponent(split[i]);
                 } else if (!(currentChild instanceof NestedContainer)) {
                     StringJoiner joiner = new StringJoiner(".");
-                    for (int j = 0; j <= i; j++)    {
+                    for (int j = 0; j <= i; j++) {
                         joiner.add(split[j]);
                     }
                     throw new IllegalStateException(String.format("Invalid element type at %s: expected %s but found %s!", joiner.toString(), NestedContainer.class.getCanonicalName(), currentChild.getClass().getCanonicalName()));
@@ -80,9 +81,22 @@ public interface Window extends Container<Window>, IconHolder<Window>, Resizable
         }
     }
 
+    default Window removeComponent(@NonNull String qualifiedName) {
+        return this.removeComponent(qualifiedName, true);
+    }
+
+    default Window removeComponent(@NonNull String qualifiedName, boolean update) {
+        if (qualifiedName.isEmpty()) {
+            throw new IllegalArgumentException("Cannot remove window!");
+        }
+        Component component = this.getComponent(qualifiedName);
+        component.getParent().removeChild(component.getName(), update);
+        return this;
+    }
+
     default Window setText(@NonNull String qualifiedName, String text) {
         Component component = this.getComponent(qualifiedName);
-        if (component == null)  {
+        if (component == null) {
             throw new IllegalArgumentException(String.format("Unknown component name: %s", qualifiedName));
         } else {
             component.setText(text);
@@ -92,11 +106,13 @@ public interface Window extends Container<Window>, IconHolder<Window>, Resizable
 
     default Window setTooltip(@NonNull String qualifiedName, String tooltip) {
         Component component = this.getComponent(qualifiedName);
-        if (component == null)  {
+        if (component == null) {
             throw new IllegalArgumentException(String.format("Unknown component name: %s", qualifiedName));
         } else {
             component.setTooltip(tooltip);
         }
         return this;
     }
+
+    //other
 }

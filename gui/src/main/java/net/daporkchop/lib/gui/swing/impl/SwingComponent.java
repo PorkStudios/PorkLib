@@ -15,12 +15,15 @@
 
 package net.daporkchop.lib.gui.swing.impl;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.orientation.Orientation;
+import net.daporkchop.lib.gui.component.type.Window;
+import net.daporkchop.lib.gui.swing.type.SwingWindow;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 
 import javax.swing.*;
@@ -34,12 +37,26 @@ import javax.swing.*;
 @SuppressWarnings("unchecked")
 public abstract class SwingComponent<Impl extends Component, Swing extends JComponent> extends SwingElement<Impl, Swing> implements Component<Impl> {
     protected Orientation<Impl> orientation;
-    @NonNull
-    protected SwingContainer parent;
+    protected IBasicSwingContainer parent;
+    @Setter(AccessLevel.PRIVATE)
+    protected SwingWindow window;
 
     public SwingComponent(String name, Swing swing) {
         super(name, swing);
         this.swing.setToolTipText("");
+    }
+
+    public Impl setParent(@NonNull IBasicSwingContainer parent)   {
+        if (this.parent != null)    {
+            throw new IllegalStateException("Parent already set!");
+        } else {
+            this.parent = parent;
+            while (parent.getParent() != null)  {
+                parent = (IBasicSwingContainer) parent.getParent();
+            }
+            this.window = (SwingWindow) parent;
+            return (Impl) this;
+        }
     }
 
     @Override

@@ -19,11 +19,8 @@ import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.Component;
-import net.daporkchop.lib.gui.component.type.Button;
-import net.daporkchop.lib.gui.component.type.Label;
-import net.daporkchop.lib.gui.swing.type.SwingButton;
-import net.daporkchop.lib.gui.swing.type.SwingLabel;
 
+import javax.swing.*;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,48 +30,10 @@ import java.util.Map;
  */
 @Getter
 @SuppressWarnings("unchecked")
-public abstract class SwingContainer<Impl extends Container, Swing extends java.awt.Container> extends SwingElement<Impl, Swing> implements Container<Impl> {
+public abstract class SwingContainer<Impl extends Container, Swing extends java.awt.Container> extends SwingElement<Impl, Swing> implements Container<Impl>, IBasicSwingContainer<Impl, Swing> {
     protected final Map<String, Component> children = Collections.synchronizedMap(new HashMap<>());
 
     public SwingContainer(String name, Swing swing) {
         super(name, swing);
-    }
-
-    @Override
-    public Impl addChild(@NonNull Component child, boolean update) {
-        if (!(child instanceof SwingComponent))    {
-            throw new IllegalArgumentException(String.format("Invalid child type! Expected %s but found %s!", SwingComponent.class.getCanonicalName(), child.getClass().getCanonicalName()));
-        }else if (this.children.containsKey(child.getName()))  {
-            throw new IllegalArgumentException(String.format("Child with name %s exists!", child.getName()));
-        }
-        SwingComponent swing = (SwingComponent) child;
-        this.children.put(child.getName(), swing.setParent(this));
-        this.swing.add(swing.swing);
-        return update ? this.update() : (Impl) this;
-    }
-
-    @Override
-    public Impl removeChild(@NonNull String name, boolean update) {
-        if (this.children.remove(name) == null) {
-            throw new IllegalArgumentException(String.format("No such child: %s", name));
-        } else {
-            return update ? this.update() : (Impl) this;
-        }
-    }
-
-    //componentadder functions
-
-    @Override
-    public Button button(@NonNull String name) {
-        SwingButton button = new SwingButton(name);
-        this.addChild(button);
-        return button;
-    }
-
-    @Override
-    public Label label(@NonNull String name) {
-        SwingLabel label = new SwingLabel(name);
-        this.addChild(label);
-        return label;
     }
 }

@@ -13,20 +13,17 @@
  *
  */
 
-package net.daporkchop.lib.gui.component.type;
+package net.daporkchop.lib.gui.component.type.container;
 
-import lombok.NonNull;
-import net.daporkchop.lib.gui.component.Component;
-import net.daporkchop.lib.gui.component.capability.IconHolder;
-import net.daporkchop.lib.gui.util.event.handler.ClickHandler;
+import net.daporkchop.lib.gui.component.NestedContainer;
 
 /**
- * A button can display text or an icon, and has a single click handler that is invoked when the
- * button is clicked.
+ * The simplest possible nested container. Adds no additional features, although when it's position is
+ * changed all children will be moved with it.
+ * <p>
+ * Useful as a dummy container inside of e.g. a tabbed pane.
  *
  * @author DaPorkchop_
  */
-public interface Button extends Component<Button>, IconHolder<Button> {
-    ClickHandler getClickHandler();
-    Button setClickHandler(@NonNull ClickHandler handler);
+public interface Panel extends NestedContainer<Panel> {
 }

@@ -28,7 +28,7 @@ import java.util.StringJoiner;
 public interface Element<Impl extends Element> {
     String getName();
 
-    default String getFullName() {
+    default String getQualifiedName() {
         StringJoiner joiner = new StringJoiner(".");
         joiner.add(this.getName());
         Container next = this.getParent();

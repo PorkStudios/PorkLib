@@ -13,42 +13,38 @@
  *
  */
 
-package net.daporkchop.lib.gui.component;
+package net.daporkchop.lib.gui.swing.impl;
 
-import lombok.NonNull;
-import net.daporkchop.lib.gui.component.capability.ComponentAdder;
+import lombok.Getter;
+import net.daporkchop.lib.gui.component.Component;
+import net.daporkchop.lib.gui.component.NestedContainer;
+import net.daporkchop.lib.gui.util.math.BoundingBox;
 
+import javax.swing.*;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
- * An element that can store multiple {@link Component}s as children.
- * <p>
- * Note: if you want to make your own implementation of {@link Container}, you should probably implement
- * {@link NestedContainer} instead unless you know what you're doing.
- *
  * @author DaPorkchop_
  */
-public interface Container<Impl extends Container> extends Element<Impl>, ComponentAdder<Impl> {
-    Map<String, Component> getChildren();
+@Getter
+public abstract class SwingNestedContainer<Impl extends NestedContainer, Swing extends JComponent> extends SwingComponent<Impl, Swing> implements NestedContainer<Impl>, IBasicSwingContainer<Impl, Swing> {
+    protected final Map<String, Component> children = Collections.synchronizedMap(new HashMap<>());
 
-    default Impl addChild(@NonNull Component child) {
-        return this.addChild(child, true);
+    public SwingNestedContainer(String name, Swing swing) {
+        super(name, swing);
     }
 
-    Impl addChild(@NonNull Component child, boolean update);
-
-    @SuppressWarnings("unchecked")
-    default <T extends Component> T getChild(@NonNull String name) {
-        return (T) this.getChildren().get(name);
+    @Override
+    public Impl update() {
+        Impl toReturn = super.update();
+        this.children.forEach((name, element) -> {
+            element.update();
+            BoundingBox updated = element.getBounds();
+            java.awt.Component swing = ((SwingComponent) element).getSwing();
+            swing.setBounds(updated.getX(), updated.getY(), updated.getWidth(), updated.getHeight());
+        });
+        return toReturn;
     }
-
-    default int countChildren() {
-        return this.getChildren().size();
-    }
-
-    default Impl removeChild(@NonNull String name) {
-        return this.removeChild(name, true);
-    }
-
-    Impl removeChild(@NonNull String name, boolean update);
 }

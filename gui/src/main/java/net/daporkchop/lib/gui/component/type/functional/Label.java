@@ -13,42 +13,14 @@
  *
  */
 
-package net.daporkchop.lib.gui.component;
+package net.daporkchop.lib.gui.component.type.functional;
 
-import lombok.NonNull;
-import net.daporkchop.lib.gui.component.capability.ComponentAdder;
-
-import java.util.Map;
+import net.daporkchop.lib.gui.component.Component;
 
 /**
- * An element that can store multiple {@link Component}s as children.
- * <p>
- * Note: if you want to make your own implementation of {@link Container}, you should probably implement
- * {@link NestedContainer} instead unless you know what you're doing.
+ * The simplest possible GUI component. A label can display text, nothing more.
  *
  * @author DaPorkchop_
  */
-public interface Container<Impl extends Container> extends Element<Impl>, ComponentAdder<Impl> {
-    Map<String, Component> getChildren();
-
-    default Impl addChild(@NonNull Component child) {
-        return this.addChild(child, true);
-    }
-
-    Impl addChild(@NonNull Component child, boolean update);
-
-    @SuppressWarnings("unchecked")
-    default <T extends Component> T getChild(@NonNull String name) {
-        return (T) this.getChildren().get(name);
-    }
-
-    default int countChildren() {
-        return this.getChildren().size();
-    }
-
-    default Impl removeChild(@NonNull String name) {
-        return this.removeChild(name, true);
-    }
-
-    Impl removeChild(@NonNull String name, boolean update);
+public interface Label extends Component<Label> {
 }

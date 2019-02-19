@@ -16,10 +16,14 @@
 package net.daporkchop.lib.gui.component.type;
 
 import lombok.NonNull;
+import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.Container;
+import net.daporkchop.lib.gui.component.NestedContainer;
 import net.daporkchop.lib.gui.component.capability.IconHolder;
 import net.daporkchop.lib.gui.component.capability.Resizable;
 import net.daporkchop.lib.gui.util.event.EventManager;
+
+import java.util.StringJoiner;
 
 /**
  * The root element of any GUI. A window contains every component in the gui, and is also the only valid
@@ -42,5 +46,57 @@ public interface Window extends Container<Window>, IconHolder<Window>, Resizable
     @Override
     default Window considerUpdate() {
         return this.isVisible() ? this.update() : this;
+    }
+
+    //convenience methods
+    @SuppressWarnings("unchecked")
+    default <T extends Component> T getComponent(@NonNull String qualifiedName) {
+        if (qualifiedName.contains("."))    {
+            String[] split = qualifiedName.split(".");
+            Component currentChild = null;
+            for (int i = 0; i < split.length; i++)  {
+                if (currentChild == null && i > 0)   {
+                    StringJoiner joiner = new StringJoiner(".");
+                    for (int j = 0; j <= i; j++)    {
+                        joiner.add(split[j]);
+                    }
+                    throw new IllegalArgumentException(String.format("Unable to locate element with name: %s", joiner.toString()));
+                }
+                if (i == 0) {
+                    currentChild = this.getComponent(split[i]);
+                } else if (!(currentChild instanceof NestedContainer)) {
+                    StringJoiner joiner = new StringJoiner(".");
+                    for (int j = 0; j <= i; j++)    {
+                        joiner.add(split[j]);
+                    }
+                    throw new IllegalStateException(String.format("Invalid element type at %s: expected %s but found %s!", joiner.toString(), NestedContainer.class.getCanonicalName(), currentChild.getClass().getCanonicalName()));
+                } else {
+                    currentChild = ((NestedContainer) currentChild).getChild(split[i]);
+                }
+            }
+            return (T) currentChild;
+        } else {
+            return this.getChild(qualifiedName);
+        }
+    }
+
+    default Window setText(@NonNull String qualifiedName, String text) {
+        Component component = this.getComponent(qualifiedName);
+        if (component == null)  {
+            throw new IllegalArgumentException(String.format("Unknown component name: %s", qualifiedName));
+        } else {
+            component.setText(text);
+        }
+        return this;
+    }
+
+    default Window setTooltip(@NonNull String qualifiedName, String tooltip) {
+        Component component = this.getComponent(qualifiedName);
+        if (component == null)  {
+            throw new IllegalArgumentException(String.format("Unknown component name: %s", qualifiedName));
+        } else {
+            component.setTooltip(tooltip);
+        }
+        return this;
     }
 }

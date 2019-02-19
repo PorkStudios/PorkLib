@@ -13,28 +13,15 @@
  *
  */
 
-package gui;
-
-import net.daporkchop.lib.gui.GuiSystem;
-import net.daporkchop.lib.gui.util.HorizontalAlignment;
-import net.daporkchop.lib.gui.util.VerticalAlignment;
+package net.daporkchop.lib.gui.component;
 
 /**
+ * A container that is also a component. Allows {@link net.daporkchop.lib.gui.component.type.Window} to have
+ * {@link Container} capabilities, while still having subcontainers qualify as {@link Component}s.
+ * <p>
+ * If you want to implement your own container, you implement from this, not directly from {@link Container}.
+ *
  * @author DaPorkchop_
  */
-public class GuiExample {
-    public static void main(String... args) {
-        GuiSystem.swing().newWindow(64, 64, 512, 256)
-                .setTitle("Example GUI")
-                .button("button1", button -> button.setOrientation(0.3d, 0.45d, 0.4d, 0.1d)
-                        .setText("Example Button!")
-                        .setTooltip("This is a tooltip that will be shown when hovering the mouse over the button.")
-                        .setHorizontalTextAlignment(HorizontalAlignment.RIGHT).setVerticalTextAlignment(VerticalAlignment.TOP))
-                //.button("button2", button -> button.setOrientation(0, 0.0d, 0.1d, 0.1d)
-                //        .setClickHandler((mouseButton, x, y) -> System.out.printf("Mouse button %d clicked at (%d,%d)\n", mouseButton, x, y)))
-                .label("label1", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", label -> label
-                        .setOrientation(0.5d, 0, 0.5d, 0.1d)
-                        .setTooltip("This is a label. Labels can only display plain text."))
-                .show();
-    }
+public interface NestedContainer<Impl extends NestedContainer> extends Container<Impl>, Component<Impl> {
 }

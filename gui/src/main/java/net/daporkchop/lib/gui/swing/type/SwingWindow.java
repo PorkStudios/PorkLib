@@ -101,12 +101,7 @@ public class SwingWindow extends SwingContainer<Window, JFrame> implements Windo
         if (this.oldDimensions == null || !this.oldDimensions.equals(this.bounds)) {
             this.oldDimensions = this.bounds;
         }
-        this.children.forEach((name, element) -> {
-            element.update();
-            BoundingBox updated = element.getBounds();
-            Component swing = ((SwingComponent) element).getSwing();
-            swing.setBounds(updated.getX(), updated.getY(), updated.getWidth(), updated.getHeight());
-        });
+        this.children.forEach((name, element) -> element.update());
         this.swing.revalidate();
         return this;
     }

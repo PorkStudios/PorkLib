@@ -26,5 +26,7 @@ import javax.swing.*;
 public class SwingPanel extends SwingNestedContainer<Panel, JPanel> implements Panel {
     public SwingPanel(String name) {
         super(name, new JPanel());
+
+        this.swing.setLayout(null);
     }
 }

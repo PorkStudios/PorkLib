@@ -39,12 +39,7 @@ public abstract class SwingNestedContainer<Impl extends NestedContainer, Swing e
     @Override
     public Impl update() {
         Impl toReturn = super.update();
-        this.children.forEach((name, element) -> {
-            element.update();
-            BoundingBox updated = element.getBounds();
-            java.awt.Component swing = ((SwingComponent) element).getSwing();
-            swing.setBounds(updated.getX(), updated.getY(), updated.getWidth(), updated.getHeight());
-        });
+        this.children.forEach((name, element) -> element.update());
         return toReturn;
     }
 }

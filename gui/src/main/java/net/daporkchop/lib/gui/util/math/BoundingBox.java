@@ -17,6 +17,7 @@ package net.daporkchop.lib.gui.util.math;
 
 import lombok.Data;
 import lombok.NonNull;
+import lombok.ToString;
 
 /**
  * A 2D bounding box
@@ -24,6 +25,7 @@ import lombok.NonNull;
  * @author DaPorkchop_
  */
 @Data
+@ToString
 public class BoundingBox implements Pos<BoundingBox>, Size<BoundingBox> {
     protected final int x;
     protected final int y;

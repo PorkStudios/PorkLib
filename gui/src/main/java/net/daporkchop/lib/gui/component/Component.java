@@ -20,6 +20,8 @@ import net.daporkchop.lib.gui.component.capability.Enableable;
 import net.daporkchop.lib.gui.component.orientation.Orientation;
 import net.daporkchop.lib.gui.component.orientation.SimpleDynamicOrientation;
 import net.daporkchop.lib.gui.component.orientation.StaticOrientation;
+import net.daporkchop.lib.gui.util.HorizontalAlignment;
+import net.daporkchop.lib.gui.util.VerticalAlignment;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 import net.daporkchop.lib.gui.util.math.Constraint;
 
@@ -40,6 +42,20 @@ public interface Component<Impl extends Component> extends Element<Impl>, Enable
         return "";
     }
     default Impl setText(@NonNull String text)  {
+        return (Impl) this;
+    }
+
+    default VerticalAlignment getVerticalTextAlignment()    {
+        return VerticalAlignment.CENTER;
+    }
+    default Impl setVerticalTextAlignment(@NonNull VerticalAlignment alignment) {
+        return (Impl) this;
+    }
+
+    default HorizontalAlignment getHorizontalTextAlignment()    {
+        return HorizontalAlignment.CENTER;
+    }
+    default Impl setHorizontalTextAlignment(@NonNull HorizontalAlignment alignment) {
         return (Impl) this;
     }
 

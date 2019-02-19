@@ -20,7 +20,10 @@ import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.gui.component.type.Button;
+import net.daporkchop.lib.gui.swing.SwingTextAlignment;
 import net.daporkchop.lib.gui.swing.impl.SwingComponent;
+import net.daporkchop.lib.gui.util.HorizontalAlignment;
+import net.daporkchop.lib.gui.util.VerticalAlignment;
 import net.daporkchop.lib.gui.util.event.handler.ClickHandler;
 
 import javax.swing.*;
@@ -35,7 +38,8 @@ import java.awt.event.MouseListener;
 @Accessors(chain = true)
 public class SwingButton extends SwingComponent<Button, JButton> implements Button {
     @NonNull
-    protected ClickHandler clickHandler = (button, x, y) -> {};
+    protected ClickHandler clickHandler = (button, x, y) -> {
+    };
 
     public SwingButton(String name) {
         super(name, new JButton());
@@ -50,13 +54,35 @@ public class SwingButton extends SwingComponent<Button, JButton> implements Butt
 
     @Override
     public SwingButton setText(@NonNull String text) {
-        if (!this.getText().equals(text))   {
+        if (!this.getText().equals(text)) {
             this.swing.setText(text);
         }
         return this;
     }
 
-    protected class SwingButtonMouseListener implements MouseListener   {
+    @Override
+    public VerticalAlignment getVerticalTextAlignment() {
+        return SwingTextAlignment.fromSwingVertical(this.swing.getVerticalAlignment());
+    }
+
+    @Override
+    public SwingButton setVerticalTextAlignment(@NonNull VerticalAlignment alignment) {
+        this.swing.setVerticalAlignment(SwingTextAlignment.toSwingVertical(alignment));
+        return this;
+    }
+
+    @Override
+    public HorizontalAlignment getHorizontalTextAlignment() {
+        return SwingTextAlignment.fromSwingHorizontal(this.swing.getHorizontalAlignment());
+    }
+
+    @Override
+    public SwingButton setHorizontalTextAlignment(@NonNull HorizontalAlignment alignment) {
+        this.swing.setHorizontalAlignment(SwingTextAlignment.toSwingHorizontal(alignment));
+        return this;
+    }
+
+    protected class SwingButtonMouseListener implements MouseListener {
         @Override
         public void mouseClicked(MouseEvent e) {
             SwingButton.this.clickHandler.onClick(e.getButton(), e.getX(), e.getY());

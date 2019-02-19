@@ -18,7 +18,10 @@ package net.daporkchop.lib.gui.swing.type;
 import lombok.NonNull;
 import net.daporkchop.lib.gui.component.type.Button;
 import net.daporkchop.lib.gui.component.type.Label;
+import net.daporkchop.lib.gui.swing.SwingTextAlignment;
 import net.daporkchop.lib.gui.swing.impl.SwingComponent;
+import net.daporkchop.lib.gui.util.HorizontalAlignment;
+import net.daporkchop.lib.gui.util.VerticalAlignment;
 
 import javax.swing.*;
 
@@ -40,6 +43,28 @@ public class SwingLabel extends SwingComponent<Label, JLabel> implements Label {
         if (!this.getText().equals(text))   {
             this.swing.setText(text);
         }
+        return this;
+    }
+
+    @Override
+    public VerticalAlignment getVerticalTextAlignment() {
+        return SwingTextAlignment.fromSwingVertical(this.swing.getVerticalAlignment());
+    }
+
+    @Override
+    public SwingLabel setVerticalTextAlignment(@NonNull VerticalAlignment alignment) {
+        this.swing.setVerticalAlignment(SwingTextAlignment.toSwingVertical(alignment));
+        return this;
+    }
+
+    @Override
+    public HorizontalAlignment getHorizontalTextAlignment() {
+        return SwingTextAlignment.fromSwingHorizontal(this.swing.getHorizontalAlignment());
+    }
+
+    @Override
+    public SwingLabel setHorizontalTextAlignment(@NonNull HorizontalAlignment alignment) {
+        this.swing.setHorizontalAlignment(SwingTextAlignment.toSwingHorizontal(alignment));
         return this;
     }
 }

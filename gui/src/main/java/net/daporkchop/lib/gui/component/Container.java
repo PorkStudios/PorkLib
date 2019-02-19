@@ -21,6 +21,11 @@ import net.daporkchop.lib.gui.component.capability.ComponentAdder;
 import java.util.Map;
 
 /**
+ * An element that can store multiple {@link Component}s as children.
+ * <p>
+ * Note: if you want to make your own implementation of {@link Container}, you should probably implement
+ * {@link NestedContainer} instead unless you know what you're doing.
+ *
  * @author DaPorkchop_
  */
 public interface Container<Impl extends Container> extends Element<Impl>, ComponentAdder<Impl> {
@@ -33,7 +38,7 @@ public interface Container<Impl extends Container> extends Element<Impl>, Compon
     Impl addChild(@NonNull Component child, boolean update);
 
     @SuppressWarnings("unchecked")
-    default <T extends Element> T getChild(@NonNull String name) {
+    default <T extends Component> T getChild(@NonNull String name) {
         return (T) this.getChildren().get(name);
     }
 

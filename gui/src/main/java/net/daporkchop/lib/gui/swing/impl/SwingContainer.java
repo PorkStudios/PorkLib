@@ -20,7 +20,9 @@ import lombok.NonNull;
 import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.type.Button;
+import net.daporkchop.lib.gui.component.type.Label;
 import net.daporkchop.lib.gui.swing.type.SwingButton;
+import net.daporkchop.lib.gui.swing.type.SwingLabel;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -60,10 +62,19 @@ public abstract class SwingContainer<Impl extends Container, Swing extends java.
         }
     }
 
+    //componentadder functions
+
     @Override
     public Button button(@NonNull String name) {
         SwingButton button = new SwingButton(name);
         this.addChild(button);
         return button;
+    }
+
+    @Override
+    public Label label(@NonNull String name) {
+        SwingLabel label = new SwingLabel(name);
+        this.addChild(label);
+        return label;
     }
 }

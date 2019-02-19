@@ -13,25 +13,13 @@
  *
  */
 
-package gui;
-
-import net.daporkchop.lib.gui.GuiSystem;
+package net.daporkchop.lib.gui.util;
 
 /**
  * @author DaPorkchop_
  */
-public class GuiExample {
-    public static void main(String... args) throws InterruptedException {
-        GuiSystem.swing().newWindow(64, 64, 512, 256)
-                .setTitle("Example GUI")
-                .show()
-                .button("button1", button -> button.setOrientation(0.3d, 0.45d, 0.4d, 0.1d)
-                        .setText("Example Button!")
-                        .setTooltip("This is a tooltip that will be shown when hovering the mouse over the button."))
-                //.button("button2", button -> button.setOrientation(0, 0.0d, 0.1d, 0.1d)
-                //        .setClickHandler((mouseButton, x, y) -> System.out.printf("Mouse button %d clicked at (%d,%d)\n", mouseButton, x, y)))
-                .label("label1", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", label -> label
-                        .setOrientation(0.5d, 0, 0.5d, 0.1d)
-                        .setTooltip("This is a label. Labels can only display plain text."));
-    }
+public enum HorizontalAlignment {
+    LEFT,
+    RIGHT,
+    CENTER;
 }

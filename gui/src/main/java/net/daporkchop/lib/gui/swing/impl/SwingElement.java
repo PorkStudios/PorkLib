@@ -20,13 +20,14 @@ import lombok.NonNull;
 import net.daporkchop.lib.gui.component.Element;
 import net.daporkchop.lib.gui.component.impl.AbstractElement;
 
+import javax.swing.*;
 import java.awt.*;
 
 /**
  * @author DaPorkchop_
  */
 @Getter
-public abstract class SwingElement<Impl extends Element, Swing extends Component> extends AbstractElement<Impl> {
+public abstract class SwingElement<Impl extends Element, Swing extends java.awt.Component> extends AbstractElement<Impl> {
     protected final Swing swing;
 
     public SwingElement(String name, @NonNull Swing swing) {

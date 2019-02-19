@@ -35,6 +35,9 @@ public class GuiExample {
                 .label("label1", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", label -> label
                         .setOrientation(0.5d, 0, 0.5d, 0.1d)
                         .setTooltip("This is a label. Labels can only display plain text."))
+                .panel("panel1", panel -> panel
+                        .setOrientation(0.25d, 0.25d, 0.5d, 0.5d)
+                        .setTooltip("This panel is currently empty."))
                 .show();
     }
 }

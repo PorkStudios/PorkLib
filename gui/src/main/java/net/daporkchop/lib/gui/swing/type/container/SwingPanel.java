@@ -13,51 +13,18 @@
  *
  */
 
-package net.daporkchop.lib.gui.component.capability;
+package net.daporkchop.lib.gui.swing.type.container;
 
-import lombok.NonNull;
 import net.daporkchop.lib.gui.component.type.container.Panel;
-import net.daporkchop.lib.gui.component.type.functional.Button;
-import net.daporkchop.lib.gui.component.type.functional.Label;
+import net.daporkchop.lib.gui.swing.impl.SwingNestedContainer;
 
-import java.util.function.Consumer;
+import javax.swing.*;
 
 /**
  * @author DaPorkchop_
  */
-@SuppressWarnings("unchecked")
-public interface ComponentAdder<Impl> {
-    Button button(@NonNull String name);
-
-    default Impl button(@NonNull String name, @NonNull Consumer<Button> initializer)    {
-        Button button = this.button(name);
-        initializer.accept(button);
-        return (Impl) this;
-    }
-    
-    Label label(@NonNull String name);
-
-    default Impl label(@NonNull String name, @NonNull Consumer<Label> initializer)    {
-        Label label = this.label(name);
-        initializer.accept(label);
-        return (Impl) this;
-    }
-
-    default Label label(@NonNull String name, @NonNull String text)    {
-        return this.label(name).setText(text);
-    }
-
-    default Impl label(@NonNull String name, @NonNull String text, @NonNull Consumer<Label> initializer)    {
-        Label label = this.label(name).setText(text);
-        initializer.accept(label);
-        return (Impl) this;
-    }
-
-    Panel panel(@NonNull String name);
-
-    default Impl panel(@NonNull String name, @NonNull Consumer<Panel> initializer)    {
-        Panel panel = this.panel(name);
-        initializer.accept(panel);
-        return (Impl) this;
+public class SwingPanel extends SwingNestedContainer<Panel, JPanel> implements Panel {
+    public SwingPanel(String name) {
+        super(name, new JPanel());
     }
 }

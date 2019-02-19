@@ -13,14 +13,20 @@
  *
  */
 
-package net.daporkchop.lib.gui.component.type;
+package net.daporkchop.lib.gui.component.type.functional;
 
+import lombok.NonNull;
 import net.daporkchop.lib.gui.component.Component;
+import net.daporkchop.lib.gui.component.capability.IconHolder;
+import net.daporkchop.lib.gui.util.event.handler.ClickHandler;
 
 /**
- * The simplest possible GUI component. A label can display text, nothing more.
+ * A button can display text or an icon, and has a single click handler that is invoked when the
+ * button is clicked.
  *
  * @author DaPorkchop_
  */
-public interface Label extends Component<Label> {
+public interface Button extends Component<Button>, IconHolder<Button> {
+    ClickHandler getClickHandler();
+    Button setClickHandler(@NonNull ClickHandler handler);
 }

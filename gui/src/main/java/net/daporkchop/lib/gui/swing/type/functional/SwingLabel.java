@@ -13,38 +13,23 @@
  *
  */
 
-package net.daporkchop.lib.gui.swing.type;
+package net.daporkchop.lib.gui.swing.type.functional;
 
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.gui.component.type.Button;
+import net.daporkchop.lib.gui.component.type.functional.Label;
 import net.daporkchop.lib.gui.swing.SwingTextAlignment;
 import net.daporkchop.lib.gui.swing.impl.SwingComponent;
 import net.daporkchop.lib.gui.util.HorizontalAlignment;
 import net.daporkchop.lib.gui.util.VerticalAlignment;
-import net.daporkchop.lib.gui.util.event.handler.ClickHandler;
 
 import javax.swing.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 
 /**
  * @author DaPorkchop_
  */
-@Getter
-@Setter
-@Accessors(chain = true)
-public class SwingButton extends SwingComponent<Button, JButton> implements Button {
-    @NonNull
-    protected ClickHandler clickHandler = (button, x, y) -> {
-    };
-
-    public SwingButton(String name) {
-        super(name, new JButton());
-
-        this.swing.addMouseListener(new SwingButtonMouseListener());
+public class SwingLabel extends SwingComponent<Label, JLabel> implements Label {
+    public SwingLabel(String name) {
+        super(name, new JLabel());
     }
 
     @Override
@@ -53,8 +38,8 @@ public class SwingButton extends SwingComponent<Button, JButton> implements Butt
     }
 
     @Override
-    public SwingButton setText(@NonNull String text) {
-        if (!this.getText().equals(text)) {
+    public SwingLabel setText(@NonNull String text) {
+        if (!this.getText().equals(text))   {
             this.swing.setText(text);
         }
         return this;
@@ -66,7 +51,7 @@ public class SwingButton extends SwingComponent<Button, JButton> implements Butt
     }
 
     @Override
-    public SwingButton setVerticalTextAlignment(@NonNull VerticalAlignment alignment) {
+    public SwingLabel setVerticalTextAlignment(@NonNull VerticalAlignment alignment) {
         this.swing.setVerticalAlignment(SwingTextAlignment.toSwingVertical(alignment));
         return this;
     }
@@ -77,31 +62,8 @@ public class SwingButton extends SwingComponent<Button, JButton> implements Butt
     }
 
     @Override
-    public SwingButton setHorizontalTextAlignment(@NonNull HorizontalAlignment alignment) {
+    public SwingLabel setHorizontalTextAlignment(@NonNull HorizontalAlignment alignment) {
         this.swing.setHorizontalAlignment(SwingTextAlignment.toSwingHorizontal(alignment));
         return this;
-    }
-
-    protected class SwingButtonMouseListener implements MouseListener {
-        @Override
-        public void mouseClicked(MouseEvent e) {
-            SwingButton.this.clickHandler.onClick(e.getButton(), e.getX(), e.getY());
-        }
-
-        @Override
-        public void mousePressed(MouseEvent e) {
-        }
-
-        @Override
-        public void mouseReleased(MouseEvent e) {
-        }
-
-        @Override
-        public void mouseEntered(MouseEvent e) {
-        }
-
-        @Override
-        public void mouseExited(MouseEvent e) {
-        }
     }
 }

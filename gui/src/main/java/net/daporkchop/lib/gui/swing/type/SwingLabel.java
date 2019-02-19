@@ -15,6 +15,8 @@
 
 package net.daporkchop.lib.gui.swing.type;
 
+import lombok.NonNull;
+import net.daporkchop.lib.gui.component.type.Button;
 import net.daporkchop.lib.gui.component.type.Label;
 import net.daporkchop.lib.gui.swing.impl.SwingComponent;
 
@@ -26,5 +28,18 @@ import javax.swing.*;
 public class SwingLabel extends SwingComponent<Label, JLabel> implements Label {
     public SwingLabel(String name) {
         super(name, new JLabel());
+    }
+
+    @Override
+    public String getText() {
+        return this.swing.getText();
+    }
+
+    @Override
+    public SwingLabel setText(@NonNull String text) {
+        if (!this.getText().equals(text))   {
+            this.swing.setText(text);
+        }
+        return this;
     }
 }

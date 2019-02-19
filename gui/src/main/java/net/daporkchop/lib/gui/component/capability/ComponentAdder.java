@@ -17,6 +17,7 @@ package net.daporkchop.lib.gui.component.capability;
 
 import lombok.NonNull;
 import net.daporkchop.lib.gui.component.type.Button;
+import net.daporkchop.lib.gui.component.type.Label;
 
 import java.util.function.Consumer;
 
@@ -30,6 +31,24 @@ public interface ComponentAdder<Impl> {
     default Impl button(@NonNull String name, @NonNull Consumer<Button> initializer)    {
         Button button = this.button(name);
         initializer.accept(button);
+        return (Impl) this;
+    }
+    
+    Label label(@NonNull String name);
+
+    default Impl label(@NonNull String name, @NonNull Consumer<Label> initializer)    {
+        Label label = this.label(name);
+        initializer.accept(label);
+        return (Impl) this;
+    }
+
+    default Label label(@NonNull String name, @NonNull String text)    {
+        return this.label(name).setText(text);
+    }
+
+    default Impl label(@NonNull String name, @NonNull String text, @NonNull Consumer<Label> initializer)    {
+        Label label = this.label(name).setText(text);
+        initializer.accept(label);
         return (Impl) this;
     }
 }

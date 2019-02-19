@@ -49,7 +49,7 @@ public class SwingButton extends SwingComponent<Button, JButton> implements Butt
     }
 
     @Override
-    public Button setText(@NonNull String text) {
+    public SwingButton setText(@NonNull String text) {
         if (!this.getText().equals(text))   {
             this.swing.setText(text);
         }

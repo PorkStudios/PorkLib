@@ -53,7 +53,7 @@ public interface Window extends Container<Window>, IconHolder<Window>, Resizable
     @SuppressWarnings("unchecked")
     default <T extends Component> T getComponent(@NonNull String qualifiedName) {
         if (qualifiedName.contains(".")) {
-            String[] split = qualifiedName.split(".");
+            String[] split = qualifiedName.split("\\.");
             Component currentChild = null;
             for (int i = 0; i < split.length; i++) {
                 if (currentChild == null && i > 0) {

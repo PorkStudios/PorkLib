@@ -30,14 +30,20 @@ public class GuiExample {
                         .setText("Example Button!")
                         .setTooltip("This is a tooltip that will be shown when hovering the mouse over the button.")
                         .setHorizontalTextAlignment(HorizontalAlignment.RIGHT).setVerticalTextAlignment(VerticalAlignment.TOP))
-                //.button("button2", button -> button.setOrientation(0, 0.0d, 0.1d, 0.1d)
-                //        .setClickHandler((mouseButton, x, y) -> System.out.printf("Mouse button %d clicked at (%d,%d)\n", mouseButton, x, y)))
+                .button("button2", button -> button.setOrientation(0, 0.0d, 0.1d, 0.1d)
+                        .setClickHandler((mouseButton, x, y) -> System.out.printf("Bounds: %s\n", button
+                                .getWindow()
+                                .getComponent("panel1.button2")
+                                .getBounds())))
                 .label("label1", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", label -> label
                         .setOrientation(0.5d, 0, 0.5d, 0.1d)
                         .setTooltip("This is a label. Labels can only display plain text."))
                 .panel("panel1", panel -> panel
                         .setOrientation(0.25d, 0.25d, 0.5d, 0.5d)
-                        .setTooltip("This panel is currently empty."))
+                        .setTooltip("This panel is currently empty.")
+                        .button("button1", button -> button.setOrientation(0, 0, 0.5d, 0.2d))
+                        .button("button2", button -> button.setOrientation(0.5d, 0.2d, 0.5d, 0.2d))
+                        .button("button3", button -> button.setOrientation(0.5d, 0.4d, 1.0d, 0.2d)))
                 .show();
     }
 }

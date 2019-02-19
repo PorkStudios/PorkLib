@@ -17,20 +17,20 @@ package net.daporkchop.lib.gui.component.orientation;
 
 import lombok.NonNull;
 import net.daporkchop.lib.gui.component.Container;
-import net.daporkchop.lib.gui.component.SubElement;
+import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 
 import static net.daporkchop.lib.math.primitive.PMath.floorI;
 
 /**
  * TODO: come up with a better name for this class
- * The {@link Orientation} of a {@link net.daporkchop.lib.gui.component.SubElement} handles updating the
+ * The {@link Orientation} of a {@link Component} handles updating the
  * position and size of the sub-element when it's updated.
  *
  * @author DaPorkchop_
  */
 @FunctionalInterface
-public interface Orientation<Impl extends SubElement> {
+public interface Orientation<Impl extends Component> {
     /**
      * Recalculates the bounding box of the component
      *

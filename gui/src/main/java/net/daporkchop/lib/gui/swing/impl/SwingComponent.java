@@ -19,7 +19,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.gui.component.SubElement;
+import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.orientation.Orientation;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 
@@ -32,12 +32,12 @@ import javax.swing.*;
 @Setter
 @Accessors(chain = true)
 @SuppressWarnings("unchecked")
-public abstract class SwingSubElement<Impl extends SubElement, Swing extends JComponent> extends SwingElement<Impl, Swing> implements SubElement<Impl> {
+public abstract class SwingComponent<Impl extends Component, Swing extends JComponent> extends SwingElement<Impl, Swing> implements Component<Impl> {
     protected Orientation<Impl> orientation;
     @NonNull
     protected SwingContainer parent;
 
-    public SwingSubElement(String name, Swing swing) {
+    public SwingComponent(String name, Swing swing) {
         super(name, swing);
         this.swing.setToolTipText("");
     }

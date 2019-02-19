@@ -20,6 +20,6 @@ package net.daporkchop.lib.gui.component.capability;
  *
  * @author DaPorkchop_
  */
-public interface IconHolder {
+public interface IconHolder<Impl> {
     //TODO: custom icon class
 }

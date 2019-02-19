@@ -17,17 +17,18 @@ package net.daporkchop.lib.gui.component.type;
 
 import lombok.NonNull;
 import net.daporkchop.lib.gui.component.Container;
-import net.daporkchop.lib.gui.component.SubElement;
-import net.daporkchop.lib.gui.component.capability.ComponentAdder;
 import net.daporkchop.lib.gui.component.capability.IconHolder;
 import net.daporkchop.lib.gui.component.capability.Resizable;
 import net.daporkchop.lib.gui.util.event.EventManager;
-import net.daporkchop.lib.gui.util.math.BoundingBox;
 
 /**
+ * The root element of any GUI. A window contains every component in the gui, and is also the only valid
+ * implementation of {@link net.daporkchop.lib.gui.component.Element} that doesn't inherit from
+ * {@link net.daporkchop.lib.gui.component.Component}.
+ *
  * @author DaPorkchop_
  */
-public interface Window extends Container<Window>, IconHolder, Resizable<Window> {
+public interface Window extends Container<Window>, IconHolder<Window>, Resizable<Window> {
     String getTitle();
     Window setTitle(@NonNull String title);
 

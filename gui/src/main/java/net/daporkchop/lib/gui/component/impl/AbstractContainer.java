@@ -18,8 +18,7 @@ package net.daporkchop.lib.gui.component.impl;
 import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.gui.component.Container;
-import net.daporkchop.lib.gui.component.Element;
-import net.daporkchop.lib.gui.component.SubElement;
+import net.daporkchop.lib.gui.component.Component;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -31,14 +30,14 @@ import java.util.Map;
 @Getter
 @SuppressWarnings("unchecked")
 public abstract class AbstractContainer<Impl extends AbstractContainer> extends AbstractElement<Impl> implements Container<Impl> {
-    protected final Map<String, SubElement> children = Collections.synchronizedMap(new HashMap<>());
+    protected final Map<String, Component> children = Collections.synchronizedMap(new HashMap<>());
 
     public AbstractContainer(String name) {
         super(name);
     }
 
     @Override
-    public Impl addChild(@NonNull SubElement child, boolean update) {
+    public Impl addChild(@NonNull Component child, boolean update) {
         this.children.put(child.getName(), child);
         return update ? this.update() : (Impl) this;
     }

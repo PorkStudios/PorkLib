@@ -27,7 +27,7 @@ import net.daporkchop.lib.gui.util.math.Constraint;
  * @author DaPorkchop_
  */
 @SuppressWarnings("unchecked")
-public interface SubElement<Impl extends SubElement> extends Element<Impl>, Enableable<Impl> {
+public interface Component<Impl extends Component> extends Element<Impl>, Enableable<Impl> {
     @Override
     default Impl setBounds(@NonNull BoundingBox bounds) {
         return this.setOrientation(bounds);

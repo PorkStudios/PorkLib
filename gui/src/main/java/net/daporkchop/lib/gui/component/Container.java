@@ -24,13 +24,13 @@ import java.util.Map;
  * @author DaPorkchop_
  */
 public interface Container<Impl extends Container> extends Element<Impl>, ComponentAdder<Impl> {
-    Map<String, SubElement> getChildren();
+    Map<String, Component> getChildren();
 
-    default Impl addChild(@NonNull SubElement child) {
+    default Impl addChild(@NonNull Component child) {
         return this.addChild(child, true);
     }
 
-    Impl addChild(@NonNull SubElement child, boolean update);
+    Impl addChild(@NonNull Component child, boolean update);
 
     @SuppressWarnings("unchecked")
     default <T extends Element> T getChild(@NonNull String name) {

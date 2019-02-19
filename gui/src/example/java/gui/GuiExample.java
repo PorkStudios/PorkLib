@@ -16,8 +16,6 @@
 package gui;
 
 import net.daporkchop.lib.gui.GuiSystem;
-import net.daporkchop.lib.gui.component.type.Button;
-import net.daporkchop.lib.gui.component.type.Window;
 
 /**
  * @author DaPorkchop_
@@ -29,6 +27,8 @@ public class GuiExample {
                 .show()
                 .button("testButton", button -> button.setOrientation(0.3d, 0.45d, 0.4d, 0.1d)
                         .setText("Example Button!")
-                        .setTooltip("This is a tooltip that will be shown when hovering the mouse over the button."));
+                        .setTooltip("This is a tooltip that will be shown when hovering the mouse over the button."))
+                .button("button2", button -> button.setOrientation(0, 0.0d, 0.1d, 0.1d)
+                        .setClickHandler((mouseButton, x, y) -> System.out.printf("Mouse button %d clicked at (%d,%d)\n", mouseButton, x, y)));
     }
 }

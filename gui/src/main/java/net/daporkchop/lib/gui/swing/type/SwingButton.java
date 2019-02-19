@@ -19,9 +19,8 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.type.Button;
-import net.daporkchop.lib.gui.swing.impl.SwingSubElement;
+import net.daporkchop.lib.gui.swing.impl.SwingComponent;
 import net.daporkchop.lib.gui.util.event.handler.ClickHandler;
 
 import javax.swing.*;
@@ -34,7 +33,7 @@ import java.awt.event.MouseListener;
 @Getter
 @Setter
 @Accessors(chain = true)
-public class SwingButton extends SwingSubElement<Button, JButton> implements Button {
+public class SwingButton extends SwingComponent<Button, JButton> implements Button {
     @NonNull
     protected ClickHandler clickHandler = (button, x, y) -> {};
 

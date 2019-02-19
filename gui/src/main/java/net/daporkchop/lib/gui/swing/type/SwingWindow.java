@@ -17,13 +17,11 @@ package net.daporkchop.lib.gui.swing.type;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.gui.component.impl.AbstractContainer;
 import net.daporkchop.lib.gui.component.type.Window;
 import net.daporkchop.lib.gui.swing.impl.SwingContainer;
-import net.daporkchop.lib.gui.swing.impl.SwingSubElement;
+import net.daporkchop.lib.gui.swing.impl.SwingComponent;
 import net.daporkchop.lib.gui.util.event.EventManager;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
-import net.daporkchop.lib.gui.util.math.Constraint;
 
 import javax.swing.*;
 import java.awt.*;
@@ -79,12 +77,16 @@ public class SwingWindow extends SwingContainer<Window, JFrame> implements Windo
     public SwingWindow setBounds(@NonNull BoundingBox bounds) {
         if (this.bounds == null || !this.bounds.equals(bounds)) {
             this.bounds = bounds;
+            if (false) {
+                //this.swing.setExtendedState(JFrame.MAXIMIZED_BOTH);
+                this.swing.setUndecorated(true);
+            }
             Insets insets = this.swing.getInsets();
             this.swing.setBounds(
-                    bounds.getX() + insets.left,
-                    bounds.getY() + insets.top,
-                    bounds.getWidth(),
-                    bounds.getHeight()
+                    bounds.getX(),
+                    bounds.getY(),
+                    bounds.getWidth() + insets.left + insets.right,
+                    bounds.getHeight() + insets.top + insets.bottom
             );
             this.update();
         }
@@ -102,7 +104,7 @@ public class SwingWindow extends SwingContainer<Window, JFrame> implements Windo
         this.children.forEach((name, element) -> {
             element.update();
             BoundingBox updated = element.getBounds();
-            Component swing = ((SwingSubElement) element).getSwing();
+            Component swing = ((SwingComponent) element).getSwing();
             swing.setBounds(updated.getX(), updated.getY(), updated.getWidth(), updated.getHeight());
         });
         this.swing.revalidate();

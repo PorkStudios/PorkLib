@@ -18,8 +18,7 @@ package net.daporkchop.lib.gui.swing.impl;
 import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.gui.component.Container;
-import net.daporkchop.lib.gui.component.Element;
-import net.daporkchop.lib.gui.component.SubElement;
+import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.type.Button;
 import net.daporkchop.lib.gui.swing.type.SwingButton;
 
@@ -33,20 +32,20 @@ import java.util.Map;
 @Getter
 @SuppressWarnings("unchecked")
 public abstract class SwingContainer<Impl extends Container, Swing extends java.awt.Container> extends SwingElement<Impl, Swing> implements Container<Impl> {
-    protected final Map<String, SubElement> children = Collections.synchronizedMap(new HashMap<>());
+    protected final Map<String, Component> children = Collections.synchronizedMap(new HashMap<>());
 
     public SwingContainer(String name, Swing swing) {
         super(name, swing);
     }
 
     @Override
-    public Impl addChild(@NonNull SubElement child, boolean update) {
-        if (!(child instanceof SwingSubElement))    {
-            throw new IllegalArgumentException(String.format("Invalid child type! Expected %s but found %s!", SwingSubElement.class.getCanonicalName(), child.getClass().getCanonicalName()));
+    public Impl addChild(@NonNull Component child, boolean update) {
+        if (!(child instanceof SwingComponent))    {
+            throw new IllegalArgumentException(String.format("Invalid child type! Expected %s but found %s!", SwingComponent.class.getCanonicalName(), child.getClass().getCanonicalName()));
         }else if (this.children.containsKey(child.getName()))  {
             throw new IllegalArgumentException(String.format("Child with name %s exists!", child.getName()));
         }
-        SwingSubElement swing = (SwingSubElement) child;
+        SwingComponent swing = (SwingComponent) child;
         this.children.put(child.getName(), swing.setParent(this));
         this.swing.add(swing.swing);
         return update ? this.update() : (Impl) this;

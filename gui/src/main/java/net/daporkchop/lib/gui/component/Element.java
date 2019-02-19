@@ -67,7 +67,6 @@ public interface Element<Impl extends Element> {
     Impl setTooltip(String tooltip);
 
     boolean isVisible();
-
     Impl setVisible(boolean state);
 
     default Impl show() {

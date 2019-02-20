@@ -16,6 +16,7 @@
 package net.daporkchop.lib.math.arrays.grid;
 
 import lombok.NonNull;
+import net.daporkchop.lib.math.arrays.grid.impl.DoubleArrayGrid3d;
 import net.daporkchop.lib.math.arrays.grid.impl.IntArrayGrid3d;
 
 /**
@@ -31,6 +32,18 @@ public interface Grid3d extends Grid2d {
             throw new IllegalArgumentException(String.format("Array length %d too short to be used for grid of %dx%dx%d!", arr.length, width, height, depth));
         } else {
             return new IntArrayGrid3d(arr, startX, startY, startZ, width, height, depth);
+        }
+    }
+
+    static Grid3d of(@NonNull double[] arr, int width, int height, int depth) {
+        return of(arr, 0, 0, 0, width, height, depth);
+    }
+
+    static Grid3d of(@NonNull double[] arr, int startX, int startY, int startZ, int width, int height, int depth) {
+        if (width * height * depth > arr.length) {
+            throw new IllegalArgumentException(String.format("Array length %d too short to be used for grid of %dx%dx%d!", arr.length, width, height, depth));
+        } else {
+            return new DoubleArrayGrid3d(arr, startX, startY, startZ, width, height, depth);
         }
     }
 

@@ -13,54 +13,67 @@
  *
  */
 
-package net.daporkchop.lib.math.arrays.grid;
+package net.daporkchop.lib.math.arrays.grid.impl;
 
 import lombok.NonNull;
-import net.daporkchop.lib.math.arrays.grid.impl.DoubleArrayGrid2d;
-import net.daporkchop.lib.math.arrays.grid.impl.IntArrayGrid2d;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.math.arrays.grid.Grid3d;
+
+import static net.daporkchop.lib.math.primitive.PMath.floorI;
 
 /**
  * @author DaPorkchop_
  */
-public interface Grid2d extends Grid1d {
-    static Grid2d of(@NonNull int[] arr, int width, int height) {
-        return of(arr, 0, 0, width, height);
-    }
+@RequiredArgsConstructor
+public class DoubleArrayGrid3d implements Grid3d {
+    @NonNull
+    protected final double[] values;
 
-    static Grid2d of(@NonNull int[] arr, int startX, int startY, int width, int height)    {
-        if (width * height > arr.length)    {
-            throw new IllegalArgumentException(String.format("Array length %d too short to be used for grid of %dx%d!", arr.length, width, height));
-        } else {
-            return new IntArrayGrid2d(arr, startX, startY, width, height);
-        }
-    }
+    protected final int startX;
+    protected final int startY;
+    protected final int startZ;
 
-    static Grid2d of(@NonNull double[] arr, int width, int height) {
-        return of(arr, 0, 0, width, height);
-    }
-
-    static Grid2d of(@NonNull double[] arr, int startX, int startY, int width, int height)    {
-        if (width * height > arr.length)    {
-            throw new IllegalArgumentException(String.format("Array length %d too short to be used for grid of %dx%d!", arr.length, width, height));
-        } else {
-            return new DoubleArrayGrid2d(arr, startX, startY, width, height);
-        }
-    }
-
-    int startY();
-    int endY();
-
-    double getD(int x, int y);
-
-    int getI(int x, int y);
+    protected final int width;
+    protected final int height;
+    protected final int depth;
 
     @Override
-    default double getD(int x) {
-        return this.getD(x, 0);
+    public int startX() {
+        return this.startX;
     }
 
     @Override
-    default int getI(int x) {
-        return this.getI(x, 0);
+    public int endX() {
+        return this.startX + this.width;
+    }
+
+    @Override
+    public int startY() {
+        return this.startY;
+    }
+
+    @Override
+    public int endY() {
+        return this.startY + this.height;
+    }
+
+    @Override
+    public int startZ() {
+        return this.startZ;
+    }
+
+    @Override
+    public int endZ() {
+        return this.startZ + this.depth;
+    }
+
+    @Override
+    public double getD(int x, int y, int z) {
+        return this.values[((x - this.startX) * this.height + y - this.startY) * this.depth + z - this.startZ];
+    }
+
+    @Override
+    public int getI(int x, int y, int z) {
+        return floorI(getD(x, y, z));
     }
 }

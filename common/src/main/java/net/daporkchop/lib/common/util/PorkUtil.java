@@ -19,6 +19,9 @@ import lombok.NonNull;
 import sun.misc.Cleaner;
 import sun.misc.Unsafe;
 
+import javax.swing.*;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.lang.invoke.CallSite;
 import java.lang.invoke.LambdaMetafactory;
@@ -166,5 +169,14 @@ public class PorkUtil {
                 throw PConstants.p_exception(e);
             }
         }
+    }
+
+    public static void simpleDisplayImage(@NonNull BufferedImage img) {
+        JFrame frame = new JFrame();
+        frame.getContentPane().setLayout(new FlowLayout());
+        frame.getContentPane().add(new JLabel(new ImageIcon(img)));
+        frame.pack();
+        frame.setVisible(true);
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     }
 }

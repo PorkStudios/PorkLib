@@ -35,7 +35,7 @@ public class LinearInterpolationEngine implements InterpolationEngine {
     @Override
     public double getInterpolated(double x, @NonNull Grid1d grid) {
         int xFloor = floorI(x);
-        if (xFloor < grid.startX() || xFloor > grid.endX() - 1) {
+        if (xFloor < grid.startX() || xFloor > grid.endX() - 2) {
             throw new IndexOutOfBoundsException(String.format("Pos %d out of bounds of range %d-%d", xFloor, grid.startX(), grid.endX()));
         }
 
@@ -49,8 +49,8 @@ public class LinearInterpolationEngine implements InterpolationEngine {
     public double getInterpolated(double x, double y, @NonNull Grid2d grid) {
         int xFloor = floorI(x);
         int yFloor = floorI(y);
-        if (xFloor < grid.startX() || xFloor > grid.endX() - 1
-                || yFloor < grid.startY() || yFloor > grid.endY() - 1) {
+        if (xFloor < grid.startX() || xFloor > grid.endX() - 2
+                || yFloor < grid.startY() || yFloor > grid.endY() - 2) {
             throw new IndexOutOfBoundsException(String.format("Pos (%d,%d) out of bounds of range (%d,%d)-(%d,%d)", xFloor, yFloor, grid.startX(), grid.startY(), grid.endX(), grid.endY()));
         }
 
@@ -71,9 +71,9 @@ public class LinearInterpolationEngine implements InterpolationEngine {
         int xFloor = floorI(x);
         int yFloor = floorI(y);
         int zFloor = floorI(z);
-        if (xFloor < grid.startX() || xFloor > grid.endX() - 1
-                || yFloor < grid.startY() || yFloor > grid.endY() - 1
-                || zFloor < grid.startZ() || zFloor > grid.endZ() - 1) {
+        if (xFloor < grid.startX() || xFloor > grid.endX() - 2
+                || yFloor < grid.startY() || yFloor > grid.endY() - 2
+                || zFloor < grid.startZ() || zFloor > grid.endZ() - 2) {
             throw new IndexOutOfBoundsException(String.format("Pos (%d,%d,%d) out of bounds of range (%d,%d,%d)-(%d,%d,%d)", xFloor, yFloor, zFloor, grid.startX(), grid.startY(), grid.startZ(), grid.endX(), grid.endY(), grid.endZ()));
         }
 
@@ -100,7 +100,7 @@ public class LinearInterpolationEngine implements InterpolationEngine {
     @Override
     public int getInterpolatedI(double x, @NonNull Grid1d grid) {
         int xFloor = floorI(x);
-        if (xFloor < grid.startX() || xFloor > grid.endX() - 1) {
+        if (xFloor < grid.startX() || xFloor > grid.endX() - 2) {
             throw new IndexOutOfBoundsException(String.format("Pos %d out of bounds of range %d-%d", xFloor, grid.startX(), grid.endX()));
         }
 
@@ -114,8 +114,8 @@ public class LinearInterpolationEngine implements InterpolationEngine {
     public int getInterpolatedI(double x, double y, @NonNull Grid2d grid) {
         int xFloor = floorI(x);
         int yFloor = floorI(y);
-        if (xFloor < grid.startX() || xFloor > grid.endX() - 1
-                || yFloor < grid.startY() || yFloor > grid.endY() - 1) {
+        if (xFloor < grid.startX() || xFloor > grid.endX() - 2
+                || yFloor < grid.startY() || yFloor > grid.endY() - 2) {
             throw new IndexOutOfBoundsException(String.format("Pos (%d,%d) out of bounds of range (%d,%d)-(%d,%d)", xFloor, yFloor, grid.startX(), grid.startY(), grid.endX(), grid.endY()));
         }
 
@@ -135,9 +135,9 @@ public class LinearInterpolationEngine implements InterpolationEngine {
         int xFloor = floorI(x);
         int yFloor = floorI(y);
         int zFloor = floorI(z);
-        if (xFloor < grid.startX() || xFloor > grid.endX() - 1
-                || yFloor < grid.startY() || yFloor > grid.endY() - 1
-                || zFloor < grid.startZ() || zFloor > grid.endZ() - 1) {
+        if (xFloor < grid.startX() || xFloor > grid.endX() - 2
+                || yFloor < grid.startY() || yFloor > grid.endY() - 2
+                || zFloor < grid.startZ() || zFloor > grid.endZ() - 2) {
             throw new IndexOutOfBoundsException(String.format("Pos (%d,%d,%d) out of bounds of range (%d,%d,%d)-(%d,%d,%d)", xFloor, yFloor, zFloor, grid.startX(), grid.startY(), grid.startZ(), grid.endX(), grid.endY(), grid.endZ()));
         }
 

@@ -13,11 +13,36 @@
  *
  */
 
-package net.daporkchop.lib.math.interpolation;
+package net.daporkchop.lib.math.interpolation.cubic;
+
+import lombok.NonNull;
+import net.daporkchop.lib.math.arrays.grid.Grid1d;
+import net.daporkchop.lib.math.arrays.grid.Grid2d;
+import net.daporkchop.lib.math.arrays.grid.Grid3d;
+import net.daporkchop.lib.math.interpolation.InterpolationEngine;
 
 /**
  * @author DaPorkchop_
  */
-public interface Interpolator {
-    InterpolationEngine getEngine();
+public class CubicInterpolator implements InterpolationEngine {
+    @Override
+    public int requiredRadius() {
+        return 2;
+    }
+
+    @Override
+    public double getInterpolated(double x, @NonNull Grid1d grid) {
+        return 0;
+        //return p[1] + 0.5 * x*(p[2] - p[0] + x*(2.0*p[0] - 5.0*p[1] + 4.0*p[2] - p[3] + x*(3.0*(p[1] - p[2]) + p[3] - p[0])));
+    }
+
+    @Override
+    public double getInterpolated(double x, double y, Grid2d grid) {
+        return 0;
+    }
+
+    @Override
+    public double getInterpolated(double x, double y, double z, Grid3d grid) {
+        return 0;
+    }
 }

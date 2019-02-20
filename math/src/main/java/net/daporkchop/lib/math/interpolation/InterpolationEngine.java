@@ -20,6 +20,8 @@ import net.daporkchop.lib.math.arrays.grid.Grid1d;
 import net.daporkchop.lib.math.arrays.grid.Grid2d;
 import net.daporkchop.lib.math.arrays.grid.Grid3d;
 
+import static net.daporkchop.lib.math.primitive.PMath.floorI;
+
 /**
  * @author DaPorkchop_
  */
@@ -32,9 +34,15 @@ public interface InterpolationEngine {
 
     double getInterpolated(double x, double y, double z, @NonNull Grid3d grid);
 
-    int getInterpolatedI(double x, @NonNull Grid1d grid);
+    default int getInterpolatedI(double x, @NonNull Grid1d grid)    {
+        return floorI(this.getInterpolated(x, grid));
+    }
 
-    int getInterpolatedI(double x, double y, @NonNull Grid2d grid);
+    default int getInterpolatedI(double x, double y, @NonNull Grid2d grid)  {
+        return floorI(this.getInterpolated(x, y, grid));
+    }
 
-    int getInterpolatedI(double x, double y, double z, @NonNull Grid3d grid);
+    default int getInterpolatedI(double x, double y, double z, @NonNull Grid3d grid)    {
+        return floorI(this.getInterpolated(x, y, z, grid));
+    }
 }

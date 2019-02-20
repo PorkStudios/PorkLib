@@ -16,6 +16,7 @@
 package net.daporkchop.lib.math.arrays.grid;
 
 import lombok.NonNull;
+import net.daporkchop.lib.math.arrays.grid.impl.DoubleArrayGrid1d;
 import net.daporkchop.lib.math.arrays.grid.impl.IntArrayGrid1d;
 
 /**
@@ -28,6 +29,14 @@ public interface Grid1d {
 
     static Grid1d of(@NonNull int[] arr, int startX)    {
         return new IntArrayGrid1d(arr, startX);
+    }
+
+    static Grid1d of(@NonNull double[] arr)    {
+        return of(arr, 0);
+    }
+
+    static Grid1d of(@NonNull double[] arr, int startX)    {
+        return new DoubleArrayGrid1d(arr, startX);
     }
 
     int startX();

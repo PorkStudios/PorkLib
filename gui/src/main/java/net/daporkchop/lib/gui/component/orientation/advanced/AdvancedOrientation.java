@@ -46,7 +46,7 @@ public class AdvancedOrientation<T extends Component> implements Orientation<T> 
     public BoundingBox update(@NonNull BoundingBox bb, @NonNull Container parent, @NonNull T component) {
         int[] cache = this.cache;
         cache[0] = cache[1] = cache[2] = cache[3] = -1;
-        for (int i = 3; i >= 0; i--) {
+        for (int i = 0; i < 4; i++) {
             cache[i] = this.calculators[i].get(bb, parent, component, cache);
         }
         return new BoundingBox(cache[0], cache[1], cache[2], cache[3]);
@@ -80,6 +80,11 @@ public class AdvancedOrientation<T extends Component> implements Orientation<T> 
         AdvancedCalculator<T> calculator = new AdvancedCalculator<>();
         this.calculators[PArrays.indexOf(this.calcAxes, axis)] = calculator;
         initializer.accept(calculator);
+        return this;
+    }
+
+    public AdvancedOrientation<T> configureAxis(@NonNull Axis axis, @NonNull Axis other) {
+        this.calculators[PArrays.indexOf(this.calcAxes, axis)] = this.calculators[PArrays.indexOf(this.calcAxes, other)];
         return this;
     }
 

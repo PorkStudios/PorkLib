@@ -49,4 +49,14 @@ public class SumCalculator<T extends Component> implements Calculator<T> {
         this.degligates.add(other);
         return this;
     }
+
+    public Calculator<T> build() {
+        if (this.degligates.isEmpty())  {
+            return new NullCalculator<>();
+        } else if (this.degligates.size() == 1)  {
+            return this.degligates.iterator().next();
+        } else {
+            return this;
+        }
+    }
 }

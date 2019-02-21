@@ -53,6 +53,10 @@ public class DistCalculator<T extends Component> implements Calculator<T> {
                 if (this.axis == null) {
                     throw new IllegalStateException("Axis must be set!");
                 } else {
+                    //int i = this.axis.getFrom(bb);
+                    //double d = i * this.val;
+                    //i = floorI(d);
+                    //return i;
                     return floorI(this.axis.getFrom(bb) * this.val);
                 }
             case RELATIVE:

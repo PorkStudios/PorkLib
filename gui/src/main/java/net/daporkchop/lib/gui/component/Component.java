@@ -77,7 +77,7 @@ public interface Component<Impl extends Component> extends Element<Impl>, Enable
     }
 
     //convenience methods
-    default Impl setOrientation(@NonNull Object x, @NonNull Object y, @NonNull Object width, @NonNull Object height) {
+    default Impl setOrientation(@NonNull Number x, @NonNull Number y, @NonNull Number width, @NonNull Number height) {
         return (Impl) this.setOrientation(SimpleDynamicOrientation.of(x, y, width, height));
     }
 

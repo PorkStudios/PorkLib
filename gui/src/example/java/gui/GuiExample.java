@@ -16,11 +16,8 @@
 package gui;
 
 import net.daporkchop.lib.gui.GuiSystem;
-import net.daporkchop.lib.gui.component.orientation.advanced.AdvancedOrientation;
 import net.daporkchop.lib.gui.component.orientation.advanced.Axis;
-import net.daporkchop.lib.gui.component.orientation.advanced.calculator.DistCalculator;
 import net.daporkchop.lib.gui.component.orientation.advanced.calculator.DistUnit;
-import net.daporkchop.lib.gui.component.type.functional.Button;
 import net.daporkchop.lib.gui.util.HorizontalAlignment;
 import net.daporkchop.lib.gui.util.VerticalAlignment;
 
@@ -47,13 +44,19 @@ public class GuiExample {
                         //.button("button2", button -> button.setOrientation(0.5d, 0.2d, 0.5d, 0.2d))
                         //.button("button3", button -> button.setOrientation(0.5d, 0.4d, 1.0d, 0.2d)))
                 )*/
-                .button("button3", button -> button.setOrientation(new AdvancedOrientation<Button>()
+                /*.button("button3", button -> button.orientAdvanced(orientation -> orientation
                         .configureAxis(Axis.X, calc -> calc.ease(new DistCalculator<Button>(DistUnit.PX).setVal(0)))
                         .configureAxis(Axis.Y, calc -> calc.ease(new DistCalculator<Button>(DistUnit.MULT).setVal(0.5d).setAxis(Axis.HEIGHT)))
                         .configureAxis(Axis.WIDTH, calc -> calc.ease(new DistCalculator<Button>(DistUnit.MULT).setVal(0.5d).setAxis(Axis.WIDTH))
                                 .min(new DistCalculator<Button>(DistUnit.PX).setVal(20))
                                 .max(new DistCalculator<Button>(DistUnit.PX).setVal(350)))
-                        .configureAxis(Axis.HEIGHT, calc -> calc.ease(new DistCalculator<Button>(DistUnit.PX).setVal(20)))))
+                        .configureAxis(Axis.HEIGHT, calc -> calc.ease(new DistCalculator<Button>(DistUnit.PX).setVal(20)))))*/
+                .button("button3", button -> button.orientAdvanced(orientation -> orientation
+                        .configureAxis(Axis.X, calc -> calc.ease(DistUnit.PX, 0))
+                        .configureAxis(Axis.Y, calc -> calc.ease(DistUnit.MULT, 0.5, Axis.HEIGHT)
+                                .min(DistUnit.PX, 50, DistUnit.MULT, 0.5, Axis.WIDTH))
+                        .configureAxis(Axis.WIDTH, calc -> calc.ease(DistUnit.PX, 30))
+                        .configureAxis(Axis.HEIGHT, Axis.WIDTH)))
                 .show();
     }
 }

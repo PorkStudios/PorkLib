@@ -20,11 +20,14 @@ import net.daporkchop.lib.gui.component.capability.Enableable;
 import net.daporkchop.lib.gui.component.orientation.Orientation;
 import net.daporkchop.lib.gui.component.orientation.SimpleDynamicOrientation;
 import net.daporkchop.lib.gui.component.orientation.StaticOrientation;
+import net.daporkchop.lib.gui.component.orientation.advanced.AdvancedOrientation;
 import net.daporkchop.lib.gui.component.type.Window;
 import net.daporkchop.lib.gui.util.HorizontalAlignment;
 import net.daporkchop.lib.gui.util.VerticalAlignment;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 import net.daporkchop.lib.gui.util.math.Constraint;
+
+import java.util.function.Consumer;
 
 /**
  * An actual element in a GUI. Components may not be standalone, they must be held inside of
@@ -83,5 +86,11 @@ public interface Component<Impl extends Component> extends Element<Impl>, Enable
 
     default Impl setOrientation(@NonNull Constraint constraint) {
         return this.setOrientation(this.getBounds().set(constraint));
+    }
+
+    default Impl orientAdvanced(@NonNull Consumer<AdvancedOrientation<Impl>> initializer)   {
+        AdvancedOrientation<Impl> orientation = new AdvancedOrientation<>();
+        initializer.accept(orientation);
+        return this.setOrientation(orientation);
     }
 }

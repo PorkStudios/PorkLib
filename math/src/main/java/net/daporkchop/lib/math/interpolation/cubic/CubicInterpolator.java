@@ -45,7 +45,6 @@ public class CubicInterpolator implements InterpolationEngine {
         double v4 = grid.getD(xFloor + 2);
 
         return v2 + 0.5d * x * (v3 - v1 + x * (2.0d * v1 - 5.0d * v2 + 4.0d * v3 - v4 + x * (3.0d * (v2 - v3) + v4 - v1)));
-        //return p[1] + 0.5 * x*(p[2] - p[0] + x*(2.0*p[0] - 5.0*p[1] + 4.0*p[2] - p[3] + x*(3.0*(p[1] - p[2]) + p[3] - p[0])));
     }
 
     @Override

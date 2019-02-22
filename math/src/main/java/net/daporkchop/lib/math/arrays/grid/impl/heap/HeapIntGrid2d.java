@@ -13,22 +13,25 @@
  *
  */
 
-package net.daporkchop.lib.math.arrays.grid.impl;
+package net.daporkchop.lib.math.arrays.grid.impl.heap;
 
-import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.math.arrays.grid.Grid1d;
+import net.daporkchop.lib.math.arrays.grid.Grid2d;
 
 /**
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-public class IntArrayGrid1d implements Grid1d {
+public class HeapIntGrid2d implements Grid2d {
     @NonNull
     protected final int[] values;
 
     protected final int startX;
+    protected final int startY;
+
+    protected final int width;
+    protected final int height;
 
     @Override
     public int startX() {
@@ -37,16 +40,26 @@ public class IntArrayGrid1d implements Grid1d {
 
     @Override
     public int endX() {
-        return this.startX + this.values.length;
+        return this.startX + this.width;
     }
 
     @Override
-    public double getD(int x) {
-        return this.getI(x);
+    public int startY() {
+        return this.startY;
     }
 
     @Override
-    public int getI(int x) {
-        return this.values[x - this.startX];
+    public int endY() {
+        return this.startY + this.height;
+    }
+
+    @Override
+    public double getD(int x, int y) {
+        return this.getI(x, y);
+    }
+
+    @Override
+    public int getI(int x, int y) {
+        return this.values[(x - this.startX) * this.height + y - this.startY];
     }
 }

@@ -13,53 +13,42 @@
  *
  */
 
-package net.daporkchop.lib.math.arrays.grid.impl;
+package net.daporkchop.lib.math.arrays.grid.impl.direct;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.math.arrays.grid.Grid2d;
+import net.daporkchop.lib.common.util.PUnsafe;
+import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.math.arrays.grid.Grid1d;
+import sun.misc.Cleaner;
 
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-public class IntArrayGrid2d implements Grid2d {
-    @NonNull
-    protected final int[] values;
+public class DirectIntGrid1d implements Grid1d {
+    protected final Object cleaner;
+    protected final long pos;
 
-    protected final int startX;
-    protected final int startY;
-
-    protected final int width;
-    protected final int height;
+    public DirectIntGrid1d(int startX, int x)   {
+        this.pos = PUnsafe.allocateMemory(4L * x);
+        this.cleaner = PorkUtil.cleaner(this, () -> PUnsafe.freeMemory(this.pos));
+    }
 
     @Override
     public int startX() {
-        return this.startX;
+        return 0;
     }
 
     @Override
     public int endX() {
-        return this.startX + this.width;
+        return 0;
     }
 
     @Override
-    public int startY() {
-        return this.startY;
+    public double getD(int x) {
+        return 0;
     }
 
     @Override
-    public int endY() {
-        return this.startY + this.height;
-    }
-
-    @Override
-    public double getD(int x, int y) {
-        return this.getI(x, y);
-    }
-
-    @Override
-    public int getI(int x, int y) {
-        return this.values[(x - this.startX) * this.height + y - this.startY];
+    public int getI(int x) {
+        return 0;
     }
 }

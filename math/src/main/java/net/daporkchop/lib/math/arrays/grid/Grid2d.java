@@ -16,8 +16,8 @@
 package net.daporkchop.lib.math.arrays.grid;
 
 import lombok.NonNull;
-import net.daporkchop.lib.math.arrays.grid.impl.DoubleArrayGrid2d;
-import net.daporkchop.lib.math.arrays.grid.impl.IntArrayGrid2d;
+import net.daporkchop.lib.math.arrays.grid.impl.heap.HeapDoubleGrid2d;
+import net.daporkchop.lib.math.arrays.grid.impl.heap.HeapIntGrid2d;
 
 /**
  * @author DaPorkchop_
@@ -31,7 +31,7 @@ public interface Grid2d extends Grid1d {
         if (width * height > arr.length)    {
             throw new IllegalArgumentException(String.format("Array length %d too short to be used for grid of %dx%d!", arr.length, width, height));
         } else {
-            return new IntArrayGrid2d(arr, startX, startY, width, height);
+            return new HeapIntGrid2d(arr, startX, startY, width, height);
         }
     }
 
@@ -43,7 +43,7 @@ public interface Grid2d extends Grid1d {
         if (width * height > arr.length)    {
             throw new IllegalArgumentException(String.format("Array length %d too short to be used for grid of %dx%d!", arr.length, width, height));
         } else {
-            return new DoubleArrayGrid2d(arr, startX, startY, width, height);
+            return new HeapDoubleGrid2d(arr, startX, startY, width, height);
         }
     }
 

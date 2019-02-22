@@ -13,27 +13,27 @@
  *
  */
 
-package net.daporkchop.lib.math.arrays.grid.impl;
+package net.daporkchop.lib.math.arrays.grid.impl.heap;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.math.arrays.grid.Grid3d;
+import net.daporkchop.lib.math.arrays.grid.Grid2d;
+
+import static net.daporkchop.lib.math.primitive.PMath.floorI;
 
 /**
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-public class IntArrayGrid3d implements Grid3d {
+public class HeapDoubleGrid2d implements Grid2d {
     @NonNull
-    protected final int[] values;
+    protected final double[] values;
 
     protected final int startX;
     protected final int startY;
-    protected final int startZ;
 
     protected final int width;
     protected final int height;
-    protected final int depth;
 
     @Override
     public int startX() {
@@ -56,22 +56,12 @@ public class IntArrayGrid3d implements Grid3d {
     }
 
     @Override
-    public int startZ() {
-        return this.startZ;
+    public double getD(int x, int y) {
+        return this.values[(x - this.startX) * this.height + y - this.startY];
     }
 
     @Override
-    public int endZ() {
-        return this.startZ + this.depth;
-    }
-
-    @Override
-    public double getD(int x, int y, int z) {
-        return this.getI(x, y, z);
-    }
-
-    @Override
-    public int getI(int x, int y, int z) {
-        return this.values[((x - this.startX) * this.height + y - this.startY) * this.depth + z - this.startZ];
+    public int getI(int x, int y) {
+        return floorI(this.getD(x, y));
     }
 }

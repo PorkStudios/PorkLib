@@ -13,36 +13,41 @@
  *
  */
 
-package net.daporkchop.lib.math.arrays.grid;
+package net.daporkchop.lib.math.arrays.grid.impl.heap;
 
 import lombok.NonNull;
-import net.daporkchop.lib.math.arrays.grid.impl.heap.HeapDoubleGrid1d;
-import net.daporkchop.lib.math.arrays.grid.impl.heap.HeapIntGrid1d;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.math.arrays.grid.Grid1d;
+
+import static net.daporkchop.lib.math.primitive.PMath.floorI;
 
 /**
  * @author DaPorkchop_
  */
-public interface Grid1d {
-    static Grid1d of(@NonNull int[] arr)    {
-        return of(arr, 0);
+@RequiredArgsConstructor
+public class HeapDoubleGrid1d implements Grid1d {
+    @NonNull
+    protected final double[] values;
+
+    protected final int startX;
+
+    @Override
+    public int startX() {
+        return this.startX;
     }
 
-    static Grid1d of(@NonNull int[] arr, int startX)    {
-        return new HeapIntGrid1d(arr, startX);
+    @Override
+    public int endX() {
+        return this.startX + this.values.length;
     }
 
-    static Grid1d of(@NonNull double[] arr)    {
-        return of(arr, 0);
+    @Override
+    public double getD(int x) {
+        return this.values[x - this.startX];
     }
 
-    static Grid1d of(@NonNull double[] arr, int startX)    {
-        return new HeapDoubleGrid1d(arr, startX);
+    @Override
+    public int getI(int x) {
+        return floorI(this.getD(x));
     }
-
-    int startX();
-    int endX();
-
-    double getD(int x);
-    
-    int getI(int x);
 }

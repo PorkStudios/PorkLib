@@ -203,4 +203,8 @@ public class PorkUtil {
             }
         }
     }
+
+    public static Object cleaner(@NonNull Object o, @NonNull Runnable cleaner)    {
+        return Cleaner.create(o, cleaner);
+    }
 }

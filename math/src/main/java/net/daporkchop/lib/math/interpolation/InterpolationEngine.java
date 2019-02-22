@@ -45,4 +45,56 @@ public interface InterpolationEngine {
     default int getInterpolatedI(double x, double y, double z, @NonNull Grid3d grid)    {
         return floorI(this.getInterpolated(x, y, z, grid));
     }
+    
+    //validation
+    default boolean isInRange(int x, @NonNull Grid1d grid)    {
+        int radius = this.requiredRadius();
+        
+        if (x < grid.startX() + radius - 1 || x > grid.endX() - radius - 1) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    default boolean isInRange(int x, int y, @NonNull Grid2d grid)    {
+        int radius = this.requiredRadius();
+
+        if (x < grid.startX() + radius - 1 || x > grid.endX() - radius - 1
+                || y < grid.startY() + radius - 1 || y > grid.endY() - radius - 1) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    default boolean isInRange(int x, int y, int z, @NonNull Grid3d grid)    {
+        int radius = this.requiredRadius();
+
+        if (x < grid.startX() + radius - 1 || x > grid.endX() - radius - 1
+                || y < grid.startY() + radius - 1 || y > grid.endY() - radius - 1
+                || z < grid.startZ() + radius - 1 || z > grid.endZ() - radius - 1) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    default void ensureInRange(int x, @NonNull Grid1d grid) {
+        if (!this.isInRange(x, grid))   {
+            throw new IndexOutOfBoundsException(String.format("Pos %d out of bounds of range %d-%d", x, grid.startX(), grid.endX()));
+        }
+    }
+
+    default void ensureInRange(int x, int y, @NonNull Grid2d grid)  {
+        if (!this.isInRange(x, y, grid))    {
+            throw new IndexOutOfBoundsException(String.format("Pos (%d,%d) out of bounds of range (%d,%d)-(%d,%d)", x, y, grid.startX(), grid.startY(), grid.endX(), grid.endY()));
+        }
+    }
+
+    default void ensureInRange(int x, int y, int z, @NonNull Grid3d grid)  {
+        if (!this.isInRange(x, y, z, grid))    {
+            throw new IndexOutOfBoundsException(String.format("Pos (%d,%d,%d) out of bounds of range (%d,%d,%d)-(%d,%d,%d)", x, y, z, grid.startX(), grid.startY(), grid.startZ(), grid.endX(), grid.endY(), grid.endZ()));
+        }
+    }
 }

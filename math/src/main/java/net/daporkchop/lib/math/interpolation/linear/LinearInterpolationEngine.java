@@ -35,9 +35,7 @@ public class LinearInterpolationEngine implements InterpolationEngine {
     @Override
     public double getInterpolated(double x, @NonNull Grid1d grid) {
         int xFloor = floorI(x);
-        if (xFloor < grid.startX() || xFloor > grid.endX() - 2) {
-            throw new IndexOutOfBoundsException(String.format("Pos %d out of bounds of range %d-%d", xFloor, grid.startX(), grid.endX()));
-        }
+        this.ensureInRange(xFloor, grid);
 
         double v1 = grid.getD(xFloor);
         double v2 = grid.getD(xFloor + 1);
@@ -49,10 +47,7 @@ public class LinearInterpolationEngine implements InterpolationEngine {
     public double getInterpolated(double x, double y, @NonNull Grid2d grid) {
         int xFloor = floorI(x);
         int yFloor = floorI(y);
-        if (xFloor < grid.startX() || xFloor > grid.endX() - 2
-                || yFloor < grid.startY() || yFloor > grid.endY() - 2) {
-            throw new IndexOutOfBoundsException(String.format("Pos (%d,%d) out of bounds of range (%d,%d)-(%d,%d)", xFloor, yFloor, grid.startX(), grid.startY(), grid.endX(), grid.endY()));
-        }
+        this.ensureInRange(xFloor, yFloor, grid);
 
         double v1 = grid.getD(xFloor, yFloor);
         double v2 = grid.getD(xFloor + 1, yFloor);
@@ -71,11 +66,7 @@ public class LinearInterpolationEngine implements InterpolationEngine {
         int xFloor = floorI(x);
         int yFloor = floorI(y);
         int zFloor = floorI(z);
-        if (xFloor < grid.startX() || xFloor > grid.endX() - 2
-                || yFloor < grid.startY() || yFloor > grid.endY() - 2
-                || zFloor < grid.startZ() || zFloor > grid.endZ() - 2) {
-            throw new IndexOutOfBoundsException(String.format("Pos (%d,%d,%d) out of bounds of range (%d,%d,%d)-(%d,%d,%d)", xFloor, yFloor, zFloor, grid.startX(), grid.startY(), grid.startZ(), grid.endX(), grid.endY(), grid.endZ()));
-        }
+        this.ensureInRange(xFloor, yFloor, zFloor, grid);
 
         double v1 = grid.getD(xFloor, yFloor, zFloor);
         double v2 = grid.getD(xFloor + 1, yFloor, zFloor);
@@ -100,9 +91,7 @@ public class LinearInterpolationEngine implements InterpolationEngine {
     @Override
     public int getInterpolatedI(double x, @NonNull Grid1d grid) {
         int xFloor = floorI(x);
-        if (xFloor < grid.startX() || xFloor > grid.endX() - 2) {
-            throw new IndexOutOfBoundsException(String.format("Pos %d out of bounds of range %d-%d", xFloor, grid.startX(), grid.endX()));
-        }
+        this.ensureInRange(xFloor, grid);
 
         int v1 = grid.getI(xFloor);
         int v2 = grid.getI(xFloor + 1);
@@ -114,10 +103,7 @@ public class LinearInterpolationEngine implements InterpolationEngine {
     public int getInterpolatedI(double x, double y, @NonNull Grid2d grid) {
         int xFloor = floorI(x);
         int yFloor = floorI(y);
-        if (xFloor < grid.startX() || xFloor > grid.endX() - 2
-                || yFloor < grid.startY() || yFloor > grid.endY() - 2) {
-            throw new IndexOutOfBoundsException(String.format("Pos (%d,%d) out of bounds of range (%d,%d)-(%d,%d)", xFloor, yFloor, grid.startX(), grid.startY(), grid.endX(), grid.endY()));
-        }
+        this.ensureInRange(xFloor, yFloor, grid);
 
         int v1 = grid.getI(xFloor, yFloor);
         int v2 = grid.getI(xFloor + 1, yFloor);
@@ -135,11 +121,7 @@ public class LinearInterpolationEngine implements InterpolationEngine {
         int xFloor = floorI(x);
         int yFloor = floorI(y);
         int zFloor = floorI(z);
-        if (xFloor < grid.startX() || xFloor > grid.endX() - 2
-                || yFloor < grid.startY() || yFloor > grid.endY() - 2
-                || zFloor < grid.startZ() || zFloor > grid.endZ() - 2) {
-            throw new IndexOutOfBoundsException(String.format("Pos (%d,%d,%d) out of bounds of range (%d,%d,%d)-(%d,%d,%d)", xFloor, yFloor, zFloor, grid.startX(), grid.startY(), grid.startZ(), grid.endX(), grid.endY(), grid.endZ()));
-        }
+        this.ensureInRange(xFloor, yFloor, zFloor, grid);
 
         int v1 = grid.getI(xFloor, yFloor, zFloor);
         int v2 = grid.getI(xFloor + 1, yFloor, zFloor);

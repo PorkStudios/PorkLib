@@ -51,6 +51,7 @@ public interface Grid3d extends Grid2d {
 
     int endZ();
 
+    //getters
     double getD(int x, int y, int z);
 
     int getI(int x, int y, int z);
@@ -73,5 +74,30 @@ public interface Grid3d extends Grid2d {
     @Override
     default int getI(int x) {
         return this.getI(x, 0, 0);
+    }
+
+    //setters
+    void setD(int x, int y, int z, double val);
+
+    void setI(int x, int y, int z, int val);
+
+    @Override
+    default void setD(int x, int y, double val) {
+        this.setD(x, y, 0, val);
+    }
+
+    @Override
+    default void setI(int x, int y, int val) {
+        this.setI(x, y, 0, val);
+    }
+
+    @Override
+    default void setD(int x, double val) {
+        this.setD(x, 0, 0, val);
+    }
+
+    @Override
+    default void setI(int x, int val) {
+        this.setI(x, 0, 0, val);
     }
 }

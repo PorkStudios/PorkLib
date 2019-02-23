@@ -74,6 +74,16 @@ public class HeapDoubleGrid3d implements Grid3d {
 
     @Override
     public int getI(int x, int y, int z) {
-        return floorI(getD(x, y, z));
+        return floorI(this.getD(x, y, z));
+    }
+
+    @Override
+    public void setD(int x, int y, int z, double val) {
+        this.values[((x - this.startX) * this.height + y - this.startY) * this.depth + z - this.startZ] = val;
+    }
+
+    @Override
+    public void setI(int x, int y, int z, int val) {
+        this.setD(x, y, z, val);
     }
 }

@@ -20,6 +20,8 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.math.arrays.grid.Grid1d;
 
+import static net.daporkchop.lib.math.primitive.PMath.floorI;
+
 /**
  * @author DaPorkchop_
  */
@@ -48,5 +50,15 @@ public class HeapIntGrid1d implements Grid1d {
     @Override
     public int getI(int x) {
         return this.values[x - this.startX];
+    }
+
+    @Override
+    public void setD(int x, double val) {
+        this.setD(x, floorI(val));
+    }
+
+    @Override
+    public void setI(int x, int val) {
+        this.values[x - this.startX] = val;
     }
 }

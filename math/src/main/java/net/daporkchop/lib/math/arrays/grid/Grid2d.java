@@ -50,6 +50,7 @@ public interface Grid2d extends Grid1d {
     int startY();
     int endY();
 
+    //getters
     double getD(int x, int y);
 
     int getI(int x, int y);
@@ -62,5 +63,20 @@ public interface Grid2d extends Grid1d {
     @Override
     default int getI(int x) {
         return this.getI(x, 0);
+    }
+
+    //setters
+    void setD(int x, int y, double val);
+
+    void setI(int x, int y, int val);
+
+    @Override
+    default void setD(int x, double val) {
+        this.setD(x, 0, val);
+    }
+
+    @Override
+    default void setI(int x, int val) {
+        this.setI(x, 0, val);
     }
 }

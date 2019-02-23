@@ -50,4 +50,14 @@ public class HeapDoubleGrid1d implements Grid1d {
     public int getI(int x) {
         return floorI(this.getD(x));
     }
+
+    @Override
+    public void setD(int x, double val) {
+        this.values[x - this.startX] = val;
+    }
+
+    @Override
+    public void setI(int x, int val) {
+        this.setD(x, val);
+    }
 }

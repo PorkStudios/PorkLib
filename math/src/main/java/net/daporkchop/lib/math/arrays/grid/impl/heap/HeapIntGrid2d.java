@@ -19,6 +19,8 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.math.arrays.grid.Grid2d;
 
+import static net.daporkchop.lib.math.primitive.PMath.floorI;
+
 /**
  * @author DaPorkchop_
  */
@@ -61,5 +63,15 @@ public class HeapIntGrid2d implements Grid2d {
     @Override
     public int getI(int x, int y) {
         return this.values[(x - this.startX) * this.height + y - this.startY];
+    }
+
+    @Override
+    public void setD(int x, int y, double val) {
+        this.setI(x, y, floorI(val));
+    }
+
+    @Override
+    public void setI(int x, int y, int val) {
+        this.values[(x - this.startX) * this.height + y - this.startY] = val;
     }
 }

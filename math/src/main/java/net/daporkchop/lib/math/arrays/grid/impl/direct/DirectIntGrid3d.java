@@ -13,10 +13,11 @@
  *
  */
 
-package net.daporkchop.lib.math.arrays.grid.impl.heap;
+package net.daporkchop.lib.math.arrays.grid.impl.direct;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.common.util.DirectMemoryHolder;
+import net.daporkchop.lib.common.util.PUnsafe;
+import net.daporkchop.lib.math.arrays.grid.Grid2d;
 import net.daporkchop.lib.math.arrays.grid.Grid3d;
 
 import static net.daporkchop.lib.math.primitive.PMath.floorI;
@@ -24,18 +25,28 @@ import static net.daporkchop.lib.math.primitive.PMath.floorI;
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-public class HeapIntGrid3d implements Grid3d {
-    @NonNull
-    protected final int[] values;
+public class DirectIntGrid3d implements Grid3d, DirectMemoryHolder {
+    protected long pos;
+    protected final long size;
 
     protected final int startX;
+    protected final int x;
     protected final int startY;
+    protected final int y;
     protected final int startZ;
+    protected final int z;
 
-    protected final int width;
-    protected final int height;
-    protected final int depth;
+    public DirectIntGrid3d(int startX, int startY, int startZ, int x, int y, int z) {
+        this.size = ((long) x * (long) y * (long) z) << 2L;
+        this.pos = PUnsafe.allocateMemory(this, this.size);
+
+        this.startX = startX;
+        this.x = x;
+        this.startY = startY;
+        this.y = y;
+        this.startZ = startZ;
+        this.z = z;
+    }
 
     @Override
     public int startX() {
@@ -44,7 +55,7 @@ public class HeapIntGrid3d implements Grid3d {
 
     @Override
     public int endX() {
-        return this.startX + this.width;
+        return this.startX + this.x;
     }
 
     @Override
@@ -54,7 +65,7 @@ public class HeapIntGrid3d implements Grid3d {
 
     @Override
     public int endY() {
-        return this.startY + this.height;
+        return this.startY + this.y;
     }
 
     @Override
@@ -64,7 +75,7 @@ public class HeapIntGrid3d implements Grid3d {
 
     @Override
     public int endZ() {
-        return this.startZ + this.depth;
+        return this.startZ + this.z;
     }
 
     @Override
@@ -74,7 +85,7 @@ public class HeapIntGrid3d implements Grid3d {
 
     @Override
     public int getI(int x, int y, int z) {
-        return this.values[((x - this.startX) * this.height + y - this.startY) * this.depth + z - this.startZ];
+        return PUnsafe.getInt(this.getPos(x, y, z));
     }
 
     @Override
@@ -84,6 +95,31 @@ public class HeapIntGrid3d implements Grid3d {
 
     @Override
     public void setI(int x, int y, int z, int val) {
-        this.values[((x - this.startX) * this.height + y - this.startY) * this.depth + z - this.startZ] = val;
+        PUnsafe.putInt(this.getPos(x, y, z), val);
+    }
+
+    protected long getPos(int x, int y, int z) {
+        long off = (((x - this.startX) * this.y + y - this.startY) * this.z + z - this.startZ) << 2L;
+        if (off >= this.size || off < 0L) {
+            throw new ArrayIndexOutOfBoundsException(String.format("(%d,%d,%d)", x, y, z));
+        } else {
+            return this.pos + off;
+        }
+    }
+
+    //directmemoryholder implementations
+    @Override
+    public synchronized long getMemoryAddress() {
+        return this.pos;
+    }
+
+    @Override
+    public synchronized void releaseMemory() {
+        if (this.isMemoryReleased())    {
+            throw new IllegalStateException("Memory already released!");
+        } else {
+            PUnsafe.freeMemory(this.pos);
+            this.pos = -1L;
+        }
     }
 }

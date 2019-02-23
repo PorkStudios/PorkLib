@@ -15,10 +15,33 @@
 
 package net.daporkchop.lib.math.interpolation.quintic;
 
+import lombok.NonNull;
+import net.daporkchop.lib.math.arrays.grid.Grid1d;
+import net.daporkchop.lib.math.arrays.grid.Grid2d;
+import net.daporkchop.lib.math.arrays.grid.Grid3d;
 import net.daporkchop.lib.math.interpolation.InterpolationEngine;
 
 /**
  * @author DaPorkchop_
  */
 public class QuinticInterpolator implements InterpolationEngine {
+    @Override
+    public int requiredRadius() {
+        return 3;
+    }
+
+    @Override
+    public double getInterpolated(double x, @NonNull Grid1d grid) {
+        return 0;
+    }
+
+    @Override
+    public double getInterpolated(double x, double y, @NonNull Grid2d grid) {
+        return 0;
+    }
+
+    @Override
+    public double getInterpolated(double x, double y, double z, @NonNull Grid3d grid) {
+        return 0;
+    }
 }

@@ -28,7 +28,6 @@ import static net.daporkchop.lib.math.primitive.PMath.floorI;
  *
  * @author DaPorkchop_
  */
-@Deprecated
 public class QuadraticInterpolation implements InterpolationEngine {
     @Override
     public int requiredRadius() {
@@ -108,9 +107,17 @@ public class QuadraticInterpolation implements InterpolationEngine {
 
         //at this point i covered half an A4 sheet of paper with random scribbles and made something that should work
         //here's a test in 1d
-        double p0 = grid.getD(xFloor - 1, 0);
+        /*double p0 = grid.getD(xFloor - 1, 0);
         double p1 = grid.getD(xFloor, 0);
+        double p2 = grid.getD(xFloor + 1, 0);*/
+
+        /*double p0 = grid.getD(xFloor, 0);
         double p2 = grid.getD(xFloor + 1, 0);
+        double p1 = (p2 - p0) * x + p0;*/
+
+        double p0 = grid.getD(xFloor, 0);
+        double p1 = grid.getD(xFloor + 1, 0);
+        double p2 = grid.getD(xFloor + 2, 0);
 
         //a=(p2-p0)/2-p2+p1
         //b=-0.5p0+0.5p2
@@ -119,7 +126,7 @@ public class QuadraticInterpolation implements InterpolationEngine {
         //therefore:
         return x * x * ((p2 - p0) * 0.5d - p2 + p1)
                 + x * (-0.5d * p0 + 0.5d * p2)
-                + x * p1;
+                + p1;
 
         //god damn it i give up
     }

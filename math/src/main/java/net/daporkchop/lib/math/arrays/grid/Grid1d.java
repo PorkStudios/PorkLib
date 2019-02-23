@@ -42,7 +42,13 @@ public interface Grid1d {
     int startX();
     int endX();
 
+    //getters
     double getD(int x);
     
     int getI(int x);
+
+    //setters
+    void setD(int x, double val);
+
+    void setI(int x, int val);
 }

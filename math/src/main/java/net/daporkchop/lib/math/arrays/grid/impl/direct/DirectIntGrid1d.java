@@ -15,40 +15,82 @@
 
 package net.daporkchop.lib.math.arrays.grid.impl.direct;
 
+import net.daporkchop.lib.common.util.DirectMemoryHolder;
 import net.daporkchop.lib.common.util.PUnsafe;
-import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.math.arrays.grid.Grid1d;
-import sun.misc.Cleaner;
+
+import static net.daporkchop.lib.math.primitive.PMath.floorI;
 
 /**
  * @author DaPorkchop_
  */
-public class DirectIntGrid1d implements Grid1d {
-    protected final Object cleaner;
-    protected final long pos;
+public class DirectIntGrid1d implements Grid1d, DirectMemoryHolder {
+    protected long pos;
+    protected final long size;
 
-    public DirectIntGrid1d(int startX, int x)   {
-        this.pos = PUnsafe.allocateMemory(4L * x);
-        this.cleaner = PorkUtil.cleaner(this, () -> PUnsafe.freeMemory(this.pos));
+    protected final int startX;
+    protected final int x;
+
+    public DirectIntGrid1d(int startX, int x) {
+        this.size = x << 2L;
+        this.pos = PUnsafe.allocateMemory(this, this.size);
+
+        this.startX = startX;
+        this.x = x;
     }
 
     @Override
     public int startX() {
-        return 0;
+        return this.startX;
     }
 
     @Override
     public int endX() {
-        return 0;
+        return this.startX + this.x;
     }
 
     @Override
     public double getD(int x) {
-        return 0;
+        return this.getI(x);
     }
 
     @Override
     public int getI(int x) {
-        return 0;
+        return PUnsafe.getInt(this.getPos(x));
+    }
+
+    @Override
+    public void setD(int x, double val) {
+        this.setI(x, floorI(val));
+    }
+
+    @Override
+    public void setI(int x, int val) {
+        PUnsafe.putInt(this.getPos(x), val);
+    }
+
+    protected long getPos(int x) {
+        long off = (x - this.startX) << 2L;
+        if (off >= this.size || off < 0L) {
+            throw new ArrayIndexOutOfBoundsException(String.format("%d", x));
+        } else {
+            return this.pos + off;
+        }
+    }
+
+    //directmemoryholder implementations
+    @Override
+    public synchronized long getMemoryAddress() {
+        return this.pos;
+    }
+
+    @Override
+    public synchronized void releaseMemory() {
+        if (this.isMemoryReleased())    {
+            throw new IllegalStateException("Memory already released!");
+        } else {
+            PUnsafe.freeMemory(this.pos);
+            this.pos = -1L;
+        }
     }
 }

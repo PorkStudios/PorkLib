@@ -13,65 +13,31 @@
  *
  */
 
-package net.daporkchop.lib.math.arrays.grid.impl.heap;
-
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.math.arrays.grid.Grid2d;
-
-import static net.daporkchop.lib.math.primitive.PMath.floorI;
+package net.daporkchop.lib.common.util;
 
 /**
+ * An object that holds a reference to a direct memory block, as allocated by {@link sun.misc.Unsafe#allocateMemory(long)}.
+ * <p>
+ * All method implementations in this class are expected to be thread-safe, preferably synchronized.
+ *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-public class HeapDoubleGrid2d implements Grid2d {
-    @NonNull
-    protected final double[] values;
+public interface DirectMemoryHolder {
+    long getMemoryAddress();
 
-    protected final int startX;
-    protected final int startY;
-
-    protected final int width;
-    protected final int height;
-
-    @Override
-    public int startX() {
-        return this.startX;
+    default boolean isMemoryReleased() {
+        synchronized (this) {
+            return this.getMemoryAddress() == -1L;
+        }
     }
 
-    @Override
-    public int endX() {
-        return this.startX + this.width;
-    }
+    void releaseMemory();
 
-    @Override
-    public int startY() {
-        return this.startY;
-    }
-
-    @Override
-    public int endY() {
-        return this.startY + this.height;
-    }
-
-    @Override
-    public double getD(int x, int y) {
-        return this.values[(x - this.startX) * this.height + y - this.startY];
-    }
-
-    @Override
-    public int getI(int x, int y) {
-        return floorI(this.getD(x, y));
-    }
-
-    @Override
-    public void setD(int x, int y, double val) {
-        this.values[(x - this.startX) * this.height + y - this.startY] = val;
-    }
-
-    @Override
-    public void setI(int x, int y, int val) {
-        this.setD(x, y, val);
+    default void tryReleaseMemory() {
+        synchronized (this) {
+            if (!this.isMemoryReleased()) {
+                this.releaseMemory();
+            }
+        }
     }
 }

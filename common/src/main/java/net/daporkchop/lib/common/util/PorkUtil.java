@@ -204,7 +204,15 @@ public class PorkUtil {
         }
     }
 
-    public static Object cleaner(@NonNull Object o, @NonNull Runnable cleaner)    {
+    public static Cleaner cleaner(@NonNull Object o, @NonNull Runnable cleaner)    {
         return Cleaner.create(o, cleaner);
+    }
+
+    public static Cleaner cleaner(@NonNull Object o, long addr)    {
+        /*return Cleaner.create(o, () -> {
+            PUnsafe.freeMemory(addr);
+            System.out.println("Memory freed!");
+        });*/
+        return Cleaner.create(o, () -> PUnsafe.freeMemory(addr));
     }
 }

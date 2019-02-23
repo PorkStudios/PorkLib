@@ -16,6 +16,7 @@
 package net.daporkchop.lib.math.arrays.grid;
 
 import lombok.NonNull;
+import net.daporkchop.lib.math.arrays.grid.impl.direct.DirectIntGrid3d;
 import net.daporkchop.lib.math.arrays.grid.impl.heap.HeapDoubleGrid3d;
 import net.daporkchop.lib.math.arrays.grid.impl.heap.HeapIntGrid3d;
 
@@ -45,6 +46,14 @@ public interface Grid3d extends Grid2d {
         } else {
             return new HeapDoubleGrid3d(arr, startX, startY, startZ, width, height, depth);
         }
+    }
+
+    static Grid3d of(int width, int height, int depth)  {
+        return of(width, height, depth);
+    }
+
+    static Grid3d of(int startX, int startY, int startZ, int width, int height, int depth)  {
+        return new DirectIntGrid3d(startX, startY, startZ, width, height, depth);
     }
 
     int startZ();

@@ -28,6 +28,7 @@ import static net.daporkchop.lib.math.primitive.PMath.floorI;
 public interface InterpolationEngine {
     int requiredRadius();
 
+    //single values
     double getInterpolated(double x, @NonNull Grid1d grid);
 
     double getInterpolated(double x, double y, @NonNull Grid2d grid);

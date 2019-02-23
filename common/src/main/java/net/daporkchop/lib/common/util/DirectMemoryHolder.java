@@ -19,6 +19,9 @@ package net.daporkchop.lib.common.util;
  * An object that holds a reference to a direct memory block, as allocated by {@link sun.misc.Unsafe#allocateMemory(long)}.
  * <p>
  * All method implementations in this class are expected to be thread-safe, preferably synchronized.
+ * <p>
+ * Using any methods other than {@link #isMemoryReleased()} or {@link #tryReleaseMemory()} after releasing memory is bad,
+ * and may either throw exceptions or cause invalid (undefined) behavior.
  *
  * @author DaPorkchop_
  */

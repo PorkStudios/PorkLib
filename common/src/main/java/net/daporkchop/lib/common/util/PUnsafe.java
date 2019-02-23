@@ -271,6 +271,12 @@ public interface PUnsafe {
         return UNSAFE.allocateMemory(size);
     }
 
+    static long allocateMemory(@NonNull Object cleanerTarget, long size) {
+        long offset = UNSAFE.allocateMemory(size);
+        PorkUtil.cleaner(cleanerTarget, offset);
+        return offset;
+    }
+
     static long reallocateMemory(long oldAddress, long size) {
         return UNSAFE.reallocateMemory(oldAddress, size);
     }

@@ -13,38 +13,51 @@
  *
  */
 
-rootProject.name = 'PorkLib'
+package net.daporkchop.lib.math.arrays.grid.impl.heap;
 
-include 'ai'
-include 'binary'
-include 'crypto'
-include 'common'
-include 'concurrent'
-include 'concurrent:parallel'
-include 'db'
-include 'encoding'
-include 'encoding:config'
-include 'encoding:nbt'
-include 'game'
-include 'game:nds'
-include 'graphics'
-include 'hash'
-include 'http'
-include 'logging'
-include 'math'
-include 'minecraft'
-include 'minecraft:minecraft-text'
-include 'minecraft:minecraft-worldscanner'
-include 'network'
-include 'noise'
-include 'primitive'
-include 'primitive:generator'
-include 'reflection'
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.math.arrays.grid.Grid1d;
 
-findProject(':concurrent:parallel')?.name = 'parallel'
-findProject(':encoding:config')?.name = 'config'
-findProject(':encoding:nbt')?.name = 'nbt'
-findProject(':game:nds')?.name = 'nds'
-findProject(':minecraft:minecraft-worldscanner')?.name = 'minecraft-worldscanner'
-findProject(':minecraft:minecraft-text')?.name = 'minecraft-text'
+import static net.daporkchop.lib.math.primitive.PMath.floorI;
 
+/**
+ * @author DaPorkchop_
+ */
+@RequiredArgsConstructor
+public class HeapDoubleGrid1d implements Grid1d {
+    @NonNull
+    protected final double[] values;
+
+    protected final int startX;
+
+    @Override
+    public int startX() {
+        return this.startX;
+    }
+
+    @Override
+    public int endX() {
+        return this.startX + this.values.length;
+    }
+
+    @Override
+    public double getD(int x) {
+        return this.values[x - this.startX];
+    }
+
+    @Override
+    public int getI(int x) {
+        return floorI(this.getD(x));
+    }
+
+    @Override
+    public void setD(int x, double val) {
+        this.values[x - this.startX] = val;
+    }
+
+    @Override
+    public void setI(int x, int val) {
+        this.setD(x, val);
+    }
+}

@@ -13,38 +13,51 @@
  *
  */
 
-rootProject.name = 'PorkLib'
+package net.daporkchop.lib.math.arrays.grid;
 
-include 'ai'
-include 'binary'
-include 'crypto'
-include 'common'
-include 'concurrent'
-include 'concurrent:parallel'
-include 'db'
-include 'encoding'
-include 'encoding:config'
-include 'encoding:nbt'
-include 'game'
-include 'game:nds'
-include 'graphics'
-include 'hash'
-include 'http'
-include 'logging'
-include 'math'
-include 'minecraft'
-include 'minecraft:minecraft-text'
-include 'minecraft:minecraft-worldscanner'
-include 'network'
-include 'noise'
-include 'primitive'
-include 'primitive:generator'
-include 'reflection'
+import lombok.NonNull;
+import net.daporkchop.lib.math.arrays.grid.impl.direct.DirectIntGrid1d;
+import net.daporkchop.lib.math.arrays.grid.impl.heap.HeapDoubleGrid1d;
+import net.daporkchop.lib.math.arrays.grid.impl.heap.HeapIntGrid1d;
 
-findProject(':concurrent:parallel')?.name = 'parallel'
-findProject(':encoding:config')?.name = 'config'
-findProject(':encoding:nbt')?.name = 'nbt'
-findProject(':game:nds')?.name = 'nds'
-findProject(':minecraft:minecraft-worldscanner')?.name = 'minecraft-worldscanner'
-findProject(':minecraft:minecraft-text')?.name = 'minecraft-text'
+/**
+ * @author DaPorkchop_
+ */
+public interface Grid1d {
+    static Grid1d of(@NonNull int[] arr)    {
+        return of(arr, 0);
+    }
 
+    static Grid1d of(@NonNull int[] arr, int startX)    {
+        return new HeapIntGrid1d(arr, startX);
+    }
+
+    static Grid1d of(@NonNull double[] arr)    {
+        return of(arr, 0);
+    }
+
+    static Grid1d of(@NonNull double[] arr, int startX)    {
+        return new HeapDoubleGrid1d(arr, startX);
+    }
+
+    static Grid1d of(int width) {
+        return of(0, width);
+    }
+
+    static Grid1d of(int startX, int width) {
+        return new DirectIntGrid1d(startX, width);
+    }
+
+    int startX();
+    int endX();
+
+    //getters
+    double getD(int x);
+    
+    int getI(int x);
+
+    //setters
+    void setD(int x, double val);
+
+    void setI(int x, int val);
+}

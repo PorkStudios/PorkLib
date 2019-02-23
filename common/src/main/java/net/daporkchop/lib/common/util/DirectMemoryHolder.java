@@ -13,38 +13,34 @@
  *
  */
 
-rootProject.name = 'PorkLib'
+package net.daporkchop.lib.common.util;
 
-include 'ai'
-include 'binary'
-include 'crypto'
-include 'common'
-include 'concurrent'
-include 'concurrent:parallel'
-include 'db'
-include 'encoding'
-include 'encoding:config'
-include 'encoding:nbt'
-include 'game'
-include 'game:nds'
-include 'graphics'
-include 'hash'
-include 'http'
-include 'logging'
-include 'math'
-include 'minecraft'
-include 'minecraft:minecraft-text'
-include 'minecraft:minecraft-worldscanner'
-include 'network'
-include 'noise'
-include 'primitive'
-include 'primitive:generator'
-include 'reflection'
+/**
+ * An object that holds a reference to a direct memory block, as allocated by {@link sun.misc.Unsafe#allocateMemory(long)}.
+ * <p>
+ * All method implementations in this class are expected to be thread-safe, preferably synchronized.
+ * <p>
+ * Using any methods other than {@link #isMemoryReleased()} or {@link #tryReleaseMemory()} after releasing memory is bad,
+ * and may either throw exceptions or cause invalid (undefined) behavior.
+ *
+ * @author DaPorkchop_
+ */
+public interface DirectMemoryHolder {
+    long getMemoryAddress();
 
-findProject(':concurrent:parallel')?.name = 'parallel'
-findProject(':encoding:config')?.name = 'config'
-findProject(':encoding:nbt')?.name = 'nbt'
-findProject(':game:nds')?.name = 'nds'
-findProject(':minecraft:minecraft-worldscanner')?.name = 'minecraft-worldscanner'
-findProject(':minecraft:minecraft-text')?.name = 'minecraft-text'
+    default boolean isMemoryReleased() {
+        synchronized (this) {
+            return this.getMemoryAddress() == -1L;
+        }
+    }
 
+    void releaseMemory();
+
+    default void tryReleaseMemory() {
+        synchronized (this) {
+            if (!this.isMemoryReleased()) {
+                this.releaseMemory();
+            }
+        }
+    }
+}

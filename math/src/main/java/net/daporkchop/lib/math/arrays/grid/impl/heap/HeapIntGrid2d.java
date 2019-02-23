@@ -13,38 +13,65 @@
  *
  */
 
-rootProject.name = 'PorkLib'
+package net.daporkchop.lib.math.arrays.grid.impl.heap;
 
-include 'ai'
-include 'binary'
-include 'crypto'
-include 'common'
-include 'concurrent'
-include 'concurrent:parallel'
-include 'db'
-include 'encoding'
-include 'encoding:config'
-include 'encoding:nbt'
-include 'game'
-include 'game:nds'
-include 'graphics'
-include 'hash'
-include 'http'
-include 'logging'
-include 'math'
-include 'minecraft'
-include 'minecraft:minecraft-text'
-include 'minecraft:minecraft-worldscanner'
-include 'network'
-include 'noise'
-include 'primitive'
-include 'primitive:generator'
-include 'reflection'
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.math.arrays.grid.Grid2d;
 
-findProject(':concurrent:parallel')?.name = 'parallel'
-findProject(':encoding:config')?.name = 'config'
-findProject(':encoding:nbt')?.name = 'nbt'
-findProject(':game:nds')?.name = 'nds'
-findProject(':minecraft:minecraft-worldscanner')?.name = 'minecraft-worldscanner'
-findProject(':minecraft:minecraft-text')?.name = 'minecraft-text'
+import static net.daporkchop.lib.math.primitive.PMath.floorI;
 
+/**
+ * @author DaPorkchop_
+ */
+@RequiredArgsConstructor
+public class HeapIntGrid2d implements Grid2d {
+    @NonNull
+    protected final int[] values;
+
+    protected final int startX;
+    protected final int startY;
+
+    protected final int width;
+    protected final int height;
+
+    @Override
+    public int startX() {
+        return this.startX;
+    }
+
+    @Override
+    public int endX() {
+        return this.startX + this.width;
+    }
+
+    @Override
+    public int startY() {
+        return this.startY;
+    }
+
+    @Override
+    public int endY() {
+        return this.startY + this.height;
+    }
+
+    @Override
+    public double getD(int x, int y) {
+        return this.getI(x, y);
+    }
+
+    @Override
+    public int getI(int x, int y) {
+        return this.values[(x - this.startX) * this.height + y - this.startY];
+    }
+
+    @Override
+    public void setD(int x, int y, double val) {
+        this.setI(x, y, floorI(val));
+    }
+
+    @Override
+    public void setI(int x, int y, int val) {
+        this.values[(x - this.startX) * this.height + y - this.startY] = val;
+    }
+}

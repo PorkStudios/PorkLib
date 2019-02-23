@@ -13,38 +13,21 @@
  *
  */
 
-rootProject.name = 'PorkLib'
+package net.daporkchop.lib.graphics;
 
-include 'ai'
-include 'binary'
-include 'crypto'
-include 'common'
-include 'concurrent'
-include 'concurrent:parallel'
-include 'db'
-include 'encoding'
-include 'encoding:config'
-include 'encoding:nbt'
-include 'game'
-include 'game:nds'
-include 'graphics'
-include 'hash'
-include 'http'
-include 'logging'
-include 'math'
-include 'minecraft'
-include 'minecraft:minecraft-text'
-include 'minecraft:minecraft-worldscanner'
-include 'network'
-include 'noise'
-include 'primitive'
-include 'primitive:generator'
-include 'reflection'
+/**
+ * @author DaPorkchop_
+ */
+public interface ColorModel {
+    int getColor(int a, int r, int g, int b);
 
-findProject(':concurrent:parallel')?.name = 'parallel'
-findProject(':encoding:config')?.name = 'config'
-findProject(':encoding:nbt')?.name = 'nbt'
-findProject(':game:nds')?.name = 'nds'
-findProject(':minecraft:minecraft-worldscanner')?.name = 'minecraft-worldscanner'
-findProject(':minecraft:minecraft-text')?.name = 'minecraft-text'
+    int getAlpha(int color);
 
+    int getRed(int color);
+
+    int getGreen(int color);
+
+    int getBlue(int color);
+
+    int getUsedBits();
+}

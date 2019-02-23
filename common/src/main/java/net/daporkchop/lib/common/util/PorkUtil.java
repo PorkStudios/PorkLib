@@ -19,6 +19,11 @@ import lombok.NonNull;
 import sun.misc.Cleaner;
 import sun.misc.Unsafe;
 
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.lang.invoke.CallSite;
 import java.lang.invoke.LambdaMetafactory;
@@ -30,6 +35,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -166,5 +173,46 @@ public class PorkUtil {
                 throw PConstants.p_exception(e);
             }
         }
+    }
+
+    public static void simpleDisplayImage(@NonNull BufferedImage img) {
+        simpleDisplayImage(img, false);
+    }
+
+    public static void simpleDisplayImage(@NonNull BufferedImage img, boolean wait) {
+        JFrame frame = new JFrame();
+        frame.getContentPane().setLayout(new FlowLayout());
+        frame.getContentPane().add(new JLabel(new ImageIcon(img)));
+        frame.pack();
+        frame.setVisible(true);
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        if (wait)   {
+            CompletableFuture future = new CompletableFuture();
+            frame.addWindowListener(new WindowAdapter() {
+                @Override
+                @SuppressWarnings("unchecked")
+                public void windowClosed(WindowEvent e) {
+                    future.complete(null);
+                }
+            });
+            try {
+                future.get();
+            } catch (InterruptedException
+                    | ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    public static Cleaner cleaner(@NonNull Object o, @NonNull Runnable cleaner)    {
+        return Cleaner.create(o, cleaner);
+    }
+
+    public static Cleaner cleaner(@NonNull Object o, long addr)    {
+        /*return Cleaner.create(o, () -> {
+            PUnsafe.freeMemory(addr);
+            System.out.println("Memory freed!");
+        });*/
+        return Cleaner.create(o, () -> PUnsafe.freeMemory(addr));
     }
 }

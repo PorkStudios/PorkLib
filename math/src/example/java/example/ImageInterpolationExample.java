@@ -18,6 +18,8 @@ package example;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.math.arrays.grid.Grid2d;
 import net.daporkchop.lib.math.interpolation.InterpolationEngine;
+import net.daporkchop.lib.math.interpolation.cubic.CubicInterpolator;
+import net.daporkchop.lib.math.interpolation.linear.LinearInterpolationEngine;
 import net.daporkchop.lib.math.interpolation.quadratic.QuadraticInterpolation;
 import net.daporkchop.lib.math.interpolation.quintic.QuinticInterpolator;
 
@@ -49,9 +51,8 @@ public class ImageInterpolationExample {
         }
 
         for (InterpolationEngine engine : new InterpolationEngine[]{
-                /*new LinearInterpolationEngine(),
-                new CubicInterpolator()*/
-                new QuadraticInterpolation()
+                new LinearInterpolationEngine(),
+                new CubicInterpolator()
         }) {
             System.out.println(engine.getClass().getCanonicalName());
 

@@ -20,11 +20,8 @@ import net.daporkchop.lib.math.arrays.grid.Grid2d;
 import net.daporkchop.lib.math.interpolation.InterpolationEngine;
 import net.daporkchop.lib.math.interpolation.cubic.CubicInterpolator;
 import net.daporkchop.lib.math.interpolation.linear.LinearInterpolationEngine;
-import net.daporkchop.lib.math.interpolation.quadratic.QuadraticInterpolation;
-import net.daporkchop.lib.math.interpolation.quintic.QuinticInterpolator;
 
 import java.awt.image.BufferedImage;
-import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static net.daporkchop.lib.math.primitive.PMath.clamp;
@@ -33,23 +30,7 @@ import static net.daporkchop.lib.math.primitive.PMath.clamp;
  * @author DaPorkchop_
  */
 public class ImageInterpolationExample {
-    protected final class PolynomialGeneratorTempThing  {
-        protected double val;
-        protected int x;
-        protected int y;
-        protected int z;
-    }
-
     public static void main(String... args) {
-        if (false)   {
-            //generate polynomials
-            List<PolynomialGeneratorTempThing>[] temps = (List<PolynomialGeneratorTempThing>[]) new List[4];
-            for (int i = 0; i < 4; i++) {
-
-            }
-            return;
-        }
-
         for (InterpolationEngine engine : new InterpolationEngine[]{
                 new LinearInterpolationEngine(),
                 new CubicInterpolator()
@@ -65,6 +46,7 @@ public class ImageInterpolationExample {
             for (int i = 0; i < orig.length; i++) {
                 orig[i] = ThreadLocalRandom.current().nextInt();
             }
+
             BufferedImage img = new BufferedImage(scaled, scaled, BufferedImage.TYPE_INT_RGB);
             Grid2d grid = Grid2d.of(size, size);
             for (int i = 0; i < 3; i++) {

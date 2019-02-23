@@ -54,7 +54,7 @@ public class HeapIntGrid1d implements Grid1d {
 
     @Override
     public void setD(int x, double val) {
-        this.setD(x, floorI(val));
+        this.setI(x, floorI(val));
     }
 
     @Override

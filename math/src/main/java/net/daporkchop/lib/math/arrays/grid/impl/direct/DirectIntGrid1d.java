@@ -29,14 +29,14 @@ public class DirectIntGrid1d implements Grid1d, DirectMemoryHolder {
     protected final long size;
 
     protected final int startX;
-    protected final int x;
+    protected final int width;
 
-    public DirectIntGrid1d(int startX, int x) {
-        this.size = x << 2L;
+    public DirectIntGrid1d(int startX, int width) {
+        this.size = width << 2L;
         this.pos = PUnsafe.allocateMemory(this, this.size);
 
         this.startX = startX;
-        this.x = x;
+        this.width = width;
     }
 
     @Override
@@ -46,7 +46,7 @@ public class DirectIntGrid1d implements Grid1d, DirectMemoryHolder {
 
     @Override
     public int endX() {
-        return this.startX + this.x;
+        return this.startX + this.width;
     }
 
     @Override

@@ -30,18 +30,18 @@ public class DirectIntGrid2d implements Grid2d, DirectMemoryHolder {
     protected final long size;
 
     protected final int startX;
-    protected final int x;
+    protected final int width;
     protected final int startY;
-    protected final int y;
+    protected final int height;
 
-    public DirectIntGrid2d(int startX, int startY, int x, int y) {
-        this.size = ((long) x * (long) y) << 2L;
+    public DirectIntGrid2d(int startX, int startY, int width, int height) {
+        this.size = ((long) width * (long) height) << 2L;
         this.pos = PUnsafe.allocateMemory(this, this.size);
 
         this.startX = startX;
-        this.x = x;
+        this.width = width;
         this.startY = startY;
-        this.y = y;
+        this.height = height;
     }
 
     @Override
@@ -51,7 +51,7 @@ public class DirectIntGrid2d implements Grid2d, DirectMemoryHolder {
 
     @Override
     public int endX() {
-        return this.startX + this.x;
+        return this.startX + this.width;
     }
 
     @Override
@@ -61,7 +61,7 @@ public class DirectIntGrid2d implements Grid2d, DirectMemoryHolder {
 
     @Override
     public int endY() {
-        return this.startY + this.y;
+        return this.startY + this.height;
     }
 
     @Override
@@ -85,7 +85,7 @@ public class DirectIntGrid2d implements Grid2d, DirectMemoryHolder {
     }
 
     protected long getPos(int x, int y) {
-        long off = ((x - this.startX) * this.y + y - this.startY) << 2L;
+        long off = ((x - this.startX) * this.height + y - this.startY) << 2L;
         if (off >= this.size || off < 0L) {
             throw new ArrayIndexOutOfBoundsException(String.format("(%d,%d)", x, y));
         } else {

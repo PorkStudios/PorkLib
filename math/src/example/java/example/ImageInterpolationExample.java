@@ -21,6 +21,7 @@ import net.daporkchop.lib.math.arrays.grid.impl.direct.DirectIntGrid1d;
 import net.daporkchop.lib.math.interpolation.InterpolationEngine;
 import net.daporkchop.lib.math.interpolation.cubic.CubicInterpolator;
 import net.daporkchop.lib.math.interpolation.linear.LinearInterpolationEngine;
+import net.daporkchop.lib.math.interpolation.quadratic.QuadraticInterpolation;
 
 import java.awt.image.BufferedImage;
 import java.util.concurrent.ThreadLocalRandom;
@@ -33,8 +34,9 @@ import static net.daporkchop.lib.math.primitive.PMath.clamp;
 public class ImageInterpolationExample {
     public static void main(String... args) {
         for (InterpolationEngine engine : new InterpolationEngine[]{
-                new LinearInterpolationEngine(),
-                new CubicInterpolator()
+                /*new LinearInterpolationEngine(),
+                new CubicInterpolator()*/
+                new QuadraticInterpolation()
         }) {
             System.out.println(engine.getClass().getCanonicalName());
 
@@ -48,19 +50,17 @@ public class ImageInterpolationExample {
                 orig[i] = ThreadLocalRandom.current().nextInt();
             }
             BufferedImage img = new BufferedImage(scaled, scaled, BufferedImage.TYPE_INT_RGB);
-            int[] oneChannel = new int[size * size];
-            Grid2d grid = Grid2d.of(oneChannel, size, size);
+            Grid2d grid = Grid2d.of(size, size);
             for (int i = 0; i < 3; i++) {
                 int shift = i << 3;
-                for (int j = 0; j < orig.length; j++) {
-                    oneChannel[j] = (orig[j] >>> shift) & 0xFF;
+                for (int x = size - 1; x >= 0; x--) {
+                    for (int y = size - 1; y >= 0; y--) {
+                        grid.setI(x, y, (orig[x * size + y] >>> shift) & 0xFF);
+                    }
                 }
                 for (int x = scaled - 1; x >= 0; x--) {
                     for (int y = scaled - 1; y >= 0; y--) {
                         int newVal = engine.getInterpolatedI((double) x / (double) factor + radius - 1, (double) y / (double) factor + radius - 1, grid);
-                        /*if (newVal > 0xFF || newVal < 0)    {
-                            System.err.printf("Value at (%f,%f): %d\n", (double) x / (double) factor + radius - 1, (double) y / (double) factor + radius - 1, newVal);
-                        }*/
                         img.setRGB(x, y, img.getRGB(x, y) | (clamp(newVal, 0, 255) << shift));
                     }
                 }

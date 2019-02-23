@@ -13,51 +13,12 @@
  *
  */
 
-package net.daporkchop.lib.math.arrays.grid;
+package net.daporkchop.lib.math.interpolation.quintic;
 
-import lombok.NonNull;
-import net.daporkchop.lib.math.arrays.grid.impl.direct.DirectIntGrid1d;
-import net.daporkchop.lib.math.arrays.grid.impl.heap.HeapDoubleGrid1d;
-import net.daporkchop.lib.math.arrays.grid.impl.heap.HeapIntGrid1d;
+import net.daporkchop.lib.math.interpolation.InterpolationEngine;
 
 /**
  * @author DaPorkchop_
  */
-public interface Grid1d {
-    static Grid1d of(@NonNull int[] arr)    {
-        return of(arr, 0);
-    }
-
-    static Grid1d of(@NonNull int[] arr, int startX)    {
-        return new HeapIntGrid1d(arr, startX);
-    }
-
-    static Grid1d of(@NonNull double[] arr)    {
-        return of(arr, 0);
-    }
-
-    static Grid1d of(@NonNull double[] arr, int startX)    {
-        return new HeapDoubleGrid1d(arr, startX);
-    }
-
-    static Grid1d of(int width) {
-        return of(0, width);
-    }
-
-    static Grid1d of(int startX, int width) {
-        return new DirectIntGrid1d(startX, width);
-    }
-
-    int startX();
-    int endX();
-
-    //getters
-    double getD(int x);
-    
-    int getI(int x);
-
-    //setters
-    void setD(int x, double val);
-
-    void setI(int x, int val);
+public class QuinticInterpolator implements InterpolationEngine {
 }

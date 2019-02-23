@@ -30,22 +30,22 @@ public class DirectIntGrid3d implements Grid3d, DirectMemoryHolder {
     protected final long size;
 
     protected final int startX;
-    protected final int x;
+    protected final int width;
     protected final int startY;
-    protected final int y;
+    protected final int height;
     protected final int startZ;
-    protected final int z;
+    protected final int depth;
 
-    public DirectIntGrid3d(int startX, int startY, int startZ, int x, int y, int z) {
-        this.size = ((long) x * (long) y * (long) z) << 2L;
+    public DirectIntGrid3d(int startX, int startY, int startZ, int width, int height, int depth) {
+        this.size = ((long) width * (long) height * (long) depth) << 2L;
         this.pos = PUnsafe.allocateMemory(this, this.size);
 
         this.startX = startX;
-        this.x = x;
+        this.width = width;
         this.startY = startY;
-        this.y = y;
+        this.height = height;
         this.startZ = startZ;
-        this.z = z;
+        this.depth = depth;
     }
 
     @Override
@@ -55,7 +55,7 @@ public class DirectIntGrid3d implements Grid3d, DirectMemoryHolder {
 
     @Override
     public int endX() {
-        return this.startX + this.x;
+        return this.startX + this.width;
     }
 
     @Override
@@ -65,7 +65,7 @@ public class DirectIntGrid3d implements Grid3d, DirectMemoryHolder {
 
     @Override
     public int endY() {
-        return this.startY + this.y;
+        return this.startY + this.height;
     }
 
     @Override
@@ -75,7 +75,7 @@ public class DirectIntGrid3d implements Grid3d, DirectMemoryHolder {
 
     @Override
     public int endZ() {
-        return this.startZ + this.z;
+        return this.startZ + this.depth;
     }
 
     @Override
@@ -99,7 +99,7 @@ public class DirectIntGrid3d implements Grid3d, DirectMemoryHolder {
     }
 
     protected long getPos(int x, int y, int z) {
-        long off = (((x - this.startX) * this.y + y - this.startY) * this.z + z - this.startZ) << 2L;
+        long off = (((x - this.startX) * this.height + y - this.startY) * this.depth + z - this.startZ) << 2L;
         if (off >= this.size || off < 0L) {
             throw new ArrayIndexOutOfBoundsException(String.format("(%d,%d,%d)", x, y, z));
         } else {

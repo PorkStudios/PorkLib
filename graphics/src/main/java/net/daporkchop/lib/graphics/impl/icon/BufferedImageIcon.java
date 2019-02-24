@@ -53,6 +53,11 @@ public class BufferedImageIcon implements PIcon {
     }
 
     @Override
+    public BufferedImage getAsBufferedImage() {
+        return this.delegate;
+    }
+
+    @Override
     public Icon getAsSwingIcon() {
         return new ImageIcon(this.delegate);
     }

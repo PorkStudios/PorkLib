@@ -16,11 +16,19 @@
 package net.daporkchop.lib.graphics.impl.icon;
 
 import lombok.Getter;
+import lombok.NonNull;
 import net.daporkchop.lib.common.util.DirectMemoryHolder;
 import net.daporkchop.lib.common.util.PUnsafe;
 import net.daporkchop.lib.graphics.PIcon;
 
-import javax.swing.*;
+import java.awt.*;
+import java.awt.color.ColorSpace;
+import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.ComponentColorModel;
+import java.awt.image.DataBuffer;
+import java.awt.image.SinglePixelPackedSampleModel;
+import java.awt.image.WritableRaster;
 
 /**
  * @author DaPorkchop_
@@ -34,9 +42,9 @@ public class DirectIcon implements PIcon, DirectMemoryHolder {
     protected final int height;
     protected final boolean bw;
 
-    public DirectIcon(int width, int height, boolean bw)    {
+    public DirectIcon(int width, int height, boolean bw) {
         this.size = ((long) width * (long) height) << (bw ? 0L : 2L);
-        this.pos = PUnsafe.allocateMemory(this.size);
+        this.pos = PUnsafe.allocateMemory(this, this.size);
 
         this.width = width;
         this.height = height;
@@ -45,9 +53,9 @@ public class DirectIcon implements PIcon, DirectMemoryHolder {
 
     @Override
     public int getARGB(int x, int y) {
-        if (x < 0 || x >= this.width || y < 0 || y >= this.height)  {
+        if (x < 0 || x >= this.width || y < 0 || y >= this.height) {
             throw new ArrayIndexOutOfBoundsException(String.format("(%d,%d) w=%d,h=%d", x, y, this.width, this.height));
-        } else if (this.bw)    {
+        } else if (this.bw) {
             return 0xFF000000 | (PUnsafe.getByte(this.pos + (long) x * (long) this.height + (long) y) & 0xFF);
         } else {
             return PUnsafe.getInt(this.pos + (((long) x * (long) this.height + (long) y) << 2L));
@@ -66,7 +74,7 @@ public class DirectIcon implements PIcon, DirectMemoryHolder {
 
     @Override
     public synchronized void releaseMemory() {
-        if (this.isMemoryReleased())    {
+        if (this.isMemoryReleased()) {
             throw new IllegalStateException("Memory already released!");
         } else {
             PUnsafe.freeMemory(this.pos);

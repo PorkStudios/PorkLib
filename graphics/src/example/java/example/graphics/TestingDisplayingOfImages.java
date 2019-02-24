@@ -16,7 +16,9 @@
 package example.graphics;
 
 import net.daporkchop.lib.graphics.PIcon;
-import net.daporkchop.lib.graphics.impl.PIconBufferedImage;
+import net.daporkchop.lib.graphics.PImage;
+import net.daporkchop.lib.graphics.impl.icon.BufferedImageIcon;
+import net.daporkchop.lib.graphics.impl.image.DirectImage;
 
 import javax.swing.*;
 import java.awt.*;
@@ -28,18 +30,16 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class TestingDisplayingOfImages {
     public static void main(String... args) {
-        BufferedImage buf = new BufferedImage(256, 256, BufferedImage.TYPE_INT_ARGB);
+        PImage image = new DirectImage(256, 256, false);
         for (int x = 255; x >= 0; x--)  {
             for (int y = 255; y >= 0; y--)  {
-                buf.setRGB(x, y, 0xFF000000 | ThreadLocalRandom.current().nextInt());
+                image.setRGB(x, y, ThreadLocalRandom.current().nextInt());
             }
         }
 
-        PIcon icon = new PIconBufferedImage(buf);
-
         JFrame frame = new JFrame();
         frame.getContentPane().setLayout(new FlowLayout());
-        frame.getContentPane().add(new JLabel(icon.getAsSwingIcon()));
+        frame.getContentPane().add(new JLabel(image.getAsSwingIcon()));
         frame.pack();
         frame.setVisible(true);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);

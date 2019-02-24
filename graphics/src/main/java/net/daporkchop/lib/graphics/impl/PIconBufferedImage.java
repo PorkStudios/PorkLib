@@ -13,21 +13,41 @@
  *
  */
 
-package net.daporkchop.lib.graphics;
+package net.daporkchop.lib.graphics.impl;
+
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.graphics.PIcon;
+
+import java.awt.image.BufferedImage;
 
 /**
  * @author DaPorkchop_
  */
-public interface ColorModel {
-    int getColor(int a, int r, int g, int b);
+@RequiredArgsConstructor
+@Getter
+public class PIconBufferedImage implements PIcon {
+    @NonNull
+    protected final BufferedImage delegate;
 
-    int getAlpha(int color);
+    @Override
+    public int getWidth() {
+        return this.delegate.getWidth();
+    }
 
-    int getRed(int color);
+    @Override
+    public int getHeight() {
+        return this.delegate.getHeight();
+    }
 
-    int getGreen(int color);
+    @Override
+    public boolean isBW() {
+        return false;
+    }
 
-    int getBlue(int color);
-
-    int getUsedBits();
+    @Override
+    public int getARGB(int x, int y) {
+        return this.delegate.getRGB(x, y);
+    }
 }

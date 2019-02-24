@@ -13,6 +13,41 @@
  *
  */
 
-dependencies {
-    compile project(":math")
+package net.daporkchop.lib.graphics;
+
+import lombok.NonNull;
+
+/**
+ * An abstract representation of an image.
+ *
+ * @author DaPorkchop_
+ */
+public interface PImage extends PIcon {
+    //pixel stuff
+    void setARGB(int x, int y, int argb);
+
+    default void setRGB(int x, int y, int rgb)  {
+        this.setARGB(x, y, 0xFF000000 | rgb);
+    }
+
+    default void setBW(int x, int y, int col)   {
+        this.setARGB(x, y, 0xFF000000 | (col << 16) | (col << 8) | col);
+    }
+
+    default void copy(@NonNull PIcon src, int srcX, int srcY, int dstX, int dstY, int w, int h) {
+        for (int x = w - 1; x >= 0; x--)    {
+            for (int y = h - 1; y >= 0; y--)    {
+                this.setARGB(dstX + x, dstY + y, src.getARGB(srcX + x, srcY + y));
+            }
+        }
+    }
+
+    //drawing methods
+    default void drawRect(int x, int y, int w, int h, int argb) {
+        for (; w >= 0; w--) {
+            for (int yy = h - 1; yy >= 0; yy--) {
+                this.setARGB(x + w, y + yy, argb);
+            }
+        }
+    }
 }

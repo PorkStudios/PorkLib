@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.graphics;
+package net.daporkchop.lib.graphics.util;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;

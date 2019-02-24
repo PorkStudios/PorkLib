@@ -15,6 +15,7 @@
 
 package example.graphics;
 
+import net.daporkchop.lib.graphics.PIcon;
 import net.daporkchop.lib.graphics.impl.PIconBufferedImage;
 
 import javax.swing.*;
@@ -34,11 +35,11 @@ public class TestingDisplayingOfImages {
             }
         }
 
-        Image image = new PIconBufferedImage(buf).getAsAWTImage();
+        PIcon icon = new PIconBufferedImage(buf);
 
         JFrame frame = new JFrame();
         frame.getContentPane().setLayout(new FlowLayout());
-        frame.getContentPane().add(new JLabel(new ImageIcon(image)));
+        frame.getContentPane().add(new JLabel(icon.getAsSwingIcon()));
         frame.pack();
         frame.setVisible(true);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);

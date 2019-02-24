@@ -15,8 +15,9 @@
 
 package net.daporkchop.lib.graphics;
 
-import net.daporkchop.lib.graphics.swing.PIconAWTImage;
+import net.daporkchop.lib.graphics.swing.PIconSwingIcon;
 
+import javax.swing.*;
 import java.awt.*;
 
 /**
@@ -48,7 +49,7 @@ public interface PIcon {
     }
 
     //compatibility
-    default Image getAsAWTImage()   {
-        return new PIconAWTImage(this);
+    default Icon getAsSwingIcon()   {
+        return new PIconSwingIcon(this);
     }
 }

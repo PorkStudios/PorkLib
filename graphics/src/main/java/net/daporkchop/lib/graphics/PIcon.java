@@ -18,6 +18,7 @@ package net.daporkchop.lib.graphics;
 import net.daporkchop.lib.graphics.impl.icon.WrapperSwingIcon;
 
 import javax.swing.*;
+import java.awt.image.BufferedImage;
 
 /**
  * An immutable representation of an image
@@ -48,6 +49,16 @@ public interface PIcon {
     }
 
     //compatibility
+    default BufferedImage getAsBufferedImage()  {
+        BufferedImage img = new BufferedImage(this.getWidth(), this.getHeight(), this.isBW() ? BufferedImage.TYPE_BYTE_GRAY : BufferedImage.TYPE_INT_ARGB);
+        for (int x = this.getWidth() - 1; x >= 0; x--)  {
+            for (int y = this.getHeight() - 1; y >= 0; y--) {
+                img.setRGB(x, y, this.getRGB(x, y));
+            }
+        }
+        return img;
+    }
+
     default Icon getAsSwingIcon()   {
         return new WrapperSwingIcon(this);
     }

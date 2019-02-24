@@ -40,7 +40,7 @@ public class TestingDisplayingOfImages {
         JFrame frame = new JFrame();
         frame.getContentPane().setLayout(new FlowLayout());
         //frame.getContentPane().add(new JLabel(image.getAsSwingIcon()));
-        frame.getContentPane().add(new JLabel(new ImageIcon(image.getAsBufferedImage())));
+        frame.getContentPane().add(new JLabel(image.getAsSwingIcon()));
         frame.pack();
         frame.setVisible(true);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);

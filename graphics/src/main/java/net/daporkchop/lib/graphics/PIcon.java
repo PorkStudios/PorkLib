@@ -13,6 +13,42 @@
  *
  */
 
-dependencies {
-    compile project(":math")
+package net.daporkchop.lib.graphics;
+
+import net.daporkchop.lib.graphics.swing.PIconAWTImage;
+
+import java.awt.*;
+
+/**
+ * An immutable representation of an image
+ *
+ * @author DaPorkchop_
+ */
+public interface PIcon {
+    //size stuff
+    int getWidth();
+    int getHeight();
+
+    default boolean isEmpty()   {
+        return this.getWidth() <= 0 || this.getHeight() <= 0;
+    }
+
+    //misc
+    boolean isBW();
+
+    //pixel stuff
+    int getARGB(int x, int y);
+
+    default int getRGB(int x, int y)  {
+        return this.getARGB(x, y) & 0x00FFFFFF;
+    }
+
+    default int getBW(int x, int y)   {
+        return this.getARGB(x, y) & 0xFF;
+    }
+
+    //compatibility
+    default Image getAsAWTImage()   {
+        return new PIconAWTImage(this);
+    }
 }

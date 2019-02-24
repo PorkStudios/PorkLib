@@ -13,6 +13,34 @@
  *
  */
 
-dependencies {
-    compile project(":math")
+package example.graphics;
+
+import net.daporkchop.lib.graphics.impl.PIconBufferedImage;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.util.concurrent.ThreadLocalRandom;
+
+/**
+ * @author DaPorkchop_
+ */
+public class TestingDisplayingOfImages {
+    public static void main(String... args) {
+        BufferedImage buf = new BufferedImage(256, 256, BufferedImage.TYPE_INT_ARGB);
+        for (int x = 255; x >= 0; x--)  {
+            for (int y = 255; y >= 0; y--)  {
+                buf.setRGB(x, y, 0xFF000000 | ThreadLocalRandom.current().nextInt());
+            }
+        }
+
+        Image image = new PIconBufferedImage(buf).getAsAWTImage();
+
+        JFrame frame = new JFrame();
+        frame.getContentPane().setLayout(new FlowLayout());
+        frame.getContentPane().add(new JLabel(new ImageIcon(image)));
+        frame.pack();
+        frame.setVisible(true);
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    }
 }

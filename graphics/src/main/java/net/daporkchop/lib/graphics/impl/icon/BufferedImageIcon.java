@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.graphics.impl;
+package net.daporkchop.lib.graphics.impl.icon;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -28,7 +28,7 @@ import java.awt.image.BufferedImage;
  */
 @RequiredArgsConstructor
 @Getter
-public class PIconBufferedImage implements PIcon {
+public class BufferedImageIcon implements PIcon {
     @NonNull
     protected final BufferedImage delegate;
 

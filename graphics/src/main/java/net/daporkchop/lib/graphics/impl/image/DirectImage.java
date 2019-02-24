@@ -13,45 +13,28 @@
  *
  */
 
-package net.daporkchop.lib.graphics.swing;
+package net.daporkchop.lib.graphics.impl.image;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.graphics.PIcon;
-
-import javax.swing.*;
-import java.awt.*;
+import net.daporkchop.lib.common.util.PUnsafe;
+import net.daporkchop.lib.graphics.PImage;
+import net.daporkchop.lib.graphics.impl.icon.DirectIcon;
 
 /**
- * A very, very inefficient implementation of {@link Icon} that uses a {@link PIcon} to store pixel values.
- *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-public class PIconSwingIcon implements Icon {
-    @NonNull
-    protected final PIcon delegate;
+public class DirectImage extends DirectIcon implements PImage {
+    public DirectImage(int width, int height, boolean bw) {
+        super(width, height, bw);
+    }
 
     @Override
-    public void paintIcon(Component c, Graphics g, int x, int y) {
-        for (int xx = this.delegate.getWidth() - 1; xx >= 0; xx--)  {
-            for (int yy = this.delegate.getHeight() - 1; yy >= 0; yy--) {
-                g.setPaintMode();
-                g.setColor(new Color(this.delegate.getARGB(xx, yy)));
-                g.drawRect(x + xx, y + yy, 1, 1);
-            }
+    public void setARGB(int x, int y, int argb) {
+        if (x < 0 || x >= this.width || y < 0 || y >= this.height)  {
+            throw new ArrayIndexOutOfBoundsException(String.format("(%d,%d) w=%d,h=%d", x, y, this.width, this.height));
+        } else if (this.bw)    {
+            PUnsafe.putByte(this.pos + (long) x * (long) this.height + (long) y, (byte) argb);
+        } else {
+            PUnsafe.putInt(this.pos + (((long) x * (long) this.height + (long) y) << 2L), argb);
         }
-    }
-
-    @Override
-    public int getIconWidth() {
-        return this.delegate.getWidth();
-    }
-
-    @Override
-    public int getIconHeight() {
-        return this.delegate.getHeight();
     }
 }

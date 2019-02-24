@@ -85,6 +85,7 @@ public class DirectIcon implements PIcon, DirectMemoryHolder {
         }
     }
 
+    //everything below this comment is compatibility code to be able to work with java AWT's godawful api
     @Override
     public BufferedImage getAsBufferedImage() {
         ColorModel colorModel;

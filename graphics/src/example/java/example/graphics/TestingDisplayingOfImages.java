@@ -15,40 +15,52 @@
 
 package example.graphics;
 
-import net.daporkchop.lib.graphics.PIcon;
 import net.daporkchop.lib.graphics.PImage;
-import net.daporkchop.lib.graphics.impl.icon.BufferedImageIcon;
 import net.daporkchop.lib.graphics.impl.image.DirectImage;
 import net.daporkchop.lib.graphics.util.ImageInterpolator;
-import net.daporkchop.lib.math.interpolation.cubic.CubicInterpolationEngine;
+import net.daporkchop.lib.math.interpolation.CubicInterpolationEngine;
+import net.daporkchop.lib.math.interpolation.NearestNeighborInterpolationEngine;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.BufferedImage;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * @author DaPorkchop_
  */
 public class TestingDisplayingOfImages {
-    public static void main(String... args) {
-        int size = 32;
-        PImage image = new DirectImage(size, size, false);
-        for (int x = size - 1; x >= 0; x--)  {
-            for (int y = size - 1; y >= 0; y--)  {
-                image.setRGB(x, y, ThreadLocalRandom.current().nextInt());
+    public static void main(String... args) throws InterruptedException {
+        int size = 20;
+        for (int i = 0; i < 2; i++) {
+            PImage image = new DirectImage(size, size, i == 1);
+            for (int x = size - 1; x >= 0; x--) {
+                for (int y = size - 1; y >= 0; y--) {
+                    image.setRGB(x, y, ThreadLocalRandom.current().nextInt());
+                }
+            }
+
+            ImageInterpolator interpolator = new ImageInterpolator(new CubicInterpolationEngine());
+            image = interpolator.interp(image, 32.0d);
+
+            JFrame frame = new JFrame();
+            frame.getContentPane().setLayout(new FlowLayout());
+            frame.getContentPane().add(new JLabel(image.getAsSwingIcon()));
+            frame.pack();
+            frame.setVisible(true);
+            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            frame.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosed(WindowEvent e) {
+                    synchronized (frame)    {
+                        frame.notify();
+                    }
+                }
+            });
+            synchronized (frame)    {
+                frame.wait();
             }
         }
-
-        ImageInterpolator interpolator = new ImageInterpolator(new CubicInterpolationEngine());
-        image = interpolator.interp(image, size * 32, size * 32);
-
-        JFrame frame = new JFrame();
-        frame.getContentPane().setLayout(new FlowLayout());
-        //frame.getContentPane().add(new JLabel(image.getAsSwingIcon()));
-        frame.getContentPane().add(new JLabel(image.getAsSwingIcon()));
-        frame.pack();
-        frame.setVisible(true);
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     }
 }

@@ -18,6 +18,7 @@ package example.graphics;
 import net.daporkchop.lib.graphics.PImage;
 import net.daporkchop.lib.graphics.impl.image.DirectImage;
 import net.daporkchop.lib.graphics.util.ImageInterpolator;
+import net.daporkchop.lib.graphics.util.Thumbnail;
 import net.daporkchop.lib.math.interpolation.CubicInterpolationEngine;
 import net.daporkchop.lib.math.interpolation.NearestNeighborInterpolationEngine;
 

@@ -15,19 +15,11 @@
 
 package net.daporkchop.lib.graphics.impl.image;
 
-import lombok.NonNull;
 import net.daporkchop.lib.common.util.PUnsafe;
 import net.daporkchop.lib.graphics.PImage;
 import net.daporkchop.lib.graphics.impl.icon.DirectIcon;
 
-import java.awt.*;
-import java.awt.color.ColorSpace;
-import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
-import java.awt.image.ComponentColorModel;
 import java.awt.image.DataBuffer;
-import java.awt.image.Raster;
-import java.awt.image.SinglePixelPackedSampleModel;
 import java.awt.image.WritableRaster;
 
 /**
@@ -46,6 +38,18 @@ public class DirectImage extends DirectIcon implements PImage {
             PUnsafe.putByte(this.pos + (long) x * (long) this.height + (long) y, (byte) argb);
         } else {
             PUnsafe.putInt(this.pos + (((long) x * (long) this.height + (long) y) << 2L), argb);
+        }
+    }
+
+    @Override
+    public void fill(int argb) {
+        if (this.bw) {
+            PUnsafe.setMemory(this.pos, this.size, (byte) argb);
+        } else {
+            long pos = this.pos; //this should allow JIT to put the value in a register
+            for (long l = this.size - 5L; l >= 0L; l -= 4L) {
+                PUnsafe.putInt(pos + l, argb);
+            }
         }
     }
 

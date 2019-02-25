@@ -13,42 +13,29 @@
  *
  */
 
-package example.graphics;
+package net.daporkchop.lib.math.arrays.grid.impl.direct;
 
-import net.daporkchop.lib.graphics.PIcon;
-import net.daporkchop.lib.graphics.PImage;
-import net.daporkchop.lib.graphics.impl.icon.BufferedImageIcon;
-import net.daporkchop.lib.graphics.impl.image.DirectImage;
-import net.daporkchop.lib.graphics.util.ImageInterpolator;
-import net.daporkchop.lib.math.interpolation.cubic.CubicInterpolationEngine;
+import net.daporkchop.lib.common.util.DirectMemoryHolder;
+import net.daporkchop.lib.common.util.PUnsafe;
+import net.daporkchop.lib.math.arrays.grid.Grid2d;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.util.concurrent.ThreadLocalRandom;
+import static net.daporkchop.lib.math.primitive.PMath.clamp;
+import static net.daporkchop.lib.math.primitive.PMath.floorI;
 
 /**
  * @author DaPorkchop_
  */
-public class TestingDisplayingOfImages {
-    public static void main(String... args) {
-        int size = 32;
-        PImage image = new DirectImage(size, size, false);
-        for (int x = size - 1; x >= 0; x--)  {
-            for (int y = size - 1; y >= 0; y--)  {
-                image.setRGB(x, y, ThreadLocalRandom.current().nextInt());
-            }
-        }
+public class DirectOverflowingIntGrid2d extends DirectIntGrid2d {
+    public DirectOverflowingIntGrid2d(int startX, int startY, int width, int height) {
+        super(startX, startY, width, height);
+    }
 
-        ImageInterpolator interpolator = new ImageInterpolator(new CubicInterpolationEngine());
-        image = interpolator.interp(image, size * 32, size * 32);
+    protected long getPos(int x, int y) {
+        return this.pos + ((clamp(x - this.startX, 0, this.width) * this.height + clamp(y - this.startY, 0, this.height)) << 2L);
+    }
 
-        JFrame frame = new JFrame();
-        frame.getContentPane().setLayout(new FlowLayout());
-        //frame.getContentPane().add(new JLabel(image.getAsSwingIcon()));
-        frame.getContentPane().add(new JLabel(image.getAsSwingIcon()));
-        frame.pack();
-        frame.setVisible(true);
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    @Override
+    public boolean isOverflowing() {
+        return true;
     }
 }

@@ -45,8 +45,8 @@ public class QuadraticInterpolationEngine implements InterpolationEngine {
         int yFloor = floorI(y);
         this.ensureInRange(xFloor, yFloor, grid);
 
-        x -= xFloor;
-        y -= yFloor;
+        //x -= xFloor;
+        //y -= yFloor;
 
         //double v1 = grid.getD(xFloor - 1, yFloor - 1);
         //double v3 = grid.getD(xFloor, yFloor - 1);
@@ -115,20 +115,28 @@ public class QuadraticInterpolationEngine implements InterpolationEngine {
         double p2 = grid.getD(xFloor + 1, 0);
         double p1 = (p2 - p0) * x + p0;*/
 
-        double p0 = grid.getD(xFloor, 0);
+        /*double p0 = grid.getD(xFloor, 0);
         double p1 = grid.getD(xFloor + 1, 0);
-        double p2 = grid.getD(xFloor + 2, 0);
+        double p2 = grid.getD(xFloor + 2, 0);*/
 
         //a=(p2-p0)/2-p2+p1
         //b=-0.5p0+0.5p2
         //c=p1
         //f(x)=ax²+bx+c
         //therefore:
-        return x * x * ((p2 - p0) * 0.5d - p2 + p1)
+        /*return x * x * ((p2 - p0) * 0.5d - p2 + p1)
                 + x * (-0.5d * p0 + 0.5d * p2)
-                + p1;
+                + p1;*/
 
-        //god damn it i give up
+        //take 3
+        //http://slideplayer.com/slide/4948480/16/images/10/Comparing+Linear+and+Quadratic+Interpolation.jpg
+        double v0 = grid.getD(xFloor, 0);
+        double v1 = grid.getD(xFloor + 1, 0);
+        double v2 = grid.getD(xFloor + 2, 0);
+
+        return (v1 + (x - xFloor) * (v2 - v1)) +
+                (v2 - 2.0d * v1 - v0) * 0.5d * (x - xFloor) * (x - xFloor + 1);
+        //still doesn't work :(
     }
 
     @Override

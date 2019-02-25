@@ -17,6 +17,7 @@ package net.daporkchop.lib.math.arrays.grid;
 
 import lombok.NonNull;
 import net.daporkchop.lib.math.arrays.grid.impl.direct.DirectIntGrid2d;
+import net.daporkchop.lib.math.arrays.grid.impl.direct.DirectOverflowingIntGrid2d;
 import net.daporkchop.lib.math.arrays.grid.impl.heap.HeapDoubleGrid2d;
 import net.daporkchop.lib.math.arrays.grid.impl.heap.HeapIntGrid2d;
 
@@ -49,11 +50,19 @@ public interface Grid2d extends Grid1d {
     }
 
     static Grid2d of(int width, int height) {
-        return of(0, 0, width, height);
+        return of(0, 0, width, height, false);
+    }
+
+    static Grid2d of(int width, int height, boolean overflowing) {
+        return of(0, 0, width, height, overflowing);
     }
 
     static Grid2d of(int startX, int startY, int width, int height) {
-        return new DirectIntGrid2d(startX, startY, width, height);
+        return of(startX, startY, width, height, false);
+    }
+
+    static Grid2d of(int startX, int startY, int width, int height, boolean overflowing) {
+        return overflowing ? new DirectOverflowingIntGrid2d(startX, startY, width, height) : new DirectIntGrid2d(startX, startY, width, height);
     }
 
     int startY();

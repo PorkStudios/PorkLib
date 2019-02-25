@@ -36,9 +36,9 @@ import static net.daporkchop.lib.math.primitive.PMath.clamp;
 public class ImageInterpolationExample {
     public static void main(String... args) {
         for (InterpolationEngine engine : Stream.of(null
-                //, new LinearInterpolationEngine()
-                //, new CubicInterpolationEngine()
-                , new QuadraticInterpolationEngine()
+                , new LinearInterpolationEngine()
+                , new CubicInterpolationEngine()
+                //, new QuadraticInterpolationEngine()
         ).filter(Objects::nonNull).toArray(InterpolationEngine[]::new)) {
             System.out.println(engine.getClass().getCanonicalName());
 

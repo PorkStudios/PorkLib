@@ -50,6 +50,9 @@ public interface Grid1d {
 
     int startX();
     int endX();
+    default boolean isOverflowing() {
+        return false;
+    }
 
     //getters
     double getD(int x);

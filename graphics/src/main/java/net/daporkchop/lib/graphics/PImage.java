@@ -50,4 +50,12 @@ public interface PImage extends PIcon {
             }
         }
     }
+
+    default void fill(int argb) {
+        for (int x = this.getWidth() - 1; x >= 0; x--)  {
+            for (int y = this.getHeight() - 1; y >= 0; y--) {
+                this.setARGB(x, y, argb);
+            }
+        }
+    }
 }

@@ -18,11 +18,15 @@ package example;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.math.arrays.grid.Grid2d;
 import net.daporkchop.lib.math.interpolation.InterpolationEngine;
-import net.daporkchop.lib.math.interpolation.cubic.CubicInterpolator;
+import net.daporkchop.lib.math.interpolation.cubic.CubicInterpolationEngine;
 import net.daporkchop.lib.math.interpolation.linear.LinearInterpolationEngine;
+import net.daporkchop.lib.math.interpolation.quadratic.QuadraticInterpolationEngine;
 
 import java.awt.image.BufferedImage;
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Stream;
 
 import static net.daporkchop.lib.math.primitive.PMath.clamp;
 
@@ -31,10 +35,11 @@ import static net.daporkchop.lib.math.primitive.PMath.clamp;
  */
 public class ImageInterpolationExample {
     public static void main(String... args) {
-        for (InterpolationEngine engine : new InterpolationEngine[]{
-                new LinearInterpolationEngine(),
-                new CubicInterpolator()
-        }) {
+        for (InterpolationEngine engine : Stream.of(null
+                //, new LinearInterpolationEngine()
+                //, new CubicInterpolationEngine()
+                , new QuadraticInterpolationEngine()
+        ).filter(Objects::nonNull).toArray(InterpolationEngine[]::new)) {
             System.out.println(engine.getClass().getCanonicalName());
 
             int radius = engine.requiredRadius();

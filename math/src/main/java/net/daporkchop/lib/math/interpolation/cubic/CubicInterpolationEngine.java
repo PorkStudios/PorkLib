@@ -26,7 +26,7 @@ import static net.daporkchop.lib.math.primitive.PMath.floorI;
 /**
  * @author DaPorkchop_
  */
-public class CubicInterpolator implements InterpolationEngine {
+public class CubicInterpolationEngine implements InterpolationEngine {
     @Override
     public int requiredRadius() {
         return 2;

@@ -88,16 +88,7 @@ public class DirectIcon implements PIcon, DirectMemoryHolder {
     //everything below this comment is compatibility code to be able to work with java AWT's godawful api
     @Override
     public BufferedImage getAsBufferedImage() {
-        ColorModel colorModel;
-        if (this.bw) {
-            ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_GRAY);
-            int[] nBits = {8};
-            colorModel = new ComponentColorModel(cs, nBits, false, true, Transparency.OPAQUE, DataBuffer.TYPE_BYTE);
-        } else {
-            //colorModel = ColorModel.getRGBdefault();
-            colorModel = new FastARGBColorModel();
-        }
-        return new BufferedImage(colorModel, this.newRaster(), false, null);
+        return new BufferedImage(this.bw ? new FastBWColorModel() : new FastARGBColorModel(), this.newRaster(), false, null);
     }
 
     @Override
@@ -136,6 +127,37 @@ public class DirectIcon implements PIcon, DirectMemoryHolder {
         @Override
         public int getAlpha(int pixel) {
             return pixel >>> 24;
+        }
+
+        @Override
+        public boolean isCompatibleRaster(Raster raster) {
+            return raster instanceof DirectRaster;
+        }
+    }
+
+    protected static class FastBWColorModel extends ColorModel {
+        public FastBWColorModel() {
+            super(8);
+        }
+
+        @Override
+        public int getRed(int pixel) {
+            return pixel & 0xFF;
+        }
+
+        @Override
+        public int getGreen(int pixel) {
+            return pixel & 0xFF;
+        }
+
+        @Override
+        public int getBlue(int pixel) {
+            return pixel & 0xFF;
+        }
+
+        @Override
+        public int getAlpha(int pixel) {
+            return 0xFF;
         }
 
         @Override

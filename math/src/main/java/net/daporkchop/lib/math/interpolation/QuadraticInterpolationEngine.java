@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.math.interpolation.quadratic;
+package net.daporkchop.lib.math.interpolation;
 
 import lombok.NonNull;
 import net.daporkchop.lib.math.arrays.grid.Grid1d;

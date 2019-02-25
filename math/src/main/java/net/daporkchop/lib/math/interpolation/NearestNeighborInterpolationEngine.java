@@ -13,29 +13,64 @@
  *
  */
 
-package net.daporkchop.lib.math.arrays.grid.impl.direct;
+package net.daporkchop.lib.math.interpolation;
 
-import net.daporkchop.lib.common.util.DirectMemoryHolder;
-import net.daporkchop.lib.common.util.PUnsafe;
+import lombok.NonNull;
+import net.daporkchop.lib.math.arrays.grid.Grid1d;
 import net.daporkchop.lib.math.arrays.grid.Grid2d;
+import net.daporkchop.lib.math.arrays.grid.Grid3d;
 
-import static net.daporkchop.lib.math.primitive.PMath.clamp;
 import static net.daporkchop.lib.math.primitive.PMath.floorI;
+import static net.daporkchop.lib.math.primitive.PMath.roundI;
 
 /**
  * @author DaPorkchop_
  */
-public class DirectOverflowingIntGrid2d extends DirectIntGrid2d {
-    public DirectOverflowingIntGrid2d(int startX, int startY, int width, int height) {
-        super(startX, startY, width, height);
-    }
-
-    protected long getPos(int x, int y) {
-        return this.pos + ((clamp(x - this.startX, 0, this.width - 1) * this.height + clamp(y - this.startY, 0, this.height - 1)) << 2L);
+public class NearestNeighborInterpolationEngine implements InterpolationEngine {
+    @Override
+    public int requiredRadius() {
+        return 0;
     }
 
     @Override
-    public boolean isOverflowing() {
-        return true;
+    public double getInterpolated(double x, @NonNull Grid1d grid) {
+        this.ensureInRange(roundI(x), grid);
+
+        return grid.getD(roundI(x));
+    }
+
+    @Override
+    public double getInterpolated(double x, double y, @NonNull Grid2d grid) {
+        this.ensureInRange(roundI(x), roundI(y), grid);
+
+        return grid.getD(roundI(x), roundI(y));
+    }
+
+    @Override
+    public double getInterpolated(double x, double y, double z, @NonNull Grid3d grid) {
+        this.ensureInRange(roundI(x), roundI(y), roundI(z), grid);
+
+        return grid.getD(roundI(x), roundI(y), roundI(z));
+    }
+
+    @Override
+    public int getInterpolatedI(double x, Grid1d grid) {
+        this.ensureInRange(roundI(x), grid);
+
+        return grid.getI(roundI(x));
+    }
+
+    @Override
+    public int getInterpolatedI(double x, double y, Grid2d grid) {
+        this.ensureInRange(roundI(x), roundI(y), grid);
+
+        return grid.getI(roundI(x), roundI(y));
+    }
+
+    @Override
+    public int getInterpolatedI(double x, double y, double z, Grid3d grid) {
+        this.ensureInRange(roundI(x), roundI(y), roundI(z), grid);
+
+        return grid.getI(roundI(x), roundI(y), roundI(z));
     }
 }

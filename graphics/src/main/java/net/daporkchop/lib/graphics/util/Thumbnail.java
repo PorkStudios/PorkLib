@@ -42,15 +42,15 @@ public class Thumbnail {
         }
     }
 
-    public void bake() {
-        this.bake(new ImageInterpolator(new LinearInterpolationEngine()));
+    public Thumbnail bake() {
+        return this.bake(new ImageInterpolator(new LinearInterpolationEngine()));
     }
 
-    public void bake(@NonNull InterpolationEngine engine) {
-        this.bake(new ImageInterpolator(engine));
+    public Thumbnail bake(@NonNull InterpolationEngine engine) {
+        return this.bake(new ImageInterpolator(engine));
     }
 
-    public void bake(@NonNull ImageInterpolator interpolator) {
+    public Thumbnail bake(@NonNull ImageInterpolator interpolator) {
         if (!this.baked) {
             PIcon highestRes = null;
             for (int i = this.sizes.length - 1; i >= 0; i--) {
@@ -68,6 +68,32 @@ public class Thumbnail {
                 }
             }
             this.baked = true;
+        }
+        return this;
+    }
+
+    public Thumbnail submit(@NonNull PIcon icon)    {
+        if (icon.isEmpty() || icon.getWidth() != icon.getHeight())  {
+            throw new IllegalArgumentException("Icon is not a square!");
+        }
+        if (!this.baked)    {
+            for (int i = this.sizes.length - 1; i >= 0; i--)    {
+                if (this.sizes[i] == icon.getWidth())   {
+                    this.icons[i] = icon;
+                    return this;
+                }
+            }
+
+            throw new IllegalArgumentException(String.format("Icon with size %d doesn't match any of the thumbnail resolutions!", icon.getWidth()));
+        }
+        return this;
+    }
+
+    public PIcon[] getIcons() {
+        if (this.baked) {
+            return this.icons.clone();
+        } else {
+            throw new IllegalStateException("Not baked!");
         }
     }
 }

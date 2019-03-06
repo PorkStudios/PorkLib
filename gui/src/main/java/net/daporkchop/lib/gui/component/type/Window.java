@@ -16,6 +16,7 @@
 package net.daporkchop.lib.gui.component.type;
 
 import lombok.NonNull;
+import net.daporkchop.lib.graphics.PIcon;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.NestedContainer;
@@ -33,7 +34,7 @@ import java.util.StringJoiner;
  *
  * @author DaPorkchop_
  */
-public interface Window extends Container<Window>, Resizable<Window> {
+public interface Window extends Container<Window>, Resizable<Window>, IconHolder<Window> {
     String getTitle();
 
     Window setTitle(@NonNull String title);
@@ -48,6 +49,27 @@ public interface Window extends Container<Window>, Resizable<Window> {
     @Override
     default Window considerUpdate() {
         return this.isVisible() ? this.update() : this;
+    }
+
+    default Window setIcon(@NonNull PIcon... icons)    {
+        if (icons.length == 0)  {
+            throw new IllegalArgumentException("Arguments may not be empty!");
+        }
+        int max = Integer.MIN_VALUE;
+        PIcon maxI = null;
+        for (int i = icons.length - 1; i >= 0; i--) {
+            if (icons[i] == null)   {
+                throw new NullPointerException();
+            }
+            PIcon icon = icons[i];
+            if (icon.isEmpty() || icon.getWidth() != icon.getHeight())  {
+                throw new IllegalArgumentException("Icon must be square!");
+            } else if (icon.getWidth() > max)   {
+                max = icon.getWidth();
+                maxI = icon;
+            }
+        }
+        return this.setIcon(maxI);
     }
 
     //convenience methods

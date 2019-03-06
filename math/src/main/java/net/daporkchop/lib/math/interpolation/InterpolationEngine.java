@@ -49,35 +49,47 @@ public interface InterpolationEngine {
     
     //validation
     default boolean isInRange(int x, @NonNull Grid1d grid)    {
-        int radius = this.requiredRadius();
-        
-        if (x < grid.startX() + radius - 1 || x > grid.endX() - radius - 1) {
-            return false;
-        } else {
+        if (grid.isOverflowing())   {
             return true;
+        } else {
+            int radius = this.requiredRadius();
+
+            if (x < grid.startX() + radius - 1 || x > grid.endX() - radius - 1) {
+                return false;
+            } else {
+                return true;
+            }
         }
     }
 
     default boolean isInRange(int x, int y, @NonNull Grid2d grid)    {
-        int radius = this.requiredRadius();
-
-        if (x < grid.startX() + radius - 1 || x > grid.endX() - radius - 1
-                || y < grid.startY() + radius - 1 || y > grid.endY() - radius - 1) {
-            return false;
-        } else {
+        if (grid.isOverflowing())   {
             return true;
+        } else {
+            int radius = this.requiredRadius();
+
+            if (x < grid.startX() + radius - 1 || x > grid.endX() - radius - 1
+                    || y < grid.startY() + radius - 1 || y > grid.endY() - radius - 1) {
+                return false;
+            } else {
+                return true;
+            }
         }
     }
 
     default boolean isInRange(int x, int y, int z, @NonNull Grid3d grid)    {
-        int radius = this.requiredRadius();
-
-        if (x < grid.startX() + radius - 1 || x > grid.endX() - radius - 1
-                || y < grid.startY() + radius - 1 || y > grid.endY() - radius - 1
-                || z < grid.startZ() + radius - 1 || z > grid.endZ() - radius - 1) {
-            return false;
-        } else {
+        if (grid.isOverflowing())   {
             return true;
+        } else {
+            int radius = this.requiredRadius();
+
+            if (x < grid.startX() + radius - 1 || x > grid.endX() - radius - 1
+                    || y < grid.startY() + radius - 1 || y > grid.endY() - radius - 1
+                    || z < grid.startZ() + radius - 1 || z > grid.endZ() - radius - 1) {
+                return false;
+            } else {
+                return true;
+            }
         }
     }
 

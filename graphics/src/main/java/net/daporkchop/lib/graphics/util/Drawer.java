@@ -13,63 +13,36 @@
  *
  */
 
-package net.daporkchop.lib.math.arrays.grid;
+package net.daporkchop.lib.graphics.util;
 
 import lombok.NonNull;
-import net.daporkchop.lib.math.arrays.grid.impl.direct.DirectIntGrid1d;
-import net.daporkchop.lib.math.arrays.grid.impl.direct.DirectOverflowingIntGrid1d;
-import net.daporkchop.lib.math.arrays.grid.impl.heap.HeapDoubleGrid1d;
-import net.daporkchop.lib.math.arrays.grid.impl.heap.HeapIntGrid1d;
+
+import java.awt.*;
 
 /**
+ * Not a drawer like you store stuff in, more like draw-er as in a thing that draws
+ * <p>
+ * you're welcome for these very meaningful javadocs
+ *
  * @author DaPorkchop_
  */
-public interface Grid1d {
-    static Grid1d of(@NonNull int[] arr)    {
-        return of(arr, 0);
+public interface Drawer<Impl extends Drawer> {
+    Impl setColor(int argb);
+    default Impl setColor(@NonNull Color color) {
+        return this.setColor(color.getRGB());
+    }
+    default Impl setColor(int a, int r, int g, int b)   {
+        return this.setColor((a << 24) | (r << 16) | (g << 8) | b);
+    }
+    int getColor();
+
+    Impl pixel(int x, int y, int argb);
+    default Impl pixel(int x, int y)    {
+        return this.pixel(x, y, this.getColor());
     }
 
-    static Grid1d of(@NonNull int[] arr, int startX)    {
-        return new HeapIntGrid1d(arr, startX);
+    Impl rect(int x, int y, int w, int h, int argb);
+    default Impl rect(int x, int y, int w, int h) {
+        return this.rect(x, y, w, h, this.getColor());
     }
-
-    static Grid1d of(@NonNull double[] arr)    {
-        return of(arr, 0);
-    }
-
-    static Grid1d of(@NonNull double[] arr, int startX)    {
-        return new HeapDoubleGrid1d(arr, startX);
-    }
-
-    static Grid1d of(int width) {
-        return of(0, width, false);
-    }
-
-    static Grid1d of(int width, boolean overflowing) {
-        return of(0, width, overflowing);
-    }
-
-    static Grid1d of(int startX, int width) {
-        return of(startX, width, false);
-    }
-
-    static Grid1d of(int startX, int width, boolean overflowing) {
-        return overflowing ? new DirectOverflowingIntGrid1d(startX, width) : new DirectIntGrid1d(startX, width);
-    }
-
-    int startX();
-    int endX();
-    default boolean isOverflowing() {
-        return false;
-    }
-
-    //getters
-    double getD(int x);
-    
-    int getI(int x);
-
-    //setters
-    void setD(int x, double val);
-
-    void setI(int x, int val);
 }

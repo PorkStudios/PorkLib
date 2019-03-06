@@ -13,6 +13,53 @@
  *
  */
 
-dependencies {
-    compile project(":math")
+package net.daporkchop.lib.graphics;
+
+import net.daporkchop.lib.graphics.impl.icon.WrapperSwingIcon;
+
+import javax.swing.*;
+import java.awt.image.BufferedImage;
+
+/**
+ * An immutable representation of an image
+ *
+ * @author DaPorkchop_
+ */
+public interface PIcon {
+    //size stuff
+    int getWidth();
+    int getHeight();
+
+    default boolean isEmpty()   {
+        return this.getWidth() <= 0 || this.getHeight() <= 0;
+    }
+
+    //misc
+    boolean isBW();
+
+    //pixel stuff
+    int getARGB(int x, int y);
+
+    default int getRGB(int x, int y)  {
+        return this.getARGB(x, y) & 0x00FFFFFF;
+    }
+
+    default int getBW(int x, int y)   {
+        return this.getARGB(x, y) & 0xFF;
+    }
+
+    //compatibility
+    default BufferedImage getAsBufferedImage()  {
+        BufferedImage img = new BufferedImage(this.getWidth(), this.getHeight(), this.isBW() ? BufferedImage.TYPE_BYTE_GRAY : BufferedImage.TYPE_INT_ARGB);
+        for (int x = this.getWidth() - 1; x >= 0; x--)  {
+            for (int y = this.getHeight() - 1; y >= 0; y--) {
+                img.setRGB(x, y, this.getRGB(x, y));
+            }
+        }
+        return img;
+    }
+
+    default Icon getAsSwingIcon()   {
+        return new WrapperSwingIcon(this);
+    }
 }

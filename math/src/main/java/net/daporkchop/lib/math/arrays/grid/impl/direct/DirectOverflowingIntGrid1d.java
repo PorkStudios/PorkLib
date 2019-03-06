@@ -13,21 +13,25 @@
  *
  */
 
-package net.daporkchop.lib.graphics;
+package net.daporkchop.lib.math.arrays.grid.impl.direct;
+
+import static net.daporkchop.lib.math.primitive.PMath.clamp;
 
 /**
  * @author DaPorkchop_
  */
-public interface ColorModel {
-    int getColor(int a, int r, int g, int b);
+public class DirectOverflowingIntGrid1d extends DirectIntGrid1d {
+    public DirectOverflowingIntGrid1d(int startX, int width) {
+        super(startX, width);
+    }
 
-    int getAlpha(int color);
+    @Override
+    protected long getPos(int x) {
+        return this.pos + (clamp(x - this.startX, 0, this.width - 1) << 2L);
+    }
 
-    int getRed(int color);
-
-    int getGreen(int color);
-
-    int getBlue(int color);
-
-    int getUsedBits();
+    @Override
+    public boolean isOverflowing() {
+        return true;
+    }
 }

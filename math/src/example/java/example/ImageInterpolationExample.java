@@ -18,11 +18,14 @@ package example;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.math.arrays.grid.Grid2d;
 import net.daporkchop.lib.math.interpolation.InterpolationEngine;
-import net.daporkchop.lib.math.interpolation.cubic.CubicInterpolator;
-import net.daporkchop.lib.math.interpolation.linear.LinearInterpolationEngine;
+import net.daporkchop.lib.math.interpolation.NearestNeighborInterpolationEngine;
+import net.daporkchop.lib.math.interpolation.CubicInterpolationEngine;
+import net.daporkchop.lib.math.interpolation.LinearInterpolationEngine;
 
 import java.awt.image.BufferedImage;
+import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Stream;
 
 import static net.daporkchop.lib.math.primitive.PMath.clamp;
 
@@ -31,10 +34,12 @@ import static net.daporkchop.lib.math.primitive.PMath.clamp;
  */
 public class ImageInterpolationExample {
     public static void main(String... args) {
-        for (InterpolationEngine engine : new InterpolationEngine[]{
-                new LinearInterpolationEngine(),
-                new CubicInterpolator()
-        }) {
+        for (InterpolationEngine engine : Stream.of(null
+                , new NearestNeighborInterpolationEngine()
+                , new LinearInterpolationEngine()
+                , new CubicInterpolationEngine()
+                //, new QuadraticInterpolationEngine()
+        ).filter(Objects::nonNull).toArray(InterpolationEngine[]::new)) {
             System.out.println(engine.getClass().getCanonicalName());
 
             int radius = engine.requiredRadius();
@@ -58,7 +63,7 @@ public class ImageInterpolationExample {
                 }
                 for (int x = scaled - 1; x >= 0; x--) {
                     for (int y = scaled - 1; y >= 0; y--) {
-                        int newVal = engine.getInterpolatedI((double) x / (double) factor + radius - 1, (double) y / (double) factor + radius - 1, grid);
+                        int newVal = engine.getInterpolatedI((double) x / (double) factor + radius - 0.5d, (double) y / (double) factor + radius - 0.5d, grid);
                         img.setRGB(x, y, img.getRGB(x, y) | (clamp(newVal, 0, 255) << shift));
                     }
                 }

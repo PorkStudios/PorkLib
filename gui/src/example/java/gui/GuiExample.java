@@ -31,20 +31,13 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class GuiExample {
     public static void main(String... args) {
-        PImage randomImage = new DirectImage(32, 32, false);
-        for (int x = 31; x >= 0; x--) {
-            for (int y = 31; y >= 0; y--) {
-                randomImage.setRGB(x, y, ThreadLocalRandom.current().nextInt());
-            }
-        }
-
         GuiSystem.swing().newWindow(64, 64, 512, 256)
-                .setTitle("Example GUI")
+                .setTitle("Example GUI").setIcon(PImage.randomImage(32, 32), PImage.randomImage(16, 16))
                 .button("button1", button -> button.setOrientation(0.3d, 0.15d, 0.4d, 0.1d)
                         .setText("Example Button!")
                         .setTooltip("This is a tooltip that will be shown when hovering the mouse over the button.")
                         .setTextPos(Alignment.TOP_LEFT)
-                        .setIcon(randomImage))
+                        .setIcon(PImage.randomImage(32, 32)))
                 .button("button2", button -> button.setOrientation(0, 0.0d, 0.1d, 0.1d)
                         .setClickHandler((mouseButton, x, y) -> System.out.printf("Bounds: %s\n", button.getWindow().getComponent("panel1.button2").getBounds())))
                 .label("label1", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", label -> label

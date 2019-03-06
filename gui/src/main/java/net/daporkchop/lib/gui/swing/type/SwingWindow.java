@@ -17,6 +17,7 @@ package net.daporkchop.lib.gui.swing.type;
 
 import lombok.Getter;
 import lombok.NonNull;
+import net.daporkchop.lib.graphics.PIcon;
 import net.daporkchop.lib.gui.component.type.Window;
 import net.daporkchop.lib.gui.swing.impl.SwingContainer;
 import net.daporkchop.lib.gui.swing.impl.SwingComponent;
@@ -29,6 +30,9 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author DaPorkchop_
@@ -38,6 +42,7 @@ public class SwingWindow extends SwingContainer<Window, JFrame> implements Windo
     protected final EventManager eventManager = new EventManager();
 
     protected BoundingBox oldDimensions;
+    protected PIcon icon;
 
     public SwingWindow(String name) {
         super(name, new JFrame());
@@ -70,6 +75,39 @@ public class SwingWindow extends SwingContainer<Window, JFrame> implements Windo
         if (this.isResizable() != resizable)    {
             this.swing.setResizable(resizable);
         }
+        return this;
+    }
+
+    @Override
+    public Window setIcon(@NonNull PIcon icon) {
+        if (icon != this.icon)  {
+            this.icon = icon;
+            this.swing.setIconImage(icon.getAsBufferedImage());
+        }
+        return this;
+    }
+
+    @Override
+    public Window setIcon(@NonNull PIcon... icons) {
+        if (icons.length == 0)  {
+            throw new IllegalArgumentException("Arguments may not be empty!");
+        }
+        int max = Integer.MIN_VALUE;
+        PIcon maxI = null;
+        for (int i = icons.length - 1; i >= 0; i--) {
+            if (icons[i] == null)   {
+                throw new NullPointerException();
+            }
+            PIcon icon = icons[i];
+            if (icon.isEmpty() || icon.getWidth() != icon.getHeight())  {
+                throw new IllegalArgumentException("Icon must be square!");
+            } else if (icon.getWidth() > max)   {
+                max = icon.getWidth();
+                maxI = icon;
+            }
+        }
+        this.icon = maxI;
+        this.swing.setIconImages(Stream.of(icons).map(PIcon::getAsBufferedImage).collect(Collectors.toList()));
         return this;
     }
 

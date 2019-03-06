@@ -16,6 +16,10 @@
 package net.daporkchop.lib.graphics;
 
 import lombok.NonNull;
+import net.daporkchop.lib.graphics.impl.image.DirectImage;
+
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * An abstract representation of an image.
@@ -23,6 +27,32 @@ import lombok.NonNull;
  * @author DaPorkchop_
  */
 public interface PImage extends PIcon {
+    static PImage randomImage(int w, int h) {
+        return randomImage(w, h, false, ThreadLocalRandom.current());
+    }
+
+    static PImage randomImage(int w, int h, boolean bw) {
+        return randomImage(w, h, bw, ThreadLocalRandom.current());
+    }
+
+    static PImage randomImage(int w, int h, boolean bw, @NonNull Random random) {
+        PImage img = new DirectImage(w, h, bw);
+        if (bw) {
+            for (int x = w - 1; x >= 0; x--)    {
+                for (int y = h - 1; y >= 0; y--)    {
+                    img.setBW(x, y, random.nextInt());
+                }
+            }
+        } else {
+            for (int x = w - 1; x >= 0; x--)    {
+                for (int y = h - 1; y >= 0; y--)    {
+                    img.setRGB(x, y, random.nextInt());
+                }
+            }
+        }
+        return img;
+    }
+
     //pixel stuff
     void setARGB(int x, int y, int argb);
 

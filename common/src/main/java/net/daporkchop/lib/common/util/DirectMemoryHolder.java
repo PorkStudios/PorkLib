@@ -13,35 +13,34 @@
  *
  */
 
-package net.daporkchop.lib.nds.header;
-
-import lombok.Getter;
-import lombok.NonNull;
-
-import java.nio.charset.Charset;
+package net.daporkchop.lib.common.util;
 
 /**
+ * An object that holds a reference to a direct memory block, as allocated by {@link sun.misc.Unsafe#allocateMemory(long)}.
+ * <p>
+ * All method implementations in this class are expected to be thread-safe, preferably synchronized.
+ * <p>
+ * Using any methods other than {@link #isMemoryReleased()} or {@link #tryReleaseMemory()} after releasing memory is bad,
+ * and may either throw exceptions or cause invalid (undefined) behavior.
+ *
  * @author DaPorkchop_
  */
-@Getter
-public class RomTitle {
-    protected final String title;
-    protected final String subtitle;
-    protected final String manufacturer;
+public interface DirectMemoryHolder {
+    long getMemoryAddress();
 
-    public RomTitle(@NonNull byte[] arr)    {
-        String textFull = new String(arr, Charset.forName("UTF-16LE"));
-        String[] split = textFull.trim().split("\\u000A");
-        if (split.length == 2)  {
-            this.title = split[0];
-            this.subtitle = "";
-            this.manufacturer = split[1];
-        } else if (split.length == 3)   {
-            this.title = split[0];
-            this.subtitle = split[1];
-            this.manufacturer = split[2];
-        } else {
-            throw new IllegalArgumentException(String.format("Couldn't parse title string: \"%s\"", textFull));
+    default boolean isMemoryReleased() {
+        synchronized (this) {
+            return this.getMemoryAddress() == -1L;
+        }
+    }
+
+    void releaseMemory();
+
+    default void tryReleaseMemory() {
+        synchronized (this) {
+            if (!this.isMemoryReleased()) {
+                this.releaseMemory();
+            }
         }
     }
 }

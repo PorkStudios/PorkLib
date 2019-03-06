@@ -17,7 +17,11 @@ package nds;
 
 import net.daporkchop.lib.nds.RomNDS;
 import net.daporkchop.lib.nds.header.RomHeadersNDS;
+import net.daporkchop.lib.nds.header.RomLanguage;
 
+import javax.swing.*;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
@@ -25,7 +29,7 @@ import java.io.IOException;
  * @author DaPorkchop_
  */
 public class ExampleLoadHeaders {
-    public static final File ROM = new File("Z:\\Professor Layton and the Last Specter.nds");
+    public static final File ROM = new File("/home/daporkchop/192.168.1.119/Torrents/ROMs/New Super Mario Bros.nds");
 
     public static void main(String... args) throws IOException {
         RomNDS rom = new RomNDS(ROM);
@@ -34,5 +38,16 @@ public class ExampleLoadHeaders {
         System.out.printf("Gamecode: %s\nMakercode: %s\n", headers.getGamecode(), headers.getMakercode());
         System.out.printf("Unitcode: %d\nDSi: %b\n", headers.getUnitcode(), headers.isDSi());
         System.out.printf("Cartridge capacity: %d\n", headers.getDeviceCapacity());
+        System.out.printf("Name:\n%s\n%s\n%s\n", headers.getIconTitle().getTitle().getTitle(), headers.getIconTitle().getTitle().getSubtitle(), headers.getIconTitle().getTitle().getManufacturer());
+
+        if (true) {
+            BufferedImage img = headers.getIconTitle().getIcon().getAsBufferedImage();
+            JFrame frame = new JFrame();
+            frame.getContentPane().setLayout(new FlowLayout());
+            frame.getContentPane().add(new JLabel(new ImageIcon(img)));
+            frame.pack();
+            frame.setVisible(true);
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        }
     }
 }

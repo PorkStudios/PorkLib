@@ -17,60 +17,47 @@ package net.daporkchop.lib.nds.header;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.common.util.PorkUtil;
 
-import java.io.IOException;
+import java.awt.image.BufferedImage;
+import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.util.Arrays;
-import java.util.EnumMap;
-import java.util.Map;
 
 /**
- * Stores the icon/title for an NDS rom
- *
  * @author DaPorkchop_
  */
 @Getter
-public class IconTitleNDS implements AutoCloseable {
-    protected final RomHeadersNDS parent;
-    protected final MappedByteBuffer map;
+public class RomIcon {
+    protected final short[] palette;
+    protected final byte[] pixels;
 
-    protected final int version;
-    protected RomTitle title;
-    protected RomIcon icon;
-
-    public IconTitleNDS(@NonNull RomHeadersNDS parent) throws IOException {
-        this.parent = parent;
-
-        int offset = parent.headersRegion.getInt(0x68);
-        int size = 0xA00;
-        this.map = parent.channel.map(FileChannel.MapMode.READ_WRITE, offset, size);
-        this.map.order(ByteOrder.LITTLE_ENDIAN);
-
-        this.version = this.map.getShort(0x00) & 0xFFFF;
-    }
-
-    public synchronized RomTitle getTitle() {
-        if (this.title == null) {
-            byte[] buf = new byte[0x100];
-            this.map.position(RomLanguage.ENGLISH.titleOffset);
-            this.map.get(buf);
-            this.title = new RomTitle(buf);
+    public RomIcon(@NonNull ByteBuffer buf) {
+        this.palette = new short[16];
+        this.pixels = new byte[0x200];
+        buf.position(0x20);
+        buf.get(this.pixels);
+        //buf.position(0x220);
+        //buf.order(ByteOrder.BIG_ENDIAN);
+        for (int i = 0; i < 16; i++)    {
+            this.palette[i] = buf.getShort();
         }
-        return this.title;
     }
 
-    public synchronized RomIcon getIcon() {
-        if (this.icon == null) {
-            this.icon = new RomIcon(this.map);
+    public short getColor(int x, int y) {
+        int tileX = x >>> 3;
+        int tileY = y >>> 3;
+        int b = this.pixels[(((tileY << 2) | tileX) << 5) | ((y & 0x7) << 2) | ((x >>> 1) & 0x3)] & 0xFF;
+        return this.palette[(b >>> ((x & 1) == 0 ? 0 : 4)) & 0xF];
+    }
+
+    public BufferedImage getAsBufferedImage()   {
+        BufferedImage img = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
+        for (int x = 31; x >= 0; x--)   {
+            for (int y = 31; y >= 0; y--)   {
+                short color = this.getColor(x, y);
+                //color = this.palette[x & 0xF];
+                img.setRGB(x, y, (color == 0 ? 0 : 0xFF000000) | (((color >>> 10) & 0x1F) << 3) | (((color >>> 5) & 0x1F) << 11) | ((color & 0x1F) << 19));
+            }
         }
-        return this.icon;
-    }
-
-    @Override
-    public void close() {
-        PorkUtil.release(this.map);
+        return img;
     }
 }

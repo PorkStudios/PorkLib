@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.util.PorkUtil;
 
 import java.io.IOException;
+import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
@@ -36,7 +37,7 @@ import java.nio.channels.FileChannel;
 @Getter
 public class RomHeadersNDS implements AutoCloseable {
     public static RomHeadersNDS load(@NonNull FileChannel channel) throws IOException {
-        MappedByteBuffer headerMap = channel.map(FileChannel.MapMode.READ_WRITE, 0L, 0x170 + 0x90);
+        MappedByteBuffer headerMap = channel.map(FileChannel.MapMode.READ_WRITE, 0L, 0xF80 + 128);
         return new RomHeadersNDS(channel, headerMap).load();
     }
 
@@ -74,6 +75,8 @@ public class RomHeadersNDS implements AutoCloseable {
             throw new IllegalStateException("Already loaded!");
         } else {
             this.loaded = true;
+
+            this.headersRegion.order(ByteOrder.LITTLE_ENDIAN);
 
             byte[] buf;
             {

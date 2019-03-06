@@ -13,35 +13,25 @@
  *
  */
 
-package net.daporkchop.lib.nds.header;
+package net.daporkchop.lib.math.arrays.grid.impl.direct;
 
-import lombok.Getter;
-import lombok.NonNull;
-
-import java.nio.charset.Charset;
+import static net.daporkchop.lib.math.primitive.PMath.clamp;
 
 /**
  * @author DaPorkchop_
  */
-@Getter
-public class RomTitle {
-    protected final String title;
-    protected final String subtitle;
-    protected final String manufacturer;
+public class DirectOverflowingIntGrid1d extends DirectIntGrid1d {
+    public DirectOverflowingIntGrid1d(int startX, int width) {
+        super(startX, width);
+    }
 
-    public RomTitle(@NonNull byte[] arr)    {
-        String textFull = new String(arr, Charset.forName("UTF-16LE"));
-        String[] split = textFull.trim().split("\\u000A");
-        if (split.length == 2)  {
-            this.title = split[0];
-            this.subtitle = "";
-            this.manufacturer = split[1];
-        } else if (split.length == 3)   {
-            this.title = split[0];
-            this.subtitle = split[1];
-            this.manufacturer = split[2];
-        } else {
-            throw new IllegalArgumentException(String.format("Couldn't parse title string: \"%s\"", textFull));
-        }
+    @Override
+    protected long getPos(int x) {
+        return this.pos + (clamp(x - this.startX, 0, this.width - 1) << 2L);
+    }
+
+    @Override
+    public boolean isOverflowing() {
+        return true;
     }
 }

@@ -13,35 +13,53 @@
  *
  */
 
-package net.daporkchop.lib.nds.header;
+package net.daporkchop.lib.graphics;
 
-import lombok.Getter;
-import lombok.NonNull;
+import net.daporkchop.lib.graphics.impl.icon.WrapperSwingIcon;
 
-import java.nio.charset.Charset;
+import javax.swing.*;
+import java.awt.image.BufferedImage;
 
 /**
+ * An immutable representation of an image
+ *
  * @author DaPorkchop_
  */
-@Getter
-public class RomTitle {
-    protected final String title;
-    protected final String subtitle;
-    protected final String manufacturer;
+public interface PIcon {
+    //size stuff
+    int getWidth();
+    int getHeight();
 
-    public RomTitle(@NonNull byte[] arr)    {
-        String textFull = new String(arr, Charset.forName("UTF-16LE"));
-        String[] split = textFull.trim().split("\\u000A");
-        if (split.length == 2)  {
-            this.title = split[0];
-            this.subtitle = "";
-            this.manufacturer = split[1];
-        } else if (split.length == 3)   {
-            this.title = split[0];
-            this.subtitle = split[1];
-            this.manufacturer = split[2];
-        } else {
-            throw new IllegalArgumentException(String.format("Couldn't parse title string: \"%s\"", textFull));
+    default boolean isEmpty()   {
+        return this.getWidth() <= 0 || this.getHeight() <= 0;
+    }
+
+    //misc
+    boolean isBW();
+
+    //pixel stuff
+    int getARGB(int x, int y);
+
+    default int getRGB(int x, int y)  {
+        return this.getARGB(x, y) & 0x00FFFFFF;
+    }
+
+    default int getBW(int x, int y)   {
+        return this.getARGB(x, y) & 0xFF;
+    }
+
+    //compatibility
+    default BufferedImage getAsBufferedImage()  {
+        BufferedImage img = new BufferedImage(this.getWidth(), this.getHeight(), this.isBW() ? BufferedImage.TYPE_BYTE_GRAY : BufferedImage.TYPE_INT_ARGB);
+        for (int x = this.getWidth() - 1; x >= 0; x--)  {
+            for (int y = this.getHeight() - 1; y >= 0; y--) {
+                img.setRGB(x, y, this.getRGB(x, y));
+            }
         }
+        return img;
+    }
+
+    default Icon getAsSwingIcon()   {
+        return new WrapperSwingIcon(this);
     }
 }

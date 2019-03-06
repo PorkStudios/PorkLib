@@ -13,64 +13,45 @@
  *
  */
 
-package net.daporkchop.lib.nds.header;
+package net.daporkchop.lib.graphics.impl.icon;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.common.util.PorkUtil;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.graphics.PIcon;
 
-import java.io.IOException;
-import java.nio.ByteOrder;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.util.Arrays;
-import java.util.EnumMap;
-import java.util.Map;
+import javax.swing.*;
+import java.awt.*;
 
 /**
- * Stores the icon/title for an NDS rom
+ * A very, very inefficient implementation of {@link Icon} that uses a {@link PIcon} to store pixel values.
  *
  * @author DaPorkchop_
  */
+@RequiredArgsConstructor
 @Getter
-public class IconTitleNDS implements AutoCloseable {
-    protected final RomHeadersNDS parent;
-    protected final MappedByteBuffer map;
+public class WrapperSwingIcon implements Icon {
+    @NonNull
+    protected final PIcon delegate;
 
-    protected final int version;
-    protected RomTitle title;
-    protected RomIcon icon;
-
-    public IconTitleNDS(@NonNull RomHeadersNDS parent) throws IOException {
-        this.parent = parent;
-
-        int offset = parent.headersRegion.getInt(0x68);
-        int size = 0xA00;
-        this.map = parent.channel.map(FileChannel.MapMode.READ_WRITE, offset, size);
-        this.map.order(ByteOrder.LITTLE_ENDIAN);
-
-        this.version = this.map.getShort(0x00) & 0xFFFF;
-    }
-
-    public synchronized RomTitle getTitle() {
-        if (this.title == null) {
-            byte[] buf = new byte[0x100];
-            this.map.position(RomLanguage.ENGLISH.titleOffset);
-            this.map.get(buf);
-            this.title = new RomTitle(buf);
+    @Override
+    public void paintIcon(Component c, Graphics g, int x, int y) {
+        for (int xx = this.delegate.getWidth() - 1; xx >= 0; xx--)  {
+            for (int yy = this.delegate.getHeight() - 1; yy >= 0; yy--) {
+                g.setPaintMode();
+                g.setColor(new Color(this.delegate.getARGB(xx, yy)));
+                g.drawLine(x + xx, y + yy, x + xx, y + yy);
+            }
         }
-        return this.title;
-    }
-
-    public synchronized RomIcon getIcon() {
-        if (this.icon == null) {
-            this.icon = new RomIcon(this.map);
-        }
-        return this.icon;
     }
 
     @Override
-    public void close() {
-        PorkUtil.release(this.map);
+    public int getIconWidth() {
+        return this.delegate.getWidth();
+    }
+
+    @Override
+    public int getIconHeight() {
+        return this.delegate.getHeight();
     }
 }

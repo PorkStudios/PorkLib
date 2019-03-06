@@ -13,64 +13,52 @@
  *
  */
 
-package net.daporkchop.lib.nds.header;
+package net.daporkchop.lib.graphics.impl.icon;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.common.util.PorkUtil;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.graphics.PIcon;
 
-import java.io.IOException;
-import java.nio.ByteOrder;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.util.Arrays;
-import java.util.EnumMap;
-import java.util.Map;
+import javax.swing.*;
+import java.awt.image.BufferedImage;
 
 /**
- * Stores the icon/title for an NDS rom
- *
  * @author DaPorkchop_
  */
+@RequiredArgsConstructor
 @Getter
-public class IconTitleNDS implements AutoCloseable {
-    protected final RomHeadersNDS parent;
-    protected final MappedByteBuffer map;
+public class BufferedImageIcon implements PIcon {
+    @NonNull
+    protected final BufferedImage delegate;
 
-    protected final int version;
-    protected RomTitle title;
-    protected RomIcon icon;
-
-    public IconTitleNDS(@NonNull RomHeadersNDS parent) throws IOException {
-        this.parent = parent;
-
-        int offset = parent.headersRegion.getInt(0x68);
-        int size = 0xA00;
-        this.map = parent.channel.map(FileChannel.MapMode.READ_WRITE, offset, size);
-        this.map.order(ByteOrder.LITTLE_ENDIAN);
-
-        this.version = this.map.getShort(0x00) & 0xFFFF;
-    }
-
-    public synchronized RomTitle getTitle() {
-        if (this.title == null) {
-            byte[] buf = new byte[0x100];
-            this.map.position(RomLanguage.ENGLISH.titleOffset);
-            this.map.get(buf);
-            this.title = new RomTitle(buf);
-        }
-        return this.title;
-    }
-
-    public synchronized RomIcon getIcon() {
-        if (this.icon == null) {
-            this.icon = new RomIcon(this.map);
-        }
-        return this.icon;
+    @Override
+    public int getWidth() {
+        return this.delegate.getWidth();
     }
 
     @Override
-    public void close() {
-        PorkUtil.release(this.map);
+    public int getHeight() {
+        return this.delegate.getHeight();
+    }
+
+    @Override
+    public boolean isBW() {
+        return false;
+    }
+
+    @Override
+    public int getARGB(int x, int y) {
+        return this.delegate.getRGB(x, y);
+    }
+
+    @Override
+    public BufferedImage getAsBufferedImage() {
+        return this.delegate;
+    }
+
+    @Override
+    public Icon getAsSwingIcon() {
+        return new ImageIcon(this.delegate);
     }
 }

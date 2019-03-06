@@ -13,35 +13,51 @@
  *
  */
 
-package net.daporkchop.lib.nds.header;
+package net.daporkchop.lib.math.arrays.grid.impl.heap;
 
-import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.math.arrays.grid.Grid1d;
 
-import java.nio.charset.Charset;
+import static net.daporkchop.lib.math.primitive.PMath.floorI;
 
 /**
  * @author DaPorkchop_
  */
-@Getter
-public class RomTitle {
-    protected final String title;
-    protected final String subtitle;
-    protected final String manufacturer;
+@RequiredArgsConstructor
+public class HeapDoubleGrid1d implements Grid1d {
+    @NonNull
+    protected final double[] values;
 
-    public RomTitle(@NonNull byte[] arr)    {
-        String textFull = new String(arr, Charset.forName("UTF-16LE"));
-        String[] split = textFull.trim().split("\\u000A");
-        if (split.length == 2)  {
-            this.title = split[0];
-            this.subtitle = "";
-            this.manufacturer = split[1];
-        } else if (split.length == 3)   {
-            this.title = split[0];
-            this.subtitle = split[1];
-            this.manufacturer = split[2];
-        } else {
-            throw new IllegalArgumentException(String.format("Couldn't parse title string: \"%s\"", textFull));
-        }
+    protected final int startX;
+
+    @Override
+    public int startX() {
+        return this.startX;
+    }
+
+    @Override
+    public int endX() {
+        return this.startX + this.values.length;
+    }
+
+    @Override
+    public double getD(int x) {
+        return this.values[x - this.startX];
+    }
+
+    @Override
+    public int getI(int x) {
+        return floorI(this.getD(x));
+    }
+
+    @Override
+    public void setD(int x, double val) {
+        this.values[x - this.startX] = val;
+    }
+
+    @Override
+    public void setI(int x, int val) {
+        this.setD(x, val);
     }
 }

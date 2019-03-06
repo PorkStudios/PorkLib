@@ -13,35 +13,36 @@
  *
  */
 
-package net.daporkchop.lib.nds.header;
+package net.daporkchop.lib.graphics.util;
 
-import lombok.Getter;
 import lombok.NonNull;
 
-import java.nio.charset.Charset;
+import java.awt.*;
 
 /**
+ * Not a drawer like you store stuff in, more like draw-er as in a thing that draws
+ * <p>
+ * you're welcome for these very meaningful javadocs
+ *
  * @author DaPorkchop_
  */
-@Getter
-public class RomTitle {
-    protected final String title;
-    protected final String subtitle;
-    protected final String manufacturer;
+public interface Drawer<Impl extends Drawer> {
+    Impl setColor(int argb);
+    default Impl setColor(@NonNull Color color) {
+        return this.setColor(color.getRGB());
+    }
+    default Impl setColor(int a, int r, int g, int b)   {
+        return this.setColor((a << 24) | (r << 16) | (g << 8) | b);
+    }
+    int getColor();
 
-    public RomTitle(@NonNull byte[] arr)    {
-        String textFull = new String(arr, Charset.forName("UTF-16LE"));
-        String[] split = textFull.trim().split("\\u000A");
-        if (split.length == 2)  {
-            this.title = split[0];
-            this.subtitle = "";
-            this.manufacturer = split[1];
-        } else if (split.length == 3)   {
-            this.title = split[0];
-            this.subtitle = split[1];
-            this.manufacturer = split[2];
-        } else {
-            throw new IllegalArgumentException(String.format("Couldn't parse title string: \"%s\"", textFull));
-        }
+    Impl pixel(int x, int y, int argb);
+    default Impl pixel(int x, int y)    {
+        return this.pixel(x, y, this.getColor());
+    }
+
+    Impl rect(int x, int y, int w, int h, int argb);
+    default Impl rect(int x, int y, int w, int h) {
+        return this.rect(x, y, w, h, this.getColor());
     }
 }

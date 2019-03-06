@@ -13,35 +13,65 @@
  *
  */
 
-package net.daporkchop.lib.nds.header;
+package net.daporkchop.lib.math.arrays.grid.impl.heap;
 
-import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.math.arrays.grid.Grid2d;
 
-import java.nio.charset.Charset;
+import static net.daporkchop.lib.math.primitive.PMath.floorI;
 
 /**
  * @author DaPorkchop_
  */
-@Getter
-public class RomTitle {
-    protected final String title;
-    protected final String subtitle;
-    protected final String manufacturer;
+@RequiredArgsConstructor
+public class HeapIntGrid2d implements Grid2d {
+    @NonNull
+    protected final int[] values;
 
-    public RomTitle(@NonNull byte[] arr)    {
-        String textFull = new String(arr, Charset.forName("UTF-16LE"));
-        String[] split = textFull.trim().split("\\u000A");
-        if (split.length == 2)  {
-            this.title = split[0];
-            this.subtitle = "";
-            this.manufacturer = split[1];
-        } else if (split.length == 3)   {
-            this.title = split[0];
-            this.subtitle = split[1];
-            this.manufacturer = split[2];
-        } else {
-            throw new IllegalArgumentException(String.format("Couldn't parse title string: \"%s\"", textFull));
-        }
+    protected final int startX;
+    protected final int startY;
+
+    protected final int width;
+    protected final int height;
+
+    @Override
+    public int startX() {
+        return this.startX;
+    }
+
+    @Override
+    public int endX() {
+        return this.startX + this.width;
+    }
+
+    @Override
+    public int startY() {
+        return this.startY;
+    }
+
+    @Override
+    public int endY() {
+        return this.startY + this.height;
+    }
+
+    @Override
+    public double getD(int x, int y) {
+        return this.getI(x, y);
+    }
+
+    @Override
+    public int getI(int x, int y) {
+        return this.values[(x - this.startX) * this.height + y - this.startY];
+    }
+
+    @Override
+    public void setD(int x, int y, double val) {
+        this.setI(x, y, floorI(val));
+    }
+
+    @Override
+    public void setI(int x, int y, int val) {
+        this.values[(x - this.startX) * this.height + y - this.startY] = val;
     }
 }

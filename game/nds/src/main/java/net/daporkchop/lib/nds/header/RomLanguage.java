@@ -15,33 +15,27 @@
 
 package net.daporkchop.lib.nds.header;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NonNull;
-
-import java.nio.charset.Charset;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author DaPorkchop_
  */
+@RequiredArgsConstructor
+@AllArgsConstructor
 @Getter
-public class RomTitle {
-    protected final String title;
-    protected final String subtitle;
-    protected final String manufacturer;
+public enum RomLanguage {
+    JAPANESE(0x240),
+    ENGLISH(0x340),
+    FRENCH(0x440),
+    GERMAN(0x540),
+    ITALIAN(0x640),
+    SPANISH(0x740),
+    CHINESE(0x840, 2),
+    KOREAN(0x940, 3)
+    ;
 
-    public RomTitle(@NonNull byte[] arr)    {
-        String textFull = new String(arr, Charset.forName("UTF-16LE"));
-        String[] split = textFull.trim().split("\\u000A");
-        if (split.length == 2)  {
-            this.title = split[0];
-            this.subtitle = "";
-            this.manufacturer = split[1];
-        } else if (split.length == 3)   {
-            this.title = split[0];
-            this.subtitle = split[1];
-            this.manufacturer = split[2];
-        } else {
-            throw new IllegalArgumentException(String.format("Couldn't parse title string: \"%s\"", textFull));
-        }
-    }
+    protected final int titleOffset;
+    protected int requiredAfterVersion = 0;
 }

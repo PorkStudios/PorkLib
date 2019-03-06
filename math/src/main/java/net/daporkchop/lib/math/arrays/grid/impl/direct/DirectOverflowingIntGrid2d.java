@@ -13,35 +13,29 @@
  *
  */
 
-package net.daporkchop.lib.nds.header;
+package net.daporkchop.lib.math.arrays.grid.impl.direct;
 
-import lombok.Getter;
-import lombok.NonNull;
+import net.daporkchop.lib.common.util.DirectMemoryHolder;
+import net.daporkchop.lib.common.util.PUnsafe;
+import net.daporkchop.lib.math.arrays.grid.Grid2d;
 
-import java.nio.charset.Charset;
+import static net.daporkchop.lib.math.primitive.PMath.clamp;
+import static net.daporkchop.lib.math.primitive.PMath.floorI;
 
 /**
  * @author DaPorkchop_
  */
-@Getter
-public class RomTitle {
-    protected final String title;
-    protected final String subtitle;
-    protected final String manufacturer;
+public class DirectOverflowingIntGrid2d extends DirectIntGrid2d {
+    public DirectOverflowingIntGrid2d(int startX, int startY, int width, int height) {
+        super(startX, startY, width, height);
+    }
 
-    public RomTitle(@NonNull byte[] arr)    {
-        String textFull = new String(arr, Charset.forName("UTF-16LE"));
-        String[] split = textFull.trim().split("\\u000A");
-        if (split.length == 2)  {
-            this.title = split[0];
-            this.subtitle = "";
-            this.manufacturer = split[1];
-        } else if (split.length == 3)   {
-            this.title = split[0];
-            this.subtitle = split[1];
-            this.manufacturer = split[2];
-        } else {
-            throw new IllegalArgumentException(String.format("Couldn't parse title string: \"%s\"", textFull));
-        }
+    protected long getPos(int x, int y) {
+        return this.pos + ((clamp(x - this.startX, 0, this.width - 1) * this.height + clamp(y - this.startY, 0, this.height - 1)) << 2L);
+    }
+
+    @Override
+    public boolean isOverflowing() {
+        return true;
     }
 }

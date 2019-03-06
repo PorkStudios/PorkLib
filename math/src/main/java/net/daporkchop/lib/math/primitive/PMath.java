@@ -67,14 +67,50 @@ public interface PMath {
         return d < l ? l - 1L : l;
     }
 
-    static int floorI(float d) {
-        int i = (int) d;
-        return d < i ? i - 1 : i;
+    static int floorI(float f) {
+        int i = (int) f;
+        return f < i ? i - 1 : i;
     }
 
-    static long floorL(float d) {
+    static long floorL(float f) {
+        long l = (long) f;
+        return f < l ? l - 1L : l;
+    }
+
+    static int ceilI(double d) {
+        int i = (int) d;
+        return d < i ? i : i + 1;
+    }
+
+    static long ceilL(double d) {
         long l = (long) d;
-        return d < l ? l - 1L : l;
+        return d < l ? l : l + 1L;
+    }
+
+    static int ceilI(float f) {
+        int i = (int) f;
+        return f < i ? i : i + 1;
+    }
+
+    static long ceilL(float f) {
+        long l = (long) f;
+        return f < l ? l : l + 1L;
+    }
+
+    static int roundI(double d) {
+        return (int) Math.round(d);
+    }
+
+    static long roundL(double d) {
+        return Math.round(d);
+    }
+
+    static int roundI(float f) {
+        return Math.round(f);
+    }
+
+    static long roundL(float f) {
+        return Math.round(f);
     }
 
     static long max(long a, long b) {

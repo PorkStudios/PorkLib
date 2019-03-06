@@ -13,64 +13,52 @@
  *
  */
 
-package net.daporkchop.lib.nds.header;
+package net.daporkchop.lib.math.arrays.grid.impl.heap;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.common.util.PorkUtil;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.math.arrays.grid.Grid1d;
 
-import java.io.IOException;
-import java.nio.ByteOrder;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.util.Arrays;
-import java.util.EnumMap;
-import java.util.Map;
+import static net.daporkchop.lib.math.primitive.PMath.floorI;
 
 /**
- * Stores the icon/title for an NDS rom
- *
  * @author DaPorkchop_
  */
-@Getter
-public class IconTitleNDS implements AutoCloseable {
-    protected final RomHeadersNDS parent;
-    protected final MappedByteBuffer map;
+@RequiredArgsConstructor
+public class HeapIntGrid1d implements Grid1d {
+    @NonNull
+    protected final int[] values;
 
-    protected final int version;
-    protected RomTitle title;
-    protected RomIcon icon;
+    protected final int startX;
 
-    public IconTitleNDS(@NonNull RomHeadersNDS parent) throws IOException {
-        this.parent = parent;
-
-        int offset = parent.headersRegion.getInt(0x68);
-        int size = 0xA00;
-        this.map = parent.channel.map(FileChannel.MapMode.READ_WRITE, offset, size);
-        this.map.order(ByteOrder.LITTLE_ENDIAN);
-
-        this.version = this.map.getShort(0x00) & 0xFFFF;
-    }
-
-    public synchronized RomTitle getTitle() {
-        if (this.title == null) {
-            byte[] buf = new byte[0x100];
-            this.map.position(RomLanguage.ENGLISH.titleOffset);
-            this.map.get(buf);
-            this.title = new RomTitle(buf);
-        }
-        return this.title;
-    }
-
-    public synchronized RomIcon getIcon() {
-        if (this.icon == null) {
-            this.icon = new RomIcon(this.map);
-        }
-        return this.icon;
+    @Override
+    public int startX() {
+        return this.startX;
     }
 
     @Override
-    public void close() {
-        PorkUtil.release(this.map);
+    public int endX() {
+        return this.startX + this.values.length;
+    }
+
+    @Override
+    public double getD(int x) {
+        return this.getI(x);
+    }
+
+    @Override
+    public int getI(int x) {
+        return this.values[x - this.startX];
+    }
+
+    @Override
+    public void setD(int x, double val) {
+        this.setI(x, floorI(val));
+    }
+
+    @Override
+    public void setI(int x, int val) {
+        this.values[x - this.startX] = val;
     }
 }

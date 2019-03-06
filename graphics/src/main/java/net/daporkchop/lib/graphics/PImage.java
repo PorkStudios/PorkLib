@@ -13,64 +13,49 @@
  *
  */
 
-package net.daporkchop.lib.nds.header;
+package net.daporkchop.lib.graphics;
 
-import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.common.util.PorkUtil;
-
-import java.io.IOException;
-import java.nio.ByteOrder;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.util.Arrays;
-import java.util.EnumMap;
-import java.util.Map;
 
 /**
- * Stores the icon/title for an NDS rom
+ * An abstract representation of an image.
  *
  * @author DaPorkchop_
  */
-@Getter
-public class IconTitleNDS implements AutoCloseable {
-    protected final RomHeadersNDS parent;
-    protected final MappedByteBuffer map;
+public interface PImage extends PIcon {
+    //pixel stuff
+    void setARGB(int x, int y, int argb);
 
-    protected final int version;
-    protected RomTitle title;
-    protected RomIcon icon;
-
-    public IconTitleNDS(@NonNull RomHeadersNDS parent) throws IOException {
-        this.parent = parent;
-
-        int offset = parent.headersRegion.getInt(0x68);
-        int size = 0xA00;
-        this.map = parent.channel.map(FileChannel.MapMode.READ_WRITE, offset, size);
-        this.map.order(ByteOrder.LITTLE_ENDIAN);
-
-        this.version = this.map.getShort(0x00) & 0xFFFF;
+    default void setRGB(int x, int y, int rgb)  {
+        this.setARGB(x, y, 0xFF000000 | rgb);
     }
 
-    public synchronized RomTitle getTitle() {
-        if (this.title == null) {
-            byte[] buf = new byte[0x100];
-            this.map.position(RomLanguage.ENGLISH.titleOffset);
-            this.map.get(buf);
-            this.title = new RomTitle(buf);
+    default void setBW(int x, int y, int col)   {
+        this.setARGB(x, y, 0xFF000000 | (col << 16) | (col << 8) | col);
+    }
+
+    default void copy(@NonNull PIcon src, int srcX, int srcY, int dstX, int dstY, int w, int h) {
+        for (int x = w - 1; x >= 0; x--)    {
+            for (int y = h - 1; y >= 0; y--)    {
+                this.setARGB(dstX + x, dstY + y, src.getARGB(srcX + x, srcY + y));
+            }
         }
-        return this.title;
     }
 
-    public synchronized RomIcon getIcon() {
-        if (this.icon == null) {
-            this.icon = new RomIcon(this.map);
+    //drawing methods
+    default void drawRect(int x, int y, int w, int h, int argb) {
+        for (; w >= 0; w--) {
+            for (int yy = h - 1; yy >= 0; yy--) {
+                this.setARGB(x + w, y + yy, argb);
+            }
         }
-        return this.icon;
     }
 
-    @Override
-    public void close() {
-        PorkUtil.release(this.map);
+    default void fill(int argb) {
+        for (int x = this.getWidth() - 1; x >= 0; x--)  {
+            for (int y = this.getHeight() - 1; y >= 0; y--) {
+                this.setARGB(x, y, argb);
+            }
+        }
     }
 }

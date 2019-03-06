@@ -21,6 +21,7 @@ import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.NestedContainer;
 import net.daporkchop.lib.gui.component.capability.IconHolder;
 import net.daporkchop.lib.gui.component.capability.Resizable;
+import net.daporkchop.lib.gui.component.capability.TextHolder;
 import net.daporkchop.lib.gui.util.event.EventManager;
 
 import java.util.StringJoiner;
@@ -32,7 +33,7 @@ import java.util.StringJoiner;
  *
  * @author DaPorkchop_
  */
-public interface Window extends Container<Window>, IconHolder<Window>, Resizable<Window> {
+public interface Window extends Container<Window>, Resizable<Window> {
     String getTitle();
 
     Window setTitle(@NonNull String title);
@@ -98,8 +99,10 @@ public interface Window extends Container<Window>, IconHolder<Window>, Resizable
         Component component = this.getComponent(qualifiedName);
         if (component == null) {
             throw new IllegalArgumentException(String.format("Unknown component name: %s", qualifiedName));
+        } else if (!(component instanceof TextHolder)) {
+            throw new IllegalStateException(String.format("Component %s doesn't have text!", qualifiedName));
         } else {
-            component.setText(text);
+            ((TextHolder) component).setText(text);
         }
         return this;
     }

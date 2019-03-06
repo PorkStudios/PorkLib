@@ -15,11 +15,40 @@
 
 package net.daporkchop.lib.gui.component.capability;
 
+import lombok.NonNull;
+import net.daporkchop.lib.graphics.PIcon;
+import net.daporkchop.lib.gui.util.Alignment;
+import net.daporkchop.lib.gui.util.HorizontalAlignment;
+import net.daporkchop.lib.gui.util.VerticalAlignment;
+
 /**
  * Specifies that a given element type may have an icon
  *
  * @author DaPorkchop_
  */
-public interface IconHolder<Impl> {
-    //TODO: custom icon class
+public interface IconHolder<Impl extends IconHolder> {
+    PIcon getIcon();
+    Impl setIcon(PIcon icon);
+
+    default HorizontalAlignment getIconHAlignment()  {
+        return HorizontalAlignment.CENTER;
+    }
+    default Impl setIconHAlignment(@NonNull HorizontalAlignment alignment)   {
+        return (Impl) this;
+    }
+
+    default VerticalAlignment getIconVAlignment()  {
+        return VerticalAlignment.CENTER;
+    }
+    default Impl setIconVAlignment(@NonNull VerticalAlignment alignment)   {
+        return (Impl) this;
+    }
+
+    default Alignment getIconPos()  {
+        return Alignment.getFrom(this.getIconHAlignment(), this.getIconVAlignment());
+    }
+    @SuppressWarnings("unchecked")
+    default Impl setIconPos(@NonNull Alignment alignment)   {
+        return (Impl) this.setIconHAlignment(alignment.getHorizontal()).setIconVAlignment(alignment.getVertical());
+    }
 }

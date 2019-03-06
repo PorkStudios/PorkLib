@@ -16,6 +16,7 @@
 package net.daporkchop.lib.gui.swing.type.functional;
 
 import lombok.NonNull;
+import net.daporkchop.lib.graphics.PIcon;
 import net.daporkchop.lib.gui.component.type.functional.Label;
 import net.daporkchop.lib.gui.swing.SwingTextAlignment;
 import net.daporkchop.lib.gui.swing.impl.SwingComponent;
@@ -28,6 +29,8 @@ import javax.swing.*;
  * @author DaPorkchop_
  */
 public class SwingLabel extends SwingComponent<Label, JLabel> implements Label {
+    protected PIcon icon;
+
     public SwingLabel(String name) {
         super(name, new JLabel());
     }
@@ -38,32 +41,46 @@ public class SwingLabel extends SwingComponent<Label, JLabel> implements Label {
     }
 
     @Override
-    public SwingLabel setText(@NonNull String text) {
-        if (!this.getText().equals(text))   {
+    public SwingLabel setText(String text) {
+        if (!this.getText().equals(text)) {
             this.swing.setText(text);
         }
         return this;
     }
 
     @Override
-    public VerticalAlignment getVerticalTextAlignment() {
+    public VerticalAlignment getTextVAlignment() {
         return SwingTextAlignment.fromSwingVertical(this.swing.getVerticalAlignment());
     }
 
     @Override
-    public SwingLabel setVerticalTextAlignment(@NonNull VerticalAlignment alignment) {
+    public SwingLabel setTextVAlignment(@NonNull VerticalAlignment alignment) {
         this.swing.setVerticalAlignment(SwingTextAlignment.toSwingVertical(alignment));
         return this;
     }
 
     @Override
-    public HorizontalAlignment getHorizontalTextAlignment() {
+    public HorizontalAlignment getTextHAlignment() {
         return SwingTextAlignment.fromSwingHorizontal(this.swing.getHorizontalAlignment());
     }
 
     @Override
-    public SwingLabel setHorizontalTextAlignment(@NonNull HorizontalAlignment alignment) {
+    public SwingLabel setTextHAlignment(@NonNull HorizontalAlignment alignment) {
         this.swing.setHorizontalAlignment(SwingTextAlignment.toSwingHorizontal(alignment));
+        return this;
+    }
+
+    @Override
+    public PIcon getIcon() {
+        return this.icon;
+    }
+
+    @Override
+    public SwingLabel setIcon(PIcon icon) {
+        if (icon != this.icon)  {
+            this.icon = icon;
+            this.swing.setIcon(icon == null ? null : icon.getAsSwingIcon());
+        }
         return this;
     }
 }

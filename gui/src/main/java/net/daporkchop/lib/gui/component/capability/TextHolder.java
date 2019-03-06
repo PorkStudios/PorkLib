@@ -13,21 +13,31 @@
  *
  */
 
-package net.daporkchop.lib.gui.component.type.functional;
+package net.daporkchop.lib.gui.component.capability;
 
 import lombok.NonNull;
-import net.daporkchop.lib.gui.component.Component;
-import net.daporkchop.lib.gui.component.capability.IconHolder;
-import net.daporkchop.lib.gui.component.capability.TextHolder;
-import net.daporkchop.lib.gui.util.event.handler.ClickHandler;
+import net.daporkchop.lib.gui.util.Alignment;
+import net.daporkchop.lib.gui.util.HorizontalAlignment;
+import net.daporkchop.lib.gui.util.VerticalAlignment;
 
 /**
- * A button can display text or an icon, and has a single click handler that is invoked when the
- * button is clicked.
- *
  * @author DaPorkchop_
  */
-public interface Button extends Component<Button>, IconHolder<Button>, TextHolder<Button> {
-    ClickHandler getClickHandler();
-    Button setClickHandler(@NonNull ClickHandler handler);
+public interface TextHolder<Impl extends TextHolder> {
+    String getText();
+    Impl setText(String text);
+
+    HorizontalAlignment getTextHAlignment();
+    Impl setTextHAlignment(@NonNull HorizontalAlignment alignment);
+
+    VerticalAlignment getTextVAlignment();
+    Impl setTextVAlignment(@NonNull VerticalAlignment alignment);
+
+    default Alignment getTextPos()  {
+        return Alignment.getFrom(this.getTextHAlignment(), this.getTextVAlignment());
+    }
+    @SuppressWarnings("unchecked")
+    default Impl setTextPos(@NonNull Alignment alignment)   {
+        return (Impl) this.setTextHAlignment(alignment.getHorizontal()).setTextVAlignment(alignment.getVertical());
+    }
 }

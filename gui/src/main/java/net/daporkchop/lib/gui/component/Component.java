@@ -55,30 +55,6 @@ public interface Component<Impl extends Component> extends Element<Impl>, Enable
 
     Window getWindow();
 
-    default String getText() {
-        return "";
-    }
-
-    default Impl setText(@NonNull String text) {
-        return (Impl) this;
-    }
-
-    default VerticalAlignment getVerticalTextAlignment() {
-        return VerticalAlignment.CENTER;
-    }
-
-    default Impl setVerticalTextAlignment(@NonNull VerticalAlignment alignment) {
-        return (Impl) this;
-    }
-
-    default HorizontalAlignment getHorizontalTextAlignment() {
-        return HorizontalAlignment.CENTER;
-    }
-
-    default Impl setHorizontalTextAlignment(@NonNull HorizontalAlignment alignment) {
-        return (Impl) this;
-    }
-
     //convenience methods
     default Impl setOrientation(@NonNull Number x, @NonNull Number y, @NonNull Number width, @NonNull Number height) {
         return (Impl) this.setOrientation(SimpleDynamicOrientation.of(x, y, width, height));

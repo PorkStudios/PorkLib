@@ -15,42 +15,41 @@
 
 package gui;
 
+import net.daporkchop.lib.graphics.PImage;
+import net.daporkchop.lib.graphics.impl.image.DirectImage;
 import net.daporkchop.lib.gui.GuiSystem;
 import net.daporkchop.lib.gui.component.orientation.advanced.Axis;
 import net.daporkchop.lib.gui.component.orientation.advanced.calculator.DistUnit;
+import net.daporkchop.lib.gui.util.Alignment;
 import net.daporkchop.lib.gui.util.HorizontalAlignment;
 import net.daporkchop.lib.gui.util.VerticalAlignment;
+
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * @author DaPorkchop_
  */
 public class GuiExample {
     public static void main(String... args) {
+        PImage randomImage = new DirectImage(32, 32, false);
+        for (int x = 31; x >= 0; x--) {
+            for (int y = 31; y >= 0; y--) {
+                randomImage.setRGB(x, y, ThreadLocalRandom.current().nextInt());
+            }
+        }
+
         GuiSystem.swing().newWindow(64, 64, 512, 256)
                 .setTitle("Example GUI")
                 .button("button1", button -> button.setOrientation(0.3d, 0.15d, 0.4d, 0.1d)
                         .setText("Example Button!")
                         .setTooltip("This is a tooltip that will be shown when hovering the mouse over the button.")
-                        .setHorizontalTextAlignment(HorizontalAlignment.RIGHT).setVerticalTextAlignment(VerticalAlignment.TOP))
+                        .setTextPos(Alignment.TOP_LEFT)
+                        .setIcon(randomImage))
                 .button("button2", button -> button.setOrientation(0, 0.0d, 0.1d, 0.1d)
                         .setClickHandler((mouseButton, x, y) -> System.out.printf("Bounds: %s\n", button.getWindow().getComponent("panel1.button2").getBounds())))
                 .label("label1", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", label -> label
                         .setOrientation(0.5d, 0, 0.5d, 0.1d)
                         .setTooltip("This is a label. Labels can only display plain text."))
-                /*.panel("panel1", panel -> panel
-                                .setOrientation(0.25d, 0.25d, 0.5d, 0.5d)
-                                .setTooltip("This panel is currently empty.")
-                        //.button("button1", button -> button.setOrientation(0, 0, 0.5d, 0.2d))
-                        //.button("button2", button -> button.setOrientation(0.5d, 0.2d, 0.5d, 0.2d))
-                        //.button("button3", button -> button.setOrientation(0.5d, 0.4d, 1.0d, 0.2d)))
-                )*/
-                /*.button("button3", button -> button.orientAdvanced(orientation -> orientation
-                        .configureAxis(Axis.X, calc -> calc.ease(new DistCalculator<Button>(DistUnit.PX).setVal(0)))
-                        .configureAxis(Axis.Y, calc -> calc.ease(new DistCalculator<Button>(DistUnit.MULT).setVal(0.5d).setAxis(Axis.HEIGHT)))
-                        .configureAxis(Axis.WIDTH, calc -> calc.ease(new DistCalculator<Button>(DistUnit.MULT).setVal(0.5d).setAxis(Axis.WIDTH))
-                                .min(new DistCalculator<Button>(DistUnit.PX).setVal(20))
-                                .max(new DistCalculator<Button>(DistUnit.PX).setVal(350)))
-                        .configureAxis(Axis.HEIGHT, calc -> calc.ease(new DistCalculator<Button>(DistUnit.PX).setVal(20)))))*/
                 .button("button3", button -> button.orientAdvanced(orientation -> orientation
                         .configureAxis(Axis.X, calc -> calc.ease(DistUnit.PX, 0))
                         .configureAxis(Axis.Y, calc -> calc.ease(DistUnit.MULT, 0.5, Axis.HEIGHT)

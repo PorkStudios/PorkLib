@@ -19,6 +19,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.graphics.PIcon;
 import net.daporkchop.lib.gui.component.type.functional.Button;
 import net.daporkchop.lib.gui.swing.SwingTextAlignment;
 import net.daporkchop.lib.gui.swing.impl.SwingComponent;
@@ -40,6 +41,7 @@ public class SwingButton extends SwingComponent<Button, JButton> implements Butt
     @NonNull
     protected ClickHandler clickHandler = (button, x, y) -> {
     };
+    protected PIcon icon;
 
     public SwingButton(String name) {
         super(name, new JButton());
@@ -53,7 +55,7 @@ public class SwingButton extends SwingComponent<Button, JButton> implements Butt
     }
 
     @Override
-    public SwingButton setText(@NonNull String text) {
+    public SwingButton setText(String text) {
         if (!this.getText().equals(text)) {
             this.swing.setText(text);
         }
@@ -61,24 +63,38 @@ public class SwingButton extends SwingComponent<Button, JButton> implements Butt
     }
 
     @Override
-    public VerticalAlignment getVerticalTextAlignment() {
+    public VerticalAlignment getTextVAlignment() {
         return SwingTextAlignment.fromSwingVertical(this.swing.getVerticalAlignment());
     }
 
     @Override
-    public SwingButton setVerticalTextAlignment(@NonNull VerticalAlignment alignment) {
+    public SwingButton setTextVAlignment(@NonNull VerticalAlignment alignment) {
         this.swing.setVerticalAlignment(SwingTextAlignment.toSwingVertical(alignment));
         return this;
     }
 
     @Override
-    public HorizontalAlignment getHorizontalTextAlignment() {
+    public HorizontalAlignment getTextHAlignment() {
         return SwingTextAlignment.fromSwingHorizontal(this.swing.getHorizontalAlignment());
     }
 
     @Override
-    public SwingButton setHorizontalTextAlignment(@NonNull HorizontalAlignment alignment) {
+    public SwingButton setTextHAlignment(@NonNull HorizontalAlignment alignment) {
         this.swing.setHorizontalAlignment(SwingTextAlignment.toSwingHorizontal(alignment));
+        return this;
+    }
+
+    @Override
+    public PIcon getIcon() {
+        return this.icon;
+    }
+
+    @Override
+    public Button setIcon(PIcon icon) {
+        if (icon != this.icon)  {
+            this.icon = icon;
+            this.swing.setIcon(icon == null ? null : icon.getAsSwingIcon());
+        }
         return this;
     }
 

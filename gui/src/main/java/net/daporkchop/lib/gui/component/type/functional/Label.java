@@ -16,11 +16,13 @@
 package net.daporkchop.lib.gui.component.type.functional;
 
 import net.daporkchop.lib.gui.component.Component;
+import net.daporkchop.lib.gui.component.capability.IconHolder;
+import net.daporkchop.lib.gui.component.capability.TextHolder;
 
 /**
  * The simplest possible GUI component. A label can display text, nothing more.
  *
  * @author DaPorkchop_
  */
-public interface Label extends Component<Label> {
+public interface Label extends Component<Label>, IconHolder<Label>, TextHolder<Label> {
 }

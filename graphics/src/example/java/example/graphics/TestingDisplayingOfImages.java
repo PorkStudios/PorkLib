@@ -15,6 +15,7 @@
 
 package example.graphics;
 
+import net.daporkchop.lib.graphics.PIcon;
 import net.daporkchop.lib.graphics.PImage;
 import net.daporkchop.lib.graphics.impl.image.DirectImage;
 import net.daporkchop.lib.graphics.util.ImageInterpolator;
@@ -45,9 +46,13 @@ public class TestingDisplayingOfImages {
             ImageInterpolator interpolator = new ImageInterpolator(new CubicInterpolationEngine());
             image = interpolator.interp(image, 32.0d);
 
+            Thumbnail thumbnail = new Thumbnail(64, 32, 16, 8, image.getWidth()).submit(image).bake();
+
             JFrame frame = new JFrame();
             frame.getContentPane().setLayout(new FlowLayout());
-            frame.getContentPane().add(new JLabel(image.getAsSwingIcon()));
+            for (PIcon icon : thumbnail.getIcons()) {
+                frame.getContentPane().add(new JLabel(icon.getAsSwingIcon()));
+            }
             frame.pack();
             frame.setVisible(true);
             frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);

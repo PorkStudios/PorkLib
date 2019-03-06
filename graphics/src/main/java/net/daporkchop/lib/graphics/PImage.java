@@ -13,63 +13,49 @@
  *
  */
 
-package net.daporkchop.lib.math.arrays.grid;
+package net.daporkchop.lib.graphics;
 
 import lombok.NonNull;
-import net.daporkchop.lib.math.arrays.grid.impl.direct.DirectIntGrid1d;
-import net.daporkchop.lib.math.arrays.grid.impl.direct.DirectOverflowingIntGrid1d;
-import net.daporkchop.lib.math.arrays.grid.impl.heap.HeapDoubleGrid1d;
-import net.daporkchop.lib.math.arrays.grid.impl.heap.HeapIntGrid1d;
 
 /**
+ * An abstract representation of an image.
+ *
  * @author DaPorkchop_
  */
-public interface Grid1d {
-    static Grid1d of(@NonNull int[] arr)    {
-        return of(arr, 0);
+public interface PImage extends PIcon {
+    //pixel stuff
+    void setARGB(int x, int y, int argb);
+
+    default void setRGB(int x, int y, int rgb)  {
+        this.setARGB(x, y, 0xFF000000 | rgb);
     }
 
-    static Grid1d of(@NonNull int[] arr, int startX)    {
-        return new HeapIntGrid1d(arr, startX);
+    default void setBW(int x, int y, int col)   {
+        this.setARGB(x, y, 0xFF000000 | (col << 16) | (col << 8) | col);
     }
 
-    static Grid1d of(@NonNull double[] arr)    {
-        return of(arr, 0);
+    default void copy(@NonNull PIcon src, int srcX, int srcY, int dstX, int dstY, int w, int h) {
+        for (int x = w - 1; x >= 0; x--)    {
+            for (int y = h - 1; y >= 0; y--)    {
+                this.setARGB(dstX + x, dstY + y, src.getARGB(srcX + x, srcY + y));
+            }
+        }
     }
 
-    static Grid1d of(@NonNull double[] arr, int startX)    {
-        return new HeapDoubleGrid1d(arr, startX);
+    //drawing methods
+    default void drawRect(int x, int y, int w, int h, int argb) {
+        for (; w >= 0; w--) {
+            for (int yy = h - 1; yy >= 0; yy--) {
+                this.setARGB(x + w, y + yy, argb);
+            }
+        }
     }
 
-    static Grid1d of(int width) {
-        return of(0, width, false);
+    default void fill(int argb) {
+        for (int x = this.getWidth() - 1; x >= 0; x--)  {
+            for (int y = this.getHeight() - 1; y >= 0; y--) {
+                this.setARGB(x, y, argb);
+            }
+        }
     }
-
-    static Grid1d of(int width, boolean overflowing) {
-        return of(0, width, overflowing);
-    }
-
-    static Grid1d of(int startX, int width) {
-        return of(startX, width, false);
-    }
-
-    static Grid1d of(int startX, int width, boolean overflowing) {
-        return overflowing ? new DirectOverflowingIntGrid1d(startX, width) : new DirectIntGrid1d(startX, width);
-    }
-
-    int startX();
-    int endX();
-    default boolean isOverflowing() {
-        return false;
-    }
-
-    //getters
-    double getD(int x);
-    
-    int getI(int x);
-
-    //setters
-    void setD(int x, double val);
-
-    void setI(int x, int val);
 }

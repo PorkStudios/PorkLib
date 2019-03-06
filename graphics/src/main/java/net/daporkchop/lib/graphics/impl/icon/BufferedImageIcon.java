@@ -13,63 +13,52 @@
  *
  */
 
-package net.daporkchop.lib.math.arrays.grid;
+package net.daporkchop.lib.graphics.impl.icon;
 
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.math.arrays.grid.impl.direct.DirectIntGrid1d;
-import net.daporkchop.lib.math.arrays.grid.impl.direct.DirectOverflowingIntGrid1d;
-import net.daporkchop.lib.math.arrays.grid.impl.heap.HeapDoubleGrid1d;
-import net.daporkchop.lib.math.arrays.grid.impl.heap.HeapIntGrid1d;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.graphics.PIcon;
+
+import javax.swing.*;
+import java.awt.image.BufferedImage;
 
 /**
  * @author DaPorkchop_
  */
-public interface Grid1d {
-    static Grid1d of(@NonNull int[] arr)    {
-        return of(arr, 0);
+@RequiredArgsConstructor
+@Getter
+public class BufferedImageIcon implements PIcon {
+    @NonNull
+    protected final BufferedImage delegate;
+
+    @Override
+    public int getWidth() {
+        return this.delegate.getWidth();
     }
 
-    static Grid1d of(@NonNull int[] arr, int startX)    {
-        return new HeapIntGrid1d(arr, startX);
+    @Override
+    public int getHeight() {
+        return this.delegate.getHeight();
     }
 
-    static Grid1d of(@NonNull double[] arr)    {
-        return of(arr, 0);
-    }
-
-    static Grid1d of(@NonNull double[] arr, int startX)    {
-        return new HeapDoubleGrid1d(arr, startX);
-    }
-
-    static Grid1d of(int width) {
-        return of(0, width, false);
-    }
-
-    static Grid1d of(int width, boolean overflowing) {
-        return of(0, width, overflowing);
-    }
-
-    static Grid1d of(int startX, int width) {
-        return of(startX, width, false);
-    }
-
-    static Grid1d of(int startX, int width, boolean overflowing) {
-        return overflowing ? new DirectOverflowingIntGrid1d(startX, width) : new DirectIntGrid1d(startX, width);
-    }
-
-    int startX();
-    int endX();
-    default boolean isOverflowing() {
+    @Override
+    public boolean isBW() {
         return false;
     }
 
-    //getters
-    double getD(int x);
-    
-    int getI(int x);
+    @Override
+    public int getARGB(int x, int y) {
+        return this.delegate.getRGB(x, y);
+    }
 
-    //setters
-    void setD(int x, double val);
+    @Override
+    public BufferedImage getAsBufferedImage() {
+        return this.delegate;
+    }
 
-    void setI(int x, int val);
+    @Override
+    public Icon getAsSwingIcon() {
+        return new ImageIcon(this.delegate);
+    }
 }

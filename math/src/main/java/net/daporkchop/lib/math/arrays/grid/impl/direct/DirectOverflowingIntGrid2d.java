@@ -13,6 +13,29 @@
  *
  */
 
-dependencies {
-    compile project(":math")
+package net.daporkchop.lib.math.arrays.grid.impl.direct;
+
+import net.daporkchop.lib.common.util.DirectMemoryHolder;
+import net.daporkchop.lib.common.util.PUnsafe;
+import net.daporkchop.lib.math.arrays.grid.Grid2d;
+
+import static net.daporkchop.lib.math.primitive.PMath.clamp;
+import static net.daporkchop.lib.math.primitive.PMath.floorI;
+
+/**
+ * @author DaPorkchop_
+ */
+public class DirectOverflowingIntGrid2d extends DirectIntGrid2d {
+    public DirectOverflowingIntGrid2d(int startX, int startY, int width, int height) {
+        super(startX, startY, width, height);
+    }
+
+    protected long getPos(int x, int y) {
+        return this.pos + ((clamp(x - this.startX, 0, this.width - 1) * this.height + clamp(y - this.startY, 0, this.height - 1)) << 2L);
+    }
+
+    @Override
+    public boolean isOverflowing() {
+        return true;
+    }
 }

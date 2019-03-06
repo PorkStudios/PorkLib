@@ -13,6 +13,24 @@
  *
  */
 
-dependencies {
-    compile project(":math")
+package net.daporkchop.lib.math.arrays.grid.impl.direct;
+
+import static net.daporkchop.lib.math.primitive.PMath.clamp;
+
+/**
+ * @author DaPorkchop_
+ */
+public class DirectOverflowingIntGrid3d extends DirectIntGrid3d {
+    public DirectOverflowingIntGrid3d(int startX, int startY, int startZ, int width, int height, int depth) {
+        super(startX, startY, startZ, width, height, depth);
+    }
+
+    protected long getPos(int x, int y, int z) {
+        return this.pos + (((clamp(x - this.startX, 0, this.width - 1) * this.height + clamp(y - this.startY, 0, this.height - 1)) * this.depth + clamp(z - this.startZ, 0, this.depth - 1)) << 2L);
+    }
+
+    @Override
+    public boolean isOverflowing() {
+        return true;
+    }
 }

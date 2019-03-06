@@ -17,6 +17,7 @@ package net.daporkchop.lib.math.arrays.grid;
 
 import lombok.NonNull;
 import net.daporkchop.lib.math.arrays.grid.impl.direct.DirectIntGrid3d;
+import net.daporkchop.lib.math.arrays.grid.impl.direct.DirectOverflowingIntGrid3d;
 import net.daporkchop.lib.math.arrays.grid.impl.heap.HeapDoubleGrid3d;
 import net.daporkchop.lib.math.arrays.grid.impl.heap.HeapIntGrid3d;
 
@@ -49,11 +50,19 @@ public interface Grid3d extends Grid2d {
     }
 
     static Grid3d of(int width, int height, int depth)  {
-        return of(width, height, depth);
+        return of(0, 0, 0, width, height, depth, false);
+    }
+
+    static Grid3d of(int width, int height, int depth, boolean overflowing)  {
+        return of(0, 0, 0, width, height, depth, overflowing);
     }
 
     static Grid3d of(int startX, int startY, int startZ, int width, int height, int depth)  {
-        return new DirectIntGrid3d(startX, startY, startZ, width, height, depth);
+        return of(startX, startY, startZ, width, height, depth, false);
+    }
+
+    static Grid3d of(int startX, int startY, int startZ, int width, int height, int depth, boolean overflowing)  {
+        return overflowing ? new DirectOverflowingIntGrid3d(startX, startY, startZ, width, height, depth) : new DirectIntGrid3d(startX, startY, startZ, width, height, depth);
     }
 
     int startZ();

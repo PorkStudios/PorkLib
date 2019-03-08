@@ -15,42 +15,24 @@
 
 package net.daporkchop.lib.gui.component.capability;
 
-import lombok.NonNull;
 import net.daporkchop.lib.graphics.PIcon;
 import net.daporkchop.lib.gui.component.Element;
 import net.daporkchop.lib.gui.component.state.ElementState;
-import net.daporkchop.lib.gui.util.Alignment;
-import net.daporkchop.lib.gui.util.HorizontalAlignment;
-import net.daporkchop.lib.gui.util.VerticalAlignment;
 
 /**
- * Specifies that a given element type may have an icon
- *
  * @author DaPorkchop_
  */
-public interface IconHolder<Impl extends IconHolder> extends Element<Impl> {
-    PIcon getIcon();
-    Impl setIcon(PIcon icon);
-
-    default HorizontalAlignment getIconHAlignment()  {
-        return HorizontalAlignment.CENTER;
-    }
-    default Impl setIconHAlignment(@NonNull HorizontalAlignment alignment)   {
-        return (Impl) this;
+public interface StatedIconHolder<Impl extends StatedIconHolder, State extends ElementState<Impl, State>> extends IconHolder<Impl> {
+    @Override
+    default PIcon getIcon() {
+        return this.getIcon(null);
     }
 
-    default VerticalAlignment getIconVAlignment()  {
-        return VerticalAlignment.CENTER;
-    }
-    default Impl setIconVAlignment(@NonNull VerticalAlignment alignment)   {
-        return (Impl) this;
+    @Override
+    default Impl setIcon(PIcon icon) {
+        return this.setIcon(null, icon);
     }
 
-    default Alignment getIconPos()  {
-        return Alignment.getFrom(this.getIconHAlignment(), this.getIconVAlignment());
-    }
-    @SuppressWarnings("unchecked")
-    default Impl setIconPos(@NonNull Alignment alignment)   {
-        return (Impl) this.setIconHAlignment(alignment.getHorizontal()).setIconVAlignment(alignment.getVertical());
-    }
+    PIcon getIcon(State state);
+    Impl setIcon(State state, PIcon icon);
 }

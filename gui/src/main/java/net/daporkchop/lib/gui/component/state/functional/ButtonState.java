@@ -13,44 +13,21 @@
  *
  */
 
-package net.daporkchop.lib.gui.component.capability;
+package net.daporkchop.lib.gui.component.state.functional;
 
-import lombok.NonNull;
-import net.daporkchop.lib.graphics.PIcon;
-import net.daporkchop.lib.gui.component.Element;
+import com.sun.javafx.scene.control.skin.ButtonSkin;
 import net.daporkchop.lib.gui.component.state.ElementState;
-import net.daporkchop.lib.gui.util.Alignment;
-import net.daporkchop.lib.gui.util.HorizontalAlignment;
-import net.daporkchop.lib.gui.util.VerticalAlignment;
+import net.daporkchop.lib.gui.component.type.functional.Button;
 
 /**
- * Specifies that a given element type may have an icon
- *
  * @author DaPorkchop_
  */
-public interface IconHolder<Impl extends IconHolder> extends Element<Impl> {
-    PIcon getIcon();
-    Impl setIcon(PIcon icon);
-
-    default HorizontalAlignment getIconHAlignment()  {
-        return HorizontalAlignment.CENTER;
-    }
-    default Impl setIconHAlignment(@NonNull HorizontalAlignment alignment)   {
-        return (Impl) this;
-    }
-
-    default VerticalAlignment getIconVAlignment()  {
-        return VerticalAlignment.CENTER;
-    }
-    default Impl setIconVAlignment(@NonNull VerticalAlignment alignment)   {
-        return (Impl) this;
-    }
-
-    default Alignment getIconPos()  {
-        return Alignment.getFrom(this.getIconHAlignment(), this.getIconVAlignment());
-    }
-    @SuppressWarnings("unchecked")
-    default Impl setIconPos(@NonNull Alignment alignment)   {
-        return (Impl) this.setIconHAlignment(alignment.getHorizontal()).setIconVAlignment(alignment.getVertical());
-    }
+public enum ButtonState implements ElementState<Button, ButtonState> {
+    ENABLED,
+    ENABLED_HOVERED,
+    ENABLED_CLICKED,
+    DISABLED,
+    DISABLED_HOVERED,
+    DISABLED_CLICKED
+    ;
 }

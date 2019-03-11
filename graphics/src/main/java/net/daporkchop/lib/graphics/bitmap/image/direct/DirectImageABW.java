@@ -15,8 +15,19 @@
 
 package net.daporkchop.lib.graphics.bitmap.image.direct;
 
+import lombok.Getter;
+import lombok.NonNull;
 import net.daporkchop.lib.common.util.PUnsafe;
 import net.daporkchop.lib.graphics.bitmap.image.ImageABW;
+import net.daporkchop.lib.reflection.PField;
+
+import java.awt.*;
+import java.awt.image.ColorModel;
+import java.awt.image.DataBuffer;
+import java.awt.image.Raster;
+import java.awt.image.SampleModel;
+import java.awt.image.SinglePixelPackedSampleModel;
+import java.awt.image.WritableRaster;
 
 /**
  * @author DaPorkchop_

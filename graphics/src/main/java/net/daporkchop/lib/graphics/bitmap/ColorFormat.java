@@ -19,6 +19,11 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.graphics.bitmap.image.PImage;
+import net.daporkchop.lib.graphics.bitmap.image.direct.DirectImageABW;
+import net.daporkchop.lib.graphics.bitmap.image.direct.DirectImageARGB;
+import net.daporkchop.lib.graphics.bitmap.image.direct.DirectImageBW;
+import net.daporkchop.lib.graphics.bitmap.image.direct.DirectImageRGB;
 
 /**
  * @author DaPorkchop_
@@ -26,10 +31,54 @@ import lombok.experimental.Accessors;
 @RequiredArgsConstructor
 @Accessors(fluent = true)
 public enum ColorFormat {
-    ARGB(c -> c, c -> c, c -> (c >>> 24) & 0xFF, c -> (c >>> 16) & 0xFF, c -> (c >>> 8) & 0xFF, c -> c & 0xFF, 32, true, false),
-    RGB(c -> c & 0xFFFFFF, c -> c, c -> 0xFF, c -> (c >>> 16) & 0xFF, c -> (c >>> 8) & 0xFF, c -> c & 0xFF, 24, false, false),
-    ABW(c -> ((c >>> 16) & 0xFFFF) | ((c >>> 8) & 0xFF) | (c & 0xFF), c -> ((c & 0xFF00) << 16) | ((c & 0xFF) << 16) | ((c & 0xFF) << 8) | (c & 0xFF), c -> (c >>> 8) & 0xFF, c -> c & 0xFF, c -> c & 0xFF, c -> c & 0xFF, 16, true, true),
-    BW(c -> ((c >>> 16) & 0xFF) | ((c >>> 8) & 0xFF) | (c & 0xFF), c -> 0xFF000000 | (c << 16) | (c << 8) | c, c -> 0xFF, c -> c, c -> c, c -> c, 8, false, true);
+    ARGB(
+            c -> c,
+            c -> c,
+            c -> (c >>> 24) & 0xFF,
+            c -> (c >>> 16) & 0xFF,
+            c -> (c >>> 8) & 0xFF,
+            c -> c & 0xFF,
+            32,
+            true,
+            false,
+            DirectImageARGB::new
+    ),
+    RGB(
+            c -> c & 0xFFFFFF,
+            c -> c,
+            c -> 0xFF,
+            c -> (c >>> 16) & 0xFF,
+            c -> (c >>> 8) & 0xFF,
+            c -> c & 0xFF,
+            24,
+            false,
+            false,
+            DirectImageRGB::new
+    ),
+    ABW(
+            c -> ((c >>> 16) & 0xFFFF) | ((c >>> 8) & 0xFF) | (c & 0xFF),
+            c -> ((c & 0xFF00) << 16) | ((c & 0xFF) << 16) | ((c & 0xFF) << 8) | (c & 0xFF),
+            c -> (c >>> 8) & 0xFF,
+            c -> c & 0xFF,
+            c -> c & 0xFF,
+            c -> c & 0xFF,
+            16,
+            true,
+            true,
+            DirectImageABW::new
+    ),
+    BW(
+            c -> ((c >>> 16) & 0xFF) | ((c >>> 8) & 0xFF) | (c & 0xFF),
+            c -> 0xFF000000 | (c << 16) | (c << 8) | c,
+            c -> 0xFF,
+            c -> c,
+            c -> c,
+            c -> c,
+            8,
+            false,
+            true,
+            DirectImageBW::new
+    );
 
     @NonNull
     protected final ColorConverter fromArgb;
@@ -49,6 +98,8 @@ public enum ColorFormat {
     protected final boolean hasAlpha;
     @Getter
     protected final boolean isBw;
+    @NonNull
+    protected final ImageCreator creator;
 
     public int fromArgb(int argb) {
         return this.fromArgb.get(argb);
@@ -74,8 +125,17 @@ public enum ColorFormat {
         return this.getB.get(color);
     }
 
+    public PImage createImage(int width, int height)    {
+        return this.creator.create(width, height);
+    }
+
     @FunctionalInterface
     private interface ColorConverter {
         int get(int color);
+    }
+
+    @FunctionalInterface
+    private interface ImageCreator  {
+        PImage create(int width, int height);
     }
 }

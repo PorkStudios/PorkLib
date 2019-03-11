@@ -13,45 +13,43 @@
  *
  */
 
-package net.daporkchop.lib.graphics.impl.icon;
+package net.daporkchop.lib.graphics.bitmap.icon;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
-
-import javax.swing.*;
-import java.awt.*;
+import net.daporkchop.lib.graphics.bitmap.ColorFormat;
 
 /**
- * A very, very inefficient implementation of {@link Icon} that uses a {@link PIcon} to store pixel values.
- *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-public class WrapperSwingIcon implements Icon {
-    @NonNull
-    protected final PIcon delegate;
-
+public interface IconRGB extends PIcon {
     @Override
-    public void paintIcon(Component c, Graphics g, int x, int y) {
-        for (int xx = this.delegate.getWidth() - 1; xx >= 0; xx--)  {
-            for (int yy = this.delegate.getHeight() - 1; yy >= 0; yy--) {
-                g.setPaintMode();
-                g.setColor(new Color(this.delegate.getARGB(xx, yy)));
-                g.drawLine(x + xx, y + yy, x + xx, y + yy);
-            }
-        }
+    default ColorFormat getFormat() {
+        return ColorFormat.RGB;
     }
 
     @Override
-    public int getIconWidth() {
-        return this.delegate.getWidth();
+    default boolean isBw() {
+        return false;
     }
 
     @Override
-    public int getIconHeight() {
-        return this.delegate.getHeight();
+    default boolean hasAlpha() {
+        return false;
+    }
+
+    @Override
+    default int getARGB(int x, int y) {
+        return this.getRGB(x, y) | 0xFF000000;
+    }
+
+    @Override
+    default int getABW(int x, int y) {
+        int col = this.getRGB(x, y);
+        return 0xFF00 | ((col >>> 16) & 0xFF) | ((col >>> 8) & 0xFF) | (col & 0xFF);
+    }
+
+    @Override
+    default int getBW(int x, int y) {
+        int col = this.getRGB(x, y);
+        return ((col >>> 16) & 0xFF) | ((col >>> 8) & 0xFF) | (col & 0xFF);
     }
 }

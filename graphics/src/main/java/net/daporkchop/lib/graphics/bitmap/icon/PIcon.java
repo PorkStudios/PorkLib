@@ -13,45 +13,65 @@
  *
  */
 
-package net.daporkchop.lib.graphics.impl.icon;
+package net.daporkchop.lib.graphics.bitmap.icon;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
+import net.daporkchop.lib.graphics.bitmap.ColorFormat;
+import net.daporkchop.lib.graphics.impl.icon.WrapperSwingIcon;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 
 /**
- * A very, very inefficient implementation of {@link Icon} that uses a {@link PIcon} to store pixel values.
+ * An immutable representation of an image
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-public class WrapperSwingIcon implements Icon {
-    @NonNull
-    protected final PIcon delegate;
+public interface PIcon {
+    //size stuff
+    int getWidth();
+    int getHeight();
 
-    @Override
-    public void paintIcon(Component c, Graphics g, int x, int y) {
-        for (int xx = this.delegate.getWidth() - 1; xx >= 0; xx--)  {
-            for (int yy = this.delegate.getHeight() - 1; yy >= 0; yy--) {
-                g.setPaintMode();
-                g.setColor(new Color(this.delegate.getARGB(xx, yy)));
-                g.drawLine(x + xx, y + yy, x + xx, y + yy);
+    default boolean isEmpty()   {
+        return this.getWidth() <= 0 || this.getHeight() <= 0;
+    }
+
+    //misc
+    ColorFormat getFormat();
+
+    default boolean isBw()  {
+        return this.getFormat().isBw();
+    }
+
+    default boolean hasAlpha()  {
+        return this.getFormat().hasAlpha();
+    }
+
+    //pixel stuff
+    int getARGB(int x, int y);
+
+    int getRGB(int x, int y);
+
+    int getABW(int x, int y);
+
+    int getBW(int x, int y);
+
+    //compatibility
+    default Image getAsImage()  {
+        return this.getAsBufferedImage();
+    }
+
+    default BufferedImage getAsBufferedImage()  {
+        BufferedImage img = new BufferedImage(this.getWidth(), this.getHeight(), this.isBw() && !this.hasAlpha() ? BufferedImage.TYPE_BYTE_GRAY : BufferedImage.TYPE_INT_ARGB);
+        for (int x = this.getWidth() - 1; x >= 0; x--)  {
+            for (int y = this.getHeight() - 1; y >= 0; y--) {
+                img.setRGB(x, y, this.getARGB(x, y));
             }
         }
+        return img;
     }
 
-    @Override
-    public int getIconWidth() {
-        return this.delegate.getWidth();
-    }
-
-    @Override
-    public int getIconHeight() {
-        return this.delegate.getHeight();
+    default Icon getAsSwingIcon()   {
+        return new WrapperSwingIcon(this);
     }
 }

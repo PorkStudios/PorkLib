@@ -17,10 +17,9 @@ package net.daporkchop.lib.gui.swing.type;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.graphics.PIcon;
+import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
 import net.daporkchop.lib.gui.component.type.Window;
 import net.daporkchop.lib.gui.swing.impl.SwingContainer;
-import net.daporkchop.lib.gui.swing.impl.SwingComponent;
 import net.daporkchop.lib.gui.util.event.EventManager;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 
@@ -30,7 +29,6 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.util.ArrayList;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 

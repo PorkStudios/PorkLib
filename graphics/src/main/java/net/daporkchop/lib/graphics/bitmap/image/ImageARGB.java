@@ -13,45 +13,10 @@
  *
  */
 
-package net.daporkchop.lib.graphics.impl.icon;
-
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
-
-import javax.swing.*;
-import java.awt.*;
+package net.daporkchop.lib.graphics.bitmap.image;
 
 /**
- * A very, very inefficient implementation of {@link Icon} that uses a {@link PIcon} to store pixel values.
- *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-public class WrapperSwingIcon implements Icon {
-    @NonNull
-    protected final PIcon delegate;
-
-    @Override
-    public void paintIcon(Component c, Graphics g, int x, int y) {
-        for (int xx = this.delegate.getWidth() - 1; xx >= 0; xx--)  {
-            for (int yy = this.delegate.getHeight() - 1; yy >= 0; yy--) {
-                g.setPaintMode();
-                g.setColor(new Color(this.delegate.getARGB(xx, yy)));
-                g.drawLine(x + xx, y + yy, x + xx, y + yy);
-            }
-        }
-    }
-
-    @Override
-    public int getIconWidth() {
-        return this.delegate.getWidth();
-    }
-
-    @Override
-    public int getIconHeight() {
-        return this.delegate.getHeight();
-    }
+public interface ImageARGB {
 }

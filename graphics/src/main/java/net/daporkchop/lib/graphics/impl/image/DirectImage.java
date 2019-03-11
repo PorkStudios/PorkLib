@@ -16,7 +16,7 @@
 package net.daporkchop.lib.graphics.impl.image;
 
 import net.daporkchop.lib.common.util.PUnsafe;
-import net.daporkchop.lib.graphics.PImage;
+import net.daporkchop.lib.graphics.bitmap.image.PImage;
 import net.daporkchop.lib.graphics.impl.icon.DirectIcon;
 
 import java.awt.image.DataBuffer;

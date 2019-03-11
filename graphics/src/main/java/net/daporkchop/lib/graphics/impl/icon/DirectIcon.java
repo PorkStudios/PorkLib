@@ -19,15 +19,12 @@ import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.DirectMemoryHolder;
 import net.daporkchop.lib.common.util.PUnsafe;
-import net.daporkchop.lib.graphics.PIcon;
-import net.daporkchop.lib.graphics.impl.image.DirectImage;
+import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
-import java.awt.image.ComponentColorModel;
 import java.awt.image.DataBuffer;
 import java.awt.image.Raster;
 import java.awt.image.SinglePixelPackedSampleModel;

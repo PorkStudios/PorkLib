@@ -18,7 +18,7 @@ package net.daporkchop.lib.graphics.render;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.graphics.PIcon;
+import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
 
 import java.awt.*;
 

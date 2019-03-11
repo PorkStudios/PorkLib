@@ -13,58 +13,43 @@
  *
  */
 
-package net.daporkchop.lib.graphics;
+package net.daporkchop.lib.graphics.bitmap.icon;
 
-import net.daporkchop.lib.graphics.impl.icon.WrapperSwingIcon;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.image.BufferedImage;
+import net.daporkchop.lib.graphics.bitmap.ColorFormat;
 
 /**
- * An immutable representation of an image
- *
  * @author DaPorkchop_
  */
-public interface PIcon {
-    //size stuff
-    int getWidth();
-    int getHeight();
-
-    default boolean isEmpty()   {
-        return this.getWidth() <= 0 || this.getHeight() <= 0;
+public interface IconARGB extends PIcon {
+    @Override
+    default ColorFormat getFormat() {
+        return ColorFormat.ARGB;
     }
 
-    //misc
-    boolean isBW();
-
-    //pixel stuff
-    int getARGB(int x, int y);
-
-    default int getRGB(int x, int y)  {
-        return this.getARGB(x, y) & 0x00FFFFFF;
+    @Override
+    default boolean isBw() {
+        return false;
     }
 
-    default int getBW(int x, int y)   {
-        return this.getARGB(x, y) & 0xFF;
+    @Override
+    default boolean hasAlpha() {
+        return true;
     }
 
-    //compatibility
-    default Image getAsImage()  {
-        return this.getAsBufferedImage();
+    @Override
+    default int getRGB(int x, int y) {
+        return this.getARGB(x, y) & 0xFFFFFF;
     }
 
-    default BufferedImage getAsBufferedImage()  {
-        BufferedImage img = new BufferedImage(this.getWidth(), this.getHeight(), this.isBW() ? BufferedImage.TYPE_BYTE_GRAY : BufferedImage.TYPE_INT_ARGB);
-        for (int x = this.getWidth() - 1; x >= 0; x--)  {
-            for (int y = this.getHeight() - 1; y >= 0; y--) {
-                img.setRGB(x, y, this.getRGB(x, y));
-            }
-        }
-        return img;
+    @Override
+    default int getABW(int x, int y) {
+        int col = this.getARGB(x, y);
+        return ((col >>> 16) & 0xFFFF) | ((col >>> 8) & 0xFF) | (col & 0xFF);
     }
 
-    default Icon getAsSwingIcon()   {
-        return new WrapperSwingIcon(this);
+    @Override
+    default int getBW(int x, int y) {
+        int col = this.getARGB(x, y);
+        return ((col >>> 16) & 0xFF) | ((col >>> 8) & 0xFF) | (col & 0xFF);
     }
 }

@@ -15,16 +15,11 @@
 
 package gui;
 
-import net.daporkchop.lib.graphics.PImage;
-import net.daporkchop.lib.graphics.impl.image.DirectImage;
+import net.daporkchop.lib.graphics.bitmap.image.PImage;
 import net.daporkchop.lib.gui.GuiSystem;
 import net.daporkchop.lib.gui.component.orientation.advanced.Axis;
 import net.daporkchop.lib.gui.component.orientation.advanced.calculator.DistUnit;
 import net.daporkchop.lib.gui.util.Alignment;
-import net.daporkchop.lib.gui.util.HorizontalAlignment;
-import net.daporkchop.lib.gui.util.VerticalAlignment;
-
-import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * @author DaPorkchop_

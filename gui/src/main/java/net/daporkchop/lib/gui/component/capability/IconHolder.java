@@ -16,9 +16,8 @@
 package net.daporkchop.lib.gui.component.capability;
 
 import lombok.NonNull;
-import net.daporkchop.lib.graphics.PIcon;
+import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
 import net.daporkchop.lib.gui.component.Element;
-import net.daporkchop.lib.gui.component.state.ElementState;
 import net.daporkchop.lib.gui.util.Alignment;
 import net.daporkchop.lib.gui.util.HorizontalAlignment;
 import net.daporkchop.lib.gui.util.VerticalAlignment;

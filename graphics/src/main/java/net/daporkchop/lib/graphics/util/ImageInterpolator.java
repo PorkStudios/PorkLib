@@ -15,12 +15,11 @@
 
 package net.daporkchop.lib.graphics.util;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.graphics.PIcon;
-import net.daporkchop.lib.graphics.PImage;
+import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
+import net.daporkchop.lib.graphics.bitmap.image.PImage;
 import net.daporkchop.lib.graphics.impl.image.DirectImage;
 import net.daporkchop.lib.math.arrays.grid.Grid2d;
 import net.daporkchop.lib.math.interpolation.InterpolationEngine;

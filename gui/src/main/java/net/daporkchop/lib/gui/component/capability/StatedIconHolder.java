@@ -15,8 +15,7 @@
 
 package net.daporkchop.lib.gui.component.capability;
 
-import net.daporkchop.lib.graphics.PIcon;
-import net.daporkchop.lib.gui.component.Element;
+import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
 import net.daporkchop.lib.gui.component.state.ElementState;
 
 /**

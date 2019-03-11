@@ -13,9 +13,10 @@
  *
  */
 
-package net.daporkchop.lib.graphics;
+package net.daporkchop.lib.graphics.bitmap.image;
 
 import lombok.NonNull;
+import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
 import net.daporkchop.lib.graphics.impl.image.DirectImage;
 
 import java.util.Random;

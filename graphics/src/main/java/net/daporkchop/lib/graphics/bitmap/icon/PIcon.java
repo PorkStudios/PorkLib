@@ -16,7 +16,6 @@
 package net.daporkchop.lib.graphics.bitmap.icon;
 
 import net.daporkchop.lib.graphics.bitmap.ColorFormat;
-import net.daporkchop.lib.graphics.impl.icon.WrapperSwingIcon;
 
 import javax.swing.*;
 import java.awt.*;
@@ -72,6 +71,6 @@ public interface PIcon {
     }
 
     default Icon getAsSwingIcon()   {
-        return new WrapperSwingIcon(this);
+        return new ImageIcon(this.getAsImage());
     }
 }

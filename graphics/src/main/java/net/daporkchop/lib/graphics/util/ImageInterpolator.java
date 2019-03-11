@@ -20,7 +20,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
 import net.daporkchop.lib.graphics.bitmap.image.PImage;
-import net.daporkchop.lib.graphics.impl.image.DirectImage;
 import net.daporkchop.lib.math.arrays.grid.Grid2d;
 import net.daporkchop.lib.math.interpolation.InterpolationEngine;
 
@@ -37,13 +36,13 @@ public class ImageInterpolator {
     protected final InterpolationEngine engine;
 
     public PImage interp(@NonNull PIcon src, double mult) {
-        PImage dst = new DirectImage(floorI(src.getWidth() * mult), floorI(src.getHeight() * mult), src.isBW());
+        PImage dst = src.getFormat().createImage(floorI(src.getWidth() * mult), floorI(src.getHeight() * mult));
         this.interp(src, dst, null);
         return dst;
     }
 
     public PImage interp(@NonNull PIcon src, int w, int h) {
-        PImage dst = new DirectImage(w, h, src.isBW());
+        PImage dst = src.getFormat().createImage(w, h);
         this.interp(src, dst, null);
         return dst;
     }
@@ -54,7 +53,7 @@ public class ImageInterpolator {
         }
         double factX = (double) src.getWidth() / (double) dst.getWidth();
         double factY = (double) src.getHeight() / (double) dst.getHeight();
-        if (src.isBW()) {
+        if (src.isBw()) {
             for (int x = src.getWidth() - 1; x >= 0; x--) {
                 for (int y = src.getHeight() - 1; y >= 0; y--) {
                     grid.setI(x, y, src.getBW(x, y));

@@ -20,6 +20,11 @@ import net.daporkchop.lib.common.util.DirectMemoryHolder;
 import net.daporkchop.lib.common.util.PUnsafe;
 import net.daporkchop.lib.graphics.bitmap.image.PImage;
 
+import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.DataBuffer;
+import java.awt.image.WritableRaster;
+
 /**
  * @author DaPorkchop_
  */
@@ -63,5 +68,27 @@ public abstract class DirectImage implements DirectMemoryHolder, PImage {
             PUnsafe.freeMemory(this.pos);
             this.pos = -1L;
         }
+    }
+
+    @Override
+    public BufferedImage getAsBufferedImage() {
+        return new BufferedImage(
+                this.newColorModel(),
+                this.newRaster(),
+                false,
+                null
+        );
+    }
+
+    protected ColorModel newColorModel()    {
+        return null;
+    }
+
+    protected DataBuffer newDataBuffer()    {
+        return null;
+    }
+
+    protected WritableRaster newRaster()    {
+        return null;
     }
 }

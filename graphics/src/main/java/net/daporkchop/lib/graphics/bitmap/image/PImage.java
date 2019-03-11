@@ -16,8 +16,8 @@
 package net.daporkchop.lib.graphics.bitmap.image;
 
 import lombok.NonNull;
+import net.daporkchop.lib.graphics.bitmap.ColorFormat;
 import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
-import net.daporkchop.lib.graphics.impl.image.DirectImage;
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
@@ -29,16 +29,16 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public interface PImage extends PIcon {
     static PImage randomImage(int w, int h) {
-        return randomImage(w, h, false, ThreadLocalRandom.current());
+        return randomImage(w, h, ColorFormat.RGB, ThreadLocalRandom.current());
     }
 
-    static PImage randomImage(int w, int h, boolean bw) {
-        return randomImage(w, h, bw, ThreadLocalRandom.current());
+    static PImage randomImage(int w, int h, @NonNull ColorFormat format) {
+        return randomImage(w, h, format, ThreadLocalRandom.current());
     }
 
-    static PImage randomImage(int w, int h, boolean bw, @NonNull Random random) {
-        PImage img = new DirectImage(w, h, bw);
-        if (bw) {
+    static PImage randomImage(int w, int h, @NonNull ColorFormat format, @NonNull Random random) {
+        PImage img = format.createImage(w, h);
+        if (format.isBw()) {
             for (int x = w - 1; x >= 0; x--)    {
                 for (int y = h - 1; y >= 0; y--)    {
                     img.setBW(x, y, random.nextInt());

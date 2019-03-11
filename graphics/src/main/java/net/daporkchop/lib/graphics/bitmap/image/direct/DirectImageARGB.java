@@ -13,26 +13,31 @@
  *
  */
 
-package net.daporkchop.lib.graphics.bitmap.image;
+package net.daporkchop.lib.graphics.bitmap.image.direct;
 
-import net.daporkchop.lib.graphics.bitmap.icon.IconARGB;
+import net.daporkchop.lib.common.util.PUnsafe;
+import net.daporkchop.lib.graphics.bitmap.image.ImageARGB;
 
 /**
  * @author DaPorkchop_
  */
-public interface ImageARGB extends IconARGB, PImage {
-    @Override
-    default void setRGB(int x, int y, int col) {
-        this.setARGB(x, y, 0xFF000000 | col);
+public class DirectImageARGB extends DirectImage implements ImageARGB {
+    public DirectImageARGB(int width, int height) {
+        super(width, height);
     }
 
     @Override
-    default void setABW(int x, int y, int col) {
-        this.setARGB(x, y, (col << 16) | ((col & 0xFF) << 8) | (col & 0xFF));
+    public long getByteScale() {
+        return 4L;
     }
 
     @Override
-    default void setBW(int x, int y, int col) {
-        this.setARGB(x, y, 0xFF000000 | (col << 16) | (col << 8) | col);
+    public void setARGB(int x, int y, int col) {
+        PUnsafe.putInt(this.getPos(x, y), col);
+    }
+
+    @Override
+    public int getARGB(int x, int y) {
+        return PUnsafe.getInt(this.getPos(x, y));
     }
 }

@@ -13,26 +13,41 @@
  *
  */
 
-package net.daporkchop.lib.graphics.bitmap.image;
+package net.daporkchop.lib.graphics.bitmap.image.buffer;
 
-import net.daporkchop.lib.graphics.bitmap.icon.IconARGB;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.graphics.bitmap.image.ImageARGB;
+
+import java.awt.image.BufferedImage;
 
 /**
  * @author DaPorkchop_
  */
-public interface ImageARGB extends IconARGB, PImage {
+@RequiredArgsConstructor
+@Getter
+public class WrapperBufferedImage implements ImageARGB {
+    @NonNull
+    protected final BufferedImage delegate;
+
     @Override
-    default void setRGB(int x, int y, int col) {
-        this.setARGB(x, y, 0xFF000000 | col);
+    public int getWidth() {
+        return this.delegate.getWidth();
     }
 
     @Override
-    default void setABW(int x, int y, int col) {
-        this.setARGB(x, y, (col << 16) | ((col & 0xFF) << 8) | (col & 0xFF));
+    public int getHeight() {
+        return this.delegate.getHeight();
     }
 
     @Override
-    default void setBW(int x, int y, int col) {
-        this.setARGB(x, y, 0xFF000000 | (col << 16) | (col << 8) | col);
+    public int getARGB(int x, int y) {
+        return this.delegate.getRGB(x, y);
+    }
+
+    @Override
+    public void setARGB(int x, int y, int col) {
+        this.delegate.setRGB(x, y, col);
     }
 }

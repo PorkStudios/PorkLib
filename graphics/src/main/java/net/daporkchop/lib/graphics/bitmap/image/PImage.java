@@ -55,15 +55,13 @@ public interface PImage extends PIcon {
     }
 
     //pixel stuff
-    void setARGB(int x, int y, int argb);
+    void setARGB(int x, int y, int col);
 
-    default void setRGB(int x, int y, int rgb)  {
-        this.setARGB(x, y, 0xFF000000 | rgb);
-    }
+    void setRGB(int x, int y, int col);
 
-    default void setBW(int x, int y, int col)   {
-        this.setARGB(x, y, 0xFF000000 | (col << 16) | (col << 8) | col);
-    }
+    void setABW(int x, int y, int col);
+
+    void setBW(int x, int y, int col);
 
     default void copy(@NonNull PIcon src, int srcX, int srcY, int dstX, int dstY, int w, int h) {
         for (int x = w - 1; x >= 0; x--)    {
@@ -73,19 +71,38 @@ public interface PImage extends PIcon {
         }
     }
 
-    //drawing methods
-    default void drawRect(int x, int y, int w, int h, int argb) {
-        for (; w >= 0; w--) {
-            for (int yy = h - 1; yy >= 0; yy--) {
-                this.setARGB(x + w, y + yy, argb);
+    default void fill(int argb) {
+        this.fillARGB(argb);
+    }
+
+    default void fillARGB(int col) {
+        for (int x = this.getWidth() - 1; x >= 0; x--)  {
+            for (int y = this.getHeight() - 1; y >= 0; y--) {
+                this.setARGB(x, y, col);
             }
         }
     }
 
-    default void fill(int argb) {
+    default void fillRGB(int col) {
         for (int x = this.getWidth() - 1; x >= 0; x--)  {
             for (int y = this.getHeight() - 1; y >= 0; y--) {
-                this.setARGB(x, y, argb);
+                this.setRGB(x, y, col);
+            }
+        }
+    }
+
+    default void fillABW(int col) {
+        for (int x = this.getWidth() - 1; x >= 0; x--)  {
+            for (int y = this.getHeight() - 1; y >= 0; y--) {
+                this.setABW(x, y, col);
+            }
+        }
+    }
+
+    default void fillBW(int col) {
+        for (int x = this.getWidth() - 1; x >= 0; x--)  {
+            for (int y = this.getHeight() - 1; y >= 0; y--) {
+                this.setBW(x, y, col);
             }
         }
     }

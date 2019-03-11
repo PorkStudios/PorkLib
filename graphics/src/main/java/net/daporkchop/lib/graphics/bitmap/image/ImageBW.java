@@ -15,24 +15,24 @@
 
 package net.daporkchop.lib.graphics.bitmap.image;
 
-import net.daporkchop.lib.graphics.bitmap.icon.IconARGB;
+import net.daporkchop.lib.graphics.bitmap.icon.IconBW;
 
 /**
  * @author DaPorkchop_
  */
-public interface ImageARGB extends IconARGB, PImage {
+public interface ImageBW extends IconBW, PImage {
+    @Override
+    default void setARGB(int x, int y, int col) {
+        this.setBW(x, y, ((col >> 16) & 0xFF) | ((col >> 8) & 0xFF) | (col & 0xFF));
+    }
+
     @Override
     default void setRGB(int x, int y, int col) {
-        this.setARGB(x, y, 0xFF000000 | col);
+        this.setBW(x, y, ((col >> 16) & 0xFF) | ((col >> 8) & 0xFF) | (col & 0xFF));
     }
 
     @Override
     default void setABW(int x, int y, int col) {
-        this.setARGB(x, y, (col << 16) | ((col & 0xFF) << 8) | (col & 0xFF));
-    }
-
-    @Override
-    default void setBW(int x, int y, int col) {
-        this.setARGB(x, y, 0xFF000000 | (col << 16) | (col << 8) | col);
+        this.setBW(x, y, col & 0xFF);
     }
 }

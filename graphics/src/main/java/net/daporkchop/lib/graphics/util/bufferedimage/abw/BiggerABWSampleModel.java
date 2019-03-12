@@ -21,22 +21,30 @@ import net.daporkchop.lib.graphics.bitmap.image.ImageABW;
 import net.daporkchop.lib.graphics.bitmap.image.ImageARGB;
 
 import java.awt.image.DataBuffer;
-import java.awt.image.DataBufferInt;
-import java.awt.image.SampleModel;
 import java.awt.image.SinglePixelPackedSampleModel;
 
 /**
  * @author DaPorkchop_
  */
+//TODO: reimplement samplemodel from scratch
 @Getter
-public class BiggerABWSampleModel extends SampleModel {
-    public BiggerABWSampleModel(int dataType, int w, int h) {
-        super(dataType, w, h, 2);
+public class BiggerABWSampleModel extends SinglePixelPackedSampleModel {
+    protected final ImageABW image;
+
+    public BiggerABWSampleModel(int dataType, int w, int h, int[] bitMasks, @NonNull ImageABW image) {
+        super(dataType, w, h, bitMasks);
+
+        this.image = image;
     }
 
     @Override
     public int getNumDataElements() {
         return 1;
+    }
+
+    @Override
+    public int getOffset(int x, int y) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -95,7 +103,7 @@ public class BiggerABWSampleModel extends SampleModel {
         }
 
         if (obj instanceof int[]) {
-            data.setElem(x, y, ((int[]) obj)[0] & 0xFFFF);
+            data.setElem(x, y, ((int[]) obj)[0]);
         } else {
             throw new IllegalArgumentException(String.format("Invalid argument type: %s", obj == null ? "null" : obj.getClass().getCanonicalName()));
         }
@@ -107,7 +115,7 @@ public class BiggerABWSampleModel extends SampleModel {
             throw new ArrayIndexOutOfBoundsException("Coordinate out of bounds!");
         }
 
-        data.setElem(x, y, iArray[0] & 0xFFFF);
+        data.setElem(x, y, iArray[0]);
     }
 
     @Override
@@ -122,51 +130,8 @@ public class BiggerABWSampleModel extends SampleModel {
         int srcOffset = 0;
         for (int i = 0; i < h; i++) {
             for (int j = 0; j < w; j++) {
-                data.setElem(x + j, y + i, iArray[srcOffset++] & 0xFFFF);
+                data.setElem(x + j, y + i, iArray[srcOffset++]);
             }
         }
     }
-
-    //jeff
-
-
-    @Override
-    public int getSample(int x, int y, int b, DataBuffer data) {
-        return (data.getElem(x, y) >>> (b << 3)) & 0xFF;
-    }
-
-    @Override
-    public void setSample(int x, int y, int b, int s, DataBuffer data) {
-        data.setElem(x, y, (data.getElem(x, y) & ~(0xFF << (b << 3))) | (s << (b << 3)));
-    }
-
-    @Override
-    public SampleModel createCompatibleSampleModel(int w, int h) {
-        return new BiggerABWSampleModel(DataBuffer.TYPE_INT, w, h);
-    }
-
-    @Override
-    public SampleModel createSubsetSampleModel(int[] bands) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public DataBuffer createDataBuffer() {
-        return new DataBufferInt(this.height, this.width);
-    }
-
-    @Override
-    public int[] getSampleSize() {
-        return new int[] {
-                8,
-                8
-        };
-    }
-
-    @Override
-    public int getSampleSize(int band) {
-        return 8;
-    }
-
-    //TODO: just translate all the data into ARGB
 }

@@ -13,53 +13,30 @@
  *
  */
 
-package net.daporkchop.lib.graphics.bitmap.image.direct;
+package net.daporkchop.lib.graphics.util.bufferedimage.abw;
 
-import net.daporkchop.lib.common.util.PUnsafe;
+import lombok.Getter;
+import lombok.NonNull;
 import net.daporkchop.lib.graphics.bitmap.image.ImageABW;
-import net.daporkchop.lib.graphics.util.bufferedimage.abw.FastABWColorModel;
-import net.daporkchop.lib.graphics.util.bufferedimage.abw.ImageABWDataBuffer;
-import net.daporkchop.lib.graphics.util.bufferedimage.abw.ImageABWRaster;
 
-import java.awt.image.ColorModel;
+import java.awt.*;
 import java.awt.image.DataBuffer;
 import java.awt.image.WritableRaster;
 
 /**
  * @author DaPorkchop_
  */
-public class DirectImageABW extends DirectImage implements ImageABW {
-    public DirectImageABW(int width, int height) {
-        super(width, height);
-    }
+@Getter
+public class ImageABWRaster extends WritableRaster {
+    protected final ImageABW image;
 
-    @Override
-    public long getByteScale() {
-        return 2;
-    }
+    public ImageABWRaster(@NonNull ImageABW image) {
+        super(new BiggerABWSampleModel(
+                DataBuffer.TYPE_INT,
+                image.getWidth(),
+                image.getHeight()
+        ), new ImageABWDataBuffer(image), new Point(0, 0));
 
-    @Override
-    public void setABW(int x, int y, int col) {
-        PUnsafe.putShort(this.getPos(x, y), (short) col);
-    }
-
-    @Override
-    public int getABW(int x, int y) {
-        return PUnsafe.getShort(this.getPos(x, y)) & 0xFFFF;
-    }
-
-    @Override
-    protected ColorModel newColorModel() {
-        return new FastABWColorModel();
-    }
-
-    @Override
-    protected DataBuffer newDataBuffer() {
-        return new ImageABWDataBuffer(this);
-    }
-
-    @Override
-    protected WritableRaster newRaster() {
-        return new ImageABWRaster(this);
+        this.image = image;
     }
 }

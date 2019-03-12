@@ -17,7 +17,6 @@ package net.daporkchop.lib.graphics.util.bufferedimage.abw;
 
 import net.daporkchop.lib.reflection.PField;
 
-import java.awt.color.ColorSpace;
 import java.awt.image.ColorModel;
 import java.awt.image.Raster;
 import java.awt.image.SampleModel;
@@ -27,14 +26,12 @@ import java.awt.image.SampleModel;
  */
 public class FastABWColorModel extends ColorModel {
     protected static PField field_numComponents = PField.of(ColorModel.class, "numComponents");
-    protected static PField field_numColorComponents = PField.of(ColorModel.class, "numColorComponents");
     protected static PField field_supportsAlpha = PField.of(ColorModel.class, "supportsAlpha");
 
     public FastABWColorModel() {
         super(16);
 
         field_numComponents.setInt(this, 2);
-        field_numColorComponents.setInt(this, 1);
         field_supportsAlpha.setBoolean(this, true);
     }
 
@@ -85,7 +82,7 @@ public class FastABWColorModel extends ColorModel {
 
     @Override
     public int getRGB(Object inData) {
-        int val = ((int[]) inData)[0] & 0xFFFF;
+        int val = ((int[]) inData)[0];
         return (val << 16) | ((val & 0xFF) << 8) | (val & 0xFF);
     }
 
@@ -101,23 +98,13 @@ public class FastABWColorModel extends ColorModel {
 
     @Override
     public Object getDataElements(int argb, Object pixel) {
-        int[] s;
+        int[] i;
         if (pixel instanceof int[]) {
-            s = (int[]) pixel;
+            i = (int[]) pixel;
         } else {
-            s = new int[1];
+            i = new int[1];
         }
-        s[0] = ((argb >>> 16) | ((argb >>> 8) & 0xFF) | (argb & 0xFF));
-        return s;
-    }
-
-    @Override
-    public int getNumComponents() {
-        return 2;
-    }
-
-    @Override
-    public int getNumColorComponents() {
-        return 1;
+        i[0] = (argb >>> 16) | ((argb >>> 8) & 0xFF) | (argb & 0xFF);
+        return i;
     }
 }

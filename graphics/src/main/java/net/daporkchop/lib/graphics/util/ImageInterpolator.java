@@ -47,40 +47,82 @@ public class ImageInterpolator {
         return dst;
     }
 
+    //TODO: do this without an intermediary grid
     public Grid2d interp(@NonNull PIcon src, @NonNull PImage dst, Grid2d grid) {
         if (grid == null || grid.endX() - grid.startX() != src.getWidth() || grid.endY() - grid.startY() != src.getHeight()) {
             grid = Grid2d.of(src.getWidth(), src.getHeight(), true);
         }
         double factX = (double) src.getWidth() / (double) dst.getWidth();
         double factY = (double) src.getHeight() / (double) dst.getHeight();
-        if (src.isBw()) {
-            for (int x = src.getWidth() - 1; x >= 0; x--) {
-                for (int y = src.getHeight() - 1; y >= 0; y--) {
-                    grid.setI(x, y, src.getBW(x, y));
+        switch (src.getFormat()) {
+            case ARGB:
+                dst.fillARGB(0);
+                for (int c = 3; c >= 0; c--) {
+                    int shift = c << 3;
+                    for (int x = src.getWidth() - 1; x >= 0; x--) {
+                        for (int y = src.getHeight() - 1; y >= 0; y--) {
+                            grid.setI(x, y, (src.getARGB(x, y) >>> shift) & 0xFF);
+                        }
+                    }
+                    for (int x = dst.getWidth() - 1; x >= 0; x--) {
+                        for (int y = dst.getHeight() - 1; y >= 0; y--) {
+                            int col = dst.getARGB(x, y);
+                            col |= clamp(floorI(this.engine.getInterpolated(x * factX - 0.5d, y * factY - 0.5d, grid)), 0, 0xFF) << shift;
+                            dst.setARGB(x, y, col);
+                        }
+                    }
                 }
-            }
-            for (int x = dst.getWidth() - 1; x >= 0; x--) {
-                for (int y = dst.getHeight() - 1; y >= 0; y--) {
-                    dst.setARGB(x, y, clamp(floorI(this.engine.getInterpolated(x * factX - 0.5d, y * factY - 0.5d, grid)), 0, 0xFF));
+                break;
+            case RGB:
+                dst.fillRGB(0);
+                for (int c = 2; c >= 0; c--) {
+                    int shift = c << 3;
+                    for (int x = src.getWidth() - 1; x >= 0; x--) {
+                        for (int y = src.getHeight() - 1; y >= 0; y--) {
+                            grid.setI(x, y, (src.getRGB(x, y) >>> shift) & 0xFF);
+                        }
+                    }
+                    for (int x = dst.getWidth() - 1; x >= 0; x--) {
+                        for (int y = dst.getHeight() - 1; y >= 0; y--) {
+                            int col = dst.getRGB(x, y);
+                            col |= clamp(floorI(this.engine.getInterpolated(x * factX - 0.5d, y * factY - 0.5d, grid)), 0, 0xFF) << shift;
+                            dst.setRGB(x, y, col);
+                        }
+                    }
                 }
-            }
-        } else {
-            dst.fill(0);
-            for (int c = 3; c >= 0; c--) {
-                int shift = c << 3;
+                break;
+            case ABW:
+                dst.fillABW(0);
+                for (int c = 2; c >= 0; c--) {
+                    int shift = c << 3;
+                    for (int x = src.getWidth() - 1; x >= 0; x--) {
+                        for (int y = src.getHeight() - 1; y >= 0; y--) {
+                            grid.setI(x, y, (src.getABW(x, y) >>> shift) & 0xFF);
+                        }
+                    }
+                    for (int x = dst.getWidth() - 1; x >= 0; x--) {
+                        for (int y = dst.getHeight() - 1; y >= 0; y--) {
+                            int col = dst.getABW(x, y);
+                            col |= clamp(floorI(this.engine.getInterpolated(x * factX - 0.5d, y * factY - 0.5d, grid)), 0, 0xFF) << shift;
+                            dst.setABW(x, y, col);
+                        }
+                    }
+                }
+                break;
+            case BW:
                 for (int x = src.getWidth() - 1; x >= 0; x--) {
                     for (int y = src.getHeight() - 1; y >= 0; y--) {
-                        grid.setI(x, y, (src.getARGB(x, y) >>> shift) & 0xFF);
+                        grid.setI(x, y, src.getBW(x, y));
                     }
                 }
                 for (int x = dst.getWidth() - 1; x >= 0; x--) {
                     for (int y = dst.getHeight() - 1; y >= 0; y--) {
-                        int col = dst.getARGB(x, y);
-                        col |= clamp(floorI(this.engine.getInterpolated(x * factX - 0.5d, y * factY - 0.5d, grid)), 0, 0xFF) << shift;
-                        dst.setARGB(x, y, col);
+                        dst.setBW(x, y, clamp(floorI(this.engine.getInterpolated(x * factX - 0.5d, y * factY - 0.5d, grid)), 0, 0xFF));
                     }
                 }
-            }
+                break;
+            default:
+                throw new IllegalArgumentException(String.format("Unknown format: %s", src.getFormat()));
         }
         return grid;
     }

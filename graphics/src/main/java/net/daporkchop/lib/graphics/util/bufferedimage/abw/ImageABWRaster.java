@@ -18,6 +18,7 @@ package net.daporkchop.lib.graphics.util.bufferedimage.abw;
 import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.graphics.bitmap.image.ImageABW;
+import net.daporkchop.lib.graphics.bitmap.image.ImageARGB;
 
 import java.awt.*;
 import java.awt.image.DataBuffer;
@@ -34,7 +35,9 @@ public class ImageABWRaster extends WritableRaster {
         super(new BiggerABWSampleModel(
                 DataBuffer.TYPE_INT,
                 image.getWidth(),
-                image.getHeight()
+                image.getHeight(),
+                new int[]{0x00FF, 0xFF00},
+                image
         ), new ImageABWDataBuffer(image), new Point(0, 0));
 
         this.image = image;

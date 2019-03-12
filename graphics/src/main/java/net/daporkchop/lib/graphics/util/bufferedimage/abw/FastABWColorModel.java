@@ -13,10 +13,11 @@
  *
  */
 
-package net.daporkchop.lib.graphics.util.bufferedimage.rgb;
+package net.daporkchop.lib.graphics.util.bufferedimage.abw;
 
 import net.daporkchop.lib.reflection.PField;
 
+import java.awt.color.ColorSpace;
 import java.awt.image.ColorModel;
 import java.awt.image.Raster;
 import java.awt.image.SampleModel;
@@ -24,30 +25,32 @@ import java.awt.image.SampleModel;
 /**
  * @author DaPorkchop_
  */
-public class FastRGBColorModel extends ColorModel {
+public class FastABWColorModel extends ColorModel {
     protected static PField field_numComponents = PField.of(ColorModel.class, "numComponents");
+    protected static PField field_numColorComponents = PField.of(ColorModel.class, "numColorComponents");
     protected static PField field_supportsAlpha = PField.of(ColorModel.class, "supportsAlpha");
 
-    public FastRGBColorModel() {
-        super(24);
+    public FastABWColorModel() {
+        super(16);
 
-        field_numComponents.setInt(this, 3);
-        field_supportsAlpha.setBoolean(this, false);
+        field_numComponents.setInt(this, 2);
+        field_numColorComponents.setInt(this, 1);
+        field_supportsAlpha.setBoolean(this, true);
     }
 
     @Override
     public int getAlpha(int pixel) {
-        return 0xFF;
+        return (pixel >>> 8) & 0xFF;
     }
 
     @Override
     public int getRed(int pixel) {
-        return (pixel >>> 16) & 0xFF;
+        return pixel & 0xFF;
     }
 
     @Override
     public int getGreen(int pixel) {
-        return (pixel >>> 8) & 0xFF;
+        return pixel & 0xFF;
     }
 
     @Override
@@ -56,49 +59,65 @@ public class FastRGBColorModel extends ColorModel {
     }
 
     @Override
+    public int getRGB(int pixel) {
+        return (pixel << 16) | ((pixel & 0xFF) << 8) | (pixel & 0xFF);
+    }
+
+    @Override
     public int getAlpha(Object inData) {
-        return 0xFF;
+        return (((int[]) inData)[0] >>> 8) & 0xFF;
     }
 
     @Override
     public int getRed(Object inData) {
-        return this.getRed(this.getRGB(inData));
+        return ((int[]) inData)[0] & 0xFF;
     }
 
     @Override
     public int getGreen(Object inData) {
-        return this.getGreen(this.getRGB(inData));
+        return ((int[]) inData)[0] & 0xFF;
     }
 
     @Override
     public int getBlue(Object inData) {
-        return this.getBlue(this.getRGB(inData));
+        return ((int[]) inData)[0] & 0xFF;
     }
 
     @Override
     public int getRGB(Object inData) {
-        return 0xFF000000 | ((int[]) inData)[0];
+        int val = ((int[]) inData)[0] & 0xFFFF;
+        return (val << 16) | ((val & 0xFF) << 8) | (val & 0xFF);
     }
 
     @Override
     public boolean isCompatibleRaster(Raster raster) {
-        return raster instanceof ImageRGBRaster;
+        return raster instanceof ImageABWRaster;
     }
 
     @Override
     public boolean isCompatibleSampleModel(SampleModel sm) {
-        return sm instanceof BiggerRGBSampleModel;
+        return sm instanceof BiggerABWSampleModel;
     }
 
     @Override
-    public Object getDataElements(int rgb, Object pixel) {
-        int[] i;
+    public Object getDataElements(int argb, Object pixel) {
+        int[] s;
         if (pixel instanceof int[]) {
-            i = (int[]) pixel;
+            s = (int[]) pixel;
         } else {
-            i = new int[1];
+            s = new int[1];
         }
-        i[0] = rgb & 0xFFFFFF;
-        return i;
+        s[0] = ((argb >>> 16) | ((argb >>> 8) & 0xFF) | (argb & 0xFF));
+        return s;
+    }
+
+    @Override
+    public int getNumComponents() {
+        return 2;
+    }
+
+    @Override
+    public int getNumColorComponents() {
+        return 1;
     }
 }

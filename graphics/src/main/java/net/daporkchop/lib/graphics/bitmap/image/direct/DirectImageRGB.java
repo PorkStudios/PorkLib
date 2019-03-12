@@ -72,4 +72,31 @@ public class DirectImageRGB extends DirectImage implements ImageRGB {
     protected WritableRaster newRaster() {
         return new ImageRGBRaster(this);
     }
+
+    //optimizations
+    @Override
+    public void fillRGB(int col) {
+        short shortPart = (short) ((col >>> 8) & 0xFFFF);
+        byte bytePart = (byte) (col & 0xFF);
+        long pos = this.pos;
+        for (long l = (long) this.width * (long) this.height * 3L - 4L; l >= 0L; l -= 3L)   {
+            PUnsafe.putShort(pos + l, shortPart);
+            PUnsafe.putByte(pos + l + 2L, bytePart);
+        }
+    }
+
+    @Override
+    public void fillARGB(int col) {
+
+    }
+
+    @Override
+    public void fillABW(int col) {
+
+    }
+
+    @Override
+    public void fillBW(int col) {
+
+    }
 }

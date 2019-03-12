@@ -60,15 +60,7 @@ public interface PIcon {
         return this.getAsBufferedImage();
     }
 
-    default BufferedImage getAsBufferedImage()  {
-        BufferedImage img = new BufferedImage(this.getWidth(), this.getHeight(), this.isBw() && !this.hasAlpha() ? BufferedImage.TYPE_BYTE_GRAY : BufferedImage.TYPE_INT_ARGB);
-        for (int x = this.getWidth() - 1; x >= 0; x--)  {
-            for (int y = this.getHeight() - 1; y >= 0; y--) {
-                img.setRGB(x, y, this.getARGB(x, y));
-            }
-        }
-        return img;
-    }
+    BufferedImage getAsBufferedImage();
 
     default Icon getAsSwingIcon()   {
         return new ImageIcon(this.getAsImage());

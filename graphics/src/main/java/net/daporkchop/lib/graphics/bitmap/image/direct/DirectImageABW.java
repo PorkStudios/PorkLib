@@ -35,7 +35,7 @@ public class DirectImageABW extends DirectImage implements ImageABW {
 
     @Override
     public long getByteScale() {
-        return 2;
+        return 2L;
     }
 
     @Override
@@ -68,7 +68,7 @@ public class DirectImageABW extends DirectImage implements ImageABW {
     public void fillABW(int col) {
         short s = (short) col;
         long pos = this.pos;
-        for (long l = (long) this.width * (long) this.height - 3L; l >= 0; l -= 2L)    {
+        for (long l = (long) this.width * (long) this.height * 2L - 3L; l >= 0L; l -= 2L)    {
             PUnsafe.putShort(pos + l, s);
         }
     }

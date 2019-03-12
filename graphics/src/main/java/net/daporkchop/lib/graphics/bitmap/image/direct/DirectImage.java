@@ -24,6 +24,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.DataBuffer;
 import java.awt.image.WritableRaster;
+import java.lang.ref.SoftReference;
 
 /**
  * @author DaPorkchop_
@@ -34,6 +35,8 @@ public abstract class DirectImage implements DirectMemoryHolder, PImage {
     protected final int height;
 
     protected long pos;
+
+    protected SoftReference<BufferedImage> bufferedImageCache;
 
     public DirectImage(int width, int height)   {
         if (width < 0 || height < 0)    {
@@ -71,13 +74,17 @@ public abstract class DirectImage implements DirectMemoryHolder, PImage {
     }
 
     @Override
-    public BufferedImage getAsBufferedImage() {
-        return new BufferedImage(
-                this.newColorModel(),
-                this.newRaster(),
-                false,
-                null
-        );
+    public synchronized BufferedImage getAsBufferedImage() {
+        BufferedImage img;
+        if (this.bufferedImageCache == null || (img = this.bufferedImageCache.get()) == null)   {
+            this.bufferedImageCache = new SoftReference<>(img = new BufferedImage(
+                    this.newColorModel(),
+                    this.newRaster(),
+                    false,
+                    null
+            ));
+        }
+        return img;
     }
 
     protected abstract ColorModel newColorModel();

@@ -50,4 +50,9 @@ public class WrapperBufferedImage implements ImageARGB {
     public void setARGB(int x, int y, int col) {
         this.delegate.setRGB(x, y, col);
     }
+
+    @Override
+    public BufferedImage getAsBufferedImage() {
+        return this.delegate;
+    }
 }

@@ -35,7 +35,7 @@ public class DirectImageBW extends DirectImage implements ImageBW {
 
     @Override
     public long getByteScale() {
-        return 1;
+        return 1L;
     }
 
     @Override
@@ -66,21 +66,21 @@ public class DirectImageBW extends DirectImage implements ImageBW {
     //optimizations
     @Override
     public void fillBW(int col) {
-        PUnsafe.setMemory(this.pos, this.);
+        PUnsafe.setMemory(this.pos, (long) this.width * (long) this.height, (byte) col);
     }
 
     @Override
     public void fillARGB(int col) {
-
+        this.fillBW(((col >>> 16) & 0xFF) | ((col >>> 8) & 0xFF) | (col & 0xFF));
     }
 
     @Override
     public void fillRGB(int col) {
-
+        this.fillBW(((col >>> 16) & 0xFF) | ((col >>> 8) & 0xFF) | (col & 0xFF));
     }
 
     @Override
     public void fillABW(int col) {
-
+        this.fillBW(col & 0xFF);
     }
 }

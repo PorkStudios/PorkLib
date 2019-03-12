@@ -74,7 +74,7 @@ public class DirectImageARGB extends DirectImage implements ImageARGB {
     @Override
     public void fillARGB(int col) {
         long pos = this.pos;
-        for (long l = (long) this.width * (long) this.height - 5L; l >= 0L; l -= 4L)  {
+        for (long l = (long) this.width * (long) this.height * 4L - 5L; l >= 0L; l -= 4L)  {
             PUnsafe.putInt(pos + l, col);
         }
     }

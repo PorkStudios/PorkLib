@@ -13,53 +13,32 @@
  *
  */
 
-package net.daporkchop.lib.graphics.bitmap.image.direct;
+package net.daporkchop.lib.graphics.util.bufferedimage.bw;
 
-import net.daporkchop.lib.common.util.PUnsafe;
+import lombok.Getter;
+import lombok.NonNull;
 import net.daporkchop.lib.graphics.bitmap.image.ImageBW;
-import net.daporkchop.lib.graphics.util.bufferedimage.bw.FastBWColorModel;
-import net.daporkchop.lib.graphics.util.bufferedimage.bw.ImageBWDataBuffer;
-import net.daporkchop.lib.graphics.util.bufferedimage.bw.ImageBWRaster;
 
-import java.awt.image.ColorModel;
+import java.awt.*;
 import java.awt.image.DataBuffer;
 import java.awt.image.WritableRaster;
 
 /**
  * @author DaPorkchop_
  */
-public class DirectImageBW extends DirectImage implements ImageBW {
-    public DirectImageBW(int width, int height) {
-        super(width, height);
-    }
+@Getter
+public class ImageBWRaster extends WritableRaster {
+    protected final ImageBW image;
 
-    @Override
-    public long getByteScale() {
-        return 1;
-    }
+    public ImageBWRaster(@NonNull ImageBW image) {
+        super(new BiggerBWSampleModel(
+                DataBuffer.TYPE_INT,
+                image.getWidth(),
+                image.getHeight(),
+                new int[]{0xFF},
+                image
+        ), new ImageBWDataBuffer(image), new Point(0, 0));
 
-    @Override
-    public void setBW(int x, int y, int col) {
-        PUnsafe.putByte(this.getPos(x, y), (byte) col);
-    }
-
-    @Override
-    public int getBW(int x, int y) {
-        return PUnsafe.getByte(this.getPos(x, y)) & 0xFF;
-    }
-
-    @Override
-    protected ColorModel newColorModel() {
-        return new FastBWColorModel();
-    }
-
-    @Override
-    protected DataBuffer newDataBuffer() {
-        return new ImageBWDataBuffer(this);
-    }
-
-    @Override
-    protected WritableRaster newRaster() {
-        return new ImageBWRaster(this);
+        this.image = image;
     }
 }

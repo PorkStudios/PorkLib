@@ -38,9 +38,6 @@ public class TestingDisplayingOfImages {
     public static void main(String... args) throws InterruptedException, IOException {
         int size = 20;
         for (ColorFormat format : ColorFormat.values()) {
-            if (!format.isBw()) {
-                continue;
-            }
             PImage image = format.createImage(size, size);
             for (int x = size - 1; x >= 0; x--) {
                 for (int y = size - 1; y >= 0; y--) {
@@ -63,6 +60,7 @@ public class TestingDisplayingOfImages {
 
             JFrame frame = new JFrame();
             frame.getContentPane().setLayout(new FlowLayout());
+            frame.getContentPane().add(new JLabel(format.name()));
             for (PIcon icon : thumbnail.getIcons()) {
                 frame.getContentPane().add(new JLabel(icon.getAsSwingIcon()));
             }

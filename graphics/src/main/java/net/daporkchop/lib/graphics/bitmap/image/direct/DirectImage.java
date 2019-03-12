@@ -80,15 +80,9 @@ public abstract class DirectImage implements DirectMemoryHolder, PImage {
         );
     }
 
-    protected ColorModel newColorModel()    {
-        return null;
-    }
+    protected abstract ColorModel newColorModel();
 
-    protected DataBuffer newDataBuffer()    {
-        return null;
-    }
+    protected abstract DataBuffer newDataBuffer();
 
-    protected WritableRaster newRaster()    {
-        return null;
-    }
+    protected abstract WritableRaster newRaster();
 }

@@ -18,7 +18,7 @@ package example.graphics;
 import net.daporkchop.lib.graphics.bitmap.ColorFormat;
 import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
 import net.daporkchop.lib.graphics.bitmap.image.PImage;
-import net.daporkchop.lib.graphics.util.ImageInterpolator;
+import net.daporkchop.lib.graphics.interpolation.ImageInterpolator;
 import net.daporkchop.lib.graphics.util.Thumbnail;
 import net.daporkchop.lib.math.interpolation.CubicInterpolationEngine;
 

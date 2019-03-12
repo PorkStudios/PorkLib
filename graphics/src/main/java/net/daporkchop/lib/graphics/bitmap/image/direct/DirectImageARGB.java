@@ -69,4 +69,28 @@ public class DirectImageARGB extends DirectImage implements ImageARGB {
     protected WritableRaster newRaster() {
         return new ImageARGBRaster(this);
     }
+
+    //optimizations
+    @Override
+    public void fillARGB(int col) {
+        long pos = this.pos;
+        for (long l = (long) this.width * (long) this.height - 5L; l >= 0L; l -= 4L)  {
+            PUnsafe.putInt(pos + l, col);
+        }
+    }
+
+    @Override
+    public void fillRGB(int col) {
+        this.fillARGB(0xFF000000 | col);
+    }
+
+    @Override
+    public void fillABW(int col) {
+        this.fillARGB((col << 16) | ((col & 0xFF) << 8) | (col & 0xFF));
+    }
+
+    @Override
+    public void fillBW(int col) {
+        this.fillARGB(0xFF000000 | (col << 16) | (col << 8) | col);
+    }
 }

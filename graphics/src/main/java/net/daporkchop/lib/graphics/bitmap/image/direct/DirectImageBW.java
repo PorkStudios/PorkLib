@@ -62,4 +62,25 @@ public class DirectImageBW extends DirectImage implements ImageBW {
     protected WritableRaster newRaster() {
         return new ImageBWRaster(this);
     }
+
+    //optimizations
+    @Override
+    public void fillBW(int col) {
+        PUnsafe.setMemory(this.pos, this.);
+    }
+
+    @Override
+    public void fillARGB(int col) {
+
+    }
+
+    @Override
+    public void fillRGB(int col) {
+
+    }
+
+    @Override
+    public void fillABW(int col) {
+
+    }
 }

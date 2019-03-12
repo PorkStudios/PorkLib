@@ -62,4 +62,29 @@ public class DirectImageABW extends DirectImage implements ImageABW {
     protected WritableRaster newRaster() {
         return new ImageABWRaster(this);
     }
+
+    //optimizations
+    @Override
+    public void fillABW(int col) {
+        short s = (short) col;
+        long pos = this.pos;
+        for (long l = (long) this.width * (long) this.height - 3L; l >= 0; l -= 2L)    {
+            PUnsafe.putShort(pos + l, s);
+        }
+    }
+
+    @Override
+    public void fillARGB(int col) {
+        this.fillABW((col >>> 16) | ((col >>> 8) & 0xFF) | (col & 0xFF));
+    }
+
+    @Override
+    public void fillRGB(int col) {
+        this.fillABW(0xFF00 | (col >>> 16) | ((col >>> 8) & 0xFF) | (col & 0xFF));
+    }
+
+    @Override
+    public void fillBW(int col) {
+        this.fillABW(0xFF00 | col);
+    }
 }

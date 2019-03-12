@@ -33,11 +33,11 @@ public abstract class AbstractElement<Impl extends Element> implements Element<I
 
     protected BoundingBox bounds;
 
-    protected String tooltip = "";
-    protected boolean visible;
+    protected String tooltip;
+    protected boolean visible = false;
 
     @Override
-    public Impl setTooltip(@NonNull String tooltip) {
+    public Impl setTooltip(String tooltip) {
         this.tooltip = tooltip;
         return (Impl) this;
     }

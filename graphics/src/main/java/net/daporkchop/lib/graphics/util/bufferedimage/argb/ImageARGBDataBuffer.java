@@ -13,60 +13,34 @@
  *
  */
 
-package net.daporkchop.lib.graphics.bitmap.image.direct;
+package net.daporkchop.lib.graphics.util.bufferedimage.argb;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.common.util.PUnsafe;
 import net.daporkchop.lib.graphics.bitmap.image.ImageARGB;
-import net.daporkchop.lib.graphics.util.bufferedimage.argb.FastARGBColorModel;
-import net.daporkchop.lib.graphics.util.bufferedimage.argb.ImageARGBDataBuffer;
-import net.daporkchop.lib.graphics.util.bufferedimage.argb.ImageARGBRaster;
-import net.daporkchop.lib.reflection.PField;
 
-import java.awt.*;
-import java.awt.image.ColorModel;
 import java.awt.image.DataBuffer;
-import java.awt.image.Raster;
-import java.awt.image.SampleModel;
-import java.awt.image.SinglePixelPackedSampleModel;
-import java.awt.image.WritableRaster;
 
 /**
  * @author DaPorkchop_
  */
-public class DirectImageARGB extends DirectImage implements ImageARGB {
-    public DirectImageARGB(int width, int height) {
-        super(width, height);
+@Getter
+public class ImageARGBDataBuffer extends DataBuffer {
+    protected final ImageARGB image;
+
+    public ImageARGBDataBuffer(@NonNull ImageARGB image) {
+        super(DataBuffer.TYPE_INT, image.getHeight(), image.getWidth());
+
+        this.image = image;
     }
 
     @Override
-    public long getByteScale() {
-        return 4L;
+    public int getElem(int bank, int i) {
+        return this.image.getARGB(bank, i);
     }
 
     @Override
-    public void setARGB(int x, int y, int col) {
-        PUnsafe.putInt(this.getPos(x, y), col);
-    }
-
-    @Override
-    public int getARGB(int x, int y) {
-        return PUnsafe.getInt(this.getPos(x, y));
-    }
-
-    @Override
-    protected ColorModel newColorModel() {
-        return new FastARGBColorModel();
-    }
-
-    @Override
-    protected DataBuffer newDataBuffer() {
-        return new ImageARGBDataBuffer(this);
-    }
-
-    @Override
-    protected WritableRaster newRaster() {
-        return new ImageARGBRaster(this);
+    public void setElem(int bank, int i, int val) {
+        this.image.setARGB(bank, i, val);
     }
 }

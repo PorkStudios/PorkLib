@@ -37,9 +37,14 @@ public abstract class SwingElement<Impl extends Element, Swing extends java.awt.
 
     @Override
     public Impl setVisible(boolean state) {
-        if (state != this.visible)  {
-            this.swing.setVisible(state);
+        if (state != this.swing.isVisible())  {
+            this.swing.setVisible(this.visible = state);
         }
         return super.setVisible(state);
+    }
+
+    @Override
+    public boolean isVisible() {
+        return this.swing.isVisible();
     }
 }

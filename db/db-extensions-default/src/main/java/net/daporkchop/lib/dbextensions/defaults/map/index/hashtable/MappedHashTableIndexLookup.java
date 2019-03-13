@@ -19,7 +19,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.db.container.map.DBMap;
+import net.daporkchop.lib.db.container.map.DBHashMap;
 import net.daporkchop.lib.db.container.map.IndexLookup;
 
 import java.io.File;
@@ -55,7 +55,7 @@ public class MappedHashTableIndexLookup<K> extends BaseHashTableIndexLookup<K> {
     }
 
     @Override
-    protected void doInit(@NonNull DBMap<K, ?> map, @NonNull File file) throws IOException {
+    protected void doInit(@NonNull DBHashMap<K, ?> map, @NonNull File file) throws IOException {
         long fullSize = this.tableSize * (long) this.pointerBytes;
         this.buffer = this.tableChannel.map(FileChannel.MapMode.READ_WRITE, 0L, fullSize);
     }

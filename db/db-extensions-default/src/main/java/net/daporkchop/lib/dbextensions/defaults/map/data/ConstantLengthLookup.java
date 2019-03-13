@@ -21,9 +21,9 @@ import net.daporkchop.lib.binary.serialization.impl.ConstantLengthSerializer;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.function.io.IOConsumer;
-import net.daporkchop.lib.db.container.map.DBMap;
+import net.daporkchop.lib.db.container.map.DBHashMap;
 import net.daporkchop.lib.db.container.map.DataLookup;
-import net.daporkchop.lib.db.util.PersistentSparseBitSet;
+import net.daporkchop.lib.dbextensions.defaults.util.PersistentSparseBitSet;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,7 +48,7 @@ public class ConstantLengthLookup implements DataLookup {
     private int dataLength;
 
     @Override
-    public void init(@NonNull DBMap<?, ?> map, @NonNull File file) throws IOException {
+    public void init(@NonNull DBHashMap<?, ?> map, @NonNull File file) throws IOException {
         if (this.file != null) {
             throw new IllegalStateException("already initialized");
         }

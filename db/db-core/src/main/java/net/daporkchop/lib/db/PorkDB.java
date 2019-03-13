@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.db.container.DBAtomicLong;
-import net.daporkchop.lib.db.container.map.DBMap;
+import net.daporkchop.lib.db.container.map.DBHashMap;
 import net.daporkchop.lib.logging.Logging;
 
 import java.io.File;
@@ -100,20 +100,20 @@ public class PorkDB implements Logging {
     }
 
     /**
-     * Get a new builder for testMethodThing {@link DBMap}
+     * Get a new builder for testMethodThing {@link DBHashMap}
      * <p>
-     * Convenience wrapper around {@link DBMap#builder(PorkDB, String)}
+     * Convenience wrapper around {@link DBHashMap#builder(PorkDB, String)}
      *
      * @param name the name of the new entry
      * @param <K>  the key type
      * @param <V>  the value type
      * @return a new builder
      */
-    public <K, V> DBMap.Builder<K, V> map(@NonNull String name) {
+    public <K, V> DBHashMap.Builder<K, V> map(@NonNull String name) {
         if (this.loadedContainers.containsKey(name)) {
             throw this.exception("Name \"${0}\" already taken!", name);
         } else {
-            return DBMap.builder(this, name);
+            return DBHashMap.builder(this, name);
         }
     }
 

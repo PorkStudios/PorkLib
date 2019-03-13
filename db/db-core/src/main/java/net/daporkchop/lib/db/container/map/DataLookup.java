@@ -31,7 +31,7 @@ import java.io.IOException;
  * @author DaPorkchop_
  */
 public interface DataLookup extends Persistent {
-    default void init(@NonNull DBMap<?, ?> map, @NonNull File file) throws IOException {
+    default void init(@NonNull DBHashMap<?, ?> map, @NonNull File file) throws IOException {
         this.load();
     }
 

@@ -21,9 +21,9 @@ import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.binary.stream.data.HugeBufferIn;
 import net.daporkchop.lib.binary.stream.data.HugeBufferOut;
 import net.daporkchop.lib.common.function.io.IOConsumer;
-import net.daporkchop.lib.db.container.map.DBMap;
+import net.daporkchop.lib.db.container.map.DBHashMap;
 import net.daporkchop.lib.db.container.map.DataLookup;
-import net.daporkchop.lib.db.util.PersistentSparseBitSet;
+import net.daporkchop.lib.dbextensions.defaults.util.PersistentSparseBitSet;
 import net.daporkchop.lib.math.primitive.PMath;
 
 import java.io.File;
@@ -41,7 +41,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class StreamingDataLookup implements DataLookup {
     private final int sectorSize;
     protected PersistentSparseBitSet occupiedSectors;
-    protected DBMap<?, ?> map;
+    protected DBHashMap<?, ?> map;
     protected RandomAccessFile file;
     protected FileChannel channel;
 
@@ -53,7 +53,7 @@ public class StreamingDataLookup implements DataLookup {
     }
 
     @Override
-    public void init(@NonNull DBMap<?, ?> map, @NonNull File file) throws IOException {
+    public void init(@NonNull DBHashMap<?, ?> map, @NonNull File file) throws IOException {
         if (this.map != null) {
             throw new IllegalStateException("already initialized");
         }

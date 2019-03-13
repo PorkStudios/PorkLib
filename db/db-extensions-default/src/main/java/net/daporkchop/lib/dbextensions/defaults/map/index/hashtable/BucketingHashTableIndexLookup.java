@@ -18,7 +18,7 @@ package net.daporkchop.lib.dbextensions.defaults.map.index.hashtable;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.db.container.map.DBMap;
+import net.daporkchop.lib.db.container.map.DBHashMap;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,7 +51,7 @@ public class BucketingHashTableIndexLookup<K> extends HashTableIndexLookup<K> {
     }
 
     @Override
-    protected void doInit(@NonNull DBMap<K, ?> map, @NonNull File file) throws IOException {
+    protected void doInit(@NonNull DBHashMap<K, ?> map, @NonNull File file) throws IOException {
         super.doInit(map, file);
         //this.bucketPointers = new PersistentSparseBitSet(new File(file, "buckets.index"));
         this.bucketRaf = map.getRAF("index/buckets");

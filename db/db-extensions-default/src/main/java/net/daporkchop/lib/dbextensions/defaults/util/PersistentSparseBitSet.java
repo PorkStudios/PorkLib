@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.db.util;
+package net.daporkchop.lib.dbextensions.defaults.util;
 
 import com.zaxxer.sparsebits.SparseBitSet;
 import lombok.Getter;

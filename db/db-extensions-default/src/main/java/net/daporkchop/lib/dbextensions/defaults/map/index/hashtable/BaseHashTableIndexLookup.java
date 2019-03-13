@@ -19,7 +19,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import net.daporkchop.lib.common.function.io.IOFunction;
-import net.daporkchop.lib.db.container.map.DBMap;
+import net.daporkchop.lib.db.container.map.DBHashMap;
 import net.daporkchop.lib.db.container.map.IndexLookup;
 import net.daporkchop.lib.db.container.map.KeyHasher;
 
@@ -79,7 +79,7 @@ public abstract class BaseHashTableIndexLookup<K> implements IndexLookup<K> {
     }
 
     @Override
-    public void init(@NonNull DBMap<K, ?> map, @NonNull File file) throws IOException {
+    public void init(@NonNull DBHashMap<K, ?> map, @NonNull File file) throws IOException {
         this.lock.writeLock().lock();
         try {
             if (this.tableRaf != null) {
@@ -105,7 +105,7 @@ public abstract class BaseHashTableIndexLookup<K> implements IndexLookup<K> {
         }
     }
 
-    protected abstract void doInit(@NonNull DBMap<K, ?> map, @NonNull File file) throws IOException;
+    protected abstract void doInit(@NonNull DBHashMap<K, ?> map, @NonNull File file) throws IOException;
 
     @Override
     public void close() throws IOException {

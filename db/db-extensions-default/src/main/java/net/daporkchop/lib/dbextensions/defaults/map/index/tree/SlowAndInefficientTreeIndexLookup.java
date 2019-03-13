@@ -20,11 +20,11 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import lombok.Getter;
 import lombok.NonNull;
+import net.daporkchop.lib.db.container.map.DBHashMap;
 import net.daporkchop.lib.math.primitive.BinMath;
-import net.daporkchop.lib.db.container.map.DBMap;
 import net.daporkchop.lib.db.container.map.IndexLookup;
 import net.daporkchop.lib.db.container.map.KeyHasher;
-import net.daporkchop.lib.db.util.PersistentSparseBitSet;
+import net.daporkchop.lib.dbextensions.defaults.util.PersistentSparseBitSet;
 import sun.misc.Cleaner;
 import sun.nio.ch.DirectBuffer;
 
@@ -67,7 +67,7 @@ public class SlowAndInefficientTreeIndexLookup<K> implements IndexLookup<K> {
     }
 
     protected final ReadWriteLock lock = new ReentrantReadWriteLock();
-    protected DBMap<K, ?> map;
+    protected DBHashMap<K, ?> map;
     protected KeyHasher<K> keyHasher;
     protected int hashLength;
     protected RandomAccessFile file;
@@ -81,7 +81,7 @@ public class SlowAndInefficientTreeIndexLookup<K> implements IndexLookup<K> {
     }
 
     @Override
-    public void init(@NonNull DBMap<K, ?> map, @NonNull File file) throws IOException {
+    public void init(@NonNull DBHashMap<K, ?> map, @NonNull File file) throws IOException {
         if (this.map != null) {
             throw new IllegalStateException("already initialized");
         }

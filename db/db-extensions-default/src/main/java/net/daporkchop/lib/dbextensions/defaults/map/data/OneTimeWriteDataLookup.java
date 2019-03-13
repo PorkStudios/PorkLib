@@ -24,7 +24,7 @@ import net.daporkchop.lib.binary.stream.data.HugeBufferOut;
 import net.daporkchop.lib.binary.stream.file.BufferingFileInput;
 import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.db.container.map.DBMap;
+import net.daporkchop.lib.db.container.map.DBHashMap;
 import net.daporkchop.lib.db.container.map.DataLookup;
 
 import java.io.File;
@@ -54,7 +54,7 @@ public class OneTimeWriteDataLookup implements DataLookup {
     private volatile boolean dirty;
 
     @Override
-    public void init(@NonNull DBMap<?, ?> map, @NonNull File file) throws IOException {
+    public void init(@NonNull DBHashMap<?, ?> map, @NonNull File file) throws IOException {
         if (this.file != null) {
             throw new IllegalStateException("already initialized!");
         }

@@ -47,7 +47,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  *
  * @author DaPorkchop_
  */
-public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> implements Map<K, V> {
+public class DBHashMap<K, V> extends Container<Map<K, V>, DBHashMap.Builder<K, V>> implements Map<K, V> {
     public static <K, V> Builder<K, V> builder(@NonNull PorkDB db, @NonNull String name) {
         return new Builder<>(db, name);
     }
@@ -66,7 +66,7 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
     private final DataLookup dataLookup;
     private volatile boolean dirty = false;
 
-    public DBMap(@NonNull Builder<K, V> builder) throws IOException {
+    public DBHashMap(@NonNull Builder<K, V> builder) throws IOException {
         super(builder);
 
         this.compression = builder.compression;
@@ -299,7 +299,7 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
     @Getter
     @Setter
     @Accessors(chain = true)
-    public static class Builder<K, V> extends Container.Builder<Map<K, V>, DBMap<K, V>> {
+    public static class Builder<K, V> extends Container.Builder<Map<K, V>, DBHashMap<K, V>> {
         //TODO: private Serializer<K> keySerializer;
 
         /**
@@ -373,7 +373,7 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
         }
 
         @Override
-        protected DBMap<K, V> buildImpl() throws IOException {
+        protected DBHashMap<K, V> buildImpl() throws IOException {
             if (this.valueSerializer == null) {
                 throw new IllegalStateException("Value serializer must be set!");
             }
@@ -381,7 +381,7 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
                 System.err.printf("[Warning] DataLookup %s reports that it doesn't support compression, but compression is set to %s. Data will not be compressed.\n", this.dataLookup.getClass().getCanonicalName(), this.compression);
             }
 
-            return new DBMap<>(this);
+            return new DBHashMap<>(this);
         }
     }
 }

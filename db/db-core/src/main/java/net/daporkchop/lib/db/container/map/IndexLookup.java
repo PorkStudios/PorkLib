@@ -19,7 +19,6 @@ import lombok.NonNull;
 import net.daporkchop.lib.binary.Persistent;
 import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.common.function.io.IOFunction;
-import net.daporkchop.lib.db.container.map.DBMap;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,11 +29,11 @@ import java.io.IOException;
  * @author DaPorkchop_
  */
 public interface IndexLookup<K> extends Persistent {
-    default DBMap<K, ?> getBacking() {
+    default DBHashMap<K, ?> getBacking() {
         throw new UnsupportedOperationException(String.format("%s doesn't use a hash!", this.getClass().getCanonicalName()));
     }
 
-    default void init(@NonNull DBMap<K, ?> map, @NonNull File file) throws IOException {
+    default void init(@NonNull DBHashMap<K, ?> map, @NonNull File file) throws IOException {
         this.load();
     }
 

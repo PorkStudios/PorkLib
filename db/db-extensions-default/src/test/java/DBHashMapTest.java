@@ -19,12 +19,12 @@ import net.daporkchop.lib.binary.serialization.impl.ByteArraySerializer;
 import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.db.PorkDB;
-import net.daporkchop.lib.db.container.map.DBMap;
+import net.daporkchop.lib.db.container.map.DBHashMap;
 import net.daporkchop.lib.db.container.map.DataLookup;
+import net.daporkchop.lib.db.container.map.IndexLookup;
 import net.daporkchop.lib.dbextensions.defaults.map.data.IndividualFileLookup;
 import net.daporkchop.lib.dbextensions.defaults.map.data.OneTimeWriteDataLookup;
 import net.daporkchop.lib.dbextensions.defaults.map.data.SectoredDataLookup;
-import net.daporkchop.lib.db.container.map.IndexLookup;
 import net.daporkchop.lib.dbextensions.defaults.map.index.hashtable.BucketingHashTableIndexLookup;
 import net.daporkchop.lib.dbextensions.defaults.map.index.hashtable.HashTableIndexLookup;
 import net.daporkchop.lib.dbextensions.defaults.map.index.hashtable.MappedHashTableIndexLookup;
@@ -50,11 +50,11 @@ import java.util.stream.Collectors;
 
 /**
  * A simple test for all functional implementations of the configurable
- * options for {@link DBMap}.
+ * options for {@link DBHashMap}.
  *
  * @author DaPorkchop_
  */
-public class DBMapTest implements Logging {
+public class DBHashMapTest implements Logging {
     private static final int TABLE_SIZE_BITS = 16;
     private static final Collection<Supplier<Serializer<byte[]>>> SERIALIZERS = Arrays.asList(
             null
@@ -140,7 +140,7 @@ public class DBMapTest implements Logging {
     @SuppressWarnings("unchecked")
     public void test() {
         TestConstants.init();
-        logger.alert("Testing ${0}", DBMap.class);
+        logger.alert("Testing ${0}", DBHashMap.class);
 
         logger.info("Deleting output dirs...");
         SERIALIZERS.forEach(serializer -> {
@@ -186,7 +186,7 @@ public class DBMapTest implements Logging {
                             return;
                         }
                         logger.info(
-                                "Testing DBMap with (serializer=${0}, dataLookup=${1}, indexLookup=${2}, compression=${3})...",
+                                "Testing DBHashMap with (serializer=${0}, dataLookup=${1}, indexLookup=${2}, compression=${3})...",
                                 serializer.get().getClass(), dataLookup.get().getClass(), indexLookup.get().getClass(), compression.get()
                         );
                         File out = this.getFile(serializer, dataLookup, indexLookup, compression);
@@ -205,7 +205,7 @@ public class DBMapTest implements Logging {
                             PorkDB db = PorkDB.builder().setRoot(out).build();
 
                             try {
-                                DBMap<byte[], byte[]> dbMap = db.<byte[], byte[]>map("map")
+                                DBHashMap<byte[], byte[]> dbMap = db.<byte[], byte[]>map("map")
                                         .setKeyHasher(new ByteArrayKeyHasher.ConstantLength(TABLE_SIZE_BITS))
                                         .setValueSerializer(serializer.get())
                                         .setDataLookup(dataLookup.get())
@@ -230,7 +230,7 @@ public class DBMapTest implements Logging {
                             PorkDB db = PorkDB.builder().setRoot(out).build();
 
                             try {
-                                DBMap<byte[], byte[]> dbMap = db.<byte[], byte[]>map("map")
+                                DBHashMap<byte[], byte[]> dbMap = db.<byte[], byte[]>map("map")
                                         .setKeyHasher(new ByteArrayKeyHasher.ConstantLength(TABLE_SIZE_BITS))
                                         .setValueSerializer(serializer.get())
                                         .setDataLookup(dataLookup.get())
@@ -265,7 +265,7 @@ public class DBMapTest implements Logging {
                             PorkDB db = PorkDB.builder().setRoot(out).build();
 
                             try {
-                                DBMap<byte[], byte[]> dbMap = db.<byte[], byte[]>map("map")
+                                DBHashMap<byte[], byte[]> dbMap = db.<byte[], byte[]>map("map")
                                         .setKeyHasher(new ByteArrayKeyHasher.ConstantLength(TABLE_SIZE_BITS))
                                         .setValueSerializer(serializer.get())
                                         .setDataLookup(dataLookup.get())
@@ -312,6 +312,6 @@ public class DBMapTest implements Logging {
                 .forEachOrdered(entry -> logger.trace(String.format("  %06dms: %s", entry.getValue(), entry.getKey())));
         logger.trace("");
         logger.trace("");
-        logger.info("Test for ${0} finished!", DBMap.class);
+        logger.info("Test for ${0} finished!", DBHashMap.class);
     }
 }

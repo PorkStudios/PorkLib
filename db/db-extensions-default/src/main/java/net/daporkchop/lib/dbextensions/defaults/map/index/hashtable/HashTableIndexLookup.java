@@ -16,7 +16,7 @@
 package net.daporkchop.lib.dbextensions.defaults.map.index.hashtable;
 
 import lombok.NonNull;
-import net.daporkchop.lib.db.container.map.DBMap;
+import net.daporkchop.lib.db.container.map.DBHashMap;
 import net.daporkchop.lib.db.container.map.IndexLookup;
 
 import java.io.File;
@@ -42,7 +42,7 @@ public class HashTableIndexLookup<K> extends BaseHashTableIndexLookup<K> {
     }
 
     @Override
-    protected void doInit(@NonNull DBMap<K, ?> map, @NonNull File file) throws IOException {
+    protected void doInit(@NonNull DBHashMap<K, ?> map, @NonNull File file) throws IOException {
     }
 
     @Override

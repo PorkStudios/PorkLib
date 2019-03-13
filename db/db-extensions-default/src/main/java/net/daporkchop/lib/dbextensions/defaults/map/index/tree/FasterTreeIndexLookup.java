@@ -23,7 +23,7 @@ import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.common.function.io.IOFunction;
 import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.db.container.map.DBMap;
+import net.daporkchop.lib.db.container.map.DBHashMap;
 import net.daporkchop.lib.db.container.map.IndexLookup;
 import net.daporkchop.lib.db.container.map.KeyHasher;
 import net.daporkchop.lib.logging.Logging;
@@ -66,7 +66,7 @@ public class FasterTreeIndexLookup<K> implements IndexLookup<K>, Logging {
     protected FileChannel channel;
     protected MappedByteBuffer rootNode;
     @Getter
-    protected DBMap<K, ?> map;
+    protected DBHashMap<K, ?> map;
     protected int totalDepth;
     @Getter
     @Setter
@@ -90,7 +90,7 @@ public class FasterTreeIndexLookup<K> implements IndexLookup<K>, Logging {
     }
 
     @Override
-    public void init(@NonNull DBMap<K, ?> map, @NonNull File file) throws IOException {
+    public void init(@NonNull DBHashMap<K, ?> map, @NonNull File file) throws IOException {
         this.lock.writeLock().lock();
         try {
             if (this.channel != null) {

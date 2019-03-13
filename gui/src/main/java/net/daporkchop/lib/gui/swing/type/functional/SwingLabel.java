@@ -17,6 +17,7 @@ package net.daporkchop.lib.gui.swing.type.functional;
 
 import lombok.NonNull;
 import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
+import net.daporkchop.lib.gui.component.state.ElementState;
 import net.daporkchop.lib.gui.component.state.functional.LabelState;
 import net.daporkchop.lib.gui.component.type.functional.Label;
 import net.daporkchop.lib.gui.swing.SwingTextAlignment;
@@ -29,12 +30,12 @@ import javax.swing.*;
 /**
  * @author DaPorkchop_
  */
-public class SwingLabel extends SwingComponent<Label, JLabel> implements Label {
+public class SwingLabel extends SwingComponent<Label, JLabel, LabelState> implements Label {
     protected PIcon enabledIcon;
     protected PIcon disabledIcon;
 
     public SwingLabel(String name) {
-        super(name, new JLabel());
+        super(name, new JLabel(), LabelState.ENABLED);
     }
 
     @Override

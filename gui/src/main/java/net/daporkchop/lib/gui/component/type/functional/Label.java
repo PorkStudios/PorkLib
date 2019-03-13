@@ -26,5 +26,5 @@ import net.daporkchop.lib.gui.component.state.functional.LabelState;
  *
  * @author DaPorkchop_
  */
-public interface Label extends Component<Label>, IconHolder<Label, LabelState>, TextHolder<Label> {
+public interface Label extends Component<Label, LabelState>, IconHolder<Label, LabelState>, TextHolder<Label> {
 }

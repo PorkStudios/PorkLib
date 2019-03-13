@@ -19,6 +19,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.capability.ComponentAdder;
+import net.daporkchop.lib.gui.component.state.ElementState;
 import net.daporkchop.lib.gui.component.type.container.Panel;
 import net.daporkchop.lib.gui.component.type.functional.Button;
 import net.daporkchop.lib.gui.component.type.functional.Label;
@@ -32,7 +33,7 @@ import javax.swing.*;
  * @author DaPorkchop_
  */
 @SuppressWarnings("unchecked")
-public interface IBasicSwingContainer<Impl extends Container, Swing extends java.awt.Container> extends Container<Impl> {
+public interface IBasicSwingContainer<Impl extends Container, Swing extends java.awt.Container, State extends ElementState<Impl, State>> extends Container<Impl, State> {
     //componentadder methods
     @Override
     default Button button(@NonNull String name) {

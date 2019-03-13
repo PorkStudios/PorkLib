@@ -16,8 +16,10 @@
 package net.daporkchop.lib.gui.component;
 
 import lombok.NonNull;
+import net.daporkchop.lib.common.function.VoidFunction;
 import net.daporkchop.lib.gui.component.state.ElementState;
 import net.daporkchop.lib.gui.component.type.Window;
+import net.daporkchop.lib.gui.util.event.handler.StateListener;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 import net.daporkchop.lib.gui.util.math.Constraint;
 
@@ -80,7 +82,25 @@ public interface Element<Impl extends Element, State extends ElementState<Impl, 
 
     //state things
     State getState();
-    //TODO
+    Impl addStateListener(@NonNull String name, @NonNull StateListener<Impl, State> listener);
+    default Impl addStateListener(@NonNull StateListener<Impl, State> listener) {
+        return this.addStateListener(String.format("%s@%d", listener.getClass().getCanonicalName(), System.identityHashCode(listener)), listener);
+    }
+    default Impl addStateListener(@NonNull String name, @NonNull State state, @NonNull Runnable callback)   {
+        return this.addStateListener(name, s -> {
+            if (state == s) {
+                callback.run();
+            }
+        });
+    }
+    default Impl addStateListener(@NonNull State state, @NonNull Runnable callback)   {
+        return this.addStateListener(String.format("%s@%d", callback.getClass().getCanonicalName(), System.identityHashCode(callback)), s -> {
+            if (state == s) {
+                callback.run();
+            }
+        });
+    }
+    Impl removeStateListener(@NonNull String name);
 
     //position things
     default Impl setConstraint(@NonNull Constraint constraint)  {

@@ -21,6 +21,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.Component;
+import net.daporkchop.lib.gui.component.state.ElementState;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 
 import static net.daporkchop.lib.math.primitive.PMath.floorI;
@@ -34,7 +35,7 @@ import static net.daporkchop.lib.math.primitive.PMath.floorI;
 @NoArgsConstructor
 @RequiredArgsConstructor
 @Getter
-public class SimpleDynamicOrientation<Impl extends Component<Impl>> implements Orientation<Impl> {
+public class SimpleDynamicOrientation<Impl extends Component<Impl, ? extends ElementState>> implements Orientation<Impl> {
     /**
      * Creates a {@link SimpleDynamicOrientation} that uses 4 values for x, y, width and height, respectively.
      * <p>
@@ -56,7 +57,7 @@ public class SimpleDynamicOrientation<Impl extends Component<Impl>> implements O
      * @return an instance of {@link SimpleDynamicOrientation} with the given settings
      */
     @SuppressWarnings("unchecked")
-    public static <T extends Component<T>> SimpleDynamicOrientation<T> of(@NonNull Object x, @NonNull Object y, @NonNull Object width, @NonNull Object height) {
+    public static <T extends Component<T, ? extends ElementState>> SimpleDynamicOrientation<T> of(@NonNull Object x, @NonNull Object y, @NonNull Object width, @NonNull Object height) {
         return new SimpleDynamicOrientation<T>().setX(x).setY(y).setWidth(width).setHeight(height);
     }
 
@@ -187,7 +188,7 @@ public class SimpleDynamicOrientation<Impl extends Component<Impl>> implements O
     }
 
     @FunctionalInterface
-    public interface SingleValueCalculator<Impl extends Component<Impl>> {
+    public interface SingleValueCalculator<Impl extends Component<Impl, ? extends ElementState>> {
         /**
          * Recalculates a single value for the bounding box of a component
          *

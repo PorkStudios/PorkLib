@@ -17,6 +17,7 @@ package net.daporkchop.lib.gui.swing.type.functional;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
@@ -31,6 +32,7 @@ import net.daporkchop.lib.gui.util.event.handler.ClickHandler;
 import javax.swing.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -40,16 +42,17 @@ import java.util.Map;
 @Getter
 @Setter
 @Accessors(chain = true)
-public class SwingButton extends SwingComponent<Button, JButton> implements Button {
+public class SwingButton extends SwingComponent<Button, JButton, ButtonState> implements Button {
     @NonNull
     protected ClickHandler clickHandler = (button, x, y) -> {
     };
     protected final Map<ButtonState, PIcon> icons = new EnumMap<>(ButtonState.class);
 
     public SwingButton(String name) {
-        super(name, new JButton());
+        super(name, new JButton(), ButtonState.ENABLED);
 
-        this.swing.addMouseListener(new SwingButtonMouseListener());
+        Tracking tracking = new Tracking();
+        this.swing.addMouseListener(new SwingButtonMouseListener(tracking));
     }
 
     @Override
@@ -131,26 +134,66 @@ public class SwingButton extends SwingComponent<Button, JButton> implements Butt
         return this;
     }
 
+    @Getter
+    @Setter
+    @Accessors(chain = true)
+    protected static class Tracking {
+        private boolean mouseDown = false;
+        private boolean hovered = false;
+    }
+
+    //TODO: this is a mess, please fix it somehow
+    @RequiredArgsConstructor
     protected class SwingButtonMouseListener implements MouseListener {
+        @NonNull
+        protected final Tracking tracking;
+
         @Override
         public void mouseClicked(MouseEvent e) {
             SwingButton.this.clickHandler.onClick(e.getButton(), e.getX(), e.getY());
+            this.tracking.mouseDown = false;
+            SwingButton.this.fireStateChange(SwingButton.this.isEnabled() ? ButtonState.ENABLED_HOVERED : ButtonState.DISABLED_HOVERED);
         }
 
         @Override
         public void mousePressed(MouseEvent e) {
+            this.tracking.mouseDown = true;
+            SwingButton.this.fireStateChange(SwingButton.this.isEnabled() ? ButtonState.ENABLED_CLICKED : ButtonState.DISABLED_HOVERED);
         }
 
         @Override
         public void mouseReleased(MouseEvent e) {
+            this.tracking.mouseDown = false;
+            SwingButton.this.fireStateChange(SwingButton.this.isEnabled() ? this.tracking.hovered ? ButtonState.ENABLED_HOVERED : ButtonState.ENABLED : ButtonState.DISABLED);
         }
 
         @Override
         public void mouseEntered(MouseEvent e) {
+            this.tracking.hovered = true;
+            SwingButton.this.fireStateChange(SwingButton.this.isEnabled() ? this.tracking.mouseDown ? ButtonState.ENABLED_CLICKED : ButtonState.ENABLED : ButtonState.DISABLED_HOVERED);
         }
 
         @Override
         public void mouseExited(MouseEvent e) {
+            this.tracking.hovered = false;
+            SwingButton.this.fireStateChange(SwingButton.this.isEnabled() ? ButtonState.ENABLED : ButtonState.DISABLED_HOVERED);
+        }
+    }
+
+    @RequiredArgsConstructor
+    protected class SwingButtonMouseMotionListener implements MouseMotionListener   {
+        @NonNull
+        protected final Tracking tracking;
+
+        @Override
+        public void mouseDragged(MouseEvent e) {
+        }
+
+        @Override
+        public void mouseMoved(MouseEvent e) {
+            if (SwingButton.this.swing.contains(e.getX(), e.getY()))    {
+
+            }
         }
     }
 }

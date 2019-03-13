@@ -23,6 +23,6 @@ import net.daporkchop.lib.gui.component.state.ElementState;
  * @author DaPorkchop_
  */
 @FunctionalInterface
-public interface StateListener<E extends Element, S extends ElementState<E, S>> {
-    void onStateChange(@NonNull S state);
+public interface StateListener<E extends Element, State extends ElementState<E, State>> {
+    void onStateChange(@NonNull State state);
 }

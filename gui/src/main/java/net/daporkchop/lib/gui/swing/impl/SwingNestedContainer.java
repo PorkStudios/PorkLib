@@ -18,6 +18,7 @@ package net.daporkchop.lib.gui.swing.impl;
 import lombok.Getter;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.NestedContainer;
+import net.daporkchop.lib.gui.component.state.ElementState;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 
 import javax.swing.*;
@@ -29,11 +30,11 @@ import java.util.Map;
  * @author DaPorkchop_
  */
 @Getter
-public abstract class SwingNestedContainer<Impl extends NestedContainer, Swing extends JComponent> extends SwingComponent<Impl, Swing> implements NestedContainer<Impl>, IBasicSwingContainer<Impl, Swing> {
+public abstract class SwingNestedContainer<Impl extends NestedContainer, Swing extends JComponent, State extends ElementState<Impl, State>> extends SwingComponent<Impl, Swing, State> implements NestedContainer<Impl, State>, IBasicSwingContainer<Impl, Swing, State> {
     protected final Map<String, Component> children = Collections.synchronizedMap(new HashMap<>());
 
-    public SwingNestedContainer(String name, Swing swing) {
-        super(name, swing);
+    public SwingNestedContainer(String name, Swing swing, State state) {
+        super(name, swing, state);
     }
 
     @Override

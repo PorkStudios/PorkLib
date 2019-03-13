@@ -19,6 +19,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.gui.component.Element;
 import net.daporkchop.lib.gui.component.impl.AbstractElement;
+import net.daporkchop.lib.gui.component.state.ElementState;
 
 import javax.swing.*;
 import java.awt.*;
@@ -27,11 +28,11 @@ import java.awt.*;
  * @author DaPorkchop_
  */
 @Getter
-public abstract class SwingElement<Impl extends Element, Swing extends java.awt.Component> extends AbstractElement<Impl> {
+public abstract class SwingElement<Impl extends Element, Swing extends java.awt.Component, State extends ElementState<Impl, State>> extends AbstractElement<Impl, State> {
     protected final Swing swing;
 
-    public SwingElement(String name, @NonNull Swing swing) {
-        super(name);
+    public SwingElement(String name, @NonNull Swing swing, @NonNull State state) {
+        super(name, state);
         this.swing = swing;
     }
 

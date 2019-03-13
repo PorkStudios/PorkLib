@@ -18,6 +18,7 @@ package net.daporkchop.lib.gui.swing.type;
 import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
+import net.daporkchop.lib.gui.component.state.WindowState;
 import net.daporkchop.lib.gui.component.type.Window;
 import net.daporkchop.lib.gui.swing.impl.SwingContainer;
 import net.daporkchop.lib.gui.util.event.EventManager;
@@ -36,14 +37,14 @@ import java.util.stream.Stream;
  * @author DaPorkchop_
  */
 @Getter
-public class SwingWindow extends SwingContainer<Window, JFrame> implements Window {
+public class SwingWindow extends SwingContainer<Window, JFrame, WindowState> implements Window {
     protected final EventManager eventManager = new EventManager();
 
     protected BoundingBox oldDimensions;
     protected PIcon icon;
 
     public SwingWindow(String name) {
-        super(name, new JFrame());
+        super(name, new JFrame(), WindowState.CONSTRUCTION);
 
         this.swing.setLayout(null);
         this.swing.addWindowListener(new SwingWindowListener());

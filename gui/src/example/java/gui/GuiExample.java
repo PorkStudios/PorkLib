@@ -39,7 +39,8 @@ public class GuiExample {
                         .setIcon(filledImage(0xFF0000))
                         .setIcon(ButtonState.ENABLED_HOVERED, filledImage(0x0000FF))
                         .setIcon(ButtonState.ENABLED_CLICKED, filledImage(0x00FF00))
-                        .setClickHandler((mouseButton, x, y) -> button.getWindow().getComponent("label2").toggle()))
+                        .setClickHandler((mouseButton, x, y) -> button.getWindow().getComponent("label2").toggle())
+                        .addStateListener(state -> System.out.printf("State changed: %s\n", state.name())))
                 .button("button2", button -> button.setOrientation(0, 0.0d, 0.1d, 0.1d)
                         .setClickHandler((mouseButton, x, y) -> System.out.printf("Bounds: %s\n", button.getWindow().getComponent("panel1.button2").getBounds())))
                 .label("label1", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", label -> label

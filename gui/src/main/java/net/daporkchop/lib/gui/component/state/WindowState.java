@@ -21,6 +21,7 @@ import net.daporkchop.lib.gui.component.type.Window;
  * @author DaPorkchop_
  */
 public enum WindowState implements ElementState<Window, WindowState> {
+    CONSTRUCTION,
     VISIBLE,
     HIDDEN,
     MINIMIZED,

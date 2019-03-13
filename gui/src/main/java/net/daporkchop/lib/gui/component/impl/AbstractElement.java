@@ -19,7 +19,12 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.gui.component.Element;
+import net.daporkchop.lib.gui.component.state.ElementState;
+import net.daporkchop.lib.gui.util.event.handler.StateListener;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * @author DaPorkchop_
@@ -27,7 +32,7 @@ import net.daporkchop.lib.gui.util.math.BoundingBox;
 @RequiredArgsConstructor
 @Getter
 @SuppressWarnings("unchecked")
-public abstract class AbstractElement<Impl extends Element> implements Element<Impl> {
+public abstract class AbstractElement<Impl extends Element, State extends ElementState<Impl, State>> implements Element<Impl, State> {
     @NonNull
     protected final String name;
 
@@ -35,6 +40,10 @@ public abstract class AbstractElement<Impl extends Element> implements Element<I
 
     protected String tooltip;
     protected boolean visible = false;
+
+    @NonNull
+    private State state; //we don't want people changing this without triggering state listeners
+    protected final Map<String, StateListener<Impl, State>> stateListeners = new LinkedHashMap<>();
 
     @Override
     public Impl setTooltip(String tooltip) {
@@ -45,6 +54,30 @@ public abstract class AbstractElement<Impl extends Element> implements Element<I
     @Override
     public Impl setVisible(boolean state) {
         this.visible = state;
+        return (Impl) this;
+    }
+
+    public boolean fireStateChange(@NonNull State state)    {
+        if (state != this.state)  {
+            this.state = state;
+            this.stateListeners.forEach((name, listener) -> listener.onStateChange(this.state));
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public Impl addStateListener(@NonNull String name, @NonNull StateListener<Impl, State> listener) {
+        if (this.stateListeners.putIfAbsent(name, listener) != null)    {
+            throw new IllegalArgumentException(String.format("Listener name \"%s\" is already occupied!", name));
+        }
+        return (Impl) this;
+    }
+
+    @Override
+    public Impl removeStateListener(@NonNull String name) {
+        this.stateListeners.remove(name);
         return (Impl) this;
     }
 }

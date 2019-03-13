@@ -19,6 +19,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.Component;
+import net.daporkchop.lib.gui.component.state.ElementState;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -29,11 +30,11 @@ import java.util.Map;
  */
 @Getter
 @SuppressWarnings("unchecked")
-public abstract class AbstractContainer<Impl extends AbstractContainer> extends AbstractElement<Impl> implements Container<Impl> {
+public abstract class AbstractContainer<Impl extends AbstractContainer, State extends ElementState<Impl, State>> extends AbstractElement<Impl, State> implements Container<Impl, State> {
     protected final Map<String, Component> children = Collections.synchronizedMap(new HashMap<>());
 
-    public AbstractContainer(String name) {
-        super(name);
+    public AbstractContainer(String name, State state) {
+        super(name, state);
     }
 
     @Override

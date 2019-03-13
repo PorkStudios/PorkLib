@@ -23,6 +23,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.Component;
+import net.daporkchop.lib.gui.component.state.ElementState;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 
 /**
@@ -33,7 +34,7 @@ import net.daporkchop.lib.gui.util.math.BoundingBox;
 @Getter
 @Setter
 @Accessors(chain = true)
-public class StaticOrientation<Impl extends Component<Impl>> implements Orientation<Impl> {
+public class StaticOrientation<Impl extends Component<Impl, ? extends ElementState>> implements Orientation<Impl> {
     @NonNull
     protected BoundingBox bounds;
 

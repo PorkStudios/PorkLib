@@ -18,6 +18,7 @@ package net.daporkchop.lib.graphics.util.bufferedimage.bw;
 import net.daporkchop.lib.reflection.PField;
 
 import java.awt.image.ColorModel;
+import java.awt.image.DataBuffer;
 import java.awt.image.Raster;
 import java.awt.image.SampleModel;
 
@@ -27,12 +28,14 @@ import java.awt.image.SampleModel;
 public class FastBWColorModel extends ColorModel {
     protected static PField field_numComponents = PField.of(ColorModel.class, "numComponents");
     protected static PField field_supportsAlpha = PField.of(ColorModel.class, "supportsAlpha");
+    protected static PField field_transferType = PField.of(ColorModel.class, "transferType");
 
     public FastBWColorModel() {
         super(8);
 
         field_numComponents.setInt(this, 1);
         field_supportsAlpha.setBoolean(this, false);
+        field_transferType.setInt(this, DataBuffer.TYPE_INT);
     }
 
     @Override

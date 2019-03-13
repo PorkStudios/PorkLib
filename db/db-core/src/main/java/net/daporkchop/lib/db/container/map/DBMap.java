@@ -343,7 +343,7 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
          * @see net.daporkchop.lib.db.container.map.index.hashtable.HashTableIndexLookup
          * @see net.daporkchop.lib.db.container.map.index.hashtable.MappedHashTableIndexLookup
          * @see net.daporkchop.lib.db.container.map.index.hashtable.BucketingHashTableIndexLookup
-         * @see net.daporkchop.lib.db.container.map.index.tree.FasterTreeIndexLookup
+         * @see FasterTreeIndexLookup
          */
         @NonNull
         private IndexLookup<K> indexLookup = new FasterTreeIndexLookup<>(4, 1);
@@ -351,7 +351,7 @@ public class DBMap<K, V> extends Container<Map<K, V>, DBMap.Builder<K, V>> imple
         /**
          * The {@link DataLookup} used for reading values.
          *
-         * @see net.daporkchop.lib.db.container.map.data.IndividualFileLookup
+         * @see IndividualFileLookup
          * @see net.daporkchop.lib.db.container.map.data.StreamingDataLookup (wip)
          * @see net.daporkchop.lib.db.container.map.data.ConstantLengthLookup
          * @see net.daporkchop.lib.db.container.map.data.OneTimeWriteDataLookup

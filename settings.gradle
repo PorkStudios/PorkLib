@@ -47,4 +47,8 @@ findProject(':encoding:nbt')?.name = 'nbt'
 findProject(':game:nds')?.name = 'nds'
 findProject(':minecraft:minecraft-worldscanner')?.name = 'minecraft-worldscanner'
 findProject(':minecraft:minecraft-text')?.name = 'minecraft-text'
+include 'db:db-extensions-default'
+findProject(':db:db-extensions-default')?.name = 'db-extensions-default'
+include 'db:db-core'
+findProject(':db:db-core')?.name = 'db-core'
 

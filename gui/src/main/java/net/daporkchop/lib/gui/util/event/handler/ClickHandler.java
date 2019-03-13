@@ -5,5 +5,5 @@ package net.daporkchop.lib.gui.util.event.handler;
  */
 @FunctionalInterface
 public interface ClickHandler {
-    void onClick(int button, int x, int y);
+    void onClick(int mouseButton, int x, int y);
 }

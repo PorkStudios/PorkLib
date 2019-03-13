@@ -18,7 +18,9 @@ package net.daporkchop.lib.gui.component.type.functional;
 import lombok.NonNull;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.capability.IconHolder;
+import net.daporkchop.lib.gui.component.capability.SimpleIconHolder;
 import net.daporkchop.lib.gui.component.capability.TextHolder;
+import net.daporkchop.lib.gui.component.state.functional.ButtonState;
 import net.daporkchop.lib.gui.util.event.handler.ClickHandler;
 
 /**
@@ -27,7 +29,7 @@ import net.daporkchop.lib.gui.util.event.handler.ClickHandler;
  *
  * @author DaPorkchop_
  */
-public interface Button extends Component<Button>, IconHolder<Button>, TextHolder<Button> {
+public interface Button extends Component<Button, ButtonState>, IconHolder<Button, ButtonState>, TextHolder<Button> {
     ClickHandler getClickHandler();
     Button setClickHandler(@NonNull ClickHandler handler);
 }

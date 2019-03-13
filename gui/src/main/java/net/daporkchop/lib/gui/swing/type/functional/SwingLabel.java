@@ -17,6 +17,7 @@ package net.daporkchop.lib.gui.swing.type.functional;
 
 import lombok.NonNull;
 import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
+import net.daporkchop.lib.gui.component.state.functional.LabelState;
 import net.daporkchop.lib.gui.component.type.functional.Label;
 import net.daporkchop.lib.gui.swing.SwingTextAlignment;
 import net.daporkchop.lib.gui.swing.impl.SwingComponent;
@@ -29,7 +30,8 @@ import javax.swing.*;
  * @author DaPorkchop_
  */
 public class SwingLabel extends SwingComponent<Label, JLabel> implements Label {
-    protected PIcon icon;
+    protected PIcon enabledIcon;
+    protected PIcon disabledIcon;
 
     public SwingLabel(String name) {
         super(name, new JLabel());
@@ -71,15 +73,24 @@ public class SwingLabel extends SwingComponent<Label, JLabel> implements Label {
     }
 
     @Override
-    public PIcon getIcon() {
-        return this.icon;
+    public PIcon getIcon(LabelState state) {
+        if (state == null || state == LabelState.ENABLED)   {
+            return this.enabledIcon;
+        } else {
+            return this.disabledIcon;
+        }
     }
 
     @Override
-    public SwingLabel setIcon(PIcon icon) {
-        if (icon != this.icon)  {
-            this.icon = icon;
-            this.swing.setIcon(icon == null ? null : icon.getAsSwingIcon());
+    public Label setIcon(LabelState state, PIcon icon) {
+        if (state == null || state == LabelState.ENABLED)   {
+            if (this.enabledIcon != icon)   {
+                this.enabledIcon = icon;
+                this.swing.setIcon(icon == null ? null : icon.getAsSwingIcon());
+            }
+        } else if (this.disabledIcon != icon) {
+            this.disabledIcon = icon;
+            this.swing.setDisabledIcon(icon == null ? null : icon.getAsSwingIcon());
         }
         return this;
     }

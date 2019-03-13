@@ -13,18 +13,16 @@
  *
  */
 
-package net.daporkchop.lib.gui.component.type.functional;
+package net.daporkchop.lib.gui.util.event.handler;
 
-import net.daporkchop.lib.gui.component.Component;
-import net.daporkchop.lib.gui.component.capability.IconHolder;
-import net.daporkchop.lib.gui.component.capability.SimpleIconHolder;
-import net.daporkchop.lib.gui.component.capability.TextHolder;
-import net.daporkchop.lib.gui.component.state.functional.LabelState;
+import lombok.NonNull;
+import net.daporkchop.lib.gui.component.Element;
+import net.daporkchop.lib.gui.component.state.ElementState;
 
 /**
- * The simplest possible GUI component. A label can display text, nothing more.
- *
  * @author DaPorkchop_
  */
-public interface Label extends Component<Label>, IconHolder<Label, LabelState>, TextHolder<Label> {
+@FunctionalInterface
+public interface StateListener<E extends Element, S extends ElementState<E, S>> {
+    void onStateChange(@NonNull S state);
 }

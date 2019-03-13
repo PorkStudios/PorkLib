@@ -15,10 +15,14 @@
 
 package gui;
 
+import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
 import net.daporkchop.lib.graphics.bitmap.image.PImage;
+import net.daporkchop.lib.graphics.bitmap.image.direct.DirectImageRGB;
 import net.daporkchop.lib.gui.GuiSystem;
 import net.daporkchop.lib.gui.component.orientation.advanced.Axis;
 import net.daporkchop.lib.gui.component.orientation.advanced.calculator.DistUnit;
+import net.daporkchop.lib.gui.component.state.functional.ButtonState;
+import net.daporkchop.lib.gui.component.state.functional.LabelState;
 import net.daporkchop.lib.gui.util.Alignment;
 
 /**
@@ -32,12 +36,19 @@ public class GuiExample {
                         .setText("Example Button!")
                         .setTooltip("This is a tooltip that will be shown when hovering the mouse over the button.")
                         .setTextPos(Alignment.TOP_LEFT)
-                        .setIcon(PImage.randomImage(32, 32)))
+                        .setIcon(filledImage(0xFF0000))
+                        .setIcon(ButtonState.ENABLED_HOVERED, filledImage(0x0000FF))
+                        .setIcon(ButtonState.ENABLED_CLICKED, filledImage(0x00FF00))
+                        .setClickHandler((mouseButton, x, y) -> button.getWindow().getComponent("label2").toggle()))
                 .button("button2", button -> button.setOrientation(0, 0.0d, 0.1d, 0.1d)
                         .setClickHandler((mouseButton, x, y) -> System.out.printf("Bounds: %s\n", button.getWindow().getComponent("panel1.button2").getBounds())))
                 .label("label1", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", label -> label
                         .setOrientation(0.5d, 0, 0.5d, 0.1d)
                         .setTooltip("This is a label. Labels can only display plain text."))
+                .label("label2", label -> label
+                        .setOrientation(0.8d, 0.8d, 0.2d, 0.2d)
+                        .setIcon(filledImage(0x00FF00))
+                        .setIcon(LabelState.DISABLED, filledImage(0xFF0000)))
                 .button("button3", button -> button.orientAdvanced(orientation -> orientation
                         .configureAxis(Axis.X, calc -> calc.ease(DistUnit.PX, 0))
                         .configureAxis(Axis.Y, calc -> calc.ease(DistUnit.MULT, 0.5, Axis.HEIGHT)
@@ -45,5 +56,11 @@ public class GuiExample {
                         .configureAxis(Axis.WIDTH, calc -> calc.ease(DistUnit.PX, 30))
                         .configureAxis(Axis.HEIGHT, Axis.WIDTH)))
                 .show();
+    }
+
+    private static PIcon filledImage(int rgb) {
+        PImage img = new DirectImageRGB(32, 32);
+        img.fillRGB(rgb);
+        return img;
     }
 }

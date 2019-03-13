@@ -13,13 +13,14 @@
  *
  */
 
-package net.daporkchop.lib.db.container.map.index.hashtable;
+package net.daporkchop.lib.dbextensions.defaults.map.index.hashtable;
 
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.db.container.map.DBMap;
+import net.daporkchop.lib.db.container.map.IndexLookup;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,7 +28,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
 /**
- * A hashtable-based implementation of {@link net.daporkchop.lib.db.container.map.index.IndexLookup}, where
+ * A hashtable-based implementation of {@link IndexLookup}, where
  * the entire hash table file is mapped into memory.
  * <p>
  * This can use a significant amount of memory for large tables. If you want testMethodThing large table and can accept testMethodThing

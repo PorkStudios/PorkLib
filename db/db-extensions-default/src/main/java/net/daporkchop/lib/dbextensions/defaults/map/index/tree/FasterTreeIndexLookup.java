@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.db.container.map.index.tree;
+package net.daporkchop.lib.dbextensions.defaults.map.index.tree;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -24,8 +24,8 @@ import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.common.function.io.IOFunction;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.db.container.map.DBMap;
-import net.daporkchop.lib.db.container.map.index.IndexLookup;
-import net.daporkchop.lib.db.container.map.key.KeyHasher;
+import net.daporkchop.lib.db.container.map.IndexLookup;
+import net.daporkchop.lib.db.container.map.KeyHasher;
 import net.daporkchop.lib.logging.Logging;
 
 import java.io.File;

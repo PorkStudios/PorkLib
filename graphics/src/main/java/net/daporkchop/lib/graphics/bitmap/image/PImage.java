@@ -18,6 +18,8 @@ package net.daporkchop.lib.graphics.bitmap.image;
 import lombok.NonNull;
 import net.daporkchop.lib.graphics.bitmap.ColorFormat;
 import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
+import net.daporkchop.lib.graphics.render.GraphicsRenderer2d;
+import net.daporkchop.lib.graphics.render.Renderer2d;
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
@@ -105,5 +107,13 @@ public interface PImage extends PIcon {
                 this.setBW(x, y, col);
             }
         }
+    }
+
+    /**
+     * Gets an instance of {@link Renderer2d} that will draw to this image.
+     * @return an instance of {@link Renderer2d}
+     */
+    default Renderer2d getRenderer()    {
+        return new GraphicsRenderer2d(this.getAsImage().getGraphics());
     }
 }

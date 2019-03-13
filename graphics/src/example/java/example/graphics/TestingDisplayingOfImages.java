@@ -49,6 +49,17 @@ public class TestingDisplayingOfImages {
                 }
             }
 
+            image.getRenderer().fillPolygon(
+                    new int[] {
+                            5, 10, 5, 0
+                    },
+                    new int[] {
+                            0, 5, 10, 5
+                    },
+                    4,
+                    0xFFFF0000
+            );
+
             if (!ImageIO.write(image.getAsBufferedImage(), "png", new File("./test_out/out.png"))) {
                 throw new IllegalStateException("Didn't write image!");
             }

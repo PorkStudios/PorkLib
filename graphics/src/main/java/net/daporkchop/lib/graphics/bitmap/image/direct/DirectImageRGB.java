@@ -79,7 +79,7 @@ public class DirectImageRGB extends DirectImage implements ImageRGB {
         short shortPart = (short) ((col >>> 8) & 0xFFFF);
         byte bytePart = (byte) (col & 0xFF);
         long pos = this.pos;
-        for (long l = (long) this.width * (long) this.height * 3L - 4L; l >= 0L; l -= 3L)   {
+        for (long l = (long) this.width * (long) this.height * 3L - 3L; l >= 0L; l -= 3L)   {
             PUnsafe.putShort(pos + l, shortPart);
             PUnsafe.putByte(pos + l + 2L, bytePart);
         }

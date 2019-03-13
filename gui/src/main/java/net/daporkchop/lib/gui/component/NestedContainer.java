@@ -15,6 +15,8 @@
 
 package net.daporkchop.lib.gui.component;
 
+import net.daporkchop.lib.gui.component.state.ElementState;
+
 /**
  * A container that is also a component. Allows {@link net.daporkchop.lib.gui.component.type.Window} to have
  * {@link Container} capabilities, while still having subcontainers qualify as {@link Component}s.
@@ -23,5 +25,5 @@ package net.daporkchop.lib.gui.component;
  *
  * @author DaPorkchop_
  */
-public interface NestedContainer<Impl extends NestedContainer> extends Container<Impl>, Component<Impl> {
+public interface NestedContainer<Impl extends NestedContainer, State extends ElementState<Impl, State>> extends Container<Impl, State>, Component<Impl, State> {
 }

@@ -21,6 +21,7 @@ import net.daporkchop.lib.gui.component.orientation.Orientation;
 import net.daporkchop.lib.gui.component.orientation.SimpleDynamicOrientation;
 import net.daporkchop.lib.gui.component.orientation.StaticOrientation;
 import net.daporkchop.lib.gui.component.orientation.advanced.AdvancedOrientation;
+import net.daporkchop.lib.gui.component.state.ElementState;
 import net.daporkchop.lib.gui.component.type.Window;
 import net.daporkchop.lib.gui.util.HorizontalAlignment;
 import net.daporkchop.lib.gui.util.VerticalAlignment;
@@ -39,7 +40,7 @@ import java.util.function.Consumer;
  * @author DaPorkchop_
  */
 @SuppressWarnings("unchecked")
-public interface Component<Impl extends Component> extends Element<Impl>, Enableable<Impl> {
+public interface Component<Impl extends Component, State extends ElementState<Impl, State>> extends Element<Impl, State>, Enableable<Impl> {
     @Override
     default Impl setBounds(@NonNull BoundingBox bounds) {
         return this.setOrientation(bounds);

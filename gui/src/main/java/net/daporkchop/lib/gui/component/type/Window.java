@@ -20,9 +20,10 @@ import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.NestedContainer;
-import net.daporkchop.lib.gui.component.capability.IconHolder;
+import net.daporkchop.lib.gui.component.capability.SimpleIconHolder;
 import net.daporkchop.lib.gui.component.capability.Resizable;
 import net.daporkchop.lib.gui.component.capability.TextHolder;
+import net.daporkchop.lib.gui.component.state.WindowState;
 import net.daporkchop.lib.gui.util.event.EventManager;
 
 import java.util.StringJoiner;
@@ -34,7 +35,7 @@ import java.util.StringJoiner;
  *
  * @author DaPorkchop_
  */
-public interface Window extends Container<Window>, Resizable<Window>, IconHolder<Window> {
+public interface Window extends Container<Window, WindowState>, Resizable<Window>, SimpleIconHolder<Window, WindowState> {
     String getTitle();
 
     Window setTitle(@NonNull String title);

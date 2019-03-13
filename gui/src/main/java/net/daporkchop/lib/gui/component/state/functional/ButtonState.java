@@ -27,7 +27,6 @@ public enum ButtonState implements ElementState<Button, ButtonState> {
     ENABLED_HOVERED,
     ENABLED_CLICKED,
     DISABLED,
-    DISABLED_HOVERED,
-    DISABLED_CLICKED
+    DISABLED_HOVERED
     ;
 }

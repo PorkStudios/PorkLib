@@ -68,7 +68,7 @@ public class DirectImageABW extends DirectImage implements ImageABW {
     public void fillABW(int col) {
         short s = (short) col;
         long pos = this.pos;
-        for (long l = (long) this.width * (long) this.height * 2L - 3L; l >= 0L; l -= 2L)    {
+        for (long l = (long) this.width * (long) this.height * 2L - 2L; l >= 0L; l -= 2L)    {
             PUnsafe.putShort(pos + l, s);
         }
     }

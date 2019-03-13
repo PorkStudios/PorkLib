@@ -13,18 +13,16 @@
  *
  */
 
-package net.daporkchop.lib.gui.component.type.functional;
+package net.daporkchop.lib.gui.component.state.functional;
 
-import net.daporkchop.lib.gui.component.Component;
-import net.daporkchop.lib.gui.component.capability.IconHolder;
-import net.daporkchop.lib.gui.component.capability.SimpleIconHolder;
-import net.daporkchop.lib.gui.component.capability.TextHolder;
-import net.daporkchop.lib.gui.component.state.functional.LabelState;
+import net.daporkchop.lib.gui.component.state.ElementState;
+import net.daporkchop.lib.gui.component.type.functional.Label;
 
 /**
- * The simplest possible GUI component. A label can display text, nothing more.
- *
  * @author DaPorkchop_
  */
-public interface Label extends Component<Label>, IconHolder<Label, LabelState>, TextHolder<Label> {
+public enum LabelState implements ElementState<Label, LabelState> {
+    ENABLED,
+    DISABLED
+    ;
 }

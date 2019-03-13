@@ -20,6 +20,7 @@ import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
+import net.daporkchop.lib.gui.component.state.functional.ButtonState;
 import net.daporkchop.lib.gui.component.type.functional.Button;
 import net.daporkchop.lib.gui.swing.SwingTextAlignment;
 import net.daporkchop.lib.gui.swing.impl.SwingComponent;
@@ -30,6 +31,8 @@ import net.daporkchop.lib.gui.util.event.handler.ClickHandler;
 import javax.swing.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.EnumMap;
+import java.util.Map;
 
 /**
  * @author DaPorkchop_
@@ -41,7 +44,7 @@ public class SwingButton extends SwingComponent<Button, JButton> implements Butt
     @NonNull
     protected ClickHandler clickHandler = (button, x, y) -> {
     };
-    protected PIcon icon;
+    protected final Map<ButtonState, PIcon> icons = new EnumMap<>(ButtonState.class);
 
     public SwingButton(String name) {
         super(name, new JButton());
@@ -85,15 +88,45 @@ public class SwingButton extends SwingComponent<Button, JButton> implements Butt
     }
 
     @Override
-    public PIcon getIcon() {
-        return this.icon;
+    public PIcon getIcon(ButtonState state) {
+        if (state == null) {
+            state = ButtonState.ENABLED;
+        } else if (state == ButtonState.DISABLED_HOVERED)   {
+            state = ButtonState.DISABLED;
+        }
+        return this.icons.get(state);
     }
 
     @Override
-    public Button setIcon(PIcon icon) {
-        if (icon != this.icon)  {
-            this.icon = icon;
-            this.swing.setIcon(icon == null ? null : icon.getAsSwingIcon());
+    public Button setIcon(ButtonState state, PIcon icon) {
+        if (state == null) {
+            state = ButtonState.ENABLED;
+        } else if (state == ButtonState.DISABLED_HOVERED)   {
+            state = ButtonState.DISABLED;
+        }
+        Icon newIcon;
+        if (icon == null && this.icons.containsKey(state)) {
+            this.icons.remove(state);
+            newIcon = null;
+        } else if (icon != null && this.icons.get(state) != icon) {
+            this.icons.put(state, icon);
+            newIcon = icon.getAsSwingIcon();
+        } else {
+            return this;
+        }
+        switch (state) {
+            case ENABLED:
+                this.swing.setIcon(newIcon);
+                break;
+            case ENABLED_HOVERED:
+                this.swing.setRolloverIcon(newIcon);
+                break;
+            case ENABLED_CLICKED:
+                this.swing.setPressedIcon(newIcon);
+                break;
+            case DISABLED:
+                this.swing.setDisabledIcon(newIcon);
+                break;
         }
         return this;
     }

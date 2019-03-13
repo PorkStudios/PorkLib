@@ -7,11 +7,15 @@ public interface Enableable<Impl> {
     boolean isEnabled();
     Impl setEnable(boolean enabled);
 
-    default Impl enable()   {
+    default Impl enable() {
         return this.setEnable(true);
     }
 
-    default Impl disable()  {
+    default Impl disable() {
         return this.setEnable(false);
+    }
+
+    default Impl toggle() {
+        return this.setEnable(!this.isEnabled());
     }
 }

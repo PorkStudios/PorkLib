@@ -16,6 +16,7 @@
 package net.daporkchop.lib.gui.component;
 
 import lombok.NonNull;
+import net.daporkchop.lib.gui.component.state.ElementState;
 import net.daporkchop.lib.gui.component.type.Window;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 import net.daporkchop.lib.gui.util.math.Constraint;
@@ -25,7 +26,7 @@ import java.util.StringJoiner;
 /**
  * @author DaPorkchop_
  */
-public interface Element<Impl extends Element> {
+public interface Element<Impl extends Element, State extends ElementState<Impl, State>> {
     String getName();
 
     default String getQualifiedName() {
@@ -76,6 +77,10 @@ public interface Element<Impl extends Element> {
     default Impl hide() {
         return this.setVisible(false);
     }
+
+    //state things
+    State getState();
+    //TODO
 
     //position things
     default Impl setConstraint(@NonNull Constraint constraint)  {

@@ -15,10 +15,15 @@
 
 package net.daporkchop.lib.gui.component.state;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import net.daporkchop.lib.gui.component.Element;
 
 /**
  * @author DaPorkchop_
  */
 public interface ElementState<E extends Element, Impl extends ElementState<E, ?>> {
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    final class None<E extends Element> implements ElementState<E, None<E>>  {
+    }
 }

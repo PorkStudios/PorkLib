@@ -13,15 +13,15 @@
  *
  */
 
-package net.daporkchop.lib.db.container.map.index.hashtable;
+package net.daporkchop.lib.dbextensions.defaults.map.index.hashtable;
 
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import net.daporkchop.lib.common.function.io.IOFunction;
 import net.daporkchop.lib.db.container.map.DBMap;
-import net.daporkchop.lib.db.container.map.index.IndexLookup;
-import net.daporkchop.lib.db.container.map.key.KeyHasher;
+import net.daporkchop.lib.db.container.map.IndexLookup;
+import net.daporkchop.lib.db.container.map.KeyHasher;
 
 import java.io.File;
 import java.io.IOException;

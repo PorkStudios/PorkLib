@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.db.container.map.index.hashtable;
+package net.daporkchop.lib.dbextensions.defaults.map.index.hashtable;
 
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;

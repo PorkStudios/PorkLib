@@ -13,17 +13,18 @@
  *
  */
 
-package net.daporkchop.lib.db.container.map.index.hashtable;
+package net.daporkchop.lib.dbextensions.defaults.map.index.hashtable;
 
 import lombok.NonNull;
 import net.daporkchop.lib.db.container.map.DBMap;
+import net.daporkchop.lib.db.container.map.IndexLookup;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * A hashtable-based implementation of {@link net.daporkchop.lib.db.container.map.index.IndexLookup}, where
+ * A hashtable-based implementation of {@link IndexLookup}, where
  * the hashes are dynamically read from disk.
  * <p>
  * This can be rather slow. For faster lookups at a cost of higher memory usage, use {@link MappedHashTableIndexLookup}

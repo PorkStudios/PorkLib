@@ -16,11 +16,5 @@
 dependencies {
     compile project(":encoding")
     compile project(":binary")
-    compile project(":encoding:nbt")
-    compile project(":hash")
     compile project(":logging")
-    compile project(":primitive")
-
-    compile "com.zaxxer:SparseBitSet:1.1"
-    compile "com.google.guava:guava:27.0-jre"
 }

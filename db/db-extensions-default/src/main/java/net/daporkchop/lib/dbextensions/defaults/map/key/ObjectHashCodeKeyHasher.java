@@ -13,59 +13,40 @@
  *
  */
 
-package net.daporkchop.lib.db.container.map.key;
+package net.daporkchop.lib.dbextensions.defaults.map.key;
 
-import lombok.Getter;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.hash.util.Digest;
-import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.db.container.map.KeyHasher;
 
 /**
- * Allows hashing a byte array using testMethodThing {@link Digest}
+ * Hashes a key using {@link Object#hashCode()}
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-public class ByteArrayKeyHasher implements KeyHasher<byte[]> {
-    @NonNull
-    private final Digest digest;
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class ObjectHashCodeKeyHasher<K> implements KeyHasher<K> {
+    private static final ObjectHashCodeKeyHasher INSTANCE = new ObjectHashCodeKeyHasher();
+
+    @SuppressWarnings("unchecked")
+    public static <K> ObjectHashCodeKeyHasher<K> getInstance() {
+        return (ObjectHashCodeKeyHasher<K>) INSTANCE;
+    }
 
     @Override
-    public byte[] hash(@NonNull byte[] key) {
-        return this.digest.hash(key).getHash();
+    public byte[] hash(@NonNull K key) {
+        int hash = key.hashCode();
+        return new byte[]{
+                (byte) (hash & 0xFF),
+                (byte) ((hash >>> 8) & 0xFF),
+                (byte) ((hash >>> 16) & 0xFF),
+                (byte) ((hash >>> 24) & 0xFF)
+        };
     }
 
     @Override
     public int getHashLength() {
-        return this.digest.getHashSize();
-    }
-
-    @RequiredArgsConstructor
-    @Getter
-    public static class ConstantLength implements KeyHasher<byte[]>, Logging {
-        private final int hashLength;
-
-        @Override
-        public byte[] hash(@NonNull byte[] key) {
-            if (key.length != this.hashLength) {
-                throw this.exception("Invalid byte[] size: ${0} (expected: ${1}", key.length, this.hashLength);
-            }
-            return key.clone();
-        }
-
-        @Override
-        public boolean canReconstructFromHash() {
-            return true;
-        }
-
-        @Override
-        public byte[] reconstructFromHash(@NonNull byte[] hash) {
-            if (hash.length != this.hashLength) {
-                throw this.exception("Invalid byte[] size: ${0} (expected: ${1}", hash.length, this.hashLength);
-            }
-            return hash.clone();
-        }
+        return 4;
     }
 }

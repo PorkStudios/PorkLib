@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.db.container.map.index;
+package net.daporkchop.lib.db.container.map;
 
 import lombok.NonNull;
 import net.daporkchop.lib.binary.Persistent;

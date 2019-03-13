@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.db.container.map.index.tree;
+package net.daporkchop.lib.dbextensions.defaults.map.index.tree;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -22,8 +22,8 @@ import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.math.primitive.BinMath;
 import net.daporkchop.lib.db.container.map.DBMap;
-import net.daporkchop.lib.db.container.map.index.IndexLookup;
-import net.daporkchop.lib.db.container.map.key.KeyHasher;
+import net.daporkchop.lib.db.container.map.IndexLookup;
+import net.daporkchop.lib.db.container.map.KeyHasher;
 import net.daporkchop.lib.db.util.PersistentSparseBitSet;
 import sun.misc.Cleaner;
 import sun.nio.ch.DirectBuffer;

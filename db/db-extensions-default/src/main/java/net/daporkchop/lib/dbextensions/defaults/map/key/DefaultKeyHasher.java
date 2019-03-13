@@ -13,12 +13,13 @@
  *
  */
 
-package net.daporkchop.lib.db.container.map.key;
+package net.daporkchop.lib.dbextensions.defaults.map.key;
 
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.stream.optimizations.FastByteArrayOutputStream;
+import net.daporkchop.lib.db.container.map.KeyHasher;
 import net.daporkchop.lib.hash.util.Digest;
 
 import java.io.ByteArrayOutputStream;

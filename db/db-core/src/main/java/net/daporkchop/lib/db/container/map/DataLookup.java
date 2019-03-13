@@ -13,14 +13,13 @@
  *
  */
 
-package net.daporkchop.lib.db.container.map.data;
+package net.daporkchop.lib.db.container.map;
 
 import lombok.NonNull;
 import net.daporkchop.lib.binary.Persistent;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.function.io.IOConsumer;
-import net.daporkchop.lib.db.container.map.DBMap;
 
 import java.io.File;
 import java.io.IOException;

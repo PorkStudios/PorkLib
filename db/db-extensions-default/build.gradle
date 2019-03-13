@@ -15,4 +15,11 @@
 
 dependencies {
     compile project(":db:db-core")
+
+    compile project(":encoding:nbt")
+    compile project(":hash")
+    compile project(":primitive")
+
+    compile "com.zaxxer:SparseBitSet:1.1"
+    compile "com.google.guava:guava:27.0-jre"
 }

@@ -17,6 +17,7 @@ rootProject.name = 'PorkLib'
 
 include 'ai'
 include 'binary'
+include 'collections'
 include 'crypto'
 include 'common'
 include 'concurrent'
@@ -53,4 +54,3 @@ findProject(':encoding:nbt')?.name = 'nbt'
 findProject(':game:nds')?.name = 'nds'
 findProject(':minecraft:minecraft-worldscanner')?.name = 'minecraft-worldscanner'
 findProject(':minecraft:minecraft-text')?.name = 'minecraft-text'
-

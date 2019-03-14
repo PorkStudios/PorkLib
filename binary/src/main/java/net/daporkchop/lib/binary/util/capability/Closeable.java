@@ -13,9 +13,16 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":collections")
-    compile project(":encoding")
-    compile project(":logging")
+package net.daporkchop.lib.binary.util.capability;
+
+import java.io.IOException;
+
+/**
+ * @author DaPorkchop_
+ */
+public interface Closeable extends java.io.Closeable {
+    @Override
+    void close() throws IOException;
+
+    boolean isClosed();
 }

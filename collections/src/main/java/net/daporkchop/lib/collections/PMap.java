@@ -16,6 +16,7 @@
 package net.daporkchop.lib.collections;
 
 import lombok.NonNull;
+import net.daporkchop.lib.collections.stream.PStream;
 import net.daporkchop.lib.collections.util.BaseCollection;
 
 import java.util.function.BiConsumer;
@@ -108,12 +109,14 @@ public interface PMap<K, V> extends BaseCollection {
 
     /**
      * Iterates over all key => value pairs in this map, passing them to the given function as parameters one at a time.
+     *
      * @param consumer the function to run
      */
     void forEach(@NonNull BiConsumer<K, V> consumer);
 
     /**
      * Iterates over all keys in this map, passing them to the given function as parameters one at a time.
+     *
      * @param consumer the function to run
      */
     default void forEachKey(@NonNull Consumer<K> consumer) {
@@ -122,9 +125,77 @@ public interface PMap<K, V> extends BaseCollection {
 
     /**
      * Iterates over all values in this map, passing them to the given function as parameters one at a time.
+     *
      * @param consumer the function to run
      */
-    default void forEachValue(@NonNull Consumer<V> consumer)    {
+    default void forEachValue(@NonNull Consumer<V> consumer) {
         this.forEach((key, value) -> consumer.accept(value));
+    }
+
+    /**
+     * Iterates over all key => value pairs in this map, passing them to the given function as parameters one at a time.
+     *
+     * @param consumer the function to run
+     */
+    void forEachEntry(@NonNull Consumer<Entry<K, V>> consumer);
+
+    /**
+     * Gets a stream over all the keys in this map.
+     *
+     * @return a stream over all the keys in this map
+     */
+    PStream<K> keyStream();
+
+    /**
+     * Gets a stream over all the keys in this map that supports concurrency.
+     *
+     * @return a stream over all the keys in this map that supports concurrency
+     */
+    default PStream<K> concurrentKeyStream() {
+        return this.keyStream().concurrent();
+    }
+
+    /**
+     * Gets a stream over all the values in this map.
+     *
+     * @return a stream over all the values in this map
+     */
+    PStream<V> valueStream();
+
+    /**
+     * Gets a stream over all the values in this map that supports concurrency.
+     *
+     * @return a stream over all the values in this map that supports concurrency
+     */
+    default PStream<V> concurrentvalueStream() {
+        return this.valueStream().concurrent();
+    }
+
+    /**
+     * Gets a stream over all the key => value pairs in this map.
+     *
+     * @return a stream over all the key => value pairs in this map
+     */
+    PStream<Entry<K, V>> entryStream();
+
+    /**
+     * Gets a stream over all the key => value pairs in this map that supports concurrency.
+     *
+     * @return a stream over all the key => value pairs in this map that supports concurrency
+     */
+    default PStream<Entry<K, V>> concurrententryStream() {
+        return this.entryStream().concurrent();
+    }
+
+    interface Entry<K, V> {
+        K getKey();
+
+        V getValue();
+
+        void setValue();
+
+        V getAndSetValue();
+
+        void remove();
     }
 }

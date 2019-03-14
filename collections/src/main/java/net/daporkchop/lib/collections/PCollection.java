@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.collections;
 
+import net.daporkchop.lib.collections.stream.PStream;
 import net.daporkchop.lib.collections.util.BaseCollection;
 
 /**
@@ -63,5 +64,21 @@ public interface PCollection<V> extends BaseCollection {
             removed = true;
         }
         return removed;
+    }
+
+    /**
+     * Gets a stream over the contents of this collection.
+     *
+     * @return a stream over the contents of this collection
+     */
+    PStream<V> stream();
+
+    /**
+     * Gets a stream over the contents of this collection that supports concurrency.
+     *
+     * @return a stream over the contents of this collection that supports concurrency
+     */
+    default PStream<V> concurrentStream() {
+        return this.stream().concurrent();
     }
 }

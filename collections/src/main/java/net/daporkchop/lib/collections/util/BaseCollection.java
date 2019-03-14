@@ -13,9 +13,43 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":collections")
-    compile project(":encoding")
-    compile project(":logging")
+package net.daporkchop.lib.collections.util;
+
+/**
+ * Some shared methods across all types of collections.
+ * <p>
+ * Implementations of this class are expected to be thread-safe at a minimum, optionally supporting full concurrency.
+ *
+ * @author DaPorkchop_
+ */
+public interface BaseCollection {
+    /**
+     * Gets this collection's size (the number of values in the collection).
+     *
+     * @return this collection's size
+     */
+    long size();
+
+    /**
+     * Checks whether or not this collection is empty (i.e. contains no values).
+     *
+     * @return whether or not this collection is empty
+     */
+    default boolean isEmpty() {
+        return this.size() == 0L;
+    }
+
+    /**
+     * Removes all values from this collection.
+     */
+    void clear();
+
+    /**
+     * Checks whether or not this collection supports concurrent access. All implementations of {@link BaseCollection}
+     * are required to be thread-safe, but full concurrency is optional, so this provides a way of checking whether an
+     * implementation supports concurrency or not.
+     *
+     * @return whether or not this collection supports concurrent access
+     */
+    boolean isConcurrent();
 }

@@ -13,9 +13,26 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":collections")
-    compile project(":encoding")
-    compile project(":logging")
+package net.daporkchop.lib.common.function.io;
+
+import net.daporkchop.lib.common.util.PConstants;
+
+import java.io.IOException;
+import java.util.function.Supplier;
+
+/**
+ * @author DaPorkchop_
+ */
+@FunctionalInterface
+public interface IORunnable extends Runnable, PConstants {
+    @Override
+    default void run() {
+        try {
+            this.runThrowing();
+        } catch (IOException e) {
+            throw this.exception(e);
+        }
+    }
+
+    void runThrowing() throws IOException;
 }

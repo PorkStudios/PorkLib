@@ -13,9 +13,25 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":collections")
-    compile project(":encoding")
-    compile project(":logging")
+package net.daporkchop.lib.collections.util.exception;
+
+/**
+ * @author DaPorkchop_
+ */
+public class IterationCompleteException extends RuntimeException {
+    public IterationCompleteException() {
+        super();
+    }
+
+    public IterationCompleteException(String message) {
+        super(message);
+    }
+
+    public IterationCompleteException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public IterationCompleteException(Throwable cause) {
+        super(cause);
+    }
 }

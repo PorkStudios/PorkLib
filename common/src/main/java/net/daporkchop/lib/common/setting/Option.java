@@ -91,8 +91,6 @@ public class Option<T> {
         public Option<T> build() {
             if (this.name == null) {
                 throw new IllegalStateException("name not set!");
-            } else if (this.defaultValue == null) {
-                throw new IllegalStateException("defaultValue not set!");
             } else {
                 return new Option<>(this.name, this.defaultValue, this.required, this.name.hashCode());
             }

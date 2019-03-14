@@ -18,7 +18,7 @@ package net.daporkchop.lib.dbextensions.defaults.map.index.hashtable;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.db.container.map.DBHashMap;
+import net.daporkchop.lib.dbextensions.defaults.map.DBHashMap;
 
 import java.io.File;
 import java.io.IOException;

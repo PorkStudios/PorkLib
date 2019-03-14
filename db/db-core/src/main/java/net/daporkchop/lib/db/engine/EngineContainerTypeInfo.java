@@ -15,8 +15,52 @@
 
 package net.daporkchop.lib.db.engine;
 
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.common.setting.OptionGroup;
+import net.daporkchop.lib.common.setting.Settings;
+import net.daporkchop.lib.db.container.Container;
+import net.daporkchop.lib.db.container.ContainerBuilder;
+import net.daporkchop.lib.db.container.ContainerType;
+
+import java.util.function.Function;
+
+import static net.daporkchop.lib.db.container.ContainerType.TYPE_COUNT;
+
 /**
  * @author DaPorkchop_
  */
 public class EngineContainerTypeInfo {
+    protected final Node[] values = new Node[TYPE_COUNT];
+
+    public <C extends Container> EngineContainerTypeInfo configure(@NonNull ContainerType<C> type, OptionGroup options, Function<Settings, C> builder, Class<C> clazz)  {
+        this.values[type.getId()] = new Node<>(options, builder, clazz);
+        return this;
+    }
+
+    public OptionGroup getOptions(@NonNull ContainerType type)  {
+        return this.values[type.getId()].options;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <C extends Container> Function<Settings, C> getBuilder(@NonNull ContainerType<C> type)  {
+        return this.values[type.getId()].builder;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <C extends Container> Class<? extends C> getClass(@NonNull ContainerType<C> type)  {
+        return this.values[type.getId()].clazz;
+    }
+
+    @RequiredArgsConstructor
+    @Getter
+    protected static class Node<C extends Container> {
+        @NonNull
+        protected final OptionGroup options;
+        @NonNull
+        protected final Function<Settings, C> builder;
+        @NonNull
+        protected final Class<C> clazz;
+    }
 }

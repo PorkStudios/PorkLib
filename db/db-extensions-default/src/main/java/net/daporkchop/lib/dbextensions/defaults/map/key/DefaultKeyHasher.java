@@ -19,7 +19,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.stream.optimizations.FastByteArrayOutputStream;
-import net.daporkchop.lib.db.container.map.KeyHasher;
+import net.daporkchop.lib.dbextensions.defaults.map.KeyHasher;
 import net.daporkchop.lib.hash.util.Digest;
 
 import java.io.ByteArrayOutputStream;

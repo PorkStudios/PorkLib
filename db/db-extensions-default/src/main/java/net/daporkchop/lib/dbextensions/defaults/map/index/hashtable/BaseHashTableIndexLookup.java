@@ -19,9 +19,9 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import net.daporkchop.lib.common.function.io.IOFunction;
-import net.daporkchop.lib.db.container.map.DBHashMap;
-import net.daporkchop.lib.db.container.map.IndexLookup;
-import net.daporkchop.lib.db.container.map.KeyHasher;
+import net.daporkchop.lib.dbextensions.defaults.map.DBHashMap;
+import net.daporkchop.lib.dbextensions.defaults.map.IndexLookup;
+import net.daporkchop.lib.dbextensions.defaults.map.KeyHasher;
 
 import java.io.File;
 import java.io.IOException;

@@ -18,7 +18,7 @@ package net.daporkchop.lib.dbextensions.defaults.map.key;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.db.container.map.KeyHasher;
+import net.daporkchop.lib.dbextensions.defaults.map.KeyHasher;
 
 /**
  * Hashes a key using {@link Object#hashCode()}

@@ -16,9 +16,18 @@
 package net.daporkchop.lib.db.container;
 
 import net.daporkchop.lib.binary.util.capability.Closeable;
+import net.daporkchop.lib.common.setting.Option;
+import net.daporkchop.lib.common.setting.OptionGroup;
 
 /**
  * @author DaPorkchop_
  */
 public interface Container extends Closeable {
+    Option<String> NAME = Option.<String>builder().setName("NAME").setRequired(true).build();
+
+    OptionGroup BASE_CONTAINER_OPTIONS = OptionGroup.of(
+            NAME
+    );
+
+    String getName();
 }

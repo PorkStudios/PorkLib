@@ -13,32 +13,29 @@
  *
  */
 
-package net.daporkchop.lib.db.container.map;
+package net.daporkchop.lib.db.engine;
 
-import lombok.NonNull;
-import net.daporkchop.lib.binary.util.capability.Closeable;
-import net.daporkchop.lib.collections.PMap;
 import net.daporkchop.lib.db.container.Container;
+import net.daporkchop.lib.db.container.ContainerType;
 
-import java.io.IOException;
+import java.io.Closeable;
 
 /**
- * A map stored on the file system.
- *
- * @param <K> the type to be used as a key
- * @param <V> the type to be used as a value
  * @author DaPorkchop_
  */
-public interface DBMap<K, V> extends Container, PMap<K, V> {
-    @Override
-    void close() throws IOException;
-
+public interface DBEngine extends Closeable {
     /**
-     * Checks if this map is closed.
-     *
-     * @return whether or not this map has been closed
+     * Gets an array of all container types supported by this engine.
+     * @return an array of all container types supported by this engine
      */
-    default boolean isClosed() {
-        return this.size() == -1L;
+    ContainerType[] getContainerTypes();
+
+    @SuppressWarnings("unchecked")
+    default <C extends Container> ContainerType<C> getContainerType(int typeId)   {
+        return (ContainerType<C>) this.getContainerTypes()[typeId];
+    }
+
+    default boolean supportsContainerType(int typeId)   {
+        return this.getContainerTypes()[typeId] != null;
     }
 }

@@ -15,27 +15,13 @@
 
 package net.daporkchop.lib.db.engine;
 
+import net.daporkchop.lib.binary.util.capability.Closeable;
 import net.daporkchop.lib.db.container.Container;
 import net.daporkchop.lib.db.container.ContainerType;
-
-import java.io.Closeable;
 
 /**
  * @author DaPorkchop_
  */
 public interface DBEngine extends Closeable {
-    /**
-     * Gets an array of all container types supported by this engine.
-     * @return an array of all container types supported by this engine
-     */
-    ContainerType[] getContainerTypes();
-
-    @SuppressWarnings("unchecked")
-    default <C extends Container> ContainerType<C> getContainerType(int typeId)   {
-        return (ContainerType<C>) this.getContainerTypes()[typeId];
-    }
-
-    default boolean supportsContainerType(int typeId)   {
-        return this.getContainerTypes()[typeId] != null;
-    }
+    EngineContainerTypeInfo getTypeInfo();
 }

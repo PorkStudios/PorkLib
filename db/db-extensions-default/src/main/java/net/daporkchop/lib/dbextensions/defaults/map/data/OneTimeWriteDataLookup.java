@@ -24,8 +24,8 @@ import net.daporkchop.lib.binary.stream.data.HugeBufferOut;
 import net.daporkchop.lib.binary.stream.file.BufferingFileInput;
 import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.db.container.map.DBHashMap;
-import net.daporkchop.lib.db.container.map.DataLookup;
+import net.daporkchop.lib.dbextensions.defaults.map.DBHashMap;
+import net.daporkchop.lib.dbextensions.defaults.map.DataLookup;
 
 import java.io.File;
 import java.io.IOException;

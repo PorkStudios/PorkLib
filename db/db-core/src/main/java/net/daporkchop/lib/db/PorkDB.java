@@ -15,8 +15,67 @@
 
 package net.daporkchop.lib.db;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.binary.util.capability.Closeable;
+import net.daporkchop.lib.db.container.Container;
+import net.daporkchop.lib.db.container.ContainerBuilder;
+import net.daporkchop.lib.db.container.ContainerType;
+import net.daporkchop.lib.db.engine.DBEngine;
+
+import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
+import java.util.function.Function;
+
+import static net.daporkchop.lib.db.container.ContainerType.TYPE_COUNT;
+
 /**
  * @author DaPorkchop_
  */
-public class PorkDB {
+@RequiredArgsConstructor
+public class PorkDB implements Closeable {
+    @SuppressWarnings("unchecked")
+    protected final Map<String, Container>[] containerMaps = (Map<String, Container>[]) new Map[TYPE_COUNT];
+
+    @NonNull
+    protected final DBEngine engine;
+
+    {
+        for (int i = TYPE_COUNT - 1; i >= 0; i--)   {
+            this.containerMaps[i] = new ConcurrentHashMap<>();
+        }
+    }
+
+    @Override
+    public void close() throws IOException {
+        this.engine.close();
+    }
+
+    @Override
+    public boolean isClosed() {
+        return this.engine.isClosed();
+    }
+
+    @SuppressWarnings("unchecked")
+    public <C extends Container> C getContainer(@NonNull ContainerType<C> type, @NonNull String name, @NonNull Consumer<ContainerBuilder<C>> initializer)    {
+        if (name.isEmpty()) {
+            throw new IllegalArgumentException("Name may not be empty!");
+        }
+        return (C) this.ensureOpen().containerMaps[type.getId()].computeIfAbsent(name, n -> {
+            ContainerBuilder<C> builder = type.builder(this.engine.getTypeInfo())
+                    .set(Container.NAME, n);
+            initializer.accept(builder);
+            return builder.build();
+        });
+    }
+
+    public PorkDB ensureOpen()    {
+        if (this.isClosed())    {
+            throw new IllegalStateException("Already closed!");
+        } else {
+            return this;
+        }
+    }
 }

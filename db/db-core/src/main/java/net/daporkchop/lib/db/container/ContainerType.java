@@ -17,45 +17,32 @@ package net.daporkchop.lib.db.container;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.setting.OptionGroup;
 import net.daporkchop.lib.common.setting.Settings;
 import net.daporkchop.lib.db.engine.DBEngine;
 import net.daporkchop.lib.db.container.map.DBMap;
+import net.daporkchop.lib.db.engine.EngineContainerTypeInfo;
 
 import java.util.function.Function;
 
 /**
  * @author DaPorkchop_
  */
+@RequiredArgsConstructor
 @Getter
 public class ContainerType<C extends Container> {
-    private static final Class<?>[] TYPES = {
-            DBMap.class
-    };
+    public static final int TYPE_COUNT = 1;
 
     public static final int TYPE_MAP = 0;
 
+    public static final ContainerType<DBMap> MAP = new ContainerType<>(TYPE_MAP, DBMap.class);
+
     protected final int id;
-    protected final OptionGroup options;
-    protected final Function<Settings, C> builder;
+    @NonNull
     protected final Class<C> clazz;
-    protected final Class<? extends DBEngine> engineClazz;
 
-    public ContainerType(int id, @NonNull Class<C> clazz, @NonNull Class<? extends DBEngine> engineClazz, @NonNull OptionGroup options, @NonNull Function<Settings, C> builder)  {
-        if (id < 0 || id >= TYPES.length)    {
-            throw new IllegalArgumentException(String.format("ID must be in range 0-%d!", TYPES.length));
-        } else if (!TYPES[id].isAssignableFrom(clazz))  {
-            throw new IllegalArgumentException(String.format("Class \"%s\" does not inherit from \"%s\"!", clazz.getCanonicalName(), TYPES[id].getCanonicalName()));
-        }
-
-        this.id = id;
-        this.options = options;
-        this.builder = builder;
-        this.clazz = clazz;
-        this.engineClazz = engineClazz;
-    }
-
-    public ContainerBuilder<C> builder()    {
-        return new ContainerBuilder<>(Settings.builder().options(this.options).build(), this.builder);
+    public ContainerBuilder<C> builder(@NonNull EngineContainerTypeInfo info)    {
+        return new ContainerBuilder<>(Settings.builder().options(info.getOptions(this)).build(), info.getBuilder(this));
     }
 }

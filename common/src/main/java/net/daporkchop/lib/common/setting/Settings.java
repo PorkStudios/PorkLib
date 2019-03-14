@@ -51,9 +51,13 @@ public class Settings {
     }
 
     public Settings copy(@NonNull Settings other)    {
-        other.backingMap.entrySet().stream()
-                .filter(entry -> this.backingMap.containsKey(entry.getKey()))
-                .forEach(entry -> this.set(entry.getKey(), entry.getValue()));
+        if (false) {
+            other.backingMap.entrySet().stream()
+                    .filter(entry -> this.backingMap.containsKey(entry.getKey()))
+                    .forEach(entry -> this.set(entry.getKey(), entry.getValue()));
+        } else {
+            other.backingMap.forEach(this::set);
+        }
         return this;
     }
 

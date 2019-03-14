@@ -23,9 +23,9 @@ import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.common.function.io.IOFunction;
 import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.db.container.map.DBHashMap;
-import net.daporkchop.lib.db.container.map.IndexLookup;
-import net.daporkchop.lib.db.container.map.KeyHasher;
+import net.daporkchop.lib.dbextensions.defaults.map.DBHashMap;
+import net.daporkchop.lib.dbextensions.defaults.map.IndexLookup;
+import net.daporkchop.lib.dbextensions.defaults.map.KeyHasher;
 import net.daporkchop.lib.logging.Logging;
 
 import java.io.File;

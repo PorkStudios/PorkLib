@@ -18,7 +18,7 @@ package net.daporkchop.lib.dbextensions.defaults.map.key;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.db.container.map.KeyHasher;
+import net.daporkchop.lib.dbextensions.defaults.map.KeyHasher;
 
 /**
  * Wrapper class which stores a bunch of {@link KeyHasher}s for primitive types

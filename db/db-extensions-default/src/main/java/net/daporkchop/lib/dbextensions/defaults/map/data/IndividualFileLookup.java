@@ -21,8 +21,8 @@ import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.db.container.map.DBHashMap;
-import net.daporkchop.lib.db.container.map.DataLookup;
+import net.daporkchop.lib.dbextensions.defaults.map.DBHashMap;
+import net.daporkchop.lib.dbextensions.defaults.map.DataLookup;
 import net.daporkchop.lib.dbextensions.defaults.util.PersistentSparseBitSet;
 
 import java.io.File;

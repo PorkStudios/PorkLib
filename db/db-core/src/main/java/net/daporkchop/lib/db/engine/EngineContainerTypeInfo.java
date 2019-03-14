@@ -24,6 +24,7 @@ import net.daporkchop.lib.db.container.Container;
 import net.daporkchop.lib.db.container.ContainerBuilder;
 import net.daporkchop.lib.db.container.ContainerType;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static net.daporkchop.lib.db.container.ContainerType.TYPE_COUNT;
@@ -31,10 +32,10 @@ import static net.daporkchop.lib.db.container.ContainerType.TYPE_COUNT;
 /**
  * @author DaPorkchop_
  */
-public class EngineContainerTypeInfo {
+public class EngineContainerTypeInfo<E extends DBEngine> {
     protected final Node[] values = new Node[TYPE_COUNT];
 
-    public <C extends Container> EngineContainerTypeInfo configure(@NonNull ContainerType<C> type, OptionGroup options, Function<Settings, C> builder, Class<C> clazz)  {
+    public <C extends Container> EngineContainerTypeInfo configure(@NonNull ContainerType<? super C> type, OptionGroup options, BiFunction<Settings, E, C> builder, Class<C> clazz)  {
         this.values[type.getId()] = new Node<>(options, builder, clazz);
         return this;
     }
@@ -44,7 +45,7 @@ public class EngineContainerTypeInfo {
     }
 
     @SuppressWarnings("unchecked")
-    public <C extends Container> Function<Settings, C> getBuilder(@NonNull ContainerType<C> type)  {
+    public <C extends Container> BiFunction<Settings, E, C> getBuilder(@NonNull ContainerType<C> type)  {
         return this.values[type.getId()].builder;
     }
 
@@ -55,11 +56,11 @@ public class EngineContainerTypeInfo {
 
     @RequiredArgsConstructor
     @Getter
-    protected static class Node<C extends Container> {
+    protected class Node<C extends Container> {
         @NonNull
         protected final OptionGroup options;
         @NonNull
-        protected final Function<Settings, C> builder;
+        protected final BiFunction<Settings, E, C> builder;
         @NonNull
         protected final Class<C> clazz;
     }

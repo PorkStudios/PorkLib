@@ -42,7 +42,8 @@ public class ContainerType<C extends Container> {
     @NonNull
     protected final Class<C> clazz;
 
-    public ContainerBuilder<C> builder(@NonNull EngineContainerTypeInfo info)    {
-        return new ContainerBuilder<>(Settings.builder().options(info.getOptions(this)).build(), info.getBuilder(this));
+    @SuppressWarnings("unchecked")
+    public <E extends DBEngine> ContainerBuilder<C, E> builder(@NonNull EngineContainerTypeInfo info, @NonNull E engine)    {
+        return new ContainerBuilder<>(Settings.builder().options(info.getOptions(this)).build(), info.getBuilder(this), engine);
     }
 }

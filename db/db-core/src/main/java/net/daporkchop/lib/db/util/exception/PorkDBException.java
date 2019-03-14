@@ -13,22 +13,25 @@
  *
  */
 
-package net.daporkchop.lib.db.container;
-
-import net.daporkchop.lib.binary.util.capability.Closeable;
-import net.daporkchop.lib.common.setting.Option;
-import net.daporkchop.lib.common.setting.OptionGroup;
-import net.daporkchop.lib.db.util.exception.DBCloseException;
+package net.daporkchop.lib.db.util.exception;
 
 /**
  * @author DaPorkchop_
  */
-public interface Container extends Closeable<DBCloseException> {
-    Option<String> NAME = Option.required("NAME");
+public abstract class PorkDBException extends RuntimeException {
+    public PorkDBException() {
+        super();
+    }
 
-    OptionGroup BASE_CONTAINER_OPTIONS = OptionGroup.of(
-            NAME
-    );
+    public PorkDBException(String message) {
+        super(message);
+    }
 
-    String getName();
+    public PorkDBException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public PorkDBException(Throwable cause) {
+        super(cause);
+    }
 }

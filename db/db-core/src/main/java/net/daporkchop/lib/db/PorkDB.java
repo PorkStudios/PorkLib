@@ -16,45 +16,55 @@
 package net.daporkchop.lib.db;
 
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.util.capability.Closeable;
+import net.daporkchop.lib.common.function.io.IOConsumer;
+import net.daporkchop.lib.common.setting.Settings;
 import net.daporkchop.lib.db.container.Container;
 import net.daporkchop.lib.db.container.ContainerBuilder;
 import net.daporkchop.lib.db.container.ContainerType;
 import net.daporkchop.lib.db.engine.DBEngine;
+import net.daporkchop.lib.db.util.exception.DBCloseException;
+import net.daporkchop.lib.db.util.exception.DBOpenException;
 
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import static net.daporkchop.lib.db.container.ContainerType.TYPE_COUNT;
 
 /**
  * @author DaPorkchop_
  */
-public class PorkDB implements Closeable {
+public class PorkDB implements Closeable<DBCloseException> {
     @SuppressWarnings("unchecked")
     protected final Map<String, Container>[] containerMaps = (Map<String, Container>[]) new Map[TYPE_COUNT];
 
     protected final DBEngine engine;
 
-    public PorkDB(@NonNull DBEngine engine) throws IOException {
-        if (engine.isClosed())  {
-            throw new IllegalStateException("Engine is already closed!");
-        }
+    public PorkDB(@NonNull DBEngine engine) {
+        try {
+            if (engine.isClosed()) {
+                throw new IllegalStateException("Engine is already closed!");
+            }
 
-        this.engine = engine;
-        this.engine.init(this);
-        for (int i = TYPE_COUNT - 1; i >= 0; i--)   {
-            this.containerMaps[i] = new ConcurrentHashMap<>();
+            this.engine = engine;
+            this.engine.init(this);
+            for (int i = TYPE_COUNT - 1; i >= 0; i--) {
+                this.containerMaps[i] = new ConcurrentHashMap<>();
+            }
+        } catch (IOException e) {
+            throw new DBOpenException(e);
         }
     }
 
     @Override
-    public void close() throws IOException {
-        this.engine.close();
+    public void close() {
+            for (int i = TYPE_COUNT - 1; i >= 0; i--) {
+                this.containerMaps[i].values().forEach(Container::close);
+                this.containerMaps[i] = null;
+            }
+            this.engine.close();
     }
 
     @Override
@@ -63,14 +73,14 @@ public class PorkDB implements Closeable {
     }
 
     @SuppressWarnings("unchecked")
-    public <C extends Container> C getContainer(@NonNull ContainerType<C> type, @NonNull String name, @NonNull Consumer<ContainerBuilder<C>> initializer)    {
+    public <C extends Container> C getContainer(@NonNull ContainerType<C> type, @NonNull String name, @NonNull Consumer<Settings> initializer)    {
         if (name.isEmpty()) {
             throw new IllegalArgumentException("Name may not be empty!");
         }
         return (C) this.ensureOpen().containerMaps[type.getId()].computeIfAbsent(name, n -> {
-            ContainerBuilder<C> builder = type.builder(this.engine.getTypeInfo())
+            ContainerBuilder<C, ? extends DBEngine> builder = type.builder(this.engine.getTypeInfo(), this.engine)
                     .set(Container.NAME, n);
-            initializer.accept(builder);
+            initializer.accept(builder.getSettings());
             return builder.build();
         });
     }
@@ -80,6 +90,15 @@ public class PorkDB implements Closeable {
             throw new IllegalStateException("Already closed!");
         } else {
             return this;
+        }
+    }
+
+    public void closeContainer(@NonNull ContainerType type, @NonNull String name)   {
+        Container container = this.ensureOpen().containerMaps[type.getId()].remove(name);
+        if (container == null) {
+            throw new IllegalStateException(String.format("Unknown container with id: %d:\"%s\"", type.getId(), name));
+        } else if (container.isClosed()) {
+            container.close();
         }
     }
 }

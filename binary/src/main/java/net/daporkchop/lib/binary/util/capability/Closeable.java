@@ -20,9 +20,9 @@ import java.io.IOException;
 /**
  * @author DaPorkchop_
  */
-public interface Closeable extends java.io.Closeable {
+public interface Closeable<E extends Exception> extends AutoCloseable {
     @Override
-    void close() throws IOException;
+    void close() throws E;
 
     boolean isClosed();
 }

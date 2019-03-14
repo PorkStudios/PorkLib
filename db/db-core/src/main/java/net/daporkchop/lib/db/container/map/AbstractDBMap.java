@@ -19,24 +19,25 @@ import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.serialization.Serializer;
 import net.daporkchop.lib.common.setting.Settings;
+import net.daporkchop.lib.db.container.AbstractContainer;
+import net.daporkchop.lib.encoding.compression.CompressionHelper;
 
 /**
  * @author DaPorkchop_
  */
-public abstract class AbstractDBMap<K, V> implements DBMap<K, V> {
-    @Getter
-    protected final String name;
-
+public abstract class AbstractDBMap<K, V> extends AbstractContainer implements DBMap<K, V> {
+    protected final boolean keysReadable;
     protected final Serializer<K> keySerializer;
     protected final Serializer<V> valueSerializer;
+    protected final CompressionHelper valueCompression;
 
     @SuppressWarnings("unchecked")
     public AbstractDBMap(@NonNull Settings settings)    {
-        settings.validateMatches(DB_MAP_OPTIONS);
+        super(settings.validateMatches(DB_MAP_OPTIONS));
 
-        this.name = settings.get(NAME);
-
+        this.keysReadable = settings.get(KEYS_READABLE);
         this.keySerializer = (Serializer<K>) settings.get(KEY_SERIALIZER);
         this.valueSerializer = (Serializer<V>) settings.get(VALUE_SERIALIZER);
+        this.valueCompression = settings.get(VALUE_COMPRESSION);
     }
 }

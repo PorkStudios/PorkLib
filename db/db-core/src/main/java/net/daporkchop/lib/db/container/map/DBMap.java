@@ -20,6 +20,8 @@ import net.daporkchop.lib.collections.PMap;
 import net.daporkchop.lib.common.setting.Option;
 import net.daporkchop.lib.common.setting.OptionGroup;
 import net.daporkchop.lib.db.container.Container;
+import net.daporkchop.lib.encoding.compression.Compression;
+import net.daporkchop.lib.encoding.compression.CompressionHelper;
 
 import java.io.IOException;
 
@@ -31,17 +33,21 @@ import java.io.IOException;
  * @author DaPorkchop_
  */
 public interface DBMap<K, V> extends Container, PMap<K, V> {
+    Option<Boolean> KEYS_READABLE = Option.of("KEYS_READABLE", true);
     Option<Serializer> KEY_SERIALIZER = Option.optional("KEY_SERIALIZER");
     Option<Serializer> VALUE_SERIALIZER = Option.required("VALUE_SERIALIZER");
+    Option<CompressionHelper> VALUE_COMPRESSION = Option.of("VALUE_COMPRESSION", Compression.NONE);
 
     OptionGroup DB_MAP_OPTIONS = OptionGroup.of(
             Container.BASE_CONTAINER_OPTIONS,
+            KEYS_READABLE,
             KEY_SERIALIZER,
-            VALUE_SERIALIZER
+            VALUE_SERIALIZER,
+            VALUE_COMPRESSION
     );
 
     @Override
-    void close() throws IOException;
+    void close();
 
     /**
      * Checks if this map is closed.

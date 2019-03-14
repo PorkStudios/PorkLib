@@ -70,9 +70,17 @@ public interface PMap<K, V> extends BaseCollection {
      *
      * @param key   the key
      * @param value the value corresponding to the key
+     */
+    void put(@NonNull K key, @NonNull V value);
+
+    /**
+     * Submits a key => value pair to the map, replacing existing mappings if present.
+     *
+     * @param key   the key
+     * @param value the value corresponding to the key
      * @return {@code true} if a key => value pair with the same key already existed and was replaced, {@code false} if no such pair existed and a new one was created.
      */
-    boolean put(@NonNull K key, @NonNull V value);
+    boolean checkAndPut(@NonNull K key, @NonNull V value);
 
     /**
      * Submits a key => value pair to the map, replacing existing mappings if present and returning the replaced value.
@@ -95,9 +103,16 @@ public interface PMap<K, V> extends BaseCollection {
      * Removes a key => value pair with a given key from the map.
      *
      * @param key the key
+     */
+    void remove(@NonNull K key);
+
+    /**
+     * Removes a key => value pair with a given key from the map.
+     *
+     * @param key the key
      * @return {@code true} if a key => value pair with the same key already existed and was replaced, {@code false} if no such pair existed and no action was taken.
      */
-    boolean remove(@NonNull K key);
+    boolean checkAndRemove(@NonNull K key);
 
     /**
      * Removes a key => value pair with a given key from the map, returning the removed value if present.
@@ -131,13 +146,6 @@ public interface PMap<K, V> extends BaseCollection {
     default void forEachValue(@NonNull Consumer<V> consumer) {
         this.forEach((key, value) -> consumer.accept(value));
     }
-
-    /**
-     * Iterates over all key => value pairs in this map, passing them to the given function as parameters one at a time.
-     *
-     * @param consumer the function to run
-     */
-    void forEachEntry(@NonNull Consumer<Entry<K, V>> consumer);
 
     /**
      * Gets a stream over all the keys in this map.

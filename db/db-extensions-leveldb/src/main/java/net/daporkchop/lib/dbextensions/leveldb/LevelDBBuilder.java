@@ -32,7 +32,7 @@ public class LevelDBBuilder {
         return this;
     }
 
-    public LevelDBEngine build() throws IOException {
+    public LevelDBEngine build() {
         return new LevelDBEngine(this.settings);
     }
 }

@@ -19,8 +19,11 @@ import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.common.setting.Settings;
 import net.daporkchop.lib.db.PorkDB;
+import net.daporkchop.lib.db.container.ContainerType;
 import net.daporkchop.lib.db.engine.DBEngine;
 import net.daporkchop.lib.db.engine.EngineContainerTypeInfo;
+import net.daporkchop.lib.db.util.exception.DBCloseException;
+import net.daporkchop.lib.dbextensions.leveldb.container.LevelDBMap;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.Options;
 import org.iq80.leveldb.impl.Iq80DBFactory;
@@ -34,8 +37,15 @@ import static net.daporkchop.lib.dbextensions.leveldb.OptionsLevelDB.*;
 /**
  * @author DaPorkchop_
  */
+@Getter
 public class LevelDBEngine implements DBEngine {
-    @Getter
+    protected static final EngineContainerTypeInfo TYPE_INFO = new EngineContainerTypeInfo<LevelDBEngine>()
+            .configure(ContainerType.MAP, LEVELDB_MAP_OPTIONS, LevelDBMap::new, LevelDBMap.class);
+
+    public static LevelDBBuilder builder()  {
+        return new LevelDBBuilder();
+    }
+
     protected PorkDB parent;
 
     protected final AtomicBoolean closed = new AtomicBoolean(false);
@@ -43,7 +53,7 @@ public class LevelDBEngine implements DBEngine {
     protected final Settings settings;
     protected DB delegate;
 
-    public LevelDBEngine(@NonNull Settings settings) throws IOException {
+    public LevelDBEngine(@NonNull Settings settings) {
         this.settings = settings.validateMatches(LEVELDB_INIT_OPTIONS);
     }
 
@@ -75,15 +85,19 @@ public class LevelDBEngine implements DBEngine {
 
     @Override
     public EngineContainerTypeInfo getTypeInfo() {
-        return null;
+        return TYPE_INFO;
     }
 
     @Override
-    public void close() throws IOException {
-        if (this.closed.getAndSet(true))    {
-            throw new IllegalStateException("Already closed!");
-        } else {
-            this.delegate.close();
+    public void close() {
+        try {
+            if (this.closed.getAndSet(true)) {
+                throw new IllegalStateException("Already closed!");
+            } else {
+                this.delegate.close();
+            }
+        } catch (IOException e) {
+            throw new DBCloseException(e);
         }
     }
 

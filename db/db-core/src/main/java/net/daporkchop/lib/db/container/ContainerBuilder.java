@@ -15,29 +15,36 @@
 
 package net.daporkchop.lib.db.container;
 
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import net.daporkchop.lib.common.setting.Option;
 import net.daporkchop.lib.common.setting.Settings;
+import net.daporkchop.lib.db.engine.DBEngine;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-public class ContainerBuilder<C extends Container> {
+public class ContainerBuilder<C extends Container, E extends DBEngine> {
     @NonNull
+    @Getter
     protected final Settings settings;
     @NonNull
-    protected final Function<Settings, C> builder;
+    protected final BiFunction<Settings, E, C> builder;
+    @NonNull
+    protected final E engine;
 
-    public <T> ContainerBuilder<C> set(@NonNull Option<T> option, @NonNull T value) {
+    public <T> ContainerBuilder<C, E> set(@NonNull Option<T> option, @NonNull T value) {
         this.settings.set(option, value);
         return this;
     }
 
     public C build() {
-        return this.builder.apply(this.settings.validate());
+        return this.builder.apply(this.settings.validate(), this.engine);
     }
 }

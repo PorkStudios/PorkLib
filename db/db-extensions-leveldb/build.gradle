@@ -14,7 +14,9 @@
  */
 
 dependencies {
+    compile project(":concurrent")
     compile project(":db:db-core")
+    compile project(":hash")
 
     compile "org.iq80.leveldb:leveldb:0.12-SNAPSHOT"
 }

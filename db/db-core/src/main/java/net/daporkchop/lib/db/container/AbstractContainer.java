@@ -15,20 +15,22 @@
 
 package net.daporkchop.lib.db.container;
 
-import net.daporkchop.lib.binary.util.capability.Closeable;
-import net.daporkchop.lib.common.setting.Option;
-import net.daporkchop.lib.common.setting.OptionGroup;
-import net.daporkchop.lib.db.util.exception.DBCloseException;
+import lombok.Getter;
+import lombok.NonNull;
+import net.daporkchop.lib.common.setting.Settings;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author DaPorkchop_
  */
-public interface Container extends Closeable<DBCloseException> {
-    Option<String> NAME = Option.required("NAME");
+public abstract class AbstractContainer implements Container {
+    @Getter
+    protected final String name;
 
-    OptionGroup BASE_CONTAINER_OPTIONS = OptionGroup.of(
-            NAME
-    );
+    protected final AtomicBoolean closed = new AtomicBoolean(false);
 
-    String getName();
+    public AbstractContainer(@NonNull Settings settings)    {
+        this.name = settings.validateMatches(BASE_CONTAINER_OPTIONS).get(NAME);
+    }
 }

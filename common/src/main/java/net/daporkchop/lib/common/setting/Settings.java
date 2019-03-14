@@ -30,14 +30,42 @@ import java.util.function.Supplier;
 @SuppressWarnings("unchecked")
 public class Settings {
     @NonNull
-    private final Map<Option, Object> backingMap;
+    protected final Map<Option, Object> backingMap;
 
-    public <T> T set(@NonNull Option<T> option, @NonNull T value)   {
-        value = (T) this.backingMap.replace(option, value);
-        if (value == null)  {
-            throw new IllegalStateException(String.format("Unknown option: \"%s\"", option));
+    protected boolean validated = false;
+
+    public <T> T getAndSet(@NonNull Option<T> option, @NonNull T value)   {
+        if (this.validated) {
+            throw new IllegalStateException("Settings have already been validated!");
         } else {
-            return value;
+            value = (T) this.backingMap.replace(option, value);
+            if (value == null) {
+                throw new IllegalStateException(String.format("Unknown option: \"%s\"", option));
+            } else {
+                return value;
+            }
+        }
+    }
+
+    public <T> Settings set(@NonNull Option<T> option, @NonNull T value)   {
+        if (this.validated) {
+            throw new IllegalStateException("Settings have already been validated!");
+        } else {
+            value = (T) this.backingMap.replace(option, value);
+            if (value == null) {
+                throw new IllegalStateException(String.format("Unknown option: \"%s\"", option));
+            } else {
+                return this;
+            }
+        }
+    }
+
+    public Settings copy(@NonNull Settings other)    {
+        if (this.validated) {
+            throw new IllegalStateException("Settings have already been validated!");
+        } else {
+            other.backingMap.forEach(this::set);
+            return this;
         }
     }
 
@@ -46,19 +74,35 @@ public class Settings {
         if (value == null)  {
             throw new IllegalStateException(String.format("Unknown option: \"%s\"", option));
         } else {
-            return value;
+            return value == Option.UNSET_VALUE ? null : value;
         }
     }
 
-    public Settings copy(@NonNull Settings other)    {
-        if (false) {
-            other.backingMap.entrySet().stream()
-                    .filter(entry -> this.backingMap.containsKey(entry.getKey()))
-                    .forEach(entry -> this.set(entry.getKey(), entry.getValue()));
+    public <T> T getOrDefault(@NonNull Option<T> option, @NonNull Option<T> fallback) {
+        T value = (T) this.backingMap.get(option);
+        if (value == null)  {
+            throw new IllegalStateException(String.format("Unknown option: \"%s\"", option));
         } else {
-            other.backingMap.forEach(this::set);
+            return value == Option.UNSET_VALUE ? this.get(fallback) : value;
         }
-        return this;
+    }
+
+    public <T> T getOrCompute(@NonNull Option<T> option, @NonNull Supplier<T> fallback) {
+        T value = (T) this.backingMap.get(option);
+        if (value == null)  {
+            throw new IllegalStateException(String.format("Unknown option: \"%s\"", option));
+        } else {
+            return value == Option.UNSET_VALUE ? fallback.get() : value;
+        }
+    }
+
+    public <T> T getOrDefault(@NonNull Option<T> option, @NonNull T fallback) {
+        T value = (T) this.backingMap.get(option);
+        if (value == null)  {
+            throw new IllegalStateException(String.format("Unknown option: \"%s\"", option));
+        } else {
+            return value == Option.UNSET_VALUE ? fallback : value;
+        }
     }
 
     public Settings validate()  {
@@ -67,6 +111,7 @@ public class Settings {
                 throw new IllegalStateException(String.format("Value \"%s\" is not set, but required!", option));
             }
         });
+        this.validated = true;
         return this;
     }
 

@@ -22,13 +22,14 @@ import net.daporkchop.lib.common.setting.Settings;
 import net.daporkchop.lib.db.PorkDB;
 import net.daporkchop.lib.db.container.Container;
 import net.daporkchop.lib.db.container.ContainerType;
+import net.daporkchop.lib.db.util.exception.DBCloseException;
 
 import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-public interface DBEngine extends Closeable {
+public interface DBEngine extends Closeable<DBCloseException> {
     void init(@NonNull PorkDB parent) throws IOException;
 
     PorkDB getParent();

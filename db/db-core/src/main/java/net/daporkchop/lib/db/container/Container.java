@@ -13,32 +13,12 @@
  *
  */
 
-package net.daporkchop.lib.db.container.map;
+package net.daporkchop.lib.db.container;
 
-import lombok.NonNull;
 import net.daporkchop.lib.binary.util.capability.Closeable;
-import net.daporkchop.lib.collections.PMap;
-import net.daporkchop.lib.db.container.Container;
-
-import java.io.IOException;
 
 /**
- * A map stored on the file system.
- *
- * @param <K> the type to be used as a key
- * @param <V> the type to be used as a value
  * @author DaPorkchop_
  */
-public interface DBMap<K, V> extends Container, PMap<K, V> {
-    @Override
-    void close() throws IOException;
-
-    /**
-     * Checks if this map is closed.
-     *
-     * @return whether or not this map has been closed
-     */
-    default boolean isClosed() {
-        return this.size() == -1L;
-    }
+public interface Container extends Closeable {
 }

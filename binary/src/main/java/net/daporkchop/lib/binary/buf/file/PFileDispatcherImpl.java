@@ -304,7 +304,7 @@ public interface PFileDispatcherImpl {
          * @param fd       the file descriptor of the file to lock
          * @param blocking whether or not the lock operation should block
          * @param pos      the position in the file to begin the lock at
-         * @param size     the size of the region to lock (can be longer than the current length of the file, set to
+         * @param size     the size of the region to lock (can be longer than the current length required the file, set to
          *                 {@link Long#MAX_VALUE} to lock the entire file)
          * @param shared   whether or not the lock will be shared. Not all systems support shared locks
          * @return the exit status? i think

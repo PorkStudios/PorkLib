@@ -13,44 +13,30 @@
  *
  */
 
-package net.daporkchop.lib.binary.util.map;
+package net.daporkchop.lib.db.container.map;
+
+import lombok.Getter;
+import lombok.NonNull;
+import net.daporkchop.lib.binary.serialization.Serializer;
+import net.daporkchop.lib.common.setting.Settings;
 
 /**
- * A map, using a key type of char and testMethodThing value type required boolean.
- * <p>
- * DO NOT EDIT BY HAND! THIS FILE IS SCRIPT-GENERATED!
- *
  * @author DaPorkchop_
  */
-public interface CharacterBooleanMap {
-    /**
-     * Get an element in the map
-     *
-     * @param key The key of the element to get
-     * @return the element mapped to the given key, or false if no such mapping exists
-     */
-    boolean get(char key);
+public abstract class AbstractDBMap<K, V> implements DBMap<K, V> {
+    @Getter
+    protected final String name;
 
-    /**
-     * Add a mapping to the map
-     *
-     * @param key   The key of the mapping to add
-     * @param value The value of the mapping to add
-     * @return the element that was previously mapped to the given key, or false if no such mapping existed
-     */
-    boolean put(char key, boolean value);
+    protected final Serializer<K> keySerializer;
+    protected final Serializer<V> valueSerializer;
 
-    int getSize();
+    @SuppressWarnings("unchecked")
+    public AbstractDBMap(@NonNull Settings settings)    {
+        settings.validateMatches(DB_MAP_OPTIONS);
 
-    void forEachKey(CharacterConsumer consumer);
+        this.name = settings.get(NAME);
 
-    /**
-     * Hashes a key
-     *
-     * @param in the key to be hashed
-     * @return a hash of the given key
-     */
-    default int hashKey(char in) {
-        return in & 0xFFFF;
+        this.keySerializer = (Serializer<K>) settings.get(KEY_SERIALIZER);
+        this.valueSerializer = (Serializer<V>) settings.get(VALUE_SERIALIZER);
     }
 }

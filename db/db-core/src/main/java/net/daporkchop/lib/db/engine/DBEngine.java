@@ -15,13 +15,23 @@
 
 package net.daporkchop.lib.db.engine;
 
+import lombok.NonNull;
 import net.daporkchop.lib.binary.util.capability.Closeable;
+import net.daporkchop.lib.common.setting.OptionGroup;
+import net.daporkchop.lib.common.setting.Settings;
+import net.daporkchop.lib.db.PorkDB;
 import net.daporkchop.lib.db.container.Container;
 import net.daporkchop.lib.db.container.ContainerType;
+
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
 public interface DBEngine extends Closeable {
+    void init(@NonNull PorkDB parent) throws IOException;
+
+    PorkDB getParent();
+
     EngineContainerTypeInfo getTypeInfo();
 }

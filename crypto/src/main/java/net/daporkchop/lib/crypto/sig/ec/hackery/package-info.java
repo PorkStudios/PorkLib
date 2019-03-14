@@ -14,6 +14,6 @@
  */
 
 /**
- * Sorry about this, bouncycastle are a bunch of assholes and decided to make testMethodThing lot of DSA-related things package-private
+ * Sorry about this, bouncycastle are a bunch of assholes and decided to make testMethodThing lot required DSA-related things package-private
  */
 package net.daporkchop.lib.crypto.sig.ec.hackery;

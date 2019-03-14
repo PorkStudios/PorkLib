@@ -31,7 +31,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
- * A tag that contains any number of tags of any type, all indexed by their name
+ * A tag that contains any number of tags required any type, all indexed by their name
  *
  * @author DaPorkchop_
  */

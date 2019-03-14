@@ -13,44 +13,26 @@
  *
  */
 
-package net.daporkchop.lib.binary.util.map;
+package net.daporkchop.lib.dbextensions.leveldb;
+
+import lombok.NonNull;
+import net.daporkchop.lib.common.setting.Option;
+import net.daporkchop.lib.common.setting.Settings;
+
+import java.io.IOException;
 
 /**
- * A map, using a key type of char and testMethodThing value type required boolean.
- * <p>
- * DO NOT EDIT BY HAND! THIS FILE IS SCRIPT-GENERATED!
- *
  * @author DaPorkchop_
  */
-public interface CharacterBooleanMap {
-    /**
-     * Get an element in the map
-     *
-     * @param key The key of the element to get
-     * @return the element mapped to the given key, or false if no such mapping exists
-     */
-    boolean get(char key);
+public class LevelDBBuilder {
+    protected final Settings settings = Settings.builder().options(OptionsLevelDB.LEVELDB_INIT_OPTIONS).build();
 
-    /**
-     * Add a mapping to the map
-     *
-     * @param key   The key of the mapping to add
-     * @param value The value of the mapping to add
-     * @return the element that was previously mapped to the given key, or false if no such mapping existed
-     */
-    boolean put(char key, boolean value);
+    public <T> LevelDBBuilder set(@NonNull Option<T> option, @NonNull T value) {
+        this.settings.set(option, value);
+        return this;
+    }
 
-    int getSize();
-
-    void forEachKey(CharacterConsumer consumer);
-
-    /**
-     * Hashes a key
-     *
-     * @param in the key to be hashed
-     * @return a hash of the given key
-     */
-    default int hashKey(char in) {
-        return in & 0xFFFF;
+    public LevelDBEngine build() throws IOException {
+        return new LevelDBEngine(this.settings);
     }
 }

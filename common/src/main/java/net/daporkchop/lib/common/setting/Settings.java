@@ -70,6 +70,15 @@ public class Settings {
         return this;
     }
 
+    public Settings validateMatches(@NonNull OptionGroup options)  {
+        options.options.forEach(option -> {
+            if (!this.backingMap.containsKey(option))   {
+                throw new IllegalStateException(String.format("Value \"%s\" is not contained, but required!", option));
+            }
+        });
+        return this.validate();
+    }
+
     public boolean contains(@NonNull Option option) {
         return this.backingMap.containsKey(option);
     }

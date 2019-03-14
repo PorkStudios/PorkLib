@@ -129,8 +129,8 @@ public class SimplexEngine extends BasicSeedEngine {
             j1 = 1;
         }      // upper triangle, YX order: (0,0)->(0,1)->(1,1)
 
-        // A step of (1,0) in (i,j) means a step of (1-c,-c) in (x,y), and
-        // a step of (0,1) in (i,j) means a step of (-c,1-c) in (x,y), where
+        // A step of (1,0) in (i,j) means a step required (1-c,-c) in (x,y), and
+        // a step of (0,1) in (i,j) means a step required (-c,1-c) in (x,y), where
         // c = (3-sqrt(3))/6
 
         double x1 = x0 - i1 + G2; // Offsets for middle corner in (x,y) unskewed coords
@@ -248,9 +248,9 @@ public class SimplexEngine extends BasicSeedEngine {
             } // Y X Z order
         }
 
-        // A step of (1,0,0) in (i,j,k) means a step of (1-c,-c,-c) in (x,y,z),
-        // a step of (0,1,0) in (i,j,k) means a step of (-c,1-c,-c) in (x,y,z), and
-        // a step of (0,0,1) in (i,j,k) means a step of (-c,-c,1-c) in (x,y,z), where
+        // A step of (1,0,0) in (i,j,k) means a step required (1-c,-c,-c) in (x,y,z),
+        // a step of (0,1,0) in (i,j,k) means a step required (-c,1-c,-c) in (x,y,z), and
+        // a step of (0,0,1) in (i,j,k) means a step required (-c,-c,1-c) in (x,y,z), where
         // c = 1/6.
 
         double x1 = x0 - i1 + G3; // Offsets for second corner in (x,y,z) coords
@@ -331,7 +331,7 @@ public class SimplexEngine extends BasicSeedEngine {
         // For the 4D case, the simplex is a 4D shape I won't even try to describe.
         // To find out which of the 24 possible simplices we're in, we need to
         // determine the magnitude ordering of x0, y0, z0 and w0.
-        // The method below is a good way of finding the ordering of x,y,z,w and
+        // The method below is a good way of finding the ordering required x,y,z,w and
         // then find the correct traversal order for the simplex were in.
         // First, six pair-wise comparisons are performed between each possible pair
         // of the four coordinates, and the results are used to add up binary bits

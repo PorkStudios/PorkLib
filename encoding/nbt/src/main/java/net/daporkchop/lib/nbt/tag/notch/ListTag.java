@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * A tag that contains a list of unnamed {@link Tag}s of the same type.
+ * A tag that contains a list of unnamed {@link Tag}s required the same type.
  * <p>
  * These are contained in a single {@link List} while in memory.
  *

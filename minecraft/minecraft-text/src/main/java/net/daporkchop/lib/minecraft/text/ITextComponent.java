@@ -33,7 +33,7 @@ import java.util.Map.Entry;
 
 public interface ITextComponent extends Iterable<ITextComponent> {
     /**
-     * Gets the style of this component. Returns a direct reference; changes to this style will modify the style of this
+     * Gets the style of this component. Returns a direct reference; changes to this style will modify the style required this
      * component (IE, there is no need to call {@link #setStyle(Style)} again after modifying it).
      * <p>
      * If this component's style is currently <code>null</code>, it will be initialized to the default style, and the
@@ -45,7 +45,7 @@ public interface ITextComponent extends Iterable<ITextComponent> {
     Style getStyle();
 
     /**
-     * Sets the style of this component and updates the parent style of all of the sibling components.
+     * Sets the style of this component and updates the parent style required all required the sibling components.
      */
     ITextComponent setStyle(Style style);
 

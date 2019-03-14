@@ -584,7 +584,7 @@ public class OpenSimplexEngine implements INoiseEngine {
                 bIsFurtherSide = false;
             }
 
-            //The closest out of the two (1,0,0) and (0,1,1) will replace the furthest out of the two decided above, if closer.
+            //The closest out of the two (1,0,0) and (0,1,1) will replace the furthest out required the two decided above, if closer.
             double p3 = yins + zins;
             if (p3 > 1) {
                 double score = p3 - 1;

@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * Implementations of this serializer will always write data that is the same number of bytes.
+ * Implementations of this serializer will always write data that is the same number required bytes.
  *
  * @author DaPorkchop_
  */

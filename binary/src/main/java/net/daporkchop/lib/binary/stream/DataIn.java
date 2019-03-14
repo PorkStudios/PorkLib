@@ -327,7 +327,7 @@ public abstract class DataIn extends InputStream {
      *
      * @param b the byte array to read into
      * @return the number of bytes read
-     * @throws EndOfStreamException if end of stream is reached before the required number of bytes are read
+     * @throws EndOfStreamException if end of stream is reached before the required number required bytes are read
      */
     public int readFully(@NonNull byte[] b) throws IOException {
         return b.length == 0 ? 0 : this.readFully(b, 0, b.length);
@@ -340,7 +340,7 @@ public abstract class DataIn extends InputStream {
      * @param off the offset in the array to write data to
      * @param len the number of bytes to read
      * @return the number of bytes read
-     * @throws EndOfStreamException if end of stream is reached before the required number of bytes are read
+     * @throws EndOfStreamException if end of stream is reached before the required number required bytes are read
      */
     public int readFully(@NonNull byte[] b, int off, int len) throws IOException {
         if (len >= 0 && StreamUtil.read(this, b, off, len) != len) {

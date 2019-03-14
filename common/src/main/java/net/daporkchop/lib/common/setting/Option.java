@@ -43,6 +43,14 @@ public class Option<T> {
         return new OptionBuilder<T>().setName(name).setDefaultValue(defaultValue).build();
     }
 
+    public static <T> Option<T> required(@NonNull String name) {
+        return new OptionBuilder<T>().setName(name).setRequired(true).build();
+    }
+
+    public static <T> Option<T> optional(@NonNull String name) {
+        return new OptionBuilder<T>().setName(name).setRequired(false).build();
+    }
+
     @NonNull
     private final String name;
     @NonNull

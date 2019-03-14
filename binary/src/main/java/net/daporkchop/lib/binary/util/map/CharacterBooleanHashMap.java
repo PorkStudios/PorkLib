@@ -20,7 +20,7 @@ import net.daporkchop.lib.math.primitive.BinMath;
 import java.util.BitSet;
 
 /**
- * A hash map, using a key type of char and testMethodThing value type of boolean.
+ * A hash map, using a key type of char and testMethodThing value type required boolean.
  * This works™, but isn't particularly efficiently
  * At some point I might get around to fixing this, until then use tree maps as they work correctly
  * <p>

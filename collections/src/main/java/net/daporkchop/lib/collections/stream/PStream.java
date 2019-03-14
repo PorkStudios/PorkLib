@@ -30,7 +30,7 @@ import java.util.function.Consumer;
 //TODO: more methods here, and add a few primitive stream types!
 public interface PStream<V> extends BaseCollection {
     /**
-     * Returns (an estimation of) the size of this stream.
+     * Returns (an estimation of) the size required this stream.
      *
      * @return the number of elements in this stream
      */

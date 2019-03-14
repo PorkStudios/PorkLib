@@ -34,15 +34,19 @@ import static net.daporkchop.lib.db.container.ContainerType.TYPE_COUNT;
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
 public class PorkDB implements Closeable {
     @SuppressWarnings("unchecked")
     protected final Map<String, Container>[] containerMaps = (Map<String, Container>[]) new Map[TYPE_COUNT];
 
-    @NonNull
     protected final DBEngine engine;
 
-    {
+    public PorkDB(@NonNull DBEngine engine) throws IOException {
+        if (engine.isClosed())  {
+            throw new IllegalStateException("Engine is already closed!");
+        }
+
+        this.engine = engine;
+        this.engine.init(this);
         for (int i = TYPE_COUNT - 1; i >= 0; i--)   {
             this.containerMaps[i] = new ConcurrentHashMap<>();
         }

@@ -15,9 +15,10 @@
 
 package net.daporkchop.lib.db.container.map;
 
-import lombok.NonNull;
-import net.daporkchop.lib.binary.util.capability.Closeable;
+import net.daporkchop.lib.binary.serialization.Serializer;
 import net.daporkchop.lib.collections.PMap;
+import net.daporkchop.lib.common.setting.Option;
+import net.daporkchop.lib.common.setting.OptionGroup;
 import net.daporkchop.lib.db.container.Container;
 
 import java.io.IOException;
@@ -30,6 +31,15 @@ import java.io.IOException;
  * @author DaPorkchop_
  */
 public interface DBMap<K, V> extends Container, PMap<K, V> {
+    Option<Serializer> KEY_SERIALIZER = Option.optional("KEY_SERIALIZER");
+    Option<Serializer> VALUE_SERIALIZER = Option.required("VALUE_SERIALIZER");
+
+    OptionGroup DB_MAP_OPTIONS = OptionGroup.of(
+            Container.BASE_CONTAINER_OPTIONS,
+            KEY_SERIALIZER,
+            VALUE_SERIALIZER
+    );
+
     @Override
     void close() throws IOException;
 

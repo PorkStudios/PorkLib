@@ -23,7 +23,7 @@ import net.daporkchop.lib.common.setting.OptionGroup;
  * @author DaPorkchop_
  */
 public interface Container extends Closeable {
-    Option<String> NAME = Option.<String>builder().setName("NAME").setRequired(true).build();
+    Option<String> NAME = Option.required("NAME");
 
     OptionGroup BASE_CONTAINER_OPTIONS = OptionGroup.of(
             NAME

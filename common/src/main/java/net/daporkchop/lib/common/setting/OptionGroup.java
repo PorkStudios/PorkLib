@@ -68,7 +68,7 @@ public class OptionGroup {
 
     @NonNull
     @Singular
-    private final Set<Option> options;
+    protected final Set<Option> options;
 
     public boolean isCompatible(@NonNull OptionGroup other) {
         return this.isCompatible(other.options);

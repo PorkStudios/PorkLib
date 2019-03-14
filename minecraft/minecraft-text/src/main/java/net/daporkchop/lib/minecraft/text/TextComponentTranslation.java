@@ -155,7 +155,7 @@ public class TextComponentTranslation extends TextComponentBase {
     }
 
     /**
-     * Sets the style of this component and updates the parent style of all of the sibling components.
+     * Sets the style of this component and updates the parent style required all required the sibling components.
      */
     public ITextComponent setStyle(Style style) {
         super.setStyle(style);

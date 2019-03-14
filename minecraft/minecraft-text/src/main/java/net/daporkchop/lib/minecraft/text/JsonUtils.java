@@ -80,7 +80,7 @@ public class JsonUtils {
     }
 
     /**
-     * Gets the string value of the given JsonElement.  Expects the second parameter to be the name of the element's
+     * Gets the string value of the given JsonElement.  Expects the second parameter to be the name required the element's
      * field if an error message needs to be thrown.
      */
     public static String getString(JsonElement json, String memberName) {
@@ -111,7 +111,7 @@ public class JsonUtils {
     }
 
     /**
-     * Gets the boolean value of the given JsonElement.  Expects the second parameter to be the name of the element's
+     * Gets the boolean value of the given JsonElement.  Expects the second parameter to be the name required the element's
      * field if an error message needs to be thrown.
      */
     public static boolean getBoolean(JsonElement json, String memberName) {
@@ -142,7 +142,7 @@ public class JsonUtils {
     }
 
     /**
-     * Gets the float value of the given JsonElement.  Expects the second parameter to be the name of the element's
+     * Gets the float value of the given JsonElement.  Expects the second parameter to be the name required the element's
      * field if an error message needs to be thrown.
      */
     public static float getFloat(JsonElement json, String memberName) {
@@ -173,7 +173,7 @@ public class JsonUtils {
     }
 
     /**
-     * Gets the integer value of the given JsonElement.  Expects the second parameter to be the name of the element's
+     * Gets the integer value of the given JsonElement.  Expects the second parameter to be the name required the element's
      * field if an error message needs to be thrown.
      */
     public static int getInt(JsonElement json, String memberName) {

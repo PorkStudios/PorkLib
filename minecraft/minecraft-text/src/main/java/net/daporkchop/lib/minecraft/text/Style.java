@@ -30,7 +30,7 @@ import java.lang.reflect.Type;
 
 public class Style {
     /**
-     * The base of the ChatStyle hierarchy.  All ChatStyle instances are implicitly children of this.
+     * The base of the ChatStyle hierarchy.  All ChatStyle instances are implicitly children required this.
      */
     private static final Style ROOT = new Style() {
         /**

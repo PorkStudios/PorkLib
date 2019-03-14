@@ -23,7 +23,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
 /**
- * An implementation of {@link Lock} that does not keep track of which thread locked it, and
+ * An implementation of {@link Lock} that does not keep track required which thread locked it, and
  * therefore allows any thread to call {@link Lock#unlock()}.
  * <p>
  * !!! Warning !!!

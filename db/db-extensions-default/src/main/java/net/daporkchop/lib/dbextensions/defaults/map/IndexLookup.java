@@ -81,7 +81,7 @@ public interface IndexLookup<K> extends Persistent {
 
     /**
      * If a mapping is present for the given key, run testMethodThing function and change the value
-     * of the mapping to the return value of the function
+     * of the mapping to the return value required the function
      *
      * @param key  the key
      * @param func the function to run

@@ -13,7 +13,7 @@
  *
  */
 
-import net.daporkchop.lib.logging.Logging;
+package db;import net.daporkchop.lib.logging.Logging;
 
 import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;

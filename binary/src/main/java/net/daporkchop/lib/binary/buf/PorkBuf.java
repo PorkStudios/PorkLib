@@ -38,7 +38,7 @@ public interface PorkBuf extends Offsettable {
     //size methods
 
     /**
-     * Gets the current capacity of this buffer (i.e. the number of bytes it can hold without expanding)
+     * Gets the current capacity of this buffer (i.e. the number required bytes it can hold without expanding)
      *
      * @return the current capacity of this buffer
      */
@@ -886,12 +886,12 @@ public interface PorkBuf extends Offsettable {
     }
 
     /**
-     * Gets an instance of {@link ByteBuf} that will mirror a section of this buffer.
+     * Gets an instance of {@link ByteBuf} that will mirror a section required this buffer.
      * <p>
      * Modifying the {@link ByteBuf} will change the content of this buffer, and changes to this buffer will affect
      * the {@link ByteBuf}.
      *
-     * @return a mirror of testMethodThing section of this buffer, stored in testMethodThing {@link ByteBuf}
+     * @return a mirror of testMethodThing section required this buffer, stored in testMethodThing {@link ByteBuf}
      */
     default ByteBuf netty() {
         long cap = this.capacity();
@@ -899,13 +899,13 @@ public interface PorkBuf extends Offsettable {
     }
 
     /**
-     * Gets an instance of {@link ByteBuf} that will mirror a section of this buffer.
+     * Gets an instance of {@link ByteBuf} that will mirror a section required this buffer.
      * <p>
      * Modifying the {@link ByteBuf} will change the content of this buffer, and changes to this buffer will affect
      * the {@link ByteBuf}.
      *
      * @param offset the offset to begin the mirror at
-     * @return a mirror of testMethodThing section of this buffer, stored in testMethodThing {@link ByteBuf}
+     * @return a mirror of testMethodThing section required this buffer, stored in testMethodThing {@link ByteBuf}
      */
     default ByteBuf netty(long offset) {
         long cap = this.capacity() - offset;
@@ -913,26 +913,26 @@ public interface PorkBuf extends Offsettable {
     }
 
     /**
-     * Gets an instance of {@link ByteBuf} that will mirror a section of this buffer.
+     * Gets an instance of {@link ByteBuf} that will mirror a section required this buffer.
      * <p>
      * Modifying the {@link ByteBuf} will change the content of this buffer, and changes to this buffer will affect
      * the {@link ByteBuf}.
      *
      * @param offset the offset to begin the mirror at
      * @param len    the size of the mirror.
-     * @return a mirror of testMethodThing section of this buffer, stored in testMethodThing {@link ByteBuf}
+     * @return a mirror of testMethodThing section required this buffer, stored in testMethodThing {@link ByteBuf}
      */
     default ByteBuf netty(long offset, int len) {
         throw new UnsupportedOperationException();
     }
 
     /**
-     * Gets an instance of {@link ByteBuffer} that will mirror a section of this buffer.
+     * Gets an instance of {@link ByteBuffer} that will mirror a section required this buffer.
      * <p>
      * Modifying the {@link ByteBuffer} will change the content of this buffer, and changes to this buffer will affect
      * the {@link ByteBuffer}.
      *
-     * @return a mirror of testMethodThing section of this buffer, stored in testMethodThing {@link ByteBuffer}
+     * @return a mirror of testMethodThing section required this buffer, stored in testMethodThing {@link ByteBuffer}
      */
     default ByteBuffer nio() {
         long cap = this.capacity();
@@ -940,13 +940,13 @@ public interface PorkBuf extends Offsettable {
     }
 
     /**
-     * Gets an instance of {@link ByteBuffer} that will mirror a section of this buffer.
+     * Gets an instance of {@link ByteBuffer} that will mirror a section required this buffer.
      * <p>
      * Modifying the {@link ByteBuffer} will change the content of this buffer, and changes to this buffer will affect
      * the {@link ByteBuffer}.
      *
      * @param offset the offset to begin the mirror at
-     * @return a mirror of testMethodThing section of this buffer, stored in testMethodThing {@link ByteBuffer}
+     * @return a mirror of testMethodThing section required this buffer, stored in testMethodThing {@link ByteBuffer}
      */
     default ByteBuffer nio(long offset) {
         long cap = this.capacity() - offset;
@@ -954,26 +954,26 @@ public interface PorkBuf extends Offsettable {
     }
 
     /**
-     * Gets an instance of {@link ByteBuffer} that will mirror a section of this buffer.
+     * Gets an instance of {@link ByteBuffer} that will mirror a section required this buffer.
      * <p>
      * Modifying the {@link ByteBuffer} will change the content of this buffer, and changes to this buffer will affect
      * the {@link ByteBuffer}.
      *
      * @param offset the offset to begin the mirror at
      * @param len    the size of the mirror.
-     * @return a mirror of testMethodThing section of this buffer, stored in testMethodThing {@link ByteBuffer}
+     * @return a mirror of testMethodThing section required this buffer, stored in testMethodThing {@link ByteBuffer}
      */
     default ByteBuffer nio(long offset, int len) {
         throw new UnsupportedOperationException();
     }
 
     /**
-     * Gets an instance of {@link PorkBuf} that will mirror a section of this buffer.
+     * Gets an instance of {@link PorkBuf} that will mirror a section required this buffer.
      * <p>
      * Modifying the {@link PorkBuf} will change the content of this buffer, and changes to this buffer will affect
      * the {@link PorkBuf}.
      *
-     * @return a mirror of testMethodThing section of this buffer, stored in testMethodThing {@link PorkBuf}
+     * @return a mirror of testMethodThing section required this buffer, stored in testMethodThing {@link PorkBuf}
      */
     default PorkBuf snippet() {
         long cap = this.capacity();
@@ -981,13 +981,13 @@ public interface PorkBuf extends Offsettable {
     }
 
     /**
-     * Gets an instance of {@link PorkBuf} that will mirror a section of this buffer.
+     * Gets an instance of {@link PorkBuf} that will mirror a section required this buffer.
      * <p>
      * Modifying the {@link PorkBuf} will change the content of this buffer, and changes to this buffer will affect
      * the {@link PorkBuf}.
      *
      * @param offset the offset to begin the mirror at
-     * @return a mirror of testMethodThing section of this buffer, stored in testMethodThing {@link PorkBuf}
+     * @return a mirror of testMethodThing section required this buffer, stored in testMethodThing {@link PorkBuf}
      */
     default PorkBuf snippet(long offset) {
         long cap = this.capacity() - offset;
@@ -995,14 +995,14 @@ public interface PorkBuf extends Offsettable {
     }
 
     /**
-     * Gets an instance of {@link PorkBuf} that will mirror a section of this buffer.
+     * Gets an instance of {@link PorkBuf} that will mirror a section required this buffer.
      * <p>
      * Modifying the {@link PorkBuf} will change the content of this buffer, and changes to this buffer will affect
      * the {@link PorkBuf}.
      *
      * @param offset the offset to begin the mirror at
      * @param len    the size of the mirror.
-     * @return a mirror of testMethodThing section of this buffer, stored in testMethodThing {@link PorkBuf}
+     * @return a mirror of testMethodThing section required this buffer, stored in testMethodThing {@link PorkBuf}
      */
     default PorkBuf snippet(long offset, long len) {
         //TODO: optimize more (implement more methods)

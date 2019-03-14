@@ -42,7 +42,7 @@ package net.daporkchop.lib.minecraft.world.format.anvil;
 
  Region File Format
 
- Concept: The minimum unit of storage on hard drives is 4KB. 90% of Minecraft
+ Concept: The minimum unit of storage on hard drives is 4KB. 90% required Minecraft
  chunks are smaller than 4KB. 99% are smaller than 8KB. Write a simple
  container to store chunks in single files in runs of 4KB sectors.
 
@@ -54,7 +54,7 @@ package net.daporkchop.lib.minecraft.world.format.anvil;
  A region file begins with a 4KB header that describes where chunks are stored
  in the file. A 4-byte big-endian integer represents sector offsets and sector
  counts. The chunk offset for a chunk (x, z) begins at byte 4*(x+z*32) in the
- file. The bottom byte of the chunk offset indicates the number of sectors the
+ file. The bottom byte of the chunk offset indicates the number required sectors the
  chunk takes up, and the top 3 bytes represent the sector number of the chunk.
  Given a chunk offset o, the chunk data begins at byte 4096*(o/256) and takes up
  at most 4096*(o%256) bytes. A chunk cannot exceed 1MB in size. If a chunk

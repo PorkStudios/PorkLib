@@ -24,6 +24,7 @@ import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
 import net.daporkchop.lib.gui.component.state.functional.ButtonState;
 import net.daporkchop.lib.gui.component.type.functional.Button;
 import net.daporkchop.lib.gui.swing.SwingTextAlignment;
+import net.daporkchop.lib.gui.swing.common.SwingMouseListener;
 import net.daporkchop.lib.gui.swing.impl.SwingComponent;
 import net.daporkchop.lib.gui.util.HorizontalAlignment;
 import net.daporkchop.lib.gui.util.VerticalAlignment;
@@ -50,7 +51,7 @@ public class SwingButton extends SwingComponent<Button, JButton, ButtonState> im
     public SwingButton(String name) {
         super(name, new JButton());
 
-        this.swing.addMouseListener(new SwingButtonMouseListener());
+        this.swing.addMouseListener(new SwingButtonMouseListener(this));
     }
 
     @Override
@@ -132,35 +133,17 @@ public class SwingButton extends SwingComponent<Button, JButton, ButtonState> im
         return this;
     }
 
-    //TODO: this is a mess, please fix it somehow
-    @RequiredArgsConstructor
-    protected class SwingButtonMouseListener implements MouseListener {
+    protected static class SwingButtonMouseListener extends SwingMouseListener<SwingButton> {
+        public SwingButtonMouseListener(SwingButton delegate) {
+            super(delegate);
+        }
+
         @Override
         public void mouseClicked(MouseEvent e) {
-            if (SwingButton.this.isEnabled())   {
-                SwingButton.this.clickHandler.onClick(e.getButton(), e.getX(), e.getY());
+            if (this.delegate.isEnabled())   {
+                this.delegate.clickHandler.onClick(e.getButton(), e.getX(), e.getY());
             }
-            SwingButton.this.setMouseDown(false).fireStateChange();
-        }
-
-        @Override
-        public void mousePressed(MouseEvent e) {
-            SwingButton.this.setMouseDown(true).fireStateChange();
-        }
-
-        @Override
-        public void mouseReleased(MouseEvent e) {
-            SwingButton.this.setMouseDown(false).fireStateChange();
-        }
-
-        @Override
-        public void mouseEntered(MouseEvent e) {
-            SwingButton.this.setHovered(true).fireStateChange();
-        }
-
-        @Override
-        public void mouseExited(MouseEvent e) {
-            SwingButton.this.setHovered(false).fireStateChange();
+            super.mouseClicked(e);
         }
     }
 }

@@ -13,25 +13,47 @@
  *
  */
 
-package net.daporkchop.lib.gui.swing.type.container;
+package net.daporkchop.lib.gui.swing.common;
 
-import net.daporkchop.lib.gui.component.state.ElementState;
-import net.daporkchop.lib.gui.component.state.container.PanelState;
-import net.daporkchop.lib.gui.component.type.container.Panel;
-import net.daporkchop.lib.gui.swing.common.SwingMouseListener;
-import net.daporkchop.lib.gui.swing.impl.SwingNestedContainer;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.gui.swing.impl.SwingComponent;
+import net.daporkchop.lib.gui.swing.impl.SwingElement;
+import net.daporkchop.lib.gui.swing.type.functional.SwingButton;
 
-import javax.swing.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
 /**
  * @author DaPorkchop_
  */
-public class SwingPanel extends SwingNestedContainer<Panel, JPanel, PanelState> implements Panel {
-    public SwingPanel(String name) {
-        super(name, new JPanel());
+@RequiredArgsConstructor
+public class SwingMouseListener<Impl extends SwingComponent> implements MouseListener {
+    @NonNull
+    protected final Impl delegate;
 
-        this.swing.setLayout(null);
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        this.delegate.setMouseDown(false).fireStateChange();
+    }
 
-        this.swing.addMouseListener(new SwingMouseListener<>(this));
+    @Override
+    public void mousePressed(MouseEvent e) {
+        this.delegate.setMouseDown(true).fireStateChange();
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+        this.delegate.setMouseDown(false).fireStateChange();
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+        this.delegate.setHovered(true).fireStateChange();
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+        this.delegate.setHovered(false).fireStateChange();
     }
 }

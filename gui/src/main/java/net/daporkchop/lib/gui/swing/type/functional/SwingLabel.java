@@ -21,6 +21,7 @@ import net.daporkchop.lib.gui.component.state.ElementState;
 import net.daporkchop.lib.gui.component.state.functional.LabelState;
 import net.daporkchop.lib.gui.component.type.functional.Label;
 import net.daporkchop.lib.gui.swing.SwingTextAlignment;
+import net.daporkchop.lib.gui.swing.common.SwingMouseListener;
 import net.daporkchop.lib.gui.swing.impl.SwingComponent;
 import net.daporkchop.lib.gui.util.HorizontalAlignment;
 import net.daporkchop.lib.gui.util.VerticalAlignment;
@@ -36,6 +37,8 @@ public class SwingLabel extends SwingComponent<Label, JLabel, LabelState> implem
 
     public SwingLabel(String name) {
         super(name, new JLabel());
+
+        this.swing.addMouseListener(new SwingMouseListener<>(this));
     }
 
     @Override

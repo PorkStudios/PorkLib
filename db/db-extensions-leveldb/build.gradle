@@ -19,4 +19,5 @@ dependencies {
     compile project(":hash")
 
     compile "org.iq80.leveldb:leveldb:0.12-SNAPSHOT"
+    compile "org.fusesource.leveldbjni:leveldbjni-all:1.8"
 }

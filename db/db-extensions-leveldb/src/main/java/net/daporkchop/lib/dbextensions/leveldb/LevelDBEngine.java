@@ -25,6 +25,7 @@ import net.daporkchop.lib.db.engine.EngineContainerTypeInfo;
 import net.daporkchop.lib.db.util.exception.DBCloseException;
 import net.daporkchop.lib.dbextensions.leveldb.container.LevelDBMap;
 import org.iq80.leveldb.DB;
+import org.iq80.leveldb.DBFactory;
 import org.iq80.leveldb.Options;
 import org.iq80.leveldb.impl.Iq80DBFactory;
 
@@ -63,7 +64,11 @@ public class LevelDBEngine implements DBEngine {
             this.parent = parent;
 
             Consumer<String> logger = this.settings.get(LOGGER);
-            this.delegate = Iq80DBFactory.factory.open(
+            DBFactory factory = this.settings.get(DB_FACTORY);
+            if (factory == null)    {
+                factory = Iq80DBFactory.factory;
+            }
+            this.delegate = factory.open(
                     this.settings.get(PATH),
                     new Options()
                             .createIfMissing(this.settings.get(CREATE_IF_MISSING))

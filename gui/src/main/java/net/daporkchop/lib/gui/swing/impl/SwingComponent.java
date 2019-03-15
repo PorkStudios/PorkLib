@@ -42,8 +42,11 @@ public abstract class SwingComponent<Impl extends Component, Swing extends JComp
     @Setter(AccessLevel.PRIVATE)
     protected SwingWindow window;
 
-    public SwingComponent(String name, Swing swing, State state) {
-        super(name, swing, state);
+    protected boolean hovered;
+    protected boolean mouseDown;
+
+    public SwingComponent(String name, Swing swing) {
+        super(name, swing);
         this.swing.setToolTipText("");
     }
 
@@ -94,6 +97,7 @@ public abstract class SwingComponent<Impl extends Component, Swing extends JComp
     @Override
     public Impl setEnable(boolean enabled) {
         this.swing.setEnabled(enabled);
+        this.fireStateChange();
         return (Impl) this;
     }
 

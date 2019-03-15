@@ -23,6 +23,8 @@ import net.daporkchop.lib.gui.component.type.functional.Label;
  */
 public enum LabelState implements ElementState<Label, LabelState> {
     ENABLED,
-    DISABLED
+    ENABLED_HOVERED,
+    DISABLED,
+    DISABLED_HOVERED,
     ;
 }

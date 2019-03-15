@@ -17,6 +17,7 @@ package net.daporkchop.lib.gui.component.type.container;
 
 import net.daporkchop.lib.gui.component.NestedContainer;
 import net.daporkchop.lib.gui.component.state.ElementState;
+import net.daporkchop.lib.gui.component.state.container.PanelState;
 
 /**
  * The simplest possible nested container. Adds no additional features, although when it's position is
@@ -26,5 +27,9 @@ import net.daporkchop.lib.gui.component.state.ElementState;
  *
  * @author DaPorkchop_
  */
-public interface Panel extends NestedContainer<Panel, ElementState.None<Panel>> {
+public interface Panel extends NestedContainer<Panel, PanelState> {
+    @Override
+    default PanelState getState() {
+        return this.isEnabled() ? this.isHovered() ? PanelState.ENABLED_HOVERED : PanelState.ENABLED : this.isHovered() ? PanelState.DISABLED_HOVERED : PanelState.DISABLED;
+    }
 }

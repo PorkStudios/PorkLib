@@ -34,7 +34,7 @@ import java.util.Map;
 public abstract class SwingContainer<Impl extends Container, Swing extends java.awt.Container, State extends ElementState<Impl, State>> extends SwingElement<Impl, Swing, State> implements Container<Impl, State>, IBasicSwingContainer<Impl, Swing, State> {
     protected final Map<String, Component> children = Collections.synchronizedMap(new HashMap<>());
 
-    public SwingContainer(String name, Swing swing, State state) {
-        super(name, swing, state);
+    public SwingContainer(String name, Swing swing) {
+        super(name, swing);
     }
 }

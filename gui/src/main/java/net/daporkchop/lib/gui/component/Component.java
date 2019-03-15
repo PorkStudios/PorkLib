@@ -56,6 +56,10 @@ public interface Component<Impl extends Component, State extends ElementState<Im
 
     Window getWindow();
 
+    //state methods
+    boolean isHovered();
+    boolean isMouseDown();
+
     //convenience methods
     default Impl setOrientation(@NonNull Number x, @NonNull Number y, @NonNull Number width, @NonNull Number height) {
         return (Impl) this.setOrientation(SimpleDynamicOrientation.of(x, y, width, height));

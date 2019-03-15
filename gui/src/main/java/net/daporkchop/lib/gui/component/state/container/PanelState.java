@@ -13,34 +13,19 @@
  *
  */
 
-package net.daporkchop.lib.gui.swing.impl;
+package net.daporkchop.lib.gui.component.state.container;
 
-import lombok.Getter;
-import net.daporkchop.lib.gui.component.Component;
-import net.daporkchop.lib.gui.component.NestedContainer;
 import net.daporkchop.lib.gui.component.state.ElementState;
-import net.daporkchop.lib.gui.util.math.BoundingBox;
-
-import javax.swing.*;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import net.daporkchop.lib.gui.component.type.container.Panel;
+import net.daporkchop.lib.gui.component.type.functional.Label;
 
 /**
  * @author DaPorkchop_
  */
-@Getter
-public abstract class SwingNestedContainer<Impl extends NestedContainer, Swing extends JComponent, State extends ElementState<Impl, State>> extends SwingComponent<Impl, Swing, State> implements NestedContainer<Impl, State>, IBasicSwingContainer<Impl, Swing, State> {
-    protected final Map<String, Component> children = Collections.synchronizedMap(new HashMap<>());
-
-    public SwingNestedContainer(String name, Swing swing) {
-        super(name, swing);
-    }
-
-    @Override
-    public Impl update() {
-        Impl toReturn = super.update();
-        this.children.forEach((name, element) -> element.update());
-        return toReturn;
-    }
+public enum PanelState implements ElementState<Panel, PanelState> {
+    ENABLED,
+    ENABLED_HOVERED,
+    DISABLED,
+    DISABLED_HOVERED,
+    ;
 }

@@ -25,6 +25,8 @@ import net.daporkchop.lib.db.container.map.DBMap;
 import net.daporkchop.lib.hash.util.Digest;
 import net.daporkchop.lib.logging.Logger;
 import org.iq80.leveldb.CompressionType;
+import org.iq80.leveldb.DBFactory;
+import org.iq80.leveldb.impl.Iq80DBFactory;
 
 import java.io.File;
 import java.util.function.Consumer;
@@ -52,6 +54,7 @@ public interface OptionsLevelDB {
         System.arraycopy(Digest.WHIRLPOOL.hash(name.getBytes(UTF8.utf8), b).getHash(), 0, b, 1, 7);
         return b;
     });
+    Option<DBFactory> DB_FACTORY = Option.optional("DB_FACTORY");
 
     OptionGroup LEVELDB_INIT_OPTIONS = OptionGroup.of(
             PATH,
@@ -68,7 +71,8 @@ public interface OptionsLevelDB {
             LOGGER,
             CACHE_SIZE,
 
-            PREFIX_GENERATOR
+            PREFIX_GENERATOR,
+            DB_FACTORY
     );
 
     Option<byte[]> CONTAINER_PREFIX = Option.optional("CONTAINER_PREFIX");

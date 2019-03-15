@@ -26,6 +26,7 @@ import net.daporkchop.lib.db.engine.DBEngine;
 import net.daporkchop.lib.dbextensions.leveldb.LevelDBEngine;
 import net.daporkchop.lib.dbextensions.leveldb.OptionsLevelDB;
 import net.daporkchop.lib.encoding.basen.Base58;
+import org.fusesource.leveldbjni.JniDBFactory;
 import org.junit.Test;
 
 import java.io.File;
@@ -35,6 +36,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -50,10 +52,11 @@ public class DBMapTest implements TestConstants {
         logger.trace("Test output nuked.");
     }
 
-    public Collection<DBEngine> engines = Stream.of(
-            null
-            , LevelDBEngine.builder()
+    public Collection<Supplier<DBEngine>> engines = Stream.of(
+            (Supplier<DBEngine>) null
+            , () -> LevelDBEngine.builder()
                     .set(OptionsLevelDB.PATH, new File(ROOT_DIR, "leveldb"))
+                    .set(OptionsLevelDB.DB_FACTORY, JniDBFactory.factory)
                     .build()
     ).filter(Objects::nonNull).collect(Collectors.toList());
 
@@ -61,30 +64,46 @@ public class DBMapTest implements TestConstants {
     public void test() {
         Map<String, byte[]> data = new HashMap<>();
         for (int i = 511; i >= 0; i--) {
-            data.put(Base58.encodeBase58(TestRandomData.getRandomBytes(4, 16)), TestRandomData.getRandomBytes(512, 8192));
+            data.put(Base58.encodeBase58(TestRandomData.getRandomBytes(10, 16)), TestRandomData.getRandomBytes(512, 8192));
         }
-        for (DBEngine engine : this.engines) {
-            try (PorkDB db = new PorkDB(engine)) {
+        for (Supplier<DBEngine> engine : this.engines) {
+            logger.info("Opening database...");
+            try (PorkDB db = new PorkDB(engine.get())) {
+                logger.info("Writing data...");
                 DBMap<String, byte[]> map = db.getContainer(ContainerType.MAP, "map1", settings -> settings
                         .set(DBMap.KEY_SERIALIZER, BasicSerializer.getInstance())
                         .set(DBMap.VALUE_SERIALIZER, ByteArraySerializer.INSTANCE));
                 data.forEach(map::put);
-                map.close();
-                map = db.getContainer(ContainerType.MAP, "map1", settings -> settings
+                logger.info("Closing database...");
+            }
+
+            logger.info("Opening database...");
+            try (PorkDB db = new PorkDB(engine.get()))  {
+                logger.info("Checking data integrity...");
+
+                DBMap<String, byte[]> map = db.getContainer(ContainerType.MAP, "map1", settings -> settings
                         .set(DBMap.KEY_SERIALIZER, BasicSerializer.getInstance())
                         .set(DBMap.VALUE_SERIALIZER, ByteArraySerializer.INSTANCE));
+
                 AtomicInteger i = new AtomicInteger(0);
                 map.forEach((key, value) -> {
                     i.incrementAndGet();
                     byte[] real = data.get(key);
                     if (!Arrays.equals(real, value))   {
+                        data.forEach((s, v) -> {
+                            if (Arrays.equals(v, value))    {
+                                logger.info("Found match! ${0}", s);
+                            }
+                        });
                         throw new IllegalStateException();
                     }
                 });
                 if (i.get() != data.size()) {
                     throw new IllegalStateException();
                 }
+                logger.info("Closing database...");
             }
         }
+        logger.info("Done!");
     }
 }

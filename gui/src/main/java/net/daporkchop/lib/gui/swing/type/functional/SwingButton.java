@@ -32,7 +32,6 @@ import net.daporkchop.lib.gui.util.event.handler.ClickHandler;
 import javax.swing.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -51,7 +50,7 @@ public class SwingButton extends SwingComponent<Button, JButton, ButtonState> im
     public SwingButton(String name) {
         super(name, new JButton(), ButtonState.ENABLED);
 
-        Tracking tracking = new Tracking();
+        MouseTracking tracking = new MouseTracking();
         this.swing.addMouseListener(new SwingButtonMouseListener(tracking));
     }
 
@@ -137,63 +136,68 @@ public class SwingButton extends SwingComponent<Button, JButton, ButtonState> im
     @Getter
     @Setter
     @Accessors(chain = true)
-    protected static class Tracking {
+    protected class MouseTracking {
         private boolean mouseDown = false;
         private boolean hovered = false;
+
+        public void update()    {
+            boolean enabled = SwingButton.this.isEnabled();
+            ButtonState state;
+            if (enabled)    {
+                if (this.mouseDown) {
+                    if (this.hovered)   {
+                        state = ButtonState.ENABLED_CLICKED;
+                    } else {
+                        state = ButtonState.ENABLED;
+                    }
+                } else {
+                    if (this.hovered)   {
+                        state = ButtonState.ENABLED_HOVERED;
+                    } else {
+                        state = ButtonState.ENABLED;
+                    }
+                }
+            } else {
+                if (this.hovered) {
+                    state = ButtonState.DISABLED_HOVERED;
+                } else {
+                    state = ButtonState.DISABLED;
+                }
+            }
+            SwingButton.this.fireStateChange(state);
+        }
     }
 
     //TODO: this is a mess, please fix it somehow
     @RequiredArgsConstructor
     protected class SwingButtonMouseListener implements MouseListener {
         @NonNull
-        protected final Tracking tracking;
+        protected final MouseTracking tracking;
 
         @Override
         public void mouseClicked(MouseEvent e) {
             SwingButton.this.clickHandler.onClick(e.getButton(), e.getX(), e.getY());
-            this.tracking.mouseDown = false;
-            SwingButton.this.fireStateChange(SwingButton.this.isEnabled() ? ButtonState.ENABLED_HOVERED : ButtonState.DISABLED_HOVERED);
+            this.tracking.setMouseDown(false).update();
         }
 
         @Override
         public void mousePressed(MouseEvent e) {
-            this.tracking.mouseDown = true;
-            SwingButton.this.fireStateChange(SwingButton.this.isEnabled() ? ButtonState.ENABLED_CLICKED : ButtonState.DISABLED_HOVERED);
+            this.tracking.setMouseDown(true).update();
         }
 
         @Override
         public void mouseReleased(MouseEvent e) {
-            this.tracking.mouseDown = false;
-            SwingButton.this.fireStateChange(SwingButton.this.isEnabled() ? this.tracking.hovered ? ButtonState.ENABLED_HOVERED : ButtonState.ENABLED : ButtonState.DISABLED);
+            this.tracking.setMouseDown(false).update();
         }
 
         @Override
         public void mouseEntered(MouseEvent e) {
-            this.tracking.hovered = true;
-            SwingButton.this.fireStateChange(SwingButton.this.isEnabled() ? this.tracking.mouseDown ? ButtonState.ENABLED_CLICKED : ButtonState.ENABLED : ButtonState.DISABLED_HOVERED);
+            this.tracking.setHovered(true).update();
         }
 
         @Override
         public void mouseExited(MouseEvent e) {
-            this.tracking.hovered = false;
-            SwingButton.this.fireStateChange(SwingButton.this.isEnabled() ? ButtonState.ENABLED : ButtonState.DISABLED_HOVERED);
-        }
-    }
-
-    @RequiredArgsConstructor
-    protected class SwingButtonMouseMotionListener implements MouseMotionListener   {
-        @NonNull
-        protected final Tracking tracking;
-
-        @Override
-        public void mouseDragged(MouseEvent e) {
-        }
-
-        @Override
-        public void mouseMoved(MouseEvent e) {
-            if (SwingButton.this.swing.contains(e.getX(), e.getY()))    {
-
-            }
+            this.tracking.setHovered(false).update();
         }
     }
 }

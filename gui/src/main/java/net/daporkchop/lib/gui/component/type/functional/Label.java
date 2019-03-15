@@ -17,7 +17,6 @@ package net.daporkchop.lib.gui.component.type.functional;
 
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.capability.IconHolder;
-import net.daporkchop.lib.gui.component.capability.SimpleIconHolder;
 import net.daporkchop.lib.gui.component.capability.TextHolder;
 import net.daporkchop.lib.gui.component.state.functional.LabelState;
 
@@ -27,4 +26,8 @@ import net.daporkchop.lib.gui.component.state.functional.LabelState;
  * @author DaPorkchop_
  */
 public interface Label extends Component<Label, LabelState>, IconHolder<Label, LabelState>, TextHolder<Label> {
+    @Override
+    default LabelState getState() {
+        return this.isEnabled() ? this.isHovered() ? LabelState.ENABLED_HOVERED : LabelState.ENABLED : this.isHovered() ? LabelState.DISABLED_HOVERED : LabelState.DISABLED;
+    }
 }

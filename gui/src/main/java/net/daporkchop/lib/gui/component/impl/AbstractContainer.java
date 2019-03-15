@@ -33,8 +33,8 @@ import java.util.Map;
 public abstract class AbstractContainer<Impl extends AbstractContainer, State extends ElementState<Impl, State>> extends AbstractElement<Impl, State> implements Container<Impl, State> {
     protected final Map<String, Component> children = Collections.synchronizedMap(new HashMap<>());
 
-    public AbstractContainer(String name, State state) {
-        super(name, state);
+    public AbstractContainer(String name) {
+        super(name);
     }
 
     @Override

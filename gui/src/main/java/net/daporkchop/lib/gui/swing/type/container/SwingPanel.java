@@ -16,6 +16,7 @@
 package net.daporkchop.lib.gui.swing.type.container;
 
 import net.daporkchop.lib.gui.component.state.ElementState;
+import net.daporkchop.lib.gui.component.state.container.PanelState;
 import net.daporkchop.lib.gui.component.type.container.Panel;
 import net.daporkchop.lib.gui.swing.impl.SwingNestedContainer;
 
@@ -24,9 +25,9 @@ import javax.swing.*;
 /**
  * @author DaPorkchop_
  */
-public class SwingPanel extends SwingNestedContainer<Panel, JPanel, ElementState.None<Panel>> implements Panel {
+public class SwingPanel extends SwingNestedContainer<Panel, JPanel, PanelState> implements Panel {
     public SwingPanel(String name) {
-        super(name, new JPanel(), ElementState.getNoneInstance());
+        super(name, new JPanel());
 
         this.swing.setLayout(null);
     }

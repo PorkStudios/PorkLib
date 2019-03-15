@@ -41,8 +41,7 @@ public abstract class AbstractElement<Impl extends Element, State extends Elemen
     protected String tooltip;
     protected boolean visible = false;
 
-    @NonNull
-    private State state; //we don't want people changing this without triggering state listeners
+    private State prevState;
     protected final Map<String, StateListener<Impl, State>> stateListeners = new LinkedHashMap<>();
 
     @Override
@@ -57,10 +56,11 @@ public abstract class AbstractElement<Impl extends Element, State extends Elemen
         return (Impl) this;
     }
 
-    public boolean fireStateChange(@NonNull State state)    {
-        if (state != this.state)  {
-            this.state = state;
-            this.stateListeners.forEach((name, listener) -> listener.onStateChange(this.state));
+    public boolean fireStateChange()    {
+        State state = this.getState();
+        if (state != this.prevState)  {
+            this.prevState = state;
+            this.stateListeners.forEach((name, listener) -> listener.onStateChange(state));
             return true;
         } else {
             return false;

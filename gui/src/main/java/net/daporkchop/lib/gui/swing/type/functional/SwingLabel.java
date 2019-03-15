@@ -35,7 +35,7 @@ public class SwingLabel extends SwingComponent<Label, JLabel, LabelState> implem
     protected PIcon disabledIcon;
 
     public SwingLabel(String name) {
-        super(name, new JLabel(), LabelState.ENABLED);
+        super(name, new JLabel());
     }
 
     @Override

@@ -44,7 +44,7 @@ public class SwingWindow extends SwingContainer<Window, JFrame, WindowState> imp
     protected PIcon icon;
 
     public SwingWindow(String name) {
-        super(name, new JFrame(), WindowState.CONSTRUCTION);
+        super(name, new JFrame());
 
         this.swing.setLayout(null);
         this.swing.addWindowListener(new SwingWindowListener());

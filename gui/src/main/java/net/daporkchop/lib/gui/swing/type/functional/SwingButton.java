@@ -48,10 +48,9 @@ public class SwingButton extends SwingComponent<Button, JButton, ButtonState> im
     protected final Map<ButtonState, PIcon> icons = new EnumMap<>(ButtonState.class);
 
     public SwingButton(String name) {
-        super(name, new JButton(), ButtonState.ENABLED);
+        super(name, new JButton());
 
-        MouseTracking tracking = new MouseTracking();
-        this.swing.addMouseListener(new SwingButtonMouseListener(tracking));
+        this.swing.addMouseListener(new SwingButtonMouseListener());
     }
 
     @Override
@@ -133,71 +132,35 @@ public class SwingButton extends SwingComponent<Button, JButton, ButtonState> im
         return this;
     }
 
-    @Getter
-    @Setter
-    @Accessors(chain = true)
-    protected class MouseTracking {
-        private boolean mouseDown = false;
-        private boolean hovered = false;
-
-        public void update()    {
-            boolean enabled = SwingButton.this.isEnabled();
-            ButtonState state;
-            if (enabled)    {
-                if (this.mouseDown) {
-                    if (this.hovered)   {
-                        state = ButtonState.ENABLED_CLICKED;
-                    } else {
-                        state = ButtonState.ENABLED;
-                    }
-                } else {
-                    if (this.hovered)   {
-                        state = ButtonState.ENABLED_HOVERED;
-                    } else {
-                        state = ButtonState.ENABLED;
-                    }
-                }
-            } else {
-                if (this.hovered) {
-                    state = ButtonState.DISABLED_HOVERED;
-                } else {
-                    state = ButtonState.DISABLED;
-                }
-            }
-            SwingButton.this.fireStateChange(state);
-        }
-    }
-
     //TODO: this is a mess, please fix it somehow
     @RequiredArgsConstructor
     protected class SwingButtonMouseListener implements MouseListener {
-        @NonNull
-        protected final MouseTracking tracking;
-
         @Override
         public void mouseClicked(MouseEvent e) {
-            SwingButton.this.clickHandler.onClick(e.getButton(), e.getX(), e.getY());
-            this.tracking.setMouseDown(false).update();
+            if (SwingButton.this.isEnabled())   {
+                SwingButton.this.clickHandler.onClick(e.getButton(), e.getX(), e.getY());
+            }
+            SwingButton.this.setMouseDown(false).fireStateChange();
         }
 
         @Override
         public void mousePressed(MouseEvent e) {
-            this.tracking.setMouseDown(true).update();
+            SwingButton.this.setMouseDown(true).fireStateChange();
         }
 
         @Override
         public void mouseReleased(MouseEvent e) {
-            this.tracking.setMouseDown(false).update();
+            SwingButton.this.setMouseDown(false).fireStateChange();
         }
 
         @Override
         public void mouseEntered(MouseEvent e) {
-            this.tracking.setHovered(true).update();
+            SwingButton.this.setHovered(true).fireStateChange();
         }
 
         @Override
         public void mouseExited(MouseEvent e) {
-            this.tracking.setHovered(false).update();
+            SwingButton.this.setHovered(false).fireStateChange();
         }
     }
 }

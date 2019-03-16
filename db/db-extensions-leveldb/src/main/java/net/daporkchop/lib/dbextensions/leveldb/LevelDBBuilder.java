@@ -15,24 +15,68 @@
 
 package net.daporkchop.lib.dbextensions.leveldb;
 
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.binary.UTF8;
+import net.daporkchop.lib.common.function.io.IOBiFunction;
 import net.daporkchop.lib.common.setting.Option;
 import net.daporkchop.lib.common.setting.Settings;
+import net.daporkchop.lib.db.builder.AbstractDBBuilder;
+import net.daporkchop.lib.dbextensions.leveldb.util.PrefixGenerator;
+import net.daporkchop.lib.hash.util.Digest;
+import net.daporkchop.lib.logging.Logger;
+import org.iq80.leveldb.CompressionType;
+import org.iq80.leveldb.DBFactory;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.function.Consumer;
 
 /**
  * @author DaPorkchop_
  */
-public class LevelDBBuilder {
-    protected final Settings settings = Settings.builder().options(OptionsLevelDB.LEVELDB_INIT_OPTIONS).build();
+@Getter
+@Setter
+@Accessors(chain = true)
+public class LevelDBBuilder extends AbstractDBBuilder<LevelDB, LevelDBBuilder> {
+    @NonNull
+    protected File path;
+    protected boolean createIfMissing = true;
+    protected boolean errorIfExists = false;
+    protected int writeBufferSize = 4194304;
+    protected int maxOpenFiles = 1000;
+    protected int blockRestartInterval = 16;
+    protected int maxFileSize = 2097152;
+    protected int blockSize = 4096;
+    @NonNull
+    protected CompressionType compressionType = CompressionType.NONE;
+    protected boolean paraniodChecksumChecks = false;
+    @NonNull
+    protected org.iq80.leveldb.Logger logger = Logger.DEFAULT_LOG::info;
+    protected long cacheSize = 0L;
 
-    public <T> LevelDBBuilder set(@NonNull Option<T> option, @NonNull T value) {
-        this.settings.set(option, value);
-        return this;
+    @NonNull
+    protected PrefixGenerator prefixGenerator = (type, name) -> {
+        byte[] b = new byte[8];
+        b[0] = (byte) type.ordinal();
+        System.arraycopy(Digest.WHIRLPOOL.hash(name.getBytes(UTF8.utf8), b).getHash(), 0, b, 1, 7);
+        return b;
+    };
+    protected DBFactory dbFactory;
+    protected boolean sharedDb = true; //by default, share the single leveldb instance with all containers
+
+    @Override
+    public LevelDBBuilder validate() {
+        if (this.path == null)  {
+            throw new NullPointerException("path");
+        }
+        return super.validate();
     }
 
-    public LevelDBEngine build() {
-        return new LevelDBEngine(this.settings);
+    @Override
+    public LevelDB build() {
+        return new LevelDB(this);
     }
 }

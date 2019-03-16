@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import net.daporkchop.lib.db.ContainerFactory;
 import net.daporkchop.lib.db.builder.DBMapBuilder;
+import net.daporkchop.lib.db.container.ContainerType;
 import net.daporkchop.lib.db.container.map.DBMap;
 import net.daporkchop.lib.dbextensions.leveldb.builder.LevelDBContainerBuilder;
 import net.daporkchop.lib.dbextensions.leveldb.builder.LevelDBMapBuilder;
@@ -36,8 +37,7 @@ import java.util.function.Function;
 public class LevelDBContainerFactory implements ContainerFactory<
         LevelDBMapBuilder<Object, Object>> {
     @NonNull
-    @Setter(AccessLevel.PACKAGE)
-    protected LevelDB levelDb;
+    public LevelDB levelDb;
 
     @Override
     public <K, V> DBMap<K, V> loadMap(@NonNull String name, @NonNull Function<LevelDBMapBuilder<Object, Object>, DBMap<K, V>> initializer) {
@@ -45,13 +45,15 @@ public class LevelDBContainerFactory implements ContainerFactory<
             throw new IllegalArgumentException("Name may not be empty!");
         }
         LevelDBMapBuilder<Object, Object> builder = new LevelDBMapBuilder<>(name, this.levelDb);
-        this.initBaseBuilder(builder);
+        this.initBaseBuilder(ContainerType.MAP, builder);
         DBMap<K, V> map = initializer.apply(builder);
 
         return map;
     }
 
-    protected void initBaseBuilder(@NonNull LevelDBContainerBuilder builder)    {
-        //TODO: something with prefixes if we aren't using them
+    protected void initBaseBuilder(@NonNull ContainerType type, @NonNull LevelDBContainerBuilder builder)    {
+        if (this.levelDb.builder.sharedDb)  {
+            builder.setContainerPrefix(this.levelDb.builder.prefixGenerator.getPrefix(type, builder.getName()));
+        }
     }
 }

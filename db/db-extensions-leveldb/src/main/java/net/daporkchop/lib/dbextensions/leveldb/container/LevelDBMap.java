@@ -19,7 +19,9 @@ import lombok.NonNull;
 import net.daporkchop.lib.binary.serialization.Serializer;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.collections.PMap;
 import net.daporkchop.lib.collections.stream.PStream;
+import net.daporkchop.lib.common.function.io.IOBiConsumer;
 import net.daporkchop.lib.common.setting.Settings;
 import net.daporkchop.lib.concurrent.cache.Cache;
 import net.daporkchop.lib.concurrent.cache.SoftThreadCache;
@@ -30,8 +32,10 @@ import net.daporkchop.lib.db.util.exception.DBReadException;
 import net.daporkchop.lib.db.util.exception.DBWriteException;
 import net.daporkchop.lib.dbextensions.leveldb.LevelDBEngine;
 import net.daporkchop.lib.encoding.ToBytes;
+import net.daporkchop.lib.logging.Logging;
 import org.iq80.leveldb.DBException;
 import org.iq80.leveldb.DBIterator;
+import org.iq80.leveldb.WriteBatch;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -187,6 +191,26 @@ public class LevelDBMap<K, V> extends AbstractDBMap<K, V> {
     }
 
     @Override
+    public void putAll(@NonNull PMap<K, V> other) {
+        this.lock.readLock().lock();
+        try (WriteBatch batch = this.engine.getDelegate().createWriteBatch()) {
+            other.forEach((IOBiConsumer<K, V>) (key, value) -> {
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                try (DataOut out = DataOut.wrap(this.valueCompression.deflate(baos)))    {
+                    this.valueSerializer.write(value, out);
+                }
+                batch.put(this.getKey(key), baos.toByteArray());
+            });
+
+            this.engine.getDelegate().write(batch);
+        } catch (IOException | DBException e)   {
+            throw new DBWriteException(e);
+        } finally {
+            this.lock.readLock().unlock();
+        }
+    }
+
+    @Override
     public boolean contains(@NonNull K key) {
         this.lock.readLock().lock();
         try {
@@ -249,13 +273,13 @@ public class LevelDBMap<K, V> extends AbstractDBMap<K, V> {
     @Override
     public void forEach(@NonNull BiConsumer<K, V> consumer) {
         this.lock.readLock().lock();
-        try {
-            DBIterator iterator = this.engine.getDelegate().iterator();
-            while (iterator.hasNext())  {
-                Map.Entry<byte[], byte[]> entry = iterator.next();
+        try (DBIterator iterator = this.engine.getDelegate().iterator()) {
+            int i = 0;
+            for (iterator.seekToFirst(); iterator.hasNext(); iterator.next())  {
+                i++;
                 K key = null;
                 if (this.keysReadable) {
-                    try (DataIn in = DataIn.wrap(ByteBuffer.wrap(entry.getKey()))) {
+                    try (DataIn in = DataIn.wrap(ByteBuffer.wrap(iterator.peekNext().getKey()))) {
                         in.skip(this.prefix.length);
                         if (this.keySerializer != null) {
                             key = this.keySerializer.read(in);
@@ -266,9 +290,10 @@ public class LevelDBMap<K, V> extends AbstractDBMap<K, V> {
                         }
                     }
                 }
-                V val = this.valueSerializer.read(DataIn.wrap(this.valueCompression.inflate(DataIn.wrap(ByteBuffer.wrap(entry.getValue())))));
+                V val = this.valueSerializer.read(DataIn.wrap(this.valueCompression.inflate(DataIn.wrap(ByteBuffer.wrap(iterator.peekNext().getValue())))));
                 consumer.accept(key, val);
             }
+            Logging.logger.debug("Iterated over ${0} entries", i);
         } catch (IOException | DBException e) {
             throw new DBReadException(e);
         } finally {

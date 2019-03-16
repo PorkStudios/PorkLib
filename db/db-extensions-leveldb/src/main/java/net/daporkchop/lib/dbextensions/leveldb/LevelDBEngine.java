@@ -78,7 +78,7 @@ public class LevelDBEngine implements DBEngine {
                             .blockRestartInterval(this.settings.get(BLOCK_RESTART_INTERVAL))
                             .blockSize(this.settings.get(BLOCK_SIZE))
                             .compressionType(this.settings.get(COMPRESSION_TYPE))
-                            .verifyChecksums(this.settings.get(VERIFY_CHECKSUMS))
+                            //.verifyChecksums(this.settings.get(VERIFY_CHECKSUMS))
                             .paranoidChecks(this.settings.get(PARANIOD_CHECKS))
                             .logger(msg -> logger.accept(msg))
                             .cacheSize(this.settings.get(CACHE_SIZE))

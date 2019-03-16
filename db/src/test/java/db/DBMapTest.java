@@ -15,8 +15,9 @@
 
 package db;
 
-import net.daporkchop.lib.binary.serialization.impl.BasicSerializer;
 import net.daporkchop.lib.binary.serialization.impl.ByteArraySerializer;
+import net.daporkchop.lib.binary.serialization.impl.StringSerializer;
+import net.daporkchop.lib.collections.impl.map.JavaMapWrapper;
 import net.daporkchop.lib.common.test.TestRandomData;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.db.PorkDB;
@@ -57,11 +58,14 @@ public class DBMapTest implements TestConstants {
             , () -> LevelDBEngine.builder()
                     .set(OptionsLevelDB.PATH, new File(ROOT_DIR, "leveldb"))
                     .set(OptionsLevelDB.DB_FACTORY, JniDBFactory.factory)
+                    //.set(OptionsLevelDB.DB_FACTORY, new Iq80DBFactory())
                     .build()
     ).filter(Objects::nonNull).collect(Collectors.toList());
 
     @Test
     public void test() {
+        boolean sleep = false;
+
         Map<String, byte[]> data = new HashMap<>();
         for (int i = 511; i >= 0; i--) {
             data.put(Base58.encodeBase58(TestRandomData.getRandomBytes(10, 16)), TestRandomData.getRandomBytes(512, 8192));
@@ -71,32 +75,75 @@ public class DBMapTest implements TestConstants {
             try (PorkDB db = new PorkDB(engine.get())) {
                 logger.info("Writing data...");
                 DBMap<String, byte[]> map = db.getContainer(ContainerType.MAP, "map1", settings -> settings
-                        .set(DBMap.KEY_SERIALIZER, BasicSerializer.getInstance())
+                        .set(DBMap.KEY_SERIALIZER, StringSerializer.INSTANCE)
                         .set(DBMap.VALUE_SERIALIZER, ByteArraySerializer.INSTANCE));
-                data.forEach(map::put);
+                if (false) {
+                    data.forEach(map::put);
+                } else {
+                    map.putAll(new JavaMapWrapper<>(data));
+                }
+
+                if (sleep) {
+                    logger.info("Waiting...");
+                    try {
+                        Thread.sleep(5000L);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
                 logger.info("Closing database...");
+            }
+            if (sleep) {
+                logger.info("Waiting...");
+                try {
+                    Thread.sleep(5000L);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
             }
 
             logger.info("Opening database...");
-            try (PorkDB db = new PorkDB(engine.get()))  {
+            try (PorkDB db = new PorkDB(engine.get())) {
+                if (sleep) {
+                    logger.info("Waiting...");
+                    try {
+                        Thread.sleep(5000L);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+
                 logger.info("Checking data integrity...");
 
                 DBMap<String, byte[]> map = db.getContainer(ContainerType.MAP, "map1", settings -> settings
-                        .set(DBMap.KEY_SERIALIZER, BasicSerializer.getInstance())
+                        .set(DBMap.KEY_SERIALIZER, StringSerializer.INSTANCE)
                         .set(DBMap.VALUE_SERIALIZER, ByteArraySerializer.INSTANCE));
 
                 AtomicInteger i = new AtomicInteger(0);
-                map.forEach((key, value) -> {
+                data.forEach((key, value) -> { //map to db
+                    byte[] onDisk = map.get(key);
+                    if (!Arrays.equals(value, onDisk)) {
+                        logger.error("Key ${0} is mapped incorrectly on disk!", key);
+                    }
                     i.incrementAndGet();
+                });
+                if (i.get() != data.size()) {
+                    throw new IllegalStateException();
+                }
+
+                i.set(0);
+                map.forEach((key, value) -> { //db to map
                     byte[] real = data.get(key);
-                    if (!Arrays.equals(real, value))   {
+                    if (!Arrays.equals(real, value)) {
+                        logger.error("Key ${0} is mapped incorrectly on disk!", key);
                         data.forEach((s, v) -> {
-                            if (Arrays.equals(v, value))    {
-                                logger.info("Found match! ${0}", s);
+                            if (Arrays.equals(v, value)) {
+                                logger.info("Found match! real key: ${0}, db key: ${1}, correct mappings: ${2}", s, key, i.get());
                             }
                         });
                         throw new IllegalStateException();
                     }
+                    i.incrementAndGet();
                 });
                 if (i.get() != data.size()) {
                     throw new IllegalStateException();

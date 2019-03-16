@@ -13,26 +13,40 @@
  *
  */
 
-package net.daporkchop.lib.db.engine;
+package net.daporkchop.lib.dbextensions.leveldb.builder;
 
-import lombok.NonNull;
-import net.daporkchop.lib.binary.util.capability.Closeable;
-import net.daporkchop.lib.common.setting.OptionGroup;
-import net.daporkchop.lib.common.setting.Settings;
-import net.daporkchop.lib.db.PorkDB;
-import net.daporkchop.lib.db.container.Container;
-import net.daporkchop.lib.db.container.ContainerType;
-import net.daporkchop.lib.db.util.exception.DBCloseException;
-
-import java.io.IOException;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.binary.serialization.Serializer;
+import net.daporkchop.lib.db.builder.DBMapBuilder;
+import net.daporkchop.lib.db.container.map.DBMap;
+import net.daporkchop.lib.dbextensions.leveldb.container.LevelDBMap;
 
 /**
  * @author DaPorkchop_
  */
-public interface DBEngine extends Closeable<DBCloseException> {
-    void init(@NonNull PorkDB parent) throws IOException;
+@Getter
+@Setter
+@Accessors(chain = true)
+public class LevelDBMapBuilder<K, V> extends DBMapBuilder<K, V, LevelDBMapBuilder<K, V>> implements LevelDBContainerBuilder<LevelDBMapBuilder<K, V>> {
+    protected byte[] containerPrefix;
+    protected Serializer<K> fastKeySerializer;
 
-    PorkDB getParent();
+    public LevelDBMapBuilder(String name) {
+        super(name);
+    }
 
-    EngineContainerTypeInfo getTypeInfo();
+    @Override
+    public DBMap<K, V> build() {
+        return null;
+    }
+
+    @Override
+    public LevelDBMapBuilder<K, V> validate() {
+        if (this.fastKeySerializer == null && this.keySerializer == null)   {
+            throw new IllegalStateException("Neither fastKeySerializer nor keySerializer are set!");
+        }
+        return (LevelDBMapBuilder<K, V>) super.validate();
+    }
 }

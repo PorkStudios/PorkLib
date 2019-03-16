@@ -24,11 +24,5 @@ import net.daporkchop.lib.db.util.exception.DBCloseException;
  * @author DaPorkchop_
  */
 public interface Container extends Closeable<DBCloseException> {
-    Option<String> NAME = Option.required("NAME");
-
-    OptionGroup BASE_CONTAINER_OPTIONS = OptionGroup.of(
-            NAME
-    );
-
     String getName();
 }

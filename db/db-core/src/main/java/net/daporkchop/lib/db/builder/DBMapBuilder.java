@@ -13,31 +13,53 @@
  *
  */
 
-package net.daporkchop.lib.db.container.map;
+package net.daporkchop.lib.db.builder;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.serialization.Serializer;
-import net.daporkchop.lib.common.setting.Settings;
-import net.daporkchop.lib.db.builder.DBMapBuilder;
-import net.daporkchop.lib.db.container.AbstractContainer;
+import net.daporkchop.lib.db.container.map.DBMap;
+import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.encoding.compression.CompressionHelper;
 
 /**
  * @author DaPorkchop_
  */
-public abstract class AbstractDBMap<K, V, Impl extends DBMap<K, V>> extends AbstractContainer<Impl> implements DBMap<K, V> {
-    protected final boolean keysReadable;
-    protected final Serializer<K> keySerializer;
-    protected final Serializer<V> valueSerializer;
-    protected final CompressionHelper valueCompression;
+@Getter
+@Setter
+@Accessors(chain = true)
+public abstract class DBMapBuilder<K, V, B extends DBMapBuilder> extends ContainerBuilder<DBMap<K, V>, B> {
+    protected boolean keysReadable = true;
+    protected Serializer<K> keySerializer;
+    protected Serializer<V> valueSerializer;
+    @NonNull
+    protected CompressionHelper valueCompression = Compression.NONE;
 
-    public AbstractDBMap(@NonNull DBMapBuilder<K, V, ?> builder)    {
-        super(builder.validate());
+    public DBMapBuilder(String name) {
+        super(name);
+    }
 
-        this.keysReadable = builder.isKeysReadable();
-        this.keySerializer = builder.getKeySerializer();
-        this.valueSerializer = builder.getValueSerializer();
-        this.valueCompression = builder.getValueCompression();
+    @SuppressWarnings("unchecked")
+    public <NEW_K> DBMapBuilder<NEW_K, V, B> setKeySerializer(@NonNull Serializer<NEW_K> keySerializer) {
+        this.keySerializer = (Serializer<K>) keySerializer;
+        return (DBMapBuilder<NEW_K, V, B>) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <NEW_V> DBMapBuilder<K, NEW_V, B> setValueSerializer(@NonNull Serializer<NEW_V> valueSerializer) {
+        this.valueSerializer = (Serializer<V>) valueSerializer;
+        return (DBMapBuilder<K, NEW_V, B>) this;
+    }
+
+    @Override
+    public DBMapBuilder<K, V, B> validate() {
+        if (this.keySerializer == null) {
+            throw new NullPointerException("keySerializer");
+        } else if (this.valueSerializer == null)    {
+            throw new NullPointerException("valueSerializer");
+        }
+        return (DBMapBuilder<K, V, B>) super.validate();
     }
 }

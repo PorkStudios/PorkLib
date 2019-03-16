@@ -33,19 +33,6 @@ import java.io.IOException;
  * @author DaPorkchop_
  */
 public interface DBMap<K, V> extends Container, PMap<K, V> {
-    Option<Boolean> KEYS_READABLE = Option.of("KEYS_READABLE", true);
-    Option<Serializer> KEY_SERIALIZER = Option.optional("KEY_SERIALIZER");
-    Option<Serializer> VALUE_SERIALIZER = Option.required("VALUE_SERIALIZER");
-    Option<CompressionHelper> VALUE_COMPRESSION = Option.of("VALUE_COMPRESSION", Compression.NONE);
-
-    OptionGroup DB_MAP_OPTIONS = OptionGroup.of(
-            Container.BASE_CONTAINER_OPTIONS,
-            KEYS_READABLE,
-            KEY_SERIALIZER,
-            VALUE_SERIALIZER,
-            VALUE_COMPRESSION
-    );
-
     @Override
     void close();
 

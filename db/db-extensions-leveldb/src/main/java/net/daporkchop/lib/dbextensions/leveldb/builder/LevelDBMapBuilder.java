@@ -16,11 +16,12 @@
 package net.daporkchop.lib.dbextensions.leveldb.builder;
 
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.serialization.Serializer;
 import net.daporkchop.lib.db.builder.DBMapBuilder;
-import net.daporkchop.lib.db.container.map.DBMap;
+import net.daporkchop.lib.dbextensions.leveldb.LevelDB;
 import net.daporkchop.lib.dbextensions.leveldb.container.LevelDBMap;
 
 /**
@@ -29,24 +30,52 @@ import net.daporkchop.lib.dbextensions.leveldb.container.LevelDBMap;
 @Getter
 @Setter
 @Accessors(chain = true)
-public class LevelDBMapBuilder<K, V> extends DBMapBuilder<K, V, LevelDBMapBuilder<K, V>> implements LevelDBContainerBuilder<LevelDBMapBuilder<K, V>> {
+public class LevelDBMapBuilder<K, V> extends DBMapBuilder<K, V, LevelDBMapBuilder> implements LevelDBContainerBuilder<LevelDBMapBuilder<K, V>> {
+    protected final LevelDB levelDb;
+
     protected byte[] containerPrefix;
     protected Serializer<K> fastKeySerializer;
 
-    public LevelDBMapBuilder(String name) {
+    public LevelDBMapBuilder(String name, @NonNull LevelDB levelDb) {
         super(name);
+
+        this.levelDb = levelDb;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <NEW_K> LevelDBMapBuilder<NEW_K, V> setFastKeySerializer(@NonNull Serializer<NEW_K> fastKeySerializer) {
+        this.fastKeySerializer = (Serializer<K>) fastKeySerializer;
+        if (this.keySerializer == null) {
+            this.keySerializer = this.fastKeySerializer;
+        }
+        return (LevelDBMapBuilder<NEW_K, V>) this;
     }
 
     @Override
-    public DBMap<K, V> build() {
+    @SuppressWarnings("unchecked")
+    public <NEW_K> LevelDBMapBuilder<NEW_K, V> setKeySerializer(@NonNull Serializer<NEW_K> keySerializer) {
+        this.keySerializer = (Serializer<K>) keySerializer;
+        return (LevelDBMapBuilder<NEW_K, V>) this;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <NEW_V> LevelDBMapBuilder<K, NEW_V> setValueSerializer(@NonNull Serializer<NEW_V> valueSerializer) {
+        this.valueSerializer = (Serializer<V>) valueSerializer;
+        return (LevelDBMapBuilder<K, NEW_V>) this;
+    }
+
+    @Override
+    public LevelDBMap<K, V> build() {
         return null;
     }
 
     @Override
     public LevelDBMapBuilder<K, V> validate() {
-        if (this.fastKeySerializer == null && this.keySerializer == null)   {
+        /*if (this.fastKeySerializer == null && this.keySerializer == null) {
             throw new IllegalStateException("Neither fastKeySerializer nor keySerializer are set!");
-        }
+        }*/
+        //TODO: is this uneeded? (hint: i don't think so)
         return (LevelDBMapBuilder<K, V>) super.validate();
     }
 }

@@ -13,18 +13,29 @@
  *
  */
 
-package net.daporkchop.lib.dbextensions.leveldb.builder;
+package net.daporkchop.lib.dbextensions.leveldb;
 
-import lombok.NonNull;
-import net.daporkchop.lib.dbextensions.leveldb.LevelDB;
+import net.daporkchop.lib.db.PorkDB;
+import net.daporkchop.lib.db.util.AbstractPorkDB;
+import net.daporkchop.lib.db.util.exception.DBCloseException;
+
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-public interface LevelDBContainerBuilder<Impl extends LevelDBContainerBuilder<Impl>> {
-    byte[] getContainerPrefix();
+public class LevelDB extends AbstractPorkDB<LevelDBContainerFactory> {
+    public LevelDB() {
+        super(new LevelDBContainerFactory());
 
-    Impl setContainerPrefix(byte[] containerPrefix);
+        this.factory.setLevelDb(this);
+    }
 
-    LevelDB getLevelDb();
+    @Override
+    protected void doPreClose() throws IOException {
+    }
+
+    @Override
+    protected void doPostClose() throws IOException {
+    }
 }

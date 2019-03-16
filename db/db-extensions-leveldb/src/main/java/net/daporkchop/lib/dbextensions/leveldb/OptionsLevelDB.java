@@ -74,14 +74,4 @@ public interface OptionsLevelDB {
             PREFIX_GENERATOR,
             DB_FACTORY
     );
-
-    Option<byte[]> CONTAINER_PREFIX = Option.optional("CONTAINER_PREFIX");
-
-    Option<Serializer> MAP_FAST_KEY_SERIALIZER = Option.optional("FAST_KEY_SERIALIZER");
-
-    OptionGroup LEVELDB_MAP_OPTIONS = OptionGroup.of(
-            DBMap.DB_MAP_OPTIONS,
-            CONTAINER_PREFIX,
-            MAP_FAST_KEY_SERIALIZER
-    );
 }

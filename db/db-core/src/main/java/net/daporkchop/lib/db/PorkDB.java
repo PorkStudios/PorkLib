@@ -21,11 +21,14 @@ import net.daporkchop.lib.db.container.Container;
 import net.daporkchop.lib.db.container.ContainerType;
 import net.daporkchop.lib.db.container.map.DBMap;
 import net.daporkchop.lib.db.util.exception.DBCloseException;
+import net.daporkchop.lib.db.util.exception.DBNotOpenException;
 
 /**
  * @author DaPorkchop_
  */
-public interface PorkDB extends Closeable<DBCloseException> {
+public interface PorkDB<F extends ContainerFactory> extends Closeable<DBCloseException> {
+    F getFactory();
+
     <C extends Container> C getContainer(@NonNull ContainerType type, @NonNull String name);
 
     @SuppressWarnings("unchecked")
@@ -33,5 +36,9 @@ public interface PorkDB extends Closeable<DBCloseException> {
         return (DBMap<K, V>) this.getContainer(ContainerType.MAP, name);
     }
 
-
+    default void ensureOpen()   {
+        if (this.isClosed())    {
+            throw new DBNotOpenException("DB already closed!");
+        }
+    }
 }

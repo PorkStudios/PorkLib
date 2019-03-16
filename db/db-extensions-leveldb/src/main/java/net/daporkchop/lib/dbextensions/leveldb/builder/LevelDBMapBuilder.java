@@ -67,15 +67,6 @@ public class LevelDBMapBuilder<K, V> extends DBMapBuilder<K, V, LevelDBMapBuilde
 
     @Override
     public LevelDBMap<K, V> build() {
-        return null;
-    }
-
-    @Override
-    public LevelDBMapBuilder<K, V> validate() {
-        /*if (this.fastKeySerializer == null && this.keySerializer == null) {
-            throw new IllegalStateException("Neither fastKeySerializer nor keySerializer are set!");
-        }*/
-        //TODO: is this uneeded? (hint: i don't think so)
-        return (LevelDBMapBuilder<K, V>) super.validate();
+        return new LevelDBMap<>(this);
     }
 }

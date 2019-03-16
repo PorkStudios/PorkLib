@@ -19,6 +19,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.db.ContainerFactory;
 import net.daporkchop.lib.db.PorkDB;
+import net.daporkchop.lib.db.builder.AbstractDBBuilder;
 import net.daporkchop.lib.db.container.Container;
 import net.daporkchop.lib.db.container.ContainerType;
 import net.daporkchop.lib.db.util.exception.DBCloseException;
@@ -35,17 +36,31 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author DaPorkchop_
  */
 @Getter
-public abstract class AbstractPorkDB<F extends ContainerFactory> implements PorkDB<F> {
+public abstract class AbstractPorkDB<F extends ContainerFactory, Impl extends AbstractPorkDB<F, Impl>> implements PorkDB<F> {
     protected final F factory;
-    protected final Map<ContainerType, Map<String, Container>> typeMap = new EnumMap<>(ContainerType.class);
+    protected final Map<ContainerType, Map<String, Container>> typeMap;
     protected final AtomicBoolean closed = new AtomicBoolean(false);
 
-    public AbstractPorkDB(@NonNull F factory) {
+    public AbstractPorkDB(@NonNull AbstractDBBuilder<Impl, ? extends AbstractDBBuilder> builder, @NonNull F factory) {
+        builder.validate();
+
         this.factory = factory;
 
+        this.typeMap = builder.getTypeMapSupplier().get();
         for (ContainerType type : ContainerType.values()) {
-            this.typeMap.put(type, new ConcurrentHashMap<>());
+            this.typeMap.put(type, builder.getContainerMapSupplier().apply(type));
         }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <C extends Container> C getContainer(@NonNull ContainerType type, @NonNull String name) {
+        Map<String, Container> containerMap = this.typeMap.get(type);
+        if (containerMap == null)   {
+            this.ensureOpen();
+            throw new IllegalStateException(String.format("Couldn't find container map for type: %s!", type));
+        }
+        return (C) containerMap.get(name);
     }
 
     @Override
@@ -68,7 +83,7 @@ public abstract class AbstractPorkDB<F extends ContainerFactory> implements Pork
                     }
                 }
                 this.doPostClose();
-            } catch (IOException e)   {
+            } catch (Exception e)   {
                 throw new DBCloseException(e);
             }
         }

@@ -17,6 +17,7 @@ package net.daporkchop.lib.db.builder;
 
 import lombok.Getter;
 import lombok.NonNull;
+import net.daporkchop.lib.db.PorkDB;
 import net.daporkchop.lib.db.container.Container;
 import net.daporkchop.lib.db.container.ContainerType;
 
@@ -31,19 +32,31 @@ import java.util.function.Supplier;
  * @author DaPorkchop_
  */
 @Getter
-public abstract class AbstractDBBuilder<Impl extends AbstractDBBuilder<Impl>> {
+public abstract class AbstractDBBuilder<DB extends PorkDB, Impl extends AbstractDBBuilder<DB, Impl>> {
     protected Supplier<Map<ContainerType, Map<String, Container>>> typeMapSupplier = () -> Collections.synchronizedMap(new EnumMap<>(ContainerType.class));
     protected Function<ContainerType, Map<String, Container>> containerMapSupplier = type -> new ConcurrentHashMap<>();
 
     @SuppressWarnings("unchecked")
-    public Impl setTypeMapSupplier(@NonNull Supplier<Map<ContainerType, Map<String, Container>>> typeMapSupplier)   {
+    public Impl setTypeMapSupplier(@NonNull Supplier<Map<ContainerType, Map<String, Container>>> typeMapSupplier) {
         this.typeMapSupplier = typeMapSupplier;
         return (Impl) this;
     }
 
     @SuppressWarnings("unchecked")
-    public Impl setContainerMapSupplier(@NonNull Function<ContainerType, Map<String, Container>> containerMapSupplier)  {
+    public Impl setContainerMapSupplier(@NonNull Function<ContainerType, Map<String, Container>> containerMapSupplier) {
         this.containerMapSupplier = containerMapSupplier;
         return (Impl) this;
     }
+
+    @SuppressWarnings("unchecked")
+    public Impl validate() {
+        if (this.typeMapSupplier == null) {
+            throw new NullPointerException("typeMapSupplier");
+        } else if (this.containerMapSupplier == null) {
+            throw new NullPointerException("containerMapSupplier");
+        }
+        return (Impl) this;
+    }
+
+    public abstract DB build();
 }

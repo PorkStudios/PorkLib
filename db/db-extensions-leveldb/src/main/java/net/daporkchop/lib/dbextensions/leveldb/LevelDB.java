@@ -15,24 +15,63 @@
 
 package net.daporkchop.lib.dbextensions.leveldb;
 
+import lombok.Getter;
+import lombok.NonNull;
 import net.daporkchop.lib.db.PorkDB;
+import net.daporkchop.lib.db.container.Container;
+import net.daporkchop.lib.db.container.ContainerType;
 import net.daporkchop.lib.db.util.AbstractPorkDB;
 import net.daporkchop.lib.db.util.exception.DBCloseException;
+import net.daporkchop.lib.db.util.exception.DBOpenException;
+import org.iq80.leveldb.DB;
+import org.iq80.leveldb.Options;
 
 import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-public class LevelDB extends AbstractPorkDB<LevelDBContainerFactory> {
-    public LevelDB() {
-        super(new LevelDBContainerFactory());
+@Getter
+public class LevelDB extends AbstractPorkDB<LevelDBContainerFactory, LevelDB> {
+    protected final LevelDBBuilder builder;
+    protected final Options dbOptions;
+    protected final DB db;
 
-        this.factory.setLevelDb(this);
+    public LevelDB(@NonNull LevelDBBuilder builder) {
+        super(builder.validate(), new LevelDBContainerFactory());
+
+        try {
+            this.builder = builder;
+            this.factory.levelDb = this;
+
+            this.dbOptions = new Options()
+                    .createIfMissing(builder.createIfMissing)
+                    .errorIfExists(builder.errorIfExists)
+                    .writeBufferSize(builder.writeBufferSize)
+                    .maxOpenFiles(builder.maxOpenFiles)
+                    .blockRestartInterval(builder.blockRestartInterval)
+                    .maxFileSize(builder.maxFileSize)
+                    .blockSize(builder.blockSize)
+                    .compressionType(builder.compressionType)
+                    .paranoidChecks(builder.paraniodChecksumChecks)
+                    .logger(builder.logger)
+                    .cacheSize(builder.cacheSize);
+
+            if (builder.sharedDb) {
+                this.db = builder.dbFactory.open(builder.path, this.dbOptions);
+            } else {
+                this.db = null;
+            }
+        } catch (Exception e) {
+            throw new DBOpenException(e);
+        }
     }
 
     @Override
     protected void doPreClose() throws IOException {
+        if (this.db != null)    {
+            this.db.close();
+        }
     }
 
     @Override

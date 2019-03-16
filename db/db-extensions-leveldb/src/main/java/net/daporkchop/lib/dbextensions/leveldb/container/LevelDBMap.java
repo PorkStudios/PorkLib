@@ -25,14 +25,17 @@ import net.daporkchop.lib.common.function.io.IOBiConsumer;
 import net.daporkchop.lib.common.setting.Settings;
 import net.daporkchop.lib.concurrent.cache.Cache;
 import net.daporkchop.lib.concurrent.cache.SoftThreadCache;
+import net.daporkchop.lib.db.container.ContainerType;
 import net.daporkchop.lib.db.container.map.AbstractDBMap;
 import net.daporkchop.lib.db.util.exception.DBCloseException;
+import net.daporkchop.lib.db.util.exception.DBOpenException;
 import net.daporkchop.lib.db.util.exception.DBReadException;
 import net.daporkchop.lib.db.util.exception.DBWriteException;
-import net.daporkchop.lib.dbextensions.leveldb.LevelDBEngine;
+import net.daporkchop.lib.dbextensions.leveldb.LevelDB;
 import net.daporkchop.lib.dbextensions.leveldb.builder.LevelDBMapBuilder;
 import net.daporkchop.lib.encoding.ToBytes;
 import net.daporkchop.lib.logging.Logging;
+import org.iq80.leveldb.DB;
 import org.iq80.leveldb.DBException;
 import org.iq80.leveldb.DBIterator;
 import org.iq80.leveldb.WriteBatch;
@@ -47,13 +50,13 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import static net.daporkchop.lib.dbextensions.leveldb.OptionsLevelDB.*;
 
 /**
  * @author DaPorkchop_
  */
 public class LevelDBMap<K, V> extends AbstractDBMap<K, V, LevelDBMap<K, V>> {
-    protected final LevelDBEngine engine;
+    protected final LevelDB levelDb;
+    protected final DB delegate;
 
     protected final byte[] prefix;
     protected final Serializer<K> fastKeySerializer;
@@ -67,20 +70,36 @@ public class LevelDBMap<K, V> extends AbstractDBMap<K, V, LevelDBMap<K, V>> {
     public LevelDBMap(@NonNull LevelDBMapBuilder<K, V> builder) {
         super(builder.validate());
 
-        this.engine = null; //TODO
+        try {
+            this.levelDb = builder.getLevelDb();
+            if (this.levelDb.getBuilder().isSharedDb()) {
+                this.delegate = this.levelDb.getDb();
+            } else {
+                this.delegate = this.levelDb.getBuilder().getDbFactory().open(this.levelDb.getBuilder().getPath(), this.levelDb.getDbOptions());
+            }
 
-        if (builder.getContainerPrefix() == null)   {
-            this.prefix = null; //TODO
-        } else {
-            this.prefix = builder.getContainerPrefix();
+            if (builder.getContainerPrefix() == null) {
+                this.prefix = null; //TODO
+            } else {
+                this.prefix = builder.getContainerPrefix();
+            }
+            this.fastKeySerializer = builder.getFastKeySerializer();
+        } catch (Exception e) {
+            throw new DBOpenException(e);
         }
-        this.fastKeySerializer = builder.getFastKeySerializer();
     }
 
     @Override
     public void close() {
         if (!this.closed.getAndSet(true))    {
-            this.engine.getParent().closeContainer(ContainerType.MAP, this.name);
+            try {
+                if (!this.levelDb.getBuilder().isSharedDb()) {
+                    this.delegate.close();
+                }
+                this.engine.getParent().closeContainer(ContainerType.MAP, this.name);
+            } catch (Exception e)   {
+                throw new DBCloseException(e);
+            }
         }
     }
 

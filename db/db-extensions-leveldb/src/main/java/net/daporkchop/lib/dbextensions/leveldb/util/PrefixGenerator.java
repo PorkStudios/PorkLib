@@ -13,20 +13,15 @@
  *
  */
 
-package net.daporkchop.lib.dbextensions.leveldb.builder;
+package net.daporkchop.lib.dbextensions.leveldb.util;
 
 import lombok.NonNull;
-import net.daporkchop.lib.dbextensions.leveldb.LevelDB;
+import net.daporkchop.lib.db.container.ContainerType;
 
 /**
  * @author DaPorkchop_
  */
-public interface LevelDBContainerBuilder<Impl extends LevelDBContainerBuilder<Impl>> {
-    byte[] getContainerPrefix();
-
-    Impl setContainerPrefix(byte[] containerPrefix);
-
-    LevelDB getLevelDb();
-
-    String getName();
+@FunctionalInterface
+public interface PrefixGenerator {
+    byte[] getPrefix(@NonNull ContainerType type, @NonNull String name);
 }

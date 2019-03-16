@@ -16,22 +16,17 @@
 package net.daporkchop.lib.db;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.util.capability.Closeable;
-import net.daporkchop.lib.db.container.Container;
-import net.daporkchop.lib.db.container.ContainerType;
+import net.daporkchop.lib.db.builder.DBMapBuilder;
 import net.daporkchop.lib.db.container.map.DBMap;
-import net.daporkchop.lib.db.util.exception.DBCloseException;
+
+import java.util.function.Function;
 
 /**
  * @author DaPorkchop_
  */
-public interface PorkDB extends Closeable<DBCloseException> {
-    <C extends Container> C getContainer(@NonNull ContainerType type, @NonNull String name);
-
-    @SuppressWarnings("unchecked")
-    default <K, V> DBMap<K, V> getMap(@NonNull String name) {
-        return (DBMap<K, V>) this.getContainer(ContainerType.MAP, name);
-    }
-
-
+//sorry for this heaping shitload of generics, but i really want to have my IDE autocompletion
+public interface ContainerFactory<
+        DB_MAP_BUILDER extends DBMapBuilder<Object, Object, ?>
+        > {
+    <K, V> DBMap<K, V> loadMap(@NonNull String name, @NonNull Function<DB_MAP_BUILDER, ? extends DBMapBuilder<K, V, ?>> initializer);
 }

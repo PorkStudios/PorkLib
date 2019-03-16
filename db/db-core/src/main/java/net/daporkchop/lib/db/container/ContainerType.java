@@ -13,25 +13,30 @@
  *
  */
 
-package net.daporkchop.lib.db;
+package net.daporkchop.lib.db.container;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.util.capability.Closeable;
-import net.daporkchop.lib.db.container.Container;
-import net.daporkchop.lib.db.container.ContainerType;
+import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.db.container.map.DBMap;
-import net.daporkchop.lib.db.util.exception.DBCloseException;
 
 /**
  * @author DaPorkchop_
  */
-public interface PorkDB extends Closeable<DBCloseException> {
-    <C extends Container> C getContainer(@NonNull ContainerType type, @NonNull String name);
+@AllArgsConstructor
+@RequiredArgsConstructor
+@Getter
+public enum ContainerType {
+    MAP(DBMap.class),
+    ;
 
-    @SuppressWarnings("unchecked")
-    default <K, V> DBMap<K, V> getMap(@NonNull String name) {
-        return (DBMap<K, V>) this.getContainer(ContainerType.MAP, name);
+    protected String name;
+
+    @NonNull
+    protected final Class<? extends Container> containerClass;
+
+    public String getName() {
+        return this.name == null ? (this.name = this.name().toLowerCase().intern()) : this.name;
     }
-
-
 }

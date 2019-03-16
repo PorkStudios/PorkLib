@@ -20,9 +20,6 @@ import net.daporkchop.lib.binary.util.capability.Closeable;
 import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.common.setting.Settings;
 import net.daporkchop.lib.db.container.Container;
-import net.daporkchop.lib.db.container.ContainerBuilder;
-import net.daporkchop.lib.db.container.ContainerType;
-import net.daporkchop.lib.db.engine.DBEngine;
 import net.daporkchop.lib.db.util.exception.DBCloseException;
 import net.daporkchop.lib.db.util.exception.DBOpenException;
 
@@ -30,8 +27,6 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
-
-import static net.daporkchop.lib.db.container.ContainerType.TYPE_COUNT;
 
 /**
  * @author DaPorkchop_

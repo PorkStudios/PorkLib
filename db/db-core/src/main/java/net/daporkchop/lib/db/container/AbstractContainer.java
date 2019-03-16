@@ -18,19 +18,22 @@ package net.daporkchop.lib.db.container;
 import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.common.setting.Settings;
+import net.daporkchop.lib.db.builder.ContainerBuilder;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author DaPorkchop_
  */
-public abstract class AbstractContainer implements Container {
+public abstract class AbstractContainer<Impl extends Container> implements Container {
     @Getter
     protected final String name;
 
     protected final AtomicBoolean closed = new AtomicBoolean(false);
 
-    public AbstractContainer(@NonNull Settings settings)    {
-        this.name = settings.validateMatches(BASE_CONTAINER_OPTIONS).get(NAME);
+    public AbstractContainer(@NonNull ContainerBuilder builder)    {
+        builder.validate();
+
+        this.name = builder.getName();
     }
 }

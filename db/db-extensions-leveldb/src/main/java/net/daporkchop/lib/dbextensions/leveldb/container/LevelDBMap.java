@@ -25,12 +25,12 @@ import net.daporkchop.lib.common.function.io.IOBiConsumer;
 import net.daporkchop.lib.common.setting.Settings;
 import net.daporkchop.lib.concurrent.cache.Cache;
 import net.daporkchop.lib.concurrent.cache.SoftThreadCache;
-import net.daporkchop.lib.db.container.ContainerType;
 import net.daporkchop.lib.db.container.map.AbstractDBMap;
 import net.daporkchop.lib.db.util.exception.DBCloseException;
 import net.daporkchop.lib.db.util.exception.DBReadException;
 import net.daporkchop.lib.db.util.exception.DBWriteException;
 import net.daporkchop.lib.dbextensions.leveldb.LevelDBEngine;
+import net.daporkchop.lib.dbextensions.leveldb.builder.LevelDBMapBuilder;
 import net.daporkchop.lib.encoding.ToBytes;
 import net.daporkchop.lib.logging.Logging;
 import org.iq80.leveldb.DBException;
@@ -52,7 +52,7 @@ import static net.daporkchop.lib.dbextensions.leveldb.OptionsLevelDB.*;
 /**
  * @author DaPorkchop_
  */
-public class LevelDBMap<K, V> extends AbstractDBMap<K, V> {
+public class LevelDBMap<K, V> extends AbstractDBMap<K, V, LevelDBMap<K, V>> {
     protected final LevelDBEngine engine;
 
     protected final byte[] prefix;
@@ -64,18 +64,17 @@ public class LevelDBMap<K, V> extends AbstractDBMap<K, V> {
     protected final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     @SuppressWarnings("unchecked")
-    public LevelDBMap(Settings settings, @NonNull LevelDBEngine engine) {
-        super(settings);
-        settings.validateMatches(LEVELDB_MAP_OPTIONS);
+    public LevelDBMap(@NonNull LevelDBMapBuilder<K, V> builder) {
+        super(builder.validate());
 
-        this.engine = engine;
+        this.engine = null; //TODO
 
-        this.prefix = settings.getOrCompute(CONTAINER_PREFIX, () -> this.engine.getSettings().get(PREFIX_GENERATOR).apply(ContainerType.TYPE_MAP, this.name));
-        this.fastKeySerializer = settings.get(MAP_FAST_KEY_SERIALIZER);
-
-        if (this.fastKeySerializer == null && this.keySerializer == null)   {
-            throw new IllegalStateException("Neither FAST_KEY_SERIALIZER nor KEY_SERIALIZER were set!");
+        if (builder.getContainerPrefix() == null)   {
+            this.prefix = null; //TODO
+        } else {
+            this.prefix = builder.getContainerPrefix();
         }
+        this.fastKeySerializer = builder.getFastKeySerializer();
     }
 
     @Override

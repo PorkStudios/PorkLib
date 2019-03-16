@@ -13,37 +13,30 @@
  *
  */
 
-package net.daporkchop.lib.db.container;
+package net.daporkchop.lib.db.builder;
 
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.common.setting.OptionGroup;
-import net.daporkchop.lib.common.setting.Settings;
-import net.daporkchop.lib.db.engine.DBEngine;
-import net.daporkchop.lib.db.container.map.DBMap;
-import net.daporkchop.lib.db.engine.EngineContainerTypeInfo;
-
-import java.util.function.Function;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.db.container.Container;
 
 /**
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
 @Getter
-public class ContainerType<C extends Container> {
-    public static final int TYPE_COUNT = 1;
-
-    public static final int TYPE_MAP = 0;
-
-    public static final ContainerType<DBMap> MAP = new ContainerType<>(TYPE_MAP, DBMap.class);
-
-    protected final int id;
+public abstract class ContainerBuilder<C extends Container, B extends ContainerBuilder> {
     @NonNull
-    protected final Class<C> clazz;
+    protected final String name;
 
-    @SuppressWarnings("unchecked")
-    public <E extends DBEngine> ContainerBuilder<C, E> builder(@NonNull EngineContainerTypeInfo info, @NonNull E engine)    {
-        return new ContainerBuilder<>(Settings.builder().options(info.getOptions(this)).build(), info.getBuilder(this), engine);
+    public ContainerBuilder<C, B> validate() {
+        if (this.name == null) {
+            throw new NullPointerException("name");
+        }
+        return this;
     }
+
+    public abstract C build();
 }

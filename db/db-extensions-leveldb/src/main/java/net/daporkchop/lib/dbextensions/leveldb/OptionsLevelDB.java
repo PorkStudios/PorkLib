@@ -44,7 +44,7 @@ public interface OptionsLevelDB {
     Option<Integer> BLOCK_RESTART_INTERVAL = Option.of("BLOCK_RESTART_INTERVAL", 16);
     Option<Integer> BLOCK_SIZE = Option.of("BLOCK_SIZE", 4 * 1024);
     Option<CompressionType> COMPRESSION_TYPE = Option.of("COMPRESSION_TYPE", CompressionType.SNAPPY);
-    Option<Boolean> VERIFY_CHECKSUMS = Option.of("VERIFY_CHECKSUMS", true);
+    //Option<Boolean> VERIFY_CHECKSUMS = Option.of("VERIFY_CHECKSUMS", true);
     Option<Boolean> PARANIOD_CHECKS = Option.of("PARANIOD_CHECKS", false);
     Option<Consumer<String>> LOGGER = Option.of("LOGGER", Logger.DEFAULT_LOG::info);
     Option<Long> CACHE_SIZE = Option.of("CACHE_SIZE", 0L);
@@ -66,7 +66,7 @@ public interface OptionsLevelDB {
             BLOCK_RESTART_INTERVAL,
             BLOCK_SIZE,
             COMPRESSION_TYPE,
-            VERIFY_CHECKSUMS,
+            //VERIFY_CHECKSUMS,
             PARANIOD_CHECKS,
             LOGGER,
             CACHE_SIZE,

@@ -18,6 +18,6 @@ dependencies {
     compile project(":db:db-core")
     compile project(":hash")
 
-    compile "org.iq80.leveldb:leveldb:0.12-SNAPSHOT"
+    compile "io.github.pcmind:leveldb:0.12:uber"
     compile "org.fusesource.leveldbjni:leveldbjni-all:1.8"
 }

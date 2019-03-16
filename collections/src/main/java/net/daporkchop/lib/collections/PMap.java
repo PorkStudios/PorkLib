@@ -66,6 +66,13 @@ public interface PMap<K, V> extends BaseCollection {
     V get(@NonNull K key);
 
     /**
+     * Puts all values from another map and inserts them into this one.
+     *
+     * @param other the map from which to retrieve values
+     */
+    void putAll(@NonNull PMap<K, V> other);
+
+    /**
      * Submits a key => value pair to the map, replacing existing mappings if present.
      *
      * @param key   the key

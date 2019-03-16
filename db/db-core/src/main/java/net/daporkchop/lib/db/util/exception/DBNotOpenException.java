@@ -13,18 +13,25 @@
  *
  */
 
-package net.daporkchop.lib.dbextensions.leveldb.builder;
-
-import lombok.NonNull;
-import net.daporkchop.lib.dbextensions.leveldb.LevelDB;
+package net.daporkchop.lib.db.util.exception;
 
 /**
  * @author DaPorkchop_
  */
-public interface LevelDBContainerBuilder<Impl extends LevelDBContainerBuilder<Impl>> {
-    byte[] getContainerPrefix();
+public class DBNotOpenException extends PorkDBException {
+    public DBNotOpenException() {
+        super();
+    }
 
-    Impl setContainerPrefix(byte[] containerPrefix);
+    public DBNotOpenException(String message) {
+        super(message);
+    }
 
-    LevelDB getLevelDb();
+    public DBNotOpenException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public DBNotOpenException(Throwable cause) {
+        super(cause);
+    }
 }

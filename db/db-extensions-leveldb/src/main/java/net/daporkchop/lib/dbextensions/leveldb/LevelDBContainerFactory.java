@@ -15,27 +15,43 @@
 
 package net.daporkchop.lib.dbextensions.leveldb;
 
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import net.daporkchop.lib.db.ContainerFactory;
 import net.daporkchop.lib.db.builder.DBMapBuilder;
 import net.daporkchop.lib.db.container.map.DBMap;
+import net.daporkchop.lib.dbextensions.leveldb.builder.LevelDBContainerBuilder;
 import net.daporkchop.lib.dbextensions.leveldb.builder.LevelDBMapBuilder;
 import net.daporkchop.lib.dbextensions.leveldb.container.LevelDBMap;
 
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
  * @author DaPorkchop_
  */
+@Getter
 public class LevelDBContainerFactory implements ContainerFactory<
-        LevelDBMapBuilder<Object, Object>
-        > {
+        LevelDBMapBuilder<Object, Object>> {
+    @NonNull
+    @Setter(AccessLevel.PACKAGE)
+    protected LevelDB levelDb;
+
     @Override
-    public <K, V> DBMap<K, V> loadMap(@NonNull String name, @NonNull Function<LevelDBMapBuilder<Object, Object>, ? extends DBMapBuilder<K, V, ?>> initializer) {
+    public <K, V> DBMap<K, V> loadMap(@NonNull String name, @NonNull Function<LevelDBMapBuilder<Object, Object>, DBMap<K, V>> initializer) {
         if (name.isEmpty()) {
             throw new IllegalArgumentException("Name may not be empty!");
         }
-        return null;
+        LevelDBMapBuilder<Object, Object> builder = new LevelDBMapBuilder<>(name, this.levelDb);
+        this.initBaseBuilder(builder);
+        DBMap<K, V> map = initializer.apply(builder);
+
+        return map;
+    }
+
+    protected void initBaseBuilder(@NonNull LevelDBContainerBuilder builder)    {
+        //TODO: something with prefixes if we aren't using them
     }
 }

@@ -13,18 +13,37 @@
  *
  */
 
-package net.daporkchop.lib.dbextensions.leveldb.builder;
+package net.daporkchop.lib.db.builder;
 
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.dbextensions.leveldb.LevelDB;
+import net.daporkchop.lib.db.container.Container;
+import net.daporkchop.lib.db.container.ContainerType;
+
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * @author DaPorkchop_
  */
-public interface LevelDBContainerBuilder<Impl extends LevelDBContainerBuilder<Impl>> {
-    byte[] getContainerPrefix();
+@Getter
+public abstract class AbstractDBBuilder<Impl extends AbstractDBBuilder<Impl>> {
+    protected Supplier<Map<ContainerType, Map<String, Container>>> typeMapSupplier = () -> Collections.synchronizedMap(new EnumMap<>(ContainerType.class));
+    protected Function<ContainerType, Map<String, Container>> containerMapSupplier = type -> new ConcurrentHashMap<>();
 
-    Impl setContainerPrefix(byte[] containerPrefix);
+    @SuppressWarnings("unchecked")
+    public Impl setTypeMapSupplier(@NonNull Supplier<Map<ContainerType, Map<String, Container>>> typeMapSupplier)   {
+        this.typeMapSupplier = typeMapSupplier;
+        return (Impl) this;
+    }
 
-    LevelDB getLevelDb();
+    @SuppressWarnings("unchecked")
+    public Impl setContainerMapSupplier(@NonNull Function<ContainerType, Map<String, Container>> containerMapSupplier)  {
+        this.containerMapSupplier = containerMapSupplier;
+        return (Impl) this;
+    }
 }

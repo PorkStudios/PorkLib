@@ -39,4 +39,9 @@ public enum ContainerType {
     public String getName() {
         return this.name == null ? (this.name = this.name().toLowerCase().intern()) : this.name;
     }
+
+    @Override
+    public String toString() {
+        return this.getName();
+    }
 }

@@ -41,17 +41,12 @@ public abstract class DBMapBuilder<K, V, B extends DBMapBuilder> extends Contain
         super(name);
     }
 
-    @SuppressWarnings("unchecked")
-    public <NEW_K> DBMapBuilder<NEW_K, V, B> setKeySerializer(@NonNull Serializer<NEW_K> keySerializer) {
-        this.keySerializer = (Serializer<K>) keySerializer;
-        return (DBMapBuilder<NEW_K, V, B>) this;
-    }
-
-    @SuppressWarnings("unchecked")
-    public <NEW_V> DBMapBuilder<K, NEW_V, B> setValueSerializer(@NonNull Serializer<NEW_V> valueSerializer) {
-        this.valueSerializer = (Serializer<V>) valueSerializer;
-        return (DBMapBuilder<K, NEW_V, B>) this;
-    }
+    //java generics are kinda dumb, there's no way to make this work the way i wanted it to. oh well :(
+    //inheritors are expected to override these methods and make them return the builder implementation with the key/value
+    //generic replaced with the new one respectively.
+    //see LevelDBMapBuilder.java for an example of what i mean by this if it's not clear
+    public abstract <NEW_K> DBMapBuilder<NEW_K, V, B> setKeySerializer(@NonNull Serializer<NEW_K> keySerializer);
+    public abstract <NEW_V> DBMapBuilder<K, NEW_V, B> setValueSerializer(@NonNull Serializer<NEW_V> valueSerializer);
 
     @Override
     public DBMapBuilder<K, V, B> validate() {

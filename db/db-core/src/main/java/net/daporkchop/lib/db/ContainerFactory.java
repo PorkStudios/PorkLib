@@ -26,7 +26,7 @@ import java.util.function.Function;
  */
 //sorry for this heaping shitload of generics, but i really want to have my IDE autocompletion
 public interface ContainerFactory<
-        DB_MAP_BUILDER extends DBMapBuilder<Object, Object, ?>
-        > {
-    <K, V> DBMap<K, V> loadMap(@NonNull String name, @NonNull Function<DB_MAP_BUILDER, ? extends DBMapBuilder<K, V, ?>> initializer);
+        DB_MAP_BUILDER extends DBMapBuilder<Object, Object, ?>> {
+    <K, V> DBMap<K, V> loadMap(@NonNull String name, @NonNull Function<DB_MAP_BUILDER, DBMap<K, V>> initializer);
+    //<K, V> DBMap<K, V> loadMap(@NonNull String name, @NonNull Function<DB_MAP_BUILDER, ? extends DBMapBuilder<K, V, ?>> initializer);
 }

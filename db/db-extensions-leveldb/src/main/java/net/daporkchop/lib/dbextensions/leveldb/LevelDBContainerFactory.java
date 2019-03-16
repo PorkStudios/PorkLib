@@ -13,25 +13,29 @@
  *
  */
 
-package net.daporkchop.lib.db;
+package net.daporkchop.lib.dbextensions.leveldb;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.util.capability.Closeable;
-import net.daporkchop.lib.db.container.Container;
-import net.daporkchop.lib.db.container.ContainerType;
+import net.daporkchop.lib.db.ContainerFactory;
+import net.daporkchop.lib.db.builder.DBMapBuilder;
 import net.daporkchop.lib.db.container.map.DBMap;
-import net.daporkchop.lib.db.util.exception.DBCloseException;
+import net.daporkchop.lib.dbextensions.leveldb.builder.LevelDBMapBuilder;
+import net.daporkchop.lib.dbextensions.leveldb.container.LevelDBMap;
+
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * @author DaPorkchop_
  */
-public interface PorkDB extends Closeable<DBCloseException> {
-    <C extends Container> C getContainer(@NonNull ContainerType type, @NonNull String name);
-
-    @SuppressWarnings("unchecked")
-    default <K, V> DBMap<K, V> getMap(@NonNull String name) {
-        return (DBMap<K, V>) this.getContainer(ContainerType.MAP, name);
+public class LevelDBContainerFactory implements ContainerFactory<
+        LevelDBMapBuilder<Object, Object>
+        > {
+    @Override
+    public <K, V> DBMap<K, V> loadMap(@NonNull String name, @NonNull Function<LevelDBMapBuilder<Object, Object>, ? extends DBMapBuilder<K, V, ?>> initializer) {
+        if (name.isEmpty()) {
+            throw new IllegalArgumentException("Name may not be empty!");
+        }
+        return null;
     }
-
-
 }

@@ -24,6 +24,7 @@ import net.daporkchop.lib.db.PorkDB;
 import net.daporkchop.lib.db.container.ContainerType;
 import net.daporkchop.lib.db.container.map.DBMap;
 import net.daporkchop.lib.db.engine.DBEngine;
+import net.daporkchop.lib.dbextensions.leveldb.LevelDBContainerFactory;
 import net.daporkchop.lib.dbextensions.leveldb.LevelDBEngine;
 import net.daporkchop.lib.dbextensions.leveldb.OptionsLevelDB;
 import net.daporkchop.lib.encoding.basen.Base58;
@@ -64,6 +65,11 @@ public class DBMapTest implements TestConstants {
 
     @Test
     public void test() {
+        new LevelDBContainerFactory()
+                .<String, byte[]>loadMap("jeff", builder -> builder
+                .setKeySerializer(StringSerializer.INSTANCE)
+                .setValueSerializer(ByteArraySerializer.INSTANCE));
+
         boolean sleep = false;
 
         Map<String, byte[]> data = new HashMap<>();

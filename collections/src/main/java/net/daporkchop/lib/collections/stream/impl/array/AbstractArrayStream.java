@@ -18,7 +18,15 @@ package net.daporkchop.lib.collections.stream.impl.array;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.collections.PMap;
 import net.daporkchop.lib.collections.stream.PStream;
+
+import java.util.function.BiPredicate;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.IntFunction;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  * @author DaPorkchop_
@@ -28,4 +36,49 @@ import net.daporkchop.lib.collections.stream.PStream;
 public abstract class AbstractArrayStream<V> implements PStream<V> {
     @NonNull
     protected final Object[] values;
+
+    @Override
+    public long size() {
+        return this.values.length;
+    }
+
+    @Override
+    public boolean isOrdered() {
+        return true;
+    }
+
+    @Override
+    public PStream<V> ordered() {
+        return this;
+    }
+
+    @Override
+    public PStream<V> unordered() {
+        return null;
+    }
+
+    @Override
+    public PStream<V> concurrent() {
+        return null;
+    }
+
+    @Override
+    public PStream<V> singleThreaded() {
+        return this.isConcurrent() ? new UncheckedArrayStream<>(this.values) : this;
+    }
+
+    @Override
+    public V[] toArray(@NonNull IntFunction<V[]> arrayCreator) {
+        V[] values = arrayCreator.apply(this.values.length);
+        /*PUnsafe.copyMemory(
+                this.values,
+                PUnsafe.ARRAY_OBJECT_BASE_OFFSET,
+                values,
+                PUnsafe.ARRAY_OBJECT_BASE_OFFSET,
+                (long) values.length * (long) PUnsafe.ARRAY_OBJECT_INDEX_SCALE
+        );*/
+        System.arraycopy(this.values, 0, values, 0, values.length);
+        //TODO: i want to benchmark the performance difference between these two
+        return values;
+    }
 }

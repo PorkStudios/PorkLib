@@ -21,6 +21,8 @@ import net.daporkchop.lib.collections.PMap;
 import net.daporkchop.lib.collections.util.BaseCollection;
 import net.daporkchop.lib.collections.util.exception.CannotMakeStreamConcurrentException;
 import net.daporkchop.lib.collections.util.exception.CannotMakeStreamOrderedException;
+import net.daporkchop.lib.collections.util.exception.CannotMakeStreamSingleThreadedException;
+import net.daporkchop.lib.collections.util.exception.CannotMakeStreamUnorderedException;
 import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.common.function.io.IOFunction;
 import net.daporkchop.lib.common.function.io.IOPredicate;
@@ -34,6 +36,15 @@ import java.util.function.Supplier;
 
 /**
  * A simplification of {@link java.util.stream.Stream}.
+ *
+ * A PStream defines many of the same behaviors in a traditional Java stream, however many methods have slightly different
+ * behavior, allowing for slightly faster operations and less boilerplate code.
+ *
+ * PStreams additionally can be ordered or concurrent (or both). Ordered streams will always preserve the order of their
+ * contents, and methods will also iterate over such a stream in an ordered fashion. Concurrent streams will execute
+ * all operations in multiple threads, which can provide a performance boost for more intensive tasks. A stream with both
+ * ordering and concurrency will run operations on values in order as best as possible (order will be preserved when executing
+ * tasks, but may not be exactly preserved due to different execution times, some threads starting before others, etc.).
  *
  * @param <V> the type to be used as a value
  * @author DaPorkchop_
@@ -51,7 +62,7 @@ public interface PStream<V> extends BaseCollection {
     long size();
 
     /**
-     * Checks whether or not this stream is ordered (i.e. all methods maintain the order of values while using them). Even
+     * Checks whether or not this stream is ordered. Even
      * if only one method does not preserve element order, this method should return {@code false}.
      *
      * @return whether or not this stream is ordered
@@ -92,6 +103,42 @@ public interface PStream<V> extends BaseCollection {
     }
 
     /**
+     * Returns a stream over the same data that does not support ordered operations.
+     * <p>
+     * If this stream is already unordered, it will return itself.
+     * <p>
+     * If for whatever reason this stream is impossible to make into an unordered stream, it will return itself.
+     *
+     * @return a stream over the same data that does not support concurrent operations
+     */
+    PStream<V> unordered();
+
+    /**
+     * Returns a stream over the same data that does not support ordered operations.
+     * <p>
+     * If this stream is already unordered, it will return itself.
+     * <p>
+     * If for whatever reason this stream is impossible to make into an unordered stream, an exception will be thrown.
+     *
+     * @return a stream over the same data that does not support concurrent operations
+     * @throws CannotMakeStreamUnorderedException if the stream cannot be unordered
+     */
+    default PStream<V> forceUnordered() throws CannotMakeStreamUnorderedException {
+        if (!this.isOrdered()) {
+            return this;
+        }
+        PStream<V> unordered = this.ordered();
+        if (!unordered.isOrdered()) {
+            return unordered;
+        } else {
+            throw new CannotMakeStreamUnorderedException("unknown reason");
+        }
+    }
+
+    @Override
+    boolean isConcurrent();
+
+    /**
      * Returns a stream over the same data that supports concurrent operations.
      * <p>
      * If this stream is already concurrent, it will return itself.
@@ -121,6 +168,39 @@ public interface PStream<V> extends BaseCollection {
             return concurrent;
         } else {
             throw new CannotMakeStreamConcurrentException("unknown reason");
+        }
+    }
+
+    /**
+     * Returns a stream over the same data that does not support concurrent operations.
+     * <p>
+     * If this stream is already not concurrent, it will return itself.
+     * <p>
+     * If for whatever reason this stream is impossible to make into a single-threaded stream, it will return itself.
+     *
+     * @return a stream over the same data that does not support concurrent operations
+     */
+    PStream<V> singleThreaded();
+
+    /**
+     * Returns a stream over the same data that does not support concurrent operations.
+     * <p>
+     * If this stream is already not concurrent, it will return itself.
+     * <p>
+     * If for whatever reason this stream is impossible to make into a single-threaded stream, an exception will be thrown.
+     *
+     * @return a stream over the same data that does not support concurrent operations
+     * @throws CannotMakeStreamSingleThreadedException if the stream cannot be single-threaded
+     */
+    default PStream<V> forceSingleThreaded() throws CannotMakeStreamSingleThreadedException {
+        if (!this.isConcurrent()) {
+            return this;
+        }
+        PStream<V> singleThreaded = this.singleThreaded();
+        if (!singleThreaded.isConcurrent()) {
+            return singleThreaded;
+        } else {
+            throw new CannotMakeStreamSingleThreadedException("unknown reason");
         }
     }
 

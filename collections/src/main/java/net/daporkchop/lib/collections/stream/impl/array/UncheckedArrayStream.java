@@ -36,30 +36,9 @@ import java.util.function.Supplier;
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-public class UncheckedArrayStream<V> implements PStream<V> {
-    @NonNull
-    protected final Object[] values;
-
-    @Override
-    public long size() {
-        return this.values.length;
-    }
-
-    @Override
-    public boolean isOrdered() {
-        return true;
-    }
-
-    @Override
-    public PStream<V> ordered() {
-        return this;
-    }
-
-    @Override
-    public PStream<V> concurrent() {
-        return null;
+public class UncheckedArrayStream<V> extends AbstractArrayStream<V> {
+    public UncheckedArrayStream(Object[] values) {
+        super(values);
     }
 
     @Override
@@ -101,21 +80,6 @@ public class UncheckedArrayStream<V> implements PStream<V> {
             map.put(keyExtractor.apply(value), valueExtractor.apply(value));
         }
         return map;
-    }
-
-    @Override
-    public V[] toArray(@NonNull IntFunction<V[]> arrayCreator) {
-        V[] values = arrayCreator.apply(this.values.length);
-        /*PUnsafe.copyMemory(
-                this.values,
-                PUnsafe.ARRAY_OBJECT_BASE_OFFSET,
-                values,
-                PUnsafe.ARRAY_OBJECT_BASE_OFFSET,
-                (long) values.length * (long) PUnsafe.ARRAY_OBJECT_INDEX_SCALE
-        );*/
-        System.arraycopy(this.values, 0, values, 0, values.length);
-        //TODO: i want to benchmark the performance difference between these two
-        return values;
     }
 
     @Override

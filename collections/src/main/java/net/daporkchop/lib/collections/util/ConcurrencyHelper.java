@@ -13,28 +13,46 @@
  *
  */
 
-package net.daporkchop.lib.common.util;
+package net.daporkchop.lib.collections.util;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.util.PArrays;
+import net.daporkchop.lib.common.util.PConstants;
+
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
- * Some constants that may be used in a lot of classes
+ * Various methods for helping with executing concurrent tasks
  *
  * @author DaPorkchop_
  */
-public interface PConstants {
-    int CPU_COUNT = Runtime.getRuntime().availableProcessors();
-
-    static RuntimeException p_exception(@NonNull Throwable t) {
-        PUnsafe.throwException(t);
-        return new RuntimeException(t); //unreachable code
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public abstract class ConcurrencyHelper {
+    public static <T> void runConcurrent(@NonNull Supplier<T> valueSupplier, @NonNull Consumer<T> executor) {
+        ForkJoinPool pool = ForkJoinPool.commonPool();
+        AtomicInteger waitingCounter = new AtomicInteger(0); //number of threads waiting for a task, also a convenient object to use as a mutex
+        Worker[] workers = PArrays.filled(PConstants.CPU_COUNT, Worker[]::new, () -> new Worker(waitingCounter));
     }
 
-    default RuntimeException exception(@NonNull Throwable t) {
-        return p_exception(t);
-    }
+    @RequiredArgsConstructor
+    @Getter
+    @Setter
+    @Accessors(chain = true)
+    protected static class Worker implements Runnable {
+        @NonNull
+        protected final AtomicInteger waitingCounter;
 
-    static Object getNull() {
-        return null;
+        @Override
+        public void run() {
+        }
     }
 }

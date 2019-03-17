@@ -182,7 +182,7 @@ public interface PMap<K, V> extends BaseCollection {
      *
      * @return a stream over all the values in this map that supports concurrency
      */
-    default PStream<V> concurrentvalueStream() {
+    default PStream<V> concurrentValueStream() {
         return this.valueStream().concurrent();
     }
 
@@ -198,7 +198,7 @@ public interface PMap<K, V> extends BaseCollection {
      *
      * @return a stream over all the key => value pairs in this map that supports concurrency
      */
-    default PStream<Entry<K, V>> concurrententryStream() {
+    default PStream<Entry<K, V>> concurrentEntryStream() {
         return this.entryStream().concurrent();
     }
 

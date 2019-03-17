@@ -112,6 +112,7 @@ allprojects {
         }
 
         testCompile "junit:junit:4.12"
+        testCompile "org.openjdk.jmh:jmh-core:1.21"
     }
 
     task sourceJar(type: Jar) {

@@ -22,12 +22,25 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.collections.util.exception.ConcurrentException;
+import net.daporkchop.lib.collections.util.exception.IterationCompleteException;
 import net.daporkchop.lib.common.util.PArrays;
 import net.daporkchop.lib.common.util.PConstants;
 
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
+import java.util.function.IntFunction;
+import java.util.function.LongConsumer;
+import java.util.function.LongFunction;
 import java.util.function.Supplier;
 
 /**
@@ -37,22 +50,184 @@ import java.util.function.Supplier;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public abstract class ConcurrencyHelper {
+    public static void runConcurrent(int end, @NonNull IntConsumer executor)  {
+        runConcurrent(0, end, executor);
+    }
+
+    public static void runConcurrent(int start, int end, @NonNull IntConsumer executor)  {
+        if (start > end) {
+            throw new IllegalArgumentException("start must be lower than end!");
+        } else if (start == end) {
+            return;
+        }
+
+        AtomicInteger counter = new AtomicInteger(start);
+        runConcurrent(() -> {
+            int i = counter.getAndIncrement();
+            if (i < end) {
+                return i;
+            } else {
+                throw new IterationCompleteException();
+            }
+        }, executor::accept);
+    }
+    public static void runConcurrent(long end, @NonNull LongConsumer executor)  {
+        runConcurrent(0L, end, executor);
+    }
+
+    public static void runConcurrent(long start, long end, @NonNull LongConsumer executor)  {
+        if (start > end) {
+            throw new IllegalArgumentException("start must be lower than end!");
+        } else if (start == end) {
+            return;
+        }
+
+        AtomicLong counter = new AtomicLong(start);
+        runConcurrent(() -> {
+            long l = counter.getAndIncrement();
+            if (l < end) {
+                return l;
+            } else {
+                throw new IterationCompleteException();
+            }
+        }, executor::accept);
+    }
+
+    public static <T> void runConcurrent(int end, @NonNull IntFunction<T> valueSupplier, @NonNull Consumer<T> executor) {
+        runConcurrent(0, end, valueSupplier, executor);
+    }
+
+    public static <T> void runConcurrent(int start, int end, @NonNull IntFunction<T> valueSupplier, @NonNull Consumer<T> executor) {
+        if (start > end) {
+            throw new IllegalArgumentException("start must be lower than end!");
+        } else if (start == end) {
+            return;
+        }
+        AtomicInteger counter = new AtomicInteger(start);
+        runConcurrent(() -> {
+            int i = counter.getAndIncrement();
+            if (i < end) {
+                return valueSupplier.apply(i);
+            } else {
+                throw new IterationCompleteException();
+            }
+        }, executor);
+    }
+
+    public static <T> void runConcurrent(long end, @NonNull LongFunction<T> valueSupplier, @NonNull Consumer<T> executor) {
+        runConcurrent(0L, end, valueSupplier, executor);
+    }
+
+    public static <T> void runConcurrent(long start, long end, @NonNull LongFunction<T> valueSupplier, @NonNull Consumer<T> executor) {
+        if (start > end) {
+            throw new IllegalArgumentException("start must be lower than end!");
+        } else if (start == end) {
+            return;
+        }
+        AtomicLong counter = new AtomicLong(start);
+        runConcurrent(() -> {
+            long l = counter.getAndIncrement();
+            if (l < end) {
+                return valueSupplier.apply(l);
+            } else {
+                throw new IterationCompleteException();
+            }
+        }, executor);
+    }
+
+    public static <T> void runConcurrent(@NonNull LongFunction<T> valueSupplier, @NonNull Consumer<T> executor) {
+        AtomicLong counter = new AtomicLong(0L);
+        runConcurrent(() -> valueSupplier.apply(counter.getAndIncrement()), executor);
+    }
+
     public static <T> void runConcurrent(@NonNull Supplier<T> valueSupplier, @NonNull Consumer<T> executor) {
         ForkJoinPool pool = ForkJoinPool.commonPool();
-        AtomicInteger waitingCounter = new AtomicInteger(0); //number of threads waiting for a task, also a convenient object to use as a mutex
-        Worker[] workers = PArrays.filled(PConstants.CPU_COUNT, Worker[]::new, () -> new Worker(waitingCounter));
+        Lock lock = new ReentrantLock();
+        Condition condition = lock.newCondition();
+        AtomicInteger waitingCounter = new AtomicInteger(PConstants.CPU_COUNT); //number of threads waiting for a task
+        Worker<T>[] workers = PArrays.<Worker<T>>filled(waitingCounter.get(), Worker[]::new, () -> new Worker<>(waitingCounter, executor, lock, condition));
+        ForkJoinTask[] tasks = new ForkJoinTask[waitingCounter.get()];
+        try {
+            while (true) {
+                do {
+                    for (int i = workers.length - 1; i >= 0; i--) {
+                        Worker<T> worker = workers[i];
+                        if (!worker.running.get()) {
+                            ForkJoinTask task = tasks[i];
+                            if (task != null && task.isCompletedAbnormally())   {
+                                Throwable t = task.getException();
+                                if (t instanceof Exception) {
+                                    throw new ConcurrentException(String.format("Exception in worker thread #%d", i), t);
+                                } else {
+                                    throw PConstants.p_exception(t);
+                                }
+                            }
+                            synchronized (worker) {
+                                System.out.println("Starting task...");
+                                tasks[i] = pool.submit(worker.setValue(valueSupplier.get()));
+                            }
+                            waitingCounter.decrementAndGet();
+                        }
+                    }
+                } while (waitingCounter.get() > 0);
+                lock.lock();
+                condition.await(5L, TimeUnit.MILLISECONDS);
+                lock.unlock();
+            }
+        } catch (IterationCompleteException e) {
+            //supplier has reached the end
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        System.out.println("Waiting for completion...");
+        while (waitingCounter.get() != workers.length) {
+            try {
+                lock.lock();
+                condition.await(5L, TimeUnit.MILLISECONDS);
+                lock.unlock();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+        System.out.println("Done!");
     }
 
     @RequiredArgsConstructor
     @Getter
     @Setter
     @Accessors(chain = true)
-    protected static class Worker implements Runnable {
+    protected static class Worker<T> implements Runnable {
         @NonNull
         protected final AtomicInteger waitingCounter;
+        @NonNull
+        protected final Consumer<T> executor;
+        @NonNull
+        protected final Lock lock;
+        @NonNull
+        protected final Condition condition;
+        protected final AtomicBoolean running = new AtomicBoolean(false);
+        protected T value;
 
         @Override
         public void run() {
+            try {
+                synchronized (this) {
+                    System.out.println("Running task...");
+                    if (this.running.getAndSet(true)) {
+                        throw new IllegalStateException("Already running!");
+                    }
+                    this.executor.accept(this.value);
+                }
+            } finally {
+                if (!this.running.getAndSet(false)) {
+                    throw new IllegalStateException("Not running!");
+                }
+                this.waitingCounter.incrementAndGet();
+                this.lock.lock();
+                this.condition.signal();
+                this.lock.unlock();
+                System.out.println("Task complete!");
+            }
         }
     }
 }

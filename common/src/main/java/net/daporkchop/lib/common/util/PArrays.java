@@ -82,20 +82,20 @@ public interface PArrays {
 
     static <T> T[] filled(int size, @NonNull IntFunction<T[]> arrayCreator, @NonNull Supplier<T> supplier)   {
         T[] arr = arrayCreator.apply(size);
-        for (int i = arr.length; i >= 0; i--)   {
+        for (int i = arr.length - 1; i >= 0; i--)   {
             arr[i] = supplier.get();
         }
         return arr;
     }
 
     static <T> void fill(@NonNull T[] arr, @NonNull Supplier<T> supplier)   {
-        for (int i = arr.length; i >= 0; i--)   {
+        for (int i = arr.length - 1; i >= 0; i--)   {
             arr[i] = supplier.get();
         }
     }
 
     static <T> void fill(@NonNull T[] arr, @NonNull T value)   {
-        for (int i = arr.length; i >= 0; i--)   {
+        for (int i = arr.length - 1; i >= 0; i--)   {
             arr[i] = value;
         }
     }

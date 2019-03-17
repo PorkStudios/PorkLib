@@ -18,6 +18,7 @@ package net.daporkchop.lib.collections.stream.impl.array;
 import lombok.NonNull;
 import net.daporkchop.lib.collections.PMap;
 import net.daporkchop.lib.collections.stream.PStream;
+import net.daporkchop.lib.collections.util.ConcurrencyHelper;
 
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
@@ -39,12 +40,16 @@ public class ConcurrentArrayStream<V> extends AbstractArrayStream<V> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void forEach(@NonNull Consumer<V> consumer) {
+        ConcurrencyHelper.runConcurrent(this.values.length, (int i) -> consumer.accept((V) this.values[i]));
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> PStream<T> map(@NonNull Function<V, T> mappingFunction) {
-        return null;
+        ConcurrencyHelper.runConcurrent(this.values.length, (int i) -> this.values[i] = mappingFunction.apply((V) this.values[i]));
+        return (PStream<T>) this;
     }
 
     @Override
@@ -58,7 +63,10 @@ public class ConcurrentArrayStream<V> extends AbstractArrayStream<V> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <Key, Value, T extends PMap<Key, Value>> T toMap(@NonNull Function<V, Key> keyExtractor, @NonNull Function<V, Value> valueExtractor, @NonNull Supplier<T> mapCreator) {
-        return null;
+        T map = mapCreator.get();
+        ConcurrencyHelper.runConcurrent(this.values.length, (int i) -> (V) this.values[i], v -> map.put(keyExtractor.apply(v), valueExtractor.apply(v)));
+        return map;
     }
 }

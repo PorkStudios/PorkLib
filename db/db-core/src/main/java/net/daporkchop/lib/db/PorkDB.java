@@ -22,6 +22,7 @@ import net.daporkchop.lib.db.container.ContainerType;
 import net.daporkchop.lib.db.container.map.DBMap;
 import net.daporkchop.lib.db.util.exception.DBCloseException;
 import net.daporkchop.lib.db.util.exception.DBNotOpenException;
+import net.daporkchop.lib.db.util.exception.DBOpenException;
 
 /**
  * @author DaPorkchop_
@@ -35,6 +36,8 @@ public interface PorkDB<F extends ContainerFactory> extends Closeable<DBCloseExc
     default <K, V> DBMap<K, V> getMap(@NonNull String name) {
         return (DBMap<K, V>) this.getContainer(ContainerType.MAP, name);
     }
+
+    void closeContainer(@NonNull ContainerType type, @NonNull String name) throws DBCloseException;
 
     default void ensureOpen()   {
         if (this.isClosed())    {

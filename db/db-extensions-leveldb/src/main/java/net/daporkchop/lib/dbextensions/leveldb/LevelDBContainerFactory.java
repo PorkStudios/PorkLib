@@ -28,6 +28,7 @@ import net.daporkchop.lib.dbextensions.leveldb.builder.LevelDBContainerBuilder;
 import net.daporkchop.lib.dbextensions.leveldb.builder.LevelDBMapBuilder;
 import net.daporkchop.lib.dbextensions.leveldb.container.LevelDBMap;
 
+import java.io.File;
 import java.util.function.Function;
 
 /**
@@ -44,11 +45,9 @@ public class LevelDBContainerFactory implements ContainerFactory<
         if (name.isEmpty()) {
             throw new IllegalArgumentException("Name may not be empty!");
         }
-        LevelDBMapBuilder<Object, Object> builder = new LevelDBMapBuilder<>(name, this.levelDb);
+        LevelDBMapBuilder<Object, Object> builder = new LevelDBMapBuilder<>(name, this.levelDb, new File(this.levelDb.getBuilder().getPath(), String.format("map/%s", name)));
         this.initBaseBuilder(ContainerType.MAP, builder);
-        DBMap<K, V> map = initializer.apply(builder);
-
-        return map;
+        return initializer.apply(builder);
     }
 
     protected void initBaseBuilder(@NonNull ContainerType type, @NonNull LevelDBContainerBuilder builder)    {

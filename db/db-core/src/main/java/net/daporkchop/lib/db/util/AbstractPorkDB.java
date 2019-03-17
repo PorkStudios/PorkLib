@@ -55,12 +55,28 @@ public abstract class AbstractPorkDB<F extends ContainerFactory, Impl extends Ab
     @Override
     @SuppressWarnings("unchecked")
     public <C extends Container> C getContainer(@NonNull ContainerType type, @NonNull String name) {
+        this.ensureOpen();
         Map<String, Container> containerMap = this.typeMap.get(type);
         if (containerMap == null)   {
-            this.ensureOpen();
+            //in theory the database could be closed in the time it takes to call #get(), but let's ignore that edge case because it's so utterly unlikely
             throw new IllegalStateException(String.format("Couldn't find container map for type: %s!", type));
         }
         return (C) containerMap.get(name);
+    }
+
+    @Override
+    public void closeContainer(@NonNull ContainerType type, @NonNull String name) throws DBCloseException {
+        this.ensureOpen();
+        Map<String, Container> containerMap = this.typeMap.get(type);
+        if (containerMap == null)   {
+            //in theory the database could be closed in the time it takes to call #get(), but let's ignore that edge case because it's so utterly unlikely
+            throw new IllegalStateException(String.format("Couldn't find container map for type: %s!", type));
+        }
+        Container container = containerMap.remove(name);
+        if (container == null)  {
+            throw new IllegalStateException(String.format("Couldn't find container with type %s and name \"%s\"!", type, name));
+        }
+        container.close();
     }
 
     @Override

@@ -99,4 +99,13 @@ public interface PArrays {
             arr[i] = value;
         }
     }
+
+    static <T> Object[] toObjects(@NonNull T[] src) {
+        if (src.getClass() == Object[].class)    {
+            return src;
+        }
+        Object[] dst = new Object[src.length];
+        System.arraycopy(src, 0, dst, 0, src.length);
+        return dst;
+    }
 }

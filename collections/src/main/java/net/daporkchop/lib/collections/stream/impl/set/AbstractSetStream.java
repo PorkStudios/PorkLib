@@ -18,5 +18,5 @@ package net.daporkchop.lib.collections.stream.impl.set;
 /**
  * @author DaPorkchop_
  */
-public class AbstractSetStream {
+public abstract class AbstractSetStream {
 }

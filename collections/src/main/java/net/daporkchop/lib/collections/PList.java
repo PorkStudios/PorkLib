@@ -16,10 +16,6 @@
 package net.daporkchop.lib.collections;
 
 import lombok.NonNull;
-import net.daporkchop.lib.collections.stream.PStream;
-import net.daporkchop.lib.collections.util.BaseCollection;
-
-import java.util.function.Consumer;
 
 /**
  * A simplification of {@link java.util.Collection}. A PCollection supports many required the same simple getters and setters
@@ -28,67 +24,63 @@ import java.util.function.Consumer;
  * <p>
  * Implementations of this class are expected to be thread-safe at a minimum, optionally supporting full concurrency.
  *
- * @param <V> the type to be used as a value
  * @author DaPorkchop_
  */
-public interface PCollection<V> extends BaseCollection {
+public interface PList<V> extends PCollection<V> {
     /**
-     * Adds a value to this collection.
+     * Adds a value to this list at a specific position.
      *
+     * @param pos   the position at which to add the element. Elements following this position will be displaced to make room
+     *              for the new element.
      * @param value the value to add
      */
-    void add(V value);
+    void add(long pos, @NonNull V value);
 
     /**
-     * Checks whether or not this collection contains the given value.
+     * Sets a value at a specific position in this list.
      *
-     * @param value the value to check for
-     * @return whether or not this collection contains the given value
+     * @param pos   the position of the element to set. The old value at this position will be replaced silently.
+     * @param value the new value to set at the given position
      */
-    boolean contains(V value);
+    void set(long pos, @NonNull V value);
 
     /**
-     * Removes a value from this collection.
+     * Gets a value at a specific position in this list.
      *
-     * @param value the value to be removed
-     * @return whether or not the value was found in this collection and removed
+     * @param pos the position of the element to get.
+     * @return the value at that position
      */
-    boolean remove(V value);
+    V get(long pos);
 
     /**
-     * Removes all occurrences of a given value from this collection.
+     * Sets a value at a specific position in this list, returning the old value.
      *
-     * @param value the value to be removed
-     * @return whether or not at least one occurrence of the value was found in this collection and removed
+     * @param pos   the position of the element to set. The old value at this position will be returned.
+     * @param value the new value to set at the given position
+     * @return the replaced value
      */
-    default boolean removeAll(V value) {
-        boolean removed = false;
-        while (this.remove(value)) {
-            removed = true;
-        }
-        return removed;
-    }
+    V getAndSet(long pos, @NonNull V value);
 
     /**
-     * Iterates over all elements in the collection, invoking a given function on each
+     * Removes the value at a given position.
      *
-     * @param consumer the function to run
+     * @param pos the position of the element to remove. Elements following this position will be displaced to fill the gap.
      */
-    void forEach(@NonNull Consumer<V> consumer);
+    void remove(long pos);
 
     /**
-     * Gets a stream over the contents of this collection.
+     * Removes and returns the value at a given position.
      *
-     * @return a stream over the contents of this collection
+     * @param pos the position of the element to remove. Elements following this position will be displaced to fill the gap.
+     * @return the removed value
      */
-    PStream<V> stream();
+    V getAndRemove(long pos);
 
     /**
-     * Gets a stream over the contents of this collection that supports concurrency.
+     * Gets the position of a given element in this list. If the element is not contained in this list, returns {@code -1}.
      *
-     * @return a stream over the contents of this collection that supports concurrency
+     * @param value the value whose position should be obtained
+     * @return the value's position in the list, or {@code -1} if not present
      */
-    default PStream<V> concurrentStream() {
-        return this.stream().concurrent();
-    }
+    long indexOf(@NonNull V value);
 }

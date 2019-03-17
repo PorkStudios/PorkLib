@@ -13,15 +13,17 @@
  *
  */
 
-package net.daporkchop.lib.collections.stream.impl.array;
+package net.daporkchop.lib.collections.stream.impl.list;
 
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.collections.PList;
 import net.daporkchop.lib.collections.PMap;
+import net.daporkchop.lib.collections.impl.list.JavaListWrapper;
 import net.daporkchop.lib.collections.stream.PStream;
-import net.daporkchop.lib.common.util.PArrays;
 
+import java.util.ArrayList;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -34,13 +36,13 @@ import java.util.function.Supplier;
  */
 @RequiredArgsConstructor
 @Getter
-public class ArrayStream<V> implements PStream<V> {
+public class ListStream<V> implements PStream<V> {
     @NonNull
-    protected final V[] values;
+    protected final PList<V> list;
 
     @Override
     public long size() {
-        return this.values.length;
+        return this.list.size();
     }
 
     @Override
@@ -59,8 +61,13 @@ public class ArrayStream<V> implements PStream<V> {
     }
 
     @Override
+    public boolean isConcurrent() {
+        return false;
+    }
+
+    @Override
     public PStream<V> concurrent() {
-        return new ConcurrentArrayStream<>(PArrays.toObjects(this.values));
+        return new ConcurrentListStream<>(this.list);
     }
 
     @Override
@@ -69,21 +76,19 @@ public class ArrayStream<V> implements PStream<V> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void forEach(@NonNull Consumer<V> consumer) {
-        int length = this.values.length; //this lets the length be inlined into a register by JIT
-        for (int i = 0; i < length; i++)    {
-            consumer.accept(this.values[i]);
-        }
+        this.list.forEach(consumer);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> PStream<T> map(@NonNull Function<V, T> mappingFunction) {
-        int length = this.values.length;
-        Object[] values = new Object[length];
-        for (int i = 0; i < length; i++)    {
-            values[i] = mappingFunction.apply(this.values[i]);
+        long length = this.list.size();
+        for (long l = 0L; l < length; l++)    {
+            ((PList<T>) this.list).set(l, mappingFunction.apply(this.list.get(l)));
         }
-        return new UncheckedArrayStream<>(values);
+        return (PStream<T>) this;
     }
 
     @Override
@@ -97,11 +102,12 @@ public class ArrayStream<V> implements PStream<V> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <Key, Value, T extends PMap<Key, Value>> T toMap(@NonNull Function<V, Key> keyExtractor, @NonNull Function<V, Value> valueExtractor, @NonNull Supplier<T> mapCreator) {
         T map = mapCreator.get();
-        int length = this.values.length;
-        for (int i = 0; i < length; i++)    {
-            V value = this.values[i];
+        long length = this.list.size();
+        for (long l = 0L; l < length; l++)    {
+            V value = this.list.get(l);
             map.put(keyExtractor.apply(value), valueExtractor.apply(value));
         }
         return map;
@@ -109,11 +115,13 @@ public class ArrayStream<V> implements PStream<V> {
 
     @Override
     public V[] toArray(@NonNull IntFunction<V[]> arrayCreator) {
-        return this.values.clone();
-    }
-
-    @Override
-    public boolean isConcurrent() {
-        return false;
+        if (this.list.size() > Integer.MAX_VALUE)   {
+            throw new IllegalStateException("Backing PList is too large to convert to array!");
+        }
+        V[] values = arrayCreator.apply((int) this.list.size());
+        for (int i = values.length - 1; i >= 0; i--)    {
+            values[i] = this.list.get(i);
+        }
+        return values;
     }
 }

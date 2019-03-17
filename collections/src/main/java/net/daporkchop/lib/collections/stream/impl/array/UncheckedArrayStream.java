@@ -42,6 +42,11 @@ public class UncheckedArrayStream<V> extends AbstractArrayStream<V> {
     }
 
     @Override
+    public boolean isConcurrent() {
+        return false;
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public void forEach(@NonNull Consumer<V> consumer) {
         int length = this.values.length; //this lets the length be inlined into a register by JIT
@@ -80,10 +85,5 @@ public class UncheckedArrayStream<V> extends AbstractArrayStream<V> {
             map.put(keyExtractor.apply(value), valueExtractor.apply(value));
         }
         return map;
-    }
-
-    @Override
-    public boolean isConcurrent() {
-        return false;
     }
 }

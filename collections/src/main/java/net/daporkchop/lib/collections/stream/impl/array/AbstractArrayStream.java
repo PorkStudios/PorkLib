@@ -54,12 +54,12 @@ public abstract class AbstractArrayStream<V> implements PStream<V> {
 
     @Override
     public PStream<V> unordered() {
-        return null;
+        return this;
     }
 
     @Override
     public PStream<V> concurrent() {
-        return null;
+        return this.isConcurrent() ? this : new ConcurrentArrayStream<>(this.values);
     }
 
     @Override

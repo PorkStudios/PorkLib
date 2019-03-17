@@ -48,7 +48,12 @@ public class ConcurrentArrayStream<V> extends AbstractArrayStream<V> {
     @Override
     @SuppressWarnings("unchecked")
     public <T> PStream<T> map(@NonNull Function<V, T> mappingFunction) {
-        ConcurrencyHelper.runConcurrent(this.values.length, (int i) -> this.values[i] = mappingFunction.apply((V) this.values[i]));
+        //ConcurrencyHelper.runConcurrent(this.values.length, (int i) -> this.values[i] = mappingFunction.apply((V) this.values[i]));
+        ConcurrencyHelper.runConcurrent(this.values.length, (int i) -> {
+            V v1 = (V) this.values[i];
+            T v2 = mappingFunction.apply(v1);
+            this.values[i] = v2;
+        });
         return (PStream<T>) this;
     }
 

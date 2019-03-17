@@ -17,10 +17,33 @@ package net.daporkchop.lib.collections.stream;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import net.daporkchop.lib.collections.PList;
+import net.daporkchop.lib.collections.impl.list.JavaListWrapper;
+import net.daporkchop.lib.collections.stream.impl.array.ArrayStream;
+import net.daporkchop.lib.collections.stream.impl.array.ConcurrentArrayStream;
+import net.daporkchop.lib.collections.stream.impl.list.ListStream;
+
+import java.util.List;
 
 /**
  * @author DaPorkchop_
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public abstract class PStreams {
+    public static <V> PStream<V> of(@NonNull V... values)   {
+        return ofArray(values);
+    }
+
+    public static <V> PStream<V> ofArray(@NonNull V[] array) {
+        return new ArrayStream<>(array);
+    }
+
+    public static <V> PStream<V> of(@NonNull List<V> list)  {
+        return of(new JavaListWrapper<>(list));
+    }
+
+    public static <V> PStream<V> of(@NonNull PList<V> list) {
+        return new ListStream<>(list);
+    }
 }

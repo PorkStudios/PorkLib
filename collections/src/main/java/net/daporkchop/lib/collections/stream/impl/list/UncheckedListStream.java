@@ -13,77 +13,50 @@
  *
  */
 
-package net.daporkchop.lib.collections.stream.impl.array;
+package net.daporkchop.lib.collections.stream.impl.list;
 
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.collections.PList;
 import net.daporkchop.lib.collections.PMap;
 import net.daporkchop.lib.collections.stream.PStream;
-import net.daporkchop.lib.common.util.PArrays;
 
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.IntFunction;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-public class ArrayStream<V> implements PStream<V> {
-    @NonNull
-    protected final V[] values;
-
-    @Override
-    public long size() {
-        return this.values.length;
+//TODO: i think this can be removed
+public class UncheckedListStream<V> extends AbstractListStream<V> {
+    public UncheckedListStream(PList list) {
+        super(list);
     }
 
     @Override
-    public boolean isOrdered() {
-        return true;
+    public boolean isConcurrent() {
+        return false;
     }
 
     @Override
-    public PStream<V> ordered() {
-        return this;
-    }
-
-    @Override
-    public PStream<V> unordered() {
-        return null;
-    }
-
-    @Override
-    public PStream<V> concurrent() {
-        return new ConcurrentArrayStream<>(PArrays.toObjects(this.values));
-    }
-
-    @Override
-    public PStream<V> singleThreaded() {
-        return this;
-    }
-
-    @Override
+    @SuppressWarnings("unchecked")
     public void forEach(@NonNull Consumer<V> consumer) {
-        int length = this.values.length; //this lets the length be inlined into a register by JIT
-        for (int i = 0; i < length; i++)    {
-            consumer.accept(this.values[i]);
+        long length = this.list.size(); //this lets the length be inlined into a register by JIT
+        for (long l = 0L; l < length; l++)    {
+            consumer.accept((V) this.list.get(l));
         }
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> PStream<T> map(@NonNull Function<V, T> mappingFunction) {
-        int length = this.values.length;
-        Object[] values = new Object[length];
-        for (int i = 0; i < length; i++)    {
-            values[i] = mappingFunction.apply(this.values[i]);
+        long length = this.list.size();
+        for (long l = 0L; l < length; l++)    {
+            this.list.set(l, mappingFunction.apply((V) this.list.get(l)));
         }
-        return new UncheckedArrayStream<>(values);
+        return (PStream<T>) this;
     }
 
     @Override
@@ -97,23 +70,14 @@ public class ArrayStream<V> implements PStream<V> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <Key, Value, T extends PMap<Key, Value>> T toMap(@NonNull Function<V, Key> keyExtractor, @NonNull Function<V, Value> valueExtractor, @NonNull Supplier<T> mapCreator) {
         T map = mapCreator.get();
-        int length = this.values.length;
-        for (int i = 0; i < length; i++)    {
-            V value = this.values[i];
+        long length = this.list.size();
+        for (long l = 0L; l < length; l++)    {
+            V value = (V) this.list.get(l);
             map.put(keyExtractor.apply(value), valueExtractor.apply(value));
         }
         return map;
-    }
-
-    @Override
-    public V[] toArray(@NonNull IntFunction<V[]> arrayCreator) {
-        return this.values.clone();
-    }
-
-    @Override
-    public boolean isConcurrent() {
-        return false;
     }
 }

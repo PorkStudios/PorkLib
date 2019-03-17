@@ -41,6 +41,7 @@ import org.iq80.leveldb.DBIterator;
 import org.iq80.leveldb.WriteBatch;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Map;
@@ -61,8 +62,6 @@ public class LevelDBMap<K, V> extends AbstractDBMap<K, V, LevelDBMap<K, V>> {
     protected final byte[] prefix;
     protected final Serializer<K> fastKeySerializer;
 
-    protected final AtomicLong size = new AtomicLong(0L);
-
     protected final Cache<ByteArrayOutputStream> baosCache = SoftThreadCache.of(/*Fast*/ByteArrayOutputStream::new);
     protected final ReadWriteLock lock = new ReentrantReadWriteLock();
 
@@ -75,11 +74,15 @@ public class LevelDBMap<K, V> extends AbstractDBMap<K, V, LevelDBMap<K, V>> {
             if (this.levelDb.getBuilder().isSharedDb()) {
                 this.delegate = this.levelDb.getDb();
             } else {
-                this.delegate = this.levelDb.getBuilder().getDbFactory().open(this.levelDb.getBuilder().getPath(), this.levelDb.getDbOptions());
+                this.delegate = this.levelDb.getBuilder().getDbFactory().open(builder.getPath(), this.levelDb.getDbOptions());
             }
 
             if (builder.getContainerPrefix() == null) {
-                this.prefix = null; //TODO
+                if (this.levelDb.getBuilder().isSharedDb()) {
+                    throw new IllegalStateException("Cannot have a null prefix in a shared DB!");
+                } else {
+                    this.prefix = null;
+                }
             } else {
                 this.prefix = builder.getContainerPrefix();
             }
@@ -96,7 +99,7 @@ public class LevelDBMap<K, V> extends AbstractDBMap<K, V, LevelDBMap<K, V>> {
                 if (!this.levelDb.getBuilder().isSharedDb()) {
                     this.delegate.close();
                 }
-                this.engine.getParent().closeContainer(ContainerType.MAP, this.name);
+                this.levelDb.closeContainer(ContainerType.MAP, this.name);
             } catch (Exception e)   {
                 throw new DBCloseException(e);
             }
@@ -105,27 +108,31 @@ public class LevelDBMap<K, V> extends AbstractDBMap<K, V, LevelDBMap<K, V>> {
 
     @Override
     public long size() {
-        return this.size.get();
+        return 0L;
     }
 
     @Override
     public void clear() {
         this.lock.writeLock().lock();
-        try {
-            //TODO: this really needs to be optimized somehow (i think)
-            DBIterator iterator = this.engine.getDelegate().iterator();
-            ITERATOR_LOOP:
-            while (iterator.hasNext())  {
-                Map.Entry<byte[], byte[]> entry = iterator.next();
-                byte[] key = entry.getKey();
-                for (int i = this.prefix.length - 1; i >= 0; i--)   {
-                    if (key[i] != this.prefix[i])   {
-                        continue ITERATOR_LOOP;
+        try (DBIterator iterator = this.delegate.iterator()) {
+            if (this.levelDb.getBuilder().isSharedDb()) {
+                //TODO: this really needs to be optimized somehow (i think)
+                ITERATOR_LOOP:
+                for (iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
+                    byte[] key = iterator.peekNext().getKey();
+                    for (int i = this.prefix.length - 1; i >= 0; i--) {
+                        if (key[i] != this.prefix[i]) {
+                            continue ITERATOR_LOOP;
+                        }
                     }
+                    iterator.remove();
                 }
-                iterator.remove();
+            } else {
+                //TODO: consider closing the database, physically deleting the files, then creating a new one
+                for (iterator.seekToFirst(); iterator.hasNext(); iterator.next())   {
+                    iterator.remove();
+                }
             }
-            this.size.set(0L);
         } finally {
             this.lock.writeLock().unlock();
         }
@@ -135,7 +142,7 @@ public class LevelDBMap<K, V> extends AbstractDBMap<K, V, LevelDBMap<K, V>> {
     public V get(@NonNull K key) {
         this.lock.readLock().lock();
         try {
-            byte[] data = this.engine.getDelegate().get(this.getKey(key));
+            byte[] data = this.delegate.get(this.getKey(key));
             V val = null;
             if (data != null)   {
                 val = this.valueSerializer.read(DataIn.wrap(this.valueCompression.inflate(DataIn.wrap(ByteBuffer.wrap(data)))));
@@ -156,7 +163,7 @@ public class LevelDBMap<K, V> extends AbstractDBMap<K, V, LevelDBMap<K, V>> {
             try (DataOut out = DataOut.wrap(this.valueCompression.deflate(baos)))    {
                 this.valueSerializer.write(value, out);
             }
-            this.engine.getDelegate().put(this.getKey(key), baos.toByteArray());
+            this.delegate.put(this.getKey(key), baos.toByteArray());
         } catch (IOException | DBException e) {
             throw new DBWriteException(e);
         } finally {
@@ -169,12 +176,12 @@ public class LevelDBMap<K, V> extends AbstractDBMap<K, V, LevelDBMap<K, V>> {
         this.lock.readLock().lock();
         try {
             byte[] keyEncoded = this.getKey(key);
-            boolean present = this.engine.getDelegate().get(keyEncoded) != null;
+            boolean present = this.delegate.get(keyEncoded) != null;
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             try (DataOut out = DataOut.wrap(this.valueCompression.deflate(baos)))    {
                 this.valueSerializer.write(value, out);
             }
-            this.engine.getDelegate().put(keyEncoded, baos.toByteArray());
+            this.delegate.put(keyEncoded, baos.toByteArray());
             return present;
         } catch (IOException | DBException e) {
             throw new DBWriteException(e);
@@ -190,7 +197,7 @@ public class LevelDBMap<K, V> extends AbstractDBMap<K, V, LevelDBMap<K, V>> {
             byte[] keyEncoded = this.getKey(key);
             V val = null;
             {
-                byte[] data = this.engine.getDelegate().get(this.getKey(key));
+                byte[] data = this.delegate.get(this.getKey(key));
                 if (data != null) {
                     val = this.valueSerializer.read(DataIn.wrap(this.valueCompression.inflate(DataIn.wrap(ByteBuffer.wrap(data)))));
                 }
@@ -199,7 +206,7 @@ public class LevelDBMap<K, V> extends AbstractDBMap<K, V, LevelDBMap<K, V>> {
             try (DataOut out = DataOut.wrap(this.valueCompression.deflate(baos)))    {
                 this.valueSerializer.write(value, out);
             }
-            this.engine.getDelegate().put(keyEncoded, baos.toByteArray());
+            this.delegate.put(keyEncoded, baos.toByteArray());
             return val;
         } catch (IOException | DBException e) {
             throw new DBWriteException(e);
@@ -211,7 +218,7 @@ public class LevelDBMap<K, V> extends AbstractDBMap<K, V, LevelDBMap<K, V>> {
     @Override
     public void putAll(@NonNull PMap<K, V> other) {
         this.lock.readLock().lock();
-        try (WriteBatch batch = this.engine.getDelegate().createWriteBatch()) {
+        try (WriteBatch batch = this.delegate.createWriteBatch()) {
             other.forEach((IOBiConsumer<K, V>) (key, value) -> {
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 try (DataOut out = DataOut.wrap(this.valueCompression.deflate(baos)))    {
@@ -220,7 +227,7 @@ public class LevelDBMap<K, V> extends AbstractDBMap<K, V, LevelDBMap<K, V>> {
                 batch.put(this.getKey(key), baos.toByteArray());
             });
 
-            this.engine.getDelegate().write(batch);
+            this.delegate.write(batch);
         } catch (IOException | DBException e)   {
             throw new DBWriteException(e);
         } finally {
@@ -232,7 +239,7 @@ public class LevelDBMap<K, V> extends AbstractDBMap<K, V, LevelDBMap<K, V>> {
     public boolean contains(@NonNull K key) {
         this.lock.readLock().lock();
         try {
-            return this.engine.getDelegate().get(this.getKey(key)) != null;
+            return this.delegate.get(this.getKey(key)) != null;
         } catch (IOException | DBException e) {
             throw new DBReadException(e);
         } finally {
@@ -244,7 +251,7 @@ public class LevelDBMap<K, V> extends AbstractDBMap<K, V, LevelDBMap<K, V>> {
     public void remove(@NonNull K key) {
         this.lock.readLock().lock();
         try {
-            this.engine.getDelegate().delete(this.getKey(key));
+            this.delegate.delete(this.getKey(key));
         } catch (IOException | DBException e) {
             throw new DBWriteException(e);
         } finally {
@@ -257,8 +264,8 @@ public class LevelDBMap<K, V> extends AbstractDBMap<K, V, LevelDBMap<K, V>> {
         this.lock.readLock().lock();
         try {
             byte[] keyEncoded = this.getKey(key);
-            boolean present = this.engine.getDelegate().get(keyEncoded) != null;
-            this.engine.getDelegate().delete(keyEncoded);
+            boolean present = this.delegate.get(keyEncoded) != null;
+            this.delegate.delete(keyEncoded);
             return present;
         } catch (IOException | DBException e) {
             throw new DBWriteException(e);
@@ -274,12 +281,12 @@ public class LevelDBMap<K, V> extends AbstractDBMap<K, V, LevelDBMap<K, V>> {
             byte[] keyEncoded = this.getKey(key);
             V val = null;
             {
-                byte[] data = this.engine.getDelegate().get(this.getKey(key));
+                byte[] data = this.delegate.get(this.getKey(key));
                 if (data != null) {
                     val = this.valueSerializer.read(DataIn.wrap(this.valueCompression.inflate(DataIn.wrap(ByteBuffer.wrap(data)))));
                 }
             }
-            this.engine.getDelegate().delete(keyEncoded);
+            this.delegate.delete(keyEncoded);
             return val;
         } catch (IOException | DBException e) {
             throw new DBWriteException(e);
@@ -291,25 +298,48 @@ public class LevelDBMap<K, V> extends AbstractDBMap<K, V, LevelDBMap<K, V>> {
     @Override
     public void forEach(@NonNull BiConsumer<K, V> consumer) {
         this.lock.readLock().lock();
-        try (DBIterator iterator = this.engine.getDelegate().iterator()) {
+        try (DBIterator iterator = this.delegate.iterator()) {
             int i = 0;
-            for (iterator.seekToFirst(); iterator.hasNext(); iterator.next())  {
-                i++;
-                K key = null;
-                if (this.keysReadable) {
-                    try (DataIn in = DataIn.wrap(ByteBuffer.wrap(iterator.peekNext().getKey()))) {
-                        in.skip(this.prefix.length);
-                        if (this.keySerializer != null) {
-                            key = this.keySerializer.read(in);
-                        } else if (this.fastKeySerializer != null) {
-                            key = this.fastKeySerializer.read(in);
-                        } else {
-                            throw new IllegalStateException();
+            if (this.levelDb.getBuilder().isSharedDb()) {
+                ITERATOR:
+                for (iterator.seekToFirst(); iterator.hasNext(); iterator.next(), i++) {
+                    K key = null;
+                    if (this.keysReadable) {
+                        try (DataIn in = DataIn.wrap(ByteBuffer.wrap(iterator.peekNext().getKey()))) {
+                            for (int j = 0; j < this.prefix.length; j++)    {
+                                if ((this.prefix[j] & 0xFF) != in.read())   {
+                                    continue ITERATOR;
+                                }
+                            }
+                            if (this.fastKeySerializer != null) {
+                                key = this.fastKeySerializer.read(in);
+                            } else if (this.keySerializer != null) {
+                                key = this.keySerializer.read(in);
+                            } else {
+                                throw new IllegalStateException();
+                            }
                         }
                     }
+                    V val = this.valueSerializer.read(DataIn.wrap(this.valueCompression.inflate(DataIn.wrap(ByteBuffer.wrap(iterator.peekNext().getValue())))));
+                    consumer.accept(key, val);
                 }
-                V val = this.valueSerializer.read(DataIn.wrap(this.valueCompression.inflate(DataIn.wrap(ByteBuffer.wrap(iterator.peekNext().getValue())))));
-                consumer.accept(key, val);
+            } else {
+                for (iterator.seekToFirst(); iterator.hasNext(); iterator.next(), i++) {
+                    K key = null;
+                    if (this.keysReadable) {
+                        try (DataIn in = DataIn.wrap(ByteBuffer.wrap(iterator.peekNext().getKey()))) {
+                            if (this.fastKeySerializer != null) {
+                                key = this.fastKeySerializer.read(in);
+                            } else if (this.keySerializer != null) {
+                                key = this.keySerializer.read(in);
+                            } else {
+                                throw new IllegalStateException();
+                            }
+                        }
+                    }
+                    V val = this.valueSerializer.read(DataIn.wrap(this.valueCompression.inflate(DataIn.wrap(ByteBuffer.wrap(iterator.peekNext().getValue())))));
+                    consumer.accept(key, val);
+                }
             }
             Logging.logger.debug("Iterated over ${0} entries", i);
         } catch (IOException | DBException e) {
@@ -341,7 +371,10 @@ public class LevelDBMap<K, V> extends AbstractDBMap<K, V, LevelDBMap<K, V>> {
 
     protected byte[] getKey(@NonNull K key) throws IOException {
         ByteArrayOutputStream baos = this.baosCache.get();
-        baos.write(this.prefix);
+        baos.reset();
+        if (this.prefix != null)    {
+            baos.write(this.prefix);
+        }
         if (this.keySerializer != null) {
             this.keySerializer.write(key, DataOut.wrap(baos));
         } else if (this.fastKeySerializer != null) {
@@ -350,15 +383,5 @@ public class LevelDBMap<K, V> extends AbstractDBMap<K, V, LevelDBMap<K, V>> {
             throw new IllegalStateException();
         }
         return baos.toByteArray();
-    }
-
-    protected long readSize() {
-        long val = ToBytes.toLongs(this.engine.getDelegate().get(this.prefix))[0];
-        this.size.set(val);
-        return val;
-    }
-
-    protected void writeSize(long val) {
-        this.engine.getDelegate().put(this.prefix, ToBytes.toBytes(val));
     }
 }

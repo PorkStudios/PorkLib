@@ -64,6 +64,10 @@ public class LevelDBBuilder extends AbstractDBBuilder<LevelDB, LevelDBBuilder> {
         System.arraycopy(Digest.WHIRLPOOL.hash(name.getBytes(UTF8.utf8), b).getHash(), 0, b, 1, 7);
         return b;
     };
+    /**
+     * @see org.iq80.leveldb.impl.Iq80DBFactory
+     * @see org.fusesource.leveldbjni.JniDBFactory
+     */
     protected DBFactory dbFactory;
     protected boolean sharedDb = true; //by default, share the single leveldb instance with all containers
 

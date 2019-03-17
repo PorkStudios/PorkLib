@@ -17,14 +17,11 @@ package net.daporkchop.lib.dbextensions.leveldb;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.db.PorkDB;
-import net.daporkchop.lib.db.container.Container;
-import net.daporkchop.lib.db.container.ContainerType;
 import net.daporkchop.lib.db.util.AbstractPorkDB;
-import net.daporkchop.lib.db.util.exception.DBCloseException;
 import net.daporkchop.lib.db.util.exception.DBOpenException;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.Options;
+import org.iq80.leveldb.impl.Iq80DBFactory;
 
 import java.io.IOException;
 
@@ -33,6 +30,10 @@ import java.io.IOException;
  */
 @Getter
 public class LevelDB extends AbstractPorkDB<LevelDBContainerFactory, LevelDB> {
+    public static LevelDBBuilder builder() {
+        return new LevelDBBuilder();
+    }
+
     protected final LevelDBBuilder builder;
     protected final Options dbOptions;
     protected final DB db;
@@ -43,6 +44,10 @@ public class LevelDB extends AbstractPorkDB<LevelDBContainerFactory, LevelDB> {
         try {
             this.builder = builder;
             this.factory.levelDb = this;
+
+            if (builder.dbFactory == null) {
+                builder.dbFactory = Iq80DBFactory.factory;
+            }
 
             this.dbOptions = new Options()
                     .createIfMissing(builder.createIfMissing)
@@ -69,7 +74,7 @@ public class LevelDB extends AbstractPorkDB<LevelDBContainerFactory, LevelDB> {
 
     @Override
     protected void doPreClose() throws IOException {
-        if (this.db != null)    {
+        if (this.db != null) {
             this.db.close();
         }
     }

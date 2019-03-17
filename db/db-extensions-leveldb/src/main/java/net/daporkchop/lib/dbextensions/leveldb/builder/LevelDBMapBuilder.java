@@ -24,6 +24,8 @@ import net.daporkchop.lib.db.builder.DBMapBuilder;
 import net.daporkchop.lib.dbextensions.leveldb.LevelDB;
 import net.daporkchop.lib.dbextensions.leveldb.container.LevelDBMap;
 
+import java.io.File;
+
 /**
  * @author DaPorkchop_
  */
@@ -32,14 +34,17 @@ import net.daporkchop.lib.dbextensions.leveldb.container.LevelDBMap;
 @Accessors(chain = true)
 public class LevelDBMapBuilder<K, V> extends DBMapBuilder<K, V, LevelDBMapBuilder> implements LevelDBContainerBuilder<LevelDBMapBuilder<K, V>> {
     protected final LevelDB levelDb;
+    protected final File path;
 
     protected byte[] containerPrefix;
     protected Serializer<K> fastKeySerializer;
+    protected boolean trackSize = true;
 
-    public LevelDBMapBuilder(String name, @NonNull LevelDB levelDb) {
+    public LevelDBMapBuilder(String name, @NonNull LevelDB levelDb, @NonNull File path) {
         super(name);
 
         this.levelDb = levelDb;
+        this.path = path;
     }
 
     @SuppressWarnings("unchecked")

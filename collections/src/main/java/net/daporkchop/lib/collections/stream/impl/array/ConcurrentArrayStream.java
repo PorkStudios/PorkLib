@@ -15,74 +15,36 @@
 
 package net.daporkchop.lib.collections.stream.impl.array;
 
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.collections.PMap;
 import net.daporkchop.lib.collections.stream.PStream;
 
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.IntFunction;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-public class ArrayStream<V> implements PStream<V> {
-    @NonNull
-    protected final V[] values;
-
-    @Override
-    public long size() {
-        return this.values.length;
+public class ConcurrentArrayStream<V> extends AbstractArrayStream<V> {
+    public ConcurrentArrayStream(Object[] values) {
+        super(values);
     }
 
     @Override
-    public boolean isOrdered() {
+    public boolean isConcurrent() {
         return true;
     }
 
     @Override
-    public PStream<V> ordered() {
-        return this;
-    }
-
-    @Override
-    public PStream<V> unordered() {
-        return null;
-    }
-
-    @Override
-    public PStream<V> concurrent() {
-        return null;
-    }
-
-    @Override
-    public PStream<V> singleThreaded() {
-        return this;
-    }
-
-    @Override
     public void forEach(@NonNull Consumer<V> consumer) {
-        int length = this.values.length; //this lets the length be inlined into a register by JIT
-        for (int i = 0; i < length; i++)    {
-            consumer.accept(this.values[i]);
-        }
     }
 
     @Override
     public <T> PStream<T> map(@NonNull Function<V, T> mappingFunction) {
-        int length = this.values.length;
-        Object[] values = new Object[length];
-        for (int i = 0; i < length; i++)    {
-            values[i] = mappingFunction.apply(this.values[i]);
-        }
-        return new UncheckedArrayStream<>(values);
+        return null;
     }
 
     @Override
@@ -97,22 +59,6 @@ public class ArrayStream<V> implements PStream<V> {
 
     @Override
     public <Key, Value, T extends PMap<Key, Value>> T toMap(@NonNull Function<V, Key> keyExtractor, @NonNull Function<V, Value> valueExtractor, @NonNull Supplier<T> mapCreator) {
-        T map = mapCreator.get();
-        int length = this.values.length;
-        for (int i = 0; i < length; i++)    {
-            V value = this.values[i];
-            map.put(keyExtractor.apply(value), valueExtractor.apply(value));
-        }
-        return map;
-    }
-
-    @Override
-    public V[] toArray(@NonNull IntFunction<V[]> arrayCreator) {
-        return this.values.clone();
-    }
-
-    @Override
-    public boolean isConcurrent() {
-        return false;
+        return null;
     }
 }

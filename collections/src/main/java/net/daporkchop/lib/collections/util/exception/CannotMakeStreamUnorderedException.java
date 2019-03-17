@@ -13,28 +13,25 @@
  *
  */
 
-package net.daporkchop.lib.common.util;
-
-import lombok.NonNull;
+package net.daporkchop.lib.collections.util.exception;
 
 /**
- * Some constants that may be used in a lot of classes
- *
  * @author DaPorkchop_
  */
-public interface PConstants {
-    int CPU_COUNT = Runtime.getRuntime().availableProcessors();
-
-    static RuntimeException p_exception(@NonNull Throwable t) {
-        PUnsafe.throwException(t);
-        return new RuntimeException(t); //unreachable code
+public class CannotMakeStreamUnorderedException extends RuntimeException {
+    public CannotMakeStreamUnorderedException() {
+        super();
     }
 
-    default RuntimeException exception(@NonNull Throwable t) {
-        return p_exception(t);
+    public CannotMakeStreamUnorderedException(String message) {
+        super(message);
     }
 
-    static Object getNull() {
-        return null;
+    public CannotMakeStreamUnorderedException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public CannotMakeStreamUnorderedException(Throwable cause) {
+        super(cause);
     }
 }

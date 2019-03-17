@@ -45,8 +45,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 /**
+ * Some helper methods and values that I use all over the place
+ *
  * @author DaPorkchop_
  */
+//TODO: clean this up a bit
 public class PorkUtil {
     public static final Unsafe unsafe;
     public static final ThreadLocal<byte[]> BUFFER_CACHE_SMALL = ThreadLocal.withInitial(() -> new byte[256]);

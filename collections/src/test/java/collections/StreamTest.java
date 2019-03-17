@@ -15,10 +15,14 @@
 
 package collections;
 
+import net.daporkchop.lib.collections.impl.list.JavaListWrapper;
 import net.daporkchop.lib.collections.stream.PStream;
 import net.daporkchop.lib.collections.stream.impl.array.ArrayStream;
 import net.daporkchop.lib.collections.stream.impl.array.ConcurrentArrayStream;
 import net.daporkchop.lib.collections.stream.impl.array.UncheckedArrayStream;
+import net.daporkchop.lib.collections.stream.impl.list.ConcurrentListStream;
+import net.daporkchop.lib.collections.stream.impl.list.ListStream;
+import net.daporkchop.lib.collections.stream.impl.list.UncheckedListStream;
 import net.daporkchop.lib.logging.Logging;
 import org.junit.Test;
 
@@ -46,11 +50,17 @@ public class StreamTest implements Logging {
         for (PStream<Integer> stream : new PStream[] {
                 new ArrayStream<>(i),
                 new UncheckedArrayStream<>(i),
-                new ConcurrentArrayStream<>(i)
+                new ConcurrentArrayStream<>(i),
+                new ListStream<>(new JavaListWrapper<>(new ArrayList<>(collection))),
+                new UncheckedListStream(new JavaListWrapper<>(new ArrayList<>(collection))),
+                new ConcurrentListStream(new JavaListWrapper<>(new ArrayList<>(collection)))
         })  {
             logger.info("Testing ${0}...", stream.getClass());
             AtomicInteger counter = new AtomicInteger(0);
-            stream.forEach(value -> {
+            stream
+                    .map(String::valueOf)
+                    .map(Integer::parseInt)
+                    .forEach(value -> {
                 if (!collection.contains(value))  {
                     throw new IllegalStateException();
                 }

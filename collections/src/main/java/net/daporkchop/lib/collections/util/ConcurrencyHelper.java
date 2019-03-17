@@ -163,7 +163,7 @@ public abstract class ConcurrencyHelper {
                                 }
                             }
                             synchronized (worker) {
-                                System.out.println("Starting task...");
+                                worker.running.set(true);
                                 tasks[i] = pool.submit(worker.setValue(valueSupplier.get()));
                             }
                             waitingCounter.decrementAndGet();
@@ -179,7 +179,6 @@ public abstract class ConcurrencyHelper {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
-        System.out.println("Waiting for completion...");
         while (waitingCounter.get() != workers.length) {
             try {
                 lock.lock();
@@ -189,7 +188,6 @@ public abstract class ConcurrencyHelper {
                 Thread.currentThread().interrupt();
             }
         }
-        System.out.println("Done!");
     }
 
     @RequiredArgsConstructor
@@ -212,9 +210,8 @@ public abstract class ConcurrencyHelper {
         public void run() {
             try {
                 synchronized (this) {
-                    System.out.println("Running task...");
-                    if (this.running.getAndSet(true)) {
-                        throw new IllegalStateException("Already running!");
+                    if (!this.running.get()) {
+                        throw new IllegalStateException("Not running!");
                     }
                     this.executor.accept(this.value);
                 }
@@ -226,7 +223,6 @@ public abstract class ConcurrencyHelper {
                 this.lock.lock();
                 this.condition.signal();
                 this.lock.unlock();
-                System.out.println("Task complete!");
             }
         }
     }

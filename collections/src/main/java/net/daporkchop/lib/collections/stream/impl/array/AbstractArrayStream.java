@@ -20,6 +20,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.collections.PMap;
 import net.daporkchop.lib.collections.stream.PStream;
+import net.daporkchop.lib.common.util.PArrays;
 
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
@@ -31,11 +32,13 @@ import java.util.function.Supplier;
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
 @Getter
 public abstract class AbstractArrayStream<V> implements PStream<V> {
-    @NonNull
     protected final Object[] values;
+
+    public AbstractArrayStream(@NonNull Object[] values)    {
+        this.values = PArrays.toObjects(values);
+    }
 
     @Override
     public long size() {

@@ -13,31 +13,34 @@
  *
  */
 
-package net.daporkchop.lib.gui.component.state;
+package net.daporkchop.lib.gui.component.type.container;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.gui.component.type.Window;
+import net.daporkchop.lib.gui.component.NestedContainer;
+import net.daporkchop.lib.gui.component.state.container.ScrollPaneState;
+import net.daporkchop.lib.gui.util.ScrollCondition;
+import net.daporkchop.lib.gui.util.ScrollDir;
 
 /**
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-@NoArgsConstructor
-@Getter
-public enum WindowState implements ElementState<Window, WindowState> {
-    CONSTRUCTION(false, false),
-    VISIBLE(true, true),
-    VISIBLE_MINIMIZED(true, true),
-    VISIBLE_INACTIVE(true, true),
-    HIDDEN(false, true),
-    CLOSING(false, false),
-    CLOSED(false, false),
-    ;
+public interface ScrollPane extends NestedContainer<ScrollPane, ScrollPaneState> {
+    @Override
+    default ScrollPaneState getState() {
+        return this.isVisible() ?
+                this.isEnabled() ?
+                        this.isHovered() ? ScrollPaneState.ENABLED_HOVERED : ScrollPaneState.ENABLED
+                        : this.isHovered() ? ScrollPaneState.DISABLED_HOVERED : ScrollPaneState.DISABLED
+                : ScrollPaneState.HIDDEN;
+    }
 
-    protected boolean visible = false;
-    protected boolean enabled = true;
+    default ScrollPane setScrolling(@NonNull ScrollCondition condition) {
+        return this.setScrolling(ScrollDir.HORIZONTAL, condition)
+                .setScrolling(ScrollDir.VERTICAL, condition);
+    }
+
+    ScrollPane setScrolling(@NonNull ScrollDir dir, @NonNull ScrollCondition condition);
+
+    ScrollCondition getScrolling(@NonNull ScrollDir dir);
 }

@@ -44,6 +44,15 @@ public abstract class AbstractElement<Impl extends Element, State extends Elemen
     protected final Map<String, StateListener<Impl, State>> stateListeners = new LinkedHashMap<>();
 
     @Override
+    @SuppressWarnings("unchecked")
+    public Impl update() {
+        if (this.prevState == null) {
+            this.fireStateChange();
+        }
+        return (Impl) this;
+    }
+
+    @Override
     public Impl setTooltip(String tooltip) {
         this.tooltip = tooltip;
         return (Impl) this;

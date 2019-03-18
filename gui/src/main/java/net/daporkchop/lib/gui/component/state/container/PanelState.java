@@ -31,10 +31,11 @@ import net.daporkchop.lib.gui.component.type.functional.Label;
 public enum PanelState implements ElementState<Panel, PanelState> {
     ENABLED,
     ENABLED_HOVERED,
-    DISABLED,
-    DISABLED_HOVERED,
-    HIDDEN(false),
+    DISABLED(true, false),
+    DISABLED_HOVERED(true, false),
+    HIDDEN(false, false),
     ;
 
     protected boolean visible = true;
+    protected boolean enabled = true;
 }

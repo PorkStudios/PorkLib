@@ -38,9 +38,10 @@ public abstract class SwingNestedContainer<Impl extends NestedContainer, Swing e
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Impl update() {
-        Impl toReturn = super.update();
+        super.update();
         this.children.forEach((name, element) -> element.update());
-        return toReturn;
+        return (Impl) this;
     }
 }

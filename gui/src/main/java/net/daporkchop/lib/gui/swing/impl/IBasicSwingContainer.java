@@ -21,9 +21,11 @@ import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.capability.ComponentAdder;
 import net.daporkchop.lib.gui.component.state.ElementState;
 import net.daporkchop.lib.gui.component.type.container.Panel;
+import net.daporkchop.lib.gui.component.type.container.ScrollPane;
 import net.daporkchop.lib.gui.component.type.functional.Button;
 import net.daporkchop.lib.gui.component.type.functional.Label;
 import net.daporkchop.lib.gui.swing.type.container.SwingPanel;
+import net.daporkchop.lib.gui.swing.type.container.SwingScrollPane;
 import net.daporkchop.lib.gui.swing.type.functional.SwingButton;
 import net.daporkchop.lib.gui.swing.type.functional.SwingLabel;
 
@@ -54,6 +56,13 @@ public interface IBasicSwingContainer<Impl extends Container, Swing extends java
         SwingPanel panel = new SwingPanel(name);
         this.addChild(panel);
         return panel;
+    }
+
+    @Override
+    default ScrollPane scrollPane(@NonNull String name) {
+        SwingScrollPane scrollPane = new SwingScrollPane(name);
+        this.addChild(scrollPane);
+        return scrollPane;
     }
 
     //container methods

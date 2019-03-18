@@ -13,31 +13,27 @@
  *
  */
 
-package net.daporkchop.lib.gui.component.state;
+package net.daporkchop.lib.gui.util;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.gui.component.type.Window;
 
 /**
  * @author DaPorkchop_
  */
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
-public enum WindowState implements ElementState<Window, WindowState> {
-    CONSTRUCTION(false, false),
-    VISIBLE(true, true),
-    VISIBLE_MINIMIZED(true, true),
-    VISIBLE_INACTIVE(true, true),
-    HIDDEN(false, true),
-    CLOSING(false, false),
-    CLOSED(false, false),
+public enum ScrollCondition {
+    ALWAYS,
+    NEVER,
+    AUTO(false),
     ;
 
-    protected boolean visible = false;
-    protected boolean enabled = true;
+    protected boolean scrolls = true;
+
+    public boolean doesScroll() {
+        return this.scrolls;
+    }
 }

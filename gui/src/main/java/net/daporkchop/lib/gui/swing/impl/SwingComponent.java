@@ -71,6 +71,7 @@ public abstract class SwingComponent<Impl extends Component, Swing extends JComp
 
     @Override
     public Impl update() {
+        super.update();
         this.bounds = this.orientation == null ? new BoundingBox(0, 0, 0, 0) : this.orientation.update(this.parent.getBounds(), this.parent, (Impl) this);
         this.swing.setBounds(this.bounds.getX(), this.bounds.getY(), this.bounds.getWidth(), this.bounds.getHeight());
         return (Impl) this;

@@ -13,14 +13,14 @@
  *
  */
 
-package net.daporkchop.lib.gui.component.state;
+package net.daporkchop.lib.gui.component.state.container;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.gui.component.type.Window;
+import net.daporkchop.lib.gui.component.state.ElementState;
+import net.daporkchop.lib.gui.component.type.container.Panel;
+import net.daporkchop.lib.gui.component.type.container.ScrollPane;
 
 /**
  * @author DaPorkchop_
@@ -28,16 +28,14 @@ import net.daporkchop.lib.gui.component.type.Window;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public enum WindowState implements ElementState<Window, WindowState> {
-    CONSTRUCTION(false, false),
-    VISIBLE(true, true),
-    VISIBLE_MINIMIZED(true, true),
-    VISIBLE_INACTIVE(true, true),
-    HIDDEN(false, true),
-    CLOSING(false, false),
-    CLOSED(false, false),
+public enum ScrollPaneState implements ElementState<ScrollPane, ScrollPaneState> {
+    ENABLED,
+    ENABLED_HOVERED,
+    DISABLED(true, false),
+    DISABLED_HOVERED(true, false),
+    HIDDEN(false, false),
     ;
 
-    protected boolean visible = false;
+    protected boolean visible = true;
     protected boolean enabled = true;
 }

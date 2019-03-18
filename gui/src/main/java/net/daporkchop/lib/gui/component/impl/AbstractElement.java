@@ -39,7 +39,6 @@ public abstract class AbstractElement<Impl extends Element, State extends Elemen
     protected BoundingBox bounds;
 
     protected String tooltip;
-    protected boolean visible = false;
 
     private State prevState;
     protected final Map<String, StateListener<Impl, State>> stateListeners = new LinkedHashMap<>();
@@ -47,12 +46,6 @@ public abstract class AbstractElement<Impl extends Element, State extends Elemen
     @Override
     public Impl setTooltip(String tooltip) {
         this.tooltip = tooltip;
-        return (Impl) this;
-    }
-
-    @Override
-    public Impl setVisible(boolean state) {
-        this.visible = state;
         return (Impl) this;
     }
 

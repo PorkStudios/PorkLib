@@ -35,11 +35,13 @@ public interface Button extends Component<Button, ButtonState>, IconHolder<Butto
 
     @Override
     default ButtonState getState() {
-        return this.isEnabled() ?
-                this.isHovered() ?
-                        this.isMouseDown() ?
-                                ButtonState.ENABLED_CLICKED : ButtonState.ENABLED_HOVERED
-                        : ButtonState.ENABLED
-                : this.isHovered() ? ButtonState.DISABLED_HOVERED : ButtonState.DISABLED;
+        return this.isVisible() ?
+                this.isEnabled() ?
+                        this.isHovered() ?
+                                this.isMouseDown() ?
+                                        ButtonState.ENABLED_CLICKED : ButtonState.ENABLED_HOVERED
+                                : ButtonState.ENABLED
+                        : this.isHovered() ? ButtonState.DISABLED_HOVERED : ButtonState.DISABLED
+                : ButtonState.HIDDEN;
     }
 }

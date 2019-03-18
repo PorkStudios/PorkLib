@@ -15,4 +15,6 @@
 
 dependencies {
     compile project(":graphics")
+
+    exampleCompile project(":logging")
 }

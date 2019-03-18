@@ -15,18 +15,28 @@
 
 package net.daporkchop.lib.gui.component.state;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.gui.component.type.Window;
 
 /**
  * @author DaPorkchop_
  */
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
 public enum WindowState implements ElementState<Window, WindowState> {
     CONSTRUCTION,
-    VISIBLE,
+    VISIBLE(true),
+    VISIBLE_MINIMIZED(true),
+    VISIBLE_INACTIVE(true),
     HIDDEN,
-    MINIMIZED,
-    MAXIMIZED,
     CLOSING,
-    CLOSED
+    CLOSED,
     ;
+
+    protected boolean visible = false;
 }

@@ -16,17 +16,27 @@
 package net.daporkchop.lib.gui.component.state.functional;
 
 import com.sun.javafx.scene.control.skin.ButtonSkin;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.gui.component.state.ElementState;
 import net.daporkchop.lib.gui.component.type.functional.Button;
 
 /**
  * @author DaPorkchop_
  */
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
 public enum ButtonState implements ElementState<Button, ButtonState> {
     ENABLED,
     ENABLED_HOVERED,
     ENABLED_CLICKED,
     DISABLED,
-    DISABLED_HOVERED
+    DISABLED_HOVERED,
+    HIDDEN(false),
     ;
+
+    protected boolean visible = true;
 }

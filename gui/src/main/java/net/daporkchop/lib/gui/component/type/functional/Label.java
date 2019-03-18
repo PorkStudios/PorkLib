@@ -28,6 +28,10 @@ import net.daporkchop.lib.gui.component.state.functional.LabelState;
 public interface Label extends Component<Label, LabelState>, IconHolder<Label, LabelState>, TextHolder<Label> {
     @Override
     default LabelState getState() {
-        return this.isEnabled() ? this.isHovered() ? LabelState.ENABLED_HOVERED : LabelState.ENABLED : this.isHovered() ? LabelState.DISABLED_HOVERED : LabelState.DISABLED;
+        return this.isVisible() ?
+                this.isEnabled() ?
+                        this.isHovered() ? LabelState.ENABLED_HOVERED : LabelState.ENABLED
+                        : this.isHovered() ? LabelState.DISABLED_HOVERED : LabelState.DISABLED
+                : LabelState.HIDDEN;
     }
 }

@@ -23,13 +23,5 @@ import net.daporkchop.lib.gui.component.Element;
  * @author DaPorkchop_
  */
 public interface ElementState<E extends Element, Impl extends ElementState<E, ?>> {
-    @SuppressWarnings("unchecked")
-    static <E extends Element<E, None<E>>> None<E> getNoneInstance()    {
-        return (None<E>) None.INSTANCE;
-    }
-
-    @NoArgsConstructor(access = AccessLevel.PRIVATE)
-    final class None<E extends Element> implements ElementState<E, None<E>>  {
-        private static final None INSTANCE = new None();
-    }
+    boolean isVisible();
 }

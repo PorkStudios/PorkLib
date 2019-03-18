@@ -37,11 +37,13 @@ public abstract class SwingElement<Impl extends Element, Swing extends java.awt.
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Impl setVisible(boolean state) {
         if (state != this.swing.isVisible())  {
-            this.swing.setVisible(this.visible = state);
+            this.swing.setVisible(state);
+            this.fireStateChange();
         }
-        return super.setVisible(state);
+        return (Impl) this;
     }
 
     @Override

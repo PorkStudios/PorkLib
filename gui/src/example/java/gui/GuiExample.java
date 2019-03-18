@@ -24,11 +24,12 @@ import net.daporkchop.lib.gui.component.orientation.advanced.calculator.DistUnit
 import net.daporkchop.lib.gui.component.state.functional.ButtonState;
 import net.daporkchop.lib.gui.component.state.functional.LabelState;
 import net.daporkchop.lib.gui.util.Alignment;
+import net.daporkchop.lib.logging.Logging;
 
 /**
  * @author DaPorkchop_
  */
-public class GuiExample {
+public class GuiExample implements Logging {
     public static void main(String... args) {
         GuiSystem.swing().newWindow(64, 64, 512, 256)
                 .setTitle("Example GUI").setIcon(PImage.randomImage(32, 32), PImage.randomImage(16, 16))
@@ -39,8 +40,8 @@ public class GuiExample {
                         .setIcon(filledImage(0xFF0000))
                         .setIcon(ButtonState.ENABLED_HOVERED, filledImage(0x0000FF))
                         .setIcon(ButtonState.ENABLED_CLICKED, filledImage(0x00FF00))
-                        .setClickHandler((mouseButton, x, y) -> button.getWindow().getComponent("label2").toggle())
-                        .addStateListener(state -> System.out.printf("%s changed state: %s\n", button.getName(), state.name())))
+                        .addStateListener(state -> logger.debug("%s changed state: ${0}\n", button.getName(), state.name()))
+                        .setClickHandler((mouseButton, x, y) -> button.getWindow().getComponent("label2").toggle()))
                 .button("button2", button -> button.setOrientation(0, 0.0d, 0.1d, 0.1d)
                         .setClickHandler((mouseButton, x, y) -> System.out.printf("Bounds: %s\n", button.getWindow().getComponent("panel1.button2").getBounds())))
                 .label("label1", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", label -> label
@@ -49,14 +50,15 @@ public class GuiExample {
                 .label("label2", label -> label
                         .setOrientation(0.8d, 0.8d, 0.2d, 0.2d)
                         .setIcon(filledImage(0x00FF00))
-                        .setIcon(LabelState.DISABLED, filledImage(0xFF0000))
-                        .addStateListener(LabelState.ENABLED, () -> System.out.printf("%s was enabled\n", label.getName())))
+                        .addStateListener(LabelState.ENABLED, () -> logger.info("${0} was enabled!\n", label.getName()))
+                        .setIcon(LabelState.DISABLED, filledImage(0xFF0000)))
                 .button("button3", button -> button.orientAdvanced(orientation -> orientation
                         .configureAxis(Axis.X, calc -> calc.ease(DistUnit.PX, 0))
                         .configureAxis(Axis.Y, calc -> calc.ease(DistUnit.MULT, 0.5, Axis.HEIGHT)
                                 .min(DistUnit.PX, 50, DistUnit.MULT, 0.5, Axis.WIDTH))
                         .configureAxis(Axis.WIDTH, calc -> calc.ease(DistUnit.PX, 30))
                         .configureAxis(Axis.HEIGHT, Axis.WIDTH)))
+                .addStateListener(state -> logger.debug("Window changed state: ${0}\n", state))
                 .show();
     }
 

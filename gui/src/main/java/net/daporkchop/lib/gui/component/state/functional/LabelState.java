@@ -15,16 +15,25 @@
 
 package net.daporkchop.lib.gui.component.state.functional;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import net.daporkchop.lib.gui.component.state.ElementState;
 import net.daporkchop.lib.gui.component.type.functional.Label;
 
 /**
  * @author DaPorkchop_
  */
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
 public enum LabelState implements ElementState<Label, LabelState> {
     ENABLED,
     ENABLED_HOVERED,
     DISABLED,
     DISABLED_HOVERED,
+    HIDDEN(false),
     ;
+
+    protected boolean visible = true;
 }

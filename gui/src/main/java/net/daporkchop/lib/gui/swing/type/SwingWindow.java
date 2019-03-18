@@ -15,8 +15,11 @@
 
 package net.daporkchop.lib.gui.swing.type;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
 import net.daporkchop.lib.gui.component.state.WindowState;
 import net.daporkchop.lib.gui.component.type.Window;
@@ -37,11 +40,19 @@ import java.util.stream.Stream;
  * @author DaPorkchop_
  */
 @Getter
+@Setter(AccessLevel.PROTECTED)
+@Accessors(chain = true)
 public class SwingWindow extends SwingContainer<Window, JFrame, WindowState> implements Window {
     protected final EventManager eventManager = new EventManager();
 
     protected BoundingBox oldDimensions;
     protected PIcon icon;
+
+    protected boolean built = false;
+    protected boolean minimized = false;
+    protected boolean active = false;
+    protected boolean closing = false;
+    protected boolean closed = false;
 
     public SwingWindow(String name) {
         super(name, new JFrame());
@@ -49,6 +60,27 @@ public class SwingWindow extends SwingContainer<Window, JFrame, WindowState> imp
         this.swing.setLayout(null);
         this.swing.addWindowListener(new SwingWindowListener());
         this.swing.addComponentListener(new SwingWindowComponentListener());
+    }
+
+    @Override
+    public WindowState getState() {
+        if (!this.built)    {
+            return WindowState.CONSTRUCTION;
+        } else if (this.isVisible())    {
+            if (this.minimized) {
+                return WindowState.VISIBLE_MINIMIZED;
+            } else if (this.active) {
+                return WindowState.VISIBLE;
+            } else {
+                return WindowState.VISIBLE_INACTIVE;
+            }
+        } else if (this.closed) {
+            return WindowState.CLOSED;
+        } else if (this.closing)    {
+            return WindowState.CLOSING;
+        } else {
+            return WindowState.HIDDEN;
+        }
     }
 
     @Override
@@ -151,31 +183,38 @@ public class SwingWindow extends SwingContainer<Window, JFrame, WindowState> imp
     protected class SwingWindowListener implements WindowListener  {
         @Override
         public void windowOpened(WindowEvent e) {
+            SwingWindow.this.setBuilt(true).fireStateChange();
         }
 
         @Override
         public void windowClosing(WindowEvent e) {
+            SwingWindow.this.setClosing(true).fireStateChange();
             SwingWindow.this.release(); //TODO: custom handling
         }
 
         @Override
         public void windowClosed(WindowEvent e) {
+            SwingWindow.this.setClosed(true).fireStateChange();
         }
 
         @Override
         public void windowIconified(WindowEvent e) {
+            SwingWindow.this.setMinimized(true).fireStateChange();
         }
 
         @Override
         public void windowDeiconified(WindowEvent e) {
+            SwingWindow.this.setMinimized(false).fireStateChange();
         }
 
         @Override
         public void windowActivated(WindowEvent e) {
+            SwingWindow.this.setActive(true).fireStateChange();
         }
 
         @Override
         public void windowDeactivated(WindowEvent e) {
+            SwingWindow.this.setActive(false).fireStateChange();
         }
     }
 

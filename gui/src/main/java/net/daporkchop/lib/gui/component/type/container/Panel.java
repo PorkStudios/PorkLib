@@ -16,7 +16,6 @@
 package net.daporkchop.lib.gui.component.type.container;
 
 import net.daporkchop.lib.gui.component.NestedContainer;
-import net.daporkchop.lib.gui.component.state.ElementState;
 import net.daporkchop.lib.gui.component.state.container.PanelState;
 
 /**
@@ -30,6 +29,10 @@ import net.daporkchop.lib.gui.component.state.container.PanelState;
 public interface Panel extends NestedContainer<Panel, PanelState> {
     @Override
     default PanelState getState() {
-        return this.isEnabled() ? this.isHovered() ? PanelState.ENABLED_HOVERED : PanelState.ENABLED : this.isHovered() ? PanelState.DISABLED_HOVERED : PanelState.DISABLED;
+        return this.isVisible() ?
+                this.isEnabled() ?
+                        this.isHovered() ? PanelState.ENABLED_HOVERED : PanelState.ENABLED
+                        : this.isHovered() ? PanelState.DISABLED_HOVERED : PanelState.DISABLED
+                : PanelState.HIDDEN;
     }
 }

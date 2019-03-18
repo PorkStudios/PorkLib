@@ -13,13 +13,16 @@
  *
  */
 
-package net.daporkchop.lib.collections.stream.impl.list;
+package net.daporkchop.lib.collections.stream.impl.set;
 
 import lombok.NonNull;
-import net.daporkchop.lib.collections.PList;
+import net.daporkchop.lib.collections.PIterator;
 import net.daporkchop.lib.collections.PMap;
+import net.daporkchop.lib.collections.PSet;
+import net.daporkchop.lib.collections.impl.set.JavaSetWrapper;
 import net.daporkchop.lib.collections.stream.PStream;
 
+import java.util.HashSet;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -29,10 +32,9 @@ import java.util.function.Supplier;
 /**
  * @author DaPorkchop_
  */
-//TODO: i think this can be removed
-public class UncheckedListStream<V> extends AbstractListStream<V> {
-    public UncheckedListStream(PList<V> list) {
-        super(list);
+public class UncheckedSetStream<V> extends AbstractSetStream<V> {
+    public UncheckedSetStream(PSet<V> set) {
+        super(set);
     }
 
     @Override
@@ -41,43 +43,42 @@ public class UncheckedListStream<V> extends AbstractListStream<V> {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void forEach(@NonNull Consumer<V> consumer) {
-        long length = this.list.size(); //this lets the length be inlined into a register by JIT
-        for (long l = 0L; l < length; l++)    {
-            consumer.accept(this.list.get(l));
-        }
+        this.set.forEach(consumer);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public <T> PStream<T> map(@NonNull Function<V, T> mappingFunction) {
-        long length = this.list.size();
-        for (long l = 0L; l < length; l++)    {
-            ((PList<T>) this.list).set(l, mappingFunction.apply(this.list.get(l)));
+        //because of the way stuff works, i can't use this:
+        /*for (PIterator<V> iterator = this.set.iterator(); iterator.hasNext();)  {
+            ((PSet<T>) this.set).add(mappingFunction.apply(iterator.next()));
+            iterator.remove();
         }
-        return (PStream<T>) this;
+        return (PStream<T>) this;*/
+        PSet<T> dst = new JavaSetWrapper<>(new HashSet<>()); //TODO: custom implementation here
+        for (PIterator<V> iterator = this.set.iterator(); iterator.hasNext();)  {
+            dst.add(mappingFunction.apply(iterator.next()));
+        }
+        return new UncheckedSetStream<>(dst);
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public PStream<V> filter(@NonNull Predicate<V> condition) {
-        this.list.removeIf(condition.negate());
+        this.set.removeIf(condition.negate());
         return this;
     }
 
     @Override
     public PStream<V> distinct(@NonNull BiPredicate<V, V> comparator) {
-        return null;
+        return this;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <Key, Value, T extends PMap<Key, Value>> T toMap(@NonNull Function<V, Key> keyExtractor, @NonNull Function<V, Value> valueExtractor, @NonNull Supplier<T> mapCreator) {
         T map = mapCreator.get();
-        long length = this.list.size();
-        for (long l = 0L; l < length; l++)    {
-            V value = (V) this.list.get(l);
+        for (PIterator<V> iterator = this.set.iterator(); iterator.hasNext();)  {
+            V value = iterator.next();
             map.put(keyExtractor.apply(value), valueExtractor.apply(value));
         }
         return map;

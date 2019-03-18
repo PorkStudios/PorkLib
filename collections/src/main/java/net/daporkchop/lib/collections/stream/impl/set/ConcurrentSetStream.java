@@ -13,13 +13,18 @@
  *
  */
 
-package net.daporkchop.lib.collections.stream.impl.list;
+package net.daporkchop.lib.collections.stream.impl.set;
 
 import lombok.NonNull;
-import net.daporkchop.lib.collections.PList;
+import net.daporkchop.lib.collections.PIterator;
 import net.daporkchop.lib.collections.PMap;
+import net.daporkchop.lib.collections.PSet;
+import net.daporkchop.lib.collections.impl.set.JavaSetWrapper;
 import net.daporkchop.lib.collections.stream.PStream;
+import net.daporkchop.lib.collections.util.ConcurrencyHelper;
 
+import java.util.Collections;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -29,57 +34,43 @@ import java.util.function.Supplier;
 /**
  * @author DaPorkchop_
  */
-//TODO: i think this can be removed
-public class UncheckedListStream<V> extends AbstractListStream<V> {
-    public UncheckedListStream(PList<V> list) {
-        super(list);
+public class ConcurrentSetStream<V> extends AbstractSetStream<V> {
+    public ConcurrentSetStream(PSet<V> set) {
+        super(set);
     }
 
     @Override
     public boolean isConcurrent() {
-        return false;
+        return true;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void forEach(@NonNull Consumer<V> consumer) {
-        long length = this.list.size(); //this lets the length be inlined into a register by JIT
-        for (long l = 0L; l < length; l++)    {
-            consumer.accept(this.list.get(l));
-        }
+        ConcurrencyHelper.runConcurrent(this.set.iterator(), consumer);
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T> PStream<T> map(@NonNull Function<V, T> mappingFunction) {
-        long length = this.list.size();
-        for (long l = 0L; l < length; l++)    {
-            ((PList<T>) this.list).set(l, mappingFunction.apply(this.list.get(l)));
-        }
-        return (PStream<T>) this;
+        PSet<T> dst = new JavaSetWrapper<>(Collections.newSetFromMap(new ConcurrentHashMap<>())); //TODO: custom implementation here
+        ConcurrencyHelper.runConcurrent(this.set.iterator(), value -> dst.add(mappingFunction.apply(value)));
+        return new UncheckedSetStream<>(dst);
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public PStream<V> filter(@NonNull Predicate<V> condition) {
-        this.list.removeIf(condition.negate());
+        this.set.removeIf(condition.negate()); //TODO: this obviously isn't concurrent
         return this;
     }
 
     @Override
     public PStream<V> distinct(@NonNull BiPredicate<V, V> comparator) {
-        return null;
+        return this;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <Key, Value, T extends PMap<Key, Value>> T toMap(@NonNull Function<V, Key> keyExtractor, @NonNull Function<V, Value> valueExtractor, @NonNull Supplier<T> mapCreator) {
         T map = mapCreator.get();
-        long length = this.list.size();
-        for (long l = 0L; l < length; l++)    {
-            V value = (V) this.list.get(l);
-            map.put(keyExtractor.apply(value), valueExtractor.apply(value));
-        }
+        ConcurrencyHelper.runConcurrent(this.set.iterator(), value -> map.put(keyExtractor.apply(value), valueExtractor.apply(value)));
         return map;
     }
 }

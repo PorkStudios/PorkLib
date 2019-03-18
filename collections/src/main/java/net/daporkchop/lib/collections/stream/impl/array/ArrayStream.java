@@ -88,7 +88,7 @@ public class ArrayStream<V> implements PStream<V> {
 
     @Override
     public PStream<V> filter(@NonNull Predicate<V> condition) {
-        return null;
+        return null; //TODO
     }
 
     @Override

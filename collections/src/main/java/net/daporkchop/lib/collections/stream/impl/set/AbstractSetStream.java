@@ -15,8 +15,77 @@
 
 package net.daporkchop.lib.collections.stream.impl.set;
 
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.collections.PIterator;
+import net.daporkchop.lib.collections.PList;
+import net.daporkchop.lib.collections.PSet;
+import net.daporkchop.lib.collections.impl.list.JavaListWrapper;
+import net.daporkchop.lib.collections.stream.PStream;
+import net.daporkchop.lib.collections.stream.impl.list.ConcurrentListStream;
+import net.daporkchop.lib.collections.stream.impl.list.UncheckedListStream;
+
+import java.util.ArrayList;
+import java.util.Set;
+import java.util.function.IntFunction;
+
 /**
  * @author DaPorkchop_
  */
-public abstract class AbstractSetStream {
+@RequiredArgsConstructor
+@Getter
+public abstract class AbstractSetStream<V> implements PStream<V> {
+    @NonNull
+    protected final PSet<V> set;
+
+    @Override
+    public long size() {
+        return this.set.size();
+    }
+
+    @Override
+    public boolean isOrdered() {
+        return false;
+    }
+
+    @Override
+    public PStream<V> ordered() {
+        PList<V> list = new JavaListWrapper<>(new ArrayList<>()); //TODO: custom implementation here too
+        this.set.forEach(list::add);
+        return this.isConcurrent() ? new ConcurrentListStream<>(list) : new UncheckedListStream<>(list);
+    }
+
+    @Override
+    public PStream<V> unordered() {
+        return this;
+    }
+
+    @Override
+    public PStream<V> concurrent() {
+        return this.isConcurrent() ? this : new ConcurrentSetStream<>(this.set);
+    }
+
+    @Override
+    public PStream<V> singleThreaded() {
+        return this.isConcurrent() ? new UncheckedSetStream<>(this.set) : this;
+    }
+
+    @Override
+    public PStream<V> distinct() {
+        return this;
+    }
+
+    @Override
+    public V[] toArray(@NonNull IntFunction<V[]> arrayCreator) {
+        if (this.set.size() > Integer.MAX_VALUE)    {
+            throw new IllegalStateException("Set too large to convert to array!");
+        }
+        V[] arr = arrayCreator.apply((int) this.set.size());
+        int i = 0;
+        for (PIterator<V> iterator = this.set.iterator(); iterator.hasNext();)  {
+            arr[i++] = iterator.next();
+        }
+        return arr;
+    }
 }

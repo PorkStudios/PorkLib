@@ -30,7 +30,7 @@ import java.util.function.IntFunction;
 @Getter
 public abstract class AbstractListStream<V> implements PStream<V> {
     @NonNull
-    protected final PList list;
+    protected final PList<V> list;
 
     @Override
     public long size() {

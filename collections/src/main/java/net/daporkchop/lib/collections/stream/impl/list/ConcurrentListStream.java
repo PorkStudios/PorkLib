@@ -49,13 +49,14 @@ public class ConcurrentListStream<V> extends AbstractListStream<V> {
     @Override
     @SuppressWarnings("unchecked")
     public <T> PStream<T> map(@NonNull Function<V, T> mappingFunction) {
-        ConcurrencyHelper.runConcurrent(this.list.size(), (long l) -> this.list.set(l, mappingFunction.apply((V) this.list.get(l))));
+        ConcurrencyHelper.runConcurrent(this.list.size(), (long l) -> ((PList<T>) this.list).set(l, mappingFunction.apply(this.list.get(l))));
         return (PStream<T>) this;
     }
 
     @Override
     public PStream<V> filter(@NonNull Predicate<V> condition) {
-        return null;
+        this.list.removeIf(condition.negate()); //TODO: this obviously isn't concurrent
+        return this;
     }
 
     @Override

@@ -33,10 +33,11 @@ public enum ButtonState implements ElementState<Button, ButtonState> {
     ENABLED,
     ENABLED_HOVERED,
     ENABLED_CLICKED,
-    DISABLED,
-    DISABLED_HOVERED,
-    HIDDEN(false),
+    DISABLED(true, false),
+    DISABLED_HOVERED(true, false),
+    HIDDEN(false, false),
     ;
 
     protected boolean visible = true;
+    protected boolean enabled = true;
 }

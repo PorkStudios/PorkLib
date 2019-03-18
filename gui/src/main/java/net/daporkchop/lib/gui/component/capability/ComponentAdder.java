@@ -17,6 +17,7 @@ package net.daporkchop.lib.gui.component.capability;
 
 import lombok.NonNull;
 import net.daporkchop.lib.gui.component.type.container.Panel;
+import net.daporkchop.lib.gui.component.type.container.ScrollPane;
 import net.daporkchop.lib.gui.component.type.functional.Button;
 import net.daporkchop.lib.gui.component.type.functional.Label;
 
@@ -58,6 +59,14 @@ public interface ComponentAdder<Impl> {
     default Impl panel(@NonNull String name, @NonNull Consumer<Panel> initializer)    {
         Panel panel = this.panel(name);
         initializer.accept(panel);
+        return (Impl) this;
+    }
+
+    ScrollPane scrollPane(@NonNull String name);
+
+    default Impl scrollPane(@NonNull String name, @NonNull Consumer<ScrollPane> initializer)    {
+        ScrollPane scrollPane = this.scrollPane(name);
+        initializer.accept(scrollPane);
         return (Impl) this;
     }
 }

@@ -24,4 +24,6 @@ import net.daporkchop.lib.gui.component.Element;
  */
 public interface ElementState<E extends Element, Impl extends ElementState<E, ?>> {
     boolean isVisible();
+
+    boolean isEnabled();
 }

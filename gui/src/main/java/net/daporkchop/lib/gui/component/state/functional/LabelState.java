@@ -30,10 +30,11 @@ import net.daporkchop.lib.gui.component.type.functional.Label;
 public enum LabelState implements ElementState<Label, LabelState> {
     ENABLED,
     ENABLED_HOVERED,
-    DISABLED,
-    DISABLED_HOVERED,
-    HIDDEN(false),
+    DISABLED(true, false),
+    DISABLED_HOVERED(true, false),
+    HIDDEN(false, false),
     ;
 
     protected boolean visible = true;
+    protected boolean enabled = true;
 }

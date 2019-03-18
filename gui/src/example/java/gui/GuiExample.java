@@ -24,12 +24,15 @@ import net.daporkchop.lib.gui.component.orientation.advanced.calculator.DistUnit
 import net.daporkchop.lib.gui.component.state.functional.ButtonState;
 import net.daporkchop.lib.gui.component.state.functional.LabelState;
 import net.daporkchop.lib.gui.util.Alignment;
+import net.daporkchop.lib.gui.util.ScrollCondition;
 import net.daporkchop.lib.logging.Logging;
 
 /**
  * @author DaPorkchop_
  */
 public class GuiExample implements Logging {
+    public static final String LOREM_IPSUM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.";
+
     public static void main(String... args) {
         GuiSystem.swing().newWindow(64, 64, 512, 256)
                 .setTitle("Example GUI").setIcon(PImage.randomImage(32, 32), PImage.randomImage(16, 16))
@@ -44,7 +47,7 @@ public class GuiExample implements Logging {
                         .setClickHandler((mouseButton, x, y) -> button.getWindow().getComponent("label2").toggle()))
                 .button("button2", button -> button.setOrientation(0, 0.0d, 0.1d, 0.1d)
                         .setClickHandler((mouseButton, x, y) -> System.out.printf("Bounds: %s\n", button.getWindow().getComponent("panel1.button2").getBounds())))
-                .label("label1", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", label -> label
+                .label("label1", LOREM_IPSUM, label -> label
                         .setOrientation(0.5d, 0, 0.5d, 0.1d)
                         .setTooltip("This is a label. Labels can only display plain text."))
                 .label("label2", label -> label
@@ -58,6 +61,11 @@ public class GuiExample implements Logging {
                                 .min(DistUnit.PX, 50, DistUnit.MULT, 0.5, Axis.WIDTH))
                         .configureAxis(Axis.WIDTH, calc -> calc.ease(DistUnit.PX, 30))
                         .configureAxis(Axis.HEIGHT, Axis.WIDTH)))
+                .scrollPane("scrollPane1", scrollPane -> scrollPane
+                        .setOrientation(0.2d, 0.6d, 0.6d, 0.4d)
+                        .setScrolling(ScrollCondition.ALWAYS)
+                        .label("label1", LOREM_IPSUM, label -> label
+                                .setOrientation(0.0d, 0.0d, 1.5d, 0.15d)))
                 .addStateListener(state -> logger.debug("Window changed state: ${0}\n", state))
                 .show();
     }

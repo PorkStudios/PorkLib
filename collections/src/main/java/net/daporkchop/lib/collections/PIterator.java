@@ -15,7 +15,10 @@
 
 package net.daporkchop.lib.collections;
 
+import lombok.NonNull;
 import net.daporkchop.lib.collections.util.exception.IterationCompleteException;
+
+import java.util.function.Supplier;
 
 /**
  * A simplification of {@link java.util.Iterator}.
@@ -45,6 +48,13 @@ public interface PIterator<V> {
     V next();
 
     /**
+     * Removes the value last returned by this iterator.
+     * <p>
+     * May only be invoked once per call to {@link #next()}.
+     */
+    void remove();
+
+    /**
      * Gets the next value in the iterator, or {@code null} if none remain.
      *
      * @return the next value in the iterator, or {@code null} if none remain
@@ -52,6 +62,24 @@ public interface PIterator<V> {
     default V nextOrNull() {
         synchronized (this) {
             return this.hasNext() ? this.next() : null;
+        }
+    }
+
+    /**
+     * Gets the next value in the iterator, or throw an exception if none remain.
+     *
+     * @param exceptionSupplier an instance of {@link Supplier} that will provide an exception instance to be thrown
+     * @param <E>               the exception type
+     * @return the next value in the iterator
+     * @throws E if no values remain
+     */
+    default <E extends Throwable> V nextOrThrow(@NonNull Supplier<E> exceptionSupplier) throws E {
+        synchronized (this) {
+            if (this.hasNext()) {
+                return this.next();
+            } else {
+                throw exceptionSupplier.get();
+            }
         }
     }
 }

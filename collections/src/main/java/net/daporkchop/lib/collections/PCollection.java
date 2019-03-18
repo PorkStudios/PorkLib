@@ -20,9 +20,10 @@ import net.daporkchop.lib.collections.stream.PStream;
 import net.daporkchop.lib.collections.util.BaseCollection;
 
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
- * A simplification of {@link java.util.Collection}. A PCollection supports many required the same simple getters and setters
+ * A simplification of {@link java.util.Collection}. A PCollection supports many of the same simple getters and setters
  * as a normal Java Collection, as well as some basic iteration methods and a few variations on the standard accessors
  * for performance.
  * <p>
@@ -90,5 +91,40 @@ public interface PCollection<V> extends BaseCollection {
      */
     default PStream<V> concurrentStream() {
         return this.stream().concurrent();
+    }
+
+    /**
+     * Gets an iterator over the contents of this collection.
+     *
+     * @return an iterator over the contents of this collection
+     */
+    PIterator<V> iterator();
+
+    /**
+     * Removes all values in this collection that match a certain condition.
+     *
+     * @param condition the condition that must be met for a value to be removed
+     */
+    default void removeIf(@NonNull Predicate<V> condition) {
+        PIterator<V> iterator = this.iterator();
+        while (iterator.hasNext()) {
+            if (condition.test(iterator.next())) {
+                iterator.remove();
+            }
+        }
+    }
+
+    /**
+     * Removes all values in this collection that do not match a certain condition.
+     *
+     * @param condition the condition that must be met for a value to be retained
+     */
+    default void retainIf(@NonNull Predicate<V> condition) {
+        PIterator<V> iterator = this.iterator();
+        while (iterator.hasNext()) {
+            if (!condition.test(iterator.next())) {
+                iterator.remove();
+            }
+        }
     }
 }

@@ -13,65 +13,23 @@
  *
  */
 
-package net.daporkchop.lib.collections.impl.list;
+package net.daporkchop.lib.collections.impl.collection;
 
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.collections.PCollection;
 import net.daporkchop.lib.collections.PIterator;
-import net.daporkchop.lib.collections.PList;
-import net.daporkchop.lib.collections.impl.collection.AbstractJavaCollectionWrapper;
-import net.daporkchop.lib.collections.impl.iterator.JavaIteratorWrapper;
 import net.daporkchop.lib.collections.stream.PStream;
-import net.daporkchop.lib.collections.stream.impl.list.ListStream;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.function.Consumer;
 
 /**
  * @author DaPorkchop_
  */
-public class JavaListWrapper<V> extends AbstractJavaCollectionWrapper<V, List<V>> implements PList<V> {
-    public JavaListWrapper(List<V> delegate) {
+public class JavaCollectionWrapper<V> extends AbstractJavaCollectionWrapper<V, Collection<V>> {
+    public JavaCollectionWrapper(Collection<V> delegate) {
         super(delegate);
-    }
-    @Override
-    public void add(long pos, @NonNull V value) {
-        this.delegate.add((int) pos, value);
-    }
-
-    @Override
-    public void set(long pos, @NonNull V value) {
-        this.delegate.set((int) pos, value);
-    }
-
-    @Override
-    public V getAndSet(long pos, @NonNull V value) {
-        return this.delegate.set((int) pos, value);
-    }
-
-    @Override
-    public V get(long pos) {
-        return this.delegate.get((int) pos);
-    }
-
-    @Override
-    public void remove(long pos) {
-        this.delegate.remove((int) pos);
-    }
-
-    @Override
-    public V getAndRemove(long pos) {
-        return this.delegate.remove((int) pos);
-    }
-
-    @Override
-    public long indexOf(@NonNull V value) {
-        return this.delegate.indexOf(value);
-    }
-
-    @Override
-    public PStream<V> stream() {
-        return new ListStream<>(this);
     }
 }

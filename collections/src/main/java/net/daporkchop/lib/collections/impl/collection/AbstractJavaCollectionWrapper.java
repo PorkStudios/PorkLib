@@ -13,65 +13,76 @@
  *
  */
 
-package net.daporkchop.lib.collections.impl.list;
+package net.daporkchop.lib.collections.impl.collection;
 
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.collections.PCollection;
 import net.daporkchop.lib.collections.PIterator;
-import net.daporkchop.lib.collections.PList;
-import net.daporkchop.lib.collections.impl.collection.AbstractJavaCollectionWrapper;
 import net.daporkchop.lib.collections.impl.iterator.JavaIteratorWrapper;
 import net.daporkchop.lib.collections.stream.PStream;
-import net.daporkchop.lib.collections.stream.impl.list.ListStream;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * @author DaPorkchop_
  */
-public class JavaListWrapper<V> extends AbstractJavaCollectionWrapper<V, List<V>> implements PList<V> {
-    public JavaListWrapper(List<V> delegate) {
-        super(delegate);
-    }
+@RequiredArgsConstructor
+@Getter
+public abstract class AbstractJavaCollectionWrapper<V, C extends Collection<V>> implements PCollection<V> {
+    @NonNull
+    protected final C delegate;
+
     @Override
-    public void add(long pos, @NonNull V value) {
-        this.delegate.add((int) pos, value);
+    public void add(@NonNull V value) {
+        this.delegate.add(value);
     }
 
     @Override
-    public void set(long pos, @NonNull V value) {
-        this.delegate.set((int) pos, value);
+    public boolean contains(@NonNull V value) {
+        return this.delegate.contains(value);
     }
 
     @Override
-    public V getAndSet(long pos, @NonNull V value) {
-        return this.delegate.set((int) pos, value);
+    public boolean remove(@NonNull V value) {
+        return this.delegate.remove(value);
     }
 
     @Override
-    public V get(long pos) {
-        return this.delegate.get((int) pos);
+    public void removeIf(@NonNull Predicate<V> condition) {
+        this.delegate.removeIf(condition);
     }
 
     @Override
-    public void remove(long pos) {
-        this.delegate.remove((int) pos);
+    public void forEach(@NonNull Consumer<V> consumer) {
+        this.delegate.forEach(consumer);
     }
 
     @Override
-    public V getAndRemove(long pos) {
-        return this.delegate.remove((int) pos);
-    }
-
-    @Override
-    public long indexOf(@NonNull V value) {
-        return this.delegate.indexOf(value);
+    public PIterator<V> iterator() {
+        return new JavaIteratorWrapper<>(this.delegate.iterator());
     }
 
     @Override
     public PStream<V> stream() {
-        return new ListStream<>(this);
+        return null; //TODO
+    }
+
+    @Override
+    public long size() {
+        return this.delegate.size();
+    }
+
+    @Override
+    public void clear() {
+        this.delegate.clear();
+    }
+
+    @Override
+    public boolean isConcurrent() {
+        return false;
     }
 }

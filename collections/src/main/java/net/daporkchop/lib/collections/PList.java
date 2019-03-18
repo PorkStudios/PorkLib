@@ -18,7 +18,7 @@ package net.daporkchop.lib.collections;
 import lombok.NonNull;
 
 /**
- * A simplification of {@link java.util.Collection}. A PCollection supports many required the same simple getters and setters
+ * A simplification of {@link java.util.Collection}. A PCollection supports many of the same simple getters and setters
  * as a normal Java Collection, as well as some basic iteration methods and a few variations on the standard accessors
  * for performance.
  * <p>

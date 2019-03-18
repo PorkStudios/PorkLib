@@ -13,65 +13,41 @@
  *
  */
 
-package net.daporkchop.lib.collections.impl.list;
+package net.daporkchop.lib.collections.impl.iterator;
 
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.collections.PIterator;
-import net.daporkchop.lib.collections.PList;
-import net.daporkchop.lib.collections.impl.collection.AbstractJavaCollectionWrapper;
-import net.daporkchop.lib.collections.impl.iterator.JavaIteratorWrapper;
-import net.daporkchop.lib.collections.stream.PStream;
-import net.daporkchop.lib.collections.stream.impl.list.ListStream;
+import net.daporkchop.lib.collections.util.exception.IterationCompleteException;
 
-import java.util.List;
-import java.util.function.Consumer;
+import java.util.Iterator;
 
 /**
  * @author DaPorkchop_
  */
-public class JavaListWrapper<V> extends AbstractJavaCollectionWrapper<V, List<V>> implements PList<V> {
-    public JavaListWrapper(List<V> delegate) {
-        super(delegate);
-    }
+@RequiredArgsConstructor
+@Getter
+public class JavaIteratorWrapper<V> implements PIterator<V> {
+    @NonNull
+    protected final Iterator<V> delegate;
+
     @Override
-    public void add(long pos, @NonNull V value) {
-        this.delegate.add((int) pos, value);
+    public boolean hasNext() {
+        return this.delegate.hasNext();
     }
 
     @Override
-    public void set(long pos, @NonNull V value) {
-        this.delegate.set((int) pos, value);
+    public V next() {
+        if (this.hasNext()) {
+            return this.delegate.next();
+        } else {
+            throw new IterationCompleteException();
+        }
     }
 
     @Override
-    public V getAndSet(long pos, @NonNull V value) {
-        return this.delegate.set((int) pos, value);
-    }
-
-    @Override
-    public V get(long pos) {
-        return this.delegate.get((int) pos);
-    }
-
-    @Override
-    public void remove(long pos) {
-        this.delegate.remove((int) pos);
-    }
-
-    @Override
-    public V getAndRemove(long pos) {
-        return this.delegate.remove((int) pos);
-    }
-
-    @Override
-    public long indexOf(@NonNull V value) {
-        return this.delegate.indexOf(value);
-    }
-
-    @Override
-    public PStream<V> stream() {
-        return new ListStream<>(this);
+    public void remove() {
+        this.delegate.remove();
     }
 }

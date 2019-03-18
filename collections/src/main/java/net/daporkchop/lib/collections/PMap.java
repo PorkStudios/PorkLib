@@ -23,7 +23,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
- * A simplification of {@link java.util.Map}. A PMap supports many required the same simple getters and setters as a normal
+ * A simplification of {@link java.util.Map}. A PMap supports many of the same simple getters and setters as a normal
  * Java Map, as well as some basic iteration methods and a few variations on the standard accessors for performance.
  * <p>
  * Implementations of this class are expected to be thread-safe at a minimum, optionally supporting full concurrency.

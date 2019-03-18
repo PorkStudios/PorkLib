@@ -22,11 +22,13 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.collections.PIterator;
 import net.daporkchop.lib.collections.util.exception.ConcurrentException;
 import net.daporkchop.lib.collections.util.exception.IterationCompleteException;
 import net.daporkchop.lib.common.util.PArrays;
 import net.daporkchop.lib.common.util.PConstants;
 
+import java.util.Iterator;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.TimeUnit;
@@ -50,6 +52,20 @@ import java.util.function.Supplier;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public abstract class ConcurrencyHelper {
+    public static <T> void runConcurrent(@NonNull Iterator<T> iterator, @NonNull Consumer<T> executor) {
+        runConcurrent(() -> {
+            if (iterator.hasNext()) {
+                return iterator.next();
+            } else {
+                throw new IterationCompleteException();
+            }
+        }, executor);
+    }
+
+    public static <T> void runConcurrent(@NonNull PIterator<T> iterator, @NonNull Consumer<T> executor) {
+        runConcurrent(iterator::next, executor);
+    }
+
     public static void runConcurrent(int end, @NonNull IntConsumer executor)  {
         runConcurrent(0, end, executor);
     }

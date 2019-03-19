@@ -16,6 +16,9 @@
 package net.daporkchop.lib.collections;
 
 import lombok.NonNull;
+import net.daporkchop.lib.collections.stream.PStream;
+import net.daporkchop.lib.collections.stream.impl.list.ConcurrentListStream;
+import net.daporkchop.lib.collections.stream.impl.list.UncheckedListStream;
 
 /**
  * A simplification of {@link java.util.Collection}. A PCollection supports many of the same simple getters and setters
@@ -83,4 +86,14 @@ public interface PList<V> extends PCollection<V> {
      * @return the value's position in the list, or {@code -1} if not present
      */
     long indexOf(@NonNull V value);
+
+    @Override
+    default PStream<V> stream() {
+        return new UncheckedListStream<>(this, false);
+    }
+
+    @Override
+    default PStream<V> concurrentStream() {
+        return new ConcurrentListStream<>(this, false);
+    }
 }

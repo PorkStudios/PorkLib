@@ -38,6 +38,7 @@ import java.util.function.IntFunction;
 public abstract class AbstractSetStream<V> implements PStream<V> {
     @NonNull
     protected final PSet<V> set;
+    protected final boolean mutable;
 
     @Override
     public long size() {
@@ -53,7 +54,7 @@ public abstract class AbstractSetStream<V> implements PStream<V> {
     public PStream<V> ordered() {
         PList<V> list = new JavaListWrapper<>(new ArrayList<>()); //TODO: custom implementation here too
         this.set.forEach(list::add);
-        return this.isConcurrent() ? new ConcurrentListStream<>(list) : new UncheckedListStream<>(list);
+        return this.isConcurrent() ? new ConcurrentListStream<>(list, true) : new UncheckedListStream<>(list, true);
     }
 
     @Override
@@ -63,12 +64,12 @@ public abstract class AbstractSetStream<V> implements PStream<V> {
 
     @Override
     public PStream<V> concurrent() {
-        return this.isConcurrent() ? this : new ConcurrentSetStream<>(this.set);
+        return this.isConcurrent() ? this : new ConcurrentSetStream<>(this.set, this.mutable);
     }
 
     @Override
     public PStream<V> singleThreaded() {
-        return this.isConcurrent() ? new UncheckedSetStream<>(this.set) : this;
+        return this.isConcurrent() ? new UncheckedSetStream<>(this.set, this.mutable) : this;
     }
 
     @Override

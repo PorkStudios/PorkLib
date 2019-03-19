@@ -15,18 +15,14 @@
 
 package net.daporkchop.lib.collections.impl.list;
 
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.collections.PIterator;
 import net.daporkchop.lib.collections.PList;
 import net.daporkchop.lib.collections.impl.collection.AbstractJavaCollectionWrapper;
-import net.daporkchop.lib.collections.impl.iterator.JavaIteratorWrapper;
 import net.daporkchop.lib.collections.stream.PStream;
-import net.daporkchop.lib.collections.stream.impl.list.ListStream;
+import net.daporkchop.lib.collections.stream.impl.list.ConcurrentListStream;
+import net.daporkchop.lib.collections.stream.impl.list.UncheckedListStream;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * @author DaPorkchop_
@@ -68,10 +64,5 @@ public class JavaListWrapper<V> extends AbstractJavaCollectionWrapper<V, List<V>
     @Override
     public long indexOf(@NonNull V value) {
         return this.delegate.indexOf(value);
-    }
-
-    @Override
-    public PStream<V> stream() {
-        return new ListStream<>(this);
     }
 }

@@ -23,6 +23,8 @@ import net.daporkchop.lib.collections.PSet;
 import net.daporkchop.lib.collections.impl.collection.AbstractJavaCollectionWrapper;
 import net.daporkchop.lib.collections.impl.iterator.JavaIteratorWrapper;
 import net.daporkchop.lib.collections.stream.PStream;
+import net.daporkchop.lib.collections.stream.impl.set.ConcurrentSetStream;
+import net.daporkchop.lib.collections.stream.impl.set.UncheckedSetStream;
 
 import java.util.Set;
 import java.util.function.Consumer;
@@ -33,5 +35,15 @@ import java.util.function.Consumer;
 public class JavaSetWrapper<V> extends AbstractJavaCollectionWrapper<V, Set<V>> implements PSet<V> {
     public JavaSetWrapper(Set<V> delegate) {
         super(delegate);
+    }
+
+    @Override
+    public PStream<V> stream() {
+        return new UncheckedSetStream<>(this, false);
+    }
+
+    @Override
+    public PStream<V> concurrentStream() {
+        return new ConcurrentSetStream<>(this, false);
     }
 }

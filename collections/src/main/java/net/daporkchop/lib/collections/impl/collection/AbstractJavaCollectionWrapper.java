@@ -67,11 +67,6 @@ public abstract class AbstractJavaCollectionWrapper<V, C extends Collection<V>> 
     }
 
     @Override
-    public PStream<V> stream() {
-        return null; //TODO
-    }
-
-    @Override
     public long size() {
         return this.delegate.size();
     }

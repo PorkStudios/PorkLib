@@ -22,6 +22,7 @@ import net.daporkchop.lib.collections.PIterator;
 import net.daporkchop.lib.collections.util.exception.IterationCompleteException;
 
 import java.util.Iterator;
+import java.util.function.Function;
 
 /**
  * @author DaPorkchop_
@@ -31,6 +32,7 @@ import java.util.Iterator;
 public class JavaIteratorWrapper<V> implements PIterator<V> {
     @NonNull
     protected final Iterator<V> delegate;
+    protected V last;
 
     @Override
     public boolean hasNext() {
@@ -40,10 +42,15 @@ public class JavaIteratorWrapper<V> implements PIterator<V> {
     @Override
     public V next() {
         if (this.hasNext()) {
-            return this.delegate.next();
+            return this.last = this.delegate.next();
         } else {
             throw new IterationCompleteException();
         }
+    }
+
+    @Override
+    public V peek() {
+        return this.last;
     }
 
     @Override

@@ -42,7 +42,7 @@ public class JavaListWrapper<V> extends AbstractJavaCollectionWrapper<V, List<V>
     }
 
     @Override
-    public V getAndSet(long pos, @NonNull V value) {
+    public V replace(long pos, @NonNull V value) {
         return this.delegate.set((int) pos, value);
     }
 

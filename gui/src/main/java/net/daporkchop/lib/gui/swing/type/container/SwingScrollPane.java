@@ -15,7 +15,10 @@
 
 package net.daporkchop.lib.gui.swing.type.container;
 
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.state.container.ScrollPaneState;
 import net.daporkchop.lib.gui.component.type.container.ScrollPane;
@@ -33,14 +36,15 @@ import java.awt.*;
  * @author DaPorkchop_
  */
 public class SwingScrollPane extends SwingNestedContainer<ScrollPane, JScrollPane, ScrollPaneState> implements ScrollPane {
-    protected final JPanel panel = new JPanel();
+    protected final HackyPanelWrapper panel = new HackyPanelWrapper();
 
     public SwingScrollPane(String name) {
         super(name, new JScrollPane());
 
-        this.swing.setLayout(null);
-        this.panel.setLayout(null);
+        //this.swing.setLayout(null); //TODO: this really doesn't work with JScrollPane
+        //this.panel.setLayout(null);
         this.swing.setViewportView(this.panel);
+        //this.swing.add(this.panel);
 
         this.swing.addMouseListener(new SwingMouseListener<>(this));
     }
@@ -72,10 +76,6 @@ public class SwingScrollPane extends SwingNestedContainer<ScrollPane, JScrollPan
     @Override
     public ScrollPane update() {
         super.update();
-        this.swing.setPreferredSize(new Dimension(this.bounds.getWidth(), this.bounds.getHeight()));
-        if (true) {
-            return this;
-        }
         if (this.children.isEmpty()) {
             this.swing.getHorizontalScrollBar().setMinimum(0);
             this.swing.getHorizontalScrollBar().setMaximum(this.bounds.getWidth());
@@ -88,6 +88,7 @@ public class SwingScrollPane extends SwingNestedContainer<ScrollPane, JScrollPan
             int maxY = Integer.MIN_VALUE;
             for (Component component : this.children.values()) {
                 BoundingBox bounds = component.getBounds();
+
                 int x = bounds.getX();
                 int y = bounds.getY();
                 if (x < minX) {
@@ -105,10 +106,14 @@ public class SwingScrollPane extends SwingNestedContainer<ScrollPane, JScrollPan
                     maxY = y;
                 }
             }
-            this.swing.getHorizontalScrollBar().setMinimum(minX);
-            this.swing.getHorizontalScrollBar().setMaximum(maxX);
-            this.swing.getVerticalScrollBar().setMinimum(minY);
-            this.swing.getVerticalScrollBar().setMaximum(maxY);
+            //this.panel.setSize(this.bounds.getWidth(), this.bounds.getHeight());
+            //this.panel.setPreferredSize(this.panel.getPreferredScrollableViewportSize());
+
+            //this.swing.getHorizontalScrollBar().setMinimum(minX);
+            //this.swing.getHorizontalScrollBar().setMaximum(maxX);
+            //this.swing.getVerticalScrollBar().setMinimum(minY);
+            //this.swing.getVerticalScrollBar().setMaximum(maxY);
+            this.panel.setMinX(minX).setMaxX(maxX).setMinY(minY).setMaxY(maxY);
         }
         return this;
     }
@@ -165,5 +170,54 @@ public class SwingScrollPane extends SwingNestedContainer<ScrollPane, JScrollPan
             }
         }
         throw new IllegalStateException();
+    }
+
+    @Getter
+    @Setter
+    @Accessors(chain = true)
+    protected class HackyPanelWrapper extends JPanel implements Scrollable  {
+        protected int minX;
+        protected int maxX;
+        protected int minY;
+        protected int maxY;
+
+        public HackyPanelWrapper() {
+            super(null);
+        }
+
+        @Override
+        public Dimension getPreferredSize() {
+            return this.getPreferredScrollableViewportSize();
+        }
+
+        @Override
+        public Dimension getPreferredScrollableViewportSize() {
+            return new Dimension(
+                    this.maxX - this.minX,
+                    this.maxY - this.minY
+                    //SwingScrollPane.this.bounds.getWidth() - SwingScrollPane.this.swing.getVerticalScrollBar().getWidth() - 1,
+                    //SwingScrollPane.this.bounds.getHeight() - SwingScrollPane.this.swing.getHorizontalScrollBar().getHeight() - 1
+            );
+        }
+
+        @Override
+        public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
+            return 1;
+        }
+
+        @Override
+        public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
+            return 1;
+        }
+
+        @Override
+        public boolean getScrollableTracksViewportWidth() {
+            return false;
+        }
+
+        @Override
+        public boolean getScrollableTracksViewportHeight() {
+            return false;
+        }
     }
 }

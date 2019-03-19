@@ -35,8 +35,8 @@ import java.util.function.Supplier;
  * @author DaPorkchop_
  */
 public class ConcurrentSetStream<V> extends AbstractSetStream<V> {
-    public ConcurrentSetStream(PSet<V> set) {
-        super(set);
+    public ConcurrentSetStream(PSet<V> set, boolean mutable) {
+        super(set, mutable);
     }
 
     @Override
@@ -53,13 +53,23 @@ public class ConcurrentSetStream<V> extends AbstractSetStream<V> {
     public <T> PStream<T> map(@NonNull Function<V, T> mappingFunction) {
         PSet<T> dst = new JavaSetWrapper<>(Collections.newSetFromMap(new ConcurrentHashMap<>())); //TODO: custom implementation here
         ConcurrencyHelper.runConcurrent(this.set.iterator(), value -> dst.add(mappingFunction.apply(value)));
-        return new UncheckedSetStream<>(dst);
+        return new UncheckedSetStream<>(dst, true);
     }
 
     @Override
     public PStream<V> filter(@NonNull Predicate<V> condition) {
-        this.set.removeIf(condition.negate()); //TODO: this obviously isn't concurrent
-        return this;
+        if (this.mutable) {
+            this.set.removeIf(condition.negate()); //TODO: this obviously isn't concurrent
+            return this;
+        } else {
+            PSet<V> dst = new JavaSetWrapper<>(Collections.newSetFromMap(new ConcurrentHashMap<>())); //TODO: custom implementation here
+            ConcurrencyHelper.runConcurrent(this.set.iterator(), value -> {
+                if (condition.test(value))  {
+                    dst.add(value);
+                }
+            });
+            return new ConcurrentSetStream<>(dst, true);
+        }
     }
 
     @Override

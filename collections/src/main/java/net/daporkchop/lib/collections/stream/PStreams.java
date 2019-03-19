@@ -19,12 +19,15 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.collections.PList;
+import net.daporkchop.lib.collections.PSet;
 import net.daporkchop.lib.collections.impl.list.JavaListWrapper;
+import net.daporkchop.lib.collections.impl.set.JavaSetWrapper;
 import net.daporkchop.lib.collections.stream.impl.array.ArrayStream;
-import net.daporkchop.lib.collections.stream.impl.array.ConcurrentArrayStream;
-import net.daporkchop.lib.collections.stream.impl.list.ListStream;
+import net.daporkchop.lib.collections.stream.impl.list.UncheckedListStream;
+import net.daporkchop.lib.collections.stream.impl.set.UncheckedSetStream;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author DaPorkchop_
@@ -39,11 +42,19 @@ public abstract class PStreams {
         return new ArrayStream<>(array);
     }
 
-    public static <V> PStream<V> of(@NonNull List<V> list)  {
-        return of(new JavaListWrapper<>(list));
+    public static <V> PStream<V> list(@NonNull List<V> list)  {
+        return list(new JavaListWrapper<>(list));
     }
 
-    public static <V> PStream<V> of(@NonNull PList<V> list) {
-        return new ListStream<>(list);
+    public static <V> PStream<V> list(@NonNull PList<V> list) {
+        return list.stream();
+    }
+
+    public static <V> PStream<V> set(@NonNull Set<V> set)  {
+        return set(new JavaSetWrapper<>(set));
+    }
+
+    public static <V> PStream<V> set(@NonNull PSet<V> set) {
+        return set.stream();
     }
 }

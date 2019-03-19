@@ -32,4 +32,9 @@ public class JavaCollectionWrapper<V> extends AbstractJavaCollectionWrapper<V, C
     public JavaCollectionWrapper(Collection<V> delegate) {
         super(delegate);
     }
+
+    @Override
+    public PStream<V> stream() {
+        return null; //TODO
+    }
 }

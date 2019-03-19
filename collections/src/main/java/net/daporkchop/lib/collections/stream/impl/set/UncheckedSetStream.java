@@ -33,8 +33,8 @@ import java.util.function.Supplier;
  * @author DaPorkchop_
  */
 public class UncheckedSetStream<V> extends AbstractSetStream<V> {
-    public UncheckedSetStream(PSet<V> set) {
-        super(set);
+    public UncheckedSetStream(PSet<V> set, boolean mutable) {
+        super(set, mutable);
     }
 
     @Override
@@ -50,23 +50,29 @@ public class UncheckedSetStream<V> extends AbstractSetStream<V> {
     @Override
     @SuppressWarnings("unchecked")
     public <T> PStream<T> map(@NonNull Function<V, T> mappingFunction) {
-        //because of the way stuff works, i can't use this:
-        /*for (PIterator<V> iterator = this.set.iterator(); iterator.hasNext();)  {
-            ((PSet<T>) this.set).add(mappingFunction.apply(iterator.next()));
-            iterator.remove();
-        }
-        return (PStream<T>) this;*/
         PSet<T> dst = new JavaSetWrapper<>(new HashSet<>()); //TODO: custom implementation here
         for (PIterator<V> iterator = this.set.iterator(); iterator.hasNext();)  {
             dst.add(mappingFunction.apply(iterator.next()));
         }
-        return new UncheckedSetStream<>(dst);
+        return new UncheckedSetStream<>(dst, true);
     }
 
     @Override
     public PStream<V> filter(@NonNull Predicate<V> condition) {
-        this.set.removeIf(condition.negate());
-        return this;
+        if (this.mutable) {
+            this.set.removeIf(condition.negate());
+            return this;
+        } else {
+            PSet<V> dst = new JavaSetWrapper<>(new HashSet<>()); //TODO: custom implementation here
+            for (PIterator<V> iterator = this.set.iterator(); iterator.hasNext();)  {
+                V value = iterator.next();
+                if (condition.test(value))  {
+                    dst.add(value);
+                }
+            }
+            return new UncheckedSetStream<>(dst, true);
+
+        }
     }
 
     @Override

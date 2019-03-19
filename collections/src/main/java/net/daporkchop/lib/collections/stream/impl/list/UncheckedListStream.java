@@ -18,8 +18,10 @@ package net.daporkchop.lib.collections.stream.impl.list;
 import lombok.NonNull;
 import net.daporkchop.lib.collections.PList;
 import net.daporkchop.lib.collections.PMap;
+import net.daporkchop.lib.collections.impl.list.JavaListWrapper;
 import net.daporkchop.lib.collections.stream.PStream;
 
+import java.util.ArrayList;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -29,10 +31,9 @@ import java.util.function.Supplier;
 /**
  * @author DaPorkchop_
  */
-//TODO: i think this can be removed
 public class UncheckedListStream<V> extends AbstractListStream<V> {
-    public UncheckedListStream(PList<V> list) {
-        super(list);
+    public UncheckedListStream(PList<V> list, boolean mutable) {
+        super(list, mutable);
     }
 
     @Override
@@ -53,17 +54,35 @@ public class UncheckedListStream<V> extends AbstractListStream<V> {
     @SuppressWarnings("unchecked")
     public <T> PStream<T> map(@NonNull Function<V, T> mappingFunction) {
         long length = this.list.size();
-        for (long l = 0L; l < length; l++)    {
-            ((PList<T>) this.list).set(l, mappingFunction.apply(this.list.get(l)));
+        if (this.mutable) {
+            for (long l = 0L; l < length; l++) {
+                ((PList<T>) this.list).set(l, mappingFunction.apply(this.list.get(l)));
+            }
+            return (PStream<T>) this;
+        } else {
+            PList<T> dst = new JavaListWrapper<>(new ArrayList<>()); //TODO: custom implementation
+            for (long l = 0L; l < length; l++) {
+                dst.set(l, mappingFunction.apply(this.list.get(l)));
+            }
+            return new UncheckedListStream<>(dst, true);
         }
-        return (PStream<T>) this;
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public PStream<V> filter(@NonNull Predicate<V> condition) {
-        this.list.removeIf(condition.negate());
-        return this;
+        if (this.mutable) {
+            this.list.removeIf(condition.negate());
+            return this;
+        } else {
+            PList<V> dst = new JavaListWrapper<>(new ArrayList<>()); //TODO: custom implementation
+            this.list.forEach(value -> {
+                if (condition.test(value))  {
+                    dst.add(value);
+                }
+            });
+            return new UncheckedListStream<>(dst, true);
+        }
     }
 
     @Override
@@ -77,7 +96,7 @@ public class UncheckedListStream<V> extends AbstractListStream<V> {
         T map = mapCreator.get();
         long length = this.list.size();
         for (long l = 0L; l < length; l++)    {
-            V value = (V) this.list.get(l);
+            V value = this.list.get(l);
             map.put(keyExtractor.apply(value), valueExtractor.apply(value));
         }
         return map;

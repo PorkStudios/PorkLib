@@ -16,19 +16,22 @@
 package collections;
 
 import net.daporkchop.lib.collections.impl.list.JavaListWrapper;
+import net.daporkchop.lib.collections.impl.set.JavaSetWrapper;
 import net.daporkchop.lib.collections.stream.PStream;
 import net.daporkchop.lib.collections.stream.impl.array.ArrayStream;
 import net.daporkchop.lib.collections.stream.impl.array.ConcurrentArrayStream;
 import net.daporkchop.lib.collections.stream.impl.array.UncheckedArrayStream;
 import net.daporkchop.lib.collections.stream.impl.list.ConcurrentListStream;
-import net.daporkchop.lib.collections.stream.impl.list.ListStream;
 import net.daporkchop.lib.collections.stream.impl.list.UncheckedListStream;
+import net.daporkchop.lib.collections.stream.impl.set.ConcurrentSetStream;
+import net.daporkchop.lib.collections.stream.impl.set.UncheckedSetStream;
 import net.daporkchop.lib.logging.Logging;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -37,35 +40,35 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class StreamTest implements Logging {
     @Test
-    public void testArrayStream()   {
+    @SuppressWarnings("unchecked")
+    public void testBasicStreams() {
         Integer[] i = new Integer[8192];
         for (int j = i.length - 1; j >= 0; j--) {
             i[j] = ThreadLocalRandom.current().nextInt();
         }
         Collection<Integer> collection = new ArrayList<>();
-        for (Integer j : i) {
-            collection.add(j);
-        }
+        Collections.addAll(collection, i);
 
-        for (PStream<Integer> stream : new PStream[] {
+        for (PStream<Integer> stream : (PStream<Integer>[])new PStream[]{
                 new ArrayStream<>(i),
                 new UncheckedArrayStream<>(i),
                 new ConcurrentArrayStream<>(i),
-                new ListStream<>(new JavaListWrapper<>(new ArrayList<>(collection))),
-                new UncheckedListStream(new JavaListWrapper<>(new ArrayList<>(collection))),
-                new ConcurrentListStream(new JavaListWrapper<>(new ArrayList<>(collection)))
-        })  {
+                new UncheckedListStream<>(new JavaListWrapper<>(new ArrayList<>(collection)), true),
+                new ConcurrentListStream<>(new JavaListWrapper<>(new ArrayList<>(collection)), true),
+                new UncheckedSetStream<>(new JavaSetWrapper<>(new HashSet<>(collection)), true),
+                new ConcurrentSetStream(new JavaSetWrapper<>(new HashSet<>(collection)), true)
+        }) {
             logger.info("Testing ${0}...", stream.getClass());
             AtomicInteger counter = new AtomicInteger(0);
             stream
                     .map(String::valueOf)
                     .map(Integer::parseInt)
                     .forEach(value -> {
-                if (!collection.contains(value))  {
-                    throw new IllegalStateException();
-                }
-                counter.incrementAndGet();
-            });
+                        if (!collection.contains(value)) {
+                            throw new IllegalStateException();
+                        }
+                        counter.incrementAndGet();
+                    });
             if (counter.get() != collection.size()) {
                 throw new IllegalStateException();
             }

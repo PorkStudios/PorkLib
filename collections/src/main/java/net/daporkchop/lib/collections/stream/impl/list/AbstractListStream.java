@@ -31,6 +31,7 @@ import java.util.function.IntFunction;
 public abstract class AbstractListStream<V> implements PStream<V> {
     @NonNull
     protected final PList<V> list;
+    protected final boolean mutable;
 
     @Override
     public long size() {
@@ -54,12 +55,12 @@ public abstract class AbstractListStream<V> implements PStream<V> {
 
     @Override
     public PStream<V> concurrent() {
-        return this.isConcurrent() ? this : new ConcurrentListStream<>(this.list);
+        return this.isConcurrent() ? this : new ConcurrentListStream<>(this.list, this.mutable);
     }
 
     @Override
     public PStream<V> singleThreaded() {
-        return this.isConcurrent() ? new UncheckedListStream<>(this.list) : this;
+        return this.isConcurrent() ? new UncheckedListStream<>(this.list, this.mutable) : this;
     }
 
     @Override
@@ -70,7 +71,7 @@ public abstract class AbstractListStream<V> implements PStream<V> {
         }
         V[] values = arrayCreator.apply((int) this.list.size());
         for (int i = values.length - 1; i >= 0; i--)    {
-            values[i] = (V) this.list.get(i);
+            values[i] = this.list.get(i);
         }
         return values;
     }

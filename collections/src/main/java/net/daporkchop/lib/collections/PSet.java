@@ -15,6 +15,10 @@
 
 package net.daporkchop.lib.collections;
 
+import net.daporkchop.lib.collections.stream.PStream;
+import net.daporkchop.lib.collections.stream.impl.set.ConcurrentSetStream;
+import net.daporkchop.lib.collections.stream.impl.set.UncheckedSetStream;
+
 /**
  * A simplification of {@link java.util.Set}. A PSet supports many of the same simple getters and setters
  * as a normal Java Set, as well as some basic iteration methods and a few variations on the standard accessors
@@ -25,4 +29,13 @@ package net.daporkchop.lib.collections;
  * @author DaPorkchop_
  */
 public interface PSet<V> extends PCollection<V> {
+    @Override
+    default PStream<V> stream() {
+        return new UncheckedSetStream<>(this, false);
+    }
+
+    @Override
+    default PStream<V> concurrentStream() {
+        return new ConcurrentSetStream<>(this, false);
+    }
 }

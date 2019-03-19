@@ -40,11 +40,7 @@ public class SwingScrollPane extends SwingNestedContainer<ScrollPane, JScrollPan
 
     public SwingScrollPane(String name) {
         super(name, new JScrollPane());
-
-        //this.swing.setLayout(null); //TODO: this really doesn't work with JScrollPane
-        //this.panel.setLayout(null);
         this.swing.setViewportView(this.panel);
-        //this.swing.add(this.panel);
 
         this.swing.addMouseListener(new SwingMouseListener<>(this));
     }

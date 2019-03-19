@@ -17,7 +17,6 @@ package net.daporkchop.lib.gui.swing.type.functional;
 
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
@@ -29,10 +28,11 @@ import net.daporkchop.lib.gui.swing.impl.SwingComponent;
 import net.daporkchop.lib.gui.util.HorizontalAlignment;
 import net.daporkchop.lib.gui.util.VerticalAlignment;
 import net.daporkchop.lib.gui.util.event.handler.ClickHandler;
+import net.daporkchop.lib.gui.util.math.BoundingBox;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -47,6 +47,8 @@ public class SwingButton extends SwingComponent<Button, JButton, ButtonState> im
     protected ClickHandler clickHandler = (button, x, y) -> {
     };
     protected final Map<ButtonState, PIcon> icons = new EnumMap<>(ButtonState.class);
+
+    protected boolean minDimensionsAreValueSize;
 
     public SwingButton(String name) {
         super(name, new JButton());
@@ -93,7 +95,7 @@ public class SwingButton extends SwingComponent<Button, JButton, ButtonState> im
     public PIcon getIcon(ButtonState state) {
         if (state == null) {
             state = ButtonState.ENABLED;
-        } else if (state == ButtonState.DISABLED_HOVERED)   {
+        } else if (state == ButtonState.DISABLED_HOVERED) {
             state = ButtonState.DISABLED;
         }
         return this.icons.get(state);
@@ -103,7 +105,7 @@ public class SwingButton extends SwingComponent<Button, JButton, ButtonState> im
     public Button setIcon(ButtonState state, PIcon icon) {
         if (state == null) {
             state = ButtonState.ENABLED;
-        } else if (state == ButtonState.DISABLED_HOVERED)   {
+        } else if (state == ButtonState.DISABLED_HOVERED) {
             state = ButtonState.DISABLED;
         }
         Icon newIcon;
@@ -133,6 +135,26 @@ public class SwingButton extends SwingComponent<Button, JButton, ButtonState> im
         return this;
     }
 
+    @Override
+    public Button minDimensionsAreValueSize() {
+        if (this.minDimensionsAreValueSize) {
+            return this;
+        } else {
+            this.minDimensionsAreValueSize = true;
+            return this.considerUpdate();
+        }
+    }
+
+    @Override
+    protected BoundingBox calculateBounds() {
+        BoundingBox bounds = super.calculateBounds();
+        if (this.minDimensionsAreValueSize) {
+            Dimension preferred = this.swing.getPreferredSize();
+            bounds = new BoundingBox(bounds.getX(), bounds.getY(), Math.max(preferred.width, bounds.getWidth()), Math.max(preferred.height, bounds.getHeight()));
+        }
+        return bounds;
+    }
+
     protected static class SwingButtonMouseListener extends SwingMouseListener<SwingButton> {
         public SwingButtonMouseListener(SwingButton delegate) {
             super(delegate);
@@ -140,7 +162,7 @@ public class SwingButton extends SwingComponent<Button, JButton, ButtonState> im
 
         @Override
         public void mouseClicked(MouseEvent e) {
-            if (this.delegate.isEnabled())   {
+            if (this.delegate.isEnabled()) {
                 this.delegate.clickHandler.onClick(e.getButton(), e.getX(), e.getY());
             }
             super.mouseClicked(e);

@@ -25,8 +25,10 @@ import net.daporkchop.lib.gui.swing.common.SwingMouseListener;
 import net.daporkchop.lib.gui.swing.impl.SwingComponent;
 import net.daporkchop.lib.gui.util.HorizontalAlignment;
 import net.daporkchop.lib.gui.util.VerticalAlignment;
+import net.daporkchop.lib.gui.util.math.BoundingBox;
 
 import javax.swing.*;
+import java.awt.*;
 
 /**
  * @author DaPorkchop_
@@ -34,6 +36,8 @@ import javax.swing.*;
 public class SwingLabel extends SwingComponent<Label, JLabel, LabelState> implements Label {
     protected PIcon enabledIcon;
     protected PIcon disabledIcon;
+
+    protected boolean minDimensionsAreValueSize;
 
     public SwingLabel(String name) {
         super(name, new JLabel());
@@ -97,5 +101,25 @@ public class SwingLabel extends SwingComponent<Label, JLabel, LabelState> implem
             this.swing.setDisabledIcon(icon == null ? null : icon.getAsSwingIcon());
         }
         return this;
+    }
+
+    @Override
+    public Label minDimensionsAreValueSize() {
+        if (this.minDimensionsAreValueSize) {
+            return this;
+        } else {
+            this.minDimensionsAreValueSize = true;
+            return this.considerUpdate();
+        }
+    }
+
+    @Override
+    protected BoundingBox calculateBounds() {
+        BoundingBox bounds = super.calculateBounds();
+        if (this.minDimensionsAreValueSize) {
+            Dimension preferred = this.swing.getPreferredSize();
+            bounds = new BoundingBox(bounds.getX(), bounds.getY(), Math.max(preferred.width, bounds.getWidth()), Math.max(preferred.height, bounds.getHeight()));
+        }
+        return bounds;
     }
 }

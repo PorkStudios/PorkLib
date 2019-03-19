@@ -141,4 +141,9 @@ public interface Window extends Container<Window, WindowState>, Resizable<Window
     }
 
     //other
+
+    @Override
+    default Window minDimensionsAreValueSize() {
+        return this;
+    }
 }

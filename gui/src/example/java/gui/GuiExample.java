@@ -65,7 +65,8 @@ public class GuiExample implements Logging {
                         .setOrientation(0.2d, 0.6d, 0.6d, 0.4d)
                         .setScrolling(ScrollCondition.ALWAYS)
                         .label("label1", LOREM_IPSUM, label -> label
-                                .setOrientation(0.0d, 0.0d, 1.5d, 0.15d)))
+                                .setOrientation(0.0d, 0.0d, 0.75d, 0.15d)
+                                .minDimensionsAreValueSize()))
                 .addStateListener(state -> logger.debug("Window changed state: ${0}\n", state))
                 .show();
     }

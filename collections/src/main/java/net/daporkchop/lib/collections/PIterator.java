@@ -18,6 +18,7 @@ package net.daporkchop.lib.collections;
 import lombok.NonNull;
 import net.daporkchop.lib.collections.util.exception.IterationCompleteException;
 
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -46,6 +47,14 @@ public interface PIterator<V> {
      * @throws IterationCompleteException if the iterator is complete
      */
     V next();
+
+    /**
+     * Gets the iterator's current value without incrementing it.
+     *
+     * @return the current value
+     * @throws IterationCompleteException if the iterator is complete
+     */
+    V peek();
 
     /**
      * Removes the value last returned by this iterator.
@@ -81,5 +90,34 @@ public interface PIterator<V> {
                 throw exceptionSupplier.get();
             }
         }
+    }
+
+    /**
+     * Replaces the current value in the iterator
+     *
+     * @param value the new value
+     * @throws UnsupportedOperationException if this iterator doesn't support setting values
+     */
+    default void set(V value) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Replaces the current value in the iterator, by using a function to compute the next one
+     *
+     * @param mappingFunction a function that will compute the new value based on the old one
+     * @throws UnsupportedOperationException if this iterator doesn't support setting values
+     */
+    default void recompute(@NonNull Function<V, V> mappingFunction) {
+        this.set(mappingFunction.apply(this.peek()));
+    }
+
+    /**
+     * Checks if this iterator supports setting values
+     *
+     * @return whether or not this iterator supports setting values
+     */
+    default boolean setSupported() {
+        return false;
     }
 }

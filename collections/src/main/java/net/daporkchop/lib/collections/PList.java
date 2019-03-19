@@ -48,21 +48,20 @@ public interface PList<V> extends PCollection<V> {
     void set(long pos, @NonNull V value);
 
     /**
+     * Sets a value at a specific position in this list.
+     *
+     * @param pos   the position of the element to set. The old value at this position will be replaced silently.
+     * @param value the new value to set at the given position
+     */
+    V replace(long pos, @NonNull V value);
+
+    /**
      * Gets a value at a specific position in this list.
      *
      * @param pos the position of the element to get.
      * @return the value at that position
      */
     V get(long pos);
-
-    /**
-     * Sets a value at a specific position in this list, returning the old value.
-     *
-     * @param pos   the position of the element to set. The old value at this position will be returned.
-     * @param value the new value to set at the given position
-     * @return the replaced value
-     */
-    V getAndSet(long pos, @NonNull V value);
 
     /**
      * Removes the value at a given position.
@@ -86,6 +85,11 @@ public interface PList<V> extends PCollection<V> {
      * @return the value's position in the list, or {@code -1} if not present
      */
     long indexOf(@NonNull V value);
+
+    @Override
+    default boolean contains(@NonNull V value) {
+        return this.indexOf(value) != -1L;
+    }
 
     @Override
     default PStream<V> stream() {

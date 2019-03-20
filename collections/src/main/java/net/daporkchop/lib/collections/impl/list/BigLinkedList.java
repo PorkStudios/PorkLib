@@ -19,6 +19,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.collections.PIterator;
 import net.daporkchop.lib.collections.PList;
+import net.daporkchop.lib.collections.util.exception.AlreadyRemovedException;
 import net.daporkchop.lib.collections.util.exception.IterationCompleteException;
 
 import java.util.function.Consumer;
@@ -200,6 +201,7 @@ public class BigLinkedList<V> implements PList<V> {
             protected Node<V> next = BigLinkedList.this.root;
             protected Node<V> curr;
             protected Node<V> prev;
+            protected boolean removed = false;
 
             @Override
             public boolean hasNext() {
@@ -211,6 +213,7 @@ public class BigLinkedList<V> implements PList<V> {
                 if (!this.hasNext()) {
                     throw new IterationCompleteException();
                 } else {
+                    this.removed = false;
                     this.prev = this.curr;
                     this.next = (this.curr = this.next).next;
                     return this.curr.value;
@@ -221,6 +224,8 @@ public class BigLinkedList<V> implements PList<V> {
             public V peek() {
                 if (this.curr == null) {
                     throw new IterationCompleteException();
+                } else if (this.removed)    {
+                    throw new AlreadyRemovedException();
                 } else {
                     return this.curr.value;
                 }
@@ -230,6 +235,8 @@ public class BigLinkedList<V> implements PList<V> {
             public void remove() {
                 if (this.curr == null) {
                     throw new IterationCompleteException();
+                } else if (this.removed)    {
+                    throw new AlreadyRemovedException();
                 } else if (this.prev == null) {
                     if (this.next == null) {
                         this.curr = null;
@@ -238,7 +245,7 @@ public class BigLinkedList<V> implements PList<V> {
                         BigLinkedList.this.root = this.next;
                         BigLinkedList.this.size--;
                         this.curr = null;
-                        this.next();
+                        this.removed = true;
                     }
                 } else {
                     if (this.next == null) {
@@ -248,8 +255,8 @@ public class BigLinkedList<V> implements PList<V> {
                     } else {
                         this.prev.next = this.next;
                         this.curr = this.prev;
-                        this.next();
                     }
+                    this.removed = true;
                     BigLinkedList.this.size--;
                 }
             }
@@ -258,6 +265,8 @@ public class BigLinkedList<V> implements PList<V> {
             public void set(@NonNull V value) {
                 if (this.curr == null) {
                     throw new IterationCompleteException();
+                } else if (this.removed)    {
+                    throw new AlreadyRemovedException();
                 } else {
                     this.curr.value = value;
                 }
@@ -267,6 +276,8 @@ public class BigLinkedList<V> implements PList<V> {
             public void recompute(@NonNull Function<V, V> mappingFunction) {
                 if (this.curr == null) {
                     throw new IterationCompleteException();
+                } else if (this.removed)    {
+                    throw new AlreadyRemovedException();
                 } else {
                     this.curr.value = mappingFunction.apply(this.curr.value);
                 }

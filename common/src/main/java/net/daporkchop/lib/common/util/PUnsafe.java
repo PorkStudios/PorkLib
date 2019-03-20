@@ -508,22 +508,24 @@ public interface PUnsafe {
         }
     }
 
-    static float getAndAddFloat(Object var1, long var2, float var4) {
-        int var5;
+    static boolean pork_checkSwapIfNonNull(Object o, long offset, Object newValue)  {
+        Object v;
         do {
-            var5 = UNSAFE.getIntVolatile(var1, var2);
-        } while (!UNSAFE.compareAndSwapInt(var1, var2, var5, Float.floatToIntBits(Float.intBitsToFloat(var5) + var4)));
-
-        return var5;
+            if ((v = getObjectVolatile(o, offset)) == null)   {
+                return false;
+            }
+        } while (!compareAndSwapObject(o, offset, v, newValue));
+        return true;
     }
 
-    static double getAndAddDouble(Object var1, long var2, double var4) {
-        long var6;
+    @SuppressWarnings("unchecked")
+    static <V> V pork_swapIfNonNull(Object o, long offset, Object newValue)  {
+        Object v;
         do {
-            var6 = UNSAFE.getLongVolatile(var1, var2);
-        }
-        while (!UNSAFE.compareAndSwapLong(var1, var2, var6, Double.doubleToLongBits(Double.longBitsToDouble(var6) + var4)));
-
-        return var6;
+            if ((v = getObjectVolatile(o, offset)) == null)   {
+                return null;
+            }
+        } while (!compareAndSwapObject(o, offset, v, newValue));
+        return (V) v;
     }
 }

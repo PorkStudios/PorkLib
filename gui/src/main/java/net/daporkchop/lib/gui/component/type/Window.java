@@ -25,6 +25,7 @@ import net.daporkchop.lib.gui.component.capability.Resizable;
 import net.daporkchop.lib.gui.component.capability.TextHolder;
 import net.daporkchop.lib.gui.component.state.WindowState;
 import net.daporkchop.lib.gui.util.event.EventManager;
+import net.daporkchop.lib.gui.util.math.BoundingBox;
 
 import java.util.StringJoiner;
 
@@ -140,8 +141,17 @@ public interface Window extends Container<Window, WindowState>, Resizable<Window
         return this;
     }
 
-    //other
+    //hierarchy stuff
+    Window getParentWindow();
+    default Window popup(int width, int height) {
+        return this.popup(new BoundingBox(0, 0, width, height));
+    }
+    default Window popup(int x, int y, int width, int height) {
+        return this.popup(new BoundingBox(x, y, width, height));
+    }
+    Window popup(@NonNull BoundingBox bounds);
 
+    //other
     @Override
     default Window minDimensionsAreValueSize() {
         return this;

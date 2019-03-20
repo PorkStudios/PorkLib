@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.gui.swing.type;
+package net.daporkchop.lib.gui.swing.type.window;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -42,7 +42,7 @@ import java.util.stream.Stream;
 @Getter
 @Setter(AccessLevel.PROTECTED)
 @Accessors(chain = true)
-public class SwingWindow extends SwingContainer<Window, JFrame, WindowState> implements Window {
+public abstract class AbstractSwingWindow<Impl extends AbstractSwingWindow<Impl, Swing>, Swing extends java.awt.Window> extends SwingContainer<Window, Swing, WindowState> implements Window {
     protected final EventManager eventManager = new EventManager();
 
     protected BoundingBox oldDimensions;
@@ -54,8 +54,8 @@ public class SwingWindow extends SwingContainer<Window, JFrame, WindowState> imp
     protected boolean closing = false;
     protected boolean closed = false;
 
-    public SwingWindow(String name) {
-        super(name, new JFrame());
+    public AbstractSwingWindow(String name, Swing swing) {
+        super(name, swing);
 
         this.swing.setLayout(null);
         this.swing.addWindowListener(new SwingWindowListener());
@@ -84,42 +84,18 @@ public class SwingWindow extends SwingContainer<Window, JFrame, WindowState> imp
     }
 
     @Override
-    public String getTitle() {
-        return this.swing.getTitle();
-    }
-
-    @Override
-    public SwingWindow setTitle(@NonNull String title) {
-        if (!title.equals(this.getTitle())) {
-            this.swing.setTitle(title);
-        }
-        return this;
-    }
-
-    @Override
-    public boolean isResizable() {
-        return this.swing.isResizable();
-    }
-
-    @Override
-    public SwingWindow setResizable(boolean resizable) {
-        if (this.isResizable() != resizable)    {
-            this.swing.setResizable(resizable);
-        }
-        return this;
-    }
-
-    @Override
-    public Window setIcon(@NonNull PIcon icon) {
+    @SuppressWarnings("unchecked")
+    public Impl setIcon(@NonNull PIcon icon) {
         if (icon != this.icon)  {
             this.icon = icon;
             this.swing.setIconImage(icon.getAsBufferedImage());
         }
-        return this;
+        return (Impl) this;
     }
 
     @Override
-    public Window setIcon(@NonNull PIcon... icons) {
+    @SuppressWarnings("unchecked")
+    public Impl setIcon(@NonNull PIcon... icons) {
         if (icons.length == 0)  {
             throw new IllegalArgumentException("Arguments may not be empty!");
         }
@@ -139,17 +115,14 @@ public class SwingWindow extends SwingContainer<Window, JFrame, WindowState> imp
         }
         this.icon = maxI;
         this.swing.setIconImages(Stream.of(icons).map(PIcon::getAsBufferedImage).collect(Collectors.toList()));
-        return this;
+        return (Impl) this;
     }
 
     @Override
-    public SwingWindow setBounds(@NonNull BoundingBox bounds) {
+    @SuppressWarnings("unchecked")
+    public Impl setBounds(@NonNull BoundingBox bounds) {
         if (this.bounds == null || !this.bounds.equals(bounds)) {
             this.bounds = bounds;
-            if (false) {
-                //this.swing.setExtendedState(JFrame.MAXIMIZED_BOTH);
-                this.swing.setUndecorated(true);
-            }
             Insets insets = this.swing.getInsets();
             this.swing.setBounds(
                     bounds.getX(),
@@ -159,11 +132,12 @@ public class SwingWindow extends SwingContainer<Window, JFrame, WindowState> imp
             );
             this.update();
         }
-        return this;
+        return (Impl) this;
     }
 
     @Override
-    public SwingWindow update() {
+    @SuppressWarnings("unchecked")
+    public Impl update() {
         if (this.bounds == null) {
             this.bounds = new BoundingBox(0, 0, 128, 128);
         }
@@ -172,7 +146,7 @@ public class SwingWindow extends SwingContainer<Window, JFrame, WindowState> imp
         }
         this.children.forEach((name, element) -> element.update());
         this.swing.revalidate();
-        return this;
+        return (Impl) this;
     }
 
     @Override
@@ -183,38 +157,38 @@ public class SwingWindow extends SwingContainer<Window, JFrame, WindowState> imp
     protected class SwingWindowListener implements WindowListener  {
         @Override
         public void windowOpened(WindowEvent e) {
-            SwingWindow.this.setBuilt(true).fireStateChange();
+            AbstractSwingWindow.this.setBuilt(true).fireStateChange();
         }
 
         @Override
         public void windowClosing(WindowEvent e) {
-            SwingWindow.this.setClosing(true).fireStateChange();
-            SwingWindow.this.release(); //TODO: custom handling
+            AbstractSwingWindow.this.setClosing(true).fireStateChange();
+            AbstractSwingWindow.this.release(); //TODO: custom handling
         }
 
         @Override
         public void windowClosed(WindowEvent e) {
-            SwingWindow.this.setClosed(true).fireStateChange();
+            AbstractSwingWindow.this.setClosed(true).fireStateChange();
         }
 
         @Override
         public void windowIconified(WindowEvent e) {
-            SwingWindow.this.setMinimized(true).fireStateChange();
+            AbstractSwingWindow.this.setMinimized(true).fireStateChange();
         }
 
         @Override
         public void windowDeiconified(WindowEvent e) {
-            SwingWindow.this.setMinimized(false).fireStateChange();
+            AbstractSwingWindow.this.setMinimized(false).fireStateChange();
         }
 
         @Override
         public void windowActivated(WindowEvent e) {
-            SwingWindow.this.setActive(true).fireStateChange();
+            AbstractSwingWindow.this.setActive(true).fireStateChange();
         }
 
         @Override
         public void windowDeactivated(WindowEvent e) {
-            SwingWindow.this.setActive(false).fireStateChange();
+            AbstractSwingWindow.this.setActive(false).fireStateChange();
         }
     }
 
@@ -226,16 +200,16 @@ public class SwingWindow extends SwingContainer<Window, JFrame, WindowState> imp
 
         @Override
         public void componentMoved(ComponentEvent e) {
-            JFrame frame = SwingWindow.this.swing;
-            Insets insets = frame.getInsets();
-            SwingWindow.this.bounds = SwingWindow.this.oldDimensions;
-            SwingWindow.this.bounds = new BoundingBox(
-                    frame.getX(),
-                    frame.getY(),
-                    frame.getWidth() - insets.left - insets.right,
-                    frame.getHeight() - insets.top - insets.bottom
+            java.awt.Window window = AbstractSwingWindow.this.swing;
+            Insets insets = window.getInsets();
+            AbstractSwingWindow.this.bounds = AbstractSwingWindow.this.oldDimensions;
+            AbstractSwingWindow.this.bounds = new BoundingBox(
+                    window.getX(),
+                    window.getY(),
+                    window.getWidth() - insets.left - insets.right,
+                    window.getHeight() - insets.top - insets.bottom
             );
-            SwingWindow.this.update();
+            AbstractSwingWindow.this.update();
         }
 
         @Override

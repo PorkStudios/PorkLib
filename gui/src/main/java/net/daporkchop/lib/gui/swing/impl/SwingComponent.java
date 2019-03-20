@@ -24,8 +24,7 @@ import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.Element;
 import net.daporkchop.lib.gui.component.orientation.Orientation;
 import net.daporkchop.lib.gui.component.state.ElementState;
-import net.daporkchop.lib.gui.component.type.Window;
-import net.daporkchop.lib.gui.swing.type.SwingWindow;
+import net.daporkchop.lib.gui.swing.type.window.AbstractSwingWindow;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 
 import javax.swing.*;
@@ -41,7 +40,7 @@ public abstract class SwingComponent<Impl extends Component, Swing extends JComp
     protected Orientation<Impl> orientation;
     protected IBasicSwingContainer parent;
     @Setter(AccessLevel.PRIVATE)
-    protected SwingWindow window;
+    protected AbstractSwingWindow window;
 
     protected boolean hovered;
     protected boolean mouseDown;
@@ -59,7 +58,7 @@ public abstract class SwingComponent<Impl extends Component, Swing extends JComp
             while (parent.getParent() != null)  {
                 parent = (IBasicSwingContainer) parent.getParent();
             }
-            this.window = (SwingWindow) parent;
+            this.window = (AbstractSwingWindow) parent;
             return (Impl) this;
         }
     }

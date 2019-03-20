@@ -119,11 +119,16 @@ public class SwingDropdown<V> extends SwingComponent<Dropdown<V>, JComboBox<V>, 
     protected static class SwingDropdownItemListener<V> implements ItemListener {
         @NonNull
         protected final SwingDropdown<V> delegate;
+        protected V previouslySelected;
 
         @Override
-        @SuppressWarnings("unchecked")
         public void itemStateChanged(ItemEvent e) {
-            this.delegate.valueChangeListeners.forEach((name, listener) -> listener.accept((V) e.getItem()));
+            @SuppressWarnings("unchecked")
+            V value = (V) e.getItem();
+            if (value != this.previouslySelected)   {
+                this.previouslySelected = value;
+                this.delegate.valueChangeListeners.forEach((name, listener) -> listener.accept(value));
+            }
         }
     }
 }

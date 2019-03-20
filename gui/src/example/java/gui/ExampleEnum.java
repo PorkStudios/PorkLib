@@ -42,6 +42,6 @@ public enum ExampleEnum implements Defaulted {
 
     @Override
     public String toString() {
-        return this.displayName;
+        return this.displayName == null ? this.name() : this.displayName;
     }
 }

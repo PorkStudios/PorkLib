@@ -90,7 +90,7 @@ public class GuiExample implements Logging {
     }
 
     public static void displayDropdownTestWindow(@NonNull Window parentWindow) {
-        ENGINE.newWindow(128, 128, 512, 300)
+        parentWindow.popup(128, 128, 512, 300)
                 .setTitle("Dropdown menu test")
                 .dropdown("dropdown1", ExampleEnum.class, dropdown -> dropdown
                         .setOrientation(0.05d, 0.05d, 0.2d, 0.1d)

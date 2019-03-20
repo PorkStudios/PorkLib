@@ -13,42 +13,65 @@
  *
  */
 
-package net.daporkchop.lib.gui.swing;
+package net.daporkchop.lib.gui.swing.type.window;
 
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.common.reference.InstancePool;
-import net.daporkchop.lib.gui.GuiSystem;
-import net.daporkchop.lib.gui.swing.type.window.SwingFrame;
+import net.daporkchop.lib.gui.component.type.Window;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 
 import javax.swing.*;
+import java.awt.*;
 
 /**
  * @author DaPorkchop_
  */
-public class GuiSystemSwing implements GuiSystem<SwingFrame> {
-    static {
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (ClassNotFoundException
-                | InstantiationException
-                | IllegalAccessException
-                | UnsupportedLookAndFeelException e) {
-            e.printStackTrace();
+@Getter
+public class SwingDialog extends AbstractSwingWindow<SwingDialog, JDialog> {
+    protected final AbstractSwingWindow parentWindow;
+
+    public SwingDialog(String name, @NonNull SwingFrame parentWindow) {
+        super(name, new JDialog(parentWindow.getSwing()));
+
+        this.parentWindow = parentWindow;
+
+        this.swing.setModalityType(Dialog.ModalityType.DOCUMENT_MODAL);
+    }
+
+    public SwingDialog(String name, @NonNull SwingDialog parentWindow) {
+        super(name, new JDialog(parentWindow.getSwing()));
+
+        this.parentWindow = parentWindow;
+    }
+
+    @Override
+    public String getTitle() {
+        return this.swing.getTitle();
+    }
+
+    @Override
+    public AbstractSwingWindow setTitle(@NonNull String title) {
+        if (!title.equals(this.getTitle())) {
+            this.swing.setTitle(title);
         }
-    }
-
-    public static GuiSystemSwing getInstance() {
-        return InstancePool.getInstance(GuiSystemSwing.class);
+        return this;
     }
 
     @Override
-    public String getName() {
-        return "Swing";
+    public boolean isResizable() {
+        return this.swing.isResizable();
     }
 
     @Override
-    public SwingFrame newWindow(@NonNull BoundingBox bounds) {
-        return new SwingFrame("").setBounds(bounds);
+    public AbstractSwingWindow setResizable(boolean resizable) {
+        if (this.isResizable() != resizable)    {
+            this.swing.setResizable(resizable);
+        }
+        return this;
+    }
+
+    @Override
+    public Window popup(@NonNull BoundingBox bounds) {
+        return new SwingDialog("", this).setBounds(bounds);
     }
 }

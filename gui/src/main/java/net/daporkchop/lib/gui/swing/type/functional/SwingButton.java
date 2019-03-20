@@ -155,6 +155,14 @@ public class SwingButton extends SwingComponent<Button, JButton, ButtonState> im
         return bounds;
     }
 
+    @Override
+    public Button setTextColor(int argb) {
+        if (!this.swing.isForegroundSet() || this.swing.getForeground().getRGB() != argb)   {
+            this.swing.setForeground(new Color(argb));
+        }
+        return this;
+    }
+
     protected static class SwingButtonMouseListener extends SwingMouseListener<SwingButton> {
         public SwingButtonMouseListener(SwingButton delegate) {
             super(delegate);

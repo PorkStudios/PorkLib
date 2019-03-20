@@ -104,6 +104,25 @@ public class SwingLabel extends SwingComponent<Label, JLabel, LabelState> implem
     }
 
     @Override
+    public Label setColor(int argb) {
+        if (!this.swing.isBackgroundSet() || this.swing.getBackground().getRGB() != argb) {
+            this.swing.setBackground(new Color(argb));
+            if (!this.swing.isOpaque()) {
+                this.swing.setOpaque(true);
+            }
+        }
+        return this;
+    }
+
+    @Override
+    public Label setTextColor(int argb) {
+        if (!this.swing.isForegroundSet() || this.swing.getForeground().getRGB() != argb)   {
+            this.swing.setForeground(new Color(argb));
+        }
+        return this;
+    }
+
+    @Override
     public Label minDimensionsAreValueSize() {
         if (this.minDimensionsAreValueSize) {
             return this;

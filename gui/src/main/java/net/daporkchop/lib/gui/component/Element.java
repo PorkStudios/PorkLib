@@ -16,14 +16,13 @@
 package net.daporkchop.lib.gui.component;
 
 import lombok.NonNull;
-import net.daporkchop.lib.common.function.VoidFunction;
 import net.daporkchop.lib.gui.component.state.ElementState;
-import net.daporkchop.lib.gui.component.type.Window;
 import net.daporkchop.lib.gui.util.event.handler.StateListener;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 import net.daporkchop.lib.gui.util.math.Constraint;
 
 import java.util.StringJoiner;
+import java.util.function.Consumer;
 
 /**
  * @author DaPorkchop_
@@ -96,6 +95,33 @@ public interface Element<Impl extends Element, State extends ElementState<Impl, 
     default Impl addStateListener(@NonNull State state, @NonNull Runnable callback)   {
         return this.addStateListener(String.format("%s@%d", callback.getClass().getCanonicalName(), System.identityHashCode(callback)), s -> {
             if (state == s) {
+                callback.run();
+            }
+        });
+    }
+    @SuppressWarnings("unchecked")
+    default Impl addVisibilityListener(@NonNull Consumer<Boolean> callback)  {
+        return this.addStateListener(String.format("%s@%d", callback.getClass().getCanonicalName(), System.identityHashCode(callback)), new StateListener<Impl, State>() {
+            protected boolean visible = Element.this.isVisible();
+
+            @Override
+            public void onStateChange(@NonNull State state) {
+                if (state.isVisible() != this.visible) {
+                    callback.accept(this.visible = state.isVisible());
+                }
+            }
+        });
+    }
+    default Impl addVisibleListener(@NonNull Runnable callback)  {
+        return this.addVisibilityListener(visible -> {
+            if (visible)    {
+                callback.run();
+            }
+        });
+    }
+    default Impl addInvisibleListener(@NonNull Runnable callback)  {
+        return this.addVisibilityListener(visible -> {
+            if (!visible)   {
                 callback.run();
             }
         });

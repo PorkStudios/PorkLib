@@ -28,6 +28,11 @@ import net.daporkchop.lib.gui.util.ScrollDir;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 
 /**
+ * A scroll pane is similar to a {@link Panel} in that it's one of the simplest possible containers there
+ * is. The main difference with a scroll pane is that elements can be positioned anywhere in the container,
+ * and/or extend beyond the limits of the container, and the pane will display scroll bars on the right and
+ * bottom for navigating the full extent of it's components.
+ *
  * @author DaPorkchop_
  */
 public interface ScrollPane extends NestedContainer<ScrollPane, ScrollPaneState> {
@@ -52,10 +57,13 @@ public interface ScrollPane extends NestedContainer<ScrollPane, ScrollPaneState>
     ScrollCondition getScrolling(@NonNull ScrollDir dir);
 
     ScrollSpeedCalculator getScrollSpeed();
-    ScrollPane setScrollSpeed(@NonNull ScrollSpeedCalculator calculator);
-    default ScrollPane setScrollSpeed(int value)    {
+
+    default ScrollPane setScrollSpeed(int value) {
         return this.setScrollSpeed(new ConstantValueScrollSpeedCalculator(value));
     }
+
+    ScrollPane setScrollSpeed(@NonNull ScrollSpeedCalculator calculator);
+
     default ScrollPane setScrollSpeed(@NonNull ScrollDir dir, @NonNull ScrollSpeedCalculator calculator) {
         BiDirectionalScrollSpeedCalculator bi;
         if (this.getScrollSpeed() instanceof BiDirectionalScrollSpeedCalculator) {
@@ -70,7 +78,8 @@ public interface ScrollPane extends NestedContainer<ScrollPane, ScrollPaneState>
         }
         return this;
     }
-    default ScrollPane setScrollSpeed(@NonNull ScrollDir dir, int value)    {
+
+    default ScrollPane setScrollSpeed(@NonNull ScrollDir dir, int value) {
         return this.setScrollSpeed(dir, new ConstantValueScrollSpeedCalculator(value));
     }
 
@@ -94,7 +103,7 @@ public interface ScrollPane extends NestedContainer<ScrollPane, ScrollPaneState>
     @Getter
     @Setter
     @Accessors(chain = true)
-    class BiDirectionalScrollSpeedCalculator implements ScrollSpeedCalculator   {
+    class BiDirectionalScrollSpeedCalculator implements ScrollSpeedCalculator {
         @NonNull
         protected ScrollSpeedCalculator horizontal;
         @NonNull
@@ -108,7 +117,7 @@ public interface ScrollPane extends NestedContainer<ScrollPane, ScrollPaneState>
 
     @RequiredArgsConstructor
     @Getter
-    class ConstantValueScrollSpeedCalculator implements ScrollSpeedCalculator   {
+    class ConstantValueScrollSpeedCalculator implements ScrollSpeedCalculator {
         protected final int speed;
 
         @Override

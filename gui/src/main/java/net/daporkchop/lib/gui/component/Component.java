@@ -40,7 +40,7 @@ import java.util.function.Consumer;
  * @author DaPorkchop_
  */
 @SuppressWarnings("unchecked")
-public interface Component<Impl extends Component, State extends ElementState<Impl, State>> extends Element<Impl, State>, Enableable<Impl> {
+public interface Component<Impl extends Component, State extends ElementState<? extends Element, State>> extends Element<Impl, State>, Enableable<Impl> {
     @Override
     default Impl setBounds(@NonNull BoundingBox bounds) {
         return this.setOrientation(bounds);

@@ -25,5 +25,5 @@ import net.daporkchop.lib.gui.component.state.ElementState;
  *
  * @author DaPorkchop_
  */
-public interface NestedContainer<Impl extends NestedContainer, State extends ElementState<Impl, State>> extends Container<Impl, State>, Component<Impl, State> {
+public interface NestedContainer<Impl extends NestedContainer, State extends ElementState<? extends Element, State>> extends Container<Impl, State>, Component<Impl, State> {
 }

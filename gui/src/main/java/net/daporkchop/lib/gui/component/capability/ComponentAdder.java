@@ -19,6 +19,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.gui.component.type.container.Panel;
 import net.daporkchop.lib.gui.component.type.container.ScrollPane;
 import net.daporkchop.lib.gui.component.type.functional.Button;
+import net.daporkchop.lib.gui.component.type.functional.Dropdown;
 import net.daporkchop.lib.gui.component.type.functional.Label;
 
 import java.util.function.Consumer;
@@ -28,6 +29,37 @@ import java.util.function.Consumer;
  */
 @SuppressWarnings("unchecked")
 public interface ComponentAdder<Impl> {
+    //
+    //
+    //nested containers
+    //
+    //
+
+    //panel
+    Panel panel(@NonNull String name);
+
+    default Impl panel(@NonNull String name, @NonNull Consumer<Panel> initializer)    {
+        Panel panel = this.panel(name);
+        initializer.accept(panel);
+        return (Impl) this;
+    }
+
+    //scrollpane
+    ScrollPane scrollPane(@NonNull String name);
+
+    default Impl scrollPane(@NonNull String name, @NonNull Consumer<ScrollPane> initializer)    {
+        ScrollPane scrollPane = this.scrollPane(name);
+        initializer.accept(scrollPane);
+        return (Impl) this;
+    }
+
+    //
+    //
+    //functional components
+    //
+    //
+
+    //button
     Button button(@NonNull String name);
 
     default Impl button(@NonNull String name, @NonNull Consumer<Button> initializer)    {
@@ -35,7 +67,23 @@ public interface ComponentAdder<Impl> {
         initializer.accept(button);
         return (Impl) this;
     }
-    
+
+    //dropdown
+    <V> Dropdown<V> dropdown(@NonNull String name);
+
+    default <V> Impl dropdown(@NonNull String name, @NonNull Consumer<Dropdown<V>> initializer) {
+        Dropdown<V> dropdown = this.dropdown(name);
+        initializer.accept(dropdown);
+        return (Impl) this;
+    }
+
+    default <V extends Enum<V>> Impl dropdown(@NonNull String name, @NonNull Class<V> enumClazz, @NonNull Consumer<Dropdown<V>> initializer) {
+        Dropdown<V> dropdown = this.<V>dropdown(name).addValues(enumClazz.getEnumConstants()).setSelectedValue(null);
+        initializer.accept(dropdown);
+        return (Impl) this;
+    }
+
+    //label
     Label label(@NonNull String name);
 
     default Impl label(@NonNull String name, @NonNull Consumer<Label> initializer)    {
@@ -51,22 +99,6 @@ public interface ComponentAdder<Impl> {
     default Impl label(@NonNull String name, @NonNull String text, @NonNull Consumer<Label> initializer)    {
         Label label = this.label(name).setText(text);
         initializer.accept(label);
-        return (Impl) this;
-    }
-
-    Panel panel(@NonNull String name);
-
-    default Impl panel(@NonNull String name, @NonNull Consumer<Panel> initializer)    {
-        Panel panel = this.panel(name);
-        initializer.accept(panel);
-        return (Impl) this;
-    }
-
-    ScrollPane scrollPane(@NonNull String name);
-
-    default Impl scrollPane(@NonNull String name, @NonNull Consumer<ScrollPane> initializer)    {
-        ScrollPane scrollPane = this.scrollPane(name);
-        initializer.accept(scrollPane);
         return (Impl) this;
     }
 }

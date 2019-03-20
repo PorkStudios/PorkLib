@@ -22,7 +22,7 @@ import net.daporkchop.lib.gui.component.Element;
 /**
  * @author DaPorkchop_
  */
-public interface ElementState<E extends Element, Impl extends ElementState<E, ?>> {
+public interface ElementState<E extends Element, Impl extends ElementState<E, Impl>> {
     boolean isVisible();
 
     boolean isEnabled();

@@ -48,7 +48,7 @@ public class GuiExample implements Logging {
                         .setClickHandler((mouseButton, x, y) -> button.getWindow().getComponent("label2").toggle())
                         .minDimensionsAreValueSize())
                 .button("button2", button -> button.setOrientation(0, 0.0d, 0.1d, 0.1d)
-                        .setClickHandler((mouseButton, x, y) -> System.out.printf("Bounds: %s\n", button.getWindow().getComponent("panel1.button2").getBounds())))
+                        .setClickHandler((mouseButton, x, y) -> logger.info("Bounds: ${0}\n", button.getWindow().getComponent("panel1.button2").getBounds())))
                 .label("label1", LOREM_IPSUM, label -> label
                         .setOrientation(0.5d, 0, 0.5d, 0.1d)
                         .setTooltip("This is a label. Labels can only display plain text.")

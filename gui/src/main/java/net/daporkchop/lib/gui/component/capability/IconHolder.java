@@ -16,12 +16,13 @@
 package net.daporkchop.lib.gui.component.capability;
 
 import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
+import net.daporkchop.lib.gui.component.Element;
 import net.daporkchop.lib.gui.component.state.ElementState;
 
 /**
  * @author DaPorkchop_
  */
-public interface IconHolder<Impl extends IconHolder, State extends ElementState<Impl, State>> extends SimpleIconHolder<Impl, State> {
+public interface IconHolder<Impl extends IconHolder, State extends ElementState<? extends Element, State>> extends SimpleIconHolder<Impl, State> {
     @Override
     default PIcon getIcon() {
         return this.getIcon(null);

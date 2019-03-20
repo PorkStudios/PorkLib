@@ -21,6 +21,7 @@ import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.gui.component.Component;
+import net.daporkchop.lib.gui.component.Element;
 import net.daporkchop.lib.gui.component.orientation.Orientation;
 import net.daporkchop.lib.gui.component.state.ElementState;
 import net.daporkchop.lib.gui.component.type.Window;
@@ -36,7 +37,7 @@ import javax.swing.*;
 @Setter
 @Accessors(chain = true)
 @SuppressWarnings("unchecked")
-public abstract class SwingComponent<Impl extends Component, Swing extends JComponent, State extends ElementState<Impl, State>> extends SwingElement<Impl, Swing, State> implements Component<Impl, State> {
+public abstract class SwingComponent<Impl extends Component, Swing extends JComponent, State extends ElementState<? extends Element, State>> extends SwingElement<Impl, Swing, State> implements Component<Impl, State> {
     protected Orientation<Impl> orientation;
     protected IBasicSwingContainer parent;
     @Setter(AccessLevel.PRIVATE)

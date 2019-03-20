@@ -15,6 +15,8 @@
 
 package net.daporkchop.lib.gui.component.type.functional;
 
+import lombok.NonNull;
+import net.daporkchop.lib.graphics.bitmap.ColorFormat;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.capability.IconHolder;
 import net.daporkchop.lib.gui.component.capability.TextHolder;
@@ -33,5 +35,10 @@ public interface Label extends Component<Label, LabelState>, IconHolder<Label, L
                         this.isHovered() ? LabelState.ENABLED_HOVERED : LabelState.ENABLED
                         : this.isHovered() ? LabelState.DISABLED_HOVERED : LabelState.DISABLED
                 : LabelState.HIDDEN;
+    }
+
+    Label setColor(int argb);
+    default Label setColor(int color, @NonNull ColorFormat format)  {
+        return this.setColor(format.toArgb(color));
     }
 }

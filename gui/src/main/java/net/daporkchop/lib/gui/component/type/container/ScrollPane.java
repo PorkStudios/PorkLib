@@ -15,17 +15,24 @@
 
 package net.daporkchop.lib.gui.component.type.container;
 
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.gui.component.NestedContainer;
 import net.daporkchop.lib.gui.component.state.container.ScrollPaneState;
 import net.daporkchop.lib.gui.util.ScrollCondition;
 import net.daporkchop.lib.gui.util.ScrollDir;
+import net.daporkchop.lib.gui.util.math.BoundingBox;
 
 /**
  * @author DaPorkchop_
  */
 public interface ScrollPane extends NestedContainer<ScrollPane, ScrollPaneState> {
+    int DEFAULT_SCROLL_SPEED = 25;
+
     @Override
     default ScrollPaneState getState() {
         return this.isVisible() ?
@@ -43,4 +50,70 @@ public interface ScrollPane extends NestedContainer<ScrollPane, ScrollPaneState>
     ScrollPane setScrolling(@NonNull ScrollDir dir, @NonNull ScrollCondition condition);
 
     ScrollCondition getScrolling(@NonNull ScrollDir dir);
+
+    ScrollSpeedCalculator getScrollSpeed();
+    ScrollPane setScrollSpeed(@NonNull ScrollSpeedCalculator calculator);
+    default ScrollPane setScrollSpeed(int value)    {
+        return this.setScrollSpeed(new ConstantValueScrollSpeedCalculator(value));
+    }
+    default ScrollPane setScrollSpeed(@NonNull ScrollDir dir, @NonNull ScrollSpeedCalculator calculator) {
+        BiDirectionalScrollSpeedCalculator bi;
+        if (this.getScrollSpeed() instanceof BiDirectionalScrollSpeedCalculator) {
+            bi = (BiDirectionalScrollSpeedCalculator) this.getScrollSpeed();
+        } else {
+            this.setScrollSpeed(bi = new BiDirectionalScrollSpeedCalculator(this.getScrollSpeed(), this.getScrollSpeed()));
+        }
+        if (dir == ScrollDir.HORIZONTAL) {
+            bi.setHorizontal(calculator);
+        } else {
+            bi.setVertical(calculator);
+        }
+        return this;
+    }
+    default ScrollPane setScrollSpeed(@NonNull ScrollDir dir, int value)    {
+        return this.setScrollSpeed(dir, new ConstantValueScrollSpeedCalculator(value));
+    }
+
+    @FunctionalInterface
+    interface ScrollSpeedCalculator {
+        int getScrollSpeed(@NonNull ScrollDir dir, @NonNull BoundingBox bounds);
+    }
+
+    @FunctionalInterface
+    interface MonodirectionScrollSpeedCalculator extends ScrollSpeedCalculator {
+        @Override
+        default int getScrollSpeed(@NonNull ScrollDir dir, @NonNull BoundingBox bounds) {
+            return this.getScrollSpeed(bounds);
+        }
+
+        int getScrollSpeed(@NonNull BoundingBox bounds);
+    }
+
+    @RequiredArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    @Setter
+    @Accessors(chain = true)
+    class BiDirectionalScrollSpeedCalculator implements ScrollSpeedCalculator   {
+        @NonNull
+        protected ScrollSpeedCalculator horizontal;
+        @NonNull
+        protected ScrollSpeedCalculator vertical;
+
+        @Override
+        public int getScrollSpeed(@NonNull ScrollDir dir, @NonNull BoundingBox bounds) {
+            return dir == ScrollDir.HORIZONTAL ? this.horizontal.getScrollSpeed(dir, bounds) : this.vertical.getScrollSpeed(dir, bounds);
+        }
+    }
+
+    @RequiredArgsConstructor
+    @Getter
+    class ConstantValueScrollSpeedCalculator implements ScrollSpeedCalculator   {
+        protected final int speed;
+
+        @Override
+        public int getScrollSpeed(@NonNull ScrollDir dir, @NonNull BoundingBox bounds) {
+            return this.speed;
+        }
+    }
 }

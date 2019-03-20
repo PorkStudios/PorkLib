@@ -16,6 +16,8 @@
 package net.daporkchop.lib.gui.component.capability;
 
 import lombok.NonNull;
+import net.daporkchop.lib.graphics.bitmap.ColorFormat;
+import net.daporkchop.lib.gui.component.type.functional.Label;
 import net.daporkchop.lib.gui.util.Alignment;
 import net.daporkchop.lib.gui.util.HorizontalAlignment;
 import net.daporkchop.lib.gui.util.VerticalAlignment;
@@ -39,5 +41,10 @@ public interface TextHolder<Impl extends TextHolder> extends SizedValueHolder<Im
     @SuppressWarnings("unchecked")
     default Impl setTextPos(@NonNull Alignment alignment)   {
         return (Impl) this.setTextHAlignment(alignment.getHorizontal()).setTextVAlignment(alignment.getVertical());
+    }
+
+    Impl setTextColor(int argb);
+    default Impl setTextColor(int color, @NonNull ColorFormat format)  {
+        return this.setTextColor(format.toArgb(color));
     }
 }

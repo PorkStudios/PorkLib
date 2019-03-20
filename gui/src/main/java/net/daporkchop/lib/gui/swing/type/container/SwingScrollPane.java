@@ -31,12 +31,19 @@ import net.daporkchop.lib.gui.util.math.BoundingBox;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Collection;
 
 /**
  * @author DaPorkchop_
  */
+@Accessors(chain = true)
 public class SwingScrollPane extends SwingNestedContainer<ScrollPane, JScrollPane, ScrollPaneState> implements ScrollPane {
     protected final HackyPanelWrapper panel = new HackyPanelWrapper();
+
+    @NonNull
+    @Getter
+    @Setter
+    protected ScrollSpeedCalculator scrollSpeed;
 
     public SwingScrollPane(String name) {
         super(name, new JScrollPane());
@@ -102,13 +109,13 @@ public class SwingScrollPane extends SwingNestedContainer<ScrollPane, JScrollPan
                     maxY = y;
                 }
             }
-            //this.panel.setSize(this.bounds.getWidth(), this.bounds.getHeight());
-            //this.panel.setPreferredSize(this.panel.getPreferredScrollableViewportSize());
-
-            //this.swing.getHorizontalScrollBar().setMinimum(minX);
-            //this.swing.getHorizontalScrollBar().setMaximum(maxX);
-            //this.swing.getVerticalScrollBar().setMinimum(minY);
-            //this.swing.getVerticalScrollBar().setMaximum(maxY);
+            if (minX != 0 || minY != 0) {
+                for (Component component : this.children.values())  { //offset components to 0
+                    BoundingBox bounds = component.getBounds();
+                    ((SwingComponent) component).getSwing().setBounds(bounds.getX() - minX, bounds.getY() - minY, bounds.getWidth(), bounds.getHeight());
+                }
+            }
+            //this.panel.setMinX(minX).setMaxX(maxX).setMinY(minY).setMaxY(maxY);
             this.panel.setMinX(minX).setMaxX(maxX).setMinY(minY).setMaxY(maxY);
         }
         return this;
@@ -198,12 +205,16 @@ public class SwingScrollPane extends SwingNestedContainer<ScrollPane, JScrollPan
 
         @Override
         public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
-            return 1;
+            int speed = -1;
+            if (SwingScrollPane.this.scrollSpeed != null)   {
+                speed = SwingScrollPane.this.scrollSpeed.getScrollSpeed(direction == SwingConstants.HORIZONTAL ? ScrollDir.HORIZONTAL : ScrollDir.VERTICAL, SwingScrollPane.this.bounds);
+            }
+            return speed == -1 ? DEFAULT_SCROLL_SPEED : speed;
         }
 
         @Override
         public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
-            return 1;
+            return this.getScrollableUnitIncrement(visibleRect, orientation, direction);
         }
 
         @Override

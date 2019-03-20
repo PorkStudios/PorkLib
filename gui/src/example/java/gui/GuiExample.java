@@ -40,20 +40,23 @@ public class GuiExample implements Logging {
                         .setText("Example Button!")
                         .setTooltip("This is a tooltip that will be shown when hovering the mouse over the button.")
                         .setTextPos(Alignment.TOP_LEFT)
+                        .setTextColor(0xFF00AAAA)
                         .setIcon(filledImage(0xFF0000))
                         .setIcon(ButtonState.ENABLED_HOVERED, filledImage(0x0000FF))
                         .setIcon(ButtonState.ENABLED_CLICKED, filledImage(0x00FF00))
                         .addStateListener(state -> logger.debug("%s changed state: ${0}\n", button.getName(), state.name()))
-                        .setClickHandler((mouseButton, x, y) -> button.getWindow().getComponent("label2").toggle()))
+                        .setClickHandler((mouseButton, x, y) -> button.getWindow().getComponent("label2").toggle())
+                        .minDimensionsAreValueSize())
                 .button("button2", button -> button.setOrientation(0, 0.0d, 0.1d, 0.1d)
                         .setClickHandler((mouseButton, x, y) -> System.out.printf("Bounds: %s\n", button.getWindow().getComponent("panel1.button2").getBounds())))
                 .label("label1", LOREM_IPSUM, label -> label
                         .setOrientation(0.5d, 0, 0.5d, 0.1d)
-                        .setTooltip("This is a label. Labels can only display plain text."))
+                        .setTooltip("This is a label. Labels can only display plain text.")
+                        .setTextColor(0xFFFF00FF))
                 .label("label2", label -> label
                         .setOrientation(0.8d, 0.8d, 0.2d, 0.2d)
                         .setIcon(filledImage(0x00FF00))
-                        .addStateListener(LabelState.ENABLED, () -> logger.info("${0} was enabled!\n", label.getName()))
+                        .addEnableListener(() -> logger.info("${0} was enabled!\n", label.getName()))
                         .setIcon(LabelState.DISABLED, filledImage(0xFF0000)))
                 .button("button3", button -> button.orientAdvanced(orientation -> orientation
                         .configureAxis(Axis.X, calc -> calc.ease(DistUnit.PX, 0))
@@ -66,8 +69,13 @@ public class GuiExample implements Logging {
                         .setScrolling(ScrollCondition.ALWAYS)
                         .label("label1", LOREM_IPSUM, label -> label
                                 .setOrientation(0.0d, 0.0d, 0.75d, 0.15d)
-                                .minDimensionsAreValueSize()))
+                                .minDimensionsAreValueSize())
+                        .label("label2", label -> label
+                                .setOrientation(0.0d, 0.75d, 0.5d, 0.75d)
+                                .setColor(0xFF5555FF)
+                                .setText("Hello World!")))
                 .addStateListener(state -> logger.debug("Window changed state: ${0}\n", state))
+                .addVisibleListener(() -> logger.info("Window is now visible!"))
                 .show();
     }
 

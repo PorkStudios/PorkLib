@@ -24,11 +24,13 @@ import net.daporkchop.lib.gui.component.state.ElementState;
 import net.daporkchop.lib.gui.component.type.container.Panel;
 import net.daporkchop.lib.gui.component.type.container.ScrollPane;
 import net.daporkchop.lib.gui.component.type.functional.Button;
+import net.daporkchop.lib.gui.component.type.functional.CheckBox;
 import net.daporkchop.lib.gui.component.type.functional.Dropdown;
 import net.daporkchop.lib.gui.component.type.functional.Label;
 import net.daporkchop.lib.gui.swing.type.container.SwingPanel;
 import net.daporkchop.lib.gui.swing.type.container.SwingScrollPane;
 import net.daporkchop.lib.gui.swing.type.functional.SwingButton;
+import net.daporkchop.lib.gui.swing.type.functional.SwingCheckBox;
 import net.daporkchop.lib.gui.swing.type.functional.SwingDropdown;
 import net.daporkchop.lib.gui.swing.type.functional.SwingLabel;
 
@@ -59,6 +61,13 @@ public interface IBasicSwingContainer<Impl extends Container, Swing extends java
         SwingButton button = new SwingButton(name);
         this.addChild(button);
         return button;
+    }
+
+    @Override
+    default CheckBox checkBox(@NonNull String name) {
+        SwingCheckBox checkBox = new SwingCheckBox(name);
+        this.addChild(checkBox);
+        return checkBox;
     }
 
     @Override

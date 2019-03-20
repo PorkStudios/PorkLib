@@ -27,17 +27,17 @@ import net.daporkchop.lib.gui.component.type.functional.Button;
  * @author DaPorkchop_
  */
 @AllArgsConstructor
-@NoArgsConstructor
 @Getter
 public enum ButtonState implements ElementState<Button, ButtonState> {
-    ENABLED,
-    ENABLED_HOVERED,
-    ENABLED_CLICKED,
-    DISABLED(true, false),
-    DISABLED_HOVERED(true, false),
-    HIDDEN(false, false),
+    ENABLED(true, true, false),
+    ENABLED_HOVERED(true, true, true),
+    ENABLED_CLICKED(true, true, true),
+    DISABLED(true, false, false),
+    DISABLED_HOVERED(true, false, true),
+    HIDDEN(false, false, false),
     ;
 
-    protected boolean visible = true;
-    protected boolean enabled = true;
+    protected final boolean visible;
+    protected final boolean enabled;
+    protected final boolean hovered;
 }

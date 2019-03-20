@@ -25,16 +25,16 @@ import net.daporkchop.lib.gui.component.type.functional.Label;
  * @author DaPorkchop_
  */
 @AllArgsConstructor
-@NoArgsConstructor
 @Getter
 public enum LabelState implements ElementState<Label, LabelState> {
-    ENABLED,
-    ENABLED_HOVERED,
-    DISABLED(true, false),
-    DISABLED_HOVERED(true, false),
-    HIDDEN(false, false),
+    ENABLED(true, true, false),
+    ENABLED_HOVERED(true, true, true),
+    DISABLED(true, false, false),
+    DISABLED_HOVERED(true, false, true),
+    HIDDEN(false, false, false),
     ;
 
-    protected boolean visible = true;
-    protected boolean enabled = true;
+    protected final boolean visible;
+    protected final boolean enabled;
+    protected final boolean hovered;
 }

@@ -13,29 +13,42 @@
  *
  */
 
-package net.daporkchop.lib.gui.component.state.container;
+package net.daporkchop.lib.gui.swing;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import net.daporkchop.lib.gui.component.state.ElementState;
-import net.daporkchop.lib.gui.component.type.container.Panel;
-import net.daporkchop.lib.gui.component.type.functional.Label;
+import lombok.NonNull;
+import net.daporkchop.lib.common.reference.InstancePool;
+import net.daporkchop.lib.gui.GuiEngine;
+import net.daporkchop.lib.gui.swing.type.window.SwingFrame;
+import net.daporkchop.lib.gui.util.math.BoundingBox;
+
+import javax.swing.*;
 
 /**
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-@Getter
-public enum PanelState implements ElementState<Panel, PanelState> {
-    ENABLED(true, true, false),
-    ENABLED_HOVERED(true, true, true),
-    DISABLED(true, false, false),
-    DISABLED_HOVERED(true, false, true),
-    HIDDEN(false, false, false),
-    ;
+public class GuiEngineSwing implements GuiEngine<SwingFrame> {
+    static {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (ClassNotFoundException
+                | InstantiationException
+                | IllegalAccessException
+                | UnsupportedLookAndFeelException e) {
+            e.printStackTrace();
+        }
+    }
 
-    protected final boolean visible;
-    protected final boolean enabled;
-    protected final boolean hovered;
+    public static GuiEngineSwing getInstance() {
+        return InstancePool.getInstance(GuiEngineSwing.class);
+    }
+
+    @Override
+    public String getName() {
+        return "Swing";
+    }
+
+    @Override
+    public SwingFrame newWindow(@NonNull BoundingBox bounds) {
+        return new SwingFrame("").setBounds(bounds);
+    }
 }

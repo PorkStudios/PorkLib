@@ -13,29 +13,38 @@
  *
  */
 
-package net.daporkchop.lib.gui.component.state.container;
+package net.daporkchop.lib.gui;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import net.daporkchop.lib.gui.component.state.ElementState;
-import net.daporkchop.lib.gui.component.type.container.Panel;
-import net.daporkchop.lib.gui.component.type.functional.Label;
+import lombok.NonNull;
+import net.daporkchop.lib.gui.component.type.Window;
+import net.daporkchop.lib.gui.swing.GuiEngineSwing;
+import net.daporkchop.lib.gui.util.math.BoundingBox;
 
 /**
+ * A system for displaying Guis
+ *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-@Getter
-public enum PanelState implements ElementState<Panel, PanelState> {
-    ENABLED(true, true, false),
-    ENABLED_HOVERED(true, true, true),
-    DISABLED(true, false, false),
-    DISABLED_HOVERED(true, false, true),
-    HIDDEN(false, false, false),
-    ;
+public interface GuiEngine<T extends Window> {
+    static GuiEngineSwing swing() {
+        return GuiEngineSwing.getInstance();
+    }
 
-    protected final boolean visible;
-    protected final boolean enabled;
-    protected final boolean hovered;
+    String getName();
+
+    default T newWindow(int width, int height) {
+        return this.newWindow(new BoundingBox(0, 0, width, height));
+    }
+
+    default T newWindow(int x, int y, int width, int height) {
+        return this.newWindow(new BoundingBox(x, y, width, height));
+    }
+
+    /**
+     * Creates a new window with the given bounds
+     *
+     * @param bounds the bounds of the new window to be created
+     * @return the newly created window
+     */
+    T newWindow(@NonNull BoundingBox bounds);
 }

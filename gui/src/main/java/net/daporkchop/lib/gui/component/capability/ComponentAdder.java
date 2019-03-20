@@ -19,6 +19,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.gui.component.type.container.Panel;
 import net.daporkchop.lib.gui.component.type.container.ScrollPane;
 import net.daporkchop.lib.gui.component.type.functional.Button;
+import net.daporkchop.lib.gui.component.type.functional.CheckBox;
 import net.daporkchop.lib.gui.component.type.functional.Dropdown;
 import net.daporkchop.lib.gui.component.type.functional.Label;
 
@@ -65,6 +66,15 @@ public interface ComponentAdder<Impl> {
     default Impl button(@NonNull String name, @NonNull Consumer<Button> initializer) {
         Button button = this.button(name);
         initializer.accept(button);
+        return (Impl) this;
+    }
+
+    //checkbox
+    CheckBox checkBox(@NonNull String name);
+
+    default Impl checkBox(@NonNull String name, @NonNull Consumer<CheckBox> initializer)    {
+        CheckBox checkBox = this.checkBox(name);
+        initializer.accept(checkBox);
         return (Impl) this;
     }
 

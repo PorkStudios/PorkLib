@@ -38,7 +38,7 @@ public interface ComponentAdder<Impl> {
     //panel
     Panel panel(@NonNull String name);
 
-    default Impl panel(@NonNull String name, @NonNull Consumer<Panel> initializer)    {
+    default Impl panel(@NonNull String name, @NonNull Consumer<Panel> initializer) {
         Panel panel = this.panel(name);
         initializer.accept(panel);
         return (Impl) this;
@@ -47,7 +47,7 @@ public interface ComponentAdder<Impl> {
     //scrollpane
     ScrollPane scrollPane(@NonNull String name);
 
-    default Impl scrollPane(@NonNull String name, @NonNull Consumer<ScrollPane> initializer)    {
+    default Impl scrollPane(@NonNull String name, @NonNull Consumer<ScrollPane> initializer) {
         ScrollPane scrollPane = this.scrollPane(name);
         initializer.accept(scrollPane);
         return (Impl) this;
@@ -62,7 +62,7 @@ public interface ComponentAdder<Impl> {
     //button
     Button button(@NonNull String name);
 
-    default Impl button(@NonNull String name, @NonNull Consumer<Button> initializer)    {
+    default Impl button(@NonNull String name, @NonNull Consumer<Button> initializer) {
         Button button = this.button(name);
         initializer.accept(button);
         return (Impl) this;
@@ -79,6 +79,14 @@ public interface ComponentAdder<Impl> {
 
     default <V extends Enum<V>> Impl dropdown(@NonNull String name, @NonNull Class<V> enumClazz, @NonNull Consumer<Dropdown<V>> initializer) {
         Dropdown<V> dropdown = this.<V>dropdown(name).addValues(enumClazz.getEnumConstants()).setSelectedValue(null);
+        if (Defaulted.class.isAssignableFrom(enumClazz)) {
+            for (Defaulted value : (Defaulted[]) enumClazz.getEnumConstants()) {
+                if (value.isDefaultValue()) {
+                    dropdown.setSelectedValue((V) value);
+                    break;
+                }
+            }
+        }
         initializer.accept(dropdown);
         return (Impl) this;
     }
@@ -86,17 +94,17 @@ public interface ComponentAdder<Impl> {
     //label
     Label label(@NonNull String name);
 
-    default Impl label(@NonNull String name, @NonNull Consumer<Label> initializer)    {
+    default Impl label(@NonNull String name, @NonNull Consumer<Label> initializer) {
         Label label = this.label(name);
         initializer.accept(label);
         return (Impl) this;
     }
 
-    default Label label(@NonNull String name, @NonNull String text)    {
+    default Label label(@NonNull String name, @NonNull String text) {
         return this.label(name).setText(text);
     }
 
-    default Impl label(@NonNull String name, @NonNull String text, @NonNull Consumer<Label> initializer)    {
+    default Impl label(@NonNull String name, @NonNull String text, @NonNull Consumer<Label> initializer) {
         Label label = this.label(name).setText(text);
         initializer.accept(label);
         return (Impl) this;

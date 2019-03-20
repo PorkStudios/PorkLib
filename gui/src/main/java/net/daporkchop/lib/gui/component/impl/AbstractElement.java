@@ -32,7 +32,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Getter
 @SuppressWarnings("unchecked")
-public abstract class AbstractElement<Impl extends Element, State extends ElementState<Impl, State>> implements Element<Impl, State> {
+public abstract class AbstractElement<Impl extends Element, State extends ElementState<? extends Element, State>> implements Element<Impl, State> {
     @NonNull
     protected final String name;
 

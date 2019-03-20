@@ -28,7 +28,7 @@ import java.awt.*;
  * @author DaPorkchop_
  */
 @Getter
-public abstract class SwingElement<Impl extends Element, Swing extends java.awt.Component, State extends ElementState<Impl, State>> extends AbstractElement<Impl, State> {
+public abstract class SwingElement<Impl extends Element, Swing extends java.awt.Component, State extends ElementState<? extends Element, State>> extends AbstractElement<Impl, State> {
     protected final Swing swing;
 
     public SwingElement(String name, @NonNull Swing swing) {

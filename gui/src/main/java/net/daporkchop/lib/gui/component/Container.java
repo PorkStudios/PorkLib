@@ -29,7 +29,7 @@ import java.util.Map;
  *
  * @author DaPorkchop_
  */
-public interface Container<Impl extends Container, State extends ElementState<Impl, State>> extends Element<Impl, State>, ComponentAdder<Impl> {
+public interface Container<Impl extends Container, State extends ElementState<? extends Element, State>> extends Element<Impl, State>, ComponentAdder<Impl> {
     Map<String, Component> getChildren();
 
     default Impl addChild(@NonNull Component child) {

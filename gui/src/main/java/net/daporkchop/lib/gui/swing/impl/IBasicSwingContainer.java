@@ -18,15 +18,18 @@ package net.daporkchop.lib.gui.swing.impl;
 import lombok.NonNull;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.Container;
+import net.daporkchop.lib.gui.component.Element;
 import net.daporkchop.lib.gui.component.capability.ComponentAdder;
 import net.daporkchop.lib.gui.component.state.ElementState;
 import net.daporkchop.lib.gui.component.type.container.Panel;
 import net.daporkchop.lib.gui.component.type.container.ScrollPane;
 import net.daporkchop.lib.gui.component.type.functional.Button;
+import net.daporkchop.lib.gui.component.type.functional.Dropdown;
 import net.daporkchop.lib.gui.component.type.functional.Label;
 import net.daporkchop.lib.gui.swing.type.container.SwingPanel;
 import net.daporkchop.lib.gui.swing.type.container.SwingScrollPane;
 import net.daporkchop.lib.gui.swing.type.functional.SwingButton;
+import net.daporkchop.lib.gui.swing.type.functional.SwingDropdown;
 import net.daporkchop.lib.gui.swing.type.functional.SwingLabel;
 
 import javax.swing.*;
@@ -35,22 +38,8 @@ import javax.swing.*;
  * @author DaPorkchop_
  */
 @SuppressWarnings("unchecked")
-public interface IBasicSwingContainer<Impl extends Container, Swing extends java.awt.Container, State extends ElementState<Impl, State>> extends Container<Impl, State> {
+public interface IBasicSwingContainer<Impl extends Container, Swing extends java.awt.Container, State extends ElementState<? extends Element, State>> extends Container<Impl, State> {
     //componentadder methods
-    @Override
-    default Button button(@NonNull String name) {
-        SwingButton button = new SwingButton(name);
-        this.addChild(button);
-        return button;
-    }
-
-    @Override
-    default Label label(@NonNull String name) {
-        SwingLabel label = new SwingLabel(name);
-        this.addChild(label);
-        return label;
-    }
-
     @Override
     default Panel panel(@NonNull String name) {
         SwingPanel panel = new SwingPanel(name);
@@ -63,6 +52,27 @@ public interface IBasicSwingContainer<Impl extends Container, Swing extends java
         SwingScrollPane scrollPane = new SwingScrollPane(name);
         this.addChild(scrollPane);
         return scrollPane;
+    }
+
+    @Override
+    default Button button(@NonNull String name) {
+        SwingButton button = new SwingButton(name);
+        this.addChild(button);
+        return button;
+    }
+
+    @Override
+    default <V> Dropdown<V> dropdown(@NonNull String name) {
+        Dropdown<V> dropdown = new SwingDropdown<>(name);
+        this.addChild(dropdown);
+        return dropdown;
+    }
+
+    @Override
+    default Label label(@NonNull String name) {
+        SwingLabel label = new SwingLabel(name);
+        this.addChild(label);
+        return label;
     }
 
     //container methods

@@ -13,17 +13,30 @@
  *
  */
 
-package net.daporkchop.lib.gui.util.event.handler;
+package net.daporkchop.lib.gui.component.state.functional;
 
-import lombok.NonNull;
-import net.daporkchop.lib.gui.component.Component;
-import net.daporkchop.lib.gui.component.Element;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import net.daporkchop.lib.gui.component.state.ElementState;
+import net.daporkchop.lib.gui.component.type.functional.Dropdown;
+import net.daporkchop.lib.gui.component.type.functional.Label;
 
 /**
  * @author DaPorkchop_
  */
-@FunctionalInterface
-public interface StateListener<E extends Element, State extends ElementState<? extends Element, State>> {
-    void onStateChange(@NonNull State state);
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+public enum DropdownState implements ElementState<Dropdown, DropdownState> {
+    ENABLED,
+    ENABLED_HOVERED,
+    ENABLED_SELECTING, //when the user is currently choosing a new value
+    DISABLED(true, false),
+    DISABLED_HOVERED(true, false),
+    HIDDEN(false, false),
+    ;
+
+    protected boolean visible = true;
+    protected boolean enabled = true;
 }

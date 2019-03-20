@@ -27,7 +27,7 @@ import java.util.function.Consumer;
 /**
  * @author DaPorkchop_
  */
-public interface Element<Impl extends Element, State extends ElementState<Impl, State>> {
+public interface Element<Impl extends Element, State extends ElementState<? extends Element, State>> {
     String getName();
 
     default String getQualifiedName() {

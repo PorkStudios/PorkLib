@@ -26,4 +26,6 @@ public interface ElementState<E extends Element, Impl extends ElementState<E, Im
     boolean isVisible();
 
     boolean isEnabled();
+
+    boolean isHovered();
 }

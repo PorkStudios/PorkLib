@@ -26,17 +26,17 @@ import net.daporkchop.lib.gui.component.type.functional.Label;
  * @author DaPorkchop_
  */
 @AllArgsConstructor
-@NoArgsConstructor
 @Getter
 public enum DropdownState implements ElementState<Dropdown, DropdownState> {
-    ENABLED,
-    ENABLED_HOVERED,
-    ENABLED_SELECTING, //when the user is currently choosing a new value
-    DISABLED(true, false),
-    DISABLED_HOVERED(true, false),
-    HIDDEN(false, false),
+    ENABLED(true, true, false),
+    ENABLED_HOVERED(true, true, true),
+    ENABLED_SELECTING(true, true, true), //when the user is currently choosing a new value
+    DISABLED(true, false, false),
+    DISABLED_HOVERED(true, false, true),
+    HIDDEN(false, false, false),
     ;
 
-    protected boolean visible = true;
-    protected boolean enabled = true;
+    protected final boolean visible;
+    protected final boolean enabled;
+    protected final boolean hovered;
 }

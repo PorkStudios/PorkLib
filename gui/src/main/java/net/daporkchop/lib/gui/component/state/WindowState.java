@@ -40,4 +40,9 @@ public enum WindowState implements ElementState<Window, WindowState> {
 
     protected boolean visible = false;
     protected boolean enabled = true;
+
+    @Override
+    public boolean isHovered() {
+        return false;
+    }
 }

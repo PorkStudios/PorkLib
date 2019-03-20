@@ -13,39 +13,43 @@
  *
  */
 
-package net.daporkchop.lib.gui;
+package net.daporkchop.lib.gui.swing.type.functional;
 
-import lombok.NonNull;
-import net.daporkchop.lib.gui.component.Element;
-import net.daporkchop.lib.gui.component.type.Window;
-import net.daporkchop.lib.gui.swing.GuiSystemSwing;
-import net.daporkchop.lib.gui.util.math.BoundingBox;
+import net.daporkchop.lib.gui.component.orientation.Orientation;
+import net.daporkchop.lib.gui.component.state.functional.CheckBoxState;
+import net.daporkchop.lib.gui.component.type.functional.CheckBox;
+import net.daporkchop.lib.gui.swing.impl.SwingComponent;
+import net.daporkchop.lib.gui.util.event.handler.StateListener;
+
+import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 /**
- * A system for displaying Guis
- *
  * @author DaPorkchop_
  */
-public interface GuiSystem<T extends Window> {
-    static GuiSystemSwing swing() {
-        return GuiSystemSwing.getInstance();
+public class SwingCheckBox extends SwingComponent<CheckBox, JCheckBox, CheckBoxState> implements CheckBox {
+    public SwingCheckBox(String name) {
+        super(name, new JCheckBox());
+
+        this.swing.addChangeListener(new SwingCheckBoxChangeListener());
     }
 
-    String getName();
-
-    default T newWindow(int width, int height) {
-        return this.newWindow(new BoundingBox(0, 0, width, height));
+    @Override
+    public boolean isSelected() {
+        return this.swing.isSelected();
     }
 
-    default T newWindow(int x, int y, int width, int height) {
-        return this.newWindow(new BoundingBox(x, y, width, height));
+    @Override
+    public CheckBox setSelected(boolean selected) {
+        this.swing.setSelected(selected);
+        return this;
     }
 
-    /**
-     * Creates a new window with the given bounds
-     *
-     * @param bounds the bounds of the new window to be created
-     * @return the newly created window
-     */
-    T newWindow(@NonNull BoundingBox bounds);
+    protected class SwingCheckBoxChangeListener implements ChangeListener   {
+        @Override
+        public void stateChanged(ChangeEvent e) {
+            SwingCheckBox.this.fireStateChange();
+        }
+    }
 }

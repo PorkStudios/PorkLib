@@ -13,42 +13,34 @@
  *
  */
 
-package net.daporkchop.lib.gui.swing;
+package net.daporkchop.lib.gui.component.state.functional;
 
-import lombok.NonNull;
-import net.daporkchop.lib.common.reference.InstancePool;
-import net.daporkchop.lib.gui.GuiSystem;
-import net.daporkchop.lib.gui.swing.type.window.SwingFrame;
-import net.daporkchop.lib.gui.util.math.BoundingBox;
-
-import javax.swing.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import net.daporkchop.lib.gui.component.state.ElementState;
+import net.daporkchop.lib.gui.component.type.functional.CheckBox;
+import net.daporkchop.lib.gui.component.type.functional.Label;
 
 /**
  * @author DaPorkchop_
  */
-public class GuiSystemSwing implements GuiSystem<SwingFrame> {
-    static {
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (ClassNotFoundException
-                | InstantiationException
-                | IllegalAccessException
-                | UnsupportedLookAndFeelException e) {
-            e.printStackTrace();
-        }
-    }
+@AllArgsConstructor
+@Getter
+public enum CheckBoxState implements ElementState<CheckBox, CheckBoxState> {
+    ENABLED(true, true, false, false),
+    ENABLED_HOVERED(true, true, true, false),
+    ENABLED_SELECTED(true, true, false, true),
+    ENABLED_HOVERED_SELECTED(true, true, true, true),
+    DISABLED(true, false, false, false),
+    DISABLED_HOVERED(true, false, true, false),
+    DISABLED_SELECTED(true, false, false, true),
+    DISABLED_HOVERED_SELECTED(true, false, true, true),
+    HIDDEN(false, false, false, false),
+    ;
 
-    public static GuiSystemSwing getInstance() {
-        return InstancePool.getInstance(GuiSystemSwing.class);
-    }
-
-    @Override
-    public String getName() {
-        return "Swing";
-    }
-
-    @Override
-    public SwingFrame newWindow(@NonNull BoundingBox bounds) {
-        return new SwingFrame("").setBounds(bounds);
-    }
+    protected boolean visible;
+    protected boolean enabled;
+    protected boolean hovered;
+    protected boolean selected;
 }

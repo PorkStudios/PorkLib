@@ -25,6 +25,7 @@ import net.daporkchop.lib.gui.component.state.ElementState;
 import net.daporkchop.lib.gui.component.type.Window;
 import net.daporkchop.lib.gui.util.HorizontalAlignment;
 import net.daporkchop.lib.gui.util.VerticalAlignment;
+import net.daporkchop.lib.gui.util.event.handler.StateListener;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 import net.daporkchop.lib.gui.util.math.Constraint;
 
@@ -61,6 +62,34 @@ public interface Component<Impl extends Component, State extends ElementState<? 
     boolean isMouseDown();
 
     //convenience methods
+    @SuppressWarnings("unchecked")
+    default Impl addHoveringListener(@NonNull Consumer<Boolean> callback)  {
+        return this.addStateListener(String.format("%s@%d", callback.getClass().getCanonicalName(), System.identityHashCode(callback)), new StateListener<Impl, State>() {
+            protected boolean hovered = Component.this.isHovered();
+
+            @Override
+            public void onStateChange(@NonNull State state) {
+                if (state.isHovered() != this.hovered) {
+                    callback.accept(this.hovered = state.isHovered());
+                }
+            }
+        });
+    }
+    default Impl addHoveredListener(@NonNull Runnable callback)  {
+        return this.addHoveringListener(hovered -> {
+            if (hovered)    {
+                callback.run();
+            }
+        });
+    }
+    default Impl addNotHoveredListener(@NonNull Runnable callback)  {
+        return this.addHoveringListener(hovered -> {
+            if (!hovered)   {
+                callback.run();
+            }
+        });
+    }
+
     default Impl setOrientation(@NonNull Number x, @NonNull Number y, @NonNull Number width, @NonNull Number height) {
         return (Impl) this.setOrientation(SimpleDynamicOrientation.of(x, y, width, height));
     }

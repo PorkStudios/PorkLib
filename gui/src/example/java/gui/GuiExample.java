@@ -19,7 +19,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
 import net.daporkchop.lib.graphics.bitmap.image.PImage;
 import net.daporkchop.lib.graphics.bitmap.image.direct.DirectImageRGB;
-import net.daporkchop.lib.gui.GuiSystem;
+import net.daporkchop.lib.gui.GuiEngine;
 import net.daporkchop.lib.gui.component.orientation.advanced.Axis;
 import net.daporkchop.lib.gui.component.orientation.advanced.calculator.DistUnit;
 import net.daporkchop.lib.gui.component.state.functional.ButtonState;
@@ -34,7 +34,7 @@ import net.daporkchop.lib.logging.Logging;
  */
 public class GuiExample implements Logging {
     public static final String LOREM_IPSUM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.";
-    public static final GuiSystem ENGINE = GuiSystem.swing();
+    public static final GuiEngine ENGINE = GuiEngine.swing();
 
     public static void main(String... args) {
         ENGINE.newWindow(64, 64, 512, 256)
@@ -95,6 +95,9 @@ public class GuiExample implements Logging {
                 .dropdown("dropdown1", ExampleEnum.class, dropdown -> dropdown
                         .setOrientation(0.05d, 0.05d, 0.2d, 0.1d)
                         .addValueSelectedListener(value -> logger.info("Selected value changed to \"${0}\"!", value.name())))
+                .checkBox("checkBox1", checkBox -> checkBox
+                        .setOrientation(0.05d, 0.2d, 0.2d, 0.1d)
+                        .addSelectionListener(selected -> logger.info("Checkbox ${0}selected!", selected ? "" : "de")))
                 .show();
     }
 

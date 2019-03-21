@@ -15,10 +15,35 @@
 
 package net.daporkchop.lib.collections.concurrent;
 
-import net.daporkchop.lib.collections.PList;
+import net.daporkchop.lib.collections.PCollection;
+import net.daporkchop.lib.collections.PIterator;
+import net.daporkchop.lib.collections.stream.PStream;
+import net.daporkchop.lib.collections.stream.impl.collection.ConcurrentOrderedCollectionStream;
 
 /**
+ * A subtype of a PCollection that supports full concurrency and always mantains element order.
+ *
  * @author DaPorkchop_
  */
-public interface ConcurrentPList<V> extends PList<V> {
+public interface ConcurrentOrderedCollection<V> extends PCollection<V> {
+    ConcurrentPIterator<V> concurrentIterator();
+
+    @Override
+    @Deprecated
+    PIterator<V> iterator();
+
+    @Override
+    default PStream<V> stream() {
+        return new ConcurrentOrderedCollectionStream<>(this, false);
+    }
+
+    @Override
+    default PStream<V> concurrentStream() {
+        return this.stream();
+    }
+
+    @Override
+    default boolean isConcurrent() {
+        return true;
+    }
 }

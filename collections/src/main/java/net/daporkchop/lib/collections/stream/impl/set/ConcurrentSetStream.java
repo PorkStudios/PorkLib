@@ -51,7 +51,7 @@ public class ConcurrentSetStream<V> extends AbstractSetStream<V> {
 
     @Override
     public <T> PStream<T> map(@NonNull Function<V, T> mappingFunction) {
-        PSet<T> dst = new JavaSetWrapper<>(Collections.newSetFromMap(new ConcurrentHashMap<>())); //TODO: custom implementation here
+        PSet<T> dst = this.newSet();
         ConcurrencyHelper.runConcurrent(this.set.iterator(), value -> dst.add(mappingFunction.apply(value)));
         return new UncheckedSetStream<>(dst, true);
     }
@@ -62,7 +62,7 @@ public class ConcurrentSetStream<V> extends AbstractSetStream<V> {
             this.set.removeIf(condition.negate()); //TODO: this obviously isn't concurrent
             return this;
         } else {
-            PSet<V> dst = new JavaSetWrapper<>(Collections.newSetFromMap(new ConcurrentHashMap<>())); //TODO: custom implementation here
+            PSet<V> dst = this.newSet();
             ConcurrencyHelper.runConcurrent(this.set.iterator(), value -> {
                 if (condition.test(value))  {
                     dst.add(value);
@@ -82,5 +82,10 @@ public class ConcurrentSetStream<V> extends AbstractSetStream<V> {
         T map = mapCreator.get();
         ConcurrencyHelper.runConcurrent(this.set.iterator(), value -> map.put(keyExtractor.apply(value), valueExtractor.apply(value)));
         return map;
+    }
+
+    @Override
+    protected <T> PSet<T> newSet() {
+        return new JavaSetWrapper<>(Collections.newSetFromMap(new ConcurrentHashMap<>())); //TODO: custom implementation here
     }
 }

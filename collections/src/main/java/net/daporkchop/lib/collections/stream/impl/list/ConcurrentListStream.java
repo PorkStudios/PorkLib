@@ -23,6 +23,7 @@ import net.daporkchop.lib.collections.stream.PStream;
 import net.daporkchop.lib.collections.util.ConcurrencyHelper;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -55,7 +56,7 @@ public class ConcurrentListStream<V> extends AbstractListStream<V> {
             ConcurrencyHelper.runConcurrent(this.list.size(), (long l) -> ((PList<T>) this.list).set(l, mappingFunction.apply(this.list.get(l))));
             return (PStream<T>) this;
         } else {
-            PList<T> dst = new JavaListWrapper<>(new ArrayList<>()); //TODO: custom implementation
+            PList<T> dst = this.newList();
             ConcurrencyHelper.runConcurrent(this.list.size(), (long l) -> dst.set(l, mappingFunction.apply(this.list.get(l))));
             return new ConcurrentListStream<>(dst, true);
         }
@@ -67,7 +68,7 @@ public class ConcurrentListStream<V> extends AbstractListStream<V> {
             this.list.removeIf(condition.negate()); //TODO: this obviously isn't concurrent
             return this;
         } else {
-            PList<V> dst = new JavaListWrapper<>(new ArrayList<>()); //TODO: custom implementation
+            PList<V> dst = this.newList();
             this.list.forEach(value -> {
                 if (condition.test(value))  {
                     dst.add(value);
@@ -88,5 +89,10 @@ public class ConcurrentListStream<V> extends AbstractListStream<V> {
         T map = mapCreator.get();
         ConcurrencyHelper.runConcurrent(this.list.iterator(), value -> map.put(keyExtractor.apply(value), valueExtractor.apply(value)));
         return map;
+    }
+
+    @Override
+    protected <T> PList<T> newList() {
+        return new JavaListWrapper<>(Collections.synchronizedList(new ArrayList<>())); //TODO: custom implementation
     }
 }

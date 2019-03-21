@@ -15,12 +15,14 @@
 
 package collections;
 
+import net.daporkchop.lib.collections.impl.collection.concurrent.ConcurrentBigLinkedCollection;
 import net.daporkchop.lib.collections.impl.list.JavaListWrapper;
 import net.daporkchop.lib.collections.impl.set.JavaSetWrapper;
 import net.daporkchop.lib.collections.stream.PStream;
 import net.daporkchop.lib.collections.stream.impl.array.ArrayStream;
 import net.daporkchop.lib.collections.stream.impl.array.ConcurrentArrayStream;
 import net.daporkchop.lib.collections.stream.impl.array.UncheckedArrayStream;
+import net.daporkchop.lib.collections.stream.impl.collection.ConcurrentOrderedCollectionStream;
 import net.daporkchop.lib.collections.stream.impl.list.ConcurrentListStream;
 import net.daporkchop.lib.collections.stream.impl.list.UncheckedListStream;
 import net.daporkchop.lib.collections.stream.impl.set.ConcurrentSetStream;
@@ -56,7 +58,8 @@ public class StreamTest implements Logging {
                 new UncheckedListStream<>(new JavaListWrapper<>(new ArrayList<>(collection)), true),
                 new ConcurrentListStream<>(new JavaListWrapper<>(new ArrayList<>(collection)), true),
                 new UncheckedSetStream<>(new JavaSetWrapper<>(new HashSet<>(collection)), true),
-                new ConcurrentSetStream(new JavaSetWrapper<>(new HashSet<>(collection)), true)
+                new ConcurrentSetStream(new JavaSetWrapper<>(new HashSet<>(collection)), true),
+                new ConcurrentOrderedCollectionStream<>(new ConcurrentBigLinkedCollection<>(collection), false)
         }) {
             logger.info("Testing ${0}...", stream.getClass());
             AtomicInteger counter = new AtomicInteger(0);

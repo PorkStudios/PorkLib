@@ -23,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.collections.PIterator;
+import net.daporkchop.lib.collections.concurrent.ConcurrentPIterator;
 import net.daporkchop.lib.collections.util.exception.ConcurrentException;
 import net.daporkchop.lib.collections.util.exception.IterationCompleteException;
 import net.daporkchop.lib.common.util.PArrays;
@@ -66,11 +67,11 @@ public abstract class ConcurrencyHelper {
         runConcurrent(iterator::next, executor);
     }
 
-    public static void runConcurrent(int end, @NonNull IntConsumer executor)  {
+    public static void runConcurrent(int end, @NonNull IntConsumer executor) {
         runConcurrent(0, end, executor);
     }
 
-    public static void runConcurrent(int start, int end, @NonNull IntConsumer executor)  {
+    public static void runConcurrent(int start, int end, @NonNull IntConsumer executor) {
         if (start > end) {
             throw new IllegalArgumentException("start must be lower than end!");
         } else if (start == end) {
@@ -87,11 +88,12 @@ public abstract class ConcurrencyHelper {
             }
         }, executor::accept);
     }
-    public static void runConcurrent(long end, @NonNull LongConsumer executor)  {
+
+    public static void runConcurrent(long end, @NonNull LongConsumer executor) {
         runConcurrent(0L, end, executor);
     }
 
-    public static void runConcurrent(long start, long end, @NonNull LongConsumer executor)  {
+    public static void runConcurrent(long start, long end, @NonNull LongConsumer executor) {
         if (start > end) {
             throw new IllegalArgumentException("start must be lower than end!");
         } else if (start == end) {
@@ -156,6 +158,18 @@ public abstract class ConcurrencyHelper {
         runConcurrent(() -> valueSupplier.apply(counter.getAndIncrement()), executor);
     }
 
+    /**
+     * A simple way of executing a task on multiple parallel threads. The invoking thread will continually use the given
+     * function to obtain values, which will be passed to worker threads to process using a second function. This method
+     * will block until the iteration is complete (valueSupplier must throw a {@link IterationCompleteException}, and all
+     * worker threads have finished executing.
+     *
+     * @param valueSupplier the function to use to obtain values. When the iteration is complete, this function must throw
+     *                      a {@link IterationCompleteException} on invocation.
+     * @param executor      the function to use to process values. Be aware that this function will be invoked multiple times
+     *                      concurrently.
+     * @param <T>           the value type
+     */
     public static <T> void runConcurrent(@NonNull Supplier<T> valueSupplier, @NonNull Consumer<T> executor) {
         ForkJoinPool pool = ForkJoinPool.commonPool();
         Lock lock = new ReentrantLock();
@@ -170,7 +184,7 @@ public abstract class ConcurrencyHelper {
                         Worker<T> worker = workers[i];
                         if (!worker.running.get()) {
                             ForkJoinTask task = tasks[i];
-                            if (task != null && task.isCompletedAbnormally())   {
+                            if (task != null && task.isCompletedAbnormally()) {
                                 Throwable t = task.getException();
                                 if (t instanceof Exception) {
                                     throw new ConcurrentException(String.format("Exception in worker thread #%d", i), t);
@@ -203,6 +217,67 @@ public abstract class ConcurrencyHelper {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
+        }
+    }
+
+    public static <T> void runConcurrent(@NonNull ConcurrentPIterator<T> iterator, @NonNull Consumer<ConcurrentPIterator.Entry<T>> consumer) {
+        runConcurrent(() -> {
+            ConcurrentPIterator.Entry<T> entry = iterator.next();
+            if (entry == null) {
+                return false;
+            } else {
+                consumer.accept(entry);
+                return true;
+            }
+        });
+    }
+
+    /**
+     * A (potentially more powerful) base method to launch a concurrent task. This method accepts a single function which
+     * may do anything, and returns a single boolean value indicating whether or not the function should continue to be
+     * executed. This method will not return until all worker threads have exited with a status of false, or one of them
+     * throws an exception.
+     *
+     * @param executor the function to be run. Will be invoked repeatedly by all workers until it returns {@code false}.
+     *                 Note that since there are multiple worker threads, this will have to return {@code false} for all
+     *                 of them for execution to continue.
+     */
+    public static void runConcurrent(@NonNull Supplier<Boolean> executor) {
+        ForkJoinPool pool = ForkJoinPool.commonPool();
+        Lock lock = new ReentrantLock();
+        Condition condition = lock.newCondition();
+        AtomicBoolean cont = new AtomicBoolean(true);
+        AtomicInteger waitingCounter = new AtomicInteger(0); //number of threads waiting for a task
+        Worker[] workers = PArrays.filled(waitingCounter.get(), Worker[]::new, i -> new Worker<>(waitingCounter, unused -> {
+            while (cont.get() && executor.get()) ;
+
+            lock.lock();
+            condition.signalAll();
+            lock.unlock();
+        }, lock, condition));
+        ForkJoinTask[] tasks = PArrays.filled(waitingCounter.get(), ForkJoinTask[]::new, i -> pool.submit(workers[i]));
+        try {
+            while (waitingCounter.get() != workers.length) {
+                for (int i = tasks.length - 1; i >= 0; i--) {
+                    ForkJoinTask task = tasks[i];
+                    if (task.isCompletedAbnormally()) {
+                        cont.set(false);
+                        Throwable t = task.getException();
+                        if (t instanceof Exception) {
+                            throw new ConcurrentException(String.format("Exception in worker thread #%d", i), t);
+                        } else {
+                            throw PConstants.p_exception(t);
+                        }
+                    }
+                }
+                lock.lock();
+                condition.await(5L, TimeUnit.MILLISECONDS);
+                lock.unlock();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } finally {
+            cont.set(false);
         }
     }
 

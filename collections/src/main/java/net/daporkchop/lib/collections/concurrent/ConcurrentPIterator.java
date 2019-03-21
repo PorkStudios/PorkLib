@@ -16,13 +16,19 @@
 package net.daporkchop.lib.collections.concurrent;
 
 import lombok.NonNull;
-import net.daporkchop.lib.collections.PIterator;
 import net.daporkchop.lib.collections.util.exception.AlreadyRemovedException;
 
 /**
  * @author DaPorkchop_
  */
-public interface ConcurrentPIterator<V> extends PIterator<ConcurrentPIterator.Entry<V>> {
+public interface ConcurrentPIterator<V> {
+    /**
+     * Grabs the next entry in the iterator. If none remain, returns {@code null}.
+     *
+     * @return the next entry in the iterator
+     */
+    Entry<V> next();
+
     /**
      * A wrapper around a value in a concurrent iterator, to allow for multiple threads to actually do iteration concurrently
      *
@@ -61,5 +67,12 @@ public interface ConcurrentPIterator<V> extends PIterator<ConcurrentPIterator.En
          * @throws AlreadyRemovedException if this entry has already been removed
          */
         void remove() throws AlreadyRemovedException;
+
+        /**
+         * Removes this entry from the backing collection.
+         * <p>
+         * If this entry has already been removed, this method does nothing.
+         */
+        void tryRemove();
     }
 }

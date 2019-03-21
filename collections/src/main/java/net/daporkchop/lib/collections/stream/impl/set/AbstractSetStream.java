@@ -89,4 +89,6 @@ public abstract class AbstractSetStream<V> implements PStream<V> {
         }
         return arr;
     }
+
+    protected abstract <T> PSet<T> newSet();
 }

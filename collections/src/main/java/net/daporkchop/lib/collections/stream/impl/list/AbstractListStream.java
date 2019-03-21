@@ -75,4 +75,6 @@ public abstract class AbstractListStream<V> implements PStream<V> {
         }
         return values;
     }
+
+    protected abstract <T> PList<T> newList();
 }

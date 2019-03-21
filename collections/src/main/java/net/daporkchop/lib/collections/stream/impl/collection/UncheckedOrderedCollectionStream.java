@@ -19,84 +19,73 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.collections.PMap;
-import net.daporkchop.lib.collections.PSet;
 import net.daporkchop.lib.collections.concurrent.ConcurrentOrderedCollection;
 import net.daporkchop.lib.collections.concurrent.ConcurrentPIterator;
 import net.daporkchop.lib.collections.impl.collection.concurrent.ConcurrentBigLinkedCollection;
-import net.daporkchop.lib.collections.impl.set.JavaSetWrapper;
 import net.daporkchop.lib.collections.stream.PStream;
-import net.daporkchop.lib.collections.stream.impl.set.ConcurrentSetStream;
-import net.daporkchop.lib.collections.util.ConcurrencyHelper;
 
-import java.util.Collections;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.IntFunction;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
  * @author DaPorkchop_
  */
-public class ConcurrentOrderedCollectionStream<V> extends AbstractOrderedCollectionStream<V> {
-    public ConcurrentOrderedCollectionStream(ConcurrentOrderedCollection<V> collection, boolean mutable) {
+public class UncheckedOrderedCollectionStream<V> extends AbstractOrderedCollectionStream<V> {
+    public UncheckedOrderedCollectionStream(ConcurrentOrderedCollection<V> collection, boolean mutable) {
         super(collection, mutable);
     }
 
     @Override
     public boolean isConcurrent() {
-        return true;
+        return false;
     }
 
     @Override
     public void forEach(@NonNull Consumer<V> consumer) {
-        ConcurrencyHelper.runConcurrent(this.collection.concurrentIterator(), entry -> consumer.accept(entry.get()));
+        this.collection.forEach(consumer);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public <T> PStream<T> map(@NonNull Function<V, T> mappingFunction) {
-        if (this.mutable) {
-            ConcurrencyHelper.runConcurrent(this.collection.concurrentIterator(), entry -> ((ConcurrentPIterator.Entry<T>) entry).set(mappingFunction.apply(entry.get())));
-            return (PStream<T>) this;
-        } else {
-            ConcurrentOrderedCollection<T> dst = this.newCollection();
-            ConcurrencyHelper.runConcurrent(this.collection.concurrentIterator(), entry -> dst.add(mappingFunction.apply(entry.get())));
-            return new ConcurrentOrderedCollectionStream<>(dst, true);
+        ConcurrentPIterator.Entry<V> entry;
+        for (ConcurrentPIterator<V> iterator = this.collection.concurrentIterator(); (entry = iterator.next()) != null;)    {
+            ((ConcurrentPIterator.Entry<T>) entry).set(mappingFunction.apply(entry.get()));
         }
+        return (PStream<T>) this;
     }
 
     @Override
     public PStream<V> filter(@NonNull Predicate<V> condition) {
-        ConcurrencyHelper.runConcurrent(this.collection.concurrentIterator(), entry -> {
+        ConcurrentPIterator.Entry<V> entry;
+        for (ConcurrentPIterator<V> iterator = this.collection.concurrentIterator(); (entry = iterator.next()) != null;)    {
             if (!condition.test(entry.get()))   {
-                entry.tryRemove();
+                entry.remove();
             }
-        });
+        }
         return this;
     }
 
     @Override
     public PStream<V> distinct(@NonNull BiPredicate<V, V> comparator) {
-        PSet<V> dst = new JavaSetWrapper<>(Collections.newSetFromMap(new ConcurrentHashMap<>()));
-        ConcurrencyHelper.runConcurrent(this.collection.concurrentIterator(), entry -> dst.add(entry.get())); //probably isn't worth making this concurrent, but whatever
-        return new ConcurrentSetStream<>(dst, true);
+        return null;
     }
 
     @Override
     public <Key, Value, T extends PMap<Key, Value>> T toMap(@NonNull Function<V, Key> keyExtractor, @NonNull Function<V, Value> valueExtractor, @NonNull Supplier<T> mapCreator) {
         T map = mapCreator.get();
-        ConcurrencyHelper.runConcurrent(this.collection.concurrentIterator(), entry -> {
-            V value = entry.get();
-            map.put(keyExtractor.apply(value), valueExtractor.apply(value));
-        });
+        ConcurrentPIterator.Entry<V> entry;
+        for (ConcurrentPIterator<V> iterator = this.collection.concurrentIterator(); (entry = iterator.next()) != null;)    {
+            map.put(keyExtractor.apply(entry.get()), valueExtractor.apply(entry.get()));
+        }
         return map;
     }
 
     @Override
-    protected <T> ConcurrentOrderedCollection<T> newCollection()    {
-        return new ConcurrentBigLinkedCollection<>();
+    protected <T> ConcurrentOrderedCollection<T> newCollection() {
+        return new ConcurrentBigLinkedCollection<>(); //TODO: non-concurrent version
     }
 }

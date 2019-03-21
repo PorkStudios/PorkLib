@@ -38,4 +38,14 @@ public interface PSet<V> extends PCollection<V> {
     default PStream<V> concurrentStream() {
         return new ConcurrentSetStream<>(this, false);
     }
+
+    @Override
+    default PStream<V> mutableStream() {
+        return new UncheckedSetStream<>(this, true);
+    }
+
+    @Override
+    default PStream<V> concurrentMutableStream() {
+        return new ConcurrentSetStream<>(this, true);
+    }
 }

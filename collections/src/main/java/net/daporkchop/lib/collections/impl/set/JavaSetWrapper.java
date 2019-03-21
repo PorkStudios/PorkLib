@@ -36,14 +36,4 @@ public class JavaSetWrapper<V> extends AbstractJavaCollectionWrapper<V, Set<V>> 
     public JavaSetWrapper(Set<V> delegate) {
         super(delegate);
     }
-
-    @Override
-    public PStream<V> stream() {
-        return new UncheckedSetStream<>(this, false);
-    }
-
-    @Override
-    public PStream<V> concurrentStream() {
-        return new ConcurrentSetStream<>(this, false);
-    }
 }

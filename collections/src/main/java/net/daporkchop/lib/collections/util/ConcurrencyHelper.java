@@ -247,18 +247,23 @@ public abstract class ConcurrencyHelper {
         Lock lock = new ReentrantLock();
         Condition condition = lock.newCondition();
         AtomicBoolean cont = new AtomicBoolean(true);
-        AtomicInteger waitingCounter = new AtomicInteger(0); //number of threads waiting for a task
-        Worker[] workers = PArrays.filled(waitingCounter.get(), Worker[]::new, i -> new Worker<>(waitingCounter, unused -> {
+        final int threadCount = PConstants.CPU_COUNT;
+        AtomicInteger waitingCounter = new AtomicInteger(0); //number of threads that are complete
+        Worker[] workers = PArrays.filled(threadCount, Worker[]::new, i -> new Worker<>(waitingCounter, unused -> {
             while (cont.get() && executor.get()) ;
 
             lock.lock();
             condition.signalAll();
             lock.unlock();
         }, lock, condition));
-        ForkJoinTask[] tasks = PArrays.filled(waitingCounter.get(), ForkJoinTask[]::new, i -> pool.submit(workers[i]));
+        ForkJoinTask[] tasks = PArrays.filled(threadCount, ForkJoinTask[]::new, i -> {
+            Worker worker = workers[i];
+            worker.running.set(true);
+            return pool.submit(worker);
+        });
         try {
-            while (waitingCounter.get() != workers.length) {
-                for (int i = tasks.length - 1; i >= 0; i--) {
+            while (waitingCounter.get() != threadCount) {
+                for (int i = threadCount - 1; i >= 0; i--) {
                     ForkJoinTask task = tasks[i];
                     if (task.isCompletedAbnormally()) {
                         cont.set(false);

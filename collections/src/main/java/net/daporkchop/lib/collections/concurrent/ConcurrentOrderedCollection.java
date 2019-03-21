@@ -43,6 +43,16 @@ public interface ConcurrentOrderedCollection<V> extends PCollection<V> {
     }
 
     @Override
+    default PStream<V> mutableStream() {
+        return new ConcurrentOrderedCollectionStream<>(this, true);
+    }
+
+    @Override
+    default PStream<V> concurrentMutableStream() {
+        return this.mutableStream();
+    }
+
+    @Override
     default boolean isConcurrent() {
         return true;
     }

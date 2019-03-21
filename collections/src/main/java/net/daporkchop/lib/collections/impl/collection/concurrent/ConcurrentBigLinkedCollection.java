@@ -17,6 +17,7 @@ package net.daporkchop.lib.collections.impl.collection.concurrent;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import net.daporkchop.lib.collections.PCollection;
 import net.daporkchop.lib.collections.PIterator;
 import net.daporkchop.lib.collections.concurrent.ConcurrentOrderedCollection;
@@ -179,6 +180,11 @@ public class ConcurrentBigLinkedCollection<V> implements ConcurrentOrderedCollec
         PUnsafe.<ListBase>pork_swapObject(this, BASE_OFFSET, new ListBase()).closed = true;
     }
 
+    @Override
+    public String toString() {
+        return String.format("ConcurrentBigLinkedCollection(size=%d)", this.base.size);
+    }
+
     protected class ListBase {
         protected volatile long size = 0L;
         protected volatile Node root = null;
@@ -192,6 +198,11 @@ public class ConcurrentBigLinkedCollection<V> implements ConcurrentOrderedCollec
                 }
             }
             return root;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("ConcurrentBigLinkedCollection.ListBase(size=%d,closed=%b)", this.size, this.closed);
         }
     }
 
@@ -266,8 +277,8 @@ public class ConcurrentBigLinkedCollection<V> implements ConcurrentOrderedCollec
             Node curr;
             do {
                 curr = this.node;
-            } while (curr != null && !PUnsafe.compareAndSwapObject(this, ITERATOR_NODE_OFFSET, curr, curr.getPrev()));
-            return curr;
+            } while (!this.base.closed && curr != null && !PUnsafe.compareAndSwapObject(this, ITERATOR_NODE_OFFSET, curr, curr.getPrev()));
+            return this.base.closed ? null : curr;
         }
     }
 }

@@ -94,6 +94,30 @@ public interface PCollection<V> extends BaseCollection {
     }
 
     /**
+     * Gets a stream over the contents of this collection.
+     * <p>
+     * The returned stream may choose to modify the contents of this collection for performance reasons. As the potential
+     * changes to this collection are undefined, this method should not be invoked on collection instances that are used
+     * elsewhere. (unless, of course, you have a sound idea of what you're doing :P)
+     *
+     * @return a stream over the contents of this collection
+     */
+    PStream<V> mutableStream();
+
+    /**
+     * Gets a stream over the contents of this collection that supports concurrency.
+     * <p>
+     * The returned stream may choose to modify the contents of this collection for performance reasons. As the potential
+     * changes to this collection are undefined, this method should not be invoked on collection instances that are used
+     * elsewhere. (unless, of course, you have a sound idea of what you're doing :P)
+     *
+     * @return a stream over the contents of this collection that supports concurrency
+     */
+    default PStream<V> concurrentMutableStream() {
+        return this.mutableStream().concurrent();
+    }
+
+    /**
      * Gets an iterator over the contents of this collection.
      *
      * @return an iterator over the contents of this collection

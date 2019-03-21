@@ -100,4 +100,14 @@ public interface PList<V> extends PCollection<V> {
     default PStream<V> concurrentStream() {
         return new ConcurrentListStream<>(this, false);
     }
+
+    @Override
+    default PStream<V> mutableStream() {
+        return new UncheckedListStream<>(this, true);
+    }
+
+    @Override
+    default PStream<V> concurrentMutableStream() {
+        return new ConcurrentListStream<>(this, true);
+    }
 }

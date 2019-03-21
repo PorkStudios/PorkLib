@@ -15,14 +15,11 @@
 
 package net.daporkchop.lib.collections.stream.impl.collection;
 
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.collections.PMap;
+import net.daporkchop.lib.collections.POrderedCollection;
 import net.daporkchop.lib.collections.PSet;
-import net.daporkchop.lib.collections.concurrent.ConcurrentOrderedCollection;
-import net.daporkchop.lib.collections.concurrent.ConcurrentPIterator;
-import net.daporkchop.lib.collections.impl.collection.concurrent.ConcurrentBigLinkedCollection;
+import net.daporkchop.lib.collections.impl.ordered.concurrent.ConcurrentBigLinkedCollection;
 import net.daporkchop.lib.collections.impl.set.JavaSetWrapper;
 import net.daporkchop.lib.collections.stream.PStream;
 import net.daporkchop.lib.collections.stream.impl.set.ConcurrentSetStream;
@@ -33,7 +30,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.IntFunction;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -41,7 +37,7 @@ import java.util.function.Supplier;
  * @author DaPorkchop_
  */
 public class ConcurrentOrderedCollectionStream<V> extends AbstractOrderedCollectionStream<V> {
-    public ConcurrentOrderedCollectionStream(ConcurrentOrderedCollection<V> collection, boolean mutable) {
+    public ConcurrentOrderedCollectionStream(POrderedCollection<V> collection, boolean mutable) {
         super(collection, mutable);
     }
 
@@ -52,25 +48,25 @@ public class ConcurrentOrderedCollectionStream<V> extends AbstractOrderedCollect
 
     @Override
     public void forEach(@NonNull Consumer<V> consumer) {
-        ConcurrencyHelper.runConcurrent(this.collection.concurrentIterator(), entry -> consumer.accept(entry.get()));
+        ConcurrencyHelper.runConcurrent(this.collection.orderedIterator(), entry -> consumer.accept(entry.get()));
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public <T> PStream<T> map(@NonNull Function<V, T> mappingFunction) {
         if (this.mutable) {
-            ConcurrencyHelper.runConcurrent(this.collection.concurrentIterator(), entry -> ((ConcurrentPIterator.Entry<T>) entry).set(mappingFunction.apply(entry.get())));
+            ConcurrencyHelper.runConcurrent(this.collection.orderedIterator(), entry -> ((POrderedCollection.Entry<T>) entry).set(mappingFunction.apply(entry.get())));
             return (PStream<T>) this;
         } else {
-            ConcurrentOrderedCollection<T> dst = this.newCollection();
-            ConcurrencyHelper.runConcurrent(this.collection.concurrentIterator(), entry -> dst.add(mappingFunction.apply(entry.get())));
+            POrderedCollection<T> dst = this.newCollection();
+            ConcurrencyHelper.runConcurrent(this.collection.orderedIterator(), entry -> dst.add(mappingFunction.apply(entry.get())));
             return new ConcurrentOrderedCollectionStream<>(dst, true);
         }
     }
 
     @Override
     public PStream<V> filter(@NonNull Predicate<V> condition) {
-        ConcurrencyHelper.runConcurrent(this.collection.concurrentIterator(), entry -> {
+        ConcurrencyHelper.runConcurrent(this.collection.orderedIterator(), entry -> {
             if (!condition.test(entry.get()))   {
                 entry.tryRemove();
             }
@@ -81,14 +77,14 @@ public class ConcurrentOrderedCollectionStream<V> extends AbstractOrderedCollect
     @Override
     public PStream<V> distinct(@NonNull BiPredicate<V, V> comparator) {
         PSet<V> dst = new JavaSetWrapper<>(Collections.newSetFromMap(new ConcurrentHashMap<>()));
-        ConcurrencyHelper.runConcurrent(this.collection.concurrentIterator(), entry -> dst.add(entry.get())); //probably isn't worth making this concurrent, but whatever
+        ConcurrencyHelper.runConcurrent(this.collection.orderedIterator(), entry -> dst.add(entry.get())); //probably isn't worth making this concurrent, but whatever
         return new ConcurrentSetStream<>(dst, true);
     }
 
     @Override
     public <Key, Value, T extends PMap<Key, Value>> T toMap(@NonNull Function<V, Key> keyExtractor, @NonNull Function<V, Value> valueExtractor, @NonNull Supplier<T> mapCreator) {
         T map = mapCreator.get();
-        ConcurrencyHelper.runConcurrent(this.collection.concurrentIterator(), entry -> {
+        ConcurrencyHelper.runConcurrent(this.collection.orderedIterator(), entry -> {
             V value = entry.get();
             map.put(keyExtractor.apply(value), valueExtractor.apply(value));
         });
@@ -96,7 +92,7 @@ public class ConcurrentOrderedCollectionStream<V> extends AbstractOrderedCollect
     }
 
     @Override
-    protected <T> ConcurrentOrderedCollection<T> newCollection()    {
+    protected <T> POrderedCollection<T> newCollection()    {
         return new ConcurrentBigLinkedCollection<>();
     }
 }

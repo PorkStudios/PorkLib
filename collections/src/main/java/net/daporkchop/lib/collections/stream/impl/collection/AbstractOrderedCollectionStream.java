@@ -18,17 +18,10 @@ package net.daporkchop.lib.collections.stream.impl.collection;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.collections.PMap;
-import net.daporkchop.lib.collections.concurrent.ConcurrentOrderedCollection;
-import net.daporkchop.lib.collections.concurrent.ConcurrentPIterator;
+import net.daporkchop.lib.collections.POrderedCollection;
 import net.daporkchop.lib.collections.stream.PStream;
 
-import java.util.function.BiPredicate;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.IntFunction;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 /**
  * @author DaPorkchop_
@@ -37,7 +30,7 @@ import java.util.function.Supplier;
 @Getter
 public abstract class AbstractOrderedCollectionStream<V> implements PStream<V> {
     @NonNull
-    protected final ConcurrentOrderedCollection<V> collection;
+    protected final POrderedCollection<V> collection;
     protected final boolean mutable;
 
     @Override
@@ -73,16 +66,16 @@ public abstract class AbstractOrderedCollectionStream<V> implements PStream<V> {
     @Override
     public V[] toArray(@NonNull IntFunction<V[]> arrayCreator) {
         if (this.collection.size() > Integer.MAX_VALUE)   {
-            throw new IllegalStateException("Backing ConcurrentOrderedCollection is too large to convert to array!");
+            throw new IllegalStateException("Backing POrderedCollection is too large to convert to array!");
         }
         V[] arr = arrayCreator.apply((int) this.collection.size());
-        ConcurrentPIterator.Entry<V> entry;
+        POrderedCollection.Entry<V> entry;
         int i = 0;
-        for (ConcurrentPIterator<V> iterator = this.collection.concurrentIterator(); (entry = iterator.next()) != null; i++)    {
+        for (POrderedCollection.OrderedIterator<V> iterator = this.collection.orderedIterator(); (entry = iterator.next()) != null; i++)    {
             arr[i] = entry.get();
         }
         return arr;
     }
 
-    protected abstract  <T> ConcurrentOrderedCollection<T> newCollection();
+    protected abstract  <T> POrderedCollection<T> newCollection();
 }

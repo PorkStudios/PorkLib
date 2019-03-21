@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.collections.PIterator;
-import net.daporkchop.lib.collections.concurrent.ConcurrentPIterator;
+import net.daporkchop.lib.collections.POrderedCollection;
 import net.daporkchop.lib.collections.util.exception.ConcurrentException;
 import net.daporkchop.lib.collections.util.exception.IterationCompleteException;
 import net.daporkchop.lib.common.util.PArrays;
@@ -220,9 +220,9 @@ public abstract class ConcurrencyHelper {
         }
     }
 
-    public static <T> void runConcurrent(@NonNull ConcurrentPIterator<T> iterator, @NonNull Consumer<ConcurrentPIterator.Entry<T>> consumer) {
+    public static <T> void runConcurrent(@NonNull POrderedCollection.OrderedIterator<T> iterator, @NonNull Consumer<POrderedCollection.Entry<T>> consumer) {
         runConcurrent(() -> {
-            ConcurrentPIterator.Entry<T> entry = iterator.next();
+            POrderedCollection.Entry<T> entry = iterator.next();
             if (entry == null) {
                 return false;
             } else {

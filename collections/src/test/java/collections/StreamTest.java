@@ -15,7 +15,7 @@
 
 package collections;
 
-import net.daporkchop.lib.collections.impl.collection.concurrent.ConcurrentBigLinkedCollection;
+import net.daporkchop.lib.collections.impl.ordered.concurrent.ConcurrentBigLinkedCollection;
 import net.daporkchop.lib.collections.impl.list.JavaListWrapper;
 import net.daporkchop.lib.collections.impl.set.JavaSetWrapper;
 import net.daporkchop.lib.collections.stream.PStream;

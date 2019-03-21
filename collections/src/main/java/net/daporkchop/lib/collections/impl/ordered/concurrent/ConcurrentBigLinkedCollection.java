@@ -13,18 +13,14 @@
  *
  */
 
-package net.daporkchop.lib.collections.impl.collection.concurrent;
+package net.daporkchop.lib.collections.impl.ordered.concurrent;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 import net.daporkchop.lib.collections.PCollection;
-import net.daporkchop.lib.collections.PIterator;
-import net.daporkchop.lib.collections.concurrent.ConcurrentOrderedCollection;
-import net.daporkchop.lib.collections.concurrent.ConcurrentPIterator;
+import net.daporkchop.lib.collections.POrderedCollection;
 import net.daporkchop.lib.collections.stream.PStream;
 import net.daporkchop.lib.collections.util.exception.AlreadyRemovedException;
-import net.daporkchop.lib.collections.util.exception.IterationCompleteException;
 import net.daporkchop.lib.common.util.PUnsafe;
 
 import java.util.Collection;
@@ -33,7 +29,7 @@ import java.util.function.Consumer;
 /**
  * @author DaPorkchop_
  */
-public class ConcurrentBigLinkedCollection<V> implements ConcurrentOrderedCollection<V> {
+public class ConcurrentBigLinkedCollection<V> implements POrderedCollection<V> {
     protected static final long BASE_OFFSET = PUnsafe.pork_getOffset(ConcurrentBigLinkedCollection.class, "base");
     protected static final long SIZE_OFFSET = PUnsafe.pork_getOffset(ConcurrentBigLinkedCollection.ListBase.class, "size");
     protected static final long ROOT_OFFSET = PUnsafe.pork_getOffset(ConcurrentBigLinkedCollection.ListBase.class, "root");
@@ -75,8 +71,7 @@ public class ConcurrentBigLinkedCollection<V> implements ConcurrentOrderedCollec
         Node node = base.getRoot();
         while (!base.closed && node != null && node.present) {
             if (value.equals(node.value)) {
-                node.tryRemove();
-                return true;
+                return node.tryRemove();
             }
             node = node.getPrev();
         }
@@ -108,60 +103,20 @@ public class ConcurrentBigLinkedCollection<V> implements ConcurrentOrderedCollec
     }
 
     @Override
-    @Deprecated
-    public PIterator<V> iterator() {
-        return new PIterator<V>() {
-            final ListBase base = ConcurrentBigLinkedCollection.this.base;
-            boolean started = false;
-            Node node;
-
-            @Override
-            public boolean hasNext() {
-                return this.started ? this.node.getPrev() != null : !this.base.closed;
+    public boolean replace(@NonNull V oldValue, @NonNull V newValue) {
+        ListBase base = this.base;
+        Node node = base.getRoot();
+        while (!base.closed && node != null && node.present) {
+            if (oldValue.equals(node.value)) {
+                return node.trySet(newValue);
             }
-
-            @Override
-            public V next() {
-                this.node = this.started ? this.node.getPrev() : this.base.getRoot();
-                this.started = true;
-                return this.node.value;
-            }
-
-            @Override
-            public V peek() {
-                if (!this.started) {
-                    throw new IllegalStateException("Iterator hasn't started!");
-                } else if (!this.hasNext()) {
-                    throw new IterationCompleteException();
-                } else {
-                    V value = this.node.value;
-                    if (value == null)   {
-                        if (this.node.present)  {
-                            throw new IllegalStateException("Unknown!");
-                        } else {
-                            throw new AlreadyRemovedException("Element has been removed! (Consider using a concurrent iterator)");
-                        }
-                    } else {
-                        return value;
-                    }
-                }
-            }
-
-            @Override
-            public void remove() {
-                if (!this.started) {
-                    throw new IllegalStateException("Iterator hasn't started!");
-                } else if (!this.hasNext()) {
-                    throw new IterationCompleteException();
-                } else {
-                    this.node.remove();
-                }
-            }
-        };
+            node = node.getPrev();
+        }
+        return false;
     }
 
     @Override
-    public ConcurrentPIterator<V> concurrentIterator() {
+    public OrderedIterator<V> orderedIterator() {
         return new ConcurrentIterator();
     }
 
@@ -207,7 +162,7 @@ public class ConcurrentBigLinkedCollection<V> implements ConcurrentOrderedCollec
     }
 
     @RequiredArgsConstructor
-    protected class Node implements ConcurrentPIterator.Entry<V> {
+    protected class Node implements Entry<V> {
         @NonNull
         protected final ListBase base;
         @NonNull
@@ -238,6 +193,15 @@ public class ConcurrentBigLinkedCollection<V> implements ConcurrentOrderedCollec
         }
 
         @Override
+        public boolean trySet(V value) {
+            if (!this.present || !PUnsafe.pork_checkSwapIfNonNull(this, NODE_VALUE_OFFSET, value)) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+
+        @Override
         public V replace(@NonNull V value) {
             if (!this.present || (value = PUnsafe.pork_swapIfNonNull(this, NODE_VALUE_OFFSET, value)) == null) {
                 throw new AlreadyRemovedException();
@@ -256,9 +220,12 @@ public class ConcurrentBigLinkedCollection<V> implements ConcurrentOrderedCollec
         }
 
         @Override
-        public void tryRemove() {
+        public boolean tryRemove() {
             if (this.present || PUnsafe.getAndSetObject(this, NODE_VALUE_OFFSET, null) != null) {
                 this.doRemove();
+                return true;
+            } else {
+                return false;
             }
         }
 
@@ -268,7 +235,7 @@ public class ConcurrentBigLinkedCollection<V> implements ConcurrentOrderedCollec
         }
     }
 
-    protected class ConcurrentIterator implements ConcurrentPIterator<V>    {
+    protected class ConcurrentIterator implements OrderedIterator<V> {
         protected final ListBase base = ConcurrentBigLinkedCollection.this.base;
         protected volatile Node node = this.base.getRoot();
 

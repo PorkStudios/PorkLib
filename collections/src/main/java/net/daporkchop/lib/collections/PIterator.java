@@ -69,9 +69,7 @@ public interface PIterator<V> {
      * @return the next value in the iterator, or {@code null} if none remain
      */
     default V nextOrNull() {
-        synchronized (this) {
-            return this.hasNext() ? this.next() : null;
-        }
+        return this.hasNext() ? this.next() : null;
     }
 
     /**
@@ -83,12 +81,10 @@ public interface PIterator<V> {
      * @throws E if no values remain
      */
     default <E extends Throwable> V nextOrThrow(@NonNull Supplier<E> exceptionSupplier) throws E {
-        synchronized (this) {
-            if (this.hasNext()) {
-                return this.next();
-            } else {
-                throw exceptionSupplier.get();
-            }
+        if (this.hasNext()) {
+            return this.next();
+        } else {
+            throw exceptionSupplier.get();
         }
     }
 

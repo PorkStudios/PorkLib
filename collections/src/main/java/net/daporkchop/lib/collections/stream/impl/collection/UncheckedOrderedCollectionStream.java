@@ -15,13 +15,10 @@
 
 package net.daporkchop.lib.collections.stream.impl.collection;
 
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.collections.PMap;
-import net.daporkchop.lib.collections.concurrent.ConcurrentOrderedCollection;
-import net.daporkchop.lib.collections.concurrent.ConcurrentPIterator;
-import net.daporkchop.lib.collections.impl.collection.concurrent.ConcurrentBigLinkedCollection;
+import net.daporkchop.lib.collections.POrderedCollection;
+import net.daporkchop.lib.collections.impl.ordered.concurrent.ConcurrentBigLinkedCollection;
 import net.daporkchop.lib.collections.stream.PStream;
 
 import java.util.function.BiPredicate;
@@ -34,7 +31,7 @@ import java.util.function.Supplier;
  * @author DaPorkchop_
  */
 public class UncheckedOrderedCollectionStream<V> extends AbstractOrderedCollectionStream<V> {
-    public UncheckedOrderedCollectionStream(ConcurrentOrderedCollection<V> collection, boolean mutable) {
+    public UncheckedOrderedCollectionStream(POrderedCollection<V> collection, boolean mutable) {
         super(collection, mutable);
     }
 
@@ -51,17 +48,17 @@ public class UncheckedOrderedCollectionStream<V> extends AbstractOrderedCollecti
     @Override
     @SuppressWarnings("unchecked")
     public <T> PStream<T> map(@NonNull Function<V, T> mappingFunction) {
-        ConcurrentPIterator.Entry<V> entry;
-        for (ConcurrentPIterator<V> iterator = this.collection.concurrentIterator(); (entry = iterator.next()) != null;)    {
-            ((ConcurrentPIterator.Entry<T>) entry).set(mappingFunction.apply(entry.get()));
+        POrderedCollection.Entry<V> entry;
+        for (POrderedCollection.OrderedIterator<V> iterator = this.collection.orderedIterator(); (entry = iterator.next()) != null;)    {
+            ((POrderedCollection.Entry<T>) entry).set(mappingFunction.apply(entry.get()));
         }
         return (PStream<T>) this;
     }
 
     @Override
     public PStream<V> filter(@NonNull Predicate<V> condition) {
-        ConcurrentPIterator.Entry<V> entry;
-        for (ConcurrentPIterator<V> iterator = this.collection.concurrentIterator(); (entry = iterator.next()) != null;)    {
+        POrderedCollection.Entry<V> entry;
+        for (POrderedCollection.OrderedIterator<V> iterator = this.collection.orderedIterator(); (entry = iterator.next()) != null;)    {
             if (!condition.test(entry.get()))   {
                 entry.remove();
             }
@@ -77,15 +74,15 @@ public class UncheckedOrderedCollectionStream<V> extends AbstractOrderedCollecti
     @Override
     public <Key, Value, T extends PMap<Key, Value>> T toMap(@NonNull Function<V, Key> keyExtractor, @NonNull Function<V, Value> valueExtractor, @NonNull Supplier<T> mapCreator) {
         T map = mapCreator.get();
-        ConcurrentPIterator.Entry<V> entry;
-        for (ConcurrentPIterator<V> iterator = this.collection.concurrentIterator(); (entry = iterator.next()) != null;)    {
+        POrderedCollection.Entry<V> entry;
+        for (POrderedCollection.OrderedIterator<V> iterator = this.collection.orderedIterator(); (entry = iterator.next()) != null;)    {
             map.put(keyExtractor.apply(entry.get()), valueExtractor.apply(entry.get()));
         }
         return map;
     }
 
     @Override
-    protected <T> ConcurrentOrderedCollection<T> newCollection() {
+    protected <T> POrderedCollection<T> newCollection() {
         return new ConcurrentBigLinkedCollection<>(); //TODO: non-concurrent version
     }
 }

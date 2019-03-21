@@ -50,7 +50,7 @@ public class UncheckedSetStream<V> extends AbstractSetStream<V> {
     @Override
     @SuppressWarnings("unchecked")
     public <T> PStream<T> map(@NonNull Function<V, T> mappingFunction) {
-        PSet<T> dst = new JavaSetWrapper<>(new HashSet<>()); //TODO: custom implementation here
+        PSet<T> dst = this.newSet();
         for (PIterator<V> iterator = this.set.iterator(); iterator.hasNext();)  {
             dst.add(mappingFunction.apply(iterator.next()));
         }
@@ -63,7 +63,7 @@ public class UncheckedSetStream<V> extends AbstractSetStream<V> {
             this.set.removeIf(condition.negate());
             return this;
         } else {
-            PSet<V> dst = new JavaSetWrapper<>(new HashSet<>()); //TODO: custom implementation here
+            PSet<V> dst = this.newSet();
             for (PIterator<V> iterator = this.set.iterator(); iterator.hasNext();)  {
                 V value = iterator.next();
                 if (condition.test(value))  {
@@ -88,5 +88,10 @@ public class UncheckedSetStream<V> extends AbstractSetStream<V> {
             map.put(keyExtractor.apply(value), valueExtractor.apply(value));
         }
         return map;
+    }
+
+    @Override
+    protected <T> PSet<T> newSet() {
+        return new JavaSetWrapper<>(new HashSet<>()); //TODO: custom implementation here
     }
 }

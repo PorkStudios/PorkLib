@@ -18,6 +18,7 @@ package net.daporkchop.lib.collections.stream.impl.list;
 import lombok.NonNull;
 import net.daporkchop.lib.collections.PList;
 import net.daporkchop.lib.collections.PMap;
+import net.daporkchop.lib.collections.impl.list.BigLinkedList;
 import net.daporkchop.lib.collections.impl.list.JavaListWrapper;
 import net.daporkchop.lib.collections.stream.PStream;
 
@@ -60,7 +61,7 @@ public class UncheckedListStream<V> extends AbstractListStream<V> {
             }
             return (PStream<T>) this;
         } else {
-            PList<T> dst = new JavaListWrapper<>(new ArrayList<>()); //TODO: custom implementation
+            PList<T> dst = this.newList();
             for (long l = 0L; l < length; l++) {
                 dst.set(l, mappingFunction.apply(this.list.get(l)));
             }
@@ -75,7 +76,7 @@ public class UncheckedListStream<V> extends AbstractListStream<V> {
             this.list.removeIf(condition.negate());
             return this;
         } else {
-            PList<V> dst = new JavaListWrapper<>(new ArrayList<>()); //TODO: custom implementation
+            PList<V> dst = this.newList();
             this.list.forEach(value -> {
                 if (condition.test(value))  {
                     dst.add(value);
@@ -100,5 +101,10 @@ public class UncheckedListStream<V> extends AbstractListStream<V> {
             map.put(keyExtractor.apply(value), valueExtractor.apply(value));
         }
         return map;
+    }
+
+    @Override
+    protected <T> PList<T> newList() {
+        return new BigLinkedList<>();
     }
 }

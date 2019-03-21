@@ -357,16 +357,16 @@ public interface PUnsafe {
         UNSAFE.throwException(t);
     }
 
-    static boolean compareAndSwapObject(Object o, long pos, Object var4, Object var5) {
-        return UNSAFE.compareAndSwapObject(o, pos, var4, var5);
+    static boolean compareAndSwapObject(Object o, long pos, Object expected, Object x) {
+        return UNSAFE.compareAndSwapObject(o, pos, expected, x);
     }
 
-    static boolean compareAndSwapInt(Object var1, long var2, int var4, int var5) {
-        return UNSAFE.compareAndSwapInt(var1, var2, var4, var5);
+    static boolean compareAndSwapInt(Object o, long pos, int expected, int x) {
+        return UNSAFE.compareAndSwapInt(o, pos, expected, x);
     }
 
-    static boolean compareAndSwapLong(Object var1, long var2, long var4, long var6) {
-        return UNSAFE.compareAndSwapLong(var1, var2, var4, var6);
+    static boolean compareAndSwapLong(Object o, long pos, long expected, long x) {
+        return UNSAFE.compareAndSwapLong(o, pos, expected, x);
     }
 
     @SuppressWarnings("unchecked")
@@ -508,10 +508,19 @@ public interface PUnsafe {
         }
     }
 
-    static boolean pork_checkSwapIfNonNull(Object o, long offset, Object newValue)  {
+    @SuppressWarnings("unchecked")
+    static <V> V pork_swapObject(Object o, long offset, Object newValue) {
         Object v;
         do {
-            if ((v = getObjectVolatile(o, offset)) == null)   {
+            v = getObjectVolatile(o, offset);
+        } while (!compareAndSwapObject(o, offset, v, newValue));
+        return (V) v;
+    }
+
+    static boolean pork_checkSwapIfNonNull(Object o, long offset, Object newValue) {
+        Object v;
+        do {
+            if ((v = getObjectVolatile(o, offset)) == null) {
                 return false;
             }
         } while (!compareAndSwapObject(o, offset, v, newValue));
@@ -519,10 +528,10 @@ public interface PUnsafe {
     }
 
     @SuppressWarnings("unchecked")
-    static <V> V pork_swapIfNonNull(Object o, long offset, Object newValue)  {
+    static <V> V pork_swapIfNonNull(Object o, long offset, Object newValue) {
         Object v;
         do {
-            if ((v = getObjectVolatile(o, offset)) == null)   {
+            if ((v = getObjectVolatile(o, offset)) == null) {
                 return null;
             }
         } while (!compareAndSwapObject(o, offset, v, newValue));

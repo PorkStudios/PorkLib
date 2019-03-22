@@ -37,4 +37,9 @@ public class JavaCollectionWrapper<V> extends AbstractJavaCollectionWrapper<V, C
     public PStream<V> stream() {
         return null; //TODO
     }
+
+    @Override
+    public PStream<V> mutableStream() {
+        return null; //TODO
+    }
 }

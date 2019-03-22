@@ -15,8 +15,12 @@
 
 package net.daporkchop.lib.gui.swing.type.functional;
 
+import lombok.NonNull;
+import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
 import net.daporkchop.lib.gui.component.orientation.Orientation;
+import net.daporkchop.lib.gui.component.state.functional.ButtonState;
 import net.daporkchop.lib.gui.component.state.functional.CheckBoxState;
+import net.daporkchop.lib.gui.component.type.functional.Button;
 import net.daporkchop.lib.gui.component.type.functional.CheckBox;
 import net.daporkchop.lib.gui.swing.impl.SwingComponent;
 import net.daporkchop.lib.gui.util.event.handler.StateListener;
@@ -28,9 +32,9 @@ import javax.swing.event.ChangeListener;
 /**
  * @author DaPorkchop_
  */
-public class SwingCheckBox extends SwingComponent<CheckBox, JCheckBox, CheckBoxState> implements CheckBox {
+public class SwingCheckBox extends AbstractSwingButton<CheckBox, JCheckBox, CheckBoxState> implements CheckBox {
     public SwingCheckBox(String name) {
-        super(name, new JCheckBox());
+        super(name, new JCheckBox(), CheckBoxState.class);
 
         this.swing.addChangeListener(new SwingCheckBoxChangeListener());
     }
@@ -43,6 +47,56 @@ public class SwingCheckBox extends SwingComponent<CheckBox, JCheckBox, CheckBoxS
     @Override
     public CheckBox setSelected(boolean selected) {
         this.swing.setSelected(selected);
+        return this;
+    }
+
+    @Override
+    public PIcon getIcon(CheckBoxState state) {
+        if (state == null) {
+            state = CheckBoxState.ENABLED;
+        } else if (state == CheckBoxState.DISABLED_HOVERED) {
+            state = CheckBoxState.DISABLED;
+        } else if (state == CheckBoxState.DISABLED_HOVERED_SELECTED)    {
+            state = CheckBoxState.DISABLED_SELECTED;
+        }
+        return super.getIcon(state);
+    }
+
+    @Override
+    public CheckBox setIcon(CheckBoxState state, PIcon icon) {
+        if (state == null) {
+            state = CheckBoxState.ENABLED;
+        } else if (state == CheckBoxState.DISABLED_HOVERED) {
+            state = CheckBoxState.DISABLED;
+        } else if (state == CheckBoxState.DISABLED_HOVERED_SELECTED)    {
+            state = CheckBoxState.DISABLED_SELECTED;
+        }
+        return super.setIcon(state, icon);
+    }
+
+    @Override
+    protected CheckBox doSetIcon(@NonNull CheckBoxState state, Icon newIcon) {
+        switch (state) {
+            case ENABLED:
+                this.swing.setIcon(newIcon);
+                break;
+            case ENABLED_HOVERED:
+                this.swing.setRolloverIcon(newIcon);
+                break;
+            case ENABLED_SELECTED:
+                this.swing.setPressedIcon(newIcon);
+                break;
+            case ENABLED_HOVERED_SELECTED:
+                this.swing.setRolloverSelectedIcon(newIcon);
+            case DISABLED:
+                this.swing.setDisabledIcon(newIcon);
+                break;
+            case DISABLED_SELECTED:
+                this.swing.setDisabledSelectedIcon(newIcon);
+                break;
+            default:
+                throw new IllegalStateException(state.name());
+        }
         return this;
     }
 

@@ -19,7 +19,10 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.collections.PMap;
+import net.daporkchop.lib.collections.POrderedCollection;
+import net.daporkchop.lib.collections.impl.ordered.BigLinkedCollection;
 import net.daporkchop.lib.collections.stream.PStream;
+import net.daporkchop.lib.collections.stream.impl.collection.UncheckedOrderedCollectionStream;
 import net.daporkchop.lib.common.util.PArrays;
 
 import java.util.function.BiPredicate;
@@ -88,12 +91,20 @@ public class ArrayStream<V> implements PStream<V> {
 
     @Override
     public PStream<V> filter(@NonNull Predicate<V> condition) {
-        return null; //TODO
+        int length = this.values.length;
+        POrderedCollection<V> collection = new BigLinkedCollection<>();
+        for (int i = 0; i < length; i++)     {
+            V value = this.values[i];
+            if (condition.test(value)) {
+                collection.add(value);
+            }
+        }
+        return new UncheckedOrderedCollectionStream<>(collection, true);
     }
 
     @Override
     public PStream<V> distinct(@NonNull BiPredicate<V, V> comparator) {
-        return null;
+        return null; //TODO
     }
 
     @Override

@@ -17,6 +17,8 @@ package net.daporkchop.lib.gui.component.type.functional;
 
 import lombok.NonNull;
 import net.daporkchop.lib.gui.component.Component;
+import net.daporkchop.lib.gui.component.capability.IconHolder;
+import net.daporkchop.lib.gui.component.capability.TextHolder;
 import net.daporkchop.lib.gui.component.state.functional.CheckBoxState;
 import net.daporkchop.lib.gui.util.event.handler.StateListener;
 
@@ -25,7 +27,7 @@ import java.util.function.Consumer;
 /**
  * @author DaPorkchop_
  */
-public interface CheckBox extends Component<CheckBox, CheckBoxState> {
+public interface CheckBox extends Component<CheckBox, CheckBoxState>, IconHolder<CheckBox, CheckBoxState>, TextHolder<CheckBox> {
     boolean isSelected();
     CheckBox setSelected(boolean selected);
 

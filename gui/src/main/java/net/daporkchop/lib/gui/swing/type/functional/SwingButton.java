@@ -42,125 +42,15 @@ import java.util.Map;
 @Getter
 @Setter
 @Accessors(chain = true)
-public class SwingButton extends SwingComponent<Button, JButton, ButtonState> implements Button {
+public class SwingButton extends AbstractSwingButton<Button, JButton, ButtonState> implements Button {
     @NonNull
     protected ClickHandler clickHandler = (button, x, y) -> {
     };
-    protected final Map<ButtonState, PIcon> icons = new EnumMap<>(ButtonState.class);
-
-    protected boolean minDimensionsAreValueSize;
 
     public SwingButton(String name) {
-        super(name, new JButton());
+        super(name, new JButton(), ButtonState.class);
 
         this.swing.addMouseListener(new SwingButtonMouseListener(this));
-    }
-
-    @Override
-    public String getText() {
-        return this.swing.getText();
-    }
-
-    @Override
-    public SwingButton setText(String text) {
-        if (!this.getText().equals(text)) {
-            this.swing.setText(text);
-        }
-        return this;
-    }
-
-    @Override
-    public VerticalAlignment getTextVAlignment() {
-        return SwingTextAlignment.fromSwingVertical(this.swing.getVerticalAlignment());
-    }
-
-    @Override
-    public SwingButton setTextVAlignment(@NonNull VerticalAlignment alignment) {
-        this.swing.setVerticalAlignment(SwingTextAlignment.toSwingVertical(alignment));
-        return this;
-    }
-
-    @Override
-    public HorizontalAlignment getTextHAlignment() {
-        return SwingTextAlignment.fromSwingHorizontal(this.swing.getHorizontalAlignment());
-    }
-
-    @Override
-    public SwingButton setTextHAlignment(@NonNull HorizontalAlignment alignment) {
-        this.swing.setHorizontalAlignment(SwingTextAlignment.toSwingHorizontal(alignment));
-        return this;
-    }
-
-    @Override
-    public PIcon getIcon(ButtonState state) {
-        if (state == null) {
-            state = ButtonState.ENABLED;
-        } else if (state == ButtonState.DISABLED_HOVERED) {
-            state = ButtonState.DISABLED;
-        }
-        return this.icons.get(state);
-    }
-
-    @Override
-    public Button setIcon(ButtonState state, PIcon icon) {
-        if (state == null) {
-            state = ButtonState.ENABLED;
-        } else if (state == ButtonState.DISABLED_HOVERED) {
-            state = ButtonState.DISABLED;
-        }
-        Icon newIcon;
-        if (icon == null && this.icons.containsKey(state)) {
-            this.icons.remove(state);
-            newIcon = null;
-        } else if (icon != null && this.icons.get(state) != icon) {
-            this.icons.put(state, icon);
-            newIcon = icon.getAsSwingIcon();
-        } else {
-            return this;
-        }
-        switch (state) {
-            case ENABLED:
-                this.swing.setIcon(newIcon);
-                break;
-            case ENABLED_HOVERED:
-                this.swing.setRolloverIcon(newIcon);
-                break;
-            case ENABLED_CLICKED:
-                this.swing.setPressedIcon(newIcon);
-                break;
-            case DISABLED:
-                this.swing.setDisabledIcon(newIcon);
-                break;
-        }
-        return this;
-    }
-
-    @Override
-    public Button minDimensionsAreValueSize() {
-        if (this.minDimensionsAreValueSize) {
-            return this;
-        } else {
-            this.minDimensionsAreValueSize = true;
-            return this.considerUpdate();
-        }
-    }
-
-    @Override
-    protected BoundingBox calculateBounds() {
-        BoundingBox bounds = super.calculateBounds();
-        if (this.minDimensionsAreValueSize) {
-            Dimension preferred = this.swing.getPreferredSize();
-            bounds = new BoundingBox(bounds.getX(), bounds.getY(), Math.max(preferred.width, bounds.getWidth()), Math.max(preferred.height, bounds.getHeight()));
-        }
-        return bounds;
-    }
-
-    @Override
-    public Button setTextColor(int argb) {
-        if (!this.swing.isForegroundSet() || this.swing.getForeground().getRGB() != argb)   {
-            this.swing.setForeground(new Color(argb));
-        }
-        return this;
     }
 
     protected static class SwingButtonMouseListener extends SwingMouseListener<SwingButton> {
@@ -175,5 +65,46 @@ public class SwingButton extends SwingComponent<Button, JButton, ButtonState> im
             }
             super.mouseClicked(e);
         }
+    }
+
+    @Override
+    public PIcon getIcon(ButtonState state) {
+        if (state == null) {
+            state = ButtonState.ENABLED;
+        } else if (state == ButtonState.DISABLED_HOVERED) {
+            state = ButtonState.DISABLED;
+        }
+        return super.getIcon(state);
+    }
+
+    @Override
+    public Button setIcon(ButtonState state, PIcon icon) {
+        if (state == null) {
+            state = ButtonState.ENABLED;
+        } else if (state == ButtonState.DISABLED_HOVERED) {
+            state = ButtonState.DISABLED;
+        }
+        return super.setIcon(state, icon);
+    }
+
+    @Override
+    protected Button doSetIcon(@NonNull ButtonState state, Icon newIcon) {
+        switch (state) {
+            case ENABLED:
+                this.swing.setIcon(newIcon);
+                break;
+            case ENABLED_HOVERED:
+                this.swing.setRolloverIcon(newIcon);
+                break;
+            case ENABLED_CLICKED:
+                this.swing.setPressedIcon(newIcon);
+                break;
+            case DISABLED:
+                this.swing.setDisabledIcon(newIcon);
+                break;
+            default:
+                throw new IllegalStateException(state.name());
+        }
+        return this;
     }
 }

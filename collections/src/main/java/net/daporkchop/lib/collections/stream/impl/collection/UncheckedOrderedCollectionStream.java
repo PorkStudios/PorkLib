@@ -18,6 +18,7 @@ package net.daporkchop.lib.collections.stream.impl.collection;
 import lombok.NonNull;
 import net.daporkchop.lib.collections.PMap;
 import net.daporkchop.lib.collections.POrderedCollection;
+import net.daporkchop.lib.collections.impl.ordered.BigLinkedCollection;
 import net.daporkchop.lib.collections.impl.ordered.concurrent.ConcurrentBigLinkedCollection;
 import net.daporkchop.lib.collections.stream.PStream;
 
@@ -83,6 +84,6 @@ public class UncheckedOrderedCollectionStream<V> extends AbstractOrderedCollecti
 
     @Override
     protected <T> POrderedCollection<T> newCollection() {
-        return new ConcurrentBigLinkedCollection<>(); //TODO: non-concurrent version
+        return new BigLinkedCollection<>();
     }
 }

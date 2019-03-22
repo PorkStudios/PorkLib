@@ -17,7 +17,10 @@ package net.daporkchop.lib.collections.stream.impl.array;
 
 import lombok.NonNull;
 import net.daporkchop.lib.collections.PMap;
+import net.daporkchop.lib.collections.POrderedCollection;
+import net.daporkchop.lib.collections.impl.ordered.concurrent.ConcurrentBigLinkedCollection;
 import net.daporkchop.lib.collections.stream.PStream;
+import net.daporkchop.lib.collections.stream.impl.collection.ConcurrentOrderedCollectionStream;
 import net.daporkchop.lib.collections.util.ConcurrencyHelper;
 
 import java.util.function.BiPredicate;
@@ -58,13 +61,21 @@ public class ConcurrentArrayStream<V> extends AbstractArrayStream<V> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public PStream<V> filter(@NonNull Predicate<V> condition) {
-        return null; //TODO
+        POrderedCollection<V> collection = new ConcurrentBigLinkedCollection<>();
+        ConcurrencyHelper.runConcurrent(this.values.length, (int i) -> {
+            V value = (V) this.values[i];
+            if (condition.test(value))  {
+                collection.add(value);
+            }
+        });
+        return new ConcurrentOrderedCollectionStream<>(collection, true);
     }
 
     @Override
     public PStream<V> distinct(@NonNull BiPredicate<V, V> comparator) {
-        return null;
+        return null; //TODO
     }
 
     @Override

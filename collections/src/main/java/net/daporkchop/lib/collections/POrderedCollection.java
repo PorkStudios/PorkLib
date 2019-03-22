@@ -112,11 +112,6 @@ public interface POrderedCollection<V> extends PCollection<V> {
         return new ConcurrentOrderedCollectionStream<>(this, true);
     }
 
-    @Override
-    default boolean isConcurrent() {
-        return true;
-    }
-
     /**
      * An iterator over an ordered collection.
      * <p>

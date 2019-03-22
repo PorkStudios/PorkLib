@@ -136,6 +136,11 @@ public class ConcurrentBigLinkedCollection<V> implements POrderedCollection<V> {
     }
 
     @Override
+    public boolean isConcurrent() {
+        return true;
+    }
+
+    @Override
     public String toString() {
         return String.format("ConcurrentBigLinkedCollection(size=%d)", this.base.size);
     }

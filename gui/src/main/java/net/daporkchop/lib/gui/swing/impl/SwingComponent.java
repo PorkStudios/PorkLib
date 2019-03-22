@@ -24,10 +24,12 @@ import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.Element;
 import net.daporkchop.lib.gui.component.orientation.Orientation;
 import net.daporkchop.lib.gui.component.state.ElementState;
+import net.daporkchop.lib.gui.component.type.functional.Label;
 import net.daporkchop.lib.gui.swing.type.window.AbstractSwingWindow;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 
 import javax.swing.*;
+import java.awt.*;
 
 /**
  * @author DaPorkchop_
@@ -44,6 +46,10 @@ public abstract class SwingComponent<Impl extends Component, Swing extends JComp
 
     protected boolean hovered;
     protected boolean mouseDown;
+
+    @Getter(AccessLevel.PRIVATE)
+    @Setter(AccessLevel.PRIVATE)
+    private boolean minDimensionsAreValueSize;
 
     public SwingComponent(String name, Swing swing) {
         super(name, swing);
@@ -78,7 +84,24 @@ public abstract class SwingComponent<Impl extends Component, Swing extends JComp
     }
 
     protected BoundingBox calculateBounds() {
-        return this.orientation == null ? new BoundingBox(0, 0, 0, 0) : this.orientation.update(this.parent.getBounds(), this.parent, (Impl) this);
+        BoundingBox bounds = this.orientation == null ? new BoundingBox(0, 0, 0, 0) : this.orientation.update(this.parent.getBounds(), this.parent, (Impl) this);
+        if (this.minDimensionsAreValueSize) {
+            Dimension preferred = this.swing.getPreferredSize();
+            if (preferred != null)  {
+                bounds = new BoundingBox(bounds.getX(), bounds.getY(), Math.max(preferred.width, bounds.getWidth()), Math.max(preferred.height, bounds.getHeight()));
+            }
+        }
+        return bounds;
+    }
+
+    @Override
+    public Impl minDimensionsAreValueSize() {
+        if (this.minDimensionsAreValueSize) {
+            return (Impl) this;
+        } else {
+            this.minDimensionsAreValueSize = true;
+            return this.considerUpdate();
+        }
     }
 
     @Override

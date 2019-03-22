@@ -15,6 +15,8 @@
 
 package net.daporkchop.lib.gui.component.orientation.advanced.calculator;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.orientation.advanced.Calculator;
@@ -23,7 +25,22 @@ import net.daporkchop.lib.gui.util.math.BoundingBox;
 /**
  * @author DaPorkchop_
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class NullCalculator<T extends Component> implements Calculator<T> {
+    private static final NullCalculator INSTANCE = new NullCalculator();
+
+    @SuppressWarnings("unchecked")
+    public static <T extends Component> NullCalculator<T> getInstance() {
+        return (NullCalculator<T>) INSTANCE;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T extends Component> Calculator<T>[] getBaseArray() {
+        return (Calculator<T>[]) new Calculator[] {
+                getInstance(), getInstance(), getInstance(), getInstance()
+        };
+    }
+
     @Override
     public int get(BoundingBox bb, Container parent, T component, int[] dims) {
         return 0;

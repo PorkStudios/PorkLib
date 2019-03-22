@@ -17,6 +17,7 @@ package net.daporkchop.lib.gui.component;
 
 import lombok.NonNull;
 import net.daporkchop.lib.gui.component.capability.Enableable;
+import net.daporkchop.lib.gui.component.capability.SizedValueHolder;
 import net.daporkchop.lib.gui.component.orientation.Orientation;
 import net.daporkchop.lib.gui.component.orientation.SimpleDynamicOrientation;
 import net.daporkchop.lib.gui.component.orientation.StaticOrientation;
@@ -41,7 +42,7 @@ import java.util.function.Consumer;
  * @author DaPorkchop_
  */
 @SuppressWarnings("unchecked")
-public interface Component<Impl extends Component, State extends ElementState<? extends Element, State>> extends Element<Impl, State>, Enableable<Impl> {
+public interface Component<Impl extends Component, State extends ElementState<? extends Element, State>> extends Element<Impl, State>, Enableable<Impl>, SizedValueHolder<Impl> {
     @Override
     default Impl setBounds(@NonNull BoundingBox bounds) {
         return this.setOrientation(bounds);
@@ -90,7 +91,7 @@ public interface Component<Impl extends Component, State extends ElementState<? 
         });
     }
 
-    default Impl positionRelative(@NonNull Number x, @NonNull Number y, @NonNull Number width, @NonNull Number height) {
+    default Impl orientRelative(@NonNull Number x, @NonNull Number y, @NonNull Number width, @NonNull Number height) {
         return (Impl) this.setOrientation(SimpleDynamicOrientation.of(x, y, width, height));
     }
 

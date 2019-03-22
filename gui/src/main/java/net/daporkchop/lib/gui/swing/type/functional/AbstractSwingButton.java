@@ -42,8 +42,6 @@ import java.util.Map;
 public abstract class AbstractSwingButton<Impl extends Component<Impl, State> & IconHolder<Impl, State> & TextHolder<Impl>, Swing extends AbstractButton, State extends Enum<State> & ElementState<? extends Element, State>> extends SwingComponent<Impl, Swing, State> implements IconHolder<Impl, State>, TextHolder<Impl> {
     protected final Map<State, PIcon> icons;
 
-    protected boolean minDimensionsAreValueSize;
-
     public AbstractSwingButton(String name, Swing swing, @NonNull Class<State> stateClass) {
         super(name, swing);
 
@@ -110,27 +108,6 @@ public abstract class AbstractSwingButton<Impl extends Component<Impl, State> & 
     }
 
     protected abstract Impl doSetIcon(@NonNull State state, Icon newIcon);
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public Impl minDimensionsAreValueSize() {
-        if (this.minDimensionsAreValueSize) {
-            return (Impl) this;
-        } else {
-            this.minDimensionsAreValueSize = true;
-            return this.considerUpdate();
-        }
-    }
-
-    @Override
-    protected BoundingBox calculateBounds() {
-        BoundingBox bounds = super.calculateBounds();
-        if (this.minDimensionsAreValueSize) {
-            Dimension preferred = this.swing.getPreferredSize();
-            bounds = new BoundingBox(bounds.getX(), bounds.getY(), Math.max(preferred.width, bounds.getWidth()), Math.max(preferred.height, bounds.getHeight()));
-        }
-        return bounds;
-    }
 
     @Override
     @SuppressWarnings("unchecked")

@@ -25,7 +25,7 @@ import net.daporkchop.lib.gui.util.VerticalAlignment;
 /**
  * @author DaPorkchop_
  */
-public interface TextHolder<Impl extends TextHolder> extends SizedValueHolder<Impl> {
+public interface TextHolder<Impl extends TextHolder> {
     String getText();
     Impl setText(String text);
 

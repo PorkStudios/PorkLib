@@ -29,7 +29,10 @@ public enum Axis {
     X(BoundingBox::getX),
     Y(BoundingBox::getY),
     WIDTH(BoundingBox::getWidth),
-    HEIGHT(BoundingBox::getHeight);
+    HEIGHT(BoundingBox::getHeight),
+    BELOW(bb -> bb.getY() + bb.getHeight()),
+    RIGHT(bb -> bb.getX() + bb.getWidth()),
+    ;
 
     @NonNull
     protected final ToIntFunction<BoundingBox> getter;

@@ -37,8 +37,6 @@ public class SwingLabel extends SwingComponent<Label, JLabel, LabelState> implem
     protected PIcon enabledIcon;
     protected PIcon disabledIcon;
 
-    protected boolean minDimensionsAreValueSize;
-
     public SwingLabel(String name) {
         super(name, new JLabel());
 
@@ -120,25 +118,5 @@ public class SwingLabel extends SwingComponent<Label, JLabel, LabelState> implem
             this.swing.setForeground(new Color(argb));
         }
         return this;
-    }
-
-    @Override
-    public Label minDimensionsAreValueSize() {
-        if (this.minDimensionsAreValueSize) {
-            return this;
-        } else {
-            this.minDimensionsAreValueSize = true;
-            return this.considerUpdate();
-        }
-    }
-
-    @Override
-    protected BoundingBox calculateBounds() {
-        BoundingBox bounds = super.calculateBounds();
-        if (this.minDimensionsAreValueSize) {
-            Dimension preferred = this.swing.getPreferredSize();
-            bounds = new BoundingBox(bounds.getX(), bounds.getY(), Math.max(preferred.width, bounds.getWidth()), Math.max(preferred.height, bounds.getHeight()));
-        }
-        return bounds;
     }
 }

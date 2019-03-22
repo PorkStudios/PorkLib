@@ -152,8 +152,4 @@ public interface Window extends Container<Window, WindowState>, Resizable<Window
     Window popup(@NonNull BoundingBox bounds);
 
     //other
-    @Override
-    default Window minDimensionsAreValueSize() {
-        return this;
-    }
 }

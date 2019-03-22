@@ -84,10 +84,11 @@ public class SwingCheckBox extends AbstractSwingButton<CheckBox, JCheckBox, Chec
                 this.swing.setRolloverIcon(newIcon);
                 break;
             case ENABLED_SELECTED:
-                this.swing.setPressedIcon(newIcon);
+                this.swing.setSelectedIcon(newIcon);
                 break;
             case ENABLED_HOVERED_SELECTED:
                 this.swing.setRolloverSelectedIcon(newIcon);
+                break;
             case DISABLED:
                 this.swing.setDisabledIcon(newIcon);
                 break;

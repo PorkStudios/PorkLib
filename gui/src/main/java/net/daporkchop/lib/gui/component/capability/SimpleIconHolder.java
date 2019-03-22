@@ -28,7 +28,7 @@ import net.daporkchop.lib.gui.util.VerticalAlignment;
  *
  * @author DaPorkchop_
  */
-public interface SimpleIconHolder<Impl extends SimpleIconHolder, State extends ElementState<? extends Element, State>> extends Element<Impl, State>, SizedValueHolder<Impl> {
+public interface SimpleIconHolder<Impl extends SimpleIconHolder, State extends ElementState<? extends Element, State>> extends Element<Impl, State> {
     PIcon getIcon();
     Impl setIcon(PIcon icon);
 

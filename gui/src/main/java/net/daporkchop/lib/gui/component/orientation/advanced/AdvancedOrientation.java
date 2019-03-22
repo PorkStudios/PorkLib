@@ -33,9 +33,7 @@ import java.util.function.Consumer;
 @Getter
 @SuppressWarnings("unchecked")
 public class AdvancedOrientation<T extends Component> implements Orientation<T> {
-    protected final Calculator<T>[] calculators = (Calculator<T>[]) new Calculator[]{
-            new NullCalculator<T>(), new NullCalculator<T>(), new NullCalculator<T>(), new NullCalculator<T>()
-    };
+    protected final Calculator<T>[] calculators = NullCalculator.getBaseArray();
 
     protected final Axis[] calcAxes = {
             Axis.X, Axis.Y, Axis.WIDTH, Axis.HEIGHT

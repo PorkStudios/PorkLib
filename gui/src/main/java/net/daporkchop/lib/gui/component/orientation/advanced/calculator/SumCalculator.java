@@ -52,7 +52,7 @@ public class SumCalculator<T extends Component> implements Calculator<T> {
 
     public Calculator<T> build() {
         if (this.degligates.isEmpty())  {
-            return new NullCalculator<>();
+            return NullCalculator.getInstance();
         } else if (this.degligates.size() == 1)  {
             return this.degligates.iterator().next();
         } else {

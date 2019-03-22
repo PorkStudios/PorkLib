@@ -39,7 +39,7 @@ import static java.lang.Math.min;
 public class AdvancedCalculator<T extends Component> implements Calculator<T> {
     protected final Collection<Calculator<T>> mins = new HashSet<>();
     protected final Collection<Calculator<T>> maxes = new HashSet<>();
-    protected Calculator<T> between;
+    protected Calculator<T> between = NullCalculator.getInstance();
 
     @Override
     public int get(BoundingBox bb, Container parent, T component, int[] dims) {

@@ -13,43 +13,30 @@
  *
  */
 
-package net.daporkchop.lib.gui.component.impl;
+package net.daporkchop.lib.gui.component.type.misc;
 
-import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.Component;
-import net.daporkchop.lib.gui.component.Element;
-import net.daporkchop.lib.gui.component.state.ElementState;
+import net.daporkchop.lib.gui.component.state.misc.RadioButtonGroupState;
+import net.daporkchop.lib.gui.component.type.functional.RadioButton;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Collection;
+import java.util.function.Consumer;
 
 /**
  * @author DaPorkchop_
  */
-@Getter
-@SuppressWarnings("unchecked")
-public abstract class AbstractContainer<Impl extends AbstractContainer, State extends ElementState<? extends Element, State>> extends AbstractElement<Impl, State> implements Container<Impl, State> {
-    protected final Map<String, Component> children = Collections.synchronizedMap(new HashMap<>());
-
-    public AbstractContainer(String name) {
-        super(name);
+public interface RadioButtonGroup extends Component<RadioButtonGroup, RadioButtonGroupState> {
+    RadioButton getSelected();
+    Collection<RadioButton> getChildren();
+    RadioButtonGroup add(@NonNull RadioButton button);
+    RadioButtonGroup remove(@NonNull String qualifiedName);
+    default RadioButtonGroup remove(@NonNull RadioButton button)    {
+        return this.remove(button.getQualifiedName());
     }
 
     @Override
-    public Impl addChild(@NonNull Component child, boolean update) {
-        this.children.put(child.getName(), child);
-        return update ? this.update() : (Impl) this;
-    }
-
-    @Override
-    public Impl removeChild(@NonNull String name, boolean update) {
-        if (this.children.remove(name) == null) {
-            throw new IllegalArgumentException(String.format("No such child: %s", name));
-        } else {
-            return update ? this.update() : (Impl) this;
-        }
+    default RadioButtonGroupState getState() {
+        return RadioButtonGroupState.DEFAULT;
     }
 }

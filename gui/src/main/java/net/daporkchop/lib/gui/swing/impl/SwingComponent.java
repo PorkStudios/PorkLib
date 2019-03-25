@@ -53,7 +53,6 @@ public abstract class SwingComponent<Impl extends Component, Swing extends JComp
 
     public SwingComponent(String name, Swing swing) {
         super(name, swing);
-        this.swing.setToolTipText("");
     }
 
     public Impl setParent(@NonNull IBasicSwingContainer parent)   {
@@ -77,15 +76,17 @@ public abstract class SwingComponent<Impl extends Component, Swing extends JComp
 
     @Override
     public Impl update() {
-        super.update();
-        this.bounds = this.calculateBounds();
-        this.swing.setBounds(this.bounds.getX(), this.bounds.getY(), this.bounds.getWidth(), this.bounds.getHeight());
+        if (this.swing != null) {
+            super.update();
+            this.bounds = this.calculateBounds();
+            this.swing.setBounds(this.bounds.getX(), this.bounds.getY(), this.bounds.getWidth(), this.bounds.getHeight());
+        }
         return (Impl) this;
     }
 
     protected BoundingBox calculateBounds() {
         BoundingBox bounds = this.orientation == null ? new BoundingBox(0, 0, 0, 0) : this.orientation.update(this.parent.getBounds(), this.parent, (Impl) this);
-        if (this.minDimensionsAreValueSize) {
+        if (this.swing != null && this.minDimensionsAreValueSize) {
             Dimension preferred = this.swing.getPreferredSize();
             if (preferred != null)  {
                 bounds = new BoundingBox(bounds.getX(), bounds.getY(), Math.max(preferred.width, bounds.getWidth()), Math.max(preferred.height, bounds.getHeight()));
@@ -111,7 +112,7 @@ public abstract class SwingComponent<Impl extends Component, Swing extends JComp
 
     @Override
     public Impl setTooltip(String tooltip) {
-        if (this.getTooltip() == null || !this.getTooltip().equals(tooltip)) {
+        if (this.swing != null && (this.getTooltip() == null || !this.getTooltip().equals(tooltip))) {
             this.swing.setToolTipText(tooltip);
         }
         return (Impl) this;
@@ -131,5 +132,9 @@ public abstract class SwingComponent<Impl extends Component, Swing extends JComp
 
     @Override
     public void release() {
+    }
+
+    public boolean hasSwing()   {
+        return this.swing != null;
     }
 }

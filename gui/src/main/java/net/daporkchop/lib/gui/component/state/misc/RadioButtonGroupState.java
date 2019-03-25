@@ -13,41 +13,30 @@
  *
  */
 
-package net.daporkchop.lib.gui.swing.impl;
+package net.daporkchop.lib.gui.component.state.misc;
 
-import lombok.Getter;
-import lombok.NonNull;
-import net.daporkchop.lib.gui.component.Element;
-import net.daporkchop.lib.gui.component.impl.AbstractElement;
 import net.daporkchop.lib.gui.component.state.ElementState;
-
-import javax.swing.*;
-import java.awt.*;
+import net.daporkchop.lib.gui.component.type.misc.RadioButtonGroup;
 
 /**
  * @author DaPorkchop_
  */
-@Getter
-public abstract class SwingElement<Impl extends Element, Swing extends java.awt.Component, State extends ElementState<? extends Element, State>> extends AbstractElement<Impl, State> {
-    protected final Swing swing;
-
-    public SwingElement(String name, Swing swing) {
-        super(name);
-        this.swing = swing;
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public Impl setVisible(boolean state) {
-        if (state != this.swing.isVisible())  {
-            this.swing.setVisible(state);
-            this.fireStateChange();
-        }
-        return (Impl) this;
-    }
+public enum RadioButtonGroupState implements ElementState<RadioButtonGroup, RadioButtonGroupState> {
+    DEFAULT,
+    ;
 
     @Override
     public boolean isVisible() {
-        return this.swing.isVisible();
+        return false;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return false;
+    }
+
+    @Override
+    public boolean isHovered() {
+        return false;
     }
 }

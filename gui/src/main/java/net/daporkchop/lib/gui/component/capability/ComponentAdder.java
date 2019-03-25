@@ -22,6 +22,8 @@ import net.daporkchop.lib.gui.component.type.functional.Button;
 import net.daporkchop.lib.gui.component.type.functional.CheckBox;
 import net.daporkchop.lib.gui.component.type.functional.Dropdown;
 import net.daporkchop.lib.gui.component.type.functional.Label;
+import net.daporkchop.lib.gui.component.type.functional.RadioButton;
+import net.daporkchop.lib.gui.component.type.misc.RadioButtonGroup;
 
 import java.util.function.Consumer;
 
@@ -118,5 +120,44 @@ public interface ComponentAdder<Impl> {
         Label label = this.label(name).setText(text);
         initializer.accept(label);
         return (Impl) this;
+    }
+
+    //radio button
+    RadioButton radioButton(@NonNull String name, @NonNull RadioButtonGroup group);
+    RadioButton radioButton(@NonNull String name, @NonNull String groupName);
+
+    default Impl radioButton(@NonNull String name, @NonNull RadioButtonGroup group, @NonNull Consumer<RadioButton> initializer) {
+        RadioButton radioButton = this.radioButton(name, group);
+        initializer.accept(radioButton);
+        return (Impl) this;
+    }
+
+    default Impl radioButton(@NonNull String name, @NonNull String groupName, @NonNull Consumer<RadioButton> initializer) {
+        RadioButton radioButton = this.radioButton(name, groupName);
+        initializer.accept(radioButton);
+        return (Impl) this;
+    }
+
+    //
+    //
+    // misc. components
+    //
+    //
+
+    //radio button group
+    RadioButtonGroup radioGroup(@NonNull String name);
+
+    default RadioButtonGroup radioButtonGroup(@NonNull String name)   {
+        return this.radioGroup(name);
+    }
+
+    default Impl radioGroup(@NonNull String name, @NonNull Consumer<RadioButtonGroup> initializer)   {
+        RadioButtonGroup radioButtonGroup = this.radioGroup(name);
+        initializer.accept(radioButtonGroup);
+        return (Impl) this;
+    }
+
+    default Impl radioButtonGroup(@NonNull String name, @NonNull Consumer<RadioButtonGroup> initializer)   {
+        return this.radioGroup(name, initializer);
     }
 }

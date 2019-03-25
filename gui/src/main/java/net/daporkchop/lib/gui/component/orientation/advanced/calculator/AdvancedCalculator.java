@@ -48,18 +48,18 @@ public class AdvancedCalculator<T extends Component> implements Calculator<T> {
         if (this.mins.isEmpty()) {
             min = 0;
         } else {
-            min = Integer.MAX_VALUE;
+            min = Integer.MIN_VALUE;
             for (Calculator<T> calculator : this.mins)  {
-                min = Math.min(min, calculator.get(bb, parent, component, dims));
+                min = Math.max(min, calculator.get(bb, parent, component, dims));
             }
         }
         int max;
         if (this.maxes.isEmpty()) {
             max = Integer.MAX_VALUE;
         } else {
-            max = 0;
+            max = Integer.MAX_VALUE;
             for (Calculator<T> calculator : this.maxes)  {
-                max = Math.max(max, calculator.get(bb, parent, component, dims));
+                max = Math.min(max, calculator.get(bb, parent, component, dims));
             }
         }
         /*if (dims[0] != -1 && dims[1] == -1) {

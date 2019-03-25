@@ -27,12 +27,16 @@ import net.daporkchop.lib.gui.component.type.functional.Button;
 import net.daporkchop.lib.gui.component.type.functional.CheckBox;
 import net.daporkchop.lib.gui.component.type.functional.Dropdown;
 import net.daporkchop.lib.gui.component.type.functional.Label;
+import net.daporkchop.lib.gui.component.type.functional.RadioButton;
+import net.daporkchop.lib.gui.component.type.misc.RadioButtonGroup;
 import net.daporkchop.lib.gui.swing.type.container.SwingPanel;
 import net.daporkchop.lib.gui.swing.type.container.SwingScrollPane;
 import net.daporkchop.lib.gui.swing.type.functional.SwingButton;
 import net.daporkchop.lib.gui.swing.type.functional.SwingCheckBox;
 import net.daporkchop.lib.gui.swing.type.functional.SwingDropdown;
 import net.daporkchop.lib.gui.swing.type.functional.SwingLabel;
+import net.daporkchop.lib.gui.swing.type.functional.SwingRadioButton;
+import net.daporkchop.lib.gui.swing.type.misc.SwingRadioButtonGroup;
 
 import javax.swing.*;
 
@@ -72,7 +76,7 @@ public interface IBasicSwingContainer<Impl extends Container, Swing extends java
 
     @Override
     default <V> Dropdown<V> dropdown(@NonNull String name) {
-        Dropdown<V> dropdown = new SwingDropdown<>(name);
+        SwingDropdown<V> dropdown = new SwingDropdown<>(name);
         this.addChild(dropdown);
         return dropdown;
     }
@@ -82,6 +86,25 @@ public interface IBasicSwingContainer<Impl extends Container, Swing extends java
         SwingLabel label = new SwingLabel(name);
         this.addChild(label);
         return label;
+    }
+
+    @Override
+    default RadioButton radioButton(@NonNull String name, @NonNull RadioButtonGroup group) {
+        SwingRadioButton radioButton = new SwingRadioButton(name, (SwingRadioButtonGroup) group);
+        this.addChild(radioButton);
+        return radioButton;
+    }
+
+    @Override
+    default RadioButton radioButton(@NonNull String name, @NonNull String groupName) {
+        return this.radioButton(name, this.<RadioButtonGroup>getChild(groupName));
+    }
+
+    @Override
+    default RadioButtonGroup radioGroup(@NonNull String name) {
+        SwingRadioButtonGroup radioButtonGroup = new SwingRadioButtonGroup(name);
+        this.addChild(radioButtonGroup);
+        return radioButtonGroup;
     }
 
     //container methods
@@ -94,8 +117,12 @@ public interface IBasicSwingContainer<Impl extends Container, Swing extends java
         }
         SwingComponent swing = (SwingComponent) child;
         this.getChildren().put(child.getName(), swing.setParent(this));
-        this.getSwing().add(swing.swing);
-        return update ? this.update() : (Impl) this;
+        if (swing.hasSwing())   {
+            this.getSwing().add(swing.swing);
+            return update ? this.update() : (Impl) this;
+        } else {
+            return (Impl) this;
+        }
     }
 
     @Override

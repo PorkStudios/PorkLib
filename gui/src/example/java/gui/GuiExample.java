@@ -112,6 +112,29 @@ public class GuiExample implements Logging {
                         .minDimensionsAreValueSize()
                         .setText("Text box 2!")
                         .setIcon(PImage.randomImage(32, 32)))
+                .radioGroup("group1", group -> {
+                })
+                .radioButton("radioButton1", "group1", button -> button
+                        .orientAdvanced(adv -> adv
+                                .configureAxis(Axis.X, calc -> calc.min(DistUnit.RELATIVE, "dropdown1", Axis.RIGHT)
+                                        .min(DistUnit.RELATIVE, "checkBox1", Axis.RIGHT)
+                                        .min(DistUnit.RELATIVE, "checkBox2", Axis.RIGHT))
+                                .configureAxis(Axis.Y, calc -> calc.ease(DistUnit.MULT, 0.05d, Axis.HEIGHT)))
+                        .minDimensionsAreValueSize()
+                        .setText("Radio button 1")
+                        .addSelectionListener(selected -> logger.info("Radio button 1 ${0}selected!", selected ? "" : "de")))
+                .radioButton("radioButton2", "group1", button -> button
+                        .orientAdvanced(adv -> adv
+                                .configureAxis(Axis.X, calc -> calc.min(DistUnit.RELATIVE, "radioButton1", Axis.X))
+                                .configureAxis(Axis.Y, calc -> calc.min(DistUnit.RELATIVE, "radioButton1", Axis.BELOW)))
+                        .minDimensionsAreValueSize()
+                        .setText("Radio button 2"))
+                .radioButton("radioButton3", "group1", button -> button
+                        .orientAdvanced(adv -> adv
+                                .configureAxis(Axis.X, calc -> calc.min(DistUnit.RELATIVE, "radioButton1", Axis.X))
+                                .configureAxis(Axis.Y, calc -> calc.min(DistUnit.RELATIVE, "radioButton2", Axis.BELOW)))
+                        .minDimensionsAreValueSize()
+                        .setText("Radio button 3"))
                 .show();
     }
 

@@ -67,7 +67,7 @@ public class AdvancedOrientation<T extends Component> implements Orientation<T> 
                 return this;
             }
         }
-        throw new IllegalStateException();
+        throw new IllegalStateException(String.format("Cannot set orientation for axis: %s", axis));
     }
 
     public UpdatePriority getPriority(@NonNull Axis axis) {

@@ -13,43 +13,36 @@
  *
  */
 
-package net.daporkchop.lib.gui.swing;
+package net.daporkchop.lib.gui.component.type.functional;
 
 import lombok.NonNull;
-import net.daporkchop.lib.common.reference.InstancePool;
-import net.daporkchop.lib.gui.GuiEngine;
-import net.daporkchop.lib.gui.component.type.Window;
-import net.daporkchop.lib.gui.swing.type.window.SwingFrame;
-import net.daporkchop.lib.gui.util.math.BoundingBox;
+import net.daporkchop.lib.gui.component.Component;
+import net.daporkchop.lib.gui.component.state.functional.SpinnerState;
 
-import javax.swing.*;
+import java.util.function.LongConsumer;
 
 /**
  * @author DaPorkchop_
  */
-public class GuiEngineSwing implements GuiEngine {
-    static {
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (ClassNotFoundException
-                | InstantiationException
-                | IllegalAccessException
-                | UnsupportedLookAndFeelException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static GuiEngineSwing getInstance() {
-        return InstancePool.getInstance(GuiEngineSwing.class);
-    }
-
+public interface Spinner extends Component<Spinner, SpinnerState> {
     @Override
-    public String getName() {
-        return "Swing";
+    default SpinnerState getState() {
+        return this.isVisible() ?
+                this.isEnabled() ?
+                        this.isHovered() ? SpinnerState.ENABLED_HOVERED : SpinnerState.ENABLED
+                        : this.isHovered() ? SpinnerState.DISABLED_HOVERED : SpinnerState.DISABLED
+                : SpinnerState.HIDDEN;
     }
 
-    @Override
-    public Window newWindow(@NonNull BoundingBox bounds) {
-        return new SwingFrame("").setBounds(bounds);
+    long getValue();
+    Spinner setValue(long val);
+    Spinner setMaxValue(long val);
+    Spinner setMinValue(long val);
+    Spinner setStep(long step);
+
+    Spinner addChangeListener(@NonNull String name, @NonNull LongConsumer callback);
+    Spinner removeChangeListener(@NonNull String name);
+    default Spinner addChangeListener(@NonNull LongConsumer callback)   {
+        return this.addChangeListener(String.format("%s@%d", callback.getClass().getCanonicalName(), System.identityHashCode(callback)), callback);
     }
 }

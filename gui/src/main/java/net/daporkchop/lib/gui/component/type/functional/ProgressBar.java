@@ -13,43 +13,21 @@
  *
  */
 
-package net.daporkchop.lib.gui.swing;
+package net.daporkchop.lib.gui.component.type.functional;
 
-import lombok.NonNull;
-import net.daporkchop.lib.common.reference.InstancePool;
-import net.daporkchop.lib.gui.GuiEngine;
-import net.daporkchop.lib.gui.component.type.Window;
-import net.daporkchop.lib.gui.swing.type.window.SwingFrame;
-import net.daporkchop.lib.gui.util.math.BoundingBox;
-
-import javax.swing.*;
+import net.daporkchop.lib.gui.component.Component;
+import net.daporkchop.lib.gui.component.state.functional.ProgressBarState;
 
 /**
  * @author DaPorkchop_
  */
-public class GuiEngineSwing implements GuiEngine {
-    static {
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (ClassNotFoundException
-                | InstantiationException
-                | IllegalAccessException
-                | UnsupportedLookAndFeelException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static GuiEngineSwing getInstance() {
-        return InstancePool.getInstance(GuiEngineSwing.class);
-    }
-
+public interface ProgressBar extends Component<ProgressBar, ProgressBarState> {
     @Override
-    public String getName() {
-        return "Swing";
-    }
-
-    @Override
-    public Window newWindow(@NonNull BoundingBox bounds) {
-        return new SwingFrame("").setBounds(bounds);
+    default ProgressBarState getState() {
+        return this.isVisible() ?
+                this.isEnabled() ?
+                        this.isHovered() ? ProgressBarState.ENABLED_HOVERED : ProgressBarState.ENABLED
+                        : this.isHovered() ? ProgressBarState.DISABLED_HOVERED : ProgressBarState.DISABLED
+                : ProgressBarState.HIDDEN;
     }
 }

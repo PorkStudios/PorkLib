@@ -112,8 +112,7 @@ public class GuiExample implements Logging {
                         .minDimensionsAreValueSize()
                         .setText("Text box 2!")
                         .setIcon(PImage.randomImage(32, 32)))
-                .radioGroup("group1", group -> {
-                })
+                .radioGroupFast("group1")
                 .radioButton("radioButton1", "group1", button -> button
                         .orientAdvanced(adv -> adv
                                 .configureAxis(Axis.X, calc -> calc.min(DistUnit.RELATIVE, "dropdown1", Axis.RIGHT)
@@ -134,6 +133,7 @@ public class GuiExample implements Logging {
                                 .configureAxis(Axis.X, calc -> calc.min(DistUnit.RELATIVE, "radioButton1", Axis.X))
                                 .configureAxis(Axis.Y, calc -> calc.min(DistUnit.RELATIVE, "radioButton2", Axis.BELOW)))
                         .minDimensionsAreValueSize()
+                        .setTextColor(0xFFFF0000)
                         .setText("Radio button 3"))
                 .show();
     }

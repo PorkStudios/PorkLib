@@ -30,4 +30,9 @@ public interface ProgressBar extends Component<ProgressBar, ProgressBarState> {
                         : this.isHovered() ? ProgressBarState.DISABLED_HOVERED : ProgressBarState.DISABLED
                 : ProgressBarState.HIDDEN;
     }
+
+    long getProgress();
+    ProgressBar setProgress(long progress);
+    long getEnd();
+    ProgressBar setEnd(long end);
 }

@@ -31,8 +31,11 @@ public interface ProgressBar extends Component<ProgressBar, ProgressBarState> {
                 : ProgressBarState.HIDDEN;
     }
 
-    long getProgress();
-    ProgressBar setProgress(long progress);
-    long getEnd();
-    ProgressBar setEnd(long end);
+    int getProgress();
+    ProgressBar setProgress(int progress);
+    int getEnd();
+    ProgressBar setEnd(int end);
+
+    boolean isInfinite();
+    ProgressBar setInfinite(boolean infinite);
 }

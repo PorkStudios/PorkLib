@@ -22,6 +22,7 @@ import net.daporkchop.lib.gui.component.type.functional.Button;
 import net.daporkchop.lib.gui.component.type.functional.CheckBox;
 import net.daporkchop.lib.gui.component.type.functional.Dropdown;
 import net.daporkchop.lib.gui.component.type.functional.Label;
+import net.daporkchop.lib.gui.component.type.functional.ProgressBar;
 import net.daporkchop.lib.gui.component.type.functional.RadioButton;
 import net.daporkchop.lib.gui.component.type.functional.Spinner;
 import net.daporkchop.lib.gui.component.type.misc.RadioButtonGroup;
@@ -123,6 +124,35 @@ public interface ComponentAdder<Impl> {
         return (Impl) this;
     }
 
+    //progress bar
+    ProgressBar progressBar(@NonNull String name);
+
+    default ProgressBar progressBar(@NonNull String name, int end)  {
+        return this.progressBar(name).setEnd(end);
+    }
+
+    default ProgressBar infiniteProgressBar(@NonNull String name)  {
+        return this.progressBar(name).setInfinite(true);
+    }
+
+    default Impl progressBar(@NonNull String name, @NonNull Consumer<ProgressBar> initializer)  {
+        ProgressBar progressBar = this.progressBar(name);
+        initializer.accept(progressBar);
+        return (Impl) this;
+    }
+
+    default Impl progressBar(@NonNull String name, int end, @NonNull Consumer<ProgressBar> initializer)  {
+        ProgressBar progressBar = this.progressBar(name, end);
+        initializer.accept(progressBar);
+        return (Impl) this;
+    }
+
+    default Impl infiniteProgressBar(@NonNull String name, @NonNull Consumer<ProgressBar> initializer)  {
+        ProgressBar progressBar = this.infiniteProgressBar(name);
+        initializer.accept(progressBar);
+        return (Impl) this;
+    }
+
     //radio button
     RadioButton radioButton(@NonNull String name, @NonNull RadioButtonGroup group);
     RadioButton radioButton(@NonNull String name, @NonNull String groupName);
@@ -142,8 +172,8 @@ public interface ComponentAdder<Impl> {
     //spinner
     Spinner spinner(@NonNull String name);
 
-    default Spinner spinner(@NonNull String name, long val, long min, long max, long step)  {
-        return this.spinner(name).setMinValue(min).setMaxValue(max).setStep(step).setValue(val);
+    default Spinner spinner(@NonNull String name, int val, int min, int max, int step)  {
+        return this.spinner(name).setValAndLimits(val, min, max).setStep(step);
     }
 
     default Impl spinner(@NonNull String name, @NonNull Consumer<Spinner> initializer)  {
@@ -152,7 +182,7 @@ public interface ComponentAdder<Impl> {
         return (Impl) this;
     }
 
-    default Impl spinner(@NonNull String name, long val, long min, long max, long step, @NonNull Consumer<Spinner> initializer)  {
+    default Impl spinner(@NonNull String name, int val, int min, int max, int step, @NonNull Consumer<Spinner> initializer)  {
         Spinner spinner = this.spinner(name, val, min, max, step);
         initializer.accept(spinner);
         return (Impl) this;

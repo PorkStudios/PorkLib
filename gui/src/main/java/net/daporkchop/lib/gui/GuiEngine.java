@@ -25,18 +25,18 @@ import net.daporkchop.lib.gui.util.math.BoundingBox;
  *
  * @author DaPorkchop_
  */
-public interface GuiEngine<T extends Window> {
+public interface GuiEngine {
     static GuiEngineSwing swing() {
         return GuiEngineSwing.getInstance();
     }
 
     String getName();
 
-    default T newWindow(int width, int height) {
+    default Window newWindow(int width, int height) {
         return this.newWindow(new BoundingBox(0, 0, width, height));
     }
 
-    default T newWindow(int x, int y, int width, int height) {
+    default Window newWindow(int x, int y, int width, int height) {
         return this.newWindow(new BoundingBox(x, y, width, height));
     }
 
@@ -46,5 +46,5 @@ public interface GuiEngine<T extends Window> {
      * @param bounds the bounds of the new window to be created
      * @return the newly created window
      */
-    T newWindow(@NonNull BoundingBox bounds);
+    Window newWindow(@NonNull BoundingBox bounds);
 }

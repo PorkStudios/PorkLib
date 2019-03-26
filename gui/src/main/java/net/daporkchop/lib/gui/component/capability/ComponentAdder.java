@@ -160,4 +160,9 @@ public interface ComponentAdder<Impl> {
     default Impl radioButtonGroup(@NonNull String name, @NonNull Consumer<RadioButtonGroup> initializer)   {
         return this.radioGroup(name, initializer);
     }
+
+    default Impl radioGroupFast(@NonNull String name)   {
+        this.radioGroup(name);
+        return (Impl) this;
+    }
 }

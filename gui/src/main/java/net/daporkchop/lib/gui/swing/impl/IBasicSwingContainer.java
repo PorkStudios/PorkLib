@@ -28,6 +28,7 @@ import net.daporkchop.lib.gui.component.type.functional.CheckBox;
 import net.daporkchop.lib.gui.component.type.functional.Dropdown;
 import net.daporkchop.lib.gui.component.type.functional.Label;
 import net.daporkchop.lib.gui.component.type.functional.RadioButton;
+import net.daporkchop.lib.gui.component.type.functional.Spinner;
 import net.daporkchop.lib.gui.component.type.misc.RadioButtonGroup;
 import net.daporkchop.lib.gui.swing.type.container.SwingPanel;
 import net.daporkchop.lib.gui.swing.type.container.SwingScrollPane;
@@ -36,6 +37,7 @@ import net.daporkchop.lib.gui.swing.type.functional.SwingCheckBox;
 import net.daporkchop.lib.gui.swing.type.functional.SwingDropdown;
 import net.daporkchop.lib.gui.swing.type.functional.SwingLabel;
 import net.daporkchop.lib.gui.swing.type.functional.SwingRadioButton;
+import net.daporkchop.lib.gui.swing.type.functional.SwingSpinner;
 import net.daporkchop.lib.gui.swing.type.misc.SwingRadioButtonGroup;
 
 import javax.swing.*;
@@ -98,6 +100,13 @@ public interface IBasicSwingContainer<Impl extends Container, Swing extends java
     @Override
     default RadioButton radioButton(@NonNull String name, @NonNull String groupName) {
         return this.radioButton(name, this.<RadioButtonGroup>getChild(groupName));
+    }
+
+    @Override
+    default Spinner spinner(@NonNull String name) {
+        SwingSpinner spinner = new SwingSpinner(name);
+        this.addChild(spinner);
+        return spinner;
     }
 
     @Override

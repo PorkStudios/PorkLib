@@ -135,6 +135,15 @@ public class GuiExample implements Logging {
                         .minDimensionsAreValueSize()
                         .setTextColor(0xFFFF0000)
                         .setText("Radio button 3"))
+                .spinner("spinner1", spinner -> spinner
+                        .orientAdvanced(adv -> adv
+                                .configureAxis(Axis.X, calc -> calc.min(DistUnit.RELATIVE, "radioButton1", Axis.X))
+                                .configureAxis(Axis.Y, calc -> calc.min(DistUnit.RELATIVE, "radioButton3", Axis.BELOW)))
+                        .minDimensionsAreValueSize()
+                        .setMinValue(-1000)
+                        .setMaxValue(320)
+                        .setStep(5)
+                        .addChangeListener(value -> logger.info("Spinner value changed to ${0}!", value)))
                 .show();
     }
 

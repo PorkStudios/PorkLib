@@ -23,6 +23,7 @@ import net.daporkchop.lib.gui.component.type.functional.CheckBox;
 import net.daporkchop.lib.gui.component.type.functional.Dropdown;
 import net.daporkchop.lib.gui.component.type.functional.Label;
 import net.daporkchop.lib.gui.component.type.functional.RadioButton;
+import net.daporkchop.lib.gui.component.type.functional.Spinner;
 import net.daporkchop.lib.gui.component.type.misc.RadioButtonGroup;
 
 import java.util.function.Consumer;
@@ -135,6 +136,25 @@ public interface ComponentAdder<Impl> {
     default Impl radioButton(@NonNull String name, @NonNull String groupName, @NonNull Consumer<RadioButton> initializer) {
         RadioButton radioButton = this.radioButton(name, groupName);
         initializer.accept(radioButton);
+        return (Impl) this;
+    }
+
+    //spinner
+    Spinner spinner(@NonNull String name);
+
+    default Spinner spinner(@NonNull String name, long val, long min, long max, long step)  {
+        return this.spinner(name).setMinValue(min).setMaxValue(max).setStep(step).setValue(val);
+    }
+
+    default Impl spinner(@NonNull String name, @NonNull Consumer<Spinner> initializer)  {
+        Spinner spinner = this.spinner(name);
+        initializer.accept(spinner);
+        return (Impl) this;
+    }
+
+    default Impl spinner(@NonNull String name, long val, long min, long max, long step, @NonNull Consumer<Spinner> initializer)  {
+        Spinner spinner = this.spinner(name, val, min, max, step);
+        initializer.accept(spinner);
         return (Impl) this;
     }
 

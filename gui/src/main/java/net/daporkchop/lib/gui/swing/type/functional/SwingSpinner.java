@@ -23,7 +23,10 @@ import net.daporkchop.lib.gui.swing.impl.SwingComponent;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.LongConsumer;
 

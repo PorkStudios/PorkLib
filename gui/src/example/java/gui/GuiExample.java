@@ -26,6 +26,8 @@ import net.daporkchop.lib.gui.component.state.functional.ButtonState;
 import net.daporkchop.lib.gui.component.state.functional.CheckBoxState;
 import net.daporkchop.lib.gui.component.state.functional.LabelState;
 import net.daporkchop.lib.gui.component.type.Window;
+import net.daporkchop.lib.gui.component.type.functional.ProgressBar;
+import net.daporkchop.lib.gui.component.type.functional.Spinner;
 import net.daporkchop.lib.gui.util.Alignment;
 import net.daporkchop.lib.gui.util.ScrollCondition;
 import net.daporkchop.lib.logging.Logging;
@@ -60,7 +62,7 @@ public class GuiExample implements Logging {
                         .setTooltip("This is a label. Labels can only display plain text.")
                         .setTextColor(0xFFFF00FF))
                 .label("label2", label -> label
-                        .orientRelative(0.8d, 0.8d, 0.1d, 0.1d)
+                        .orientRelative(0.8d, 0.7d, 0.1d, 0.1d)
                         .setIcon(filledImage(0x00FF00))
                         .addEnableListener(() -> logger.info("${0} was enabled!\n", label.getName()))
                         .setIcon(LabelState.DISABLED, filledImage(0xFF0000)))
@@ -82,9 +84,13 @@ public class GuiExample implements Logging {
                                 .setColor(0xFF5555FF)
                                 .setText("Hello World!")))
                 .button("button4", button -> button
-                        .orientRelative(0.8d, 0.9d, 0.2d, 0.1d)
+                        .orientRelative(0.8d, 0.8d, 0.2d, 0.1d)
                         .setText("Dropdown test")
                         .setClickHandler((mouseButton, x, y) -> displayDropdownTestWindow(button.getWindow())))
+                .button("button5", button -> button
+                        .orientRelative(0.8d, 0.9d, 0.2d, 0.1d)
+                        .setText("Scrollbar test")
+                        .setClickHandler((mouseButton, x, y) -> displayScrollbarTestWindow(button.getWindow())))
                 .addStateListener(state -> logger.debug("Window changed state: ${0}\n", state))
                 .addVisibleListener(() -> logger.info("Window is now visible!"))
                 .show();
@@ -144,6 +150,37 @@ public class GuiExample implements Logging {
                         .setMaxValue(320)
                         .setStep(5)
                         .addChangeListener(value -> logger.info("Spinner value changed to ${0}!", value)))
+                .show();
+    }
+
+    public static void displayScrollbarTestWindow(@NonNull Window parentWindow) {
+        parentWindow.popup(128, 128, 512, 300)
+                .setTitle("Scrollbar test")
+                .spinner("max", 100, 1, Integer.MAX_VALUE, 1, spinner -> spinner
+                        .orientAdvanced(adv -> adv
+                                .configureAxis(Axis.X, calc -> calc.min(DistUnit.MULT, 0.05d, Axis.WIDTH))
+                                .configureAxis(Axis.Y, calc -> calc.min(DistUnit.MULT, 0.05d, Axis.HEIGHT)))
+                        .minDimensionsAreValueSize()
+                        .addChangeListener(val -> {
+                            spinner.getWindow().<Spinner>getComponent("value").setMaxValue(val);
+                            spinner.getWindow().<ProgressBar>getComponent("progress").setEnd(val);
+                        }))
+                .spinner("value", 50, 0, 100, 1, spinner -> spinner
+                        .orientAdvanced(adv -> adv
+                                .configureAxis(Axis.X, calc -> calc.min(DistUnit.MULT, 0.05d, Axis.WIDTH))
+                                .configureAxis(Axis.X, calc -> calc.min(DistUnit.RELATIVE, "max", Axis.BELOW)))
+                        .minDimensionsAreValueSize()
+                        .addChangeListener(val -> spinner.getWindow().<ProgressBar>getComponent("progress").setProgress(val)))
+                .progressBar("progress", 100, progressBar -> progressBar
+                        .orientAdvanced(adv -> adv
+                                .configureAxis(Axis.X, calc -> calc.min(DistUnit.MULT, 0.05d, Axis.WIDTH))
+                                .configureAxis(Axis.WIDTH, calc -> calc.min(DistUnit.MULT, 0.9d, Axis.WIDTH))
+                                .configureAxis(Axis.Y, calc -> calc
+                                        .min(DistUnit.MULT, 0.95d, Axis.HEIGHT, DistUnit.PX, -30)
+                                        .ease(DistUnit.MULT, 0.1d, Axis.HEIGHT))
+                                .configureAxis(Axis.HEIGHT, calc -> calc
+                                        .min(DistUnit.PX, 30)
+                                        .ease(DistUnit.MULT, 0.1d, Axis.HEIGHT))))
                 .show();
     }
 

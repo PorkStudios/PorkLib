@@ -27,6 +27,7 @@ import net.daporkchop.lib.gui.component.type.functional.Button;
 import net.daporkchop.lib.gui.component.type.functional.CheckBox;
 import net.daporkchop.lib.gui.component.type.functional.Dropdown;
 import net.daporkchop.lib.gui.component.type.functional.Label;
+import net.daporkchop.lib.gui.component.type.functional.ProgressBar;
 import net.daporkchop.lib.gui.component.type.functional.RadioButton;
 import net.daporkchop.lib.gui.component.type.functional.Spinner;
 import net.daporkchop.lib.gui.component.type.misc.RadioButtonGroup;
@@ -36,6 +37,7 @@ import net.daporkchop.lib.gui.swing.type.functional.SwingButton;
 import net.daporkchop.lib.gui.swing.type.functional.SwingCheckBox;
 import net.daporkchop.lib.gui.swing.type.functional.SwingDropdown;
 import net.daporkchop.lib.gui.swing.type.functional.SwingLabel;
+import net.daporkchop.lib.gui.swing.type.functional.SwingProgressBar;
 import net.daporkchop.lib.gui.swing.type.functional.SwingRadioButton;
 import net.daporkchop.lib.gui.swing.type.functional.SwingSpinner;
 import net.daporkchop.lib.gui.swing.type.misc.SwingRadioButtonGroup;
@@ -88,6 +90,13 @@ public interface IBasicSwingContainer<Impl extends Container, Swing extends java
         SwingLabel label = new SwingLabel(name);
         this.addChild(label);
         return label;
+    }
+
+    @Override
+    default ProgressBar progressBar(@NonNull String name) {
+        SwingProgressBar progressBar = new SwingProgressBar(name);
+        this.addChild(progressBar);
+        return progressBar;
     }
 
     @Override

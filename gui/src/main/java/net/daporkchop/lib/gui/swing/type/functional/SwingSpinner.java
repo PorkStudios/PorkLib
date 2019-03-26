@@ -28,18 +28,18 @@ import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.function.LongConsumer;
+import java.util.function.IntConsumer;
 
 /**
  * @author DaPorkchop_
  */
 public class SwingSpinner extends SwingComponent<Spinner, JSpinner, SpinnerState> implements Spinner {
-    protected long value = 0L;
-    protected long max = Long.MIN_VALUE;
-    protected long min = Long.MIN_VALUE;
-    protected long step = 1L;
+    protected int value = 0;
+    protected int max = Integer.MAX_VALUE;
+    protected int min = Integer.MIN_VALUE;
+    protected int step = 1;
 
-    protected final Map<String, LongConsumer> listeners = new HashMap<>();
+    protected final Map<String, IntConsumer> listeners = new HashMap<>();
 
     public SwingSpinner(String name) {
         super(name, new JSpinner());
@@ -50,18 +50,18 @@ public class SwingSpinner extends SwingComponent<Spinner, JSpinner, SpinnerState
     }
 
     @Override
-    public long getValue() {
-        return (long) this.swing.getValue();
+    public int getValue() {
+        return (int) this.swing.getValue();
     }
 
     @Override
-    public Spinner setValue(long val) {
+    public Spinner setValue(int val) {
         this.swing.setValue(val);
         return this;
     }
 
     @Override
-    public Spinner setMaxValue(long val) {
+    public Spinner setMaxValue(int val) {
         if (this.max != val)    {
             this.max = val;
             this.updateModel();
@@ -70,7 +70,7 @@ public class SwingSpinner extends SwingComponent<Spinner, JSpinner, SpinnerState
     }
 
     @Override
-    public Spinner setMinValue(long val) {
+    public Spinner setMinValue(int val) {
         if (this.min != val)    {
             this.min = val;
             this.updateModel();
@@ -79,7 +79,28 @@ public class SwingSpinner extends SwingComponent<Spinner, JSpinner, SpinnerState
     }
 
     @Override
-    public Spinner setStep(long step) {
+    public Spinner setLimits(int min, int max) {
+        if (this.min != min || this.max != max) {
+            this.min = min;
+            this.max = max;
+            this.updateModel();
+        }
+        return this;
+    }
+
+    @Override
+    public Spinner setValAndLimits(int val, int min, int max) {
+        if (this.value != val || this.min != min || this.max != max) {
+            this.value = val;
+            this.min = min;
+            this.max = max;
+            this.updateModel();
+        }
+        return this;
+    }
+
+    @Override
+    public Spinner setStep(int step) {
         if (this.step != step)    {
             this.step = step;
             this.updateModel();
@@ -88,7 +109,7 @@ public class SwingSpinner extends SwingComponent<Spinner, JSpinner, SpinnerState
     }
 
     @Override
-    public Spinner addChangeListener(@NonNull String name, @NonNull LongConsumer callback) {
+    public Spinner addChangeListener(@NonNull String name, @NonNull IntConsumer callback) {
         this.listeners.put(name, callback);
         return this;
     }
@@ -100,14 +121,14 @@ public class SwingSpinner extends SwingComponent<Spinner, JSpinner, SpinnerState
     }
 
     protected void updateModel()    {
-        this.swing.setModel(new SpinnerNumberModel((Long) this.value, this.min == Long.MIN_VALUE ? null : this.min, this.max == Long.MIN_VALUE ? null : this.max, (Long) this.step));
+        this.swing.setModel(new SpinnerNumberModel(this.value, this.min, this.max, this.step));
     }
 
     protected class SwingSpinnerChangeListener implements ChangeListener {
         @Override
         public void stateChanged(ChangeEvent e) {
-            if (SwingSpinner.this.value != (long) SwingSpinner.this.swing.getValue())   {
-                long val = SwingSpinner.this.value = (long) SwingSpinner.this.swing.getValue();
+            if (SwingSpinner.this.value != (int) SwingSpinner.this.swing.getValue())   {
+                int val = SwingSpinner.this.value = (int) SwingSpinner.this.swing.getValue();
                 SwingSpinner.this.listeners.values().forEach(callback -> callback.accept(val));
             }
         }

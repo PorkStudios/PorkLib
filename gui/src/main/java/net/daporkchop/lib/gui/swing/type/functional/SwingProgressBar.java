@@ -13,38 +13,61 @@
  *
  */
 
-package net.daporkchop.lib.gui.component.type.functional;
+package net.daporkchop.lib.gui.swing.type.functional;
 
-import lombok.NonNull;
-import net.daporkchop.lib.gui.component.Component;
-import net.daporkchop.lib.gui.component.state.functional.SpinnerState;
+import net.daporkchop.lib.gui.component.state.functional.ProgressBarState;
+import net.daporkchop.lib.gui.component.type.functional.ProgressBar;
+import net.daporkchop.lib.gui.swing.impl.SwingComponent;
+import net.daporkchop.lib.gui.swing.impl.SwingContainer;
 
-import java.util.function.IntConsumer;
+import javax.swing.*;
 
 /**
  * @author DaPorkchop_
  */
-public interface Spinner extends Component<Spinner, SpinnerState> {
-    @Override
-    default SpinnerState getState() {
-        return this.isVisible() ?
-                this.isEnabled() ?
-                        this.isHovered() ? SpinnerState.ENABLED_HOVERED : SpinnerState.ENABLED
-                        : this.isHovered() ? SpinnerState.DISABLED_HOVERED : SpinnerState.DISABLED
-                : SpinnerState.HIDDEN;
+public class SwingProgressBar extends SwingComponent<ProgressBar, JProgressBar, ProgressBarState> implements ProgressBar {
+    public SwingProgressBar(String name) {
+        super(name, new JProgressBar());
+
+        this.swing.setMaximum(100);
     }
 
-    int getValue();
-    Spinner setValue(int val);
-    Spinner setMaxValue(int val);
-    Spinner setMinValue(int val);
-    Spinner setStep(int step);
-    Spinner setLimits(int min, int max);
-    Spinner setValAndLimits(int val, int min, int max);
+    @Override
+    public int getProgress() {
+        return this.swing.getValue();
+    }
 
-    Spinner addChangeListener(@NonNull String name, @NonNull IntConsumer callback);
-    Spinner removeChangeListener(@NonNull String name);
-    default Spinner addChangeListener(@NonNull IntConsumer callback)   {
-        return this.addChangeListener(String.format("%s@%d", callback.getClass().getCanonicalName(), System.identityHashCode(callback)), callback);
+    @Override
+    public ProgressBar setProgress(int progress) {
+        if (progress != this.swing.getValue())  {
+            this.swing.setValue(progress);
+        }
+        return this;
+    }
+
+    @Override
+    public int getEnd() {
+        return this.swing.getMaximum();
+    }
+
+    @Override
+    public ProgressBar setEnd(int end) {
+        if (end != this.swing.getMaximum()) {
+            this.swing.setMaximum(end);
+        }
+        return this;
+    }
+
+    @Override
+    public boolean isInfinite() {
+        return this.swing.isIndeterminate();
+    }
+
+    @Override
+    public ProgressBar setInfinite(boolean infinite) {
+        if (infinite != this.isInfinite())  {
+            this.swing.setIndeterminate(infinite);
+        }
+        return this;
     }
 }

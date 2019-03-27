@@ -13,41 +13,26 @@
  *
  */
 
-package net.daporkchop.lib.gui.component.orientation.advanced.calculator;
+package net.daporkchop.lib.gui.component.orientation.advanced.calculator.dist;
 
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.gui.component.Component;
-import net.daporkchop.lib.gui.component.orientation.advanced.Axis;
+import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.orientation.advanced.Calculator;
-import net.daporkchop.lib.gui.component.orientation.advanced.calculator.dist.CMCalculator;
-import net.daporkchop.lib.gui.component.orientation.advanced.calculator.dist.MultCalculator;
-import net.daporkchop.lib.gui.component.orientation.advanced.calculator.dist.PXCalculator;
-import net.daporkchop.lib.gui.component.orientation.advanced.calculator.dist.RelativeCalculator;
-
-import static net.daporkchop.lib.math.primitive.PMath.floorI;
+import net.daporkchop.lib.gui.util.math.BoundingBox;
 
 /**
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-public enum DistUnit {
-    PX((dVal, axis, relative) -> new PXCalculator<>(floorI(dVal))),
-    CM((dVal, axis, relative) -> new CMCalculator<>(floorI(dVal))),
-    MULT((dVal, axis, relative) -> new MultCalculator(dVal, axis)),
-    RELATIVE((dVal, axis, relative) -> new RelativeCalculator(axis, relative)),
-    ;
+@Getter
+public class CMCalculator<T extends Component> implements Calculator<T> {
+    protected final int val;
 
-    @NonNull
-    protected final CalculatorSupplier calculatorSupplier;
-
-    @SuppressWarnings("unchecked")
-    public <T extends Component> Calculator<T> create(double dVal, Axis axis, String relative)   {
-        return ((CalculatorSupplier<T>) this.calculatorSupplier).create(dVal, axis, relative);
-    }
-
-    @FunctionalInterface
-    protected interface CalculatorSupplier<T extends Component>  {
-        Calculator<T> create(double dVal, Axis axis, String relative);
+    @Override
+    public int get(@NonNull BoundingBox bb, @NonNull Container parent, @NonNull T component, @NonNull int[] dims) {
+        throw new UnsupportedOperationException("cm not implemented!");
     }
 }

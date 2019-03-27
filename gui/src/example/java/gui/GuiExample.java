@@ -158,8 +158,8 @@ public class GuiExample implements Logging {
                 .setTitle("Scrollbar test")
                 .spinner("max", 100, 1, Integer.MAX_VALUE, 1, spinner -> spinner
                         .orientAdvanced(adv -> adv
-                                .configureAxis(Axis.X, calc -> calc.min(DistUnit.MULT, 0.05d, Axis.WIDTH))
-                                .configureAxis(Axis.Y, calc -> calc.min(DistUnit.MULT, 0.05d, Axis.HEIGHT)))
+                                .x(0.05d)
+                                .y(0.05d))
                         .minDimensionsAreValueSize()
                         .addChangeListener(val -> {
                             spinner.getWindow().<Spinner>getComponent("value").setMaxValue(val);
@@ -167,22 +167,22 @@ public class GuiExample implements Logging {
                         }))
                 .spinner("value", 50, 0, 100, 1, spinner -> spinner
                         .orientAdvanced(adv -> adv
-                                .configureAxis(Axis.X, calc -> calc.min(DistUnit.MULT, 0.05d, Axis.WIDTH))
-                                .configureAxis(Axis.Y, calc -> calc.min(DistUnit.RELATIVE, "max", Axis.BELOW)))
+                                .x(Axis.X, "max")
+                                .below(Axis.Y, 2.0d, "max"))
                         .minDimensionsAreValueSize()
                         .addChangeListener(val -> spinner.getWindow().<ProgressBar>getComponent("progress").setProgress(val)))
                 .checkBox("infinite", checkBox -> checkBox
                         .orientAdvanced(adv -> adv
-                                .configureAxis(Axis.X, calc -> calc.min(DistUnit.MULT, 0.05d, Axis.WIDTH))
-                                .configureAxis(Axis.Y, calc -> calc.min(DistUnit.RELATIVE, "value", Axis.BELOW)))
+                                .x(Axis.X, "max")
+                                .below(Axis.Y, 2.0d, "value"))
                         .minDimensionsAreValueSize()
                         .setText("Infinite")
                         .addSelectionListener(state -> checkBox.getWindow().<ProgressBar>getComponent("progress").setInfinite(state)))
                 .progressBar("progress", 100, progressBar -> progressBar
                         .setProgress(50)
                         .orientAdvanced(adv -> adv
-                                .configureAxis(Axis.X, calc -> calc.min(DistUnit.MULT, 0.05d, Axis.WIDTH))
-                                .configureAxis(Axis.WIDTH, calc -> calc.min(DistUnit.MULT, 0.9d, Axis.WIDTH))
+                                .x(0.05d)
+                                .width(0.9d)
                                 .configureAxis(Axis.Y, calc -> calc
                                         .min(DistUnit.MULT, 0.95d, Axis.HEIGHT, DistUnit.PX, -30)
                                         .ease(DistUnit.MULT, 0.1d, Axis.HEIGHT))

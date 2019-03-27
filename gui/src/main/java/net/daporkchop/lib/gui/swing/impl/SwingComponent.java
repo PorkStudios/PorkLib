@@ -28,6 +28,7 @@ import net.daporkchop.lib.gui.component.type.functional.Label;
 import net.daporkchop.lib.gui.swing.type.window.AbstractSwingWindow;
 import net.daporkchop.lib.gui.util.Side;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
+import net.daporkchop.lib.gui.util.math.Size;
 
 import javax.swing.*;
 import java.awt.*;
@@ -82,6 +83,7 @@ public abstract class SwingComponent<Impl extends Component, Swing extends JComp
         if (this.swing != null) {
             super.update();
             this.bounds = this.calculateBounds();
+            this.minBounds = this.calculateBounds();
             this.swing.setBounds(this.bounds.getX(), this.bounds.getY(), this.bounds.getWidth(), this.bounds.getHeight());
         }
         return (Impl) this;
@@ -106,6 +108,20 @@ public abstract class SwingComponent<Impl extends Component, Swing extends JComp
             this.minDimensionsAreValueSize = true;
             return this.considerUpdate();
         }
+    }
+
+    @Override
+    public BoundingBox computeMinBounds() {
+        Dimension preferred = this.swing.getPreferredSize();
+        if (preferred != null)  {
+            BoundingBox bounds = this.orientation == null ? null : this.orientation.getMin(this.parent.getBounds(), this.parent, (Impl) this);
+            if (bounds == null) {
+                return this.bounds.set(Size.of(preferred.width, preferred.height));
+            } else {
+                return bounds.set(Size.of(Math.max(preferred.width, bounds.getWidth()), Math.max(preferred.height, bounds.getHeight())));
+            }
+        }
+        return null;
     }
 
     @Override

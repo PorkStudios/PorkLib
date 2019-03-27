@@ -31,4 +31,12 @@ public interface Calculator<T extends Component> {
     default Calculator<T> plus(@NonNull Calculator<T> other)    {
         return new SumCalculator<T>().plus(this).plus(other);
     }
+
+    default boolean hasMin()    {
+        return false;
+    }
+
+    default int getMin(@NonNull BoundingBox bb, @NonNull Container parent, @NonNull T component, @NonNull int[] dims)   {
+        return -1;
+    }
 }

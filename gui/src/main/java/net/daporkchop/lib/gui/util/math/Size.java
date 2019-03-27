@@ -17,13 +17,15 @@ package net.daporkchop.lib.gui.util.math;
 
 import lombok.Data;
 
+import java.awt.*;
+
 /**
  * A size in 2D space
  *
  * @author DaPorkchop_
  */
 public interface Size<Impl extends Size> extends Constraint {
-    static Size at(int width, int height) {
+    static Size of(int width, int height) {
         return new Default(width, height);
     }
 
@@ -65,6 +67,10 @@ public interface Size<Impl extends Size> extends Constraint {
     @Override
     default boolean hasWH() {
         return true;
+    }
+
+    default Dimension toAWTDimension()  {
+        return new Dimension(this.getWidth(), this.getHeight());
     }
 
     @Data

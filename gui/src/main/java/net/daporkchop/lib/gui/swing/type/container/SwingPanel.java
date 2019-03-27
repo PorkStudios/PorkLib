@@ -20,6 +20,7 @@ import net.daporkchop.lib.gui.component.state.container.PanelState;
 import net.daporkchop.lib.gui.component.type.container.Panel;
 import net.daporkchop.lib.gui.swing.common.SwingMouseListener;
 import net.daporkchop.lib.gui.swing.impl.SwingNestedContainer;
+import net.daporkchop.lib.gui.util.math.BoundingBox;
 
 import javax.swing.*;
 

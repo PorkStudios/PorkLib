@@ -20,7 +20,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.gui.component.Element;
 import net.daporkchop.lib.gui.component.state.ElementState;
-import net.daporkchop.lib.gui.util.event.handler.StateListener;
+import net.daporkchop.lib.gui.util.handler.StateListener;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 
 import java.util.LinkedHashMap;

@@ -24,7 +24,6 @@ import net.daporkchop.lib.gui.component.capability.SimpleIconHolder;
 import net.daporkchop.lib.gui.component.capability.Resizable;
 import net.daporkchop.lib.gui.component.capability.TextHolder;
 import net.daporkchop.lib.gui.component.state.WindowState;
-import net.daporkchop.lib.gui.util.event.EventManager;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 
 import java.util.StringJoiner;
@@ -38,10 +37,7 @@ import java.util.StringJoiner;
  */
 public interface Window extends Container<Window, WindowState>, Resizable<Window>, SimpleIconHolder<Window, WindowState> {
     String getTitle();
-
     Window setTitle(@NonNull String title);
-
-    EventManager getEventManager();
 
     @Override
     default Container getParent() {

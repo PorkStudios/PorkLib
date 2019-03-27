@@ -17,7 +17,7 @@ package net.daporkchop.lib.gui.component;
 
 import lombok.NonNull;
 import net.daporkchop.lib.gui.component.state.ElementState;
-import net.daporkchop.lib.gui.util.event.handler.StateListener;
+import net.daporkchop.lib.gui.util.handler.StateListener;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 import net.daporkchop.lib.gui.util.math.Constraint;
 

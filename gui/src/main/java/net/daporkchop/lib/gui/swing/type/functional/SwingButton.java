@@ -22,19 +22,11 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
 import net.daporkchop.lib.gui.component.state.functional.ButtonState;
 import net.daporkchop.lib.gui.component.type.functional.Button;
-import net.daporkchop.lib.gui.swing.SwingTextAlignment;
 import net.daporkchop.lib.gui.swing.common.SwingMouseListener;
-import net.daporkchop.lib.gui.swing.impl.SwingComponent;
-import net.daporkchop.lib.gui.util.HorizontalAlignment;
-import net.daporkchop.lib.gui.util.VerticalAlignment;
-import net.daporkchop.lib.gui.util.event.handler.ClickHandler;
-import net.daporkchop.lib.gui.util.math.BoundingBox;
+import net.daporkchop.lib.gui.util.handler.ClickHandler;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.MouseEvent;
-import java.util.EnumMap;
-import java.util.Map;
 
 /**
  * @author DaPorkchop_

@@ -13,17 +13,12 @@
  *
  */
 
-package net.daporkchop.lib.gui.util.event.handler;
-
-import lombok.NonNull;
-import net.daporkchop.lib.gui.component.Component;
-import net.daporkchop.lib.gui.component.Element;
-import net.daporkchop.lib.gui.component.state.ElementState;
+package net.daporkchop.lib.gui.util.handler;
 
 /**
  * @author DaPorkchop_
  */
 @FunctionalInterface
-public interface StateListener<E extends Element, State extends ElementState<? extends Element, State>> {
-    void onStateChange(@NonNull State state);
+public interface ClickHandler {
+    void onClick(int mouseButton, int x, int y);
 }

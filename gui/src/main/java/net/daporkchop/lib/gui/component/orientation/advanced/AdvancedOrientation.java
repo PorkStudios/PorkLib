@@ -141,15 +141,15 @@ public class AdvancedOrientation<T extends Component> implements Orientation<T> 
     }
 
     public AdvancedOrientation<T> relativeMin(@NonNull Axis axis, double padding, @NonNull Axis relativeAxis, @NonNull String... targets) {
-        if (Double.isNaN(padding))    {
+        if (Double.isNaN(padding)) {
             return this.configureAxis(axis, calc -> {
-                for (String target : targets)   {
+                for (String target : targets) {
                     calc = calc.min(DistUnit.RELATIVE, target, relativeAxis);
                 }
             });
         } else {
             return this.configureAxis(axis, calc -> {
-                for (String target : targets)   {
+                for (String target : targets) {
                     calc = calc.min(DistUnit.RELATIVE, target, relativeAxis, DistUnit.PX, padding);
                 }
             });
@@ -157,52 +157,97 @@ public class AdvancedOrientation<T extends Component> implements Orientation<T> 
     }
 
     //convenience methods for relative positioning to parent
-    public AdvancedOrientation<T> x(double value)   {
+    public AdvancedOrientation<T> x(double value) {
         return this.configureAxis(Axis.X, calc -> calc.ease(DistUnit.MULT, value, Axis.WIDTH));
     }
 
-    public AdvancedOrientation<T> x(double value, @NonNull Axis relativeTo)   {
+    public AdvancedOrientation<T> x(double value, @NonNull Axis relativeTo) {
         return this.configureAxis(Axis.X, calc -> calc.ease(DistUnit.MULT, value, relativeTo));
     }
 
-    public AdvancedOrientation<T> y(double value)   {
+    public AdvancedOrientation<T> y(double value) {
         return this.configureAxis(Axis.Y, calc -> calc.ease(DistUnit.MULT, value, Axis.HEIGHT));
     }
 
-    public AdvancedOrientation<T> y(double value, @NonNull Axis relativeTo)   {
+    public AdvancedOrientation<T> y(double value, @NonNull Axis relativeTo) {
         return this.configureAxis(Axis.Y, calc -> calc.ease(DistUnit.MULT, value, relativeTo));
     }
 
-    public AdvancedOrientation<T> width(double value)   {
+    public AdvancedOrientation<T> width(double value) {
         return this.configureAxis(Axis.WIDTH, calc -> calc.ease(DistUnit.MULT, value, Axis.WIDTH));
     }
 
-    public AdvancedOrientation<T> width(double value, @NonNull Axis relativeTo)   {
+    public AdvancedOrientation<T> width(double value, @NonNull Axis relativeTo) {
         return this.configureAxis(Axis.WIDTH, calc -> calc.ease(DistUnit.MULT, value, relativeTo));
     }
 
-    public AdvancedOrientation<T> height(double value)   {
+    public AdvancedOrientation<T> height(double value) {
         return this.configureAxis(Axis.HEIGHT, calc -> calc.ease(DistUnit.MULT, value, Axis.HEIGHT));
     }
 
-    public AdvancedOrientation<T> height(double value, @NonNull Axis relativeTo)   {
+    public AdvancedOrientation<T> height(double value, @NonNull Axis relativeTo) {
         return this.configureAxis(Axis.HEIGHT, calc -> calc.ease(DistUnit.MULT, value, relativeTo));
     }
-    
+
     //convenience methods for copying the position from another element
-    public AdvancedOrientation<T> copyX(@NonNull String componentName)  {
+    public AdvancedOrientation<T> copyX(@NonNull String componentName) {
         return this.configureAxis(Axis.X, calc -> calc.ease(DistUnit.RELATIVE, componentName, Axis.X));
     }
 
-    public AdvancedOrientation<T> copyY(@NonNull String componentName)  {
+    public AdvancedOrientation<T> copyY(@NonNull String componentName) {
         return this.configureAxis(Axis.Y, calc -> calc.ease(DistUnit.RELATIVE, componentName, Axis.Y));
     }
 
-    public AdvancedOrientation<T> copyWidth(@NonNull String componentName)  {
+    public AdvancedOrientation<T> copyWidth(@NonNull String componentName) {
         return this.configureAxis(Axis.WIDTH, calc -> calc.ease(DistUnit.RELATIVE, componentName, Axis.WIDTH));
     }
 
-    public AdvancedOrientation<T> copyHeight(@NonNull String componentName)  {
+    public AdvancedOrientation<T> copyHeight(@NonNull String componentName) {
         return this.configureAxis(Axis.HEIGHT, calc -> calc.ease(DistUnit.RELATIVE, componentName, Axis.HEIGHT));
+    }
+
+    public AdvancedOrientation<T> copyXAndWidth(@NonNull String componentName) {
+        return this.configureAxis(Axis.X, calc -> calc.ease(DistUnit.RELATIVE, componentName, Axis.X))
+                .configureAxis(Axis.WIDTH, calc -> calc.ease(DistUnit.RELATIVE, componentName, Axis.WIDTH));
+    }
+
+    public AdvancedOrientation<T> copyYAndHeight(@NonNull String componentName) {
+        return this.configureAxis(Axis.Y, calc -> calc.ease(DistUnit.RELATIVE, componentName, Axis.Y))
+                .configureAxis(Axis.HEIGHT, calc -> calc.ease(DistUnit.RELATIVE, componentName, Axis.HEIGHT));
+    }
+
+    public AdvancedOrientation<T> copyYAndWidth(@NonNull String componentName) {
+        return this.configureAxis(Axis.Y, calc -> calc.ease(DistUnit.RELATIVE, componentName, Axis.Y))
+                .configureAxis(Axis.WIDTH, calc -> calc.ease(DistUnit.RELATIVE, componentName, Axis.WIDTH));
+    }
+
+    public AdvancedOrientation<T> copyXAndHeight(@NonNull String componentName) {
+        return this.configureAxis(Axis.X, calc -> calc.ease(DistUnit.RELATIVE, componentName, Axis.X))
+                .configureAxis(Axis.HEIGHT, calc -> calc.ease(DistUnit.RELATIVE, componentName, Axis.HEIGHT));
+    }
+
+    //merged convenience methods
+    public AdvancedOrientation<T> belowAndCopyX(@NonNull String componentName) {
+        return this.copyX(componentName)                .below(componentName);
+    }
+
+    public AdvancedOrientation<T> rightAndCopyY(@NonNull String componentName) {
+        return this.copyY(componentName).right(componentName);
+    }
+
+    public AdvancedOrientation<T> belowAndCopyXAndWidth(@NonNull String componentName) {
+        return this.copyXAndWidth(componentName).below(componentName);
+    }
+
+    public AdvancedOrientation<T> rightAndCopyYAndHeight(@NonNull String componentName) {
+        return this.copyYAndHeight(componentName).right(componentName);
+    }
+
+    public AdvancedOrientation<T> belowAndCopyXAndHeight(@NonNull String componentName) {
+        return this.copyXAndHeight(componentName).below(componentName);
+    }
+
+    public AdvancedOrientation<T> rightAndCopyYAndWidth(@NonNull String componentName) {
+        return this.copyYAndWidth(componentName).right(componentName);
     }
 }

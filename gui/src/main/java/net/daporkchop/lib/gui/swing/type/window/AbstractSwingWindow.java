@@ -24,10 +24,8 @@ import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
 import net.daporkchop.lib.gui.component.state.WindowState;
 import net.daporkchop.lib.gui.component.type.Window;
 import net.daporkchop.lib.gui.swing.impl.SwingContainer;
-import net.daporkchop.lib.gui.util.event.EventManager;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
@@ -43,8 +41,6 @@ import java.util.stream.Stream;
 @Setter(AccessLevel.PROTECTED)
 @Accessors(chain = true)
 public abstract class AbstractSwingWindow<Impl extends AbstractSwingWindow<Impl, Swing>, Swing extends java.awt.Window> extends SwingContainer<Window, Swing, WindowState> implements Window {
-    protected final EventManager eventManager = new EventManager();
-
     protected BoundingBox oldDimensions;
     protected PIcon icon;
 

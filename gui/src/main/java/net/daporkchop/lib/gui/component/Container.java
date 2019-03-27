@@ -52,4 +52,13 @@ public interface Container<Impl extends Container, State extends ElementState<? 
     }
 
     Impl removeChild(@NonNull String name, boolean update);
+
+    boolean isClampedToValueMinSizes();
+    Impl setClampedToValueMinSizes(boolean state);
+    default Impl clampToValueMinSizes()   {
+        return this.setClampedToValueMinSizes(true);
+    }
+    default Impl unclampFromValueMinSizes()   {
+        return this.setClampedToValueMinSizes(false);
+    }
 }

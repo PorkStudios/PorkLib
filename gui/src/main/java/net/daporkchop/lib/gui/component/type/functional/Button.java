@@ -20,7 +20,7 @@ import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.capability.IconHolder;
 import net.daporkchop.lib.gui.component.capability.TextHolder;
 import net.daporkchop.lib.gui.component.state.functional.ButtonState;
-import net.daporkchop.lib.gui.util.event.handler.ClickHandler;
+import net.daporkchop.lib.gui.util.handler.ClickHandler;
 
 /**
  * A button can display text or an icon, and has a single click handler that is invoked when the

@@ -17,13 +17,8 @@ package net.daporkchop.lib.gui.swing.type.functional;
 
 import lombok.NonNull;
 import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
-import net.daporkchop.lib.gui.component.orientation.Orientation;
-import net.daporkchop.lib.gui.component.state.functional.ButtonState;
 import net.daporkchop.lib.gui.component.state.functional.CheckBoxState;
-import net.daporkchop.lib.gui.component.type.functional.Button;
 import net.daporkchop.lib.gui.component.type.functional.CheckBox;
-import net.daporkchop.lib.gui.swing.impl.SwingComponent;
-import net.daporkchop.lib.gui.util.event.handler.StateListener;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;

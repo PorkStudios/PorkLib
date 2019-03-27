@@ -160,25 +160,18 @@ public class GuiExample implements Logging {
                         .orientAdvanced(adv -> adv
                                 .x(0.05d)
                                 .y(0.05d))
-                        .minDimensionsAreValueSize()
-                        .setPadding(2)
+                        .minDimensionsAreValueSize().pad(2)
                         .addChangeListener(val -> {
                             spinner.getWindow().<Spinner>getComponent("value").setMaxValue(val);
                             spinner.getWindow().<ProgressBar>getComponent("progress").setEnd(val);
                         }))
                 .spinner("value", 50, 0, 100, 1, spinner -> spinner
-                        .orientAdvanced(adv -> adv
-                                .copyX("max")
-                                .below("max"))
-                        .minDimensionsAreValueSize()
-                        .setPadding(2)
+                        .orientAdvanced(adv -> adv.belowAndCopyX("max"))
+                        .minDimensionsAreValueSize().pad(2)
                         .addChangeListener(val -> spinner.getWindow().<ProgressBar>getComponent("progress").setProgress(val)))
                 .checkBox("infinite", checkBox -> checkBox
-                        .orientAdvanced(adv -> adv
-                                .copyX("max")
-                                .below("value"))
-                        .minDimensionsAreValueSize()
-                        .setPadding(2)
+                        .orientAdvanced(adv -> adv.belowAndCopyX("value"))
+                        .minDimensionsAreValueSize().pad(2)
                         .addSelectionListener(state -> checkBox.getWindow().<ProgressBar>getComponent("progress").setInfinite(state)))
                 .progressBar("progress", 100, progressBar -> progressBar
                         .setProgress(50)
@@ -194,9 +187,18 @@ public class GuiExample implements Logging {
                 .label("maxLabel", "Maximum progress", label -> label
                         .orientAdvanced(adv -> adv
                                 .right("max", "value", "infinite")
-                                .copyY("max"))
-                        .minDimensionsAreValueSize()
-                        .setPadding(2))
+                                .copyYAndHeight("max"))
+                        .minDimensionsAreValueSize().pad(2).padLeft(10))
+                .label("valueLabel", "Progress", label -> label
+                        .orientAdvanced(adv -> adv
+                                .copyX("maxLabel")
+                                .copyYAndHeight("value"))
+                        .minDimensionsAreValueSize().pad(2))
+                .label("infiniteLabel", "Infinite", label -> label
+                        .orientAdvanced(adv -> adv
+                                .copyX("maxLabel")
+                                .copyYAndHeight("infinite"))
+                        .minDimensionsAreValueSize().pad(2))
                 .show();
     }
 

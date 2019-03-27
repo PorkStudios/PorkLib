@@ -21,7 +21,7 @@ import net.daporkchop.lib.gui.component.capability.IconHolder;
 import net.daporkchop.lib.gui.component.capability.TextHolder;
 import net.daporkchop.lib.gui.component.state.functional.RadioButtonState;
 import net.daporkchop.lib.gui.component.type.misc.RadioButtonGroup;
-import net.daporkchop.lib.gui.util.event.handler.StateListener;
+import net.daporkchop.lib.gui.util.handler.StateListener;
 
 import java.util.function.Consumer;
 

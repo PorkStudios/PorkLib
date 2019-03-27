@@ -24,10 +24,8 @@ import net.daporkchop.lib.gui.component.orientation.StaticOrientation;
 import net.daporkchop.lib.gui.component.orientation.advanced.AdvancedOrientation;
 import net.daporkchop.lib.gui.component.state.ElementState;
 import net.daporkchop.lib.gui.component.type.Window;
-import net.daporkchop.lib.gui.util.HorizontalAlignment;
 import net.daporkchop.lib.gui.util.Side;
-import net.daporkchop.lib.gui.util.VerticalAlignment;
-import net.daporkchop.lib.gui.util.event.handler.StateListener;
+import net.daporkchop.lib.gui.util.handler.StateListener;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 import net.daporkchop.lib.gui.util.math.Constraint;
 
@@ -68,6 +66,27 @@ public interface Component<Impl extends Component, State extends ElementState<? 
     int getPadding(@NonNull Side side);
     default Impl setPadding(int padding)    {
         return this.setPadding(Side.ALL, padding);
+    }
+    default Impl pad(int padding)    {
+        return this.setPadding(Side.ALL, padding);
+    }
+    default Impl padTop(int padding)    {
+        return this.setPadding(Side.TOP, padding);
+    }
+    default Impl padBottom(int padding)    {
+        return this.setPadding(Side.BOTTOM, padding);
+    }
+    default Impl padLeft(int padding)    {
+        return this.setPadding(Side.LEFT, padding);
+    }
+    default Impl padRight(int padding)    {
+        return this.setPadding(Side.RIGHT, padding);
+    }
+    default Impl padTopBottom(int padding)    {
+        return this.setPadding(Side.TOP_BOTTOM, padding);
+    }
+    default Impl padLeftRight(int padding)    {
+        return this.setPadding(Side.LEFT_RIGHT, padding);
     }
 
     //convenience methods

@@ -1,10 +1,9 @@
 package net.daporkchop.lib.gui.component.capability;
 
 import lombok.NonNull;
-import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.Element;
 import net.daporkchop.lib.gui.component.state.ElementState;
-import net.daporkchop.lib.gui.util.event.handler.StateListener;
+import net.daporkchop.lib.gui.util.handler.StateListener;
 
 import java.util.function.Consumer;
 

@@ -168,10 +168,18 @@ public class GuiExample implements Logging {
                 .spinner("value", 50, 0, 100, 1, spinner -> spinner
                         .orientAdvanced(adv -> adv
                                 .configureAxis(Axis.X, calc -> calc.min(DistUnit.MULT, 0.05d, Axis.WIDTH))
-                                .configureAxis(Axis.X, calc -> calc.min(DistUnit.RELATIVE, "max", Axis.BELOW)))
+                                .configureAxis(Axis.Y, calc -> calc.min(DistUnit.RELATIVE, "max", Axis.BELOW)))
                         .minDimensionsAreValueSize()
                         .addChangeListener(val -> spinner.getWindow().<ProgressBar>getComponent("progress").setProgress(val)))
+                .checkBox("infinite", checkBox -> checkBox
+                        .orientAdvanced(adv -> adv
+                                .configureAxis(Axis.X, calc -> calc.min(DistUnit.MULT, 0.05d, Axis.WIDTH))
+                                .configureAxis(Axis.Y, calc -> calc.min(DistUnit.RELATIVE, "value", Axis.BELOW)))
+                        .minDimensionsAreValueSize()
+                        .setText("Infinite")
+                        .addSelectionListener(state -> checkBox.getWindow().<ProgressBar>getComponent("progress").setInfinite(state)))
                 .progressBar("progress", 100, progressBar -> progressBar
+                        .setProgress(50)
                         .orientAdvanced(adv -> adv
                                 .configureAxis(Axis.X, calc -> calc.min(DistUnit.MULT, 0.05d, Axis.WIDTH))
                                 .configureAxis(Axis.WIDTH, calc -> calc.min(DistUnit.MULT, 0.9d, Axis.WIDTH))

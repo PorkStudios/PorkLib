@@ -43,7 +43,7 @@ public class AdvancedCalculator<T extends Component> implements Calculator<T> {
         if (this.mins.isEmpty()) {
             min = 0;
         } else {
-            min = Integer.MIN_VALUE;
+            min = 0;
             for (Calculator<T> calculator : this.mins) {
                 min = Math.max(min, calculator.get(bb, parent, component, dims));
             }
@@ -61,6 +61,20 @@ public class AdvancedCalculator<T extends Component> implements Calculator<T> {
             int j = 0;
         }*/ //debugger time!
         return Math.max(min, Math.min(max, between));
+    }
+
+    @Override
+    public boolean hasMin() {
+        return !this.mins.isEmpty();
+    }
+
+    @Override
+    public int getMin(BoundingBox bb, Container parent, T component, int[] dims) {
+        int min = -1;
+        for (Calculator<T> calculator : this.mins) {
+            min = Math.max(min, calculator.get(bb, parent, component, dims));
+        }
+        return min;
     }
 
     public AdvancedCalculator<T> min(@NonNull Calculator<T> calculator) {

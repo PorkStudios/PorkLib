@@ -51,6 +51,27 @@ public class AdvancedOrientation<T extends Component> implements Orientation<T> 
         return new BoundingBox(cache[0], cache[1], cache[2], cache[3]);
     }
 
+    @Override
+    public BoundingBox getMin(@NonNull BoundingBox bb, @NonNull Container parent, @NonNull T component) {
+        JEFF:
+        {
+            for (int i = 3; i >= 0; i--) {
+                if (this.calculators[i].hasMin()) {
+                    break JEFF; //y java not have goto reee
+                }
+            }
+            return null;
+        }
+        int[] cache = this.cache;
+        cache[0] = cache[1] = cache[2] = cache[3] = -1;
+        for (int i = 0; i < 4; i++) {
+            if ((cache[i] = this.calculators[i].getMin(bb, parent, component, cache)) == -1)    {
+                cache[i] = this.calcAxes[i].getFrom(component.getBounds());
+            }
+        }
+        return new BoundingBox(cache[0], cache[1], cache[2], cache[3]);
+    }
+
     public AdvancedOrientation<T> setPriority(@NonNull Axis axis, @NonNull UpdatePriority priority) {
         int ordinal = priority.ordinal();
         if (this.calcAxes[ordinal] == axis) {

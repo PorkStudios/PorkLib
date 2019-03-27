@@ -20,6 +20,8 @@ import lombok.NonNull;
 import net.daporkchop.lib.gui.component.Element;
 import net.daporkchop.lib.gui.component.impl.AbstractElement;
 import net.daporkchop.lib.gui.component.state.ElementState;
+import net.daporkchop.lib.gui.util.math.BoundingBox;
+import net.daporkchop.lib.gui.util.math.Size;
 
 import javax.swing.*;
 import java.awt.*;
@@ -30,6 +32,8 @@ import java.awt.*;
 @Getter
 public abstract class SwingElement<Impl extends Element, Swing extends java.awt.Component, State extends ElementState<? extends Element, State>> extends AbstractElement<Impl, State> {
     protected final Swing swing;
+
+    protected BoundingBox minBounds = null;
 
     public SwingElement(String name, Swing swing) {
         super(name);
@@ -50,4 +54,6 @@ public abstract class SwingElement<Impl extends Element, Swing extends java.awt.
     public boolean isVisible() {
         return this.swing.isVisible();
     }
+
+    public abstract BoundingBox computeMinBounds();
 }

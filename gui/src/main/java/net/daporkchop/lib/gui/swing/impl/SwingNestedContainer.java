@@ -21,6 +21,7 @@ import net.daporkchop.lib.gui.component.Element;
 import net.daporkchop.lib.gui.component.NestedContainer;
 import net.daporkchop.lib.gui.component.state.ElementState;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
+import net.daporkchop.lib.gui.util.math.Size;
 
 import javax.swing.*;
 import java.util.Collections;
@@ -34,6 +35,8 @@ import java.util.Map;
 public abstract class SwingNestedContainer<Impl extends NestedContainer, Swing extends JComponent, State extends ElementState<? extends Element, State>> extends SwingComponent<Impl, Swing, State> implements NestedContainer<Impl, State>, IBasicSwingContainer<Impl, Swing, State> {
     protected final Map<String, Component> children = Collections.synchronizedMap(new HashMap<>());
 
+    protected boolean clampedToValueMinSizes = false;
+
     public SwingNestedContainer(String name, Swing swing) {
         super(name, swing);
     }
@@ -43,6 +46,36 @@ public abstract class SwingNestedContainer<Impl extends NestedContainer, Swing e
     public Impl update() {
         super.update();
         this.children.forEach((name, element) -> element.update());
+        this.minBounds = this.computeMinBounds();
         return (Impl) this;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public Impl setClampedToValueMinSizes(boolean state) {
+        if (state != this.clampedToValueMinSizes) {
+            this.clampedToValueMinSizes = state;
+            this.considerUpdate();
+        }
+        return (Impl) this;
+    }
+
+    @Override
+    public BoundingBox computeMinBounds() {
+        if (this.clampedToValueMinSizes)    {
+            BoundingBox componentBounds = super.computeMinBounds();
+            BoundingBox containerBounds = IBasicSwingContainer.super.computeMinBounds();
+            if (componentBounds == null && containerBounds == null) {
+                return null;
+            } else if (componentBounds == null) {
+                return containerBounds;
+            } else if (containerBounds == null) {
+                return componentBounds;
+            } else {
+                return this.bounds.set(Size.of(Math.max(componentBounds.getWidth(), containerBounds.getWidth()), Math.max(componentBounds.getHeight(), containerBounds.getHeight())));
+            }
+        } else {
+            return super.computeMinBounds();
+        }
     }
 }

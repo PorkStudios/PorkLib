@@ -21,6 +21,9 @@ import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
+import net.daporkchop.lib.gui.component.Component;
+import net.daporkchop.lib.gui.component.Element;
+import net.daporkchop.lib.gui.component.orientation.advanced.Axis;
 import net.daporkchop.lib.gui.component.state.WindowState;
 import net.daporkchop.lib.gui.component.type.Window;
 import net.daporkchop.lib.gui.swing.impl.SwingContainer;
@@ -50,6 +53,11 @@ public abstract class AbstractSwingWindow<Impl extends AbstractSwingWindow<Impl,
     protected boolean closing = false;
     protected boolean closed = false;
 
+    protected boolean clampedToValueMinSizes = false;
+
+    @Getter(value = AccessLevel.PROTECTED)
+    protected volatile boolean updating;
+
     public AbstractSwingWindow(String name, Swing swing) {
         super(name, swing);
 
@@ -60,9 +68,9 @@ public abstract class AbstractSwingWindow<Impl extends AbstractSwingWindow<Impl,
 
     @Override
     public WindowState getState() {
-        if (!this.built)    {
+        if (!this.built) {
             return WindowState.CONSTRUCTION;
-        } else if (this.isVisible())    {
+        } else if (this.isVisible()) {
             if (this.minimized) {
                 return WindowState.VISIBLE_MINIMIZED;
             } else if (this.active) {
@@ -72,7 +80,7 @@ public abstract class AbstractSwingWindow<Impl extends AbstractSwingWindow<Impl,
             }
         } else if (this.closed) {
             return WindowState.CLOSED;
-        } else if (this.closing)    {
+        } else if (this.closing) {
             return WindowState.CLOSING;
         } else {
             return WindowState.HIDDEN;
@@ -82,7 +90,7 @@ public abstract class AbstractSwingWindow<Impl extends AbstractSwingWindow<Impl,
     @Override
     @SuppressWarnings("unchecked")
     public Impl setIcon(@NonNull PIcon icon) {
-        if (icon != this.icon)  {
+        if (icon != this.icon) {
             this.icon = icon;
             this.swing.setIconImage(icon.getAsBufferedImage());
         }
@@ -92,19 +100,19 @@ public abstract class AbstractSwingWindow<Impl extends AbstractSwingWindow<Impl,
     @Override
     @SuppressWarnings("unchecked")
     public Impl setIcon(@NonNull PIcon... icons) {
-        if (icons.length == 0)  {
+        if (icons.length == 0) {
             throw new IllegalArgumentException("Arguments may not be empty!");
         }
         int max = Integer.MIN_VALUE;
         PIcon maxI = null;
         for (int i = icons.length - 1; i >= 0; i--) {
-            if (icons[i] == null)   {
+            if (icons[i] == null) {
                 throw new NullPointerException();
             }
             PIcon icon = icons[i];
-            if (icon.isEmpty() || icon.getWidth() != icon.getHeight())  {
+            if (icon.isEmpty() || icon.getWidth() != icon.getHeight()) {
                 throw new IllegalArgumentException("Icon must be square!");
-            } else if (icon.getWidth() > max)   {
+            } else if (icon.getWidth() > max) {
                 max = icon.getWidth();
                 maxI = icon;
             }
@@ -140,7 +148,25 @@ public abstract class AbstractSwingWindow<Impl extends AbstractSwingWindow<Impl,
         if (this.oldDimensions == null || !this.oldDimensions.equals(this.bounds)) {
             this.oldDimensions = this.bounds;
         }
-        this.children.forEach((name, element) -> element.update());
+        this.children.values().forEach(Element::update);
+        if (!this.updating) {
+            this.updating = true;
+            if (this.clampedToValueMinSizes) {
+                this.minBounds = this.computeMinBounds();
+                if (this.bounds.getWidth() < this.minBounds.getWidth()
+                        || this.bounds.getHeight() < this.minBounds.getHeight()) {
+                    Insets insets = this.swing.getInsets();
+                    this.swing.setBounds(
+                            this.swing.getX(),
+                            this.swing.getY(),
+                            Math.max(this.bounds.getWidth(), this.minBounds.getWidth()) + insets.right + insets.left,
+                            Math.max(this.bounds.getHeight(), this.minBounds.getHeight()) + insets.top + insets.bottom
+                    );
+                    //TODO: this isn't so pretty
+                }
+            }
+            this.updating = false;
+        }
         this.swing.revalidate();
         return (Impl) this;
     }
@@ -150,7 +176,18 @@ public abstract class AbstractSwingWindow<Impl extends AbstractSwingWindow<Impl,
         this.swing.dispose();
     }
 
-    protected class SwingWindowListener implements WindowListener  {
+    @Override
+    public Window setClampedToValueMinSizes(boolean state) {
+        if (state != this.clampedToValueMinSizes) {
+            if (!(this.clampedToValueMinSizes = state)) {
+                this.swing.setMinimumSize(null);
+            }
+            this.considerUpdate();
+        }
+        return this;
+    }
+
+    protected class SwingWindowListener implements WindowListener {
         @Override
         public void windowOpened(WindowEvent e) {
             AbstractSwingWindow.this.setBuilt(true).fireStateChange();
@@ -159,7 +196,7 @@ public abstract class AbstractSwingWindow<Impl extends AbstractSwingWindow<Impl,
         @Override
         public void windowClosing(WindowEvent e) {
             AbstractSwingWindow.this.setClosing(true).fireStateChange();
-            AbstractSwingWindow.this.release(); //TODO: custom handling
+            AbstractSwingWindow.this.release();
         }
 
         @Override
@@ -198,7 +235,7 @@ public abstract class AbstractSwingWindow<Impl extends AbstractSwingWindow<Impl,
         public void componentMoved(ComponentEvent e) {
             java.awt.Window window = AbstractSwingWindow.this.swing;
             Insets insets = window.getInsets();
-            AbstractSwingWindow.this.bounds = AbstractSwingWindow.this.oldDimensions;
+            //AbstractSwingWindow.this.bounds = AbstractSwingWindow.this.oldDimensions;
             AbstractSwingWindow.this.bounds = new BoundingBox(
                     window.getX(),
                     window.getY(),

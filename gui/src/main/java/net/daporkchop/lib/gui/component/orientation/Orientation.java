@@ -40,4 +40,8 @@ public interface Orientation<Impl extends Component> {
      * @return the new bounding box for the component
      */
     BoundingBox update(@NonNull BoundingBox bb, @NonNull Container parent, @NonNull Impl component);
+
+    default BoundingBox getMin(@NonNull BoundingBox bb, @NonNull Container parent, @NonNull Impl component) {
+        return null;
+    }
 }

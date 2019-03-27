@@ -13,37 +13,32 @@
  *
  */
 
-package net.daporkchop.lib.gui.component.orientation.advanced.calculator.dist;
+package net.daporkchop.lib.gui.util;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.gui.component.Component;
-import net.daporkchop.lib.gui.component.Container;
-import net.daporkchop.lib.gui.component.orientation.advanced.Axis;
-import net.daporkchop.lib.gui.component.orientation.advanced.Calculator;
-import net.daporkchop.lib.gui.util.math.BoundingBox;
 
 /**
  * @author DaPorkchop_
  */
+@NoArgsConstructor
 @Getter
-public class RelativeCalculator<T extends Component> implements Calculator<T> {
-    protected final Axis axis;
-    protected final String relative;
+public enum Side {
+    TOP,
+    BOTTOM,
+    LEFT,
+    RIGHT,
+    ALL(TOP, BOTTOM, LEFT, RIGHT),
+    TOP_BOTTOM(TOP, BOTTOM),
+    LEFT_RIGHT(LEFT, RIGHT),
+    ;
 
-    public RelativeCalculator(@NonNull Axis axis, @NonNull String relative)  {
-        this.axis = axis;
-        this.relative = relative;
-    }
+    @NonNull
+    protected Side[] delegates = {this};
 
-    @Override
-    public int get(@NonNull BoundingBox bb, @NonNull Container parent, @NonNull T component, @NonNull int[] dims) {
-        Component relative = parent.getChild(this.relative);
-        if (relative == null) {
-            throw new IllegalStateException(String.format("Couldn't find element with name: \"%s\"", this.relative));
-        } else {
-            return this.axis.getFrom(relative.getBounds(), relative, component);
-        }
+    Side(@NonNull Side... delegates)    {
+        this.delegates = delegates;
     }
 }

@@ -25,6 +25,7 @@ import net.daporkchop.lib.gui.component.orientation.advanced.AdvancedOrientation
 import net.daporkchop.lib.gui.component.state.ElementState;
 import net.daporkchop.lib.gui.component.type.Window;
 import net.daporkchop.lib.gui.util.HorizontalAlignment;
+import net.daporkchop.lib.gui.util.Side;
 import net.daporkchop.lib.gui.util.VerticalAlignment;
 import net.daporkchop.lib.gui.util.event.handler.StateListener;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
@@ -61,6 +62,13 @@ public interface Component<Impl extends Component, State extends ElementState<? 
     //state methods
     boolean isHovered();
     boolean isMouseDown();
+
+    //padding stuff
+    Impl setPadding(@NonNull Side side, int padding);
+    int getPadding(@NonNull Side side);
+    default Impl setPadding(int padding)    {
+        return this.setPadding(Side.ALL, padding);
+    }
 
     //convenience methods
     @SuppressWarnings("unchecked")

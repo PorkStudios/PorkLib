@@ -15,10 +15,15 @@
 
 package net.daporkchop.lib.gui.component.orientation.advanced;
 
+import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.gui.component.Component;
+import net.daporkchop.lib.gui.component.Element;
+import net.daporkchop.lib.gui.util.Side;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 
+import java.util.function.ToIntBiFunction;
 import java.util.function.ToIntFunction;
 
 /**
@@ -26,18 +31,27 @@ import java.util.function.ToIntFunction;
  */
 @RequiredArgsConstructor
 public enum Axis {
-    X(BoundingBox::getX),
-    Y(BoundingBox::getY),
-    WIDTH(BoundingBox::getWidth),
-    HEIGHT(BoundingBox::getHeight),
-    BELOW(bb -> bb.getY() + bb.getHeight()),
-    RIGHT(bb -> bb.getX() + bb.getWidth()),
+    X((this_, bb, target, dst) -> bb.getX()),
+    Y((this_, bb, target, dst) -> bb.getY()),
+    WIDTH((this_, bb, target, dst) -> bb.getWidth()),
+    HEIGHT((this_, bb, target, dst) -> bb.getHeight()),
+    BELOW((this_, bb, target, dst) -> bb.getY() + bb.getHeight() + (target == null ? 0 : target.getPadding(Side.BOTTOM) + (dst == null ? 0 : dst.getPadding(Side.TOP)))),
+    RIGHT((this_, bb, target, dst) -> bb.getX() + bb.getWidth() + (target == null ? 0 : target.getPadding(Side.RIGHT) + (dst == null ? 0 : dst.getPadding(Side.LEFT)))),
     ;
 
     @NonNull
-    protected final ToIntFunction<BoundingBox> getter;
+    protected final AxisGetter getter;
 
     public int getFrom(@NonNull BoundingBox bb) {
-        return this.getter.applyAsInt(bb);
+        return this.getter.get(this, bb, null, null);
+    }
+
+    public int getFrom(@NonNull BoundingBox bb, Component target, Component dst) {
+        return this.getter.get(this, bb, target, dst);
+    }
+
+    @FunctionalInterface
+    protected interface AxisGetter {
+        int get(@NonNull Axis this_, @NonNull BoundingBox bb, Component target, Component dst);
     }
 }

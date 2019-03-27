@@ -13,14 +13,11 @@
  *
  */
 
-package net.daporkchop.lib.gui.component.orientation.advanced.calculator;
+package net.daporkchop.lib.gui.component.orientation.advanced.calculator.dist;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.orientation.advanced.Axis;
@@ -32,48 +29,15 @@ import static net.daporkchop.lib.math.primitive.PMath.floorI;
 /**
  * @author DaPorkchop_
  */
-@AllArgsConstructor
 @RequiredArgsConstructor
 @Getter
-@Setter
-@Accessors(chain = true)
-public class DistCalculator<T extends Component> implements Calculator<T> {
+public class MultCalculator<T extends Component> implements Calculator<T> {
+    protected final double factor;
     @NonNull
-    protected final DistUnit unit;
-    protected double val;
-    protected Axis axis;
-    protected String relative;
+    protected final Axis axis;
 
     @Override
-    public int get(BoundingBox bb, Container parent, T component, int[] dims) {
-        switch (this.unit) {
-            case PX:
-                return floorI(this.val);
-            case MULT:
-                if (this.axis == null) {
-                    throw new IllegalStateException("Axis must be set!");
-                } else {
-                    //int i = this.axis.getFrom(bb);
-                    //double d = i * this.val;
-                    //i = floorI(d);
-                    //return i;
-                    return floorI(this.axis.getFrom(bb) * this.val);
-                }
-            case RELATIVE:
-                if (this.relative == null) {
-                    throw new IllegalStateException("Relative element name must be set!");
-                } else if (this.axis == null) {
-                    throw new IllegalStateException("Axis must be set!");
-                }
-                Component relative = parent.getChild(this.relative);
-                if (relative == null) {
-                    throw new IllegalStateException(String.format("Couldn't find element with name: \"%s\"", this.relative));
-                } else {
-                    return this.axis.getFrom(relative.getBounds());
-                }
-            case CM:
-                throw new UnsupportedOperationException("cm");
-        }
-        throw new IllegalStateException();
+    public int get(@NonNull BoundingBox bb, @NonNull Container parent, @NonNull T component, @NonNull int[] dims) {
+        return floorI(this.axis.getFrom(bb) * this.factor);
     }
 }

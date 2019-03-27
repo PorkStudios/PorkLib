@@ -17,8 +17,6 @@ package net.daporkchop.lib.gui.component.orientation.advanced.calculator;
 
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.orientation.advanced.Axis;
@@ -28,9 +26,6 @@ import net.daporkchop.lib.gui.util.math.BoundingBox;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.function.Consumer;
-
-import static java.lang.Math.max;
-import static java.lang.Math.min;
 
 /**
  * @author DaPorkchop_
@@ -49,7 +44,7 @@ public class AdvancedCalculator<T extends Component> implements Calculator<T> {
             min = 0;
         } else {
             min = Integer.MIN_VALUE;
-            for (Calculator<T> calculator : this.mins)  {
+            for (Calculator<T> calculator : this.mins) {
                 min = Math.max(min, calculator.get(bb, parent, component, dims));
             }
         }
@@ -58,7 +53,7 @@ public class AdvancedCalculator<T extends Component> implements Calculator<T> {
             max = Integer.MAX_VALUE;
         } else {
             max = Integer.MAX_VALUE;
-            for (Calculator<T> calculator : this.maxes)  {
+            for (Calculator<T> calculator : this.maxes) {
                 max = Math.min(max, calculator.get(bb, parent, component, dims));
             }
         }
@@ -102,45 +97,56 @@ public class AdvancedCalculator<T extends Component> implements Calculator<T> {
     }
 
     //convenience methods
-    public AdvancedCalculator<T> max(@NonNull Object... args)   {
+    public AdvancedCalculator<T> max(@NonNull Object... args) {
         return this.max(this.parse(args));
     }
 
-    public AdvancedCalculator<T> min(@NonNull Object... args)   {
+    public AdvancedCalculator<T> min(@NonNull Object... args) {
         return this.min(this.parse(args));
     }
 
-    public AdvancedCalculator<T> ease(@NonNull Object... args)   {
+    public AdvancedCalculator<T> ease(@NonNull Object... args) {
         return this.ease(this.parse(args));
     }
 
     @SuppressWarnings("unchecked")
-    protected Calculator<T> parse(@NonNull Object... args)   {
+    protected Calculator<T> parse(@NonNull Object... args) {
         SumCalculator<T> calculator = new SumCalculator<>();
         if (args.length != 0) {
-            DistCalculator<T> dist = null;
+            DistUnit unit = null;
+            double dVal = Double.NaN;
+            Axis axis = null;
+            String relative = null;
             for (Object o : args) {
-                if (o instanceof DistUnit)  {
-                    if (dist != null)   {
-                        calculator = calculator.plus(dist);
+                if (o instanceof DistUnit) {
+                    if (unit != null) {
+                        calculator = calculator.plus(unit.create(dVal, axis, relative));
                     }
-                    dist = new DistCalculator<>((DistUnit) o);
-                } else if (o instanceof Number) {
-                    dist.setVal(((Number) o).doubleValue());
-                } else if (o instanceof Axis)   {
-                    dist.setAxis((Axis) o);
-                } else if (o instanceof String) {
-                    dist.setRelative((String) o);
+                    unit = (DistUnit) o;
+                    dVal = Double.NaN;
+                    axis = null;
+                    relative = null;
                 } else if (o instanceof Calculator) {
-                    if (dist != null)   {
-                        calculator = calculator.plus(dist);
-                        dist = null;
+                    if (unit != null) {
+                        calculator = calculator.plus(unit.create(dVal, axis, relative));
+                        unit = null;
+                        dVal = Double.NaN;
+                        axis = null;
+                        relative = null;
                     }
                     calculator = calculator.plus((Calculator) o);
+                } else if (unit == null) {
+                    throw new IllegalStateException("DistUnit not set!");
+                } else if (o instanceof Number) {
+                    dVal = ((Number) o).doubleValue();
+                } else if (o instanceof Axis) {
+                    axis = (Axis) o;
+                } else if (o instanceof String) {
+                    relative = (String) o;
                 }
             }
-            if (dist != null)   {
-                calculator = calculator.plus(dist);
+            if (unit != null) {
+                calculator = calculator.plus(unit.create(dVal, axis, relative));
             }
         }
         return calculator.build();

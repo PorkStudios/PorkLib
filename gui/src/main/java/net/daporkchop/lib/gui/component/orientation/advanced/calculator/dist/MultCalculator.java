@@ -29,12 +29,18 @@ import static net.daporkchop.lib.math.primitive.PMath.floorI;
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
 @Getter
 public class MultCalculator<T extends Component> implements Calculator<T> {
     protected final double factor;
-    @NonNull
     protected final Axis axis;
+
+    public MultCalculator(double factor, @NonNull Axis axis)    {
+        this.factor = factor;
+        this.axis = axis;
+        if (!(axis == Axis.X || axis == Axis.Y || axis == Axis.WIDTH || axis == Axis.HEIGHT))   {
+            throw new IllegalArgumentException(String.format("Invalid axis: %s", axis));
+        }
+    }
 
     @Override
     public int get(@NonNull BoundingBox bb, @NonNull Container parent, @NonNull T component, @NonNull int[] dims) {

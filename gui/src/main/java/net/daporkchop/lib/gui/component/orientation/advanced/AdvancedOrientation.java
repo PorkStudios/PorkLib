@@ -92,55 +92,55 @@ public class AdvancedOrientation<T extends Component> implements Orientation<T> 
     }
 
     //convenience methods for relative positioning to other components
-    public AdvancedOrientation<T> below(@NonNull Axis axis, @NonNull String... targets) {
-        return this.relative(axis, Double.NaN, Axis.BELOW, targets);
+    public AdvancedOrientation<T> below(@NonNull String... targets) {
+        return this.relativeMin(Axis.Y, Double.NaN, Axis.BELOW, targets);
     }
 
-    public AdvancedOrientation<T> below(@NonNull Axis axis, double padding, @NonNull String... targets) {
-        return this.relative(axis, padding, Axis.BELOW, targets);
+    public AdvancedOrientation<T> below(double padding, @NonNull String... targets) {
+        return this.relativeMin(Axis.Y, padding, Axis.BELOW, targets);
     }
 
-    public AdvancedOrientation<T> right(@NonNull Axis axis, @NonNull String... targets) {
-        return this.relative(axis, Double.NaN, Axis.RIGHT, targets);
+    public AdvancedOrientation<T> right(@NonNull String... targets) {
+        return this.relativeMin(Axis.X, Double.NaN, Axis.RIGHT, targets);
     }
 
-    public AdvancedOrientation<T> right(@NonNull Axis axis, double padding, @NonNull String... targets) {
-        return this.relative(axis, padding, Axis.RIGHT, targets);
+    public AdvancedOrientation<T> right(double padding, @NonNull String... targets) {
+        return this.relativeMin(Axis.X, padding, Axis.RIGHT, targets);
     }
 
-    public AdvancedOrientation<T> x(@NonNull Axis axis, @NonNull String... targets) {
-        return this.relative(axis, Double.NaN, Axis.X, targets);
+    public AdvancedOrientation<T> xMin(@NonNull Axis axis, @NonNull String... targets) {
+        return this.relativeMin(axis, Double.NaN, Axis.X, targets);
     }
 
-    public AdvancedOrientation<T> x(@NonNull Axis axis, double padding, @NonNull String... targets) {
-        return this.relative(axis, padding, Axis.X, targets);
+    public AdvancedOrientation<T> xMin(@NonNull Axis axis, double padding, @NonNull String... targets) {
+        return this.relativeMin(axis, padding, Axis.X, targets);
     }
 
-    public AdvancedOrientation<T> y(@NonNull Axis axis, @NonNull String... targets) {
-        return this.relative(axis, Double.NaN, Axis.Y, targets);
+    public AdvancedOrientation<T> yMin(@NonNull Axis axis, @NonNull String... targets) {
+        return this.relativeMin(axis, Double.NaN, Axis.Y, targets);
     }
 
-    public AdvancedOrientation<T> y(@NonNull Axis axis, double padding, @NonNull String... targets) {
-        return this.relative(axis, padding, Axis.Y, targets);
+    public AdvancedOrientation<T> yMin(@NonNull Axis axis, double padding, @NonNull String... targets) {
+        return this.relativeMin(axis, padding, Axis.Y, targets);
     }
 
-    public AdvancedOrientation<T> width(@NonNull Axis axis, @NonNull String... targets) {
-        return this.relative(axis, Double.NaN, Axis.WIDTH, targets);
+    public AdvancedOrientation<T> widthMin(@NonNull Axis axis, @NonNull String... targets) {
+        return this.relativeMin(axis, Double.NaN, Axis.WIDTH, targets);
     }
 
-    public AdvancedOrientation<T> width(@NonNull Axis axis, double padding, @NonNull String... targets) {
-        return this.relative(axis, padding, Axis.WIDTH, targets);
+    public AdvancedOrientation<T> widthMin(@NonNull Axis axis, double padding, @NonNull String... targets) {
+        return this.relativeMin(axis, padding, Axis.WIDTH, targets);
     }
 
-    public AdvancedOrientation<T> height(@NonNull Axis axis, @NonNull String... targets) {
-        return this.relative(axis, Double.NaN, Axis.HEIGHT, targets);
+    public AdvancedOrientation<T> heightMin(@NonNull Axis axis, @NonNull String... targets) {
+        return this.relativeMin(axis, Double.NaN, Axis.HEIGHT, targets);
     }
 
-    public AdvancedOrientation<T> height(@NonNull Axis axis, double padding, @NonNull String... targets) {
-        return this.relative(axis, padding, Axis.HEIGHT, targets);
+    public AdvancedOrientation<T> heightMin(@NonNull Axis axis, double padding, @NonNull String... targets) {
+        return this.relativeMin(axis, padding, Axis.HEIGHT, targets);
     }
 
-    public AdvancedOrientation<T> relative(@NonNull Axis axis, double padding, @NonNull Axis relativeAxis, @NonNull String... targets) {
+    public AdvancedOrientation<T> relativeMin(@NonNull Axis axis, double padding, @NonNull Axis relativeAxis, @NonNull String... targets) {
         if (Double.isNaN(padding))    {
             return this.configureAxis(axis, calc -> {
                 for (String target : targets)   {
@@ -158,34 +158,51 @@ public class AdvancedOrientation<T extends Component> implements Orientation<T> 
 
     //convenience methods for relative positioning to parent
     public AdvancedOrientation<T> x(double value)   {
-        return this.configureAxis(Axis.X, calc -> calc.min(DistUnit.MULT, value, Axis.WIDTH));
+        return this.configureAxis(Axis.X, calc -> calc.ease(DistUnit.MULT, value, Axis.WIDTH));
     }
 
     public AdvancedOrientation<T> x(double value, @NonNull Axis relativeTo)   {
-        return this.configureAxis(Axis.X, calc -> calc.min(DistUnit.MULT, value, relativeTo));
+        return this.configureAxis(Axis.X, calc -> calc.ease(DistUnit.MULT, value, relativeTo));
     }
 
     public AdvancedOrientation<T> y(double value)   {
-        return this.configureAxis(Axis.Y, calc -> calc.min(DistUnit.MULT, value, Axis.HEIGHT));
+        return this.configureAxis(Axis.Y, calc -> calc.ease(DistUnit.MULT, value, Axis.HEIGHT));
     }
 
     public AdvancedOrientation<T> y(double value, @NonNull Axis relativeTo)   {
-        return this.configureAxis(Axis.Y, calc -> calc.min(DistUnit.MULT, value, relativeTo));
+        return this.configureAxis(Axis.Y, calc -> calc.ease(DistUnit.MULT, value, relativeTo));
     }
 
     public AdvancedOrientation<T> width(double value)   {
-        return this.configureAxis(Axis.WIDTH, calc -> calc.min(DistUnit.MULT, value, Axis.WIDTH));
+        return this.configureAxis(Axis.WIDTH, calc -> calc.ease(DistUnit.MULT, value, Axis.WIDTH));
     }
 
     public AdvancedOrientation<T> width(double value, @NonNull Axis relativeTo)   {
-        return this.configureAxis(Axis.WIDTH, calc -> calc.min(DistUnit.MULT, value, relativeTo));
+        return this.configureAxis(Axis.WIDTH, calc -> calc.ease(DistUnit.MULT, value, relativeTo));
     }
 
     public AdvancedOrientation<T> height(double value)   {
-        return this.configureAxis(Axis.HEIGHT, calc -> calc.min(DistUnit.MULT, value, Axis.HEIGHT));
+        return this.configureAxis(Axis.HEIGHT, calc -> calc.ease(DistUnit.MULT, value, Axis.HEIGHT));
     }
 
     public AdvancedOrientation<T> height(double value, @NonNull Axis relativeTo)   {
-        return this.configureAxis(Axis.HEIGHT, calc -> calc.min(DistUnit.MULT, value, relativeTo));
+        return this.configureAxis(Axis.HEIGHT, calc -> calc.ease(DistUnit.MULT, value, relativeTo));
+    }
+    
+    //convenience methods for copying the position from another element
+    public AdvancedOrientation<T> copyX(@NonNull String componentName)  {
+        return this.configureAxis(Axis.X, calc -> calc.ease(DistUnit.RELATIVE, componentName, Axis.X));
+    }
+
+    public AdvancedOrientation<T> copyY(@NonNull String componentName)  {
+        return this.configureAxis(Axis.Y, calc -> calc.ease(DistUnit.RELATIVE, componentName, Axis.Y));
+    }
+
+    public AdvancedOrientation<T> copyWidth(@NonNull String componentName)  {
+        return this.configureAxis(Axis.WIDTH, calc -> calc.ease(DistUnit.RELATIVE, componentName, Axis.WIDTH));
+    }
+
+    public AdvancedOrientation<T> copyHeight(@NonNull String componentName)  {
+        return this.configureAxis(Axis.HEIGHT, calc -> calc.ease(DistUnit.RELATIVE, componentName, Axis.HEIGHT));
     }
 }

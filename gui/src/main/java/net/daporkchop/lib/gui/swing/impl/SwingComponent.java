@@ -26,6 +26,7 @@ import net.daporkchop.lib.gui.component.orientation.Orientation;
 import net.daporkchop.lib.gui.component.state.ElementState;
 import net.daporkchop.lib.gui.component.type.functional.Label;
 import net.daporkchop.lib.gui.swing.type.window.AbstractSwingWindow;
+import net.daporkchop.lib.gui.util.Side;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 
 import javax.swing.*;
@@ -50,6 +51,8 @@ public abstract class SwingComponent<Impl extends Component, Swing extends JComp
     @Getter(AccessLevel.PRIVATE)
     @Setter(AccessLevel.PRIVATE)
     private boolean minDimensionsAreValueSize;
+
+    protected final int[] paddings = new int[4];
 
     public SwingComponent(String name, Swing swing) {
         super(name, swing);
@@ -132,6 +135,31 @@ public abstract class SwingComponent<Impl extends Component, Swing extends JComp
 
     @Override
     public void release() {
+    }
+
+    @Override
+    public Impl setPadding(@NonNull Side side, int padding) {
+        if (side.getDelegates().length == 1)    {
+            this.paddings[side.getDelegates()[0].ordinal()] = padding;
+        } else {
+            for (Side delegate : side.getDelegates())    {
+                this.paddings[delegate.ordinal()] = padding;
+            }
+        }
+        return (Impl) this;
+    }
+
+    @Override
+    public int getPadding(@NonNull Side side) {
+        if (side.getDelegates().length == 1) {
+            return this.paddings[side.getDelegates()[0].ordinal()];
+        } else {
+            int i = 0;
+            for (Side delegate : side.getDelegates())    {
+                i += this.paddings[delegate.ordinal()];
+            }
+            return i;
+        }
     }
 
     public boolean hasSwing()   {

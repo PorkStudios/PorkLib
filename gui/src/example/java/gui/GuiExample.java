@@ -161,22 +161,24 @@ public class GuiExample implements Logging {
                                 .x(0.05d)
                                 .y(0.05d))
                         .minDimensionsAreValueSize()
+                        .setPadding(2)
                         .addChangeListener(val -> {
                             spinner.getWindow().<Spinner>getComponent("value").setMaxValue(val);
                             spinner.getWindow().<ProgressBar>getComponent("progress").setEnd(val);
                         }))
                 .spinner("value", 50, 0, 100, 1, spinner -> spinner
                         .orientAdvanced(adv -> adv
-                                .x(Axis.X, "max")
-                                .below(Axis.Y, 2.0d, "max"))
+                                .copyX("max")
+                                .below("max"))
                         .minDimensionsAreValueSize()
+                        .setPadding(2)
                         .addChangeListener(val -> spinner.getWindow().<ProgressBar>getComponent("progress").setProgress(val)))
                 .checkBox("infinite", checkBox -> checkBox
                         .orientAdvanced(adv -> adv
-                                .x(Axis.X, "max")
-                                .below(Axis.Y, 2.0d, "value"))
+                                .copyX("max")
+                                .below("value"))
                         .minDimensionsAreValueSize()
-                        .setText("Infinite")
+                        .setPadding(2)
                         .addSelectionListener(state -> checkBox.getWindow().<ProgressBar>getComponent("progress").setInfinite(state)))
                 .progressBar("progress", 100, progressBar -> progressBar
                         .setProgress(50)
@@ -189,6 +191,12 @@ public class GuiExample implements Logging {
                                 .configureAxis(Axis.HEIGHT, calc -> calc
                                         .min(DistUnit.PX, 30)
                                         .ease(DistUnit.MULT, 0.1d, Axis.HEIGHT))))
+                .label("maxLabel", "Maximum progress", label -> label
+                        .orientAdvanced(adv -> adv
+                                .right("max", "value", "infinite")
+                                .copyY("max"))
+                        .minDimensionsAreValueSize()
+                        .setPadding(2))
                 .show();
     }
 

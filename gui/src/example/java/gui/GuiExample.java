@@ -157,40 +157,43 @@ public class GuiExample implements Logging {
         parentWindow.popup(128, 128, 512, 300)
                 .clampToValueMinSizes()
                 .setTitle("Scrollbar test")
-                .spinner("max", 100, 1, Integer.MAX_VALUE, 1, spinner -> spinner
-                        .orientAdvanced(adv -> adv
-                                .x(0.05d)
-                                .y(0.05d))
-                        .minDimensionsAreValueSize().pad(2)
-                        .addChangeListener(val -> {
-                            spinner.getWindow().<Spinner>getComponent("value").setMaxValue(val);
-                            spinner.getWindow().<ProgressBar>getComponent("progress").setEnd(val);
-                        }))
-                .spinner("value", 50, 0, 100, 1, spinner -> spinner
-                        .orientAdvanced(adv -> adv.belowAndCopyX("max"))
-                        .minDimensionsAreValueSize().pad(2)
-                        .addChangeListener(val -> spinner.getWindow().<ProgressBar>getComponent("progress").setProgress(val)))
-                .checkBox("infinite", checkBox -> checkBox
-                        .orientAdvanced(adv -> adv.belowAndCopyX("value"))
-                        .minDimensionsAreValueSize().pad(2)
-                        .addSelectionListener(state -> checkBox.getWindow().<ProgressBar>getComponent("progress").setInfinite(state)))
-                .textBox("text", "Some text!", textBox -> textBox
-                        .orientAdvanced(adv -> adv
-                                .belowAndCopyX("infinite")
-                                .copyWidth("password"))
-                        .minDimensionsAreValueSize().pad(2)
-                        .addTextChangedListener(text -> logger.info("Text changed to: \"${0}\"!", text)))
-                .passwordBox("password", "securePassword123", textBox -> textBox
-                        .orientAdvanced(adv -> adv.belowAndCopyX("text"))
-                        .minDimensionsAreValueSize().pad(2)
-                        .addTextChangedListener(text -> logger.info("Password changed to: \"${0}\"!", text)))
+                .panel("input", panel -> panel
+                        .orientRelative(0.05d, 0.05d, 0.5d, 0.5d)
+                        .minDimensionsAreValueSize() //TODO: this doesn't work!
+                        .spinner("max", 100, 1, Integer.MAX_VALUE, 1, spinner -> spinner
+                                //.orientAdvanced(adv -> adv
+                                //        .x(0.05d)
+                                //        .y(0.05d))
+                                .minDimensionsAreValueSize().pad(2)
+                                .addChangeListener(val -> {
+                                    spinner.getWindow().<Spinner>getComponent("value").setMaxValue(val);
+                                    spinner.getWindow().<ProgressBar>getComponent("progress").setEnd(val);
+                                }))
+                        .spinner("value", 50, 0, 100, 1, spinner -> spinner
+                                .orientAdvanced(adv -> adv.belowAndCopyX("max"))
+                                .minDimensionsAreValueSize().pad(2)
+                                .addChangeListener(val -> spinner.getWindow().<ProgressBar>getComponent("progress").setProgress(val)))
+                        .checkBox("infinite", checkBox -> checkBox
+                                .orientAdvanced(adv -> adv.belowAndCopyX("value"))
+                                .minDimensionsAreValueSize().pad(2)
+                                .addSelectionListener(state -> checkBox.getWindow().<ProgressBar>getComponent("progress").setInfinite(state)))
+                        .textBox("text", "Some text!", textBox -> textBox
+                                .orientAdvanced(adv -> adv
+                                        .belowAndCopyX("infinite")
+                                        .copyWidth("password"))
+                                .minDimensionsAreValueSize().pad(2)
+                                .addTextChangedListener(text -> logger.info("Text changed to: \"${0}\"!", text)))
+                        .passwordBox("password", "securePassword123", textBox -> textBox
+                                .orientAdvanced(adv -> adv.belowAndCopyX("text"))
+                                .minDimensionsAreValueSize().pad(2)
+                                .addTextChangedListener(text -> logger.info("Password changed to: \"${0}\"!", text))))
                 .progressBar("progress", 100, progressBar -> progressBar
                         .setProgress(50)
                         .orientAdvanced(adv -> adv
                                 .x(0.05d)
                                 .width(0.9d)
                                 .configureAxis(Axis.Y, calc -> calc
-                                        .min(DistUnit.RELATIVE, "password", Axis.BELOW)
+                                        .min(DistUnit.RELATIVE, "input", Axis.BELOW)
                                         .min(DistUnit.MULT, 0.95d, Axis.HEIGHT, DistUnit.PX, -30)
                                         .ease(DistUnit.MULT, 0.1d, Axis.HEIGHT))
                                 .configureAxis(Axis.HEIGHT, calc -> calc
@@ -199,18 +202,18 @@ public class GuiExample implements Logging {
                         .pad(2))
                 .label("maxLabel", "Maximum progress", label -> label
                         .orientAdvanced(adv -> adv
-                                .right("max", "value", "infinite", "text", "password")
-                                .copyYAndHeight("max"))
+                                .right("input")
+                                .copyYAndHeight("input.max"))
                         .minDimensionsAreValueSize().pad(2).padLeft(10))
                 .label("valueLabel", "Progress", label -> label
                         .orientAdvanced(adv -> adv
                                 .copyX("maxLabel")
-                                .copyYAndHeight("value"))
+                                .copyYAndHeight("input.value"))
                         .minDimensionsAreValueSize().pad(2))
                 .label("infiniteLabel", "Infinite", label -> label
                         .orientAdvanced(adv -> adv
                                 .copyX("maxLabel")
-                                .copyYAndHeight("infinite"))
+                                .copyYAndHeight("input.infinite"))
                         .minDimensionsAreValueSize().pad(2))
                 .show();
     }

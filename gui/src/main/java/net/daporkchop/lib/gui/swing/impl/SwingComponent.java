@@ -21,6 +21,7 @@ import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.gui.component.Component;
+import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.Element;
 import net.daporkchop.lib.gui.component.orientation.Orientation;
 import net.daporkchop.lib.gui.component.state.ElementState;
@@ -49,9 +50,7 @@ public abstract class SwingComponent<Impl extends Component, Swing extends JComp
     protected boolean hovered;
     protected boolean mouseDown;
 
-    @Getter(AccessLevel.PRIVATE)
-    @Setter(AccessLevel.PRIVATE)
-    private boolean minDimensionsAreValueSize;
+    protected boolean minDimensionsAreValueSize;
 
     protected final int[] paddings = new int[4];
 
@@ -83,14 +82,14 @@ public abstract class SwingComponent<Impl extends Component, Swing extends JComp
         if (this.swing != null) {
             super.update();
             this.bounds = this.calculateBounds();
-            this.minBounds = this.calculateBounds();
             this.swing.setBounds(this.bounds.getX(), this.bounds.getY(), this.bounds.getWidth(), this.bounds.getHeight());
         }
         return (Impl) this;
     }
 
     protected BoundingBox calculateBounds() {
-        BoundingBox bounds = this.orientation == null ? new BoundingBox(0, 0, 0, 0) : this.orientation.update(this.parent.getBounds(), this.parent, (Impl) this);
+        Container container = this.parent.getContainerForOrientationCalculation();
+        BoundingBox bounds = this.orientation == null ? new BoundingBox(0, 0, 0, 0) : this.orientation.update(container.getBounds(), container, (Impl) this);
         if (this.swing != null && this.minDimensionsAreValueSize) {
             Dimension preferred = this.swing.getPreferredSize();
             if (preferred != null)  {
@@ -108,20 +107,6 @@ public abstract class SwingComponent<Impl extends Component, Swing extends JComp
             this.minDimensionsAreValueSize = true;
             return this.considerUpdate();
         }
-    }
-
-    @Override
-    public BoundingBox computeMinBounds() {
-        Dimension preferred = this.swing.getPreferredSize();
-        if (preferred != null)  {
-            BoundingBox bounds = this.orientation == null ? null : this.orientation.getMin(this.parent.getBounds(), this.parent, (Impl) this);
-            if (bounds == null) {
-                return this.bounds.set(Size.of(preferred.width, preferred.height));
-            } else {
-                return bounds.set(Size.of(Math.max(preferred.width, bounds.getWidth()), Math.max(preferred.height, bounds.getHeight())));
-            }
-        }
-        return null;
     }
 
     @Override

@@ -53,8 +53,6 @@ public abstract class AbstractSwingWindow<Impl extends AbstractSwingWindow<Impl,
     protected boolean closing = false;
     protected boolean closed = false;
 
-    protected boolean clampedToValueMinSizes = false;
-
     @Getter(value = AccessLevel.PROTECTED)
     protected volatile boolean updating;
 
@@ -151,9 +149,8 @@ public abstract class AbstractSwingWindow<Impl extends AbstractSwingWindow<Impl,
         this.children.values().forEach(Element::update);
         if (!this.updating) {
             this.updating = true;
-            if (this.clampedToValueMinSizes) {
-                this.minBounds = this.computeMinBounds();
-                if (this.bounds.getWidth() < this.minBounds.getWidth()
+            if (false) {
+                /*if (this.bounds.getWidth() < this.minBounds.getWidth()
                         || this.bounds.getHeight() < this.minBounds.getHeight()) {
                     Insets insets = this.swing.getInsets();
                     this.swing.setBounds(
@@ -163,7 +160,8 @@ public abstract class AbstractSwingWindow<Impl extends AbstractSwingWindow<Impl,
                             Math.max(this.bounds.getHeight(), this.minBounds.getHeight()) + insets.top + insets.bottom
                     );
                     //TODO: this isn't so pretty
-                }
+                }*/
+                //TODO: now this doesn't work at all
             }
             this.updating = false;
         }
@@ -174,17 +172,6 @@ public abstract class AbstractSwingWindow<Impl extends AbstractSwingWindow<Impl,
     @Override
     public void release() {
         this.swing.dispose();
-    }
-
-    @Override
-    public Window setClampedToValueMinSizes(boolean state) {
-        if (state != this.clampedToValueMinSizes) {
-            if (!(this.clampedToValueMinSizes = state)) {
-                this.swing.setMinimumSize(null);
-            }
-            this.considerUpdate();
-        }
-        return this;
     }
 
     protected class SwingWindowListener implements WindowListener {

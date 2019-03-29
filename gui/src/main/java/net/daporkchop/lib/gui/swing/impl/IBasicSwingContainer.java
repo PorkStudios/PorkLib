@@ -46,6 +46,7 @@ import net.daporkchop.lib.gui.swing.type.functional.SwingSpinner;
 import net.daporkchop.lib.gui.swing.type.functional.SwingTextBox;
 import net.daporkchop.lib.gui.swing.type.misc.SwingRadioButtonGroup;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
+import net.daporkchop.lib.gui.util.math.Size;
 
 import javax.swing.*;
 
@@ -175,27 +176,4 @@ public interface IBasicSwingContainer<Impl extends Container, Swing extends java
 
     //other
     Swing getSwing();
-
-    default BoundingBox computeMinBounds() {
-        if (this.isClampedToValueMinSizes()) {
-            int maxW = 0;
-            int maxH = 0;
-            for (Component element : this.getChildren().values()) {
-                BoundingBox bb = element.getMinBounds();
-                if (bb != null) {
-                    int i = Axis.RIGHT.getFrom(bb, element, null);
-                    if (i > maxW) {
-                        maxW = i;
-                    }
-                    i = Axis.BELOW.getFrom(bb, element, null);
-                    if (i > maxH) {
-                        maxH = i;
-                    }
-                }
-            }
-            return new BoundingBox(this.getBounds().getX(), this.getBounds().getY(), maxW, maxH);
-        } else {
-            return null;
-        }
-    }
 }

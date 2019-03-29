@@ -16,9 +16,12 @@
 package net.daporkchop.lib.gui.swing.impl;
 
 import lombok.Getter;
+import lombok.NonNull;
 import net.daporkchop.lib.gui.component.Component;
+import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.Element;
 import net.daporkchop.lib.gui.component.NestedContainer;
+import net.daporkchop.lib.gui.component.orientation.advanced.Axis;
 import net.daporkchop.lib.gui.component.state.ElementState;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 import net.daporkchop.lib.gui.util.math.Size;
@@ -35,7 +38,8 @@ import java.util.Map;
 public abstract class SwingNestedContainer<Impl extends NestedContainer, Swing extends JComponent, State extends ElementState<? extends Element, State>> extends SwingComponent<Impl, Swing, State> implements NestedContainer<Impl, State>, IBasicSwingContainer<Impl, Swing, State> {
     protected final Map<String, Component> children = Collections.synchronizedMap(new HashMap<>());
 
-    protected boolean clampedToValueMinSizes = false;
+    @NonNull
+    protected Container containerForOrientationCalculation = this;
 
     public SwingNestedContainer(String name, Swing swing) {
         super(name, swing);
@@ -46,36 +50,34 @@ public abstract class SwingNestedContainer<Impl extends NestedContainer, Swing e
     public Impl update() {
         super.update();
         this.children.forEach((name, element) -> element.update());
-        this.minBounds = this.computeMinBounds();
+        if (this.minDimensionsAreValueSize)    {
+            int w = 0;
+            int h = 0;
+            for (Component component : this.children.values())   {
+                BoundingBox bb = component.getBounds();
+                int i = Axis.RIGHT.getFrom(bb, component, null);
+                if (w > i)  {
+                    w = i;
+                }
+                i = Axis.BELOW.getFrom(bb, component, null);
+                if (h > i)  {
+                    h = i;
+                }
+            }
+            if (this.bounds.getWidth() < w || this.bounds.getHeight() < h)  {
+                w = Math.max(this.bounds.getWidth(), w);
+                h = Math.max(this.bounds.getHeight(), h);
+                this.bounds = this.bounds.set(Size.of(w, h));
+                this.swing.setSize(w, h);
+            }
+        }
         return (Impl) this;
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public Impl setClampedToValueMinSizes(boolean state) {
-        if (state != this.clampedToValueMinSizes) {
-            this.clampedToValueMinSizes = state;
-            this.considerUpdate();
-        }
+    public Impl setContainerForOrientationCalculation(@NonNull Container container) {
+        this.containerForOrientationCalculation = container;
         return (Impl) this;
-    }
-
-    @Override
-    public BoundingBox computeMinBounds() {
-        if (this.clampedToValueMinSizes)    {
-            BoundingBox componentBounds = super.computeMinBounds();
-            BoundingBox containerBounds = IBasicSwingContainer.super.computeMinBounds();
-            if (componentBounds == null && containerBounds == null) {
-                return null;
-            } else if (componentBounds == null) {
-                return containerBounds;
-            } else if (containerBounds == null) {
-                return componentBounds;
-            } else {
-                return this.bounds.set(Size.of(Math.max(componentBounds.getWidth(), containerBounds.getWidth()), Math.max(componentBounds.getHeight(), containerBounds.getHeight())));
-            }
-        } else {
-            return super.computeMinBounds();
-        }
     }
 }

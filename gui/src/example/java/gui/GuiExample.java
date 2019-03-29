@@ -155,11 +155,10 @@ public class GuiExample implements Logging {
 
     public static void displayScrollbarTestWindow(@NonNull Window parentWindow) {
         parentWindow.popup(128, 128, 512, 300)
-                .clampToValueMinSizes()
                 .setTitle("Scrollbar test")
                 .panel("input", panel -> panel
-                        .orientRelative(0.05d, 0.05d, 0.5d, 0.5d)
-                        .minDimensionsAreValueSize() //TODO: this doesn't work!
+                        .setContainerForOrientationCalculation(panel.getWindow())
+                        .minDimensionsAreValueSize() //TODO: this STILL doesn't work!
                         .spinner("max", 100, 1, Integer.MAX_VALUE, 1, spinner -> spinner
                                 //.orientAdvanced(adv -> adv
                                 //        .x(0.05d)
@@ -170,21 +169,21 @@ public class GuiExample implements Logging {
                                     spinner.getWindow().<ProgressBar>getComponent("progress").setEnd(val);
                                 }))
                         .spinner("value", 50, 0, 100, 1, spinner -> spinner
-                                .orientAdvanced(adv -> adv.belowAndCopyX("max"))
+                                .orientAdvanced(adv -> adv.belowAndCopyX("input.max"))
                                 .minDimensionsAreValueSize().pad(2)
                                 .addChangeListener(val -> spinner.getWindow().<ProgressBar>getComponent("progress").setProgress(val)))
                         .checkBox("infinite", checkBox -> checkBox
-                                .orientAdvanced(adv -> adv.belowAndCopyX("value"))
+                                .orientAdvanced(adv -> adv.belowAndCopyX("input.value"))
                                 .minDimensionsAreValueSize().pad(2)
                                 .addSelectionListener(state -> checkBox.getWindow().<ProgressBar>getComponent("progress").setInfinite(state)))
                         .textBox("text", "Some text!", textBox -> textBox
                                 .orientAdvanced(adv -> adv
-                                        .belowAndCopyX("infinite")
-                                        .copyWidth("password"))
+                                        .belowAndCopyX("input.infinite")
+                                        .copyWidth("input.password"))
                                 .minDimensionsAreValueSize().pad(2)
                                 .addTextChangedListener(text -> logger.info("Text changed to: \"${0}\"!", text)))
                         .passwordBox("password", "securePassword123", textBox -> textBox
-                                .orientAdvanced(adv -> adv.belowAndCopyX("text"))
+                                .orientAdvanced(adv -> adv.belowAndCopyX("input.text"))
                                 .minDimensionsAreValueSize().pad(2)
                                 .addTextChangedListener(text -> logger.info("Password changed to: \"${0}\"!", text))))
                 .progressBar("progress", 100, progressBar -> progressBar

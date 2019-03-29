@@ -39,4 +39,9 @@ public abstract class SwingContainer<Impl extends Container, Swing extends java.
     public SwingContainer(String name, Swing swing) {
         super(name, swing);
     }
+
+    @Override
+    public BoundingBox computeMinBounds() {
+        return IBasicSwingContainer.super.computeMinBounds();
+    }
 }

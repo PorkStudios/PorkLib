@@ -15,7 +15,6 @@
 
 package net.daporkchop.lib.gui.component;
 
-import lombok.NonNull;
 import net.daporkchop.lib.gui.component.state.ElementState;
 
 /**
@@ -27,8 +26,4 @@ import net.daporkchop.lib.gui.component.state.ElementState;
  * @author DaPorkchop_
  */
 public interface NestedContainer<Impl extends NestedContainer, State extends ElementState<? extends Element, State>> extends Container<Impl, State>, Component<Impl, State> {
-    Impl setContainerForOrientationCalculation(@NonNull Container container);
-    default Impl setContainerForOrientationCalculation(@NonNull String name)    {
-        return this.setContainerForOrientationCalculation(this.getWindow().<NestedContainer>getChild(name));
-    }
 }

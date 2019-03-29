@@ -31,6 +31,7 @@ import net.daporkchop.lib.gui.component.type.functional.Label;
 import net.daporkchop.lib.gui.component.type.functional.ProgressBar;
 import net.daporkchop.lib.gui.component.type.functional.RadioButton;
 import net.daporkchop.lib.gui.component.type.functional.Spinner;
+import net.daporkchop.lib.gui.component.type.functional.TextBox;
 import net.daporkchop.lib.gui.component.type.misc.RadioButtonGroup;
 import net.daporkchop.lib.gui.swing.type.container.SwingPanel;
 import net.daporkchop.lib.gui.swing.type.container.SwingScrollPane;
@@ -38,9 +39,11 @@ import net.daporkchop.lib.gui.swing.type.functional.SwingButton;
 import net.daporkchop.lib.gui.swing.type.functional.SwingCheckBox;
 import net.daporkchop.lib.gui.swing.type.functional.SwingDropdown;
 import net.daporkchop.lib.gui.swing.type.functional.SwingLabel;
+import net.daporkchop.lib.gui.swing.type.functional.SwingPasswordBox;
 import net.daporkchop.lib.gui.swing.type.functional.SwingProgressBar;
 import net.daporkchop.lib.gui.swing.type.functional.SwingRadioButton;
 import net.daporkchop.lib.gui.swing.type.functional.SwingSpinner;
+import net.daporkchop.lib.gui.swing.type.functional.SwingTextBox;
 import net.daporkchop.lib.gui.swing.type.misc.SwingRadioButtonGroup;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 
@@ -118,6 +121,20 @@ public interface IBasicSwingContainer<Impl extends Container, Swing extends java
         SwingSpinner spinner = new SwingSpinner(name);
         this.addChild(spinner);
         return spinner;
+    }
+
+    @Override
+    default TextBox textBox(@NonNull String name) {
+        SwingTextBox textBox = new SwingTextBox(name);
+        this.addChild(textBox);
+        return textBox;
+    }
+
+    @Override
+    default TextBox passwordBox(@NonNull String name) {
+        SwingPasswordBox passwordBox = new SwingPasswordBox(name);
+        this.addChild(passwordBox);
+        return passwordBox;
     }
 
     @Override

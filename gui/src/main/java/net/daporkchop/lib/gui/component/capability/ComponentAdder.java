@@ -25,6 +25,7 @@ import net.daporkchop.lib.gui.component.type.functional.Label;
 import net.daporkchop.lib.gui.component.type.functional.ProgressBar;
 import net.daporkchop.lib.gui.component.type.functional.RadioButton;
 import net.daporkchop.lib.gui.component.type.functional.Spinner;
+import net.daporkchop.lib.gui.component.type.functional.TextBox;
 import net.daporkchop.lib.gui.component.type.misc.RadioButtonGroup;
 
 import java.util.function.Consumer;
@@ -185,6 +186,43 @@ public interface ComponentAdder<Impl> {
     default Impl spinner(@NonNull String name, int val, int min, int max, int step, @NonNull Consumer<Spinner> initializer)  {
         Spinner spinner = this.spinner(name, val, min, max, step);
         initializer.accept(spinner);
+        return (Impl) this;
+    }
+
+    //text box
+    TextBox textBox(@NonNull String name);
+
+    default TextBox textBox(@NonNull String name, @NonNull String defaultText) {
+        return this.textBox(name).setText(defaultText);
+    }
+
+    default Impl textBox(@NonNull String name, @NonNull Consumer<TextBox> initializer)  {
+        TextBox textBox = this.textBox(name);
+        initializer.accept(textBox);
+        return (Impl) this;
+    }
+
+    default Impl textBox(@NonNull String name, @NonNull String defaultText, @NonNull Consumer<TextBox> initializer)  {
+        TextBox textBox = this.textBox(name).setText(defaultText);
+        initializer.accept(textBox);
+        return (Impl) this;
+    }
+
+    TextBox passwordBox(@NonNull String name);
+
+    default TextBox passwordBox(@NonNull String name, @NonNull String defaultText) {
+        return this.passwordBox(name).setText(defaultText);
+    }
+
+    default Impl passwordBox(@NonNull String name, @NonNull Consumer<TextBox> initializer)  {
+        TextBox passwordBox = this.passwordBox(name);
+        initializer.accept(passwordBox);
+        return (Impl) this;
+    }
+
+    default Impl passwordBox(@NonNull String name, @NonNull String defaultText, @NonNull Consumer<TextBox> initializer)  {
+        TextBox passwordBox = this.passwordBox(name).setText(defaultText);
+        initializer.accept(passwordBox);
         return (Impl) this;
     }
 

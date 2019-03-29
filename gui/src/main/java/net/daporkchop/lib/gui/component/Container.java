@@ -40,7 +40,17 @@ public interface Container<Impl extends Container, State extends ElementState<? 
 
     @SuppressWarnings("unchecked")
     default <T extends Component> T getChild(@NonNull String name) {
-        return (T) this.getChildren().get(name);
+        if (name.contains(".")) {
+            int i = name.indexOf('.');
+            Element element = this.getChildren().get(name.substring(0, i));
+            if (element instanceof Container)   {
+                return ((Container<?, ?>) element).getChild(name.substring(i + 1, name.length()));
+            } else {
+                throw new IllegalStateException(String.format("Not a container: \"%s\": %s", name.substring(0, i), element.getClass().getCanonicalName()));
+            }
+        } else {
+            return (T) this.getChildren().get(name);
+        }
     }
 
     default int countChildren() {

@@ -33,6 +33,8 @@ import java.awt.*;
 public abstract class SwingElement<Impl extends Element, Swing extends java.awt.Component, State extends ElementState<? extends Element, State>> extends AbstractElement<Impl, State> {
     protected final Swing swing;
 
+    protected BoundingBox minBounds = null;
+
     public SwingElement(String name, Swing swing) {
         super(name);
         this.swing = swing;
@@ -52,4 +54,6 @@ public abstract class SwingElement<Impl extends Element, Swing extends java.awt.
     public boolean isVisible() {
         return this.swing.isVisible();
     }
+
+    public abstract BoundingBox computeMinBounds();
 }

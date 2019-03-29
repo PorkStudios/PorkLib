@@ -43,6 +43,8 @@ public interface Element<Impl extends Element, State extends ElementState<? exte
 
     BoundingBox getBounds();
 
+    BoundingBox getMinBounds();
+
     /**
      * Gets this element's parent
      *

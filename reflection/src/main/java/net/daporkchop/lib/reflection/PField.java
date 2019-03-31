@@ -19,7 +19,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.common.util.PUnsafe;
+import net.daporkchop.lib.unsafe.PUnsafe;
 import net.daporkchop.lib.reflection.util.Access;
 import net.daporkchop.lib.reflection.util.Accessible;
 import net.daporkchop.lib.reflection.util.AnnotationHolder;
@@ -29,7 +29,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 
 import static net.daporkchop.lib.common.util.PConstants.p_exception;
-import static net.daporkchop.lib.common.util.PUnsafe.*;
+import static net.daporkchop.lib.unsafe.PUnsafe.*;
 
 /**
  * A Java field

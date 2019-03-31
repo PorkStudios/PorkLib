@@ -15,12 +15,10 @@
 
 package net.daporkchop.lib.binary.util.big;
 
-import net.daporkchop.lib.math.primitive.BinMath;
-
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
-import java.nio.IntBuffer;
-import static net.daporkchop.lib.common.util.PUnsafe.*;
+
+import static net.daporkchop.lib.unsafe.PUnsafe.*;
 
 /**
  * Allows storing a {@link BufferedImage} in RAM(/swap) with nearly no limit to maximum size

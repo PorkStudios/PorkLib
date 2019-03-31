@@ -18,7 +18,7 @@ package net.daporkchop.lib.binary.util.unsafe.block;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.util.unsafe.Freeable;
 import net.daporkchop.lib.binary.util.unsafe.offset.Offsettable;
-import net.daporkchop.lib.common.util.PUnsafe;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 /**
  * Allows direct access to a region of memory

@@ -16,9 +16,9 @@
 package net.daporkchop.lib.binary.util.unsafe.block;
 
 import lombok.NonNull;
-import net.daporkchop.lib.common.util.PUnsafe;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
-import static net.daporkchop.lib.common.util.PUnsafe.*;
+import static net.daporkchop.lib.unsafe.PUnsafe.*;
 
 /**
  * @author DaPorkchop_

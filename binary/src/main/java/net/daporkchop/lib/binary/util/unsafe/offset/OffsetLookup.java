@@ -25,7 +25,7 @@ import java.nio.ByteBuffer;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
-import static net.daporkchop.lib.common.util.PUnsafe.*;
+import static net.daporkchop.lib.unsafe.PUnsafe.*;
 import static net.daporkchop.lib.common.util.PorkUtil.classForName;
 
 /**

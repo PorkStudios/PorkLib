@@ -21,7 +21,7 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static net.daporkchop.lib.common.util.PUnsafe.*;
+import static net.daporkchop.lib.unsafe.PUnsafe.*;
 
 /**
  * @author DaPorkchop_

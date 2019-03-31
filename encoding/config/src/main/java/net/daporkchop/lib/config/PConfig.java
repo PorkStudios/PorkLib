@@ -38,7 +38,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static net.daporkchop.lib.common.util.PUnsafe.*;
+import static net.daporkchop.lib.unsafe.PUnsafe.*;
 
 /**
  * Handles loading of config and such

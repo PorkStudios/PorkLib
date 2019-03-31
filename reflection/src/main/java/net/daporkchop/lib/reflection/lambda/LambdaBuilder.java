@@ -24,7 +24,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.function.throwing.EFunction;
 import net.daporkchop.lib.common.util.PConstants;
-import net.daporkchop.lib.common.util.PUnsafe;
+import net.daporkchop.lib.unsafe.PUnsafe;
 import net.daporkchop.lib.common.util.PorkUtil;
 
 import java.lang.invoke.CallSite;

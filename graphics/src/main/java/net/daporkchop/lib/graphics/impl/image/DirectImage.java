@@ -15,7 +15,7 @@
 
 package net.daporkchop.lib.graphics.impl.image;
 
-import net.daporkchop.lib.common.util.PUnsafe;
+import net.daporkchop.lib.unsafe.PUnsafe;
 import net.daporkchop.lib.graphics.PImage;
 import net.daporkchop.lib.graphics.impl.icon.DirectIcon;
 

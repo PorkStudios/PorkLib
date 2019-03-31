@@ -16,6 +16,7 @@
 package net.daporkchop.lib.common.util;
 
 import lombok.NonNull;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 /**
  * Some constants that may be used in a lot of classes

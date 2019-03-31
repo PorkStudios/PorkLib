@@ -16,6 +16,7 @@
 package net.daporkchop.lib.binary.util.unsafe.offset;
 
 import lombok.NonNull;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.util.function.Function;
 import java.util.function.ToLongFunction;
@@ -92,7 +93,7 @@ public interface Offsetter<T> {
 
     /**
      * Gets the object to use as a pointer when doing unsafe operations on the container (such as
-     * {@link net.daporkchop.lib.common.util.PUnsafe#putInt(Object, long, int)}).
+     * {@link PUnsafe#putInt(Object, long, int)}).
      * <p>
      * If {@code null} is returned, the offset returned from {@link #memoryOffset(Object)} may be treated as a direct
      * memory address.
@@ -107,7 +108,7 @@ public interface Offsetter<T> {
      * Checks if the offset value returned by this offsetter is absolute.
      * <p>
      * If it is absolute, then the offset should be treated as a direct memory address (as if it were returned by
-     * {@link net.daporkchop.lib.common.util.PUnsafe#allocateMemory(long)}).
+     * {@link PUnsafe#allocateMemory(long)}).
      *
      * @return whether or not the offset value returned by this offsetter is absolute
      */

@@ -16,8 +16,7 @@
 package net.daporkchop.lib.math.arrays.grid.impl.direct;
 
 import net.daporkchop.lib.common.util.DirectMemoryHolder;
-import net.daporkchop.lib.common.util.PUnsafe;
-import net.daporkchop.lib.math.arrays.grid.Grid1d;
+import net.daporkchop.lib.unsafe.PUnsafe;
 import net.daporkchop.lib.math.arrays.grid.Grid2d;
 
 import static net.daporkchop.lib.math.primitive.PMath.floorI;

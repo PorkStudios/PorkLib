@@ -16,8 +16,8 @@
 package net.daporkchop.lib.common.util;
 
 import lombok.NonNull;
+import net.daporkchop.lib.unsafe.PUnsafe;
 import sun.misc.Cleaner;
-import sun.misc.Unsafe;
 
 import javax.swing.*;
 import java.awt.*;
@@ -25,16 +25,8 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.lang.invoke.CallSite;
-import java.lang.invoke.LambdaMetafactory;
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -48,9 +40,8 @@ import java.util.function.Function;
  * @author DaPorkchop_
  */
 public class PorkUtil {
-    public static final Unsafe unsafe;
     public static final ThreadLocal<byte[]> BUFFER_CACHE_SMALL = ThreadLocal.withInitial(() -> new byte[256]);
-    private static long string_valueOffset;
+    private static long STRING_VALUE_OFFSET = PUnsafe.pork_getOffset(String.class, "value");
     private static final Function<Throwable, StackTraceElement[]> GET_STACK_TRACE_WRAPPER;
     private static final AtomicInteger DEFAULT_EXECUTOR_THREAD_COUNTER = new AtomicInteger(0);
     public static final Executor DEFAULT_EXECUTOR = new ThreadPoolExecutor(
@@ -61,29 +52,6 @@ public class PorkUtil {
     );
 
     static {
-        {
-            Unsafe u = null;
-            try {
-                Field f = Unsafe.class.getDeclaredField("theUnsafe");
-                f.setAccessible(true);
-                u = (Unsafe) f.get(null);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            } finally {
-                unsafe = u;
-            }
-        }
-        {
-            long l = -1L;
-            try {
-                Field f = String.class.getDeclaredField("value");
-                l = unsafe.objectFieldOffset(f);
-            } catch (NoSuchFieldException e) {
-                throw new RuntimeException(e);
-            } finally {
-                string_valueOffset = l;
-            }
-        }
         {
             Function<Throwable, StackTraceElement[]> func = t -> {
                 throw new UnsupportedOperationException();
@@ -113,8 +81,8 @@ public class PorkUtil {
      * @return a new string
      */
     public static String wrap(@NonNull char[] chars) {
-        String s = (String) PUnsafe.allocateInstance(String.class);
-        PUnsafe.putObject(s, string_valueOffset, chars);
+        String s = PUnsafe.allocateInstance(String.class);
+        PUnsafe.putObject(s, STRING_VALUE_OFFSET, chars);
         return s;
     }
 
@@ -202,17 +170,5 @@ public class PorkUtil {
                 throw new RuntimeException(e);
             }
         }
-    }
-
-    public static Cleaner cleaner(@NonNull Object o, @NonNull Runnable cleaner)    {
-        return Cleaner.create(o, cleaner);
-    }
-
-    public static Cleaner cleaner(@NonNull Object o, long addr)    {
-        /*return Cleaner.create(o, () -> {
-            PUnsafe.freeMemory(addr);
-            System.out.println("Memory freed!");
-        });*/
-        return Cleaner.create(o, () -> PUnsafe.freeMemory(addr));
     }
 }

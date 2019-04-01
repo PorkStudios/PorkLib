@@ -13,41 +13,28 @@
  *
  */
 
-package net.daporkchop.lib.gui.component.type.functional;
+package net.daporkchop.lib.gui.component.state.functional;
 
-import lombok.NonNull;
-import net.daporkchop.lib.gui.component.Component;
-import net.daporkchop.lib.gui.component.state.functional.SpinnerState;
-
-import java.util.function.IntConsumer;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import net.daporkchop.lib.gui.component.state.ElementState;
+import net.daporkchop.lib.gui.component.type.functional.Slider;
+import net.daporkchop.lib.gui.component.type.functional.Spinner;
 
 /**
  * @author DaPorkchop_
  */
-public interface Spinner extends Component<Spinner, SpinnerState> {
-    @Override
-    default SpinnerState getState() {
-        return this.isVisible() ?
-                this.isEnabled() ?
-                        this.isHovered() ? SpinnerState.ENABLED_HOVERED : SpinnerState.ENABLED
-                        : this.isHovered() ? SpinnerState.DISABLED_HOVERED : SpinnerState.DISABLED
-                : SpinnerState.HIDDEN;
-    }
+@AllArgsConstructor
+@Getter
+public enum SliderState implements ElementState<Slider, SliderState> {
+    ENABLED(true, true, false),
+    ENABLED_HOVERED(true, true, true),
+    DISABLED(true, false, false),
+    DISABLED_HOVERED(true, false, true),
+    HIDDEN(false, false, false),
+    ;
 
-    int getValue();
-    Spinner setValue(int val);
-    int getMaxValue();
-    Spinner setMaxValue(int val);
-    int getMinValue();
-    Spinner setMinValue(int val);
-    int getStep();
-    Spinner setStep(int step);
-    Spinner setLimits(int min, int max);
-    Spinner setValAndLimits(int val, int min, int max);
-
-    Spinner addChangeListener(@NonNull String name, @NonNull IntConsumer callback);
-    Spinner removeChangeListener(@NonNull String name);
-    default Spinner addChangeListener(@NonNull IntConsumer callback)   {
-        return this.addChangeListener(String.format("%s@%d", callback.getClass().getCanonicalName(), System.identityHashCode(callback)), callback);
-    }
+    protected final boolean visible;
+    protected final boolean enabled;
+    protected final boolean hovered;
 }

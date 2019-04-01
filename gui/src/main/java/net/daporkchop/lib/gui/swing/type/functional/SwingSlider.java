@@ -16,137 +16,138 @@
 package net.daporkchop.lib.gui.swing.type.functional;
 
 import lombok.NonNull;
-import net.daporkchop.lib.gui.component.state.functional.SpinnerState;
+import net.daporkchop.lib.gui.component.state.functional.SliderState;
+import net.daporkchop.lib.gui.component.type.functional.Slider;
 import net.daporkchop.lib.gui.component.type.functional.Spinner;
 import net.daporkchop.lib.gui.swing.impl.SwingComponent;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.function.IntConsumer;
 
 /**
  * @author DaPorkchop_
  */
-public class SwingSpinner extends SwingComponent<Spinner, JSpinner, SpinnerState> implements Spinner {
-    protected int value = 0;
-    protected int max = Integer.MAX_VALUE;
-    protected int min = Integer.MIN_VALUE;
-    protected int step = 1;
-
+public class SwingSlider extends SwingComponent<Slider, JSlider, SliderState> implements Slider {
     protected final Map<String, IntConsumer> listeners = new HashMap<>();
 
-    public SwingSpinner(String name) {
-        super(name, new JSpinner());
+    public SwingSlider(String name) {
+        super(name, new JSlider());
 
-        this.updateModel();
-
-        this.swing.addChangeListener(new SwingSpinnerChangeListener());
+        this.swing.addChangeListener(new SwingSliderChangeListener());
     }
 
     @Override
     public int getValue() {
-        return this.value = (int) this.swing.getValue();
+        return this.swing.getValue();
     }
 
     @Override
-    public Spinner setValue(int val) {
-        if (val != this.getValue())  {
-            this.swing.setValue(this.value = val);
-        }
+    public Slider setValue(int val) {
+        this.swing.setValue(val);
         return this;
     }
 
     @Override
     public int getMaxValue() {
-        return this.max;
+        return this.swing.getMaximum();
     }
 
     @Override
-    public Spinner setMaxValue(int val) {
-        if (this.max != val)    {
-            this.max = val;
-            this.updateModel();
-        }
+    public Slider setMaxValue(int val) {
+        this.swing.setMaximum(val);
         return this;
     }
 
     @Override
     public int getMinValue() {
-        return this.min;
+        return this.swing.getMinimum();
     }
 
     @Override
-    public Spinner setMinValue(int val) {
-        if (this.min != val)    {
-            this.min = val;
-            this.updateModel();
-        }
+    public Slider setMinValue(int val) {
+        this.swing.setMinimum(val);
+        return this;
+    }
+
+    @Override
+    public Slider setLimits(int min, int max) {
+        this.swing.setModel(new DefaultBoundedRangeModel(this.swing.getValue(), 0, min, max));
+        return this;
+    }
+
+    @Override
+    public Slider setValAndLimits(int val, int min, int max) {
+        this.swing.setModel(new DefaultBoundedRangeModel(val, 0, min, max));
+        return this;
+    }
+
+    @Override
+    public boolean areStepsDrawn() {
+        return this.swing.getPaintTicks();
+    }
+
+    @Override
+    public Slider setStepsDrawn(boolean stepsDrawn) {
+        this.swing.setPaintTicks(stepsDrawn);
         return this;
     }
 
     @Override
     public int getStep() {
-        return this.step;
+        return this.getMajorStep();
     }
 
     @Override
-    public Spinner setStep(int step) {
-        if (this.step != step)    {
-            this.step = step;
-            this.updateModel();
-        }
+    public Slider setStep(int step) {
+        return this.setMajorStep(step);
+    }
+
+    @Override
+    public int getMajorStep() {
+        return this.swing.getMajorTickSpacing();
+    }
+
+    @Override
+    public Slider setMajorStep(int step) {
+        this.swing.setMajorTickSpacing(step);
         return this;
     }
 
     @Override
-    public Spinner setLimits(int min, int max) {
-        if (this.min != min || this.max != max) {
-            this.min = min;
-            this.max = max;
-            this.updateModel();
-        }
+    public int getMinorStep() {
+        return this.swing.getMinorTickSpacing();
+    }
+
+    @Override
+    public Slider setMinorStep(int step) {
+        this.swing.setMinorTickSpacing(step);
         return this;
     }
 
     @Override
-    public Spinner setValAndLimits(int val, int min, int max) {
-        if (this.value != val || this.min != min || this.max != max) {
-            this.value = val;
-            this.min = min;
-            this.max = max;
-            this.updateModel();
-        }
-        return this;
-    }
-
-    @Override
-    public Spinner addChangeListener(@NonNull String name, @NonNull IntConsumer callback) {
+    public Slider addChangeListener(@NonNull String name, @NonNull IntConsumer callback) {
         this.listeners.put(name, callback);
         return this;
     }
 
     @Override
-    public Spinner removeChangeListener(@NonNull String name) {
+    public Slider removeChangeListener(@NonNull String name) {
         this.listeners.remove(name);
         return this;
     }
 
-    protected void updateModel()    {
-        this.swing.setModel(new SpinnerNumberModel(this.value, this.min, this.max, this.step));
-    }
+    protected class SwingSliderChangeListener implements ChangeListener {
+        protected int value = SwingSlider.this.swing.getValue();
 
-    protected class SwingSpinnerChangeListener implements ChangeListener {
         @Override
         public void stateChanged(ChangeEvent e) {
-            if (SwingSpinner.this.value != (int) SwingSpinner.this.swing.getValue())   {
-                int val = SwingSpinner.this.value = (int) SwingSpinner.this.swing.getValue();
-                SwingSpinner.this.listeners.values().forEach(callback -> callback.accept(val));
+            if (this.value != SwingSlider.this.swing.getValue())   {
+                this.value = SwingSlider.this.swing.getValue();
+                SwingSlider.this.listeners.values().forEach(callback -> callback.accept(this.value));
             }
         }
     }

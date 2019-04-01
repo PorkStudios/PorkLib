@@ -30,6 +30,7 @@ import net.daporkchop.lib.gui.component.type.functional.Dropdown;
 import net.daporkchop.lib.gui.component.type.functional.Label;
 import net.daporkchop.lib.gui.component.type.functional.ProgressBar;
 import net.daporkchop.lib.gui.component.type.functional.RadioButton;
+import net.daporkchop.lib.gui.component.type.functional.Slider;
 import net.daporkchop.lib.gui.component.type.functional.Spinner;
 import net.daporkchop.lib.gui.component.type.functional.TextBox;
 import net.daporkchop.lib.gui.component.type.misc.RadioButtonGroup;
@@ -42,6 +43,7 @@ import net.daporkchop.lib.gui.swing.type.functional.SwingLabel;
 import net.daporkchop.lib.gui.swing.type.functional.SwingPasswordBox;
 import net.daporkchop.lib.gui.swing.type.functional.SwingProgressBar;
 import net.daporkchop.lib.gui.swing.type.functional.SwingRadioButton;
+import net.daporkchop.lib.gui.swing.type.functional.SwingSlider;
 import net.daporkchop.lib.gui.swing.type.functional.SwingSpinner;
 import net.daporkchop.lib.gui.swing.type.functional.SwingTextBox;
 import net.daporkchop.lib.gui.swing.type.misc.SwingRadioButtonGroup;
@@ -114,6 +116,13 @@ public interface IBasicSwingContainer<Impl extends Container, Swing extends java
     @Override
     default RadioButton radioButton(@NonNull String name, @NonNull String groupName) {
         return this.radioButton(name, this.<RadioButtonGroup>getChild(groupName));
+    }
+
+    @Override
+    default Slider slider(@NonNull String name) {
+        SwingSlider slider = new SwingSlider(name);
+        this.addChild(slider);
+        return slider;
     }
 
     @Override

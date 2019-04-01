@@ -17,37 +17,59 @@ package net.daporkchop.lib.gui.component.type.functional;
 
 import lombok.NonNull;
 import net.daporkchop.lib.gui.component.Component;
-import net.daporkchop.lib.gui.component.state.functional.SpinnerState;
+import net.daporkchop.lib.gui.component.state.functional.SliderState;
 
 import java.util.function.IntConsumer;
 
 /**
  * @author DaPorkchop_
  */
-public interface Spinner extends Component<Spinner, SpinnerState> {
+public interface Slider extends Component<Slider, SliderState> {
     @Override
-    default SpinnerState getState() {
+    default SliderState getState() {
         return this.isVisible() ?
                 this.isEnabled() ?
-                        this.isHovered() ? SpinnerState.ENABLED_HOVERED : SpinnerState.ENABLED
-                        : this.isHovered() ? SpinnerState.DISABLED_HOVERED : SpinnerState.DISABLED
-                : SpinnerState.HIDDEN;
+                        this.isHovered() ? SliderState.ENABLED_HOVERED : SliderState.ENABLED
+                        : this.isHovered() ? SliderState.DISABLED_HOVERED : SliderState.DISABLED
+                : SliderState.HIDDEN;
     }
 
     int getValue();
-    Spinner setValue(int val);
+    Slider setValue(int val);
     int getMaxValue();
-    Spinner setMaxValue(int val);
+    Slider setMaxValue(int val);
     int getMinValue();
-    Spinner setMinValue(int val);
-    int getStep();
-    Spinner setStep(int step);
-    Spinner setLimits(int min, int max);
-    Spinner setValAndLimits(int val, int min, int max);
+    Slider setMinValue(int val);
+    Slider setLimits(int min, int max);
+    Slider setValAndLimits(int val, int min, int max);
 
-    Spinner addChangeListener(@NonNull String name, @NonNull IntConsumer callback);
-    Spinner removeChangeListener(@NonNull String name);
-    default Spinner addChangeListener(@NonNull IntConsumer callback)   {
+    boolean areStepsDrawn();
+    Slider setStepsDrawn(boolean stepsDrawn);
+    default Slider drawSteps()  {
+        return this.setStepsDrawn(true);
+    }
+    default Slider hideSteps()  {
+        return this.setStepsDrawn(false);
+    }
+
+    int getStep();
+    Slider setStep(int step);
+    default int getMajorStep()  {
+        return this.getStep();
+    }
+    default Slider setMajorStep(int step)   {
+        return this.setStep(step);
+    }
+    default int getMinorStep()  {
+        return this.getStep();
+    }
+    default Slider setMinorStep(int step)   {
+        return this.setStep(step);
+    }
+
+    Slider addChangeListener(@NonNull String name, @NonNull IntConsumer callback);
+    Slider removeChangeListener(@NonNull String name);
+    default Slider addChangeListener(@NonNull IntConsumer callback)   {
         return this.addChangeListener(String.format("%s@%d", callback.getClass().getCanonicalName(), System.identityHashCode(callback)), callback);
     }
 }

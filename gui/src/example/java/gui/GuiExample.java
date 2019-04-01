@@ -27,6 +27,7 @@ import net.daporkchop.lib.gui.component.state.functional.CheckBoxState;
 import net.daporkchop.lib.gui.component.state.functional.LabelState;
 import net.daporkchop.lib.gui.component.type.Window;
 import net.daporkchop.lib.gui.component.type.functional.ProgressBar;
+import net.daporkchop.lib.gui.component.type.functional.Slider;
 import net.daporkchop.lib.gui.component.type.functional.Spinner;
 import net.daporkchop.lib.gui.util.Alignment;
 import net.daporkchop.lib.gui.util.ScrollCondition;
@@ -163,10 +164,10 @@ public class GuiExample implements Logging {
                                 .y(0.05d))
                         .minDimensionsAreValueSize().pad(2)
                         .addChangeListener(val -> {
-                            spinner.getWindow().<Spinner>getComponent("value").setMaxValue(val);
+                            spinner.getWindow().<Slider>getComponent("value").setMaxValue(val);
                             spinner.getWindow().<ProgressBar>getComponent("progress").setEnd(val);
                         }))
-                .spinner("value", 50, 0, 100, 1, spinner -> spinner
+                .slider("value", 50, 0, 100, spinner -> spinner
                         .orientAdvanced(adv -> adv.belowAndCopyX("max"))
                         .minDimensionsAreValueSize().pad(2)
                         .addChangeListener(val -> spinner.getWindow().<ProgressBar>getComponent("progress").setProgress(val)))

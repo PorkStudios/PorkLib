@@ -24,6 +24,7 @@ import net.daporkchop.lib.gui.component.type.functional.Dropdown;
 import net.daporkchop.lib.gui.component.type.functional.Label;
 import net.daporkchop.lib.gui.component.type.functional.ProgressBar;
 import net.daporkchop.lib.gui.component.type.functional.RadioButton;
+import net.daporkchop.lib.gui.component.type.functional.Slider;
 import net.daporkchop.lib.gui.component.type.functional.Spinner;
 import net.daporkchop.lib.gui.component.type.functional.TextBox;
 import net.daporkchop.lib.gui.component.type.misc.RadioButtonGroup;
@@ -167,6 +168,25 @@ public interface ComponentAdder<Impl> {
     default Impl radioButton(@NonNull String name, @NonNull String groupName, @NonNull Consumer<RadioButton> initializer) {
         RadioButton radioButton = this.radioButton(name, groupName);
         initializer.accept(radioButton);
+        return (Impl) this;
+    }
+
+    //slider
+    Slider slider(@NonNull String name);
+
+    default Slider slider(@NonNull String name, int val, int min, int max)  {
+        return this.slider(name).setValAndLimits(val, min, max);
+    }
+
+    default Impl slider(@NonNull String name, @NonNull Consumer<Slider> initializer)    {
+        Slider slider = this.slider(name);
+        initializer.accept(slider);
+        return (Impl) this;
+    }
+
+    default Impl slider(@NonNull String name, int val, int min, int max, @NonNull Consumer<Slider> initializer)    {
+        Slider slider = this.slider(name).setValAndLimits(val, min, max);
+        initializer.accept(slider);
         return (Impl) this;
     }
 

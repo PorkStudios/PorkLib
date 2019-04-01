@@ -13,41 +13,19 @@
  *
  */
 
-package net.daporkchop.lib.gui.component.type.misc;
+package net.daporkchop.lib.gui.form;
 
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.gui.component.Component;
-import net.daporkchop.lib.gui.component.state.misc.RadioButtonGroupState;
-import net.daporkchop.lib.gui.component.type.functional.RadioButton;
-
-import java.util.Collection;
-import java.util.NoSuchElementException;
-import java.util.function.Consumer;
 
 /**
  * @author DaPorkchop_
  */
-public interface RadioButtonGroup extends Component<RadioButtonGroup, RadioButtonGroupState> {
-    RadioButton getSelected();
-    Collection<RadioButton> getChildren();
-    default RadioButton getButtonByName(@NonNull String name)   {
-        return this.getChildren().stream()
-                .filter(button -> button.getName().equals(name))
-                .findAny().orElseThrow(NoSuchElementException::new);
-    }
-    default RadioButton getButtonByQualifiedName(@NonNull String qualifiedName)   {
-        return this.getChildren().stream()
-                .filter(button -> button.getQualifiedName().equals(qualifiedName))
-                .findAny().orElseThrow(NoSuchElementException::new);
-    }
-    RadioButtonGroup add(@NonNull RadioButton button);
-    RadioButtonGroup remove(@NonNull String qualifiedName);
-    default RadioButtonGroup remove(@NonNull RadioButton button)    {
-        return this.remove(button.getQualifiedName());
-    }
+@Getter
+public class PForm<T> {
+    protected final Class<T> clazz;
 
-    @Override
-    default RadioButtonGroupState getState() {
-        return RadioButtonGroupState.DEFAULT;
+    public PForm(@NonNull Class<T> clazz)   {
+        this.clazz = clazz;
     }
 }

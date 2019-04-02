@@ -13,18 +13,32 @@
  *
  */
 
-package net.daporkchop.lib.gui.form.annotation;
+package net.daporkchop.lib.gui.form.data;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.gui.component.Container;
+import net.daporkchop.lib.gui.form.annotation.FormType;
+import net.daporkchop.lib.reflection.PField;
 
 /**
  * @author DaPorkchop_
  */
-@Target(ElementType.FIELD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface FormComponentName {
-    String value();
+@RequiredArgsConstructor
+@Getter
+public class FormInt implements FormValue {
+    @NonNull
+    protected final PField field;
+    @NonNull
+    protected final FormType.Int annotation;
+
+    @Override
+    public void configure(@NonNull Container container) {
+        //TODO
+    }
+
+    @Override
+    public void loadInto(@NonNull Object o, @NonNull Container container) {
+    }
 }

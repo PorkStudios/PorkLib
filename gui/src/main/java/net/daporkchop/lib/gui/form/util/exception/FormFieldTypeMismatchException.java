@@ -13,18 +13,29 @@
  *
  */
 
-package net.daporkchop.lib.gui.form.annotation;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+package net.daporkchop.lib.gui.form.util.exception;
 
 /**
  * @author DaPorkchop_
  */
-@Target(ElementType.FIELD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface FormComponentName {
-    String value();
+public class FormFieldTypeMismatchException extends FormException {
+    public FormFieldTypeMismatchException() {
+        super();
+    }
+
+    public FormFieldTypeMismatchException(String message) {
+        super(message);
+    }
+
+    public FormFieldTypeMismatchException(String format, Object... args) {
+        super(String.format(format, args));
+    }
+
+    public FormFieldTypeMismatchException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public FormFieldTypeMismatchException(Throwable cause) {
+        super(cause);
+    }
 }

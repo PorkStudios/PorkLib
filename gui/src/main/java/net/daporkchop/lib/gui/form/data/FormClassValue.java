@@ -13,18 +13,47 @@
  *
  */
 
-package net.daporkchop.lib.gui.form.annotation;
+package net.daporkchop.lib.gui.form.data;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import lombok.Getter;
+import lombok.NonNull;
+import net.daporkchop.lib.common.function.PFunctions;
+import net.daporkchop.lib.gui.component.Container;
+import net.daporkchop.lib.gui.form.annotation.FormType;
+import net.daporkchop.lib.reflection.PField;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Map;
+import java.util.function.Predicate;
 
 /**
  * @author DaPorkchop_
  */
-@Target(ElementType.FIELD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface FormComponentName {
-    String value();
+@Getter
+public class FormClassValue implements FormValue {
+    protected final Class<?> clazz;
+    protected final Collection<FormValue> fields = new ArrayList<>();
+
+    public FormClassValue(@NonNull Class<?> clazz)    {
+        this.clazz = clazz;
+
+        Arrays.stream(clazz.getDeclaredFields())
+                .map(PField::of)
+                .filter(PFunctions.invert(PField::isStatic))
+                .filter(PFunctions.invert(field -> field.hasAnnotation(FormType.Ignored.class)))
+                .map(FormValue::of)
+                .forEach(this.fields::add);
+    }
+
+    @Override
+    public void configure(@NonNull Container container) {
+
+    }
+
+    @Override
+    public void loadInto(@NonNull Object o, @NonNull Container container) {
+
+    }
 }

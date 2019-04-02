@@ -25,6 +25,6 @@ import java.lang.annotation.Target;
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface FormComponentName {
-    String value();
+public @interface FormTooltip {
+    String[] value();
 }

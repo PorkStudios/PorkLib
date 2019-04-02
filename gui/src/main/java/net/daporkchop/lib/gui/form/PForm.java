@@ -17,12 +17,18 @@ package net.daporkchop.lib.gui.form;
 
 import lombok.Getter;
 import lombok.NonNull;
+import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.gui.form.data.FormValue;
+
+import java.util.Map;
 
 /**
  * @author DaPorkchop_
  */
 @Getter
 public class PForm<T> {
+    protected static final Map<Class<?>, FormValue> DATA_CACHE = PorkUtil.newSoftCache();
+
     protected final Class<T> clazz;
 
     public PForm(@NonNull Class<T> clazz)   {

@@ -72,7 +72,8 @@ public class PField<V> implements Accessible, AnnotationHolder {
                 field.getModifiers(),
                 field.getAnnotations(),
                 field.getName(),
-                field.getType()
+                field.getType(),
+                field.getDeclaringClass()
         );
     }
 
@@ -88,6 +89,8 @@ public class PField<V> implements Accessible, AnnotationHolder {
     protected final String name;
     @NonNull
     protected final Class<?> classType;
+    @NonNull
+    protected final Class<?> parentClass;
 
     //object methods
 
@@ -513,5 +516,10 @@ public class PField<V> implements Accessible, AnnotationHolder {
         if (this.type != type && !(type.isObject() && type.isObject())) {
             throw new IllegalStateException(String.format("Invalid field type! We're %s but %s is required!", this.type, type));
         }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s#%s", this.parentClass.getCanonicalName(), this.name);
     }
 }

@@ -20,6 +20,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.common.function.throwing.EFunction;
 import net.daporkchop.lib.common.misc.Tuple;
 import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.form.annotation.FormType;
 import net.daporkchop.lib.gui.form.util.exception.FormFieldTypeMismatchException;
@@ -71,11 +72,12 @@ public class FormEnum<E extends Enum> extends AbstractFormValue<FormType.Enum> {
     }
 
     @Override
-    public void configure(@NonNull Container container) {
+    protected void doConfigure(@NonNull Component component) {
         //TODO
     }
 
     @Override
-    public void loadInto(@NonNull Object o, @NonNull Container container) {
+    protected void doLoadInto(@NonNull Object o, @NonNull Component component) {
+
     }
 }

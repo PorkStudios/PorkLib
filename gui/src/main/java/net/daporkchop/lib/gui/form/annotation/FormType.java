@@ -48,7 +48,7 @@ public abstract class FormType {
         int max() default 100;
         int step() default 1;
 
-        Type component() default Type.SPINNER;
+        Type type() default Type.SPINNER;
 
         enum Type  {
             SPINNER,
@@ -81,7 +81,7 @@ public abstract class FormType {
     public @interface Text {
         String value() default "";
 
-        Type component() default Type.TEXT_BOX;
+        Type type() default Type.TEXT_BOX;
 
         enum Type  {
             TEXT_BOX,

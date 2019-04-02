@@ -17,7 +17,12 @@ package net.daporkchop.lib.gui.form;
 
 import lombok.Getter;
 import lombok.NonNull;
+import net.daporkchop.lib.common.util.PUnsafe;
 import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.gui.component.Container;
+import net.daporkchop.lib.gui.component.Element;
+import net.daporkchop.lib.gui.component.type.functional.Button;
+import net.daporkchop.lib.gui.form.data.FormObject;
 import net.daporkchop.lib.gui.form.data.FormValue;
 
 import java.util.Map;
@@ -27,11 +32,44 @@ import java.util.Map;
  */
 @Getter
 public class PForm<T> {
-    protected static final Map<Class<?>, FormValue> DATA_CACHE = PorkUtil.newSoftCache();
+    protected static final Map<Class<?>, FormObject> OBJECT_CACHE = PorkUtil.newSoftCache();
 
     protected final Class<T> clazz;
+    protected final FormObject base;
+    protected final Container container;
 
-    public PForm(@NonNull Class<T> clazz)   {
+    public PForm(@NonNull Class<T> clazz, @NonNull Container container)   {
         this.clazz = clazz;
+        this.container = container;
+
+        this.base = OBJECT_CACHE.computeIfAbsent(clazz, c -> new FormObject(c, null));
+    }
+
+    public PForm<T> submitButton(@NonNull String name)   {
+        Element element = this.container.getChild(name);
+        if (element == null)    {
+            throw new IllegalStateException(String.format("No element with name: \"%s\"!", name));
+        } else if (element instanceof Button)   {
+            return this.submitButton((Button) element);
+        } else {
+            throw new IllegalStateException(String.format("Invalid component type for \"%s\": %s!", name, element.getClass().getCanonicalName()));
+        }
+    }
+
+    public PForm<T> submitButton(@NonNull Button button)   {
+        button.setClickHandler((mouseButton, x, y) -> this.complete());
+        return this;
+    }
+
+    public PForm<T> prepare()   {
+        this.base.configure(this.container);
+        return this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public T complete()    {
+        T val = (T) PUnsafe.allocateInstance(this.clazz);
+        this.base.loadInto(val, this.container);
+        return val;
     }
 }

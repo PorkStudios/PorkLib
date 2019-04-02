@@ -28,30 +28,18 @@ import net.daporkchop.lib.reflection.util.Type;
  * @author DaPorkchop_
  */
 @Getter
-public class FormInt implements FormValue {
-    @NonNull
-    protected final PField field;
-    @NonNull
-    protected final FormType.Int annotation;
-
+public class FormInt extends AbstractFormValue<FormType.Int> {
     public FormInt(@NonNull PField field)   {
-        if (field.getType() == Type.INT) {
-            if (field.hasAnnotation(FormType.Int.class)) {
-                this.field = field;
-                this.annotation = field.getAnnotation(FormType.Int.class);
-            } else {
-                throw new FormFieldTypeMismatchException("Field %s is not an int, but has Int annotation!", field);
-            }
-        } else {
-            throw new FormFieldTypeMismatchException("Field %s is not an int!", field);
-        }
+        super(field, FormType.Int.class);
     }
 
-    public FormInt(@NonNull PField field, @NonNull FormType.Int annotation)   {
-        if (field.getType() == Type.INT) {
-            this.field = field;
-            this.annotation = annotation;
-        } else {
+    public FormInt(@NonNull PField field, FormType.Int annotation)   {
+        super(field, annotation);
+    }
+
+    @Override
+    protected void assertCorrectType(@NonNull PField field) {
+        if (field.getType() != Type.INT)    {
             throw new FormFieldTypeMismatchException("Field %s is not an int!", field);
         }
     }

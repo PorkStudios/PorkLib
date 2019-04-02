@@ -16,6 +16,7 @@
 package net.daporkchop.lib.gui.component.capability;
 
 import lombok.NonNull;
+import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.type.container.Panel;
 import net.daporkchop.lib.gui.component.type.container.ScrollPane;
 import net.daporkchop.lib.gui.component.type.functional.Button;
@@ -28,6 +29,7 @@ import net.daporkchop.lib.gui.component.type.functional.Slider;
 import net.daporkchop.lib.gui.component.type.functional.Spinner;
 import net.daporkchop.lib.gui.component.type.functional.TextBox;
 import net.daporkchop.lib.gui.component.type.misc.RadioButtonGroup;
+import net.daporkchop.lib.gui.form.PForm;
 
 import java.util.function.Consumer;
 
@@ -272,5 +274,16 @@ public interface ComponentAdder<Impl> {
     default Impl radioGroupFast(@NonNull String name)   {
         this.radioGroup(name);
         return (Impl) this;
+    }
+
+    //
+    //
+    // form stuff
+    //
+    //
+    default <T> PForm<T> form(@NonNull Class<T> clazz)  {
+        PForm<T> form = new PForm<>(clazz, (Container) this);
+        form.prepare();
+        return form;
     }
 }

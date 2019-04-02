@@ -38,34 +38,11 @@ public abstract class FormType {
     }
 
     /**
-     * Different field type supported by forms
-     */
-    @Getter
-    enum Type {
-        INT(Int.class, int.class, long.class, float.class, double.class),
-        ;
-
-        protected final Class<? extends Annotation> annotationClass;
-        protected final Collection<Class<?>> validTypes;
-
-        Type(@NonNull Class<? extends Annotation> annotationClass, @NonNull Class<?>... validTypes) {
-            this.annotationClass = annotationClass;
-            this.validTypes = Collections.unmodifiableCollection(Arrays.asList(validTypes));
-            if (this.validTypes.contains(null)) {
-                throw new NullPointerException();
-            }
-        }
-    }
-
-    /**
      * Defines a field as containing an int value
      */
     @Target(ElementType.FIELD)
     @Retention(RetentionPolicy.RUNTIME)
-    @interface Int {
-        String componentName() default "";
-        String[] tooltip() default {};
-
+    public @interface Int {
         int value() default 0;
         int min() default 0;
         int max() default 100;
@@ -85,10 +62,7 @@ public abstract class FormType {
      */
     @Target(ElementType.FIELD)
     @Retention(RetentionPolicy.RUNTIME)
-    @interface Boolean {
-        String componentName() default "";
-        String[] tooltip() default {};
-
+    public @interface Boolean {
         boolean value() default false;
 
         Type type() default Type.CHECK_BOX;
@@ -104,10 +78,7 @@ public abstract class FormType {
      */
     @Target(ElementType.FIELD)
     @Retention(RetentionPolicy.RUNTIME)
-    @interface Text {
-        String componentName() default "";
-        String[] tooltip() default {};
-
+    public @interface Text {
         String value() default "";
 
         Type component() default Type.TEXT_BOX;
@@ -123,10 +94,7 @@ public abstract class FormType {
      */
     @Target(ElementType.FIELD)
     @Retention(RetentionPolicy.RUNTIME)
-    @interface Enum {
-        String componentName() default "";
-        String[] tooltip() default {};
-
+    public @interface Enum {
         boolean value() default false;
 
         Type type() default Type.DROPDOWN;
@@ -143,8 +111,14 @@ public abstract class FormType {
      */
     @Target(ElementType.FIELD)
     @Retention(RetentionPolicy.RUNTIME)
-    @interface EnumMember {
-        String componentName() default "";
-        String[] tooltip() default {};
+    public @interface EnumMember {
+    }
+
+    /**
+     * Defines a field as being ignored by the GUI form parser
+     */
+    @Target(ElementType.FIELD)
+    @Retention(RetentionPolicy.RUNTIME)
+    public @interface Ignored  {
     }
 }

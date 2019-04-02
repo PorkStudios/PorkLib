@@ -13,18 +13,25 @@
  *
  */
 
-package net.daporkchop.lib.gui.form.annotation;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+package net.daporkchop.lib.gui.form.util.exception;
 
 /**
  * @author DaPorkchop_
  */
-@Target(ElementType.FIELD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface FormComponentName {
-    String value();
+public class FormFieldIgnoredException extends FormException {
+    public FormFieldIgnoredException() {
+        super();
+    }
+
+    public FormFieldIgnoredException(String message) {
+        super(message);
+    }
+
+    public FormFieldIgnoredException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public FormFieldIgnoredException(Throwable cause) {
+        super(cause);
+    }
 }

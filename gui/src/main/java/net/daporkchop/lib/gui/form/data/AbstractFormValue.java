@@ -17,6 +17,8 @@ package net.daporkchop.lib.gui.form.data;
 
 import lombok.Getter;
 import lombok.NonNull;
+import net.daporkchop.lib.gui.component.Component;
+import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.form.annotation.FormComponentName;
 import net.daporkchop.lib.gui.form.annotation.FormTooltip;
 import net.daporkchop.lib.reflection.PField;
@@ -31,7 +33,7 @@ import java.util.stream.Stream;
  */
 @Getter
 public abstract class AbstractFormValue<A extends Annotation> implements FormValue {
-    protected static String[] parseTooltip(@NonNull String[] source)    {
+    protected static String[] parseTooltip(@NonNull String[] source) {
         return Arrays.stream(source)
                 .filter(Objects::nonNull)
                 .flatMap(s -> s.indexOf('\n') == -1 ? Arrays.stream(s.split("\n")) : Stream.of(s))
@@ -56,7 +58,7 @@ public abstract class AbstractFormValue<A extends Annotation> implements FormVal
         }
         {
             FormTooltip tooltip = field.getAnnotation(FormTooltip.class);
-            if (tooltip == null)    {
+            if (tooltip == null) {
                 this.tooltip = new String[0];
             } else {
                 this.tooltip = parseTooltip(tooltip.value());
@@ -78,7 +80,7 @@ public abstract class AbstractFormValue<A extends Annotation> implements FormVal
         }
         {
             FormTooltip tooltip = field.getAnnotation(FormTooltip.class);
-            if (tooltip == null)    {
+            if (tooltip == null) {
                 this.tooltip = new String[0];
             } else {
                 this.tooltip = parseTooltip(tooltip.value());
@@ -87,5 +89,30 @@ public abstract class AbstractFormValue<A extends Annotation> implements FormVal
         this.annotation = annotationInstance;
     }
 
+
+    @Override
+    public void configure(@NonNull Container container) {
+        Component component = container.getChild(this.componentName);
+        if (component == null) {
+            throw new IllegalStateException(String.format("No component found with name: \"%s\"!", this.componentName));
+        }
+
+        if (this.tooltip != null) {
+            component.setTooltip(this.tooltip);
+        }
+        this.doConfigure(component);
+    }
+
+    @Override
+    public void loadInto(@NonNull Object o, @NonNull Container container) {
+        Component component = container.getChild(this.componentName);
+        if (component == null) {
+            throw new IllegalStateException(String.format("No component found with name: \"%s\"!", this.componentName));
+        }
+        this.doLoadInto(o, component);
+    }
+
     protected abstract void assertCorrectType(@NonNull PField field);
+    protected abstract void doConfigure(@NonNull Component component);
+    protected abstract void doLoadInto(@NonNull Object o, @NonNull Component component);
 }

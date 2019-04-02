@@ -43,6 +43,14 @@ public class FormExample implements Logging {
                         .orientAdvanced(adv -> adv.belowAndCopyX("slider"))
                         .minDimensionsAreValueSize().pad(2)
                         .setText("Submit"))
+                .scrollPane("sub", scrollPane -> scrollPane
+                        .orientAdvanced(adv -> adv
+                                .belowAndCopyX("complete")
+                                .width(0.5d).height(0.25d))
+                        .pad(2)
+                        .checkBox("checkbox", checkBox -> checkBox
+                                .orientRelative(2, 2, 0.0d, 0.0d)
+                                .minDimensionsAreValueSize().pad(2)))
                 .form(FormData.class, form -> form
                         .submitButton("complete")
                         .addListener((status, value) -> logger.info("Form completed with status: ${0}", status))
@@ -66,10 +74,19 @@ public class FormExample implements Logging {
         @FormComponentName("spinner2")
         public int otherSpinner;
 
-        @FormType.Int(component = FormType.Int.Type.SLIDER)
+        @FormType.Int(type = FormType.Int.Type.SLIDER)
         @FormTooltip({
                 "Sliders can be more useful than spinners in many cases!"
         })
         public int slider;
+
+        public SubData sub;
+    }
+
+    @ToString
+    protected static class SubData {
+        @FormTooltip("This is a simple boolean value.")
+        @FormComponentName("checkbox")
+        public boolean flag;
     }
 }

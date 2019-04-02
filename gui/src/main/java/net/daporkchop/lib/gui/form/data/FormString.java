@@ -17,7 +17,9 @@ package net.daporkchop.lib.gui.form.data;
 
 import lombok.Getter;
 import lombok.NonNull;
+import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.Container;
+import net.daporkchop.lib.gui.component.type.functional.TextBox;
 import net.daporkchop.lib.gui.form.annotation.FormType;
 import net.daporkchop.lib.gui.form.util.exception.FormFieldTypeMismatchException;
 import net.daporkchop.lib.reflection.PField;
@@ -44,11 +46,35 @@ public class FormString extends AbstractFormValue<FormType.Text> {
     }
 
     @Override
-    public void configure(@NonNull Container container) {
-        //TODO
+    protected void doConfigure(@NonNull Component component) {
+        switch (this.annotation.type()) {
+            case TEXT_BOX: {
+                if (component instanceof TextBox) {
+                    ((TextBox) component).setText(this.annotation.value());
+                } else {
+                    throw new IllegalStateException(String.format("Component \"%s\" is not a text box: %s!", this.componentName, component.getClass().getCanonicalName()));
+                }
+            }
+            break;
+            default:
+                throw new IllegalStateException();
+        }
     }
 
     @Override
-    public void loadInto(@NonNull Object o, @NonNull Container container) {
+    @SuppressWarnings("unchecked")
+    protected void doLoadInto(@NonNull Object o, @NonNull Component component) {
+        switch (this.annotation.type()) {
+            case TEXT_BOX: {
+                if (component instanceof TextBox) {
+                    this.field.set(o, ((TextBox) component).getText());
+                } else {
+                    throw new IllegalStateException(String.format("Component \"%s\" is not a text box: %s!", this.componentName, component.getClass().getCanonicalName()));
+                }
+            }
+            break;
+            default:
+                throw new IllegalStateException();
+        }
     }
 }

@@ -29,6 +29,7 @@ import net.daporkchop.lib.gui.component.type.Window;
 import net.daporkchop.lib.gui.component.type.functional.ProgressBar;
 import net.daporkchop.lib.gui.component.type.functional.Slider;
 import net.daporkchop.lib.gui.component.type.functional.Spinner;
+import net.daporkchop.lib.gui.form.util.exception.FormException;
 import net.daporkchop.lib.gui.util.Alignment;
 import net.daporkchop.lib.gui.util.ScrollCondition;
 import net.daporkchop.lib.logging.Logging;
@@ -75,7 +76,7 @@ public class GuiExample implements Logging {
                                 .configureAxis(Axis.WIDTH, calc -> calc.ease(DistUnit.PX, 30))
                                 .configureAxis(Axis.HEIGHT, Axis.WIDTH)))
                 .scrollPane("scrollPane1", scrollPane -> scrollPane
-                        .orientRelative(0.2d, 0.6d, 0.6d, 0.4d)
+                        .orientRelative(0.2d, 0.5d, 0.6d, 0.4d)
                         .setScrolling(ScrollCondition.ALWAYS)
                         .label("label1", LOREM_IPSUM, label -> label
                                 .orientRelative(0.0d, 0.0d, 0.75d, 0.15d)
@@ -85,13 +86,17 @@ public class GuiExample implements Logging {
                                 .setColor(0xFF5555FF)
                                 .setText("Hello World!")))
                 .button("button4", button -> button
-                        .orientRelative(0.8d, 0.8d, 0.2d, 0.1d)
+                        .orientRelative(0.8d, 0.7d, 0.2d, 0.1d)
                         .setText("Dropdown test")
                         .setClickHandler((mouseButton, x, y) -> displayDropdownTestWindow(button.getWindow())))
                 .button("button5", button -> button
-                        .orientRelative(0.8d, 0.9d, 0.2d, 0.1d)
+                        .orientRelative(0.8d, 0.8d, 0.2d, 0.1d)
                         .setText("Scrollbar test")
                         .setClickHandler((mouseButton, x, y) -> displayScrollbarTestWindow(button.getWindow())))
+                .button("button6", button -> button
+                        .orientRelative(0.8d, 0.9d, 0.2d, 0.1d)
+                        .setText("Form test")
+                        .setClickHandler((mouseButton, x, y) -> FormExample.displayForm(button.getWindow())))
                 .addStateListener(state -> logger.debug("Window changed state: ${0}\n", state))
                 .addVisibleListener(() -> logger.info("Window is now visible!"))
                 .show();

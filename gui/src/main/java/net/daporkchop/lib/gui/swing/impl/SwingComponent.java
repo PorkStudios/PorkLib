@@ -32,6 +32,7 @@ import net.daporkchop.lib.gui.util.math.Size;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.StringJoiner;
 
 /**
  * @author DaPorkchop_
@@ -135,6 +136,25 @@ public abstract class SwingComponent<Impl extends Component, Swing extends JComp
             this.swing.setToolTipText(tooltip);
         }
         return (Impl) this;
+    }
+
+    @Override
+    public Impl setTooltip(String[] tooltip) {
+        if (tooltip == null) {
+            return this.setTooltip((String) null);
+        } else {
+            StringJoiner builder = new StringJoiner("<br>", "<html>", "</html>");
+            for (String line : tooltip) {
+                if (line.indexOf('\n') == -1) {
+                    builder.add(line);
+                } else {
+                    for (String subLine : line.split("\n")) {
+                        builder.add(subLine);
+                    }
+                }
+            }
+            return this.setTooltip(builder.toString());
+        }
     }
 
     @Override

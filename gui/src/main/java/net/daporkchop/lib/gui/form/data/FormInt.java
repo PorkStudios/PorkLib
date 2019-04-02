@@ -18,7 +18,11 @@ package net.daporkchop.lib.gui.form.data;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.Container;
+import net.daporkchop.lib.gui.component.Element;
+import net.daporkchop.lib.gui.component.type.functional.Slider;
+import net.daporkchop.lib.gui.component.type.functional.Spinner;
 import net.daporkchop.lib.gui.form.annotation.FormType;
 import net.daporkchop.lib.gui.form.util.exception.FormFieldTypeMismatchException;
 import net.daporkchop.lib.reflection.PField;
@@ -46,10 +50,66 @@ public class FormInt extends AbstractFormValue<FormType.Int> {
 
     @Override
     public void configure(@NonNull Container container) {
-        //TODO
+        Component component = container.getChild(this.componentName);
+        if (component == null)    {
+            throw new IllegalStateException(String.format("No component found with name: \"%s\"!", this.componentName));
+        }
+
+        if (this.tooltip != null)   {
+            component.setTooltip(this.tooltip);
+        }
+        switch (this.annotation.component())    {
+            case SPINNER: {
+                if (component instanceof Spinner) {
+                    ((Spinner) component)
+                            .setValAndLimits(this.annotation.value(), this.annotation.min(), this.annotation.max())
+                            .setStep(this.annotation.step());
+                } else {
+                    throw new IllegalStateException(String.format("Component \"%s\" is not a spinner: %s!", this.componentName, component.getClass().getCanonicalName()));
+                }
+            }
+            break;
+            case SLIDER: {
+                if (component instanceof Slider) {
+                    ((Slider) component)
+                            .setValAndLimits(this.annotation.value(), this.annotation.min(), this.annotation.max())
+                            .setStep(this.annotation.step());
+                } else {
+                    throw new IllegalStateException(String.format("Component \"%s\" is not a slider: %s!", this.componentName, component.getClass().getCanonicalName()));
+                }
+            }
+            break;
+            default:
+                throw new IllegalStateException();
+        }
     }
 
     @Override
     public void loadInto(@NonNull Object o, @NonNull Container container) {
+        Component component = container.getChild(this.componentName);
+        if (component == null)    {
+            throw new IllegalStateException(String.format("No component found with name: \"%s\"!", this.componentName));
+        }
+
+        switch (this.annotation.component())    {
+            case SPINNER: {
+                if (component instanceof Spinner) {
+                    this.field.setInt(o, ((Spinner) component).getValue());
+                } else {
+                    throw new IllegalStateException(String.format("Component \"%s\" is not a spinner: %s!", this.componentName, component.getClass().getCanonicalName()));
+                }
+            }
+            break;
+            case SLIDER: {
+                if (component instanceof Slider) {
+                    this.field.setInt(o, ((Slider) component).getValue());
+                } else {
+                    throw new IllegalStateException(String.format("Component \"%s\" is not a slider: %s!", this.componentName, component.getClass().getCanonicalName()));
+                }
+            }
+            break;
+            default:
+                throw new IllegalStateException();
+        }
     }
 }

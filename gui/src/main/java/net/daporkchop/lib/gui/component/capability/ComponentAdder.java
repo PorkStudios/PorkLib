@@ -286,4 +286,11 @@ public interface ComponentAdder<Impl> {
         form.prepare();
         return form;
     }
+
+    default <T> Impl form(@NonNull Class<T> clazz, @NonNull Consumer<PForm<T>> initializer)  {
+        PForm<T> form = new PForm<>(clazz, (Container) this);
+        initializer.accept(form);
+        form.prepare();
+        return (Impl) this;
+    }
 }

@@ -57,6 +57,11 @@ public interface Component<Impl extends Component, State extends ElementState<? 
 
     Window getWindow();
 
+    String getTooltip();
+
+    Impl setTooltip(String tooltip);
+    Impl setTooltip(String[] tooltip);
+
     //state methods
     boolean isHovered();
     boolean isMouseDown();

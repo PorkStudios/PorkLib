@@ -24,8 +24,15 @@ import net.daporkchop.lib.gui.component.Element;
 import net.daporkchop.lib.gui.component.type.functional.Button;
 import net.daporkchop.lib.gui.form.data.FormObject;
 import net.daporkchop.lib.gui.form.data.FormValue;
+import net.daporkchop.lib.gui.form.util.FormCompletionListener;
+import net.daporkchop.lib.gui.form.util.FormCompletionStatus;
+import net.daporkchop.lib.gui.form.util.exception.FormCompletionException;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * @author DaPorkchop_
@@ -37,6 +44,8 @@ public class PForm<T> {
     protected final Class<T> clazz;
     protected final FormObject base;
     protected final Container container;
+
+    protected final Collection<FormCompletionListener<T>> listeners = new ArrayList<>();
 
     public PForm(@NonNull Class<T> clazz, @NonNull Container container)   {
         this.clazz = clazz;
@@ -61,15 +70,64 @@ public class PForm<T> {
         return this;
     }
 
+    public PForm<T> addSuccessListener(@NonNull Consumer<T> listener)   {
+        return this.addListener((status, value) -> {
+            if (status == FormCompletionStatus.SUCCESS) {
+                listener.accept(value);
+            }
+        });
+    }
+
+    public PForm<T> addCancelListener(@NonNull Runnable listener)   {
+        return this.addListener((status, value) -> {
+            if (status == FormCompletionStatus.CANCELLED) {
+                listener.run();
+            }
+        });
+    }
+
+    public PForm<T> addErrorListener(@NonNull Runnable listener)   {
+        return this.addListener((status, value) -> {
+            if (status == FormCompletionStatus.ERROR) {
+                listener.run();
+            }
+        });
+    }
+
+    public PForm<T> addListener(@NonNull BiConsumer<FormCompletionStatus, T> listener)    {
+        this.listeners.add(listener::accept);
+        return this;
+    }
+
+    public PForm<T> addListener(@NonNull FormCompletionListener<T> listener)    {
+        this.listeners.add(listener);
+        return this;
+    }
+
     public PForm<T> prepare()   {
         this.base.configure(this.container);
         return this;
     }
 
+    public void cancel()    {
+        this.fireComplete(FormCompletionStatus.CANCELLED, null);
+    }
+
     @SuppressWarnings("unchecked")
     public T complete()    {
-        T val = (T) PUnsafe.allocateInstance(this.clazz);
-        this.base.loadInto(val, this.container);
+        T val;
+        try {
+            val = (T) PUnsafe.allocateInstance(this.clazz);
+            this.base.loadInto(val, this.container);
+        } catch (Exception e)   {
+            this.fireComplete(FormCompletionStatus.ERROR, null);
+            throw new FormCompletionException(e);
+        }
+        this.fireComplete(FormCompletionStatus.SUCCESS, val);
         return val;
+    }
+
+    protected void fireComplete(@NonNull FormCompletionStatus status, T value)  {
+        this.listeners.forEach(listener -> listener.accept(status, value));
     }
 }

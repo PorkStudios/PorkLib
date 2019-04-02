@@ -66,10 +66,6 @@ public interface Element<Impl extends Element, State extends ElementState<? exte
     }
 
     //visual things
-    String getTooltip();
-
-    Impl setTooltip(String tooltip);
-
     boolean isVisible();
     Impl setVisible(boolean state);
 

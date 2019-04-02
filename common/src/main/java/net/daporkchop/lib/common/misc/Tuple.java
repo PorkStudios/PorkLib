@@ -13,38 +13,44 @@
  *
  */
 
-package net.daporkchop.lib.gui.form.data;
+package net.daporkchop.lib.common.misc;
 
-import lombok.NonNull;
-import net.daporkchop.lib.gui.component.Container;
-import net.daporkchop.lib.gui.form.annotation.FormType;
-import net.daporkchop.lib.gui.form.util.exception.FormFieldIgnoredException;
-import net.daporkchop.lib.gui.form.util.exception.FormFieldTypeMismatchException;
-import net.daporkchop.lib.reflection.PField;
-import net.daporkchop.lib.reflection.util.Type;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.Accessors;
 
 /**
  * @author DaPorkchop_
  */
-public interface FormValue {
-    @SuppressWarnings("unchecked")
-    static FormValue of(@NonNull PField field) {
-        if (field.hasAnnotation(FormType.Ignored.class)) {
-            throw new FormFieldIgnoredException(field.toString());
-        } else if (field.hasAnnotation(FormType.Int.class)) {
-            return new FormInt(field);
-        } else if (field.hasAnnotation(FormType.Boolean.class)) {
-            return new FormBoolean(field);
-        } else if (field.hasAnnotation(FormType.Text.class))    {
-            return new FormString(field);
-        } else if (field.hasAnnotation(FormType.Enum.class))    {
-            return new FormEnum<>(field);
-        } else {
-            throw new IllegalArgumentException(String.format("Invalid field for "))
-        }
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
+@Accessors(chain = true)
+@ToString
+@EqualsAndHashCode
+public class Tuple<A, B> {
+    protected A a;
+    protected B b;
+
+    public boolean isANull()    {
+        return this.a == null;
     }
 
-    void configure(@NonNull Container container);
+    public boolean isANonNull()    {
+        return this.a != null;
+    }
 
-    void loadInto(@NonNull Object o, @NonNull Container container);
+    public boolean isBNull()    {
+        return this.b == null;
+    }
+
+    public boolean isBNonNull()    {
+        return this.b != null;
+    }
 }

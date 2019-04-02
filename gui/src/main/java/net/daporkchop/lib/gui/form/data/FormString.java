@@ -28,31 +28,31 @@ import net.daporkchop.lib.reflection.util.Type;
  * @author DaPorkchop_
  */
 @Getter
-public class FormBoolean implements FormValue {
+public class FormString implements FormValue {
     @NonNull
     protected final PField field;
     @NonNull
-    protected final FormType.Boolean annotation;
+    protected final FormType.Text annotation;
 
-    public FormBoolean(@NonNull PField field)   {
-        if (field.getType() == Type.BOOLEAN) {
-            if (field.hasAnnotation(FormType.Boolean.class)) {
+    public FormString(@NonNull PField field)   {
+        if (field.getType() == Type.STRING || (field.getType() == Type.OBJECT && field.getClassType() == String.class)) {
+            if (field.hasAnnotation(FormType.Text.class)) {
                 this.field = field;
-                this.annotation = field.getAnnotation(FormType.Boolean.class);
+                this.annotation = field.getAnnotation(FormType.Text.class);
             } else {
-                throw new FormFieldTypeMismatchException("Field %s is not a boolean, but has Boolean annotation!", field);
+                throw new FormFieldTypeMismatchException("Field %s is not a String, but has Text annotation!", field);
             }
         } else {
-            throw new FormFieldTypeMismatchException("Field %s is not a boolean!", field);
+            throw new FormFieldTypeMismatchException("Field %s is not a String!", field);
         }
     }
 
-    public FormBoolean(@NonNull PField field, @NonNull FormType.Boolean annotation)   {
-        if (field.getType() == Type.BOOLEAN) {
+    public FormString(@NonNull PField field, @NonNull FormType.Text annotation)   {
+        if (field.getType() == Type.STRING || (field.getType() == Type.OBJECT && field.getClassType() == String.class)) {
             this.field = field;
             this.annotation = annotation;
         } else {
-            throw new FormFieldTypeMismatchException("Field %s is not a boolean!", field);
+            throw new FormFieldTypeMismatchException("Field %s is not a String!", field);
         }
     }
 

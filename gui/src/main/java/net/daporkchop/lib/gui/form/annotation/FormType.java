@@ -111,7 +111,8 @@ public abstract class FormType {
      */
     @Target(ElementType.FIELD)
     @Retention(RetentionPolicy.RUNTIME)
-    public @interface EnumMember {
+    public @interface EnumMemberTooltip {
+        String[] value();
     }
 
     /**

@@ -18,10 +18,9 @@ package net.daporkchop.lib.gui.form.data;
 import lombok.NonNull;
 import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.form.annotation.FormType;
+import net.daporkchop.lib.gui.form.util.exception.FormException;
 import net.daporkchop.lib.gui.form.util.exception.FormFieldIgnoredException;
-import net.daporkchop.lib.gui.form.util.exception.FormFieldTypeMismatchException;
 import net.daporkchop.lib.reflection.PField;
-import net.daporkchop.lib.reflection.util.Type;
 
 /**
  * @author DaPorkchop_
@@ -31,16 +30,28 @@ public interface FormValue {
     static FormValue of(@NonNull PField field) {
         if (field.hasAnnotation(FormType.Ignored.class)) {
             throw new FormFieldIgnoredException(field.toString());
-        } else if (field.hasAnnotation(FormType.Int.class)) {
-            return new FormInt(field);
-        } else if (field.hasAnnotation(FormType.Boolean.class)) {
-            return new FormBoolean(field);
-        } else if (field.hasAnnotation(FormType.Text.class))    {
-            return new FormString(field);
-        } else if (field.hasAnnotation(FormType.Enum.class))    {
-            return new FormEnum<>(field);
         } else {
-            throw new IllegalArgumentException(String.format("Invalid field for "))
+            try {
+                return new FormInt(field);
+            } catch (FormException e0) {
+                try {
+                    return new FormBoolean(field);
+                } catch (FormException e1) {
+                    try {
+                        return new FormString(field);
+                    } catch (FormException e2) {
+                        try {
+                            return new FormEnum<>(field);
+                        } catch (FormException e3) {
+                            try {
+                                return new FormObject(field.getClassType(), field);
+                            } catch (FormException e4) {
+                                throw new IllegalArgumentException(String.format("Unknown type for field %s!", field));
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 

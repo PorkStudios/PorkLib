@@ -30,15 +30,13 @@ import net.daporkchop.lib.reflection.util.Type;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author DaPorkchop_
  */
 @Getter
-public class FormEnum<E extends Enum> implements FormValue {
+public class FormEnum<E extends Enum> extends AbstractFormValue<FormType.Enum> {
     protected static final Map<Class<? extends Enum>, Map<? extends Enum, String[]>> tooltipCache = PorkUtil.newSoftCache();
 
     @SuppressWarnings("unchecked")
@@ -47,38 +45,27 @@ public class FormEnum<E extends Enum> implements FormValue {
                 .filter(Field::isEnumConstant)
                 .map(field -> new Tuple<>(field, PReflection.getAnnotation(field, FormType.EnumMemberTooltip.class)))
                 .filter(Tuple::isBNonNull)
-                .collect(Collectors.toMap((EFunction<Tuple<Field, FormType.EnumMemberTooltip>, E>) t -> (E) t.getA().get(null), t -> Arrays.stream(t.getB().value())
-                        .filter(Objects::nonNull)
-                        .flatMap(line -> line.indexOf('\n') != -1 ? Arrays.stream(line.split("\n")) : Stream.of(line))
-                        .toArray(String[]::new))));
+                .collect(Collectors.toMap(
+                        (EFunction<Tuple<Field, FormType.EnumMemberTooltip>, E>) t -> (E) t.getA().get(null),
+                        t -> parseTooltip(t.getB().value())
+                )));
     }
 
-    @NonNull
-    protected final PField field;
-    @NonNull
-    protected final FormType.Enum annotation;
     protected final Map<E, String[]> tooltips;
 
     public FormEnum(@NonNull PField<E> field) {
-        if (field.getType() == Type.OBJECT && Enum.class.isAssignableFrom(field.getClassType())) {
-            this.field = field;
-            if (field.hasAnnotation(FormType.Enum.class)) {
-                this.annotation = field.getAnnotation(FormType.Enum.class);
-                this.tooltips = getTooltips(field.getClassType());
-            } else {
-                this.tooltips = getTooltips(field.getClassType());
-            }
-        } else {
-            throw new FormFieldTypeMismatchException("Field %s is not an enum!", field);
-        }
+        super(field, FormType.Enum.class);
+        this.tooltips = getTooltips(field.getClassType());
     }
 
-    public FormEnum(@NonNull PField<E> field, @NonNull FormType.Enum annotation) {
-        if (field.getType() == Type.OBJECT && Enum.class.isAssignableFrom(field.getClassType())) {
-            this.field = field;
-            this.annotation = annotation;
-            this.tooltips = getTooltips(field.getClassType());
-        } else {
+    public FormEnum(@NonNull PField<E> field, FormType.Enum annotation) {
+        super(field, annotation);
+        this.tooltips = getTooltips(field.getClassType());
+    }
+
+    @Override
+    protected void assertCorrectType(@NonNull PField field) {
+        if (!(field.getType() == Type.OBJECT && Enum.class.isAssignableFrom(field.getClassType()))) {
             throw new FormFieldTypeMismatchException("Field %s is not an enum!", field);
         }
     }

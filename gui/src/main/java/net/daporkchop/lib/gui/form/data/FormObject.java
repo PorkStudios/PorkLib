@@ -18,26 +18,43 @@ package net.daporkchop.lib.gui.form.data;
 import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.common.function.PFunctions;
+import net.daporkchop.lib.common.util.PUnsafe;
 import net.daporkchop.lib.gui.component.Container;
+import net.daporkchop.lib.gui.component.Element;
+import net.daporkchop.lib.gui.form.annotation.FormComponentName;
 import net.daporkchop.lib.gui.form.annotation.FormType;
 import net.daporkchop.lib.reflection.PField;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Map;
-import java.util.function.Predicate;
+import java.util.Objects;
+import java.util.StringJoiner;
 
 /**
  * @author DaPorkchop_
  */
 @Getter
-public class FormClassValue implements FormValue {
+public class FormObject implements FormValue {
     protected final Class<?> clazz;
+    protected final String componentName;
+    protected final PField field;
     protected final Collection<FormValue> fields = new ArrayList<>();
 
-    public FormClassValue(@NonNull Class<?> clazz)    {
+    public FormObject(@NonNull Class<?> clazz, PField aField) {
         this.clazz = clazz;
+        this.field = aField;
+
+        if (aField != null) {
+            FormComponentName annotation = aField.getAnnotation(FormComponentName.class);
+            if (annotation == null) {
+                this.componentName = aField.getName();
+            } else {
+                this.componentName = annotation.value();
+            }
+        } else {
+            this.componentName = null;
+        }
 
         Arrays.stream(clazz.getDeclaredFields())
                 .map(PField::of)
@@ -49,11 +66,32 @@ public class FormClassValue implements FormValue {
 
     @Override
     public void configure(@NonNull Container container) {
-
+        if (this.field == null) {
+            this.fields.forEach(value -> value.configure(container));
+        } else {
+            Element element = container.getChild(this.componentName);
+            if (element instanceof Container)   {
+                this.fields.forEach(value -> value.configure((Container) element));
+            } else {
+                throw new IllegalStateException(String.format("Not a container: %s (%s)", this.componentName, element == null ? "null" : element.getClass().getCanonicalName()));
+            }
+        }
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void loadInto(@NonNull Object o, @NonNull Container container) {
-
+        if (this.field != null) {
+            Object us = PUnsafe.allocateInstance(this.clazz);
+            Element element = container.getChild(this.componentName);
+            if (element instanceof Container)   {
+                this.fields.forEach(value -> value.loadInto(us, (Container) element));
+            } else {
+                throw new IllegalStateException(String.format("Not a container: %s (%s)", this.componentName, element == null ? "null" : element.getClass().getCanonicalName()));
+            }
+            this.field.set(o, us);
+        } else {
+            this.fields.forEach(value -> value.loadInto(o, container));
+        }
     }
 }

@@ -17,7 +17,6 @@ package net.daporkchop.lib.gui.form.data;
 
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.form.annotation.FormType;
 import net.daporkchop.lib.gui.form.util.exception.FormFieldTypeMismatchException;
@@ -28,30 +27,18 @@ import net.daporkchop.lib.reflection.util.Type;
  * @author DaPorkchop_
  */
 @Getter
-public class FormString implements FormValue {
-    @NonNull
-    protected final PField field;
-    @NonNull
-    protected final FormType.Text annotation;
-
-    public FormString(@NonNull PField field)   {
-        if (field.getType() == Type.STRING || (field.getType() == Type.OBJECT && field.getClassType() == String.class)) {
-            if (field.hasAnnotation(FormType.Text.class)) {
-                this.field = field;
-                this.annotation = field.getAnnotation(FormType.Text.class);
-            } else {
-                throw new FormFieldTypeMismatchException("Field %s is not a String, but has Text annotation!", field);
-            }
-        } else {
-            throw new FormFieldTypeMismatchException("Field %s is not a String!", field);
-        }
+public class FormString extends AbstractFormValue<FormType.Text> {
+    public FormString(@NonNull PField field) {
+        super(field, FormType.Text.class);
     }
 
-    public FormString(@NonNull PField field, @NonNull FormType.Text annotation)   {
-        if (field.getType() == Type.STRING || (field.getType() == Type.OBJECT && field.getClassType() == String.class)) {
-            this.field = field;
-            this.annotation = annotation;
-        } else {
+    public FormString(@NonNull PField field, FormType.Text annotation) {
+        super(field, annotation);
+    }
+
+    @Override
+    protected void assertCorrectType(@NonNull PField field) {
+        if (!(field.getType() == Type.STRING || (field.getType() == Type.OBJECT && field.getClassType() == String.class))) {
             throw new FormFieldTypeMismatchException("Field %s is not a String!", field);
         }
     }

@@ -28,30 +28,18 @@ import net.daporkchop.lib.reflection.util.Type;
  * @author DaPorkchop_
  */
 @Getter
-public class FormBoolean implements FormValue {
-    @NonNull
-    protected final PField field;
-    @NonNull
-    protected final FormType.Boolean annotation;
-
+public class FormBoolean extends AbstractFormValue<FormType.Boolean> {
     public FormBoolean(@NonNull PField field)   {
-        if (field.getType() == Type.BOOLEAN) {
-            if (field.hasAnnotation(FormType.Boolean.class)) {
-                this.field = field;
-                this.annotation = field.getAnnotation(FormType.Boolean.class);
-            } else {
-                throw new FormFieldTypeMismatchException("Field %s is not a boolean, but has Boolean annotation!", field);
-            }
-        } else {
-            throw new FormFieldTypeMismatchException("Field %s is not a boolean!", field);
-        }
+        super(field, FormType.Boolean.class);
     }
 
-    public FormBoolean(@NonNull PField field, @NonNull FormType.Boolean annotation)   {
-        if (field.getType() == Type.BOOLEAN) {
-            this.field = field;
-            this.annotation = annotation;
-        } else {
+    public FormBoolean(@NonNull PField field, FormType.Boolean annotation)   {
+        super(field, annotation);
+    }
+
+    @Override
+    protected void assertCorrectType(@NonNull PField field) {
+        if (field.getType() != Type.BOOLEAN)    {
             throw new FormFieldTypeMismatchException("Field %s is not a boolean!", field);
         }
     }

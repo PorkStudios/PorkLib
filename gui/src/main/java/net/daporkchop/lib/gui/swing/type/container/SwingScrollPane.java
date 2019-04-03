@@ -61,8 +61,12 @@ public class SwingScrollPane extends SwingNestedContainer<ScrollPane, JScrollPan
         }
         SwingComponent swing = (SwingComponent) child;
         this.children.put(child.getName(), swing.setParent(this));
-        this.panel.add(swing.getSwing());
-        return update ? this.update() : this;
+        if (swing.hasSwing()) {
+            this.panel.add(swing.getSwing());
+            return update ? this.update() : this;
+        } else {
+            return this;
+        }
     }
 
     @Override
@@ -90,6 +94,9 @@ public class SwingScrollPane extends SwingNestedContainer<ScrollPane, JScrollPan
             int minY = Integer.MAX_VALUE;
             int maxY = Integer.MIN_VALUE;
             for (Component component : this.children.values()) {
+                if (!((SwingComponent) component).hasSwing())   {
+                    continue;
+                }
                 BoundingBox bounds = component.getBounds();
 
                 int x = bounds.getX();
@@ -111,6 +118,9 @@ public class SwingScrollPane extends SwingNestedContainer<ScrollPane, JScrollPan
             }
             if (minX != 0 || minY != 0) {
                 for (Component component : this.children.values())  { //offset components to 0
+                    if (!((SwingComponent) component).hasSwing())   {
+                        continue;
+                    }
                     BoundingBox bounds = component.getBounds();
                     ((SwingComponent) component).getSwing().setBounds(bounds.getX() - minX, bounds.getY() - minY, bounds.getWidth(), bounds.getHeight());
                 }

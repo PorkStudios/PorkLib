@@ -33,12 +33,12 @@ public interface RadioButtonGroup extends Component<RadioButtonGroup, RadioButto
     default RadioButton getButtonByName(@NonNull String name)   {
         return this.getChildren().stream()
                 .filter(button -> button.getName().equals(name))
-                .findAny().orElseThrow(NoSuchElementException::new);
+                .findAny().orElseThrow(() -> new NoSuchElementException(name));
     }
     default RadioButton getButtonByQualifiedName(@NonNull String qualifiedName)   {
         return this.getChildren().stream()
                 .filter(button -> button.getQualifiedName().equals(qualifiedName))
-                .findAny().orElseThrow(NoSuchElementException::new);
+                .findAny().orElseThrow(() -> new NoSuchElementException(qualifiedName));
     }
     RadioButtonGroup add(@NonNull RadioButton button);
     RadioButtonGroup remove(@NonNull String qualifiedName);

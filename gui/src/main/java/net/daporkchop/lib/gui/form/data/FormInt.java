@@ -25,6 +25,8 @@ import net.daporkchop.lib.gui.form.util.exception.FormFieldTypeMismatchException
 import net.daporkchop.lib.reflection.PField;
 import net.daporkchop.lib.reflection.util.Type;
 
+import java.lang.annotation.Annotation;
+
 /**
  * @author DaPorkchop_
  */
@@ -43,6 +45,41 @@ public class FormInt extends AbstractFormValue<FormType.Int> {
         if (field.getType() != Type.INT)    {
             throw new FormFieldTypeMismatchException("Field %s is not an int!", field);
         }
+    }
+
+    @Override
+    protected FormType.Int defaultAnnotationInstance() {
+        return new FormType.Int()   {
+            @Override
+            public int value() {
+                return 0;
+            }
+
+            @Override
+            public int min() {
+                return 0;
+            }
+
+            @Override
+            public int max() {
+                return 100;
+            }
+
+            @Override
+            public int step() {
+                return 1;
+            }
+
+            @Override
+            public Type type() {
+                return Type.SPINNER;
+            }
+
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return FormType.Int.class;
+            }
+        };
     }
 
     @Override

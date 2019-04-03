@@ -25,6 +25,8 @@ import net.daporkchop.lib.gui.form.util.exception.FormFieldTypeMismatchException
 import net.daporkchop.lib.reflection.PField;
 import net.daporkchop.lib.reflection.util.Type;
 
+import java.lang.annotation.Annotation;
+
 /**
  * @author DaPorkchop_
  */
@@ -43,6 +45,26 @@ public class FormString extends AbstractFormValue<FormType.Text> {
         if (!(field.getType() == Type.STRING || (field.getType() == Type.OBJECT && field.getClassType() == String.class))) {
             throw new FormFieldTypeMismatchException("Field %s is not a String!", field);
         }
+    }
+
+    @Override
+    protected FormType.Text defaultAnnotationInstance() {
+        return new FormType.Text()  {
+            @Override
+            public String value() {
+                return "";
+            }
+
+            @Override
+            public Type type() {
+                return Type.TEXT_BOX;
+            }
+
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return FormType.Text.class;
+            }
+        };
     }
 
     @Override

@@ -26,6 +26,8 @@ import net.daporkchop.lib.gui.form.util.exception.FormFieldTypeMismatchException
 import net.daporkchop.lib.reflection.PField;
 import net.daporkchop.lib.reflection.util.Type;
 
+import java.lang.annotation.Annotation;
+
 /**
  * @author DaPorkchop_
  */
@@ -44,6 +46,26 @@ public class FormBoolean extends AbstractFormValue<FormType.Boolean> {
         if (field.getType() != Type.BOOLEAN)    {
             throw new FormFieldTypeMismatchException("Field %s is not a boolean!", field);
         }
+    }
+
+    @Override
+    protected FormType.Boolean defaultAnnotationInstance() {
+        return new FormType.Boolean()   {
+            @Override
+            public boolean value() {
+                return false;
+            }
+
+            @Override
+            public Type type() {
+                return Type.CHECK_BOX;
+            }
+
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return FormType.Boolean.class;
+            }
+        };
     }
 
     @Override

@@ -46,25 +46,7 @@ public abstract class AbstractFormValue<A extends Annotation> implements FormVal
     protected final A annotation;
 
     public AbstractFormValue(@NonNull PField field, @NonNull Class<A> annotationClass) {
-        this.assertCorrectType(field);
-        this.field = field;
-        {
-            FormComponentName annotation = field.getAnnotation(FormComponentName.class);
-            if (annotation == null) {
-                this.componentName = field.getName();
-            } else {
-                this.componentName = annotation.value();
-            }
-        }
-        {
-            FormTooltip tooltip = field.getAnnotation(FormTooltip.class);
-            if (tooltip == null) {
-                this.tooltip = new String[0];
-            } else {
-                this.tooltip = parseTooltip(tooltip.value());
-            }
-        }
-        this.annotation = field.getAnnotation(annotationClass);
+        this(field, field.getAnnotation(annotationClass));
     }
 
     public AbstractFormValue(@NonNull PField field, A annotationInstance) {
@@ -86,9 +68,8 @@ public abstract class AbstractFormValue<A extends Annotation> implements FormVal
                 this.tooltip = parseTooltip(tooltip.value());
             }
         }
-        this.annotation = annotationInstance;
+        this.annotation = annotationInstance == null ? this.defaultAnnotationInstance() : annotationInstance;
     }
-
 
     @Override
     public void configure(@NonNull Container container) {
@@ -113,6 +94,7 @@ public abstract class AbstractFormValue<A extends Annotation> implements FormVal
     }
 
     protected abstract void assertCorrectType(@NonNull PField field);
+    protected abstract A defaultAnnotationInstance();
     protected abstract void doConfigure(@NonNull Component component);
     protected abstract void doLoadInto(@NonNull Object o, @NonNull Component component);
 }

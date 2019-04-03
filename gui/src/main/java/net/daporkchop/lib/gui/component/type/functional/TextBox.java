@@ -19,6 +19,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.state.functional.TextBoxState;
 
+import java.awt.*;
 import java.util.function.Consumer;
 
 /**
@@ -36,6 +37,14 @@ public interface TextBox extends Component<TextBox, TextBoxState> {
 
     String getText();
     TextBox setText(@NonNull String text);
+
+    String getHint();
+    TextBox setHint(@NonNull String hint);
+    int getHintColor();
+    TextBox setHintColor(int argb);
+    default TextBox setHintColor(@NonNull Color color)  {
+        return this.setHintColor(color.getRGB());
+    }
 
     boolean isPassword();
 

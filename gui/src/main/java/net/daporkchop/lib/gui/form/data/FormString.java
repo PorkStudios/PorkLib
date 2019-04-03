@@ -25,6 +25,7 @@ import net.daporkchop.lib.gui.form.util.exception.FormFieldTypeMismatchException
 import net.daporkchop.lib.reflection.PField;
 import net.daporkchop.lib.reflection.util.Type;
 
+import java.awt.*;
 import java.lang.annotation.Annotation;
 
 /**
@@ -61,6 +62,11 @@ public class FormString extends AbstractFormValue<FormType.Text> {
             }
 
             @Override
+            public String hint() {
+                return "";
+            }
+
+            @Override
             public Class<? extends Annotation> annotationType() {
                 return FormType.Text.class;
             }
@@ -73,8 +79,19 @@ public class FormString extends AbstractFormValue<FormType.Text> {
             case TEXT_BOX: {
                 if (component instanceof TextBox) {
                     ((TextBox) component).setText(this.annotation.value());
+                    if (!this.annotation.hint().isEmpty())  {
+                        ((TextBox) component).setHint(this.annotation.hint());
+                    }
                 } else {
                     throw new IllegalStateException(String.format("Component \"%s\" is not a text box: %s!", this.componentName, component.getClass().getCanonicalName()));
+                }
+            }
+            break;
+            case PASSWORD: {
+                if (component instanceof TextBox && ((TextBox) component).isPassword()) {
+                    ((TextBox) component).setText(this.annotation.value());
+                } else {
+                    throw new IllegalStateException(String.format("Component \"%s\" is not a password field: %s!", this.componentName, component.getClass().getCanonicalName()));
                 }
             }
             break;
@@ -92,6 +109,14 @@ public class FormString extends AbstractFormValue<FormType.Text> {
                     this.field.set(o, ((TextBox) component).getText());
                 } else {
                     throw new IllegalStateException(String.format("Component \"%s\" is not a text box: %s!", this.componentName, component.getClass().getCanonicalName()));
+                }
+            }
+            break;
+            case PASSWORD: {
+                if (component instanceof TextBox && ((TextBox) component).isPassword()) {
+                    this.field.set(o, ((TextBox) component).getText());
+                } else {
+                    throw new IllegalStateException(String.format("Component \"%s\" is not a password field: %s!", this.componentName, component.getClass().getCanonicalName()));
                 }
             }
             break;

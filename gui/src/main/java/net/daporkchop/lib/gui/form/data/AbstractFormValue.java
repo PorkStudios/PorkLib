@@ -17,6 +17,7 @@ package net.daporkchop.lib.gui.form.data;
 
 import lombok.Getter;
 import lombok.NonNull;
+import net.daporkchop.lib.common.function.PFunctions;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.form.annotation.FormComponentName;
@@ -36,6 +37,7 @@ public abstract class AbstractFormValue<A extends Annotation> implements FormVal
     protected static String[] parseTooltip(@NonNull String[] source) {
         return Arrays.stream(source)
                 .filter(Objects::nonNull)
+                .filter(PFunctions.invert(String::isEmpty))
                 .flatMap(s -> s.indexOf('\n') == -1 ? Arrays.stream(s.split("\n")) : Stream.of(s))
                 .toArray(String[]::new);
     }
@@ -78,7 +80,7 @@ public abstract class AbstractFormValue<A extends Annotation> implements FormVal
             throw new IllegalStateException(String.format("No component found with name: \"%s\"!", this.componentName));
         }
 
-        if (this.tooltip != null) {
+        if (this.tooltip != null && this.tooltip.length > 0) {
             component.setTooltip(this.tooltip);
         }
         this.doConfigure(component);

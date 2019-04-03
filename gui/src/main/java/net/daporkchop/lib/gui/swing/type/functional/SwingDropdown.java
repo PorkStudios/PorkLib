@@ -57,6 +57,12 @@ public class SwingDropdown<V> extends SwingComponent<Dropdown<V>, JComboBox<V>, 
     }
 
     @Override
+    public Dropdown<V> clearValues() {
+        this.swing.removeAllItems();
+        return this;
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public V getSelectedValue() {
         return (V) this.swing.getSelectedItem();

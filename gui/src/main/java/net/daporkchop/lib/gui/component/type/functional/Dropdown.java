@@ -25,6 +25,7 @@ import java.util.function.Consumer;
  * @author DaPorkchop_
  */
 public interface Dropdown<V> extends Component<Dropdown<V>, DropdownState> {
+    Dropdown<V> clearValues();
     V getSelectedValue();
     Dropdown<V> setSelectedValue(V value);
     Dropdown<V> addValue(@NonNull V value);

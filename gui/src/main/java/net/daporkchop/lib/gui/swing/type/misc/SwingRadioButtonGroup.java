@@ -45,7 +45,7 @@ public class SwingRadioButtonGroup extends SwingComponent<RadioButtonGroup, JCom
     public RadioButton getSelected() {
         ButtonModel curr = this.group.getSelection();
         return this.buttons.values().stream()
-                .filter(b -> b.getSwing() == curr)
+                .filter(b -> b.getSwing().getModel() == curr)
                 .findAny().orElse(null);
     }
 

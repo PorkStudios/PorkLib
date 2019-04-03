@@ -64,7 +64,7 @@ public class GuiExample implements Logging {
                         .setTooltip("This is a label. Labels can only display plain text.")
                         .setTextColor(0xFFFF00FF))
                 .label("label2", label -> label
-                        .orientRelative(0.8d, 0.7d, 0.1d, 0.1d)
+                        .orientRelative(0.8d, 0.6d, 0.1d, 0.1d)
                         .setIcon(filledImage(0x00FF00))
                         .addEnableListener(() -> logger.info("${0} was enabled!\n", label.getName()))
                         .setIcon(LabelState.DISABLED, filledImage(0xFF0000)))

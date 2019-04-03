@@ -39,18 +39,34 @@ public class FormExample implements Logging {
                 .slider("slider", slider -> slider
                         .orientAdvanced(adv -> adv.belowAndCopyX("spinner2"))
                         .minDimensionsAreValueSize().pad(2))
-                .button("complete", button -> button
-                        .orientAdvanced(adv -> adv.belowAndCopyX("slider"))
-                        .minDimensionsAreValueSize().pad(2)
-                        .setText("Submit"))
                 .scrollPane("sub", scrollPane -> scrollPane
                         .orientAdvanced(adv -> adv
-                                .belowAndCopyX("complete")
+                                .belowAndCopyX("slider")
                                 .width(0.5d).height(0.25d))
                         .pad(2)
                         .checkBox("checkbox", checkBox -> checkBox
                                 .orientRelative(2, 2, 0.0d, 0.0d)
+                                .minDimensionsAreValueSize().pad(2))
+                        .dropdown("dropdown", dropdown -> dropdown
+                                .orientAdvanced(adv -> adv.belowAndCopyX("checkbox"))
+                                .minDimensionsAreValueSize().pad(2))
+                        .radioGroupFast("radio")
+                        .radioButton("TYPE_1", "radio", button -> button
+                                .orientAdvanced(adv -> adv.belowAndCopyX("dropdown"))
+                                .minDimensionsAreValueSize().pad(2))
+                        .radioButton("TYPE_2", "radio", button -> button
+                                .orientAdvanced(adv -> adv.belowAndCopyX("TYPE_1"))
+                                .minDimensionsAreValueSize().pad(2))
+                        .radioButton("TYPE_3", "radio", button -> button
+                                .orientAdvanced(adv -> adv.belowAndCopyX("TYPE_2"))
+                                .minDimensionsAreValueSize().pad(2))
+                        .radioButton("JEFF", "radio", button -> button
+                                .orientAdvanced(adv -> adv.belowAndCopyX("TYPE_3"))
                                 .minDimensionsAreValueSize().pad(2)))
+                .button("complete", button -> button
+                        .orientAdvanced(adv -> adv.belowAndCopyX("sub"))
+                        .minDimensionsAreValueSize().pad(2)
+                        .setText("Submit"))
                 .form(FormData.class, form -> form
                         .submitButton("complete")
                         .addListener((status, value) -> logger.info("Form completed with status: ${0}", status))
@@ -88,5 +104,23 @@ public class FormExample implements Logging {
         @FormTooltip("This is a simple boolean value.")
         @FormComponentName("checkbox")
         public boolean flag;
+
+        public EnumValues dropdown;
+
+        @FormType.Enum(value = 3, type = FormType.Enum.Type.RADIO_BUTTON)
+        public EnumValues radio;
+
+        enum EnumValues {
+            TYPE_1,
+            @FormType.EnumMemberTooltip({
+                    "This is the second value in the enum",
+                    "It has a tooltip which is only visible when used as a radio button!"
+            })
+            TYPE_2,
+            TYPE_3,
+            @FormType.EnumMemberName("jeff")
+            @FormType.EnumMemberTooltip("name jeff lol")
+            JEFF,;
+        }
     }
 }

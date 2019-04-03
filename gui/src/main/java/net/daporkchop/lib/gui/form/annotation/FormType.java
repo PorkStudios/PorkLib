@@ -95,9 +95,11 @@ public abstract class FormType {
     @Target(ElementType.FIELD)
     @Retention(RetentionPolicy.RUNTIME)
     public @interface Enum {
-        boolean value() default false;
+        int value() default -1;
 
         Type type() default Type.DROPDOWN;
+
+        boolean clearDropdownValues() default true;
 
         enum Type {
             DROPDOWN,
@@ -113,6 +115,15 @@ public abstract class FormType {
     @Retention(RetentionPolicy.RUNTIME)
     public @interface EnumMemberTooltip {
         String[] value();
+    }
+
+    /**
+     * Defines a field as being an enum member, used by {@link net.daporkchop.lib.gui.form.annotation.FormType.Enum}
+     */
+    @Target(ElementType.FIELD)
+    @Retention(RetentionPolicy.RUNTIME)
+    public @interface EnumMemberName {
+        String value();
     }
 
     /**

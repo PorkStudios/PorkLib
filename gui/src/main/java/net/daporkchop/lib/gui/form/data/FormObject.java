@@ -21,7 +21,9 @@ import net.daporkchop.lib.common.function.PFunctions;
 import net.daporkchop.lib.common.util.PUnsafe;
 import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.Element;
+import net.daporkchop.lib.gui.component.NestedContainer;
 import net.daporkchop.lib.gui.form.annotation.FormComponentName;
+import net.daporkchop.lib.gui.form.annotation.FormDefaultDimensions;
 import net.daporkchop.lib.gui.form.annotation.FormType;
 import net.daporkchop.lib.reflection.PField;
 
@@ -29,7 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
-import java.util.StringJoiner;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author DaPorkchop_
@@ -70,7 +72,7 @@ public class FormObject implements FormValue {
             this.fields.forEach(value -> value.configure(container));
         } else {
             Element element = container.getChild(this.componentName);
-            if (element instanceof Container)   {
+            if (element instanceof Container) {
                 this.fields.forEach(value -> value.configure((Container) element));
             } else {
                 throw new IllegalStateException(String.format("Not a container: %s (%s)", this.componentName, element == null ? "null" : element.getClass().getCanonicalName()));
@@ -84,7 +86,7 @@ public class FormObject implements FormValue {
         if (this.field != null) {
             Object us = PUnsafe.allocateInstance(this.clazz);
             Element element = container.getChild(this.componentName);
-            if (element instanceof Container)   {
+            if (element instanceof Container) {
                 this.fields.forEach(value -> value.loadInto(us, (Container) element));
             } else {
                 throw new IllegalStateException(String.format("Not a container: %s (%s)", this.componentName, element == null ? "null" : element.getClass().getCanonicalName()));
@@ -93,5 +95,30 @@ public class FormObject implements FormValue {
         } else {
             this.fields.forEach(value -> value.loadInto(o, container));
         }
+    }
+
+    @Override
+    public String buildDefault(String prev, @NonNull Container container) {
+        if (this.field != null) {
+            Objects.requireNonNull(prev);
+            FormType.Object annotation = this.field.getAnnotation(FormType.Object.class);
+            if (annotation != null) {
+                switch (annotation.type()) {
+                    case PANEL:
+                        container = container.panel(this.field.getName());
+                        break;
+                    case SCROLL_PANE:
+                        container = container.scrollPane(this.field.getName());
+                        break;
+                }
+            } else {
+                container = container.panel(this.field.getName());
+            }
+            this.configureDefaultDimensions(this.field.getAnnotation(FormDefaultDimensions.class), true, prev, (NestedContainer<?, ?>)container);
+        }
+        AtomicReference<String> ref = new AtomicReference<>(null);
+        Container theContainer = container;
+        this.fields.forEach(value -> ref.updateAndGet(s -> value.buildDefault(s, theContainer)));
+        return this.field == null ? null : this.field.getName();
     }
 }

@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.gui.swing.type.functional;
 
+import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.gui.component.state.functional.TextBoxState;
 import net.daporkchop.lib.gui.component.type.functional.TextBox;
@@ -23,8 +24,11 @@ import net.daporkchop.lib.gui.swing.impl.SwingComponent;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import javax.swing.plaf.basic.BasicTextFieldUI;
+import javax.swing.text.JTextComponent;
+import java.awt.*;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -43,6 +47,7 @@ public class SwingTextBox extends SwingComponent<TextBox, JTextField, TextBoxSta
     protected SwingTextBox(String name, JTextField jTextField) {
         super(name, jTextField);
 
+        this.swing.setUI(new SwingTextBoxUI());
         this.swing.setText("");
         this.swing.getDocument().addDocumentListener(new SwingTextBoxDocumentListener());
     }
@@ -54,9 +59,36 @@ public class SwingTextBox extends SwingComponent<TextBox, JTextField, TextBoxSta
 
     @Override
     public TextBox setText(@NonNull String text) {
-        if (!this.text.equals(text)){
+        if (!this.text.equals(text)) {
             this.swing.setText(this.text = text);
         }
+        return this;
+    }
+
+    @Override
+    public String getHint() {
+        return ((SwingTextBoxUI) this.swing.getUI()).hint;
+    }
+
+    @Override
+    public TextBox setHint(@NonNull String hint) {
+        ((SwingTextBoxUI) this.swing.getUI()).setHint(hint);
+        return this;
+    }
+
+    @Override
+    public int getHintColor() {
+        return ((SwingTextBoxUI) this.swing.getUI()).color.getRGB();
+    }
+
+    @Override
+    public TextBox setHintColor(int argb) {
+        return this.setHintColor(new Color(argb));
+    }
+
+    @Override
+    public TextBox setHintColor(@NonNull Color color) {
+        ((SwingTextBoxUI) this.swing.getUI()).setColor(color);
         return this;
     }
 
@@ -77,7 +109,7 @@ public class SwingTextBox extends SwingComponent<TextBox, JTextField, TextBoxSta
         return this;
     }
 
-    protected class SwingTextBoxDocumentListener implements DocumentListener    {
+    protected class SwingTextBoxDocumentListener implements DocumentListener {
         @Override
         public void insertUpdate(DocumentEvent e) {
             this.changedUpdate(e);
@@ -91,10 +123,65 @@ public class SwingTextBox extends SwingComponent<TextBox, JTextField, TextBoxSta
         @Override
         public void changedUpdate(DocumentEvent e) {
             String text = SwingTextBox.this.swing.getText();
-            if (!SwingTextBox.this.text.equals(text))   {
+            if (!SwingTextBox.this.text.equals(text)) {
                 SwingTextBox.this.text = text;
                 SwingTextBox.this.handlers.forEach((key, handler) -> handler.accept(text));
             }
+        }
+    }
+
+    @Getter
+    public class SwingTextBoxUI extends BasicTextFieldUI implements FocusListener {
+        private String hint;
+        private Color color = Color.LIGHT_GRAY;
+
+        public void setColor(@NonNull Color color) {
+            this.color = color;
+            this.repaint();
+        }
+
+        private void repaint() {
+            if (this.getComponent() != null) {
+                this.getComponent().repaint();
+            }
+        }
+
+        public void setHint(String hint) {
+            this.hint = hint;
+            this.repaint();
+        }
+
+        @Override
+        protected void paintSafely(Graphics g) {
+            super.paintSafely(g);
+            JTextComponent comp = getComponent();
+            if (this.hint != null && comp.getText().isEmpty() && !comp.hasFocus()) {
+                g.setColor(this.color);
+                int padding = (comp.getHeight() - comp.getFont().getSize()) / 2;
+                g.drawString(this.hint, 3, comp.getHeight() - padding - 1);
+            }
+        }
+
+        @Override
+        public void focusGained(FocusEvent e) {
+            this.repaint();
+        }
+
+        @Override
+        public void focusLost(FocusEvent e) {
+            this.repaint();
+        }
+
+        @Override
+        protected void installListeners() {
+            super.installListeners();
+            this.getComponent().addFocusListener(this);
+        }
+
+        @Override
+        protected void uninstallListeners() {
+            super.uninstallListeners();
+            this.getComponent().removeFocusListener(this);
         }
     }
 }

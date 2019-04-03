@@ -63,8 +63,14 @@ public class FormExample implements Logging {
                         .radioButton("JEFF", "radio", button -> button
                                 .orientAdvanced(adv -> adv.belowAndCopyX("TYPE_3"))
                                 .minDimensionsAreValueSize().pad(2)))
+                .textBox("username", textBox -> textBox
+                        .orientAdvanced(adv -> adv.belowAndCopyX("sub").width(0.25d))
+                        .minDimensionsAreValueSize().pad(2))
+                .passwordBox("password", textBox -> textBox
+                        .orientAdvanced(adv -> adv.belowAndCopyXAndWidth("username"))
+                        .minDimensionsAreValueSize().pad(2))
                 .button("complete", button -> button
-                        .orientAdvanced(adv -> adv.belowAndCopyX("sub"))
+                        .orientAdvanced(adv -> adv.belowAndCopyX("password"))
                         .minDimensionsAreValueSize().pad(2)
                         .setText("Submit"))
                 .form(FormData.class, form -> form
@@ -97,6 +103,14 @@ public class FormExample implements Logging {
         public int slider;
 
         public SubData sub;
+
+        @FormType.Text(hint = "user@example.com")
+        @FormTooltip("Your username to this amazing non-existent site!")
+        public String username;
+
+        @FormType.Text(type = FormType.Text.Type.PASSWORD)
+        @FormTooltip("Your password to this amazing non-existent site!")
+        public String password;
     }
 
     @ToString

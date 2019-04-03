@@ -81,10 +81,13 @@ public abstract class FormType {
     public @interface Text {
         String value() default "";
 
+        String hint() default "";
+
         Type type() default Type.TEXT_BOX;
 
         enum Type  {
             TEXT_BOX,
+            PASSWORD,
             ;
         }
     }

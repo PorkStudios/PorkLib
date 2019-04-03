@@ -93,6 +93,21 @@ public abstract class FormType {
     }
 
     /**
+     * Defines a field as containing an object value
+     */
+    @Target(ElementType.FIELD)
+    @Retention(RetentionPolicy.RUNTIME)
+    public @interface Object {
+        Type type() default Type.SCROLL_PANE;
+
+        enum Type  {
+            PANEL,
+            SCROLL_PANE,
+            ;
+        }
+    }
+
+    /**
      * Defines a field as containing an enum value
      */
     @Target(ElementType.FIELD)

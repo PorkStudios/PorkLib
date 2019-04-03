@@ -16,7 +16,9 @@
 package net.daporkchop.lib.gui.form.data;
 
 import lombok.NonNull;
+import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.Container;
+import net.daporkchop.lib.gui.form.annotation.FormDefaultDimensions;
 import net.daporkchop.lib.gui.form.annotation.FormType;
 import net.daporkchop.lib.gui.form.util.exception.FormException;
 import net.daporkchop.lib.gui.form.util.exception.FormFieldIgnoredException;
@@ -55,7 +57,43 @@ public interface FormValue {
         }
     }
 
+    String buildDefault(String prev, @NonNull Container container);
+
     void configure(@NonNull Container container);
 
     void loadInto(@NonNull Object o, @NonNull Container container);
+
+    default void configureDefaultDimensions(FormDefaultDimensions dimensions, boolean container, String prev, @NonNull Component<?, ?> component) {
+        component.minDimensionsAreValueSize().pad(2);
+        if (dimensions == null) {
+            if (prev == null) {
+                component.orientRelative(2, 2, 0.0d, 0.0d);
+            } else {
+                component.orientAdvanced(adv -> adv.belowAndCopyX(prev));
+            }
+        } else {
+            if (prev == null) {
+                component.orientRelative(
+                        2,
+                        2,
+                        dimensions.dWidth() == Double.NaN ? dimensions.iWidth() == -1 ? container ? 1.0d : (Integer) 0 : dimensions.iWidth() : dimensions.dWidth(),
+                        dimensions.dHeight() == Double.NaN ? dimensions.iHeight() == -1 ? container ? 1.0d : (Integer) 0 : dimensions.iHeight() : dimensions.dHeight()
+                        );
+            } else {
+                component.orientAdvanced(adv -> {
+                    adv.belowAndCopyX(prev);
+                    if (dimensions.dWidth() == Double.NaN)  {
+                        adv.width(dimensions.iWidth() == -1 ? 0 : dimensions.iWidth());
+                    } else {
+                        adv.width(dimensions.dWidth());
+                    }
+                    if (dimensions.dHeight() == Double.NaN)  {
+                        adv.height(dimensions.iHeight() == -1 ? 0 : dimensions.iHeight());
+                    } else {
+                        adv.height(dimensions.dHeight());
+                    }
+                });
+            }
+        }
+    }
 }

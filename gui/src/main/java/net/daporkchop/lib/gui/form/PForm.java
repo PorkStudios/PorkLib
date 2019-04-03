@@ -54,6 +54,11 @@ public class PForm<T> {
         this.base = OBJECT_CACHE.computeIfAbsent(clazz, c -> new FormObject(c, null));
     }
 
+    public PForm<T> buildDefault()  {
+        this.base.buildDefault(null, this.container);
+        return this;
+    }
+
     public PForm<T> submitButton(@NonNull String name)   {
         Element element = this.container.getChild(name);
         if (element == null)    {

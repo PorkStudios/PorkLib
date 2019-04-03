@@ -182,12 +182,20 @@ public class AdvancedOrientation<T extends Component> implements Orientation<T> 
         return this.configureAxis(Axis.X, calc -> calc.ease(DistUnit.MULT, value, Axis.WIDTH));
     }
 
+    public AdvancedOrientation<T> x(int value) {
+        return this.configureAxis(Axis.X, calc -> calc.ease(DistUnit.PX, value));
+    }
+
     public AdvancedOrientation<T> x(double value, @NonNull Axis relativeTo) {
         return this.configureAxis(Axis.X, calc -> calc.ease(DistUnit.MULT, value, relativeTo));
     }
 
     public AdvancedOrientation<T> y(double value) {
         return this.configureAxis(Axis.Y, calc -> calc.ease(DistUnit.MULT, value, Axis.HEIGHT));
+    }
+
+    public AdvancedOrientation<T> y(int value) {
+        return this.configureAxis(Axis.Y, calc -> calc.ease(DistUnit.PX, value));
     }
 
     public AdvancedOrientation<T> y(double value, @NonNull Axis relativeTo) {
@@ -198,12 +206,20 @@ public class AdvancedOrientation<T extends Component> implements Orientation<T> 
         return this.configureAxis(Axis.WIDTH, calc -> calc.ease(DistUnit.MULT, value, Axis.WIDTH));
     }
 
+    public AdvancedOrientation<T> width(int value) {
+        return this.configureAxis(Axis.WIDTH, calc -> calc.ease(DistUnit.PX, value));
+    }
+
     public AdvancedOrientation<T> width(double value, @NonNull Axis relativeTo) {
         return this.configureAxis(Axis.WIDTH, calc -> calc.ease(DistUnit.MULT, value, relativeTo));
     }
 
     public AdvancedOrientation<T> height(double value) {
         return this.configureAxis(Axis.HEIGHT, calc -> calc.ease(DistUnit.MULT, value, Axis.HEIGHT));
+    }
+
+    public AdvancedOrientation<T> height(int value) {
+        return this.configureAxis(Axis.HEIGHT, calc -> calc.ease(DistUnit.PX, value));
     }
 
     public AdvancedOrientation<T> height(double value, @NonNull Axis relativeTo) {

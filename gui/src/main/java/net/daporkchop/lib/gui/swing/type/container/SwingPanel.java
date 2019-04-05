@@ -15,6 +15,10 @@
 
 package net.daporkchop.lib.gui.swing.type.container;
 
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.gui.component.state.ElementState;
 import net.daporkchop.lib.gui.component.state.container.PanelState;
 import net.daporkchop.lib.gui.component.type.container.Panel;
@@ -23,16 +27,30 @@ import net.daporkchop.lib.gui.swing.impl.SwingNestedContainer;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 
 import javax.swing.*;
+import java.awt.*;
 
 /**
  * @author DaPorkchop_
  */
-public class SwingPanel extends SwingNestedContainer<Panel, JPanel, PanelState> implements Panel {
+public class SwingPanel extends SwingNestedContainer<Panel, SwingPanel.SwingPanelWrapper, PanelState> implements Panel {
     public SwingPanel(String name) {
-        super(name, new JPanel());
+        super(name, new SwingPanelWrapper());
 
-        this.swing.setLayout(null);
+        this.swing.setThis_(this).setLayout(null);
 
         this.swing.addMouseListener(new SwingMouseListener<>(this));
+    }
+
+    @Getter
+    @Setter
+    @Accessors(chain = true)
+    protected static class SwingPanelWrapper extends JPanel    {
+        @NonNull
+        protected SwingPanel this_;
+
+        @Override
+        public Dimension getPreferredSize() {
+            return super.getPreferredSize();
+        }
     }
 }

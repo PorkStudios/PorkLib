@@ -67,7 +67,7 @@ public interface FormValue {
     }
 
     default void configureDefaultDimensions(FormDefaultDimensions dimensions, boolean container, String prev, @NonNull Component<?, ?> component, boolean setMinDimensionsAreValueSize) {
-        if (setMinDimensionsAreValueSize)   {
+        if (true || setMinDimensionsAreValueSize)   {
             component.minDimensionsAreValueSize().pad(2);
         } else {
             component.pad(2);

@@ -200,7 +200,14 @@ public class SwingScrollPane extends SwingNestedContainer<ScrollPane, JScrollPan
 
         @Override
         public Dimension getPreferredSize() {
-            return this.getPreferredScrollableViewportSize();
+            if (true)   {
+                return new Dimension(
+                        SwingScrollPane.this.bounds.getWidth(),
+                        SwingScrollPane.this.bounds.getHeight()
+                );
+            } else {
+                return this.getPreferredScrollableViewportSize();
+            }
         }
 
         @Override

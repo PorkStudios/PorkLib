@@ -44,6 +44,6 @@ public class MultCalculator<T extends Component> implements Calculator<T> {
 
     @Override
     public int get(@NonNull BoundingBox bb, @NonNull Container parent, @NonNull T component, @NonNull int[] dims) {
-        return floorI(this.axis.getFrom(bb) * this.factor);
+        return floorI(this.axis.getFrom(bb, null, component) * this.factor);
     }
 }

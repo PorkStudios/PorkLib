@@ -33,8 +33,8 @@ import java.util.function.ToIntFunction;
 public enum Axis {
     X((this_, bb, target, dst) -> bb.getX()),
     Y((this_, bb, target, dst) -> bb.getY()),
-    WIDTH((this_, bb, target, dst) -> bb.getWidth()),
-    HEIGHT((this_, bb, target, dst) -> bb.getHeight()),
+    WIDTH((this_, bb, target, dst) -> bb.getWidth() - (dst == null ? 0 : dst.getPadding(Side.LEFT_RIGHT))),
+    HEIGHT((this_, bb, target, dst) -> bb.getHeight() - (dst == null ? 0 : dst.getPadding(Side.TOP_BOTTOM))),
     BELOW((this_, bb, target, dst) -> bb.getY() + bb.getHeight() + (target == null ? 0 : target.getPadding(Side.BOTTOM) + (dst == null ? 0 : dst.getPadding(Side.TOP)))),
     RIGHT((this_, bb, target, dst) -> bb.getX() + bb.getWidth() + (target == null ? 0 : target.getPadding(Side.RIGHT) + (dst == null ? 0 : dst.getPadding(Side.LEFT)))),
     ;

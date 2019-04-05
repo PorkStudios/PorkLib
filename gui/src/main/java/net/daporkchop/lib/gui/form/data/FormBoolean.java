@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.type.functional.CheckBox;
+import net.daporkchop.lib.gui.form.annotation.FormDefaultDimensions;
 import net.daporkchop.lib.gui.form.annotation.FormType;
 import net.daporkchop.lib.gui.form.util.exception.FormFieldTypeMismatchException;
 import net.daporkchop.lib.reflection.PField;
@@ -70,7 +71,7 @@ public class FormBoolean extends AbstractFormValue<FormType.Boolean> {
 
     @Override
     protected void doConfigure(@NonNull Component component) {
-        switch (this.annotation.type()) { //TODO: set annotation to default if not configured
+        switch (this.annotation.type()) {
             case CHECK_BOX: {
                 if (component instanceof CheckBox) {
                     ((CheckBox) component).setSelected(this.annotation.value());
@@ -98,5 +99,20 @@ public class FormBoolean extends AbstractFormValue<FormType.Boolean> {
             default:
                 throw new IllegalStateException();
         }
+    }
+
+    @Override
+    public String buildDefault(String prev, @NonNull Container container) {
+        Component component;
+        switch (this.annotation.type()) {
+            case CHECK_BOX: {
+                component = container.checkBox(this.componentName).setSelected(this.annotation.value());
+            }
+            break;
+            default:
+                throw new IllegalStateException();
+        }
+        this.configureDefaultDimensions(this.field.getAnnotation(FormDefaultDimensions.class), false, prev, component);
+        return this.componentName;
     }
 }

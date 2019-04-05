@@ -27,6 +27,7 @@ import net.daporkchop.lib.gui.form.annotation.FormDefaultDimensions;
 import net.daporkchop.lib.gui.form.annotation.FormType;
 import net.daporkchop.lib.reflection.PField;
 
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -102,23 +103,34 @@ public class FormObject implements FormValue {
         if (this.field != null) {
             Objects.requireNonNull(prev);
             FormType.Object annotation = this.field.getAnnotation(FormType.Object.class);
-            if (annotation != null) {
-                switch (annotation.type()) {
-                    case PANEL:
-                        container = container.panel(this.field.getName());
-                        break;
-                    case SCROLL_PANE:
-                        container = container.scrollPane(this.field.getName());
-                        break;
-                }
-            } else {
-                container = container.panel(this.field.getName());
+            if (annotation == null) {
+                annotation = new FormType.Object() {
+                    @Override
+                    public Type type() {
+                        return Type.SCROLL_PANE;
+                    }
+
+                    @Override
+                    public Class<? extends Annotation> annotationType() {
+                        return FormType.Object.class;
+                    }
+                };
             }
-            this.configureDefaultDimensions(this.field.getAnnotation(FormDefaultDimensions.class), true, prev, (NestedContainer<?, ?>)container);
+            switch (annotation.type()) {
+                case PANEL:
+                    container = container.panel(this.field.getName());
+                    break;
+                case SCROLL_PANE:
+                    container = container.scrollPane(this.field.getName());
+                    break;
+                default:
+                    throw new IllegalStateException();
+            }
+            this.configureDefaultDimensions(this.field.getAnnotation(FormDefaultDimensions.class), true, prev, (NestedContainer<?, ?>) container, annotation.type() != FormType.Object.Type.SCROLL_PANE);
         }
         AtomicReference<String> ref = new AtomicReference<>(null);
         Container theContainer = container;
-        this.fields.forEach(value -> ref.updateAndGet(s -> value.buildDefault(s, theContainer)));
-        return this.field == null ? null : this.field.getName();
+        this.fields.forEach(value -> ref.set(value.buildDefault(ref.get(), theContainer)));
+        return this.field == null ? ref.get() : this.componentName;
     }
 }

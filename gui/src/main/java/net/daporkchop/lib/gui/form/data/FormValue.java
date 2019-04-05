@@ -62,9 +62,16 @@ public interface FormValue {
     void configure(@NonNull Container container);
 
     void loadInto(@NonNull Object o, @NonNull Container container);
-
     default void configureDefaultDimensions(FormDefaultDimensions dimensions, boolean container, String prev, @NonNull Component<?, ?> component) {
-        component.minDimensionsAreValueSize().pad(2);
+        this.configureDefaultDimensions(dimensions, container, prev, component, true);
+    }
+
+    default void configureDefaultDimensions(FormDefaultDimensions dimensions, boolean container, String prev, @NonNull Component<?, ?> component, boolean setMinDimensionsAreValueSize) {
+        if (setMinDimensionsAreValueSize)   {
+            component.minDimensionsAreValueSize().pad(2);
+        } else {
+            component.pad(2);
+        }
         if (dimensions == null) {
             if (prev == null) {
                 component.orientRelative(2, 2, 0.0d, 0.0d);

@@ -21,9 +21,11 @@ import net.daporkchop.lib.common.function.throwing.EFunction;
 import net.daporkchop.lib.common.misc.Tuple;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.gui.component.Component;
+import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.type.functional.Dropdown;
 import net.daporkchop.lib.gui.component.type.functional.RadioButton;
 import net.daporkchop.lib.gui.component.type.misc.RadioButtonGroup;
+import net.daporkchop.lib.gui.form.annotation.FormDefaultDimensions;
 import net.daporkchop.lib.gui.form.annotation.FormType;
 import net.daporkchop.lib.gui.form.util.exception.FormFieldTypeMismatchException;
 import net.daporkchop.lib.reflection.PField;
@@ -150,7 +152,7 @@ public class FormEnum<E extends Enum> extends AbstractFormValue<FormType.Enum> {
                         dropdown.setSelectedValue(values[this.annotation.value()]);
                     }
                 } else {
-                    throw new IllegalStateException(String.format("Component \"%s\" is not a text box: %s!", this.componentName, component.getClass().getCanonicalName()));
+                    throw new IllegalStateException(String.format("Component \"%s\" is not a dropdown: %s!", this.componentName, component.getClass().getCanonicalName()));
                 }
             }
             break;
@@ -213,5 +215,25 @@ public class FormEnum<E extends Enum> extends AbstractFormValue<FormType.Enum> {
             default:
                 throw new IllegalStateException();
         }
+    }
+
+    @Override
+    public String buildDefault(String prev, @NonNull Container container) {
+        Component component;
+        switch (this.annotation.type()) {
+            case DROPDOWN: {
+                this.doConfigure(component = container.<E>dropdown(this.componentName));
+            }
+            break;
+            case RADIO_BUTTON: {
+                //TODO
+                throw new UnsupportedOperationException("Radio button");
+            }
+            //break;
+            default:
+                throw new IllegalStateException();
+        }
+        this.configureDefaultDimensions(this.field.getAnnotation(FormDefaultDimensions.class), false, prev, component);
+        return this.componentName;
     }
 }

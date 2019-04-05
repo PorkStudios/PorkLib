@@ -23,7 +23,6 @@ import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.Element;
 import net.daporkchop.lib.gui.component.type.functional.Button;
 import net.daporkchop.lib.gui.form.data.FormObject;
-import net.daporkchop.lib.gui.form.data.FormValue;
 import net.daporkchop.lib.gui.form.util.FormCompletionListener;
 import net.daporkchop.lib.gui.form.util.FormCompletionStatus;
 import net.daporkchop.lib.gui.form.util.exception.FormCompletionException;
@@ -43,39 +42,52 @@ public class PForm<T> {
 
     protected final Class<T> clazz;
     protected final FormObject base;
-    protected final Container container;
+    protected final Container<?, ?> container;
 
     protected final Collection<FormCompletionListener<T>> listeners = new ArrayList<>();
 
-    public PForm(@NonNull Class<T> clazz, @NonNull Container container)   {
+    public PForm(@NonNull Class<T> clazz, @NonNull Container container) {
         this.clazz = clazz;
         this.container = container;
 
         this.base = OBJECT_CACHE.computeIfAbsent(clazz, c -> new FormObject(c, null));
     }
 
-    public PForm<T> buildDefault()  {
-        this.base.buildDefault(null, this.container);
-        return this;
+    public PForm<T> buildDefault() {
+        String last = this.base.buildDefault(null, this.container);
+        if (last == null) {
+            this.container.button("complete", button -> button
+                    .orientRelative(0.0d, 0.0d, 1.0d, 50)
+                    .setText("Submit")
+                    .minDimensionsAreValueSize().pad(2));
+        } else {
+            this.container.button("complete", button -> button
+                    .orientAdvanced(adv -> adv
+                            .belowAndCopyX(last)
+                            .width(1.0d))
+                    .setText("Submit")
+                    .minDimensionsAreValueSize().pad(2));
+        }
+        return this.submitButton("complete");
     }
 
-    public PForm<T> submitButton(@NonNull String name)   {
+    public PForm<T> submitButton(@NonNull String name) {
         Element element = this.container.getChild(name);
-        if (element == null)    {
+        if (element == null) {
             throw new IllegalStateException(String.format("No element with name: \"%s\"!", name));
-        } else if (element instanceof Button)   {
+        } else if (element instanceof Button) {
             return this.submitButton((Button) element);
         } else {
             throw new IllegalStateException(String.format("Invalid component type for \"%s\": %s!", name, element.getClass().getCanonicalName()));
         }
     }
 
-    public PForm<T> submitButton(@NonNull Button button)   {
+    public PForm<T> submitButton(@NonNull Button button) {
         button.setClickHandler((mouseButton, x, y) -> this.complete());
         return this;
     }
 
-    public PForm<T> addSuccessListener(@NonNull Consumer<T> listener)   {
+    public PForm<T> addSuccessListener(@NonNull Consumer<T> listener) {
         return this.addListener((status, value) -> {
             if (status == FormCompletionStatus.SUCCESS) {
                 listener.accept(value);
@@ -83,7 +95,7 @@ public class PForm<T> {
         });
     }
 
-    public PForm<T> addCancelListener(@NonNull Runnable listener)   {
+    public PForm<T> addCancelListener(@NonNull Runnable listener) {
         return this.addListener((status, value) -> {
             if (status == FormCompletionStatus.CANCELLED) {
                 listener.run();
@@ -91,7 +103,7 @@ public class PForm<T> {
         });
     }
 
-    public PForm<T> addErrorListener(@NonNull Runnable listener)   {
+    public PForm<T> addErrorListener(@NonNull Runnable listener) {
         return this.addListener((status, value) -> {
             if (status == FormCompletionStatus.ERROR) {
                 listener.run();
@@ -99,32 +111,32 @@ public class PForm<T> {
         });
     }
 
-    public PForm<T> addListener(@NonNull BiConsumer<FormCompletionStatus, T> listener)    {
+    public PForm<T> addListener(@NonNull BiConsumer<FormCompletionStatus, T> listener) {
         this.listeners.add(listener::accept);
         return this;
     }
 
-    public PForm<T> addListener(@NonNull FormCompletionListener<T> listener)    {
+    public PForm<T> addListener(@NonNull FormCompletionListener<T> listener) {
         this.listeners.add(listener);
         return this;
     }
 
-    public PForm<T> prepare()   {
+    public PForm<T> prepare() {
         this.base.configure(this.container);
         return this;
     }
 
-    public void cancel()    {
+    public void cancel() {
         this.fireComplete(FormCompletionStatus.CANCELLED, null);
     }
 
     @SuppressWarnings("unchecked")
-    public T complete()    {
+    public T complete() {
         T val;
         try {
             val = (T) PUnsafe.allocateInstance(this.clazz);
             this.base.loadInto(val, this.container);
-        } catch (Exception e)   {
+        } catch (Exception e) {
             this.fireComplete(FormCompletionStatus.ERROR, null);
             throw new FormCompletionException(e);
         }
@@ -132,7 +144,7 @@ public class PForm<T> {
         return val;
     }
 
-    protected void fireComplete(@NonNull FormCompletionStatus status, T value)  {
+    protected void fireComplete(@NonNull FormCompletionStatus status, T value) {
         this.listeners.forEach(listener -> listener.accept(status, value));
     }
 }

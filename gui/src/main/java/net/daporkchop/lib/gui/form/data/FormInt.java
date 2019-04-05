@@ -18,8 +18,10 @@ package net.daporkchop.lib.gui.form.data;
 import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.gui.component.Component;
+import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.type.functional.Slider;
 import net.daporkchop.lib.gui.component.type.functional.Spinner;
+import net.daporkchop.lib.gui.form.annotation.FormDefaultDimensions;
 import net.daporkchop.lib.gui.form.annotation.FormType;
 import net.daporkchop.lib.gui.form.util.exception.FormFieldTypeMismatchException;
 import net.daporkchop.lib.reflection.PField;
@@ -132,5 +134,28 @@ public class FormInt extends AbstractFormValue<FormType.Int> {
             default:
                 throw new IllegalStateException();
         }
+    }
+
+    @Override
+    public String buildDefault(String prev, @NonNull Container container) {
+        Component component;
+        switch (this.annotation.type()) {
+            case SPINNER: {
+                component = container.spinner(this.componentName)
+                        .setValAndLimits(this.annotation.value(), this.annotation.min(), this.annotation.max())
+                        .setStep(this.annotation.step());
+            }
+            break;
+            case SLIDER: {
+                component = container.slider(this.componentName)
+                        .setValAndLimits(this.annotation.value(), this.annotation.min(), this.annotation.max())
+                        .setStep(this.annotation.step());
+            }
+            break;
+            default:
+                throw new IllegalStateException();
+        }
+        this.configureDefaultDimensions(this.field.getAnnotation(FormDefaultDimensions.class), false, prev, component);
+        return this.componentName;
     }
 }

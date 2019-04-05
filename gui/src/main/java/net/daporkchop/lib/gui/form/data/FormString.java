@@ -20,6 +20,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.type.functional.TextBox;
+import net.daporkchop.lib.gui.form.annotation.FormDefaultDimensions;
 import net.daporkchop.lib.gui.form.annotation.FormType;
 import net.daporkchop.lib.gui.form.util.exception.FormFieldTypeMismatchException;
 import net.daporkchop.lib.reflection.PField;
@@ -123,5 +124,27 @@ public class FormString extends AbstractFormValue<FormType.Text> {
             default:
                 throw new IllegalStateException();
         }
+    }
+
+    @Override
+    public String buildDefault(String prev, @NonNull Container container) {
+        Component component;
+        switch (this.annotation.type()) {
+            case TEXT_BOX: {
+                component = container.textBox(this.componentName).setText(this.annotation.value());
+                if (!this.annotation.hint().isEmpty())  {
+                    ((TextBox) component).setHint(this.annotation.hint());
+                }
+            }
+            break;
+            case PASSWORD: {
+                component = container.passwordBox(this.componentName).setText(this.annotation.value());
+            }
+            break;
+            default:
+                throw new IllegalStateException();
+        }
+        this.configureDefaultDimensions(this.field.getAnnotation(FormDefaultDimensions.class), false, prev, component);
+        return this.componentName;
     }
 }

@@ -20,6 +20,7 @@ import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.gui.component.Component;
+import net.daporkchop.lib.gui.component.orientation.advanced.Axis;
 import net.daporkchop.lib.gui.component.state.container.ScrollPaneState;
 import net.daporkchop.lib.gui.component.type.container.ScrollPane;
 import net.daporkchop.lib.gui.swing.common.SwingMouseListener;
@@ -48,6 +49,8 @@ public class SwingScrollPane extends SwingNestedContainer<ScrollPane, JScrollPan
     public SwingScrollPane(String name) {
         super(name, new JScrollPane());
         this.swing.setViewportView(this.panel);
+        this.swing.getHorizontalScrollBar().setMinimum(0);
+        this.swing.getVerticalScrollBar().setMinimum(0);
 
         this.swing.addMouseListener(new SwingMouseListener<>(this));
     }
@@ -83,10 +86,8 @@ public class SwingScrollPane extends SwingNestedContainer<ScrollPane, JScrollPan
     @Override
     public ScrollPane update() {
         super.update();
-        if (this.children.isEmpty()) {
-            this.swing.getHorizontalScrollBar().setMinimum(0);
+        if (this.minDimensionsAreValueSize || this.children.isEmpty()) {
             this.swing.getHorizontalScrollBar().setMaximum(this.bounds.getWidth());
-            this.swing.getVerticalScrollBar().setMinimum(0);
             this.swing.getVerticalScrollBar().setMaximum(this.bounds.getHeight());
         } else {
             int minX = Integer.MAX_VALUE;
@@ -95,38 +96,37 @@ public class SwingScrollPane extends SwingNestedContainer<ScrollPane, JScrollPan
             int maxY = Integer.MIN_VALUE;
             for (Component component : this.children.values()) {
                 if (!((SwingComponent) component).hasSwing())   {
-                    continue;
+                    throw new IllegalStateException();
                 }
-                BoundingBox bounds = component.getBounds();
+                BoundingBox bb = component.getBounds();
 
-                int x = bounds.getX();
-                int y = bounds.getY();
-                if (x < minX) {
-                    minX = x;
+                int i = Axis.LEFT.getFrom(bb, component, null);
+                if (i < minX) {
+                    minX = i;
                 }
-                if (y < minY) {
-                    minY = y;
+                i = Axis.RIGHT.getFrom(bb, component, null);
+                if (i > maxX) {
+                    maxX = i;
                 }
-                x += bounds.getWidth();
-                y += bounds.getHeight();
-                if (x > maxX) {
-                    maxX = x;
+                i = Axis.ABOVE.getFrom(bb, component, null);
+                if (i < minY) {
+                    minY = i;
                 }
-                if (y > maxY) {
-                    maxY = y;
+                i = Axis.BELOW.getFrom(bb, component, null);
+                if (i > maxY) {
+                    maxY = i;
                 }
             }
             if (minX != 0 || minY != 0) {
                 for (Component component : this.children.values())  { //offset components to 0
-                    if (!((SwingComponent) component).hasSwing())   {
-                        continue;
-                    }
                     BoundingBox bounds = component.getBounds();
                     ((SwingComponent) component).getSwing().setBounds(bounds.getX() - minX, bounds.getY() - minY, bounds.getWidth(), bounds.getHeight());
                 }
             }
             //this.panel.setMinX(minX).setMaxX(maxX).setMinY(minY).setMaxY(maxY);
             this.panel.setMinX(minX).setMaxX(maxX).setMinY(minY).setMaxY(maxY);
+            this.swing.getHorizontalScrollBar().setMaximum(maxX - minX);
+            this.swing.getVerticalScrollBar().setMaximum(maxY - minY);
         }
         return this;
     }

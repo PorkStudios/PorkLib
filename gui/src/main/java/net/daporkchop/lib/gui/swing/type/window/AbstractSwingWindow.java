@@ -53,11 +53,6 @@ public abstract class AbstractSwingWindow<Impl extends AbstractSwingWindow<Impl,
     protected boolean closing = false;
     protected boolean closed = false;
 
-    protected boolean clampedToValueMinSizes = false;
-
-    @Getter(value = AccessLevel.PROTECTED)
-    protected volatile boolean updating;
-
     public AbstractSwingWindow(String name, Swing swing) {
         super(name, swing);
 
@@ -149,42 +144,19 @@ public abstract class AbstractSwingWindow<Impl extends AbstractSwingWindow<Impl,
             this.oldDimensions = this.bounds;
         }
         this.children.values().forEach(Element::update);
-        if (!this.updating) {
-            this.updating = true;
-            if (this.clampedToValueMinSizes) {
-                this.minBounds = this.computeMinBounds();
-                if (this.bounds.getWidth() < this.minBounds.getWidth()
-                        || this.bounds.getHeight() < this.minBounds.getHeight()) {
-                    Insets insets = this.swing.getInsets();
-                    this.swing.setBounds(
-                            this.swing.getX(),
-                            this.swing.getY(),
-                            Math.max(this.bounds.getWidth(), this.minBounds.getWidth()) + insets.right + insets.left,
-                            Math.max(this.bounds.getHeight(), this.minBounds.getHeight()) + insets.top + insets.bottom
-                    );
-                    //TODO: this isn't so pretty
-                }
-            }
-            this.updating = false;
-        }
         this.swing.revalidate();
         return (Impl) this;
     }
 
     @Override
-    public void release() {
-        this.swing.dispose();
+    public boolean isMinDimensionsAreValueSize() {
+        //TODO
+        return false;
     }
 
     @Override
-    public Window setClampedToValueMinSizes(boolean state) {
-        if (state != this.clampedToValueMinSizes) {
-            if (!(this.clampedToValueMinSizes = state)) {
-                this.swing.setMinimumSize(null);
-            }
-            this.considerUpdate();
-        }
-        return this;
+    public void release() {
+        this.swing.dispose();
     }
 
     protected class SwingWindowListener implements WindowListener {

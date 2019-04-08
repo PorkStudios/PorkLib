@@ -35,7 +35,9 @@ public enum Axis {
     Y((this_, bb, target, dst) -> bb.getY()),
     WIDTH((this_, bb, target, dst) -> bb.getWidth() - (dst == null ? 0 : dst.getPadding(Side.LEFT_RIGHT))),
     HEIGHT((this_, bb, target, dst) -> bb.getHeight() - (dst == null ? 0 : dst.getPadding(Side.TOP_BOTTOM))),
+    ABOVE((this_, bb, target, dst) -> bb.getY() + (target == null ? 0 : target.getPadding(Side.TOP) + (dst == null ? 0 : dst.getPadding(Side.BOTTOM)))),
     BELOW((this_, bb, target, dst) -> bb.getY() + bb.getHeight() + (target == null ? 0 : target.getPadding(Side.BOTTOM) + (dst == null ? 0 : dst.getPadding(Side.TOP)))),
+    LEFT((this_, bb, target, dst) -> bb.getX() + (target == null ? 0 : target.getPadding(Side.LEFT) + (dst == null ? 0 : dst.getPadding(Side.RIGHT)))),
     RIGHT((this_, bb, target, dst) -> bb.getX() + bb.getWidth() + (target == null ? 0 : target.getPadding(Side.RIGHT) + (dst == null ? 0 : dst.getPadding(Side.LEFT)))),
     ;
 

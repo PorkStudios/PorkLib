@@ -32,25 +32,12 @@ import java.awt.*;
 /**
  * @author DaPorkchop_
  */
-public class SwingPanel extends SwingNestedContainer<Panel, SwingPanel.SwingPanelWrapper, PanelState> implements Panel {
+public class SwingPanel extends SwingNestedContainer<Panel, JPanel, PanelState> implements Panel {
     public SwingPanel(String name) {
-        super(name, new SwingPanelWrapper());
+        super(name, new JPanel());
 
-        this.swing.setThis_(this).setLayout(null);
+        this.swing.setLayout(null);
 
         this.swing.addMouseListener(new SwingMouseListener<>(this));
-    }
-
-    @Getter
-    @Setter
-    @Accessors(chain = true)
-    protected static class SwingPanelWrapper extends JPanel    {
-        @NonNull
-        protected SwingPanel this_;
-
-        @Override
-        public Dimension getPreferredSize() {
-            return super.getPreferredSize();
-        }
     }
 }

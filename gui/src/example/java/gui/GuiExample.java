@@ -161,7 +161,6 @@ public class GuiExample implements Logging {
 
     public static void displayScrollbarTestWindow(@NonNull Window parentWindow) {
         parentWindow.popup(128, 128, 512, 300)
-                .clampToValueMinSizes()
                 .setTitle("Scrollbar test")
                 .spinner("max", 100, 1, Integer.MAX_VALUE, 1, spinner -> spinner
                         .orientAdvanced(adv -> adv

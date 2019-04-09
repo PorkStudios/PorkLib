@@ -89,7 +89,7 @@ public abstract class SwingComponent<Impl extends Component, Swing extends JComp
     }
 
     protected BoundingBox calculateBounds() {
-        BoundingBox bounds = this.orientation == null ? new BoundingBox(0, 0, 0, 0) : this.orientation.update(this.parent.getBounds(), this.parent, (Impl) this);
+        BoundingBox bounds = this.bounds = this.orientation == null ? new BoundingBox(0, 0, 0, 0) : this.orientation.update(this.parent.getBounds(), this.parent, (Impl) this);
         if (this.swing != null && this.minDimensionsAreValueSize) {
             Dimension preferred = this.swing.getPreferredSize();
             if (preferred != null)  {

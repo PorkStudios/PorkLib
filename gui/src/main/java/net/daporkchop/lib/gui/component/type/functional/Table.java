@@ -87,15 +87,19 @@ public interface Table extends Component<Table, TableState> {
         return this;
     }
 
-    interface Column    {
+    interface Column<V>    {
         Table getParent();
 
         String getName();
-        Column setName(String name);
+        Column<V> setName(String name);
 
         int index();
-        Column setIndex(int dst);
-        Column swap(int dst);
+        Column<V> setIndex(int dst);
+        Column<V> swap(int dst);
+
+        Class<V> getValueClass();
+        Renderer<V, ? extends Component> getValueRenderer();
+        <T> Column<T> setValueType(@NonNull Class<T> clazz, @NonNull Renderer<T, ? extends Component> renderer);
     }
 
     interface Row   {
@@ -111,10 +115,6 @@ public interface Table extends Component<Table, TableState> {
         default Column getColumn(int index) {
             return this.getParent().getColumn(index);
         }
-    }
-
-    interface Cell extends NestedContainer  {
-
     }
 
     interface Renderer<V, C extends Component>  {

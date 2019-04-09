@@ -17,6 +17,7 @@ package net.daporkchop.lib.gui.swing.type.functional;
 
 import net.daporkchop.lib.gui.component.state.functional.ProgressBarState;
 import net.daporkchop.lib.gui.component.type.functional.ProgressBar;
+import net.daporkchop.lib.gui.swing.common.SwingMouseListener;
 import net.daporkchop.lib.gui.swing.impl.SwingComponent;
 import net.daporkchop.lib.gui.swing.impl.SwingContainer;
 
@@ -30,6 +31,8 @@ public class SwingProgressBar extends SwingComponent<ProgressBar, JProgressBar, 
         super(name, new JProgressBar());
 
         this.swing.setMaximum(100);
+
+        this.swing.addMouseListener(new SwingMouseListener<>(this));
     }
 
     @Override

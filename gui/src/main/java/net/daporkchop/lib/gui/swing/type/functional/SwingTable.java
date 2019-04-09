@@ -18,6 +18,10 @@ package net.daporkchop.lib.gui.swing.type.functional;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.gui.component.Component;
+import net.daporkchop.lib.gui.component.state.ElementState;
 import net.daporkchop.lib.gui.component.state.functional.TableState;
 import net.daporkchop.lib.gui.component.type.functional.Table;
 import net.daporkchop.lib.gui.swing.impl.SwingComponent;
@@ -31,6 +35,7 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * @author DaPorkchop_
@@ -55,12 +60,12 @@ public class SwingTable extends SwingComponent<Table, SwingTable.JTableHack, Tab
     }
 
     @Override
-    public String getColumnName(int col) {
-        return this.model.getColumnName(col);
+    public String getColumnName(int index) {
+        return this.model.getColumnName(index);
     }
 
     @Override
-    public Table setColumnName(int col, @NonNull String name) {
+    public Table setColumnName(int index, @NonNull String name) {
         return this;
     }
 
@@ -79,6 +84,7 @@ public class SwingTable extends SwingComponent<Table, SwingTable.JTableHack, Tab
     @Override
     public Table addColumn(String name) {
         this.swing.addColumn(new TableColumn());
+        this.swing.getCellRenderer()
         return this;
     }
 
@@ -228,7 +234,18 @@ public class SwingTable extends SwingComponent<Table, SwingTable.JTableHack, Tab
         }
     }
 
-    protected static class
+    @RequiredArgsConstructor
+    @Getter
+    @Setter
+    @Accessors(chain = true)
+    protected static class ColumnData<T, C extends Component<C, ? extends ElementState>> {
+        @NonNull
+        protected final TableColumn delegate;
+
+        @SuppressWarnings("unchecked")
+        protected Class<T> valueClass = (Class<T>) Object.class;
+        protected Function<T, C> componentCreator =
+    }
 
     protected static class JTableHack extends JTable  {
         @Override

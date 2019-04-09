@@ -27,6 +27,7 @@ import net.daporkchop.lib.gui.component.type.functional.ProgressBar;
 import net.daporkchop.lib.gui.component.type.functional.RadioButton;
 import net.daporkchop.lib.gui.component.type.functional.Slider;
 import net.daporkchop.lib.gui.component.type.functional.Spinner;
+import net.daporkchop.lib.gui.component.type.functional.Table;
 import net.daporkchop.lib.gui.component.type.functional.TextBox;
 import net.daporkchop.lib.gui.component.type.misc.RadioButtonGroup;
 import net.daporkchop.lib.gui.form.PForm;
@@ -37,7 +38,7 @@ import java.util.function.Consumer;
  * @author DaPorkchop_
  */
 @SuppressWarnings("unchecked")
-public interface ComponentAdder<Impl> {
+public interface ComponentAdder<Impl> extends BlankComponentAdder<Impl> {
     //
     //
     //nested containers
@@ -267,6 +268,11 @@ public interface ComponentAdder<Impl> {
     //radio button group
     RadioButtonGroup radioGroup(@NonNull String name);
 
+    @Override
+    default RadioButtonGroup radioGroup() {
+        throw new UnsupportedOperationException(); //TODO: make radio button groups not be actual components
+    }
+
     default RadioButtonGroup radioButtonGroup(@NonNull String name)   {
         return this.radioGroup(name);
     }
@@ -302,5 +308,88 @@ public interface ComponentAdder<Impl> {
         initializer.accept(form);
         form.prepare();
         return (Impl) this;
+    }
+
+    //
+    //
+    // stuff from blankcomponentadder shouldn't really be here, but i added it anyway
+    // and just deprecated it all because reasons
+    //
+    //
+    @Override
+    @Deprecated
+    default Panel panel() {
+        return this.panel("");
+    }
+
+    @Override
+    @Deprecated
+    default ScrollPane scrollPane() {
+        return this.scrollPane("");
+    }
+
+    @Override
+    @Deprecated
+    default Button button() {
+        return this.button("");
+    }
+
+    @Override
+    default CheckBox checkBox() {
+        return this.checkBox("");
+    }
+
+    @Override
+    @Deprecated
+    default <V> Dropdown<V> dropdown() {
+        return this.dropdown("");
+    }
+
+    @Override
+    @Deprecated
+    default Label label() {
+        return this.label("");
+    }
+
+    @Override
+    @Deprecated
+    default ProgressBar progressBar() {
+        return this.progressBar("");
+    }
+
+    @Override
+    @Deprecated
+    default RadioButton radioButton(@NonNull RadioButtonGroup group) {
+        return this.radioButton("", group);
+    }
+
+    @Override
+    @Deprecated
+    default Slider slider() {
+        return this.slider("");
+    }
+
+    @Override
+    @Deprecated
+    default Spinner spinner() {
+        return this.spinner("");
+    }
+
+    @Override
+    @Deprecated
+    default Table table() {
+        return null; //TODO
+    }
+
+    @Override
+    @Deprecated
+    default TextBox textBox() {
+        return this.textBox("");
+    }
+
+    @Override
+    @Deprecated
+    default TextBox passwordBox() {
+        return this.passwordBox("");
     }
 }

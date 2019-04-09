@@ -18,7 +18,34 @@ package net.daporkchop.lib.gui.swing;
 import lombok.NonNull;
 import net.daporkchop.lib.common.reference.InstancePool;
 import net.daporkchop.lib.gui.GuiEngine;
+import net.daporkchop.lib.gui.component.capability.BlankComponentAdder;
 import net.daporkchop.lib.gui.component.type.Window;
+import net.daporkchop.lib.gui.component.type.container.Panel;
+import net.daporkchop.lib.gui.component.type.container.ScrollPane;
+import net.daporkchop.lib.gui.component.type.functional.Button;
+import net.daporkchop.lib.gui.component.type.functional.CheckBox;
+import net.daporkchop.lib.gui.component.type.functional.Dropdown;
+import net.daporkchop.lib.gui.component.type.functional.Label;
+import net.daporkchop.lib.gui.component.type.functional.ProgressBar;
+import net.daporkchop.lib.gui.component.type.functional.RadioButton;
+import net.daporkchop.lib.gui.component.type.functional.Slider;
+import net.daporkchop.lib.gui.component.type.functional.Spinner;
+import net.daporkchop.lib.gui.component.type.functional.Table;
+import net.daporkchop.lib.gui.component.type.functional.TextBox;
+import net.daporkchop.lib.gui.component.type.misc.RadioButtonGroup;
+import net.daporkchop.lib.gui.swing.type.container.SwingPanel;
+import net.daporkchop.lib.gui.swing.type.container.SwingScrollPane;
+import net.daporkchop.lib.gui.swing.type.functional.SwingButton;
+import net.daporkchop.lib.gui.swing.type.functional.SwingCheckBox;
+import net.daporkchop.lib.gui.swing.type.functional.SwingDropdown;
+import net.daporkchop.lib.gui.swing.type.functional.SwingLabel;
+import net.daporkchop.lib.gui.swing.type.functional.SwingPasswordBox;
+import net.daporkchop.lib.gui.swing.type.functional.SwingProgressBar;
+import net.daporkchop.lib.gui.swing.type.functional.SwingRadioButton;
+import net.daporkchop.lib.gui.swing.type.functional.SwingSlider;
+import net.daporkchop.lib.gui.swing.type.functional.SwingSpinner;
+import net.daporkchop.lib.gui.swing.type.functional.SwingTable;
+import net.daporkchop.lib.gui.swing.type.misc.SwingRadioButtonGroup;
 import net.daporkchop.lib.gui.swing.type.window.SwingFrame;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 
@@ -43,6 +70,8 @@ public class GuiEngineSwing implements GuiEngine {
         return InstancePool.getInstance(GuiEngineSwing.class);
     }
 
+    protected final BlankComponentAdder blankComponents = new SwingBlankComponentAdder();
+
     @Override
     public String getName() {
         return "Swing";
@@ -51,5 +80,82 @@ public class GuiEngineSwing implements GuiEngine {
     @Override
     public Window newWindow(@NonNull BoundingBox bounds) {
         return new SwingFrame("").setBounds(bounds);
+    }
+
+    @Override
+    public BlankComponentAdder blankComponents() {
+        return this.blankComponents;
+    }
+
+    protected static class SwingBlankComponentAdder implements BlankComponentAdder<SwingBlankComponentAdder>    {
+        @Override
+        public Panel panel() {
+            return new SwingPanel("");
+        }
+
+        @Override
+        public ScrollPane scrollPane() {
+            return new SwingScrollPane("");
+        }
+
+        @Override
+        public Button button() {
+            return new SwingButton("");
+        }
+
+        @Override
+        public CheckBox checkBox() {
+            return new SwingCheckBox("");
+        }
+
+        @Override
+        public <V> Dropdown<V> dropdown() {
+            return new SwingDropdown<>("");
+        }
+
+        @Override
+        public Label label() {
+            return new SwingLabel("");
+        }
+
+        @Override
+        public ProgressBar progressBar() {
+            return new SwingProgressBar("");
+        }
+
+        @Override
+        public RadioButton radioButton(@NonNull RadioButtonGroup group) {
+            return new SwingRadioButton("", (SwingRadioButtonGroup) group);
+        }
+
+        @Override
+        public Slider slider() {
+            return new SwingSlider("");
+        }
+
+        @Override
+        public Spinner spinner() {
+            return new SwingSpinner("");
+        }
+
+        @Override
+        public Table table() {
+            return new SwingTable("");
+        }
+
+        @Override
+        public TextBox textBox() {
+            return null;
+        }
+
+        @Override
+        public TextBox passwordBox() {
+            return new SwingPasswordBox("");
+        }
+
+        @Override
+        public RadioButtonGroup radioGroup() {
+            return new SwingRadioButtonGroup("");
+        }
     }
 }

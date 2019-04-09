@@ -16,13 +16,41 @@
 package net.daporkchop.lib.gui.component.type.functional;
 
 import lombok.NonNull;
+import net.daporkchop.lib.gui.GuiEngine;
 import net.daporkchop.lib.gui.component.Component;
+import net.daporkchop.lib.gui.component.Container;
+import net.daporkchop.lib.gui.component.NestedContainer;
 import net.daporkchop.lib.gui.component.state.functional.TableState;
+
+import java.util.Objects;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * @author DaPorkchop_
  */
 public interface Table extends Component<Table, TableState> {
+    static Renderer<Object, Label> defaultTextRenderer()  {
+        return (engine, value, oldComponent) -> {
+            if (oldComponent == null)   {
+                oldComponent = engine.label();
+            }
+            oldComponent.setText(Objects.toString(value));
+            return oldComponent;
+        };
+    }
+
+    static <V, C extends Component> Renderer<V, C> updateRenderer(@NonNull Function<GuiEngine, C> componentCreator, @NonNull BiConsumer<V, C> updater)  {
+        return (engine, value, oldComponent) -> {
+            if (oldComponent == null)   {
+                oldComponent = componentCreator.apply(engine);
+            }
+            updater.accept(value, oldComponent);
+            return oldComponent;
+        };
+    }
+
     @Override
     default TableState getState() {
         return this.isVisible() ?
@@ -35,11 +63,61 @@ public interface Table extends Component<Table, TableState> {
     int getColumns();
     int getRows();
 
-    String getColumnName(int col);
-    Table setColumnName(int col, @NonNull String name);
-
     Table removeColumn(int col);
     Table removeRow(int row);
 
     Table addColumn(String name, @NonNull Class<?> clazz);
+
+    Column getColumn(int index);
+    Row getRow(int index);
+
+    default String getColumnName(int index)   {
+        return this.getColumn(index).getName();
+    }
+    default Table setColumnName(int index, String name)    {
+        this.getColumn(index).setName(name);
+        return this;
+    }
+
+    default <V> V getValue(int row, int col)    {
+        return this.getRow(row).getValue(col);
+    }
+    default Table setValue(int row, int col, @NonNull Object val)   {
+        this.getRow(row).setValue(col, val);
+        return this;
+    }
+
+    interface Column    {
+        Table getParent();
+
+        String getName();
+        Column setName(String name);
+
+        int index();
+        Column setIndex(int dst);
+        Column swap(int dst);
+    }
+
+    interface Row   {
+        Table getParent();
+
+        int index();
+        Row setIndex(int dst);
+        Row swap(int dst);
+
+        <V> V getValue(int col);
+        Row setValue(int col, @NonNull Object val);
+
+        default Column getColumn(int index) {
+            return this.getParent().getColumn(index);
+        }
+    }
+
+    interface Cell extends NestedContainer  {
+
+    }
+
+    interface Renderer<V, C extends Component>  {
+        C update(@NonNull GuiEngine engine, @NonNull V value, C oldComponent);
+    }
 }

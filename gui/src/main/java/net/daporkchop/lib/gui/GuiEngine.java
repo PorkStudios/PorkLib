@@ -16,7 +16,21 @@
 package net.daporkchop.lib.gui;
 
 import lombok.NonNull;
+import net.daporkchop.lib.gui.component.capability.BlankComponentAdder;
 import net.daporkchop.lib.gui.component.type.Window;
+import net.daporkchop.lib.gui.component.type.container.Panel;
+import net.daporkchop.lib.gui.component.type.container.ScrollPane;
+import net.daporkchop.lib.gui.component.type.functional.Button;
+import net.daporkchop.lib.gui.component.type.functional.CheckBox;
+import net.daporkchop.lib.gui.component.type.functional.Dropdown;
+import net.daporkchop.lib.gui.component.type.functional.Label;
+import net.daporkchop.lib.gui.component.type.functional.ProgressBar;
+import net.daporkchop.lib.gui.component.type.functional.RadioButton;
+import net.daporkchop.lib.gui.component.type.functional.Slider;
+import net.daporkchop.lib.gui.component.type.functional.Spinner;
+import net.daporkchop.lib.gui.component.type.functional.Table;
+import net.daporkchop.lib.gui.component.type.functional.TextBox;
+import net.daporkchop.lib.gui.component.type.misc.RadioButtonGroup;
 import net.daporkchop.lib.gui.swing.GuiEngineSwing;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 
@@ -25,7 +39,7 @@ import net.daporkchop.lib.gui.util.math.BoundingBox;
  *
  * @author DaPorkchop_
  */
-public interface GuiEngine {
+public interface GuiEngine extends BlankComponentAdder<GuiEngine> {
     static GuiEngineSwing swing() {
         return GuiEngineSwing.getInstance();
     }
@@ -47,4 +61,78 @@ public interface GuiEngine {
      * @return the newly created window
      */
     Window newWindow(@NonNull BoundingBox bounds);
+
+    BlankComponentAdder<? extends BlankComponentAdder> blankComponents();
+
+    //component stuff
+
+    @Override
+    default Panel panel() {
+        return this.blankComponents().panel();
+    }
+
+    @Override
+    default ScrollPane scrollPane() {
+        return this.blankComponents().scrollPane();
+    }
+
+    @Override
+    default Button button() {
+        return this.blankComponents().button();
+    }
+
+    @Override
+    default CheckBox checkBox() {
+        return this.blankComponents().checkBox();
+    }
+
+    @Override
+    default <V> Dropdown<V> dropdown() {
+        return this.blankComponents().dropdown();
+    }
+
+    @Override
+    default Label label() {
+        return this.blankComponents().label();
+    }
+
+    @Override
+    default ProgressBar progressBar() {
+        return this.blankComponents().progressBar();
+    }
+
+    @Override
+    default RadioButton radioButton(@NonNull RadioButtonGroup group) {
+        return this.blankComponents().radioButton(group);
+    }
+
+    @Override
+    default Slider slider() {
+        return this.blankComponents().slider();
+    }
+
+    @Override
+    default Spinner spinner() {
+        return this.blankComponents().spinner();
+    }
+
+    @Override
+    default Table table() {
+        return this.blankComponents().table();
+    }
+
+    @Override
+    default TextBox textBox() {
+        return this.blankComponents().textBox();
+    }
+
+    @Override
+    default TextBox passwordBox() {
+        return this.blankComponents().passwordBox();
+    }
+
+    @Override
+    default RadioButtonGroup radioGroup() {
+        return this.blankComponents().radioGroup();
+    }
 }

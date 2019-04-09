@@ -22,6 +22,7 @@ import net.daporkchop.lib.gui.component.Element;
 import net.daporkchop.lib.gui.component.capability.ComponentAdder;
 import net.daporkchop.lib.gui.component.orientation.advanced.Axis;
 import net.daporkchop.lib.gui.component.state.ElementState;
+import net.daporkchop.lib.gui.component.type.Window;
 import net.daporkchop.lib.gui.component.type.container.Panel;
 import net.daporkchop.lib.gui.component.type.container.ScrollPane;
 import net.daporkchop.lib.gui.component.type.functional.Button;
@@ -115,7 +116,7 @@ public interface IBasicSwingContainer<Impl extends Container, Swing extends java
 
     @Override
     default RadioButton radioButton(@NonNull String name, @NonNull String groupName) {
-        return this.radioButton(name, this.<RadioButtonGroup>getChild(groupName));
+        return this.radioButton(name, this.getWindow().<RadioButtonGroup>getChild(groupName));
     }
 
     @Override
@@ -186,4 +187,5 @@ public interface IBasicSwingContainer<Impl extends Container, Swing extends java
     Swing getSwing();
 
     boolean isMinDimensionsAreValueSize();
+    Window getWindow();
 }

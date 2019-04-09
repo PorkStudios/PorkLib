@@ -22,6 +22,7 @@ import net.daporkchop.lib.gui.component.state.functional.RadioButtonState;
 import net.daporkchop.lib.gui.component.type.functional.CheckBox;
 import net.daporkchop.lib.gui.component.type.functional.RadioButton;
 import net.daporkchop.lib.gui.component.type.misc.RadioButtonGroup;
+import net.daporkchop.lib.gui.swing.common.SwingMouseListener;
 import net.daporkchop.lib.gui.swing.impl.SwingComponent;
 import net.daporkchop.lib.gui.swing.type.misc.SwingRadioButtonGroup;
 
@@ -42,6 +43,7 @@ public class SwingRadioButton extends AbstractSwingButton<RadioButton, JRadioBut
         this.group = group.add(this);
 
         this.swing.addChangeListener(new SwingRadioButtonChangeListener());
+        this.swing.addMouseListener(new SwingMouseListener<>(this));
     }
 
     @Override

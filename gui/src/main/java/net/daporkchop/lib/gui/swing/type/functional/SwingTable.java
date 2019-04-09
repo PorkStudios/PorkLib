@@ -24,15 +24,16 @@ import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.state.ElementState;
 import net.daporkchop.lib.gui.component.state.functional.TableState;
 import net.daporkchop.lib.gui.component.type.functional.Table;
+import net.daporkchop.lib.gui.swing.common.SwingMouseListener;
 import net.daporkchop.lib.gui.swing.impl.SwingComponent;
 
 import javax.swing.*;
 import javax.swing.event.TableColumnModelListener;
 import javax.swing.event.TableModelListener;
-import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.function.Function;
@@ -47,6 +48,8 @@ public class SwingTable extends SwingComponent<Table, SwingTable.JTableHack, Tab
         super(name, new JTableHack());
 
         this.model = this.swing.getModel();
+
+        this.swing.addMouseListener(new SwingMouseListener<>(this));
     }
 
     @Override
@@ -60,16 +63,6 @@ public class SwingTable extends SwingComponent<Table, SwingTable.JTableHack, Tab
     }
 
     @Override
-    public String getColumnName(int index) {
-        return this.model.getColumnName(index);
-    }
-
-    @Override
-    public Table setColumnName(int index, @NonNull String name) {
-        return this;
-    }
-
-    @Override
     public Table removeColumn(int col) {
         this.swing.getColumnModel().removeColumn(this.swing.getColumnModel().getColumn(col));
         return this;
@@ -77,15 +70,27 @@ public class SwingTable extends SwingComponent<Table, SwingTable.JTableHack, Tab
 
     @Override
     public Table removeRow(int row) {
-        //TODO
-        return this;
+        return null;
     }
 
     @Override
-    public Table addColumn(String name) {
-        this.swing.addColumn(new TableColumn());
-        this.swing.getCellRenderer()
-        return this;
+    public Table addColumn(String name, @NonNull Class<?> clazz) {
+        return null;
+    }
+
+    @Override
+    public Column getColumn(int index) {
+        return null;
+    }
+
+    @Override
+    public Row getRow(int index) {
+        return null;
+    }
+
+    @Override
+    public String getColumnName(int index) {
+        return this.model.getColumnName(index);
     }
 
     @RequiredArgsConstructor
@@ -114,7 +119,7 @@ public class SwingTable extends SwingComponent<Table, SwingTable.JTableHack, Tab
 
         @Override
         public Class<?> getColumnClass(int columnIndex) {
-            return this.getColumnModel().getColumn(columnIndex);
+            return this.getColumnModel().getColumnData(columnIndex).valueClass;
         }
 
         @Override
@@ -145,6 +150,8 @@ public class SwingTable extends SwingComponent<Table, SwingTable.JTableHack, Tab
     protected static class SwingTableColumnModel implements TableColumnModel    {
         @NonNull
         protected final JTableHack table;
+
+        protected final List<ColumnData> columns = new ArrayList<>();
 
         @Override
         public void addColumn(TableColumn aColumn) {
@@ -177,9 +184,13 @@ public class SwingTable extends SwingComponent<Table, SwingTable.JTableHack, Tab
             return 0;
         }
 
+        public ColumnData getColumnData(int columnIndex) {
+            return this.columns.get(columnIndex);
+        }
+
         @Override
         public TableColumn getColumn(int columnIndex) {
-            return null;
+            return this.columns.get(columnIndex).delegate;
         }
 
         @Override
@@ -238,16 +249,65 @@ public class SwingTable extends SwingComponent<Table, SwingTable.JTableHack, Tab
     @Getter
     @Setter
     @Accessors(chain = true)
-    protected static class ColumnData<T, C extends Component<C, ? extends ElementState>> {
+    protected static class ColumnData<V> implements Column<V> {
+        @NonNull
+        protected final JTableHack parent;
         @NonNull
         protected final TableColumn delegate;
 
         @SuppressWarnings("unchecked")
-        protected Class<T> valueClass = (Class<T>) Object.class;
-        protected Function<T, C> componentCreator =
+        protected Class<V> valueClass = (Class<V>) Object.class;
+        @SuppressWarnings("unchecked")
+        protected Renderer<V, ? extends Component> valueRenderer = (Renderer<V, ? extends Component>) Table.defaultTextRenderer();
+
+        @Override
+        public Table getParent() {
+            return this.parent.wrapper;
+        }
+
+        @Override
+        public String getName() {
+            return (String) this.delegate.getHeaderValue();
+        }
+
+        @Override
+        public Column<V> setName(String name) {
+            this.delegate.setHeaderValue(name);
+            return this;
+        }
+
+        @Override
+        public int index() {
+            return 0;
+        }
+
+        @Override
+        public Column<V> setIndex(int dst) {
+            return null;
+        }
+
+        @Override
+        public Column<V> swap(int dst) {
+            return null;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public <T> Column<T> setValueType(@NonNull Class<T> clazz, @NonNull Renderer<T, ? extends Component> renderer) {
+            ColumnData<T> this_ = (ColumnData<T>) this;
+            this_.valueClass = clazz;
+            this_.valueRenderer = renderer;
+            return this_;
+        }
     }
 
+    @Getter
+    @Setter
+    @Accessors(chain = true)
     protected static class JTableHack extends JTable  {
+        @NonNull
+        protected SwingTable wrapper = null;
+
         @Override
         protected TableModel createDefaultDataModel() {
             return new SwingTableModel(this);

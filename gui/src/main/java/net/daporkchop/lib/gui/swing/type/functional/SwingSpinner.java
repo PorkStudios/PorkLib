@@ -18,6 +18,7 @@ package net.daporkchop.lib.gui.swing.type.functional;
 import lombok.NonNull;
 import net.daporkchop.lib.gui.component.state.functional.SpinnerState;
 import net.daporkchop.lib.gui.component.type.functional.Spinner;
+import net.daporkchop.lib.gui.swing.common.SwingMouseListener;
 import net.daporkchop.lib.gui.swing.impl.SwingComponent;
 
 import javax.swing.*;
@@ -48,6 +49,7 @@ public class SwingSpinner extends SwingComponent<Spinner, JSpinner, SpinnerState
         this.updateModel();
 
         this.swing.addChangeListener(new SwingSpinnerChangeListener());
+        this.swing.addMouseListener(new SwingMouseListener<>(this));
     }
     @Override
     public double getValueD() {

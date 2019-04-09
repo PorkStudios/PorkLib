@@ -19,6 +19,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.gui.component.state.functional.TextBoxState;
 import net.daporkchop.lib.gui.component.type.functional.TextBox;
+import net.daporkchop.lib.gui.swing.common.SwingMouseListener;
 import net.daporkchop.lib.gui.swing.impl.SwingComponent;
 
 import javax.swing.*;
@@ -50,6 +51,7 @@ public class SwingTextBox extends SwingComponent<TextBox, JTextField, TextBoxSta
         this.swing.setUI(new SwingTextBoxUI());
         this.swing.setText("");
         this.swing.getDocument().addDocumentListener(new SwingTextBoxDocumentListener());
+        this.swing.addMouseListener(new SwingMouseListener<>(this));
     }
 
     @Override

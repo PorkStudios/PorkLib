@@ -28,18 +28,19 @@ import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.DoubleConsumer;
 import java.util.function.IntConsumer;
 
 /**
  * @author DaPorkchop_
  */
 public class SwingSpinner extends SwingComponent<Spinner, JSpinner, SpinnerState> implements Spinner {
-    protected int value = 0;
-    protected int max = Integer.MAX_VALUE;
-    protected int min = Integer.MIN_VALUE;
-    protected int step = 1;
+    protected double value = 0;
+    protected double max = Double.POSITIVE_INFINITY;
+    protected double min = Double.NEGATIVE_INFINITY;
+    protected double step = 1;
 
-    protected final Map<String, IntConsumer> listeners = new HashMap<>();
+    protected final Map<String, DoubleConsumer> listeners = new HashMap<>();
 
     public SwingSpinner(String name) {
         super(name, new JSpinner());
@@ -48,27 +49,26 @@ public class SwingSpinner extends SwingComponent<Spinner, JSpinner, SpinnerState
 
         this.swing.addChangeListener(new SwingSpinnerChangeListener());
     }
-
     @Override
-    public int getValue() {
-        return this.value = (int) this.swing.getValue();
+    public double getValueD() {
+        return this.value = (double) this.swing.getValue();
     }
 
     @Override
-    public Spinner setValue(int val) {
-        if (val != this.getValue())  {
+    public Spinner setValueD(double val) {
+        if (val != this.getValueD())    {
             this.swing.setValue(this.value = val);
         }
         return this;
     }
 
     @Override
-    public int getMaxValue() {
+    public double getMaxValueD() {
         return this.max;
     }
 
     @Override
-    public Spinner setMaxValue(int val) {
+    public Spinner setMaxValueD(double val) {
         if (this.max != val)    {
             this.max = val;
             this.updateModel();
@@ -77,12 +77,12 @@ public class SwingSpinner extends SwingComponent<Spinner, JSpinner, SpinnerState
     }
 
     @Override
-    public int getMinValue() {
+    public double getMinValueD() {
         return this.min;
     }
 
     @Override
-    public Spinner setMinValue(int val) {
+    public Spinner setMinValueD(double val) {
         if (this.min != val)    {
             this.min = val;
             this.updateModel();
@@ -91,12 +91,12 @@ public class SwingSpinner extends SwingComponent<Spinner, JSpinner, SpinnerState
     }
 
     @Override
-    public int getStep() {
+    public double getStepD() {
         return this.step;
     }
 
     @Override
-    public Spinner setStep(int step) {
+    public Spinner setStepD(double step) {
         if (this.step != step)    {
             this.step = step;
             this.updateModel();
@@ -105,7 +105,7 @@ public class SwingSpinner extends SwingComponent<Spinner, JSpinner, SpinnerState
     }
 
     @Override
-    public Spinner setLimits(int min, int max) {
+    public Spinner setLimitsD(double min, double max) {
         if (this.min != min || this.max != max) {
             this.min = min;
             this.max = max;
@@ -115,8 +115,8 @@ public class SwingSpinner extends SwingComponent<Spinner, JSpinner, SpinnerState
     }
 
     @Override
-    public Spinner setValAndLimits(int val, int min, int max) {
-        if (this.value != val || this.min != min || this.max != max) {
+    public Spinner setValAndLimitsD(double val, double min, double max) {
+        if (this.value != this.getValueD() || this.min != min || this.max != max) {
             this.value = val;
             this.min = min;
             this.max = max;
@@ -126,7 +126,7 @@ public class SwingSpinner extends SwingComponent<Spinner, JSpinner, SpinnerState
     }
 
     @Override
-    public Spinner addChangeListener(@NonNull String name, @NonNull IntConsumer callback) {
+    public Spinner addChangeListenerD(String name, DoubleConsumer callback) {
         this.listeners.put(name, callback);
         return this;
     }
@@ -144,8 +144,8 @@ public class SwingSpinner extends SwingComponent<Spinner, JSpinner, SpinnerState
     protected class SwingSpinnerChangeListener implements ChangeListener {
         @Override
         public void stateChanged(ChangeEvent e) {
-            if (SwingSpinner.this.value != (int) SwingSpinner.this.swing.getValue())   {
-                int val = SwingSpinner.this.value = (int) SwingSpinner.this.swing.getValue();
+            if (SwingSpinner.this.value != (double) SwingSpinner.this.swing.getValue())   {
+                double val = SwingSpinner.this.value = (double) SwingSpinner.this.swing.getValue();
                 SwingSpinner.this.listeners.values().forEach(callback -> callback.accept(val));
             }
         }

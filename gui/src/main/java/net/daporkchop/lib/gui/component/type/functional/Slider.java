@@ -20,6 +20,7 @@ import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.state.functional.SliderState;
 
 import java.util.function.IntConsumer;
+import java.util.function.IntFunction;
 
 /**
  * @author DaPorkchop_

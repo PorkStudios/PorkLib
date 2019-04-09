@@ -28,8 +28,6 @@ import net.daporkchop.lib.gui.component.state.functional.LabelState;
 import net.daporkchop.lib.gui.component.type.Window;
 import net.daporkchop.lib.gui.component.type.functional.ProgressBar;
 import net.daporkchop.lib.gui.component.type.functional.Slider;
-import net.daporkchop.lib.gui.component.type.functional.Spinner;
-import net.daporkchop.lib.gui.form.util.exception.FormException;
 import net.daporkchop.lib.gui.util.Alignment;
 import net.daporkchop.lib.gui.util.ScrollCondition;
 import net.daporkchop.lib.logging.Logging;
@@ -163,7 +161,7 @@ public class GuiExample implements Logging {
     public static void displayScrollbarTestWindow(@NonNull Window parentWindow) {
         parentWindow.popup(128, 128, 512, 300)
                 .setTitle("Scrollbar test")
-                .spinner("max", 100, 1, Integer.MAX_VALUE, 1, spinner -> spinner
+                .spinner("max", 100.5d, 0.75d, Double.POSITIVE_INFINITY, 0.05d, spinner -> spinner
                         .orientAdvanced(adv -> adv
                                 .x(0.05d)
                                 .y(0.05d))
@@ -172,10 +170,14 @@ public class GuiExample implements Logging {
                             spinner.getWindow().<Slider>getComponent("value").setMaxValue(val);
                             spinner.getWindow().<ProgressBar>getComponent("progress").setEnd(val);
                         }))
-                .slider("value", 50, 0, 100, spinner -> spinner
+                .slider("value", 50, 0, 100, slider -> slider
                         .orientAdvanced(adv -> adv.belowAndCopyX("max"))
                         .minDimensionsAreValueSize().pad(2)
-                        .addChangeListener(val -> spinner.getWindow().<ProgressBar>getComponent("progress").setProgress(val)))
+                        .addChangeListener(val -> slider.getWindow().<ProgressBar>getComponent("progress").setProgress(val)))
+                .label("valueDisplay", label -> label
+                        .orientAdvanced(adv -> adv.rightAndCopyYAndHeight("value"))
+                        .minDimensionsAreValueSize().pad(2)
+                        .trackSlider("value"))
                 .checkBox("infinite", checkBox -> checkBox
                         .orientAdvanced(adv -> adv.belowAndCopyX("value"))
                         .minDimensionsAreValueSize().pad(2)
@@ -205,7 +207,7 @@ public class GuiExample implements Logging {
                         .pad(2))
                 .label("maxLabel", "Maximum progress", label -> label
                         .orientAdvanced(adv -> adv
-                                .right("max", "value", "infinite", "text", "password")
+                                .right("max", "value", "valueDisplay", "infinite", "text", "password")
                                 .copyYAndHeight("max"))
                         .minDimensionsAreValueSize().pad(2).padLeft(10))
                 .label("valueLabel", "Progress", label -> label

@@ -16,6 +16,7 @@
 package net.daporkchop.lib.gui.component;
 
 import lombok.NonNull;
+import net.daporkchop.lib.gui.GuiEngine;
 import net.daporkchop.lib.gui.component.capability.Enableable;
 import net.daporkchop.lib.gui.component.capability.SizedValueHolder;
 import net.daporkchop.lib.gui.component.orientation.Orientation;
@@ -135,5 +136,10 @@ public interface Component<Impl extends Component, State extends ElementState<? 
         AdvancedOrientation<Impl> orientation = new AdvancedOrientation<>();
         initializer.accept(orientation);
         return this.setOrientation(orientation);
+    }
+
+    @Override
+    default GuiEngine engine() {
+        return this.getWindow().engine();
     }
 }

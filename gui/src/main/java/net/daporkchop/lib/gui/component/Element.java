@@ -16,6 +16,7 @@
 package net.daporkchop.lib.gui.component;
 
 import lombok.NonNull;
+import net.daporkchop.lib.gui.GuiEngine;
 import net.daporkchop.lib.gui.component.state.ElementState;
 import net.daporkchop.lib.gui.util.handler.StateListener;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
@@ -136,4 +137,6 @@ public interface Element<Impl extends Element, State extends ElementState<? exte
      * Releases all resources associated with this element
      */
     void release();
+
+    GuiEngine engine();
 }

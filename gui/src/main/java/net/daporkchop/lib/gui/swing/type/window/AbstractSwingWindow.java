@@ -21,6 +21,7 @@ import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
+import net.daporkchop.lib.gui.GuiEngine;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.Element;
 import net.daporkchop.lib.gui.component.orientation.advanced.Axis;
@@ -152,6 +153,11 @@ public abstract class AbstractSwingWindow<Impl extends AbstractSwingWindow<Impl,
     public boolean isMinDimensionsAreValueSize() {
         //TODO
         return false;
+    }
+
+    @Override
+    public GuiEngine engine() {
+        return GuiEngine.swing();
     }
 
     @Override

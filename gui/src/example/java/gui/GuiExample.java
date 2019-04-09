@@ -78,6 +78,7 @@ public class GuiExample implements Logging {
                 .scrollPane("scrollPane1", scrollPane -> scrollPane
                         .orientRelative(0.2d, 0.5d, 0.6d, 0.4d)
                         .setScrolling(ScrollCondition.ALWAYS)
+                        //.minDimensionsAreValueSize()
                         .label("label1", LOREM_IPSUM, label -> label
                                 .orientRelative(0.0d, 0.0d, 0.75d, 0.15d)
                                 .minDimensionsAreValueSize())

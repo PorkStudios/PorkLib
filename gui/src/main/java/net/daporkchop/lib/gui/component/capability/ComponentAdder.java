@@ -199,6 +199,10 @@ public interface ComponentAdder<Impl> {
         return this.spinner(name).setValAndLimits(val, min, max).setStep(step);
     }
 
+    default Spinner spinner(@NonNull String name, double val, double min, double max, double step)  {
+        return this.spinner(name).setValAndLimitsD(val, min, max).setStepD(step);
+    }
+
     default Impl spinner(@NonNull String name, @NonNull Consumer<Spinner> initializer)  {
         Spinner spinner = this.spinner(name);
         initializer.accept(spinner);
@@ -206,6 +210,12 @@ public interface ComponentAdder<Impl> {
     }
 
     default Impl spinner(@NonNull String name, int val, int min, int max, int step, @NonNull Consumer<Spinner> initializer)  {
+        Spinner spinner = this.spinner(name, val, min, max, step);
+        initializer.accept(spinner);
+        return (Impl) this;
+    }
+
+    default Impl spinner(@NonNull String name, double val, double min, double max, double step, @NonNull Consumer<Spinner> initializer)  {
         Spinner spinner = this.spinner(name, val, min, max, step);
         initializer.accept(spinner);
         return (Impl) this;

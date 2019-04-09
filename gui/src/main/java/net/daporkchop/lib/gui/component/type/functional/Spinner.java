@@ -19,7 +19,10 @@ import lombok.NonNull;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.state.functional.SpinnerState;
 
+import java.util.function.DoubleConsumer;
 import java.util.function.IntConsumer;
+
+import static net.daporkchop.lib.math.primitive.PMath.floorI;
 
 /**
  * @author DaPorkchop_
@@ -34,19 +37,56 @@ public interface Spinner extends Component<Spinner, SpinnerState> {
                 : SpinnerState.HIDDEN;
     }
 
-    int getValue();
-    Spinner setValue(int val);
-    int getMaxValue();
-    Spinner setMaxValue(int val);
-    int getMinValue();
-    Spinner setMinValue(int val);
-    int getStep();
-    Spinner setStep(int step);
-    Spinner setLimits(int min, int max);
-    Spinner setValAndLimits(int val, int min, int max);
+    default int getValue()  {
+        return floorI(this.getValueD());
+    }
+    default Spinner setValue(int val)   {
+        return this.setValueD(val);
+    }
+    default int getMaxValue()   {
+        return floorI(this.getMaxValueD());
+    }
+    default Spinner setMaxValue(int val)    {
+        return this.setMaxValueD(val);
+    }
+    default int getMinValue()   {
+        return floorI(this.getMinValueD());
+    }
+    default Spinner setMinValue(int val)    {
+        return this.setMinValueD(val);
+    }
+    default int getStep()   {
+        return floorI(this.getStepD());
+    }
+    default Spinner setStep(int step)   {
+        return this.setStepD(step);
+    }
+    default Spinner setLimits(int min, int max) {
+        return this.setLimitsD(min, max);
+    }
+    default Spinner setValAndLimits(int val, int min, int max)  {
+        return this.setValAndLimitsD(val, min, max);
+    }
+    
+    double getValueD();
+    Spinner setValueD(double val);
+    double getMaxValueD();
+    Spinner setMaxValueD(double val);
+    double getMinValueD();
+    Spinner setMinValueD(double val);
+    double getStepD();
+    Spinner setStepD(double step);
+    Spinner setLimitsD(double min, double max);
+    Spinner setValAndLimitsD(double val, double min, double max);
 
-    Spinner addChangeListener(@NonNull String name, @NonNull IntConsumer callback);
     Spinner removeChangeListener(@NonNull String name);
+    Spinner addChangeListenerD(@NonNull String name, @NonNull DoubleConsumer callback);
+    default Spinner addChangeListenerD(@NonNull DoubleConsumer callback)   {
+        return this.addChangeListenerD(String.format("%s@%d", callback.getClass().getCanonicalName(), System.identityHashCode(callback)), callback);
+    }
+    default Spinner addChangeListener(@NonNull String name, @NonNull IntConsumer callback)  {
+        return this.addChangeListenerD(name, val -> callback.accept(floorI(val)));
+    }
     default Spinner addChangeListener(@NonNull IntConsumer callback)   {
         return this.addChangeListener(String.format("%s@%d", callback.getClass().getCanonicalName(), System.identityHashCode(callback)), callback);
     }

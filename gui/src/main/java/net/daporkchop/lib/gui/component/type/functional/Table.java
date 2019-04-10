@@ -82,7 +82,7 @@ public interface Table extends Component<Table, TableState> {
         return this;
     }
 
-    Column getColumn(int index);
+    <V> Column<V> getColumn(int index);
     Row getRow(int index);
 
     default String getColumnName(int index)   {
@@ -112,7 +112,6 @@ public interface Table extends Component<Table, TableState> {
         Column<V> swap(int dst);
 
         Class<V> getValueClass();
-        Renderer<V, ? extends Component> getValueRenderer();
         <T> Column<T> setValueType(@NonNull Class<T> clazz, @NonNull Renderer<T, ? extends Component> renderer);
     }
 

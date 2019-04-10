@@ -33,6 +33,7 @@ import net.daporkchop.lib.gui.component.type.functional.ProgressBar;
 import net.daporkchop.lib.gui.component.type.functional.RadioButton;
 import net.daporkchop.lib.gui.component.type.functional.Slider;
 import net.daporkchop.lib.gui.component.type.functional.Spinner;
+import net.daporkchop.lib.gui.component.type.functional.Table;
 import net.daporkchop.lib.gui.component.type.functional.TextBox;
 import net.daporkchop.lib.gui.component.type.misc.RadioButtonGroup;
 import net.daporkchop.lib.gui.swing.type.container.SwingPanel;
@@ -46,6 +47,7 @@ import net.daporkchop.lib.gui.swing.type.functional.SwingProgressBar;
 import net.daporkchop.lib.gui.swing.type.functional.SwingRadioButton;
 import net.daporkchop.lib.gui.swing.type.functional.SwingSlider;
 import net.daporkchop.lib.gui.swing.type.functional.SwingSpinner;
+import net.daporkchop.lib.gui.swing.type.functional.SwingTable;
 import net.daporkchop.lib.gui.swing.type.functional.SwingTextBox;
 import net.daporkchop.lib.gui.swing.type.misc.SwingRadioButtonGroup;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
@@ -145,6 +147,13 @@ public interface IBasicSwingContainer<Impl extends Container, Swing extends java
         SwingPasswordBox passwordBox = new SwingPasswordBox(name);
         this.addChild(passwordBox);
         return passwordBox;
+    }
+
+    @Override
+    default Table table(@NonNull String name) {
+        SwingTable table = new SwingTable(name);
+        this.addChild(table);
+        return table;
     }
 
     @Override

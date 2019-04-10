@@ -28,9 +28,12 @@ import net.daporkchop.lib.gui.component.state.functional.LabelState;
 import net.daporkchop.lib.gui.component.type.Window;
 import net.daporkchop.lib.gui.component.type.functional.ProgressBar;
 import net.daporkchop.lib.gui.component.type.functional.Slider;
+import net.daporkchop.lib.gui.component.type.functional.Table;
 import net.daporkchop.lib.gui.util.Alignment;
 import net.daporkchop.lib.gui.util.ScrollCondition;
 import net.daporkchop.lib.logging.Logging;
+
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * @author DaPorkchop_
@@ -62,7 +65,7 @@ public class GuiExample implements Logging {
                         .setTooltip("This is a label. Labels can only display plain text.")
                         .setTextColor(0xFFFF00FF))
                 .label("label2", label -> label
-                        .orientRelative(0.8d, 0.6d, 0.1d, 0.1d)
+                        .orientRelative(0.8d, 0.5d, 0.1d, 0.1d)
                         .setIcon(filledImage(0x00FF00))
                         .addEnableListener(() -> logger.info("${0} was enabled!\n", label.getName()))
                         .setIcon(LabelState.DISABLED, filledImage(0xFF0000)))
@@ -85,17 +88,21 @@ public class GuiExample implements Logging {
                                 .setColor(0xFF5555FF)
                                 .setText("Hello World!")))
                 .button("button4", button -> button
-                        .orientRelative(0.8d, 0.7d, 0.2d, 0.1d)
+                        .orientRelative(0.8d, 0.6d, 0.2d, 0.1d)
                         .setText("Dropdown test")
                         .setClickHandler((mouseButton, x, y) -> displayDropdownTestWindow(button.getWindow())))
                 .button("button5", button -> button
-                        .orientRelative(0.8d, 0.8d, 0.2d, 0.1d)
+                        .orientRelative(0.8d, 0.7d, 0.2d, 0.1d)
                         .setText("Scrollbar test")
                         .setClickHandler((mouseButton, x, y) -> displayScrollbarTestWindow(button.getWindow())))
                 .button("button6", button -> button
-                        .orientRelative(0.8d, 0.9d, 0.2d, 0.1d)
+                        .orientRelative(0.8d, 0.8d, 0.2d, 0.1d)
                         .setText("Form test")
                         .setClickHandler((mouseButton, x, y) -> FormExample.displayForm(button.getWindow())))
+                .button("button6", button -> button
+                        .orientRelative(0.8d, 0.9d, 0.2d, 0.1d)
+                        .setText("Form test")
+                        .setClickHandler((mouseButton, x, y) -> displayTableTestWindow(button.getWindow())))
                 .addStateListener(state -> logger.debug("Window changed state: ${0}\n", state))
                 .addVisibleListener(() -> logger.info("Window is now visible!"))
                 .show();
@@ -220,6 +227,24 @@ public class GuiExample implements Logging {
                                 .copyX("maxLabel")
                                 .copyYAndHeight("infinite"))
                         .minDimensionsAreValueSize().pad(2))
+                .show();
+    }
+
+    public static void displayTableTestWindow(@NonNull Window parentWindow) {
+        parentWindow.popup(128, 128, 512, 300)
+                .setTitle("Table test")
+                .table("table1", table -> {
+                    table.orientRelative(0, 0, 1.0d, 1.0d);
+                    for (int c = 0; c < 3; c++)   {
+                        table.addColumn(String.format("col-%d", c), Integer.class);
+                    }
+                    for (int r = 0; r < 5; r++)   {
+                        Table.Row row = table.addAndGetRow();
+                        for (int c = 0; c < 3; c++)   {
+                            row.setValue(c, ThreadLocalRandom.current().nextInt(1000));
+                        }
+                    }
+                })
                 .show();
     }
 

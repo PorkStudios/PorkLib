@@ -259,6 +259,15 @@ public interface ComponentAdder<Impl> extends BlankComponentAdder<Impl> {
         return (Impl) this;
     }
 
+    //table
+    Table table(@NonNull String name);
+
+    default Impl table(@NonNull String name, @NonNull Consumer<Table> initializer)  {
+        Table table = this.table(name);
+        initializer.accept(table);
+        return (Impl) this;
+    }
+
     //
     //
     // misc. components

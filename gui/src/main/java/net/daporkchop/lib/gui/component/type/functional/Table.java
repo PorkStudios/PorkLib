@@ -66,7 +66,21 @@ public interface Table extends Component<Table, TableState> {
     Table removeColumn(int col);
     Table removeRow(int row);
 
-    Table addColumn(String name, @NonNull Class<?> clazz);
+    <V> Column<V> addAndGetColumn(String name, @NonNull Class<V> clazz);
+    Row addAndGetRow();
+    Row insertAndGetRow(int index);
+    default Table addColumn(String name, @NonNull Class<?> clazz)    {
+        this.addAndGetColumn(name, clazz);
+        return this;
+    }
+    default Table addRow()  {
+        this.addAndGetRow();
+        return this;
+    }
+    default Table insertRow(int index)  {
+        this.insertAndGetRow(index);
+        return this;
+    }
 
     Column getColumn(int index);
     Row getRow(int index);

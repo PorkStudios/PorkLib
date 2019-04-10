@@ -29,6 +29,7 @@ import net.daporkchop.lib.gui.swing.impl.SwingComponent;
 import javax.swing.*;
 import javax.swing.event.TableColumnModelListener;
 import javax.swing.event.TableModelListener;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
@@ -46,6 +47,7 @@ public class SwingTable extends SwingComponent<Table, SwingTable.JTableHack, Tab
     public SwingTable(String name) {
         super(name, new JTableHack());
 
+        this.swing.wrapper = this;
         this.model = this.swing.getModel();
 
         this.swing.addMouseListener(new SwingMouseListener<>(this));
@@ -127,9 +129,6 @@ public class SwingTable extends SwingComponent<Table, SwingTable.JTableHack, Tab
         @NonNull
         protected final JTableHack table;
 
-        protected int columnCount = 0;
-        protected int rowCount = 0;
-
         protected SwingTableColumnModel columnModel;
         protected final List<SwingRow> rows = new ArrayList<>(); //TODO: a linked list might be better here...
 
@@ -139,6 +138,16 @@ public class SwingTable extends SwingComponent<Table, SwingTable.JTableHack, Tab
                 columnModel = this.columnModel = this.table.getColumnModel();
             }
             return columnModel;
+        }
+
+        @Override
+        public int getRowCount() {
+            return this.rows.size();
+        }
+
+        @Override
+        public int getColumnCount() {
+            return this.getColumnModel().columns.size();
         }
 
         @Override
@@ -190,6 +199,7 @@ public class SwingTable extends SwingComponent<Table, SwingTable.JTableHack, Tab
             for (SwingRow row : this.table.getModel().rows) {
                 row.values.add(null);
             }
+            this.setAllColumnIndices();
         }
 
         @Override
@@ -201,6 +211,7 @@ public class SwingTable extends SwingComponent<Table, SwingTable.JTableHack, Tab
                     for (SwingRow row : this.table.getModel().rows) {
                         row.values.remove(i);
                     }
+                    this.setAllColumnIndices();
                     return;
                 }
             }
@@ -211,6 +222,13 @@ public class SwingTable extends SwingComponent<Table, SwingTable.JTableHack, Tab
             this.columns.add(newIndex, this.columns.remove(columnIndex));
             for (SwingRow row : this.table.getModel().rows) {
                 row.values.add(newIndex, row.values.remove(columnIndex));
+            }
+            this.setAllColumnIndices();
+        }
+
+        public void setAllColumnIndices()   {
+            for (int i = 0; i < this.columns.size(); i++)   {
+                this.columns.get(i).delegate.setModelIndex(i);
             }
         }
 
@@ -303,7 +321,7 @@ public class SwingTable extends SwingComponent<Table, SwingTable.JTableHack, Tab
 
         @Override
         public ListSelectionModel getSelectionModel() {
-            return null;
+            return new DefaultListSelectionModel();
         }
 
         @Override
@@ -319,7 +337,6 @@ public class SwingTable extends SwingComponent<Table, SwingTable.JTableHack, Tab
         }
     }
 
-    @RequiredArgsConstructor
     @Getter
     @Setter
     @Accessors(chain = true)
@@ -333,6 +350,14 @@ public class SwingTable extends SwingComponent<Table, SwingTable.JTableHack, Tab
         protected Class<V> valueClass = (Class<V>) Object.class;
         @SuppressWarnings("unchecked")
         protected Renderer<V, ? extends Component> valueRenderer = (Renderer<V, ? extends Component>) Table.defaultTextRenderer();
+
+        @SuppressWarnings("unchecked")
+        public ColumnData(@NonNull JTableHack parent, @NonNull TableColumn delegate) {
+            this.parent = parent;
+            this.delegate = delegate;
+
+            this.delegate.setCellRenderer((table, value, isSelected, hasFocus, row, column) -> ((SwingComponent) this.valueRenderer.update(this.parent.wrapper.engine(), (V) value, null)).getSwing());
+        }
 
         @Override
         public Table getParent() {
@@ -366,9 +391,10 @@ public class SwingTable extends SwingComponent<Table, SwingTable.JTableHack, Tab
             List<ColumnData> columnsList = this.parent.getColumnModel().columns;
             int thisIndex = columnsList.indexOf(this);
             columnsList.set(thisIndex, columnsList.set(dst, this));
-            for (SwingRow row : this.parent.getModel().rows)    {
+            for (SwingRow row : this.parent.getModel().rows) {
                 row.values.set(thisIndex, row.values.set(dst, row.values.get(thisIndex)));
             }
+            this.parent.getColumnModel().setAllColumnIndices();
             return this;
         }
 

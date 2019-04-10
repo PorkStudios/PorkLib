@@ -156,6 +156,11 @@ public abstract class AbstractSwingWindow<Impl extends AbstractSwingWindow<Impl,
     }
 
     @Override
+    public Window getWindow() {
+        return this;
+    }
+
+    @Override
     public GuiEngine engine() {
         return GuiEngine.swing();
     }

@@ -99,9 +99,9 @@ public class GuiExample implements Logging {
                         .orientRelative(0.8d, 0.8d, 0.2d, 0.1d)
                         .setText("Form test")
                         .setClickHandler((mouseButton, x, y) -> FormExample.displayForm(button.getWindow())))
-                .button("button6", button -> button
+                .button("button7", button -> button
                         .orientRelative(0.8d, 0.9d, 0.2d, 0.1d)
-                        .setText("Form test")
+                        .setText("Table test")
                         .setClickHandler((mouseButton, x, y) -> displayTableTestWindow(button.getWindow())))
                 .addStateListener(state -> logger.debug("Window changed state: ${0}\n", state))
                 .addVisibleListener(() -> logger.info("Window is now visible!"))
@@ -235,12 +235,13 @@ public class GuiExample implements Logging {
                 .setTitle("Table test")
                 .table("table1", table -> {
                     table.orientRelative(0, 0, 1.0d, 1.0d);
-                    for (int c = 0; c < 3; c++)   {
-                        table.addColumn(String.format("col-%d", c), Integer.class);
+                    for (int c = 0; c < 3; c++) {
+                        table.addAndGetColumn(String.format("col-%d", c), Integer.class)
+                                .setValueType(Integer.class, (engine, value, oldComponent) -> engine.label().setText(String.valueOf(value)));
                     }
-                    for (int r = 0; r < 5; r++)   {
+                    for (int r = 0; r < 5; r++) {
                         Table.Row row = table.addAndGetRow();
-                        for (int c = 0; c < 3; c++)   {
+                        for (int c = 0; c < 3; c++) {
                             row.setValue(c, ThreadLocalRandom.current().nextInt(1000));
                         }
                     }

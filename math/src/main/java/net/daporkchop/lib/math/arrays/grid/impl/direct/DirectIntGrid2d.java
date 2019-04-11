@@ -15,9 +15,11 @@
 
 package net.daporkchop.lib.math.arrays.grid.impl.direct;
 
+import net.daporkchop.lib.unsafe.PCleaner;
 import net.daporkchop.lib.unsafe.capability.DirectMemoryHolder;
 import net.daporkchop.lib.unsafe.PUnsafe;
 import net.daporkchop.lib.math.arrays.grid.Grid2d;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import static net.daporkchop.lib.math.primitive.PMath.floorI;
 
@@ -25,7 +27,7 @@ import static net.daporkchop.lib.math.primitive.PMath.floorI;
  * @author DaPorkchop_
  */
 public class DirectIntGrid2d implements Grid2d, DirectMemoryHolder {
-    protected long pos;
+    protected final long pos;
     protected final long size;
 
     protected final int startX;
@@ -33,9 +35,12 @@ public class DirectIntGrid2d implements Grid2d, DirectMemoryHolder {
     protected final int startY;
     protected final int height;
 
+    protected final PCleaner cleaner;
+
     public DirectIntGrid2d(int startX, int startY, int width, int height) {
         this.size = ((long) width * (long) height) << 2L;
-        this.pos = PUnsafe.allocateMemory(this, this.size);
+        this.pos = PUnsafe.allocateMemory(this.size);
+        this.cleaner = PCleaner.cleaner(this, this.pos);
 
         this.startX = startX;
         this.width = width;
@@ -92,19 +97,13 @@ public class DirectIntGrid2d implements Grid2d, DirectMemoryHolder {
         }
     }
 
-    //directmemoryholder implementations
     @Override
-    public synchronized long getMemoryAddress() {
-        return this.pos;
-    }
-
-    @Override
-    public synchronized void releaseMemory() {
-        if (this.isMemoryReleased())    {
-            throw new IllegalStateException("Memory already released!");
-        } else {
-            PUnsafe.freeMemory(this.pos);
-            this.pos = -1L;
+    public void release() throws AlreadyReleasedException {
+        synchronized (this.cleaner) {
+            if (this.cleaner.isCleaned())   {
+                throw new AlreadyReleasedException();
+            }
+            this.cleaner.clean();
         }
     }
 }

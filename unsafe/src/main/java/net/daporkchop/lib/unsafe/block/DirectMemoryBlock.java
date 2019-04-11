@@ -13,420 +13,342 @@
  *
  */
 
-package net.daporkchop.lib.binary.util.unsafe.block;
+package net.daporkchop.lib.unsafe.block;
 
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.ToString;
+import net.daporkchop.lib.unsafe.PCleaner;
 import net.daporkchop.lib.unsafe.PUnsafe;
-
-import static net.daporkchop.lib.unsafe.PUnsafe.*;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 /**
  * @author DaPorkchop_
  */
-public class ArrayMemoryBlock implements MemoryBlock {
-    protected Object array;
-    protected final long offset;
+@ToString
+public class DirectMemoryBlock implements MemoryBlock {
+    protected final long address;
     protected final long size;
+    
+    protected final PCleaner cleaner;
 
-    public ArrayMemoryBlock(@NonNull Object array) {
-        Class<?> clazz = array.getClass();
-        if (!clazz.isArray()) {
-            throw new IllegalArgumentException(String.format("Not an array: %s", clazz.getCanonicalName()));
+    public DirectMemoryBlock(long size) {
+        if (size <= 0L) {
+            throw new IllegalArgumentException("Size must be at least 1!");
         }
-        if (clazz == byte[].class) {
-            this.offset = ARRAY_BYTE_BASE_OFFSET;
-            this.size = ((byte[]) array).length;
-        } else if (clazz == short[].class) {
-            this.offset = ARRAY_SHORT_BASE_OFFSET;
-            this.size = ((short[]) array).length;
-        } else if (clazz == int[].class) {
-            this.offset = ARRAY_INT_BASE_OFFSET;
-            this.size = ((int[]) array).length;
-        } else if (clazz == long[].class) {
-            this.offset = ARRAY_LONG_BASE_OFFSET;
-            this.size = ((long[]) array).length;
-        } else if (clazz == float[].class) {
-            this.offset = ARRAY_FLOAT_BASE_OFFSET;
-            this.size = ((float[]) array).length;
-        } else if (clazz == double[].class) {
-            this.offset = ARRAY_DOUBLE_BASE_OFFSET;
-            this.size = ((double[]) array).length;
-        } else if (clazz == char[].class) {
-            this.offset = ARRAY_CHAR_BASE_OFFSET;
-            this.size = ((char[]) array).length;
-        } else {
-            throw new IllegalArgumentException(String.format("Not a primitive array: %s", clazz.getCanonicalName()));
+
+        this.size = size;
+        this.address = PUnsafe.allocateMemory(size);
+        this.cleaner = PCleaner.cleaner(this, this.address);
+    }
+
+    @Override
+    public long memoryAddress() {
+        return this.address;
+    }
+
+    @Override
+    public long memorySize() {
+        return this.size;
+    }
+
+    @Override
+    public Object refObj() {
+        return null;
+    }
+
+    @Override
+    public boolean isAbsolute() {
+        return true;
+    }
+
+    @Override
+    public void release() throws AlreadyReleasedException {
+        synchronized (this.cleaner) {
+            if (this.cleaner.isCleaned())   {
+                throw new AlreadyReleasedException();
+            }
+            this.cleaner.clean();
         }
-        this.array = array;
     }
 
     @Override
     public byte getByte(long index) {
-        if (this.array == null) {
-            throw new IllegalStateException("Already freed!");
-        } else if (index < 0L || index > this.size) {
+        if (index < 0L || index > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else {
-            return PUnsafe.getByte(this.array, this.offset + index);
+            return PUnsafe.getByte(this.address + index);
         }
     }
 
     @Override
     public short getShort(long index) {
-        if (this.array == null) {
-            throw new IllegalStateException("Already freed!");
-        } else if (index < 0L || index + 1L > this.size) {
+        if (index < 0L || index + 1L > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else {
-            return PUnsafe.getShort(this.array, this.offset + index);
+            return PUnsafe.getShort(this.address + index);
         }
     }
 
     @Override
     public int getInt(long index) {
-        if (this.array == null) {
-            throw new IllegalStateException("Already freed!");
-        } else if (index < 0L || index + 3L > this.size) {
+        if (index < 0L || index + 3L > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else {
-            return PUnsafe.getInt(this.array, this.offset + index);
+            return PUnsafe.getInt(this.address + index);
         }
     }
 
     @Override
     public long getLong(long index) {
-        if (this.array == null) {
-            throw new IllegalStateException("Already freed!");
-        } else if (index < 0L || index + 7L > this.size) {
+        if (index < 0L || index + 7L > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else {
-            return PUnsafe.getLong(this.array, this.offset + index);
+            return PUnsafe.getLong(this.address + index);
         }
     }
 
     @Override
     public float getFloat(long index) {
-        if (this.array == null) {
-            throw new IllegalStateException("Already freed!");
-        } else if (index < 0L || index + 3L > this.size) {
+        if (index < 0L || index + 3L > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else {
-            return PUnsafe.getFloat(this.array, this.offset + index);
+            return PUnsafe.getFloat(this.address + index);
         }
     }
 
     @Override
     public double getDouble(long index) {
-        if (this.array == null) {
-            throw new IllegalStateException("Already freed!");
-        } else if (index < 0L || index + 7L > this.size) {
+        if (index < 0L || index + 7L > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else {
-            return PUnsafe.getDouble(this.array, this.offset + index);
+            return PUnsafe.getDouble(this.address + index);
         }
     }
 
     @Override
     public char getChar(long index) {
-        if (this.array == null) {
-            throw new IllegalStateException("Already freed!");
-        } else if (index < 0L || index + 1L > this.size) {
+        if (index < 0L || index + 1L > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else {
-            return PUnsafe.getChar(this.array, this.offset + index);
+            return PUnsafe.getChar(this.address + index);
         }
     }
 
     @Override
     public void getBytes(long index, @NonNull byte[] arr, int off, int len) {
-        if (this.array == null) {
-            throw new IllegalStateException("Already freed!");
-        } else if (index < 0L || index + len > this.size) {
+        if (index < 0L || index + len > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else if (off < 0 || off + len > arr.length) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal offset/length: off=%d,length=%d for array length %d", off, len, arr.length));
         } else {
-            PUnsafe.copyMemory(this.array, this.offset, arr, ARRAY_BYTE_BASE_OFFSET + off, len);
+            PUnsafe.copyMemory(null, this.address, arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET + off, len);
         }
     }
 
     @Override
     public void getShorts(long index, @NonNull short[] arr, int off, int len) {
-        if (this.array == null) {
-            throw new IllegalStateException("Already freed!");
-        } else if (index < 0L || index + (len << 1L) > this.size) {
+        if (index < 0L || index + (len << 1L) > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else if (off < 0 || off + len > arr.length) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal offset/length: off=%d,length=%d for array length %d", off, len, arr.length));
         } else {
-            PUnsafe.copyMemory(this.array, this.offset, arr, ARRAY_SHORT_BASE_OFFSET + (off << 1L), len << 1L);
+            PUnsafe.copyMemory(null, this.address, arr, PUnsafe.ARRAY_SHORT_BASE_OFFSET + (off << 1L), len << 1L);
         }
     }
 
     @Override
     public void getInts(long index, @NonNull int[] arr, int off, int len) {
-        if (this.array == null) {
-            throw new IllegalStateException("Already freed!");
-        } else if (index < 0L || index + (len << 2L) > this.size) {
+        if (index < 0L || index + (len << 2L) > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else if (off < 0 || off + len > arr.length) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal offset/length: off=%d,length=%d for array length %d", off, len, arr.length));
         } else {
-            PUnsafe.copyMemory(this.array, this.offset, arr, ARRAY_INT_BASE_OFFSET + (off << 2L), len << 2L);
+            PUnsafe.copyMemory(null, this.address, arr, PUnsafe.ARRAY_INT_BASE_OFFSET + (off << 2L), len << 2L);
         }
     }
 
     @Override
     public void getLongs(long index, @NonNull long[] arr, int off, int len) {
-        if (this.array == null) {
-            throw new IllegalStateException("Already freed!");
-        } else if (index < 0L || index + (len << 3L) > this.size) {
+        if (index < 0L || index + (len << 3L) > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else if (off < 0 || off + len > arr.length) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal offset/length: off=%d,length=%d for array length %d", off, len, arr.length));
         } else {
-            PUnsafe.copyMemory(this.array, this.offset, arr, ARRAY_LONG_BASE_OFFSET + (off << 3L), len << 3L);
+            PUnsafe.copyMemory(null, this.address, arr, PUnsafe.ARRAY_LONG_BASE_OFFSET + (off << 3L), len << 3L);
         }
     }
 
     @Override
     public void getFloats(long index, @NonNull float[] arr, int off, int len) {
-        if (this.array == null) {
-            throw new IllegalStateException("Already freed!");
-        } else if (index < 0L || index + (len << 2L) > this.size) {
+        if (index < 0L || index + (len << 2L) > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else if (off < 0 || off + len > arr.length) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal offset/length: off=%d,length=%d for array length %d", off, len, arr.length));
         } else {
-            PUnsafe.copyMemory(this.array, this.offset, arr, ARRAY_FLOAT_BASE_OFFSET + (off << 2L), len << 2L);
+            PUnsafe.copyMemory(null, this.address, arr, PUnsafe.ARRAY_FLOAT_BASE_OFFSET + (off << 2L), len << 2L);
         }
     }
 
     @Override
     public void getDoubles(long index, @NonNull double[] arr, int off, int len) {
-        if (this.array == null) {
-            throw new IllegalStateException("Already freed!");
-        } else if (index < 0L || index + (len << 3L) > this.size) {
+        if (index < 0L || index + (len << 3L) > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else if (off < 0 || off + len > arr.length) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal offset/length: off=%d,length=%d for array length %d", off, len, arr.length));
         } else {
-            PUnsafe.copyMemory(this.array, this.offset, arr, ARRAY_DOUBLE_BASE_OFFSET + (off << 3L), len << 3L);
+            PUnsafe.copyMemory(null, this.address, arr, PUnsafe.ARRAY_DOUBLE_BASE_OFFSET + (off << 3L), len << 3L);
         }
     }
 
     @Override
     public void getChars(long index, @NonNull char[] arr, int off, int len) {
-        if (this.array == null) {
-            throw new IllegalStateException("Already freed!");
-        } else if (index < 0L || index + (len << 1L) > this.size) {
+        if (index < 0L || index + (len << 1L) > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else if (off < 0 || off + len > arr.length) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal offset/length: off=%d,length=%d for array length %d", off, len, arr.length));
         } else {
-            PUnsafe.copyMemory(this.array, this.offset, arr, ARRAY_CHAR_BASE_OFFSET + (off << 1L), len << 1L);
+            PUnsafe.copyMemory(null, this.address, arr, PUnsafe.ARRAY_CHAR_BASE_OFFSET + (off << 1L), len << 1L);
         }
     }
 
     @Override
     public void setByte(long index, byte val) {
-        if (this.array == null) {
-            throw new IllegalStateException("Already freed!");
-        } else if (index < 0L || index > this.size) {
+        if (index < 0L || index > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else {
-            putByte(this.array, this.offset + index, val);
+            PUnsafe.putByte(this.address + index, val);
         }
     }
 
     @Override
     public void setShort(long index, short val) {
-        if (this.array == null) {
-            throw new IllegalStateException("Already freed!");
-        } else if (index < 0L || index + 1L > this.size) {
+        if (index < 0L || index + 1L > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else {
-            putShort(this.array, this.offset + index, val);
+            PUnsafe.putShort(this.address + index, val);
         }
     }
 
     @Override
     public void setInt(long index, int val) {
-        if (this.array == null) {
-            throw new IllegalStateException("Already freed!");
-        } else if (index < 0L || index + 3L > this.size) {
+        if (index < 0L || index + 3L > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else {
-            putInt(this.array, this.offset + index, val);
+            PUnsafe.putInt(this.address + index, val);
         }
     }
 
     @Override
     public void setLong(long index, long val) {
-        if (this.array == null) {
-            throw new IllegalStateException("Already freed!");
-        } else if (index < 0L || index + 7L > this.size) {
+        if (index < 0L || index + 7L > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else {
-            putLong(this.array, this.offset + index, val);
+            PUnsafe.putLong(this.address + index, val);
         }
     }
 
     @Override
     public void setFloat(long index, float val) {
-        if (this.array == null) {
-            throw new IllegalStateException("Already freed!");
-        } else if (index < 0L || index + 3L > this.size) {
+        if (index < 0L || index + 3L > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else {
-            putFloat(this.array, this.offset + index, val);
+            PUnsafe.putFloat(this.address + index, val);
         }
     }
 
     @Override
     public void setDouble(long index, double val) {
-        if (this.array == null) {
-            throw new IllegalStateException("Already freed!");
-        } else if (index < 0L || index + 7L > this.size) {
+        if (index < 0L || index + 7L > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else {
-            putDouble(this.array, this.offset + index, val);
+            PUnsafe.putDouble(this.address + index, val);
         }
     }
 
     @Override
     public void setChar(long index, char val) {
-        if (this.array == null) {
-            throw new IllegalStateException("Already freed!");
-        } else if (index < 0L || index + 1L > this.size) {
+        if (index < 0L || index + 1L > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else {
-            putChar(this.array, this.offset + index, val);
+            PUnsafe.putChar(this.address + index, val);
         }
     }
 
     @Override
     public void setBytes(long index, @NonNull byte[] arr, int off, int len) {
-        if (this.array == null) {
-            throw new IllegalStateException("Already freed!");
-        } else if (index < 0L || index + len > this.size) {
+        if (index < 0L || index + len > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else if (off < 0 || off + len > arr.length) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal offset/length: off=%d,length=%d for array length %d", off, len, arr.length));
         } else {
-            PUnsafe.copyMemory(arr, ARRAY_BYTE_BASE_OFFSET + off, this.array, this.offset, len);
+            PUnsafe.copyMemory(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET + off, null, this.address, len);
         }
     }
 
     @Override
     public void setShorts(long index, @NonNull short[] arr, int off, int len) {
-        if (this.array == null) {
-            throw new IllegalStateException("Already freed!");
-        } else if (index < 0L || index + (len << 1L) > this.size) {
+        if (index < 0L || index + (len << 1L) > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else if (off < 0 || off + len > arr.length) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal offset/length: off=%d,length=%d for array length %d", off, len, arr.length));
         } else {
-            PUnsafe.copyMemory(arr, ARRAY_SHORT_BASE_OFFSET + (off << 1L), this.array, this.offset, len << 1L);
+            PUnsafe.copyMemory(arr, PUnsafe.ARRAY_SHORT_BASE_OFFSET + (off << 1L), null, this.address, len << 1L);
         }
     }
 
     @Override
     public void setInts(long index, @NonNull int[] arr, int off, int len) {
-        if (this.array == null) {
-            throw new IllegalStateException("Already freed!");
-        } else if (index < 0L || index + (len << 2L) > this.size) {
+        if (index < 0L || index + (len << 2L) > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else if (off < 0 || off + len > arr.length) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal offset/length: off=%d,length=%d for array length %d", off, len, arr.length));
         } else {
-            PUnsafe.copyMemory(arr, ARRAY_INT_BASE_OFFSET + (off << 2L), this.array, this.offset, len << 2L);
+            PUnsafe.copyMemory(arr, PUnsafe.ARRAY_INT_BASE_OFFSET + (off << 2L), null, this.address, len << 2L);
         }
     }
 
     @Override
     public void setLongs(long index, @NonNull long[] arr, int off, int len) {
-        if (this.array == null) {
-            throw new IllegalStateException("Already freed!");
-        } else if (index < 0L || index + (len << 3L) > this.size) {
+        if (index < 0L || index + (len << 3L) > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else if (off < 0 || off + len > arr.length) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal offset/length: off=%d,length=%d for array length %d", off, len, arr.length));
         } else {
-            PUnsafe.copyMemory(arr, ARRAY_LONG_BASE_OFFSET + (off << 3L), this.array, this.offset, len << 3L);
+            PUnsafe.copyMemory(arr, PUnsafe.ARRAY_LONG_BASE_OFFSET + (off << 3L), null, this.address, len << 3L);
         }
     }
 
     @Override
     public void setFloats(long index, @NonNull float[] arr, int off, int len) {
-        if (this.array == null) {
-            throw new IllegalStateException("Already freed!");
-        } else if (index < 0L || index + (len << 2L) > this.size) {
+        if (index < 0L || index + (len << 2L) > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else if (off < 0 || off + len > arr.length) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal offset/length: off=%d,length=%d for array length %d", off, len, arr.length));
         } else {
-            PUnsafe.copyMemory(arr, ARRAY_FLOAT_BASE_OFFSET + (off << 2L), this.array, this.offset, len << 2L);
+            PUnsafe.copyMemory(arr, PUnsafe.ARRAY_FLOAT_BASE_OFFSET + (off << 2L), null, this.address, len << 2L);
         }
     }
 
     @Override
     public void setDoubles(long index, @NonNull double[] arr, int off, int len) {
-        if (this.array == null) {
-            throw new IllegalStateException("Already freed!");
-        } else if (index < 0L || index + (len << 3L) > this.size) {
+        if (index < 0L || index + (len << 3L) > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else if (off < 0 || off + len > arr.length) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal offset/length: off=%d,length=%d for array length %d", off, len, arr.length));
         } else {
-            PUnsafe.copyMemory(arr, ARRAY_DOUBLE_BASE_OFFSET + (off << 3L), this.array, this.offset, len << 3L);
+            PUnsafe.copyMemory(arr, PUnsafe.ARRAY_DOUBLE_BASE_OFFSET + (off << 3L), null, this.address, len << 3L);
         }
     }
 
     @Override
     public void setChars(long index, @NonNull char[] arr, int off, int len) {
-        if (this.array == null) {
-            throw new IllegalStateException("Already freed!");
-        } else if (index < 0L || index + (len << 1L) > this.size) {
+        if (index < 0L || index + (len << 1L) > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else if (off < 0 || off + len > arr.length) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal offset/length: off=%d,length=%d for array length %d", off, len, arr.length));
         } else {
-            PUnsafe.copyMemory(arr, ARRAY_CHAR_BASE_OFFSET + (off << 1L), this.array, this.offset, len << 1L);
+            PUnsafe.copyMemory(arr, PUnsafe.ARRAY_CHAR_BASE_OFFSET + (off << 1L), null, this.address, len << 1L);
         }
-    }
-
-    @Override
-    public long size() {
-        return this.size;
-    }
-
-    @Override
-    public boolean isFreed() {
-        return this.array == null;
-    }
-
-    @Override
-    public void free() {
-        if (this.array == null) {
-            throw new IllegalStateException("Already freed!");
-        } else {
-            this.array = null;
-        }
-    }
-
-    @Override
-    public long memoryOffset() {
-        return this.offset;
-    }
-
-    @Override
-    public Object refObj() {
-        return this.array;
-    }
-
-    @Override
-    public boolean isAbsolute() {
-        return false;
     }
 }

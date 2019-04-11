@@ -15,17 +15,17 @@ public interface AccessibleDirectMemoryHolder extends DirectMemoryHolder {
      * @return the memory address
      * @throws AlreadyReleasedException if the memory was already released
      */
-    long getMemoryAddress() throws AlreadyReleasedException;
+    long memoryAddress() throws AlreadyReleasedException;
 
     /**
      * Gets the total size (in bytes) of the memory block addressed by this instance.
      * <p>
-     * The base address of the memory block in question may be accessed by {@link #getMemoryAddress()}.
+     * The base address of the memory block in question may be accessed by {@link #memoryAddress()}.
      * <p>
      * This method may be invoked safely (without throwing an exception) even if the memory has been
      * released, however, the results are undefined.
      *
      * @return the size of the memory block
      */
-    long getMemorySize();
+    long memorySize();
 }

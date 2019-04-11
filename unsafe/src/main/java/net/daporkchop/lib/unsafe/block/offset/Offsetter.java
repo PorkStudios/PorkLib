@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.binary.util.unsafe.offset;
+package net.daporkchop.lib.unsafe.block.offset;
 
 import lombok.NonNull;
 import net.daporkchop.lib.unsafe.PUnsafe;

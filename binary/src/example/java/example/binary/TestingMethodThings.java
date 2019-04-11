@@ -16,9 +16,7 @@
 package example.binary;
 
 import net.daporkchop.lib.binary.buf.file.PFileDispatcherImpl;
-import net.daporkchop.lib.binary.util.unsafe.block.MemoryBlock;
-import net.daporkchop.lib.binary.util.unsafe.offset.OffsetLookup;
-import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.unsafe.block.MemoryBlock;
 import net.daporkchop.lib.reflection.lambda.LambdaBuilder;
 
 import java.lang.reflect.Method;

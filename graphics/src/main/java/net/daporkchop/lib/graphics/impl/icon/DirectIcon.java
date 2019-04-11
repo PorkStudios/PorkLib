@@ -17,9 +17,11 @@ package net.daporkchop.lib.graphics.impl.icon;
 
 import lombok.Getter;
 import lombok.NonNull;
+import net.daporkchop.lib.unsafe.PCleaner;
 import net.daporkchop.lib.unsafe.capability.DirectMemoryHolder;
 import net.daporkchop.lib.unsafe.PUnsafe;
 import net.daporkchop.lib.graphics.PIcon;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import javax.swing.*;
 import java.awt.*;
@@ -35,16 +37,19 @@ import java.awt.image.WritableRaster;
  */
 @Getter
 public class DirectIcon implements PIcon, DirectMemoryHolder {
-    protected long pos;
+    protected final long pos;
     protected final long size;
 
     protected final int width;
     protected final int height;
     protected final boolean bw;
 
+    protected final PCleaner cleaner;
+
     public DirectIcon(int width, int height, boolean bw) {
         this.size = ((long) width * (long) height) << (bw ? 0L : 2L);
-        this.pos = PUnsafe.allocateMemory(this, this.size);
+        this.pos = PUnsafe.allocateMemory(this.size);
+        this.cleaner = PCleaner.cleaner(this, this.pos);
 
         this.width = width;
         this.height = height;
@@ -68,17 +73,12 @@ public class DirectIcon implements PIcon, DirectMemoryHolder {
     }
 
     @Override
-    public synchronized long getMemoryAddress() {
-        return this.pos;
-    }
-
-    @Override
-    public synchronized void releaseMemory() {
-        if (this.isMemoryReleased()) {
-            throw new IllegalStateException("Memory already released!");
-        } else {
-            PUnsafe.freeMemory(this.pos);
-            this.pos = -1L;
+    public void release() throws AlreadyReleasedException {
+        synchronized (this.cleaner) {
+            if (this.cleaner.isCleaned())   {
+                throw new AlreadyReleasedException();
+            }
+            this.cleaner.clean();
         }
     }
 

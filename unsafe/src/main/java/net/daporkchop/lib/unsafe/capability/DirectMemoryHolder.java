@@ -13,34 +13,22 @@
  *
  */
 
-package net.daporkchop.lib.common.util;
+package net.daporkchop.lib.unsafe.capability;
+
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 /**
  * An object that holds a reference to a direct memory block, as allocated by {@link sun.misc.Unsafe#allocateMemory(long)}.
- * <p>
- * All method implementations in this class are expected to be thread-safe, preferably synchronized.
- * <p>
- * Using any methods other than {@link #isMemoryReleased()} or {@link #tryReleaseMemory()} after releasing memory is bad,
- * and may either throw exceptions or cause invalid (undefined) behavior.
  *
  * @author DaPorkchop_
  */
-public interface DirectMemoryHolder {
-    long getMemoryAddress();
-
-    default boolean isMemoryReleased() {
-        synchronized (this) {
-            return this.getMemoryAddress() == -1L;
-        }
-    }
-
-    void releaseMemory();
-
-    default void tryReleaseMemory() {
-        synchronized (this) {
-            if (!this.isMemoryReleased()) {
-                this.releaseMemory();
-            }
-        }
-    }
+public interface DirectMemoryHolder extends Releasable {
+    /**
+     * Releases the memory block referenced by this instance. After invoking this, assume that
+     * the behavior of all other methods in the class is undefined unless specifically stated otherwise.
+     *
+     * @throws AlreadyReleasedException if the memory was already released
+     */
+    @Override
+    void release() throws AlreadyReleasedException;
 }

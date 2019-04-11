@@ -17,7 +17,7 @@ package net.daporkchop.lib.graphics.impl.icon;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.common.util.DirectMemoryHolder;
+import net.daporkchop.lib.unsafe.capability.DirectMemoryHolder;
 import net.daporkchop.lib.unsafe.PUnsafe;
 import net.daporkchop.lib.graphics.PIcon;
 

@@ -234,7 +234,7 @@ public class GuiExample implements Logging {
         parentWindow.popup(128, 128, 512, 300)
                 .setTitle("Table test")
                 .table("table1", table -> {
-                    table.orientRelative(0, 0, 1.0d, 1.0d);
+                    table.orientRelative(0, 0, 1.0d, 0.7d);
                     for (int c = 0; c < 3; c++) {
                         table.addAndGetColumn(String.format("col-%d", c), Integer.class)
                                 .setValueType(Integer.class, (engine, value, oldComponent) -> engine.label().setText(String.valueOf(value)));
@@ -246,6 +246,11 @@ public class GuiExample implements Logging {
                         }
                     }
                 })
+                .checkBox("toggleHeader", checkBox -> checkBox
+                        .orientRelative(0, 0.9d, 0.25d, 0.1d)
+                        .setText("Header")
+                        .setSelected(true)
+                        .addSelectionListener(checkBox.getWindow().<Table>getChild("table1")::setHeadersShown))
                 .show();
     }
 

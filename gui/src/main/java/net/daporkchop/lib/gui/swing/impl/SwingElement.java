@@ -24,7 +24,6 @@ import net.daporkchop.lib.gui.util.math.BoundingBox;
 import net.daporkchop.lib.gui.util.math.Size;
 
 import javax.swing.*;
-import java.awt.*;
 
 /**
  * @author DaPorkchop_

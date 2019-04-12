@@ -28,6 +28,9 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
+ * A 2-dimensional grid of values, arranged into rows and columns. Each column may only have one value type,
+ * and has a specific renderer used for it.
+ *
  * @author DaPorkchop_
  */
 public interface Table extends Component<Table, TableState> {
@@ -99,6 +102,15 @@ public interface Table extends Component<Table, TableState> {
     default Table setValue(int row, int col, @NonNull Object val)   {
         this.getRow(row).setValue(col, val);
         return this;
+    }
+
+    boolean areHeadersShown();
+    Table setHeadersShown(boolean headersShown);
+    default Table showHeaders() {
+        return this.setHeadersShown(true);
+    }
+    default Table hideHeaders() {
+        return this.setHeadersShown(false);
     }
 
     interface Column<V>    {

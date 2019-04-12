@@ -174,7 +174,7 @@ public interface IBasicSwingContainer<Impl extends Container, Swing extends java
         SwingComponent swing = (SwingComponent) child;
         this.getChildren().put(child.getName(), swing.setParent(this));
         if (swing.hasSwing())   {
-            this.getSwing().add(swing.swing);
+            this.getSwing().add(swing.getSwing());
             return update ? this.update() : (Impl) this;
         } else {
             return (Impl) this;
@@ -187,7 +187,7 @@ public interface IBasicSwingContainer<Impl extends Container, Swing extends java
         if (removed == null) {
             throw new IllegalArgumentException(String.format("No such child: %s", name));
         } else {
-            this.getSwing().remove(removed.swing);
+            this.getSwing().remove(removed.getSwing());
             return update ? this.update() : (Impl) this;
         }
     }

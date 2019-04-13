@@ -13,11 +13,13 @@
  *
  */
 
-package net.daporkchop.lib.binary.util.unsafe.offset;
+package net.daporkchop.lib.unsafe.block.offset;
+
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 /**
  * A data container that knows it's own offset in memory as well as it's total length in bytes, making it suitable for
- * usage with {@link sun.misc.Unsafe} (or in this case, {@link net.daporkchop.lib.common.util.PUnsafe})
+ * usage with {@link sun.misc.Unsafe} (or in this case, {@link PUnsafe})
  *
  * @author DaPorkchop_
  */
@@ -27,22 +29,22 @@ public interface Offsettable {
      *
      * @return this container's offset in memory
      */
-    long memoryOffset();
+    long memoryAddress();
 
     /**
      * Gets the length (size) of this container in bytes.
      * <p>
-     * In other words, the number of bytes representing this object following {@link #memoryOffset()}
+     * In other words, the number of bytes representing this object following {@link #memoryAddress()}
      *
      * @return the length of this container in bytes
      */
-    long memoryLength();
+    long memorySize();
 
     /**
      * Gets the object to use as a pointer when doing unsafe operations on this container (such as
-     * {@link net.daporkchop.lib.common.util.PUnsafe#putInt(Object, long, int)}).
+     * {@link PUnsafe#putInt(Object, long, int)}).
      * <p>
-     * If {@code null} is returned, the offset returned from {@link #memoryOffset()} may be treated as a direct
+     * If {@code null} is returned, the offset returned from {@link #memoryAddress()} may be treated as a direct
      * memory address.
      *
      * @return the object to use, or {@code null} if the offset is an address
@@ -51,12 +53,12 @@ public interface Offsettable {
     Object refObj();
 
     /**
-     * Checks if the offset value returned from {@link #memoryOffset()} is absolute.
+     * Checks if the offset value returned from {@link #memoryAddress()} is absolute.
      * <p>
      * If it is absolute, then the offset should be treated as a direct memory address (as if it were returned by
-     * {@link net.daporkchop.lib.common.util.PUnsafe#allocateMemory(long)}).
+     * {@link PUnsafe#allocateMemory(long)}).
      *
-     * @return whether or not the offset value returned from {@link #memoryOffset()} is absolute
+     * @return whether or not the offset value returned from {@link #memoryAddress()} is absolute
      */
     default boolean isAbsolute() {
         return this.refObj() == null;
@@ -68,6 +70,6 @@ public interface Offsettable {
      * @return offset data
      */
     default OffsetData data() {
-        return new OffsetData(this.memoryOffset(), this.memoryLength());
+        return new OffsetData(this.memoryAddress(), this.memorySize());
     }
 }

@@ -13,41 +13,15 @@
  *
  */
 
-package net.daporkchop.lib.binary.util.unsafe;
+package net.daporkchop.lib.unsafe.block.offset;
+
+import lombok.Data;
 
 /**
- * An object that can be freed (i.e. have it's resources released)
- *
  * @author DaPorkchop_
  */
-public interface Freeable extends AutoCloseable {
-    /**
-     * Frees this object.
-     * <p>
-     * For instance, on a direct memory block, this would release memory
-     *
-     * @throws IllegalStateException if this object has already been freed
-     */
-    void free();
-
-    /**
-     * Checks if this has been freed yet
-     *
-     * @return whether or not this object has been freed
-     */
-    boolean isFreed();
-
-    /**
-     * Frees this object, but only if it hasn't been freed already.
-     */
-    default void tryFree() {
-        if (!this.isFreed()) {
-            this.free();
-        }
-    }
-
-    @Override
-    default void close() {
-        this.free();
-    }
+@Data
+public class OffsetData {
+    protected final long offset;
+    protected final long length;
 }

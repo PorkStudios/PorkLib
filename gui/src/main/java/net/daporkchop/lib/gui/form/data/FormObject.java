@@ -18,7 +18,7 @@ package net.daporkchop.lib.gui.form.data;
 import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.common.function.PFunctions;
-import net.daporkchop.lib.common.util.PUnsafe;
+import net.daporkchop.lib.unsafe.PUnsafe;
 import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.Element;
 import net.daporkchop.lib.gui.component.NestedContainer;

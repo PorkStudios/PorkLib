@@ -31,7 +31,7 @@ import java.util.function.IntFunction;
  */
 public class TestingMethodThings {
     public static void main(String... args) {
-        testMethodThing();
+        a();
 
         //OffsetLookup.INSTANCE.hashCode();
 
@@ -58,7 +58,7 @@ public class TestingMethodThings {
     }
 
     @SuppressWarnings("unchecked")
-    public static void testMethodThing() {
+    public static void a() {
         IntFunction<ByteBuffer> BUFFER = LambdaBuilder.of(IntFunction.class)
                 .setMethodHolder(ByteBuffer.class)
                 .setMethodName("allocateDirect")

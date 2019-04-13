@@ -13,33 +13,50 @@
  *
  */
 
-package net.daporkchop.lib.common.util;
+package net.daporkchop.lib.unsafe.capability;
+
+import net.daporkchop.lib.unsafe.PCleaner;
+import net.daporkchop.lib.unsafe.PUnsafe;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 /**
  * An object that holds a reference to a direct memory block, as allocated by {@link sun.misc.Unsafe#allocateMemory(long)}.
- * <p>
- * All method implementations in this class are expected to be thread-safe, preferably synchronized.
- * <p>
- * Using any methods other than {@link #isMemoryReleased()} or {@link #tryReleaseMemory()} after releasing memory is bad,
- * and may either throw exceptions or cause invalid (undefined) behavior.
  *
  * @author DaPorkchop_
  */
-public interface DirectMemoryHolder {
-    long getMemoryAddress();
+public interface DirectMemoryHolder extends Releasable {
+    /**
+     * Releases the memory block referenced by this instance. After invoking this, assume that
+     * the behavior of all other methods in the class is undefined unless specifically stated otherwise.
+     *
+     * @throws AlreadyReleasedException if the memory was already released
+     */
+    @Override
+    void release() throws AlreadyReleasedException;
 
-    default boolean isMemoryReleased() {
-        synchronized (this) {
-            return this.getMemoryAddress() == -1L;
+    /**
+     * An abstract implementation of {@link DirectMemoryHolder} which handles the basic behaviors
+     * of cleaners, etc. automagically.
+     * <p>
+     * The memory block may not be resized (i.e. with {@link PUnsafe#reallocateMemory(long, long)}).
+     */
+    abstract class AbstractConstantSize implements DirectMemoryHolder {
+        protected final long pos;
+        protected final long size;
+        protected final PCleaner cleaner;
+
+        public AbstractConstantSize(long size) {
+            this.pos = PUnsafe.allocateMemory(this.size = size);
+            this.cleaner = PCleaner.cleaner(this, this.pos);
         }
-    }
 
-    void releaseMemory();
-
-    default void tryReleaseMemory() {
-        synchronized (this) {
-            if (!this.isMemoryReleased()) {
-                this.releaseMemory();
+        @Override
+        public void release() throws AlreadyReleasedException {
+            synchronized (this.cleaner) {
+                if (this.cleaner.isCleaned()) {
+                    throw new AlreadyReleasedException();
+                }
+                this.cleaner.clean();
             }
         }
     }

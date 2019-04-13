@@ -16,9 +16,7 @@
 package example.binary;
 
 import net.daporkchop.lib.binary.buf.file.PFileDispatcherImpl;
-import net.daporkchop.lib.binary.util.unsafe.block.MemoryBlock;
-import net.daporkchop.lib.binary.util.unsafe.offset.OffsetLookup;
-import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.unsafe.block.MemoryBlock;
 import net.daporkchop.lib.reflection.lambda.LambdaBuilder;
 
 import java.lang.reflect.Method;
@@ -33,7 +31,7 @@ import java.util.function.IntFunction;
  */
 public class TestingMethodThings {
     public static void main(String... args) {
-        testMethodThing();
+        a();
 
         //OffsetLookup.INSTANCE.hashCode();
 
@@ -60,7 +58,7 @@ public class TestingMethodThings {
     }
 
     @SuppressWarnings("unchecked")
-    public static void testMethodThing() {
+    public static void a() {
         IntFunction<ByteBuffer> BUFFER = LambdaBuilder.of(IntFunction.class)
                 .setMethodHolder(ByteBuffer.class)
                 .setMethodName("allocateDirect")

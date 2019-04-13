@@ -21,7 +21,7 @@ import lombok.NonNull;
  * @author DaPorkchop_
  */
 public class ByteArrayShift {
-    public static byte[] shiftLeft(byte[] bytes, int bits) {
+    public static byte[] shiftLeft(@NonNull byte[] bytes, int bits) {
         bits %= 8 * bytes.length;
         int shiftMod = bits & 7;
         byte carryMask = (byte) ((1 << shiftMod) - 1);
@@ -44,7 +44,7 @@ public class ByteArrayShift {
         return bytes;
     }
 
-    public static byte[] shiftRight(byte[] bytes, int bits) {
+    public static byte[] shiftRight(@NonNull byte[] bytes, int bits) {
         bits %= 8 * bytes.length;
         int shiftMod = bits & 7;
         byte carryMask = (byte) (0xFF << (8 - shiftMod));

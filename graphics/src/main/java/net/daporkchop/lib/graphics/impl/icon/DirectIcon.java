@@ -17,17 +17,16 @@ package net.daporkchop.lib.graphics.impl.icon;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.common.util.DirectMemoryHolder;
-import net.daporkchop.lib.common.util.PUnsafe;
+import net.daporkchop.lib.unsafe.PCleaner;
+import net.daporkchop.lib.unsafe.capability.DirectMemoryHolder;
+import net.daporkchop.lib.unsafe.PUnsafe;
 import net.daporkchop.lib.graphics.PIcon;
-import net.daporkchop.lib.graphics.impl.image.DirectImage;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
-import java.awt.image.ComponentColorModel;
 import java.awt.image.DataBuffer;
 import java.awt.image.Raster;
 import java.awt.image.SinglePixelPackedSampleModel;
@@ -37,17 +36,13 @@ import java.awt.image.WritableRaster;
  * @author DaPorkchop_
  */
 @Getter
-public class DirectIcon implements PIcon, DirectMemoryHolder {
-    protected long pos;
-    protected final long size;
-
+public class DirectIcon extends DirectMemoryHolder.AbstractConstantSize implements PIcon {
     protected final int width;
     protected final int height;
     protected final boolean bw;
 
     public DirectIcon(int width, int height, boolean bw) {
-        this.size = ((long) width * (long) height) << (bw ? 0L : 2L);
-        this.pos = PUnsafe.allocateMemory(this, this.size);
+        super(((long) width * (long) height) << (bw ? 0L : 2L));
 
         this.width = width;
         this.height = height;
@@ -68,21 +63,6 @@ public class DirectIcon implements PIcon, DirectMemoryHolder {
     @Override
     public boolean isBW() {
         return this.bw;
-    }
-
-    @Override
-    public synchronized long getMemoryAddress() {
-        return this.pos;
-    }
-
-    @Override
-    public synchronized void releaseMemory() {
-        if (this.isMemoryReleased()) {
-            throw new IllegalStateException("Memory already released!");
-        } else {
-            PUnsafe.freeMemory(this.pos);
-            this.pos = -1L;
-        }
     }
 
     //everything below this comment is compatibility code to be able to work with java AWT's godawful api

@@ -19,7 +19,7 @@ import lombok.Getter;
 import lombok.NonNull;
 
 /**
- * A key hasher can take an instance of a key and hash it to testMethodThing constant-length byte array.
+ * A key hasher can take an instance of a key and hash it to a constant-length byte array.
  *
  * @author DaPorkchop_
  */
@@ -40,21 +40,21 @@ public interface KeyHasher<K> {
     int getHashLength();
 
     /**
-     * Checks if this key hasher can reconstruct a key instance from testMethodThing hash.
+     * Checks if this key hasher can reconstruct a key instance from a hash.
      * <p>
      * If {@code true}, then {@link #reconstructFromHash(byte[])} must be implemented.
      *
-     * @return whether or not this key hasher can reconstruct a key instance from testMethodThing hash
+     * @return whether or not this key hasher can reconstruct a key instance from a hash
      */
     default boolean canReconstructFromHash() {
         return false;
     }
 
     /**
-     * Reconstructs a key from testMethodThing hash
+     * Reconstructs a key from a hash
      *
      * @param hash the hash
-     * @return a new instance of testMethodThing key
+     * @return a new instance of a key
      */
     default K reconstructFromHash(@NonNull byte[] hash) {
         throw new UnsupportedOperationException("reconstruct from hash");

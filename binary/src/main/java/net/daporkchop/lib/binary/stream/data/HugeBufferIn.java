@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Allows buffering a huge amount of data from testMethodThing {@link FileChannel} into RAM
+ * Allows buffering a huge amount of data from a {@link FileChannel} into RAM
  *
  * @author DaPorkchop_
  */

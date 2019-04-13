@@ -16,32 +16,31 @@
 package net.daporkchop.lib.crypto.keygen;
 
 import lombok.NonNull;
+import net.daporkchop.lib.unsafe.PCleaner;
+import net.daporkchop.lib.unsafe.PUnsafe;
+import net.daporkchop.lib.unsafe.capability.DirectMemoryHolder;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static net.daporkchop.lib.common.util.PUnsafe.*;
-
 /**
  * @author DaPorkchop_
  */
-public class EntropyPool implements AutoCloseable {
-    protected final long offset;
-    protected final long size;
+public class EntropyPool extends DirectMemoryHolder.AbstractConstantSize {
     protected volatile boolean closed = false;
     protected final AtomicLong count = new AtomicLong(0L);
 
     public EntropyPool(long bufferSize) {
-        this.offset = allocateMemory(bufferSize);
-        this.size = bufferSize;
+        super(bufferSize);
 
         this.clear();
     }
 
     public void clear() {
         this.count.set(0L);
-        setMemory(this.offset, this.size, (byte) 0);
+        PUnsafe.setMemory(this.pos, this.size, (byte) 0);
     }
 
     public void update(@NonNull byte[] entropy) {
@@ -49,14 +48,14 @@ public class EntropyPool implements AutoCloseable {
             return;
         }
         this.count.addAndGet(entropy.length);
-        long limit = this.offset + this.size - 8L;
-        for (long pos = this.offset; pos < limit; pos++) {
-            long val = getLong(pos);
+        long limit = this.pos + this.size - 8L;
+        for (long pos = this.pos; pos < limit; pos++) {
+            long val = PUnsafe.getLong(pos);
             for (int i = entropy.length - 1; i >= 0; i--) {
                 val ^= entropy[i] * 8200158685984349719L + 1156627166349328451L;
                 val += entropy[i] * 6223392334446656207L + 4106409398621068397L;
             }
-            putLong(pos, val);
+            PUnsafe.putLong(pos, val);
         }
     }
 
@@ -79,8 +78,8 @@ public class EntropyPool implements AutoCloseable {
         for (int i = dst.length - 1; i >= 0; i--) {
             long val = 435939424300075867L;
             for (int j = random.nextInt(4096) + 4096; j >= 0; j--) {
-                val += getLong(this.offset + (random.nextLong() & Long.MAX_VALUE) % limit) * 8148005417735576993L + 1586753936759271967L;
-                val ^= getLong(this.offset + (random.nextLong() & Long.MAX_VALUE) % limit) * 5319060908530498721L + 6876297655203449329L;
+                val += PUnsafe.getLong(this.pos + (random.nextLong() & Long.MAX_VALUE) % limit) * 8148005417735576993L + 1586753936759271967L;
+                val ^= PUnsafe.getLong(this.pos + (random.nextLong() & Long.MAX_VALUE) % limit) * 5319060908530498721L + 6876297655203449329L;
             }
             dst[i] = (byte) (val ^
                     (val >>> 8L) ^
@@ -90,14 +89,6 @@ public class EntropyPool implements AutoCloseable {
                     (val >>> 40L) ^
                     (val >>> 48L) ^
                     (val >>> 56L));
-        }
-    }
-
-    @Override
-    public synchronized void close() {
-        if (!this.closed) {
-            this.closed = true;
-            freeMemory(this.offset);
         }
     }
 

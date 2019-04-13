@@ -13,19 +13,19 @@
  *
  */
 
-package net.daporkchop.lib.binary.util.unsafe.block;
+package net.daporkchop.lib.unsafe.block;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.util.unsafe.Freeable;
-import net.daporkchop.lib.binary.util.unsafe.offset.Offsettable;
-import net.daporkchop.lib.common.util.PUnsafe;
+import net.daporkchop.lib.unsafe.block.offset.Offsettable;
+import net.daporkchop.lib.unsafe.PUnsafe;
+import net.daporkchop.lib.unsafe.capability.AccessibleDirectMemoryHolder;
 
 /**
  * Allows direct access to a region of memory
  *
  * @author DaPorkchop_
  */
-public interface MemoryBlock extends Freeable, Offsettable {
+public interface MemoryBlock extends AccessibleDirectMemoryHolder, Offsettable {
     /**
      * Gets a new direct (off-heap) memory block
      *
@@ -113,7 +113,9 @@ public interface MemoryBlock extends Freeable, Offsettable {
      *
      * @return the size of this memory block (in bytes)
      */
-    long size();
+    default long size() {
+        return this.memorySize();
+    }
 
     //read operations
 
@@ -603,14 +605,9 @@ public interface MemoryBlock extends Freeable, Offsettable {
      */
     default void clear() {
         if (this.isAbsolute()) {
-            PUnsafe.setMemory(this.memoryOffset(), this.memoryLength(), (byte) 0);
+            PUnsafe.setMemory(this.memoryAddress(), this.memorySize(), (byte) 0);
         } else {
-            PUnsafe.setMemory(this.refObj(), this.memoryOffset(), this.memoryLength(), (byte) 0);
+            PUnsafe.setMemory(this.refObj(), this.memoryAddress(), this.memorySize(), (byte) 0);
         }
-    }
-
-    @Override
-    default long memoryLength() {
-        return this.size();
     }
 }

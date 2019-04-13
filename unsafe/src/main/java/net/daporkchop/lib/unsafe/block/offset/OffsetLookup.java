@@ -13,20 +13,17 @@
  *
  */
 
-package net.daporkchop.lib.binary.util.unsafe.offset;
+package net.daporkchop.lib.unsafe.block.offset;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.netty.NettyUtil;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.IdentityHashMap;
 import java.util.Map;
-
-import static net.daporkchop.lib.common.util.PUnsafe.*;
-import static net.daporkchop.lib.common.util.PorkUtil.classForName;
 
 /**
  * A simple mapping of classes to their offsetters
@@ -48,29 +45,34 @@ public class OffsetLookup {
      * @return this lookup
      */
     public OffsetLookup addDefault() {
-        if (NettyUtil.NETTY_PRESENT)    {
-            //TODO: add offsetters for all netty buffer implementations
-        }
-
-        long byteBuffer_hb_offset = pork_getOffset(ByteBuffer.class, "hb");
-        long buffer_address_offset = pork_getOffset(Buffer.class, "address");
+        long byteBuffer_hb_offset = PUnsafe.pork_getOffset(ByteBuffer.class, "hb");
+        long buffer_address_offset = PUnsafe.pork_getOffset(Buffer.class, "address");
 
         return this
                 //arrays
-                .add(boolean[].class, Offsetter.of(v -> ARRAY_BOOLEAN_BASE_OFFSET, v -> (long) v.length * ARRAY_BOOLEAN_INDEX_SCALE))
-                .add(byte[].class, Offsetter.of(v -> ARRAY_BYTE_BASE_OFFSET, v -> (long) v.length * ARRAY_BYTE_INDEX_SCALE))
-                .add(short[].class, Offsetter.of(v -> ARRAY_SHORT_BASE_OFFSET, v -> (long) v.length * ARRAY_SHORT_INDEX_SCALE))
-                .add(int[].class, Offsetter.of(v -> ARRAY_INT_BASE_OFFSET, v -> (long) v.length * ARRAY_INT_INDEX_SCALE))
-                .add(long[].class, Offsetter.of(v -> ARRAY_LONG_BASE_OFFSET, v -> (long) v.length * ARRAY_LONG_INDEX_SCALE))
-                .add(float[].class, Offsetter.of(v -> ARRAY_FLOAT_BASE_OFFSET, v -> (long) v.length * ARRAY_FLOAT_INDEX_SCALE))
-                .add(double[].class, Offsetter.of(v -> ARRAY_DOUBLE_BASE_OFFSET, v -> (long) v.length * ARRAY_DOUBLE_INDEX_SCALE))
-                .add(char[].class, Offsetter.of(v -> ARRAY_CHAR_BASE_OFFSET, v -> (long) v.length * ARRAY_CHAR_INDEX_SCALE))
-                .add(Object[].class, Offsetter.of(v -> ARRAY_OBJECT_BASE_OFFSET, v -> (long) v.length * ARRAY_OBJECT_INDEX_SCALE))
+                .add(boolean[].class, Offsetter.of(v -> PUnsafe.ARRAY_BOOLEAN_BASE_OFFSET, v -> (long) v.length * PUnsafe.ARRAY_BOOLEAN_INDEX_SCALE))
+                .add(byte[].class, Offsetter.of(v -> PUnsafe.ARRAY_BYTE_BASE_OFFSET, v -> (long) v.length * PUnsafe.ARRAY_BYTE_INDEX_SCALE))
+                .add(short[].class, Offsetter.of(v -> PUnsafe.ARRAY_SHORT_BASE_OFFSET, v -> (long) v.length * PUnsafe.ARRAY_SHORT_INDEX_SCALE))
+                .add(int[].class, Offsetter.of(v -> PUnsafe.ARRAY_INT_BASE_OFFSET, v -> (long) v.length * PUnsafe.ARRAY_INT_INDEX_SCALE))
+                .add(long[].class, Offsetter.of(v -> PUnsafe.ARRAY_LONG_BASE_OFFSET, v -> (long) v.length * PUnsafe.ARRAY_LONG_INDEX_SCALE))
+                .add(float[].class, Offsetter.of(v -> PUnsafe.ARRAY_FLOAT_BASE_OFFSET, v -> (long) v.length * PUnsafe.ARRAY_FLOAT_INDEX_SCALE))
+                .add(double[].class, Offsetter.of(v -> PUnsafe.ARRAY_DOUBLE_BASE_OFFSET, v -> (long) v.length * PUnsafe.ARRAY_DOUBLE_INDEX_SCALE))
+                .add(char[].class, Offsetter.of(v -> PUnsafe.ARRAY_CHAR_BASE_OFFSET, v -> (long) v.length * PUnsafe.ARRAY_CHAR_INDEX_SCALE))
+                .add(Object[].class, Offsetter.of(v -> PUnsafe.ARRAY_OBJECT_BASE_OFFSET, v -> (long) v.length * PUnsafe.ARRAY_OBJECT_INDEX_SCALE))
                 //nio buffers
-                .add(classForName("java.nio.HeapByteBuffer"), Offsetter.of(v -> ARRAY_BYTE_BASE_OFFSET, ByteBuffer::capacity, v -> getObject(v, byteBuffer_hb_offset)))
+                .add(classForName("java.nio.HeapByteBuffer"), Offsetter.of(v -> PUnsafe.ARRAY_BYTE_BASE_OFFSET, ByteBuffer::capacity, v -> PUnsafe.getObject(v, byteBuffer_hb_offset)))
                 .add(classForName("java.nio.HeapByteBufferR"), this.offsetters.get(classForName("java.nio.HeapByteBuffer")))
-                .add(classForName("java.nio.DirectByteBuffer"), Offsetter.of(v -> getLong(v, buffer_address_offset), ByteBuffer::capacity))
+                .add(classForName("java.nio.DirectByteBuffer"), Offsetter.of(v -> PUnsafe.getLong(v, buffer_address_offset), ByteBuffer::capacity))
                 .add(classForName("java.nio.DirectByteBufferR"), this.offsetters.get(classForName("java.nio.DirectByteBuffer")));
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <T> Class<T> classForName(@NonNull String canocialName)   {
+        try {
+            return (Class<T>) Class.forName(canocialName);
+        } catch (ClassNotFoundException e)  {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -114,7 +116,7 @@ public class OffsetLookup {
         Class<?> clazz = o.getClass();
         Offsetter offsetter;
         if (Offsettable.class.isAssignableFrom(clazz)) {
-            return ((Offsettable) o).memoryOffset();
+            return ((Offsettable) o).memoryAddress();
         } else if ((offsetter = this.offsetters.get(clazz)) != null) {
             return offsetter.memoryOffset(o);
         } else {
@@ -132,7 +134,7 @@ public class OffsetLookup {
         Class<?> clazz = o.getClass();
         Offsetter offsetter;
         if (Offsettable.class.isAssignableFrom(clazz)) {
-            return ((Offsettable) o).memoryLength();
+            return ((Offsettable) o).memorySize();
         } else if ((offsetter = this.offsetters.get(clazz)) != null) {
             return offsetter.memoryLength(o);
         } else {

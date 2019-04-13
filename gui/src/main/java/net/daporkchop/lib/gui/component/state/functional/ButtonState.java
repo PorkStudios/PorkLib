@@ -15,7 +15,6 @@
 
 package net.daporkchop.lib.gui.component.state.functional;
 
-import com.sun.javafx.scene.control.skin.ButtonSkin;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

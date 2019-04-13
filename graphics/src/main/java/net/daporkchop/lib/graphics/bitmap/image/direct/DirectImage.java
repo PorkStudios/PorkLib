@@ -16,9 +16,9 @@
 package net.daporkchop.lib.graphics.bitmap.image.direct;
 
 import lombok.Getter;
-import net.daporkchop.lib.common.util.DirectMemoryHolder;
-import net.daporkchop.lib.common.util.PUnsafe;
 import net.daporkchop.lib.graphics.bitmap.image.PImage;
+import net.daporkchop.lib.unsafe.PUnsafe;
+import net.daporkchop.lib.unsafe.capability.DirectMemoryHolder;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
@@ -30,22 +30,20 @@ import java.lang.ref.SoftReference;
  * @author DaPorkchop_
  */
 @Getter
-public abstract class DirectImage implements DirectMemoryHolder, PImage {
+public abstract class DirectImage extends DirectMemoryHolder.AbstractConstantSize implements PImage {
     protected final int width;
     protected final int height;
 
-    protected long pos;
-
     protected SoftReference<BufferedImage> bufferedImageCache;
 
-    public DirectImage(int width, int height)   {
+    protected DirectImage(int width, int height, long byteScale)   {
+        super((long) width * (long) height * byteScale);
         if (width < 0 || height < 0)    {
             throw new IllegalArgumentException("Width and height must be greater than 0!");
         }
 
         this.width = width;
         this.height = height;
-        this.pos = PUnsafe.allocateMemory(this, (long) width * (long) height * this.getByteScale());
     }
 
     public abstract long getByteScale();
@@ -55,21 +53,6 @@ public abstract class DirectImage implements DirectMemoryHolder, PImage {
             throw new IllegalArgumentException(String.format("Coordinate out of bounds: (%d,%d) (width=%d,height=%d)", x, y, this.width, this.height));
         } else {
             return this.pos + (((long) x * (long) this.height + (long) y) * this.getByteScale());
-        }
-    }
-
-    @Override
-    public synchronized long getMemoryAddress() {
-        return this.pos;
-    }
-
-    @Override
-    public synchronized void releaseMemory() {
-        if (this.isMemoryReleased()) {
-            throw new IllegalStateException("Memory already released!");
-        } else {
-            PUnsafe.freeMemory(this.pos);
-            this.pos = -1L;
         }
     }
 

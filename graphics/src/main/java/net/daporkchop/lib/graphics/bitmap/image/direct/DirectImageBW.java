@@ -15,11 +15,11 @@
 
 package net.daporkchop.lib.graphics.bitmap.image.direct;
 
-import net.daporkchop.lib.common.util.PUnsafe;
 import net.daporkchop.lib.graphics.bitmap.image.ImageBW;
 import net.daporkchop.lib.graphics.util.bufferedimage.bw.FastBWColorModel;
 import net.daporkchop.lib.graphics.util.bufferedimage.bw.ImageBWDataBuffer;
 import net.daporkchop.lib.graphics.util.bufferedimage.bw.ImageBWRaster;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.awt.image.ColorModel;
 import java.awt.image.DataBuffer;
@@ -30,7 +30,7 @@ import java.awt.image.WritableRaster;
  */
 public class DirectImageBW extends DirectImage implements ImageBW {
     public DirectImageBW(int width, int height) {
-        super(width, height);
+        super(width, height, 1L);
     }
 
     @Override

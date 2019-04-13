@@ -17,7 +17,6 @@ package net.daporkchop.lib.gui.form;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.common.util.PUnsafe;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.Element;
@@ -26,6 +25,7 @@ import net.daporkchop.lib.gui.form.data.FormObject;
 import net.daporkchop.lib.gui.form.util.FormCompletionListener;
 import net.daporkchop.lib.gui.form.util.FormCompletionStatus;
 import net.daporkchop.lib.gui.form.util.exception.FormCompletionException;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.util.ArrayList;
 import java.util.Collection;

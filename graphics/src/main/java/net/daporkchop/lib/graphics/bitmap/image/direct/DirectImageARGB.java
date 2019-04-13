@@ -17,12 +17,12 @@ package net.daporkchop.lib.graphics.bitmap.image.direct;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.common.util.PUnsafe;
 import net.daporkchop.lib.graphics.bitmap.image.ImageARGB;
 import net.daporkchop.lib.graphics.util.bufferedimage.argb.FastARGBColorModel;
 import net.daporkchop.lib.graphics.util.bufferedimage.argb.ImageARGBDataBuffer;
 import net.daporkchop.lib.graphics.util.bufferedimage.argb.ImageARGBRaster;
 import net.daporkchop.lib.reflection.PField;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.awt.*;
 import java.awt.image.ColorModel;
@@ -37,7 +37,7 @@ import java.awt.image.WritableRaster;
  */
 public class DirectImageARGB extends DirectImage implements ImageARGB {
     public DirectImageARGB(int width, int height) {
-        super(width, height);
+        super(width, height, 4L);
     }
 
     @Override

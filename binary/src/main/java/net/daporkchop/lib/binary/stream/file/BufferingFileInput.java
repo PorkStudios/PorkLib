@@ -26,7 +26,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
 /**
- * Allows reading from a {@link FileChannel} using testMethodThing native byte buffer
+ * Allows reading from a {@link FileChannel} using a native byte buffer
  *
  * @author DaPorkchop_
  */

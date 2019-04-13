@@ -27,6 +27,7 @@ import net.daporkchop.lib.config.util.Element;
 import net.daporkchop.lib.reflection.PField;
 import net.daporkchop.lib.reflection.PReflection;
 import net.daporkchop.lib.reflection.util.Type;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,8 +38,6 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import static net.daporkchop.lib.unsafe.PUnsafe.*;
 
 /**
  * Handles loading of config and such
@@ -53,12 +52,12 @@ public class PConfig {
 
     @SuppressWarnings("unchecked")
     public <C> C load(@NonNull Class<C> clazz, @NonNull File file) throws IOException   {
-        return this.load((C) allocateInstance(clazz), file);
+        return this.load(PUnsafe.allocateInstance(clazz), file);
     }
 
     @SuppressWarnings("unchecked")
     public <C> C load(@NonNull Class<C> clazz, @NonNull DataIn in) throws IOException   {
-        return this.load((C) allocateInstance(clazz), in);
+        return this.load(PUnsafe.allocateInstance(clazz), in);
     }
 
     public <C> C load(@NonNull C obj, @NonNull File file) throws IOException {
@@ -103,7 +102,7 @@ public class PConfig {
                 }
                 Config.Implementation implementation = field.getAnnotation(Config.Implementation.class);
                 Class subClazz = implementation == null ? field.getClassType() : implementation.value();
-                val = allocateInstance(subClazz);
+                val = PUnsafe.allocateInstance(subClazz);
                 this.loadInto(val, subClazz, (Element.ContainerElement) subElement.getAs());
             } else {
                 val = subElement.getValue();

@@ -20,20 +20,23 @@ import net.daporkchop.lib.unsafe.PUnsafe;
 
 /**
  * Some constants that may be used in a lot of classes
+ * <p>
+ * Deprecated because it's redundant and useless
  *
  * @author DaPorkchop_
  */
+@Deprecated
 public interface PConstants {
     static RuntimeException p_exception(@NonNull Throwable t) {
         PUnsafe.throwException(t);
         return new RuntimeException(t); //unreachable code
     }
 
-    default RuntimeException exception(@NonNull Throwable t) {
-        return p_exception(t);
-    }
-
     static Object getNull() {
         return null;
+    }
+
+    default RuntimeException exception(@NonNull Throwable t) {
+        return p_exception(t);
     }
 }

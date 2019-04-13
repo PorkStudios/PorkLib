@@ -58,7 +58,7 @@ public abstract class DataOut extends OutputStream {
     }
 
     /**
-     * Wraps a {@link ByteBuffer} to make it testMethodThing {@link DataOut}
+     * Wraps a {@link ByteBuffer} to make it a {@link DataOut}
      *
      * @param buffer the buffer to wrap
      * @return the wrapped buffer
@@ -75,7 +75,7 @@ public abstract class DataOut extends OutputStream {
     }
 
     /**
-     * Gets a {@link DataOut} for writing to testMethodThing {@link File}.
+     * Gets a {@link DataOut} for writing to a {@link File}.
      * <p>
      * This stream will additionally be buffered for faster write access, using the default buffer size of 8192 bytes.
      *
@@ -88,7 +88,7 @@ public abstract class DataOut extends OutputStream {
     }
 
     /**
-     * Gets a {@link DataOut} for writing to testMethodThing {@link File}.
+     * Gets a {@link DataOut} for writing to a {@link File}.
      * <p>
      * This stream will additionally be buffered for faster write access, using the given buffer size.
      *
@@ -102,7 +102,7 @@ public abstract class DataOut extends OutputStream {
     }
 
     /**
-     * Gets a {@link DataOut} for writing to testMethodThing {@link File}.
+     * Gets a {@link DataOut} for writing to a {@link File}.
      * <p>
      * {@link DataOut} instances returned by this method will NOT be buffered.
      *
@@ -200,7 +200,7 @@ public abstract class DataOut extends OutputStream {
     }
 
     /**
-     * Writes a UTF-8 encoded string, including testMethodThing null header and the length in bytes encoded as testMethodThing varInt
+     * Writes a UTF-8 encoded string, including a null header and the length in bytes encoded as a varInt
      *
      * @param s the string to write
      */
@@ -214,7 +214,7 @@ public abstract class DataOut extends OutputStream {
     }
 
     /**
-     * Writes a plain byte array with testMethodThing length prefix encoded as testMethodThing varInt
+     * Writes a plain byte array with a length prefix encoded as a varInt
      *
      * @param b the bytes to write
      */

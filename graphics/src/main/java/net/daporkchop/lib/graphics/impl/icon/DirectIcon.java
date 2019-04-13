@@ -36,20 +36,13 @@ import java.awt.image.WritableRaster;
  * @author DaPorkchop_
  */
 @Getter
-public class DirectIcon implements PIcon, DirectMemoryHolder {
-    protected final long pos;
-    protected final long size;
-
+public class DirectIcon extends DirectMemoryHolder.AbstractConstantSize implements PIcon {
     protected final int width;
     protected final int height;
     protected final boolean bw;
 
-    protected final PCleaner cleaner;
-
     public DirectIcon(int width, int height, boolean bw) {
-        this.size = ((long) width * (long) height) << (bw ? 0L : 2L);
-        this.pos = PUnsafe.allocateMemory(this.size);
-        this.cleaner = PCleaner.cleaner(this, this.pos);
+        super(((long) width * (long) height) << (bw ? 0L : 2L));
 
         this.width = width;
         this.height = height;
@@ -70,16 +63,6 @@ public class DirectIcon implements PIcon, DirectMemoryHolder {
     @Override
     public boolean isBW() {
         return this.bw;
-    }
-
-    @Override
-    public void release() throws AlreadyReleasedException {
-        synchronized (this.cleaner) {
-            if (this.cleaner.isCleaned())   {
-                throw new AlreadyReleasedException();
-            }
-            this.cleaner.clean();
-        }
     }
 
     //everything below this comment is compatibility code to be able to work with java AWT's godawful api

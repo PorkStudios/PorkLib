@@ -26,19 +26,12 @@ import static net.daporkchop.lib.math.primitive.PMath.floorI;
 /**
  * @author DaPorkchop_
  */
-public class DirectIntGrid1d implements Grid1d, DirectMemoryHolder {
-    protected final long pos;
-    protected final long size;
-
+public class DirectIntGrid1d extends DirectMemoryHolder.AbstractConstantSize implements Grid1d {
     protected final int startX;
     protected final int width;
 
-    protected final PCleaner cleaner;
-
     public DirectIntGrid1d(int startX, int width) {
-        this.size = width << 2L;
-        this.pos = PUnsafe.allocateMemory(this.size);
-        this.cleaner = PCleaner.cleaner(this, this.pos);
+        super(width << 2L);
 
         this.startX = startX;
         this.width = width;
@@ -80,16 +73,6 @@ public class DirectIntGrid1d implements Grid1d, DirectMemoryHolder {
             throw new ArrayIndexOutOfBoundsException(String.format("%d", x));
         } else {
             return this.pos + off;
-        }
-    }
-
-    @Override
-    public void release() throws AlreadyReleasedException {
-        synchronized (this.cleaner) {
-            if (this.cleaner.isCleaned())   {
-                throw new AlreadyReleasedException();
-            }
-            this.cleaner.clean();
         }
     }
 }

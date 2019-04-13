@@ -15,6 +15,8 @@
 
 package net.daporkchop.lib.unsafe.capability;
 
+import net.daporkchop.lib.unsafe.PCleaner;
+import net.daporkchop.lib.unsafe.PUnsafe;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 /**
@@ -31,4 +33,31 @@ public interface DirectMemoryHolder extends Releasable {
      */
     @Override
     void release() throws AlreadyReleasedException;
+
+    /**
+     * An abstract implementation of {@link DirectMemoryHolder} which handles the basic behaviors
+     * of cleaners, etc. automagically.
+     * <p>
+     * The memory block may not be resized (i.e. with {@link PUnsafe#reallocateMemory(long, long)}).
+     */
+    abstract class AbstractConstantSize implements DirectMemoryHolder {
+        protected final long pos;
+        protected final long size;
+        protected final PCleaner cleaner;
+
+        public AbstractConstantSize(long size) {
+            this.pos = PUnsafe.allocateMemory(this.size = size);
+            this.cleaner = PCleaner.cleaner(this, this.pos);
+        }
+
+        @Override
+        public void release() throws AlreadyReleasedException {
+            synchronized (this.cleaner) {
+                if (this.cleaner.isCleaned()) {
+                    throw new AlreadyReleasedException();
+                }
+                this.cleaner.clean();
+            }
+        }
+    }
 }

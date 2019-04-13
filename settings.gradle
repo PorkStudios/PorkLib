@@ -41,6 +41,7 @@ include 'noise'
 include 'primitive'
 include 'primitive:generator'
 include 'reflection'
+include 'unsafe'
 
 findProject(':concurrent:parallel')?.name = 'parallel'
 findProject(':encoding:config')?.name = 'config'

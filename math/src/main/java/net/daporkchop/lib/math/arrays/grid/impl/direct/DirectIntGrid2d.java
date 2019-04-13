@@ -15,28 +15,25 @@
 
 package net.daporkchop.lib.math.arrays.grid.impl.direct;
 
-import net.daporkchop.lib.common.util.DirectMemoryHolder;
-import net.daporkchop.lib.common.util.PUnsafe;
-import net.daporkchop.lib.math.arrays.grid.Grid1d;
+import net.daporkchop.lib.unsafe.PCleaner;
+import net.daporkchop.lib.unsafe.capability.DirectMemoryHolder;
+import net.daporkchop.lib.unsafe.PUnsafe;
 import net.daporkchop.lib.math.arrays.grid.Grid2d;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import static net.daporkchop.lib.math.primitive.PMath.floorI;
 
 /**
  * @author DaPorkchop_
  */
-public class DirectIntGrid2d implements Grid2d, DirectMemoryHolder {
-    protected long pos;
-    protected final long size;
-
+public class DirectIntGrid2d extends DirectMemoryHolder.AbstractConstantSize implements Grid2d {
     protected final int startX;
     protected final int width;
     protected final int startY;
     protected final int height;
 
     public DirectIntGrid2d(int startX, int startY, int width, int height) {
-        this.size = ((long) width * (long) height) << 2L;
-        this.pos = PUnsafe.allocateMemory(this, this.size);
+        super(((long) width * (long) height) << 2L);
 
         this.startX = startX;
         this.width = width;
@@ -90,22 +87,6 @@ public class DirectIntGrid2d implements Grid2d, DirectMemoryHolder {
             throw new ArrayIndexOutOfBoundsException(String.format("(%d,%d)", x, y));
         } else {
             return this.pos + off;
-        }
-    }
-
-    //directmemoryholder implementations
-    @Override
-    public synchronized long getMemoryAddress() {
-        return this.pos;
-    }
-
-    @Override
-    public synchronized void releaseMemory() {
-        if (this.isMemoryReleased())    {
-            throw new IllegalStateException("Memory already released!");
-        } else {
-            PUnsafe.freeMemory(this.pos);
-            this.pos = -1L;
         }
     }
 }

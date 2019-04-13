@@ -26,21 +26,14 @@ import static net.daporkchop.lib.math.primitive.PMath.floorI;
 /**
  * @author DaPorkchop_
  */
-public class DirectIntGrid2d implements Grid2d, DirectMemoryHolder {
-    protected final long pos;
-    protected final long size;
-
+public class DirectIntGrid2d extends DirectMemoryHolder.AbstractConstantSize implements Grid2d {
     protected final int startX;
     protected final int width;
     protected final int startY;
     protected final int height;
 
-    protected final PCleaner cleaner;
-
     public DirectIntGrid2d(int startX, int startY, int width, int height) {
-        this.size = ((long) width * (long) height) << 2L;
-        this.pos = PUnsafe.allocateMemory(this.size);
-        this.cleaner = PCleaner.cleaner(this, this.pos);
+        super(((long) width * (long) height) << 2L);
 
         this.startX = startX;
         this.width = width;
@@ -94,16 +87,6 @@ public class DirectIntGrid2d implements Grid2d, DirectMemoryHolder {
             throw new ArrayIndexOutOfBoundsException(String.format("(%d,%d)", x, y));
         } else {
             return this.pos + off;
-        }
-    }
-
-    @Override
-    public void release() throws AlreadyReleasedException {
-        synchronized (this.cleaner) {
-            if (this.cleaner.isCleaned())   {
-                throw new AlreadyReleasedException();
-            }
-            this.cleaner.clean();
         }
     }
 }

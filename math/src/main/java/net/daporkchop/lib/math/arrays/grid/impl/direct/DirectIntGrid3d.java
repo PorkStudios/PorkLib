@@ -26,10 +26,7 @@ import static net.daporkchop.lib.math.primitive.PMath.floorI;
 /**
  * @author DaPorkchop_
  */
-public class DirectIntGrid3d implements Grid3d, DirectMemoryHolder {
-    protected final long pos;
-    protected final long size;
-
+public class DirectIntGrid3d extends DirectMemoryHolder.AbstractConstantSize implements Grid3d {
     protected final int startX;
     protected final int width;
     protected final int startY;
@@ -37,12 +34,8 @@ public class DirectIntGrid3d implements Grid3d, DirectMemoryHolder {
     protected final int startZ;
     protected final int depth;
 
-    protected final PCleaner cleaner;
-
     public DirectIntGrid3d(int startX, int startY, int startZ, int width, int height, int depth) {
-        this.size = ((long) width * (long) height * (long) depth) << 2L;
-        this.pos = PUnsafe.allocateMemory(this.size);
-        this.cleaner = PCleaner.cleaner(this, this.pos);
+        super(((long) width * (long) height * (long) depth) << 2L);
 
         this.startX = startX;
         this.width = width;
@@ -108,16 +101,6 @@ public class DirectIntGrid3d implements Grid3d, DirectMemoryHolder {
             throw new ArrayIndexOutOfBoundsException(String.format("(%d,%d,%d)", x, y, z));
         } else {
             return this.pos + off;
-        }
-    }
-
-    @Override
-    public void release() throws AlreadyReleasedException {
-        synchronized (this.cleaner) {
-            if (this.cleaner.isCleaned())   {
-                throw new AlreadyReleasedException();
-            }
-            this.cleaner.clean();
         }
     }
 }

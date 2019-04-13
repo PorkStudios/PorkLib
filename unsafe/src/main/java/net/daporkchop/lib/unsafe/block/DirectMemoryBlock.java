@@ -15,36 +15,25 @@
 
 package net.daporkchop.lib.unsafe.block;
 
-import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
 import net.daporkchop.lib.unsafe.PCleaner;
 import net.daporkchop.lib.unsafe.PUnsafe;
+import net.daporkchop.lib.unsafe.capability.DirectMemoryHolder;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 /**
  * @author DaPorkchop_
  */
 @ToString
-public class DirectMemoryBlock implements MemoryBlock {
-    protected final long address;
-    protected final long size;
-    
-    protected final PCleaner cleaner;
-
+public class DirectMemoryBlock extends DirectMemoryHolder.AbstractConstantSize implements MemoryBlock {
     public DirectMemoryBlock(long size) {
-        if (size <= 0L) {
-            throw new IllegalArgumentException("Size must be at least 1!");
-        }
-
-        this.size = size;
-        this.address = PUnsafe.allocateMemory(size);
-        this.cleaner = PCleaner.cleaner(this, this.address);
+        super(size);
     }
 
     @Override
     public long memoryAddress() {
-        return this.address;
+        return this.pos;
     }
 
     @Override
@@ -63,21 +52,11 @@ public class DirectMemoryBlock implements MemoryBlock {
     }
 
     @Override
-    public void release() throws AlreadyReleasedException {
-        synchronized (this.cleaner) {
-            if (this.cleaner.isCleaned())   {
-                throw new AlreadyReleasedException();
-            }
-            this.cleaner.clean();
-        }
-    }
-
-    @Override
     public byte getByte(long index) {
         if (index < 0L || index > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else {
-            return PUnsafe.getByte(this.address + index);
+            return PUnsafe.getByte(this.pos + index);
         }
     }
 
@@ -86,7 +65,7 @@ public class DirectMemoryBlock implements MemoryBlock {
         if (index < 0L || index + 1L > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else {
-            return PUnsafe.getShort(this.address + index);
+            return PUnsafe.getShort(this.pos + index);
         }
     }
 
@@ -95,7 +74,7 @@ public class DirectMemoryBlock implements MemoryBlock {
         if (index < 0L || index + 3L > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else {
-            return PUnsafe.getInt(this.address + index);
+            return PUnsafe.getInt(this.pos + index);
         }
     }
 
@@ -104,7 +83,7 @@ public class DirectMemoryBlock implements MemoryBlock {
         if (index < 0L || index + 7L > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else {
-            return PUnsafe.getLong(this.address + index);
+            return PUnsafe.getLong(this.pos + index);
         }
     }
 
@@ -113,7 +92,7 @@ public class DirectMemoryBlock implements MemoryBlock {
         if (index < 0L || index + 3L > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else {
-            return PUnsafe.getFloat(this.address + index);
+            return PUnsafe.getFloat(this.pos + index);
         }
     }
 
@@ -122,7 +101,7 @@ public class DirectMemoryBlock implements MemoryBlock {
         if (index < 0L || index + 7L > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else {
-            return PUnsafe.getDouble(this.address + index);
+            return PUnsafe.getDouble(this.pos + index);
         }
     }
 
@@ -131,7 +110,7 @@ public class DirectMemoryBlock implements MemoryBlock {
         if (index < 0L || index + 1L > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else {
-            return PUnsafe.getChar(this.address + index);
+            return PUnsafe.getChar(this.pos + index);
         }
     }
 
@@ -142,7 +121,7 @@ public class DirectMemoryBlock implements MemoryBlock {
         } else if (off < 0 || off + len > arr.length) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal offset/length: off=%d,length=%d for array length %d", off, len, arr.length));
         } else {
-            PUnsafe.copyMemory(null, this.address, arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET + off, len);
+            PUnsafe.copyMemory(null, this.pos, arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET + off, len);
         }
     }
 
@@ -153,7 +132,7 @@ public class DirectMemoryBlock implements MemoryBlock {
         } else if (off < 0 || off + len > arr.length) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal offset/length: off=%d,length=%d for array length %d", off, len, arr.length));
         } else {
-            PUnsafe.copyMemory(null, this.address, arr, PUnsafe.ARRAY_SHORT_BASE_OFFSET + (off << 1L), len << 1L);
+            PUnsafe.copyMemory(null, this.pos, arr, PUnsafe.ARRAY_SHORT_BASE_OFFSET + (off << 1L), len << 1L);
         }
     }
 
@@ -164,7 +143,7 @@ public class DirectMemoryBlock implements MemoryBlock {
         } else if (off < 0 || off + len > arr.length) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal offset/length: off=%d,length=%d for array length %d", off, len, arr.length));
         } else {
-            PUnsafe.copyMemory(null, this.address, arr, PUnsafe.ARRAY_INT_BASE_OFFSET + (off << 2L), len << 2L);
+            PUnsafe.copyMemory(null, this.pos, arr, PUnsafe.ARRAY_INT_BASE_OFFSET + (off << 2L), len << 2L);
         }
     }
 
@@ -175,7 +154,7 @@ public class DirectMemoryBlock implements MemoryBlock {
         } else if (off < 0 || off + len > arr.length) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal offset/length: off=%d,length=%d for array length %d", off, len, arr.length));
         } else {
-            PUnsafe.copyMemory(null, this.address, arr, PUnsafe.ARRAY_LONG_BASE_OFFSET + (off << 3L), len << 3L);
+            PUnsafe.copyMemory(null, this.pos, arr, PUnsafe.ARRAY_LONG_BASE_OFFSET + (off << 3L), len << 3L);
         }
     }
 
@@ -186,7 +165,7 @@ public class DirectMemoryBlock implements MemoryBlock {
         } else if (off < 0 || off + len > arr.length) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal offset/length: off=%d,length=%d for array length %d", off, len, arr.length));
         } else {
-            PUnsafe.copyMemory(null, this.address, arr, PUnsafe.ARRAY_FLOAT_BASE_OFFSET + (off << 2L), len << 2L);
+            PUnsafe.copyMemory(null, this.pos, arr, PUnsafe.ARRAY_FLOAT_BASE_OFFSET + (off << 2L), len << 2L);
         }
     }
 
@@ -197,7 +176,7 @@ public class DirectMemoryBlock implements MemoryBlock {
         } else if (off < 0 || off + len > arr.length) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal offset/length: off=%d,length=%d for array length %d", off, len, arr.length));
         } else {
-            PUnsafe.copyMemory(null, this.address, arr, PUnsafe.ARRAY_DOUBLE_BASE_OFFSET + (off << 3L), len << 3L);
+            PUnsafe.copyMemory(null, this.pos, arr, PUnsafe.ARRAY_DOUBLE_BASE_OFFSET + (off << 3L), len << 3L);
         }
     }
 
@@ -208,7 +187,7 @@ public class DirectMemoryBlock implements MemoryBlock {
         } else if (off < 0 || off + len > arr.length) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal offset/length: off=%d,length=%d for array length %d", off, len, arr.length));
         } else {
-            PUnsafe.copyMemory(null, this.address, arr, PUnsafe.ARRAY_CHAR_BASE_OFFSET + (off << 1L), len << 1L);
+            PUnsafe.copyMemory(null, this.pos, arr, PUnsafe.ARRAY_CHAR_BASE_OFFSET + (off << 1L), len << 1L);
         }
     }
 
@@ -217,7 +196,7 @@ public class DirectMemoryBlock implements MemoryBlock {
         if (index < 0L || index > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else {
-            PUnsafe.putByte(this.address + index, val);
+            PUnsafe.putByte(this.pos + index, val);
         }
     }
 
@@ -226,7 +205,7 @@ public class DirectMemoryBlock implements MemoryBlock {
         if (index < 0L || index + 1L > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else {
-            PUnsafe.putShort(this.address + index, val);
+            PUnsafe.putShort(this.pos + index, val);
         }
     }
 
@@ -235,7 +214,7 @@ public class DirectMemoryBlock implements MemoryBlock {
         if (index < 0L || index + 3L > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else {
-            PUnsafe.putInt(this.address + index, val);
+            PUnsafe.putInt(this.pos + index, val);
         }
     }
 
@@ -244,7 +223,7 @@ public class DirectMemoryBlock implements MemoryBlock {
         if (index < 0L || index + 7L > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else {
-            PUnsafe.putLong(this.address + index, val);
+            PUnsafe.putLong(this.pos + index, val);
         }
     }
 
@@ -253,7 +232,7 @@ public class DirectMemoryBlock implements MemoryBlock {
         if (index < 0L || index + 3L > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else {
-            PUnsafe.putFloat(this.address + index, val);
+            PUnsafe.putFloat(this.pos + index, val);
         }
     }
 
@@ -262,7 +241,7 @@ public class DirectMemoryBlock implements MemoryBlock {
         if (index < 0L || index + 7L > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else {
-            PUnsafe.putDouble(this.address + index, val);
+            PUnsafe.putDouble(this.pos + index, val);
         }
     }
 
@@ -271,7 +250,7 @@ public class DirectMemoryBlock implements MemoryBlock {
         if (index < 0L || index + 1L > this.size) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal index: %d (must be in range 0-%d)", index, this.size));
         } else {
-            PUnsafe.putChar(this.address + index, val);
+            PUnsafe.putChar(this.pos + index, val);
         }
     }
 
@@ -282,7 +261,7 @@ public class DirectMemoryBlock implements MemoryBlock {
         } else if (off < 0 || off + len > arr.length) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal offset/length: off=%d,length=%d for array length %d", off, len, arr.length));
         } else {
-            PUnsafe.copyMemory(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET + off, null, this.address, len);
+            PUnsafe.copyMemory(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET + off, null, this.pos, len);
         }
     }
 
@@ -293,7 +272,7 @@ public class DirectMemoryBlock implements MemoryBlock {
         } else if (off < 0 || off + len > arr.length) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal offset/length: off=%d,length=%d for array length %d", off, len, arr.length));
         } else {
-            PUnsafe.copyMemory(arr, PUnsafe.ARRAY_SHORT_BASE_OFFSET + (off << 1L), null, this.address, len << 1L);
+            PUnsafe.copyMemory(arr, PUnsafe.ARRAY_SHORT_BASE_OFFSET + (off << 1L), null, this.pos, len << 1L);
         }
     }
 
@@ -304,7 +283,7 @@ public class DirectMemoryBlock implements MemoryBlock {
         } else if (off < 0 || off + len > arr.length) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal offset/length: off=%d,length=%d for array length %d", off, len, arr.length));
         } else {
-            PUnsafe.copyMemory(arr, PUnsafe.ARRAY_INT_BASE_OFFSET + (off << 2L), null, this.address, len << 2L);
+            PUnsafe.copyMemory(arr, PUnsafe.ARRAY_INT_BASE_OFFSET + (off << 2L), null, this.pos, len << 2L);
         }
     }
 
@@ -315,7 +294,7 @@ public class DirectMemoryBlock implements MemoryBlock {
         } else if (off < 0 || off + len > arr.length) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal offset/length: off=%d,length=%d for array length %d", off, len, arr.length));
         } else {
-            PUnsafe.copyMemory(arr, PUnsafe.ARRAY_LONG_BASE_OFFSET + (off << 3L), null, this.address, len << 3L);
+            PUnsafe.copyMemory(arr, PUnsafe.ARRAY_LONG_BASE_OFFSET + (off << 3L), null, this.pos, len << 3L);
         }
     }
 
@@ -326,7 +305,7 @@ public class DirectMemoryBlock implements MemoryBlock {
         } else if (off < 0 || off + len > arr.length) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal offset/length: off=%d,length=%d for array length %d", off, len, arr.length));
         } else {
-            PUnsafe.copyMemory(arr, PUnsafe.ARRAY_FLOAT_BASE_OFFSET + (off << 2L), null, this.address, len << 2L);
+            PUnsafe.copyMemory(arr, PUnsafe.ARRAY_FLOAT_BASE_OFFSET + (off << 2L), null, this.pos, len << 2L);
         }
     }
 
@@ -337,7 +316,7 @@ public class DirectMemoryBlock implements MemoryBlock {
         } else if (off < 0 || off + len > arr.length) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal offset/length: off=%d,length=%d for array length %d", off, len, arr.length));
         } else {
-            PUnsafe.copyMemory(arr, PUnsafe.ARRAY_DOUBLE_BASE_OFFSET + (off << 3L), null, this.address, len << 3L);
+            PUnsafe.copyMemory(arr, PUnsafe.ARRAY_DOUBLE_BASE_OFFSET + (off << 3L), null, this.pos, len << 3L);
         }
     }
 
@@ -348,7 +327,7 @@ public class DirectMemoryBlock implements MemoryBlock {
         } else if (off < 0 || off + len > arr.length) {
             throw new ArrayIndexOutOfBoundsException(String.format("Illegal offset/length: off=%d,length=%d for array length %d", off, len, arr.length));
         } else {
-            PUnsafe.copyMemory(arr, PUnsafe.ARRAY_CHAR_BASE_OFFSET + (off << 1L), null, this.address, len << 1L);
+            PUnsafe.copyMemory(arr, PUnsafe.ARRAY_CHAR_BASE_OFFSET + (off << 1L), null, this.pos, len << 1L);
         }
     }
 }

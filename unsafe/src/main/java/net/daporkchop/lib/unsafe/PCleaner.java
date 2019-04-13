@@ -63,7 +63,7 @@ public final class PCleaner {
     /**
      * Makes a new cleaner targeting a given object. When that object is garbage collected, the memory
      * address contained within the given {@link AtomicLong} will be freed (i.e. {@link PUnsafe#freeMemory(long)} will
-     * be invoked, with the address passed as the parameter), and the address reference set to {@code -1L}.
+     * be invoked, with the address passed as the parameter), and the pos reference set to {@code -1L}.
      * If, however, the address is already set to {@code -1L}, no action will be taken. This is preferable
      * over {@link #cleaner(Object, long)} in scenarios where the memory may be freed in advance due to the
      * fact that the address may be modified and removed without needing to update the cleaner.

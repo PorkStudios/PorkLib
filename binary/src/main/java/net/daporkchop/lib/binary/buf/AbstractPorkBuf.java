@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.binary.buf;
 
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +29,8 @@ import lombok.experimental.Accessors;
  */
 @RequiredArgsConstructor
 @NoArgsConstructor
-@Accessors(chain = true)
+@Getter
+@Accessors(chain = true, fluent = true)
 public abstract class AbstractPorkBuf implements PorkBuf {
     @Setter
     protected long capacity;
@@ -38,29 +40,9 @@ public abstract class AbstractPorkBuf implements PorkBuf {
     protected long writerIndex;
 
     @Override
-    public long capacity() {
-        return this.capacity;
-    }
-
-    @Override
-    public long maxCapacity() {
-        return this.maxCapacity;
-    }
-
-    @Override
-    public long writerIndex() {
-        return this.writerIndex;
-    }
-
-    @Override
     public PorkBuf writerIndex(long index) {
         this.writerIndex = index;
         return this;
-    }
-
-    @Override
-    public long readerIndex() {
-        return this.readerIndex;
     }
 
     @Override

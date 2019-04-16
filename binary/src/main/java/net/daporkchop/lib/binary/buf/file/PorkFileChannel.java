@@ -33,12 +33,12 @@ public abstract class PorkFileChannel extends AbstractPorkBuf {
     }
 
     @Override
-    public byte readByte() {
+    public byte getByte() {
         return 0;
     }
 
     @Override
-    public byte readByte(long index) {
+    public byte getByte(long index) {
         return 0;
     }
 }

@@ -17,6 +17,9 @@ package net.daporkchop.lib.binary.buf;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
+import net.daporkchop.lib.binary.buf.exception.PorkBufCannotExpandException;
+import net.daporkchop.lib.binary.buf.exception.PorkBufReadOutOfBoundsException;
+import net.daporkchop.lib.binary.buf.exception.PorkBufWriteOutOfBoundsException;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.unsafe.block.offset.Offsettable;
@@ -76,8 +79,9 @@ public interface PorkBuf extends Offsettable {
      *
      * @param numBytes the minimum number of bytes required
      * @return this buffer
+     * @throws PorkBufCannotExpandException if the buffer was unable to expand to the requested size
      */
-    default PorkBuf requireBytes(long numBytes) {
+    default PorkBuf requireBytes(long numBytes) throws PorkBufCannotExpandException {
         this.requireBytes(0L, numBytes);
         return this;
     }
@@ -88,8 +92,9 @@ public interface PorkBuf extends Offsettable {
      * @param offset   the offset that bytes will be required at
      * @param numBytes the minimum number of bytes required
      * @return this buffer
+     * @throws PorkBufCannotExpandException if the buffer was unable to expand to the requested size
      */
-    default PorkBuf requireBytes(long offset, long numBytes) {
+    default PorkBuf requireBytes(long offset, long numBytes) throws PorkBufCannotExpandException {
         if (this.capacity() < offset + numBytes) {
             this.setCapacity(offset + numBytes);
         }
@@ -112,9 +117,10 @@ public interface PorkBuf extends Offsettable {
      *
      * @param maxCapacity the new maximum capacity
      * @return this buffer
+     * @throws PorkBufCannotExpandException if, for whatever reason, the buffer's maximum size could not be changed
      */
-    default PorkBuf setMaxCapacity(long maxCapacity) {
-        throw new UnsupportedOperationException();
+    default PorkBuf setMaxCapacity(long maxCapacity) throws PorkBufCannotExpandException {
+        throw new PorkBufCannotExpandException();
     }
 
     /**
@@ -129,8 +135,9 @@ public interface PorkBuf extends Offsettable {
      *
      * @param index the new index to set. Must be >= 0 and < {@link #capacity()}
      * @return this buffer
+     * @throws PorkBufWriteOutOfBoundsException if the given writer index is greater than the buffer's current capacity
      */
-    PorkBuf writerIndex(long index);
+    PorkBuf writerIndex(long index) throws PorkBufWriteOutOfBoundsException;
 
     /**
      * Gets this buffer's current reader index.
@@ -144,8 +151,9 @@ public interface PorkBuf extends Offsettable {
      *
      * @param index the new index to set. Must be >= 0 and < {@link #capacity()}
      * @return this buffer
+     * @throws PorkBufReadOutOfBoundsException if the given reader index is greater than the buffer's current capacity
      */
-    PorkBuf readerIndex(long index);
+    PorkBuf readerIndex(long index) throws PorkBufReadOutOfBoundsException;
 
     //write operations
 
@@ -154,21 +162,18 @@ public interface PorkBuf extends Offsettable {
      *
      * @param b the byte to write
      * @return this buffer
-     * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
+     * @throws PorkBufWriteOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    PorkBuf putByte(byte b);
+    PorkBuf putByte(byte b) throws PorkBufWriteOutOfBoundsException;
 
     /**
      * Writes a single boolean to the buffer at the current writer index, incrementing the writer index by 1
      *
      * @param b the boolean to write
      * @return this buffer
-     * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
+     * @throws PorkBufWriteOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default PorkBuf putBoolean(boolean b) {
-        if (!this.isInBounds(2)) {
-            throw new BufferOverflowException();
-        }
+    default PorkBuf putBoolean(boolean b) throws PorkBufWriteOutOfBoundsException {
         return this.putByte(b ? (byte) 1 : 0);
     }
 
@@ -177,12 +182,10 @@ public interface PorkBuf extends Offsettable {
      *
      * @param s the short to write
      * @return this buffer
-     * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
+     * @throws PorkBufWriteOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default PorkBuf putShort(short s) {
-        if (!this.isInBounds(2)) {
-            throw new BufferOverflowException();
-        }
+    default PorkBuf putShort(short s) throws PorkBufWriteOutOfBoundsException {
+        this.ensureWriteInBounds(2);
         return this.putByte((byte) (s & 0xFF))
                 .putByte((byte) ((s >>> 8) & 0xFF));
     }
@@ -192,12 +195,10 @@ public interface PorkBuf extends Offsettable {
      *
      * @param i the medium to write
      * @return this buffer
-     * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
+     * @throws PorkBufWriteOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default PorkBuf putMedium(int i) {
-        if (!this.isInBounds(3)) {
-            throw new BufferOverflowException();
-        }
+    default PorkBuf putMedium(int i) throws PorkBufWriteOutOfBoundsException {
+        this.ensureWriteInBounds(3);
         return this.putByte((byte) (i & 0xFF))
                 .putByte((byte) ((i >>> 8) & 0xFF))
                 .putByte((byte) ((i >>> 16) & 0xFF));
@@ -208,12 +209,10 @@ public interface PorkBuf extends Offsettable {
      *
      * @param i the int to write
      * @return this buffer
-     * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
+     * @throws PorkBufWriteOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default PorkBuf putInt(int i) {
-        if (!this.isInBounds(4)) {
-            throw new BufferOverflowException();
-        }
+    default PorkBuf putInt(int i) throws PorkBufWriteOutOfBoundsException {
+        this.ensureWriteInBounds(4);
         return this.putByte((byte) (i & 0xFF))
                 .putByte((byte) ((i >>> 8) & 0xFF))
                 .putByte((byte) ((i >>> 16) & 0xFF))
@@ -225,12 +224,10 @@ public interface PorkBuf extends Offsettable {
      *
      * @param l the long to write
      * @return this buffer
-     * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
+     * @throws PorkBufWriteOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default PorkBuf putLong(long l) {
-        if (!this.isInBounds(8)) {
-            throw new BufferOverflowException();
-        }
+    default PorkBuf putLong(long l) throws PorkBufWriteOutOfBoundsException {
+        this.ensureWriteInBounds(8);
         return this.putByte((byte) (l & 0xFFL))
                 .putByte((byte) ((l >>> 8L) & 0xFFL))
                 .putByte((byte) ((l >>> 16L) & 0xFFL))
@@ -246,9 +243,9 @@ public interface PorkBuf extends Offsettable {
      *
      * @param f the float to write
      * @return this buffer
-     * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
+     * @throws PorkBufWriteOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default PorkBuf putFloat(float f) {
+    default PorkBuf putFloat(float f) throws PorkBufWriteOutOfBoundsException {
         return this.putInt(Float.floatToRawIntBits(f));
     }
 
@@ -257,9 +254,9 @@ public interface PorkBuf extends Offsettable {
      *
      * @param d the double to write
      * @return this buffer
-     * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
+     * @throws PorkBufWriteOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default PorkBuf putDouble(double d) {
+    default PorkBuf putDouble(double d) throws PorkBufWriteOutOfBoundsException {
         return this.putLong(Double.doubleToRawLongBits(d));
     }
 
@@ -269,9 +266,10 @@ public interface PorkBuf extends Offsettable {
      *
      * @param arr the byte array to write
      * @return this buffer
-     * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
+     * @throws PorkBufWriteOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default PorkBuf putBytes(@NonNull byte[] arr) {
+    default PorkBuf putBytes(@NonNull byte[] arr) throws PorkBufWriteOutOfBoundsException {
+        this.ensureWriteInBounds(arr.length);
         for (byte b : arr) {
             this.putByte(b);
         }
@@ -286,9 +284,14 @@ public interface PorkBuf extends Offsettable {
      * @param off the offset in the byte array to start reading
      * @param len the number of bytes to read
      * @return this buffer
-     * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
+     * @throws ArrayIndexOutOfBoundsException   if the given offset and/or length are invalid
+     * @throws PorkBufWriteOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default PorkBuf putBytes(@NonNull byte[] arr, int off, int len) {
+    default PorkBuf putBytes(@NonNull byte[] arr, int off, int len) throws ArrayIndexOutOfBoundsException, PorkBufWriteOutOfBoundsException {
+        if (off + len >= arr.length || off < 0 || len < 0) {
+            throw new ArrayIndexOutOfBoundsException();
+        }
+        this.ensureWriteInBounds(len);
         for (int i = 0; i < len; i++) {
             this.putByte(arr[off + i]);
         }
@@ -301,10 +304,12 @@ public interface PorkBuf extends Offsettable {
      *
      * @param buf the {@link ByteBuf} to write
      * @return this buffer
-     * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
+     * @throws PorkBufWriteOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default PorkBuf putBytes(@NonNull ByteBuf buf) {
-        for (int i = buf.readableBytes() - 1; i >= 0; i--) {
+    default PorkBuf putBytes(@NonNull ByteBuf buf) throws PorkBufWriteOutOfBoundsException {
+        int i = buf.readableBytes();
+        this.ensureWriteInBounds(i);
+        for (i--; i >= 0; i--) {
             this.putByte(buf.readByte());
         }
         return this;
@@ -316,10 +321,12 @@ public interface PorkBuf extends Offsettable {
      *
      * @param buf the {@link ByteBuffer} to write
      * @return this buffer
-     * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
+     * @throws PorkBufWriteOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default PorkBuf putBytes(@NonNull ByteBuffer buf) {
-        for (int i = buf.remaining() - 1; i >= 0; i--) {
+    default PorkBuf putBytes(@NonNull ByteBuffer buf) throws PorkBufWriteOutOfBoundsException {
+        int i = buf.remaining();
+        this.ensureWriteInBounds(i);
+        for (i--; i >= 0; i--) {
             this.putByte(buf.get());
         }
         return this;
@@ -331,9 +338,9 @@ public interface PorkBuf extends Offsettable {
      * @param index the index to write at
      * @param b     the byte to be written
      * @return this buffer
-     * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
+     * @throws PorkBufWriteOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    PorkBuf putByte(long index, byte b);
+    PorkBuf putByte(long index, byte b) throws PorkBufWriteOutOfBoundsException;
 
     /**
      * Writes a single boolean to the buffer at the given index
@@ -341,12 +348,9 @@ public interface PorkBuf extends Offsettable {
      * @param index the index to write at
      * @param b     the boolean to be written
      * @return this buffer
-     * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
+     * @throws PorkBufWriteOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default PorkBuf putBoolean(long index, boolean b) {
-        if (!this.isInBounds(index, 1)) {
-            throw new BufferOverflowException();
-        }
+    default PorkBuf putBoolean(long index, boolean b) throws PorkBufWriteOutOfBoundsException {
         return this.putByte(index, b ? (byte) 1 : 0);
     }
 
@@ -356,12 +360,10 @@ public interface PorkBuf extends Offsettable {
      * @param index the index to write at
      * @param s     the short to be written
      * @return this buffer
-     * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
+     * @throws PorkBufWriteOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default PorkBuf putShort(long index, short s) {
-        if (!this.isInBounds(index, 2)) {
-            throw new BufferOverflowException();
-        }
+    default PorkBuf putShort(long index, short s) throws PorkBufWriteOutOfBoundsException {
+        this.ensureInBounds(index, 2, false);
         return this.putByte(index, (byte) (s & 0xFF))
                 .putByte(index + 1L, (byte) ((s >>> 8) & 0xFF));
     }
@@ -372,12 +374,10 @@ public interface PorkBuf extends Offsettable {
      * @param index the index to write at
      * @param i     the medium to be written
      * @return this buffer
-     * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
+     * @throws PorkBufWriteOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default PorkBuf putMedium(long index, int i) {
-        if (!this.isInBounds(index, 3)) {
-            throw new BufferOverflowException();
-        }
+    default PorkBuf putMedium(long index, int i) throws PorkBufWriteOutOfBoundsException {
+        this.ensureInBounds(index, 3, false);
         return this.putByte(index, (byte) (i & 0xFF))
                 .putByte(index + 1L, (byte) ((i >>> 8) & 0xFF))
                 .putByte(index + 2L, (byte) ((i >>> 16) & 0xFF));
@@ -389,12 +389,10 @@ public interface PorkBuf extends Offsettable {
      * @param index the index to write at
      * @param i     the int to be written
      * @return this buffer
-     * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
+     * @throws PorkBufWriteOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default PorkBuf putInt(long index, int i) {
-        if (!this.isInBounds(index, 4)) {
-            throw new BufferOverflowException();
-        }
+    default PorkBuf putInt(long index, int i) throws PorkBufWriteOutOfBoundsException {
+        this.ensureInBounds(index, 4, false);
         return this.putByte(index, (byte) (i & 0xFF))
                 .putByte(index + 1L, (byte) ((i >>> 8) & 0xFF))
                 .putByte(index + 2L, (byte) ((i >>> 16) & 0xFF))
@@ -407,12 +405,10 @@ public interface PorkBuf extends Offsettable {
      * @param index the index to write at
      * @param l     the long to be written
      * @return this buffer
-     * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
+     * @throws PorkBufWriteOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default PorkBuf putLong(long index, long l) {
-        if (!this.isInBounds(index, 8)) {
-            throw new BufferOverflowException();
-        }
+    default PorkBuf putLong(long index, long l) throws PorkBufWriteOutOfBoundsException {
+        this.ensureInBounds(index, 8, false);
         return this.putByte(index, (byte) (l & 0xFFL))
                 .putByte(index + 1L, (byte) ((l >>> 8L) & 0xFFL))
                 .putByte(index + 2L, (byte) ((l >>> 16L) & 0xFFL))
@@ -429,9 +425,9 @@ public interface PorkBuf extends Offsettable {
      * @param index the index to write at
      * @param f     the float to be written
      * @return this buffer
-     * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
+     * @throws PorkBufWriteOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default PorkBuf putFloat(long index, float f) {
+    default PorkBuf putFloat(long index, float f) throws PorkBufWriteOutOfBoundsException {
         return this.putInt(index, Float.floatToRawIntBits(f));
     }
 
@@ -441,9 +437,9 @@ public interface PorkBuf extends Offsettable {
      * @param index the index to write at
      * @param d     the double to be written
      * @return this buffer
-     * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
+     * @throws PorkBufWriteOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default PorkBuf putDouble(long index, double d) {
+    default PorkBuf putDouble(long index, double d) throws PorkBufWriteOutOfBoundsException {
         return this.putLong(index, Double.doubleToRawLongBits(d));
     }
 
@@ -453,9 +449,10 @@ public interface PorkBuf extends Offsettable {
      * @param index the index to write at
      * @param arr   the byte array to write
      * @return this buffer
-     * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
+     * @throws PorkBufWriteOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default PorkBuf putBytes(long index, @NonNull byte[] arr) {
+    default PorkBuf putBytes(long index, @NonNull byte[] arr) throws PorkBufWriteOutOfBoundsException {
+        this.ensureInBounds(index, arr.length, false);
         for (byte b : arr) {
             this.putByte(index++, b);
         }
@@ -470,9 +467,14 @@ public interface PorkBuf extends Offsettable {
      * @param off   the offset in the byte array to start reading
      * @param len   the number of bytes to read
      * @return this buffer
-     * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
+     * @throws ArrayIndexOutOfBoundsException   if the given offset and/or length are invalid
+     * @throws PorkBufWriteOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default PorkBuf putBytes(long index, @NonNull byte[] arr, int off, int len) {
+    default PorkBuf putBytes(long index, @NonNull byte[] arr, int off, int len) throws ArrayIndexOutOfBoundsException, PorkBufWriteOutOfBoundsException {
+        if (off + len >= arr.length || off < 0 || len < 0) {
+            throw new ArrayIndexOutOfBoundsException();
+        }
+        this.ensureInBounds(index, len, false);
         for (int i = 0; i < len; i++) {
             this.putByte(index++, arr[off + i]);
         }
@@ -485,10 +487,12 @@ public interface PorkBuf extends Offsettable {
      * @param index the index to write at
      * @param buf   the {@link ByteBuf} to write
      * @return this buffer
-     * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
+     * @throws PorkBufWriteOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default PorkBuf putBytes(long index, @NonNull ByteBuf buf) {
-        for (int i = buf.readableBytes() - 1; i >= 0; i--) {
+    default PorkBuf putBytes(long index, @NonNull ByteBuf buf) throws PorkBufWriteOutOfBoundsException {
+        int i = buf.readableBytes();
+        this.ensureInBounds(index, i, false);
+        for (i--; i >= 0; i--) {
             this.putByte(index++, buf.readByte());
         }
         return this;
@@ -500,10 +504,12 @@ public interface PorkBuf extends Offsettable {
      * @param index the index to write at
      * @param buf   the {@link ByteBuffer} to write
      * @return this buffer
-     * @throws BufferOverflowException if the capacity limit (see {@link #maxCapacity()}) is reached
+     * @throws PorkBufWriteOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default PorkBuf putBytes(long index, @NonNull ByteBuffer buf) {
-        for (int i = buf.remaining() - 1; i >= 0; i--) {
+    default PorkBuf putBytes(long index, @NonNull ByteBuffer buf) throws PorkBufWriteOutOfBoundsException {
+        int i = buf.remaining();
+        this.ensureInBounds(index, i, false);
+        for (i--; i >= 0; i--) {
             this.putByte(index++, buf.get());
         }
         return this;
@@ -515,93 +521,107 @@ public interface PorkBuf extends Offsettable {
      * Reads a byte from the buffer at the current reader index
      *
      * @return a byte
+     * @throws PorkBufReadOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    byte readByte();
+    byte getByte() throws PorkBufReadOutOfBoundsException;
 
     /**
      * Reads a boolean from the buffer at the current reader index
      *
      * @return a boolean
+     * @throws PorkBufReadOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default boolean readBoolean() {
-        return this.readByte() != 0;
+    default boolean getBoolean() throws PorkBufReadOutOfBoundsException {
+        return this.getByte() != 0;
     }
 
     /**
      * Reads a short from the buffer at the current reader index
      *
      * @return a short
+     * @throws PorkBufReadOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default short readShort() {
-        return (short) ((this.readByte() & 0xFF)
-                | ((this.readByte() & 0xFF) << 8));
+    default short getShort() throws PorkBufReadOutOfBoundsException {
+        this.ensureReadInBounds(2);
+        return (short) ((this.getByte() & 0xFF)
+                | ((this.getByte() & 0xFF) << 8));
     }
 
     /**
      * Reads a medium from the buffer at the current reader index
      *
      * @return a medium
+     * @throws PorkBufReadOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default int readMedium() {
-        return (this.readByte() & 0xFF)
-                | ((this.readByte() & 0xFF) << 8)
-                | ((this.readByte() & 0xFF) << 16);
+    default int getMedium() throws PorkBufReadOutOfBoundsException {
+        this.ensureReadInBounds(3);
+        return (this.getByte() & 0xFF)
+                | ((this.getByte() & 0xFF) << 8)
+                | ((this.getByte() & 0xFF) << 16);
     }
 
     /**
      * Reads an int from the buffer at the current reader index
      *
      * @return an int
+     * @throws PorkBufReadOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default int readInt() {
-        return (this.readByte() & 0xFF)
-                | ((this.readByte() & 0xFF) << 8)
-                | ((this.readByte() & 0xFF) << 16)
-                | ((this.readByte() & 0xFF) << 24);
+    default int getInt() throws PorkBufReadOutOfBoundsException {
+        this.ensureReadInBounds(4);
+        return (this.getByte() & 0xFF)
+                | ((this.getByte() & 0xFF) << 8)
+                | ((this.getByte() & 0xFF) << 16)
+                | ((this.getByte() & 0xFF) << 24);
     }
 
     /**
      * Reads a long from the buffer at the current reader index
      *
      * @return a long
+     * @throws PorkBufReadOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default long readLong() {
-        return (this.readByte() & 0xFFL)
-                | ((this.readByte() & 0xFFL) << 8L)
-                | ((this.readByte() & 0xFFL) << 16L)
-                | ((this.readByte() & 0xFFL) << 24L)
-                | ((this.readByte() & 0xFFL) << 32L)
-                | ((this.readByte() & 0xFFL) << 40L)
-                | ((this.readByte() & 0xFFL) << 48L)
-                | ((this.readByte() & 0xFFL) << 56L);
+    default long getLong() throws PorkBufReadOutOfBoundsException {
+        this.ensureReadInBounds(8);
+        return (this.getByte() & 0xFFL)
+                | ((this.getByte() & 0xFFL) << 8L)
+                | ((this.getByte() & 0xFFL) << 16L)
+                | ((this.getByte() & 0xFFL) << 24L)
+                | ((this.getByte() & 0xFFL) << 32L)
+                | ((this.getByte() & 0xFFL) << 40L)
+                | ((this.getByte() & 0xFFL) << 48L)
+                | ((this.getByte() & 0xFFL) << 56L);
     }
 
     /**
      * Reads a float from the buffer at the current reader index
      *
      * @return a float
+     * @throws PorkBufReadOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default float readFloat() {
-        return Float.intBitsToFloat(this.readInt());
+    default float getFloat() throws PorkBufReadOutOfBoundsException {
+        return Float.intBitsToFloat(this.getInt());
     }
 
     /**
      * Reads a double from the buffer at the current reader index
      *
      * @return a double
+     * @throws PorkBufReadOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default double readDouble() {
-        return Double.longBitsToDouble(this.readLong());
+    default double getDouble() throws PorkBufReadOutOfBoundsException {
+        return Double.longBitsToDouble(this.getLong());
     }
 
     /**
      * Fills a byte array with data, starting at the current reader index
      *
      * @param arr the byte array to fill
+     * @throws PorkBufReadOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default void readBytes(@NonNull byte[] arr) {
+    default void getBytes(@NonNull byte[] arr) throws PorkBufReadOutOfBoundsException {
+        this.ensureReadInBounds(arr.length);
         for (int i = 0; i < arr.length; i++) {
-            arr[i] = this.readByte();
+            arr[i] = this.getByte();
         }
     }
 
@@ -611,10 +631,16 @@ public interface PorkBuf extends Offsettable {
      * @param arr the byte array to fill
      * @param off the offset in the byte array to start putting bytes in
      * @param len the number of bytes to read
+     * @throws ArrayIndexOutOfBoundsException  if the given offset and/or length are invalid
+     * @throws PorkBufReadOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default void readBytes(@NonNull byte[] arr, int off, int len) {
+    default void getBytes(@NonNull byte[] arr, int off, int len) throws ArrayIndexOutOfBoundsException, PorkBufReadOutOfBoundsException {
+        if (off + len >= arr.length || off < 0 || len < 0) {
+            throw new ArrayIndexOutOfBoundsException();
+        }
+        this.ensureReadInBounds(len);
         for (int i = 0; i < len; i++) {
-            arr[off + i] = this.readByte();
+            arr[off + i] = this.getByte();
         }
     }
 
@@ -622,10 +648,13 @@ public interface PorkBuf extends Offsettable {
      * Fills a {@link ByteBuf} with data, starting at the current reader index
      *
      * @param buf the {@link ByteBuf} to fill
+     * @throws PorkBufReadOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default void readBytes(@NonNull ByteBuf buf) {
-        for (int i = buf.writableBytes() - 1; i >= 0; i--) {
-            buf.writeByte(this.readByte() & 0xFF);
+    default void getBytes(@NonNull ByteBuf buf) throws PorkBufReadOutOfBoundsException {
+        int i = buf.writableBytes();
+        this.ensureReadInBounds(i);
+        for (i--; i >= 0; i--) {
+            buf.writeByte(this.getByte() & 0xFF);
         }
     }
 
@@ -633,10 +662,13 @@ public interface PorkBuf extends Offsettable {
      * Fills a {@link ByteBuffer} with data, starting at the current reader index
      *
      * @param buf the {@link ByteBuffer} to fill
+     * @throws PorkBufReadOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default void readBytes(@NonNull ByteBuffer buf) {
-        for (int i = buf.remaining() - 1; i >= 0; i--) {
-            buf.put(this.readByte());
+    default void getBytes(@NonNull ByteBuffer buf) throws PorkBufReadOutOfBoundsException {
+        int i = buf.remaining();
+        this.ensureReadInBounds(i);
+        for (i--; i >= 0; i--) {
+            buf.put(this.getByte());
         }
     }
 
@@ -645,17 +677,19 @@ public interface PorkBuf extends Offsettable {
      *
      * @param index the index to read at
      * @return a byte
+     * @throws PorkBufReadOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    byte readByte(long index);
+    byte getByte(long index) throws PorkBufReadOutOfBoundsException;
 
     /**
      * Reads a boolean from the buffer at the given index
      *
      * @param index the index to read at
      * @return a boolean
+     * @throws PorkBufReadOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default boolean readBoolean(long index) {
-        return this.readByte(index) != 0;
+    default boolean getBoolean(long index) throws PorkBufReadOutOfBoundsException {
+        return this.getByte(index) != 0;
     }
 
     /**
@@ -663,10 +697,12 @@ public interface PorkBuf extends Offsettable {
      *
      * @param index the index to read at
      * @return a short
+     * @throws PorkBufReadOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default short readShort(long index) {
-        return (short) ((this.readByte(index) & 0xFF)
-                | ((this.readByte(index + 1L) & 0xFF) << 8));
+    default short getShort(long index) throws PorkBufReadOutOfBoundsException {
+        this.ensureInBounds(index, 2, true);
+        return (short) ((this.getByte(index) & 0xFF)
+                | ((this.getByte(index + 1L) & 0xFF) << 8));
     }
 
     /**
@@ -674,11 +710,13 @@ public interface PorkBuf extends Offsettable {
      *
      * @param index the index to read at
      * @return a medium
+     * @throws PorkBufReadOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default int readMedium(long index) {
-        return (this.readByte(index) & 0xFF)
-                | ((this.readByte(index + 1L) & 0xFF) << 8)
-                | ((this.readByte(index + 2L) & 0xFF) << 16);
+    default int getMedium(long index) throws PorkBufReadOutOfBoundsException {
+        this.ensureInBounds(index, 3, true);
+        return (this.getByte(index) & 0xFF)
+                | ((this.getByte(index + 1L) & 0xFF) << 8)
+                | ((this.getByte(index + 2L) & 0xFF) << 16);
     }
 
     /**
@@ -686,12 +724,14 @@ public interface PorkBuf extends Offsettable {
      *
      * @param index the index to read at
      * @return an int
+     * @throws PorkBufReadOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default int readInt(long index) {
-        return (this.readByte(index) & 0xFF)
-                | ((this.readByte(index + 1L) & 0xFF) << 8)
-                | ((this.readByte(index + 2L) & 0xFF) << 16)
-                | ((this.readByte(index + 3L) & 0xFF) << 24);
+    default int getInt(long index) throws PorkBufReadOutOfBoundsException {
+        this.ensureInBounds(index, 4, true);
+        return (this.getByte(index) & 0xFF)
+                | ((this.getByte(index + 1L) & 0xFF) << 8)
+                | ((this.getByte(index + 2L) & 0xFF) << 16)
+                | ((this.getByte(index + 3L) & 0xFF) << 24);
     }
 
     /**
@@ -699,16 +739,18 @@ public interface PorkBuf extends Offsettable {
      *
      * @param index the index to read at
      * @return a long
+     * @throws PorkBufReadOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default long readLong(long index) {
-        return (this.readByte(index) & 0xFFL)
-                | ((this.readByte(index + 1L) & 0xFFL) << 8L)
-                | ((this.readByte(index + 2L) & 0xFFL) << 16L)
-                | ((this.readByte(index + 3L) & 0xFFL) << 24L)
-                | ((this.readByte(index + 4L) & 0xFFL) << 32L)
-                | ((this.readByte(index + 5L) & 0xFFL) << 40L)
-                | ((this.readByte(index + 6L) & 0xFFL) << 48L)
-                | ((this.readByte(index + 7L) & 0xFFL) << 56L);
+    default long getLong(long index) throws PorkBufReadOutOfBoundsException {
+        this.ensureInBounds(index, 8, true);
+        return (this.getByte(index) & 0xFFL)
+                | ((this.getByte(index + 1L) & 0xFFL) << 8L)
+                | ((this.getByte(index + 2L) & 0xFFL) << 16L)
+                | ((this.getByte(index + 3L) & 0xFFL) << 24L)
+                | ((this.getByte(index + 4L) & 0xFFL) << 32L)
+                | ((this.getByte(index + 5L) & 0xFFL) << 40L)
+                | ((this.getByte(index + 6L) & 0xFFL) << 48L)
+                | ((this.getByte(index + 7L) & 0xFFL) << 56L);
     }
 
     /**
@@ -716,9 +758,10 @@ public interface PorkBuf extends Offsettable {
      *
      * @param index the index to read at
      * @return a float
+     * @throws PorkBufReadOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default float readFloat(long index) {
-        return Float.intBitsToFloat(this.readInt(index));
+    default float getFloat(long index) throws PorkBufReadOutOfBoundsException {
+        return Float.intBitsToFloat(this.getInt(index));
     }
 
     /**
@@ -726,19 +769,22 @@ public interface PorkBuf extends Offsettable {
      *
      * @param index the index to read at
      * @return a double
+     * @throws PorkBufReadOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default double readDouble(long index) {
-        return Double.longBitsToDouble(this.readLong(index));
+    default double getDouble(long index) throws PorkBufReadOutOfBoundsException {
+        return Double.longBitsToDouble(this.getLong(index));
     }
 
     /**
      * Fills a byte array with data, starting at the current reader index
      *
      * @param arr the byte array to fill
+     * @throws PorkBufReadOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default void readBytes(long index, @NonNull byte[] arr) {
+    default void getBytes(long index, @NonNull byte[] arr) throws PorkBufReadOutOfBoundsException {
+        this.ensureInBounds(index, arr.length, true);
         for (int i = 0; i < arr.length; i++) {
-            arr[i] = this.readByte(index++);
+            arr[i] = this.getByte(index++);
         }
     }
 
@@ -748,10 +794,16 @@ public interface PorkBuf extends Offsettable {
      * @param arr the byte array to fill
      * @param off the offset in the byte array to start putting bytes in
      * @param len the number of bytes to read
+     * @throws ArrayIndexOutOfBoundsException  if the given offset and/or length are invalid
+     * @throws PorkBufReadOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default void readBytes(long index, @NonNull byte[] arr, int off, int len) {
+    default void getBytes(long index, @NonNull byte[] arr, int off, int len) throws ArrayIndexOutOfBoundsException, PorkBufReadOutOfBoundsException {
+        if (off + len >= arr.length || off < 0 || len < 0) {
+            throw new ArrayIndexOutOfBoundsException();
+        }
+        this.ensureInBounds(index, len, true);
         for (int i = 0; i < len; i++) {
-            arr[off + i] = this.readByte(index++);
+            arr[off + i] = this.getByte(index++);
         }
     }
 
@@ -759,10 +811,13 @@ public interface PorkBuf extends Offsettable {
      * Fills a {@link ByteBuf} with data, starting at the current reader index
      *
      * @param buf the {@link ByteBuf} to fill
+     * @throws PorkBufReadOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default void readBytes(long index, @NonNull ByteBuf buf) {
-        for (int i = buf.writableBytes() - 1; i >= 0; i--) {
-            buf.writeByte(this.readByte(index++) & 0xFF);
+    default void getBytes(long index, @NonNull ByteBuf buf) throws PorkBufReadOutOfBoundsException {
+        int i = buf.writableBytes();
+        this.ensureInBounds(index, i, true);
+        for (i--; i >= 0; i--) {
+            buf.writeByte(this.getByte(index++) & 0xFF);
         }
     }
 
@@ -770,10 +825,13 @@ public interface PorkBuf extends Offsettable {
      * Fills a {@link ByteBuffer} with data, starting at the current reader index
      *
      * @param buf the {@link ByteBuffer} to fill
+     * @throws PorkBufReadOutOfBoundsException if the capacity limit (see {@link #maxCapacity()}) is exceeded
      */
-    default void readBytes(long index, @NonNull ByteBuffer buf) {
-        for (int i = buf.remaining() - 1; i >= 0; i--) {
-            buf.put(this.readByte(index++));
+    default void getBytes(long index, @NonNull ByteBuffer buf) throws PorkBufReadOutOfBoundsException {
+        int i = buf.remaining();
+        this.ensureInBounds(index, i, true);
+        for (i--; i >= 0; i--) {
+            buf.put(this.getByte(index++));
         }
     }
 
@@ -785,7 +843,7 @@ public interface PorkBuf extends Offsettable {
      * @return a {@link DataOut} that can write to this buffer
      */
     default DataOut outputStream() {
-        return this.outputStream(0L, -1L);
+        return this.outputStream(0L, this.maxCapacity());
     }
 
     /**
@@ -795,18 +853,18 @@ public interface PorkBuf extends Offsettable {
      * @return a {@link DataOut} that can write to this buffer
      */
     default DataOut outputStream(long offset) {
-        return this.outputStream(offset, -1L);
+        return this.outputStream(offset, this.maxCapacity() - offset);
     }
 
     /**
      * Gets a {@link DataOut} that can write to this buffer.
      *
      * @param offset the index that the {@link DataOut} will start writing at
-     * @param limit  the maximum number of bytes that may be written to the {@link DataOut}. If less than 0, the limit
-     *               will not be enforced.
+     * @param limit  the maximum writer index within this buffer at which the stream may write
      * @return a {@link DataOut} that can write to this buffer
      */
     default DataOut outputStream(long offset, long limit) {
+        this.ensureInBounds(offset, limit - offset, false);
         return new DataOut() {
             private long l;
 
@@ -830,7 +888,7 @@ public interface PorkBuf extends Offsettable {
      * @return a {@link DataIn} that can read from this buffer
      */
     default DataIn inputStream() {
-        return this.inputStream(0L, -1L);
+        return this.inputStream(0L, this.maxCapacity());
     }
 
     /**
@@ -840,18 +898,18 @@ public interface PorkBuf extends Offsettable {
      * @return a {@link DataIn} that can read from this buffer
      */
     default DataIn inputStream(long offset) {
-        return this.inputStream(offset, -1L);
+        return this.inputStream(offset, this.maxCapacity() - offset);
     }
 
     /**
      * Gets a {@link DataIn} that can read from this buffer.
      *
      * @param offset the index that the {@link DataIn} will start reading at
-     * @param limit  the maximum number of bytes that may be read from the {@link DataIn}. If less than 0, the limit
-     *               will not be enforced.
+     * @param limit  the maximum reader index within this buffer at which the stream may read
      * @return a {@link DataIn} that can read from this buffer
      */
     default DataIn inputStream(long offset, long limit) {
+        this.ensureInBounds(offset, limit - offset, true);
         return new DataIn() {
             private long l;
 
@@ -864,7 +922,7 @@ public interface PorkBuf extends Offsettable {
                 if (limit >= 0L && this.l > limit) {
                     throw new BufferUnderflowException();
                 }
-                return PorkBuf.this.readByte(offset + this.l++) & 0xFF;
+                return PorkBuf.this.getByte(offset + this.l++) & 0xFF;
             }
         };
     }
@@ -1005,87 +1063,77 @@ public interface PorkBuf extends Offsettable {
      * @return a mirror of a section of this buffer, stored in a {@link PorkBuf}
      */
     default PorkBuf snippet(long offset, long len) {
-        //TODO: optimize more (implement more methods)
-        return new AbstractPorkBuf() {
-            {
-                this.setCapacity(len);
-                this.setMaxCapacity(len);
-            }
-
-            @Override
-            public PorkBuf putByte(byte b) {
-                long l = this.writerIndex++;
-                if (this.isInBounds(l, 1)) {
-                    PorkBuf.this.putByte(offset + l, b);
-                    return this;
-                } else {
-                    throw new BufferOverflowException();
-                }
-            }
-
-            @Override
-            public PorkBuf putByte(long index, byte b) {
-                PorkBuf.this.putByte(offset + index, b);
-                return this;
-            }
-
-            @Override
-            public byte readByte() {
-                long l = this.readerIndex++;
-                if (this.isInBounds(l, 1)) {
-                    return PorkBuf.this.readByte(offset + l);
-                } else {
-                    throw new BufferOverflowException();
-                }
-            }
-
-            @Override
-            public byte readByte(long index) {
-                if (this.isInBounds(index, 1)) {
-                    return PorkBuf.this.readByte(offset + index);
-                } else {
-                    throw new BufferOverflowException();
-                }
-            }
-
-            @Override
-            public long memoryAddress() {
-                return PorkBuf.this.memoryAddress() + offset;
-            }
-
-            @Override
-            public long memorySize() {
-                return len;
-            }
-
-            @Override
-            public Object refObj() {
-                return PorkBuf.this.refObj();
-            }
-        };
+        return new SnippetImpl(offset, len, this);
     }
 
     //sanity checks
 
     /**
-     * Checks if the given number of bytes can be written at/read from the current writer index without causing errors.
+     * Checks if the given number of bytes can be written at the current writer index without
+     * causing errors.
      * <p>
      * 32-bit method for speed. Why? Because microoptimization.
      *
      * @param count the number of bytes to write
-     * @return whether or not the given number of bytes can be written at/read from the current writer index without causing errors
+     * @return whether or not the given number of bytes can be written at the current writer index without causing errors
      */
-    default boolean isInBounds(int count) {
+    default boolean isWriteInBounds(int count) {
         return this.isInBounds(this.writerIndex(), count);
     }
 
     /**
-     * Checks if the given number of bytes can be written at/read from the given position without causing errors.
+     * Checks if the given number of bytes can be written at the current writer index without
+     * causing errors.
+     * <p>
+     * If not, throws an exception.
+     * <p>
+     * 32-bit method for speed. Why? Because microoptimization.
+     *
+     * @param count the number of bytes to write
+     */
+    default void ensureWriteInBounds(int count) {
+        if (!this.isWriteInBounds(count)) {
+            throw new PorkBufWriteOutOfBoundsException(String.format("writerIndex(%d) + count(%d) >= maxCapacity(%d)", this.writerIndex(), count, this.maxCapacity()));
+        }
+    }
+
+    /**
+     * Checks if the given number of bytes can be read from the current reader index without
+     * causing errors.
+     * <p>
+     * 32-bit method for speed. Why? Because microoptimization.
+     *
+     * @param count the number of bytes to read
+     * @return whether or not the given number of bytes can be read from the current reader index without causing errors
+     */
+    default boolean isReadInBounds(int count) {
+        return this.isInBounds(this.readerIndex(), count);
+    }
+
+    /**
+     * Checks if the given number of bytes can be read from the current reader index without
+     * causing errors.
+     * <p>
+     * If not, throws an exception.
+     * <p>
+     * 32-bit method for speed. Why? Because microoptimization.
+     *
+     * @param count the number of bytes to read
+     */
+    default void ensureReadInBounds(int count) {
+        if (!this.isReadInBounds(count)) {
+            throw new PorkBufReadOutOfBoundsException(String.format("readerIndex(%d) + count(%d) >= maxCapacity(%d)", this.readerIndex(), count, this.maxCapacity()));
+        }
+    }
+
+    /**
+     * Checks if the given number of bytes can be written at/read from the given position without
+     * causing errors.
      * <p>
      * 32-bit method for speed. Why? Because microoptimization.
      *
      * @param index the index to start writing at
-     * @param count the number of bytes to write
+     * @param count the number of bytes to read/write
      * @return whether or not the given number of bytes can be written at/read from the given position without causing errors
      */
     default boolean isInBounds(long index, int count) {
@@ -1093,23 +1141,97 @@ public interface PorkBuf extends Offsettable {
     }
 
     /**
-     * Checks if the given number of bytes can be written at/read from the current writer index without causing errors.
+     * Checks if the given number of bytes can be written at/read from the given position without
+     * causing errors.
+     * <p>
+     * If not, throws an exception.
+     * <p>
+     * 32-bit method for speed. Why? Because microoptimization.
+     *
+     * @param index the index to start writing at
+     * @param count the number of bytes to read/write
+     */
+    default void ensureInBounds(long index, int count, boolean read) {
+        if (!this.isInBounds(index, count)) {
+            String msg = String.format("index(%d) + count(%d) >= maxCapacity(%d)", index, count, this.maxCapacity());
+            throw read ? new PorkBufReadOutOfBoundsException(msg) : new PorkBufWriteOutOfBoundsException(msg);
+        }
+    }
+
+    /**
+     * Checks if the given number of bytes can be written at the current writer index without
+     * causing errors.
      *
      * @param count the number of bytes to write
-     * @return whether or not the given number of bytes can be written at/read from the current writer index without causing errors
+     * @return whether or not the given number of bytes can be written at the current writer index without causing errors
      */
-    default boolean isInBounds(long count) {
+    default boolean isWriteInBounds(long count) {
         return this.isInBounds(this.writerIndex(), count);
+    }
+
+    /**
+     * Checks if the given number of bytes can be written at the current writer index without
+     * causing errors.
+     * <p>
+     * If not, throws an exception.
+     *
+     * @param count the number of bytes to write
+     */
+    default void ensureWriteInBounds(long count) {
+        if (!this.isWriteInBounds(count)) {
+            throw new PorkBufWriteOutOfBoundsException(String.format("writerIndex(%d) + count(%d) >= maxCapacity(%d)", this.writerIndex(), count, this.maxCapacity()));
+        }
+    }
+
+    /**
+     * Checks if the given number of bytes can be read from the current reader index without
+     * causing errors.
+     *
+     * @param count the number of bytes to read
+     * @return whether or not the given number of bytes can be read from the current reader index without causing errors
+     */
+    default boolean isReadInBounds(long count) {
+        return this.isInBounds(this.readerIndex(), count);
+    }
+
+    /**
+     * Checks if the given number of bytes can be read from the current reader index without
+     * causing errors.
+     * <p>
+     * If not, throws an exception.
+     *
+     * @param count the number of bytes to read
+     */
+    default void ensureReadInBounds(long count) {
+        if (!this.isReadInBounds(count)) {
+            throw new PorkBufReadOutOfBoundsException(String.format("readerIndex(%d) + count(%d) >= maxCapacity(%d)", this.readerIndex(), count, this.maxCapacity()));
+        }
     }
 
     /**
      * Checks if the given number of bytes can be written at/read from the given position without causing errors.
      *
      * @param index the index to start writing at
-     * @param count the number of bytes to write
+     * @param count the number of bytes to read/write
      * @return whether or not the given number of bytes can be written at/read from the given position without causing errors
      */
     default boolean isInBounds(long index, long count) {
         return index >= 0L && index + count < this.maxCapacity();
+    }
+
+    /**
+     * Checks if the given number of bytes can be written at/read from the given position without
+     * causing errors.
+     * <p>
+     * If not, throws an exception.
+     *
+     * @param index the index to start writing at
+     * @param count the number of bytes to read/write
+     */
+    default void ensureInBounds(long index, long count, boolean read) {
+        if (!this.isInBounds(index, count)) {
+            String msg = String.format("index(%d) + count(%d) >= maxCapacity(%d)", index, count, this.maxCapacity());
+            throw read ? new PorkBufReadOutOfBoundsException(msg) : new PorkBufWriteOutOfBoundsException(msg);
+        }
     }
 }

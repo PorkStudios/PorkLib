@@ -15,4 +15,5 @@
 
 dependencies {
     compile project(":math")
+    compile project(":reflection")
 }

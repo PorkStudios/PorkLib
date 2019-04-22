@@ -225,7 +225,7 @@ public class LambdaBuilder<T> {
                 if (!this.methodStatic) {
                     temp.add(0, new LambdaParam(this.methodHolder, false, this.interfaceTargetGeneric));
                 }
-                interfaceParams = temp.stream().map(param -> param.isTargetGeneric() ? Object.class : param.getType()).toArray(Class[]::new);
+                interfaceParams = temp.stream().map(param -> param.isInterfaceGeneric() ? Object.class : param.getType()).toArray(Class[]::new);
             }
 
             Method targetMethod;
@@ -242,12 +242,10 @@ public class LambdaBuilder<T> {
             MethodHandle targetHandle;
             MethodType targetType;
             MethodType interfaceType;
-            //MethodHandle interfaceHandle;
             try {
+                targetType = MethodType.methodType(this.returnType.isTargetGeneric() ? Object.class : this.returnType.getType(), targetParams);
                 targetHandle = lookup.unreflect(targetMethod);
-                targetType = MethodType.methodType(this.returnType.isGeneric() ? Object.class : this.returnType.getType(), targetParams);
                 interfaceType = MethodType.methodType(this.returnType.isInterfaceGeneric() ? Object.class : this.returnType.getType(), interfaceParams);
-                //interfaceHandle = LOOKUP.unreflect(interfaceMethod);
             } catch (IllegalAccessException e) {
                 throw PConstants.p_exception(e);
             }

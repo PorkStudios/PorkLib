@@ -18,6 +18,7 @@ package net.daporkchop.lib.common.util;
 import lombok.NonNull;
 import net.daporkchop.lib.unsafe.PUnsafe;
 import sun.misc.Cleaner;
+import sun.misc.SoftCache;
 
 import javax.swing.*;
 import java.awt.*;
@@ -25,8 +26,11 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
+import java.util.Map;
+import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -141,6 +145,21 @@ public class PorkUtil {
                 throw PConstants.p_exception(e);
             }
         }
+    }
+
+    /**
+     * Creates a new instance of {@link SoftCache}.
+     * <p>
+     * This simply allows not showing compile-time warnings for using internal classes when creating
+     * new instances.
+     *
+     * @param <K> the key type
+     * @param <V> the value type
+     * @return a new {@link SoftCache}
+     */
+    @SuppressWarnings("unchecked")
+    public static <K, V> Map<K, V> newSoftCache() {
+        return (Map<K, V>) new SoftCache();
     }
 
     public static void simpleDisplayImage(@NonNull BufferedImage img) {

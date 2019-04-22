@@ -15,32 +15,53 @@
 
 package example.graphics;
 
-import net.daporkchop.lib.graphics.PIcon;
-import net.daporkchop.lib.graphics.PImage;
-import net.daporkchop.lib.graphics.impl.image.DirectImage;
-import net.daporkchop.lib.graphics.util.ImageInterpolator;
+import net.daporkchop.lib.graphics.bitmap.ColorFormat;
+import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
+import net.daporkchop.lib.graphics.bitmap.image.PImage;
+import net.daporkchop.lib.graphics.interpolation.ImageInterpolator;
 import net.daporkchop.lib.graphics.util.Thumbnail;
 import net.daporkchop.lib.math.interpolation.CubicInterpolationEngine;
-import net.daporkchop.lib.math.interpolation.NearestNeighborInterpolationEngine;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * @author DaPorkchop_
  */
 public class TestingDisplayingOfImages {
-    public static void main(String... args) throws InterruptedException {
+    public static void main(String... args) throws InterruptedException, IOException {
         int size = 20;
-        for (int i = 0; i < 2; i++) {
-            PImage image = new DirectImage(size, size, i == 1);
+        for (ColorFormat format : ColorFormat.values()) {
+            PImage image = format.createImage(size, size);
             for (int x = size - 1; x >= 0; x--) {
                 for (int y = size - 1; y >= 0; y--) {
-                    image.setRGB(x, y, ThreadLocalRandom.current().nextInt());
+                    if (format.isBw()) {
+                        image.setABW(x, y, (ThreadLocalRandom.current().nextInt() & 0xFF) | ((y & 1) == 0 ? 0xFF00 : 0x7700));
+                    } else {
+                        image.setARGB(x, y, (ThreadLocalRandom.current().nextInt() & 0xFFFFFF) | ((y & 1) == 0 ? 0xFF000000 : 0x77000000));
+                    }
                 }
+            }
+
+            image.getRenderer().fillPolygon(
+                    new int[] {
+                            5, 10, 5, 0
+                    },
+                    new int[] {
+                            0, 5, 10, 5
+                    },
+                    4,
+                    0xFFFF0000
+            );
+
+            if (!ImageIO.write(image.getAsBufferedImage(), "png", new File("./test_out/out.png"))) {
+                throw new IllegalStateException("Didn't write image!");
             }
 
             ImageInterpolator interpolator = new ImageInterpolator(new CubicInterpolationEngine());
@@ -50,6 +71,7 @@ public class TestingDisplayingOfImages {
 
             JFrame frame = new JFrame();
             frame.getContentPane().setLayout(new FlowLayout());
+            frame.getContentPane().add(new JLabel(format.name()));
             for (PIcon icon : thumbnail.getIcons()) {
                 frame.getContentPane().add(new JLabel(icon.getAsSwingIcon()));
             }
@@ -59,12 +81,12 @@ public class TestingDisplayingOfImages {
             frame.addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowClosed(WindowEvent e) {
-                    synchronized (frame)    {
+                    synchronized (frame) {
                         frame.notify();
                     }
                 }
             });
-            synchronized (frame)    {
+            synchronized (frame) {
                 frame.wait();
             }
         }

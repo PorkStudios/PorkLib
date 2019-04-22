@@ -29,6 +29,7 @@ import net.daporkchop.lib.gui.component.type.Window;
 import net.daporkchop.lib.gui.component.type.functional.ProgressBar;
 import net.daporkchop.lib.gui.component.type.functional.Slider;
 import net.daporkchop.lib.gui.component.type.functional.Table;
+import net.daporkchop.lib.gui.swing.type.functional.SwingPasswordBox;
 import net.daporkchop.lib.gui.util.Alignment;
 import net.daporkchop.lib.gui.util.ScrollCondition;
 import net.daporkchop.lib.logging.Logging;
@@ -60,7 +61,7 @@ public class GuiExample implements Logging {
                 .button("button2", button -> button
                         .orientRelative(0, 0.0d, 0.1d, 0.1d)
                         .setClickHandler((mouseButton, x, y) -> logger.info("Bounds: ${0}\n", button.getWindow().getComponent("panel1.button2").getBounds())))
-                .label("label1", LOREM_IPSUM, label -> label
+                .label("label1", "<html><span style=\"font-weight: bold\">" + LOREM_IPSUM + "</span></html>", label -> label
                         .orientRelative(0.5d, 0, 0.5d, 0.1d)
                         .setTooltip("This is a label. Labels can only display plain text.")
                         .setTextColor(0xFFFF00FF))

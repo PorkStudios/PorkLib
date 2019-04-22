@@ -17,6 +17,7 @@ package net.daporkchop.lib.gui.swing.type.functional;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.gui.component.state.functional.TextBoxState;
 import net.daporkchop.lib.gui.component.type.functional.TextBox;
 import net.daporkchop.lib.gui.swing.common.SwingMouseListener;
@@ -25,8 +26,6 @@ import net.daporkchop.lib.gui.swing.impl.SwingComponent;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.plaf.basic.BasicTextFieldUI;
-import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
@@ -37,18 +36,21 @@ import java.util.function.Consumer;
 /**
  * @author DaPorkchop_
  */
+@Accessors(chain = true)
 public class SwingTextBox extends SwingComponent<TextBox, JTextField, TextBoxState> implements TextBox {
     protected String text = "";
     protected final Map<String, Consumer<String>> handlers = new HashMap<>();
 
     public SwingTextBox(String name) {
-        this(name, new JTextField());
+        this(name, new SwingTextBoxImpl());
     }
 
-    protected SwingTextBox(String name, JTextField jTextField) {
+    protected SwingTextBox(String name, @NonNull JTextField jTextField) {
         super(name, jTextField);
 
-        this.swing.setUI(new SwingTextBoxUI());
+        if (this.getClass() == SwingTextBox.class)  {
+            //this.swing.setUI(new SwingTextBoxUI());
+        }
         this.swing.setText("");
         this.swing.getDocument().addDocumentListener(new SwingTextBoxDocumentListener());
         this.swing.addMouseListener(new SwingMouseListener<>(this));
@@ -69,18 +71,18 @@ public class SwingTextBox extends SwingComponent<TextBox, JTextField, TextBoxSta
 
     @Override
     public String getHint() {
-        return ((SwingTextBoxUI) this.swing.getUI()).hint;
+        return ((SwingTextBoxImpl) this.swing).hint;
     }
 
     @Override
     public TextBox setHint(@NonNull String hint) {
-        ((SwingTextBoxUI) this.swing.getUI()).setHint(hint);
+        ((SwingTextBoxImpl) this.swing).setHint(hint);
         return this;
     }
 
     @Override
     public int getHintColor() {
-        return ((SwingTextBoxUI) this.swing.getUI()).color.getRGB();
+        return ((SwingTextBoxImpl) this.swing).hintColor.getRGB();
     }
 
     @Override
@@ -90,7 +92,7 @@ public class SwingTextBox extends SwingComponent<TextBox, JTextField, TextBoxSta
 
     @Override
     public TextBox setHintColor(@NonNull Color color) {
-        ((SwingTextBoxUI) this.swing.getUI()).setColor(color);
+        ((SwingTextBoxImpl) this.swing).setHintColor(color);
         return this;
     }
 
@@ -133,34 +135,42 @@ public class SwingTextBox extends SwingComponent<TextBox, JTextField, TextBoxSta
     }
 
     @Getter
-    public class SwingTextBoxUI extends BasicTextFieldUI implements FocusListener {
-        private String hint;
-        private Color color = Color.LIGHT_GRAY;
-
-        public void setColor(@NonNull Color color) {
-            this.color = color;
-            this.repaint();
-        }
-
-        private void repaint() {
-            if (this.getComponent() != null) {
-                this.getComponent().repaint();
-            }
-        }
+    protected static class SwingTextBoxImpl extends JTextField implements FocusListener {
+        protected String hint;
+        protected Color hintColor = Color.LIGHT_GRAY;
 
         public void setHint(String hint) {
             this.hint = hint;
             this.repaint();
         }
 
+        public void setHintColor(@NonNull Color hintColor) {
+            this.hintColor = hintColor;
+            this.repaint();
+        }
+
+        {
+            this.addFocusListener(this);
+        }
+
         @Override
-        protected void paintSafely(Graphics g) {
-            super.paintSafely(g);
-            JTextComponent comp = getComponent();
-            if (this.hint != null && comp.getText().isEmpty() && !comp.hasFocus()) {
-                g.setColor(this.color);
-                int padding = (comp.getHeight() - comp.getFont().getSize()) / 2;
-                g.drawString(this.hint, 3, comp.getHeight() - padding - 1);
+        protected void paintComponent(Graphics g) {
+            if (this.ui != null) {
+                Graphics scratchGraphics = (g == null) ? null : g.create();
+                try {
+                    this.ui.update(scratchGraphics, this);
+                    this.drawHint(scratchGraphics);
+                } finally {
+                    scratchGraphics.dispose();
+                }
+            }
+        }
+
+        protected void drawHint(Graphics g)   {
+            if (this.hint != null && this.getText().isEmpty() && !this.hasFocus()) {
+                g.setColor(this.hintColor);
+                int padding = (this.getHeight() - this.getFont().getSize()) / 2;
+                g.drawString(this.hint, 4, this.getHeight() - padding - 1);
             }
         }
 
@@ -172,18 +182,6 @@ public class SwingTextBox extends SwingComponent<TextBox, JTextField, TextBoxSta
         @Override
         public void focusLost(FocusEvent e) {
             this.repaint();
-        }
-
-        @Override
-        protected void installListeners() {
-            super.installListeners();
-            this.getComponent().addFocusListener(this);
-        }
-
-        @Override
-        protected void uninstallListeners() {
-            super.uninstallListeners();
-            this.getComponent().removeFocusListener(this);
         }
     }
 }

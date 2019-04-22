@@ -20,6 +20,7 @@ import net.daporkchop.lib.common.util.PConstants;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -83,6 +84,16 @@ public abstract class PReflection {
         return null;
     }
 
+    public static Method getMethod(@NonNull Class<?> clazz, @NonNull String name, @NonNull Class<?>... params)  {
+        try {
+            Method method = clazz.getDeclaredMethod(name, params);
+            method.setAccessible(true);
+            return method;
+        } catch (NoSuchMethodException e)   {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static void setStatic(@NonNull Class<?> clazz, @NonNull String fieldName, Object value) {
         try {
             Field field = clazz.getDeclaredField(fieldName);
@@ -93,9 +104,8 @@ public abstract class PReflection {
                 field.setAccessible(true);
             }
             field.set(null, value);
-        } catch (NoSuchFieldException
-                | IllegalAccessException e) {
-            throw PConstants.p_exception(e);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
         }
     }
 }

@@ -1,0 +1,96 @@
+/*
+ * Adapted from the Wizardry License
+ *
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ *
+ * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
+ *
+ * The persons and/or organizations are also disallowed from sub-licensing and/or trademarking this software without explicit permission from DaPorkchop_.
+ *
+ * Any persons and/or organizations using this software must disclose their source code and have it publicly available, include this license, provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+
+package net.daporkchop.lib.gui.util.math;
+
+import lombok.Data;
+
+import java.awt.*;
+
+/**
+ * A size in 2D space
+ *
+ * @author DaPorkchop_
+ */
+public interface Size<Impl extends Size> extends Constraint {
+    static Size of(int width, int height) {
+        return new Default(width, height);
+    }
+
+    int getWidth();
+
+    int getHeight();
+
+    Impl addWH(int width, int height);
+
+    default Impl addWH(int i) {
+        return this.addWH(i, i);
+    }
+
+    default Impl subtractWH(int width, int height) {
+        return this.addWH(-width, -height);
+    }
+
+    default Impl subtractWH(int i) {
+        return this.addWH(-i, -i);
+    }
+
+    Impl multiplyWH(int width, int height);
+
+    default Impl multiplyWH(int i) {
+        return this.multiplyWH(i, i);
+    }
+
+    Impl divideWH(int width, int height);
+
+    default Impl divideWH(int i) {
+        return this.divideWH(i, i);
+    }
+
+    @Override
+    default boolean hasXY() {
+        return false;
+    }
+
+    @Override
+    default boolean hasWH() {
+        return true;
+    }
+
+    default Dimension toAWTDimension()  {
+        return new Dimension(this.getWidth(), this.getHeight());
+    }
+
+    @Data
+    class Default implements Size<Default> {
+        protected final int width;
+        protected final int height;
+
+        @Override
+        public Default addWH(int width, int height) {
+            return new Default(this.width + width, this.height + height);
+        }
+
+        @Override
+        public Default multiplyWH(int width, int height) {
+            return new Default(this.width * width, this.height * height);
+        }
+
+        @Override
+        public Default divideWH(int width, int height) {
+            return new Default(this.width / width, this.height / height);
+        }
+    }
+}

@@ -16,17 +16,108 @@
 package net.daporkchop.lib.minecraft.text.util;
 
 import com.google.gson.JsonParser;
+import lombok.NonNull;
 import net.daporkchop.lib.minecraft.text.ITextComponent;
+
+import java.nio.CharBuffer;
 
 public class ChatUtils {
     private static final JsonParser parser = new JsonParser();
 
-    public static String getOldText(String json) {
+    public static String getOldText(@NonNull String json) {
         ITextComponent component = ITextComponent.Serializer.jsonToComponent(json.trim());
         String text = component.getFormattedText();
         if (text.startsWith("{")) {
             text = ITextComponent.Serializer.jsonToComponent(text).getFormattedText();
         }
         return text;
+    }
+
+    public static String toHTML(@NonNull String legacy) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("<span>");
+        htmlifyRecursive(builder, CharBuffer.wrap(legacy));
+        return builder.toString();
+    }
+
+    protected static void htmlifyRecursive(@NonNull StringBuilder builder, @NonNull CharBuffer buffer)  {
+        MAINLOOP:
+        while (buffer.hasRemaining())   {
+            char c = buffer.get();
+            if (c == '§')   {
+                if (buffer.hasRemaining())  {
+                    String style = null;
+                    switch (buffer.get())   {
+                        case '0':
+                            style = "color: #000000";
+                            break;
+                        case '1':
+                            style = "color: #0000AA";
+                            break;
+                        case '2':
+                            style = "color: #00AA00";
+                            break;
+                        case '3':
+                            style = "color: #00AAAA";
+                            break;
+                        case '4':
+                            style = "color: #AA0000";
+                            break;
+                        case '5':
+                            style = "color: #AA00AA";
+                            break;
+                        case '6':
+                            style = "color: #FFAA00";
+                            break;
+                        case '7':
+                            style = "color: #AAAAAA";
+                            break;
+                        case '8':
+                            style = "color: #555555";
+                            break;
+                        case '9':
+                            style = "color: #5555FF";
+                            break;
+                        case 'a':
+                            style = "color: #55FF55";
+                            break;
+                        case 'b':
+                            style = "color: #55FFFF";
+                            break;
+                        case 'c':
+                            style = "color: #FF5555";
+                            break;
+                        case 'd':
+                            style = "color: #FF55FF";
+                            break;
+                        case 'e':
+                            style = "color: #FFFF55";
+                            break;
+                        case 'f':
+                            style = "color: #FFFFFF";
+                            break;
+                        case 'l':
+                            style = "font-weight: bold";
+                            break;
+                        case 'm':
+                            style = "font-decoration: line-through";
+                            break;
+                        case 'n':
+                            style = "font-decoration: underline";
+                            break;
+                        case 'o':
+                            style = "font-style: italic";
+                            break;
+                        case 'r':
+                            break MAINLOOP;
+                        default:
+                            throw new IllegalStateException();
+                    }
+                    buffer.append(String.format("<span style=\"%s\">", style));
+                    htmlifyRecursive(builder, buffer);
+                }
+            }
+        }
+        builder.append("</span>");
     }
 }

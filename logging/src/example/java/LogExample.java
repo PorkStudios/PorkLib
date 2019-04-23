@@ -1,3 +1,4 @@
+import net.daporkchop.lib.logging.LogAmount;
 import net.daporkchop.lib.logging.Logger;
 import net.daporkchop.lib.logging.Logging;
 
@@ -13,5 +14,8 @@ public class LogExample implements Logging {
         logger.redirectStdOut();
         System.out.println("Test!äöäöä¬");
         System.err.println("Test!äöäöä¬");
+        logger.debug("Debug 1");
+        logger.setLogAmount(LogAmount.DEBUG);
+        logger.debug("Debug 2");
     }
 }

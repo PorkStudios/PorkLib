@@ -54,7 +54,7 @@ public interface TaskExecutor {
      * <p>
      * Attempting to submit new tasks to this executor after invoking this method will result in undefined behavior.
      */
-    void stop();
+    void close();
 
     /**
      * Forcibly shuts down this executor.

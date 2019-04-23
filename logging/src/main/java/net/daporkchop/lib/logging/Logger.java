@@ -15,279 +15,200 @@
 
 package net.daporkchop.lib.logging;
 
-import lombok.Builder;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
-import net.daporkchop.lib.binary.UTF8;
-import net.daporkchop.lib.common.util.Formatter;
-import net.daporkchop.lib.common.util.PorkUtil;
-
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
+ * Utility class to help with writing log messages
+ *
  * @author DaPorkchop_
  */
-@Getter
-@Builder(builderClassName = "Builder")
-public class Logger implements Logging {
-    private static final String ALERT_HEADER = "****************************************";
-    private static final String ALERT_PREFIX = "* ";
-    private static final String ALERT_FOOTER = ALERT_HEADER;
-
+public interface Logger {
     /**
-     * A default logger instance. This will print messages from all levels to {@link System#out}.
+     * Writes a plain message to the log.
+     *
+     * @param level   the log level to use
+     * @param message the message to be written
      */
-    public static final Logger DEFAULT_LOG = builder().level(1).build();
+    void log(@NonNull LogLevel level, @NonNull String message);
 
     /**
-     * The {@link PrintStream} that messages will be written to
-     */
-    @NonNull
-    @lombok.Builder.Default
-    private final PrintStream out = System.out;
-
-    /**
-     * The level of log messages to be printed.
+     * Writes a formatted message to the log.
      * <p>
-     * if < 0: nothing at all
-     * if   0: only essential messages
-     * if   1: essential + warnings + notifications
-     * if   2: essential + warnings + notifications + trace
-     * if > 2: everything
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param level  the log level to use
+     * @param format the message to be formatted
+     * @param args   the arguments to be used for formatting
      */
-    @Setter
-    @lombok.Builder.Default
-    private int level = 3;
+    default void log(@NonNull LogLevel level, @NonNull String format, @NonNull Object... args) {
+        this.log(level, String.format(format, args));
+    }
 
     /**
-     * An instance of {@link DateFormat} that will be used to format the timestamp that prefixes messages.
-     * <p>
-     * If {@code null}, the date prefix will be omitted, even if {@link Logger#prefixOrder} would add a date.
+     * Writes a plain message to the log using the {@link LogLevel#INFO} level.
+     *
+     * @param message the message to be written
      */
-    @lombok.Builder.Default
-    private final DateFormat dateFormat = new SimpleDateFormat("[dd/MM/yyyy HH:mm:ss] ");
+    default void info(@NonNull String message) {
+        this.log(LogLevel.INFO, message);
+    }
 
     /**
-     * A {@link String} that will be used to format the {@link LogLevel} prefix applied to messages.
+     * Writes a formatted message to the log using the {@link LogLevel#INFO} level.
      * <p>
-     * This is given to {@link String#format(String, Object...)} with a single parameter being the name of the log level.
-     * <p>
-     * If {@code null}, the log level prefix will be omitted, even if {@link Logger#prefixOrder} would add a log level.
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param format the message to be formatted
+     * @param args   the arguments to be used for formatting
      */
-    @lombok.Builder.Default
-    private final String levelFormat = "[%s] ";
+    default void info(@NonNull String format, @NonNull Object... args) {
+        this.log(LogLevel.INFO, String.format(format, args));
+    }
 
     /**
-     * A collection of {@link OutputStream}s that will also have the message content written to them.
-     * <p>
-     * This could be useful for e.g. logging to a file (by using a {@link java.io.FileOutputStream})
+     * Writes a plain message to the log using the {@link LogLevel#ERROR} level.
+     *
+     * @param message the message to be written
      */
-    private final Set<OutputStream> otherOutputs = new HashSet<>();
-
-    private final Lock lock = new ReentrantLock();
+    default void error(@NonNull String message) {
+        this.log(LogLevel.ERROR, message);
+    }
 
     /**
-     * The {@link PrefixOrder} used for prefixing the message.
+     * Writes a formatted message to the log using the {@link LogLevel#ERROR} level.
+     * <p>
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param format the message to be formatted
+     * @param args   the arguments to be used for formatting
      */
-    @NonNull
-    @lombok.Builder.Default
-    private final PrefixOrder prefixOrder = PrefixOrder.DATE_LEVEL;
-
-    {
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            try {
-                for (OutputStream out : this.otherOutputs) {
-                    out.close();
-                }
-            } catch (IOException e) {
-                throw this.exception(e);
-            }
-        }));
+    default void error(@NonNull String format, @NonNull Object... args) {
+        this.log(LogLevel.ERROR, String.format(format, args));
     }
 
-    public void log(@NonNull String message) {
-        this.log(message, LogLevel.INFO);
+    /**
+     * Writes a plain message to the log using the {@link LogLevel#FATAL} level.
+     *
+     * @param message the message to be written
+     */
+    default void fatal(@NonNull String message) {
+        this.log(LogLevel.FATAL, message);
     }
 
-    public void info(@NonNull String message) {
-        this.log(message, LogLevel.INFO);
+    /**
+     * Writes a formatted message to the log using the {@link LogLevel#FATAL} level.
+     * <p>
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param format the message to be formatted
+     * @param args   the arguments to be used for formatting
+     */
+    default void fatal(@NonNull String format, @NonNull Object... args) {
+        this.log(LogLevel.FATAL, String.format(format, args));
     }
 
-    public void error(@NonNull String message) {
-        this.log(message, LogLevel.ERROR);
+    /**
+     * Writes a plain message to the log using the {@link LogLevel#ALERT} level.
+     *
+     * @param message the message to be written
+     */
+    default void alert(@NonNull String message) {
+        this.log(LogLevel.ALERT, message);
     }
 
-    public void fatal(@NonNull String message) {
-        this.log(message, LogLevel.FATAL);
+    /**
+     * Writes a formatted message to the log using the {@link LogLevel#ALERT} level.
+     * <p>
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param format the message to be formatted
+     * @param args   the arguments to be used for formatting
+     */
+    default void alert(@NonNull String format, @NonNull Object... args) {
+        this.log(LogLevel.ALERT, String.format(format, args));
     }
 
-    public void alert(@NonNull String message) {
-        this.log(message, LogLevel.ALERT);
+    /**
+     * Writes a plain message to the log using the {@link LogLevel#WARN} level.
+     *
+     * @param message the message to be written
+     */
+    default void warn(@NonNull String message) {
+        this.log(LogLevel.WARN, message);
     }
 
-    public void warn(@NonNull String message) {
-        this.log(message, LogLevel.WARN);
+    /**
+     * Writes a formatted message to the log using the {@link LogLevel#WARN} level.
+     * <p>
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param format the message to be formatted
+     * @param args   the arguments to be used for formatting
+     */
+    default void warn(@NonNull String format, @NonNull Object... args) {
+        this.log(LogLevel.WARN, String.format(format, args));
     }
 
-    public void notify(@NonNull String message) {
-        this.log(message, LogLevel.NOTIFY);
+    /**
+     * Writes a plain message to the log using the {@link LogLevel#NOTIFY} level.
+     *
+     * @param message the message to be written
+     */
+    default void notify(@NonNull String message) {
+        this.log(LogLevel.NOTIFY, message);
     }
 
-    public void trace(@NonNull String message) {
-        this.log(message, LogLevel.TRACE);
+    /**
+     * Writes a formatted message to the log using the {@link LogLevel#NOTIFY} level.
+     * <p>
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param format the message to be formatted
+     * @param args   the arguments to be used for formatting
+     */
+    default void notify(@NonNull String format, @NonNull Object... args) {
+        this.log(LogLevel.NOTIFY, String.format(format, args));
     }
 
-    public void debug(@NonNull String message) {
-        this.log(message, LogLevel.DEBUG);
+    /**
+     * Writes a plain message to the log using the {@link LogLevel#TRACE} level.
+     *
+     * @param message the message to be written
+     */
+    default void trace(@NonNull String message) {
+        this.log(LogLevel.TRACE, message);
     }
 
-    public void log(@NonNull String message, @NonNull LogLevel level) {
-        if (level.getLevel() <= this.level) {
-            if (message.indexOf('\n') == -1) {
-                if (level == LogLevel.ALERT) {
-                    this.actuallyDoTheLoggingThing(this.format(ALERT_HEADER, LogLevel.ALERT).getBytes(UTF8.utf8));
-                    this.actuallyDoTheLoggingThing(this.format(ALERT_PREFIX, LogLevel.ALERT).getBytes(UTF8.utf8));
-                    this.actuallyDoTheLoggingThing(this.format(String.format("%s%s", ALERT_PREFIX, message), level).getBytes(UTF8.utf8));
-                    this.actuallyDoTheLoggingThing(this.format(ALERT_PREFIX, LogLevel.ALERT).getBytes(UTF8.utf8));
-                    this.actuallyDoTheLoggingThing(this.format(ALERT_FOOTER, LogLevel.ALERT).getBytes(UTF8.utf8));
-                    return;
-                }
-                String msg = this.format(message, level);
-                this.actuallyDoTheLoggingThing(msg.getBytes(UTF8.utf8));
-            } else {
-                this.lock.lock();
-                try {
-                    if (level == LogLevel.ALERT) {
-                        this.actuallyDoTheLoggingThing(this.format(ALERT_HEADER, LogLevel.ALERT).getBytes(UTF8.utf8));
-                        this.actuallyDoTheLoggingThing(this.format(ALERT_PREFIX, LogLevel.ALERT).getBytes(UTF8.utf8));
-                        for (String subMsg : message.split("\n")) {
-                            this.actuallyDoTheLoggingThing(this.format(String.format("%s%s", ALERT_PREFIX, subMsg), level).getBytes(UTF8.utf8));
-                        }
-                        this.actuallyDoTheLoggingThing(this.format(ALERT_PREFIX, LogLevel.ALERT).getBytes(UTF8.utf8));
-                        this.actuallyDoTheLoggingThing(this.format(ALERT_FOOTER, LogLevel.ALERT).getBytes(UTF8.utf8));
-                        return;
-                    }
-                    for (String subMsg : message.split("\n")) {
-                        String msg = this.format(subMsg, level);
-                        this.actuallyDoTheLoggingThing(msg.getBytes(UTF8.utf8));
-                    }
-                } finally {
-                    this.lock.unlock();
-                }
-            }
-        }
+    /**
+     * Writes a formatted message to the log using the {@link LogLevel#TRACE} level.
+     * <p>
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param format the message to be formatted
+     * @param args   the arguments to be used for formatting
+     */
+    default void trace(@NonNull String format, @NonNull Object... args) {
+        this.log(LogLevel.TRACE, String.format(format, args));
     }
 
-    public void info(@NonNull String message, @NonNull Object... params) {
-        this.log(message, LogLevel.INFO, params);
+    /**
+     * Writes a plain message to the log using the {@link LogLevel#DEBUG} level.
+     *
+     * @param message the message to be written
+     */
+    default void debug(@NonNull String message) {
+        this.log(LogLevel.DEBUG, message);
     }
 
-    public void error(@NonNull String message, @NonNull Object... params) {
-        this.log(message, LogLevel.ERROR, params);
-    }
-
-    public void fatal(@NonNull String message, @NonNull Object... params) {
-        this.log(message, LogLevel.FATAL, params);
-    }
-
-    public void alert(@NonNull String message, @NonNull Object... params) {
-        this.log(message, LogLevel.ALERT, params);
-    }
-
-    public void warn(@NonNull String message, @NonNull Object... params) {
-        this.log(message, LogLevel.WARN, params);
-    }
-
-    public void notify(@NonNull String message, @NonNull Object... params) {
-        this.log(message, LogLevel.NOTIFY, params);
-    }
-
-    public void trace(@NonNull String message, @NonNull Object... params) {
-        this.log(message, LogLevel.TRACE, params);
-    }
-
-    public void debug(@NonNull String message, @NonNull Object... params) {
-        this.log(message, LogLevel.DEBUG, params);
-    }
-
-    public void log(@NonNull String message, @NonNull LogLevel level, @NonNull Object... params) {
-        if (level.getLevel() <= this.level) {
-            this.log(Formatter.format(message, params), level);
-        }
-    }
-
-    public void error(@NonNull Throwable t) {
-        this.lock.lock();
-        try {
-            // Print our stack trace
-            this.error(t.toString());
-            StackTraceElement[] trace = PorkUtil.getStackTrace(t);
-            for (StackTraceElement element : trace) {
-                this.error("\tat ${0}", element);
-            }
-
-            // Print cause, if any
-            Throwable cause = t.getCause();
-            if (cause != null) {
-                this.error("Caused by:");
-                this.error(cause);
-            }
-        } finally {
-            this.lock.unlock();
-        }
-    }
-
-    public void add(@NonNull File file) {
-        this.add(file, false);
-    }
-
-    public void add(@NonNull File file, boolean overwrite) {
-        try {
-            if (file.exists()) {
-                if (!file.isFile()) {
-                    throw this.exception("Not a file: ${0}", file);
-                }
-            } else {
-                File parent = file.getParentFile();
-                if (!parent.exists() && !parent.mkdirs()) {
-                    throw this.exception("Couldn't create directory: ${0}", parent);
-                } else if (!file.createNewFile()) {
-                    throw this.exception("Couldn't create file: ${0}", file);
-                }
-            }
-            this.otherOutputs.add(new BufferedOutputStream(new FileOutputStream(file, !overwrite)));
-        } catch (IOException e) {
-            throw this.exception("Unable to add log output file: ${0}", e, file);
-        }
-    }
-
-    protected void actuallyDoTheLoggingThing(@NonNull byte[] toWrite) {
-        this.lock.lock();
-        try {
-            this.out.write(toWrite);
-            for (OutputStream out : this.otherOutputs) {
-                out.write(toWrite);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Unable to print message", e);
-        } finally {
-            this.lock.unlock();
-        }
-    }
-
-    protected String format(@NonNull String message, @NonNull LogLevel level) {
-        return this.prefixOrder.getPrefixer().prefix(this.dateFormat, level, this.levelFormat, message);//.endsWith("\n") ? message : String.format("%s\n", message));
+    /**
+     * Writes a formatted message to the log using the {@link LogLevel#DEBUG} level.
+     * <p>
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param format the message to be formatted
+     * @param args   the arguments to be used for formatting
+     */
+    default void debug(@NonNull String format, @NonNull Object... args) {
+        this.log(LogLevel.DEBUG, String.format(format, args));
     }
 }

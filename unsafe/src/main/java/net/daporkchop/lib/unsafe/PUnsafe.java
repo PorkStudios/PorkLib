@@ -528,7 +528,7 @@ public abstract class PUnsafe {
     }
 
     @SuppressWarnings("unchecked")
-    static <V> V pork_swapObject(Object o, long pos, Object newValue) {
+    public static <V> V pork_swapObject(Object o, long pos, Object newValue) {
         Object v;
         do {
             v = getObjectVolatile(o, pos);
@@ -536,7 +536,7 @@ public abstract class PUnsafe {
         return (V) v;
     }
 
-    static boolean pork_checkSwapIfNonNull(Object o, long pos, Object newValue) {
+    public static boolean pork_checkSwapIfNonNull(Object o, long pos, Object newValue) {
         Object v;
         do {
             if ((v = getObjectVolatile(o, pos)) == null) {
@@ -547,7 +547,7 @@ public abstract class PUnsafe {
     }
 
     @SuppressWarnings("unchecked")
-    static <V> V pork_swapIfNonNull(Object o, long pos, Object newValue) {
+    public static <V> V pork_swapIfNonNull(Object o, long pos, Object newValue) {
         Object v;
         do {
             if ((v = getObjectVolatile(o, pos)) == null) {

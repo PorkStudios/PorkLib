@@ -1,10 +1,12 @@
-package net.daporkchop.lib.logging;
+package net.daporkchop.lib.logging.impl;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.daporkchop.lib.logging.LogLevel;
+import net.daporkchop.lib.logging.Logger;
 import net.daporkchop.lib.logging.format.DefaultMessageFormatter;
 import net.daporkchop.lib.logging.format.MessageFormatter;
 
@@ -19,7 +21,7 @@ import java.util.function.Consumer;
 @RequiredArgsConstructor
 @Getter
 @Setter
-public class DefaultLogger implements Logger {
+public class BaseLogger implements Logger {
     @NonNull
     protected final Consumer<String> printer;
 
@@ -31,10 +33,6 @@ public class DefaultLogger implements Logger {
     protected String alertPrefix = DEFAULT_ALERT_PREFIX;
     @NonNull
     protected String alertFooter = DEFAULT_ALERT_FOOTER;
-
-    public DefaultLogger() {
-        this(System.out::println);
-    }
 
     @Override
     public synchronized void log(@NonNull LogLevel level, @NonNull String message) {
@@ -54,15 +52,5 @@ public class DefaultLogger implements Logger {
                 this.printer.accept(this.messageFormatter.format(date, null, level, line));
             }
         }
-    }
-
-    @Override
-    public synchronized void alert(@NonNull Throwable throwable) {
-        Date date = Date.from(Instant.now());
-        this.printer.accept(this.messageFormatter.format(date, null, LogLevel.ALERT, this.alertHeader));
-        this.printer.accept(this.messageFormatter.format(date, null, LogLevel.ALERT, this.alertPrefix));
-        Logger.getStackTrace(throwable, line -> this.printer.accept(this.messageFormatter.format(date, null, LogLevel.ALERT, this.alertPrefix + line)));
-        this.printer.accept(this.messageFormatter.format(date, null, LogLevel.ALERT, this.alertPrefix));
-        this.printer.accept(this.messageFormatter.format(date, null, LogLevel.ALERT, this.alertFooter));
     }
 }

@@ -17,38 +17,12 @@ package net.daporkchop.lib.logging;
 
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.Formatter;
+import net.daporkchop.lib.logging.impl.BaseLogger;
+import net.daporkchop.lib.logging.impl.DefaultLogger;
 
 /**
  * @author DaPorkchop_
  */
 public interface Logging {
-    Logger logger = new DefaultLogger();
-
-    default String format(@NonNull String text, @NonNull Object... params) {
-        return Formatter.format(text, params);
-    }
-
-    default String javaFormat(@NonNull String text, @NonNull Object... params) {
-        return String.format(text, params);
-    }
-
-    default RuntimeException exception(@NonNull String text) {
-        return new RuntimeException(text);
-    }
-
-    default RuntimeException exception(@NonNull String text, @NonNull Object... params) {
-        return new RuntimeException(this.format(text, params));
-    }
-
-    default RuntimeException exception(@NonNull String text, @NonNull Throwable t, @NonNull Object... params) {
-        return new RuntimeException(this.format(text, params), t);
-    }
-
-    default RuntimeException exception(@NonNull Throwable t) {
-        return new RuntimeException(t);
-    }
-
-    default String stringify(@NonNull Throwable t) {
-        return this.format("${0}: ${1}", t.getClass(), t.getMessage());
-    }
+    DefaultLogger logger = new DefaultLogger();
 }

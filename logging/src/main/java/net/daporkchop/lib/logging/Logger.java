@@ -20,6 +20,7 @@ import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.logging.format.MessageFormatter;
 
 import java.io.PrintWriter;
+import java.util.StringJoiner;
 import java.util.function.Consumer;
 
 /**
@@ -107,9 +108,9 @@ public interface Logger {
      * @param throwable the exception whose stack trace should be printed
      */
     default void info(@NonNull Throwable throwable) {
-        synchronized (this) {
-            getStackTrace(throwable, this::info);
-        }
+        StringJoiner joiner = new StringJoiner("\n");
+        getStackTrace(throwable, joiner::add);
+        this.info(joiner.toString());
     }
 
     /**
@@ -139,9 +140,9 @@ public interface Logger {
      * @param throwable the exception whose stack trace should be printed
      */
     default void error(@NonNull Throwable throwable) {
-        synchronized (this) {
-            getStackTrace(throwable, this::error);
-        }
+        StringJoiner joiner = new StringJoiner("\n");
+        getStackTrace(throwable, joiner::add);
+        this.error(joiner.toString());
     }
 
     /**
@@ -171,9 +172,9 @@ public interface Logger {
      * @param throwable the exception whose stack trace should be printed
      */
     default void fatal(@NonNull Throwable throwable) {
-        synchronized (this) {
-            getStackTrace(throwable, this::fatal);
-        }
+        StringJoiner joiner = new StringJoiner("\n");
+        getStackTrace(throwable, joiner::add);
+        this.fatal(joiner.toString());
     }
 
     /**
@@ -203,9 +204,9 @@ public interface Logger {
      * @param throwable the exception whose stack trace should be printed
      */
     default void alert(@NonNull Throwable throwable) {
-        synchronized (this) {
-            getStackTrace(throwable, this::alert);
-        }
+        StringJoiner joiner = new StringJoiner("\n");
+        getStackTrace(throwable, joiner::add);
+        this.alert(joiner.toString());
     }
 
     /**
@@ -235,9 +236,9 @@ public interface Logger {
      * @param throwable the exception whose stack trace should be printed
      */
     default void warn(@NonNull Throwable throwable) {
-        synchronized (this) {
-            getStackTrace(throwable, this::warn);
-        }
+        StringJoiner joiner = new StringJoiner("\n");
+        getStackTrace(throwable, joiner::add);
+        this.warn(joiner.toString());
     }
 
     /**
@@ -267,9 +268,9 @@ public interface Logger {
      * @param throwable the exception whose stack trace should be printed
      */
     default void notify(@NonNull Throwable throwable) {
-        synchronized (this) {
-            getStackTrace(throwable, this::notify);
-        }
+        StringJoiner joiner = new StringJoiner("\n");
+        getStackTrace(throwable, joiner::add);
+        this.notify(joiner.toString());
     }
 
     /**
@@ -299,9 +300,9 @@ public interface Logger {
      * @param throwable the exception whose stack trace should be printed
      */
     default void trace(@NonNull Throwable throwable) {
-        synchronized (this) {
-            getStackTrace(throwable, this::trace);
-        }
+        StringJoiner joiner = new StringJoiner("\n");
+        getStackTrace(throwable, joiner::add);
+        this.trace(joiner.toString());
     }
 
     /**
@@ -331,9 +332,9 @@ public interface Logger {
      * @param throwable the exception whose stack trace should be printed
      */
     default void debug(@NonNull Throwable throwable) {
-        synchronized (this) {
-            getStackTrace(throwable, this::debug);
-        }
+        StringJoiner joiner = new StringJoiner("\n");
+        getStackTrace(throwable, joiner::add);
+        this.debug(joiner.toString());
     }
 
     //

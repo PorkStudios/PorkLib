@@ -16,6 +16,11 @@
 package net.daporkchop.lib.logging;
 
 import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.logging.format.MessageFormatter;
+
+import java.io.PrintWriter;
+import java.util.function.Consumer;
 
 /**
  * Utility class to help with writing log messages
@@ -23,6 +28,37 @@ import lombok.NonNull;
  * @author DaPorkchop_
  */
 public interface Logger {
+    String DEFAULT_ALERT_HEADER = "****************************************";
+    String DEFAULT_ALERT_PREFIX = "* ";
+    String DEFAULT_ALERT_FOOTER = DEFAULT_ALERT_HEADER;
+
+    //
+    //
+    // Utility methods
+    //
+    //
+
+    /**
+     * Prints the stack trace of an exception line-by-line, passing each line to a given callback function
+     *
+     * @param throwable   the exection whose stack trace should be printed
+     * @param linePrinter a callback function that will be invoked once for each line
+     */
+    static void getStackTrace(@NonNull Throwable throwable, @NonNull Consumer<String> linePrinter) {
+        throwable.printStackTrace(new PrintWriter(DataOut.slashDevSlashNull(), true) {
+            @Override
+            public void println(Object x) {
+                linePrinter.accept(String.valueOf(x));
+            }
+        });
+    }
+
+    //
+    //
+    // Actual logging functions
+    //
+    //
+
     /**
      * Writes a plain message to the log.
      *
@@ -66,6 +102,17 @@ public interface Logger {
     }
 
     /**
+     * Writes an exception stack trace to the log using the {@link LogLevel#INFO} level.
+     *
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default void info(@NonNull Throwable throwable) {
+        synchronized (this) {
+            getStackTrace(throwable, this::info);
+        }
+    }
+
+    /**
      * Writes a plain message to the log using the {@link LogLevel#ERROR} level.
      *
      * @param message the message to be written
@@ -84,6 +131,17 @@ public interface Logger {
      */
     default void error(@NonNull String format, @NonNull Object... args) {
         this.log(LogLevel.ERROR, String.format(format, args));
+    }
+
+    /**
+     * Writes an exception stack trace to the log using the {@link LogLevel#ERROR} level.
+     *
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default void error(@NonNull Throwable throwable) {
+        synchronized (this) {
+            getStackTrace(throwable, this::error);
+        }
     }
 
     /**
@@ -108,6 +166,17 @@ public interface Logger {
     }
 
     /**
+     * Writes an exception stack trace to the log using the {@link LogLevel#FATAL} level.
+     *
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default void fatal(@NonNull Throwable throwable) {
+        synchronized (this) {
+            getStackTrace(throwable, this::fatal);
+        }
+    }
+
+    /**
      * Writes a plain message to the log using the {@link LogLevel#ALERT} level.
      *
      * @param message the message to be written
@@ -126,6 +195,17 @@ public interface Logger {
      */
     default void alert(@NonNull String format, @NonNull Object... args) {
         this.log(LogLevel.ALERT, String.format(format, args));
+    }
+
+    /**
+     * Writes an exception stack trace to the log using the {@link LogLevel#ALERT} level.
+     *
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default void alert(@NonNull Throwable throwable) {
+        synchronized (this) {
+            getStackTrace(throwable, this::alert);
+        }
     }
 
     /**
@@ -150,6 +230,17 @@ public interface Logger {
     }
 
     /**
+     * Writes an exception stack trace to the log using the {@link LogLevel#WARN} level.
+     *
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default void warn(@NonNull Throwable throwable) {
+        synchronized (this) {
+            getStackTrace(throwable, this::warn);
+        }
+    }
+
+    /**
      * Writes a plain message to the log using the {@link LogLevel#NOTIFY} level.
      *
      * @param message the message to be written
@@ -168,6 +259,17 @@ public interface Logger {
      */
     default void notify(@NonNull String format, @NonNull Object... args) {
         this.log(LogLevel.NOTIFY, String.format(format, args));
+    }
+
+    /**
+     * Writes an exception stack trace to the log using the {@link LogLevel#NOTIFY} level.
+     *
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default void notify(@NonNull Throwable throwable) {
+        synchronized (this) {
+            getStackTrace(throwable, this::notify);
+        }
     }
 
     /**
@@ -192,6 +294,17 @@ public interface Logger {
     }
 
     /**
+     * Writes an exception stack trace to the log using the {@link LogLevel#TRACE} level.
+     *
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default void trace(@NonNull Throwable throwable) {
+        synchronized (this) {
+            getStackTrace(throwable, this::trace);
+        }
+    }
+
+    /**
      * Writes a plain message to the log using the {@link LogLevel#DEBUG} level.
      *
      * @param message the message to be written
@@ -211,4 +324,89 @@ public interface Logger {
     default void debug(@NonNull String format, @NonNull Object... args) {
         this.log(LogLevel.DEBUG, String.format(format, args));
     }
+
+    /**
+     * Writes an exception stack trace to the log using the {@link LogLevel#DEBUG} level.
+     *
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default void debug(@NonNull Throwable throwable) {
+        synchronized (this) {
+            getStackTrace(throwable, this::debug);
+        }
+    }
+
+    //
+    //
+    // Other stuff
+    //
+    //
+
+    /**
+     * Gets the currently used {@link MessageFormatter} for formatting log messages for printing.
+     *
+     * @return the currently used {@link MessageFormatter}
+     */
+    MessageFormatter getMessageFormatter();
+
+    /**
+     * Gets the currently used {@link MessageFormatter} for formatting log messages for printing.
+     *
+     * @param formatter the new {@link MessageFormatter} to use
+     */
+    void setMessageFormatter(@NonNull MessageFormatter formatter);
+
+    /**
+     * Gets the currently used header above messages printed with the {@link LogLevel#ALERT} level.
+     * <p>
+     * Defaults to {@link #DEFAULT_ALERT_HEADER}.
+     *
+     * @return the current alert header
+     */
+    String getAlertHeader();
+
+    /**
+     * Sets the currently used header above messages printed with the {@link LogLevel#ALERT} level.
+     * <p>
+     * Defaults to {@link #DEFAULT_ALERT_HEADER}.
+     *
+     * @param alertHeader the new alert header to use
+     */
+    void setAlertHeader(@NonNull String alertHeader);
+
+    /**
+     * Gets the currently used prefix above messages printed with the {@link LogLevel#ALERT} level.
+     * <p>
+     * Defaults to {@link #DEFAULT_ALERT_PREFIX}.
+     *
+     * @return the current alert prefix
+     */
+    String getAlertPrefix();
+
+    /**
+     * Sets the currently used prefix above messages printed with the {@link LogLevel#ALERT} level.
+     * <p>
+     * Defaults to {@link #DEFAULT_ALERT_PREFIX}.
+     *
+     * @param alertPrefix the new alert prefix to use
+     */
+    void setAlertPrefix(@NonNull String alertPrefix);
+
+    /**
+     * Gets the currently used footer above messages printed with the {@link LogLevel#ALERT} level.
+     * <p>
+     * Defaults to {@link #DEFAULT_ALERT_FOOTER}.
+     *
+     * @return the current alert footer
+     */
+    String getAlertFooter();
+
+    /**
+     * Sets the currently used footer above messages printed with the {@link LogLevel#ALERT} level.
+     * <p>
+     * Defaults to {@link #DEFAULT_ALERT_FOOTER}.
+     *
+     * @param alertFooter the new alert footer to use
+     */
+    void setAlertFooter(@NonNull String alertFooter);
 }

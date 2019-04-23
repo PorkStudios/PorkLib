@@ -15,12 +15,16 @@
 
 package net.daporkchop.lib.concurrent.future;
 
+import lombok.NonNull;
+
 /**
  * @author DaPorkchop_
  */
 public interface Future {
     /**
-     * Blocks the invoking thread until this future is completed.
+     * Blocks the invoking thread until this {@link Future} is completed.
+     * <p>
+     * If this {@link Future} was completed with an exception, the exception will be thrown (unsafely).
      */
     default void sync() {
         try {
@@ -31,9 +35,40 @@ public interface Future {
     }
 
     /**
-     * Blocks the invoking thread until this future is completed.
+     * Blocks the invoking thread until this {@link Future} is completed.
+     * <p>
+     * If this {@link Future} was completed with an exception, the exception will be thrown (unsafely).
      *
      * @throws InterruptedException if the thread is interrupted
      */
     void syncInterruptably() throws InterruptedException;
+
+    /**
+     * Checks whether or not this {@link Future} has been completed.
+     * <p>
+     * This method will not block the invoking thread.
+     *
+     * @return whether or not this {@link Future} has been complete
+     */
+    boolean isCompleted();
+
+    /**
+     * Completes this {@link Future}.
+     * <p>
+     * Any waiting threads will be notified, and this instance will be marked as completed.
+     * <p>
+     * If this {@link Future} is already completed, the results are undefined.
+     */
+    void complete();
+
+    /**
+     * Completes this {@link Future} with an exception.
+     * <p>
+     * Any waiting threads will have this exception thrown, and this instance will be marked as completed.
+     * <p>
+     * If this {@link Future} is already completed, the results are undefined.
+     *
+     * @param e the exception
+     */
+    void completeExceptionally(@NonNull Exception e);
 }

@@ -15,8 +15,8 @@
 
 package net.daporkchop.lib.binary.stream.optimizations;
 
-import net.daporkchop.lib.common.util.PUnsafe;
 import net.daporkchop.lib.encoding.Hexadecimal;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.ByteArrayOutputStream;
 

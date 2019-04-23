@@ -21,7 +21,7 @@ import net.daporkchop.lib.collections.PCollection;
 import net.daporkchop.lib.collections.POrderedCollection;
 import net.daporkchop.lib.collections.stream.PStream;
 import net.daporkchop.lib.collections.util.exception.AlreadyRemovedException;
-import net.daporkchop.lib.common.util.PUnsafe;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.util.Collection;
 import java.util.function.Consumer;

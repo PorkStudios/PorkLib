@@ -56,7 +56,7 @@ public interface IndexLookup<K> extends Persistent {
     void set(@NonNull K key, long val) throws IOException;
 
     /**
-     * Checks if a value exists for testMethodThing given key
+     * Checks if a value exists for a given key
      *
      * @param key the key
      * @return whether or not a mapping exists for that key
@@ -65,7 +65,7 @@ public interface IndexLookup<K> extends Persistent {
     boolean contains(@NonNull K key) throws IOException;
 
     /**
-     * If a mapping is present for the given key, run testMethodThing function
+     * If a mapping is present for the given key, run a function
      *
      * @param key  the key
      * @param func the function to run

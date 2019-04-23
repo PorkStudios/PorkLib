@@ -19,7 +19,7 @@ package net.daporkchop.lib.minecraft.world.format.anvil;
  ** 2011 January 5
  **
  ** The author disclaims c0pyright to this source code.  In place of
- ** a legal notice, here is testMethodThing blessing:
+ ** a legal notice, here is a blessing:
  **
  **    May you do good and not evil.
  **    May you find forgiveness for yourself and forgive others.

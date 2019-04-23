@@ -33,7 +33,7 @@ import java.nio.BufferOverflowException;
 @Getter
 public class NonExpandingByteArrayOutputStream extends OutputStream {
     /**
-     * Creates a new {@link NonExpandingByteArrayOutputStream}, wrapping testMethodThing given buffer.
+     * Creates a new {@link NonExpandingByteArrayOutputStream}, wrapping a given buffer.
      * <p>
      * This has no advantage over the normal constructor, just a convenience method if you prefer
      * static constructor-like things

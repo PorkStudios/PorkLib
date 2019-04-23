@@ -17,7 +17,8 @@ package net.daporkchop.lib.graphics.util;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.graphics.PIcon;
+import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
+import net.daporkchop.lib.graphics.interpolation.ImageInterpolator;
 import net.daporkchop.lib.math.interpolation.InterpolationEngine;
 import net.daporkchop.lib.math.interpolation.LinearInterpolationEngine;
 

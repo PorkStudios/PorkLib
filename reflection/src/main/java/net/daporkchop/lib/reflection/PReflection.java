@@ -20,7 +20,10 @@ import net.daporkchop.lib.common.util.PConstants;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 /**
  * @author DaPorkchop_
@@ -36,6 +39,31 @@ public abstract class PReflection {
      */
     public static <A extends Annotation> A getAnnotation(@NonNull Class<?> clazz, @NonNull Class<A> annotationClass) {
         return getAnnotation(clazz.getAnnotations(), annotationClass);
+    }
+
+    /**
+     * Gets an annotation on a field
+     *
+     * @param field           the field
+     * @param annotationClass the class of the annotation
+     * @param <A>             the type of the annotation
+     * @return the annotation instance on the given class, or {@code null} if not found
+     */
+    public static <A extends Annotation> A getAnnotation(@NonNull Field field, @NonNull Class<A> annotationClass) {
+        return getAnnotation(field.getAnnotations(), annotationClass);
+    }
+
+    /**
+     * Maps a stream of {@link Field}s to a given annotation type, removing all fields from the stream that
+     * do not an annotation with the given class.
+     *
+     * @param stream          the stream
+     * @param annotationClass the class of the annotation
+     * @param <A>             the type of the annotation
+     * @return the annotation instance on the given class, or {@code null} if not found
+     */
+    public static <A extends Annotation> Stream<A> filterFieldToAnnotation(@NonNull Stream<Field> stream, @NonNull Class<A> annotationClass) {
+        return stream.map(field -> getAnnotation(field, annotationClass)).filter(Objects::nonNull);
     }
 
     /**
@@ -56,19 +84,28 @@ public abstract class PReflection {
         return null;
     }
 
-    public static void setStatic(@NonNull Class<?> clazz, @NonNull String fieldName, Object value)  {
+    public static Method getMethod(@NonNull Class<?> clazz, @NonNull String name, @NonNull Class<?>... params)  {
+        try {
+            Method method = clazz.getDeclaredMethod(name, params);
+            method.setAccessible(true);
+            return method;
+        } catch (NoSuchMethodException e)   {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void setStatic(@NonNull Class<?> clazz, @NonNull String fieldName, Object value) {
         try {
             Field field = clazz.getDeclaredField(fieldName);
-            if ((field.getModifiers() & Modifier.STATIC) == 0)  {
+            if ((field.getModifiers() & Modifier.STATIC) == 0) {
                 throw new IllegalArgumentException(String.format("Not static: %s.%s", clazz.getCanonicalName(), fieldName));
             }
-            if (!field.isAccessible())  {
+            if (!field.isAccessible()) {
                 field.setAccessible(true);
             }
             field.set(null, value);
-        } catch (NoSuchFieldException
-                | IllegalAccessException e) {
-            throw PConstants.p_exception(e);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
         }
     }
 }

@@ -39,7 +39,7 @@ public class KeyGen {
     }
 
     /**
-     * Generate a pseudorandom EC key pair using testMethodThing given seed
+     * Generate a pseudorandom EC key pair using a given seed
      *
      * @param seed  The seed to use for random generation
      * @param curve The type of curve to generate
@@ -59,7 +59,7 @@ public class KeyGen {
     }
 
     /**
-     * Generate a random EC key pair, using 1024 bytes of random data as testMethodThing seed
+     * Generate a random EC key pair, using 1024 bytes of random data as a seed
      *
      * @param curve The type of curve to generate
      * @return An instance of SecretKey for use by EC key exchange methods
@@ -69,7 +69,7 @@ public class KeyGen {
     }
 
     /**
-     * Generates a pseudorandom block cipher key using testMethodThing given seed
+     * Generates a pseudorandom block cipher key using a given seed
      *
      * @param type the block cipher algorithm to generate for
      * @param seed the seed to use for random generation

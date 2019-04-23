@@ -43,17 +43,17 @@ public abstract class TextComponentBase implements ITextComponent {
         return iterator;
     }
     /**
-     * The later siblings of this component.  If this component turns the text bold, that will apply to all the siblings
+     * The later siblings of this component.  If this type turns the text bold, that will apply to all the siblings
      * until a later sibling turns the text something else.
      */
     protected List<ITextComponent> siblings = Lists.newArrayList();
     private Style style;
 
     /**
-     * Adds a new component to the end of the sibling list, setting that component's style's parent style to this
+     * Adds a new component to the end of the sibling list, setting that type's style's parent style to this
      * component's style.
      *
-     * @return This component, for chaining (and not the newly added component)
+     * @return This component, for chaining (and not the newly added type)
      */
     public ITextComponent appendSibling(ITextComponent component) {
         component.getStyle().setParentStyle(this.getStyle());
@@ -72,7 +72,7 @@ public abstract class TextComponentBase implements ITextComponent {
      * Adds a new component to the end of the sibling list, with the specified text. Same as calling {@link
      * #appendSibling(ITextComponent)} with a new {@link TextComponentString}.
      *
-     * @return This component, for chaining (and not the newly added component)
+     * @return This component, for chaining (and not the newly added type)
      */
     public ITextComponent appendText(String text) {
         return this.appendSibling(new TextComponentString(text));

@@ -104,7 +104,7 @@ allprojects {
     }
 
     dependencies {
-        if (!("root".equalsIgnoreCase(project.name) || "common".equalsIgnoreCase(project.name))) {
+        if (!("root".equalsIgnoreCase(project.name) || "common".equalsIgnoreCase(project.name) || "unsafe".equalsIgnoreCase(project.name))) {
             compile project(":common")
         }
         if (!"logging".equalsIgnoreCase(project.name)) {

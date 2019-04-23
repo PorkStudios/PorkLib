@@ -22,7 +22,7 @@ import net.daporkchop.lib.common.util.Formatter;
  * @author DaPorkchop_
  */
 public interface Logging {
-    OldLogger logger = OldLogger.DEFAULT_LOG;
+    Logger logger = new DefaultLogger();
 
     default String format(@NonNull String text, @NonNull Object... params) {
         return Formatter.format(text, params);

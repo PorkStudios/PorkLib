@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.daporkchop.lib.logging.LogAmount;
 import net.daporkchop.lib.logging.LogLevel;
 import net.daporkchop.lib.logging.Logger;
 import net.daporkchop.lib.logging.format.DefaultMessageFormatter;
@@ -33,6 +34,8 @@ public class BaseLogger implements Logger {
     protected String alertPrefix = DEFAULT_ALERT_PREFIX;
     @NonNull
     protected String alertFooter = DEFAULT_ALERT_FOOTER;
+    @NonNull
+    protected LogAmount logAmount = LogAmount.NORMAL;
 
     @Override
     public void log(@NonNull LogLevel level, @NonNull String message) {
@@ -40,6 +43,9 @@ public class BaseLogger implements Logger {
     }
 
     protected synchronized void doLog(@NonNull LogLevel level, String channel, @NonNull String message) {
+        if (!this.shouldDisplay(level)) {
+            return;
+        }
         Date date = Date.from(Instant.now());
         String[] split = message.trim().split("\n");
         if (level == LogLevel.ALERT) {
@@ -106,6 +112,16 @@ public class BaseLogger implements Logger {
                 @Override
                 public void setAlertFooter(@NonNull String alertFooter) {
                     BaseLogger.this.setAlertFooter(alertFooter);
+                }
+
+                @Override
+                public LogAmount getLogAmount() {
+                    return BaseLogger.this.getLogAmount();
+                }
+
+                @Override
+                public void setLogAmount(@NonNull LogAmount amount) {
+                    BaseLogger.this.setLogAmount(amount);
                 }
 
                 @Override

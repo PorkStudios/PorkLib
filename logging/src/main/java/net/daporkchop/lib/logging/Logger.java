@@ -412,6 +412,20 @@ public interface Logger {
     void setAlertFooter(@NonNull String alertFooter);
 
     /**
+     * Gets the currently used log amount.
+     *
+     * @return the currently used log amount
+     */
+    LogAmount getLogAmount();
+
+    /**
+     * Sets the currently used log amount.
+     *
+     * @param amount the new log amount to use
+     */
+    void setLogAmount(@NonNull LogAmount amount);
+
+    /**
      * Creates a new channel with the given name. The returned logger will print all it's output
      * via this one (in whatever manner the implementation chooses to do this), but will have an
      * additional prefix in the output.
@@ -420,4 +434,14 @@ public interface Logger {
      * @return a channel with the given name
      */
     Logger channel(@NonNull String name);
+
+    /**
+     * Checks whether or not log messages with the given level should be displayed.
+     *
+     * @param level the level
+     * @return whether or not messages with the given level will be displayed
+     */
+    default boolean shouldDisplay(@NonNull LogLevel level) {
+        return level.getLevel() < this.getLogAmount().ordinal();
+    }
 }

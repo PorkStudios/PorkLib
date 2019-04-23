@@ -53,15 +53,15 @@ public interface ITextComponent extends Iterable<ITextComponent> {
      * Adds a new component to the end of the sibling list, with the specified text. Same as calling {@link
      * #appendSibling(ITextComponent)} with a new {@link TextComponentString}.
      *
-     * @return This component, for chaining (and not the newly added component)
+     * @return This component, for chaining (and not the newly added type)
      */
     ITextComponent appendText(String text);
 
     /**
-     * Adds a new component to the end of the sibling list, setting that component's style's parent style to this
+     * Adds a new component to the end of the sibling list, setting that type's style's parent style to this
      * component's style.
      *
-     * @return This component, for chaining (and not the newly added component)
+     * @return This component, for chaining (and not the newly added type)
      */
     ITextComponent appendSibling(ITextComponent component);
 

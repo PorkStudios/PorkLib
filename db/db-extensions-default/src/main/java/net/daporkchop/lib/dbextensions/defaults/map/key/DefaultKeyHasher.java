@@ -28,7 +28,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 /**
- * Hashes a {@link Serializable} to testMethodThing constant-length hash.
+ * Hashes a {@link Serializable} to a constant-length hash.
  * <p>
  * Cannot get key from hashed value.
  *

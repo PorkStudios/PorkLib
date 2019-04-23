@@ -28,9 +28,9 @@ import lombok.experimental.Accessors;
  */
 @RequiredArgsConstructor
 @NoArgsConstructor
+@Accessors(chain = true)
 public abstract class AbstractPorkBuf implements PorkBuf {
     @Setter
-    @Accessors(chain = true)
     protected long capacity;
     @NonNull
     protected long maxCapacity;

@@ -16,7 +16,7 @@
 package net.daporkchop.lib.binary.util.map;
 
 /**
- * A map, using a key type of char and testMethodThing value type required boolean.
+ * A map, using a key type of char and a value type of boolean.
  * <p>
  * DO NOT EDIT BY HAND! THIS FILE IS SCRIPT-GENERATED!
  *

@@ -19,7 +19,8 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.common.util.PUnsafe;
+import net.daporkchop.lib.unsafe.PUnsafe;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.reflection.util.Access;
 import net.daporkchop.lib.reflection.util.Accessible;
 import net.daporkchop.lib.reflection.util.AnnotationHolder;
@@ -27,9 +28,10 @@ import net.daporkchop.lib.reflection.util.Type;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.util.Map;
 
 import static net.daporkchop.lib.common.util.PConstants.p_exception;
-import static net.daporkchop.lib.common.util.PUnsafe.*;
+import static net.daporkchop.lib.unsafe.PUnsafe.*;
 
 /**
  * A Java field
@@ -40,6 +42,8 @@ import static net.daporkchop.lib.common.util.PUnsafe.*;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class PField<V> implements Accessible, AnnotationHolder {
+    protected static final Map<Field, PField> FIELD_CACHE = PorkUtil.newSoftCache();
+
     /**
      * Gets a field
      *
@@ -64,16 +68,18 @@ public class PField<V> implements Accessible, AnnotationHolder {
      * @param <V>   the type stored in the field
      * @return a field
      */
+    @SuppressWarnings("unchecked")
     public static <V> PField<V> of(@NonNull Field field) {
-        return new PField<>(
-                objectFieldOffset(field),
-                Type.getType(field),
-                Access.getAccess(field),
-                field.getModifiers(),
-                field.getAnnotations(),
-                field.getName(),
-                field.getType()
-        );
+        return FIELD_CACHE.computeIfAbsent(field, f -> new PField<>(
+                objectFieldOffset(f),
+                Type.getType(f),
+                Access.getAccess(f),
+                f.getModifiers(),
+                f.getAnnotations(),
+                f.getName(),
+                (Class<V>) f.getType(),
+                f.getDeclaringClass()
+        ));
     }
 
     protected final long offset;
@@ -87,7 +93,9 @@ public class PField<V> implements Accessible, AnnotationHolder {
     @NonNull
     protected final String name;
     @NonNull
-    protected final Class<?> classType;
+    protected final Class<V> classType;
+    @NonNull
+    protected final Class<?> parentClass;
 
     //object methods
 
@@ -513,5 +521,10 @@ public class PField<V> implements Accessible, AnnotationHolder {
         if (this.type != type && !(type.isObject() && type.isObject())) {
             throw new IllegalStateException(String.format("Invalid field type! We're %s but %s is required!", this.type, type));
         }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s#%s", this.parentClass.getCanonicalName(), this.name);
     }
 }

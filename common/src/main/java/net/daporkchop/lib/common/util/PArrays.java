@@ -116,4 +116,49 @@ public interface PArrays {
         System.arraycopy(src, 0, dst, 0, src.length);
         return dst;
     }
+
+    static int indexOf(@NonNull byte[] arr, byte val)    {
+        for (int i = arr.length - 1; i >= 0; i--)   {
+            if (arr[i] == val)  {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    static int indexOf(@NonNull short[] arr, short val)    {
+        for (int i = arr.length - 1; i >= 0; i--)   {
+            if (arr[i] == val)  {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    static int indexOf(@NonNull int[] arr, int val)    {
+        for (int i = arr.length - 1; i >= 0; i--)   {
+            if (arr[i] == val)  {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    static int indexOf(@NonNull long[] arr, long val)    {
+        for (int i = arr.length - 1; i >= 0; i--)   {
+            if (arr[i] == val)  {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    static <T> int indexOf(@NonNull T[] arr, @NonNull T val)    {
+        for (int i = arr.length - 1; i >= 0; i--)   {
+            if (arr[i] == val)  {
+                return i;
+            }
+        }
+        return -1;
+    }
 }

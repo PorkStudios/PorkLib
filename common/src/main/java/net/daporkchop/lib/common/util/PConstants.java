@@ -16,12 +16,16 @@
 package net.daporkchop.lib.common.util;
 
 import lombok.NonNull;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 /**
  * Some constants that may be used in a lot of classes
+ * <p>
+ * Deprecated because it's redundant and useless
  *
  * @author DaPorkchop_
  */
+@Deprecated
 public interface PConstants {
     int CPU_COUNT = Runtime.getRuntime().availableProcessors();
 
@@ -30,11 +34,11 @@ public interface PConstants {
         return new RuntimeException(t); //unreachable code
     }
 
-    default RuntimeException exception(@NonNull Throwable t) {
-        return p_exception(t);
-    }
-
     static Object getNull() {
         return null;
+    }
+
+    default RuntimeException exception(@NonNull Throwable t) {
+        return p_exception(t);
     }
 }

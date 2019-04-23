@@ -15,20 +15,18 @@
 
 package net.daporkchop.lib.math.arrays.grid.impl.direct;
 
-import net.daporkchop.lib.common.util.DirectMemoryHolder;
-import net.daporkchop.lib.common.util.PUnsafe;
-import net.daporkchop.lib.math.arrays.grid.Grid2d;
+import net.daporkchop.lib.unsafe.PCleaner;
+import net.daporkchop.lib.unsafe.capability.DirectMemoryHolder;
+import net.daporkchop.lib.unsafe.PUnsafe;
 import net.daporkchop.lib.math.arrays.grid.Grid3d;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import static net.daporkchop.lib.math.primitive.PMath.floorI;
 
 /**
  * @author DaPorkchop_
  */
-public class DirectIntGrid3d implements Grid3d, DirectMemoryHolder {
-    protected long pos;
-    protected final long size;
-
+public class DirectIntGrid3d extends DirectMemoryHolder.AbstractConstantSize implements Grid3d {
     protected final int startX;
     protected final int width;
     protected final int startY;
@@ -37,8 +35,7 @@ public class DirectIntGrid3d implements Grid3d, DirectMemoryHolder {
     protected final int depth;
 
     public DirectIntGrid3d(int startX, int startY, int startZ, int width, int height, int depth) {
-        this.size = ((long) width * (long) height * (long) depth) << 2L;
-        this.pos = PUnsafe.allocateMemory(this, this.size);
+        super(((long) width * (long) height * (long) depth) << 2L);
 
         this.startX = startX;
         this.width = width;
@@ -104,22 +101,6 @@ public class DirectIntGrid3d implements Grid3d, DirectMemoryHolder {
             throw new ArrayIndexOutOfBoundsException(String.format("(%d,%d,%d)", x, y, z));
         } else {
             return this.pos + off;
-        }
-    }
-
-    //directmemoryholder implementations
-    @Override
-    public synchronized long getMemoryAddress() {
-        return this.pos;
-    }
-
-    @Override
-    public synchronized void releaseMemory() {
-        if (this.isMemoryReleased())    {
-            throw new IllegalStateException("Memory already released!");
-        } else {
-            PUnsafe.freeMemory(this.pos);
-            this.pos = -1L;
         }
     }
 }

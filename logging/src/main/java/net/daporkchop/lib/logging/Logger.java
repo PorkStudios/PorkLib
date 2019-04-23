@@ -410,4 +410,14 @@ public interface Logger {
      * @param alertFooter the new alert footer to use
      */
     void setAlertFooter(@NonNull String alertFooter);
+
+    /**
+     * Creates a new channel with the given name. The returned logger will print all it's output
+     * via this one (in whatever manner the implementation chooses to do this), but will have an
+     * additional prefix in the output.
+     *
+     * @param name the name of the channel
+     * @return a channel with the given name
+     */
+    Logger channel(@NonNull String name);
 }

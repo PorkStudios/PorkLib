@@ -35,22 +35,84 @@ public class BaseLogger implements Logger {
     protected String alertFooter = DEFAULT_ALERT_FOOTER;
 
     @Override
-    public synchronized void log(@NonNull LogLevel level, @NonNull String message) {
+    public void log(@NonNull LogLevel level, @NonNull String message) {
+        this.doLog(level, null, message);
+    }
+
+    protected synchronized void doLog(@NonNull LogLevel level, String channel, @NonNull String message) {
         Date date = Date.from(Instant.now());
         String[] split = message.trim().split("\n");
-        //TODO: channels
         if (level == LogLevel.ALERT) {
-            this.printer.accept(this.messageFormatter.format(date, null, level, this.alertHeader));
-            this.printer.accept(this.messageFormatter.format(date, null, level, this.alertPrefix));
+            this.printer.accept(this.messageFormatter.format(date, channel, level, this.alertHeader));
+            this.printer.accept(this.messageFormatter.format(date, channel, level, this.alertPrefix));
             for (String line : split)   {
-                this.printer.accept(this.messageFormatter.format(date, null, level, this.alertPrefix + line));
+                this.printer.accept(this.messageFormatter.format(date, channel, level, this.alertPrefix + line));
             }
-            this.printer.accept(this.messageFormatter.format(date, null, level, this.alertPrefix));
-            this.printer.accept(this.messageFormatter.format(date, null, level, this.alertFooter));
+            this.printer.accept(this.messageFormatter.format(date, channel, level, this.alertPrefix));
+            this.printer.accept(this.messageFormatter.format(date, channel, level, this.alertFooter));
         } else {
             for (String line : split)   {
-                this.printer.accept(this.messageFormatter.format(date, null, level, line));
+                this.printer.accept(this.messageFormatter.format(date, channel, level, line));
             }
+        }
+    }
+
+    @Override
+    public Logger channel(@NonNull String name) {
+        if (name.isEmpty()) {
+            throw new IllegalArgumentException("Channel name may not be empty!");
+        } else {
+            return new Logger() {
+                @Override
+                public void log(@NonNull LogLevel level, @NonNull String message) {
+                    BaseLogger.this.doLog(level, name, message);
+                }
+
+                @Override
+                public MessageFormatter getMessageFormatter() {
+                    return BaseLogger.this.getMessageFormatter();
+                }
+
+                @Override
+                public void setMessageFormatter(@NonNull MessageFormatter formatter) {
+                    BaseLogger.this.setMessageFormatter(formatter);
+                }
+
+                @Override
+                public String getAlertHeader() {
+                    return BaseLogger.this.getAlertHeader();
+                }
+
+                @Override
+                public void setAlertHeader(@NonNull String alertHeader) {
+                    BaseLogger.this.setAlertHeader(alertHeader);
+                }
+
+                @Override
+                public String getAlertPrefix() {
+                    return BaseLogger.this.getAlertPrefix();
+                }
+
+                @Override
+                public void setAlertPrefix(@NonNull String alertPrefix) {
+                    BaseLogger.this.setAlertPrefix(alertPrefix);
+                }
+
+                @Override
+                public String getAlertFooter() {
+                    return BaseLogger.this.getAlertFooter();
+                }
+
+                @Override
+                public void setAlertFooter(@NonNull String alertFooter) {
+                    BaseLogger.this.setAlertFooter(alertFooter);
+                }
+
+                @Override
+                public Logger channel(@NonNull String name) {
+                    return BaseLogger.this.channel(name);
+                }
+            };
         }
     }
 }

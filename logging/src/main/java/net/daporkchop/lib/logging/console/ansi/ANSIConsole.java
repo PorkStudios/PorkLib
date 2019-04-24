@@ -19,10 +19,13 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.logging.console.Console;
+import net.daporkchop.lib.logging.console.TextFormat;
+import net.daporkchop.lib.logging.format.TextStyle;
 import net.daporkchop.lib.logging.impl.DefaultLogger;
 
 import java.awt.Color;
 import java.io.PrintStream;
+import java.util.StringJoiner;
 
 /**
  * @author DaPorkchop_
@@ -32,6 +35,38 @@ import java.io.PrintStream;
 public class ANSIConsole implements ANSI, Console {
     @NonNull
     protected final PrintStream printer;
+
+    //cached values because reasons
+    protected VGAColor textColor = VGAColor.DEFAULT;
+    protected VGAColor backgroundColor = VGAColor.DEFAULT;
+    protected int style = 0;
+
+    public static CharSequence getStyleStuff(int style)    {
+        if (TextStyle.isDefault(style)) {
+            return "";
+        } else {
+            StringBuilder builder = new StringBuilder();
+            if (TextStyle.isBold(style))    {
+                builder.append(";1");
+            }
+            if (TextStyle.isItalic(style))  {
+                builder.append(";3");
+            }
+            if (TextStyle.isUnderline(style))   {
+                builder.append(";4");
+            }
+            if (TextStyle.isStrikethrough(style))   {
+                builder.append(";9");
+            }
+            if (TextStyle.isOverline(style))    {
+                builder.append(";53");
+            }
+            if (TextStyle.isBlinking(style))    {
+                builder.append(";5");
+            }
+            return builder;
+        }
+    }
 
     public ANSIConsole()    {
         this(DefaultLogger.stdOut);
@@ -48,7 +83,8 @@ public class ANSIConsole implements ANSI, Console {
     }
 
     public void setTextColor(@NonNull VGAColor color)   {
-        this.printer.printf("%c[%dm", ESC, color.fg);
+        this.textColor = color;
+        this.updateTextFormat();
     }
 
     @Override
@@ -57,6 +93,90 @@ public class ANSIConsole implements ANSI, Console {
     }
 
     public void setBackgroundColor(@NonNull VGAColor color)   {
-        this.printer.printf("%c[%dm", ESC, color.bg);
+        this.backgroundColor = color;
+        this.updateTextFormat();
+    }
+
+    @Override
+    public void setBold(boolean state) {
+        if (state)  {
+            this.style |= TextStyle.BOLD;
+        } else if (TextStyle.isBold(this.style)) {
+            this.style ^= TextStyle.BOLD;
+        }
+        this.updateTextFormat();
+    }
+
+    @Override
+    public void setItalic(boolean state) {
+        if (state)  {
+            this.style |= TextStyle.ITALIC;
+        } else if (TextStyle.isItalic(this.style)) {
+            this.style ^= TextStyle.ITALIC;
+        }
+        this.updateTextFormat();
+    }
+
+    @Override
+    public void setUnderline(boolean state) {
+        if (state)  {
+            this.style |= TextStyle.UNDERLINE;
+        } else if (TextStyle.isUnderline(this.style)) {
+            this.style ^= TextStyle.UNDERLINE;
+        }
+        this.updateTextFormat();
+    }
+
+    @Override
+    public void setStrikethrough(boolean state) {
+        if (state)  {
+            this.style |= TextStyle.STRIKETHROUGH;
+        } else if (TextStyle.isStrikethrough(this.style)) {
+            this.style ^= TextStyle.STRIKETHROUGH;
+        }
+        this.updateTextFormat();
+    }
+
+    @Override
+    public void setOverline(boolean state) {
+        if (state)  {
+            this.style |= TextStyle.OVERLINE;
+        } else if (TextStyle.isOverline(this.style)) {
+            this.style ^= TextStyle.OVERLINE;
+        }
+        this.updateTextFormat();
+    }
+
+    @Override
+    public void setBlinking(boolean state) {
+        if (state)  {
+            this.style |= TextStyle.BLINKING;
+        } else if (TextStyle.isBlinking(this.style)) {
+            this.style ^= TextStyle.BLINKING;
+        }
+        this.updateTextFormat();
+    }
+
+    @Override
+    public void setFormat(TextFormat format) {
+        if (format == null) {
+            this.textColor = this.backgroundColor = VGAColor.DEFAULT;
+            this.style = 0;
+        } else {
+            this.textColor = VGAColor.closestTo(format.getTextColor());
+            this.backgroundColor = VGAColor.closestTo(format.getBackgroundColor());
+            this.style = format.getStyle();
+        }
+        this.updateTextFormat();
+    }
+
+    protected void updateTextFormat()   {
+        this.printer.printf(
+                "%c[0;%d;%d%sm",
+                ESC,
+                this.textColor.fg,
+                this.backgroundColor.bg,
+                getStyleStuff(this.style)
+        );
     }
 }

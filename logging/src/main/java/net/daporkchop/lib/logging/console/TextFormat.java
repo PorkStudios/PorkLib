@@ -16,6 +16,7 @@
 package net.daporkchop.lib.logging.console;
 
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 import java.awt.Color;
 
@@ -23,6 +24,7 @@ import java.awt.Color;
  * @author DaPorkchop_
  */
 @Data
+@Accessors(chain = true)
 public class TextFormat {
     protected Color textColor;
     protected Color backgroundColor;

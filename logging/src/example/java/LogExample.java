@@ -17,5 +17,8 @@ public class LogExample implements Logging {
         logger.debug("Debug 1");
         logger.setLogAmount(LogAmount.DEBUG);
         logger.debug("Debug 2");
+
+        console.setTextColor(31); //red
+        logger.info("This text should be red...");
     }
 }

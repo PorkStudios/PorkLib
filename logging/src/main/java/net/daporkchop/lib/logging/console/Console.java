@@ -60,7 +60,7 @@ public interface Console {
     void setTextColor(Color color);
 
     /**
-     * Set the background color for all background printed after this method call.
+     * Set the background color for all text printed after this method call.
      * <p>
      * No guarantees are made that the output color will be exactly the same as the color passed here as an argument, due to various system
      * limitations. However, implementations are required to have the output color be as similar as the given color as possible.
@@ -72,7 +72,7 @@ public interface Console {
     }
 
     /**
-     * Set the background color for all background printed after this method call.
+     * Set the background color for all text printed after this method call.
      * <p>
      * No guarantees are made that the output color will be exactly the same as the color passed here as an argument, due to various system
      * limitations. However, implementations are required to have the output color be as similar as the given color as possible.
@@ -80,4 +80,54 @@ public interface Console {
      * @param color the new background color. If {@code null}, the background color will be reset to default
      */
     void setBackgroundColor(Color color);
+
+    /**
+     * Makes all text printed after this method call be bold (or not).
+     * @param state whether or not text should be bold
+     */
+    void setBold(boolean state);
+
+    /**
+     * Makes all text printed after this method call be italic (or not).
+     * @param state whether or not text should be italic
+     */
+    void setItalic(boolean state);
+
+    /**
+     * Makes all text printed after this method call be underline (or not).
+     * @param state whether or not text should be underline
+     */
+    void setUnderline(boolean state);
+
+    /**
+     * Makes all text printed after this method call be strikethrough (or not).
+     * @param state whether or not text should be strikethrough
+     */
+    void setStrikethrough(boolean state);
+
+    /**
+     * Makes all text printed after this method call be overline (or not).
+     * @param state whether or not text should be overline
+     */
+    void setOverline(boolean state);
+
+    /**
+     * Makes all text printed after this method call be blinking (or not).
+     * @param state whether or not text should be blinking
+     */
+    void setBlinking(boolean state);
+
+    /**
+     * Sets all configurable aspects of text formatting at once for all text printed after this method call.
+     *
+     * @param format the new formatting to use. If {@code null}, all formatting will be reset to default.
+     */
+    void setFormat(TextFormat format);
+
+    /**
+     * Resets all text formatting to the defaults for all text printed after this method call.
+     */
+    default void resetFormat()  {
+        this.setFormat(null);
+    }
 }

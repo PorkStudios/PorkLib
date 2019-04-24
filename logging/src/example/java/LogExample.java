@@ -16,6 +16,8 @@
 import net.daporkchop.lib.logging.LogAmount;
 import net.daporkchop.lib.logging.Logger;
 import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.logging.console.TextFormat;
+import net.daporkchop.lib.logging.format.TextStyle;
 
 import java.awt.Color;
 
@@ -37,5 +39,12 @@ public class LogExample implements Logging {
 
         console.setTextColor(Color.BLUE);
         logger.info("This text should be blue...");
+        console.setBackgroundColor(Color.ORANGE);
+        logger.info("With an orange background...");
+        console.setBold(true);
+        console.setBlinking(true);
+        logger.info("In bold and blinking!");
+        console.setBold(false);
+        logger.info("Wait, sorry. This isn't bold!");
     }
 }

@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author DaPorkchop_
  */
 public class DefaultLogger extends BaseLogger {
-    protected static final PrintStream stdOut = System.out;
+    public static final PrintStream stdOut = System.out;
     protected static AtomicBoolean hasRedirectedStdOut = new AtomicBoolean(false);
 
     public DefaultLogger()  {

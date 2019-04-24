@@ -17,6 +17,8 @@ package net.daporkchop.lib.logging;
 
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.Formatter;
+import net.daporkchop.lib.logging.console.Console;
+import net.daporkchop.lib.logging.console.ansi.ANSIConsole;
 import net.daporkchop.lib.logging.impl.BaseLogger;
 import net.daporkchop.lib.logging.impl.DefaultLogger;
 
@@ -25,4 +27,5 @@ import net.daporkchop.lib.logging.impl.DefaultLogger;
  */
 public interface Logging {
     DefaultLogger logger = new DefaultLogger();
+    Console console = new ANSIConsole();
 }

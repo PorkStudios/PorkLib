@@ -13,18 +13,28 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.text;
+package net.daporkchop.lib.minecraft.text.component;
 
-public class TextComponentTranslationFormatException extends IllegalArgumentException {
-    public TextComponentTranslationFormatException(TextComponentTranslation component, String message) {
-        super(String.format("Error parsing: %s: %s", component, message));
-    }
+import lombok.Getter;
+import lombok.NonNull;
+import net.daporkchop.lib.logging.format.component.TextComponent;
+import net.daporkchop.lib.logging.format.component.TextComponentHolder;
 
-    public TextComponentTranslationFormatException(TextComponentTranslation component, int index) {
-        super(String.format("Invalid index %d requested for %s", index, component));
-    }
+import java.util.List;
 
-    public TextComponentTranslationFormatException(TextComponentTranslation component, Throwable cause) {
-        super(String.format("Error while parsing: %s", component), cause);
+/**
+ * A simple container text component on top of the normal text components. This doesn't affect any behaviors, however it can be used to get the unparsed
+ * JSON (as described in https://wiki.vg/Chat) of the text (e.g. to obtain more detailed information that's ignored by this parser).
+ *
+ * @author DaPorkchop_
+ */
+@Getter
+public class MCTextRoot extends TextComponentHolder {
+    protected final String json;
+
+    public MCTextRoot(@NonNull String json, TextComponent... children) {
+        super(children);
+
+        this.json = json;
     }
 }

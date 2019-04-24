@@ -1,3 +1,18 @@
+/*
+ * Adapted from the Wizardry License
+ *
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ *
+ * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
+ *
+ * The persons and/or organizations are also disallowed from sub-licensing and/or trademarking this software without explicit permission from DaPorkchop_.
+ *
+ * Any persons and/or organizations using this software must disclose their source code and have it publicly available, include this license, provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+
 package net.daporkchop.lib.logging.impl;
 
 import lombok.AllArgsConstructor;
@@ -8,8 +23,12 @@ import lombok.Setter;
 import net.daporkchop.lib.logging.LogAmount;
 import net.daporkchop.lib.logging.LogLevel;
 import net.daporkchop.lib.logging.Logger;
+import net.daporkchop.lib.logging.format.DefaultFormatParser;
 import net.daporkchop.lib.logging.format.DefaultMessageFormatter;
+import net.daporkchop.lib.logging.format.FormatParser;
 import net.daporkchop.lib.logging.format.MessageFormatter;
+import net.daporkchop.lib.logging.format.component.TextComponent;
+import net.daporkchop.lib.logging.format.component.TextComponentHolder;
 
 import java.util.Date;
 import java.time.Instant;
@@ -24,16 +43,18 @@ import java.util.function.Consumer;
 @Setter
 public class BaseLogger implements Logger {
     @NonNull
-    protected final Consumer<String> printer;
+    protected final Consumer<TextComponent> printer;
 
+    @NonNull
+    protected FormatParser formatParser = new DefaultFormatParser();
     @NonNull
     protected MessageFormatter messageFormatter = new DefaultMessageFormatter();
     @NonNull
-    protected String alertHeader = DEFAULT_ALERT_HEADER;
+    protected TextComponent alertHeader = DEFAULT_ALERT_HEADER;
     @NonNull
-    protected String alertPrefix = DEFAULT_ALERT_PREFIX;
+    protected TextComponent alertPrefix = DEFAULT_ALERT_PREFIX;
     @NonNull
-    protected String alertFooter = DEFAULT_ALERT_FOOTER;
+    protected TextComponent alertFooter = DEFAULT_ALERT_FOOTER;
     @NonNull
     protected LogAmount logAmount = LogAmount.NORMAL;
 
@@ -52,13 +73,13 @@ public class BaseLogger implements Logger {
             this.printer.accept(this.messageFormatter.format(date, channel, level, this.alertHeader));
             this.printer.accept(this.messageFormatter.format(date, channel, level, this.alertPrefix));
             for (String line : split)   {
-                this.printer.accept(this.messageFormatter.format(date, channel, level, this.alertPrefix + line));
+                this.printer.accept(this.messageFormatter.format(date, channel, level, this.alertPrefix.insertToHeadOf(this.formatParser.parse(line))));
             }
             this.printer.accept(this.messageFormatter.format(date, channel, level, this.alertPrefix));
             this.printer.accept(this.messageFormatter.format(date, channel, level, this.alertFooter));
         } else {
             for (String line : split)   {
-                this.printer.accept(this.messageFormatter.format(date, channel, level, line));
+                this.printer.accept(this.messageFormatter.format(date, channel, level, this.formatParser.parse(line)));
             }
         }
     }
@@ -68,10 +89,20 @@ public class BaseLogger implements Logger {
         if (name.isEmpty()) {
             throw new IllegalArgumentException("Channel name may not be empty!");
         } else {
-            return new Logger() {
+            return new Logger() { //TODO: copy the settings from parent logger rather than sharing them
                 @Override
                 public void log(@NonNull LogLevel level, @NonNull String message) {
                     BaseLogger.this.doLog(level, name, message);
+                }
+
+                @Override
+                public FormatParser getFormatParser() {
+                    return BaseLogger.this.getFormatParser();
+                }
+
+                @Override
+                public void setFormatParser(@NonNull FormatParser parser) {
+                    BaseLogger.this.setFormatParser(parser);
                 }
 
                 @Override
@@ -85,32 +116,32 @@ public class BaseLogger implements Logger {
                 }
 
                 @Override
-                public String getAlertHeader() {
+                public TextComponent getAlertHeader() {
                     return BaseLogger.this.getAlertHeader();
                 }
 
                 @Override
-                public void setAlertHeader(@NonNull String alertHeader) {
+                public void setAlertHeader(@NonNull TextComponent alertHeader) {
                     BaseLogger.this.setAlertHeader(alertHeader);
                 }
 
                 @Override
-                public String getAlertPrefix() {
+                public TextComponent getAlertPrefix() {
                     return BaseLogger.this.getAlertPrefix();
                 }
 
                 @Override
-                public void setAlertPrefix(@NonNull String alertPrefix) {
+                public void setAlertPrefix(@NonNull TextComponent alertPrefix) {
                     BaseLogger.this.setAlertPrefix(alertPrefix);
                 }
 
                 @Override
-                public String getAlertFooter() {
+                public TextComponent getAlertFooter() {
                     return BaseLogger.this.getAlertFooter();
                 }
 
                 @Override
-                public void setAlertFooter(@NonNull String alertFooter) {
+                public void setAlertFooter(@NonNull TextComponent alertFooter) {
                     BaseLogger.this.setAlertFooter(alertFooter);
                 }
 

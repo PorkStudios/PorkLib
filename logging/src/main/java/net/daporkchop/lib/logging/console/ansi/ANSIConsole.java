@@ -45,9 +45,4 @@ public class ANSIConsole implements ANSI, Console {
     public void setTextColor(int color) {
         this.printer.printf("%c[%dm", ESC, color);
     }
-
-    @Override
-    public void setTextColor(int r, int g, int b) {
-        this.printer.printf("%c[38;2;%d;%d;%dm", ESC, r, g, b);
-    }
 }

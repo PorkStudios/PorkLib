@@ -34,7 +34,6 @@ public class LogExample implements Logging {
         logger.debug("Debug 2");
 
         console.setTextColor(31); //red
-        console.setTextColor(0xFF, 0xFF, 0x55);
         logger.info("This text should be red...");
     }
 }

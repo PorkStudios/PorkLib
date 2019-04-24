@@ -13,29 +13,56 @@
  *
  */
 
-package net.daporkchop.lib.logging.format;
+package net.daporkchop.lib.logging.format.component;
 
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.logging.LogLevel;
-import net.daporkchop.lib.logging.format.component.TextComponent;
+import lombok.RequiredArgsConstructor;
 
-import java.util.Date;
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Formats log messages for printing to the console
- *
  * @author DaPorkchop_
  */
-@FunctionalInterface
-public interface MessageFormatter {
-    /**
-     * Prepares the actual message for printing
-     *
-     * @param date        the date that the message was sent at, should be used for message timestamps
-     * @param channelName the name of the channel that the message was sent on. May be {@code null}
-     * @param level       the log level that the message was sent using
-     * @param message     the actual message
-     * @return a formatted message, ready to be printed to the console
-     */
-    TextComponent format(@NonNull Date date, String channelName, @NonNull LogLevel level, @NonNull TextComponent message);
+@RequiredArgsConstructor
+@Getter
+public class TextComponentHolder implements TextComponent {
+    @NonNull
+    protected final List<TextComponent> children;
+
+    public TextComponentHolder() {
+        this(new ArrayList<>());
+    }
+
+    public TextComponentHolder(@NonNull TextComponent... children) {
+        this(new ArrayList<>());
+        for (TextComponent child : children) {
+            if (child == null) {
+                throw new NullPointerException();
+            }
+            this.children.add(child);
+        }
+    }
+
+    @Override
+    public String getText() {
+        return null;
+    }
+
+    @Override
+    public Color getColor() {
+        return null;
+    }
+
+    @Override
+    public Color getBackgroundColor() {
+        return null;
+    }
+
+    @Override
+    public int getStyle() {
+        return 0;
+    }
 }

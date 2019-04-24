@@ -16,26 +16,20 @@
 package net.daporkchop.lib.logging.format;
 
 import lombok.NonNull;
-import net.daporkchop.lib.logging.LogLevel;
 import net.daporkchop.lib.logging.format.component.TextComponent;
 
-import java.util.Date;
-
 /**
- * Formats log messages for printing to the console
+ * Parses text into a {@link TextComponent} (possibly with children) with formatting.
  *
  * @author DaPorkchop_
  */
 @FunctionalInterface
-public interface MessageFormatter {
+public interface FormatParser {
     /**
-     * Prepares the actual message for printing
+     * Parses the given text into a {@link TextComponent} with the correct formatting.
      *
-     * @param date        the date that the message was sent at, should be used for message timestamps
-     * @param channelName the name of the channel that the message was sent on. May be {@code null}
-     * @param level       the log level that the message was sent using
-     * @param message     the actual message
-     * @return a formatted message, ready to be printed to the console
+     * @param text the text to be parsed
+     * @return a non-null {@link TextComponent}
      */
-    TextComponent format(@NonNull Date date, String channelName, @NonNull LogLevel level, @NonNull TextComponent message);
+    TextComponent parse(@NonNull String text);
 }

@@ -15,27 +15,44 @@
 
 package net.daporkchop.lib.logging.format;
 
-import lombok.NonNull;
-import net.daporkchop.lib.logging.LogLevel;
-import net.daporkchop.lib.logging.format.component.TextComponent;
-
-import java.util.Date;
-
 /**
- * Formats log messages for printing to the console
- *
+ * Flags indicating additional formatting to apply to text
+ * 
  * @author DaPorkchop_
  */
-@FunctionalInterface
-public interface MessageFormatter {
-    /**
-     * Prepares the actual message for printing
-     *
-     * @param date        the date that the message was sent at, should be used for message timestamps
-     * @param channelName the name of the channel that the message was sent on. May be {@code null}
-     * @param level       the log level that the message was sent using
-     * @param message     the actual message
-     * @return a formatted message, ready to be printed to the console
-     */
-    TextComponent format(@NonNull Date date, String channelName, @NonNull LogLevel level, @NonNull TextComponent message);
+public interface TextStyle {
+    int BOLD = 1 << 0;
+    int ITALIC = 1 << 1;
+    int UNDERLINE = 1 << 2;
+    int STRIKETHROUGH = 1 << 3;
+    int OVERLINE = 1 << 4;
+    int BLINKING = 1 << 5;
+    
+    static boolean isDefault(int flag)  {
+        return flag == 0;
+    }
+
+    static boolean isBold(int flag) {
+        return (flag & BOLD) != 0;
+    }
+
+    static boolean isItalic(int flag) {
+        return (flag & ITALIC) != 0;
+    }
+
+    static boolean isUnderline(int flag) {
+        return (flag & UNDERLINE) != 0;
+    }
+
+    static boolean isStrikethrough(int flag) {
+        return (flag & STRIKETHROUGH) != 0;
+    }
+
+    static boolean isOverline(int flag) {
+        return (flag & OVERLINE) != 0;
+    }
+
+    static boolean isBlinking(int flag) {
+        return (flag & BLINKING) != 0;
+    }
 }

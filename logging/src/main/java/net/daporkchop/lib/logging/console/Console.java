@@ -39,6 +39,4 @@ public interface Console {
      * @param color the new text color
      */
     void setTextColor(int color);
-
-    void setTextColor(int r, int g, int b);
 }

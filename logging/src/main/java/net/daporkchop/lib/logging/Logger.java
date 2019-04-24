@@ -17,8 +17,13 @@ package net.daporkchop.lib.logging;
 
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.logging.format.FormatParser;
 import net.daporkchop.lib.logging.format.MessageFormatter;
+import net.daporkchop.lib.logging.format.TextStyle;
+import net.daporkchop.lib.logging.format.component.TextComponent;
+import net.daporkchop.lib.logging.format.component.TextComponentString;
 
+import java.awt.Color;
 import java.io.PrintWriter;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
@@ -29,9 +34,9 @@ import java.util.function.Consumer;
  * @author DaPorkchop_
  */
 public interface Logger {
-    String DEFAULT_ALERT_HEADER = "****************************************";
-    String DEFAULT_ALERT_PREFIX = "* ";
-    String DEFAULT_ALERT_FOOTER = DEFAULT_ALERT_HEADER;
+    TextComponent DEFAULT_ALERT_HEADER = new TextComponentString(Color.RED, null, TextStyle.BOLD, "****************************************");
+    TextComponent DEFAULT_ALERT_PREFIX = new TextComponentString(Color.RED, null, TextStyle.BOLD, "* ");
+    TextComponent DEFAULT_ALERT_FOOTER = DEFAULT_ALERT_HEADER;
 
     //
     //
@@ -344,6 +349,20 @@ public interface Logger {
     //
 
     /**
+     * Gets the currently used {@link FormatParser} for parsing formatted log messages.
+     *
+     * @return the currently used {@link FormatParser}
+     */
+    FormatParser getFormatParser();
+
+    /**
+     * Sets the currently used {@link FormatParser} for parsing formatted log messages.
+     *
+     * @param parser the new {@link FormatParser} to use
+     */
+    void setFormatParser(@NonNull FormatParser parser);
+
+    /**
      * Gets the currently used {@link MessageFormatter} for formatting log messages for printing.
      *
      * @return the currently used {@link MessageFormatter}
@@ -351,7 +370,7 @@ public interface Logger {
     MessageFormatter getMessageFormatter();
 
     /**
-     * Gets the currently used {@link MessageFormatter} for formatting log messages for printing.
+     * Sets the currently used {@link MessageFormatter} for formatting log messages for printing.
      *
      * @param formatter the new {@link MessageFormatter} to use
      */
@@ -364,7 +383,7 @@ public interface Logger {
      *
      * @return the current alert header
      */
-    String getAlertHeader();
+    TextComponent getAlertHeader();
 
     /**
      * Sets the currently used header above messages printed with the {@link LogLevel#ALERT} level.
@@ -373,7 +392,7 @@ public interface Logger {
      *
      * @param alertHeader the new alert header to use
      */
-    void setAlertHeader(@NonNull String alertHeader);
+    void setAlertHeader(@NonNull TextComponent alertHeader);
 
     /**
      * Gets the currently used prefix above messages printed with the {@link LogLevel#ALERT} level.
@@ -382,7 +401,7 @@ public interface Logger {
      *
      * @return the current alert prefix
      */
-    String getAlertPrefix();
+    TextComponent getAlertPrefix();
 
     /**
      * Sets the currently used prefix above messages printed with the {@link LogLevel#ALERT} level.
@@ -391,7 +410,7 @@ public interface Logger {
      *
      * @param alertPrefix the new alert prefix to use
      */
-    void setAlertPrefix(@NonNull String alertPrefix);
+    void setAlertPrefix(@NonNull TextComponent alertPrefix);
 
     /**
      * Gets the currently used footer above messages printed with the {@link LogLevel#ALERT} level.
@@ -400,7 +419,7 @@ public interface Logger {
      *
      * @return the current alert footer
      */
-    String getAlertFooter();
+    TextComponent getAlertFooter();
 
     /**
      * Sets the currently used footer above messages printed with the {@link LogLevel#ALERT} level.
@@ -409,7 +428,7 @@ public interface Logger {
      *
      * @param alertFooter the new alert footer to use
      */
-    void setAlertFooter(@NonNull String alertFooter);
+    void setAlertFooter(@NonNull TextComponent alertFooter);
 
     /**
      * Gets the currently used log amount.

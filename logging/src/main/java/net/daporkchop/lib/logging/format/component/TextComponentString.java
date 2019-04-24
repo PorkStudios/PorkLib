@@ -13,29 +13,31 @@
  *
  */
 
-package net.daporkchop.lib.logging.format;
+package net.daporkchop.lib.logging.format.component;
 
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.logging.LogLevel;
-import net.daporkchop.lib.logging.format.component.TextComponent;
 
-import java.util.Date;
+import java.awt.Color;
 
 /**
- * Formats log messages for printing to the console
+ * A simple text component that only contains plain text
  *
  * @author DaPorkchop_
  */
-@FunctionalInterface
-public interface MessageFormatter {
-    /**
-     * Prepares the actual message for printing
-     *
-     * @param date        the date that the message was sent at, should be used for message timestamps
-     * @param channelName the name of the channel that the message was sent on. May be {@code null}
-     * @param level       the log level that the message was sent using
-     * @param message     the actual message
-     * @return a formatted message, ready to be printed to the console
-     */
-    TextComponent format(@NonNull Date date, String channelName, @NonNull LogLevel level, @NonNull TextComponent message);
+@Getter
+public class TextComponentString extends AbstractTextComponent {
+    protected final String text;
+
+    public TextComponentString(Color color, Color backgroundColor, int style, @NonNull String text) {
+        super(color, backgroundColor, style);
+
+        this.text = text;
+    }
+
+    public TextComponentString(@NonNull String text) {
+        super();
+
+        this.text = text;
+    }
 }

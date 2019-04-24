@@ -15,27 +15,17 @@
 
 package net.daporkchop.lib.minecraft.text;
 
-public enum ChatType {
-    CHAT((byte) 0),
-    SYSTEM((byte) 1),
-    GAME_INFO((byte) 2);
+import lombok.NonNull;
+import net.daporkchop.lib.logging.format.FormatParser;
+import net.daporkchop.lib.logging.format.component.TextComponent;
+import net.daporkchop.lib.minecraft.text.component.MCTextRoot;
 
-    public static ChatType byId(byte idIn) {
-        for (ChatType chattype : values()) {
-            if (idIn == chattype.id) {
-                return chattype;
-            }
-        }
-
-        return CHAT;
-    }
-    private final byte id;
-
-    ChatType(byte id) {
-        this.id = id;
-    }
-
-    public byte getId() {
-        return this.id;
+/**
+ * @author DaPorkchop_
+ */
+public class MinecraftFormatParser implements FormatParser {
+    @Override
+    public MCTextRoot parse(@NonNull String text) {
+        return null;
     }
 }

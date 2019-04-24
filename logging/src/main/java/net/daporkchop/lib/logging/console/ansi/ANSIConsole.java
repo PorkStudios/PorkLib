@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.logging.console.Console;
 import net.daporkchop.lib.logging.impl.DefaultLogger;
 
+import java.awt.Color;
 import java.io.PrintStream;
 
 /**
@@ -42,7 +43,20 @@ public class ANSIConsole implements ANSI, Console {
     }
 
     @Override
-    public void setTextColor(int color) {
-        this.printer.printf("%c[%dm", ESC, color);
+    public void setTextColor(Color color) {
+        this.setTextColor(VGAColor.closestTo(color));
+    }
+
+    public void setTextColor(@NonNull VGAColor color)   {
+        this.printer.printf("%c[%dm", ESC, color.fg);
+    }
+
+    @Override
+    public void setBackgroundColor(Color color) {
+        this.setBackgroundColor(VGAColor.closestTo(color));
+    }
+
+    public void setBackgroundColor(@NonNull VGAColor color)   {
+        this.printer.printf("%c[%dm", ESC, color.bg);
     }
 }

@@ -17,6 +17,8 @@ package net.daporkchop.lib.logging.console;
 
 import lombok.NonNull;
 
+import java.awt.Color;
+
 /**
  * A base interface for making fancy-looking consoles.
  * <p>
@@ -28,15 +30,54 @@ import lombok.NonNull;
 public interface Console {
     /**
      * Sets the title of the window.
-     *
+     * <p>
      * This is not guaranteed to work in all environments, but most of the time it should.
+     *
      * @param title the new window title
      */
     void setTitle(@NonNull String title);
 
     /**
-     * Set the text color for all text printed after this method call
-     * @param color the new text color
+     * Set the text color for all text printed after this method call.
+     * <p>
+     * No guarantees are made that the output color will be exactly the same as the color passed here as an argument, due to various system
+     * limitations. However, implementations are required to have the output color be as similar as the given color as possible.
+     *
+     * @param rgb the new text color
      */
-    void setTextColor(int color);
+    default void setTextColorRGB(int rgb) {
+        this.setTextColor(new Color(rgb));
+    }
+
+    /**
+     * Set the text color for all text printed after this method call.
+     * <p>
+     * No guarantees are made that the output color will be exactly the same as the color passed here as an argument, due to various system
+     * limitations. However, implementations are required to have the output color be as similar as the given color as possible.
+     *
+     * @param color the new text color. If {@code null}, the text color will be reset to default
+     */
+    void setTextColor(Color color);
+
+    /**
+     * Set the background color for all background printed after this method call.
+     * <p>
+     * No guarantees are made that the output color will be exactly the same as the color passed here as an argument, due to various system
+     * limitations. However, implementations are required to have the output color be as similar as the given color as possible.
+     *
+     * @param rgb the new background color
+     */
+    default void setBackgroundColorRGB(int rgb) {
+        this.setBackgroundColor(new Color(rgb));
+    }
+
+    /**
+     * Set the background color for all background printed after this method call.
+     * <p>
+     * No guarantees are made that the output color will be exactly the same as the color passed here as an argument, due to various system
+     * limitations. However, implementations are required to have the output color be as similar as the given color as possible.
+     *
+     * @param color the new background color. If {@code null}, the background color will be reset to default
+     */
+    void setBackgroundColor(Color color);
 }

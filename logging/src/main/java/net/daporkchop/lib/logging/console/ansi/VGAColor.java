@@ -20,6 +20,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import java.awt.Color;
+import java.util.Arrays;
 
 /**
  * @author DaPorkchop_
@@ -42,10 +43,11 @@ public enum VGAColor {
     BRIGHT_BLUE(94, 104, new Color(85, 85, 255)),
     BRIGHT_MAGENTA(95, 105, new Color(255, 85, 255)),
     BRIGHT_CYAN(96, 106, new Color(85, 255, 255)),
-    BRIGHT_WHITE(97, 107, new Color(255, 255, 255))
+    BRIGHT_WHITE(97, 107, new Color(255, 255, 255)),
+    DEFAULT(39, 49, -1),
     ;
 
-    protected static final VGAColor[] COLORS = values();
+    protected static final VGAColor[] DISTANCE_SEARCH_VALUES = Arrays.stream(values()).filter(c -> c != DEFAULT).toArray(VGAColor[]::new);
 
     protected final int fg;
     protected final int bg;
@@ -55,8 +57,8 @@ public enum VGAColor {
         this(fg, bg, color.getRGB() & 0xFFFFFF);
     }
 
-    public static VGAColor closestTo(@NonNull Color color) {
-        return closestTo(color.getRGB());
+    public static VGAColor closestTo(Color color) {
+        return color == null ? DEFAULT : closestTo(color.getRGB());
     }
 
     public static VGAColor closestTo(int val) {
@@ -66,7 +68,7 @@ public enum VGAColor {
 
         VGAColor closest = null;
         val = Integer.MAX_VALUE; //reuse old variable for speed and stuff lol
-        for (VGAColor color : COLORS)    {
+        for (VGAColor color : DISTANCE_SEARCH_VALUES)    {
             int vR = r - ((color.color >>> 16) & 0xFF);
             int vG = g - ((color.color >>> 8) & 0xFF);
             int vB = b - (color.color & 0xFF);

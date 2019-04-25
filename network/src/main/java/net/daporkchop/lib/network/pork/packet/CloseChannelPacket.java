@@ -36,7 +36,7 @@ public class CloseChannelPacket {
         public void handle(@NonNull CloseChannelPacket packet, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception {
             Channel theChannel = connection.getOpenChannel(packet.channelId);
             if (theChannel == null) {
-                throw this.exception("Invalid channel: ${0}", packet.channelId);
+                throw new IllegalStateException(String.format("Invalid channel: %d", packet.channelId));
             } else {
                 theChannel.close(false);
             }

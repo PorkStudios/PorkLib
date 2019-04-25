@@ -58,7 +58,7 @@ public class PacketRegistry implements Logging {
     @SuppressWarnings("unchecked")
     public PacketRegistry(@NonNull Collection<UserProtocol> protocols) {
         if (protocols.size() > 0xFFFF - 1) {
-            throw this.exception("Too many protocols: ${0}", protocols.size());
+            throw new IllegalStateException(String.format("Too many protocols: %d", protocols.size()));
         }
         this.protocols = Collections.unmodifiableCollection(protocols);
         SparseBitSet ids = new SparseBitSet();
@@ -71,14 +71,14 @@ public class PacketRegistry implements Logging {
             if (requestedId == -1) {
                 protocolId = (short) ids.nextClearBit(0);
             } else if (ids.get(requestedId)) {
-                throw this.exception("Protocol ID ${0} already taken by ${1}!", requestedId, this.idToProtocol.get((short) requestedId));
+                throw new IllegalStateException(String.format("Protocol ID %d already taken by %s!", requestedId, this.idToProtocol.get((short) requestedId)));
             } else {
                 protocolId = (short) requestedId;
             }
             ids.set(protocolId & 0xFFFF);
             this.idToProtocol.put(protocolId, protocol);
             if (this.protocolToId.containsKey(protocol.getClass())) {
-                throw this.exception("Protocol ${0} is registered twice!", protocol.getClass());
+                throw new IllegalStateException(String.format("Protocol %s is registered twice!", protocol.getClass()));
             } else {
                 this.protocolToId.put(protocol.getClass(), protocolId);
             }
@@ -99,7 +99,7 @@ public class PacketRegistry implements Logging {
     public <C extends UserConnection> UserProtocol<C> getProtocol(short protocolId) {
         UserProtocol<C> protocol = (UserProtocol<C>) this.idToProtocol.get(protocolId);
         if (protocol == null) {
-            throw this.exception("Invalid protocol id: ${0}", protocolId & 0xFFFF);
+            throw new IllegalStateException(String.format("Invalid protocol id: %d", protocolId & 0xFFFF));
         } else {
             return protocol;
         }
@@ -113,7 +113,7 @@ public class PacketRegistry implements Logging {
         if (this.protocolToId.containsKey(protocolClass)) {
             return this.protocolToId.get(protocolClass);
         } else {
-            throw this.exception("Unregistered protocol: ${0}", protocolClass);
+            throw new IllegalStateException(String.format("Unregistered protocol: %s", protocolClass));
         }
     }
 
@@ -121,7 +121,7 @@ public class PacketRegistry implements Logging {
         if (this.packetToFullId.containsKey(clazz)) {
             return this.packetToFullId.get(clazz);
         } else {
-            throw this.exception("Unregistered packet: ${0}", clazz);
+            throw new IllegalStateException(String.format("Unregistered packet: %s", clazz));
         }
     }
 

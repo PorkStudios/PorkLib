@@ -69,6 +69,6 @@ public class Version implements Data, Logging {
 
     @Override
     public String toString() {
-        return this.format("${0} v${1}", this.name, this.version);
+        return String.format("%s v%d", this.name, this.version);
     }
 }

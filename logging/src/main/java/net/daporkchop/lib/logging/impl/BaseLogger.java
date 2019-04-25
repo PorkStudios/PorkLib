@@ -59,8 +59,9 @@ public class BaseLogger implements Logger {
     protected LogAmount logAmount = LogAmount.NORMAL;
 
     @Override
-    public void log(@NonNull LogLevel level, @NonNull String message) {
+    public Logger log(@NonNull LogLevel level, @NonNull String message) {
         this.doLog(level, null, message);
+        return this;
     }
 
     protected synchronized void doLog(@NonNull LogLevel level, String channel, @NonNull String message) {
@@ -99,8 +100,9 @@ public class BaseLogger implements Logger {
         } else {
             return new Logger() { //TODO: copy the settings from parent logger rather than sharing them
                 @Override
-                public void log(@NonNull LogLevel level, @NonNull String message) {
+                public Logger log(@NonNull LogLevel level, @NonNull String message) {
                     BaseLogger.this.doLog(level, name, message);
+                    return this;
                 }
 
                 @Override

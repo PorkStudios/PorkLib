@@ -72,7 +72,7 @@ public interface Logger {
      * @param level   the log level to use
      * @param message the message to be written
      */
-    void log(@NonNull LogLevel level, @NonNull String message);
+    Logger log(@NonNull LogLevel level, @NonNull String message);
 
     /**
      * Writes a formatted message to the log.
@@ -83,8 +83,8 @@ public interface Logger {
      * @param format the message to be formatted
      * @param args   the arguments to be used for formatting
      */
-    default void log(@NonNull LogLevel level, @NonNull String format, @NonNull Object... args) {
-        this.log(level, String.format(format, args));
+    default Logger log(@NonNull LogLevel level, @NonNull String format, @NonNull Object... args) {
+        return this.log(level, String.format(format, args));
     }
 
     /**
@@ -92,8 +92,8 @@ public interface Logger {
      *
      * @param message the message to be written
      */
-    default void info(@NonNull String message) {
-        this.log(LogLevel.INFO, message);
+    default Logger info(@NonNull String message) {
+        return this.log(LogLevel.INFO, message);
     }
 
     /**
@@ -104,8 +104,8 @@ public interface Logger {
      * @param format the message to be formatted
      * @param args   the arguments to be used for formatting
      */
-    default void info(@NonNull String format, @NonNull Object... args) {
-        this.log(LogLevel.INFO, String.format(format, args));
+    default Logger info(@NonNull String format, @NonNull Object... args) {
+        return this.log(LogLevel.INFO, String.format(format, args));
     }
 
     /**
@@ -113,10 +113,17 @@ public interface Logger {
      *
      * @param throwable the exception whose stack trace should be printed
      */
-    default void info(@NonNull Throwable throwable) {
+    default Logger info(@NonNull Throwable throwable) {
         StringJoiner joiner = new StringJoiner("\n");
         getStackTrace(throwable, joiner::add);
-        this.info(joiner.toString());
+        return this.info(joiner.toString());
+    }
+
+    /**
+     * Writes a blank line to the log using the {@link LogLevel#INFO} level.
+     */
+    default Logger info() {
+        return this.log(LogLevel.INFO, "");
     }
 
     /**
@@ -124,8 +131,8 @@ public interface Logger {
      *
      * @param message the message to be written
      */
-    default void error(@NonNull String message) {
-        this.log(LogLevel.ERROR, message);
+    default Logger error(@NonNull String message) {
+        return this.log(LogLevel.ERROR, message);
     }
 
     /**
@@ -136,8 +143,8 @@ public interface Logger {
      * @param format the message to be formatted
      * @param args   the arguments to be used for formatting
      */
-    default void error(@NonNull String format, @NonNull Object... args) {
-        this.log(LogLevel.ERROR, String.format(format, args));
+    default Logger error(@NonNull String format, @NonNull Object... args) {
+        return this.log(LogLevel.ERROR, String.format(format, args));
     }
 
     /**
@@ -145,10 +152,17 @@ public interface Logger {
      *
      * @param throwable the exception whose stack trace should be printed
      */
-    default void error(@NonNull Throwable throwable) {
+    default Logger error(@NonNull Throwable throwable) {
         StringJoiner joiner = new StringJoiner("\n");
         getStackTrace(throwable, joiner::add);
-        this.error(joiner.toString());
+        return this.error(joiner.toString());
+    }
+
+    /**
+     * Writes a blank line to the log using the {@link LogLevel#ERROR} level.
+     */
+    default Logger error() {
+        return this.log(LogLevel.ERROR, "");
     }
 
     /**
@@ -156,8 +170,8 @@ public interface Logger {
      *
      * @param message the message to be written
      */
-    default void fatal(@NonNull String message) {
-        this.log(LogLevel.FATAL, message);
+    default Logger fatal(@NonNull String message) {
+        return this.log(LogLevel.FATAL, message);
     }
 
     /**
@@ -168,8 +182,8 @@ public interface Logger {
      * @param format the message to be formatted
      * @param args   the arguments to be used for formatting
      */
-    default void fatal(@NonNull String format, @NonNull Object... args) {
-        this.log(LogLevel.FATAL, String.format(format, args));
+    default Logger fatal(@NonNull String format, @NonNull Object... args) {
+        return this.log(LogLevel.FATAL, String.format(format, args));
     }
 
     /**
@@ -177,10 +191,17 @@ public interface Logger {
      *
      * @param throwable the exception whose stack trace should be printed
      */
-    default void fatal(@NonNull Throwable throwable) {
+    default Logger fatal(@NonNull Throwable throwable) {
         StringJoiner joiner = new StringJoiner("\n");
         getStackTrace(throwable, joiner::add);
-        this.fatal(joiner.toString());
+        return this.fatal(joiner.toString());
+    }
+
+    /**
+     * Writes a blank line to the log using the {@link LogLevel#FATAL} level.
+     */
+    default Logger fatal() {
+        return this.log(LogLevel.FATAL, "");
     }
 
     /**
@@ -188,8 +209,8 @@ public interface Logger {
      *
      * @param message the message to be written
      */
-    default void alert(@NonNull String message) {
-        this.log(LogLevel.ALERT, message);
+    default Logger alert(@NonNull String message) {
+        return this.log(LogLevel.ALERT, message);
     }
 
     /**
@@ -200,8 +221,8 @@ public interface Logger {
      * @param format the message to be formatted
      * @param args   the arguments to be used for formatting
      */
-    default void alert(@NonNull String format, @NonNull Object... args) {
-        this.log(LogLevel.ALERT, String.format(format, args));
+    default Logger alert(@NonNull String format, @NonNull Object... args) {
+        return this.log(LogLevel.ALERT, String.format(format, args));
     }
 
     /**
@@ -209,10 +230,17 @@ public interface Logger {
      *
      * @param throwable the exception whose stack trace should be printed
      */
-    default void alert(@NonNull Throwable throwable) {
+    default Logger alert(@NonNull Throwable throwable) {
         StringJoiner joiner = new StringJoiner("\n");
         getStackTrace(throwable, joiner::add);
-        this.alert(joiner.toString());
+        return this.alert(joiner.toString());
+    }
+
+    /**
+     * Writes a blank line to the log using the {@link LogLevel#ALERT} level.
+     */
+    default Logger alert() {
+        return this.log(LogLevel.ALERT, "");
     }
 
     /**
@@ -220,8 +248,8 @@ public interface Logger {
      *
      * @param message the message to be written
      */
-    default void warn(@NonNull String message) {
-        this.log(LogLevel.WARN, message);
+    default Logger warn(@NonNull String message) {
+        return this.log(LogLevel.WARN, message);
     }
 
     /**
@@ -232,8 +260,8 @@ public interface Logger {
      * @param format the message to be formatted
      * @param args   the arguments to be used for formatting
      */
-    default void warn(@NonNull String format, @NonNull Object... args) {
-        this.log(LogLevel.WARN, String.format(format, args));
+    default Logger warn(@NonNull String format, @NonNull Object... args) {
+        return this.log(LogLevel.WARN, String.format(format, args));
     }
 
     /**
@@ -241,10 +269,17 @@ public interface Logger {
      *
      * @param throwable the exception whose stack trace should be printed
      */
-    default void warn(@NonNull Throwable throwable) {
+    default Logger warn(@NonNull Throwable throwable) {
         StringJoiner joiner = new StringJoiner("\n");
         getStackTrace(throwable, joiner::add);
-        this.warn(joiner.toString());
+        return this.warn(joiner.toString());
+    }
+
+    /**
+     * Writes a blank line to the log using the {@link LogLevel#WARN} level.
+     */
+    default Logger warn() {
+        return this.log(LogLevel.WARN, "");
     }
 
     /**
@@ -252,8 +287,8 @@ public interface Logger {
      *
      * @param message the message to be written
      */
-    default void notify(@NonNull String message) {
-        this.log(LogLevel.NOTIFY, message);
+    default Logger notify(@NonNull String message) {
+        return this.log(LogLevel.NOTIFY, message);
     }
 
     /**
@@ -264,8 +299,8 @@ public interface Logger {
      * @param format the message to be formatted
      * @param args   the arguments to be used for formatting
      */
-    default void notify(@NonNull String format, @NonNull Object... args) {
-        this.log(LogLevel.NOTIFY, String.format(format, args));
+    default Logger notify(@NonNull String format, @NonNull Object... args) {
+        return this.log(LogLevel.NOTIFY, String.format(format, args));
     }
 
     /**
@@ -273,10 +308,17 @@ public interface Logger {
      *
      * @param throwable the exception whose stack trace should be printed
      */
-    default void notify(@NonNull Throwable throwable) {
+    default Logger notify(@NonNull Throwable throwable) {
         StringJoiner joiner = new StringJoiner("\n");
         getStackTrace(throwable, joiner::add);
-        this.notify(joiner.toString());
+        return this.notify(joiner.toString());
+    }
+
+    /**
+     * Writes a blank line to the log using the {@link LogLevel#NOTIFY} level.
+     */
+    default Logger logNotify() {
+        return this.log(LogLevel.NOTIFY, "");
     }
 
     /**
@@ -284,8 +326,8 @@ public interface Logger {
      *
      * @param message the message to be written
      */
-    default void trace(@NonNull String message) {
-        this.log(LogLevel.TRACE, message);
+    default Logger trace(@NonNull String message) {
+        return this.log(LogLevel.TRACE, message);
     }
 
     /**
@@ -296,8 +338,8 @@ public interface Logger {
      * @param format the message to be formatted
      * @param args   the arguments to be used for formatting
      */
-    default void trace(@NonNull String format, @NonNull Object... args) {
-        this.log(LogLevel.TRACE, String.format(format, args));
+    default Logger trace(@NonNull String format, @NonNull Object... args) {
+        return this.log(LogLevel.TRACE, String.format(format, args));
     }
 
     /**
@@ -305,10 +347,17 @@ public interface Logger {
      *
      * @param throwable the exception whose stack trace should be printed
      */
-    default void trace(@NonNull Throwable throwable) {
+    default Logger trace(@NonNull Throwable throwable) {
         StringJoiner joiner = new StringJoiner("\n");
         getStackTrace(throwable, joiner::add);
-        this.trace(joiner.toString());
+        return this.trace(joiner.toString());
+    }
+
+    /**
+     * Writes a blank line to the log using the {@link LogLevel#TRACE} level.
+     */
+    default Logger trace() {
+        return this.log(LogLevel.TRACE, "");
     }
 
     /**
@@ -316,8 +365,8 @@ public interface Logger {
      *
      * @param message the message to be written
      */
-    default void debug(@NonNull String message) {
-        this.log(LogLevel.DEBUG, message);
+    default Logger debug(@NonNull String message) {
+        return this.log(LogLevel.DEBUG, message);
     }
 
     /**
@@ -328,8 +377,8 @@ public interface Logger {
      * @param format the message to be formatted
      * @param args   the arguments to be used for formatting
      */
-    default void debug(@NonNull String format, @NonNull Object... args) {
-        this.log(LogLevel.DEBUG, String.format(format, args));
+    default Logger debug(@NonNull String format, @NonNull Object... args) {
+        return this.log(LogLevel.DEBUG, String.format(format, args));
     }
 
     /**
@@ -337,10 +386,17 @@ public interface Logger {
      *
      * @param throwable the exception whose stack trace should be printed
      */
-    default void debug(@NonNull Throwable throwable) {
+    default Logger debug(@NonNull Throwable throwable) {
         StringJoiner joiner = new StringJoiner("\n");
         getStackTrace(throwable, joiner::add);
-        this.debug(joiner.toString());
+        return this.debug(joiner.toString());
+    }
+
+    /**
+     * Writes a blank line to the log using the {@link LogLevel#DEBUG} level.
+     */
+    default Logger debug() {
+        return this.log(LogLevel.DEBUG, "");
     }
 
     //

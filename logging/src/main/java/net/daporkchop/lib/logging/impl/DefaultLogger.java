@@ -16,8 +16,8 @@
 package net.daporkchop.lib.logging.impl;
 
 import net.daporkchop.lib.binary.UTF8;
-import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.logging.Logger;
+import net.daporkchop.lib.logging.console.ansi.ANSIMessagePrinter;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class DefaultLogger extends BaseLogger {
     public static final PrintStream stdOut = System.out;
-    protected static AtomicBoolean hasRedirectedStdOut = new AtomicBoolean(false);
+    protected static final AtomicBoolean hasRedirectedStdOut = new AtomicBoolean(false);
 
     public DefaultLogger()  {
         super(component -> stdOut.println(component.toRawString()));
@@ -71,5 +71,9 @@ public class DefaultLogger extends BaseLogger {
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    public void enableANSI()    {
+        this.setMessagePrinter(new ANSIMessagePrinter());
     }
 }

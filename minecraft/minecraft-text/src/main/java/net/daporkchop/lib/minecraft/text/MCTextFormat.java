@@ -16,9 +16,11 @@
 package net.daporkchop.lib.minecraft.text;
 
 import lombok.Getter;
+import lombok.NonNull;
 
 import java.awt.Color;
 import java.util.Arrays;
+import java.util.regex.Pattern;
 
 /**
  * All format+color codes from the legacy formatting system.
@@ -56,8 +58,16 @@ public enum MCTextFormat {
     RESET('r'),
     ;
 
+    public static final Pattern CLEAN_PATTERN = Pattern.compile("(?i)§[0-9A-FK-OR]");
     public static final MCTextFormat[] VALUES = values();
     public static final MCTextFormat[] COLOR_CODES = Arrays.stream(VALUES).filter(format -> format.color != -1 && format.bgColor != -1).toArray(MCTextFormat[]::new);
+    public static final MCTextFormat[] CODE_LOOKUP = new MCTextFormat['R'];
+
+    static {
+        for (MCTextFormat format : COLOR_CODES) {
+            CODE_LOOKUP[Character.toUpperCase(format.code)] = format;
+        }
+    }
 
     /**
      * The single-letter identifier for this formatting code.
@@ -87,6 +97,10 @@ public enum MCTextFormat {
 
     MCTextFormat(char code) {
         this(code, -1, -1);
+    }
+
+    public static String clean(@NonNull String input) {
+        return CLEAN_PATTERN.matcher(input).replaceAll("");
     }
 
     public static MCTextFormat closestTo(Color color) {

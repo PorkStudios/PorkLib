@@ -13,29 +13,52 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.text.component;
+package net.daporkchop.lib.logging.console.ansi;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.logging.format.MessageFormatter;
+import net.daporkchop.lib.logging.format.MessagePrinter;
 import net.daporkchop.lib.logging.format.component.TextComponent;
-import net.daporkchop.lib.logging.format.component.TextComponentHolder;
-import net.daporkchop.lib.minecraft.text.MCTextType;
+import net.daporkchop.lib.logging.impl.DefaultLogger;
+
+import java.io.PrintStream;
+import java.util.function.Consumer;
 
 /**
- * A simple container text component on top of the normal text components. This doesn't affect any behaviors, however it can be used to get the unparsed
- * value of the text (e.g. to obtain more detailed information that's ignored by this parser).
- *
  * @author DaPorkchop_
  */
+@RequiredArgsConstructor
 @Getter
-public class MCTextRoot extends TextComponentHolder {
-    protected final MCTextType type;
-    protected final String original;
+public class ANSIMessagePrinter implements MessagePrinter {
+    @NonNull
+    protected final PrintStream printer;
 
-    public MCTextRoot(@NonNull MCTextType type, @NonNull String original, TextComponent... children) {
-        super(children);
+    public ANSIMessagePrinter()    {
+        this(DefaultLogger.stdOut);
+    }
 
-        this.type = type;
-        this.original = original;
+    @Override
+    public void accept(@NonNull TextComponent component) {
+        StringBuilder builder = new StringBuilder(); //TODO: pool these
+        this.doBuild(builder, component);
+        this.printer.println(builder);
+    }
+
+    protected void doBuild(@NonNull StringBuilder builder, @NonNull TextComponent component)    {
+        {
+            String text = component.getText();
+            if (text != null && !text.isEmpty()) {
+                builder.append(ANSIConsole.getUpdateTextFormatCommand(
+                        VGAColor.closestTo(component.getColor()),
+                        VGAColor.closestTo(component.getBackgroundColor()),
+                        component.getStyle()
+                )).append(text);
+            }
+        }
+        for (TextComponent child : component.getChildren()) {
+            this.doBuild(builder, child);
+        }
     }
 }

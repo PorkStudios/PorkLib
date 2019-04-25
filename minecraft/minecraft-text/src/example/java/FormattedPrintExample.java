@@ -13,29 +13,19 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.text.component;
-
-import lombok.Getter;
-import lombok.NonNull;
-import net.daporkchop.lib.logging.format.component.TextComponent;
-import net.daporkchop.lib.logging.format.component.TextComponentHolder;
-import net.daporkchop.lib.minecraft.text.MCTextType;
+import net.daporkchop.lib.common.reference.InstancePool;
+import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.minecraft.text.parser.MinecraftFormatParser;
 
 /**
- * A simple container text component on top of the normal text components. This doesn't affect any behaviors, however it can be used to get the unparsed
- * value of the text (e.g. to obtain more detailed information that's ignored by this parser).
- *
  * @author DaPorkchop_
  */
-@Getter
-public class MCTextRoot extends TextComponentHolder {
-    protected final MCTextType type;
-    protected final String original;
+public class FormattedPrintExample implements Logging {
+    public static void main(String... args) {
+        logger.setFormatParser(InstancePool.getInstance(MinecraftFormatParser.class)); //could also be new MinecraftFormatParser()
+        logger.enableANSI();
 
-    public MCTextRoot(@NonNull MCTextType type, @NonNull String original, TextComponent... children) {
-        super(children);
-
-        this.type = type;
-        this.original = original;
+        logger.info("§9Hello §lWorld§c!");
+        logger.info("§9§lTeam §c§lPepsi §r§fNetwork");
     }
 }

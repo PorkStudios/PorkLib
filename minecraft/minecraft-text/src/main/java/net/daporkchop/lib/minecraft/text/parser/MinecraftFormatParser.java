@@ -56,7 +56,7 @@ public class MinecraftFormatParser implements FormatParser {
                 //not a json string, treat as legacy
                 return LegacyTextParser.parse(text);
             }
-            return JsonTextParser.parse(element);
+            return JsonTextParser.parse(element, text);
         } else {
             return this.type.getParser().apply(text);
         }

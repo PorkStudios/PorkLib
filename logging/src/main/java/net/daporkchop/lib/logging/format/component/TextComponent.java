@@ -18,8 +18,10 @@ package net.daporkchop.lib.logging.format.component;
 import lombok.NonNull;
 
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Base component in a formatted text string.
@@ -82,7 +84,7 @@ public interface TextComponent {
      */
     int getStyle();
 
-    default TextComponent insertToHeadOf(@NonNull TextComponent component)  {
+    default TextComponent insertToHeadOf(@NonNull TextComponent component) {
         if (this.getText() == null) {
             return component;
         } else if (component.getText() == null) {
@@ -102,6 +104,59 @@ public interface TextComponent {
         }
         for (TextComponent child : this.getChildren()) {
             child.internal_toRawStringRecursive(builder);
+        }
+    }
+
+    //test stuff
+    default boolean hasNewline() {
+        if (this.getText() != null && this.getText().indexOf('\n') != -1) {
+            return true;
+        } else {
+            for (TextComponent child : this.getChildren()) {
+                if (child.hasNewline()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    default List<TextComponent> splitOnNewlines() {
+        List<TextComponent> cache = new ArrayList<>();
+        AtomicReference<TextComponent> ref = new AtomicReference<>(new TextComponentHolder());
+        this.internal_addComponents(cache, ref, this);
+        if (!ref.get().getChildren().isEmpty())  {
+            cache.add(ref.get());
+        }
+        return cache;
+    }
+
+    default void internal_addComponents(@NonNull List<TextComponent> cache, @NonNull AtomicReference<TextComponent> curr, @NonNull TextComponent component) {
+        {
+            String text = component.getText();
+            if (text != null && !text.isEmpty()) {
+                if (text.indexOf('\n') == -1) {
+                    curr.get().getChildren().add(component);
+                } else {
+                    int newlineCount = 0;
+                    for (int i = text.length() - 1; i >= 0; i--)    {
+                        if (text.charAt(i) == '\n') {
+                            newlineCount++;
+                        }
+                    }
+                    String[] split = text.split("\n");
+                    for (String line : split) {
+                        if (newlineCount-- == 0)    {
+                            break;
+                        }
+                        curr.get().getChildren().add(new TextComponentString(component.getColor(), component.getBackgroundColor(), component.getStyle(), line));
+                        cache.add(curr.getAndSet(new TextComponentHolder()));
+                    }
+                }
+            }
+        }
+        for (TextComponent child : component.getChildren()) {
+            this.internal_addComponents(cache, curr, child);
         }
     }
 }

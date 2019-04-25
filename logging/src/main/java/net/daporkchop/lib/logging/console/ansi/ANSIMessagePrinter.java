@@ -31,7 +31,7 @@ import java.util.function.Consumer;
  */
 @RequiredArgsConstructor
 @Getter
-public class ANSIMessagePrinter implements MessagePrinter {
+public class ANSIMessagePrinter implements MessagePrinter, ANSI {
     @NonNull
     protected final PrintStream printer;
 
@@ -43,7 +43,7 @@ public class ANSIMessagePrinter implements MessagePrinter {
     public void accept(@NonNull TextComponent component) {
         StringBuilder builder = new StringBuilder(); //TODO: pool these
         this.doBuild(builder, component);
-        this.printer.println(builder);
+        this.printer.println(builder.append(ESC).append("[0m"));
     }
 
     protected void doBuild(@NonNull StringBuilder builder, @NonNull TextComponent component)    {

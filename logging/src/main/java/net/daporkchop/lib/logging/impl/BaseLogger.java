@@ -75,10 +75,10 @@ public class BaseLogger implements Logger {
             this.messagePrinter.accept(this.messageFormatter.format(date, channel, level, this.alertPrefix));
             if (component.hasNewline()) {
                 for (TextComponent line : component.splitOnNewlines())  {
-                    this.messagePrinter.accept(this.messageFormatter.format(date, channel, level, this.alertFooter.insertToHeadOf(line)));
+                    this.messagePrinter.accept(this.messageFormatter.format(date, channel, level, this.alertPrefix.insertToHeadOf(line)));
                 }
             } else {
-                this.messagePrinter.accept(this.messageFormatter.format(date, channel, level, this.alertFooter.insertToHeadOf(component)));
+                this.messagePrinter.accept(this.messageFormatter.format(date, channel, level, this.alertPrefix.insertToHeadOf(component)));
             }
             this.messagePrinter.accept(this.messageFormatter.format(date, channel, level, this.alertPrefix));
             this.messagePrinter.accept(this.messageFormatter.format(date, channel, level, this.alertFooter));

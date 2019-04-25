@@ -112,7 +112,7 @@ public class ANSIConsole implements ANSI, Console {
         if (state)  {
             this.style |= TextStyle.BOLD;
         } else if (TextStyle.isBold(this.style)) {
-            this.style ^= TextStyle.BOLD;
+            this.style &= ~TextStyle.BOLD;
         }
         this.updateTextFormat();
     }
@@ -122,7 +122,7 @@ public class ANSIConsole implements ANSI, Console {
         if (state)  {
             this.style |= TextStyle.ITALIC;
         } else if (TextStyle.isItalic(this.style)) {
-            this.style ^= TextStyle.ITALIC;
+            this.style &= ~TextStyle.ITALIC;
         }
         this.updateTextFormat();
     }
@@ -132,7 +132,7 @@ public class ANSIConsole implements ANSI, Console {
         if (state)  {
             this.style |= TextStyle.UNDERLINE;
         } else if (TextStyle.isUnderline(this.style)) {
-            this.style ^= TextStyle.UNDERLINE;
+            this.style &= ~TextStyle.UNDERLINE;
         }
         this.updateTextFormat();
     }
@@ -142,7 +142,7 @@ public class ANSIConsole implements ANSI, Console {
         if (state)  {
             this.style |= TextStyle.STRIKETHROUGH;
         } else if (TextStyle.isStrikethrough(this.style)) {
-            this.style ^= TextStyle.STRIKETHROUGH;
+            this.style &= ~TextStyle.STRIKETHROUGH;
         }
         this.updateTextFormat();
     }
@@ -152,7 +152,7 @@ public class ANSIConsole implements ANSI, Console {
         if (state)  {
             this.style |= TextStyle.OVERLINE;
         } else if (TextStyle.isOverline(this.style)) {
-            this.style ^= TextStyle.OVERLINE;
+            this.style &= ~TextStyle.OVERLINE;
         }
         this.updateTextFormat();
     }
@@ -162,7 +162,7 @@ public class ANSIConsole implements ANSI, Console {
         if (state)  {
             this.style |= TextStyle.BLINKING;
         } else if (TextStyle.isBlinking(this.style)) {
-            this.style ^= TextStyle.BLINKING;
+            this.style &= ~TextStyle.BLINKING;
         }
         this.updateTextFormat();
     }

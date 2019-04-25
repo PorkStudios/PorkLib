@@ -68,18 +68,26 @@ public class BaseLogger implements Logger {
             return;
         }
         Date date = Date.from(Instant.now());
-        String[] split = message.trim().split("\n");
+        TextComponent component = this.formatParser.parse(message);
         if (level == LogLevel.ALERT) {
             this.messagePrinter.accept(this.messageFormatter.format(date, channel, level, this.alertHeader));
             this.messagePrinter.accept(this.messageFormatter.format(date, channel, level, this.alertPrefix));
-            for (String line : split)   {
-                this.messagePrinter.accept(this.messageFormatter.format(date, channel, level, this.alertPrefix.insertToHeadOf(this.formatParser.parse(line))));
+            if (component.hasNewline()) {
+                for (TextComponent line : component.splitOnNewlines())  {
+                    this.messagePrinter.accept(this.messageFormatter.format(date, channel, level, this.alertFooter.insertToHeadOf(line)));
+                }
+            } else {
+                this.messagePrinter.accept(this.messageFormatter.format(date, channel, level, this.alertFooter.insertToHeadOf(component)));
             }
             this.messagePrinter.accept(this.messageFormatter.format(date, channel, level, this.alertPrefix));
             this.messagePrinter.accept(this.messageFormatter.format(date, channel, level, this.alertFooter));
         } else {
-            for (String line : split)   {
-                this.messagePrinter.accept(this.messageFormatter.format(date, channel, level, this.formatParser.parse(line)));
+            if (component.hasNewline()) {
+                for (TextComponent line : component.splitOnNewlines())  {
+                    this.messagePrinter.accept(this.messageFormatter.format(date, channel, level, line));
+                }
+            } else {
+                this.messagePrinter.accept(this.messageFormatter.format(date, channel, level, component));
             }
         }
     }

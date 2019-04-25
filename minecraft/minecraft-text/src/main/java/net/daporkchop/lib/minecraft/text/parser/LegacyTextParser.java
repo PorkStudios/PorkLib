@@ -13,19 +13,20 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.text;
+package net.daporkchop.lib.minecraft.text.parser;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.logging.format.FormatParser;
-import net.daporkchop.lib.logging.format.component.TextComponent;
 import net.daporkchop.lib.minecraft.text.component.MCTextRoot;
 
 /**
  * @author DaPorkchop_
+ * @see net.daporkchop.lib.minecraft.text.MCTextType#LEGACY
  */
-public class MinecraftFormatParser implements FormatParser {
-    @Override
-    public MCTextRoot parse(@NonNull String text) {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public abstract class LegacyTextParser {
+    public static MCTextRoot parse(@NonNull String raw) {
         return null;
     }
 }

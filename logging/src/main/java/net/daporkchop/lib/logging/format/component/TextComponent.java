@@ -33,7 +33,7 @@ public interface TextComponent {
      * @return the raw text
      */
     default String toRawString() {
-        StringBuilder builder = new StringBuilder();
+        StringBuilder builder = new StringBuilder(); //TODO: pool these
         this.internal_toRawStringRecursive(builder);
         return builder.toString();
     }

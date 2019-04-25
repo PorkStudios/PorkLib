@@ -13,29 +13,15 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.text.component;
+package net.daporkchop.lib.logging.format;
 
-import lombok.Getter;
-import lombok.NonNull;
 import net.daporkchop.lib.logging.format.component.TextComponent;
-import net.daporkchop.lib.logging.format.component.TextComponentHolder;
-import net.daporkchop.lib.minecraft.text.MCTextType;
+
+import java.util.function.Consumer;
 
 /**
- * A simple container text component on top of the normal text components. This doesn't affect any behaviors, however it can be used to get the unparsed
- * value of the text (e.g. to obtain more detailed information that's ignored by this parser).
- *
  * @author DaPorkchop_
  */
-@Getter
-public class MCTextRoot extends TextComponentHolder {
-    protected final MCTextType type;
-    protected final String original;
-
-    public MCTextRoot(@NonNull MCTextType type, @NonNull String original, TextComponent... children) {
-        super(children);
-
-        this.type = type;
-        this.original = original;
-    }
+@FunctionalInterface
+public interface MessagePrinter extends Consumer<TextComponent> {
 }

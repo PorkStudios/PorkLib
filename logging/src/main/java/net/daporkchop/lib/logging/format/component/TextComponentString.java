@@ -17,6 +17,7 @@ package net.daporkchop.lib.logging.format.component;
 
 import lombok.Getter;
 import lombok.NonNull;
+import net.daporkchop.lib.logging.console.TextFormat;
 
 import java.awt.Color;
 
@@ -31,6 +32,12 @@ public class TextComponentString extends AbstractTextComponent {
 
     public TextComponentString(Color color, Color backgroundColor, int style, @NonNull String text) {
         super(color, backgroundColor, style);
+
+        this.text = text;
+    }
+
+    public TextComponentString(@NonNull TextFormat format, @NonNull String text) {
+        super(format.getTextColor(), format.getBackgroundColor(), format.getStyle());
 
         this.text = text;
     }

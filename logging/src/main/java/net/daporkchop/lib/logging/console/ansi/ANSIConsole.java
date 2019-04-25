@@ -41,11 +41,21 @@ public class ANSIConsole implements ANSI, Console {
     protected VGAColor backgroundColor = VGAColor.DEFAULT;
     protected int style = 0;
 
-    public static CharSequence getStyleStuff(int style)    {
+    protected static String getUpdateTextFormatCommand(VGAColor textColor, VGAColor backgroundColor, int style)  {
+        return String.format(
+                "%c[0;%d;%d%sm",
+                ESC,
+                textColor.fg,
+                backgroundColor.bg,
+                getStyleStuff(style)
+        );
+    }
+
+    protected static CharSequence getStyleStuff(int style)    {
         if (TextStyle.isDefault(style)) {
             return "";
         } else {
-            StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new StringBuilder(); //TODO: pool these
             if (TextStyle.isBold(style))    {
                 builder.append(";1");
             }
@@ -171,12 +181,6 @@ public class ANSIConsole implements ANSI, Console {
     }
 
     protected void updateTextFormat()   {
-        this.printer.printf(
-                "%c[0;%d;%d%sm",
-                ESC,
-                this.textColor.fg,
-                this.backgroundColor.bg,
-                getStyleStuff(this.style)
-        );
+        this.printer.print(getUpdateTextFormatCommand(this.textColor, this.backgroundColor, this.style));
     }
 }

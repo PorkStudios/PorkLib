@@ -27,6 +27,7 @@ import net.daporkchop.lib.logging.format.DefaultFormatParser;
 import net.daporkchop.lib.logging.format.DefaultMessageFormatter;
 import net.daporkchop.lib.logging.format.FormatParser;
 import net.daporkchop.lib.logging.format.MessageFormatter;
+import net.daporkchop.lib.logging.format.MessagePrinter;
 import net.daporkchop.lib.logging.format.component.TextComponent;
 import net.daporkchop.lib.logging.format.component.TextComponentHolder;
 
@@ -43,12 +44,11 @@ import java.util.function.Consumer;
 @Setter
 public class BaseLogger implements Logger {
     @NonNull
-    protected final Consumer<TextComponent> printer;
-
-    @NonNull
     protected FormatParser formatParser = new DefaultFormatParser();
     @NonNull
     protected MessageFormatter messageFormatter = new DefaultMessageFormatter();
+    @NonNull
+    protected MessagePrinter messagePrinter;
     @NonNull
     protected TextComponent alertHeader = DEFAULT_ALERT_HEADER;
     @NonNull
@@ -70,16 +70,16 @@ public class BaseLogger implements Logger {
         Date date = Date.from(Instant.now());
         String[] split = message.trim().split("\n");
         if (level == LogLevel.ALERT) {
-            this.printer.accept(this.messageFormatter.format(date, channel, level, this.alertHeader));
-            this.printer.accept(this.messageFormatter.format(date, channel, level, this.alertPrefix));
+            this.messagePrinter.accept(this.messageFormatter.format(date, channel, level, this.alertHeader));
+            this.messagePrinter.accept(this.messageFormatter.format(date, channel, level, this.alertPrefix));
             for (String line : split)   {
-                this.printer.accept(this.messageFormatter.format(date, channel, level, this.alertPrefix.insertToHeadOf(this.formatParser.parse(line))));
+                this.messagePrinter.accept(this.messageFormatter.format(date, channel, level, this.alertPrefix.insertToHeadOf(this.formatParser.parse(line))));
             }
-            this.printer.accept(this.messageFormatter.format(date, channel, level, this.alertPrefix));
-            this.printer.accept(this.messageFormatter.format(date, channel, level, this.alertFooter));
+            this.messagePrinter.accept(this.messageFormatter.format(date, channel, level, this.alertPrefix));
+            this.messagePrinter.accept(this.messageFormatter.format(date, channel, level, this.alertFooter));
         } else {
             for (String line : split)   {
-                this.printer.accept(this.messageFormatter.format(date, channel, level, this.formatParser.parse(line)));
+                this.messagePrinter.accept(this.messageFormatter.format(date, channel, level, this.formatParser.parse(line)));
             }
         }
     }
@@ -113,6 +113,16 @@ public class BaseLogger implements Logger {
                 @Override
                 public void setMessageFormatter(@NonNull MessageFormatter formatter) {
                     BaseLogger.this.setMessageFormatter(formatter);
+                }
+
+                @Override
+                public MessagePrinter getMessagePrinter() {
+                    return BaseLogger.this.getMessagePrinter();
+                }
+
+                @Override
+                public void setMessagePrinter(@NonNull MessagePrinter printer) {
+                    BaseLogger.this.setMessagePrinter(printer);
                 }
 
                 @Override

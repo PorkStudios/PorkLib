@@ -19,6 +19,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.logging.format.FormatParser;
 import net.daporkchop.lib.logging.format.MessageFormatter;
+import net.daporkchop.lib.logging.format.MessagePrinter;
 import net.daporkchop.lib.logging.format.TextStyle;
 import net.daporkchop.lib.logging.format.component.TextComponent;
 import net.daporkchop.lib.logging.format.component.TextComponentString;
@@ -375,6 +376,20 @@ public interface Logger {
      * @param formatter the new {@link MessageFormatter} to use
      */
     void setMessageFormatter(@NonNull MessageFormatter formatter);
+
+    /**
+     * Gets the currently used {@link MessagePrinter} for printing log messages.
+     *
+     * @return the currently used {@link MessagePrinter}
+     */
+    MessagePrinter getMessagePrinter();
+
+    /**
+     * Sets the currently used {@link MessagePrinter} for printing log messages.
+     *
+     * @param printer the new {@link MessagePrinter} to use
+     */
+    void setMessagePrinter(@NonNull MessagePrinter printer);
 
     /**
      * Gets the currently used header above messages printed with the {@link LogLevel#ALERT} level.

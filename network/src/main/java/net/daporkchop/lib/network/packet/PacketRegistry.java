@@ -88,7 +88,7 @@ public class PacketRegistry implements Logging {
                 }
             });
         }
-        logger.debug("Registered ${0} protocols!", protocols.size());
+        logger.debug("Registered %d protocols!", protocols.size());
     }
 
     public <C extends UserConnection> UserProtocol<C> getProtocol(int id) {

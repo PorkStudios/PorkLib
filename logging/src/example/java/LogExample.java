@@ -14,20 +14,24 @@
  */
 
 import net.daporkchop.lib.logging.LogAmount;
+import net.daporkchop.lib.logging.LogLevel;
 import net.daporkchop.lib.logging.Logger;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.logging.console.TextFormat;
 import net.daporkchop.lib.logging.format.TextStyle;
 
 import java.awt.Color;
+import java.io.File;
 
 /**
  * @author DaPorkchop_
  */
 public class LogExample implements Logging {
     public static void main(String... args) {
+        logger.enableANSI().addFile(new File("./test_out/log_example.log"), LogAmount.DEBUG);
+
         logger.info("Hello %2$s!", 89365, "world");
-        logger.channel("PorkLib").alert("ALERT!\nYOUR COMPUTER HAVE VIRUS!");
+        logger.alert("ALERT!\nYOUR COMPUTER HAVE VIRUS!");
         logger.error("This\nis\na\ntest!");
         logger.alert(new RuntimeException(new NullPointerException("jeff")));
         logger.redirectStdOut();
@@ -37,14 +41,21 @@ public class LogExample implements Logging {
         logger.setLogAmount(LogAmount.DEBUG);
         logger.debug("Debug 2");
 
-        console.setTextColor(Color.BLUE);
-        logger.info("This text should be blue...");
-        console.setBackgroundColor(Color.ORANGE);
-        logger.info("With an orange background...");
-        console.setBold(true);
-        console.setBlinking(true);
-        logger.info("In bold and blinking!");
-        console.setBold(false);
-        logger.info("Wait, sorry. This isn't bold!");
+        for (LogLevel level : LogLevel.values())    {
+            logger.channel("PorkLib").log(level, level.name());
+        }
+
+        if (false) {
+            //you really shouldn't be directly interacting with the console class...
+            console.setTextColor(Color.BLUE);
+            logger.info("This text should be blue...");
+            console.setBackgroundColor(Color.ORANGE);
+            logger.info("With an orange background...");
+            console.setBold(true);
+            console.setBlinking(true);
+            logger.info("In bold and blinking!");
+            console.setBold(false);
+            logger.info("Wait, sorry. This isn't bold!");
+        }
     }
 }

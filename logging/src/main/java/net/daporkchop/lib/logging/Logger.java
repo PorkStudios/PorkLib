@@ -26,6 +26,7 @@ import net.daporkchop.lib.logging.format.component.TextComponentString;
 
 import java.awt.Color;
 import java.io.PrintWriter;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
 
@@ -124,6 +125,45 @@ public interface Logger {
      */
     default Logger info() {
         return this.log(LogLevel.INFO, "");
+    }
+
+    /**
+     * Writes a plain message to the log using the {@link LogLevel#SUCCESS} level.
+     *
+     * @param message the message to be written
+     */
+    default Logger success(@NonNull String message) {
+        return this.log(LogLevel.SUCCESS, message);
+    }
+
+    /**
+     * Writes a formatted message to the log using the {@link LogLevel#SUCCESS} level.
+     * <p>
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param format the message to be formatted
+     * @param args   the arguments to be used for formatting
+     */
+    default Logger success(@NonNull String format, @NonNull Object... args) {
+        return this.log(LogLevel.SUCCESS, String.format(format, args));
+    }
+
+    /**
+     * Writes an exception stack trace to the log using the {@link LogLevel#SUCCESS} level.
+     *
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger success(@NonNull Throwable throwable) {
+        StringJoiner joiner = new StringJoiner("\n");
+        getStackTrace(throwable, joiner::add);
+        return this.success(joiner.toString());
+    }
+
+    /**
+     * Writes a blank line to the log using the {@link LogLevel#SUCCESS} level.
+     */
+    default Logger success() {
+        return this.log(LogLevel.SUCCESS, "");
     }
 
     /**
@@ -283,45 +323,6 @@ public interface Logger {
     }
 
     /**
-     * Writes a plain message to the log using the {@link LogLevel#NOTIFY} level.
-     *
-     * @param message the message to be written
-     */
-    default Logger notify(@NonNull String message) {
-        return this.log(LogLevel.NOTIFY, message);
-    }
-
-    /**
-     * Writes a formatted message to the log using the {@link LogLevel#NOTIFY} level.
-     * <p>
-     * The message will be formatted using {@link String#format(String, Object...)}.
-     *
-     * @param format the message to be formatted
-     * @param args   the arguments to be used for formatting
-     */
-    default Logger notify(@NonNull String format, @NonNull Object... args) {
-        return this.log(LogLevel.NOTIFY, String.format(format, args));
-    }
-
-    /**
-     * Writes an exception stack trace to the log using the {@link LogLevel#NOTIFY} level.
-     *
-     * @param throwable the exception whose stack trace should be printed
-     */
-    default Logger notify(@NonNull Throwable throwable) {
-        StringJoiner joiner = new StringJoiner("\n");
-        getStackTrace(throwable, joiner::add);
-        return this.notify(joiner.toString());
-    }
-
-    /**
-     * Writes a blank line to the log using the {@link LogLevel#NOTIFY} level.
-     */
-    default Logger logNotify() {
-        return this.log(LogLevel.NOTIFY, "");
-    }
-
-    /**
      * Writes a plain message to the log using the {@link LogLevel#TRACE} level.
      *
      * @param message the message to be written
@@ -417,7 +418,7 @@ public interface Logger {
      *
      * @param parser the new {@link FormatParser} to use
      */
-    void setFormatParser(@NonNull FormatParser parser);
+    Logger setFormatParser(@NonNull FormatParser parser);
 
     /**
      * Gets the currently used {@link MessageFormatter} for formatting log messages for printing.
@@ -431,7 +432,7 @@ public interface Logger {
      *
      * @param formatter the new {@link MessageFormatter} to use
      */
-    void setMessageFormatter(@NonNull MessageFormatter formatter);
+    Logger setMessageFormatter(@NonNull MessageFormatter formatter);
 
     /**
      * Gets the currently used {@link MessagePrinter} for printing log messages.
@@ -445,7 +446,7 @@ public interface Logger {
      *
      * @param printer the new {@link MessagePrinter} to use
      */
-    void setMessagePrinter(@NonNull MessagePrinter printer);
+    Logger setMessagePrinter(@NonNull MessagePrinter printer);
 
     /**
      * Gets the currently used header above messages printed with the {@link LogLevel#ALERT} level.
@@ -463,7 +464,7 @@ public interface Logger {
      *
      * @param alertHeader the new alert header to use
      */
-    void setAlertHeader(@NonNull TextComponent alertHeader);
+    Logger setAlertHeader(@NonNull TextComponent alertHeader);
 
     /**
      * Gets the currently used prefix above messages printed with the {@link LogLevel#ALERT} level.
@@ -481,7 +482,7 @@ public interface Logger {
      *
      * @param alertPrefix the new alert prefix to use
      */
-    void setAlertPrefix(@NonNull TextComponent alertPrefix);
+    Logger setAlertPrefix(@NonNull TextComponent alertPrefix);
 
     /**
      * Gets the currently used footer above messages printed with the {@link LogLevel#ALERT} level.
@@ -499,21 +500,30 @@ public interface Logger {
      *
      * @param alertFooter the new alert footer to use
      */
-    void setAlertFooter(@NonNull TextComponent alertFooter);
+    Logger setAlertFooter(@NonNull TextComponent alertFooter);
 
     /**
-     * Gets the currently used log amount.
+     * Gets the levels that may be printed by this logger.
      *
-     * @return the currently used log amount
+     * @return the levels that may be printed by this logger
      */
-    LogAmount getLogAmount();
+    Set<LogLevel> getLogLevels();
+
+    /**
+     * Sets the levels that may be printed by this logger.
+     *
+     * @param levels the new levels that may be printed by this logger
+     */
+    Logger setLogLevels(@NonNull Set<LogLevel> levels);
 
     /**
      * Sets the currently used log amount.
      *
      * @param amount the new log amount to use
      */
-    void setLogAmount(@NonNull LogAmount amount);
+    default Logger setLogAmount(@NonNull LogAmount amount)    {
+        return this.setLogLevels(amount.getLevelSet());
+    }
 
     /**
      * Creates a new channel with the given name. The returned logger will print all it's output
@@ -532,6 +542,6 @@ public interface Logger {
      * @return whether or not messages with the given level will be displayed
      */
     default boolean shouldDisplay(@NonNull LogLevel level) {
-        return level.getLevel() < this.getLogAmount().ordinal();
+        return this.getLogLevels().contains(level);
     }
 }

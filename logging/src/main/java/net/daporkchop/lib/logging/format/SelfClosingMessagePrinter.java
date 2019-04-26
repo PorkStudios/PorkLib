@@ -13,66 +13,34 @@
  *
  */
 
-package net.daporkchop.lib.common.misc;
+package net.daporkchop.lib.logging.format;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.unsafe.PUnsafe;
+import net.daporkchop.lib.common.function.throwing.ERunnable;
+import net.daporkchop.lib.logging.format.component.TextComponent;
+import net.daporkchop.lib.unsafe.PCleaner;
+
+import java.util.function.Consumer;
 
 /**
+ * A {@link MessagePrinter} which uses a resource that must be closed when no longer needed by this printer.
+ *
  * @author DaPorkchop_
  */
-@NoArgsConstructor
-@AllArgsConstructor
 @Getter
-@Setter
-@Accessors(chain = true)
-@ToString
-@EqualsAndHashCode
-public class Tuple<A, B> {
-    protected static final long A_OFFSET = PUnsafe.pork_getOffset(Tuple.class, "a");
-    protected static final long B_OFFSET = PUnsafe.pork_getOffset(Tuple.class, "b");
+public abstract class SelfClosingMessagePrinter<R extends AutoCloseable> implements MessagePrinter, AutoCloseable {
+    protected final R resource;
+    protected final PCleaner cleaner;
 
-    protected A a;
-    protected B b;
-
-    public boolean isANull()    {
-        return this.a == null;
+    public SelfClosingMessagePrinter(@NonNull R resource)   {
+        this.resource = resource;
+        this.cleaner = PCleaner.cleaner(this, (ERunnable) resource::close);
     }
 
-    public boolean isANonNull()    {
-        return this.a != null;
-    }
-
-    public boolean isBNull()    {
-        return this.b == null;
-    }
-
-    public boolean isBNonNull()    {
-        return this.b != null;
-    }
-
-    public Tuple<A, B> atomicSetA(A a)  {
-        PUnsafe.putObjectVolatile(this, A_OFFSET, a);
-        return this;
-    }
-
-    public Tuple<A, B> atomicSetB(B b)  {
-        PUnsafe.putObjectVolatile(this, B_OFFSET, b);
-        return this;
-    }
-
-    public A atomicSwapA(A a)   {
-        return PUnsafe.pork_swapObject(this, A_OFFSET, a);
-    }
-
-    public B atomicSwapB(B b)   {
-        return PUnsafe.pork_swapObject(this, B_OFFSET, b);
+    @Override
+    public void close() {
+        this.cleaner.clean();
     }
 }

@@ -55,12 +55,12 @@ public class GuiExample implements Logging {
                         .setIcon(filledImage(0xFF0000))
                         .setIcon(ButtonState.ENABLED_HOVERED, filledImage(0x0000FF))
                         .setIcon(ButtonState.ENABLED_CLICKED, filledImage(0x00FF00))
-                        .addStateListener(state -> logger.debug("%s changed state: ${0}\n", button.getName(), state.name()))
+                        .addStateListener(state -> logger.debug("%s changed state: %s", button.getName(), state.name()))
                         .setClickHandler((mouseButton, x, y) -> button.getWindow().getComponent("label2").toggle())
                         .minDimensionsAreValueSize())
                 .button("button2", button -> button
                         .orientRelative(0, 0.0d, 0.1d, 0.1d)
-                        .setClickHandler((mouseButton, x, y) -> logger.info("Bounds: ${0}\n", button.getWindow().getComponent("panel1.button2").getBounds())))
+                        .setClickHandler((mouseButton, x, y) -> logger.info("Bounds: %s", button.getWindow().getComponent("panel1.button2").getBounds())))
                 .label("label1", "<html><span style=\"font-weight: bold\">" + LOREM_IPSUM + "</span></html>", label -> label
                         .orientRelative(0.5d, 0, 0.5d, 0.1d)
                         .setTooltip("This is a label. Labels can only display plain text.")
@@ -68,7 +68,7 @@ public class GuiExample implements Logging {
                 .label("label2", label -> label
                         .orientRelative(0.8d, 0.5d, 0.1d, 0.1d)
                         .setIcon(filledImage(0x00FF00))
-                        .addEnableListener(() -> logger.info("${0} was enabled!\n", label.getName()))
+                        .addEnableListener(() -> logger.info("%s was enabled!", label.getName()))
                         .setIcon(LabelState.DISABLED, filledImage(0xFF0000)))
                 .button("button3", button -> button
                         .orientAdvanced(orientation -> orientation
@@ -104,7 +104,7 @@ public class GuiExample implements Logging {
                         .orientRelative(0.8d, 0.9d, 0.2d, 0.1d)
                         .setText("Table test")
                         .setClickHandler((mouseButton, x, y) -> displayTableTestWindow(button.getWindow())))
-                .addStateListener(state -> logger.debug("Window changed state: ${0}\n", state))
+                .addStateListener(state -> logger.debug("Window changed state: %s", state))
                 .addVisibleListener(() -> logger.info("Window is now visible!"))
                 .show();
     }
@@ -115,7 +115,7 @@ public class GuiExample implements Logging {
                 .dropdown("dropdown1", ExampleEnum.class, dropdown -> dropdown
                         .orientRelative(0.05d, 0.05d, 0.2d, 0.1d)
                         .minDimensionsAreValueSize()
-                        .addValueSelectedListener(value -> logger.info("Selected value changed to \"${0}\"!", value.name())))
+                        .addValueSelectedListener(value -> logger.info("Selected value changed to \"%s\"!", value.name())))
                 .checkBox("checkBox1", checkBox -> checkBox
                         .orientAdvanced(adv -> adv
                                 .configureAxis(Axis.X, calc -> calc.ease(DistUnit.MULT, 0.05d, Axis.WIDTH))
@@ -123,7 +123,7 @@ public class GuiExample implements Logging {
                         .minDimensionsAreValueSize()
                         .setText("Dummy text box 1")
                         .setIcon(CheckBoxState.ENABLED_HOVERED_SELECTED, PImage.randomImage(32, 32))
-                        .addSelectionListener(selected -> logger.info("Checkbox ${0}selected!", selected ? "" : "de")))
+                        .addSelectionListener(selected -> logger.info("Checkbox %sselected!", selected ? "" : "de")))
                 .checkBox("checkBox2", checkBox -> checkBox
                         .orientAdvanced(adv -> adv
                                 .configureAxis(Axis.X, calc -> calc.ease(DistUnit.MULT, 0.05d, Axis.WIDTH))
@@ -140,7 +140,7 @@ public class GuiExample implements Logging {
                                 .configureAxis(Axis.Y, calc -> calc.ease(DistUnit.MULT, 0.05d, Axis.HEIGHT)))
                         .minDimensionsAreValueSize()
                         .setText("Radio button 1")
-                        .addSelectionListener(selected -> logger.info("Radio button 1 ${0}selected!", selected ? "" : "de")))
+                        .addSelectionListener(selected -> logger.info("Radio button 1 %sselected!", selected ? "" : "de")))
                 .radioButton("radioButton2", "group1", button -> button
                         .orientAdvanced(adv -> adv
                                 .configureAxis(Axis.X, calc -> calc.min(DistUnit.RELATIVE, "radioButton1", Axis.X))
@@ -162,7 +162,7 @@ public class GuiExample implements Logging {
                         .setMinValue(-1000)
                         .setMaxValue(320)
                         .setStep(5)
-                        .addChangeListener(value -> logger.info("Spinner value changed to ${0}!", value)))
+                        .addChangeListener(value -> logger.info("Spinner value changed to %d!", value)))
                 .show();
     }
 
@@ -195,11 +195,11 @@ public class GuiExample implements Logging {
                                 .belowAndCopyX("infinite")
                                 .copyWidth("password"))
                         .minDimensionsAreValueSize().pad(2)
-                        .addTextChangedListener(text -> logger.info("Text changed to: \"${0}\"!", text)))
+                        .addTextChangedListener(text -> logger.info("Text changed to: \"%s\"!", text)))
                 .passwordBox("password", "securePassword123", textBox -> textBox
                         .orientAdvanced(adv -> adv.belowAndCopyX("text"))
                         .minDimensionsAreValueSize().pad(2)
-                        .addTextChangedListener(text -> logger.info("Password changed to: \"${0}\"!", text)))
+                        .addTextChangedListener(text -> logger.info("Password changed to: \"%s\"!", text)))
                 .progressBar("progress", 100, progressBar -> progressBar
                         .setProgress(50)
                         .orientAdvanced(adv -> adv

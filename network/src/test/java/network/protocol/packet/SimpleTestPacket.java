@@ -31,7 +31,7 @@ public class SimpleTestPacket {
     public static class MessageHandler implements DataPacketHandler<SimpleTestPacket>, Logging {
         @Override
         public void handle(@NonNull SimpleTestPacket packet, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception {
-            logger.info("[${0}] Received test packet on channel ${2}: ${1}", connection.getEndpoint().getName(), packet.message, channelId);
+            logger.info("[%s] Received test packet on channel %d: %s", connection.getEndpoint().getName(), channelId, packet.message);
         }
 
         @Override

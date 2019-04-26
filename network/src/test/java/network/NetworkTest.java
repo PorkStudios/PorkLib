@@ -73,7 +73,7 @@ public class NetworkTest implements Logging {
                 return;
             }
 
-            logger.alert("Testing transport: ${0}", manager.getClass());
+            logger.alert("Testing transport: %s", manager.getClass());
             logger.info("Starting server...");
             Server server = new ServerBuilder()
                     .setManager(manager)
@@ -92,7 +92,7 @@ public class NetworkTest implements Logging {
 
             {
                 int count = 3;
-                logger.info("Sending ${0} random packets...", count);
+                logger.info("Sending %d random packets...", count);
                 for (int i = 0; i < count; i++) {
                     sleep(75L);
                     client.getDefaultChannel().send(new SimpleTestPacket("hello from client!"), true, Reliability.RELIABLE);
@@ -140,11 +140,11 @@ public class NetworkTest implements Logging {
                 logger.trace("Checking if channels are open...");
                 channelIds.forEach(i -> {
                     if (client.getOpenChannel(i) != null) {
-                        throw this.exception("Channel ${0} is still open on client!", i);
+                        throw new IllegalStateException(String.format("Channel %d is still open on client!", i));
                     } else {
                         server.getConnections(TestProtocol.class).forEach(conn -> {
                             if (conn.getOpenChannel(i) != null) {
-                                throw this.exception("Channel ${0} is still open on server!", i);
+                                throw new IllegalStateException(String.format("Channel %d is still open on server!", i));
                             }
                         });
                     }

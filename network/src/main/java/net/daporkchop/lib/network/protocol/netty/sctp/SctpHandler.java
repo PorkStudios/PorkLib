@@ -27,7 +27,6 @@ import net.daporkchop.lib.network.endpoint.client.PorkClient;
 import net.daporkchop.lib.network.pork.PorkConnection;
 import net.daporkchop.lib.network.pork.PorkProtocol;
 import net.daporkchop.lib.network.pork.packet.HandshakeInitPacket;
-import net.daporkchop.lib.network.util.NetworkConstants;
 
 /**
  * Handles events on a connection managed by {@link SctpProtocolManager}
@@ -42,7 +41,7 @@ public class SctpHandler extends ChannelInboundHandlerAdapter implements Logging
 
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-        logger.trace("[${0}] New connection: ${1}", this.endpoint.getName(), ctx.channel().remoteAddress());
+        logger.trace("[%s] New connection: %s", this.endpoint.getName(), ctx.channel().remoteAddress()); //TODO: use channels
 
         UnderlyingNetworkConnection realConnection = (UnderlyingNetworkConnection) ctx.channel();
         if (this.endpoint.isServer()) {
@@ -55,7 +54,7 @@ public class SctpHandler extends ChannelInboundHandlerAdapter implements Logging
     @Override
     @SuppressWarnings("unchecked")
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-        logger.trace("[${0}] Connection ${1} removed", this.endpoint.getName(), ctx.channel().remoteAddress());
+        logger.trace("[%s] Connection %s removed", this.endpoint.getName(), ctx.channel().remoteAddress());
 
         UnderlyingNetworkConnection realConnection = (UnderlyingNetworkConnection) ctx.channel();
         String disconnectReason = realConnection.getUserConnection(PorkProtocol.class).getDisconnectReason();
@@ -70,23 +69,15 @@ public class SctpHandler extends ChannelInboundHandlerAdapter implements Logging
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        //logger.debug("Received ${0}", msg.getClass());
         try {
             if (!(msg instanceof SctpPacketWrapper)) {
-                logger.error("Expected ${0}, but got ${1}!", SctpPacketWrapper.class, msg.getClass());
+                logger.error("Expected %s, but got %s!", SctpPacketWrapper.class, msg.getClass());
                 throw new IllegalArgumentException(String.format("Expected %s, but got %s!", SctpPacketWrapper.class, msg.getClass()));
             }
 
             SctpPacketWrapper packet = (SctpPacketWrapper) msg;
-            //logger.debug("Received message!");
             UnderlyingNetworkConnection connection = (UnderlyingNetworkConnection) ctx.channel();
-            if (NetworkConstants.DEBUG_REF_COUNT) {
-                int oldRefCount = packet.getData().refCnt();
-                this.endpoint.getPacketRegistry().getHandler(packet.getId()).handle(packet.getData(), connection, packet.getChannel());
-                logger.debug("Received packet with ${0} references! (pre-handle: ${1})", packet.getData().refCnt(), oldRefCount);
-            } else {
-                this.endpoint.getPacketRegistry().getHandler(packet.getId()).handle(packet.getData(), connection, packet.getChannel());
-            }
+            this.endpoint.getPacketRegistry().getHandler(packet.getId()).handle(packet.getData(), connection, packet.getChannel());
             packet.getData().release();
         } catch (Exception e) {
             logger.error(e);

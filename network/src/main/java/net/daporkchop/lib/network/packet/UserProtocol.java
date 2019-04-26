@@ -98,13 +98,13 @@ public abstract class UserProtocol<C extends UserConnection> implements Logging 
 
     protected void register(@NonNull MessageHandler handler, int id) {
         if (id < 0 || id > 0xFFFF) {
-            throw this.exception("Id must be in range 0-65535, but found: ${0}!", id);
+            throw new IllegalArgumentException(String.format("Id must be in range 0-65535, but found: %d!", id));
         } else if (this.ids == null) {
             throw new IllegalStateException("Protocol has already been populated!");
         } else {
             synchronized (this.registered) {
                 if (this.ids.get(id)) {
-                    throw this.exception("Packet id ${0} already taken!", id);
+                    throw new IllegalArgumentException(String.format("Packet id %d already taken!", id));
                 } else {
                     this.ids.set(id);
                     this.registered.put((short) id, handler);
@@ -131,7 +131,7 @@ public abstract class UserProtocol<C extends UserConnection> implements Logging 
     public MessageHandler getHandler(short packetId) {
         MessageHandler handler = this.registered.get(packetId);
         if (handler == null) {
-            throw this.exception("Invalid packet id: ${0}", packetId & 0xFFFF);
+            throw new IllegalArgumentException(String.format("Invalid packet id: %d", packetId & 0xFFFF));
         } else {
             return handler;
         }
@@ -159,6 +159,6 @@ public abstract class UserProtocol<C extends UserConnection> implements Logging 
 
     @Override
     public String toString() {
-        return this.format("${0} v${1}", this.name, this.version);
+        return String.format("%s v%d", this.name, this.version);
     }
 }

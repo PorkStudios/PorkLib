@@ -13,47 +13,52 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.netty.sctp;
+package net.daporkchop.lib.logging.console.ansi;
 
-import io.netty.buffer.ByteBuf;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.logging.Logging;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.logging.format.MessageFormatter;
+import net.daporkchop.lib.logging.format.MessagePrinter;
+import net.daporkchop.lib.logging.format.component.TextComponent;
+import net.daporkchop.lib.logging.impl.DefaultLogger;
+
+import java.io.PrintStream;
+import java.util.function.Consumer;
 
 /**
- * Used so that reliability parameters and so forth can be processed in encoders/decoders
- *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Getter
-public class SctpPacketWrapper implements Logging {
+public class ANSIMessagePrinter implements MessagePrinter, ANSI {
     @NonNull
-    private final ByteBuf data;
+    protected final PrintStream printer;
 
-    private final int channel;
-    private final int id;
-    private final boolean ordered;
-
-    @Override
-    public String toString() {
-        return String.format("packet=%s, channel=%d, ordered=%b, id=%d", this.data, this.channel, this.ordered, this.id);
+    public ANSIMessagePrinter()    {
+        this(DefaultLogger.stdOut);
     }
-}
-
-@AllArgsConstructor
-@Getter
-class UnencodedSctpPacket implements Logging {
-    @NonNull
-    private final Object message;
-
-    private final int channel;
-    private final int id;
-    private final boolean ordered;
 
     @Override
-    public String toString() {
-        return String.format("message=%s, channel=%d, ordered=%b, id=%d", this.message.getClass(), this.channel, this.ordered, this.id);
+    public void accept(@NonNull TextComponent component) {
+        StringBuilder builder = new StringBuilder(); //TODO: pool these
+        this.doBuild(builder, component);
+        this.printer.println(builder.append(ESC).append("[0m"));
+    }
+
+    protected void doBuild(@NonNull StringBuilder builder, @NonNull TextComponent component)    {
+        {
+            String text = component.getText();
+            if (text != null && !text.isEmpty()) {
+                builder.append(ANSIConsole.getUpdateTextFormatCommand(
+                        VGAColor.closestTo(component.getColor()),
+                        VGAColor.closestTo(component.getBackgroundColor()),
+                        component.getStyle()
+                )).append(text);
+            }
+        }
+        for (TextComponent child : component.getChildren()) {
+            this.doBuild(builder, child);
+        }
     }
 }

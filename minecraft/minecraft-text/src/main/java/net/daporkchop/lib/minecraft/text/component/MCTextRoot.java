@@ -13,47 +13,29 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.netty.sctp;
+package net.daporkchop.lib.minecraft.text.component;
 
-import io.netty.buffer.ByteBuf;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.logging.format.component.TextComponent;
+import net.daporkchop.lib.logging.format.component.TextComponentHolder;
+import net.daporkchop.lib.minecraft.text.MCTextType;
 
 /**
- * Used so that reliability parameters and so forth can be processed in encoders/decoders
+ * A simple container text component on top of the normal text components. This doesn't affect any behaviors, however it can be used to get the unparsed
+ * value of the text (e.g. to obtain more detailed information that's ignored by this parser).
  *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
 @Getter
-public class SctpPacketWrapper implements Logging {
-    @NonNull
-    private final ByteBuf data;
+public class MCTextRoot extends TextComponentHolder {
+    protected final MCTextType type;
+    protected final String original;
 
-    private final int channel;
-    private final int id;
-    private final boolean ordered;
+    public MCTextRoot(@NonNull MCTextType type, @NonNull String original, TextComponent... children) {
+        super(children);
 
-    @Override
-    public String toString() {
-        return String.format("packet=%s, channel=%d, ordered=%b, id=%d", this.data, this.channel, this.ordered, this.id);
-    }
-}
-
-@AllArgsConstructor
-@Getter
-class UnencodedSctpPacket implements Logging {
-    @NonNull
-    private final Object message;
-
-    private final int channel;
-    private final int id;
-    private final boolean ordered;
-
-    @Override
-    public String toString() {
-        return String.format("message=%s, channel=%d, ordered=%b, id=%d", this.message.getClass(), this.channel, this.ordered, this.id);
+        this.type = type;
+        this.original = original;
     }
 }

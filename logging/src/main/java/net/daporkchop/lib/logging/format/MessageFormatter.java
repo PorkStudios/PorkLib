@@ -13,47 +13,29 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.netty.sctp;
+package net.daporkchop.lib.logging.format;
 
-import io.netty.buffer.ByteBuf;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.logging.LogLevel;
+import net.daporkchop.lib.logging.format.component.TextComponent;
+
+import java.util.Date;
 
 /**
- * Used so that reliability parameters and so forth can be processed in encoders/decoders
+ * Formats log messages for printing to the console
  *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-@Getter
-public class SctpPacketWrapper implements Logging {
-    @NonNull
-    private final ByteBuf data;
-
-    private final int channel;
-    private final int id;
-    private final boolean ordered;
-
-    @Override
-    public String toString() {
-        return String.format("packet=%s, channel=%d, ordered=%b, id=%d", this.data, this.channel, this.ordered, this.id);
-    }
-}
-
-@AllArgsConstructor
-@Getter
-class UnencodedSctpPacket implements Logging {
-    @NonNull
-    private final Object message;
-
-    private final int channel;
-    private final int id;
-    private final boolean ordered;
-
-    @Override
-    public String toString() {
-        return String.format("message=%s, channel=%d, ordered=%b, id=%d", this.message.getClass(), this.channel, this.ordered, this.id);
-    }
+@FunctionalInterface
+public interface MessageFormatter {
+    /**
+     * Prepares the actual message for printing
+     *
+     * @param date        the date that the message was sent at, should be used for message timestamps
+     * @param channelName the name of the channel that the message was sent on. May be {@code null}
+     * @param level       the log level that the message was sent using
+     * @param message     the actual message
+     * @return a formatted message, ready to be printed to the console
+     */
+    TextComponent format(@NonNull Date date, String channelName, @NonNull LogLevel level, @NonNull TextComponent message);
 }

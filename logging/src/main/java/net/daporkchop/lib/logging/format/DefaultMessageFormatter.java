@@ -21,12 +21,18 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.logging.LogLevel;
+import net.daporkchop.lib.logging.console.TextFormat;
 import net.daporkchop.lib.logging.format.component.TextComponent;
 import net.daporkchop.lib.logging.format.component.TextComponentHolder;
 import net.daporkchop.lib.logging.format.component.TextComponentString;
 
+import java.awt.Color;
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Default implementation of {@link MessageFormatter}. Prints messages as follows:
@@ -39,22 +45,39 @@ import java.util.Date;
 @Setter
 @Accessors(chain = true)
 public class DefaultMessageFormatter implements MessageFormatter {
+    protected static final TextComponent START = new TextComponentString("[");
+    protected static final TextComponent BETWEEN = new TextComponentString("] [");
+    protected static final TextComponent END = new TextComponentString("] ");
+
+    protected static final Map<LogLevel, TextComponent> LEVEL_COMPONENTS = new EnumMap<>(LogLevel.class);
+    protected static final TextFormat DATE_STYLE = new TextFormat().setTextColor(Color.CYAN);
+
+    static {
+        for (LogLevel level : LogLevel.values())    {
+            LEVEL_COMPONENTS.put(level, new TextComponentString(level.getColor(), null, level.getStyle(), level.name()));
+        }
+    }
+
     protected DateFormat dateFormat = PorkUtil.DATE_FORMAT;
 
     @Override
     public TextComponent format(@NonNull Date date, String channelName, @NonNull LogLevel level, @NonNull TextComponent message) {
-        String prefix;
-        if (channelName == null) {
-            prefix = String.format("[%s] [%s] ", this.dateFormat.format(date), level.name());
-        } else {
-            prefix = String.format("[%s] [%s] [%s] ", this.dateFormat.format(date), channelName, level.name());
+        List<TextComponent> components = new ArrayList<>((channelName == null ? 5 : 7) + (message.getText() == null ? 0 : 1) + message.getChildren().size());
+
+        components.add(START);
+        components.add(new TextComponentString(DATE_STYLE, this.dateFormat.format(date)));
+        components.add(BETWEEN);
+        if (channelName != null)    {
+            components.add(new TextComponentString(channelName));
+            components.add(BETWEEN);
         }
-        if (message.getText() == null) {
-            //if the message has no text, we can safely insert the prefix as the first child without affecting anything
-            message.getChildren().add(0, new TextComponentString(prefix));
-            return message;
-        } else {
-            return new TextComponentHolder(new TextComponentString(prefix), message);
+        components.add(LEVEL_COMPONENTS.get(level));
+        components.add(END);
+        if (message.getText() != null)  {
+            components.add(message.getChildren().isEmpty() ? message : new TextComponentString(message.getColor(), message.getBackgroundColor(), message.getStyle(), message.getText()));
         }
+        components.addAll(message.getChildren());
+
+        return new TextComponentHolder(components);
     }
 }

@@ -124,14 +124,14 @@ public interface TextComponent {
     default List<TextComponent> splitOnNewlines() {
         List<TextComponent> cache = new ArrayList<>();
         AtomicReference<TextComponent> ref = new AtomicReference<>(new TextComponentHolder());
-        this.internal_addComponents(cache, ref, this);
+        this.internal_addComponents(cache, ref, this, null);
         if (!ref.get().getChildren().isEmpty())  {
             cache.add(ref.get());
         }
         return cache;
     }
 
-    default void internal_addComponents(@NonNull List<TextComponent> cache, @NonNull AtomicReference<TextComponent> curr, @NonNull TextComponent component) {
+    default void internal_addComponents(@NonNull List<TextComponent> cache, @NonNull AtomicReference<TextComponent> curr, @NonNull TextComponent component, TextComponent parent) {
         {
             String text = component.getText();
             if (text != null && !text.isEmpty()) {
@@ -146,17 +146,17 @@ public interface TextComponent {
                     }
                     String[] split = text.split("\n");
                     for (String line : split) {
-                        if (newlineCount-- == 0)    {
-                            break;
-                        }
                         curr.get().getChildren().add(new TextComponentString(component.getColor(), component.getBackgroundColor(), component.getStyle(), line));
+                        if (newlineCount-- <= 0)    {
+                            continue;
+                        }
                         cache.add(curr.getAndSet(new TextComponentHolder()));
                     }
                 }
             }
         }
         for (TextComponent child : component.getChildren()) {
-            this.internal_addComponents(cache, curr, child);
+            this.internal_addComponents(cache, curr, child, component);
         }
     }
 }

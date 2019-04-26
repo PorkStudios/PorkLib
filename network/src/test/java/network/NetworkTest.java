@@ -17,6 +17,7 @@ package network;import io.netty.buffer.ByteBuf;
 import io.netty.util.ResourceLeakDetector;
 import net.daporkchop.lib.binary.netty.NettyUtil;
 import net.daporkchop.lib.common.test.TestRandomData;
+import net.daporkchop.lib.logging.LogAmount;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
@@ -54,8 +55,7 @@ public class NetworkTest implements Logging {
     static {
         ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.PARANOID);
 
-        logger.setLevel(4);
-        logger.add(new File("./test_out/test_network.log"), true);
+        logger.enableANSI().addFile(new File("./test_out/test_network.log")).setLogAmount(LogAmount.DEBUG);
     }
 
     private static void sleep(long millis) {

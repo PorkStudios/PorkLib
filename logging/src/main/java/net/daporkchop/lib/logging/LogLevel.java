@@ -17,21 +17,43 @@ package net.daporkchop.lib.logging;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.logging.format.TextStyle;
+
+import java.awt.Color;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.Set;
 
 /**
+ * Log messages are sent on specific log level to indicate their importance. Loggers may be configured to only print messages on specific log levels.
+ *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
 @Getter
 public enum LogLevel {
-    INFO(0),
-    ERROR(0),
-    FATAL(0),
-    ALERT(0),
-    WARN(1),
-    NOTIFY(1),
-    TRACE(2),
-    DEBUG(3);
+    INFO(null, 0),
+    SUCCESS(Color.GREEN, TextStyle.BOLD),
+    ERROR(Color.RED, TextStyle.BOLD),
+    FATAL(Color.RED, TextStyle.BOLD | TextStyle.BLINKING),
+    ALERT(Color.RED, TextStyle.BOLD | TextStyle.BLINKING),
+    WARN(Color.ORANGE, TextStyle.ITALIC),
+    TRACE(null, TextStyle.ITALIC),
+    DEBUG(Color.GRAY, TextStyle.ITALIC),
+    ;
 
-    private final int level;
+    public static Set<LogLevel> emptySet()  {
+        return Collections.newSetFromMap(new EnumMap<>(LogLevel.class));
+    }
+
+    public static Set<LogLevel> set(LogLevel... levels) {
+        Set<LogLevel> set = emptySet();
+        if (levels != null)   {
+            Collections.addAll(set, levels);
+        }
+        return set;
+    }
+
+    protected final Color color;
+    protected final int style;
 }

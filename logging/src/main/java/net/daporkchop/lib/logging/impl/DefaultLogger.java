@@ -15,30 +15,58 @@
 
 package net.daporkchop.lib.logging.impl;
 
+import lombok.NonNull;
 import net.daporkchop.lib.binary.UTF8;
+import net.daporkchop.lib.common.misc.Tuple;
+import net.daporkchop.lib.logging.LogAmount;
+import net.daporkchop.lib.logging.LogLevel;
 import net.daporkchop.lib.logging.Logger;
 import net.daporkchop.lib.logging.console.ansi.ANSIMessagePrinter;
+import net.daporkchop.lib.logging.format.MessagePrinter;
+import net.daporkchop.lib.logging.format.SelfClosingMessagePrinter;
+import net.daporkchop.lib.logging.format.component.TextComponent;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
+ * The default, global logger instance, accessible via {@link net.daporkchop.lib.logging.Logging#logger}.
+ * <p>
+ * This logger supports forwarding log messages on to multiple printers as opposed to just one, allowing for log messages to e.g. be stored to a
+ * file and printed to the console simultaneously.
+ *
  * @author DaPorkchop_
  */
-public class DefaultLogger extends BaseLogger {
+public class DefaultLogger extends SimpleLogger {
     public static final PrintStream stdOut = System.out;
     protected static final AtomicBoolean hasRedirectedStdOut = new AtomicBoolean(false);
 
-    public DefaultLogger()  {
-        super(component -> stdOut.println(component.toRawString()));
+    protected final Map<String, Tuple<Set<LogLevel>, MessagePrinter>> delegates = new ConcurrentHashMap<>();
+
+    public DefaultLogger() {
+        super(component -> {
+            throw new UnsupportedOperationException("DefaultLogger's base message printer doesn't do anything!");
+        });
+
+        this.delegates.put("console", new Tuple<>(this.logLevels, component -> stdOut.println(component.toRawString())));
     }
 
-    public void redirectStdOut()    {
-        if (!hasRedirectedStdOut.getAndSet(true))   {
+    /**
+     * Redirects {@link System#out} and {@link System#err} to this logger.
+     * <p>
+     * Be aware that this method may only be invoked once, and cannot be undone.
+     */
+    public void redirectStdOut() {
+        if (!hasRedirectedStdOut.getAndSet(true)) {
             try {
                 Logger fakeLogger = this.channel("stdout");
                 System.setOut(new PrintStream(new OutputStream() {
@@ -67,13 +95,110 @@ public class DefaultLogger extends BaseLogger {
                         }
                     }
                 }, true, "UTF-8"));
-            } catch (UnsupportedEncodingException   e)  {
+            } catch (UnsupportedEncodingException e) {
                 throw new RuntimeException(e);
             }
         }
     }
 
-    public void enableANSI()    {
-        this.setMessagePrinter(new ANSIMessagePrinter());
+    /**
+     * Enables ANSI text formatting on this logger.
+     */
+    public DefaultLogger enableANSI() {
+        this.delegates.computeIfAbsent("console", s -> new Tuple<>(this.logLevels, null)).atomicSetB(new ANSIMessagePrinter());
+        return this;
+    }
+
+    public DefaultLogger removeDelegate(@NonNull String name) {
+        return this.setDelegate(name, null, null);
+    }
+
+    public DefaultLogger setDelegate(@NonNull String name, MessagePrinter printer)  {
+        return this.setDelegate(name, null, printer);
+    }
+
+    public DefaultLogger setDelegate(@NonNull String name, Set<LogLevel> levels, MessagePrinter printer) {
+        if (printer == null) {
+            this.delegates.remove(name);
+        } else {
+            this.delegates.computeIfAbsent(name, s -> new Tuple<>(levels == null ? this.logLevels : levels, printer))
+                          .setA(levels == null ? this.logLevels : levels).setB(printer);
+        }
+        return this;
+    }
+
+    // file methods
+    public DefaultLogger addFile(@NonNull File path)    {
+        return this.addFile(String.format("File:%s", path.getAbsolutePath()), path, true, null);
+    }
+
+    public DefaultLogger addFile(@NonNull File path, Set<LogLevel> levels)    {
+        return this.addFile(String.format("File:%s", path.getAbsolutePath()), path, true, levels);
+    }
+
+    public DefaultLogger addFile(@NonNull File path, LogLevel... levels)    {
+        return this.addFile(String.format("File:%s", path.getAbsolutePath()), path, true, LogLevel.set(levels));
+    }
+
+    public DefaultLogger addFile(@NonNull File path, @NonNull LogAmount amount)    {
+        return this.addFile(String.format("File:%s", path.getAbsolutePath()), path, true, amount.getLevelSet());
+    }
+
+    public DefaultLogger addFile(@NonNull File path, boolean overwrite)    {
+        return this.addFile(String.format("File:%s", path.getAbsolutePath()), path, overwrite, null);
+    }
+
+    public DefaultLogger addFile(@NonNull File path, boolean overwrite, Set<LogLevel> levels)    {
+        return this.addFile(String.format("File:%s", path.getAbsolutePath()), path, overwrite, levels);
+    }
+
+    public DefaultLogger addFile(@NonNull File path, boolean overwrite, LogLevel... levels)    {
+        return this.addFile(String.format("File:%s", path.getAbsolutePath()), path, overwrite, LogLevel.set(levels));
+    }
+
+    public DefaultLogger addFile(@NonNull File path, boolean overwrite, @NonNull LogAmount amount)    {
+        return this.addFile(String.format("File:%s", path.getAbsolutePath()), path, overwrite, amount.getLevelSet());
+    }
+
+    public DefaultLogger addFile(@NonNull String name, @NonNull File path, boolean overwrite, Set<LogLevel> levels)    {
+        PrintStream printStream;
+        try {
+            printStream = overwrite ? new PrintStream(path) : new PrintStream(new FileOutputStream(path, true));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return this.setDelegate(name, new SelfClosingMessagePrinter<PrintStream>(printStream) {
+            @Override
+            public void accept(@NonNull TextComponent component) {
+                this.resource.println(component.toRawString());
+            }
+        });
+    }
+
+    @Override
+    protected synchronized void doLog(@NonNull LogLevel level, @NonNull TextComponent component) {
+        for (Tuple<Set<LogLevel>, MessagePrinter> tuple : this.delegates.values()) {
+            if (tuple.getA().contains(level))   {
+                tuple.getB().accept(component);
+            }
+        }
+    }
+
+    @Override
+    public synchronized DefaultLogger setLogLevels(@NonNull Set<LogLevel> logLevels) {
+        Set<LogLevel> oldLevels = this.logLevels;
+        super.setLogLevels(logLevels);
+        for (Tuple<Set<LogLevel>, MessagePrinter> tuple : this.delegates.values())  {
+            if (tuple.getA() == oldLevels)  {
+                tuple.atomicSetA(logLevels);
+            }
+        }
+        return this;
+    }
+
+    @Override
+    public SimpleLogger setMessagePrinter(@NonNull MessagePrinter messagePrinter) {
+        this.warn("Attempted to call setMessagePrinter() on an instance of %s!", DefaultLogger.class);
+        return this;
     }
 }

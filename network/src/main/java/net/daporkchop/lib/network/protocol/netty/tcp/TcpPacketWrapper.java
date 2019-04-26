@@ -35,7 +35,7 @@ public class TcpPacketWrapper implements Logging {
 
     @Override
     public String toString() {
-        return this.format("packet=${0}, channel=${1}, id=${2}", this.data, this.channel, this.id);
+        return String.format("packet=%s, channel=%d, id=%d", this.data, this.channel, this.id);
     }
 }
 
@@ -50,6 +50,6 @@ class UnencodedTcpPacket implements Logging {
 
     @Override
     public String toString() {
-        return this.format("packet=${0}, channel=${1}, id=${2}", this.message.getClass(), this.channel, this.id);
+        return String.format("message=%s, channel=%d, id=%d", this.message.getClass(), this.channel, this.id);
     }
 }

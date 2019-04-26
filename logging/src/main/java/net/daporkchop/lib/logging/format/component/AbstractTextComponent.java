@@ -13,47 +13,30 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.netty.sctp;
+package net.daporkchop.lib.logging.format.component;
 
-import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NonNull;
-import net.daporkchop.lib.logging.Logging;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Used so that reliability parameters and so forth can be processed in encoders/decoders
- *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Getter
-public class SctpPacketWrapper implements Logging {
-    @NonNull
-    private final ByteBuf data;
+public abstract class AbstractTextComponent implements TextComponent {
+    protected final Color color;
+    protected final Color backgroundColor;
+    protected final int style;
 
-    private final int channel;
-    private final int id;
-    private final boolean ordered;
+    protected final List<TextComponent> children = new ArrayList<>();
 
-    @Override
-    public String toString() {
-        return String.format("packet=%s, channel=%d, ordered=%b, id=%d", this.data, this.channel, this.ordered, this.id);
-    }
-}
-
-@AllArgsConstructor
-@Getter
-class UnencodedSctpPacket implements Logging {
-    @NonNull
-    private final Object message;
-
-    private final int channel;
-    private final int id;
-    private final boolean ordered;
-
-    @Override
-    public String toString() {
-        return String.format("message=%s, channel=%d, ordered=%b, id=%d", this.message.getClass(), this.channel, this.ordered, this.id);
+    public AbstractTextComponent()  {
+        this(null, null, 0);
     }
 }

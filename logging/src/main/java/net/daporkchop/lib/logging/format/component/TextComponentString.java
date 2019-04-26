@@ -13,47 +13,38 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.netty.sctp;
+package net.daporkchop.lib.logging.format.component;
 
-import io.netty.buffer.ByteBuf;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.logging.console.TextFormat;
+
+import java.awt.Color;
 
 /**
- * Used so that reliability parameters and so forth can be processed in encoders/decoders
+ * A simple text component that only contains plain text
  *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
 @Getter
-public class SctpPacketWrapper implements Logging {
-    @NonNull
-    private final ByteBuf data;
+public class TextComponentString extends AbstractTextComponent {
+    protected final String text;
 
-    private final int channel;
-    private final int id;
-    private final boolean ordered;
+    public TextComponentString(Color color, Color backgroundColor, int style, @NonNull String text) {
+        super(color, backgroundColor, style);
 
-    @Override
-    public String toString() {
-        return String.format("packet=%s, channel=%d, ordered=%b, id=%d", this.data, this.channel, this.ordered, this.id);
+        this.text = text;
     }
-}
 
-@AllArgsConstructor
-@Getter
-class UnencodedSctpPacket implements Logging {
-    @NonNull
-    private final Object message;
+    public TextComponentString(@NonNull TextFormat format, @NonNull String text) {
+        super(format.getTextColor(), format.getBackgroundColor(), format.getStyle());
 
-    private final int channel;
-    private final int id;
-    private final boolean ordered;
+        this.text = text;
+    }
 
-    @Override
-    public String toString() {
-        return String.format("message=%s, channel=%d, ordered=%b, id=%d", this.message.getClass(), this.channel, this.ordered, this.id);
+    public TextComponentString(@NonNull String text) {
+        super();
+
+        this.text = text;
     }
 }

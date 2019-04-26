@@ -13,47 +13,38 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.netty.sctp;
-
-import io.netty.buffer.ByteBuf;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NonNull;
+import net.daporkchop.lib.logging.LogAmount;
+import net.daporkchop.lib.logging.Logger;
 import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.logging.console.TextFormat;
+import net.daporkchop.lib.logging.format.TextStyle;
+
+import java.awt.Color;
 
 /**
- * Used so that reliability parameters and so forth can be processed in encoders/decoders
- *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-@Getter
-public class SctpPacketWrapper implements Logging {
-    @NonNull
-    private final ByteBuf data;
+public class LogExample implements Logging {
+    public static void main(String... args) {
+        logger.info("Hello %2$s!", 89365, "world");
+        logger.channel("PorkLib").alert("ALERT!\nYOUR COMPUTER HAVE VIRUS!");
+        logger.error("This\nis\na\ntest!");
+        logger.alert(new RuntimeException(new NullPointerException("jeff")));
+        logger.redirectStdOut();
+        System.out.println("Test!äöäöä¬");
+        System.err.println("Test!äöäöä¬");
+        logger.debug("Debug 1");
+        logger.setLogAmount(LogAmount.DEBUG);
+        logger.debug("Debug 2");
 
-    private final int channel;
-    private final int id;
-    private final boolean ordered;
-
-    @Override
-    public String toString() {
-        return String.format("packet=%s, channel=%d, ordered=%b, id=%d", this.data, this.channel, this.ordered, this.id);
-    }
-}
-
-@AllArgsConstructor
-@Getter
-class UnencodedSctpPacket implements Logging {
-    @NonNull
-    private final Object message;
-
-    private final int channel;
-    private final int id;
-    private final boolean ordered;
-
-    @Override
-    public String toString() {
-        return String.format("message=%s, channel=%d, ordered=%b, id=%d", this.message.getClass(), this.channel, this.ordered, this.id);
+        console.setTextColor(Color.BLUE);
+        logger.info("This text should be blue...");
+        console.setBackgroundColor(Color.ORANGE);
+        logger.info("With an orange background...");
+        console.setBold(true);
+        console.setBlinking(true);
+        logger.info("In bold and blinking!");
+        console.setBold(false);
+        logger.info("Wait, sorry. This isn't bold!");
     }
 }

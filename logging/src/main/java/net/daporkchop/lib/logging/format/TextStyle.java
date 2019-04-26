@@ -13,47 +13,46 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.netty.sctp;
-
-import io.netty.buffer.ByteBuf;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NonNull;
-import net.daporkchop.lib.logging.Logging;
+package net.daporkchop.lib.logging.format;
 
 /**
- * Used so that reliability parameters and so forth can be processed in encoders/decoders
- *
+ * Flags indicating additional formatting to apply to text
+ * 
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-@Getter
-public class SctpPacketWrapper implements Logging {
-    @NonNull
-    private final ByteBuf data;
-
-    private final int channel;
-    private final int id;
-    private final boolean ordered;
-
-    @Override
-    public String toString() {
-        return String.format("packet=%s, channel=%d, ordered=%b, id=%d", this.data, this.channel, this.ordered, this.id);
+public interface TextStyle {
+    int BOLD = 1 << 0;
+    int ITALIC = 1 << 1;
+    int UNDERLINE = 1 << 2;
+    int STRIKETHROUGH = 1 << 3;
+    int OVERLINE = 1 << 4;
+    int BLINKING = 1 << 5;
+    
+    static boolean isDefault(int flag)  {
+        return flag == 0;
     }
-}
 
-@AllArgsConstructor
-@Getter
-class UnencodedSctpPacket implements Logging {
-    @NonNull
-    private final Object message;
+    static boolean isBold(int flag) {
+        return (flag & BOLD) != 0;
+    }
 
-    private final int channel;
-    private final int id;
-    private final boolean ordered;
+    static boolean isItalic(int flag) {
+        return (flag & ITALIC) != 0;
+    }
 
-    @Override
-    public String toString() {
-        return String.format("message=%s, channel=%d, ordered=%b, id=%d", this.message.getClass(), this.channel, this.ordered, this.id);
+    static boolean isUnderline(int flag) {
+        return (flag & UNDERLINE) != 0;
+    }
+
+    static boolean isStrikethrough(int flag) {
+        return (flag & STRIKETHROUGH) != 0;
+    }
+
+    static boolean isOverline(int flag) {
+        return (flag & OVERLINE) != 0;
+    }
+
+    static boolean isBlinking(int flag) {
+        return (flag & BLINKING) != 0;
     }
 }

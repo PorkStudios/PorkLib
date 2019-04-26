@@ -13,47 +13,35 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.netty.sctp;
+package net.daporkchop.lib.minecraft.text;
 
-import io.netty.buffer.ByteBuf;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.logging.Logging;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.logging.format.component.TextComponent;
+import net.daporkchop.lib.minecraft.text.component.MCTextRoot;
+import net.daporkchop.lib.minecraft.text.parser.JsonTextParser;
+import net.daporkchop.lib.minecraft.text.parser.LegacyTextParser;
+
+import java.util.function.Function;
 
 /**
- * Used so that reliability parameters and so forth can be processed in encoders/decoders
- *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Getter
-public class SctpPacketWrapper implements Logging {
+public enum MCTextType {
+    /**
+     * The new JSON chat formatting system as described at https://wiki.vg/Chat.
+     */
+    JSON(JsonTextParser::parse),
+    /**
+     * The legacy text formatting system using text interleaved with formatting codes (indicated by '§'), as described at
+     * https://minecraft.gamepedia.com/Formatting_codes.
+     */
+    LEGACY(LegacyTextParser::parse),
+    ;
+
     @NonNull
-    private final ByteBuf data;
-
-    private final int channel;
-    private final int id;
-    private final boolean ordered;
-
-    @Override
-    public String toString() {
-        return String.format("packet=%s, channel=%d, ordered=%b, id=%d", this.data, this.channel, this.ordered, this.id);
-    }
-}
-
-@AllArgsConstructor
-@Getter
-class UnencodedSctpPacket implements Logging {
-    @NonNull
-    private final Object message;
-
-    private final int channel;
-    private final int id;
-    private final boolean ordered;
-
-    @Override
-    public String toString() {
-        return String.format("message=%s, channel=%d, ordered=%b, id=%d", this.message.getClass(), this.channel, this.ordered, this.id);
-    }
+    protected final Function<String, MCTextRoot> parser;
 }

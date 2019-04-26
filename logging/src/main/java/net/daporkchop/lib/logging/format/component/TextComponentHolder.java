@@ -13,47 +13,57 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.netty.sctp;
+package net.daporkchop.lib.logging.format.component;
 
-import io.netty.buffer.ByteBuf;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.logging.Logging;
+import lombok.RequiredArgsConstructor;
+
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Used so that reliability parameters and so forth can be processed in encoders/decoders
- *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Getter
-public class SctpPacketWrapper implements Logging {
+public class TextComponentHolder implements TextComponent {
     @NonNull
-    private final ByteBuf data;
+    protected final List<TextComponent> children;
 
-    private final int channel;
-    private final int id;
-    private final boolean ordered;
-
-    @Override
-    public String toString() {
-        return String.format("packet=%s, channel=%d, ordered=%b, id=%d", this.data, this.channel, this.ordered, this.id);
+    public TextComponentHolder() {
+        this(new ArrayList<>());
     }
-}
 
-@AllArgsConstructor
-@Getter
-class UnencodedSctpPacket implements Logging {
-    @NonNull
-    private final Object message;
-
-    private final int channel;
-    private final int id;
-    private final boolean ordered;
+    public TextComponentHolder(@NonNull TextComponent... children) {
+        this(new ArrayList<>());
+        for (TextComponent child : children) {
+            if (child == null) {
+                throw new NullPointerException();
+            }
+            this.children.add(child);
+        }
+    }
 
     @Override
-    public String toString() {
-        return String.format("message=%s, channel=%d, ordered=%b, id=%d", this.message.getClass(), this.channel, this.ordered, this.id);
+    public String getText() {
+        return null;
+    }
+
+    @Override
+    public Color getColor() {
+        return null;
+    }
+
+    @Override
+    public Color getBackgroundColor() {
+        return null;
+    }
+
+    @Override
+    public int getStyle() {
+        return 0;
     }
 }

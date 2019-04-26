@@ -13,47 +13,52 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.netty.sctp;
+package net.daporkchop.lib.minecraft.text.parser;
 
-import io.netty.buffer.ByteBuf;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.logging.Logging;
+import lombok.ToString;
+import net.daporkchop.lib.common.reference.InstancePool;
+import net.daporkchop.lib.logging.format.FormatParser;
+import net.daporkchop.lib.minecraft.text.MCTextType;
+import net.daporkchop.lib.minecraft.text.component.MCTextRoot;
 
 /**
- * Used so that reliability parameters and so forth can be processed in encoders/decoders
+ * Parses Minecraft text into formatted components.
  *
  * @author DaPorkchop_
  */
 @AllArgsConstructor
+@NoArgsConstructor
 @Getter
-public class SctpPacketWrapper implements Logging {
-    @NonNull
-    private final ByteBuf data;
-
-    private final int channel;
-    private final int id;
-    private final boolean ordered;
+@ToString
+public class MinecraftFormatParser implements FormatParser {
+    /**
+     * The type of text that will be parsed by this instance.
+     * <p>
+     * If {@code null}, this will automatically detect the type based on input data and parse it accordingly.
+     */
+    protected MCTextType type;
 
     @Override
-    public String toString() {
-        return String.format("packet=%s, channel=%d, ordered=%b, id=%d", this.data, this.channel, this.ordered, this.id);
-    }
-}
-
-@AllArgsConstructor
-@Getter
-class UnencodedSctpPacket implements Logging {
-    @NonNull
-    private final Object message;
-
-    private final int channel;
-    private final int id;
-    private final boolean ordered;
-
-    @Override
-    public String toString() {
-        return String.format("message=%s, channel=%d, ordered=%b, id=%d", this.message.getClass(), this.channel, this.ordered, this.id);
+    public MCTextRoot parse(@NonNull String text) {
+        if (this.type == null) {
+            //autodetect
+            JsonElement element = null;
+            try {
+                element = InstancePool.getInstance(JsonParser.class).parse(text);
+            } catch (JsonSyntaxException e) {
+                //not a json string, treat as legacy
+                return LegacyTextParser.parse(text);
+            }
+            return JsonTextParser.parse(element, text);
+        } else {
+            return this.type.getParser().apply(text);
+        }
     }
 }

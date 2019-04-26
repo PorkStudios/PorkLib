@@ -93,7 +93,7 @@ public class PorkDB implements Logging {
      */
     public DBAtomicLong.Builder atomicLong(@NonNull String name) {
         if (this.loadedContainers.containsKey(name)) {
-            throw this.exception("Name \"${0}\" already taken!", name);
+            throw new IllegalArgumentException(String.format("Name \"%s\" already taken!", name));
         } else {
             return DBAtomicLong.builder(this, name);
         }
@@ -111,7 +111,7 @@ public class PorkDB implements Logging {
      */
     public <K, V> DBMap.Builder<K, V> map(@NonNull String name) {
         if (this.loadedContainers.containsKey(name)) {
-            throw this.exception("Name \"${0}\" already taken!", name);
+            throw new IllegalArgumentException(String.format("Name \"%s\" already taken!", name));
         } else {
             return DBMap.builder(this, name);
         }

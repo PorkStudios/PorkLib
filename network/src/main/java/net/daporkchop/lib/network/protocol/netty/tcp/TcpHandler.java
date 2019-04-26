@@ -53,7 +53,7 @@ public class TcpHandler extends ChannelInboundHandlerAdapter implements Logging 
         try {
             if (!(msg instanceof TcpPacketWrapper)) {
                 logger.error("Expected ${0}, but got ${1}!", TcpPacketWrapper.class, msg.getClass());
-                throw new IllegalArgumentException(this.format("Expected ${0}, but got ${1}!", TcpPacketWrapper.class, msg.getClass()));
+                throw new IllegalArgumentException(String.format("Expected %s, but got %s!", TcpPacketWrapper.class, msg.getClass()));
             }
 
             TcpPacketWrapper packet = (TcpPacketWrapper) msg;
@@ -81,7 +81,7 @@ public class TcpHandler extends ChannelInboundHandlerAdapter implements Logging 
 
         UnderlyingNetworkConnection realConnection = (UnderlyingNetworkConnection) ctx.channel();
         PorkConnection porkConnection = realConnection.getUserConnection(PorkProtocol.class);
-        porkConnection.setDisconnectReason(cause == null ? "Unknown exception" : this.format("${0}: ${1}", cause.getClass(), cause.getMessage()));
+        porkConnection.setDisconnectReason(cause == null ? "Unknown exception" : String.format("%s: %s", cause.getClass(), cause.getMessage()));
         if (cause != null && realConnection.getEndpoint() instanceof PorkClient) {
             realConnection.<PorkClient>getEndpoint().postConnectCallback(cause);
         }

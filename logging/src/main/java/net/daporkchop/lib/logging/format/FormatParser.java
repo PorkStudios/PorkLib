@@ -13,47 +13,23 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol.netty.sctp;
+package net.daporkchop.lib.logging.format;
 
-import io.netty.buffer.ByteBuf;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.logging.format.component.TextComponent;
 
 /**
- * Used so that reliability parameters and so forth can be processed in encoders/decoders
+ * Parses text into a {@link TextComponent} (possibly with children) with formatting.
  *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-@Getter
-public class SctpPacketWrapper implements Logging {
-    @NonNull
-    private final ByteBuf data;
-
-    private final int channel;
-    private final int id;
-    private final boolean ordered;
-
-    @Override
-    public String toString() {
-        return String.format("packet=%s, channel=%d, ordered=%b, id=%d", this.data, this.channel, this.ordered, this.id);
-    }
-}
-
-@AllArgsConstructor
-@Getter
-class UnencodedSctpPacket implements Logging {
-    @NonNull
-    private final Object message;
-
-    private final int channel;
-    private final int id;
-    private final boolean ordered;
-
-    @Override
-    public String toString() {
-        return String.format("message=%s, channel=%d, ordered=%b, id=%d", this.message.getClass(), this.channel, this.ordered, this.id);
-    }
+@FunctionalInterface
+public interface FormatParser {
+    /**
+     * Parses the given text into a {@link TextComponent} with the correct formatting.
+     *
+     * @param text the text to be parsed
+     * @return a non-null {@link TextComponent}
+     */
+    TextComponent parse(@NonNull String text);
 }

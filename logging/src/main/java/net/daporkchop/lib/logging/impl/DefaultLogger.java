@@ -167,7 +167,7 @@ public class DefaultLogger extends SimpleLogger {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return this.setDelegate(name, new SelfClosingMessagePrinter<PrintStream>(printStream) {
+        return this.setDelegate(name, levels, new SelfClosingMessagePrinter<PrintStream>(printStream) {
             @Override
             public void accept(@NonNull TextComponent component) {
                 this.resource.println(component.toRawString());

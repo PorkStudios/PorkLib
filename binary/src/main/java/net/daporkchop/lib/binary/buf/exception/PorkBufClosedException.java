@@ -13,32 +13,29 @@
  *
  */
 
-package net.daporkchop.lib.binary.buf.file;
-
-import net.daporkchop.lib.binary.buf.AbstractPorkBuf;
-import net.daporkchop.lib.binary.buf.PorkBuf;
+package net.daporkchop.lib.binary.buf.exception;
 
 /**
  * @author DaPorkchop_
  */
-public abstract class PorkFileChannel extends AbstractPorkBuf {
-    @Override
-    public PorkBuf putByte(byte b) {
-        return null;
+public class PorkBufClosedException extends PorkBufException {
+    public PorkBufClosedException() {
+        super();
     }
 
-    @Override
-    public PorkBuf putByte(long index, byte b) {
-        return null;
+    public PorkBufClosedException(String message) {
+        super(message);
     }
 
-    @Override
-    public byte getByte() {
-        return 0;
+    public PorkBufClosedException(String message, Throwable cause) {
+        super(message, cause);
     }
 
-    @Override
-    public byte getByte(long index) {
-        return 0;
+    public PorkBufClosedException(Throwable cause) {
+        super(cause);
+    }
+
+    protected PorkBufClosedException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
     }
 }

@@ -19,15 +19,16 @@ import net.daporkchop.lib.unsafe.PUnsafe;
 
 /**
  * A data container that knows it's own offset in memory as well as it's total length in bytes, making it suitable for
- * usage with {@link sun.misc.Unsafe} (or in this case, {@link PUnsafe})
+ * usage with {@link sun.misc.Unsafe} (or in this case, {@link PUnsafe}).
  *
  * @author DaPorkchop_
  */
 public interface Offsettable {
     /**
-     * Gets this container's offset in memory
+     * Gets this container's offset in memory.
      *
      * @return this container's offset in memory
+     * @throws UnsupportedOperationException if this implementation does not allow offsetting
      */
     long memoryAddress();
 
@@ -37,6 +38,7 @@ public interface Offsettable {
      * In other words, the number of bytes representing this object following {@link #memoryAddress()}
      *
      * @return the length of this container in bytes
+     * @throws UnsupportedOperationException if this implementation does not allow offsetting
      */
     long memorySize();
 
@@ -48,6 +50,7 @@ public interface Offsettable {
      * memory address.
      *
      * @return the object to use, or {@code null} if the offset is an address
+     * @throws UnsupportedOperationException if this implementation does not allow offsetting
      * @see #isAbsolute()
      */
     Object refObj();
@@ -59,15 +62,17 @@ public interface Offsettable {
      * {@link PUnsafe#allocateMemory(long)}).
      *
      * @return whether or not the offset value returned from {@link #memoryAddress()} is absolute
+     * @throws UnsupportedOperationException if this implementation does not allow offsetting
      */
     default boolean isAbsolute() {
         return this.refObj() == null;
     }
 
     /**
-     * Gets this container's offset data
+     * Gets this container's offset data.
      *
      * @return offset data
+     * @throws UnsupportedOperationException if this implementation does not allow offsetting
      */
     default OffsetData data() {
         return new OffsetData(this.memoryAddress(), this.memorySize());

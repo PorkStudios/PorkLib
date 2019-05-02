@@ -27,10 +27,8 @@ import java.io.IOException;
  * @author DaPorkchop_
  */
 public interface PFileDispatcherImpl {
-    Class<?> FILEDISPATCHER_CLASS = PorkUtil.classForName("sun.nio.ch.FileDispatcherImpl");
-
     Read0 READ0 = LambdaBuilder.of(Read0.class)
-            .setMethodHolder(FILEDISPATCHER_CLASS)
+            .setMethodHolder("sun.nio.ch.FileDispatcherImpl")
             .setMethodName("read0")
             .setStatic()
             .setInterfaceName("read")
@@ -41,7 +39,7 @@ public interface PFileDispatcherImpl {
             .build();
 
     PRead0 PREAD0 = LambdaBuilder.of(PRead0.class)
-            .setMethodHolder(FILEDISPATCHER_CLASS)
+            .setMethodHolder("sun.nio.ch.FileDispatcherImpl")
             .setMethodName("pread0")
             .setStatic()
             .setInterfaceName("pread")
@@ -53,7 +51,7 @@ public interface PFileDispatcherImpl {
             .build();
 
     Write0 WRITE0 = LambdaBuilder.of(Write0.class)
-            .setMethodHolder(FILEDISPATCHER_CLASS)
+            .setMethodHolder("sun.nio.ch.FileDispatcherImpl")
             .setMethodName("write0")
             .setStatic()
             .setInterfaceName("write")
@@ -62,7 +60,7 @@ public interface PFileDispatcherImpl {
             .param().setType(long.class).build()
             .param().setType(int.class).build()
             .setFallback(() -> LambdaBuilder.of(Write0.class) //windows implementation has an extra boolean parameter
-                    .setMethodHolder(FILEDISPATCHER_CLASS)
+                    .setMethodHolder("sun.nio.ch.FileDispatcherImpl")
                     .setMethodName("write0")
                     .setStatic()
                     .setInterfaceName("write")
@@ -75,7 +73,7 @@ public interface PFileDispatcherImpl {
             .build();
 
     PWrite0 PWRITE0 = LambdaBuilder.of(PWrite0.class)
-            .setMethodHolder(FILEDISPATCHER_CLASS)
+            .setMethodHolder("sun.nio.ch.FileDispatcherImpl")
             .setMethodName("pwrite0")
             .setStatic()
             .setInterfaceName("pwrite")
@@ -87,7 +85,7 @@ public interface PFileDispatcherImpl {
             .build();
 
     Force0 FORCE0 = LambdaBuilder.of(Force0.class)
-            .setMethodHolder(FILEDISPATCHER_CLASS)
+            .setMethodHolder("sun.nio.ch.FileDispatcherImpl")
             .setMethodName("force0")
             .setStatic()
             .setInterfaceName("force")
@@ -97,7 +95,7 @@ public interface PFileDispatcherImpl {
             .build();
 
     Truncate0 TRUNCATE0 = LambdaBuilder.of(Truncate0.class)
-            .setMethodHolder(FILEDISPATCHER_CLASS)
+            .setMethodHolder("sun.nio.ch.FileDispatcherImpl")
             .setMethodName("truncate0")
             .setStatic()
             .setInterfaceName("truncate")
@@ -107,7 +105,7 @@ public interface PFileDispatcherImpl {
             .build();
 
     Size0 SIZE0 = LambdaBuilder.of(Size0.class)
-            .setMethodHolder(FILEDISPATCHER_CLASS)
+            .setMethodHolder("sun.nio.ch.FileDispatcherImpl")
             .setMethodName("size0")
             .setStatic()
             .setInterfaceName("size")
@@ -116,7 +114,7 @@ public interface PFileDispatcherImpl {
             .build();
 
     Lock0 LOCK0 = LambdaBuilder.of(Lock0.class)
-            .setMethodHolder(FILEDISPATCHER_CLASS)
+            .setMethodHolder("sun.nio.ch.FileDispatcherImpl")
             .setMethodName("lock0")
             .setStatic()
             .setInterfaceName("lock")
@@ -129,7 +127,7 @@ public interface PFileDispatcherImpl {
             .build();
 
     Release0 RELEASE0 = LambdaBuilder.of(Release0.class)
-            .setMethodHolder(FILEDISPATCHER_CLASS)
+            .setMethodHolder("sun.nio.ch.FileDispatcherImpl")
             .setMethodName("release0")
             .setStatic()
             .setInterfaceName("release")
@@ -140,7 +138,7 @@ public interface PFileDispatcherImpl {
             .build();
 
     Close0 CLOSE0 = LambdaBuilder.of(Close0.class)
-            .setMethodHolder(FILEDISPATCHER_CLASS)
+            .setMethodHolder("sun.nio.ch.FileDispatcherImpl")
             .setMethodName("close0")
             .setStatic()
             .setInterfaceName("close")
@@ -149,7 +147,7 @@ public interface PFileDispatcherImpl {
             .build();
 
     PreClose0 PRECLOSE0 = LambdaBuilder.of(PreClose0.class)
-            .setMethodHolder(FILEDISPATCHER_CLASS)
+            .setMethodHolder("sun.nio.ch.FileDispatcherImpl")
             .setMethodName("preClose0")
             .setStatic()
             .setInterfaceName("preClose")
@@ -159,7 +157,7 @@ public interface PFileDispatcherImpl {
             .build();
 
     CloseIntFD CLOSEINTFD = LambdaBuilder.of(CloseIntFD.class)
-            .setMethodHolder(FILEDISPATCHER_CLASS)
+            .setMethodHolder("sun.nio.ch.FileDispatcherImpl")
             .setMethodName("closeIntFD")
             .setStatic()
             .returnType().setType(void.class).build()

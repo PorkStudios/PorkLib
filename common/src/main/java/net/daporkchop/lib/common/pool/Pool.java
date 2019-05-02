@@ -17,6 +17,9 @@ package net.daporkchop.lib.common.pool;
 
 import lombok.NonNull;
 
+import java.util.function.Consumer;
+import java.util.function.Function;
+
 /**
  * A pool allows pooling (reusing) instances of a certain class type. This can be useful in scenarios
  * where a number of somewhat memory-heavy instances of specific types are created frequently and only
@@ -57,4 +60,30 @@ public interface Pool<T> {
      * @param instance the instance to return to the pool
      */
     void release(@NonNull T instance);
+
+    /**
+     * Obtains an instance from this pool and runs a given function on it.
+     *
+     * @param consumer the function to run
+     */
+    default void getAndDoWith(@NonNull Consumer<T> consumer) {
+        T instance = this.get();
+        consumer.accept(instance);
+        this.release(instance);
+    }
+
+    /**
+     * Obtains an instance from this pool, runs a given function on it, and returns the return value of
+     * the given function.
+     *
+     * @param function the function to run
+     * @param <R>      the type of the function return value
+     * @return the return value
+     */
+    default <R> R getAndDoWith(@NonNull Function<T, R> function) {
+        T instance = this.get();
+        R val = function.apply(instance);
+        this.release(instance);
+        return val;
+    }
 }

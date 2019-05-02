@@ -13,41 +13,21 @@
  *
  */
 
-package net.daporkchop.lib.binary.buf;
+package example.binary;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
+import net.daporkchop.lib.binary.buf.file.PFileChannel;
+
+import java.io.File;
+import java.io.FileDescriptor;
+import java.io.IOException;
 
 /**
- * A base implementation of {@link PorkBuf}, intended to be used as a superclass for most implementations.
- *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@NoArgsConstructor
-@Getter
-@Accessors(chain = true, fluent = true)
-public abstract class AbstractPorkBuf implements PorkBuf {
-    @Setter
-    protected long capacity;
-    @NonNull
-    protected long maxCapacity;
-    protected long readerIndex;
-    protected long writerIndex;
-
-    @Override
-    public PorkBuf writerIndex(long index) {
-        this.writerIndex = index;
-        return this;
-    }
-
-    @Override
-    public PorkBuf readerIndex(long index) {
-        this.readerIndex = index;
-        return this;
+public class ExampleFileChannel {
+    public static void main(String... args) throws IOException {
+        try (PFileChannel channel = new PFileChannel(new File("./test_out/test.tst")))  {
+            channel.putBytes("Hello world!".getBytes());
+        }
     }
 }

@@ -37,6 +37,7 @@ import java.nio.ByteBuffer;
  *
  * @author DaPorkchop_
  */
+//TODO: endianess
 public interface PorkBuf extends Offsettable {
     //size methods
 

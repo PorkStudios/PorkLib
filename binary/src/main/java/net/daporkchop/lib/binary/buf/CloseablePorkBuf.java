@@ -15,39 +15,33 @@
 
 package net.daporkchop.lib.binary.buf;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
+import net.daporkchop.lib.binary.buf.exception.PorkBufClosedException;
+
+import java.io.Closeable;
 
 /**
- * A base implementation of {@link PorkBuf}, intended to be used as a superclass for most implementations.
+ * A {@link PorkBuf} that must be closed after usage to avoid resource leaks.
+ * <p>
+ * After being closed (by {@link Closeable#close()}) this buffer should be considered unsafe to use.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@NoArgsConstructor
-@Getter
-@Accessors(chain = true, fluent = true)
-public abstract class AbstractPorkBuf implements PorkBuf {
-    @Setter
-    protected long capacity;
-    @NonNull
-    protected long maxCapacity;
-    protected long readerIndex;
-    protected long writerIndex;
+public interface CloseablePorkBuf extends PorkBuf, Closeable {
+    /**
+     * Checks if this buffer is closed.
+     *
+     * @return whether or not this buffer is closed.
+     */
+    boolean isClosed();
 
-    @Override
-    public PorkBuf writerIndex(long index) {
-        this.writerIndex = index;
-        return this;
-    }
-
-    @Override
-    public PorkBuf readerIndex(long index) {
-        this.readerIndex = index;
-        return this;
+    /**
+     * Ensures this buffer is open.
+     *
+     * @throws PorkBufClosedException if this buffer is closed
+     */
+    default void ensureOpen() throws PorkBufClosedException {
+        if (!this.isClosed()) {
+            throw new PorkBufClosedException("Buffer closed!");
+        }
     }
 }

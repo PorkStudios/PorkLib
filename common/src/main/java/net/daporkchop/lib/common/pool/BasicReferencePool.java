@@ -13,41 +13,46 @@
  *
  */
 
-package net.daporkchop.lib.binary.buf;
+package net.daporkchop.lib.common.pool;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
+
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.function.Supplier;
 
 /**
- * A base implementation of {@link PorkBuf}, intended to be used as a superclass for most implementations.
+ * A basic implementation of {@link ReferencePool}.
  *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-@NoArgsConstructor
-@Getter
-@Accessors(chain = true, fluent = true)
-public abstract class AbstractPorkBuf implements PorkBuf {
-    @Setter
-    protected long capacity;
+public class BasicReferencePool<T extends PooledRefCounted> implements ReferencePool<T> {
+    protected final Set<T> delegate = new HashSet<>();
     @NonNull
-    protected long maxCapacity;
-    protected long readerIndex;
-    protected long writerIndex;
+    protected final Supplier<T> supplier;
 
     @Override
-    public PorkBuf writerIndex(long index) {
-        this.writerIndex = index;
-        return this;
+    public synchronized T get() {
+        T instance;
+        if (this.delegate.isEmpty() && (instance = this.supplier.get()) == null) {
+            throw new IllegalStateException("supplier may not return null!");
+        } else {
+            Iterator<T> iterator = this.delegate.iterator();
+            instance = iterator.next();
+            iterator.remove();
+        }
+        return instance;
     }
 
     @Override
-    public PorkBuf readerIndex(long index) {
-        this.readerIndex = index;
-        return this;
+    public synchronized void release(@NonNull T instance) {
+        if (instance.refCount() != 0) {
+            throw new IllegalArgumentException(String.format("Instance has non-zero reference count: %d", instance.refCount()));
+        } else {
+            this.delegate.add(instance);
+        }
     }
 }

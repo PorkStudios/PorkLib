@@ -13,41 +13,14 @@
  *
  */
 
-package net.daporkchop.lib.binary.buf;
+package net.daporkchop.lib.common.pool;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 
 /**
- * A base implementation of {@link PorkBuf}, intended to be used as a superclass for most implementations.
+ * A pool for reference-counted objects.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@NoArgsConstructor
-@Getter
-@Accessors(chain = true, fluent = true)
-public abstract class AbstractPorkBuf implements PorkBuf {
-    @Setter
-    protected long capacity;
-    @NonNull
-    protected long maxCapacity;
-    protected long readerIndex;
-    protected long writerIndex;
-
-    @Override
-    public PorkBuf writerIndex(long index) {
-        this.writerIndex = index;
-        return this;
-    }
-
-    @Override
-    public PorkBuf readerIndex(long index) {
-        this.readerIndex = index;
-        return this;
-    }
+public interface ReferencePool<T extends PooledRefCounted> extends Pool<T> {
 }

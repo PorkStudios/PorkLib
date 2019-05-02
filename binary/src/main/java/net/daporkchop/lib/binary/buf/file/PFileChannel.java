@@ -27,6 +27,9 @@ import java.io.File;
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -35,109 +38,41 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 //TODO: file locking
 public class PFileChannel extends AbstractCloseablePorkBuf {
-    protected final FileDescriptor descriptor;
-    protected final ReadWriteLock closeLock = new ReentrantReadWriteLock();
+    protected final FileChannel channel;
 
-    public PFileChannel(@NonNull File file) throws IOException  {
-        this(new RandomAccessFile(file, "rw"));
-    }
-
-    public PFileChannel(@NonNull RandomAccessFile raf) throws IOException  {
-        this(raf.getFD());
-    }
-
-    public PFileChannel(@NonNull FileDescriptor descriptor) {
-        this.descriptor = descriptor;
-    }
-
-    public PFileChannel(@NonNull FileDescriptor descriptor, long maxCapacity) {
+    public PFileChannel(@NonNull Path path, long maxCapacity, @NonNull StandardOpenOption... options) {
         super(maxCapacity);
 
-        this.descriptor = descriptor;
+        try {
+            this.channel = FileChannel.open(path, options);
+        } catch (IOException e) {
+            throw new PorkBufIOException(e);
+        }
     }
 
     @Override
     public PorkBuf putByte(byte b) {
-        this.closeLock.readLock().lock();
-        try {
-            this.ensureOpen();
-            Long pos = PorkUtil.SMALL_MALLOC_POOL.get();
-            PUnsafe.putByte(pos, b);
-            PFileDispatcherImpl.WRITE0.write(this.descriptor, pos, 1);
-            PorkUtil.SMALL_MALLOC_POOL.release(pos);
-            return this;
-        } catch (IOException e) {
-            throw new PorkBufIOException(e);
-        } finally {
-            this.closeLock.readLock().unlock();
-        }
     }
 
     @Override
     public PorkBuf putByte(long index, byte b) {
-        this.closeLock.readLock().lock();
-        try {
-            this.ensureOpen();
-            Long pos = PorkUtil.SMALL_MALLOC_POOL.get();
-            PUnsafe.putByte(pos, b);
-            PFileDispatcherImpl.PWRITE0.pwrite(this.descriptor, pos, 1, index);
-            PorkUtil.SMALL_MALLOC_POOL.release(pos);
-            return this;
-        } catch (IOException e) {
-            throw new PorkBufIOException(e);
-        } finally {
-            this.closeLock.readLock().unlock();
-        }
     }
 
     @Override
     public byte getByte() {
-        this.closeLock.readLock().lock();
-        try {
-            this.ensureOpen();
-            Long pos = PorkUtil.SMALL_MALLOC_POOL.get();
-            PFileDispatcherImpl.READ0.read(this.descriptor, pos, 1);
-            byte b = PUnsafe.getByte(pos);
-            PorkUtil.SMALL_MALLOC_POOL.release(pos);
-            return b;
-        } catch (IOException e) {
-            throw new PorkBufIOException(e);
-        } finally {
-            this.closeLock.readLock().unlock();
-        }
     }
 
     @Override
     public byte getByte(long index) {
-        this.closeLock.readLock().lock();
-        try {
-            this.ensureOpen();
-            Long pos = PorkUtil.SMALL_MALLOC_POOL.get();
-            PFileDispatcherImpl.PREAD0.pread(this.descriptor, pos, 1, index);
-            byte b = PUnsafe.getByte(pos);
-            PorkUtil.SMALL_MALLOC_POOL.release(pos);
-            return b;
-        } catch (IOException e) {
-            throw new PorkBufIOException(e);
-        } finally {
-            this.closeLock.readLock().unlock();
-        }
     }
 
     @Override
     public boolean isClosed() {
-        return this.descriptor.valid();
     }
 
     @Override
     public void close() throws IOException {
-        this.closeLock.writeLock().lock();
-        try {
-            PFileDispatcherImpl.PRECLOSE0.preClose(this.descriptor);
-            PFileDispatcherImpl.CLOSE0.close(this.descriptor);
-        } finally {
-            this.closeLock.writeLock().unlock();
-        }
+        this.channel.close();
     }
 
     @Override

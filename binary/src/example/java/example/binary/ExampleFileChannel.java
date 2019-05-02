@@ -27,6 +27,7 @@ import java.io.IOException;
 public class ExampleFileChannel {
     public static void main(String... args) throws IOException {
         try (PFileChannel channel = new PFileChannel(new File("./test_out/test.tst")))  {
+            channel.setMaxCapacity(256L);
             channel.putBytes("Hello world!".getBytes());
         }
     }

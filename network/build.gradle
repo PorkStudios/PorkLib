@@ -20,10 +20,7 @@ dependencies {
     compile project(":binary")
     compile project(":encoding")
     compile project(":crypto")
-    compile project(":primitive")
     compile project(":logging")
-
-    compile "com.zaxxer:SparseBitSet:$sparseBitSetVersion"
 
     /*compile("com.nukkitx.network:raknet:$raknetVersion") {
         exclude group: "io.netty"

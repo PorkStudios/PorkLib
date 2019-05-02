@@ -13,9 +13,10 @@
  *
  */
 
-package net.daporkchop.lib.common.reference;
+package net.daporkchop.lib.common.pool;
 
 import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.util.PConstants;
@@ -39,9 +40,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 @SuppressWarnings("unchecked")
-public class InstancePool {
+public abstract class StaticPool {
     protected static final Map<Class<?>, Object> MAP = PorkUtil.newSoftCache();
     protected static final ReadWriteLock LOCK = new ReentrantReadWriteLock();
 

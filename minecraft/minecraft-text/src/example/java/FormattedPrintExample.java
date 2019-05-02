@@ -13,7 +13,7 @@
  *
  */
 
-import net.daporkchop.lib.common.reference.InstancePool;
+import net.daporkchop.lib.common.pool.StaticPool;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.minecraft.text.parser.MinecraftFormatParser;
 
@@ -22,7 +22,7 @@ import net.daporkchop.lib.minecraft.text.parser.MinecraftFormatParser;
  */
 public class FormattedPrintExample implements Logging {
     public static void main(String... args) {
-        logger.setFormatParser(InstancePool.getInstance(MinecraftFormatParser.class)); //could also be new MinecraftFormatParser()
+        logger.setFormatParser(StaticPool.getInstance(MinecraftFormatParser.class)); //could also be new MinecraftFormatParser()
         logger.enableANSI();
 
         logger.info("§9Hello §lWorld§c!");

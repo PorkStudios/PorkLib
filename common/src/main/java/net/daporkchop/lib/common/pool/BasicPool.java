@@ -13,52 +13,42 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.text.parser;
+package net.daporkchop.lib.common.pool;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.ToString;
-import net.daporkchop.lib.common.pool.StaticPool;
-import net.daporkchop.lib.logging.format.FormatParser;
-import net.daporkchop.lib.minecraft.text.MCTextType;
-import net.daporkchop.lib.minecraft.text.component.MCTextRoot;
+import lombok.RequiredArgsConstructor;
+
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Supplier;
 
 /**
- * Parses Minecraft text into formatted components.
+ * A simple implementation of a {@link Pool}, backed by a {@link ConcurrentLinkedQueue} and a supplier
+ * from which to obtain instances.
  *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-@NoArgsConstructor
-@Getter
-@ToString
-public class MinecraftFormatParser implements FormatParser {
-    /**
-     * The type of text that will be parsed by this instance.
-     * <p>
-     * If {@code null}, this will automatically detect the type based on input data and parse it accordingly.
-     */
-    protected MCTextType type;
+@RequiredArgsConstructor
+public class BasicPool<T> implements Pool<T> {
+    protected final Queue<T> delegate = new ConcurrentLinkedQueue<>();
+    @NonNull
+    protected final Supplier<T> supplier;
 
     @Override
-    public MCTextRoot parse(@NonNull String text) {
-        if (this.type == null) {
-            //autodetect
-            JsonElement element = null;
-            try {
-                element = StaticPool.getInstance(JsonParser.class).parse(text);
-            } catch (JsonSyntaxException e) {
-                //not a json string, treat as legacy
-                return LegacyTextParser.parse(text);
-            }
-            return JsonTextParser.parse(element, text);
-        } else {
-            return this.type.getParser().apply(text);
+    public T get() {
+        T instance = this.delegate.poll();
+        if (instance == null && (instance = this.supplier.get()) == null) {
+            throw new IllegalStateException("supplier may not return null!");
         }
+        return instance;
+    }
+
+    @Override
+    public void release(@NonNull T instance) {
+        this.delegate.add(instance);
+    }
+
+    public void clear() {
+        this.delegate.clear();
     }
 }

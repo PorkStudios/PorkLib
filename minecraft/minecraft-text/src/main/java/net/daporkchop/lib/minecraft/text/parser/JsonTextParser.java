@@ -22,7 +22,7 @@ import com.google.gson.JsonSyntaxException;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.common.reference.InstancePool;
+import net.daporkchop.lib.common.pool.StaticPool;
 import net.daporkchop.lib.logging.console.TextFormat;
 import net.daporkchop.lib.logging.format.TextStyle;
 import net.daporkchop.lib.logging.format.component.TextComponentString;
@@ -40,7 +40,7 @@ import java.util.Map;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public abstract class JsonTextParser {
-    protected static final JsonParser PARSER = InstancePool.getInstance(JsonParser.class);
+    protected static final JsonParser PARSER = StaticPool.getInstance(JsonParser.class);
     protected static final Map<String, Color> COLOR_LOOKUP = new HashMap<>();
 
     static {

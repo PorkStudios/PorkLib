@@ -14,7 +14,7 @@
  */
 
 dependencies {
-    compile project(":primitive")
-    compile "com.google.guava:guava:$guavaVersion"
+    compile project(":logging")
+
     compile "com.google.code.gson:gson:$gsonVersion"
 }

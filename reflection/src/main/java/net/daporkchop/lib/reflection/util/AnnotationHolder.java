@@ -42,4 +42,14 @@ public interface AnnotationHolder {
     default <A extends Annotation> A getAnnotation(@NonNull Class<A> clazz) {
         return PReflection.getAnnotation(this.getAnnotations(), clazz);
     }
+
+    /**
+     * Checks if a given annotation class is present on this member
+     *
+     * @param clazz the annotation class to check for
+     * @return whether or not an annotation of the given annotation class is present on this member
+     */
+    default boolean hasAnnotation(@NonNull Class<? extends Annotation> clazz) {
+        return PReflection.getAnnotation(this.getAnnotations(), clazz) != null;
+    }
 }

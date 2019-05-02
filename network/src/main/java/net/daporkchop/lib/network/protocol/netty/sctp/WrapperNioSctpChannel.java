@@ -78,7 +78,7 @@ public class WrapperNioSctpChannel extends NioSctpChannel implements NettyConnec
                 try {
                     synchronized (this.channelIds) {
                         if (this.channelIds.get(requestedId)) {
-                            throw this.exception("channel id ${0} already taken!", requestedId);
+                            throw new IllegalArgumentException(String.format("channel id %d already taken!", requestedId));
                         }
                         this.channelIds.set(requestedId);
                     }
@@ -95,7 +95,7 @@ public class WrapperNioSctpChannel extends NioSctpChannel implements NettyConnec
                 }
             }
             default:
-                throw new IllegalArgumentException(this.format("SCTP only supports RELIABLE and RELIABLE_ORDERED, but ${0} was given!", reliability.name()));
+                throw new IllegalArgumentException(String.format("SCTP only supports RELIABLE and RELIABLE_ORDERED, but %s was given!", reliability.name()));
         }
     }
 

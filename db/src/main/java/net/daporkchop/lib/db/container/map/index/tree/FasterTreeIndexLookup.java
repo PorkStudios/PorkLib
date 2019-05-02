@@ -74,9 +74,9 @@ public class FasterTreeIndexLookup<K> implements IndexLookup<K>, Logging {
 
     public FasterTreeIndexLookup(int pointerBytes, int bytesPerNode) {
         if (pointerBytes <= 0 || pointerBytes > 8) {
-            throw this.exception("Pointer byte count must be in range 1-8 (given: ${0})", pointerBytes);
+            throw new IllegalArgumentException(String.format("Pointer byte count must be in range 1-8 (given: %d)", pointerBytes));
         } else if (bytesPerNode <= 0 || bytesPerNode > 4) {
-            throw this.exception("Bytes per node must be in range 1-4 (given: ${0})", bytesPerNode);
+            throw new IllegalArgumentException(String.format("Bytes per node must be in range 1-4 (given: %d)", bytesPerNode));
         }
         this.pointerBytes = pointerBytes;
         this.bytesPerNode = bytesPerNode;
@@ -98,9 +98,9 @@ public class FasterTreeIndexLookup<K> implements IndexLookup<K>, Logging {
             }
             this.keyHasher = map.getKeyHasher();
             if (this.keyHasher.getHashLength() < this.bytesPerNode) {
-                throw this.exception("Hash size must be at least ${0} bytes!", this.bytesPerNode);
+                throw new IllegalArgumentException(String.format("Hash size must be at least %d bytes!", this.bytesPerNode));
             } else if (this.keyHasher.getHashLength() / this.bytesPerNode * this.bytesPerNode != this.keyHasher.getHashLength()) {
-                throw this.exception("Hash size must be a multiple of ${0} (found: ${1})", this.bytesPerNode, this.keyHasher.getHashLength());
+                throw new IllegalArgumentException(String.format("Hash size must be a multiple of %d (found: %d)", this.bytesPerNode, this.keyHasher.getHashLength()));
             }
             this.totalDepth = this.keyHasher.getHashLength() / this.bytesPerNode;
             this.file = file;
@@ -134,7 +134,7 @@ public class FasterTreeIndexLookup<K> implements IndexLookup<K>, Logging {
     @Override
     public void close() throws IOException {
         if (this.buffer == null) {
-            throw this.exception("already closed!");
+            throw new IllegalStateException("already closed!");
         }
         this.save();
 

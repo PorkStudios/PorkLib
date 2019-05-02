@@ -38,7 +38,7 @@ public class SctpPacketWrapper implements Logging {
 
     @Override
     public String toString() {
-        return this.format("packet=${0}, channel=${1}, ordered=${2}, id=${3}", this.data, this.channel, this.ordered, this.id);
+        return String.format("packet=%s, channel=%d, ordered=%b, id=%d", this.data, this.channel, this.ordered, this.id);
     }
 }
 
@@ -54,6 +54,6 @@ class UnencodedSctpPacket implements Logging {
 
     @Override
     public String toString() {
-        return this.format("message=${0}, channel=${1}, ordered=${2}, id=${3}", this.message.getClass(), this.channel, this.ordered, this.id);
+        return String.format("message=%s, channel=%d, ordered=%b, id=%d", this.message.getClass(), this.channel, this.ordered, this.id);
     }
 }

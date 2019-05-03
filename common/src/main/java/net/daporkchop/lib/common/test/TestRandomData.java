@@ -34,9 +34,12 @@ public class TestRandomData {
     }
 
     public static byte[] getRandomBytes(int minLen, int maxLen) {
-        ThreadLocalRandom r = ThreadLocalRandom.current();
-        byte[] b = new byte[r.nextInt(minLen, maxLen)];
-        r.nextBytes(b);
+        return getRandomBytes(ThreadLocalRandom.current().nextInt(minLen, maxLen));
+    }
+
+    public static byte[] getRandomBytes(int len) {
+        byte[] b = new byte[len];
+        ThreadLocalRandom.current().nextBytes(b);
         return b;
     }
 }

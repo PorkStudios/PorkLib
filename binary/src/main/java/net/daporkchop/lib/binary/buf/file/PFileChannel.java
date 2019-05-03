@@ -17,7 +17,8 @@ package net.daporkchop.lib.binary.buf.file;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.buf.AbstractCloseablePorkBuf;
+import net.daporkchop.lib.binary.buf.AbstractPorkBuf;
+import net.daporkchop.lib.binary.buf.NIOBufferWrapper;
 import net.daporkchop.lib.binary.buf.PorkBuf;
 import net.daporkchop.lib.binary.buf.exception.PorkBufIOException;
 import net.daporkchop.lib.binary.buf.exception.PorkBufReadOutOfBoundsException;
@@ -34,7 +35,7 @@ import java.nio.file.StandardOpenOption;
  * @author DaPorkchop_
  */
 //TODO: file locking
-public class PFileChannel extends AbstractCloseablePorkBuf {
+public class PFileChannel extends AbstractPorkBuf {
     protected static FileChannel doOpenChannel(@NonNull Path path, @NonNull StandardOpenOption... options) {
         try {
             return FileChannel.open(path, options);
@@ -694,8 +695,12 @@ public class PFileChannel extends AbstractCloseablePorkBuf {
     }
 
     @Override
-    public synchronized void close() throws IOException {
-        this.channel.close();
+    public synchronized void close() {
+        try {
+            this.channel.close();
+        } catch (IOException e) {
+            throw new PorkBufIOException(e);
+        }
     }
 
     @Override
@@ -708,7 +713,7 @@ public class PFileChannel extends AbstractCloseablePorkBuf {
     }
 
     @Override
-    public PFileChannel capacity(long capacity) {
+    public PFileChannel setCapacity(long capacity) {
         try {
             this.channel.truncate(capacity);
             return this;
@@ -730,5 +735,33 @@ public class PFileChannel extends AbstractCloseablePorkBuf {
     @Override
     public Object refObj() {
         throw new UnsupportedOperationException();
+    }
+
+    //
+    //
+    // specific methods
+    //
+    //
+
+    public PorkBuf map(long pos, long size) {
+        return this.mapRW(pos, size);
+    }
+
+    public PorkBuf mapR(long pos, long size) {
+        try {
+            this.ensureInBounds(pos, size, true);
+            return new NIOBufferWrapper(this.channel.map(FileChannel.MapMode.READ_ONLY, pos, size));
+        } catch (IOException e) {
+            throw new PorkBufIOException(e);
+        }
+    }
+
+    public PorkBuf mapRW(long pos, long size) {
+        try {
+            this.ensureInBounds(pos, size, true);
+            return new NIOBufferWrapper(this.channel.map(FileChannel.MapMode.READ_WRITE, pos, size));
+        } catch (IOException e) {
+            throw new PorkBufIOException(e);
+        }
     }
 }

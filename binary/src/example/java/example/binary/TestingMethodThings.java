@@ -15,7 +15,6 @@
 
 package example.binary;
 
-import net.daporkchop.lib.binary.buf.file.PFileDispatcherImpl;
 import net.daporkchop.lib.unsafe.block.MemoryBlock;
 import net.daporkchop.lib.reflection.lambda.LambdaBuilder;
 
@@ -73,7 +72,5 @@ public class TestingMethodThings {
             }
         }
         System.out.println(BUFFER.apply(1024));
-
-        System.out.println(PFileDispatcherImpl.READ0);
     }
 }

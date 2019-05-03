@@ -21,6 +21,7 @@ import net.daporkchop.lib.common.pool.Pool;
 import net.daporkchop.lib.unsafe.PUnsafe;
 import sun.misc.Cleaner;
 import sun.misc.SoftCache;
+import sun.nio.ch.DirectBuffer;
 
 import javax.swing.*;
 import java.awt.*;
@@ -116,9 +117,11 @@ public class PorkUtil {
     }
 
     public static void release(@NonNull ByteBuffer buffer) {
-        Cleaner cleaner = ((sun.nio.ch.DirectBuffer) buffer).cleaner();
-        if (cleaner != null) {
-            cleaner.clean();
+        if (buffer instanceof DirectBuffer) {
+            Cleaner cleaner = ((DirectBuffer) buffer).cleaner();
+            if (cleaner != null) {
+                cleaner.clean();
+            }
         }
     }
 

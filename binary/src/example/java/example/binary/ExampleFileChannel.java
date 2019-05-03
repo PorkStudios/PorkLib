@@ -17,6 +17,7 @@ package example.binary;
 
 import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.binary.buf.file.PFileChannel;
+import net.daporkchop.lib.common.test.TestRandomData;
 
 import java.io.File;
 import java.io.FileDescriptor;
@@ -30,6 +31,9 @@ public class ExampleFileChannel {
     public static void main(String... args) throws IOException {
         try (PFileChannel channel = new PFileChannel("./test_out/test.tst", StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING))  {
             channel.putBytes("Hello world!".getBytes(UTF8.utf8));
+
+            channel.map(32L, 256L)
+                    .putBytes(TestRandomData.getRandomBytes(256));
         }
     }
 }

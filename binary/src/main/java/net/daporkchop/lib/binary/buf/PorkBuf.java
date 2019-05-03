@@ -18,12 +18,14 @@ package net.daporkchop.lib.binary.buf;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.buf.exception.PorkBufCannotExpandException;
+import net.daporkchop.lib.binary.buf.exception.PorkBufClosedException;
 import net.daporkchop.lib.binary.buf.exception.PorkBufReadOutOfBoundsException;
 import net.daporkchop.lib.binary.buf.exception.PorkBufWriteOutOfBoundsException;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.unsafe.block.offset.Offsettable;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.BufferOverflowException;
 import java.nio.BufferUnderflowException;
@@ -38,7 +40,7 @@ import java.nio.ByteBuffer;
  * @author DaPorkchop_
  */
 //TODO: endianess
-public interface PorkBuf extends Offsettable {
+public interface PorkBuf extends Offsettable, AutoCloseable {
     //size methods
 
     /**
@@ -1067,6 +1069,31 @@ public interface PorkBuf extends Offsettable {
         return new SnippetImpl(offset, len, this);
     }
 
+
+    /**
+     * Checks if this buffer is closed.
+     *
+     * @return whether or not this buffer is closed.
+     */
+    default boolean isClosed()  {
+        return false;
+    }
+
+    @Override
+    default void close() {
+    }
+
+    /**
+     * Ensures this buffer is open.
+     *
+     * @throws PorkBufClosedException if this buffer is closed
+     */
+    default void ensureOpen() throws PorkBufClosedException {
+        if (!this.isClosed()) {
+            throw new PorkBufClosedException("Buffer closed!");
+        }
+    }
+
     //sanity checks
 
     /**
@@ -1139,7 +1166,7 @@ public interface PorkBuf extends Offsettable {
      */
     default boolean isInBounds(long index, int count) {
         long maxCapacity = this.maxCapacity();
-        return index >= 0L && (maxCapacity == -1L || index + count < maxCapacity);
+        return index >= 0L && (maxCapacity == -1L || index + count <= maxCapacity);
     }
 
     /**
@@ -1219,7 +1246,7 @@ public interface PorkBuf extends Offsettable {
      */
     default boolean isInBounds(long index, long count) {
         long maxCapacity = this.maxCapacity();
-        return index >= 0L && (maxCapacity == -1L || index + count < maxCapacity);
+        return index >= 0L && (maxCapacity == -1L || index + count <= maxCapacity);
     }
 
     /**

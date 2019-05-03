@@ -16,46 +16,78 @@
 package net.daporkchop.lib.binary.buf;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
+import net.daporkchop.lib.binary.buf.exception.PorkBufReadOutOfBoundsException;
+import net.daporkchop.lib.binary.buf.exception.PorkBufWriteOutOfBoundsException;
+import net.daporkchop.lib.common.util.PorkUtil;
+
+import java.nio.ByteBuffer;
 
 /**
- * A base implementation of {@link PorkBuf}, intended to be used as a superclass for most implementations.
- *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-@NoArgsConstructor
 @Getter
-@Accessors(chain = true, fluent = true)
-public abstract class AbstractPorkBuf implements PorkBuf {
-    protected long capacity;
+public class NIOBufferWrapper extends AbstractPorkBuf {
     @NonNull
-    protected long maxCapacity;
-    protected long readerIndex;
-    protected long writerIndex;
+    protected final ByteBuffer delegate;
+    protected boolean closed;
 
     @Override
-    public PorkBuf setCapacity(long capacity) {
-        this.ensureInBounds(capacity, 0, true);
-        this.capacity = capacity;
+    public long capacity() {
+        return this.delegate.capacity();
+    }
+
+    @Override
+    public long maxCapacity() {
+        return this.delegate.capacity();
+    }
+
+    @Override
+    public PorkBuf putByte(byte b) throws PorkBufWriteOutOfBoundsException {
+        this.ensureWriteInBounds(1);
+        this.delegate.put((int) this.writerIndex++, b);
         return this;
     }
 
     @Override
-    public PorkBuf writerIndex(long index) {
-        this.ensureInBounds(index, 0, false);
-        this.writerIndex = index;
+    public PorkBuf putByte(long index, byte b) throws PorkBufWriteOutOfBoundsException {
+        this.ensureInBounds(index, 1, false);
+        this.delegate.put((int) index, b);
         return this;
     }
 
     @Override
-    public PorkBuf readerIndex(long index) {
-        this.ensureInBounds(index, 0, true);
-        this.readerIndex = index;
-        return this;
+    public byte getByte() throws PorkBufReadOutOfBoundsException {
+        this.ensureReadInBounds(1);
+        return this.delegate.get((int) this.readerIndex++);
+    }
+
+    @Override
+    public byte getByte(long index) throws PorkBufReadOutOfBoundsException {
+        this.ensureInBounds(index, 1, true);
+        return this.delegate.get((int) index);
+    }
+
+    @Override
+    public long memoryAddress() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public long memorySize() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Object refObj() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void close() {
+        PorkUtil.release(this.delegate);
+        this.closed = true;
     }
 }

@@ -115,4 +115,9 @@ public class SnippetImpl extends AbstractPorkBuf {
         this.ensureInBounds(offset, len, true);
         return this.delegate.snippet(this.offset + offset, len);
     }
+
+    @Override
+    public boolean isClosed() {
+        return this.delegate.isClosed();
+    }
 }

@@ -15,20 +15,21 @@
 
 package example.binary;
 
+import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.binary.buf.file.PFileChannel;
 
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.IOException;
+import java.nio.file.StandardOpenOption;
 
 /**
  * @author DaPorkchop_
  */
 public class ExampleFileChannel {
     public static void main(String... args) throws IOException {
-        try (PFileChannel channel = new PFileChannel(new File("./test_out/test.tst")))  {
-            channel.setMaxCapacity(256L);
-            channel.putBytes("Hello world!".getBytes());
+        try (PFileChannel channel = new PFileChannel("./test_out/test.tst", StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING))  {
+            channel.putBytes("Hello world!".getBytes(UTF8.utf8));
         }
     }
 }

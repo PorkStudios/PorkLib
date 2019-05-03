@@ -59,7 +59,6 @@ public class PorkUtil {
             runnable -> new Thread(runnable, String.format("PorkLib executor #%d", DEFAULT_EXECUTOR_THREAD_COUNTER.getAndIncrement()))
     );
     public static final DateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-    public static final Pool<Long> SMALL_MALLOC_POOL = new BasicPool<>(() -> PUnsafe.allocateMemory(new byte[0], 8));
 
     static {
         {

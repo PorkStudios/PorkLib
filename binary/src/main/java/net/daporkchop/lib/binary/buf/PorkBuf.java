@@ -1138,7 +1138,8 @@ public interface PorkBuf extends Offsettable {
      * @return whether or not the given number of bytes can be written at/read from the given position without causing errors
      */
     default boolean isInBounds(long index, int count) {
-        return index >= 0L && index + count < this.maxCapacity();
+        long maxCapacity = this.maxCapacity();
+        return index >= 0L && (maxCapacity == -1L || index + count < maxCapacity);
     }
 
     /**
@@ -1217,7 +1218,8 @@ public interface PorkBuf extends Offsettable {
      * @return whether or not the given number of bytes can be written at/read from the given position without causing errors
      */
     default boolean isInBounds(long index, long count) {
-        return index >= 0L && index + count < this.maxCapacity();
+        long maxCapacity = this.maxCapacity();
+        return index >= 0L && (maxCapacity == -1L || index + count < maxCapacity);
     }
 
     /**

@@ -13,48 +13,28 @@
  *
  */
 
-package network.protocol;
+package net.daporkchop.lib.network.session;
 
-import net.daporkchop.lib.common.test.TestRandomData;
-import net.daporkchop.lib.network.packet.UserProtocol;
-import network.protocol.packet.SimpleTestPacket;
-import network.protocol.packet.TestChannelsPacket;
-
-import java.util.Arrays;
+import lombok.NonNull;
+import net.daporkchop.lib.network.endpoint.PEndpoint;
+import net.daporkchop.lib.network.util.CloseableFuture;
 
 /**
+ * A session represents a single connection between two endpoints.
+ *
  * @author DaPorkchop_
  */
-public class TestProtocol extends UserProtocol<TestConnection> {
-    public static final TestProtocol INSTANCE = new TestProtocol();
+public interface PSession<Impl extends PSession> extends CloseableFuture {
+    /**
+     * Gets the local endpoint associated with this session.
+     *
+     * @return the local endpoint associated with this session
+     */
+    PEndpoint endpoint();
 
-    private TestProtocol() {
-        super("Test", 1, 123);
-    }
-
+    /**
+     * Closes this session, blocking until it is closed.
+     */
     @Override
-    protected void registerPackets() {
-        this.register(
-                new SimpleTestPacket.MessageHandler(),
-                new TestChannelsPacket.TestChannelsHandler()
-        );
-        this.register((msg, connection, channelId) -> {
-            int id = msg.readMedium();
-            int len = TestRandomData.randomBytes[id].length;
-            if (msg.readableBytes() != len) {
-                throw new IllegalStateException("Invalid data length!");
-            } else {
-                byte[] b = new byte[len];
-                msg.readBytes(b);
-                if (!Arrays.equals(b, TestRandomData.randomBytes[id])) {
-                    throw new IllegalStateException("Invalid data received!");
-                }
-            }
-        }, 25);
-    }
-
-    @Override
-    public TestConnection newConnection() {
-        return new TestConnection();
-    }
+    void close();
 }

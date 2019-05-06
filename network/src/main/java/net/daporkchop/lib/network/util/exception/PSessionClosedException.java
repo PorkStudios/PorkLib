@@ -13,42 +13,29 @@
  *
  */
 
-package network.protocol.packet;
+package net.daporkchop.lib.network.util.exception;
 
-import lombok.AllArgsConstructor;
-import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.conn.UnderlyingNetworkConnection;
-import net.daporkchop.lib.network.packet.handler.DataPacketHandler;
+/**
+ * @author DaPorkchop_
+ */
+public class PSessionClosedException extends PNetworkException {
+    public PSessionClosedException() {
+        super();
+    }
 
-@AllArgsConstructor
-public class SimpleTestPacket {
-    @NonNull
-    public final String message;
+    public PSessionClosedException(String message) {
+        super(message);
+    }
 
-    public static class MessageHandler implements DataPacketHandler<SimpleTestPacket>, Logging {
-        @Override
-        public void handle(@NonNull SimpleTestPacket packet, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception {
-            logger.info("[%s] Received test packet on channel %d: %s", connection.getEndpoint().getName(), channelId, packet.message);
-        }
+    public PSessionClosedException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
-        @Override
-        public void encode(@NonNull SimpleTestPacket packet, @NonNull DataOut out) throws Exception {
-            out.writeUTF(packet.message);
-        }
+    public PSessionClosedException(Throwable cause) {
+        super(cause);
+    }
 
-        @Override
-        public SimpleTestPacket decode(@NonNull DataIn in) throws Exception {
-            return new SimpleTestPacket(
-                    in.readUTF()
-            );
-        }
-
-        @Override
-        public Class<SimpleTestPacket> getPacketClass() {
-            return SimpleTestPacket.class;
-        }
+    protected PSessionClosedException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
     }
 }

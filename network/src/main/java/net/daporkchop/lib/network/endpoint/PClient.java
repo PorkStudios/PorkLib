@@ -13,44 +13,19 @@
  *
  */
 
-package net.daporkchop.lib.network;
+package net.daporkchop.lib.network.endpoint;
+
+import net.daporkchop.lib.network.EndpointType;
+import net.daporkchop.lib.network.session.PSession;
 
 /**
- * Used to differentiate the various endpoint types.
+ * A client can connect to a single remote endpoint.
  *
  * @author DaPorkchop_
  */
-public enum EndpointType {
-    /**
-     * An endpoint that has a single outgoing connection.
-     * <p>
-     * A client can connect to either a {@link #SERVER} or {@link #MULTI} endpoint.
-     */
-    CLIENT,
-    /**
-     * An endpoint that can have multiple outgoing connections.
-     * <p>
-     * A multiclient can connect to either a {@link #SERVER} or {@link #MULTI} endpoint.
-     */
-    MULTI_CLIENT,
-    /**
-     * An endpoint that can have multiple incoming connections.
-     * <p>
-     * A server can accept connections from either {@link #CLIENT}, {@link #MULTI} or {@link #MULTI_CLIENT} endpoints.
-     */
-    SERVER,
-    /**
-     * A mixture of {@link #MULTI_CLIENT} and {@link #SERVER}.
-     * <p>
-     * Multi endpoints can accept incoming connections and connect to multiple remote endpoints at the same time.
-     */
-    MULTI,
-    /**
-     * An endpoint designed for use in p2p (peer-to-peer) applications.
-     * <p>
-     * Unlike {@link #MULTI}, p2p endpoints automagically exchange peer IDs with each other in order to build up a
-     * decentralized swarm. They can only connect with other p2p endpoints.
-     */
-    P2P,
-    ;
+public interface PClient extends PEndpoint<PClient>, PSession<PClient> {
+    @Override
+    default EndpointType type() {
+        return EndpointType.CLIENT;
+    }
 }

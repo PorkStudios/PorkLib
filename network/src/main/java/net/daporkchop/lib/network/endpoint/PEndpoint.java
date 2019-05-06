@@ -13,44 +13,33 @@
  *
  */
 
-package net.daporkchop.lib.network;
+package net.daporkchop.lib.network.endpoint;
+
+import io.netty.util.concurrent.Future;
+import lombok.NonNull;
+import net.daporkchop.lib.network.EndpointType;
+import net.daporkchop.lib.network.util.CloseableFuture;
 
 /**
- * Used to differentiate the various endpoint types.
+ * An endpoint is one of the ends on a connection. Connections consist of two endpoints, one local one and
+ * a remote one.
  *
  * @author DaPorkchop_
  */
-public enum EndpointType {
+public interface PEndpoint<Impl extends PEndpoint> extends CloseableFuture {
     /**
-     * An endpoint that has a single outgoing connection.
-     * <p>
-     * A client can connect to either a {@link #SERVER} or {@link #MULTI} endpoint.
+     * Gets this endpoint's type.
+     *
+     * @return this endpoint's type
      */
-    CLIENT,
+    @NonNull
+    EndpointType type();
+
     /**
-     * An endpoint that can have multiple outgoing connections.
+     * Closes this endpoint, blocking until it is closed.
      * <p>
-     * A multiclient can connect to either a {@link #SERVER} or {@link #MULTI} endpoint.
+     * Closing an endpoint will result in all connections associated with it being closed.
      */
-    MULTI_CLIENT,
-    /**
-     * An endpoint that can have multiple incoming connections.
-     * <p>
-     * A server can accept connections from either {@link #CLIENT}, {@link #MULTI} or {@link #MULTI_CLIENT} endpoints.
-     */
-    SERVER,
-    /**
-     * A mixture of {@link #MULTI_CLIENT} and {@link #SERVER}.
-     * <p>
-     * Multi endpoints can accept incoming connections and connect to multiple remote endpoints at the same time.
-     */
-    MULTI,
-    /**
-     * An endpoint designed for use in p2p (peer-to-peer) applications.
-     * <p>
-     * Unlike {@link #MULTI}, p2p endpoints automagically exchange peer IDs with each other in order to build up a
-     * decentralized swarm. They can only connect with other p2p endpoints.
-     */
-    P2P,
-    ;
+    @Override
+    void close();
 }

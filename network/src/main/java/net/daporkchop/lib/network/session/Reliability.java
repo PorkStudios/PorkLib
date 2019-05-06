@@ -13,22 +13,35 @@
  *
  */
 
-package network.protocol;
-
-import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.conn.UserConnection;
+package net.daporkchop.lib.network.session;
 
 /**
+ * Various reliability levels that a packet may be sent with.
+ *
  * @author DaPorkchop_
  */
-public class TestConnection extends UserConnection implements Logging {
-    @Override
-    public void onConnect() {
-        logger.info("[%s] Connection %s opened", this.getEndpoint().getName(), this.getAddress());
-    }
-
-    @Override
-    public void onDisconnect(String reason) {
-        logger.info("[%s] Connection %s closed because: %s", this.getEndpoint().getName(), this.getAddress(), reason);
-    }
+public enum Reliability {
+    /**
+     * No guarantees are made that the packet will arrive at all or in what order.
+     */
+    UNRELIABLE,
+    /**
+     * No guarantees are made that the packet will arrive at all. However, if a newer sequenced packet arrives before
+     * older ones, the older ones will be discarded when and if they arrive.
+     */
+    UNRELIABLE_SEQUENCED,
+    /**
+     * The packet is sure to arrive, no guarantees are made as to ordering.
+     */
+    RELIABLE,
+    /**
+     * The packet is sure to arrive. However, if a newer sequenced packet arrives before
+     * older ones, the older ones will be discarded when and if they arrive.
+     */
+    RELIABLE_SEQUENCED,
+    /**
+     * The packet is sure to arrive in the same order as it was sent.
+     */
+    RELIABLE_ORDERED,
+    ;
 }

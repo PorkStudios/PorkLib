@@ -341,7 +341,7 @@ public class LevelDBMap<K, V> extends AbstractDBMap<K, V, LevelDBMap<K, V>> {
                     consumer.accept(key, val);
                 }
             }
-            Logging.logger.debug("Iterated over ${0} entries", i);
+            Logging.logger.debug("Iterated over %d entries", i);
         } catch (IOException | DBException e) {
             throw new DBReadException(e);
         } finally {

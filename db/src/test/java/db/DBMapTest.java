@@ -123,7 +123,7 @@ public class DBMapTest implements TestConstants {
                 data.forEach((key, value) -> { //map to db
                     byte[] onDisk = map.get(key);
                     if (!Arrays.equals(value, onDisk)) {
-                        logger.error("Key ${0} is mapped incorrectly on disk!", key);
+                        logger.error("Key %s is mapped incorrectly on disk!", key);
                     }
                     i.incrementAndGet();
                 });
@@ -135,10 +135,10 @@ public class DBMapTest implements TestConstants {
                 map.forEach((key, value) -> { //db to map
                     byte[] real = data.get(key);
                     if (!Arrays.equals(real, value)) {
-                        logger.error("Key ${0} is mapped incorrectly on disk!", key);
+                        logger.error("Key %s is mapped incorrectly on disk!", key);
                         data.forEach((s, v) -> {
                             if (Arrays.equals(v, value)) {
-                                logger.info("Found match! real key: ${0}, db key: ${1}, correct mappings: ${2}", s, key, i.get());
+                                logger.info("Found match! real key: %s, db key: %s, correct mappings: %d", s, key, i.get());
                             }
                         });
                         throw new IllegalStateException();

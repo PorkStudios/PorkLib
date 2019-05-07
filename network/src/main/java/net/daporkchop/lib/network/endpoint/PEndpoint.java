@@ -26,7 +26,7 @@ import net.daporkchop.lib.network.util.CloseableFuture;
  *
  * @author DaPorkchop_
  */
-public interface PEndpoint<Impl extends PEndpoint> extends CloseableFuture {
+public interface PEndpoint<Impl extends PEndpoint<Impl>> extends CloseableFuture {
     /**
      * Gets this endpoint's type.
      *

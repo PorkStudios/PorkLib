@@ -24,13 +24,91 @@ import net.daporkchop.lib.network.util.CloseableFuture;
  *
  * @author DaPorkchop_
  */
-public interface PSession<Impl extends PSession> extends CloseableFuture {
+public interface PSession<Impl extends PSession<Impl>> extends CloseableFuture, Reliable<PSession<Impl>> {
     /**
      * Gets the local endpoint associated with this session.
      *
      * @return the local endpoint associated with this session
      */
     PEndpoint endpoint();
+
+    /**
+     * Gets an open channel on this session with a given id.
+     *
+     * @param id the id of the channel to get
+     * @return a channel with the given id, or {@code null} if none was found
+     */
+    PChannel<Impl> channel(int id);
+
+    /**
+     * Opens a new channel on this session.
+     *
+     * @param reliability the fallback reliability of the new channel. If {@code null} or unsupported by this
+     *                    session's transport protocol, this session's fallback reliability level will be
+     *                    used (see {@link #fallbackReliability()})
+     * @return the newly opened channel
+     */
+    PChannel<Impl> openChannel(Reliability reliability);
+
+    /**
+     * Opens a new channel on this session, using this session's fallback reliability level.
+     *
+     * @return the newly opened channel
+     */
+    default PChannel<Impl> openChannel() {
+        return this.openChannel(this.fallbackReliability());
+    }
+
+    /**
+     * Sends a single packet to the remote endpoint.
+     * <p>
+     * While it is not specified which channel will be used for this, it is guaranteed that all packets sent using
+     * these methods will be sent on the same channel.
+     *
+     * @param packet      the packet to be sent
+     * @param reliability the reliability that the packet is to be sent with. If {@code null} or unsupported by this
+     *                    session's transport protocol, this session's fallback reliability level will be
+     *                    used (see {@link #fallbackReliability()})
+     * @return this session
+     */
+    PSession<Impl> send(@NonNull Object packet, Reliability reliability);
+
+    /**
+     * Sends a single packet to the remote endpoint, using this session's default reliability level.
+     * <p>
+     * While it is not specified which channel will be used for this, it is guaranteed that all packets sent using
+     * these methods will be sent on the same channel.
+     *
+     * @param packet the packet to be sent
+     * @return this session
+     */
+    default PSession<Impl> send(@NonNull Object packet) {
+        return this.send(packet, this.fallbackReliability());
+    }
+
+    /**
+     * Sends a single packet to the remote endpoint over a specific channel.
+     *
+     * @param packet      the packet to be sent
+     * @param reliability the reliability that the packet is to be sent with. If {@code null} or unsupported by this
+     *                    session's transport protocol, this session's fallback reliability level will be
+     *                    used (see {@link #fallbackReliability()})
+     * @param channelId   the id of the channel that the packet will be sent on
+     * @return this session
+     */
+    PSession<Impl> send(@NonNull Object packet, Reliability reliability, int channelId);
+
+    /**
+     * Sends a single packet to the remote endpoint over a specific channel, using this channel's fallback reliability
+     * level.
+     *
+     * @param packet    the packet to be sent
+     * @param channelId the id of the channel that the packet will be sent on
+     * @return this session
+     */
+    default PSession<Impl> send(@NonNull Object packet, int channelId) {
+        return this.send(packet, this.fallbackReliability(), channelId);
+    }
 
     /**
      * Closes this session, blocking until it is closed.

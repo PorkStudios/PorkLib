@@ -13,19 +13,10 @@
  *
  */
 
-package net.daporkchop.lib.network.endpoint;
-
-import net.daporkchop.lib.network.EndpointType;
-import net.daporkchop.lib.network.session.PSession;
+package net.daporkchop.lib.network.session;
 
 /**
- * A client can connect to a single remote endpoint.
- *
  * @author DaPorkchop_
  */
-public interface PClient extends PEndpoint<PClient>, PSession<PClient>, Connectable<PClient> {
-    @Override
-    default EndpointType type() {
-        return EndpointType.CLIENT;
-    }
+public interface UserSession extends PSession<UserSession> {
 }

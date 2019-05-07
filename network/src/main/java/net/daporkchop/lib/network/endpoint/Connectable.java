@@ -15,17 +15,30 @@
 
 package net.daporkchop.lib.network.endpoint;
 
-import net.daporkchop.lib.network.EndpointType;
-import net.daporkchop.lib.network.session.PSession;
+import lombok.NonNull;
+
+import java.net.InetSocketAddress;
 
 /**
- * A client can connect to a single remote endpoint.
- *
  * @author DaPorkchop_
  */
-public interface PClient extends PEndpoint<PClient>, PSession<PClient>, Connectable<PClient> {
-    @Override
-    default EndpointType type() {
-        return EndpointType.CLIENT;
+public interface Connectable<Impl extends Connectable<Impl>> {
+    /**
+     * Connects to a remote endpoint.
+     *
+     * @param address the address of the endpoint to connect to
+     * @return this instance
+     */
+    Connectable<Impl> connect(@NonNull InetSocketAddress address);
+
+    /**
+     * Connects to a remote endpoint.
+     *
+     * @param address the address of the endpoint to connect to
+     * @param port    the port to connect on
+     * @return this instance
+     */
+    default Connectable<Impl> connect(@NonNull String address, int port) {
+        return this.connect(new InetSocketAddress(address, port));
     }
 }

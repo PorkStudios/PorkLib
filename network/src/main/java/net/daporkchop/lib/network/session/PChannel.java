@@ -33,7 +33,7 @@ import java.util.Collection;
  *
  * @author DaPorkchop_
  */
-public interface PChannel<SessionImpl extends PSession<SessionImpl>> extends CloseableFuture {
+public interface PChannel<SessionImpl extends PSession<SessionImpl>> extends CloseableFuture, Reliable<PChannel<SessionImpl>> {
     /**
      * Gets this channel's underlying session.
      *
@@ -51,41 +51,6 @@ public interface PChannel<SessionImpl extends PSession<SessionImpl>> extends Clo
     }
 
     /**
-     * Gets this channel's fallback reliability level. Packets that are sent without having a specific reliability
-     * defined will be sent using this reliability.
-     *
-     * @return this channel's fallback reliability level
-     */
-    Reliability fallbackReliability();
-
-    /**
-     * Gets this channel's fallback reliability level. Packets that are sent without having a specific reliability
-     * defined will be sent using this reliability.
-     *
-     * @param reliability the new fallback reliability level to use
-     * @return this channel's fallback reliability level
-     * @throws IllegalArgumentException if the given reliability level is not supported by this channel
-     */
-    PChannel<SessionImpl> fallbackReliability(@NonNull Reliability reliability) throws IllegalArgumentException;
-
-    /**
-     * Gets all reliability levels supported by this channel.
-     *
-     * @return all reliability levels supported by this channel
-     */
-    Collection<Reliability> supportedReliabilities();
-
-    /**
-     * Checks whether or not a specific reliability level is supported by this channel.
-     *
-     * @param reliability the reliability level to check
-     * @return whether or not the given reliability level is supported by this channel
-     */
-    default boolean isSupported(@NonNull Reliability reliability) {
-        return this.supportedReliabilities().contains(reliability);
-    }
-
-    /**
      * Sends a single packet to the remote endpoint over this channel.
      * <p>
      * This method may be blocking or not, depending on the implementation.
@@ -99,6 +64,19 @@ public interface PChannel<SessionImpl extends PSession<SessionImpl>> extends Clo
     PChannel<SessionImpl> send(@NonNull Object packet, Reliability reliability);
 
     /**
+     * Sends a single packet to the remote endpoint over this channel, using this channel's fallback reliability
+     * level.
+     * <p>
+     * This method may be blocking or not, depending on the implementation.
+     *
+     * @param packet the packet to be sent
+     * @return this channel
+     */
+    default PChannel<SessionImpl> send(@NonNull Object packet) {
+        return this.send(packet, this.fallbackReliability());
+    }
+
+    /**
      * Sends a single packet to the remote endpoint over this channel.
      * <p>
      * This method is non-blocking, and returns a future that may be used to track the packet as it is sent.
@@ -110,6 +88,19 @@ public interface PChannel<SessionImpl extends PSession<SessionImpl>> extends Clo
      * @return a future, which will be completed with this channel
      */
     Future<PChannel<SessionImpl>> sendFuture(@NonNull Object packet, Reliability reliability);
+
+    /**
+     * Sends a single packet to the remote endpoint over this channel, using this channel's fallback reliability
+     * level.
+     * <p>
+     * This method is non-blocking, and returns a future that may be used to track the packet as it is sent.
+     *
+     * @param packet the packet to be sent
+     * @return a future, which will be completed with this channel
+     */
+    default Future<PChannel<SessionImpl>> sendFuture(@NonNull Object packet) {
+        return this.sendFuture(packet, this.fallbackReliability());
+    }
 
     /**
      * Closes this channel, blocking until it is closed.

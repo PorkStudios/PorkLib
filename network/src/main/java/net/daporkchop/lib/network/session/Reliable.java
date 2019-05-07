@@ -13,43 +13,49 @@
  *
  */
 
-package net.daporkchop.lib.network.util;
+package net.daporkchop.lib.network.session;
 
-import io.netty.util.concurrent.Future;
+import lombok.NonNull;
+
+import java.util.Collection;
 
 /**
- * A resource that may be closed both synchronously and asynchronously.
- *
  * @author DaPorkchop_
  */
-public interface CloseableFuture extends AutoCloseable {
-    /**
-     * Checks whether or not this resource has been closed or is currently closing.
-     *
-     * @return whether or not this resource has been closed or is currently closing
-     */
-    boolean isClosed();
+public interface Reliable<Impl extends Reliable<Impl>> {
 
     /**
-     * Checks whether or not this resource is currently open.
+     * Gets this channel's fallback reliability level. Packets that are sent without having a specific reliability
+     * defined will be sent using this reliability.
      *
-     * @return whether or not this resource is currently open
+     * @return this channel's fallback reliability level
      */
-    default boolean isOpen() {
-        return !this.isClosed();
+    Reliability fallbackReliability();
+
+    /**
+     * Gets this channel's fallback reliability level. Packets that are sent without having a specific reliability
+     * defined will be sent using this reliability.
+     *
+     * @param reliability the new fallback reliability level to use
+     * @return this channel's fallback reliability level
+     * @throws IllegalArgumentException if the given reliability level is not supported by this channel
+     */
+    Impl fallbackReliability(@NonNull Reliability reliability) throws IllegalArgumentException;
+
+    /**
+     * Gets all reliability levels supported by this channel.
+     *
+     * @return all reliability levels supported by this channel
+     */
+    Collection<Reliability> supportedReliabilities();
+
+    /**
+     * Checks whether or not a specific reliability level is supported by this channel.
+     *
+     * @param reliability the reliability level to check
+     * @return whether or not the given reliability level is supported by this channel
+     */
+    default boolean isReliabilitySupported(@NonNull Reliability reliability) {
+        return this.supportedReliabilities().contains(reliability);
     }
-
-    /**
-     * Closes this resource, blocking until it is closed.
-     */
-    @Override
-    void close();
-
-    /**
-     * Closes this resource at some point in the future.
-     *
-     * @return a future that will be completed once this resource is closed
-     * @see #close()
-     */
-    Future<Void> closeFuture();
 }

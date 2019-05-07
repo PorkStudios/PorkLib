@@ -20,8 +20,6 @@ import lombok.NonNull;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.util.CloseableFuture;
 
-import java.util.Collection;
-
 /**
  * A channel is the actual data transfer layer on top of a {@link PSession}. A single {@link PSession} may have multiple
  * channels (or not, depending on whether the underlying protocol allows for it), allowing for parallel sending of
@@ -33,13 +31,13 @@ import java.util.Collection;
  *
  * @author DaPorkchop_
  */
-public interface PChannel<SessionImpl extends PSession<SessionImpl>> extends CloseableFuture, Reliable<PChannel<SessionImpl>> {
+public interface PChannel extends CloseableFuture, Reliable<PChannel> {
     /**
      * Gets this channel's underlying session.
      *
      * @return this channel's underlying session
      */
-    SessionImpl session();
+    UserSession session();
 
     /**
      * Gets the local endpoint associated with this channel's underlying session.
@@ -61,7 +59,7 @@ public interface PChannel<SessionImpl extends PSession<SessionImpl>> extends Clo
      *                    used (see {@link #fallbackReliability()})
      * @return this channel
      */
-    PChannel<SessionImpl> send(@NonNull Object packet, Reliability reliability);
+    PChannel send(@NonNull Object packet, Reliability reliability);
 
     /**
      * Sends a single packet to the remote endpoint over this channel, using this channel's fallback reliability
@@ -72,7 +70,7 @@ public interface PChannel<SessionImpl extends PSession<SessionImpl>> extends Clo
      * @param packet the packet to be sent
      * @return this channel
      */
-    default PChannel<SessionImpl> send(@NonNull Object packet) {
+    default PChannel send(@NonNull Object packet) {
         return this.send(packet, this.fallbackReliability());
     }
 
@@ -85,9 +83,9 @@ public interface PChannel<SessionImpl extends PSession<SessionImpl>> extends Clo
      * @param reliability the reliability that the packet is to be sent with. If {@code null} or unsupported by this
      *                    channel's transport protocol, this channel's fallback reliability level will be
      *                    used (see {@link #fallbackReliability()})
-     * @return a future, which will be completed with this channel
+     * @return a future which may be used to track the packet as it is sent
      */
-    Future<PChannel<SessionImpl>> sendFuture(@NonNull Object packet, Reliability reliability);
+    Future<Void> sendFuture(@NonNull Object packet, Reliability reliability);
 
     /**
      * Sends a single packet to the remote endpoint over this channel, using this channel's fallback reliability
@@ -96,9 +94,9 @@ public interface PChannel<SessionImpl extends PSession<SessionImpl>> extends Clo
      * This method is non-blocking, and returns a future that may be used to track the packet as it is sent.
      *
      * @param packet the packet to be sent
-     * @return a future, which will be completed with this channel
+     * @return a future which may be used to track the packet as it is sent
      */
-    default Future<PChannel<SessionImpl>> sendFuture(@NonNull Object packet) {
+    default Future<Void> sendFuture(@NonNull Object packet) {
         return this.sendFuture(packet, this.fallbackReliability());
     }
 
@@ -107,6 +105,10 @@ public interface PChannel<SessionImpl extends PSession<SessionImpl>> extends Clo
      * <p>
      * Closing a channel will not close the underlying session, but sending packets over a closed channel is not allowed
      * and will produce undefined behavior.
+     * <p>
+     * An exception is for channel 0, which is the default and control channel for a session. Attempting to invoke
+     * this method on channel 0 will simply do nothing, as that channel can only be closed when the session is
+     * closed.
      */
     @Override
     void close();

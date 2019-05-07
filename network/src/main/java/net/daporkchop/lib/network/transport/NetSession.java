@@ -13,37 +13,15 @@
  *
  */
 
-package net.daporkchop.lib.network.endpoint;
+package net.daporkchop.lib.network.transport;
 
-import io.netty.util.concurrent.Future;
-import lombok.NonNull;
-import net.daporkchop.lib.network.EndpointType;
-import net.daporkchop.lib.network.session.UserSession;
-import net.daporkchop.lib.network.util.CloseableFuture;
-import net.daporkchop.lib.network.util.TransportEngineHolder;
-
-import java.util.Collection;
+import net.daporkchop.lib.network.session.PSession;
 
 /**
- * An endpoint is one of the ends on a connection. Connections consist of two endpoints, one local one and
- * a remote one.
+ * An internally-used representation of a session, used as an extra layer of abstraction to allow for creation of
+ * custom transport protocols rather than forcing everyone to use Netty.
  *
  * @author DaPorkchop_
  */
-public interface PEndpoint<Impl extends PEndpoint<Impl>> extends CloseableFuture, TransportEngineHolder {
-    /**
-     * Gets this endpoint's type.
-     *
-     * @return this endpoint's type
-     */
-    @NonNull
-    EndpointType type();
-
-    /**
-     * Closes this endpoint, blocking until it is closed.
-     * <p>
-     * Closing an endpoint will result in all connections associated with it being closed.
-     */
-    @Override
-    void close();
+public interface NetSession extends PSession<NetSession> {
 }

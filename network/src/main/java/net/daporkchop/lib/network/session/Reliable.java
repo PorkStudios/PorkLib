@@ -16,14 +16,15 @@
 package net.daporkchop.lib.network.session;
 
 import lombok.NonNull;
+import net.daporkchop.lib.network.transport.TransportEngine;
+import net.daporkchop.lib.network.util.TransportEngineHolder;
 
 import java.util.Collection;
 
 /**
  * @author DaPorkchop_
  */
-public interface Reliable<Impl extends Reliable<Impl>> {
-
+public interface Reliable<Impl extends Reliable<Impl>> extends TransportEngineHolder {
     /**
      * Gets this channel's fallback reliability level. Packets that are sent without having a specific reliability
      * defined will be sent using this reliability.
@@ -43,19 +44,16 @@ public interface Reliable<Impl extends Reliable<Impl>> {
     Impl fallbackReliability(@NonNull Reliability reliability) throws IllegalArgumentException;
 
     /**
-     * Gets all reliability levels supported by this channel.
-     *
-     * @return all reliability levels supported by this channel
+     * @see TransportEngine#supportedReliabilities()
      */
-    Collection<Reliability> supportedReliabilities();
+    default Collection<Reliability> supportedReliabilities()    {
+        return this.transportEngine().supportedReliabilities();
+    }
 
     /**
-     * Checks whether or not a specific reliability level is supported by this channel.
-     *
-     * @param reliability the reliability level to check
-     * @return whether or not the given reliability level is supported by this channel
+     * @see TransportEngine#isReliabilitySupported(Reliability)
      */
     default boolean isReliabilitySupported(@NonNull Reliability reliability) {
-        return this.supportedReliabilities().contains(reliability);
+        return this.transportEngine().isReliabilitySupported(reliability);
     }
 }

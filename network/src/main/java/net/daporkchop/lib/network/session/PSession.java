@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.network.session;
 
+import io.netty.util.concurrent.Future;
 import lombok.NonNull;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.util.CloseableFuture;
@@ -24,13 +25,13 @@ import net.daporkchop.lib.network.util.CloseableFuture;
  *
  * @author DaPorkchop_
  */
-public interface PSession<Impl extends PSession<Impl>> extends CloseableFuture, Reliable<PSession<Impl>> {
+public interface PSession<Impl extends PSession<Impl>> extends CloseableFuture, Reliable<Impl> {
     /**
      * Gets the local endpoint associated with this session.
      *
      * @return the local endpoint associated with this session
      */
-    PEndpoint endpoint();
+    <E extends PEndpoint<E>> E endpoint();
 
     /**
      * Gets an open channel on this session with a given id.
@@ -38,7 +39,7 @@ public interface PSession<Impl extends PSession<Impl>> extends CloseableFuture, 
      * @param id the id of the channel to get
      * @return a channel with the given id, or {@code null} if none was found
      */
-    PChannel<Impl> channel(int id);
+    PChannel channel(int id);
 
     /**
      * Opens a new channel on this session.
@@ -48,22 +49,21 @@ public interface PSession<Impl extends PSession<Impl>> extends CloseableFuture, 
      *                    used (see {@link #fallbackReliability()})
      * @return the newly opened channel
      */
-    PChannel<Impl> openChannel(Reliability reliability);
+    PChannel openChannel(Reliability reliability);
 
     /**
      * Opens a new channel on this session, using this session's fallback reliability level.
      *
      * @return the newly opened channel
      */
-    default PChannel<Impl> openChannel() {
+    default PChannel openChannel() {
         return this.openChannel(this.fallbackReliability());
     }
 
     /**
      * Sends a single packet to the remote endpoint.
      * <p>
-     * While it is not specified which channel will be used for this, it is guaranteed that all packets sent using
-     * these methods will be sent on the same channel.
+     * All packets sent using these methods will be sent on channel 0, which may not be closed.
      *
      * @param packet      the packet to be sent
      * @param reliability the reliability that the packet is to be sent with. If {@code null} or unsupported by this
@@ -71,18 +71,17 @@ public interface PSession<Impl extends PSession<Impl>> extends CloseableFuture, 
      *                    used (see {@link #fallbackReliability()})
      * @return this session
      */
-    PSession<Impl> send(@NonNull Object packet, Reliability reliability);
+    Impl send(@NonNull Object packet, Reliability reliability);
 
     /**
      * Sends a single packet to the remote endpoint, using this session's default reliability level.
      * <p>
-     * While it is not specified which channel will be used for this, it is guaranteed that all packets sent using
-     * these methods will be sent on the same channel.
+     * All packets sent using these methods will be sent on channel 0, which may not be closed.
      *
      * @param packet the packet to be sent
      * @return this session
      */
-    default PSession<Impl> send(@NonNull Object packet) {
+    default Impl send(@NonNull Object packet) {
         return this.send(packet, this.fallbackReliability());
     }
 
@@ -96,7 +95,7 @@ public interface PSession<Impl extends PSession<Impl>> extends CloseableFuture, 
      * @param channelId   the id of the channel that the packet will be sent on
      * @return this session
      */
-    PSession<Impl> send(@NonNull Object packet, Reliability reliability, int channelId);
+    Impl send(@NonNull Object packet, Reliability reliability, int channelId);
 
     /**
      * Sends a single packet to the remote endpoint over a specific channel, using this channel's fallback reliability
@@ -106,8 +105,65 @@ public interface PSession<Impl extends PSession<Impl>> extends CloseableFuture, 
      * @param channelId the id of the channel that the packet will be sent on
      * @return this session
      */
-    default PSession<Impl> send(@NonNull Object packet, int channelId) {
+    default Impl send(@NonNull Object packet, int channelId) {
         return this.send(packet, this.fallbackReliability(), channelId);
+    }
+
+    /**
+     * Sends a single packet to the remote endpoint.
+     * <p>
+     * All packets sent using these methods will be sent on channel 0, which may not be closed.
+     * <p>
+     * This method is non-blocking, and returns a future that may be used to track the packet as it is sent.
+     *
+     * @param packet      the packet to be sent
+     * @param reliability the reliability that the packet is to be sent with. If {@code null} or unsupported by this
+     *                    session's transport protocol, this session's fallback reliability level will be
+     *                    used (see {@link #fallbackReliability()})
+     * @return a future which may be used to track the packet as it is sent
+     */
+    Future<Void> sendFuture(@NonNull Object packet, Reliability reliability);
+
+    /**
+     * Sends a single packet to the remote endpoint, using this session's default reliability level.
+     * <p>
+     * All packets sent using these methods will be sent on channel 0, which may not be closed.
+     * <p>
+     * This method is non-blocking, and returns a future that may be used to track the packet as it is sent.
+     *
+     * @param packet the packet to be sent
+     * @return a future which may be used to track the packet as it is sent
+     */
+    default Future<Void> sendFuture(@NonNull Object packet) {
+        return this.sendFuture(packet, this.fallbackReliability());
+    }
+
+    /**
+     * Sends a single packet to the remote endpoint over a specific channel.
+     * <p>
+     * This method is non-blocking, and returns a future that may be used to track the packet as it is sent.
+     *
+     * @param packet      the packet to be sent
+     * @param reliability the reliability that the packet is to be sent with. If {@code null} or unsupported by this
+     *                    session's transport protocol, this session's fallback reliability level will be
+     *                    used (see {@link #fallbackReliability()})
+     * @param channelId   the id of the channel that the packet will be sent on
+     * @return a future which may be used to track the packet as it is sent
+     */
+    Future<Void> sendFuture(@NonNull Object packet, Reliability reliability, int channelId);
+
+    /**
+     * Sends a single packet to the remote endpoint over a specific channel, using this channel's fallback reliability
+     * level.
+     * <p>
+     * This method is non-blocking, and returns a future that may be used to track the packet as it is sent.
+     *
+     * @param packet    the packet to be sent
+     * @param channelId the id of the channel that the packet will be sent on
+     * @return a future which may be used to track the packet as it is sent
+     */
+    default Future<Void> sendFuture(@NonNull Object packet, int channelId) {
+        return this.sendFuture(packet, this.fallbackReliability(), channelId);
     }
 
     /**

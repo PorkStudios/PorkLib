@@ -15,7 +15,6 @@
 
 dependencies {
     compile project(":db:db-core")
-    //compile project(":db:db-extensions-default")
 
     testCompile project(":db:db-extensions-leveldb")
 

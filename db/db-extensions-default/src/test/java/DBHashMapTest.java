@@ -95,11 +95,6 @@ public class DBHashMapTest implements Logging {
                             .distinct().count() != map.size());
                     //map.put(b1, b2);
                 }
-                /*int fullSize = map.size();
-                int individualSize = (int) map.keySet().stream()
-                        .map(b -> getRelevantHashBits(b, TABLE_SIZE_BITS))
-                        .distinct().count();
-                logger.debug("Full: ${0}, individual: ${1}", fullSize, individualSize);*/
             }
             , (random, map) -> {
                 if (false) {
@@ -127,8 +122,8 @@ public class DBHashMapTest implements Logging {
     }
 
     private File getFile(@NonNull Supplier<Serializer<byte[]>> serializer, @NonNull Supplier<DataLookup> dataLookup, @NonNull Supplier<IndexLookup<byte[]>> indexLookup, @NonNull Supplier<CompressionHelper> compression) {
-        return new File(TestConstants.ROOT_DIR, this.format(
-                "map-${0}-${1}-${2}-${3}",
+        return new File(TestConstants.ROOT_DIR, String.format(
+                "map-%s-%s-%s-%s",
                 serializer.get().getClass(),
                 dataLookup.get().getClass(),
                 indexLookup.get().getClass(),
@@ -140,7 +135,7 @@ public class DBHashMapTest implements Logging {
     @SuppressWarnings("unchecked")
     public void test() {
         TestConstants.init();
-        logger.alert("Testing ${0}", DBHashMap.class);
+        logger.alert("Testing %s", DBHashMap.class);
 
         logger.info("Deleting output dirs...");
         SERIALIZERS.forEach(serializer -> {
@@ -186,7 +181,7 @@ public class DBHashMapTest implements Logging {
                             return;
                         }
                         logger.info(
-                                "Testing DBHashMap with (serializer=${0}, dataLookup=${1}, indexLookup=${2}, compression=${3})...",
+                                "Testing DBHashMap with (serializer=%s, dataLookup=%s, indexLookup=%s, compression=%s)...",
                                 serializer.get().getClass(), dataLookup.get().getClass(), indexLookup.get().getClass(), compression.get()
                         );
                         File out = this.getFile(serializer, dataLookup, indexLookup, compression);
@@ -216,7 +211,7 @@ public class DBHashMapTest implements Logging {
 
                                 data.forEach((key, val) -> {
                                     if (dbMap.containsKey(key)) {
-                                        throw this.exception("Key ${0} already contained!", Hexadecimal.encode(key));
+                                        throw new IllegalStateException(String.format("Key %s already contained!", Hexadecimal.encode(key)));
                                     } else {
                                         dbMap.put(key, val);
                                     }
@@ -241,11 +236,11 @@ public class DBHashMapTest implements Logging {
 
                                 data.forEach((key, val) -> {
                                     if (!dbMap.containsKey(key)) {
-                                        throw this.exception("Missing key: ${0}", Hexadecimal.encode(key));
+                                        throw new IllegalStateException(String.format("Missing key: %s", Hexadecimal.encode(key)));
                                     }
                                     byte[] diskVal = dbMap.get(key);
                                     if (!Arrays.equals(val, diskVal)) {
-                                        throw this.exception("Value for key ${0} is incorrect!", Hexadecimal.encode(key));
+                                        throw new IllegalStateException(String.format("Value for key %s is incorrect!", Hexadecimal.encode(key)));
                                     }
                                 });
 
@@ -277,15 +272,15 @@ public class DBHashMapTest implements Logging {
                                 oldData.forEach((key, val) -> {
                                     if (data.containsKey(key)) {
                                         if (!dbMap.containsKey(key)) {
-                                            throw this.exception("Missing key: ${0}", Hexadecimal.encode(key));
+                                            throw new IllegalStateException(String.format("Missing key: %s", Hexadecimal.encode(key)));
                                         }
                                         byte[] diskVal = dbMap.get(key);
                                         if (!Arrays.equals(val, diskVal)) {
-                                            throw this.exception("Value for key ${0} is incorrect!", Hexadecimal.encode(key));
+                                            throw new IllegalStateException(String.format("Value for key %s is incorrect!", Hexadecimal.encode(key)));
                                         }
                                     } else {
                                         if (dbMap.containsKey(key)) {
-                                            throw this.exception("Key ${0} is present even though it was removed!", Hexadecimal.encode(key));
+                                            throw new IllegalStateException(String.format("Key %s is present even though it was removed!", Hexadecimal.encode(key)));
                                         }
                                     }
                                 });
@@ -293,8 +288,8 @@ public class DBHashMapTest implements Logging {
                                 db.close();
                             }
                         }
-                        requiredTimes.put(this.format(
-                                "map-${0}-${1}-${2}-${3}",
+                        requiredTimes.put(String.format(
+                                "map-%s-%s-%s-%s",
                                 serializer.get().getClass(),
                                 dataLookup.get().getClass(),
                                 indexLookup.get().getClass(),
@@ -312,6 +307,6 @@ public class DBHashMapTest implements Logging {
                 .forEachOrdered(entry -> logger.trace(String.format("  %06dms: %s", entry.getValue(), entry.getKey())));
         logger.trace("");
         logger.trace("");
-        logger.info("Test for ${0} finished!", DBHashMap.class);
+        logger.info("Test for %s finished!", DBHashMap.class);
     }
 }

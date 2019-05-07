@@ -28,7 +28,6 @@ import net.daporkchop.lib.network.packet.handler.codec.Codec;
 public interface PacketHandler<P> extends MessageHandler, Codec<P> {
     @Override
     default void handle(@NonNull ByteBuf msg, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception {
-        //Logging.logger.debug("Handling message on channel ${0}...", channelId);
         this.handle(this.decode(msg), connection, channelId);
     }
 

@@ -21,5 +21,6 @@ dependencies {
     compile project(":primitive")
     compile project(":encoding:nbt")
 
+    compile "com.google.guava:guava:$guavaVersion"
     compile "com.google.code.gson:gson:$gsonVersion"
 }

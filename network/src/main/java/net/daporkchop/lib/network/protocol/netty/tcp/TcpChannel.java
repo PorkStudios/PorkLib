@@ -56,7 +56,6 @@ public class TcpChannel extends NettyChannel implements Logging {
         if (this.closed) {
             throw new IllegalStateException("channel closed!");
         } else {
-            //logger.debug("Writing ${0} (${1}blocking)...", message.getClass(), blocking ? "" : "non-");
             int id = this.channel.getEndpoint().getPacketRegistry().getId(message.getClass());
             ChannelFuture future = this.channel.writeAndFlush(new UnencodedTcpPacket(message, this.id, id));
             if (callback != null) {

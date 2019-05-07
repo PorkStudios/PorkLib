@@ -77,16 +77,16 @@ public class FormExample implements Logging {
                             .setText("Submit"))
                     .form(FormData.class, form -> form
                             .submitButton("complete")
-                            .addListener((status, value) -> logger.info("Form completed with status: ${0}", status))
-                            .addSuccessListener(value -> logger.info("${0}", value)))
+                            .addListener((status, value) -> logger.info("Form completed with status: %s", status))
+                            .addSuccessListener(value -> logger.info("%s", value)))
                     .show();
         } else {
             parentWindow.popup(128, 128, 512, 300)
                     .setTitle("Form test")
                     .form(FormData.class, form -> form
                             .buildDefault()
-                            .addListener((status, value) -> logger.info("Form completed with status: ${0}", status))
-                            .addSuccessListener(value -> logger.info("${0}", value)))
+                            .addListener((status, value) -> logger.info("Form completed with status: %s", status))
+                            .addSuccessListener(value -> logger.info("%s", value)))
                     .show();
         }
     }

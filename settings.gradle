@@ -53,3 +53,4 @@ findProject(':encoding:config')?.name = 'config'
 findProject(':encoding:nbt')?.name = 'nbt'
 findProject(':minecraft:minecraft-worldscanner')?.name = 'minecraft-worldscanner'
 findProject(':minecraft:minecraft-text')?.name = 'minecraft-text'
+

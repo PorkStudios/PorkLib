@@ -1,17 +1,18 @@
+# Gradle files
 .gradle/
+build/
+
+# IntelliJ files
 .idea/
 *.iml
 *.ipr
-*.class
-*.log
-target/
-build/
 out/
-test_out/
-/porklib.daporkchop.net/
 run/
 
-/src/
+# misc.
+*.class
+*.log
+/porklib.daporkchop.net/
 
 test_out/
 /primitive/src/
@@ -24,3 +25,6 @@ test_out/
 /minecraft/minecraft-worldscanner/run/testworld/region/r.-1.0.mca
 /minecraft/minecraft-worldscanner/run/testworld/region/r.-1.-1.mca
 /minecraft/minecraft-worldscanner/run/out/
+
+# project root
+/src/

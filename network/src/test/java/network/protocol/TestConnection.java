@@ -24,11 +24,11 @@ import net.daporkchop.lib.network.conn.UserConnection;
 public class TestConnection extends UserConnection implements Logging {
     @Override
     public void onConnect() {
-        logger.info("[${0}] Connection ${1} opened", this.getEndpoint().getName(), this.getAddress());
+        logger.info("[%s] Connection %s opened", this.getEndpoint().getName(), this.getAddress());
     }
 
     @Override
     public void onDisconnect(String reason) {
-        logger.info("[${0}] Connection ${1} closed because: ${2}", this.getEndpoint().getName(), this.getAddress(), reason);
+        logger.info("[%s] Connection %s closed because: %s", this.getEndpoint().getName(), this.getAddress(), reason);
     }
 }

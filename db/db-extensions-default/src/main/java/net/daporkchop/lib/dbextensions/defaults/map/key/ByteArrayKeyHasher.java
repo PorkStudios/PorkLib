@@ -51,7 +51,7 @@ public class ByteArrayKeyHasher implements KeyHasher<byte[]> {
         @Override
         public byte[] hash(@NonNull byte[] key) {
             if (key.length != this.hashLength) {
-                throw this.exception("Invalid byte[] size: ${0} (expected: ${1}", key.length, this.hashLength);
+                throw new IllegalArgumentException(String.format("Invalid byte[] size: %d (expected: %d)", key.length, this.hashLength));
             }
             return key.clone();
         }
@@ -64,7 +64,7 @@ public class ByteArrayKeyHasher implements KeyHasher<byte[]> {
         @Override
         public byte[] reconstructFromHash(@NonNull byte[] hash) {
             if (hash.length != this.hashLength) {
-                throw this.exception("Invalid byte[] size: ${0} (expected: ${1}", hash.length, this.hashLength);
+                throw new IllegalArgumentException(String.format("Invalid byte[] size: %d (expected: %d)", hash.length, this.hashLength));
             }
             return hash.clone();
         }

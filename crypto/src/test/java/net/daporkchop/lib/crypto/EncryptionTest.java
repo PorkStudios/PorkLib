@@ -265,7 +265,7 @@ public class EncryptionTest implements Logging {
         Arrays.stream(StreamCipherType.values())
                 .filter(t -> t != StreamCipherType.BLOCK_CIPHER)
                 .parallel().forEach(type -> {
-            logger.info("  Testing ${0}...", type);
+            logger.info("  Testing %s...", type);
             this.testSeekable(
                     seed -> KeyGen.gen(type, seed),
                     (key, side) -> new SeekableStreamCipher(type::create, key, side)
@@ -279,7 +279,7 @@ public class EncryptionTest implements Logging {
         Arrays.stream(CipherType.values())
                 .filter(t -> t != CipherType.NONE)
                 .parallel().forEach(type -> Arrays.stream(CipherPadding.values()).parallel().forEach(padding -> {
-            logger.info("  Testing ${0} with ${1} padding...", type, padding);
+            logger.info("  Testing %s with %s padding...", type, padding);
             this.testSeekable(
                     seed -> KeyGen.gen(type, seed),
                     (key, side) -> new SeekableBlockCipher(type, padding, key, side)

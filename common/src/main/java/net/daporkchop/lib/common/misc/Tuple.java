@@ -23,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 /**
  * @author DaPorkchop_
@@ -35,6 +36,9 @@ import lombok.experimental.Accessors;
 @ToString
 @EqualsAndHashCode
 public class Tuple<A, B> {
+    protected static final long A_OFFSET = PUnsafe.pork_getOffset(Tuple.class, "a");
+    protected static final long B_OFFSET = PUnsafe.pork_getOffset(Tuple.class, "b");
+
     protected A a;
     protected B b;
 
@@ -52,5 +56,23 @@ public class Tuple<A, B> {
 
     public boolean isBNonNull()    {
         return this.b != null;
+    }
+
+    public Tuple<A, B> atomicSetA(A a)  {
+        PUnsafe.putObjectVolatile(this, A_OFFSET, a);
+        return this;
+    }
+
+    public Tuple<A, B> atomicSetB(B b)  {
+        PUnsafe.putObjectVolatile(this, B_OFFSET, b);
+        return this;
+    }
+
+    public A atomicSwapA(A a)   {
+        return PUnsafe.pork_swapObject(this, A_OFFSET, a);
+    }
+
+    public B atomicSwapB(B b)   {
+        return PUnsafe.pork_swapObject(this, B_OFFSET, b);
     }
 }

@@ -90,7 +90,7 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements NettyCo
         try {
             synchronized (this.channelIds) {
                 if (this.channelIds.get(requestedId)) {
-                    throw this.exception("Channel id ${0} already taken!", requestedId);
+                    throw new IllegalStateException(String.format("Channel id %d already taken!", requestedId));
                 } else {
                     this.channelIds.set(requestedId);
                     TcpChannel channel = new TcpChannel(this, requestedId);

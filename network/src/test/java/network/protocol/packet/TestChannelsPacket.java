@@ -33,9 +33,9 @@ public class TestChannelsPacket {
         @Override
         public void handle(@NonNull TestChannelsPacket packet, @NonNull UnderlyingNetworkConnection connection, int channelId) throws Exception {
             if (channelId == packet.theIdOfTheChannelThatThePacketWasSupposedToBeSentOn) {
-                Logging.logger.info("Received packet on correct channel: ${0}", channelId);
+                Logging.logger.info("Received packet on correct channel: %d", channelId);
             } else {
-                Logging.logger.info("Received packet on incorrect channel: ${0}", channelId);
+                Logging.logger.info("Received packet on incorrect channel: %d", channelId);
                 throw new IllegalStateException("wrong id!");
             }
         }

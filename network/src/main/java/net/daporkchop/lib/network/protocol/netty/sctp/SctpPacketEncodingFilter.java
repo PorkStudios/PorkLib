@@ -24,7 +24,6 @@ import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.packet.PacketRegistry;
 import net.daporkchop.lib.network.packet.handler.PacketHandler;
-import net.daporkchop.lib.network.util.NetworkConstants;
 
 import java.util.List;
 
@@ -47,9 +46,6 @@ public class SctpPacketEncodingFilter extends MessageToMessageEncoder<UnencodedS
             PacketHandler handler = (PacketHandler) this.registry.getHandler(msg.getId());
             handler.encode(msg.getMessage(), buf);
             out.add(new SctpPacketWrapper(buf, msg.getChannel(), msg.getId(), msg.isOrdered()));
-            if (NetworkConstants.DEBUG_REF_COUNT) {
-                logger.debug("Encoded packet with ${0} references!", buf.refCnt());
-            }
         } catch (Exception e) {
             Logging.logger.error(e);
             throw e;

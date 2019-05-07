@@ -115,6 +115,23 @@ public abstract class DataOut extends OutputStream {
     }
 
     /**
+     * /dev/null
+     *
+     * @return an instance of {@link DataOut} that will discard any data written to it
+     */
+    public static DataOut slashDevSlashNull() {
+        return new DataOut() {
+            @Override
+            public void close() throws IOException {
+            }
+
+            @Override
+            public void write(int b) throws IOException {
+            }
+        };
+    }
+
+    /**
      * Writes a boolean
      *
      * @param b the boolean to write

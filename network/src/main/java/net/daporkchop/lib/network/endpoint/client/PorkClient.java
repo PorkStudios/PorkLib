@@ -58,7 +58,7 @@ public class PorkClient implements Client, Logging {
             this.connectWaiter.get();
             logger.debug("Client wait finished.");
         } catch (Exception e) {
-            throw this.exception(e);
+            throw new RuntimeException(e);
         }
         this.porkConnection = this.manager.getConnection(PorkProtocol.class);
     }

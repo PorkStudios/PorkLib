@@ -33,7 +33,7 @@ public class CollectionTest implements Logging {
         for (PList<Integer> list : (PList<Integer>[]) new PList[]   {
                 new BigLinkedList<>()
         })  {
-            logger.info("Testing ${0}...", list.getClass());
+            logger.info("Testing %s...", list.getClass());
             for (int i = 8192; i > 0; i--)  {
                 list.add(i);
             }

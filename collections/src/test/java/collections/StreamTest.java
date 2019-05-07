@@ -64,7 +64,7 @@ public class StreamTest implements Logging {
                 new ConcurrentOrderedCollectionStream<>(new ConcurrentBigLinkedCollection<>(collection), true),
                 new UncheckedOrderedCollectionStream<>(new BigLinkedCollection<>(collection), true)
         }) {
-            logger.info("Testing ${0}...", stream.getClass());
+            logger.info("Testing %s...", stream.getClass());
             AtomicInteger counter = new AtomicInteger(0);
             stream
                     .map(String::valueOf)

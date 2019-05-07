@@ -13,7 +13,10 @@
  *
  */
 
-package db;import net.daporkchop.lib.logging.Logging;
+package db;
+
+import net.daporkchop.lib.logging.LogAmount;
+import net.daporkchop.lib.logging.Logging;
 
 import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -37,8 +40,9 @@ public interface TestConstants extends Logging {
         synchronized (INITIALIZED) {
             if (!INITIALIZED.get()) {
                 INITIALIZED.set(true);
-                logger.setLevel(5);
-                logger.add(new File(ROOT_DIR, "test_log.log"), true);
+                logger.enableANSI()
+                      .addFile(new File(ROOT_DIR, "test_log.log"), true, LogAmount.DEBUG)
+                      .setLogAmount(LogAmount.DEBUG);
             }
         }
     }

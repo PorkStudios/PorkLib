@@ -20,19 +20,14 @@ import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.UTF8;
-import net.daporkchop.lib.common.function.io.IOBiFunction;
-import net.daporkchop.lib.common.setting.Option;
-import net.daporkchop.lib.common.setting.Settings;
 import net.daporkchop.lib.db.builder.AbstractDBBuilder;
 import net.daporkchop.lib.dbextensions.leveldb.util.PrefixGenerator;
 import net.daporkchop.lib.hash.util.Digest;
-import net.daporkchop.lib.logging.Logger;
+import net.daporkchop.lib.logging.Logging;
 import org.iq80.leveldb.CompressionType;
 import org.iq80.leveldb.DBFactory;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.function.Consumer;
 
 /**
  * @author DaPorkchop_
@@ -54,7 +49,7 @@ public class LevelDBBuilder extends AbstractDBBuilder<LevelDB, LevelDBBuilder> {
     protected CompressionType compressionType = CompressionType.NONE;
     protected boolean paraniodChecksumChecks = false;
     @NonNull
-    protected org.iq80.leveldb.Logger logger = Logger.DEFAULT_LOG::info;
+    protected org.iq80.leveldb.Logger logger = Logging.logger::info;
     protected long cacheSize = 0L;
 
     @NonNull
@@ -73,7 +68,7 @@ public class LevelDBBuilder extends AbstractDBBuilder<LevelDB, LevelDBBuilder> {
 
     @Override
     public LevelDBBuilder validate() {
-        if (this.path == null)  {
+        if (this.path == null) {
             throw new NullPointerException("path");
         }
         return super.validate();

@@ -15,30 +15,18 @@
 
 package net.daporkchop.lib.network.endpoint;
 
-import lombok.NonNull;
-
-import java.net.InetSocketAddress;
+import net.daporkchop.lib.network.EndpointType;
 
 /**
+ * An extension of {@link PMulti} which is intended for use in peer-to-peer (p2p) applications. This will
+ * automatically handle many basic requirements of a p2p application such as peer exchange.
+ *
  * @author DaPorkchop_
  */
-public interface Connectable<Impl extends Connectable<Impl>> {
-    /**
-     * Connects to a remote endpoint.
-     *
-     * @param address the address of the endpoint to connect to
-     * @return this instance
-     */
-    Connectable<Impl> connect(@NonNull InetSocketAddress address);
-
-    /**
-     * Connects to a remote endpoint.
-     *
-     * @param address the address of the endpoint to connect to
-     * @param port    the port to connect on
-     * @return this instance
-     */
-    default Connectable<Impl> connect(@NonNull String address, int port) {
-        return this.connect(new InetSocketAddress(address, port));
+//TODO: this class could probably do with a better name :P
+public interface Pp2pEndpoint extends BaseMultiEndpoint<PMulti>, Connecting<PMulti> {
+    @Override
+    default EndpointType type() {
+        return EndpointType.P2P;
     }
 }

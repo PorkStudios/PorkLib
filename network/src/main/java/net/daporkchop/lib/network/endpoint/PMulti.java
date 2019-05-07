@@ -16,16 +16,16 @@
 package net.daporkchop.lib.network.endpoint;
 
 import net.daporkchop.lib.network.EndpointType;
-import net.daporkchop.lib.network.session.PSession;
 
 /**
- * A client can connect to a single remote endpoint.
+ * A merged server/multi-client that can simultaneously accept incoming connections and send multiple
+ * outgoing connections.
  *
  * @author DaPorkchop_
  */
-public interface PClient extends PEndpoint<PClient>, PSession<PClient>, Connecting<PClient> {
+public interface PMulti extends BaseMultiEndpoint<PMulti>, Connecting<PMulti> {
     @Override
     default EndpointType type() {
-        return EndpointType.CLIENT;
+        return EndpointType.MULTI;
     }
 }

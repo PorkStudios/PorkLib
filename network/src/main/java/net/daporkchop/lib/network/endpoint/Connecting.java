@@ -15,20 +15,32 @@
 
 package net.daporkchop.lib.network.endpoint;
 
-import net.daporkchop.lib.network.session.UserSession;
+import lombok.NonNull;
 
-import java.util.Collection;
+import java.net.InetSocketAddress;
 
 /**
- * An endpoint that can have multiple concurrent sessions.
+ * Used for all endpoints that can initiate (an) outgoing connection(s).
  *
  * @author DaPorkchop_
  */
-public interface PMultiEndpoint<Impl extends PMultiEndpoint<Impl>> extends PEndpoint<Impl> {
+public interface Connecting<Impl extends Connecting<Impl>> {
     /**
-     * Gets all sessions currently connected to this endpoint.
+     * Connects to a remote endpoint.
      *
-     * @return all sessions currently connected to this endpoint
+     * @param address the address of the endpoint to connect to
+     * @return this instance
      */
-    Collection<UserSession> sessions();
+    Connecting<Impl> connect(@NonNull InetSocketAddress address);
+
+    /**
+     * Connects to a remote endpoint.
+     *
+     * @param address the address of the endpoint to connect to
+     * @param port    the port to connect on
+     * @return this instance
+     */
+    default Connecting<Impl> connect(@NonNull String address, int port) {
+        return this.connect(new InetSocketAddress(address, port));
+    }
 }

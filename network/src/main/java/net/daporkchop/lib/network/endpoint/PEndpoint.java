@@ -18,7 +18,10 @@ package net.daporkchop.lib.network.endpoint;
 import io.netty.util.concurrent.Future;
 import lombok.NonNull;
 import net.daporkchop.lib.network.EndpointType;
+import net.daporkchop.lib.network.session.UserSession;
 import net.daporkchop.lib.network.util.CloseableFuture;
+
+import java.util.Collection;
 
 /**
  * An endpoint is one of the ends on a connection. Connections consist of two endpoints, one local one and

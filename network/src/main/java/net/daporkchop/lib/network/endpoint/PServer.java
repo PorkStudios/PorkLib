@@ -15,8 +15,16 @@
 
 package net.daporkchop.lib.network.endpoint;
 
+import net.daporkchop.lib.network.EndpointType;
+
 /**
+ * An endpoint that can accept incoming connections.
+ *
  * @author DaPorkchop_
  */
-public interface PServer extends PMultiEndpoint<PServer> {
+public interface PServer extends BaseMultiEndpoint<PServer> {
+    @Override
+    default EndpointType type() {
+        return EndpointType.SERVER;
+    }
 }

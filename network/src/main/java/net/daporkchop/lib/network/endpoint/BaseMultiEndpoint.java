@@ -15,17 +15,18 @@
 
 package net.daporkchop.lib.network.endpoint;
 
-import net.daporkchop.lib.network.EndpointType;
-import net.daporkchop.lib.network.session.PSession;
+import net.daporkchop.lib.network.session.UserSession;
+
+import java.util.Collection;
 
 /**
- * A client can connect to a single remote endpoint.
- *
  * @author DaPorkchop_
  */
-public interface PClient extends PEndpoint<PClient>, PSession<PClient>, Connecting<PClient> {
-    @Override
-    default EndpointType type() {
-        return EndpointType.CLIENT;
-    }
+interface BaseMultiEndpoint<Impl extends BaseMultiEndpoint<Impl>> extends PEndpoint<Impl> {
+    /**
+     * Gets all sessions currently connected to this endpoint.
+     *
+     * @return all sessions currently connected to this endpoint
+     */
+    Collection<UserSession> sessions();
 }

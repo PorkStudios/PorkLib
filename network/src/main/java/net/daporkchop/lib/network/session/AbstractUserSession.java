@@ -13,26 +13,20 @@
  *
  */
 
-package net.daporkchop.lib.network.transport;
+package net.daporkchop.lib.network.session;
 
-import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.session.PSession;
-import net.daporkchop.lib.unsafe.PUnsafe;
+import lombok.Getter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.network.transport.NetSession;
 
 /**
- * An internally-used representation of a session, used as an extra layer of abstraction to allow for creation of
- * custom transport protocols rather than forcing everyone to use Netty.
- *
  * @author DaPorkchop_
  */
-public interface NetSession extends PSession<NetSession> {
-    long ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET = PUnsafe.pork_getOffset(AbstractUserSession.class, "internalSession");
+@Getter
+@Accessors(fluent = true)
+public abstract class AbstractUserSession<Impl extends AbstractUserSession<Impl>> implements UserSession<Impl> {
+    protected final NetSession internalSession = null;
 
-    /**
-     * Gets this session's user session instance
-     *
-     * @param <S> the type of the user session
-     * @return this session's user session instance
-     */
-    <S extends AbstractUserSession<S>> S userSession();
+    public static class NoopUserSession extends AbstractUserSession<NoopUserSession> {
+    }
 }

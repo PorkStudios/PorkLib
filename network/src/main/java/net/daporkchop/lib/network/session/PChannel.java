@@ -19,7 +19,6 @@ import io.netty.util.concurrent.Future;
 import lombok.NonNull;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.transport.NetSession;
-import net.daporkchop.lib.network.util.CloseableFuture;
 
 /**
  * A channel is the actual data transfer layer on top of a {@link PSession}. A single {@link PSession} may have multiple
@@ -38,7 +37,7 @@ public interface PChannel extends Reliable<PChannel> {
      *
      * @return this channel's underlying session
      */
-    <T extends UserSession<T>> T session();
+    <S extends AbstractUserSession<S>> S session();
 
     /**
      * Gets this channel's underlying internal session.

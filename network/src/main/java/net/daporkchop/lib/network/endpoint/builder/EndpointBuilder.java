@@ -18,14 +18,15 @@ package net.daporkchop.lib.network.endpoint.builder;
 import io.netty.channel.EventLoopGroup;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
+import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.transport.TransportEngine;
 import net.daporkchop.lib.network.transport.tcp.TCPEngine;
 
 import java.util.concurrent.Executor;
+import java.util.function.Supplier;
 
 /**
  * @author DaPorkchop_
@@ -37,6 +38,8 @@ public abstract class EndpointBuilder<Impl extends EndpointBuilder<Impl, R>, R e
 
     protected Executor executor = PorkUtil.DEFAULT_EXECUTOR;
     protected EventLoopGroup group;
+
+    protected Supplier<AbstractUserSession> sessionFactory = AbstractUserSession.NoopUserSession::new;
 
     @SuppressWarnings("unchecked")
     public Impl engine(@NonNull TransportEngine engine) {
@@ -53,6 +56,12 @@ public abstract class EndpointBuilder<Impl extends EndpointBuilder<Impl, R>, R e
     @SuppressWarnings("unchecked")
     public Impl group(EventLoopGroup group) {
         this.group = group;
+        return (Impl) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public Impl sessionFactory(@NonNull Supplier<AbstractUserSession> sessionFactory) {
+        this.sessionFactory = sessionFactory;
         return (Impl) this;
     }
 

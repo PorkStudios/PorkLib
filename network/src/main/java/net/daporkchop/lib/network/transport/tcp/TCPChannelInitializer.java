@@ -15,64 +15,44 @@
 
 package net.daporkchop.lib.network.transport.tcp;
 
-import io.netty.util.concurrent.Future;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInitializer;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.session.PChannel;
-import net.daporkchop.lib.network.session.Reliability;
-import net.daporkchop.lib.network.transport.NetSession;
-import net.daporkchop.lib.network.transport.TransportEngine;
+import net.daporkchop.lib.network.transport.tcp.endpoint.TCPEndpoint;
+
+import java.util.function.Consumer;
 
 /**
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-@Accessors(fluent = true)
-public class DummyTCPChannel implements PChannel {
+@Getter
+public class TCPChannelInitializer<Ch extends Channel> extends ChannelInitializer<Ch> {
     @NonNull
-    protected final WrapperNioSocketChannel session;
-    @Getter
-    protected final int id;
+    protected final TCPEndpoint endpoint;
+    @NonNull
+    protected final Consumer<Ch> addedCallback;
+    @NonNull
+    protected final Consumer<Ch> removedCallback;
 
-    @Override
-    public <S extends AbstractUserSession<S>> S session() {
-        return this.session.userSession();
+    public TCPChannelInitializer(@NonNull TCPEndpoint endpoint) {
+        this(endpoint, ch -> {}, ch -> {});
     }
 
     @Override
-    public NetSession internalSession() {
-        return this.session;
+    protected void initChannel(@NonNull Ch channel) throws Exception {
+        this.addedCallback.accept(channel);
     }
 
     @Override
-    public PChannel send(@NonNull Object packet, Reliability reliability) {
-        this.session.send(packet, Reliability.RELIABLE_ORDERED, this.id);
-        return this;
-    }
-
-    @Override
-    public Future<Void> sendFuture(@NonNull Object packet, Reliability reliability) {
-        return this.session.sendFuture(packet, Reliability.RELIABLE_ORDERED, this.id);
-    }
-
-    @Override
-    public Reliability fallbackReliability() {
-        return Reliability.RELIABLE_ORDERED;
-    }
-
-    @Override
-    public PChannel fallbackReliability(@NonNull Reliability reliability) throws IllegalArgumentException {
-        if (reliability != Reliability.RELIABLE_ORDERED)    {
-            throw new IllegalArgumentException(reliability.name());
-        }
-        return this;
-    }
-
-    @Override
-    public TransportEngine transportEngine() {
-        return this.session.transportEngine();
+    @SuppressWarnings("unchecked")
+    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
+        super.channelUnregistered(ctx);
+        this.removedCallback.accept((Ch) ctx.channel());
     }
 }

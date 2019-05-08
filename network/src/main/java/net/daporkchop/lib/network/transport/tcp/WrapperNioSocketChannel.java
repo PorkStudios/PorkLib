@@ -17,18 +17,18 @@ package net.daporkchop.lib.network.transport.tcp;
 
 import io.netty.channel.Channel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.util.collection.IntObjectHashMap;
-import io.netty.util.collection.IntObjectMap;
 import io.netty.util.concurrent.Future;
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
+import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.PChannel;
 import net.daporkchop.lib.network.session.Reliability;
-import net.daporkchop.lib.network.session.UserSession;
 import net.daporkchop.lib.network.transport.NetSession;
 import net.daporkchop.lib.network.transport.TransportEngine;
 import net.daporkchop.lib.network.transport.WrappedPacket;
+import net.daporkchop.lib.network.transport.tcp.endpoint.TCPEndpoint;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
@@ -38,33 +38,33 @@ import java.util.Map;
  * @author DaPorkchop_
  */
 public class WrapperNioSocketChannel extends NioSocketChannel implements NetSession {
-    protected final PEndpoint endpoint;
+    protected final TCPEndpoint endpoint;
     protected final DummyTCPChannel defaultChannel = new DummyTCPChannel(this, 0);
     protected final Map<Integer, DummyTCPChannel> channels = PorkUtil.newSoftCache();
-    protected final UserSession userSession;
+    protected final AbstractUserSession userSession;
 
-    public WrapperNioSocketChannel(@NonNull PEndpoint endpoint, @NonNull UserSession userSession) {
+    public WrapperNioSocketChannel(@NonNull TCPEndpoint endpoint, @NonNull AbstractUserSession userSession) {
         super();
         this.endpoint = endpoint;
-        this.userSession = userSession;
+        PUnsafe.putObject(this.userSession = userSession, ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);
     }
 
-    public WrapperNioSocketChannel(SelectorProvider provider, @NonNull PEndpoint endpoint, @NonNull UserSession userSession) {
+    public WrapperNioSocketChannel(SelectorProvider provider, @NonNull TCPEndpoint endpoint, @NonNull AbstractUserSession userSession) {
         super(provider);
         this.endpoint = endpoint;
-        this.userSession = userSession;
+        PUnsafe.putObject(this.userSession = userSession, ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);
     }
 
-    public WrapperNioSocketChannel(SocketChannel socket, @NonNull PEndpoint endpoint, @NonNull UserSession userSession) {
+    public WrapperNioSocketChannel(SocketChannel socket, @NonNull TCPEndpoint endpoint, @NonNull AbstractUserSession userSession) {
         super(socket);
         this.endpoint = endpoint;
-        this.userSession = userSession;
+        PUnsafe.putObject(this.userSession = userSession, ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);
     }
 
-    public WrapperNioSocketChannel(Channel parent, SocketChannel socket, @NonNull PEndpoint endpoint, @NonNull UserSession userSession) {
+    public WrapperNioSocketChannel(Channel parent, SocketChannel socket, @NonNull TCPEndpoint endpoint, @NonNull AbstractUserSession userSession) {
         super(parent, socket);
         this.endpoint = endpoint;
-        this.userSession = userSession;
+        PUnsafe.putObject(this.userSession = userSession, ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);
     }
 
     @Override
@@ -137,8 +137,8 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements NetSess
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends UserSession<T>> T userSession() {
-        return (T) this.userSession;
+    public <S extends AbstractUserSession<S>> S userSession() {
+        return (S) this.userSession;
     }
 
     @Override

@@ -39,11 +39,6 @@ public interface UserSession<Impl extends UserSession<Impl>> extends PSession<Im
     }
 
     @Override
-    default PChannel openChannel(Reliability reliability) {
-        return this.internalSession().openChannel(reliability);
-    }
-
-    @Override
     @SuppressWarnings("unchecked")
     default Impl send(@NonNull Object packet, Reliability reliability) {
         this.internalSession().send(packet, reliability);

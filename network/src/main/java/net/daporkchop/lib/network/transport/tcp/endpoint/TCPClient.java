@@ -16,32 +16,48 @@
 package net.daporkchop.lib.network.transport.tcp.endpoint;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import lombok.NonNull;
 import net.daporkchop.lib.network.endpoint.PClient;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
+import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.transport.NetSession;
+import net.daporkchop.lib.network.transport.tcp.TCPChannelInitializer;
+import net.daporkchop.lib.network.transport.tcp.WrapperNioSocketChannel;
+
+import java.util.function.Supplier;
 
 /**
  * @author DaPorkchop_
  */
-public class TCPClient extends TCPEndpoint<PClient, Channel> implements PClient {
-    public TCPClient(@NonNull ClientBuilder builder)    {
+public class TCPClient extends TCPEndpoint<PClient, WrapperNioSocketChannel> implements PClient {
+    public TCPClient(@NonNull ClientBuilder builder) {
         super(builder);
 
         try {
             Bootstrap bootstrap = new Bootstrap();
-            if (builder.group() != null)    {
+            if (builder.group() != null) {
                 bootstrap.group(builder.group());
             } else {
                 bootstrap.group(new NioEventLoopGroup(0, builder.executor()));
             }
+            {
+                Supplier<AbstractUserSession> sessionFactory = builder.sessionFactory();
+                bootstrap.channelFactory(() -> new WrapperNioSocketChannel(this, sessionFactory.get()));
+            }
+            bootstrap.handler(new TCPChannelInitializer<>(this))
+                    .option(ChannelOption.SO_KEEPALIVE, true)
+                    .option(ChannelOption.TCP_NODELAY, true);
+
+            this.channel = (WrapperNioSocketChannel) bootstrap.connect(builder.address()).channel();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
     @Override
     public NetSession internalSession() {
-        return null;
+        return this.channel;
     }
 }

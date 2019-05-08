@@ -13,21 +13,22 @@
  *
  */
 
-package net.daporkchop.lib.network.endpoint;
+package net.daporkchop.lib.network.protocol;
 
+import lombok.NonNull;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.session.UserSession;
-
-import java.util.Collection;
+import net.daporkchop.lib.network.transport.WrappedPacket;
 
 /**
  * @author DaPorkchop_
  */
-interface BaseMultiEndpoint<Impl extends BaseMultiEndpoint<Impl>> extends PEndpoint<Impl> {
+@FunctionalInterface
+public interface Handler<P, S extends AbstractUserSession<S>> {
     /**
-     * Gets all sessions currently connected to this endpoint.
+     * Handles an incoming packet.
      *
-     * @return all sessions currently connected to this endpoint
+     * @param packet  the packet that was received
+     * @param session the session that the packet was received on
      */
-    <S extends AbstractUserSession<S>> Collection<S> sessions();
+    void handle(@NonNull WrappedPacket<P> packet, @NonNull S session);
 }

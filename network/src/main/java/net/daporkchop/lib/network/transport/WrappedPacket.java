@@ -29,9 +29,9 @@ import net.daporkchop.lib.network.session.Reliability;
 @Getter
 @Setter
 @Accessors(chain = true)
-public class WrappedPacket {
+public class WrappedPacket<P> {
     @NonNull
-    protected Object packet;
+    protected P packet;
     @NonNull
     protected final Reliability reliability;
     protected final int channel;

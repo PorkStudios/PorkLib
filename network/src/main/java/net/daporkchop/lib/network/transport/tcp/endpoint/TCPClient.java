@@ -13,42 +13,35 @@
  *
  */
 
-package net.daporkchop.lib.network.util;
+package net.daporkchop.lib.network.transport.tcp.endpoint;
 
-import io.netty.util.concurrent.Future;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
+import io.netty.channel.nio.NioEventLoopGroup;
+import lombok.NonNull;
+import net.daporkchop.lib.network.endpoint.PClient;
+import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
+import net.daporkchop.lib.network.transport.NetSession;
 
 /**
- * A resource that may be closed both synchronously and asynchronously.
- *
  * @author DaPorkchop_
  */
-public interface CloseableFuture {
-    /**
-     * Checks whether or not this resource has been closed or is currently closing.
-     *
-     * @return whether or not this resource has been closed or is currently closing
-     */
-    boolean isClosed();
+public class TCPClient extends TCPEndpoint<PClient, Channel> implements PClient {
+    public TCPClient(@NonNull ClientBuilder builder)    {
+        super(builder);
 
-    /**
-     * Checks whether or not this resource is currently open.
-     *
-     * @return whether or not this resource is currently open
-     */
-    default boolean isOpen() {
-        return !this.isClosed();
+        try {
+            Bootstrap bootstrap = new Bootstrap();
+            if (builder.group() != null)    {
+                bootstrap.group(builder.group());
+            } else {
+                bootstrap.group(new NioEventLoopGroup(0, builder.executor()));
+            }
+        }
     }
 
-    /**
-     * Closes this resource, blocking until it is closed.
-     */
-    void closeNow();
-
-    /**
-     * Closes this resource at some point in the future.
-     *
-     * @return a future that will be completed once this resource is closed
-     * @see #closeNow()
-     */
-    Future<Void> closeAsync();
+    @Override
+    public NetSession internalSession() {
+        return null;
+    }
 }

@@ -13,42 +13,32 @@
  *
  */
 
-package net.daporkchop.lib.network.util;
+package net.daporkchop.lib.network.endpoint.builder;
 
-import io.netty.util.concurrent.Future;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.network.endpoint.PClient;
+
+import java.net.InetSocketAddress;
 
 /**
- * A resource that may be closed both synchronously and asynchronously.
- *
  * @author DaPorkchop_
  */
-public interface CloseableFuture {
-    /**
-     * Checks whether or not this resource has been closed or is currently closing.
-     *
-     * @return whether or not this resource has been closed or is currently closing
-     */
-    boolean isClosed();
+@Getter
+@Setter
+@Accessors(chain = true, fluent = true)
+public class ClientBuilder extends EndpointBuilder<ClientBuilder, PClient> {
+    @NonNull
+    protected InetSocketAddress address;
 
-    /**
-     * Checks whether or not this resource is currently open.
-     *
-     * @return whether or not this resource is currently open
-     */
-    default boolean isOpen() {
-        return !this.isClosed();
+    @Override
+    public PClient build() {
+        if (this.address == null)   {
+            throw new NullPointerException("address");
+        } else {
+            return this.engine.createClient(this);
+        }
     }
-
-    /**
-     * Closes this resource, blocking until it is closed.
-     */
-    void closeNow();
-
-    /**
-     * Closes this resource at some point in the future.
-     *
-     * @return a future that will be completed once this resource is closed
-     * @see #closeNow()
-     */
-    Future<Void> closeAsync();
 }

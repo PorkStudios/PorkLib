@@ -22,6 +22,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
+import net.daporkchop.lib.network.endpoint.builder.EndpointBuilder;
 import net.daporkchop.lib.network.transport.TransportEngine;
 import net.daporkchop.lib.network.transport.tcp.TCPEngine;
 
@@ -31,14 +32,17 @@ import net.daporkchop.lib.network.transport.tcp.TCPEngine;
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public abstract class TCPEndpoint<Impl extends TCPEndpoint<Impl, Ch>, Ch extends Channel> implements PEndpoint<Impl> {
-    @NonNull
+public abstract class TCPEndpoint<Impl extends PEndpoint<Impl>, Ch extends Channel> implements PEndpoint<Impl> {
     protected final TCPEngine transportEngine;
     @NonNull
-    protected final Ch channel;
+    protected Ch channel;
+
+    protected TCPEndpoint(@NonNull EndpointBuilder builder)    {
+        this.transportEngine = (TCPEngine) builder.engine();
+    }
 
     @Override
-    public void close() {
+    public void closeNow() {
         this.channel.close().syncUninterruptibly();
     }
 
@@ -48,7 +52,7 @@ public abstract class TCPEndpoint<Impl extends TCPEndpoint<Impl, Ch>, Ch extends
     }
 
     @Override
-    public Future<Void> closeFuture() {
+    public Future<Void> closeAsync() {
         return this.channel.close();
     }
 }

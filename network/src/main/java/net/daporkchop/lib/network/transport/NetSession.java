@@ -16,6 +16,7 @@
 package net.daporkchop.lib.network.transport;
 
 import net.daporkchop.lib.network.session.PSession;
+import net.daporkchop.lib.network.session.UserSession;
 
 /**
  * An internally-used representation of a session, used as an extra layer of abstraction to allow for creation of
@@ -24,4 +25,11 @@ import net.daporkchop.lib.network.session.PSession;
  * @author DaPorkchop_
  */
 public interface NetSession extends PSession<NetSession> {
+    /**
+     * Gets this session's user session instance
+     *
+     * @param <T> the type of the user session
+     * @return this session's user session instance
+     */
+    <T extends UserSession<T>> T userSession();
 }

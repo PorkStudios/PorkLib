@@ -13,42 +13,48 @@
  *
  */
 
-package net.daporkchop.lib.network.util;
+package net.daporkchop.lib.network.endpoint.builder;
 
-import io.netty.util.concurrent.Future;
+import io.netty.channel.EventLoopGroup;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.network.endpoint.PEndpoint;
+import net.daporkchop.lib.network.transport.TransportEngine;
+import net.daporkchop.lib.network.transport.tcp.TCPEngine;
+
+import java.util.concurrent.Executor;
 
 /**
- * A resource that may be closed both synchronously and asynchronously.
- *
  * @author DaPorkchop_
  */
-public interface CloseableFuture {
-    /**
-     * Checks whether or not this resource has been closed or is currently closing.
-     *
-     * @return whether or not this resource has been closed or is currently closing
-     */
-    boolean isClosed();
+@Getter
+@Accessors(chain = true, fluent = true)
+public abstract class EndpointBuilder<Impl extends EndpointBuilder<Impl, R>, R extends PEndpoint> {
+    protected TransportEngine engine = TCPEngine.instance();
 
-    /**
-     * Checks whether or not this resource is currently open.
-     *
-     * @return whether or not this resource is currently open
-     */
-    default boolean isOpen() {
-        return !this.isClosed();
+    protected Executor executor = PorkUtil.DEFAULT_EXECUTOR;
+    protected EventLoopGroup group;
+
+    @SuppressWarnings("unchecked")
+    public Impl engine(@NonNull TransportEngine engine) {
+        this.engine = engine;
+        return (Impl) this;
     }
 
-    /**
-     * Closes this resource, blocking until it is closed.
-     */
-    void closeNow();
+    @SuppressWarnings("unchecked")
+    public Impl executor(@NonNull Executor executor) {
+        this.executor = executor;
+        return (Impl) this;
+    }
 
-    /**
-     * Closes this resource at some point in the future.
-     *
-     * @return a future that will be completed once this resource is closed
-     * @see #closeNow()
-     */
-    Future<Void> closeAsync();
+    @SuppressWarnings("unchecked")
+    public Impl group(EventLoopGroup group) {
+        this.group = group;
+        return (Impl) this;
+    }
+
+    public abstract R build();
 }

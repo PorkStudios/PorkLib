@@ -27,7 +27,7 @@ import net.daporkchop.lib.network.transport.TransportEngine;
  *
  * @author DaPorkchop_
  */
-public interface UserSession extends PSession<UserSession> {
+public interface UserSession<Impl extends UserSession<Impl>> extends PSession<Impl> {
     @Override
     default <E extends PEndpoint<E>> E endpoint() {
         return this.internalSession().endpoint();
@@ -44,15 +44,17 @@ public interface UserSession extends PSession<UserSession> {
     }
 
     @Override
-    default UserSession send(@NonNull Object packet, Reliability reliability) {
+    @SuppressWarnings("unchecked")
+    default Impl send(@NonNull Object packet, Reliability reliability) {
         this.internalSession().send(packet, reliability);
-        return this;
+        return (Impl) this;
     }
 
     @Override
-    default UserSession send(@NonNull Object packet, Reliability reliability, int channelId) {
+    @SuppressWarnings("unchecked")
+    default Impl send(@NonNull Object packet, Reliability reliability, int channelId) {
         this.internalSession().send(packet, reliability, channelId);
-        return this;
+        return (Impl) this;
     }
 
     @Override
@@ -66,8 +68,8 @@ public interface UserSession extends PSession<UserSession> {
     }
 
     @Override
-    default void close() {
-        this.internalSession().close();
+    default void closeNow() {
+        this.internalSession().closeNow();
     }
 
     @Override
@@ -76,9 +78,10 @@ public interface UserSession extends PSession<UserSession> {
     }
 
     @Override
-    default UserSession fallbackReliability(@NonNull Reliability reliability) throws IllegalArgumentException {
+    @SuppressWarnings("unchecked")
+    default Impl fallbackReliability(@NonNull Reliability reliability) throws IllegalArgumentException {
         this.internalSession().fallbackReliability(reliability);
-        return this;
+        return (Impl) this;
     }
 
     @Override
@@ -87,8 +90,8 @@ public interface UserSession extends PSession<UserSession> {
     }
 
     @Override
-    default Future<Void> closeFuture() {
-        return this.internalSession().closeFuture();
+    default Future<Void> closeAsync() {
+        return this.internalSession().closeAsync();
     }
 
     @Override

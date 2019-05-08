@@ -45,5 +45,5 @@ public interface PEndpoint<Impl extends PEndpoint<Impl>> extends CloseableFuture
      * Closing an endpoint will result in all connections associated with it being closed.
      */
     @Override
-    void close();
+    void closeNow();
 }

@@ -21,6 +21,7 @@ import net.daporkchop.lib.network.endpoint.PMulti;
 import net.daporkchop.lib.network.endpoint.PMultiClient;
 import net.daporkchop.lib.network.endpoint.PServer;
 import net.daporkchop.lib.network.endpoint.Pp2pEndpoint;
+import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.session.Reliability;
 
 import java.net.InetSocketAddress;
@@ -35,10 +36,10 @@ public interface TransportEngine {
     //endpoint creation methods
     /**
      * Creates a new client that will connect to the given address.
-     * @param connectAddress the address that the new client will connect to
+     * @param builder the builder to use
      * @return the newly created client
      */
-    PClient createClient(@NonNull InetSocketAddress connectAddress);
+    PClient createClient(@NonNull ClientBuilder builder);
 
     /**
      * Creates a new multi-client.

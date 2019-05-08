@@ -18,6 +18,7 @@ package net.daporkchop.lib.network.session;
 import io.netty.util.concurrent.Future;
 import lombok.NonNull;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
+import net.daporkchop.lib.network.transport.NetSession;
 import net.daporkchop.lib.network.util.CloseableFuture;
 
 /**
@@ -31,21 +32,35 @@ import net.daporkchop.lib.network.util.CloseableFuture;
  *
  * @author DaPorkchop_
  */
-public interface PChannel extends CloseableFuture, Reliable<PChannel> {
+public interface PChannel extends Reliable<PChannel> {
     /**
      * Gets this channel's underlying session.
      *
      * @return this channel's underlying session
      */
-    UserSession session();
+    <T extends UserSession<T>> T session();
+
+    /**
+     * Gets this channel's underlying internal session.
+     *
+     * @return this channel's underlying internal session
+     */
+    NetSession internalSession();
+
+    /**
+     * Gets this channel's id.
+     *
+     * @return this channel's id
+     */
+    int id();
 
     /**
      * Gets the local endpoint associated with this channel's underlying session.
      *
      * @return the local endpoint associated with this channel's underlying session
      */
-    default PEndpoint endpoint() {
-        return this.session().endpoint();
+    default <E extends PEndpoint<E>> E endpoint() {
+        return this.internalSession().endpoint();
     }
 
     /**
@@ -99,17 +114,4 @@ public interface PChannel extends CloseableFuture, Reliable<PChannel> {
     default Future<Void> sendFuture(@NonNull Object packet) {
         return this.sendFuture(packet, this.fallbackReliability());
     }
-
-    /**
-     * Closes this channel, blocking until it is closed.
-     * <p>
-     * Closing a channel will not close the underlying session, but sending packets over a closed channel is not allowed
-     * and will produce undefined behavior.
-     * <p>
-     * An exception is for channel 0, which is the default and control channel for a session. Attempting to invoke
-     * this method on channel 0 will simply do nothing, as that channel can only be closed when the session is
-     * closed.
-     */
-    @Override
-    void close();
 }

@@ -15,69 +15,64 @@
 
 package net.daporkchop.lib.network.transport.tcp;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import io.netty.util.concurrent.Future;
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.common.reference.InstancePool;
-import net.daporkchop.lib.network.endpoint.PClient;
-import net.daporkchop.lib.network.endpoint.PMulti;
-import net.daporkchop.lib.network.endpoint.PMultiClient;
-import net.daporkchop.lib.network.endpoint.PServer;
-import net.daporkchop.lib.network.endpoint.Pp2pEndpoint;
-import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.network.session.PChannel;
 import net.daporkchop.lib.network.session.Reliability;
+import net.daporkchop.lib.network.session.UserSession;
+import net.daporkchop.lib.network.transport.NetSession;
 import net.daporkchop.lib.network.transport.TransportEngine;
-import net.daporkchop.lib.network.transport.tcp.endpoint.TCPClient;
-
-import java.net.InetSocketAddress;
-import java.util.Collection;
-import java.util.Collections;
 
 /**
- * An implementation of {@link TransportEngine} for the TCP/IP transport protocol.
- *
  * @author DaPorkchop_
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class TCPEngine implements TransportEngine {
-    protected static final Collection<Reliability> RELIABILITIES = Collections.singleton(Reliability.RELIABLE_ORDERED);
+@RequiredArgsConstructor
+@Accessors(fluent = true)
+public class DummyTCPChannel implements PChannel {
+    @NonNull
+    protected final WrapperNioSocketChannel session;
+    @Getter
+    protected final int id;
 
-    public static TCPEngine instance()  {
-        return InstancePool.getInstance(TCPEngine.class);
+    @Override
+    public <T extends UserSession<T>> T session() {
+        return this.session.userSession();
     }
 
     @Override
-    public PClient createClient(@NonNull ClientBuilder builder) {
-        return new TCPClient(builder);
+    public NetSession internalSession() {
+        return this.session;
     }
 
     @Override
-    public PMultiClient createMultiClient() {
-        return null;
+    public PChannel send(@NonNull Object packet, Reliability reliability) {
+        this.session.send(packet, Reliability.RELIABLE_ORDERED, this.id);
+        return this;
     }
 
     @Override
-    public PServer createServer(@NonNull InetSocketAddress bindAddress) {
-        return null;
+    public Future<Void> sendFuture(@NonNull Object packet, Reliability reliability) {
+        return this.session.sendFuture(packet, Reliability.RELIABLE_ORDERED, this.id);
     }
 
     @Override
-    public PMulti createMulti(@NonNull InetSocketAddress bindAddress) {
-        return null;
+    public Reliability fallbackReliability() {
+        return Reliability.RELIABLE_ORDERED;
     }
 
     @Override
-    public Pp2pEndpoint createP2P(@NonNull InetSocketAddress bindAddress) {
-        return null;
+    public PChannel fallbackReliability(@NonNull Reliability reliability) throws IllegalArgumentException {
+        if (reliability != Reliability.RELIABLE_ORDERED)    {
+            throw new IllegalArgumentException(reliability.name());
+        }
+        return this;
     }
 
     @Override
-    public Collection<Reliability> supportedReliabilities() {
-        return RELIABILITIES;
-    }
-
-    @Override
-    public boolean isReliabilitySupported(@NonNull Reliability reliability) {
-        return reliability == Reliability.RELIABLE_ORDERED;
+    public TransportEngine transportEngine() {
+        return this.session.transportEngine();
     }
 }

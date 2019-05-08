@@ -37,28 +37,9 @@ public interface PSession<Impl extends PSession<Impl>> extends CloseableFuture, 
      * Gets an open channel on this session with a given id.
      *
      * @param id the id of the channel to get
-     * @return a channel with the given id, or {@code null} if none was found
+     * @return a channel with the given id
      */
     PChannel channel(int id);
-
-    /**
-     * Opens a new channel on this session.
-     *
-     * @param reliability the fallback reliability of the new channel. If {@code null} or unsupported by this
-     *                    session's transport protocol, this session's fallback reliability level will be
-     *                    used (see {@link #fallbackReliability()})
-     * @return the newly opened channel
-     */
-    PChannel openChannel(Reliability reliability);
-
-    /**
-     * Opens a new channel on this session, using this session's fallback reliability level.
-     *
-     * @return the newly opened channel
-     */
-    default PChannel openChannel() {
-        return this.openChannel(this.fallbackReliability());
-    }
 
     /**
      * Sends a single packet to the remote endpoint.
@@ -170,5 +151,5 @@ public interface PSession<Impl extends PSession<Impl>> extends CloseableFuture, 
      * Closes this session, blocking until it is closed.
      */
     @Override
-    void close();
+    void closeNow();
 }

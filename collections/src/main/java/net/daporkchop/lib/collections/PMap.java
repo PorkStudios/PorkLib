@@ -35,8 +35,10 @@ import java.util.function.Consumer;
 public interface PMap<K, V> extends BaseCollection {
     /**
      * Gets this map's size (i.e. the number of key => value pairs in the map).
+     * <p>
+     * If this implementation has no reasonable way of figuring out the number of key => value pairs, this method will return {@code -1}.
      *
-     * @return the size of this map, or -1 if the map is closed
+     * @return the size of this map
      */
     @Override
     long size();
@@ -70,7 +72,9 @@ public interface PMap<K, V> extends BaseCollection {
      *
      * @param other the map from which to retrieve values
      */
-    void putAll(@NonNull PMap<K, V> other);
+    default void putAll(@NonNull PMap<K, V> other)  {
+        other.forEach(this::put);
+    }
 
     /**
      * Submits a key => value pair to the map, replacing existing mappings if present.

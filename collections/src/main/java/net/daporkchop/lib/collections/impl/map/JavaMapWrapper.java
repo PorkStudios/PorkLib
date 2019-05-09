@@ -49,11 +49,6 @@ public class JavaMapWrapper<K, V> implements PMap<K, V> {
     }
 
     @Override
-    public void putAll(PMap<K, V> other) {
-        throw new UnsupportedOperationException(); //TODO
-    }
-
-    @Override
     public void put(K key, V value) {
         this.delegate.put(key, value);
     }

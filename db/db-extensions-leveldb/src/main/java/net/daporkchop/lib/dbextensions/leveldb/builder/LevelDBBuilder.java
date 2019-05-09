@@ -13,45 +13,53 @@
  *
  */
 
-package net.daporkchop.lib.collections.util;
+package net.daporkchop.lib.dbextensions.leveldb.builder;
+
+import lombok.Getter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.reference.InstancePool;
+import net.daporkchop.lib.db.builder.DBBuilder;
+import org.iq80.leveldb.DB;
+import org.iq80.leveldb.Options;
+import org.iq80.leveldb.impl.Iq80DBFactory;
+
+import java.io.File;
+import java.io.IOException;
 
 /**
- * Some shared methods across all types of collections.
- * <p>
- * Implementations of this class are expected to be thread-safe at a minimum, optionally supporting full concurrency.
+ * A base builder class for all LevelDB-backed collections.
  *
  * @author DaPorkchop_
  */
-public interface BaseCollection {
+@Getter
+@Accessors(fluent = true)
+public abstract class LevelDBBuilder<Impl extends LevelDBBuilder<Impl, T>, T> implements DBBuilder<Impl, T> {
     /**
-     * Gets this collection's size (the number of values in the collection).
-     * <p>
-     * If this implementation has no reasonable way of figuring out the number of values, this method will return {@code -1}.
-     *
-     * @return this collection's size
+     * Additional LevelDB options to use when opening the database. If {@code null}, a default instance will be used.
      */
-    long size();
+    protected Options options;
 
     /**
-     * Checks whether or not this collection is empty (i.e. contains no values).
-     *
-     * @return whether or not this collection is empty
+     * The path to store the database in. Must be set!
      */
-    default boolean isEmpty() {
-        return this.size() == 0L;
+    protected File path;
+
+    @SuppressWarnings("unchecked")
+    public Impl options(Options options) {
+        this.options = options;
+        return (Impl) this;
     }
 
-    /**
-     * Removes all values from this collection.
-     */
-    void clear();
+    @SuppressWarnings("unchecked")
+    public Impl path(File path) {
+        this.path = path;
+        return (Impl) this;
+    }
 
-    /**
-     * Checks whether or not this collection supports concurrent access. All implementations of {@link BaseCollection}
-     * are required to be thread-safe, but full concurrency is optional, so this provides a way of checking whether an
-     * implementation supports concurrency or not.
-     *
-     * @return whether or not this collection supports concurrent access
-     */
-    boolean isConcurrent();
+    public DB openDB() throws IOException {
+        if (this.path == null)  {
+            throw new NullPointerException("path");
+        }
+        return InstancePool.getInstance(Iq80DBFactory.class).open(this.path, this.options == null ? new Options() : this.options);
+    }
 }

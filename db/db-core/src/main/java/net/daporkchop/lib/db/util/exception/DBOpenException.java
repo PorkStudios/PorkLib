@@ -13,45 +13,29 @@
  *
  */
 
-package net.daporkchop.lib.collections.util;
+package net.daporkchop.lib.db.util.exception;
 
 /**
- * Some shared methods across all types of collections.
- * <p>
- * Implementations of this class are expected to be thread-safe at a minimum, optionally supporting full concurrency.
- *
  * @author DaPorkchop_
  */
-public interface BaseCollection {
-    /**
-     * Gets this collection's size (the number of values in the collection).
-     * <p>
-     * If this implementation has no reasonable way of figuring out the number of values, this method will return {@code -1}.
-     *
-     * @return this collection's size
-     */
-    long size();
-
-    /**
-     * Checks whether or not this collection is empty (i.e. contains no values).
-     *
-     * @return whether or not this collection is empty
-     */
-    default boolean isEmpty() {
-        return this.size() == 0L;
+public class DBOpenException extends DBException {
+    public DBOpenException() {
+        super();
     }
 
-    /**
-     * Removes all values from this collection.
-     */
-    void clear();
+    public DBOpenException(String message) {
+        super(message);
+    }
 
-    /**
-     * Checks whether or not this collection supports concurrent access. All implementations of {@link BaseCollection}
-     * are required to be thread-safe, but full concurrency is optional, so this provides a way of checking whether an
-     * implementation supports concurrency or not.
-     *
-     * @return whether or not this collection supports concurrent access
-     */
-    boolean isConcurrent();
+    public DBOpenException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public DBOpenException(Throwable cause) {
+        super(cause);
+    }
+
+    protected DBOpenException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
+    }
 }

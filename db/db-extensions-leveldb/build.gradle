@@ -19,5 +19,4 @@ dependencies {
     compile project(":hash")
 
     compile "io.github.pcmind:leveldb:0.12:uber"
-    compile "org.fusesource.leveldbjni:leveldbjni-all:1.8"
 }

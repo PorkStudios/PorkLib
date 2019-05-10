@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.collections;
 
+import lombok.NonNull;
 import net.daporkchop.lib.collections.stream.PStream;
 import net.daporkchop.lib.collections.stream.impl.set.ConcurrentSetStream;
 import net.daporkchop.lib.collections.stream.impl.set.UncheckedSetStream;
@@ -29,6 +30,16 @@ import net.daporkchop.lib.collections.stream.impl.set.UncheckedSetStream;
  * @author DaPorkchop_
  */
 public interface PSet<V> extends PCollection<V> {
+    @Override
+    default void removeAll(@NonNull V value) {
+        this.remove(value);
+    }
+
+    @Override
+    default boolean checkAndRemoveAll(@NonNull V value) {
+        return this.checkAndRemove(value);
+    }
+
     @Override
     default PStream<V> stream() {
         return new UncheckedSetStream<>(this, false);

@@ -18,10 +18,11 @@ package net.daporkchop.lib.db.builder;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.serialization.Serializer;
 import net.daporkchop.lib.db.DBMap;
+import net.daporkchop.lib.db.DBSet;
 import net.daporkchop.lib.db.util.KeyHasher;
 
 /**
  * @author DaPorkchop_
  */
-public interface DBMapBuilder<Impl extends DBMapBuilder<Impl, K, V>, K, V> extends DBBuilder<Impl, DBMap<K, V>> {
+public interface DBSetBuilder<Impl extends DBSetBuilder<Impl, V>, V> extends DBBuilder<Impl, DBSet<V>> {
 }

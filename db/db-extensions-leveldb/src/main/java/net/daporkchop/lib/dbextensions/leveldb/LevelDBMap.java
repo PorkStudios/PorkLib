@@ -26,6 +26,7 @@ import net.daporkchop.lib.db.util.KeyHasher;
 import net.daporkchop.lib.db.util.exception.DBNotOpenException;
 import net.daporkchop.lib.db.util.exception.DBOpenException;
 import net.daporkchop.lib.db.util.exception.DBReadException;
+import net.daporkchop.lib.db.util.exception.DBWriteException;
 import net.daporkchop.lib.dbextensions.leveldb.builder.LevelDBMapBuilder;
 import net.daporkchop.lib.encoding.ToBytes;
 import net.daporkchop.lib.hash.util.Digest;
@@ -160,7 +161,7 @@ public class LevelDBMap<K, V> implements DBMap<K, V> {
             }
             this.delegate.put(this.keyHasher.hash(key), baos.toByteArray());
         } catch (IOException e) {
-            throw new DBReadException(e);
+            throw new DBWriteException(e);
         } finally {
             this.closeLock.readLock().unlock();
         }
@@ -181,7 +182,7 @@ public class LevelDBMap<K, V> implements DBMap<K, V> {
             this.delegate.put(hash, baos.toByteArray());
             return wasPresent;
         } catch (IOException e) {
-            throw new DBReadException(e);
+            throw new DBWriteException(e);
         } finally {
             this.closeLock.readLock().unlock();
         }
@@ -202,7 +203,7 @@ public class LevelDBMap<K, V> implements DBMap<K, V> {
             this.delegate.put(hash, baos.toByteArray());
             return this.valueSerializer.read(DataIn.wrap(ByteBuffer.wrap(old)));
         } catch (IOException e) {
-            throw new DBReadException(e);
+            throw new DBWriteException(e);
         } finally {
             this.closeLock.readLock().unlock();
         }
@@ -230,7 +231,7 @@ public class LevelDBMap<K, V> implements DBMap<K, V> {
             this.ensureOpen();
             this.delegate.delete(this.keyHasher.hash(key));
         } catch (IOException e) {
-            throw new DBReadException(e);
+            throw new DBWriteException(e);
         } finally {
             this.closeLock.readLock().unlock();
         }
@@ -247,7 +248,7 @@ public class LevelDBMap<K, V> implements DBMap<K, V> {
             this.delegate.delete(hash);
             return wasPresent;
         } catch (IOException e) {
-            throw new DBReadException(e);
+            throw new DBWriteException(e);
         } finally {
             this.closeLock.readLock().unlock();
         }
@@ -264,7 +265,7 @@ public class LevelDBMap<K, V> implements DBMap<K, V> {
             this.delegate.delete(hash);
             return this.valueSerializer.read(DataIn.wrap(ByteBuffer.wrap(old)));
         } catch (IOException e) {
-            throw new DBReadException(e);
+            throw new DBWriteException(e);
         } finally {
             this.closeLock.readLock().unlock();
         }

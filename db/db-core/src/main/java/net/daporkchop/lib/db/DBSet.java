@@ -13,15 +13,18 @@
  *
  */
 
-package net.daporkchop.lib.db.builder;
+package net.daporkchop.lib.db;
 
-import lombok.NonNull;
-import net.daporkchop.lib.binary.serialization.Serializer;
-import net.daporkchop.lib.db.DBMap;
-import net.daporkchop.lib.db.util.KeyHasher;
+import net.daporkchop.lib.collections.PSet;
+
+import java.io.IOException;
 
 /**
+ * A {@link PSet} that is backed by a database.
+ *
  * @author DaPorkchop_
  */
-public interface DBMapBuilder<Impl extends DBMapBuilder<Impl, K, V>, K, V> extends DBBuilder<Impl, DBMap<K, V>> {
+public interface DBSet<V> extends PSet<V>, AutoCloseable {
+    @Override
+    void close() throws IOException;
 }

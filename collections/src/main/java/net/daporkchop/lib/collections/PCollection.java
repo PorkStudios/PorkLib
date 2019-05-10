@@ -52,9 +52,26 @@ public interface PCollection<V> extends BaseCollection {
      * Removes a value from this collection.
      *
      * @param value the value to be removed
+     */
+    void remove(V value);
+
+    /**
+     * Removes a value from this collection.
+     *
+     * @param value the value to be removed
      * @return whether or not the value was found in this collection and removed
      */
-    boolean remove(V value);
+    boolean checkAndRemove(V value);
+
+    /**
+     * Removes all occurrences of a given value from this collection.
+     *
+     * @param value the value to be removed
+     */
+    default void removeAll(V value) {
+        while (this.checkAndRemove(value)) {
+        }
+    }
 
     /**
      * Removes all occurrences of a given value from this collection.
@@ -62,9 +79,9 @@ public interface PCollection<V> extends BaseCollection {
      * @param value the value to be removed
      * @return whether or not at least one occurrence of the value was found in this collection and removed
      */
-    default boolean removeAll(V value) {
+    default boolean checkAndRemoveAll(V value) {
         boolean removed = false;
-        while (this.remove(value)) {
+        while (this.checkAndRemove(value)) {
             removed = true;
         }
         return removed;

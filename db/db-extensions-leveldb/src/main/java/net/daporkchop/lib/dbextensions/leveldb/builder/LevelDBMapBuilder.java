@@ -16,6 +16,7 @@
 package net.daporkchop.lib.dbextensions.leveldb.builder;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.serialization.Serializer;
 import net.daporkchop.lib.db.DBMap;
@@ -34,23 +35,21 @@ public class LevelDBMapBuilder<K, V> extends LevelDBBuilder<LevelDBMapBuilder<K,
     protected KeyHasher<K> keyHasher;
     protected Serializer<K> keySerializer;
     protected Serializer<V> valueSerializer;
+    @Setter
     protected boolean serializeKeys;
 
-    @Override
     @SuppressWarnings("unchecked")
     public <NEW_K> LevelDBMapBuilder<NEW_K, V> keyHasher(KeyHasher<NEW_K> keyHasher) {
         ((LevelDBMapBuilder<NEW_K, V>) this).keyHasher = keyHasher;
         return (LevelDBMapBuilder<NEW_K, V>) this;
     }
 
-    @Override
     @SuppressWarnings("unchecked")
     public <NEW_K> LevelDBMapBuilder<NEW_K, V> keySerializer(Serializer<NEW_K> keySerializer) {
         ((LevelDBMapBuilder<NEW_K, V>) this).keySerializer = keySerializer;
         return (LevelDBMapBuilder<NEW_K, V>) this;
     }
 
-    @Override
     @SuppressWarnings("unchecked")
     public <NEW_V> LevelDBMapBuilder<K, NEW_V> valueSerializer(Serializer<NEW_V> valueSerializer) {
         ((LevelDBMapBuilder<K, NEW_V>) this).valueSerializer = valueSerializer;

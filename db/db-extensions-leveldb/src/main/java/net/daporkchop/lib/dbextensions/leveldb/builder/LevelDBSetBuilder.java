@@ -13,15 +13,38 @@
  *
  */
 
-package net.daporkchop.lib.db.builder;
+package net.daporkchop.lib.dbextensions.leveldb.builder;
 
-import lombok.NonNull;
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.serialization.Serializer;
-import net.daporkchop.lib.db.DBMap;
+import net.daporkchop.lib.db.DBSet;
+import net.daporkchop.lib.db.builder.DBSetBuilder;
 import net.daporkchop.lib.db.util.KeyHasher;
 
 /**
  * @author DaPorkchop_
  */
-public interface DBMapBuilder<Impl extends DBMapBuilder<Impl, K, V>, K, V> extends DBBuilder<Impl, DBMap<K, V>> {
+@Getter
+@Accessors(fluent = true, chain = true)
+public class LevelDBSetBuilder<V> extends LevelDBBuilder<LevelDBSetBuilder<V>, DBSet<V>> implements DBSetBuilder<LevelDBSetBuilder<V>, V> {
+    protected KeyHasher<V> hasher;
+    protected Serializer<V> valueSerializer;
+
+    @SuppressWarnings("unchecked")
+    public <NEW_V> LevelDBSetBuilder<NEW_V> hasher(KeyHasher<NEW_V> hasher) {
+        ((LevelDBSetBuilder<NEW_V>) this).hasher = hasher;
+        return (LevelDBSetBuilder<NEW_V>) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <NEW_V> LevelDBSetBuilder<NEW_V> valueSerializer(Serializer<NEW_V> valueSerializer) {
+        ((LevelDBSetBuilder<NEW_V>) this).valueSerializer = valueSerializer;
+        return (LevelDBSetBuilder<NEW_V>) this;
+    }
+
+    @Override
+    public DBSet<V> build() {
+        return null;
+    }
 }

@@ -47,7 +47,12 @@ public abstract class AbstractJavaCollectionWrapper<V, C extends Collection<V>> 
     }
 
     @Override
-    public boolean remove(@NonNull V value) {
+    public void remove(@NonNull V value) {
+        this.delegate.remove(value);
+    }
+
+    @Override
+    public boolean checkAndRemove(@NonNull V value) {
         return this.delegate.remove(value);
     }
 

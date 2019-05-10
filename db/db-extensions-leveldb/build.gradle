@@ -18,5 +18,5 @@ dependencies {
     compile project(":db:db-core")
     compile project(":hash")
 
-    compile "io.github.pcmind:leveldb:0.12:uber"
+    compile "io.github.pcmind:leveldb:0.12"
 }

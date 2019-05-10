@@ -13,17 +13,29 @@
  *
  */
 
-package net.daporkchop.lib.db.util;
-
-import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataOut;
-
-import java.io.IOException;
+package net.daporkchop.lib.db.util.exception;
 
 /**
  * @author DaPorkchop_
  */
-@FunctionalInterface
-public interface KeyHasher<T> {
-    byte[] hash(@NonNull T obj) throws IOException;
+public class DBIOException extends DBException {
+    public DBIOException() {
+        super();
+    }
+
+    public DBIOException(String message) {
+        super(message);
+    }
+
+    public DBIOException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public DBIOException(Throwable cause) {
+        super(cause);
+    }
+
+    protected DBIOException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
+    }
 }

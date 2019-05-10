@@ -29,11 +29,12 @@ import net.daporkchop.lib.dbextensions.leveldb.LevelDBMap;
  * @author DaPorkchop_
  */
 @Getter
-@Accessors(fluent = true)
+@Accessors(fluent = true, chain = true)
 public class LevelDBMapBuilder<K, V> extends LevelDBBuilder<LevelDBMapBuilder<K, V>, DBMap<K, V>> implements DBMapBuilder<LevelDBMapBuilder<K, V>, K, V> {
     protected KeyHasher<K> keyHasher;
     protected Serializer<K> keySerializer;
     protected Serializer<V> valueSerializer;
+    protected boolean serializeKeys;
 
     @Override
     @SuppressWarnings("unchecked")

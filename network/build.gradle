@@ -22,9 +22,9 @@ dependencies {
     compile project(":crypto")
     compile project(":logging")
 
-    /*compile("com.nukkitx.network:raknet:$raknetVersion") {
+    compile("com.nukkitx.network:raknet:$raknetVersion") {
         exclude group: "io.netty"
-    }*/
+    }
 
     compile "io.netty:netty-buffer:$nettyVersion"
     compile "io.netty:netty-transport-native-epoll:$nettyVersion:linux-x86_64"

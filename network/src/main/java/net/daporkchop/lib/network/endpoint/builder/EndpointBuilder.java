@@ -23,6 +23,7 @@ import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.transport.TransportEngine;
+import net.daporkchop.lib.network.transport.tcp.Framer;
 import net.daporkchop.lib.network.transport.tcp.TCPEngine;
 
 import java.util.concurrent.Executor;
@@ -34,7 +35,7 @@ import java.util.function.Supplier;
 @Getter
 @Accessors(chain = true, fluent = true)
 public abstract class EndpointBuilder<Impl extends EndpointBuilder<Impl, R>, R extends PEndpoint> {
-    protected TransportEngine engine = TCPEngine.instance();
+    protected TransportEngine engine = new TCPEngine(new Framer.DefaultFramer<>());
 
     protected Executor executor = PorkUtil.DEFAULT_EXECUTOR;
     protected EventLoopGroup group;

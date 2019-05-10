@@ -15,20 +15,16 @@
 
 package net.daporkchop.lib.network.protocol;
 
+import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.transport.WrappedPacket;
 
 /**
+ * The simplest possible representation of a protocol.
+ *
  * @author DaPorkchop_
  */
-@FunctionalInterface
-public interface Handler<P, S extends AbstractUserSession<S>> {
-    /**
-     * Handles an incoming packet.
-     *
-     * @param packet  the packet that was received
-     * @param session the session that the packet was received on
-     */
-    void handle(@NonNull WrappedPacket<P> packet, @NonNull S session);
+public interface Protocol<S extends AbstractUserSession<S>> {
+    void handle()
 }

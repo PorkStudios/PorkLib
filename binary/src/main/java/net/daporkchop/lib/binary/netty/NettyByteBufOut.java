@@ -32,7 +32,7 @@ public class NettyByteBufOut extends DataOut {
     @NonNull
     private final ByteBuf buf;
 
-    {
+    static {
         NettyUtil.ensureNettyPresent();
     }
 

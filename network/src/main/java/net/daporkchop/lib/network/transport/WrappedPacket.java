@@ -35,4 +35,10 @@ public class WrappedPacket<P> {
     @NonNull
     protected final Reliability reliability;
     protected final int channel;
+
+    @SuppressWarnings("unchecked")
+    public <NEW_P> WrappedPacket<NEW_P> packet(@NonNull NEW_P packet)    {
+        ((WrappedPacket<NEW_P>) this).packet = packet;
+        return (WrappedPacket<NEW_P>) this;
+    }
 }

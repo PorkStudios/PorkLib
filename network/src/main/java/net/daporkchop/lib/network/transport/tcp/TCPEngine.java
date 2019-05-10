@@ -16,8 +16,10 @@
 package net.daporkchop.lib.network.transport.tcp;
 
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.reference.InstancePool;
 import net.daporkchop.lib.network.endpoint.PClient;
 import net.daporkchop.lib.network.endpoint.PMulti;
@@ -25,6 +27,7 @@ import net.daporkchop.lib.network.endpoint.PMultiClient;
 import net.daporkchop.lib.network.endpoint.PServer;
 import net.daporkchop.lib.network.endpoint.Pp2pEndpoint;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
+import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.Reliability;
 import net.daporkchop.lib.network.transport.TransportEngine;
 import net.daporkchop.lib.network.transport.tcp.endpoint.TCPClient;
@@ -38,13 +41,13 @@ import java.util.Collections;
  *
  * @author DaPorkchop_
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@RequiredArgsConstructor
+@Getter
 public class TCPEngine implements TransportEngine {
     protected static final Collection<Reliability> RELIABILITIES = Collections.singleton(Reliability.RELIABLE_ORDERED);
 
-    public static TCPEngine instance()  {
-        return InstancePool.getInstance(TCPEngine.class);
-    }
+    @NonNull
+    protected final Framer framer;
 
     @Override
     public PClient createClient(@NonNull ClientBuilder builder) {

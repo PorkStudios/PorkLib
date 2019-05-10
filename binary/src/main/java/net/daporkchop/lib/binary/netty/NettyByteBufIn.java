@@ -32,7 +32,7 @@ public class NettyByteBufIn extends DataIn {
     @NonNull
     private final ByteBuf buf;
 
-    {
+    static {
         NettyUtil.ensureNettyPresent();
     }
 
@@ -114,5 +114,20 @@ public class NettyByteBufIn extends DataIn {
         } else {
             throw new IndexOutOfBoundsException();
         }
+    }
+
+    @Override
+    public synchronized void mark(int readlimit) {
+        this.buf.markReaderIndex();
+    }
+
+    @Override
+    public synchronized void reset() throws IOException {
+        this.buf.resetReaderIndex();
+    }
+
+    @Override
+    public boolean markSupported() {
+        return true;
     }
 }

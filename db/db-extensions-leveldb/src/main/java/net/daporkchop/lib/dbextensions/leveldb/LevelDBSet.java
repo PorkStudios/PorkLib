@@ -20,8 +20,10 @@ import net.daporkchop.lib.binary.serialization.Serializer;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.collections.PIterator;
+import net.daporkchop.lib.collections.stream.PStream;
 import net.daporkchop.lib.db.DBSet;
 import net.daporkchop.lib.db.util.KeyHasher;
+import net.daporkchop.lib.db.util.exception.DBCloseException;
 import net.daporkchop.lib.db.util.exception.DBNotOpenException;
 import net.daporkchop.lib.db.util.exception.DBOpenException;
 import net.daporkchop.lib.db.util.exception.DBReadException;
@@ -201,6 +203,16 @@ public class LevelDBSet<V> implements DBSet<V> {
     }
 
     @Override
+    public PStream<V> stream() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public PStream<V> mutableStream() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public long size() {
         return -1L;
     }
@@ -225,13 +237,15 @@ public class LevelDBSet<V> implements DBSet<V> {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         this.ensureOpen();
         this.closeLock.writeLock().lock();
         try {
             this.ensureOpen();
             this.open.set(false);
             this.delegate.close();
+        } catch (IOException e) {
+            throw new DBCloseException(e);
         } finally {
             this.closeLock.writeLock().unlock();
         }

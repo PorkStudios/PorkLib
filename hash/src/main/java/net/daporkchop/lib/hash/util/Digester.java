@@ -17,6 +17,7 @@ package net.daporkchop.lib.hash.util;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.util.PorkUtil;
 
 import java.io.File;
@@ -31,7 +32,6 @@ import java.io.InputStream;
  */
 @RequiredArgsConstructor
 public class Digester {
-
     @NonNull
     private DigestAlg digest;
     @NonNull
@@ -78,6 +78,29 @@ public class Digester {
         }
         in.close();
         return this;
+    }
+
+    public DataOut appendStream()   {
+        return new DataOut() {
+            @Override
+            public void close() throws IOException {
+            }
+
+            @Override
+            public void write(int b) throws IOException {
+                Digester.this.append((byte) b);
+            }
+
+            @Override
+            public void write(@NonNull byte[] b, int off, int len) throws IOException {
+                Digester.this.append(b, off, len);
+            }
+
+            @Override
+            public void write(@NonNull byte[] b) throws IOException {
+                Digester.this.append(b);
+            }
+        };
     }
 
     public Hash hash() {

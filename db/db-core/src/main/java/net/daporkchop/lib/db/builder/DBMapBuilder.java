@@ -26,13 +26,15 @@ import net.daporkchop.lib.db.util.KeyHasher;
 public interface DBMapBuilder<Impl extends DBMapBuilder<Impl, K, V>, K, V> extends DBBuilder<Impl, DBMap<K, V>> {
     /**
      * A function to use for hashing keys. Using a custom key hashing function may provide better performance and/or reliability when using
-     * a {@link DBMap}. If {@code null} and {@link #keySerializer} is set, keys will be serialized and then hashed using SHA-256. If {@code null}
+     * a {@link DBMap}. If {@code null} and {@link #keySerializer} is set, keys will be serialized and (possibly) hashed using SHA-256. If {@code null}
      * and {@link #keySerializer} is not set, {@link Object#hashCode()} will be used.
      */
     KeyHasher<K> keyHasher();
 
     /**
      * A function that will be used to serialize keys. If {@code null}, keys will not be serialized at all.
+     * <p>
+     * Underlying implementations may choose to ignore this operation.
      */
     Serializer<K> keySerializer();
 
@@ -43,13 +45,15 @@ public interface DBMapBuilder<Impl extends DBMapBuilder<Impl, K, V>, K, V> exten
 
     /**
      * A function to use for hashing keys. Using a custom key hashing function may provide better performance and/or reliability when using
-     * a {@link DBMap}. If {@code null} and {@link #keySerializer} is set, keys will be serialized and then hashed using SHA-256. If {@code null}
+     * a {@link DBMap}. If {@code null} and {@link #keySerializer} is set, keys will be serialized and (possibly) hashed using SHA-256. If {@code null}
      * and {@link #keySerializer} is not set, {@link Object#hashCode()} will be used.
      */
     <NEW_K> DBMapBuilder keyHasher(@NonNull KeyHasher<NEW_K> keyHasher);
 
     /**
      * A function that will be used to serialize keys. If {@code null}, keys will not be serialized at all.
+     * <p>
+     * Underlying implementations may choose to ignore this operation.
      */
     <NEW_K> DBMapBuilder keySerializer(@NonNull Serializer<NEW_K> keySerializer);
 

@@ -13,18 +13,29 @@
  *
  */
 
-package net.daporkchop.lib.db;
-
-import net.daporkchop.lib.collections.PSet;
-
-import java.io.IOException;
+package net.daporkchop.lib.db.util.exception;
 
 /**
- * A {@link PSet} that is backed by a database.
- *
  * @author DaPorkchop_
  */
-public interface DBSet<V> extends PSet<V>, AutoCloseable {
-    @Override
-    void close();
+public class DBCloseException extends DBException {
+    public DBCloseException() {
+        super();
+    }
+
+    public DBCloseException(String message) {
+        super(message);
+    }
+
+    public DBCloseException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public DBCloseException(Throwable cause) {
+        super(cause);
+    }
+
+    protected DBCloseException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
+    }
 }

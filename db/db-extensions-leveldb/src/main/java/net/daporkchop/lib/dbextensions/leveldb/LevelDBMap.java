@@ -23,6 +23,7 @@ import net.daporkchop.lib.collections.stream.PStream;
 import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.db.DBMap;
 import net.daporkchop.lib.db.util.KeyHasher;
+import net.daporkchop.lib.db.util.exception.DBCloseException;
 import net.daporkchop.lib.db.util.exception.DBNotOpenException;
 import net.daporkchop.lib.db.util.exception.DBOpenException;
 import net.daporkchop.lib.db.util.exception.DBReadException;
@@ -320,17 +321,17 @@ public class LevelDBMap<K, V> implements DBMap<K, V> {
 
     @Override
     public PStream<K> keyStream() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public PStream<V> valueStream() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public PStream<Entry<K, V>> entryStream() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -346,6 +347,8 @@ public class LevelDBMap<K, V> implements DBMap<K, V> {
             this.ensureOpen();
             this.open.set(false);
             this.delegate.close();
+        } catch (IOException e) {
+            throw new DBCloseException(e);
         } finally {
             this.closeLock.writeLock().unlock();
         }

@@ -68,7 +68,7 @@ public abstract class LevelDBBuilder<Impl extends LevelDBBuilder<Impl, T>, T> im
 
     public LevelDBConfiguration configuration() {
         return new LevelDBConfiguration(
-                this.options == null ? new Options() : this.options,
+                this.options == null ? LevelDBConfiguration.defaultOptions() : this.options,
                 this.factory == null ? Iq80DBFactory.factory : this.factory,
                 this.path,
                 this.serialization

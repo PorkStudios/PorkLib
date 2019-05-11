@@ -22,6 +22,8 @@ import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.serialization.Serialization;
 import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.db.util.exception.DBOpenException;
+import net.daporkchop.lib.logging.Logger;
+import net.daporkchop.lib.logging.Logging;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.DBFactory;
 import org.iq80.leveldb.Options;
@@ -39,6 +41,11 @@ import java.io.IOException;
 @RequiredArgsConstructor
 @Getter
 public class LevelDBConfiguration {
+    public static Options defaultOptions()  {
+        Logger logger = Logging.logger.channel("LevelDB");
+        return new Options().logger(logger::info);
+    }
+
     @NonNull
     protected final Options options;
     @NonNull
@@ -48,7 +55,7 @@ public class LevelDBConfiguration {
     protected Serialization serialization = Serialization.DEFAULT_REGISTRY;
 
     public LevelDBConfiguration(@NonNull File path) {
-        this(new Options(), Iq80DBFactory.factory, path);
+        this(defaultOptions(), Iq80DBFactory.factory, path);
     }
 
     public LevelDBConfiguration(@NonNull Options options, @NonNull File path) {
@@ -56,7 +63,7 @@ public class LevelDBConfiguration {
     }
 
     public LevelDBConfiguration(@NonNull DBFactory factory, @NonNull File path) {
-        this(new Options(), factory, path);
+        this(defaultOptions(), factory, path);
     }
 
     /**

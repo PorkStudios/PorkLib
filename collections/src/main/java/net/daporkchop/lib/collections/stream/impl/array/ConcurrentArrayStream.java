@@ -74,7 +74,7 @@ public class ConcurrentArrayStream<V> extends AbstractArrayStream<V> {
     }
 
     @Override
-    public PStream<V> distinct(@NonNull BiPredicate<V, V> comparator) {
+    public PStream<V> distinct() {
         return null; //TODO
     }
 

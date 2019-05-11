@@ -13,16 +13,14 @@
  *
  */
 
-package net.daporkchop.lib.collections.stream.impl.array;
+package net.daporkchop.lib.collections.stream.impl;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.collections.PMap;
-import net.daporkchop.lib.collections.POrderedCollection;
-import net.daporkchop.lib.collections.impl.ordered.BigLinkedCollection;
 import net.daporkchop.lib.collections.stream.PStream;
-import net.daporkchop.lib.collections.stream.impl.collection.UncheckedOrderedCollectionStream;
 
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
@@ -30,71 +28,90 @@ import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
- * The same as {@link ArrayStream}, however this is backed by an Object[] instead of a generic type array, allowing it to
- * actually create new array instances. Most instances of {@link ArrayStream} will end up being converted into an
- * {@link UncheckedArrayStream} at some point in their lifetime.
- *
  * @author DaPorkchop_
  */
-public class UncheckedArrayStream<V> extends AbstractArrayStream<V> {
-    public UncheckedArrayStream(Object[] values) {
-        super(values);
+@AllArgsConstructor
+@RequiredArgsConstructor
+public class JavaStreamWrapper<V> implements PStream<V> {
+    @NonNull
+    protected Stream<V> stream;
+    protected boolean parallel = false;
+
+    @Override
+    public long size() {
+        return this.stream.count();
     }
 
     @Override
-    public boolean isConcurrent() {
+    public boolean isOrdered() {
         return false;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
+    public PStream<V> ordered() {
+        return this;
+    }
+
+    @Override
+    public PStream<V> unordered() {
+        return this;
+    }
+
+    @Override
+    public boolean isConcurrent() {
+        return this.parallel;
+    }
+
+    @Override
+    public PStream<V> concurrent() {
+        this.stream = this.stream.parallel();
+        return this;
+    }
+
+    @Override
+    public PStream<V> singleThreaded() {
+        this.stream = this.stream.sequential();
+        return this;
+    }
+
+    @Override
     public void forEach(@NonNull Consumer<V> consumer) {
-        int length = this.values.length; //this lets the length be inlined into a register by JIT
-        for (int i = 0; i < length; i++)    {
-            consumer.accept((V) this.values[i]);
-        }
+        this.stream.forEach(consumer);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public <T> PStream<T> map(@NonNull Function<V, T> mappingFunction) {
-        int length = this.values.length;
-        for (int i = 0; i < length; i++)    {
-            this.values[i] = mappingFunction.apply((V) this.values[i]);
-        }
-        return (PStream<T>) this;
+        ((JavaStreamWrapper<T>) this).stream = this.stream.map(mappingFunction);
+        return (JavaStreamWrapper<T>) this;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public PStream<V> filter(@NonNull Predicate<V> condition) {
-        int length = this.values.length;
-        POrderedCollection<V> collection = new BigLinkedCollection<>();
-        for (int i = 0; i < length; i++)     {
-            V value = (V) this.values[i];
-            if (condition.test(value)) {
-                collection.add(value);
-            }
-        }
-        return new UncheckedOrderedCollectionStream<>(collection, true);
+        this.stream = this.stream.filter(condition);
+        return this;
     }
 
     @Override
     public PStream<V> distinct() {
-        return null; //TODO
+        this.stream = this.stream.distinct();
+        return this;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <Key, Value, T extends PMap<Key, Value>> T toMap(@NonNull Function<V, Key> keyExtractor, @NonNull Function<V, Value> valueExtractor, @NonNull Supplier<T> mapCreator) {
-        T map = mapCreator.get();
-        int length = this.values.length;
-        for (int i = 0; i < length; i++)    {
-            V value = (V) this.values[i];
-            map.put(keyExtractor.apply(value), valueExtractor.apply(value));
-        }
-        return map;
+        return this.stream.collect(
+                mapCreator,
+                (map, val) -> map.put(keyExtractor.apply(val), valueExtractor.apply(val)),
+                PMap::putAll
+        );
+    }
+
+    @Override
+    public V[] toArray(@NonNull IntFunction<V[]> arrayCreator) {
+        return this.stream.toArray(arrayCreator);
     }
 }

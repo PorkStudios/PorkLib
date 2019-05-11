@@ -22,6 +22,7 @@ import net.daporkchop.lib.collections.PCollection;
 import net.daporkchop.lib.collections.PIterator;
 import net.daporkchop.lib.collections.impl.iterator.JavaIteratorWrapper;
 import net.daporkchop.lib.collections.stream.PStream;
+import net.daporkchop.lib.collections.stream.impl.JavaStreamWrapper;
 
 import java.util.Collection;
 import java.util.function.Consumer;
@@ -84,5 +85,15 @@ public abstract class AbstractJavaCollectionWrapper<V, C extends Collection<V>> 
     @Override
     public boolean isConcurrent() {
         return false;
+    }
+
+    @Override
+    public PStream<V> stream() {
+        return new JavaStreamWrapper<>(this.delegate.stream(), false);
+    }
+
+    @Override
+    public PStream<V> mutableStream() {
+        return this.stream();
     }
 }

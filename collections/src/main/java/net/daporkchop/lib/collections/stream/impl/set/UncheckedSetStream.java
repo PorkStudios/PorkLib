@@ -76,7 +76,7 @@ public class UncheckedSetStream<V> extends AbstractSetStream<V> {
     }
 
     @Override
-    public PStream<V> distinct(@NonNull BiPredicate<V, V> comparator) {
+    public PStream<V> distinct() {
         return this;
     }
 

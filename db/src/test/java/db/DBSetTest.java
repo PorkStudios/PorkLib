@@ -19,22 +19,16 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.collections.PCollection;
-import net.daporkchop.lib.collections.PMap;
 import net.daporkchop.lib.collections.PSet;
-import net.daporkchop.lib.collections.impl.map.JavaMapWrapper;
 import net.daporkchop.lib.collections.impl.ordered.BigLinkedCollection;
 import net.daporkchop.lib.collections.impl.set.JavaSetWrapper;
 import net.daporkchop.lib.common.test.TestRandomData;
-import net.daporkchop.lib.db.DBMap;
 import net.daporkchop.lib.db.DBSet;
 import net.daporkchop.lib.encoding.basen.Base58;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 /**
@@ -52,7 +46,7 @@ public class DBSetTest implements TestConstants {
         logger.info("Testing %s set...", NAME.get());
 
         PSet<String> java = new JavaSetWrapper<>(new HashSet<>());
-        for (int i = START_COUNT - 1; i >= 0; i--)  {
+        for (int i = START_COUNT - 1; i >= 0; i--) {
             java.add(Base58.encodeBase58(TestRandomData.getRandomBytes(16)));
         }
 
@@ -66,12 +60,9 @@ public class DBSetTest implements TestConstants {
             this.checkIdentical(java, db);
             logger.debug("Deleting some random values from memory...");
 
-            PCollection<String> toRemove = new BigLinkedCollection<>();
-            java.forEach(value -> {
-                if (ThreadLocalRandom.current().nextBoolean())  {
-                    toRemove.add(value);
-                }
-            });
+            PCollection<String> toRemove = java.stream()
+                                               .filter(v -> ThreadLocalRandom.current().nextBoolean())
+                                               .collect(BigLinkedCollection::new);
             toRemove.forEach(java::remove);
             toRemove.forEach(db::remove);
             logger.debug("Set now contains %d/%d values", java.size(), START_COUNT);
@@ -87,13 +78,13 @@ public class DBSetTest implements TestConstants {
     protected void checkIdentical(@NonNull PSet<String> java, @NonNull PSet<String> db) {
         logger.debug("Ensuring database contains all values in memory...");
         java.forEach(value -> {
-            if (!db.contains(value))  {
+            if (!db.contains(value)) {
                 throw new IllegalStateException(String.format("Database does not contain value: %s", value));
             }
         });
         logger.debug("Ensuring database contains no values not present in memory...");
         db.forEach(value -> {
-            if (!java.contains(value))  {
+            if (!java.contains(value)) {
                 throw new IllegalStateException(String.format("Database contains non-existent value: %s", value));
             }
         });

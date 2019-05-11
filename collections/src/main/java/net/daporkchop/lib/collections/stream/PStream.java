@@ -27,7 +27,6 @@ import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.common.function.io.IOFunction;
 import net.daporkchop.lib.common.function.io.IOPredicate;
 
-import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntFunction;
@@ -36,10 +35,10 @@ import java.util.function.Supplier;
 
 /**
  * A simplification of {@link java.util.stream.Stream}.
- *
+ * <p>
  * A PStream defines many of the same behaviors in a traditional Java stream, however many methods have slightly different
  * behavior, allowing for slightly faster operations and less boilerplate code.
- *
+ * <p>
  * PStreams additionally can be ordered or concurrent (or both). Ordered streams will always preserve the order of their
  * contents, and methods will also iterate over such a stream in an ordered fashion. Concurrent streams will execute
  * all operations in multiple threads, which can provide a performance boost for more intensive tasks. A stream with both
@@ -317,20 +316,19 @@ public interface PStream<V> extends BaseCollection {
      * @return the collection
      */
     default <T extends PCollection<? super V>> T collect(@NonNull Supplier<T> collectionCreator) {
-        return this.collect(collectionCreator.get());
+        T t = collectionCreator.get();
+        this.collect(t);
+        return t;
     }
 
     /**
      * Collects all the values in this stream into a single collection.
      *
      * @param collection the collection that will have the contents of this stream added to it
-     * @param <T>        the type of collection to be returned
-     * @return the collection
      */
-    default <T extends PCollection<? super V>> T collect(@NonNull T collection) {
+    default void collect(@NonNull PCollection<? super V> collection) {
         collection.clear();
         this.forEach(collection::add);
-        return collection;
     }
 
     /**

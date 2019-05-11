@@ -33,6 +33,7 @@ import net.daporkchop.lib.dbextensions.leveldb.util.LevelDBCollection;
 import net.daporkchop.lib.dbextensions.leveldb.util.LevelDBConfiguration;
 import net.daporkchop.lib.hash.util.Digest;
 import net.daporkchop.lib.hash.util.Digester;
+import net.daporkchop.lib.unsafe.PCleaner;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.DBIterator;
 
@@ -146,8 +147,10 @@ public class LevelDBSet<V> extends LevelDBCollection implements DBSet<V> {
         this.closeLock.readLock().lock();
         try {
             this.ensureOpen();
-            for (DBIterator iterator = this.delegate.iterator(); iterator.hasNext(); ) {
-                consumer.accept(this.valueSerializer.read(DataIn.wrap(ByteBuffer.wrap(iterator.next().getValue()))));
+            try (DBIterator iterator = this.delegate.iterator())    {
+                while (iterator.hasNext())  {
+                    consumer.accept(this.valueSerializer.read(DataIn.wrap(ByteBuffer.wrap(iterator.next().getValue()))));
+                }
             }
         } catch (IOException e) {
             throw new DBReadException(e);
@@ -160,12 +163,18 @@ public class LevelDBSet<V> extends LevelDBCollection implements DBSet<V> {
     public PIterator<V> iterator() {
         return new PIterator<V>() {
             DBIterator iterator = LevelDBSet.this.delegate.iterator();
+            PCleaner cleaner = PCleaner.cleaner(this, () -> this.iterator.close());
 
             Map.Entry<byte[], byte[]> curr = null;
 
             @Override
             public boolean hasNext() {
-                return this.iterator.hasNext();
+                if (this.iterator.hasNext())    {
+                    return true;
+                } else {
+                    this.cleaner.clean();
+                    return false;
+                }
             }
 
             @Override
@@ -223,8 +232,10 @@ public class LevelDBSet<V> extends LevelDBCollection implements DBSet<V> {
         this.closeLock.readLock().lock();
         try {
             this.ensureOpen();
-            for (DBIterator iterator = this.delegate.iterator(); iterator.hasNext(); ) {
-                this.delegate.delete(iterator.next().getKey());
+            try (DBIterator iterator = this.delegate.iterator())    {
+                while (iterator.hasNext())  {
+                    this.delegate.delete(iterator.next().getKey());
+                }
             }
         } finally {
             this.closeLock.readLock().unlock();

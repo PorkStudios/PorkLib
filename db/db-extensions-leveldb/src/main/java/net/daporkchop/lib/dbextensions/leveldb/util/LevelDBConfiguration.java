@@ -15,9 +15,11 @@
 
 package net.daporkchop.lib.dbextensions.leveldb.util;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.binary.serialization.Serialization;
 import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.db.util.exception.DBOpenException;
 import org.iq80.leveldb.DB;
@@ -33,6 +35,7 @@ import java.io.IOException;
  *
  * @author DaPorkchop_
  */
+@AllArgsConstructor
 @RequiredArgsConstructor
 @Getter
 public class LevelDBConfiguration {
@@ -42,6 +45,7 @@ public class LevelDBConfiguration {
     protected final DBFactory factory;
     @NonNull
     protected final File path;
+    protected Serialization serialization = Serialization.DEFAULT_REGISTRY;
 
     public LevelDBConfiguration(@NonNull File path) {
         this(new Options(), Iq80DBFactory.factory, path);

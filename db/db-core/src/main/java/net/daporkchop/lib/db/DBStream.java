@@ -13,21 +13,16 @@
  *
  */
 
-package net.daporkchop.lib.dbextensions.leveldb.util;
+package net.daporkchop.lib.db;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.dbextensions.leveldb.builder.LevelDBBuilder;
+import net.daporkchop.lib.collections.stream.PStream;
 
 /**
+ * A {@link PStream} that is backed by a database.
+ *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-public abstract class LevelDBCollection {
-    @NonNull
-    protected final LevelDBConfiguration configuration;
-
-    public LevelDBCollection(@NonNull LevelDBBuilder builder)   {
-        this(builder.configuration());
-    }
+public interface DBStream<V> extends PStream<V>, AutoCloseable {
+    @Override
+    void close();
 }

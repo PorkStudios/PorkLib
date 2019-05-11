@@ -13,46 +13,30 @@
  *
  */
 
-package net.daporkchop.lib.dbextensions.leveldb.builder;
+package net.daporkchop.lib.common.util.exception.file;
 
 import lombok.Getter;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.reference.InstancePool;
-import net.daporkchop.lib.db.builder.DBBuilder;
-import org.iq80.leveldb.DB;
-import org.iq80.leveldb.Options;
-import org.iq80.leveldb.impl.Iq80DBFactory;
+import lombok.NonNull;
 
 import java.io.File;
-import java.io.IOException;
 
 /**
- * A base builder class for all LevelDB-backed collections.
- *
  * @author DaPorkchop_
  */
 @Getter
-@Accessors(fluent = true)
-public abstract class LevelDBBuilder<Impl extends LevelDBBuilder<Impl, T>, T> implements DBBuilder<Impl, T> {
-    /**
-     * Additional LevelDB options to use when opening the database. If {@code null}, a default instance will be used.
-     */
-    protected Options options;
+public abstract class FileException extends RuntimeException {
+    protected final File file;
 
-    /**
-     * The path to store the database in. Must be set!
-     */
-    protected File path;
+    public FileException(@NonNull File file)    {
+        super(file.getAbsolutePath());
 
-    @SuppressWarnings("unchecked")
-    public Impl options(Options options) {
-        this.options = options;
-        return (Impl) this;
+        this.file = file;
     }
 
-    @SuppressWarnings("unchecked")
-    public Impl path(File path) {
-        this.path = path;
-        return (Impl) this;
+    public FileException(@NonNull File file, @NonNull Throwable t)    {
+        super(file.getAbsolutePath(), t);
+
+        this.file = file;
     }
+
 }

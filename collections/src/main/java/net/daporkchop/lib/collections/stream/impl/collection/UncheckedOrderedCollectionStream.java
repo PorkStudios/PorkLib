@@ -68,7 +68,7 @@ public class UncheckedOrderedCollectionStream<V> extends AbstractOrderedCollecti
     }
 
     @Override
-    public PStream<V> distinct(@NonNull BiPredicate<V, V> comparator) {
+    public PStream<V> distinct() {
         return null;
     }
 

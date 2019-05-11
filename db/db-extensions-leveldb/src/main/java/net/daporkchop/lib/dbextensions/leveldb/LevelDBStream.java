@@ -156,8 +156,8 @@ public class LevelDBStream<V> extends LevelDBCollection implements DBStream<V> {
     }
 
     @Override
-    public PStream<V> distinct(@NonNull BiPredicate<V, V> comparator) {
-        return null;
+    public PStream<V> distinct() {
+        return null; //TODO
     }
 
     @Override

@@ -302,30 +302,11 @@ public interface PStream<V> extends BaseCollection {
     }
 
     /**
-     * Removes all duplicate elements from this stream.
-     *
-     * @param comparator a function that will be used to check for equality between objects
-     * @return a stream consisting of every value in this stream, with duplicates removed. If this stream is concurrent, this will also return a concurrent stream.
-     */
-    PStream<V> distinct(@NonNull BiPredicate<V, V> comparator);
-
-    /**
      * Removes all duplicate elements from this stream. Checks for equal objects via {@link Object#equals(Object)}.
      *
      * @return a stream consisting of every value in this stream, with duplicates removed. If this stream is concurrent, this will also return a concurrent stream.
      */
-    default PStream<V> distinct() {
-        return this.distinct(Object::equals);
-    }
-
-    /**
-     * Removes all duplicate elements from this stream. Checks for equal objects via their identity, not by value.
-     *
-     * @return a stream consisting of every value in this stream, with duplicates removed. If this stream is concurrent, this will also return a concurrent stream.
-     */
-    default PStream<V> distinctIdentity() {
-        return this.distinct((o1, o2) -> o1 == o2);
-    }
+    PStream<V> distinct();
 
     /**
      * Collects all the values in this stream into a single collection.

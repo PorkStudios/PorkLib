@@ -75,7 +75,7 @@ public class ConcurrentOrderedCollectionStream<V> extends AbstractOrderedCollect
     }
 
     @Override
-    public PStream<V> distinct(@NonNull BiPredicate<V, V> comparator) {
+    public PStream<V> distinct() {
         PSet<V> dst = new JavaSetWrapper<>(Collections.newSetFromMap(new ConcurrentHashMap<>()));
         ConcurrencyHelper.runConcurrent(this.collection.orderedIterator(), entry -> dst.add(entry.get())); //probably isn't worth making this concurrent, but whatever
         return new ConcurrentSetStream<>(dst, true);

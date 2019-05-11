@@ -14,9 +14,12 @@
  */
 
 import db.DBMapTest;
+import db.DBSetTest;
 import db.TestConstants;
 import net.daporkchop.lib.binary.serialization.impl.ByteArraySerializer;
+import net.daporkchop.lib.binary.serialization.impl.StringSerializer;
 import net.daporkchop.lib.dbextensions.leveldb.builder.LevelDBMapBuilder;
+import net.daporkchop.lib.dbextensions.leveldb.builder.LevelDBSetBuilder;
 import net.daporkchop.lib.hash.util.Digest;
 import net.daporkchop.lib.hash.util.Digester;
 import org.junit.Test;
@@ -34,16 +37,24 @@ public class LevelDBTest implements TestConstants {
 
     @Test
     public void map() throws IOException {
-        new DBMapTest(
-                () -> new LevelDBMapBuilder<>()
-                        .keyHasher((String obj) -> {
-                            Digester digest = Digest.SHA3_256.start();
-                            digest.appendStream().writeUTF(obj);
-                            return digest.hash().getHash();
-                        })
-                        .valueSerializer(ByteArraySerializer.INSTANCE)
-                        .path(new File(ROOT_DIR, "map"))
-                        .build()
+        new DBMapTest(() -> new LevelDBMapBuilder<>()
+                .keyHasher((String obj) -> {
+                    Digester digest = Digest.SHA3_256.start();
+                    digest.appendStream().writeUTF(obj);
+                    return digest.hash().getHash();
+                })
+                .valueSerializer(ByteArraySerializer.INSTANCE)
+                .path(new File(ROOT_DIR, "map"))
+                .build()
+        ).test();
+    }
+
+    @Test
+    public void set() throws IOException {
+        new DBSetTest(() -> new LevelDBSetBuilder<>()
+                .valueSerializer(StringSerializer.INSTANCE)
+                .path(new File(ROOT_DIR, "set"))
+                .build()
         ).test();
     }
 }

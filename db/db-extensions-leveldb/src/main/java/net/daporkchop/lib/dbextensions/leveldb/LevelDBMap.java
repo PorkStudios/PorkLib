@@ -122,8 +122,10 @@ public class LevelDBMap<K, V> extends LevelDBCollection implements DBMap<K, V> {
         this.closeLock.readLock().lock();
         try {
             this.ensureOpen();
-            for (DBIterator iterator = this.delegate.iterator(); iterator.hasNext(); ) {
-                this.delegate.delete(iterator.next().getKey());
+            try (DBIterator iterator = this.delegate.iterator())    {
+                while (iterator.hasNext())  {
+                    this.delegate.delete(iterator.next().getKey());
+                }
             }
         } finally {
             this.closeLock.readLock().unlock();
@@ -276,14 +278,19 @@ public class LevelDBMap<K, V> extends LevelDBCollection implements DBMap<K, V> {
         this.closeLock.readLock().lock();
         try {
             this.ensureOpen();
-            this.delegate.forEach((IOConsumer<Map.Entry<byte[], byte[]>>) e -> {
-                K key = null;
-                V val = this.valueSerializer.read(DataIn.wrap(ByteBuffer.wrap(e.getValue())));
-                if (this.serializeKeys) {
-                    key = this.keySerializer.read(DataIn.wrap(ByteBuffer.wrap(e.getKey())));
+            try (DBIterator iterator = this.delegate.iterator())    {
+                while (iterator.hasNext())  {
+                    Map.Entry<byte[], byte[]> entry = iterator.next();
+                    K key = null;
+                    V val = this.valueSerializer.read(DataIn.wrap(ByteBuffer.wrap(entry.getValue())));
+                    if (this.serializeKeys) {
+                        key = this.keySerializer.read(DataIn.wrap(ByteBuffer.wrap(entry.getKey())));
+                    }
+                    consumer.accept(key, val);
                 }
-                consumer.accept(key, val);
-            });
+            }
+        } catch (IOException e) {
+            throw new DBReadException(e);
         } finally {
             this.closeLock.readLock().unlock();
         }
@@ -296,7 +303,13 @@ public class LevelDBMap<K, V> extends LevelDBCollection implements DBMap<K, V> {
             this.closeLock.readLock().lock();
             try {
                 this.ensureOpen();
-                this.delegate.forEach((IOConsumer<Map.Entry<byte[], byte[]>>) e -> consumer.accept(this.keySerializer.read(DataIn.wrap(ByteBuffer.wrap(e.getKey())))));
+                try (DBIterator iterator = this.delegate.iterator()) {
+                    while (iterator.hasNext()) {
+                        consumer.accept(this.keySerializer.read(DataIn.wrap(ByteBuffer.wrap(iterator.next().getValue()))));
+                    }
+                }
+            } catch (IOException e) {
+                throw new DBReadException(e);
             } finally {
                 this.closeLock.readLock().unlock();
             }
@@ -311,7 +324,13 @@ public class LevelDBMap<K, V> extends LevelDBCollection implements DBMap<K, V> {
         this.closeLock.readLock().lock();
         try {
             this.ensureOpen();
-            this.delegate.forEach((IOConsumer<Map.Entry<byte[], byte[]>>) e -> consumer.accept(this.valueSerializer.read(DataIn.wrap(ByteBuffer.wrap(e.getValue())))));
+            try (DBIterator iterator = this.delegate.iterator()) {
+                while (iterator.hasNext()) {
+                    consumer.accept(this.valueSerializer.read(DataIn.wrap(ByteBuffer.wrap(iterator.next().getValue()))));
+                }
+            }
+        } catch (IOException e) {
+            throw new DBReadException(e);
         } finally {
             this.closeLock.readLock().unlock();
         }

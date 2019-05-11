@@ -67,7 +67,19 @@ public class BigLinkedCollection<V> implements POrderedCollection<V> {
     }
 
     @Override
-    public boolean remove(@NonNull V value) {
+    public void remove(@NonNull V value) {
+        Node node = this.root;
+        while (node != null) {
+            if (value.equals(node.value)) {
+                node.remove();
+                return;
+            }
+            node = node.prev;
+        }
+    }
+
+    @Override
+    public boolean checkAndRemove(@NonNull V value) {
         Node node = this.root;
         while (node != null) {
             if (value.equals(node.value)) {

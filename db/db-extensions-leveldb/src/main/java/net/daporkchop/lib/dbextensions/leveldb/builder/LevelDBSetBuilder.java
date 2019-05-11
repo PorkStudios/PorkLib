@@ -21,6 +21,7 @@ import net.daporkchop.lib.binary.serialization.Serializer;
 import net.daporkchop.lib.db.DBSet;
 import net.daporkchop.lib.db.builder.DBSetBuilder;
 import net.daporkchop.lib.db.util.KeyHasher;
+import net.daporkchop.lib.dbextensions.leveldb.LevelDBSet;
 
 /**
  * @author DaPorkchop_
@@ -45,6 +46,6 @@ public class LevelDBSetBuilder<V> extends LevelDBBuilder<LevelDBSetBuilder<V>, D
 
     @Override
     public DBSet<V> build() {
-        return null;
+        return new LevelDBSet<>(this);
     }
 }

@@ -17,14 +17,13 @@ package net.daporkchop.lib.dbextensions.leveldb.builder;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.reference.InstancePool;
 import net.daporkchop.lib.db.builder.DBBuilder;
-import org.iq80.leveldb.DB;
+import net.daporkchop.lib.dbextensions.leveldb.util.LevelDBConfiguration;
+import org.iq80.leveldb.DBFactory;
 import org.iq80.leveldb.Options;
 import org.iq80.leveldb.impl.Iq80DBFactory;
 
 import java.io.File;
-import java.io.IOException;
 
 /**
  * A base builder class for all LevelDB-backed collections.
@@ -44,6 +43,11 @@ public abstract class LevelDBBuilder<Impl extends LevelDBBuilder<Impl, T>, T> im
      */
     protected File path;
 
+    /**
+     * The LevelDB factory to use. If {@code null}, {@link Iq80DBFactory#factory} will be used.
+     */
+    protected DBFactory factory;
+
     @SuppressWarnings("unchecked")
     public Impl options(Options options) {
         this.options = options;
@@ -54,5 +58,13 @@ public abstract class LevelDBBuilder<Impl extends LevelDBBuilder<Impl, T>, T> im
     public Impl path(File path) {
         this.path = path;
         return (Impl) this;
+    }
+
+    public LevelDBConfiguration configuration() {
+        return new LevelDBConfiguration(
+                this.options == null ? new Options() : this.options,
+                this.factory == null ? Iq80DBFactory.factory : this.factory,
+                this.path
+        );
     }
 }

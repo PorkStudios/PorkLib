@@ -66,7 +66,19 @@ public class ConcurrentBigLinkedCollection<V> implements POrderedCollection<V> {
     }
 
     @Override
-    public boolean remove(@NonNull V value) {
+    public void remove(@NonNull V value) {
+        ListBase base = this.base;
+        Node node = base.getRoot();
+        while (!base.closed && node != null && node.present) {
+            if (value.equals(node.value)) {
+                node.tryRemove();
+            }
+            node = node.getPrev();
+        }
+    }
+
+    @Override
+    public boolean checkAndRemove(@NonNull V value) {
         ListBase base = this.base;
         Node node = base.getRoot();
         while (!base.closed && node != null && node.present) {

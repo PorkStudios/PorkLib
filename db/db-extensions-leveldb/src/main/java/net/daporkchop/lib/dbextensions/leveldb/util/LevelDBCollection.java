@@ -13,18 +13,18 @@
  *
  */
 
-dependencies {
-    compile project(":db:db-core")
+package net.daporkchop.lib.dbextensions.leveldb.util;
 
-    testCompile project(":db:db-extensions-leveldb")
+import lombok.NonNull;
+import net.daporkchop.lib.dbextensions.leveldb.builder.LevelDBBuilder;
 
-    //provided "de.schlichtherle.truezip:truezip-file:7.7.10"
-    //provided "de.schlichtherle.truezip:truezip-driver-zip:7.7.10"
-    //provided "de.schlichtherle.truezip:truezip-driver-tar:7.7.10"
-}
+/**
+ * @author DaPorkchop_
+ */
+public abstract class LevelDBCollection {
+    protected final LevelDBConfiguration configuration;
 
-subprojects {
-    dependencies {
-        testCompile project(":db").sourceSets.test.output
+    public LevelDBCollection(@NonNull LevelDBBuilder builder)   {
+        this.configuration = builder.configuration();
     }
 }

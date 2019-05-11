@@ -18,6 +18,7 @@ package net.daporkchop.lib.logging.impl;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.common.misc.Tuple;
+import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.logging.LogAmount;
 import net.daporkchop.lib.logging.LogLevel;
 import net.daporkchop.lib.logging.Logger;
@@ -161,6 +162,7 @@ public class DefaultLogger extends SimpleLogger {
     }
 
     public DefaultLogger addFile(@NonNull String name, @NonNull File path, boolean overwrite, Set<LogLevel> levels)    {
+        PFiles.ensureFileExists(path);
         PrintStream printStream;
         try {
             printStream = overwrite ? new PrintStream(path) : new PrintStream(new FileOutputStream(path, true));

@@ -13,18 +13,19 @@
  *
  */
 
-dependencies {
-    compile project(":db:db-core")
+import db.TestConstants;
+import org.junit.Test;
 
-    testCompile project(":db:db-extensions-leveldb")
+/**
+ * @author DaPorkchop_
+ */
+public class CoreTest implements TestConstants {
+    static {
+        TestConstants.init();
+    }
 
-    //provided "de.schlichtherle.truezip:truezip-file:7.7.10"
-    //provided "de.schlichtherle.truezip:truezip-driver-zip:7.7.10"
-    //provided "de.schlichtherle.truezip:truezip-driver-tar:7.7.10"
-}
-
-subprojects {
-    dependencies {
-        testCompile project(":db").sourceSets.test.output
+    @Test
+    public void test()   {
+        logger.info("Core!");
     }
 }

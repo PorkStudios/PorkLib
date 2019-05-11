@@ -168,7 +168,25 @@ public class BigLinkedList<V> implements PList<V> {
     }
 
     @Override
-    public boolean remove(@NonNull V value) {
+    public void remove(@NonNull V value) {
+        Node<V> node = this.root;
+        Node<V> prev = null;
+        while (node != null) {
+            if (value.equals(node.value)) {
+                if (prev == null) {
+                    this.clear();
+                } else {
+                    prev.next = node.next;
+                    this.size--;
+                }
+                return;
+            }
+            node = (prev = node).next;
+        }
+    }
+
+    @Override
+    public boolean checkAndRemove(@NonNull V value) {
         Node<V> node = this.root;
         Node<V> prev = null;
         while (node != null) {

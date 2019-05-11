@@ -20,6 +20,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.collections.PMap;
 import net.daporkchop.lib.collections.stream.PStream;
+import net.daporkchop.lib.collections.stream.impl.JavaStreamWrapper;
 
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -90,12 +91,12 @@ public class JavaMapWrapper<K, V> implements PMap<K, V> {
 
     @Override
     public PStream<K> keyStream() {
-        throw new UnsupportedOperationException(); //TODO
+        return new JavaStreamWrapper<>(this.delegate.keySet().stream());
     }
 
     @Override
     public PStream<V> valueStream() {
-        throw new UnsupportedOperationException(); //TODO
+        return new JavaStreamWrapper<>(this.delegate.values().stream());
     }
 
     @Override

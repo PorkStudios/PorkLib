@@ -25,6 +25,7 @@ import net.daporkchop.lib.collections.impl.ordered.BigLinkedCollection;
 import net.daporkchop.lib.common.test.TestRandomData;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.db.DBMap;
+import net.daporkchop.lib.encoding.Hexadecimal;
 import net.daporkchop.lib.encoding.basen.Base58;
 
 import java.io.IOException;
@@ -66,12 +67,9 @@ public class DBMapTest implements TestConstants {
             this.checkIdentical(java, db);
             logger.debug("Deleting some random entries from memory...");
 
-            PCollection<String> toRemove = new BigLinkedCollection<>();
-            java.forEach((key, value) -> {
-                if (ThreadLocalRandom.current().nextBoolean())  {
-                    toRemove.add(key);
-                }
-            });
+            PCollection<String> toRemove = java.keyStream()
+                    .filter(v -> ThreadLocalRandom.current().nextBoolean())
+                    .collect(BigLinkedCollection::new);
             toRemove.forEach(java::remove);
             toRemove.forEach(db::remove);
             logger.debug("Map now contains %d/%d entries", java.size(), START_COUNT);
@@ -79,6 +77,10 @@ public class DBMapTest implements TestConstants {
 
         try (DBMap<String, byte[]> db = this.mapSupplier.get()) {
             this.checkIdentical(java, db);
+            db.valueStream()
+              .map(Hexadecimal::encode)
+              .filter(s -> s.startsWith("0"))
+              .forEach(logger::trace);
         }
 
         logger.success("Tested %s map!", NAME.get());

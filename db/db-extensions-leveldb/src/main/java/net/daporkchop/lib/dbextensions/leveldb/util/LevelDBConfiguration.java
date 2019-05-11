@@ -90,7 +90,7 @@ public class LevelDBConfiguration {
 
     protected DB openDB(@NonNull File path) throws DBOpenException {
         try {
-            return this.factory.open(PFiles.ensureDirectoryExists(this.path), this.options);
+            return this.factory.open(PFiles.ensureDirectoryExists(path), this.options);
         } catch (IOException e) {
             throw new DBOpenException(e);
         }

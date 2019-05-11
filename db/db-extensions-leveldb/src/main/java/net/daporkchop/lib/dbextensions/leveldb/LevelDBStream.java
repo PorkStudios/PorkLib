@@ -76,8 +76,8 @@ public class LevelDBStream<V> extends LevelDBCollection implements DBStream<V> {
         this.sourceDb = sourceDb;
         this.sourceSerializer = sourceSerializer;
 
-        DB delegate = this.delegate = this.configuration.openDB(this.id.toString());
         UUID id = this.id;
+        DB delegate = this.delegate = this.configuration.openDB(id.toString());
         this.cleaner = PCleaner.cleaner(this, () -> new Thread((IORunnable) () -> {
             delegate.close();
             PFiles.rm(new File(configuration.getPath(), String.format("children/%s", id.toString())));
@@ -148,7 +148,7 @@ public class LevelDBStream<V> extends LevelDBCollection implements DBStream<V> {
     @Override
     public PStream<V> filter(@NonNull Predicate<V> condition) {
         this.run(entry -> {
-            if (condition.test(this.read(entry.getValue()))) {
+            if (!condition.test(this.read(entry.getValue()))) {
                 this.delegate.delete(entry.getKey());
             }
         });
@@ -197,8 +197,7 @@ public class LevelDBStream<V> extends LevelDBCollection implements DBStream<V> {
         this.lock.lock();
         try {
             this.ensureOpen();
-            try (Snapshot snapshot = this.sourceDb == null ? this.delegate.getSnapshot() : this.sourceDb.getSnapshot();
-                 DBIterator it = this.sourceDb == null ? this.delegate.iterator(new ReadOptions().snapshot(snapshot)) : this.sourceDb.iterator(new ReadOptions().snapshot(snapshot))) {
+            try (DBIterator it = this.sourceDb == null ? this.delegate.iterator() : this.sourceDb.iterator()) {
                 if (this.concurrent) {
                     ConcurrencyHelper.runConcurrent(it, func);
                 } else {
@@ -206,8 +205,6 @@ public class LevelDBStream<V> extends LevelDBCollection implements DBStream<V> {
                         func.accept(it.next());
                     }
                 }
-            } catch (IOException e) {
-                throw new DBReadException(e);
             } finally {
                 if (this.sourceDb != null) {
                     this.sourceDb = null;

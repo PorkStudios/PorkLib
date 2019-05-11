@@ -302,9 +302,11 @@ public class Serialization {
     @SuppressWarnings("unchecked")
     public void write(@NonNull Object value, @NonNull DataOut out) throws IOException {
         Serializer serializer;
+        int id;
         this.mapAccessLock.readLock().lock();
         try {
             serializer = this.classToSerializer.get(value.getClass());
+            id = this.classToId.get(value.getClass());
         } finally {
             this.mapAccessLock.readLock().unlock();
         }
@@ -312,6 +314,7 @@ public class Serialization {
         if (serializer == null) {
             throw new IllegalArgumentException(String.format("Unregistered class: %s", value.getClass().getCanonicalName()));
         } else {
+            out.writeVarInt(id, true);
             serializer.write(value, out);
         }
     }

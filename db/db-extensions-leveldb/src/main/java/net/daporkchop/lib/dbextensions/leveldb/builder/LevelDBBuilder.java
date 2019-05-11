@@ -66,6 +66,12 @@ public abstract class LevelDBBuilder<Impl extends LevelDBBuilder<Impl, T>, T> im
         return (Impl) this;
     }
 
+    @SuppressWarnings("unchecked")
+    public Impl serialization(Serialization serialization) {
+        this.serialization = serialization;
+        return (Impl) this;
+    }
+
     public LevelDBConfiguration configuration() {
         return new LevelDBConfiguration(
                 this.options == null ? LevelDBConfiguration.defaultOptions() : this.options,

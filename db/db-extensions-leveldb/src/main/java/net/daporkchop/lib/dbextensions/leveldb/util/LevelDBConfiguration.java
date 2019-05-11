@@ -62,6 +62,7 @@ public class LevelDBConfiguration {
      * @throws DBOpenException if an exception occurs while opening the database
      */
     public DB openDB() throws DBOpenException {
+        PFiles.rm(new File(this.path, "children"));
         return this.openDB(this.path);
     }
 
@@ -73,7 +74,7 @@ public class LevelDBConfiguration {
      * @throws DBOpenException if an exception occurs while opening the database
      */
     public DB openDB(@NonNull String subpath) throws DBOpenException {
-        return this.openDB(new File(this.path, subpath));
+        return this.openDB(new File(this.path, String.format("children/%s", subpath)));
     }
 
     protected DB openDB(@NonNull File path) throws DBOpenException {

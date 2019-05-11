@@ -29,6 +29,8 @@ import net.daporkchop.lib.db.util.exception.DBOpenException;
 import net.daporkchop.lib.db.util.exception.DBReadException;
 import net.daporkchop.lib.db.util.exception.DBWriteException;
 import net.daporkchop.lib.dbextensions.leveldb.builder.LevelDBSetBuilder;
+import net.daporkchop.lib.dbextensions.leveldb.util.LevelDBCollection;
+import net.daporkchop.lib.dbextensions.leveldb.util.LevelDBConfiguration;
 import net.daporkchop.lib.hash.util.Digest;
 import net.daporkchop.lib.hash.util.Digester;
 import org.iq80.leveldb.DB;
@@ -46,7 +48,7 @@ import java.util.function.Consumer;
 /**
  * @author DaPorkchop_
  */
-public class LevelDBSet<V> implements DBSet<V> {
+public class LevelDBSet<V> extends LevelDBCollection implements DBSet<V> {
     protected final DB delegate;
 
     protected final KeyHasher<V> hasher;
@@ -56,6 +58,8 @@ public class LevelDBSet<V> implements DBSet<V> {
     protected final AtomicBoolean open = new AtomicBoolean(true);
 
     public LevelDBSet(@NonNull LevelDBSetBuilder<V> builder) {
+        super(builder);
+
         if ((this.valueSerializer = builder.valueSerializer()) == null) {
             throw new NullPointerException("valueSerializer");
         }
@@ -70,11 +74,7 @@ public class LevelDBSet<V> implements DBSet<V> {
         }
         this.hasher = hasher;
 
-        try {
-            this.delegate = builder.openDB();
-        } catch (IOException e) {
-            throw new DBOpenException(e);
-        }
+        this.delegate = this.configuration.openDB();
     }
 
     @Override

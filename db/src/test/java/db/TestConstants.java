@@ -15,6 +15,7 @@
 
 package db;
 
+import lombok.NonNull;
 import net.daporkchop.lib.logging.LogAmount;
 import net.daporkchop.lib.logging.Logging;
 

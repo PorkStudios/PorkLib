@@ -25,10 +25,10 @@ import net.daporkchop.lib.db.DBMap;
 import net.daporkchop.lib.db.util.KeyHasher;
 import net.daporkchop.lib.db.util.exception.DBCloseException;
 import net.daporkchop.lib.db.util.exception.DBNotOpenException;
-import net.daporkchop.lib.db.util.exception.DBOpenException;
 import net.daporkchop.lib.db.util.exception.DBReadException;
 import net.daporkchop.lib.db.util.exception.DBWriteException;
 import net.daporkchop.lib.dbextensions.leveldb.builder.LevelDBMapBuilder;
+import net.daporkchop.lib.dbextensions.leveldb.util.LevelDBCollection;
 import net.daporkchop.lib.encoding.ToBytes;
 import net.daporkchop.lib.hash.util.Digest;
 import net.daporkchop.lib.hash.util.Digester;
@@ -49,7 +49,7 @@ import java.util.function.Consumer;
 /**
  * @author DaPorkchop_
  */
-public class LevelDBMap<K, V> implements DBMap<K, V> {
+public class LevelDBMap<K, V> extends LevelDBCollection implements DBMap<K, V> {
     protected final DB delegate;
 
     protected final KeyHasher<K> keyHasher;
@@ -61,6 +61,8 @@ public class LevelDBMap<K, V> implements DBMap<K, V> {
     protected final AtomicBoolean open = new AtomicBoolean(true);
 
     public LevelDBMap(@NonNull LevelDBMapBuilder<K, V> builder) {
+        super(builder);
+
         if ((this.valueSerializer = builder.valueSerializer()) == null) {
             throw new NullPointerException("valueSerializer");
         }
@@ -94,7 +96,7 @@ public class LevelDBMap<K, V> implements DBMap<K, V> {
                     };
                 }
             } else {
-                if (keySerializer != null)   {
+                if (keySerializer != null) {
                     throw new IllegalStateException("keySerializer is set but will never be used!");
                 }
             }
@@ -103,11 +105,7 @@ public class LevelDBMap<K, V> implements DBMap<K, V> {
         this.keySerializer = keySerializer;
         this.serializeKeys = serializeKeys;
 
-        try {
-            this.delegate = builder.openDB();
-        } catch (IOException e) {
-            throw new DBOpenException(e);
-        }
+        this.delegate = this.configuration.openDB();
     }
 
     @Override

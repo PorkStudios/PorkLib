@@ -20,7 +20,6 @@ import net.daporkchop.lib.binary.serialization.Serializer;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.collections.stream.PStream;
-import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.db.DBMap;
 import net.daporkchop.lib.db.util.KeyHasher;
 import net.daporkchop.lib.db.util.exception.DBCloseException;
@@ -122,8 +121,8 @@ public class LevelDBMap<K, V> extends LevelDBCollection implements DBMap<K, V> {
         this.closeLock.readLock().lock();
         try {
             this.ensureOpen();
-            try (DBIterator iterator = this.delegate.iterator())    {
-                while (iterator.hasNext())  {
+            try (DBIterator iterator = this.delegate.iterator()) {
+                while (iterator.hasNext()) {
                     this.delegate.delete(iterator.next().getKey());
                 }
             }
@@ -278,8 +277,8 @@ public class LevelDBMap<K, V> extends LevelDBCollection implements DBMap<K, V> {
         this.closeLock.readLock().lock();
         try {
             this.ensureOpen();
-            try (DBIterator iterator = this.delegate.iterator())    {
-                while (iterator.hasNext())  {
+            try (DBIterator iterator = this.delegate.iterator()) {
+                while (iterator.hasNext()) {
                     Map.Entry<byte[], byte[]> entry = iterator.next();
                     K key = null;
                     V val = this.valueSerializer.read(DataIn.wrap(ByteBuffer.wrap(entry.getValue())));
@@ -343,7 +342,14 @@ public class LevelDBMap<K, V> extends LevelDBCollection implements DBMap<K, V> {
 
     @Override
     public PStream<V> valueStream() {
-        throw new UnsupportedOperationException();
+        this.ensureOpen();
+        this.closeLock.writeLock().lock();
+        try {
+            this.ensureOpen();
+            return new LevelDBStream<>(this.configuration, this.delegate, this.valueSerializer);
+        } finally {
+            this.closeLock.writeLock().unlock();
+        }
     }
 
     @Override

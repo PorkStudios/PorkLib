@@ -213,7 +213,14 @@ public class LevelDBSet<V> extends LevelDBCollection implements DBSet<V> {
 
     @Override
     public PStream<V> stream() {
-        throw new UnsupportedOperationException();
+        this.ensureOpen();
+        this.closeLock.readLock().lock();
+        try {
+            this.ensureOpen();
+            return new LevelDBStream<>(this.configuration, this.delegate, this.valueSerializer);
+        } finally {
+            this.closeLock.readLock().unlock();
+        }
     }
 
     @Override

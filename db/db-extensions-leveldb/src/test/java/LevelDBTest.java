@@ -13,19 +13,37 @@
  *
  */
 
+import db.DBMapTest;
 import db.TestConstants;
+import net.daporkchop.lib.binary.serialization.impl.ByteArraySerializer;
+import net.daporkchop.lib.dbextensions.leveldb.builder.LevelDBMapBuilder;
+import net.daporkchop.lib.hash.util.Digest;
+import net.daporkchop.lib.hash.util.Digester;
 import org.junit.Test;
+
+import java.io.File;
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
 public class LevelDBTest implements TestConstants {
     static {
-        TestConstants.init();
+        TestConstants.init("LevelDB");
     }
 
     @Test
-    public void test() {
-        logger.info("LevelDB!");
+    public void map() throws IOException {
+        new DBMapTest(
+                () -> new LevelDBMapBuilder<>()
+                        .keyHasher((String obj) -> {
+                            Digester digest = Digest.SHA3_256.start();
+                            digest.appendStream().writeUTF(obj);
+                            return digest.hash().getHash();
+                        })
+                        .valueSerializer(ByteArraySerializer.INSTANCE)
+                        .path(new File(ROOT_DIR, "map"))
+                        .build()
+        ).test();
     }
 }

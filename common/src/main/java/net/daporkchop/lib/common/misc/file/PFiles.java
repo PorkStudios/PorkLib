@@ -16,6 +16,7 @@
 package net.daporkchop.lib.common.misc.file;
 
 import lombok.NonNull;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.common.util.exception.file.CannotCreateDirectoryException;
 import net.daporkchop.lib.common.util.exception.file.CannotCreateFileException;
 import net.daporkchop.lib.common.util.exception.file.CannotDeleteFileException;
@@ -118,7 +119,7 @@ public interface PFiles {
                 if (file.isDirectory()) {
                     File[] files;
                     while ((files = file.listFiles()) != null && files.length != 0) {
-                        StreamSupport.stream(Arrays.spliterator(files), true).forEach(f -> rmParallel(file));
+                        StreamSupport.stream(Arrays.spliterator(files), true).forEach(PFiles::rmParallel);
                     }
                 }
                 if (!file.delete()) {
@@ -142,7 +143,9 @@ public interface PFiles {
      * @throws CannotDeleteFileException if the file cannot be deleted
      */
     static void rmContents(@NonNull File file) throws NotADirectoryException, CannotDeleteFileException {
-        if (file.exists() && !file.isDirectory()) {
+        if (!file.exists()) {
+            return;
+        } else if (!file.isDirectory()) {
             throw new NotADirectoryException(file);
         } else {
             File[] files;
@@ -162,7 +165,9 @@ public interface PFiles {
      * @throws CannotDeleteFileException if the file cannot be deleted
      */
     static void rmContentsParallel(@NonNull File file) throws NotADirectoryException, CannotDeleteFileException {
-        if (file.exists() && !file.isDirectory()) {
+        if (!file.exists()) {
+            return;
+        } else if (!file.isDirectory()) {
             throw new NotADirectoryException(file);
         } else {
             try {
@@ -172,7 +177,7 @@ public interface PFiles {
                 }
                 File[] files;
                 while ((files = file.listFiles()) != null && files.length != 0) {
-                    StreamSupport.stream(Arrays.spliterator(files), true).forEach(f -> rmParallel(file));
+                    StreamSupport.stream(Arrays.spliterator(files), true).forEach(PFiles::rmParallel);
                 }
             } catch (ExecutionException e) {
                 if (e.getCause() instanceof CannotDeleteFileException) {

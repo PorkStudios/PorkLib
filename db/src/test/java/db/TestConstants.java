@@ -16,11 +16,14 @@
 package db;
 
 import lombok.NonNull;
+import net.daporkchop.lib.common.misc.file.PFiles;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.logging.LogAmount;
 import net.daporkchop.lib.logging.Logging;
 
 import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Some shared constants for all tests
@@ -31,20 +34,21 @@ public interface TestConstants extends Logging {
     /**
      * The output folder for test data
      */
-    File ROOT_DIR = new File(".", "test_out");
+    File ROOT_DIR = new File("test_out");
     AtomicBoolean INITIALIZED = new AtomicBoolean(false);
+    AtomicReference<String> NAME = new AtomicReference<>("(unknown)");
 
     /**
      * Initializes test stuff
      */
-    static void init() {
-        synchronized (INITIALIZED) {
-            if (!INITIALIZED.get()) {
-                INITIALIZED.set(true);
-                logger.enableANSI()
-                      .addFile(new File(ROOT_DIR, "test_log.log"), true, LogAmount.DEBUG)
-                      .setLogAmount(LogAmount.DEBUG);
-            }
+    static void init(@NonNull String name) {
+        if (!INITIALIZED.getAndSet(true)) {
+            NAME.set(name);
+            PFiles.rmContentsParallel(ROOT_DIR);
+            logger.enableANSI()
+                  .addFile(new File(ROOT_DIR, "test_log.log"), true, LogAmount.DEBUG)
+                  .setLogAmount(LogAmount.DEBUG)
+                  .info("Testing %s...", NAME.get());
         }
     }
 }

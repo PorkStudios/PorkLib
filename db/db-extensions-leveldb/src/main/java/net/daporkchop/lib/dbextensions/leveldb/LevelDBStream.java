@@ -21,11 +21,13 @@ import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.collections.PMap;
 import net.daporkchop.lib.collections.stream.PStream;
+import net.daporkchop.lib.collections.util.ConcurrencyHelper;
 import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.common.function.io.IORunnable;
 import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.db.DBStream;
 import net.daporkchop.lib.db.util.exception.DBNotOpenException;
+import net.daporkchop.lib.db.util.exception.DBReadException;
 import net.daporkchop.lib.dbextensions.leveldb.util.LevelDBCollection;
 import net.daporkchop.lib.dbextensions.leveldb.util.LevelDBConfiguration;
 import net.daporkchop.lib.unsafe.PCleaner;
@@ -56,7 +58,6 @@ public class LevelDBStream<V> extends LevelDBCollection implements DBStream<V> {
     protected final DB delegate;
 
     protected DB sourceDb;
-    protected Snapshot source;
     protected Serializer<V> sourceSerializer;
 
     protected boolean concurrent = false;
@@ -65,7 +66,7 @@ public class LevelDBStream<V> extends LevelDBCollection implements DBStream<V> {
     protected final Lock lock = new ReentrantLock();
     protected final PCleaner cleaner;
 
-    public LevelDBStream(@NonNull LevelDBConfiguration configuration, @NonNull DB sourceDb, @NonNull Snapshot source, @NonNull Serializer<V> sourceSerializer) {
+    public LevelDBStream(@NonNull LevelDBConfiguration configuration, @NonNull DB sourceDb, @NonNull Serializer<V> sourceSerializer) {
         super(configuration);
 
         if (configuration.getSerialization() == null) {
@@ -73,7 +74,6 @@ public class LevelDBStream<V> extends LevelDBCollection implements DBStream<V> {
         }
 
         this.sourceDb = sourceDb;
-        this.source = source;
         this.sourceSerializer = sourceSerializer;
 
         DB delegate = this.delegate = this.configuration.openDB(this.id.toString());
@@ -125,11 +125,7 @@ public class LevelDBStream<V> extends LevelDBCollection implements DBStream<V> {
     public void forEach(@NonNull Consumer<V> consumer) {
         this.lock.lock();
         try {
-            this.run(it -> {
-                while (it.hasNext()) {
-                    consumer.accept(this.read(it.next().getValue()));
-                }
-            });
+            this.run(entry -> consumer.accept(this.read(entry.getValue())));
             this.close();
         } finally {
             this.lock.unlock();
@@ -139,31 +135,21 @@ public class LevelDBStream<V> extends LevelDBCollection implements DBStream<V> {
     @Override
     @SuppressWarnings("unchecked")
     public <T> PStream<T> map(@NonNull Function<V, T> mappingFunction) {
-        this.run(it -> {
-            while (it.hasNext())    {
-                byte[] key;
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                {
-                    Map.Entry<byte[], byte[]> entry = it.next();
-                    key = entry.getKey();
-                    try (DataOut out = DataOut.wrap(baos)) {
-                        this.configuration.getSerialization().write(mappingFunction.apply(this.read(entry.getValue())), out);
-                    }
-                }
-                this.delegate.put(key, baos.toByteArray());
+        this.run(entry -> {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            try (DataOut out = DataOut.wrap(baos)) {
+                this.configuration.getSerialization().write(mappingFunction.apply(this.read(entry.getValue())), out);
             }
+            this.delegate.put(entry.getKey(), baos.toByteArray());
         });
         return (PStream<T>) this;
     }
 
     @Override
     public PStream<V> filter(@NonNull Predicate<V> condition) {
-        this.run(it -> {
-            while (it.hasNext())     {
-                Map.Entry<byte[], byte[]> entry = it.next();
-                if (condition.test(this.read(entry.getValue())))    {
-                    this.delegate.delete(entry.getKey());
-                }
+        this.run(entry -> {
+            if (condition.test(this.read(entry.getValue()))) {
+                this.delegate.delete(entry.getKey());
             }
         });
         return this;
@@ -176,8 +162,12 @@ public class LevelDBStream<V> extends LevelDBCollection implements DBStream<V> {
 
     @Override
     public <Key, Value, T extends PMap<Key, Value>> T toMap(@NonNull Function<V, Key> keyExtractor, @NonNull Function<V, Value> valueExtractor, @NonNull Supplier<T> mapCreator) {
-
-        return null;
+        T map = mapCreator.get();
+        this.run(entry -> {
+            V v = this.read(entry.getValue());
+            map.put(keyExtractor.apply(v), valueExtractor.apply(v));
+        });
+        return map;
     }
 
     @Override
@@ -203,23 +193,25 @@ public class LevelDBStream<V> extends LevelDBCollection implements DBStream<V> {
         }
     }
 
-    protected void run(@NonNull IOConsumer<DBIterator> func) {
+    protected void run(@NonNull IOConsumer<Map.Entry<byte[], byte[]>> func) {
         this.lock.lock();
         try {
             this.ensureOpen();
-            try (DBIterator it = this.sourceDb == null ? this.delegate.iterator() : this.sourceDb.iterator(new ReadOptions().snapshot(this.source))) {
-                func.accept(it);
+            try (Snapshot snapshot = this.sourceDb == null ? this.delegate.getSnapshot() : this.sourceDb.getSnapshot();
+                 DBIterator it = this.sourceDb == null ? this.delegate.iterator(new ReadOptions().snapshot(snapshot)) : this.sourceDb.iterator(new ReadOptions().snapshot(snapshot))) {
+                if (this.concurrent) {
+                    ConcurrencyHelper.runConcurrent(it, func);
+                } else {
+                    while (it.hasNext()) {
+                        func.accept(it.next());
+                    }
+                }
+            } catch (IOException e) {
+                throw new DBReadException(e);
             } finally {
                 if (this.sourceDb != null) {
                     this.sourceDb = null;
                     this.sourceSerializer = null;
-                    try {
-                        this.source.close();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    } finally {
-                        this.source = null;
-                    }
                 }
             }
         } finally {

@@ -157,7 +157,7 @@ public class TagRegistry {
     /**
      * Gets the id of a given tag class
      *
-     * @param clazz the class of the tag to get the id of
+     * @param clazz the class of the tag to get the id required
      * @return the id of the tag class
      */
     public byte getId(@NonNull Class<? extends Tag> clazz) {

@@ -29,7 +29,7 @@ public class ToBytes {
             for (int j = 0; j < in.length; j++) {
                 short s = in[j];
                 b[j] = (byte) (s & 0xFF);
-                b[j + 1] = (byte) ((s >> 8) & 0xFF);
+                b[j + 1] = (byte) ((s >>> 8) & 0xFF);
             }
             return b;
         }
@@ -43,9 +43,9 @@ public class ToBytes {
             for (int j = 0; j < in.length; j++) {
                 int i = in[j];
                 b[j] = (byte) (i & 0xFF);
-                b[j + 1] = (byte) ((i >> 8) & 0xFF);
-                b[j + 2] = (byte) ((i >> 16) & 0xFF);
-                b[j + 3] = (byte) ((i >> 24) & 0xFF);
+                b[j + 1] = (byte) ((i >>> 8) & 0xFF);
+                b[j + 2] = (byte) ((i >>> 16) & 0xFF);
+                b[j + 3] = (byte) ((i >>> 24) & 0xFF);
             }
             return b;
         }
@@ -59,13 +59,13 @@ public class ToBytes {
             for (int j = 0; j < in.length; j++) {
                 long l = in[j];
                 b[j] = (byte) (l & 0xFFL);
-                b[j + 1] = (byte) ((l >> 8L) & 0xFFL);
-                b[j + 2] = (byte) ((l >> 16L) & 0xFFL);
-                b[j + 3] = (byte) ((l >> 24L) & 0xFFL);
-                b[j + 4] = (byte) ((l >> 32L) & 0xFFL);
-                b[j + 5] = (byte) ((l >> 40L) & 0xFFL);
-                b[j + 6] = (byte) ((l >> 48L) & 0xFFL);
-                b[j + 7] = (byte) ((l >> 56L) & 0xFFL);
+                b[j + 1] = (byte) ((l >>> 8L) & 0xFFL);
+                b[j + 2] = (byte) ((l >>> 16L) & 0xFFL);
+                b[j + 3] = (byte) ((l >>> 24L) & 0xFFL);
+                b[j + 4] = (byte) ((l >>> 32L) & 0xFFL);
+                b[j + 5] = (byte) ((l >>> 40L) & 0xFFL);
+                b[j + 6] = (byte) ((l >>> 48L) & 0xFFL);
+                b[j + 7] = (byte) ((l >>> 56L) & 0xFFL);
             }
             return b;
         }
@@ -75,7 +75,7 @@ public class ToBytes {
         if (in.length == 0) {
             return new short[0];
         } else {
-            short[] s = new short[in.length >> 1];
+            short[] s = new short[in.length >>> 1];
             for (int j = 0; j < s.length; j++) {
                 int k = j << 1;
                 s[j] = (short) ((in[k] & 0xFF) |
@@ -89,7 +89,7 @@ public class ToBytes {
         if (in.length == 0) {
             return new int[0];
         } else {
-            int[] i = new int[in.length >> 2];
+            int[] i = new int[in.length >>> 2];
             for (int j = 0; j < i.length; j++) {
                 int k = j << 2;
                 i[j] = (in[k] & 0xFF) |
@@ -105,7 +105,7 @@ public class ToBytes {
         if (in.length == 0) {
             return new long[0];
         } else {
-            long[] l = new long[in.length >> 3];
+            long[] l = new long[in.length >>> 3];
             for (int j = 0; j < l.length; j++) {
                 int k = j << 3;
                 l[j] = (in[k] & 0xFFL) |

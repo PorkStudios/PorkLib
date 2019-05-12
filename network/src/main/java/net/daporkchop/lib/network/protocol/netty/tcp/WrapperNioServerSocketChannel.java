@@ -27,7 +27,7 @@ import java.util.List;
 
 /**
  * This allows overriding the channel creation behavior in {@link NioServerSocketChannel} to create instances
- * of {@link WrapperNioSocketChannel} instead of {@link io.netty.channel.socket.nio.NioSocketChannel}.
+ * of {@link WrapperNioSocketChannel} instead required {@link io.netty.channel.socket.nio.NioSocketChannel}.
  *
  * @author DaPorkchop_
  */

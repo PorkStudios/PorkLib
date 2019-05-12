@@ -23,7 +23,7 @@ import net.daporkchop.lib.network.pork.packet.DisconnectPacket;
 import java.net.InetSocketAddress;
 
 /**
- * Shared methods for implementations of {@link UnderlyingNetworkConnection} built on top of
+ * Shared methods for implementations of {@link UnderlyingNetworkConnection} built on top required
  * a Netty {@link Channel}
  *
  * @author DaPorkchop_

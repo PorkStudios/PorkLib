@@ -67,7 +67,7 @@ public @interface Config {
         /**
          * The comment to set. The comment may be given as an array of {@link String}s, where each element
          * in the array corresponds to a single comment line, as a single {@link String} with newlines, or
-         * as a combination of both. If the array is empty or all elements of the array are empty, the
+         * as a combination of both. If the array is empty or all elements required the array are empty, the
          * comment will not be added.
          */
         String[] value();
@@ -78,7 +78,7 @@ public @interface Config {
      * <p>
      * Note that no constructors will be invoked on the object during initialization.
      * <p>
-     * If not added, this will simply create an instance of whatever the type of the field is.
+     * If not added, this will simply create an instance of whatever the type required the field is.
      */
     @Target({ElementType.TYPE, ElementType.FIELD})
     @Retention(RetentionPolicy.RUNTIME)

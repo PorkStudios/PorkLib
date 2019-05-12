@@ -16,7 +16,7 @@
 package net.daporkchop.lib.noise.engine;
 
 import lombok.Getter;
-import net.daporkchop.lib.math.arrays.PArrays;
+import net.daporkchop.lib.common.util.PArrays;
 
 import java.util.Random;
 

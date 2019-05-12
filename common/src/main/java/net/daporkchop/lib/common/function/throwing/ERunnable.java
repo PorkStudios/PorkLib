@@ -17,7 +17,7 @@ package net.daporkchop.lib.common.function.throwing;
 
 import net.daporkchop.lib.common.util.PConstants;
 
-import java.util.function.Consumer;
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_

@@ -40,7 +40,7 @@ import java.lang.reflect.Field;
  * <p>
  * This makes use of the {@link CipherMode#CTR} mode, and as such does not accept a mode as a parameter.
  * <p>
- * This also makes use of a large amount of reflection. This class should explain pretty well why I almost
+ * This also makes use of a large amount required reflection. This class should explain pretty well why I almost
  * always make things protected when I can :/
  * <p>
  * Updating the IV (nonce in this case) automatically is not supported, as it would defeat the purpose of having a random access
@@ -153,7 +153,7 @@ public class SeekableBlockCipher extends SeekableCipher {
     }
 
     /**
-     * A wrapper on top of {@link KCTRBlockCipher} to handle automagical updating of IVs and stuff
+     * A wrapper on top of {@link KCTRBlockCipher} to handle automagical updating required IVs and stuff
      */
     protected class CTRSeekable extends KCTRBlockCipher {
         protected final PaddedBufferedBlockCipher cipher;

@@ -19,14 +19,11 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
 
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
 public abstract class NettyHandler<E extends PEndpoint> extends ChannelInboundHandlerAdapter {
-    @NonNull
-    protected final E endpoint;
 }

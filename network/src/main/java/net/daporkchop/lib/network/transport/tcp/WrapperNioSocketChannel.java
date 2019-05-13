@@ -15,28 +15,30 @@
 
 package net.daporkchop.lib.network.transport.tcp;
 
-import io.netty.channel.Channel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.concurrent.Future;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
+import net.daporkchop.lib.network.protocol.Protocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.PChannel;
 import net.daporkchop.lib.network.session.Reliability;
+import net.daporkchop.lib.network.transport.ChanneledPacket;
 import net.daporkchop.lib.network.transport.NetSession;
 import net.daporkchop.lib.network.transport.TransportEngine;
-import net.daporkchop.lib.network.transport.WrappedPacket;
 import net.daporkchop.lib.network.transport.tcp.endpoint.TCPEndpoint;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
-import java.nio.channels.SocketChannel;
-import java.nio.channels.spi.SelectorProvider;
 import java.util.Map;
 
 /**
  * @author DaPorkchop_
  */
+@Getter
+@Accessors(fluent = true)
 public class WrapperNioSocketChannel extends NioSocketChannel implements NetSession {
     protected final TCPEndpoint endpoint;
     protected final DummyTCPChannel defaultChannel = new DummyTCPChannel(this, 0);
@@ -66,7 +68,7 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements NetSess
 
     @Override
     public NetSession send(@NonNull Object packet, Reliability reliability) {
-        this.write(new WrappedPacket(packet, Reliability.RELIABLE_ORDERED, 0));
+        this.write(new ChanneledPacket<>(packet, 0));
         return this;
     }
 
@@ -75,13 +77,13 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements NetSess
         if (!this.channels.containsKey(channelId)) {
             throw new IllegalArgumentException(String.format("Unknown channel id: %d", channelId));
         }
-        this.write(new WrappedPacket(packet, Reliability.RELIABLE_ORDERED, channelId));
+        this.write(new ChanneledPacket<>(packet, channelId));
         return this;
     }
 
     @Override
     public Future<Void> sendFuture(@NonNull Object packet, Reliability reliability) {
-        return this.write(new WrappedPacket(packet, Reliability.RELIABLE_ORDERED, 0));
+        return this.write(new ChanneledPacket<>(packet, 0));
     }
 
     @Override
@@ -89,7 +91,7 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements NetSess
         if (!this.channels.containsKey(channelId)) {
             throw new IllegalArgumentException(String.format("Unknown channel id: %d", channelId));
         }
-        return this.write(new WrappedPacket(packet, Reliability.RELIABLE_ORDERED, channelId));
+        return this.write(new ChanneledPacket<>(packet, channelId));
     }
 
     @Override
@@ -119,6 +121,17 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements NetSess
     @SuppressWarnings("unchecked")
     public <S extends AbstractUserSession<S>> S userSession() {
         return (S) this.userSession;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public Protocol<?, ? extends AbstractUserSession> protocol() {
+        return this.endpoint.protocol(); //TODO
+    }
+
+    @Override
+    public NetSession protocol(@NonNull Protocol<?, ? extends AbstractUserSession> protocol) {
+        return this; //TODO
     }
 
     @Override

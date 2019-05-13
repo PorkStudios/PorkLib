@@ -20,6 +20,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.reference.InstancePool;
 import net.daporkchop.lib.network.endpoint.PClient;
 import net.daporkchop.lib.network.endpoint.PMulti;
@@ -43,6 +44,7 @@ import java.util.Collections;
  */
 @RequiredArgsConstructor
 @Getter
+@Accessors(fluent = true)
 public class TCPEngine implements TransportEngine {
     protected static final Collection<Reliability> RELIABILITIES = Collections.singleton(Reliability.RELIABLE_ORDERED);
 

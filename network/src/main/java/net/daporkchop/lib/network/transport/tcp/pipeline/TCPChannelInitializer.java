@@ -13,36 +13,51 @@
  *
  */
 
-package net.daporkchop.lib.network.transport.tcp;
+package net.daporkchop.lib.network.transport.tcp.pipeline;
 
-import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.MessageToMessageCodec;
+import io.netty.channel.ChannelInitializer;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.network.transport.ChanneledPacket;
+import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.transport.tcp.WrapperNioSocketChannel;
+import net.daporkchop.lib.network.transport.tcp.endpoint.TCPEndpoint;
 
-import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
 @Getter
-public class TCPFramingCodec extends MessageToMessageCodec<ByteBuf, ChanneledPacket<ByteBuf>> {
+public class TCPChannelInitializer<E extends TCPEndpoint> extends ChannelInitializer<WrapperNioSocketChannel> {
     @NonNull
-    protected final Framer framer;
+    protected final E endpoint;
+    @NonNull
+    protected final Consumer<WrapperNioSocketChannel> addedCallback;
+    @NonNull
+    protected final Consumer<WrapperNioSocketChannel> removedCallback;
+
+    public TCPChannelInitializer(@NonNull E endpoint) {
+        this(endpoint, ch -> {}, ch -> {});
+    }
 
     @Override
-    @SuppressWarnings("unchecked")
-    protected void encode(ChannelHandlerContext ctx, ChanneledPacket<ByteBuf> msg, List<Object> out) throws Exception {
-        this.framer.pack(msg, ((WrapperNioSocketChannel) ctx.channel()).userSession, out);
+    protected void initChannel(@NonNull WrapperNioSocketChannel channel) throws Exception {
+        channel.pipeline()
+                .addLast(new TCPFramingCodec(channel))
+                .addLast(new TCPEncoder(channel))
+                .addLast(new TCPHandler(channel));
+
+        this.addedCallback.accept(channel);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
-        this.framer.unpack(msg, ((WrapperNioSocketChannel) ctx.channel()).userSession, out);
+    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
+        super.channelUnregistered(ctx);
+        this.removedCallback.accept((WrapperNioSocketChannel) ctx.channel());
     }
 }

@@ -27,8 +27,7 @@ import net.daporkchop.lib.network.session.Reliability;
  */
 @RequiredArgsConstructor
 @Getter
-@Setter
-@Accessors(chain = true)
+@Accessors(fluent = true)
 public class ChanneledPacket<P> {
     @NonNull
     protected P packet;

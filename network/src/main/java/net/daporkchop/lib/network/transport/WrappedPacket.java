@@ -25,17 +25,17 @@ import net.daporkchop.lib.network.session.Reliability;
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
 @Getter
-@Setter
-@Accessors(chain = true)
-public class WrappedPacket<P> {
-    @NonNull
-    protected P packet;
-    @NonNull
+@Accessors(fluent = true)
+public class WrappedPacket<P> extends ChanneledPacket<P> {
     protected final Reliability reliability;
-    protected final int channel;
 
+    public WrappedPacket(P packet, int channel, @NonNull Reliability reliability) {
+        super(packet, channel);
+        this.reliability = reliability;
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public <NEW_P> WrappedPacket<NEW_P> packet(@NonNull NEW_P packet)    {
         ((WrappedPacket<NEW_P>) this).packet = packet;

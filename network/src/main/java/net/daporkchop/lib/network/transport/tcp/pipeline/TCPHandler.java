@@ -13,50 +13,43 @@
  *
  */
 
-package net.daporkchop.lib.network.transport.tcp;
+package net.daporkchop.lib.network.transport.tcp.pipeline;
 
-import io.netty.channel.Channel;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInitializer;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.binary.netty.NettyUtil;
+import net.daporkchop.lib.network.protocol.Protocol;
+import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.transport.ChanneledPacket;
+import net.daporkchop.lib.network.transport.netty.NettyHandler;
+import net.daporkchop.lib.network.transport.tcp.WrapperNioSocketChannel;
 import net.daporkchop.lib.network.transport.tcp.endpoint.TCPEndpoint;
-
-import java.util.function.Consumer;
 
 /**
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
 @Getter
-public class TCPChannelInitializer<E extends TCPEndpoint, Ch extends Channel> extends ChannelInitializer<Ch> {
+@Accessors(fluent = true)
+public class TCPHandler extends NettyHandler {
     @NonNull
-    protected final E endpoint;
-    @NonNull
-    protected final Consumer<Ch> addedCallback;
-    @NonNull
-    protected final Consumer<Ch> removedCallback;
-
-    public TCPChannelInitializer(@NonNull E endpoint) {
-        this(endpoint, ch -> {}, ch -> {});
-    }
-
-    @Override
-    protected void initChannel(@NonNull Ch channel) throws Exception {
-        channel.pipeline()
-                .addLast(new TCPFramingCodec(this.endpoint.transportEngine().getFramer()))
-                .addLast(new TCPHandler<>(this.endpoint));
-
-        this.addedCallback.accept(channel);
-    }
+    protected final WrapperNioSocketChannel session;
 
     @Override
     @SuppressWarnings("unchecked")
-    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-        super.channelUnregistered(ctx);
-        this.removedCallback.accept((Ch) ctx.channel());
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        if (!(msg instanceof ChanneledPacket)) {
+            throw new IllegalArgumentException(msg == null ? "null" : msg.getClass().getCanonicalName());
+        }
+
+        Protocol<Object, ? extends AbstractUserSession> protocol = (Protocol<Object, ? extends AbstractUserSession>) this.session.protocol();
+        ChanneledPacket<ByteBuf> pck = (ChanneledPacket<ByteBuf>) msg;
+
+        Object decoded = protocol.decoder().decode(NettyUtil.wrapIn(pck.packet()), this.session.userSession(), pck.channel());
+        protocol.handler().handle(decoded, this.session.userSession(), pck.channel());
     }
 }

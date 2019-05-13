@@ -15,6 +15,8 @@
 
 package net.daporkchop.lib.network.transport;
 
+import lombok.NonNull;
+import net.daporkchop.lib.network.protocol.Protocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.PSession;
 import net.daporkchop.lib.unsafe.PUnsafe;
@@ -35,4 +37,17 @@ public interface NetSession extends PSession<NetSession> {
      * @return this session's user session instance
      */
     <S extends AbstractUserSession<S>> S userSession();
+
+    /**
+     * @return the currently used protocol
+     */
+    Protocol<?, ? extends AbstractUserSession> protocol();
+
+    /**
+     * Sets the currently used protocol.
+     *
+     * @param protocol the new protocol to use
+     * @return this session
+     */
+    NetSession protocol(@NonNull Protocol<?, ? extends AbstractUserSession> protocol);
 }

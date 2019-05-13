@@ -13,20 +13,41 @@
  *
  */
 
-package net.daporkchop.lib.network.transport.tcp;
+package net.daporkchop.lib.network.transport.tcp.pipeline;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.MessageToMessageEncoder;
+import io.netty.handler.codec.MessageToMessageCodec;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.network.transport.ChanneledPacket;
+import net.daporkchop.lib.network.transport.tcp.Framer;
+import net.daporkchop.lib.network.transport.tcp.WrapperNioSocketChannel;
+import net.daporkchop.lib.network.transport.tcp.endpoint.TCPEndpoint;
 
 import java.util.List;
 
 /**
  * @author DaPorkchop_
  */
-public class TCPEncoder extends MessageToMessageEncoder<ChanneledPacket> {
-    @Override
-    protected void encode(ChannelHandlerContext ctx, ChanneledPacket msg, List<Object> out) throws Exception {
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public class TCPFramingCodec extends MessageToMessageCodec<ByteBuf, ChanneledPacket<ByteBuf>> {
+    @NonNull
+    protected final WrapperNioSocketChannel session;
 
+    @Override
+    @SuppressWarnings("unchecked")
+    protected void encode(ChannelHandlerContext ctx, ChanneledPacket<ByteBuf> msg, List<Object> out) throws Exception {
+        this.session.<TCPEndpoint>endpoint().transportEngine().framer().pack(msg, this.session.userSession(), out);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
+        this.session.<TCPEndpoint>endpoint().transportEngine().framer().unpack(msg, this.session.userSession(), out);
     }
 }

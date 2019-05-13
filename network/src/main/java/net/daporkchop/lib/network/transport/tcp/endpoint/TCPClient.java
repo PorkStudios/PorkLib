@@ -22,7 +22,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.network.endpoint.PClient;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.transport.NetSession;
-import net.daporkchop.lib.network.transport.tcp.TCPChannelInitializer;
+import net.daporkchop.lib.network.transport.tcp.pipeline.TCPChannelInitializer;
 import net.daporkchop.lib.network.transport.tcp.WrapperNioSocketChannel;
 
 /**

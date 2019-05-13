@@ -38,14 +38,18 @@ public class TestMCPinger implements Logging {
                 .build();
 
         logger.info("Pinging server...");
-        client.sendFuture(PooledByteBufAllocator.DEFAULT.ioBuffer()
-                .writeByte(0x00) //packet id
-                .writeByte(0x00) //protocol version
-                .writeByte(0x00) //version string length
-                .writeShort(25565) //port
-                .writeByte(0x01) //next state
-
-                .writeByte(0x00) //packet id
+        client.send(PooledByteBufAllocator.DEFAULT.ioBuffer()
+                                                  .writeByte(0x00) //packet id
+                                                  .writeByte(0x00) //protocol version
+                                                  .writeByte(0x09) //server address length
+                                                  .writeBytes("localhost".getBytes()) //server address
+                                                  .writeShort(25565) //port
+                                                  .writeByte(0x01) //next state
+        ).send(PooledByteBufAllocator.DEFAULT.ioBuffer()
+                                             .writeByte(0x00) //packet id
+        ).sendFuture(PooledByteBufAllocator.DEFAULT.ioBuffer()
+                                                   .writeByte(0x01) //packet id
+                                                   .writeLong(System.currentTimeMillis()) //value
         ).addListener(v -> logger.debug("Ping sent."));
     }
 }

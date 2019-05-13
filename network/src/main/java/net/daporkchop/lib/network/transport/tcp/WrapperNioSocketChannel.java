@@ -68,7 +68,7 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements NetSess
 
     @Override
     public NetSession send(@NonNull Object packet, Reliability reliability) {
-        this.write(new ChanneledPacket<>(packet, 0));
+        this.writeAndFlush(new ChanneledPacket<>(packet, 0));
         return this;
     }
 
@@ -77,7 +77,7 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements NetSess
         if (!this.channels.containsKey(channelId)) {
             throw new IllegalArgumentException(String.format("Unknown channel id: %d", channelId));
         }
-        this.write(new ChanneledPacket<>(packet, channelId));
+        this.writeAndFlush(new ChanneledPacket<>(packet, channelId));
         return this;
     }
 
@@ -91,7 +91,7 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements NetSess
         if (!this.channels.containsKey(channelId)) {
             throw new IllegalArgumentException(String.format("Unknown channel id: %d", channelId));
         }
-        return this.write(new ChanneledPacket<>(packet, channelId));
+        return this.writeAndFlush(new ChanneledPacket<>(packet, channelId));
     }
 
     @Override

@@ -49,5 +49,8 @@ public class TCPFramingCodec extends MessageToMessageCodec<ByteBuf, ChanneledPac
     @SuppressWarnings("unchecked")
     protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
         this.session.<TCPEndpoint>endpoint().transportEngine().framer().unpack(msg, this.session.userSession(), out);
+        if (msg.isReadable())  {
+            msg.retain();
+        }
     }
 }

@@ -53,12 +53,12 @@ public class MinecraftPacketFramer implements Framer<MinecraftPingSession>, Logg
 
     @Override
     public void pack(@NonNull ChanneledPacket<ByteBuf> packet, @NonNull MinecraftPingSession session, @NonNull List<ByteBuf> frames) {
-        ByteBuf buf = packet.packet().alloc().ioBuffer();
-        try (DataOut out = NettyUtil.wrapOut(buf)) {
+        ByteBuf buf = packet.packet().alloc().ioBuffer().writeByte(packet.packet().readableBytes());
+        /*try (DataOut out = NettyUtil.wrapOut(buf)) {
             out.writeVarInt(packet.packet().readableBytes());
         } catch (IOException e) {
             throw new RuntimeException(e);
-        }
+        }*/
         frames.add(buf);
         frames.add(packet.packet());
     }

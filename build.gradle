@@ -74,7 +74,7 @@ allprojects {
         }
         maven {
             name = "NukkitX Snapshots"
-            url = "https://repo.nukkitx.com/maven-snapshots/"
+            url = "https://repo.nukkitx.com/snapshots/"
         }
         mavenCentral()
     }

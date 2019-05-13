@@ -38,7 +38,7 @@ public interface PorkBuf extends Offsettable {
     //size methods
 
     /**
-     * Gets the current capacity of this buffer (i.e. the number of bytes it can hold without expanding)
+     * Gets the current capacity of this buffer (i.e. the number required bytes it can hold without expanding)
      *
      * @return the current capacity of this buffer
      */

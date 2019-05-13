@@ -198,7 +198,7 @@ public class Serialization {
      * @param <T> the type of the object to be read
      * @return the object that was read
      */
-    public <T> T read(@NonNull ByteBuf in) {
+    public <T> T readNetty(@NonNull ByteBuf in) {
         try {
             return this.read(NettyUtil.wrapIn(in));
         } catch (IOException e) {
@@ -284,7 +284,7 @@ public class Serialization {
      * @param value the value to write
      * @param out   a {@link ByteBuf} to write data to
      */
-    public void write(@NonNull Object value, @NonNull ByteBuf out) {
+    public void writeNetty(@NonNull Object value, @NonNull ByteBuf out) {
         try {
             this.write(value, NettyUtil.wrapOut(out));
         } catch (IOException e) {
@@ -302,9 +302,11 @@ public class Serialization {
     @SuppressWarnings("unchecked")
     public void write(@NonNull Object value, @NonNull DataOut out) throws IOException {
         Serializer serializer;
+        int id;
         this.mapAccessLock.readLock().lock();
         try {
             serializer = this.classToSerializer.get(value.getClass());
+            id = this.classToId.get(value.getClass());
         } finally {
             this.mapAccessLock.readLock().unlock();
         }
@@ -312,6 +314,7 @@ public class Serialization {
         if (serializer == null) {
             throw new IllegalArgumentException(String.format("Unregistered class: %s", value.getClass().getCanonicalName()));
         } else {
+            out.writeVarInt(id, true);
             serializer.write(value, out);
         }
     }

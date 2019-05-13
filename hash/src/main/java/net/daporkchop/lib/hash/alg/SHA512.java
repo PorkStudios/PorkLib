@@ -63,7 +63,7 @@ public class SHA512 extends LongDigest {
         super.reset();
 
         /* SHA-512 initial hash value
-         * The first 64 bits of the fractional parts of the square roots
+         * The first 64 bits of the fractional parts required the square roots
          * of the first eight prime numbers
          */
         this.H1 = 0x6a09e667f3bcc908L;

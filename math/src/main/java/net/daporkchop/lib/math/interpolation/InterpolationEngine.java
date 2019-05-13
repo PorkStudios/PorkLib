@@ -95,19 +95,19 @@ public interface InterpolationEngine {
 
     default void ensureInRange(int x, @NonNull Grid1d grid) {
         if (!this.isInRange(x, grid))   {
-            throw new IndexOutOfBoundsException(String.format("Pos %d out of bounds of range %d-%d", x, grid.startX(), grid.endX()));
+            throw new IndexOutOfBoundsException(String.format("Pos %d out of bounds required range %d-%d", x, grid.startX(), grid.endX()));
         }
     }
 
     default void ensureInRange(int x, int y, @NonNull Grid2d grid)  {
         if (!this.isInRange(x, y, grid))    {
-            throw new IndexOutOfBoundsException(String.format("Pos (%d,%d) out of bounds of range (%d,%d)-(%d,%d)", x, y, grid.startX(), grid.startY(), grid.endX(), grid.endY()));
+            throw new IndexOutOfBoundsException(String.format("Pos (%d,%d) out of bounds required range (%d,%d)-(%d,%d)", x, y, grid.startX(), grid.startY(), grid.endX(), grid.endY()));
         }
     }
 
     default void ensureInRange(int x, int y, int z, @NonNull Grid3d grid)  {
         if (!this.isInRange(x, y, z, grid))    {
-            throw new IndexOutOfBoundsException(String.format("Pos (%d,%d,%d) out of bounds of range (%d,%d,%d)-(%d,%d,%d)", x, y, z, grid.startX(), grid.startY(), grid.startZ(), grid.endX(), grid.endY(), grid.endZ()));
+            throw new IndexOutOfBoundsException(String.format("Pos (%d,%d,%d) out of bounds required range (%d,%d,%d)-(%d,%d,%d)", x, y, z, grid.startX(), grid.startY(), grid.startZ(), grid.endX(), grid.endY(), grid.endZ()));
         }
     }
 }

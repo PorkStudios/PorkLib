@@ -18,6 +18,7 @@ package net.daporkchop.lib.common.function.io;
 import net.daporkchop.lib.common.util.PConstants;
 
 import java.io.IOException;
+import java.util.function.Supplier;
 
 /**
  * @author DaPorkchop_
@@ -28,7 +29,7 @@ public interface IORunnable extends Runnable, PConstants {
     default void run() {
         try {
             this.runThrowing();
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw this.exception(e);
         }
     }

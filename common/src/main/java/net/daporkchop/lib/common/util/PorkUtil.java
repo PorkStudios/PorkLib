@@ -16,23 +16,26 @@
 package net.daporkchop.lib.common.util;
 
 import lombok.NonNull;
+import net.daporkchop.lib.common.util.exception.file.CannotDeleteFileException;
+import net.daporkchop.lib.common.util.exception.file.NotADirectoryException;
 import net.daporkchop.lib.unsafe.PUnsafe;
 import sun.misc.Cleaner;
 import sun.misc.SoftCache;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import java.awt.FlowLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Map;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -41,10 +44,14 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.stream.StreamSupport;
 
 /**
+ * Some helper methods and values that I use all over the place
+ *
  * @author DaPorkchop_
  */
+//TODO: clean this up a bit
 public class PorkUtil {
     public static final ThreadLocal<byte[]> BUFFER_CACHE_SMALL = ThreadLocal.withInitial(() -> new byte[256]);
     private static long STRING_VALUE_OFFSET = PUnsafe.pork_getOffset(String.class, "value");
@@ -95,22 +102,6 @@ public class PorkUtil {
 
     public static StackTraceElement[] getStackTrace(@NonNull Throwable t) {
         return GET_STACK_TRACE_WRAPPER.apply(t);
-    }
-
-    public static void rm(@NonNull File file) {
-        while (file.exists()) {
-            if (file.isDirectory()) {
-                File[] files;
-                while ((files = file.listFiles()) != null && files.length != 0) {
-                    for (File f : files) {
-                        rm(f);
-                    }
-                }
-            }
-            if (!file.delete()) {
-                throw new IllegalStateException(String.format("Could not delete file: %s", file.getAbsolutePath()));
-            }
-        }
     }
 
     public static void release(@NonNull ByteBuffer buffer) {
@@ -176,7 +167,7 @@ public class PorkUtil {
         frame.pack();
         frame.setVisible(true);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        if (wait)   {
+        if (wait) {
             CompletableFuture future = new CompletableFuture();
             frame.addWindowListener(new WindowAdapter() {
                 @Override
@@ -191,6 +182,14 @@ public class PorkUtil {
                     | ExecutionException e) {
                 throw new RuntimeException(e);
             }
+        }
+    }
+
+    public static void sleep(long millis)   {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e)    {
+            Thread.currentThread().interrupt();
         }
     }
 }

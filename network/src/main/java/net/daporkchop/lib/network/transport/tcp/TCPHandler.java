@@ -13,29 +13,22 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol;
+package net.daporkchop.lib.network.transport.tcp;
 
-import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.network.session.AbstractUserSession;
-
-import java.io.IOException;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import net.daporkchop.lib.network.transport.netty.NettyHandler;
+import net.daporkchop.lib.network.transport.tcp.endpoint.TCPEndpoint;
 
 /**
- * Encodes packets from their object form into their binary form.
- *
  * @author DaPorkchop_
  */
-@FunctionalInterface
-public interface Encoder<P, S extends AbstractUserSession<S>> {
-    /**
-     * Encodes a packet.
-     *
-     * @param out     a {@link DataOut} to write packet data to
-     * @param packet  the packet to encode
-     * @param session the session that the packet will be sent on
-     * @param channel the channel that the packet will be sent on
-     * @throws IOException if an IO exception occurs you dummy
-     */
-    void encode(@NonNull DataOut out, @NonNull P packet, @NonNull S session, int channel) throws IOException;
+public class TCPHandler<E extends TCPEndpoint> extends NettyHandler<E> {
+    public TCPHandler(E endpoint) {
+        super(endpoint);
+    }
+
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+    }
 }

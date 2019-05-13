@@ -19,6 +19,7 @@ import io.netty.util.concurrent.Future;
 import lombok.NonNull;
 import net.daporkchop.lib.network.EndpointType;
 import net.daporkchop.lib.network.protocol.Protocol;
+import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.UserSession;
 import net.daporkchop.lib.network.util.CloseableFuture;
 import net.daporkchop.lib.network.util.TransportEngineHolder;
@@ -49,5 +50,5 @@ public interface PEndpoint<Impl extends PEndpoint<Impl>> extends CloseableFuture
     /**
      * @return the default protocol that will be used initially for all connections to and from this endpoint
      */
-    Protocol protocol();
+    Protocol<?, ? extends AbstractUserSession> protocol();
 }

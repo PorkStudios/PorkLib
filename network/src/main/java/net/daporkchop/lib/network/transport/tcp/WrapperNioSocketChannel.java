@@ -43,28 +43,8 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements NetSess
     protected final Map<Integer, DummyTCPChannel> channels = PorkUtil.newSoftCache();
     protected final AbstractUserSession userSession;
 
-    public WrapperNioSocketChannel(@NonNull TCPEndpoint endpoint, @NonNull AbstractUserSession userSession) {
-        super();
-        this.endpoint = endpoint;
-        PUnsafe.putObject(this.userSession = userSession, ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);
-    }
-
-    public WrapperNioSocketChannel(SelectorProvider provider, @NonNull TCPEndpoint endpoint, @NonNull AbstractUserSession userSession) {
-        super(provider);
-        this.endpoint = endpoint;
-        PUnsafe.putObject(this.userSession = userSession, ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);
-    }
-
-    public WrapperNioSocketChannel(SocketChannel socket, @NonNull TCPEndpoint endpoint, @NonNull AbstractUserSession userSession) {
-        super(socket);
-        this.endpoint = endpoint;
-        PUnsafe.putObject(this.userSession = userSession, ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);
-    }
-
-    public WrapperNioSocketChannel(Channel parent, SocketChannel socket, @NonNull TCPEndpoint endpoint, @NonNull AbstractUserSession userSession) {
-        super(parent, socket);
-        this.endpoint = endpoint;
-        PUnsafe.putObject(this.userSession = userSession, ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);
+    public WrapperNioSocketChannel(@NonNull TCPEndpoint endpoint) {
+        PUnsafe.putObject(this.userSession = (this.endpoint = endpoint).protocol().sessionFactory().get(), ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);
     }
 
     @Override

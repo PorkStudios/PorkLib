@@ -21,12 +21,9 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import lombok.NonNull;
 import net.daporkchop.lib.network.endpoint.PClient;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
-import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.transport.NetSession;
 import net.daporkchop.lib.network.transport.tcp.TCPChannelInitializer;
 import net.daporkchop.lib.network.transport.tcp.WrapperNioSocketChannel;
-
-import java.util.function.Supplier;
 
 /**
  * @author DaPorkchop_
@@ -42,10 +39,7 @@ public class TCPClient extends TCPEndpoint<PClient, WrapperNioSocketChannel> imp
             } else {
                 bootstrap.group(new NioEventLoopGroup(0, builder.executor()));
             }
-            {
-                Supplier<AbstractUserSession> sessionFactory = builder.sessionFactory();
-                bootstrap.channelFactory(() -> new WrapperNioSocketChannel(this, sessionFactory.get()));
-            }
+            bootstrap.channelFactory(() -> new WrapperNioSocketChannel(this));
             bootstrap.handler(new TCPChannelInitializer<>(this))
                     .option(ChannelOption.SO_KEEPALIVE, true)
                     .option(ChannelOption.TCP_NODELAY, true);

@@ -26,6 +26,7 @@ import java.io.IOException;
  *
  * @author DaPorkchop_
  */
+@FunctionalInterface
 public interface Decoder<P, S extends AbstractUserSession<S>> {
     /**
      * Decodes a packet.

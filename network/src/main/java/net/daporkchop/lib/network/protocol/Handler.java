@@ -21,6 +21,7 @@ import net.daporkchop.lib.network.session.AbstractUserSession;
 /**
  * @author DaPorkchop_
  */
+@FunctionalInterface
 public interface Handler<P, S extends AbstractUserSession<S>> {
     /**
      * Handles a received packet.

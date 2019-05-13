@@ -46,6 +46,9 @@ public class TCPChannelInitializer<Ch extends Channel> extends ChannelInitialize
 
     @Override
     protected void initChannel(@NonNull Ch channel) throws Exception {
+        channel.pipeline()
+                .addLast(new TCPHandler());
+
         this.addedCallback.accept(channel);
     }
 

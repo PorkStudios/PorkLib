@@ -61,19 +61,11 @@ public abstract class EndpointBuilder<Impl extends EndpointBuilder<Impl, R>, R e
     protected EventLoopGroup group;
 
     /**
-     * A factory for creating new user session instances.
-     * <p>
-     * If {@code null}, dummy sessions ({@link net.daporkchop.lib.network.session.AbstractUserSession.NoopUserSession})
-     * will be used.
-     */
-    protected Supplier<AbstractUserSession> sessionFactory;
-
-    /**
      * The default protocol that will be used initially for all connections to and from this endpoint.
      * <p>
      * Must be set!
      */
-    protected Protocol protocol;
+    protected Protocol<?, ? extends AbstractUserSession> protocol;
 
     @SuppressWarnings("unchecked")
     public Impl engine(@NonNull TransportEngine engine) {
@@ -94,13 +86,7 @@ public abstract class EndpointBuilder<Impl extends EndpointBuilder<Impl, R>, R e
     }
 
     @SuppressWarnings("unchecked")
-    public <S extends AbstractUserSession<S>> Impl sessionFactory(@NonNull Supplier<S> sessionFactory) {
-        this.sessionFactory = (Supplier<AbstractUserSession>) sessionFactory;
-        return (Impl) this;
-    }
-
-    @SuppressWarnings("unchecked")
-    public Impl protocol(@NonNull Protocol protocol) {
+    public Impl protocol(@NonNull Protocol<?, ? extends AbstractUserSession> protocol) {
         this.protocol = protocol;
         return (Impl) this;
     }
@@ -120,9 +106,6 @@ public abstract class EndpointBuilder<Impl extends EndpointBuilder<Impl, R>, R e
         }
         if (this.executor == null) {
             this.executor = PorkUtil.DEFAULT_EXECUTOR;
-        }
-        if (this.sessionFactory == null) {
-            this.sessionFactory = AbstractUserSession.NoopUserSession::new;
         }
     }
 

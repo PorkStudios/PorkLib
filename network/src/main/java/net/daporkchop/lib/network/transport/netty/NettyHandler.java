@@ -13,29 +13,20 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol;
+package net.daporkchop.lib.network.transport.netty;
 
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.network.session.AbstractUserSession;
-
-import java.io.IOException;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.network.endpoint.PEndpoint;
 
 /**
- * Encodes packets from their object form into their binary form.
- *
  * @author DaPorkchop_
  */
-@FunctionalInterface
-public interface Encoder<P, S extends AbstractUserSession<S>> {
-    /**
-     * Encodes a packet.
-     *
-     * @param out     a {@link DataOut} to write packet data to
-     * @param packet  the packet to encode
-     * @param session the session that the packet will be sent on
-     * @param channel the channel that the packet will be sent on
-     * @throws IOException if an IO exception occurs you dummy
-     */
-    void encode(@NonNull DataOut out, @NonNull P packet, @NonNull S session, int channel) throws IOException;
+@RequiredArgsConstructor
+@Getter
+public abstract class NettyHandler<E extends PEndpoint> extends ChannelInboundHandlerAdapter {
+    @NonNull
+    protected final E endpoint;
 }

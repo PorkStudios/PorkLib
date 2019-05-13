@@ -24,6 +24,11 @@ import net.daporkchop.lib.network.session.AbstractUserSession;
  */
 public interface Protocol<P, S extends AbstractUserSession<S>> {
     /**
+     * @return this protocol's session factory
+     */
+    SessionFactory<S> sessionFactory();
+
+    /**
      * @return this protocol's packet encoder
      */
     Encoder<P, S> encoder();

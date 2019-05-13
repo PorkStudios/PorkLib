@@ -46,7 +46,7 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements NetSess
     protected final AbstractUserSession userSession;
 
     public WrapperNioSocketChannel(@NonNull TCPEndpoint endpoint) {
-        PUnsafe.putObject(this.userSession = (AbstractUserSession) (this.endpoint = endpoint).protocol().sessionFactory().get(), ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);
+        PUnsafe.putObject(this.userSession = (AbstractUserSession) (this.endpoint = endpoint).protocol().sessionFactory().newSession(), ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);
     }
 
     @Override
@@ -83,7 +83,7 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements NetSess
 
     @Override
     public Future<Void> sendFuture(@NonNull Object packet, Reliability reliability) {
-        return this.write(new ChanneledPacket<>(packet, 0));
+        return this.writeAndFlush(new ChanneledPacket<>(packet, 0));
     }
 
     @Override

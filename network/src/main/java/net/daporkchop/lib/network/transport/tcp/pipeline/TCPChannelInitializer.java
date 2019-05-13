@@ -47,9 +47,9 @@ public class TCPChannelInitializer<E extends TCPEndpoint> extends ChannelInitial
     @Override
     protected void initChannel(@NonNull WrapperNioSocketChannel channel) throws Exception {
         channel.pipeline()
-                .addLast(new TCPFramingCodec(channel))
-                .addLast(new TCPEncoder(channel))
-                .addLast(new TCPHandler(channel));
+                .addLast("frame", new TCPFramingCodec(channel))
+                .addLast("encode", new TCPEncoder(channel))
+                .addLast("handle", new TCPHandler(channel));
 
         this.addedCallback.accept(channel);
     }

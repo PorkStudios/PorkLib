@@ -68,8 +68,8 @@ public interface Framer<S extends AbstractUserSession<S>> {
 
         @Override
         public void pack(@NonNull ChanneledPacket<ByteBuf> packet, @NonNull S session, @NonNull List<ByteBuf> frames) {
-            ByteBuf buf = packet.getPacket();
-            frames.add(buf.alloc().buffer(8).writeInt(buf.readableBytes()).writeInt(packet.getChannel()));
+            ByteBuf buf = packet.packet();
+            frames.add(buf.alloc().buffer(8).writeInt(buf.readableBytes()).writeInt(packet.channel()));
             frames.add(buf);
         }
     }

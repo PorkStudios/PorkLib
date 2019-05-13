@@ -13,16 +13,14 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol;
-
-import net.daporkchop.lib.network.session.AbstractUserSession;
-
-import java.util.function.Supplier;
+package mc;
 
 /**
  * @author DaPorkchop_
  */
-@FunctionalInterface
-public interface SessionFactory<S extends AbstractUserSession<S>> {
-    S newSession();
+public enum PingState {
+    NONE,
+    RESPONSE,
+    PONG,
+    ;
 }

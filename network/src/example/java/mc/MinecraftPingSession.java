@@ -13,16 +13,13 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol;
+package mc;
 
 import net.daporkchop.lib.network.session.AbstractUserSession;
-
-import java.util.function.Supplier;
 
 /**
  * @author DaPorkchop_
  */
-@FunctionalInterface
-public interface SessionFactory<S extends AbstractUserSession<S>> {
-    S newSession();
+public class MinecraftPingSession extends AbstractUserSession<MinecraftPingSession> {
+    protected PingState state = PingState.NONE;
 }

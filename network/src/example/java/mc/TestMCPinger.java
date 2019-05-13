@@ -13,16 +13,39 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol;
+package mc;
 
-import net.daporkchop.lib.network.session.AbstractUserSession;
+import io.netty.buffer.PooledByteBufAllocator;
+import net.daporkchop.lib.logging.LogAmount;
+import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.network.endpoint.PClient;
+import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
+import net.daporkchop.lib.network.transport.tcp.TCPEngine;
 
-import java.util.function.Supplier;
+import java.net.InetSocketAddress;
 
 /**
  * @author DaPorkchop_
  */
-@FunctionalInterface
-public interface SessionFactory<S extends AbstractUserSession<S>> {
-    S newSession();
+public class TestMCPinger implements Logging {
+    public static void main(String... args) {
+        logger.enableANSI().setLogAmount(LogAmount.DEBUG).info("Starting client...");
+
+        PClient client = new ClientBuilder()
+                .engine(new TCPEngine(new MinecraftPacketFramer()))
+                .address(new InetSocketAddress("mc.pepsi.team", 25565))
+                .protocol(new MinecraftPingProtocol())
+                .build();
+
+        logger.info("Pinging server...");
+        client.sendFuture(PooledByteBufAllocator.DEFAULT.ioBuffer()
+                .writeByte(0x00) //packet id
+                .writeByte(0x00) //protocol version
+                .writeByte(0x00) //version string length
+                .writeShort(25565) //port
+                .writeByte(0x01) //next state
+
+                .writeByte(0x00) //packet id
+        ).addListener(v -> logger.debug("Ping sent."));
+    }
 }

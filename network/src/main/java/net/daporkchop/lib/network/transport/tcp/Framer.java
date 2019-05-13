@@ -18,6 +18,8 @@ package net.daporkchop.lib.network.transport.tcp;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.transport.ChanneledPacket;
+import net.daporkchop.lib.network.transport.WrappedPacket;
 
 import java.util.List;
 
@@ -37,35 +39,37 @@ public interface Framer<S extends AbstractUserSession<S>> {
      *                input buffer using {@link ByteBuf#readRetainedSlice(int)} or similar methods, so long
      *                as the reader index is incremented correctly.
      */
-    void unpack(@NonNull ByteBuf buf, @NonNull S session, @NonNull List<ByteBuf> frames);
+    void unpack(@NonNull ByteBuf buf, @NonNull S session, @NonNull List<ChanneledPacket<ByteBuf>> frames);
 
     /**
      * Packs an encoded packet into (a) frame(s).
      *
-     * @param buf     a buffer containing the encoded packet
+     * @param packet     a buffer containing the encoded packet
      * @param session the session that the packet will be sent on
      * @param frames  a list of buffers to send. At a minimum, the single buffer passed to this method
      *                should be added to this list.
      */
-    void pack(@NonNull ByteBuf buf, @NonNull S session, @NonNull List<ByteBuf> frames);
+    void pack(@NonNull ChanneledPacket<ByteBuf> packet, @NonNull S session, @NonNull List<ByteBuf> frames);
 
     class DefaultFramer<S extends AbstractUserSession<S>> implements Framer<S>  {
         @Override
-        public void unpack(@NonNull ByteBuf buf, @NonNull S session, @NonNull List<ByteBuf> frames) {
+        public void unpack(@NonNull ByteBuf buf, @NonNull S session, @NonNull List<ChanneledPacket<ByteBuf>> frames) {
             int origIndex = buf.readerIndex();
-            while (buf.readableBytes() >= 4) {
+            while (buf.readableBytes() >= 8) {
                 int len = buf.getInt(origIndex);
-                if (buf.readableBytes() - 4 < len) {
+                if (buf.readableBytes() - 8 < len) {
                     return;
                 } else {
-                    frames.add(buf.skipBytes(4).readRetainedSlice(len));
+                    int channel = buf.skipBytes(4).readInt();
+                    frames.add(new ChanneledPacket<>(buf.readRetainedSlice(len), channel));
                 }
             }
         }
 
         @Override
-        public void pack(@NonNull ByteBuf buf, @NonNull S session, @NonNull List<ByteBuf> frames) {
-            frames.add(buf.alloc().buffer(4).writeInt(buf.readableBytes()));
+        public void pack(@NonNull ChanneledPacket<ByteBuf> packet, @NonNull S session, @NonNull List<ByteBuf> frames) {
+            ByteBuf buf = packet.getPacket();
+            frames.add(buf.alloc().buffer(8).writeInt(buf.readableBytes()).writeInt(packet.getChannel()));
             frames.add(buf);
         }
     }

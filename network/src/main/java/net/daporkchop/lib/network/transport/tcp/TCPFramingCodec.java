@@ -17,32 +17,32 @@ package net.daporkchop.lib.network.transport.tcp;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import net.daporkchop.lib.binary.netty.NettyUtil;
-import net.daporkchop.lib.network.session.AbstractUserSession;
+import io.netty.handler.codec.MessageToMessageCodec;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.network.transport.ChanneledPacket;
-import net.daporkchop.lib.network.transport.netty.NettyHandler;
-import net.daporkchop.lib.network.transport.tcp.endpoint.TCPEndpoint;
+
+import java.util.List;
 
 /**
  * @author DaPorkchop_
  */
-public class TCPHandler<E extends TCPEndpoint> extends NettyHandler<E> {
-    public TCPHandler(E endpoint) {
-        super(endpoint);
+@RequiredArgsConstructor
+@Getter
+public class TCPFramingCodec extends MessageToMessageCodec<ByteBuf, ChanneledPacket<ByteBuf>> {
+    @NonNull
+    protected final Framer framer;
+
+    @Override
+    @SuppressWarnings("unchecked")
+    protected void encode(ChannelHandlerContext ctx, ChanneledPacket<ByteBuf> msg, List<Object> out) throws Exception {
+        this.framer.pack(msg, ((WrapperNioSocketChannel) ctx.channel()).userSession, out);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        if (!(msg instanceof ChanneledPacket))  {
-            throw new IllegalArgumentException(msg == null ? "null" : msg.getClass().getCanonicalName());
-            }
-
-        AbstractUserSession session = ((WrapperNioSocketChannel) ctx.channel()).userSession;
-        ChanneledPacket<ByteBuf> pck = (ChanneledPacket<ByteBuf>) msg;
-
-        Object decoded = this.endpoint.protocol().decoder().decode(NettyUtil.wrapIn(pck.getPacket()), session, pck.getChannel());
-        this.endpoint.protocol().handler().handle(decoded, session, pck.getChannel());
+    protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
+        this.framer.unpack(msg, ((WrapperNioSocketChannel) ctx.channel()).userSession, out);
     }
 }

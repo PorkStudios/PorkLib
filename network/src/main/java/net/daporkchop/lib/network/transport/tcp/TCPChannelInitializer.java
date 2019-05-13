@@ -32,22 +32,23 @@ import java.util.function.Consumer;
  */
 @RequiredArgsConstructor
 @Getter
-public class TCPChannelInitializer<Ch extends Channel> extends ChannelInitializer<Ch> {
+public class TCPChannelInitializer<E extends TCPEndpoint, Ch extends Channel> extends ChannelInitializer<Ch> {
     @NonNull
-    protected final TCPEndpoint endpoint;
+    protected final E endpoint;
     @NonNull
     protected final Consumer<Ch> addedCallback;
     @NonNull
     protected final Consumer<Ch> removedCallback;
 
-    public TCPChannelInitializer(@NonNull TCPEndpoint endpoint) {
+    public TCPChannelInitializer(@NonNull E endpoint) {
         this(endpoint, ch -> {}, ch -> {});
     }
 
     @Override
     protected void initChannel(@NonNull Ch channel) throws Exception {
         channel.pipeline()
-                .addLast(new TCPHandler());
+                .addLast(new TCPFramingCodec(this.endpoint.transportEngine().getFramer()))
+                .addLast(new TCPHandler<>(this.endpoint));
 
         this.addedCallback.accept(channel);
     }

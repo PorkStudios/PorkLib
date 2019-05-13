@@ -13,49 +13,28 @@
  *
  */
 
-package net.daporkchop.lib.network.transport.tcp.endpoint;
+package net.daporkchop.lib.network.protocol;
 
-import io.netty.channel.Channel;
-import io.netty.util.concurrent.Future;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.network.endpoint.PEndpoint;
-import net.daporkchop.lib.network.endpoint.builder.EndpointBuilder;
-import net.daporkchop.lib.network.protocol.Protocol;
-import net.daporkchop.lib.network.transport.TransportEngine;
-import net.daporkchop.lib.network.transport.tcp.TCPEngine;
+import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
+ * A protocol that handles packet encoding, decoding and handling itself without delegating to external objects.
+ *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-public abstract class TCPEndpoint<Impl extends PEndpoint<Impl>, Ch extends Channel> implements PEndpoint<Impl> {
-    protected final TCPEngine transportEngine;
-    protected final Protocol protocol;
-    @NonNull
-    protected Ch channel;
-
-    protected TCPEndpoint(@NonNull EndpointBuilder builder)    {
-        this.transportEngine = (TCPEngine) builder.engine();
-        this.protocol = builder.protocol();
+public interface SimpleProtocol<P, S extends AbstractUserSession<S>> extends Protocol<P, S>, Encoder<P, S>, Decoder<P, S>, Handler<P, S> {
+    @Override
+    default Encoder<P, S> encoder() {
+        return this;
     }
 
     @Override
-    public void closeNow() {
-        this.channel.close().syncUninterruptibly();
+    default Decoder<P, S> decoder() {
+        return this;
     }
 
     @Override
-    public boolean isClosed() {
-        return this.channel.isOpen();
-    }
-
-    @Override
-    public Future<Void> closeAsync() {
-        return this.channel.close();
+    default Handler<P, S> handler() {
+        return this;
     }
 }

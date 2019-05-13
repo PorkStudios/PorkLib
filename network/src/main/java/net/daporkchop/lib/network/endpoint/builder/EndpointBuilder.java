@@ -21,11 +21,13 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
+import net.daporkchop.lib.network.protocol.Protocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.transport.TransportEngine;
 import net.daporkchop.lib.network.transport.tcp.Framer;
 import net.daporkchop.lib.network.transport.tcp.TCPEngine;
 
+import java.nio.file.NotLinkException;
 import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 
@@ -35,12 +37,43 @@ import java.util.function.Supplier;
 @Getter
 @Accessors(chain = true, fluent = true)
 public abstract class EndpointBuilder<Impl extends EndpointBuilder<Impl, R>, R extends PEndpoint> {
-    protected TransportEngine engine = new TCPEngine(new Framer.DefaultFramer<>());
+    /**
+     * The {@link TransportEngine} to use.
+     * <p>
+     * If {@code null}, TCP with simple packet framing will be used.
+     */
+    protected TransportEngine engine;
 
-    protected Executor executor = PorkUtil.DEFAULT_EXECUTOR;
+    /**
+     * The {@link Executor} to use.
+     * <p>
+     * If {@code null}, {@link PorkUtil#DEFAULT_EXECUTOR} will be used.
+     */
+    protected Executor executor;
+
+    /**
+     * The {@link EventLoopGroup} to use.
+     * <p>
+     * If {@code null}, a default group will be constructed using {@link #executor}.
+     * <p>
+     * Not all transport engines will make use of this option.
+     */
     protected EventLoopGroup group;
 
-    protected Supplier<AbstractUserSession> sessionFactory = AbstractUserSession.NoopUserSession::new;
+    /**
+     * A factory for creating new user session instances.
+     * <p>
+     * If {@code null}, dummy sessions ({@link net.daporkchop.lib.network.session.AbstractUserSession.NoopUserSession})
+     * will be used.
+     */
+    protected Supplier<AbstractUserSession> sessionFactory;
+
+    /**
+     * The default protocol that will be used initially for all connections to and from this endpoint.
+     * <p>
+     * Must be set!
+     */
+    protected Protocol protocol;
 
     @SuppressWarnings("unchecked")
     public Impl engine(@NonNull TransportEngine engine) {
@@ -61,10 +94,37 @@ public abstract class EndpointBuilder<Impl extends EndpointBuilder<Impl, R>, R e
     }
 
     @SuppressWarnings("unchecked")
-    public Impl sessionFactory(@NonNull Supplier<AbstractUserSession> sessionFactory) {
-        this.sessionFactory = sessionFactory;
+    public <S extends AbstractUserSession<S>> Impl sessionFactory(@NonNull Supplier<S> sessionFactory) {
+        this.sessionFactory = (Supplier<AbstractUserSession>) sessionFactory;
         return (Impl) this;
     }
 
-    public abstract R build();
+    @SuppressWarnings("unchecked")
+    public Impl protocol(@NonNull Protocol protocol) {
+        this.protocol = protocol;
+        return (Impl) this;
+    }
+
+    public R build() {
+        this.validate();
+        return this.doBuild();
+    }
+
+    protected void validate() {
+        if (this.protocol == null)  {
+            throw new NullPointerException("protocol");
+        }
+
+        if (this.engine == null) {
+            this.engine = new TCPEngine(new Framer.DefaultFramer<>());
+        }
+        if (this.executor == null) {
+            this.executor = PorkUtil.DEFAULT_EXECUTOR;
+        }
+        if (this.sessionFactory == null) {
+            this.sessionFactory = AbstractUserSession.NoopUserSession::new;
+        }
+    }
+
+    protected abstract R doBuild();
 }

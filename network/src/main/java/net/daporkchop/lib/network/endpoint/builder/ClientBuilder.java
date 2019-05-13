@@ -30,15 +30,24 @@ import java.net.InetSocketAddress;
 @Setter
 @Accessors(chain = true, fluent = true)
 public class ClientBuilder extends EndpointBuilder<ClientBuilder, PClient> {
+    /**
+     * The address of the remote endpoint to connect to.
+     * <p>
+     * Must be set!
+     */
     @NonNull
     protected InetSocketAddress address;
 
     @Override
-    public PClient build() {
-        if (this.address == null)   {
+    protected void validate() {
+        if (this.address == null) {
             throw new NullPointerException("address");
-        } else {
-            return this.engine.createClient(this);
         }
+        super.validate();
+    }
+
+    @Override
+    protected PClient doBuild() {
+        return this.engine.createClient(this);
     }
 }

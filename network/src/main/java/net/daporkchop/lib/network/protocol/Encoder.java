@@ -13,49 +13,28 @@
  *
  */
 
-package net.daporkchop.lib.network.transport.tcp.endpoint;
+package net.daporkchop.lib.network.protocol;
 
-import io.netty.channel.Channel;
-import io.netty.util.concurrent.Future;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.network.endpoint.PEndpoint;
-import net.daporkchop.lib.network.endpoint.builder.EndpointBuilder;
-import net.daporkchop.lib.network.protocol.Protocol;
-import net.daporkchop.lib.network.transport.TransportEngine;
-import net.daporkchop.lib.network.transport.tcp.TCPEngine;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.network.session.AbstractUserSession;
+
+import java.io.IOException;
 
 /**
+ * Encodes packets from their object form into their binary form.
+ *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-public abstract class TCPEndpoint<Impl extends PEndpoint<Impl>, Ch extends Channel> implements PEndpoint<Impl> {
-    protected final TCPEngine transportEngine;
-    protected final Protocol protocol;
-    @NonNull
-    protected Ch channel;
-
-    protected TCPEndpoint(@NonNull EndpointBuilder builder)    {
-        this.transportEngine = (TCPEngine) builder.engine();
-        this.protocol = builder.protocol();
-    }
-
-    @Override
-    public void closeNow() {
-        this.channel.close().syncUninterruptibly();
-    }
-
-    @Override
-    public boolean isClosed() {
-        return this.channel.isOpen();
-    }
-
-    @Override
-    public Future<Void> closeAsync() {
-        return this.channel.close();
-    }
+public interface Encoder<P, S extends AbstractUserSession<S>> {
+    /**
+     * Encodes a packet.
+     *
+     * @param out     a {@link DataOut} to write packet data to
+     * @param packet  the packet to encode
+     * @param session the session that the packet will be sent on
+     * @param channel the channel that the packet will be sent on
+     * @throws IOException if an IO exception occurs you dummy
+     */
+    void encode(@NonNull DataOut out, @NonNull P packet, @NonNull S session, int channel) throws IOException;
 }

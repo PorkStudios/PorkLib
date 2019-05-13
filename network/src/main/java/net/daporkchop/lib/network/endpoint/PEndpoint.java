@@ -18,6 +18,7 @@ package net.daporkchop.lib.network.endpoint;
 import io.netty.util.concurrent.Future;
 import lombok.NonNull;
 import net.daporkchop.lib.network.EndpointType;
+import net.daporkchop.lib.network.protocol.Protocol;
 import net.daporkchop.lib.network.session.UserSession;
 import net.daporkchop.lib.network.util.CloseableFuture;
 import net.daporkchop.lib.network.util.TransportEngineHolder;
@@ -32,8 +33,6 @@ import java.util.Collection;
  */
 public interface PEndpoint<Impl extends PEndpoint<Impl>> extends CloseableFuture, TransportEngineHolder {
     /**
-     * Gets this endpoint's type.
-     *
      * @return this endpoint's type
      */
     @NonNull
@@ -46,4 +45,9 @@ public interface PEndpoint<Impl extends PEndpoint<Impl>> extends CloseableFuture
      */
     @Override
     void closeNow();
+
+    /**
+     * @return the default protocol that will be used initially for all connections to and from this endpoint
+     */
+    Protocol protocol();
 }

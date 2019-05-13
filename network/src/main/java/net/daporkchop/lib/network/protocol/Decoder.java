@@ -13,49 +13,28 @@
  *
  */
 
-package net.daporkchop.lib.network.transport.tcp.endpoint;
+package net.daporkchop.lib.network.protocol;
 
-import io.netty.channel.Channel;
-import io.netty.util.concurrent.Future;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.network.endpoint.PEndpoint;
-import net.daporkchop.lib.network.endpoint.builder.EndpointBuilder;
-import net.daporkchop.lib.network.protocol.Protocol;
-import net.daporkchop.lib.network.transport.TransportEngine;
-import net.daporkchop.lib.network.transport.tcp.TCPEngine;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.network.session.AbstractUserSession;
+
+import java.io.IOException;
 
 /**
+ * Decodes packets from their binary form into their object form.
+ *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-public abstract class TCPEndpoint<Impl extends PEndpoint<Impl>, Ch extends Channel> implements PEndpoint<Impl> {
-    protected final TCPEngine transportEngine;
-    protected final Protocol protocol;
-    @NonNull
-    protected Ch channel;
-
-    protected TCPEndpoint(@NonNull EndpointBuilder builder)    {
-        this.transportEngine = (TCPEngine) builder.engine();
-        this.protocol = builder.protocol();
-    }
-
-    @Override
-    public void closeNow() {
-        this.channel.close().syncUninterruptibly();
-    }
-
-    @Override
-    public boolean isClosed() {
-        return this.channel.isOpen();
-    }
-
-    @Override
-    public Future<Void> closeAsync() {
-        return this.channel.close();
-    }
+public interface Decoder<P, S extends AbstractUserSession<S>> {
+    /**
+     * Decodes a packet.
+     *
+     * @param in      a {@link DataIn} to obtain packet data from
+     * @param session the session that the packet was received on
+     * @param channel the channel that the packet was received on
+     * @return the decoded packet
+     * @throws IOException if an IO exception occurs you dummy
+     */
+    P decode(@NonNull DataIn in, @NonNull S session, int channel) throws IOException;
 }

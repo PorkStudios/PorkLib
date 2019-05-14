@@ -16,6 +16,7 @@
 package mc;
 
 import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.channel.ChannelOption;
 import net.daporkchop.lib.logging.LogAmount;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.endpoint.PClient;
@@ -36,7 +37,10 @@ public class TestMCPinger implements Logging {
         logger.enableANSI().setLogAmount(LogAmount.DEBUG).info("Starting client...");
 
         PClient client = new ClientBuilder()
-                .engine(new TCPEngine(new MinecraftPacketFramer()))
+                .engine(TCPEngine.builder()
+                        .clientOption(ChannelOption.TCP_NODELAY, true)
+                        .framer(new MinecraftPacketFramer())
+                        .build())
                 .address(new InetSocketAddress("mc.pepsi.team", 25565))
                 .protocol(new MinecraftPingProtocol())
                 .build();
@@ -51,10 +55,10 @@ public class TestMCPinger implements Logging {
                 .writeByte(0x01) //next state
         ).send(PooledByteBufAllocator.DEFAULT.ioBuffer()
                 .writeByte(0x00) //packet id
-        ).sendAsync(PooledByteBufAllocator.DEFAULT.ioBuffer()
+        ).send(PooledByteBufAllocator.DEFAULT.ioBuffer()
                 .writeByte(0x01) //packet id
                 .writeLong(startTime = System.currentTimeMillis()) //value
-        ).addListener(v -> logger.debug("Ping sent."));
+        ).flushBuffer();
 
         endTime.thenAccept(ping -> {
             logger.success("Ping: %dms", System.currentTimeMillis() - ping);

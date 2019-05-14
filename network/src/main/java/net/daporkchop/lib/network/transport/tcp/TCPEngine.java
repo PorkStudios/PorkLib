@@ -15,41 +15,70 @@
 
 package net.daporkchop.lib.network.transport.tcp;
 
-import lombok.AccessLevel;
+import io.netty.channel.ChannelOption;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.reference.InstancePool;
 import net.daporkchop.lib.network.endpoint.PClient;
 import net.daporkchop.lib.network.endpoint.PMulti;
 import net.daporkchop.lib.network.endpoint.PMultiClient;
 import net.daporkchop.lib.network.endpoint.PServer;
 import net.daporkchop.lib.network.endpoint.Pp2pEndpoint;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
-import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.Reliability;
 import net.daporkchop.lib.network.transport.TransportEngine;
+import net.daporkchop.lib.network.transport.netty.NettyEngine;
 import net.daporkchop.lib.network.transport.tcp.endpoint.TCPClient;
 
 import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 
 /**
  * An implementation of {@link TransportEngine} for the TCP/IP transport protocol.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public class TCPEngine implements TransportEngine {
+public class TCPEngine extends NettyEngine {
     protected static final Collection<Reliability> RELIABILITIES = Collections.singleton(Reliability.RELIABLE_ORDERED);
 
-    @NonNull
+    @SuppressWarnings("unchecked")
+    public static <B extends Builder<B>> B builder() {
+        return (B) new Builder<B>();
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <B extends Builder<B>> B builder(@NonNull Framer framer) {
+        return (B) new Builder<B>(framer);
+    }
+
+    public static TCPEngine of(@NonNull Framer framer) {
+        return new TCPEngine(framer);
+    }
+
     protected final Framer framer;
+
+    protected TCPEngine(@NonNull Builder<?> builder) {
+        this(builder.clientOptions(), builder.serverOptions(), builder.framer());
+    }
+
+    protected TCPEngine(@NonNull Framer framer) {
+        this.framer = framer;
+    }
+
+    protected TCPEngine(@NonNull Map<ChannelOption, Object> clientOptions, @NonNull Map<ChannelOption, Object> serverOptions, @NonNull Framer framer) {
+        super(
+                Collections.unmodifiableMap(clientOptions),
+                Collections.unmodifiableMap(serverOptions)
+        );
+
+        this.framer = framer;
+    }
 
     @Override
     public PClient createClient(@NonNull ClientBuilder builder) {
@@ -84,5 +113,28 @@ public class TCPEngine implements TransportEngine {
     @Override
     public boolean isReliabilitySupported(@NonNull Reliability reliability) {
         return reliability == Reliability.RELIABLE_ORDERED;
+    }
+
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    @Accessors(fluent = true)
+    public static class Builder<Impl extends Builder<Impl>> extends NettyEngine.Builder<Impl, TCPEngine> {
+        @NonNull
+        protected Framer framer;
+
+        @SuppressWarnings("unchecked")
+        public Impl framer(@NonNull Framer framer) {
+            this.framer = framer;
+            return (Impl) this;
+        }
+
+        @Override
+        public TCPEngine build() {
+            if (this.framer == null) {
+                this.framer = new Framer.DefaultFramer();
+            }
+            return new TCPEngine(this);
+        }
     }
 }

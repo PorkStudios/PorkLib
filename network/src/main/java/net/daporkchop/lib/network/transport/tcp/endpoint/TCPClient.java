@@ -45,9 +45,9 @@ public class TCPClient extends TCPEndpoint<PClient, WrapperNioSocketChannel> imp
 
             bootstrap.group(group)
                     .channelFactory(() -> new WrapperNioSocketChannel(this))
-                    .handler(new TCPChannelInitializer<>(this))
-                    .option(ChannelOption.SO_KEEPALIVE, true)
-                    .option(ChannelOption.TCP_NODELAY, true);
+                    .handler(new TCPChannelInitializer<>(this));
+
+            this.transportEngine.clientOptions().forEach(bootstrap::option);
 
             this.channel = (WrapperNioSocketChannel) bootstrap.connect(builder.address()).channel();
         } catch (Exception e) {

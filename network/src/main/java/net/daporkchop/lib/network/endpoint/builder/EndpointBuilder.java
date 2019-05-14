@@ -114,7 +114,7 @@ public abstract class EndpointBuilder<Impl extends EndpointBuilder<Impl, R>, R e
         }
 
         if (this.engine == null) {
-            this.engine = new TCPEngine(new Framer.DefaultFramer<>());
+            this.engine = TCPEngine.of(new Framer.DefaultFramer());
         }
         if (this.executor == null) {
             this.executor = PorkUtil.DEFAULT_EXECUTOR;

@@ -68,7 +68,7 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements NetSess
 
     @Override
     public NetSession send(@NonNull Object packet, Reliability reliability) {
-        this.writeAndFlush(new ChanneledPacket<>(packet, 0));
+        this.write(new ChanneledPacket<>(packet, 0));
         return this;
     }
 
@@ -77,21 +77,27 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements NetSess
         if (!this.channels.containsKey(channelId)) {
             throw new IllegalArgumentException(String.format("Unknown channel id: %d", channelId));
         }
-        this.writeAndFlush(new ChanneledPacket<>(packet, channelId));
+        this.write(new ChanneledPacket<>(packet, channelId));
         return this;
     }
 
     @Override
-    public Future<Void> sendFuture(@NonNull Object packet, Reliability reliability) {
-        return this.writeAndFlush(new ChanneledPacket<>(packet, 0));
+    public Future<Void> sendAsync(@NonNull Object packet, Reliability reliability) {
+        return this.write(new ChanneledPacket<>(packet, 0));
     }
 
     @Override
-    public Future<Void> sendFuture(@NonNull Object packet, Reliability reliability, int channelId) {
+    public Future<Void> sendAsync(@NonNull Object packet, Reliability reliability, int channelId) {
         if (!this.channels.containsKey(channelId)) {
             throw new IllegalArgumentException(String.format("Unknown channel id: %d", channelId));
         }
-        return this.writeAndFlush(new ChanneledPacket<>(packet, channelId));
+        return this.write(new ChanneledPacket<>(packet, channelId));
+    }
+
+    @Override
+    public NetSession flushBuffer() {
+        this.flush();
+        return this;
     }
 
     @Override

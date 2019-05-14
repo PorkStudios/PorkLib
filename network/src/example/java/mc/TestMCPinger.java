@@ -51,7 +51,7 @@ public class TestMCPinger implements Logging {
                 .writeByte(0x01) //next state
         ).send(PooledByteBufAllocator.DEFAULT.ioBuffer()
                 .writeByte(0x00) //packet id
-        ).sendFuture(PooledByteBufAllocator.DEFAULT.ioBuffer()
+        ).sendAsync(PooledByteBufAllocator.DEFAULT.ioBuffer()
                 .writeByte(0x01) //packet id
                 .writeLong(startTime = System.currentTimeMillis()) //value
         ).addListener(v -> logger.debug("Ping sent."));

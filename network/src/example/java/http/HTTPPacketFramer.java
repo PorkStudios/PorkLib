@@ -13,17 +13,25 @@
  *
  */
 
-package net.daporkchop.lib.network.session;
+package http;
 
-import lombok.Getter;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.network.transport.NetSession;
+import io.netty.buffer.ByteBuf;
+import lombok.NonNull;
+import net.daporkchop.lib.network.session.NoopUserSession;
+import net.daporkchop.lib.network.transport.ChanneledPacket;
+import net.daporkchop.lib.network.transport.tcp.Framer;
+
+import java.util.List;
 
 /**
  * @author DaPorkchop_
  */
-@Getter
-@Accessors(fluent = true)
-public abstract class AbstractUserSession<Impl extends AbstractUserSession<Impl>> implements UserSession<Impl> {
-    protected final NetSession internalSession = null;
+public class HTTPPacketFramer implements Framer<HTTPSession> {
+    @Override
+    public void unpack(@NonNull ByteBuf buf, @NonNull HTTPSession session, @NonNull List<ChanneledPacket<ByteBuf>> frames) {
+    }
+
+    @Override
+    public void pack(@NonNull ChanneledPacket<ByteBuf> packet, @NonNull HTTPSession session, @NonNull ByteBuf out) {
+    }
 }

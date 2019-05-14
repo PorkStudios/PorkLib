@@ -13,14 +13,12 @@
  *
  */
 
-package mc;
+package http;
 
 /**
  * @author DaPorkchop_
  */
-public enum PingState {
-    NONE,
-    RESPONSE,
-    PONG,
-    ;
+public class TestHTTPGet {
+    public static void main(String... args) {
+    }
 }

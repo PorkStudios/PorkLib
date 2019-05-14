@@ -22,42 +22,36 @@ import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.protocol.SimpleProtocol;
+import net.daporkchop.lib.network.session.NoopUserSession;
 
 import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-public class MinecraftPingProtocol implements SimpleProtocol<ByteBuf, MinecraftPingSession>, Logging {
+public class MinecraftPingProtocol implements SimpleProtocol<ByteBuf, NoopUserSession>, Logging {
     @Override
-    public ByteBuf decode(@NonNull DataIn in, @NonNull MinecraftPingSession session, int channel) throws IOException {
+    public ByteBuf decode(@NonNull DataIn in, @NonNull NoopUserSession session, int channel) throws IOException {
         return ((NettyByteBufIn) in).buf();
     }
 
     @Override
-    public void encode(@NonNull DataOut out, @NonNull ByteBuf packet, @NonNull MinecraftPingSession session, int channel) throws IOException {
+    public void encode(@NonNull DataOut out, @NonNull ByteBuf packet, @NonNull NoopUserSession session, int channel) throws IOException {
         while (packet.isReadable()) {
             out.write(packet.readByte() & 0xFF);
         }
     }
 
     @Override
-    public void handle(@NonNull ByteBuf packet, @NonNull MinecraftPingSession session, int channel) {
+    public void handle(@NonNull ByteBuf packet, @NonNull NoopUserSession session, int channel) {
         logger.debug("Handling packet @ %d bytes", packet.readableBytes());
-        switch (session.state) {
-            case NONE:
-                if (MinecraftPacketFramer.readVarInt(packet) != 0x00)  {
-                    throw new IllegalStateException("Invalid packet ID!");
-                }
+        switch (MinecraftPacketFramer.readVarInt(packet)) {
+            case 0x00:
                 byte[] b = new byte[MinecraftPacketFramer.readVarInt(packet)];
                 packet.readBytes(b);
                 logger.info("Received ping response:").info(new String(b));
-                session.state = PingState.RESPONSE;
                 break;
-            case RESPONSE:
-                if (MinecraftPacketFramer.readVarInt(packet) != 0x01)   {
-                    throw new IllegalStateException("Invalid packet ID!");
-                }
+            case 0x01:
                 TestMCPinger.endTime.complete(packet.readLong());
                 break;
             default:
@@ -66,7 +60,7 @@ public class MinecraftPingProtocol implements SimpleProtocol<ByteBuf, MinecraftP
     }
 
     @Override
-    public MinecraftPingSession newSession() {
-        return new MinecraftPingSession();
+    public NoopUserSession newSession() {
+        return new NoopUserSession();
     }
 }

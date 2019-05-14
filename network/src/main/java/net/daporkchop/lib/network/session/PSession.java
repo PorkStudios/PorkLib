@@ -103,7 +103,7 @@ public interface PSession<Impl extends PSession<Impl>> extends CloseableFuture, 
      *                    used (see {@link #fallbackReliability()})
      * @return a future which may be used to track the packet as it is sent
      */
-    Future<Void> sendFuture(@NonNull Object packet, Reliability reliability);
+    Future<Void> sendAsync(@NonNull Object packet, Reliability reliability);
 
     /**
      * Sends a single packet to the remote endpoint, using this session's default reliability level.
@@ -115,8 +115,8 @@ public interface PSession<Impl extends PSession<Impl>> extends CloseableFuture, 
      * @param packet the packet to be sent
      * @return a future which may be used to track the packet as it is sent
      */
-    default Future<Void> sendFuture(@NonNull Object packet) {
-        return this.sendFuture(packet, this.fallbackReliability());
+    default Future<Void> sendAsync(@NonNull Object packet) {
+        return this.sendAsync(packet, this.fallbackReliability());
     }
 
     /**
@@ -131,7 +131,7 @@ public interface PSession<Impl extends PSession<Impl>> extends CloseableFuture, 
      * @param channelId   the id of the channel that the packet will be sent on
      * @return a future which may be used to track the packet as it is sent
      */
-    Future<Void> sendFuture(@NonNull Object packet, Reliability reliability, int channelId);
+    Future<Void> sendAsync(@NonNull Object packet, Reliability reliability, int channelId);
 
     /**
      * Sends a single packet to the remote endpoint over a specific channel, using this channel's fallback reliability
@@ -143,9 +143,18 @@ public interface PSession<Impl extends PSession<Impl>> extends CloseableFuture, 
      * @param channelId the id of the channel that the packet will be sent on
      * @return a future which may be used to track the packet as it is sent
      */
-    default Future<Void> sendFuture(@NonNull Object packet, int channelId) {
-        return this.sendFuture(packet, this.fallbackReliability(), channelId);
+    default Future<Void> sendAsync(@NonNull Object packet, int channelId) {
+        return this.sendAsync(packet, this.fallbackReliability(), channelId);
     }
+
+    /**
+     * Flushes the send buffer for this session.
+     * <p>
+     * Note that depending on the transport engine, this method may do nothing.
+     *
+     * @return this session
+     */
+    Impl flushBuffer();
 
     /**
      * Closes this session, blocking until it is closed.

@@ -15,15 +15,10 @@
 
 package net.daporkchop.lib.network.session;
 
-import lombok.Getter;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.network.transport.NetSession;
-
 /**
+ * An {@link AbstractUserSession} that does nothing.
+ *
  * @author DaPorkchop_
  */
-@Getter
-@Accessors(fluent = true)
-public abstract class AbstractUserSession<Impl extends AbstractUserSession<Impl>> implements UserSession<Impl> {
-    protected final NetSession internalSession = null;
+public final class NoopUserSession extends AbstractUserSession<NoopUserSession> {
 }

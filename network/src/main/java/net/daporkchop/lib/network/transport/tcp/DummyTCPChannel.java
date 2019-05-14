@@ -55,7 +55,7 @@ public class DummyTCPChannel implements PChannel {
 
     @Override
     public Future<Void> sendFuture(@NonNull Object packet, Reliability reliability) {
-        return this.session.sendFuture(packet, Reliability.RELIABLE_ORDERED, this.id);
+        return this.session.sendAsync(packet, Reliability.RELIABLE_ORDERED, this.id);
     }
 
     @Override

@@ -13,13 +13,13 @@
  *
  */
 
-package mc;
+package http;
 
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
  * @author DaPorkchop_
  */
-public class MinecraftPingSession extends AbstractUserSession<MinecraftPingSession> {
-    protected PingState state = PingState.NONE;
+public class HTTPSession extends AbstractUserSession<HTTPSession> {
+    protected boolean receivedHeaders;
 }

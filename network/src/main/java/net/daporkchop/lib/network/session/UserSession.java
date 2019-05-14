@@ -53,13 +53,20 @@ public interface UserSession<Impl extends UserSession<Impl>> extends PSession<Im
     }
 
     @Override
-    default Future<Void> sendFuture(@NonNull Object packet, Reliability reliability) {
-        return this.internalSession().sendFuture(packet, reliability);
+    default Future<Void> sendAsync(@NonNull Object packet, Reliability reliability) {
+        return this.internalSession().sendAsync(packet, reliability);
     }
 
     @Override
-    default Future<Void> sendFuture(@NonNull Object packet, Reliability reliability, int channelId) {
-        return this.internalSession().sendFuture(packet, reliability, channelId);
+    default Future<Void> sendAsync(@NonNull Object packet, Reliability reliability, int channelId) {
+        return this.internalSession().sendAsync(packet, reliability, channelId);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    default Impl flushBuffer() {
+        this.internalSession().flushBuffer();
+        return (Impl) this;
     }
 
     @Override

@@ -21,6 +21,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import lombok.NonNull;
 import net.daporkchop.lib.network.endpoint.PClient;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
+import net.daporkchop.lib.network.netty.LoopPool;
 import net.daporkchop.lib.network.transport.NetSession;
 import net.daporkchop.lib.network.tcp.pipeline.TCPChannelInitializer;
 import net.daporkchop.lib.network.tcp.WrapperNioSocketChannel;
@@ -35,12 +36,15 @@ public class TCPClient extends TCPEndpoint<PClient, WrapperNioSocketChannel> imp
         try {
             Bootstrap bootstrap = new Bootstrap();
             EventLoopGroup group;
-            if ((group = builder.group()) == null) {
+
+            //TODO: custom event loop groups and such
+            /*if ((group = builder.group()) == null) {
                 group = new NioEventLoopGroup(0, builder.executor());
             }
             if (builder.shutdownGroupOnClose()) {
                 this.group = group;
-            }
+            }*/
+            group = LoopPool.defaultGroup();
 
             bootstrap.group(group)
                     .channelFactory(() -> new WrapperNioSocketChannel(this))

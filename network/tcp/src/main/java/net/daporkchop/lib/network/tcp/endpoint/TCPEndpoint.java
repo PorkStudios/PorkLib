@@ -24,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.endpoint.builder.EndpointBuilder;
+import net.daporkchop.lib.network.netty.LoopPool;
 import net.daporkchop.lib.network.protocol.Protocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.tcp.TCPEngine;
@@ -64,7 +65,7 @@ public abstract class TCPEndpoint<Impl extends PEndpoint<Impl>, Ch extends Chann
     public Future<Void> closeAsync() {
         return this.channel.close().addListener(v -> {
             if (this.group != null) {
-                this.group.shutdownGracefully();
+                LoopPool.returnGroup(this.group);
             }
         });
     }

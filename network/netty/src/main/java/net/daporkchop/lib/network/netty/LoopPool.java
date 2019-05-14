@@ -13,31 +13,49 @@
  *
  */
 
-package net.daporkchop.lib.common.util;
+package net.daporkchop.lib.network.netty;
 
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import lombok.NonNull;
-import net.daporkchop.lib.unsafe.PUnsafe;
+import net.daporkchop.lib.common.util.PorkUtil;
+
+import java.util.IdentityHashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Some constants that may be used in a lot of classes
- * <p>
- * Deprecated because it's redundant and useless
- *
  * @author DaPorkchop_
  */
-@Deprecated
-public interface PConstants {
+public class LoopPool {
+    protected static EventLoopGroup DEFAULT_GROUP;
+    protected static final Map<EventLoopGroup, AtomicInteger> GROUP_CACHE = new IdentityHashMap<>();
 
-    static RuntimeException p_exception(@NonNull Throwable t) {
-        PUnsafe.throwException(t);
-        return new RuntimeException(t); //unreachable code
+    public static EventLoopGroup defaultGroup() {
+        synchronized (GROUP_CACHE) {
+            if (DEFAULT_GROUP == null) {
+                DEFAULT_GROUP = new NioEventLoopGroup(PorkUtil.CPU_COUNT);
+            }
+            return useGroup(DEFAULT_GROUP);
+        }
     }
 
-    static Object getNull() {
-        return null;
+    public static EventLoopGroup useGroup(@NonNull EventLoopGroup group) {
+        synchronized (GROUP_CACHE) {
+            GROUP_CACHE.computeIfAbsent(group, g -> new AtomicInteger(0)).incrementAndGet();
+        }
+        return group;
     }
 
-    default RuntimeException exception(@NonNull Throwable t) {
-        return p_exception(t);
+    public static void returnGroup(@NonNull EventLoopGroup group) {
+        synchronized (GROUP_CACHE) {
+            if (GROUP_CACHE.get(group).decrementAndGet() == 0) {
+                GROUP_CACHE.remove(group);
+                group.shutdownGracefully();
+                if (group == DEFAULT_GROUP) {
+                    DEFAULT_GROUP = null;
+                }
+            }
+        }
     }
 }

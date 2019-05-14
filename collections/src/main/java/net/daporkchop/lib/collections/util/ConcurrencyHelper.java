@@ -28,6 +28,7 @@ import net.daporkchop.lib.collections.util.exception.ConcurrentException;
 import net.daporkchop.lib.collections.util.exception.IterationCompleteException;
 import net.daporkchop.lib.common.util.PArrays;
 import net.daporkchop.lib.common.util.PConstants;
+import net.daporkchop.lib.common.util.PorkUtil;
 
 import java.util.Iterator;
 import java.util.concurrent.ForkJoinPool;
@@ -174,7 +175,7 @@ public abstract class ConcurrencyHelper {
         ForkJoinPool pool = ForkJoinPool.commonPool();
         Lock lock = new ReentrantLock();
         Condition condition = lock.newCondition();
-        AtomicInteger waitingCounter = new AtomicInteger(PConstants.CPU_COUNT); //number of threads waiting for a task
+        AtomicInteger waitingCounter = new AtomicInteger(PorkUtil.CPU_COUNT); //number of threads waiting for a task
         Worker<T>[] workers = PArrays.<Worker<T>>filled(waitingCounter.get(), Worker[]::new, () -> new Worker<>(waitingCounter, executor, lock, condition));
         ForkJoinTask[] tasks = new ForkJoinTask[waitingCounter.get()];
         try {
@@ -247,7 +248,7 @@ public abstract class ConcurrencyHelper {
         Lock lock = new ReentrantLock();
         Condition condition = lock.newCondition();
         AtomicBoolean cont = new AtomicBoolean(true);
-        final int threadCount = PConstants.CPU_COUNT;
+        final int threadCount = PorkUtil.CPU_COUNT;
         AtomicInteger waitingCounter = new AtomicInteger(0); //number of threads that are complete
         Worker[] workers = PArrays.filled(threadCount, Worker[]::new, i -> new Worker<>(waitingCounter, unused -> {
             while (cont.get() && executor.get()) ;

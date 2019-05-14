@@ -30,7 +30,7 @@ import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.session.Reliability;
 import net.daporkchop.lib.network.tcp.endpoint.TCPClient;
 import net.daporkchop.lib.network.transport.TransportEngine;
-import net.daporkchop.lib.network.transport.netty.NettyEngine;
+import net.daporkchop.lib.network.netty.NettyEngine;
 
 import java.net.InetSocketAddress;
 import java.util.Collection;

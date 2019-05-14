@@ -27,7 +27,7 @@ import net.daporkchop.lib.network.protocol.Protocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.tcp.WrapperNioSocketChannel;
 import net.daporkchop.lib.network.transport.ChanneledPacket;
-import net.daporkchop.lib.network.transport.netty.NettyHandler;
+import net.daporkchop.lib.network.netty.NettyHandler;
 
 /**
  * @author DaPorkchop_

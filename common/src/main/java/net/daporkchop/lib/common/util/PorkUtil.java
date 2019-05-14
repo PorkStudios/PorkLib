@@ -64,6 +64,7 @@ public class PorkUtil {
             runnable -> new Thread(runnable, String.format("PorkLib executor #%d", DEFAULT_EXECUTOR_THREAD_COUNTER.getAndIncrement()))
     );
     public static final DateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+    public static final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
 
     static {
         {

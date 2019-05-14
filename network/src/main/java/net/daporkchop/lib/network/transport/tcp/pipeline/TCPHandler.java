@@ -22,6 +22,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.netty.NettyUtil;
+import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.protocol.Protocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.transport.ChanneledPacket;
@@ -35,7 +36,7 @@ import net.daporkchop.lib.network.transport.tcp.endpoint.TCPEndpoint;
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public class TCPHandler extends NettyHandler {
+public class TCPHandler extends NettyHandler implements Logging {
     @NonNull
     protected final WrapperNioSocketChannel session;
 
@@ -51,5 +52,11 @@ public class TCPHandler extends NettyHandler {
 
         Object decoded = protocol.decoder().decode(NettyUtil.wrapIn(pck.packet()), this.session.userSession(), pck.channel());
         protocol.handler().handle(decoded, this.session.userSession(), pck.channel());
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        logger.alert(cause);
+        super.exceptionCaught(ctx, cause);
     }
 }

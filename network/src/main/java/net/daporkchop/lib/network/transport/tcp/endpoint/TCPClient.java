@@ -49,7 +49,7 @@ public class TCPClient extends TCPEndpoint<PClient, WrapperNioSocketChannel> imp
 
             this.transportEngine.clientOptions().forEach(bootstrap::option);
 
-            this.channel = (WrapperNioSocketChannel) bootstrap.connect(builder.address()).channel();
+            this.channel = (WrapperNioSocketChannel) bootstrap.connect(builder.address()).sync().channel();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

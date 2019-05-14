@@ -15,11 +15,38 @@
 
 package http;
 
-import net.daporkchop.lib.network.session.AbstractUserSession;
+import lombok.NonNull;
+import net.daporkchop.lib.binary.UTF8;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.network.protocol.SimpleProtocol;
+
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-public class HTTPSession extends AbstractUserSession<HTTPSession> {
-    protected String headers;
+public class HTTPProtocol implements SimpleProtocol<String, HTTPSession>, Logging {
+    @Override
+    public String decode(@NonNull DataIn in, @NonNull HTTPSession session, int channel) throws IOException {
+        return new String(in.readFully(new byte[in.available()]), UTF8.utf8);
+    }
+
+    @Override
+    public void encode(@NonNull DataOut out, @NonNull String packet, @NonNull HTTPSession session, int channel) throws IOException {
+        out.writeBytes(packet.getBytes(UTF8.utf8));
+    }
+
+    @Override
+    public void handle(@NonNull String packet, @NonNull HTTPSession session, int channel) {
+        if (channel == 1) {
+            TestHTTPGet.data += packet;
+        }
+    }
+
+    @Override
+    public HTTPSession newSession() {
+        return new HTTPSession();
+    }
 }

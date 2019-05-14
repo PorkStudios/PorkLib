@@ -17,7 +17,8 @@ package http;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.network.session.NoopUserSession;
+import net.daporkchop.lib.binary.UTF8;
+import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.transport.ChanneledPacket;
 import net.daporkchop.lib.network.transport.tcp.Framer;
 
@@ -26,12 +27,59 @@ import java.util.List;
 /**
  * @author DaPorkchop_
  */
-public class HTTPPacketFramer implements Framer<HTTPSession> {
+public class HTTPPacketFramer implements Framer<HTTPSession>, Logging {
     @Override
     public void unpack(@NonNull ByteBuf buf, @NonNull HTTPSession session, @NonNull List<ChanneledPacket<ByteBuf>> frames) {
+        TOP:
+        while (buf.isReadable()) {
+            if (session.headers != null) {
+                logger.debug("Read %d bytes!", buf.readableBytes());
+                frames.add(new ChanneledPacket<>(buf.readRetainedSlice(buf.readableBytes()), 1));
+            } else {
+                int origPos = buf.readerIndex();
+                int i = -1;
+                while (buf.isReadable()) {
+                    char c = (char) (buf.readByte() & 0xFFFF);
+                    switch (i) {
+                        case -1:
+                        case 1:
+                            if (c == '\r') {
+                                i++;
+                            } else {
+                                i = -1;
+                            }
+                            break;
+                        case 0:
+                            if (c == '\n') {
+                                i++;
+                            } else {
+                                i = -1;
+                            }
+                            break;
+                        case 2:
+                            if (c == '\n') {
+                                byte[] arr = new byte[buf.readerIndex() - origPos];
+                                buf.getBytes(origPos, arr);
+                                session.headers = new String(arr, UTF8.utf8);
+                                frames.add(new ChanneledPacket<>(buf.retainedSlice(origPos, buf.readerIndex() - origPos), 0));
+                                logger.debug("Read headers!", buf.readableBytes());
+                                continue TOP;
+                            } else {
+                                i = -1;
+                            }
+                            break;
+                        default:
+                            throw new IllegalStateException(String.valueOf(i));
+                    }
+                }
+                logger.debug("Unable to find headers.");
+                return;
+            }
+        }
     }
 
     @Override
     public void pack(@NonNull ChanneledPacket<ByteBuf> packet, @NonNull HTTPSession session, @NonNull ByteBuf out) {
+        out.writeBytes(packet.packet());
     }
 }

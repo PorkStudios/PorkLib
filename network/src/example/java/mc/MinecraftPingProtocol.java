@@ -40,6 +40,7 @@ public class MinecraftPingProtocol implements SimpleProtocol<ByteBuf, NoopUserSe
         while (packet.isReadable()) {
             out.write(packet.readByte() & 0xFF);
         }
+        packet.release();
     }
 
     @Override

@@ -17,11 +17,14 @@ package net.daporkchop.lib.network.transport.tcp.pipeline;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.ByteToMessageCodec;
+import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.MessageToMessageCodec;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.transport.ChanneledPacket;
 import net.daporkchop.lib.network.transport.tcp.Framer;
 import net.daporkchop.lib.network.transport.tcp.WrapperNioSocketChannel;
@@ -35,14 +38,14 @@ import java.util.List;
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public class TCPFramingCodec extends MessageToMessageCodec<ByteBuf, ChanneledPacket<ByteBuf>> {
+public class TCPFramingCodec extends ByteToMessageCodec<ChanneledPacket<ByteBuf>> {
     @NonNull
     protected final WrapperNioSocketChannel session;
 
     @Override
     @SuppressWarnings("unchecked")
-    protected void encode(ChannelHandlerContext ctx, ChanneledPacket<ByteBuf> msg, List<Object> out) throws Exception {
-        this.session.<TCPEndpoint>endpoint().transportEngine().framer().pack(msg, this.session.userSession(), out);
+    protected void encode(ChannelHandlerContext ctx, ChanneledPacket<ByteBuf> msg, ByteBuf out) throws Exception {
+        this.session.<TCPEndpoint>endpoint().transportEngine().framer().pack(msg, (AbstractUserSession) this.session.userSession(), out);
     }
 
     @Override

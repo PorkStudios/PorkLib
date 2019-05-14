@@ -46,10 +46,9 @@ public interface Framer<S extends AbstractUserSession<S>> {
      *
      * @param packet     a buffer containing the encoded packet
      * @param session the session that the packet will be sent on
-     * @param frames  a list of buffers to send. At a minimum, the single buffer passed to this method
-     *                should be added to this list.
+     * @param out  the final output buffer
      */
-    void pack(@NonNull ChanneledPacket<ByteBuf> packet, @NonNull S session, @NonNull List<ByteBuf> frames);
+    void pack(@NonNull ChanneledPacket<ByteBuf> packet, @NonNull S session, @NonNull ByteBuf out);
 
     class DefaultFramer<S extends AbstractUserSession<S>> implements Framer<S>  {
         @Override
@@ -67,10 +66,10 @@ public interface Framer<S extends AbstractUserSession<S>> {
         }
 
         @Override
-        public void pack(@NonNull ChanneledPacket<ByteBuf> packet, @NonNull S session, @NonNull List<ByteBuf> frames) {
-            ByteBuf buf = packet.packet();
-            frames.add(buf.alloc().buffer(8).writeInt(buf.readableBytes()).writeInt(packet.channel()));
-            frames.add(buf);
+        public void pack(@NonNull ChanneledPacket<ByteBuf> packet, @NonNull S session, @NonNull ByteBuf out) {
+            out.writeInt(packet.packet().readableBytes())
+                    .writeInt(packet.channel())
+                    .writeBytes(packet.packet());
         }
     }
 }

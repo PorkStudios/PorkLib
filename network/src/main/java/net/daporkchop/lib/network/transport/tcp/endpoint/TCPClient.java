@@ -17,6 +17,7 @@ package net.daporkchop.lib.network.transport.tcp.endpoint;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import lombok.NonNull;
 import net.daporkchop.lib.network.endpoint.PClient;
@@ -34,13 +35,17 @@ public class TCPClient extends TCPEndpoint<PClient, WrapperNioSocketChannel> imp
 
         try {
             Bootstrap bootstrap = new Bootstrap();
-            if (builder.group() != null) {
-                bootstrap.group(builder.group());
-            } else {
-                bootstrap.group(new NioEventLoopGroup(0, builder.executor()));
+            EventLoopGroup group;
+            if ((group = builder.group()) == null) {
+                group = new NioEventLoopGroup(0, builder.executor());
             }
-            bootstrap.channelFactory(() -> new WrapperNioSocketChannel(this));
-            bootstrap.handler(new TCPChannelInitializer<>(this))
+            if (builder.shutdownGroupOnClose()) {
+                this.group = group;
+            }
+
+            bootstrap.group(group)
+                    .channelFactory(() -> new WrapperNioSocketChannel(this))
+                    .handler(new TCPChannelInitializer<>(this))
                     .option(ChannelOption.SO_KEEPALIVE, true)
                     .option(ChannelOption.TCP_NODELAY, true);
 

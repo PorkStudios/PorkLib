@@ -27,9 +27,7 @@ import net.daporkchop.lib.network.transport.TransportEngine;
 import net.daporkchop.lib.network.transport.tcp.Framer;
 import net.daporkchop.lib.network.transport.tcp.TCPEngine;
 
-import java.nio.file.NotLinkException;
 import java.util.concurrent.Executor;
-import java.util.function.Supplier;
 
 /**
  * @author DaPorkchop_
@@ -61,6 +59,14 @@ public abstract class EndpointBuilder<Impl extends EndpointBuilder<Impl, R>, R e
     protected EventLoopGroup group;
 
     /**
+     * Whether or not the {@link EventLoopGroup} defined by {@link #group} or created from {@link #executor}
+     * will be automatically shut down when this endpoint is closed.
+     * <p>
+     * Not all transport engines will make use of this option.
+     */
+    protected boolean shutdownGroupOnClose = true;
+
+    /**
      * The default protocol that will be used initially for all connections to and from this endpoint.
      * <p>
      * Must be set!
@@ -86,6 +92,12 @@ public abstract class EndpointBuilder<Impl extends EndpointBuilder<Impl, R>, R e
     }
 
     @SuppressWarnings("unchecked")
+    public Impl shutdownGroupOnClose(boolean shutdownGroupOnClose) {
+        this.shutdownGroupOnClose = shutdownGroupOnClose;
+        return (Impl) this;
+    }
+
+    @SuppressWarnings("unchecked")
     public Impl protocol(@NonNull Protocol<?, ? extends AbstractUserSession> protocol) {
         this.protocol = protocol;
         return (Impl) this;
@@ -97,7 +109,7 @@ public abstract class EndpointBuilder<Impl extends EndpointBuilder<Impl, R>, R e
     }
 
     protected void validate() {
-        if (this.protocol == null)  {
+        if (this.protocol == null) {
             throw new NullPointerException("protocol");
         }
 

@@ -23,11 +23,15 @@ import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.transport.tcp.TCPEngine;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author DaPorkchop_
  */
 public class TestMCPinger implements Logging {
+    protected static long startTime = -1L;
+    protected static CompletableFuture<Long> endTime = new CompletableFuture<>();
+
     public static void main(String... args) {
         logger.enableANSI().setLogAmount(LogAmount.DEBUG).info("Starting client...");
 
@@ -39,17 +43,22 @@ public class TestMCPinger implements Logging {
 
         logger.info("Pinging server...");
         client.send(PooledByteBufAllocator.DEFAULT.ioBuffer()
-                                                  .writeByte(0x00) //packet id
-                                                  .writeByte(0x00) //protocol version
-                                                  .writeByte(0x09) //server address length
-                                                  .writeBytes("localhost".getBytes()) //server address
-                                                  .writeShort(25565) //port
-                                                  .writeByte(0x01) //next state
+                .writeByte(0x00) //packet id
+                .writeByte(0x00) //protocol version
+                .writeByte(0x09) //server address length
+                .writeBytes("localhost".getBytes()) //server address
+                .writeShort(25565) //port
+                .writeByte(0x01) //next state
         ).send(PooledByteBufAllocator.DEFAULT.ioBuffer()
-                                             .writeByte(0x00) //packet id
+                .writeByte(0x00) //packet id
         ).sendFuture(PooledByteBufAllocator.DEFAULT.ioBuffer()
-                                                   .writeByte(0x01) //packet id
-                                                   .writeLong(System.currentTimeMillis()) //value
+                .writeByte(0x01) //packet id
+                .writeLong(startTime = System.currentTimeMillis()) //value
         ).addListener(v -> logger.debug("Ping sent."));
+
+        endTime.thenAccept(ping -> {
+            logger.success("Ping: %dms", System.currentTimeMillis() - ping);
+            client.closeAsync().addListener(v -> logger.success("Closed."));
+        });
     }
 }

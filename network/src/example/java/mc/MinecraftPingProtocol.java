@@ -16,10 +16,8 @@
 package mc;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.PooledByteBufAllocator;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.netty.NettyByteBufIn;
-import net.daporkchop.lib.binary.netty.NettyUtil;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.logging.Logging;
@@ -48,22 +46,22 @@ public class MinecraftPingProtocol implements SimpleProtocol<ByteBuf, MinecraftP
         logger.debug("Handling packet @ %d bytes", packet.readableBytes());
         switch (session.state) {
             case NONE:
+                if (MinecraftPacketFramer.readVarInt(packet) != 0x00)  {
+                    throw new IllegalStateException("Invalid packet ID!");
+                }
+                byte[] b = new byte[MinecraftPacketFramer.readVarInt(packet)];
+                packet.readBytes(b);
+                logger.info("Received ping response:").info(new String(b));
                 session.state = PingState.RESPONSE;
-                try (DataIn in = NettyUtil.wrapIn(packet))  {
-                    byte[] b = new byte[in.readVarInt(true)];
-                    in.readFully(b);
-                    logger.info("Received ping response:").info(new String(b));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-                if (false) {
-                    session.send(PooledByteBufAllocator.DEFAULT.ioBuffer()
-                            .writeByte(0x01) //packet id
-                    );
-                } else {
-                    session.closeAsync().addListener(v -> logger.info("Disconnected."));
-                }
                 break;
+            case RESPONSE:
+                if (MinecraftPacketFramer.readVarInt(packet) != 0x01)   {
+                    throw new IllegalStateException("Invalid packet ID!");
+                }
+                TestMCPinger.endTime.complete(packet.readLong());
+                break;
+            default:
+                throw new IllegalStateException();
         }
     }
 

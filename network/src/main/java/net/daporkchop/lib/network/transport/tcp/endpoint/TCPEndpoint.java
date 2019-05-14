@@ -16,6 +16,7 @@
 package net.daporkchop.lib.network.transport.tcp.endpoint;
 
 import io.netty.channel.Channel;
+import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.Future;
 import lombok.Getter;
 import lombok.NonNull;
@@ -39,6 +40,7 @@ public abstract class TCPEndpoint<Impl extends PEndpoint<Impl>, Ch extends Chann
     protected final Protocol<?, ? extends AbstractUserSession> protocol;
     @NonNull
     protected Ch channel;
+    protected EventLoopGroup group;
 
     @SuppressWarnings("unchecked")
     protected TCPEndpoint(@NonNull EndpointBuilder builder)    {
@@ -49,6 +51,9 @@ public abstract class TCPEndpoint<Impl extends PEndpoint<Impl>, Ch extends Chann
     @Override
     public void closeNow() {
         this.channel.close().syncUninterruptibly();
+        if (this.group != null) {
+            this.group.shutdownGracefully().syncUninterruptibly();
+        }
     }
 
     @Override
@@ -58,6 +63,10 @@ public abstract class TCPEndpoint<Impl extends PEndpoint<Impl>, Ch extends Chann
 
     @Override
     public Future<Void> closeAsync() {
-        return this.channel.close();
+        return this.channel.close().addListener(v -> {
+            if (this.group != null) {
+                this.group.shutdownGracefully();
+            }
+        });
     }
 }

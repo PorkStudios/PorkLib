@@ -17,49 +17,66 @@ package mc;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.netty.NettyUtil;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.transport.ChanneledPacket;
 import net.daporkchop.lib.network.transport.tcp.Framer;
 
-import java.io.IOException;
 import java.util.List;
 
 /**
  * @author DaPorkchop_
  */
 public class MinecraftPacketFramer implements Framer<MinecraftPingSession>, Logging {
-    @Override
-    public void unpack(@NonNull ByteBuf buf, @NonNull MinecraftPingSession session, @NonNull List<ChanneledPacket<ByteBuf>> frames) {
-        try (DataIn in = NettyUtil.wrapIn(buf)) {
-            int origPos = buf.readerIndex();
-            while (buf.readableBytes() >= 2)    {
-                int size = in.readVarInt(true);
-                if (buf.readableBytes() >= size)    {
-                    logger.debug("Read packet @ %d bytes", size);
-                    frames.add(new ChanneledPacket<>(buf.readRetainedSlice(size), 0));
-                } else {
-                    logger.debug("Unable to read %d bytes", size);
-                    buf.readerIndex(origPos);
-                    return;
-                }
+    protected static int readVarInt(@NonNull ByteBuf buf) {
+        int numRead = 0;
+        int result = 0;
+        byte read;
+        do {
+            read = buf.readByte();
+            int value = (read & 0b01111111);
+            result |= (value << (7 * numRead));
+
+            numRead++;
+            if (numRead > 5) {
+                throw new RuntimeException("VarInt is too big");
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        } while ((read & 0b10000000) != 0);
+
+        return result;
+    }
+
+    protected static void writeVarInt(@NonNull ByteBuf buf, int value) {
+        do {
+            byte temp = (byte) (value & 0b01111111);
+            value >>>= 7;
+            if (value != 0) {
+                temp |= 0b10000000;
+            }
+            buf.writeByte(temp);
+        } while (value != 0);
     }
 
     @Override
-    public void pack(@NonNull ChanneledPacket<ByteBuf> packet, @NonNull MinecraftPingSession session, @NonNull List<ByteBuf> frames) {
-        ByteBuf buf = packet.packet().alloc().ioBuffer().writeByte(packet.packet().readableBytes());
-        /*try (DataOut out = NettyUtil.wrapOut(buf)) {
-            out.writeVarInt(packet.packet().readableBytes());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }*/
-        frames.add(buf);
-        frames.add(packet.packet());
+    public void unpack(@NonNull ByteBuf buf, @NonNull MinecraftPingSession session, @NonNull List<ChanneledPacket<ByteBuf>> frames) {
+        int origPos = buf.readerIndex();
+        while (buf.readableBytes() >= 2) {
+            int size = readVarInt(buf);
+            if (buf.readableBytes() >= size) {
+                logger.debug("Read packet @ %d bytes", size);
+                frames.add(new ChanneledPacket<>(buf.readRetainedSlice(size), 0));
+            } else {
+                logger.debug("Unable to read %d bytes", size);
+                buf.readerIndex(origPos);
+                return;
+            }
+            origPos = buf.readerIndex();
+        }
+        buf.readerIndex(origPos);
+    }
+
+    @Override
+    public void pack(@NonNull ChanneledPacket<ByteBuf> packet, @NonNull MinecraftPingSession session, @NonNull ByteBuf out) {
+        writeVarInt(out, packet.packet().readableBytes());
+        out.writeBytes(packet.packet());
     }
 }

@@ -13,50 +13,42 @@
  *
  */
 
-rootProject.name = 'PorkLib'
+package net.daporkchop.lib.network.tcp.pipeline;
 
-include 'ai'
-include 'binary'
-include 'collections'
-include 'crypto'
-include 'common'
-include 'concurrent'
-include 'concurrent:parallel'
-include 'db'
-include 'db:db-core'
-include 'db:db-extensions-leveldb'
-include 'encoding'
-include 'encoding:config'
-include 'encoding:nbt'
-include 'graphics'
-include 'gui'
-include 'hash'
-include 'http'
-include 'logging'
-include 'math'
-include 'minecraft'
-include 'minecraft:minecraft-text'
-include 'minecraft:minecraft-worldscanner'
-include 'network'
-include 'network:netty'
-include 'network:raknet'
-include 'network:sctp'
-include 'network:tcp'
-include 'noise'
-include 'primitive'
-include 'primitive:generator'
-include 'reflection'
-include 'unsafe'
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.MessageToMessageEncoder;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.binary.netty.NettyUtil;
+import net.daporkchop.lib.network.protocol.Protocol;
+import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.tcp.WrapperNioSocketChannel;
+import net.daporkchop.lib.network.transport.ChanneledPacket;
 
-findProject(':concurrent:parallel')?.name = 'parallel'
-findProject(':db:db-core')?.name = 'db-core'
-findProject(':db:db-extensions-leveldb')?.name = 'db-extensions-leveldb'
-findProject(':encoding:config')?.name = 'config'
-findProject(':encoding:nbt')?.name = 'nbt'
-findProject(':minecraft:minecraft-worldscanner')?.name = 'minecraft-worldscanner'
-findProject(':minecraft:minecraft-text')?.name = 'minecraft-text'
-findProject(':network:netty')?.name = 'network-netty'
-findProject(':network:raknet')?.name = 'network-raknet'
-findProject(':network:sctp')?.name = 'network-sctp'
-findProject(':network:tcp')?.name = 'network-tcp'
+import java.util.List;
 
+/**
+ * @author DaPorkchop_
+ */
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public class TCPEncoder extends MessageToMessageEncoder<ChanneledPacket> {
+    @NonNull
+    protected final WrapperNioSocketChannel session;
+
+    @Override
+    @SuppressWarnings("unchecked")
+    protected void encode(ChannelHandlerContext ctx, ChanneledPacket msg, List<Object> out) throws Exception {
+        if (!msg.encoded()) {
+            ByteBuf buf = ctx.alloc().ioBuffer();
+            ((Protocol<Object, ? extends AbstractUserSession>) this.session.protocol())
+                    .encoder().encode(NettyUtil.wrapOut(buf), msg.packet(), session.userSession(), msg.channel());
+            msg.packet(buf).encoded(true);
+        }
+        out.add(msg);
+    }
+}

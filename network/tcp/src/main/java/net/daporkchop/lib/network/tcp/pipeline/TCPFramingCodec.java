@@ -13,63 +13,44 @@
  *
  */
 
-package net.daporkchop.lib.network.endpoint.builder;
+package net.daporkchop.lib.network.tcp.pipeline;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.ByteToMessageCodec;
+import io.netty.handler.codec.ByteToMessageDecoder;
+import io.netty.handler.codec.MessageToMessageCodec;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.network.endpoint.PEndpoint;
-import net.daporkchop.lib.network.protocol.Protocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.transport.TransportEngine;
+import net.daporkchop.lib.network.tcp.WrapperNioSocketChannel;
+import net.daporkchop.lib.network.transport.ChanneledPacket;
+import net.daporkchop.lib.network.tcp.endpoint.TCPEndpoint;
 
-import java.util.concurrent.Executor;
+import java.util.List;
 
 /**
  * @author DaPorkchop_
  */
+@RequiredArgsConstructor
 @Getter
-@Accessors(chain = true, fluent = true)
-public abstract class EndpointBuilder<Impl extends EndpointBuilder<Impl, R>, R extends PEndpoint> {
-    /**
-     * The {@link TransportEngine} to use.
-     * <p>
-     * If {@code null}, TCP with simple packet framing will be used.
-     */
-    protected TransportEngine engine;
+@Accessors(fluent = true)
+public class TCPFramingCodec extends ByteToMessageCodec<ChanneledPacket<ByteBuf>> {
+    @NonNull
+    protected final WrapperNioSocketChannel session;
 
-    /**
-     * The default protocol that will be used initially for all connections to and from this endpoint.
-     * <p>
-     * Must be set!
-     */
-    protected Protocol<?, ? extends AbstractUserSession> protocol;
-
+    @Override
     @SuppressWarnings("unchecked")
-    public Impl engine(@NonNull TransportEngine engine) {
-        this.engine = engine;
-        return (Impl) this;
+    protected void encode(ChannelHandlerContext ctx, ChanneledPacket<ByteBuf> msg, ByteBuf out) throws Exception {
+        this.session.<TCPEndpoint>endpoint().transportEngine().framer().pack(msg, (AbstractUserSession) this.session.userSession(), out);
+        msg.packet().release();
     }
 
+    @Override
     @SuppressWarnings("unchecked")
-    public Impl protocol(@NonNull Protocol<?, ? extends AbstractUserSession> protocol) {
-        this.protocol = protocol;
-        return (Impl) this;
+    protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
+        this.session.<TCPEndpoint>endpoint().transportEngine().framer().unpack(msg, this.session.userSession(), out);
     }
-
-    public R build() {
-        this.validate();
-        return this.doBuild();
-    }
-
-    protected void validate() {
-        if (this.protocol == null) {
-            throw new NullPointerException("protocol");
-        } else if (this.engine == null) {
-            throw new NullPointerException("engine");
-        }
-    }
-
-    protected abstract R doBuild();
 }

@@ -13,63 +13,59 @@
  *
  */
 
-package net.daporkchop.lib.network.endpoint.builder;
+package net.daporkchop.lib.network.tcp.endpoint;
 
+import io.netty.channel.Channel;
+import io.netty.channel.EventLoopGroup;
+import io.netty.util.concurrent.Future;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
+import net.daporkchop.lib.network.endpoint.builder.EndpointBuilder;
 import net.daporkchop.lib.network.protocol.Protocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.transport.TransportEngine;
-
-import java.util.concurrent.Executor;
+import net.daporkchop.lib.network.tcp.TCPEngine;
 
 /**
  * @author DaPorkchop_
  */
+@RequiredArgsConstructor
 @Getter
-@Accessors(chain = true, fluent = true)
-public abstract class EndpointBuilder<Impl extends EndpointBuilder<Impl, R>, R extends PEndpoint> {
-    /**
-     * The {@link TransportEngine} to use.
-     * <p>
-     * If {@code null}, TCP with simple packet framing will be used.
-     */
-    protected TransportEngine engine;
-
-    /**
-     * The default protocol that will be used initially for all connections to and from this endpoint.
-     * <p>
-     * Must be set!
-     */
-    protected Protocol<?, ? extends AbstractUserSession> protocol;
+@Accessors(fluent = true)
+public abstract class TCPEndpoint<Impl extends PEndpoint<Impl>, Ch extends Channel> implements PEndpoint<Impl> {
+    protected final TCPEngine transportEngine;
+    protected final Protocol<?, ? extends AbstractUserSession> protocol;
+    @NonNull
+    protected Ch channel;
+    protected EventLoopGroup group;
 
     @SuppressWarnings("unchecked")
-    public Impl engine(@NonNull TransportEngine engine) {
-        this.engine = engine;
-        return (Impl) this;
+    protected TCPEndpoint(@NonNull EndpointBuilder builder)    {
+        this.transportEngine = (TCPEngine) builder.engine();
+        this.protocol = builder.protocol();
     }
 
-    @SuppressWarnings("unchecked")
-    public Impl protocol(@NonNull Protocol<?, ? extends AbstractUserSession> protocol) {
-        this.protocol = protocol;
-        return (Impl) this;
-    }
-
-    public R build() {
-        this.validate();
-        return this.doBuild();
-    }
-
-    protected void validate() {
-        if (this.protocol == null) {
-            throw new NullPointerException("protocol");
-        } else if (this.engine == null) {
-            throw new NullPointerException("engine");
+    @Override
+    public void closeNow() {
+        this.channel.close().syncUninterruptibly();
+        if (this.group != null) {
+            this.group.shutdownGracefully().syncUninterruptibly();
         }
     }
 
-    protected abstract R doBuild();
+    @Override
+    public boolean isClosed() {
+        return this.channel.isOpen();
+    }
+
+    @Override
+    public Future<Void> closeAsync() {
+        return this.channel.close().addListener(v -> {
+            if (this.group != null) {
+                this.group.shutdownGracefully();
+            }
+        });
+    }
 }

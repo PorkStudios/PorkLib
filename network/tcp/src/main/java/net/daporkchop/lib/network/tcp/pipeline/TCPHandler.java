@@ -13,63 +13,49 @@
  *
  */
 
-package net.daporkchop.lib.network.endpoint.builder;
+package net.daporkchop.lib.network.tcp.pipeline;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.network.endpoint.PEndpoint;
+import net.daporkchop.lib.binary.netty.NettyUtil;
+import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.protocol.Protocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.transport.TransportEngine;
-
-import java.util.concurrent.Executor;
+import net.daporkchop.lib.network.tcp.WrapperNioSocketChannel;
+import net.daporkchop.lib.network.transport.ChanneledPacket;
+import net.daporkchop.lib.network.transport.netty.NettyHandler;
 
 /**
  * @author DaPorkchop_
  */
+@RequiredArgsConstructor
 @Getter
-@Accessors(chain = true, fluent = true)
-public abstract class EndpointBuilder<Impl extends EndpointBuilder<Impl, R>, R extends PEndpoint> {
-    /**
-     * The {@link TransportEngine} to use.
-     * <p>
-     * If {@code null}, TCP with simple packet framing will be used.
-     */
-    protected TransportEngine engine;
+@Accessors(fluent = true)
+public class TCPHandler extends NettyHandler implements Logging {
+    @NonNull
+    protected final WrapperNioSocketChannel session;
 
-    /**
-     * The default protocol that will be used initially for all connections to and from this endpoint.
-     * <p>
-     * Must be set!
-     */
-    protected Protocol<?, ? extends AbstractUserSession> protocol;
-
+    @Override
     @SuppressWarnings("unchecked")
-    public Impl engine(@NonNull TransportEngine engine) {
-        this.engine = engine;
-        return (Impl) this;
-    }
-
-    @SuppressWarnings("unchecked")
-    public Impl protocol(@NonNull Protocol<?, ? extends AbstractUserSession> protocol) {
-        this.protocol = protocol;
-        return (Impl) this;
-    }
-
-    public R build() {
-        this.validate();
-        return this.doBuild();
-    }
-
-    protected void validate() {
-        if (this.protocol == null) {
-            throw new NullPointerException("protocol");
-        } else if (this.engine == null) {
-            throw new NullPointerException("engine");
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        if (!(msg instanceof ChanneledPacket)) {
+            throw new IllegalArgumentException(msg == null ? "null" : msg.getClass().getCanonicalName());
         }
+
+        Protocol<Object, ? extends AbstractUserSession> protocol = (Protocol<Object, ? extends AbstractUserSession>) this.session.protocol();
+        ChanneledPacket<ByteBuf> pck = (ChanneledPacket<ByteBuf>) msg;
+
+        Object decoded = protocol.decoder().decode(NettyUtil.wrapIn(pck.packet()), this.session.userSession(), pck.channel());
+        protocol.handler().handle(decoded, this.session.userSession(), pck.channel());
     }
 
-    protected abstract R doBuild();
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        logger.alert(cause);
+        super.exceptionCaught(ctx, cause);
+    }
 }

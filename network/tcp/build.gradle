@@ -14,10 +14,5 @@
  */
 
 dependencies {
-    compile project(":binary")
-    compile project(":crypto")
-    compile project(":encoding")
-    compile project(":logging")
-
-    compile "io.netty:netty-common:$nettyVersion"
+    compile project(":network:network-netty")
 }

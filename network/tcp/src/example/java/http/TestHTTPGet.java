@@ -13,11 +13,40 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":crypto")
-    compile project(":encoding")
-    compile project(":logging")
+package http;
 
-    compile "io.netty:netty-common:$nettyVersion"
+import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.logging.LogAmount;
+import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.network.endpoint.PClient;
+import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
+import net.daporkchop.lib.network.tcp.TCPEngine;
+
+import java.net.InetSocketAddress;
+
+/**
+ * @author DaPorkchop_
+ */
+public class TestHTTPGet implements Logging {
+    protected static String data = "";
+
+    public static void main(String... args) {
+        logger.enableANSI().setLogAmount(LogAmount.DEBUG).info("Starting client...");
+
+        PClient client = new ClientBuilder()
+                .engine(TCPEngine.of(new HTTPPacketFramer()))
+                .address(new InetSocketAddress("gist.githubusercontent.com", 80))
+                .protocol(new HTTPProtocol())
+                .build();
+
+        client
+                .send("GET /DaMatrix/8b7ff92fcc7e49c0f511a8ed207d8e92/raw/teampepsi-server-players.json HTTP/1.1\r\n" +
+                        "Host: gist.githubusercontent.com\r\n" +
+                        "User-Agent: PorkLib\r\n\r\n")
+                .flushBuffer();
+
+        PorkUtil.sleep(5000L);
+        logger.info(data);
+        client.closeAsync();
+    }
 }

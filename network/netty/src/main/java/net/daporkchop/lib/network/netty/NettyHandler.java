@@ -13,11 +13,17 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":crypto")
-    compile project(":encoding")
-    compile project(":logging")
+package net.daporkchop.lib.network.netty;
 
-    compile "io.netty:netty-common:$nettyVersion"
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.network.endpoint.PEndpoint;
+
+/**
+ * @author DaPorkchop_
+ */
+public abstract class NettyHandler<E extends PEndpoint> extends ChannelInboundHandlerAdapter {
 }

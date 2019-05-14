@@ -13,63 +13,66 @@
  *
  */
 
-package net.daporkchop.lib.network.endpoint.builder;
+package net.daporkchop.lib.network.tcp;
 
+import io.netty.util.concurrent.Future;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.network.endpoint.PEndpoint;
-import net.daporkchop.lib.network.protocol.Protocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.session.PChannel;
+import net.daporkchop.lib.network.session.Reliability;
+import net.daporkchop.lib.network.transport.NetSession;
 import net.daporkchop.lib.network.transport.TransportEngine;
-
-import java.util.concurrent.Executor;
 
 /**
  * @author DaPorkchop_
  */
-@Getter
-@Accessors(chain = true, fluent = true)
-public abstract class EndpointBuilder<Impl extends EndpointBuilder<Impl, R>, R extends PEndpoint> {
-    /**
-     * The {@link TransportEngine} to use.
-     * <p>
-     * If {@code null}, TCP with simple packet framing will be used.
-     */
-    protected TransportEngine engine;
+@RequiredArgsConstructor
+@Accessors(fluent = true)
+public class DummyTCPChannel implements PChannel {
+    @NonNull
+    protected final WrapperNioSocketChannel session;
+    @Getter
+    protected final int id;
 
-    /**
-     * The default protocol that will be used initially for all connections to and from this endpoint.
-     * <p>
-     * Must be set!
-     */
-    protected Protocol<?, ? extends AbstractUserSession> protocol;
-
-    @SuppressWarnings("unchecked")
-    public Impl engine(@NonNull TransportEngine engine) {
-        this.engine = engine;
-        return (Impl) this;
+    @Override
+    public <S extends AbstractUserSession<S>> S session() {
+        return this.session.userSession();
     }
 
-    @SuppressWarnings("unchecked")
-    public Impl protocol(@NonNull Protocol<?, ? extends AbstractUserSession> protocol) {
-        this.protocol = protocol;
-        return (Impl) this;
+    @Override
+    public NetSession internalSession() {
+        return this.session;
     }
 
-    public R build() {
-        this.validate();
-        return this.doBuild();
+    @Override
+    public PChannel send(@NonNull Object packet, Reliability reliability) {
+        this.session.send(packet, Reliability.RELIABLE_ORDERED, this.id);
+        return this;
     }
 
-    protected void validate() {
-        if (this.protocol == null) {
-            throw new NullPointerException("protocol");
-        } else if (this.engine == null) {
-            throw new NullPointerException("engine");
+    @Override
+    public Future<Void> sendFuture(@NonNull Object packet, Reliability reliability) {
+        return this.session.sendAsync(packet, Reliability.RELIABLE_ORDERED, this.id);
+    }
+
+    @Override
+    public Reliability fallbackReliability() {
+        return Reliability.RELIABLE_ORDERED;
+    }
+
+    @Override
+    public PChannel fallbackReliability(@NonNull Reliability reliability) throws IllegalArgumentException {
+        if (reliability != Reliability.RELIABLE_ORDERED)    {
+            throw new IllegalArgumentException(reliability.name());
         }
+        return this;
     }
 
-    protected abstract R doBuild();
+    @Override
+    public TransportEngine transportEngine() {
+        return this.session.transportEngine();
+    }
 }

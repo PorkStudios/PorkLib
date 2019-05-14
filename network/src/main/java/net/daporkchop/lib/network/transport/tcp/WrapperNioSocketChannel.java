@@ -20,6 +20,8 @@ import io.netty.util.concurrent.Future;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.binary.netty.NettyByteBufOut;
+import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.protocol.Protocol;
@@ -32,6 +34,7 @@ import net.daporkchop.lib.network.transport.TransportEngine;
 import net.daporkchop.lib.network.transport.tcp.endpoint.TCPEndpoint;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
+import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -92,6 +95,16 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements NetSess
             throw new IllegalArgumentException(String.format("Unknown channel id: %d", channelId));
         }
         return this.write(new ChanneledPacket<>(packet, channelId));
+    }
+
+    @Override
+    public DataOut writer() {
+        return new NettyByteBufOut(this.alloc().ioBuffer())    {
+            @Override
+            public void close() throws IOException {
+                WrapperNioSocketChannel.this.write(new ChanneledPacket<>(this.buf, 0).encoded(true));
+            }
+        };
     }
 
     @Override

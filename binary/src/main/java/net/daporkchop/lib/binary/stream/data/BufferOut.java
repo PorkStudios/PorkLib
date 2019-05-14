@@ -42,33 +42,39 @@ public class BufferOut extends DataOut {
     }
 
     @Override
-    public void writeByte(byte b) throws IOException {
+    public DataOut writeByte(byte b) throws IOException {
         this.buffer.put(b);
+        return this;
     }
 
     @Override
-    public void writeShort(short s) throws IOException {
+    public DataOut writeShort(short s) throws IOException {
         this.buffer.putShort(s);
+        return this;
     }
 
     @Override
-    public void writeInt(int i) throws IOException {
+    public DataOut writeInt(int i) throws IOException {
         this.buffer.putInt(i);
+        return this;
     }
 
     @Override
-    public void writeLong(long l) throws IOException {
+    public DataOut writeLong(long l) throws IOException {
         this.buffer.putLong(l);
+        return this;
     }
 
     @Override
-    public void writeFloat(float f) throws IOException {
+    public DataOut writeFloat(float f) throws IOException {
         this.buffer.putFloat(f);
+        return this;
     }
 
     @Override
-    public void writeDouble(double d) throws IOException {
+    public DataOut writeDouble(double d) throws IOException {
         this.buffer.putDouble(d);
+        return this;
     }
 
     @Override

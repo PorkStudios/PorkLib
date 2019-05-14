@@ -20,7 +20,6 @@ import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.binary.stream.data.BufferIn;
 import net.daporkchop.lib.binary.stream.data.NonClosingStreamIn;
 import net.daporkchop.lib.binary.stream.data.StreamIn;
-import net.daporkchop.lib.binary.util.exception.EndOfStreamException;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -137,12 +136,31 @@ public abstract class DataIn extends InputStream {
     }
 
     /**
+     * Read a byte (8-bit) value
+     *
+     * @return a byte
+     */
+    public int readUByte() throws IOException {
+        return this.read() & 0xFF;
+    }
+
+    /**
      * Read a short (16-bit) value
      *
      * @return a short
      */
     public short readShort() throws IOException {
         return (short) (((this.read() & 0xFF) << 8)
+                | (this.read() & 0xFF));
+    }
+
+    /**
+     * Read a short (16-bit) value
+     *
+     * @return a short
+     */
+    public int readUShort() throws IOException {
+        return (((this.read() & 0xFF) << 8)
                 | (this.read() & 0xFF));
     }
 
@@ -167,6 +185,18 @@ public abstract class DataIn extends InputStream {
                 | ((this.read() & 0xFF) << 16)
                 | ((this.read() & 0xFF) << 8)
                 | (this.read() & 0xFF);
+    }
+
+    /**
+     * Read an int (32-bit) value
+     *
+     * @return an int
+     */
+    public long readUInt() throws IOException {
+        return (((long) this.read() & 0xFFL) << 24L)
+                | (((long) this.read() & 0xFFL) << 16L)
+                | (((long) this.read() & 0xFFL) << 8L)
+                | ((long) this.read() & 0xFFL);
     }
 
     /**
@@ -209,7 +239,7 @@ public abstract class DataIn extends InputStream {
      * @return a string
      */
     public String readUTF() throws IOException {
-        return this.readBoolean() ? new String(this.readBytesSimple(), UTF8.utf8) : null;
+        return new String(this.readByteArray(), UTF8.utf8);
     }
 
     /**
@@ -217,12 +247,9 @@ public abstract class DataIn extends InputStream {
      *
      * @return a byte array
      */
-    public byte[] readBytesSimple() throws IOException {
-        int len = this.readVarInt(true);
-        byte[] b = new byte[len];
-        for (int i = 0; i < len; i++) {
-            b[i] = (byte) this.read();
-        }
+    public byte[] readByteArray() throws IOException {
+        byte[] b = new byte[this.readVarInt()];
+        this.readFully(b);
         return b;
     }
 
@@ -242,81 +269,51 @@ public abstract class DataIn extends InputStream {
     }
 
     /**
-     * Reads a variable-length int, with optimization for negative numbers
+     * Reads a Mojang-style VarInt.
+     * <p>
+     * As described at https://wiki.vg/index.php?title=Protocol&oldid=14204#VarInt_and_VarLong
      *
-     * @return the number that was read
-     * @throws EndOfStreamException if end of stream is reached before the number could be completely read
-     * @see #readVarInt(boolean)
+     * @return the read value
      */
     public int readVarInt() throws IOException {
-        return this.readVarInt(false);
-    }
-
-    /**
-     * Reads a variable-length int.
-     * <p>
-     * This reads the number in a form that is as compact as possible, using only the minimum required number of bytes to store
-     * the value. However, very large numbers can take up to 5 bytes due to the headers required.
-     *
-     * @param optimizePositive if {@code true}, small negative numbers will be optimized at the expense of positives being one
-     *                         bit longer. if {@code false}, no optimization will be applied, meaning small positives will use
-     *                         a low number of bytes and all negatives will be 5 bytes long.
-     * @return the number that was read
-     * @throws EndOfStreamException if end of stream is reached before the number could be completely read
-     */
-    public int readVarInt(boolean optimizePositive) throws IOException {
-        int v = 0;
-        int i;
-        int o = 0;
+        int numRead = 0;
+        int result = 0;
+        byte read;
         do {
-            i = this.read();
-            if (i == -1) {
-                throw new EndOfStreamException();
-            } else {
-                v |= (i & 0x7F) << o;
-                o += 7;
+            read = this.readByte();
+            int value = (read & 0b01111111);
+            result |= (value << (7 * numRead));
+
+            numRead++;
+            if (numRead > 5) {
+                throw new RuntimeException("VarInt is too big");
             }
-        } while ((i & 0x80) != 0 && o < 32);
-        return optimizePositive ? v : ((v >>> 1) ^ -(v & 1));
+        } while ((read & 0b10000000) != 0);
+        return result;
     }
 
     /**
-     * Reads a variable-length long, with optimization for negative numbers
+     * Reads a Mojang-style VarLong.
+     * <p>
+     * As described at https://wiki.vg/index.php?title=Protocol&oldid=14204#VarInt_and_VarLong
      *
-     * @return the number that was read
-     * @throws EndOfStreamException if end of stream is reached before the number could be completely read
-     * @see #readVarLong(boolean)
+     * @return the read value
      */
     public long readVarLong() throws IOException {
-        return this.readVarLong(false);
-    }
-
-    /**
-     * Reads a variable-length long.
-     * <p>
-     * This reads the number in a form that is as compact as possible, using only the minimum required number of bytes to store
-     * the value. However, very large numbers can take up to 9 bytes due to the headers required.
-     *
-     * @param optimizePositive if {@code true}, small negative numbers will be optimized at the expense of positives being one
-     *                         bit longer. if {@code false}, no optimization will be applied, meaning small positives will use
-     *                         a low number of bytes and all negatives will be 9 bytes long.
-     * @return the number that was read
-     * @throws EndOfStreamException if end of stream is reached before the number could be completely read
-     */
-    public long readVarLong(boolean optimizePositive) throws IOException {
-        long v = 0L;
-        int i;
-        int o = 0;
+        int numRead = 0;
+        long result = 0;
+        byte read;
         do {
-            i = this.read();
-            if (i == -1) {
-                throw new EndOfStreamException();
-            } else {
-                v |= (i & 0x7FL) << o;
-                o += 7;
+            read = this.readByte();
+            int value = (read & 0b01111111);
+            result |= (value << (7 * numRead));
+
+            numRead++;
+            if (numRead > 10) {
+                throw new RuntimeException("VarLong is too big");
             }
-        } while ((i & 0x80) != 0 && o < 64);
-        return optimizePositive ? v : ((v >>> 1L) ^ -(v & 1L));
+        } while ((read & 0b10000000) != 0);
+        return result;
     }
 
     /**
@@ -327,10 +324,10 @@ public abstract class DataIn extends InputStream {
      *
      * @param b the byte array to read into
      * @return the number of bytes read
-     * @throws EndOfStreamException if end of stream is reached before the required number required bytes are read
+     * @throws IOException if end of stream is reached before the required number required bytes are read
      */
-    public int readFully(@NonNull byte[] b) throws IOException {
-        return b.length == 0 ? 0 : this.readFully(b, 0, b.length);
+    public byte[] readFully(@NonNull byte[] b) throws IOException {
+        return this.readFully(b, 0, b.length);
     }
 
     /**
@@ -340,13 +337,17 @@ public abstract class DataIn extends InputStream {
      * @param off the offset in the array to write data to
      * @param len the number of bytes to read
      * @return the number of bytes read
-     * @throws EndOfStreamException if end of stream is reached before the required number required bytes are read
+     * @throws IOException if end of stream is reached before the required number required bytes are read
      */
-    public int readFully(@NonNull byte[] b, int off, int len) throws IOException {
-        if (len >= 0 && StreamUtil.read(this, b, off, len) != len) {
-            throw new EndOfStreamException();
+    public byte[] readFully(@NonNull byte[] b, int off, int len) throws IOException {
+        int i = 0;
+        while (len >= 0 && (i = this.read(b, off + i, len)) != -1) {
+            len -= i;
         }
-        return len;
+        if (i == -1) {
+            throw new IOException("Reached end of stream!");
+        }
+        return b;
     }
 
     @Override

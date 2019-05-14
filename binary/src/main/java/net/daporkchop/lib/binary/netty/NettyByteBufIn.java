@@ -34,7 +34,7 @@ import java.io.IOException;
 @Accessors(fluent = true)
 public class NettyByteBufIn extends DataIn {
     @NonNull
-    private final ByteBuf buf;
+    protected final ByteBuf buf;
 
     static {
         NettyUtil.ensureNettyPresent();
@@ -96,9 +96,9 @@ public class NettyByteBufIn extends DataIn {
     }
 
     @Override
-    public int readFully(@NonNull byte[] b, int off, int len) throws IOException {
+    public byte[] readFully(@NonNull byte[] b, int off, int len) throws IOException {
         this.buf.readBytes(b, off, len);
-        return len;
+        return b;
     }
 
     @Override

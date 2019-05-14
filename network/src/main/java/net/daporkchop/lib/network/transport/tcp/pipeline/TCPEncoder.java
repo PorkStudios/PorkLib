@@ -43,9 +43,12 @@ public class TCPEncoder extends MessageToMessageEncoder<ChanneledPacket> {
     @Override
     @SuppressWarnings("unchecked")
     protected void encode(ChannelHandlerContext ctx, ChanneledPacket msg, List<Object> out) throws Exception {
-        ByteBuf buf = ctx.alloc().ioBuffer();
-        ((Protocol<Object, ? extends AbstractUserSession>) this.session.protocol())
-                .encoder().encode(NettyUtil.wrapOut(buf), msg.packet(), session.userSession(), msg.channel());
-        out.add(msg.packet(buf));
+        if (!msg.encoded()) {
+            ByteBuf buf = ctx.alloc().ioBuffer();
+            ((Protocol<Object, ? extends AbstractUserSession>) this.session.protocol())
+                    .encoder().encode(NettyUtil.wrapOut(buf), msg.packet(), session.userSession(), msg.channel());
+            msg.packet(buf).encoded(true);
+        }
+        out.add(msg);
     }
 }

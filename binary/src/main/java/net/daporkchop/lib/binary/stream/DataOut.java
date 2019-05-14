@@ -128,6 +128,40 @@ public abstract class DataOut extends OutputStream {
             @Override
             public void write(int b) throws IOException {
             }
+
+            @Override
+            public DataOut writeUTF(String s) throws IOException {
+                return this;
+            }
+
+            @Override
+            public DataOut writeByteArray(byte[] b) throws IOException {
+                return this;
+            }
+
+            @Override
+            public DataOut writeVarInt(int value) throws IOException {
+                return this;
+            }
+
+            @Override
+            public DataOut writeVarLong(long value) throws IOException {
+                return this;
+            }
+
+            @Override
+            public DataOut writeBytes(byte[] b) throws IOException {
+                return this;
+            }
+
+            @Override
+            public DataOut writeBytes(byte[] b, int off, int len) throws IOException {
+                return this;
+            }
+
+            @Override
+            public void write(byte[] b, int off, int len) throws IOException {
+            }
         };
     }
 
@@ -136,8 +170,9 @@ public abstract class DataOut extends OutputStream {
      *
      * @param b the boolean to write
      */
-    public void writeBoolean(boolean b) throws IOException {
+    public DataOut writeBoolean(boolean b) throws IOException {
         this.write(b ? 1 : 0);
+        return this;
     }
 
     /**
@@ -145,8 +180,19 @@ public abstract class DataOut extends OutputStream {
      *
      * @param b the byte to write
      */
-    public void writeByte(byte b) throws IOException {
+    public DataOut writeByte(byte b) throws IOException {
         this.write(b & 0xFF);
+        return this;
+    }
+
+    /**
+     * Writes a byte (8-bit) value
+     *
+     * @param b the byte to write
+     */
+    public DataOut writeUByte(int b) throws IOException {
+        this.write(b & 0xFF);
+        return this;
     }
 
     /**
@@ -154,9 +200,19 @@ public abstract class DataOut extends OutputStream {
      *
      * @param s the short to write
      */
-    public void writeShort(short s) throws IOException {
+    public DataOut writeShort(short s) throws IOException {
         this.write((s >>> 8) & 0xFF);
         this.write(s & 0xFF);
+        return this;
+    }
+
+    /**
+     * Writes a short (16-bit) value
+     *
+     * @param s the short to write
+     */
+    public DataOut writeUShort(int s) throws IOException {
+        return this.writeShort((short) (s & 0xFFFF));
     }
 
     /**
@@ -164,10 +220,11 @@ public abstract class DataOut extends OutputStream {
      *
      * @param m the medium to write
      */
-    public void writeMedium(int m) throws IOException {
+    public DataOut writeMedium(int m) throws IOException {
         this.write((m >>> 16) & 0xFF);
         this.write((m >>> 8) & 0xFF);
         this.write(m & 0xFF);
+        return this;
     }
 
     /**
@@ -175,11 +232,21 @@ public abstract class DataOut extends OutputStream {
      *
      * @param i the int to write
      */
-    public void writeInt(int i) throws IOException {
+    public DataOut writeInt(int i) throws IOException {
         this.write((i >>> 24) & 0xFF);
         this.write((i >>> 16) & 0xFF);
         this.write((i >>> 8) & 0xFF);
         this.write(i & 0xFF);
+        return this;
+    }
+
+    /**
+     * Writes an int (32-bit) value
+     *
+     * @param i the int to write
+     */
+    public DataOut writeUInt(long i) throws IOException {
+        return this.writeInt((int) (i & 0xFFFFFFFFL));
     }
 
     /**
@@ -187,7 +254,7 @@ public abstract class DataOut extends OutputStream {
      *
      * @param l the long to write
      */
-    public void writeLong(long l) throws IOException {
+    public DataOut writeLong(long l) throws IOException {
         this.write((int) (l >>> 56) & 0xFF);
         this.write((int) (l >>> 48) & 0xFF);
         this.write((int) (l >>> 40) & 0xFF);
@@ -196,6 +263,7 @@ public abstract class DataOut extends OutputStream {
         this.write((int) (l >>> 16) & 0xFF);
         this.write((int) (l >>> 8) & 0xFF);
         this.write((int) l & 0xFF);
+        return this;
     }
 
     /**
@@ -203,8 +271,8 @@ public abstract class DataOut extends OutputStream {
      *
      * @param f the float to write
      */
-    public void writeFloat(float f) throws IOException {
-        this.writeInt(Float.floatToIntBits(f));
+    public DataOut writeFloat(float f) throws IOException {
+        return this.writeInt(Float.floatToIntBits(f));
     }
 
     /**
@@ -212,8 +280,8 @@ public abstract class DataOut extends OutputStream {
      *
      * @param d the double to write
      */
-    public void writeDouble(double d) throws IOException {
-        this.writeLong(Double.doubleToLongBits(d));
+    public DataOut writeDouble(double d) throws IOException {
+        return this.writeLong(Double.doubleToLongBits(d));
     }
 
     /**
@@ -221,13 +289,8 @@ public abstract class DataOut extends OutputStream {
      *
      * @param s the string to write
      */
-    public void writeUTF(String s) throws IOException {
-        if (s == null) {
-            this.writeBoolean(false);
-        } else {
-            this.writeBoolean(true);
-            this.writeBytesSimple(s.getBytes(UTF8.utf8));
-        }
+    public DataOut writeUTF(@NonNull String s) throws IOException {
+        return this.writeByteArray(s.getBytes(UTF8.utf8));
     }
 
     /**
@@ -235,9 +298,8 @@ public abstract class DataOut extends OutputStream {
      *
      * @param b the bytes to write
      */
-    public void writeBytesSimple(@NonNull byte[] b) throws IOException {
-        this.writeVarInt(b.length, true);
-        this.write(b);
+    public DataOut writeByteArray(@NonNull byte[] b) throws IOException {
+        return this.writeVarInt(b.length).writeBytes(b);
     }
 
     /**
@@ -246,69 +308,60 @@ public abstract class DataOut extends OutputStream {
      * @param e   the value to write
      * @param <E> the type of the enum
      */
-    public <E extends Enum<E>> void writeEnum(E e) throws IOException {
-        if (e == null) {
-            this.writeBoolean(false);
-        } else {
-            this.writeBoolean(true);
-            this.writeUTF(e.name());
-        }
+    public <E extends Enum<E>> DataOut writeEnum(@NonNull E e) throws IOException {
+        return this.writeUTF(e.name());
     }
 
     /**
-     * @see DataIn#readVarInt()
+     * Writes a Mojang-style VarInt.
+     * <p>
+     * As described at https://wiki.vg/index.php?title=Protocol&oldid=14204#VarInt_and_VarLong
+     *
+     * @param value the value to write
      */
-    public void writeVarInt(int i) throws IOException {
-        this.writeVarInt(i, false);
+    public DataOut writeVarInt(int value) throws IOException {
+        do {
+            byte temp = (byte) (value & 0b01111111);
+            value >>>= 7;
+            if (value != 0) {
+                temp |= 0b10000000;
+            }
+            this.write(temp);
+        } while (value != 0);
+        return this;
     }
 
     /**
-     * @see DataIn#readVarInt(boolean)
+     * Writes a Mojang-style VarLong.
+     * <p>
+     * As described at https://wiki.vg/index.php?title=Protocol&oldid=14204#VarInt_and_VarLong
+     *
+     * @param value the value to write
      */
-    public void writeVarInt(int i, boolean optimizePositive) throws IOException {
-        if (!optimizePositive) {
-            i = (i << 1) ^ (i >> 31);
-        }
-        if (i == 0) {
-            this.write(0);
-            return;
-        }
-        int next = 0;
-        while (i != 0) {
-            next = i & 0x7F;
-            i >>>= 7;
-            this.write(next | (i == 0 ? 0 : 0x80));
-        }
+    public DataOut writeVarLong(long value) throws IOException {
+        do {
+            byte temp = (byte) (value & 0b01111111);
+            value >>>= 7L;
+            if (value != 0) {
+                temp |= 0b10000000;
+            }
+            this.write(temp);
+        } while (value != 0L);
+        return this;
     }
 
-    /**
-     * @see DataIn#readVarLong()
-     */
-    public void writeVarLong(long l) throws IOException {
-        this.writeVarLong(l, false);
+    public DataOut writeBytes(@NonNull byte[] b) throws IOException {
+        this.write(b);
+        return this;
     }
 
-    /**
-     * @see DataIn#readVarLong(boolean)
-     */
-    public void writeVarLong(long l, boolean optimizePositive) throws IOException {
-        if (!optimizePositive) {
-            l = (l << 1L) ^ (l >> 63L);
-        }
-        if (l == 0L) {
-            this.write(0);
-            return;
-        }
-        long next = 0L;
-        while (l != 0) {
-            next = l & 0x7FL;
-            l >>>= 7L;
-            this.write((int) (next | (l == 0L ? 0L : 0x80L)));
-        }
+    public DataOut writeBytes(@NonNull byte[] b, int off, int len) throws IOException {
+        this.write(b, off, len);
+        return this;
     }
 
     @Override
-    public void write(byte[] b, int off, int len) throws IOException {
+    public void write(@NonNull byte[] b, int off, int len) throws IOException {
         for (int i = 0; i < len; i++) {
             this.write(b[i + off] & 0xFF);
         }

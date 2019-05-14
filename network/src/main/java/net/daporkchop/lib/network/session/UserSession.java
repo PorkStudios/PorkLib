@@ -17,6 +17,7 @@ package net.daporkchop.lib.network.session;
 
 import io.netty.util.concurrent.Future;
 import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.transport.NetSession;
 import net.daporkchop.lib.network.transport.TransportEngine;
@@ -60,6 +61,11 @@ public interface UserSession<Impl extends UserSession<Impl>> extends PSession<Im
     @Override
     default Future<Void> sendAsync(@NonNull Object packet, Reliability reliability, int channelId) {
         return this.internalSession().sendAsync(packet, reliability, channelId);
+    }
+
+    @Override
+    default DataOut writer() {
+        return this.internalSession().writer();
     }
 
     @Override

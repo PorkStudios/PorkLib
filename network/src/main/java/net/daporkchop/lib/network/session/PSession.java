@@ -17,8 +17,12 @@ package net.daporkchop.lib.network.session;
 
 import io.netty.util.concurrent.Future;
 import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.util.CloseableFuture;
+
+import java.io.IOException;
 
 /**
  * A session represents a single connection between two endpoints.
@@ -145,6 +149,35 @@ public interface PSession<Impl extends PSession<Impl>> extends CloseableFuture, 
      */
     default Future<Void> sendAsync(@NonNull Object packet, int channelId) {
         return this.sendAsync(packet, this.fallbackReliability(), channelId);
+    }
+
+    /**
+     * Gets a {@link DataOut} which may be used to write raw binary data to the session.
+     * <p>
+     * The data written to the output stream returned by this method will be buffered until the stream is
+     * closed by the user.
+     * <p>
+     * Note that data sent using this method will bypass the user protocol for encoding and be passed
+     * directly to the formatting pipeline (encryption, etc.) for sending.
+     *
+     * @return a {@link DataOut} for writing raw binary to the session
+     */
+    DataOut writer();
+
+    /**
+     * Writes raw binary data to the session.
+     *
+     * @param callback a function that will actually write data
+     * @return this session
+     */
+    @SuppressWarnings("unchecked")
+    default Impl write(@NonNull IOConsumer<DataOut> callback) {
+        try (DataOut out = this.writer()) {
+            callback.acceptThrowing(out);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return (Impl) this;
     }
 
     /**

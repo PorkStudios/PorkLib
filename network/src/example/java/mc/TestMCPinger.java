@@ -15,7 +15,6 @@
 
 package mc;
 
-import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
 import net.daporkchop.lib.logging.LogAmount;
 import net.daporkchop.lib.logging.Logging;
@@ -46,18 +45,20 @@ public class TestMCPinger implements Logging {
                 .build();
 
         logger.info("Pinging server...");
-        client.send(PooledByteBufAllocator.DEFAULT.ioBuffer()
-                .writeByte(0x00) //packet id
-                .writeByte(0x00) //protocol version
-                .writeByte(0x09) //server address length
-                .writeBytes("localhost".getBytes()) //server address
-                .writeShort(25565) //port
-                .writeByte(0x01) //next state
-        ).send(PooledByteBufAllocator.DEFAULT.ioBuffer()
-                .writeByte(0x00) //packet id
-        ).send(PooledByteBufAllocator.DEFAULT.ioBuffer()
-                .writeByte(0x01) //packet id
-                .writeLong(startTime = System.currentTimeMillis()) //value
+        client.write(out -> out
+                //handshake
+                .writeVarInt(0x00) //packet id
+                .writeVarInt(-1) //protocol version
+                .writeUTF("localhost")
+                .writeUShort(25565) //port
+                .writeVarInt(0x01) //next state
+        ).write(out -> out
+                //request
+                .writeVarInt(0x00) //packet id
+        ).write(out -> out
+                //ping
+                .writeVarInt(0x01)
+                .writeLong(startTime = System.currentTimeMillis())
         ).flushBuffer();
 
         endTime.thenAccept(ping -> {

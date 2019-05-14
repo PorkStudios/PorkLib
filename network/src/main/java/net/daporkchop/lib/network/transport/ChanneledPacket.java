@@ -27,11 +27,13 @@ import net.daporkchop.lib.network.session.Reliability;
  */
 @RequiredArgsConstructor
 @Getter
-@Accessors(fluent = true)
+@Accessors(fluent = true, chain = true)
 public class ChanneledPacket<P> {
     @NonNull
     protected P packet;
     protected final int channel;
+    @Setter
+    protected boolean encoded = false;
 
     @SuppressWarnings("unchecked")
     public <NEW_P> ChanneledPacket<NEW_P> packet(@NonNull NEW_P packet)    {

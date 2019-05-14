@@ -34,7 +34,7 @@ import java.io.IOException;
 @Accessors(fluent = true)
 public class NettyByteBufOut extends DataOut {
     @NonNull
-    private final ByteBuf buf;
+    protected final ByteBuf buf;
 
     static {
         NettyUtil.ensureNettyPresent();
@@ -50,43 +50,51 @@ public class NettyByteBufOut extends DataOut {
     }
 
     @Override
-    public void writeBoolean(boolean b) throws IOException {
+    public DataOut writeBoolean(boolean b) throws IOException {
         this.buf.writeBoolean(b);
+        return this;
     }
 
     @Override
-    public void writeByte(byte b) throws IOException {
+    public DataOut writeByte(byte b) throws IOException {
         this.buf.writeByte(b & 0xFF);
+        return this;
     }
 
     @Override
-    public void writeShort(short s) throws IOException {
+    public DataOut writeShort(short s) throws IOException {
         this.buf.writeShort(s & 0xFFFF);
+        return this;
     }
 
     @Override
-    public void writeMedium(int m) throws IOException {
+    public DataOut writeMedium(int m) throws IOException {
         this.buf.writeMedium(m & 0xFFFFFF);
+        return this;
     }
 
     @Override
-    public void writeInt(int i) throws IOException {
+    public DataOut writeInt(int i) throws IOException {
         this.buf.writeInt(i);
+        return this;
     }
 
     @Override
-    public void writeLong(long l) throws IOException {
+    public DataOut writeLong(long l) throws IOException {
         this.buf.writeLong(l);
+        return this;
     }
 
     @Override
-    public void writeFloat(float f) throws IOException {
+    public DataOut writeFloat(float f) throws IOException {
         this.buf.writeFloat(f);
+        return this;
     }
 
     @Override
-    public void writeDouble(double d) throws IOException {
+    public DataOut writeDouble(double d) throws IOException {
         this.buf.writeDouble(d);
+        return this;
     }
 
     @Override

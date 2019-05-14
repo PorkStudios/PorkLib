@@ -38,11 +38,11 @@ public class ByteArraySerializer implements Serializer<byte[]> {
 
     @Override
     public void write(@NonNull byte[] val, @NonNull DataOut out) throws IOException {
-        out.writeBytesSimple(val);
+        out.writeByteArray(val);
     }
 
     @Override
     public byte[] read(@NonNull DataIn in) throws IOException {
-        return in.readBytesSimple();
+        return in.readByteArray();
     }
 }

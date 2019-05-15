@@ -16,6 +16,7 @@
 package net.daporkchop.lib.network.tcp;
 
 import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -45,8 +46,6 @@ import java.util.Map;
 @Getter
 @Accessors(fluent = true)
 public class TCPEngine extends NettyEngine {
-    public static final ChannelOption<Boolean> USE_SSL = ChannelOption.valueOf("PORKLIB_TCP_USE_SSL");
-
     protected static final Collection<Reliability> RELIABILITIES = Collections.singleton(Reliability.RELIABLE_ORDERED);
 
     @SuppressWarnings("unchecked")
@@ -66,17 +65,25 @@ public class TCPEngine extends NettyEngine {
     protected final Framer framer;
 
     protected TCPEngine(@NonNull Builder<?> builder) {
-        this(builder.clientOptions(), builder.serverOptions(), builder.framer());
+        this(
+                builder.clientOptions(),
+                builder.serverOptions(),
+                builder.group(),
+                builder.autoShutdownGroup(),
+                builder.framer()
+        );
     }
 
     protected TCPEngine(@NonNull Framer framer) {
         this.framer = framer;
     }
 
-    protected TCPEngine(@NonNull Map<ChannelOption, Object> clientOptions, @NonNull Map<ChannelOption, Object> serverOptions, @NonNull Framer framer) {
+    protected TCPEngine(@NonNull Map<ChannelOption, Object> clientOptions, @NonNull Map<ChannelOption, Object> serverOptions, EventLoopGroup group, boolean autoShutdownGroup, @NonNull Framer framer) {
         super(
                 Collections.unmodifiableMap(clientOptions),
-                Collections.unmodifiableMap(serverOptions)
+                Collections.unmodifiableMap(serverOptions),
+                group,
+                group == null || autoShutdownGroup
         );
 
         this.framer = framer;
@@ -131,16 +138,17 @@ public class TCPEngine extends NettyEngine {
             return (Impl) this;
         }
 
-        @SuppressWarnings("unchecked")
-        public Impl useSSL() {
-            return this.option(TCPEngine.USE_SSL, true);
-        }
-
         @Override
-        public TCPEngine build() {
+        protected void validate() {
+            super.validate();
+
             if (this.framer == null) {
                 this.framer = new Framer.DefaultFramer();
             }
+        }
+
+        @Override
+        protected TCPEngine doBuild() {
             return new TCPEngine(this);
         }
     }

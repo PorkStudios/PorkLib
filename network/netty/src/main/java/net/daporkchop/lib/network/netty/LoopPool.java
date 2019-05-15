@@ -25,12 +25,20 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
+ * A very simple pool for instances of {@link EventLoopGroup}. Automatically reference counts them, shutting them down
+ * if required.
+ *
  * @author DaPorkchop_
  */
 public class LoopPool {
     protected static EventLoopGroup DEFAULT_GROUP;
     protected static final Map<EventLoopGroup, AtomicInteger> GROUP_CACHE = new IdentityHashMap<>();
 
+    /**
+     * Provides a default instance of an {@link EventLoopGroup}. For most applications, this should suffice. This
+     * default group will create as many threads as there are CPU cores, and will be automatically shut down when
+     * no longer required by any endpoints.
+     */
     public static EventLoopGroup defaultGroup() {
         synchronized (GROUP_CACHE) {
             if (DEFAULT_GROUP == null) {
@@ -49,7 +57,7 @@ public class LoopPool {
 
     public static void returnGroup(@NonNull EventLoopGroup group) {
         synchronized (GROUP_CACHE) {
-            if (GROUP_CACHE.get(group).decrementAndGet() == 0) {
+            if (GROUP_CACHE.containsKey(group) && GROUP_CACHE.get(group).decrementAndGet() <= 0) {
                 GROUP_CACHE.remove(group);
                 group.shutdownGracefully();
                 if (group == DEFAULT_GROUP) {

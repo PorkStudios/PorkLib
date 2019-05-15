@@ -34,25 +34,14 @@ public class TCPClient extends TCPEndpoint<PClient, WrapperNioSocketChannel> imp
         super(builder);
 
         try {
-            Bootstrap bootstrap = new Bootstrap();
-            EventLoopGroup group;
-
-            //TODO: custom event loop groups and such
-            /*if ((group = builder.group()) == null) {
-                group = new NioEventLoopGroup(0, builder.executor());
-            }
-            if (builder.shutdownGroupOnClose()) {
-                this.group = group;
-            }*/
-            group = LoopPool.defaultGroup();
-
-            bootstrap.group(group)
+            Bootstrap bootstrap = new Bootstrap()
+                    .group(this.group)
                     .channelFactory(() -> new WrapperNioSocketChannel(this))
                     .handler(new TCPChannelInitializer<>(this));
 
             this.transportEngine.clientOptions().forEach(bootstrap::option);
 
-            this.channel = (WrapperNioSocketChannel) bootstrap.connect(builder.address()).sync().channel();
+            this.channel = (WrapperNioSocketChannel) bootstrap.connect(builder.address()).syncUninterruptibly().channel();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

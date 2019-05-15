@@ -13,30 +13,69 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.endpoint;
+package net.daporkchop.lib.network.netty;
 
 import io.netty.channel.Channel;
+import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.Future;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.endpoint.builder.EndpointBuilder;
-import net.daporkchop.lib.network.netty.LoopPool;
-import net.daporkchop.lib.network.netty.NettyEndpoint;
-import net.daporkchop.lib.network.tcp.TCPEngine;
+import net.daporkchop.lib.network.protocol.Protocol;
+import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
  * @author DaPorkchop_
  */
-public abstract class TCPEndpoint<Impl extends PEndpoint<Impl>, C extends Channel> extends NettyEndpoint<Impl, C, TCPEngine> {
-    protected TCPEndpoint(@NonNull EndpointBuilder builder)    {
-        super(builder);
+@Getter
+@Accessors(fluent = true)
+public abstract class NettyEndpoint<Impl extends PEndpoint<Impl>, C extends Channel, E extends NettyEngine> implements PEndpoint<Impl> {
+    protected final E transportEngine;
+    protected final Protocol<?, ? extends AbstractUserSession> protocol;
+    protected final EventLoopGroup group;
+
+    /**
+     * The Netty channel instance that backs this endpoint.
+     * <p>
+     * Must be set before implementation constructor returns!
+     */
+    protected C channel;
+
+    @SuppressWarnings("unchecked")
+    protected NettyEndpoint(@NonNull EndpointBuilder builder) {
+        this.transportEngine = (E) builder.engine();
+        this.protocol = builder.protocol();
+
+        EventLoopGroup group;
+        if ((group = this.transportEngine.group()) == null) {
+            group = LoopPool.defaultGroup();
+        } else if (this.transportEngine.autoShutdownGroup()) {
+            LoopPool.useGroup(group);
+        }
+        this.group = group;
     }
 
     @Override
-    public TCPEngine transportEngine() {
-        return super.transportEngine();
+    public void closeNow() {
+        this.channel.close().syncUninterruptibly();
+        if (this.group != null) {
+            this.group.shutdownGracefully().syncUninterruptibly();
+        }
+    }
+
+    @Override
+    public boolean isClosed() {
+        return this.channel.isOpen();
+    }
+
+    @Override
+    public Future<Void> closeAsync() {
+        return this.channel.close().addListener(v -> {
+            if (this.transportEngine.autoShutdownGroup()) {
+                LoopPool.returnGroup(this.group);
+            }
+        });
     }
 }

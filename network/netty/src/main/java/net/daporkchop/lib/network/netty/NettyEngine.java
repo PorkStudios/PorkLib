@@ -16,6 +16,7 @@
 package net.daporkchop.lib.network.netty;
 
 import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -38,23 +39,43 @@ public abstract class NettyEngine implements TransportEngine {
     @NonNull
     protected final Map<ChannelOption, Object> serverOptions;
 
-    public NettyEngine()    {
-        this(Collections.emptyMap(), Collections.emptyMap());
+    protected final EventLoopGroup group;
+    protected final boolean autoShutdownGroup;
+
+    public NettyEngine() {
+        this(Collections.emptyMap(), Collections.emptyMap(), null, true);
     }
 
     @Getter
     @Accessors(fluent = true)
-    public static abstract class Builder<Impl extends Builder<Impl, R>, R extends NettyEngine>   {
+    public static abstract class Builder<Impl extends Builder<Impl, R>, R extends NettyEngine> {
         protected final Map<ChannelOption, Object> clientOptions = new HashMap<>();
         protected final Map<ChannelOption, Object> serverOptions = new HashMap<>();
 
-        public <T> Impl option(@NonNull ChannelOption<T> option, T value)   {
+        /**
+         * The event loop group to use.
+         * <p>
+         * If {@code null}, a default one will be used.
+         */
+        protected EventLoopGroup group;
+
+        /**
+         * Whether or not to automatically shut down the {@link #group} when endpoints are closed.
+         * <p>
+         * Groups **are** reference counted, but if you want to share one group across multiple engines you may want
+         * to retain manual control over the state of the group.
+         * <p>
+         * If {@link #group} is {@code null}, this value is forcibly set to {@code true}.
+         */
+        protected boolean autoShutdownGroup = true;
+
+        public <T> Impl option(@NonNull ChannelOption<T> option, T value) {
             return this.clientOption(option, value).serverOption(option, value);
         }
 
         @SuppressWarnings("unchecked")
-        public <T> Impl clientOption(@NonNull ChannelOption<T> option, T value)   {
-            if (value == null)  {
+        public <T> Impl clientOption(@NonNull ChannelOption<T> option, T value) {
+            if (value == null) {
                 this.clientOptions.remove(option);
             } else {
                 this.clientOptions.put(option, value);
@@ -63,8 +84,8 @@ public abstract class NettyEngine implements TransportEngine {
         }
 
         @SuppressWarnings("unchecked")
-        public <T> Impl serverOption(@NonNull ChannelOption<T> option, T value)   {
-            if (value == null)  {
+        public <T> Impl serverOption(@NonNull ChannelOption<T> option, T value) {
+            if (value == null) {
                 this.serverOptions.remove(option);
             } else {
                 this.serverOptions.put(option, value);
@@ -72,6 +93,29 @@ public abstract class NettyEngine implements TransportEngine {
             return (Impl) this;
         }
 
-        public abstract R build();
+        @SuppressWarnings("unchecked")
+        public Impl group(EventLoopGroup group) {
+            this.group = group;
+            return (Impl) this;
+        }
+
+        @SuppressWarnings("unchecked")
+        public Impl autoShutdownGroup(boolean autoShutdownGroup)    {
+            this.autoShutdownGroup = autoShutdownGroup;
+            return (Impl) this;
+        }
+
+        public final R build()    {
+            this.validate();
+            return this.doBuild();
+        }
+
+        protected void validate()   {
+            if (this.group == null) {
+                this.autoShutdownGroup = true;
+            }
+        }
+
+        protected abstract R doBuild();
     }
 }

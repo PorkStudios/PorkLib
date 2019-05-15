@@ -44,7 +44,7 @@ public abstract class EndpointBuilder<Impl extends EndpointBuilder<Impl, R, S>, 
      * <p>
      * Must be set!
      */
-    protected Protocol<?, S> protocol;
+    protected Protocol<S> protocol;
 
     @SuppressWarnings("unchecked")
     public Impl engine(@NonNull TransportEngine engine) {
@@ -52,7 +52,7 @@ public abstract class EndpointBuilder<Impl extends EndpointBuilder<Impl, R, S>, 
         return (Impl) this;
     }
 
-    public abstract <NEW_S extends AbstractUserSession<NEW_S>> EndpointBuilder protocol(@NonNull Protocol<?, NEW_S> protocol);
+    public abstract <NEW_S extends AbstractUserSession<NEW_S>> EndpointBuilder protocol(@NonNull Protocol<NEW_S> protocol);
 
     public R build() {
         this.validate();

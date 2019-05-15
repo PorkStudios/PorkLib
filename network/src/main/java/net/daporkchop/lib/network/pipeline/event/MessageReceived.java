@@ -28,7 +28,7 @@ public interface MessageReceived<S extends AbstractUserSession<S>, I, O> extends
      *
      * @param session the session that received the message
      * @param msg     the message that was received
-     * @param channel the id of the channel that the message was received on
+     * @param channel the id of the channel that the message was received on. If unknown, defaults to {@code -1}
      * @param next    delegates the event to the next node in the pipeline
      */
     void messageReceived(@NonNull S session, @NonNull I msg, int channel, @NonNull Callback<S, O> next);

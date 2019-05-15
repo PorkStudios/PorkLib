@@ -13,49 +13,47 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.pipeline;
+package net.daporkchop.lib.network.tcp.netty;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInitializer;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.binary.netty.NettyUtil;
-import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.protocol.Protocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.tcp.WrapperNioSocketChannel;
-import net.daporkchop.lib.network.transport.ChanneledPacket;
-import net.daporkchop.lib.network.netty.NettyHandler;
+import net.daporkchop.lib.network.tcp.endpoint.TCPEndpoint;
+
+import java.util.function.Consumer;
 
 /**
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
 @Getter
-@Accessors(fluent = true)
-public class TCPHandler<S extends AbstractUserSession<S>> extends NettyHandler implements Logging {
+public class TCPChannelInitializer<E extends TCPEndpoint<?, S, ?>, S extends AbstractUserSession<S>> extends ChannelInitializer<WrapperNioSocketChannel<S>> {
     @NonNull
-    protected final WrapperNioSocketChannel<S> session;
+    protected final E endpoint;
+    @NonNull
+    protected final Consumer<WrapperNioSocketChannel<S>> addedCallback;
+    @NonNull
+    protected final Consumer<WrapperNioSocketChannel<S>> removedCallback;
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        if (!(msg instanceof ChanneledPacket)) {
-            throw new IllegalArgumentException(msg == null ? "null" : msg.getClass().getCanonicalName());
-        }
-
-        Protocol<Object, S> protocol = (Protocol<Object, S>) this.session.protocol();
-        ChanneledPacket pck = (ChanneledPacket) msg;
-
-        Object decoded = protocol.decoder().decode(NettyUtil.wrapIn((ByteBuf) pck.packet()), this.session.userSession(), pck.channel());
-        protocol.handler().handle(decoded, this.session.userSession(), pck.channel());
+    public TCPChannelInitializer(@NonNull E endpoint) {
+        this(endpoint, ch -> {}, ch -> {});
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        logger.alert(cause);
-        super.exceptionCaught(ctx, cause);
+    protected void initChannel(@NonNull WrapperNioSocketChannel<S> channel) throws Exception {
+        channel.pipeline().addLast("handle", new TCPHandler<>(channel));
+
+        this.addedCallback.accept(channel);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
+        super.channelUnregistered(ctx);
+        this.removedCallback.accept((WrapperNioSocketChannel) ctx.channel());
     }
 }

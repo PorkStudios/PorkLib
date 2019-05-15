@@ -20,6 +20,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
+import net.daporkchop.lib.network.pipeline.Pipeline;
 import net.daporkchop.lib.network.util.CloseableFuture;
 
 import java.io.IOException;
@@ -31,11 +32,14 @@ import java.io.IOException;
  */
 public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUserSession<S>> extends CloseableFuture, Reliable<Impl> {
     /**
-     * Gets the local endpoint associated with this session.
-     *
      * @return the local endpoint associated with this session
      */
     <E extends PEndpoint<E, S>> E endpoint();
+
+    /**
+     * @return this session's pipeline
+     */
+    Pipeline<S> dataPipeline();
 
     /**
      * Gets an open channel on this session with a given id.

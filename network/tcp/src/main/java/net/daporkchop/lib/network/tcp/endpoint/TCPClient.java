@@ -16,15 +16,12 @@
 package net.daporkchop.lib.network.tcp.endpoint;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
 import lombok.NonNull;
 import net.daporkchop.lib.network.endpoint.PClient;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
-import net.daporkchop.lib.network.netty.LoopPool;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.transport.NetSession;
-import net.daporkchop.lib.network.tcp.pipeline.TCPChannelInitializer;
+import net.daporkchop.lib.network.tcp.netty.TCPChannelInitializer;
 import net.daporkchop.lib.network.tcp.WrapperNioSocketChannel;
 
 /**

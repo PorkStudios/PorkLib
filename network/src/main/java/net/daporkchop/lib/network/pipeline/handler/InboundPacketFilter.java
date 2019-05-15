@@ -16,29 +16,22 @@
 package net.daporkchop.lib.network.pipeline.handler;
 
 import lombok.NonNull;
-import net.daporkchop.lib.network.pipeline.event.ExceptionCaught;
 import net.daporkchop.lib.network.pipeline.event.MessageReceived;
-import net.daporkchop.lib.network.pipeline.event.MessageSent;
-import net.daporkchop.lib.network.pipeline.event.SessionClosed;
-import net.daporkchop.lib.network.pipeline.event.SessionOpened;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
+ * A filter for incoming packets.
+ *
+ * This allows modifying the data in a packet without completely replacing it,
+ *
  * @author DaPorkchop_
  */
-public interface PipelineEventAdapter<S extends AbstractUserSession<S>> extends SessionOpened<S>, SessionClosed<S>, ExceptionCaught<S> {
+public interface InboundPacketFilter<S extends AbstractUserSession<S>, P> extends MessageReceived<S, P, P> {
     @Override
-    default void sessionOpened(@NonNull S session, @NonNull SessionOpened.Callback<S> next) {
-        next.sessionOpened(session);
+    default void messageReceived(@NonNull S session, @NonNull P msg, int channel, @NonNull Callback<S, P> next) {
+        this.filter(session, msg, channel);
+        next.messageReceived(session, msg, channel);
     }
 
-    @Override
-    default void sessionClosed(@NonNull S session, @NonNull SessionClosed.Callback<S> next) {
-        next.sessionClosed(session);
-    }
-
-    @Override
-    default void exceptionCaught(@NonNull S session, @NonNull Throwable t, @NonNull ExceptionCaught.Callback<S> next) {
-        next.exceptionCaught(session, t);
-    }
+    void filter(@NonNull S session, @NonNull P msg, int channel);
 }

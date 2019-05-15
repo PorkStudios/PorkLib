@@ -16,39 +16,21 @@
 package net.daporkchop.lib.network.tcp.pipeline;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.MessageToMessageEncoder;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.binary.netty.NettyUtil;
-import net.daporkchop.lib.network.protocol.Protocol;
+import net.daporkchop.lib.network.pipeline.event.MessageReceived;
+import net.daporkchop.lib.network.pipeline.event.MessageSent;
+import net.daporkchop.lib.network.pipeline.handler.PacketCodec;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.tcp.WrapperNioSocketChannel;
-import net.daporkchop.lib.network.transport.ChanneledPacket;
-
-import java.util.List;
 
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-public class TCPEncoder<S extends AbstractUserSession<S>> extends MessageToMessageEncoder<ChanneledPacket> {
-    @NonNull
-    protected final WrapperNioSocketChannel<S> session;
+public class TCPEncoder<S extends AbstractUserSession<S>> implements PacketCodec<S, Object, ByteBuf> {
+    @Override
+    public void messageReceived(@NonNull S session, @NonNull ByteBuf msg, int channel, @NonNull MessageReceived.Callback<S, Object> next) {
+    }
 
     @Override
-    @SuppressWarnings("unchecked")
-    protected void encode(ChannelHandlerContext ctx, ChanneledPacket msg, List<Object> out) throws Exception {
-        if (!msg.encoded()) {
-            ByteBuf buf = ctx.alloc().ioBuffer();
-            ((Protocol<Object, S>) this.session.protocol())
-                    .encoder().encode(NettyUtil.wrapOut(buf), msg.packet(), this.session.userSession(), msg.channel());
-            msg.packet(buf).encoded(true);
-        }
-        out.add(msg);
+    public void messageSent(@NonNull S session, @NonNull Object msg, int channel, @NonNull MessageSent.Callback<S, ByteBuf> next) {
     }
 }

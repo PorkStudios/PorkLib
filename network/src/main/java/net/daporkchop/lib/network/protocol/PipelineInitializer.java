@@ -13,17 +13,16 @@
  *
  */
 
-package net.daporkchop.lib.network.pipeline.handler;
+package net.daporkchop.lib.network.protocol;
 
 import lombok.NonNull;
-import net.daporkchop.lib.network.pipeline.event.MessageReceived;
+import net.daporkchop.lib.network.pipeline.Pipeline;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
  * @author DaPorkchop_
  */
-public interface InboundMessageFilter<S extends AbstractUserSession<S>, P> extends MessageReceived<S, P, P> {
-    @Override
-    default void messageReceived(@NonNull S session, @NonNull P msg, int channel, @NonNull Callback<S, P> next) {
-    }
+@FunctionalInterface
+public interface PipelineInitializer<S extends AbstractUserSession<S>> {
+    void initPipeline(@NonNull Pipeline<S> pipeline, @NonNull S session);
 }

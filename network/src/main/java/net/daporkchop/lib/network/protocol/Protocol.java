@@ -15,6 +15,8 @@
 
 package net.daporkchop.lib.network.protocol;
 
+import lombok.NonNull;
+import net.daporkchop.lib.network.pipeline.event.PipelineHandler;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
@@ -22,9 +24,14 @@ import net.daporkchop.lib.network.session.AbstractUserSession;
  *
  * @author DaPorkchop_
  */
-public interface Protocol<P, S extends AbstractUserSession<S>> {
+public interface Protocol<S extends AbstractUserSession<S>> {
     /**
      * @return this protocol's session factory
      */
     SessionFactory<S> sessionFactory();
+
+    /**
+     * @return this protocol's pipeline initializer
+     */
+    PipelineInitializer<S> pipelineInitializer();
 }

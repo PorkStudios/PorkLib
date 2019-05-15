@@ -13,15 +13,26 @@
  *
  */
 
-dependencies {
-    compile project(":network")
+package net.daporkchop.lib.network.pipeline.handler;
 
-    compile ("com.nukkitx.network:raknet:$raknetVersion")   {
-        exclude group: "io.netty"
+import lombok.NonNull;
+import net.daporkchop.lib.network.pipeline.event.MessageReceived;
+import net.daporkchop.lib.network.session.AbstractUserSession;
+
+import java.util.function.Consumer;
+
+/**
+ * A translator for incoming packets.
+ *
+ * This allows replacing a packet with another.
+ *
+ * @author DaPorkchop_
+ */
+public interface InboundPacketTranslator<S extends AbstractUserSession<S>, I, O> extends MessageReceived<S, I, O> {
+    @Override
+    default void messageReceived(@NonNull S session, @NonNull I msg, int channel, @NonNull Callback<S, O> next) {
+        next.messageReceived(session, this.translate(session, msg, channel), channel);
     }
 
-    compile "io.netty:netty-handler:$nettyVersion"
-
-    compile "io.netty:netty-transport-native-epoll:$nettyVersion:linux-x86_64"
-    compile "io.netty:netty-transport-native-kqueue:$nettyVersion:osx-x86_64"
+    O translate(@NonNull S session, @NonNull I msg, int channel);
 }

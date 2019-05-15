@@ -20,16 +20,17 @@ import net.daporkchop.lib.network.pipeline.event.MessageReceived;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
- * A simple handler for incoming packets.
+ * A handler for incoming packets.
  *
- * Note: this will block the message from continuing down the pipeline. To
+ * This will block the message from continuing down the pipeline. To
  *
  * @author DaPorkchop_
  */
 public interface InboundPacketHandler<S extends AbstractUserSession<S>, P> extends MessageReceived<S, P, Object> {
     @Override
     default void messageReceived(@NonNull S session, @NonNull P msg, int channel, Callback<S, Object> next) {
+        this.handle(session, msg, channel);
     }
 
-    void messageReceived(@NonNull S session, @NonNull P msg, int channel);
+    void handle(@NonNull S session, @NonNull P msg, int channel);
 }

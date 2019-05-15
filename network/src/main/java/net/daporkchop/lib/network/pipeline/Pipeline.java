@@ -17,7 +17,7 @@ package net.daporkchop.lib.network.pipeline;
 
 import lombok.NonNull;
 import net.daporkchop.lib.network.pipeline.event.PipelineHandler;
-import net.daporkchop.lib.network.pipeline.handler.PipelineEventAdapter;
+import net.daporkchop.lib.network.pipeline.handler.BasePipelineAdapter;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -37,7 +37,7 @@ public class Pipeline<S extends AbstractUserSession<S>> implements PipelineHandl
     protected final Lock readLock; //less pointer chasing!
     protected final Lock writeLock;
 
-    public Pipeline(@NonNull PipelineEventAdapter<S> head, @NonNull PipelineEventAdapter<S> tail)   {
+    public Pipeline(@NonNull BasePipelineAdapter<S> head, @NonNull BasePipelineAdapter<S> tail)   {
         this(new Head<>(head), new Tail<>(tail));
     }
 

@@ -26,26 +26,6 @@ import net.daporkchop.lib.network.transport.NetSession;
  */
 @Getter
 @Accessors(fluent = true)
-public abstract class AbstractUserSession<S extends AbstractUserSession<S>> implements BaseUserSession<S, S>, PipelineHandler.Events<S> {
+public abstract class AbstractUserSession<S extends AbstractUserSession<S>> implements BaseUserSession<S, S> {
     private final NetSession<S> internalSession = null;
-
-    @Override
-    public void sessionOpened(@NonNull S session) {
-    }
-
-    @Override
-    public void sessionClosed(@NonNull S session) {
-    }
-
-    @Override
-    public void exceptionCaught(@NonNull S session, @NonNull Throwable t) {
-    }
-
-    @Override
-    public void messageReceived(@NonNull S session, @NonNull Object msg, int channel) {
-    }
-
-    @Override
-    public void messageSent(@NonNull S session, @NonNull Object msg, int channel) {
-    }
 }

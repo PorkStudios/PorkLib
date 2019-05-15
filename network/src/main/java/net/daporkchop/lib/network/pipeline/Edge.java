@@ -15,7 +15,7 @@
 
 package net.daporkchop.lib.network.pipeline;
 
-import net.daporkchop.lib.network.pipeline.handler.PipelineEventAdapter;
+import net.daporkchop.lib.network.pipeline.handler.BasePipelineAdapter;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
@@ -24,7 +24,7 @@ import net.daporkchop.lib.network.session.AbstractUserSession;
  * @author DaPorkchop_
  */
 abstract class Edge<S extends AbstractUserSession<S>> extends Node<S> {
-    public Edge(PipelineEventAdapter<S> filter) {
+    public Edge(BasePipelineAdapter<S> filter) {
         super(null, filter);
     }
 

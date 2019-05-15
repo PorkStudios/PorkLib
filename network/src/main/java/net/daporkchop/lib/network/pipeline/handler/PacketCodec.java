@@ -13,50 +13,20 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.pipeline;
+package net.daporkchop.lib.network.pipeline.handler;
 
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInitializer;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.network.pipeline.event.MessageReceived;
+import net.daporkchop.lib.network.pipeline.event.MessageSent;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.tcp.WrapperNioSocketChannel;
-import net.daporkchop.lib.network.tcp.endpoint.TCPEndpoint;
-
-import java.util.function.Consumer;
 
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-public class TCPChannelInitializer<E extends TCPEndpoint<?, S, ?>, S extends AbstractUserSession<S>> extends ChannelInitializer<WrapperNioSocketChannel<S>> {
-    @NonNull
-    protected final E endpoint;
-    @NonNull
-    protected final Consumer<WrapperNioSocketChannel<S>> addedCallback;
-    @NonNull
-    protected final Consumer<WrapperNioSocketChannel<S>> removedCallback;
-
-    public TCPChannelInitializer(@NonNull E endpoint) {
-        this(endpoint, ch -> {}, ch -> {});
-    }
+public interface PacketCodec<S extends AbstractUserSession<S>, I, O> extends MessageSent<S, I, O>, MessageReceived<S, O, I> {
+    @Override
+    void messageReceived(@NonNull S session, @NonNull O msg, int channel, @NonNull MessageReceived.Callback<S, I> next);
 
     @Override
-    protected void initChannel(@NonNull WrapperNioSocketChannel<S> channel) throws Exception {
-        channel.pipeline()
-                .addLast("frame", new TCPFramingCodec<>(channel))
-                .addLast("encode", new TCPEncoder<>(channel))
-                .addLast("handle", new TCPHandler<>(channel));
-
-        this.addedCallback.accept(channel);
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-        super.channelUnregistered(ctx);
-        this.removedCallback.accept((WrapperNioSocketChannel) ctx.channel());
-    }
+    void messageSent(@NonNull S session, @NonNull I msg, int channel, @NonNull MessageSent.Callback<S, O> next);
 }

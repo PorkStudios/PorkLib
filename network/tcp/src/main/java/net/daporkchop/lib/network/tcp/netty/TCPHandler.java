@@ -13,38 +13,51 @@
  *
  */
 
-package net.daporkchop.lib.network.pipeline;
+package net.daporkchop.lib.network.tcp.netty;
 
-import net.daporkchop.lib.logging.Logger;
+import io.netty.channel.ChannelHandlerContext;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.pipeline.handler.BasePipelineAdapter;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.unsafe.PUnsafe;
+import net.daporkchop.lib.network.tcp.WrapperNioSocketChannel;
+import net.daporkchop.lib.network.netty.NettyHandler;
 
 /**
- * The node at the tail of the pipeline. This node will be the last to receive inbound packets/events and the first
- * to receive outbound packets.
- *
  * @author DaPorkchop_
  */
-public class Tail<S extends AbstractUserSession<S>> extends Edge<S> implements Logging {
-    public Tail(BasePipelineAdapter<S> filter) {
-        super(filter);
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public class TCPHandler<S extends AbstractUserSession<S>> extends NettyHandler implements Logging {
+    @NonNull
+    protected final WrapperNioSocketChannel<S> session;
+
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        this.session.dataPipeline().messageReceived(this.session.userSession(), msg, -1);
     }
 
     @Override
-    protected void updateRelations() {
-        this.next = null;
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        this.session.dataPipeline().sessionOpened(this.session.userSession());
+
+        super.channelActive(ctx);
     }
 
     @Override
-    protected void updateSelf() {
-        super.updateSelf();
-        this.exceptionCaught = (session, t) -> {
-            StringBuilder builder = new StringBuilder();
-            Logger.getStackTrace(t, builder::append);
-            logger.alert("An exception reached the end of the pipeline!\n\n%s", builder.toString());
-            PUnsafe.throwException(t);
-        };
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        this.session.dataPipeline().sessionClosed(this.session.userSession());
+
+        super.channelInactive(ctx);
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        this.session.dataPipeline().exceptionCaught(this.session.userSession(), cause);
+
+        super.exceptionCaught(ctx, cause);
     }
 }

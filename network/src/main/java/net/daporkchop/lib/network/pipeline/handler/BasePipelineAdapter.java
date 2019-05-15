@@ -13,46 +13,32 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.pipeline;
+package net.daporkchop.lib.network.pipeline.handler;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.ByteToMessageCodec;
-import io.netty.handler.codec.ByteToMessageDecoder;
-import io.netty.handler.codec.MessageToMessageCodec;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.network.endpoint.PEndpoint;
+import net.daporkchop.lib.network.pipeline.event.ExceptionCaught;
+import net.daporkchop.lib.network.pipeline.event.MessageReceived;
+import net.daporkchop.lib.network.pipeline.event.MessageSent;
+import net.daporkchop.lib.network.pipeline.event.SessionClosed;
+import net.daporkchop.lib.network.pipeline.event.SessionOpened;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.tcp.TCPEngine;
-import net.daporkchop.lib.network.tcp.WrapperNioSocketChannel;
-import net.daporkchop.lib.network.transport.ChanneledPacket;
-import net.daporkchop.lib.network.tcp.endpoint.TCPEndpoint;
-
-import java.util.List;
 
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-public class TCPFramingCodec<S extends AbstractUserSession<S>> extends ByteToMessageCodec<ChanneledPacket<ByteBuf>> {
-    @NonNull
-    protected final WrapperNioSocketChannel<S> session;
-
+public interface BasePipelineAdapter<S extends AbstractUserSession<S>> extends SessionOpened<S>, SessionClosed<S>, ExceptionCaught<S> {
     @Override
-    @SuppressWarnings("unchecked")
-    protected void encode(ChannelHandlerContext ctx, ChanneledPacket<ByteBuf> msg, ByteBuf out) throws Exception {
-        this.session.<TCPEndpoint>endpoint().transportEngine().framer().pack(msg, this.session.userSession(), out);
-        msg.packet().release();
+    default void sessionOpened(@NonNull S session, @NonNull SessionOpened.Callback<S> next) {
+        next.sessionOpened(session);
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
-        this.session.<TCPEndpoint>endpoint().transportEngine().framer().unpack(msg, this.session.userSession(), out);
+    default void sessionClosed(@NonNull S session, @NonNull SessionClosed.Callback<S> next) {
+        next.sessionClosed(session);
+    }
+
+    @Override
+    default void exceptionCaught(@NonNull S session, @NonNull Throwable t, @NonNull ExceptionCaught.Callback<S> next) {
+        next.exceptionCaught(session, t);
     }
 }

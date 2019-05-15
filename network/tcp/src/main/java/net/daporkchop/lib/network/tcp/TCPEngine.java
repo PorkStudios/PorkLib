@@ -23,10 +23,6 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.network.endpoint.PClient;
-import net.daporkchop.lib.network.endpoint.PMulti;
-import net.daporkchop.lib.network.endpoint.PMultiClient;
-import net.daporkchop.lib.network.endpoint.PServer;
-import net.daporkchop.lib.network.endpoint.Pp2pEndpoint;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.Reliability;
@@ -34,13 +30,16 @@ import net.daporkchop.lib.network.tcp.endpoint.TCPClient;
 import net.daporkchop.lib.network.transport.TransportEngine;
 import net.daporkchop.lib.network.netty.NettyEngine;
 
-import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
 /**
  * An implementation of {@link TransportEngine} for the TCP/IP transport protocol.
+ *
+ * Default pipeline layout:
+ * "tcp_framer" =>
+ * "tcp_handler" => {@link net.daporkchop.lib.network.tcp.netty.TCPHandler}
  *
  * @author DaPorkchop_
  */
@@ -54,40 +53,22 @@ public class TCPEngine extends NettyEngine {
         return (B) new Builder<B>();
     }
 
-    @SuppressWarnings("unchecked")
-    public static <B extends Builder<B>, S extends AbstractUserSession<S>> B builder(@NonNull Framer<S> framer) {
-        return (B) new Builder<B>(framer);
-    }
-
-    public static <S extends AbstractUserSession<S>> TCPEngine of(@NonNull Framer<S> framer) {
-        return new TCPEngine(framer);
-    }
-
-    protected final Framer framer;
-
     protected TCPEngine(@NonNull Builder<?> builder) {
-        this(
+        super(
                 builder.clientOptions(),
                 builder.serverOptions(),
                 builder.group(),
-                builder.autoShutdownGroup(),
-                builder.framer()
+                builder.autoShutdownGroup()
         );
     }
 
-    protected TCPEngine(@NonNull Framer framer) {
-        this.framer = framer;
-    }
-
-    protected TCPEngine(@NonNull Map<ChannelOption, Object> clientOptions, @NonNull Map<ChannelOption, Object> serverOptions, EventLoopGroup group, boolean autoShutdownGroup, @NonNull Framer framer) {
+    protected TCPEngine(@NonNull Map<ChannelOption, Object> clientOptions, @NonNull Map<ChannelOption, Object> serverOptions, EventLoopGroup group, boolean autoShutdownGroup) {
         super(
                 Collections.unmodifiableMap(clientOptions),
                 Collections.unmodifiableMap(serverOptions),
                 group,
                 group == null || autoShutdownGroup
         );
-
-        this.framer = framer;
     }
 
     @Override
@@ -110,24 +91,6 @@ public class TCPEngine extends NettyEngine {
     @Getter
     @Accessors(fluent = true)
     public static class Builder<Impl extends Builder<Impl>> extends NettyEngine.Builder<Impl, TCPEngine> {
-        @NonNull
-        protected Framer framer;
-
-        @SuppressWarnings("unchecked")
-        public Impl framer(@NonNull Framer framer) {
-            this.framer = framer;
-            return (Impl) this;
-        }
-
-        @Override
-        protected void validate() {
-            super.validate();
-
-            if (this.framer == null) {
-                this.framer = new Framer.DefaultFramer();
-            }
-        }
-
         @Override
         protected TCPEngine doBuild() {
             return new TCPEngine(this);

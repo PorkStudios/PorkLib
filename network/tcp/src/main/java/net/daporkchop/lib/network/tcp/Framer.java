@@ -17,39 +17,54 @@ package net.daporkchop.lib.network.tcp;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
+import net.daporkchop.lib.network.pipeline.event.MessageReceived;
+import net.daporkchop.lib.network.pipeline.event.MessageSent;
+import net.daporkchop.lib.network.pipeline.handler.PacketCodec;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.transport.ChanneledPacket;
 
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.ObjIntConsumer;
 
 /**
  * Allows for sending individual packets down the pipeline.
  *
  * @author DaPorkchop_
  */
-public interface Framer<S extends AbstractUserSession<S>> {
+public abstract class Framer<S extends AbstractUserSession<S>> implements PacketCodec<S, ByteBuf, ByteBuf> {
+    @Override
+    public void messageReceived(@NonNull S session, @NonNull ByteBuf msg, int channel, @NonNull MessageReceived.Callback<S, ByteBuf> next) {
+    }
+
+    @Override
+    public void messageSent(@NonNull S session, @NonNull ByteBuf msg, int channel, @NonNull MessageSent.Callback<S, ByteBuf> next) {
+        this.pack(session, msg, channel, b -> next.messageSent(session, b, -1));
+    }
+
     /**
      * Decodes as many frames as can be read from the given buffer. If an entire frame cannot be read (as the
      * buffer is incomplete), the data should be left in the buffer.
      *
-     * @param buf     the buffer to read frames from
      * @param session the session that the data was received on
+     * @param buf     the buffer to read frames from
      * @param frames  a list of decoded frames. Buffers should be added to this after being removed from the
      *                input buffer using {@link ByteBuf#readRetainedSlice(int)} or similar methods, so long
-     *                as the reader index is incremented correctly.
+     *                as the reader index is incremented correctly. The second method parameter is the channel id
      */
-    void unpack(@NonNull ByteBuf buf, @NonNull S session, @NonNull List<ChanneledPacket<ByteBuf>> frames);
+    protected abstract void unpack(@NonNull S session, @NonNull ByteBuf buf, @NonNull ObjIntConsumer<ByteBuf> frames);
 
     /**
      * Packs an encoded packet into (a) frame(s).
      *
-     * @param packet     a buffer containing the encoded packet
      * @param session the session that the packet will be sent on
-     * @param out  the final output buffer
+     * @param packet  a buffer containing the encoded packet
+     * @param channel the id that the channel will be sent on
+     * @param out     buffers may be passed to this method for sequential sending
      */
-    void pack(@NonNull ChanneledPacket<ByteBuf> packet, @NonNull S session, @NonNull ByteBuf out);
+    protected abstract void pack(@NonNull S session, @NonNull ByteBuf packet, int channel, @NonNull Consumer<ByteBuf> out);
 
-    class DefaultFramer<S extends AbstractUserSession<S>> implements Framer<S>  {
+    class DefaultFramer<S extends AbstractUserSession<S>> extends Framer<S> {
         @Override
         public void unpack(@NonNull ByteBuf buf, @NonNull S session, @NonNull List<ChanneledPacket<ByteBuf>> frames) {
             int origIndex = buf.readerIndex();
@@ -67,8 +82,8 @@ public interface Framer<S extends AbstractUserSession<S>> {
         @Override
         public void pack(@NonNull ChanneledPacket<ByteBuf> packet, @NonNull S session, @NonNull ByteBuf out) {
             out.writeInt(packet.packet().readableBytes())
-                    .writeInt(packet.channel())
-                    .writeBytes(packet.packet());
+               .writeInt(packet.channel())
+               .writeBytes(packet.packet());
         }
     }
 }

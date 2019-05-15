@@ -16,8 +16,5 @@
 dependencies {
     compile project(":network")
 
-    compile "io.netty:netty-buffer:$nettyVersion"
     compile "io.netty:netty-handler:$nettyVersion"
-
-    compile "io.netty:netty-transport-native-epoll:$nettyVersion:linux-x86_64"
 }

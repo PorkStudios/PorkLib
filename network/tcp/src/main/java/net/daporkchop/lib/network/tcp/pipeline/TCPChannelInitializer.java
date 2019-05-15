@@ -20,6 +20,7 @@ import io.netty.channel.ChannelInitializer;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.tcp.WrapperNioSocketChannel;
 import net.daporkchop.lib.network.tcp.endpoint.TCPEndpoint;
 
@@ -30,24 +31,24 @@ import java.util.function.Consumer;
  */
 @RequiredArgsConstructor
 @Getter
-public class TCPChannelInitializer<E extends TCPEndpoint> extends ChannelInitializer<WrapperNioSocketChannel> {
+public class TCPChannelInitializer<E extends TCPEndpoint<?, S, ?>, S extends AbstractUserSession<S>> extends ChannelInitializer<WrapperNioSocketChannel<S>> {
     @NonNull
     protected final E endpoint;
     @NonNull
-    protected final Consumer<WrapperNioSocketChannel> addedCallback;
+    protected final Consumer<WrapperNioSocketChannel<S>> addedCallback;
     @NonNull
-    protected final Consumer<WrapperNioSocketChannel> removedCallback;
+    protected final Consumer<WrapperNioSocketChannel<S>> removedCallback;
 
     public TCPChannelInitializer(@NonNull E endpoint) {
         this(endpoint, ch -> {}, ch -> {});
     }
 
     @Override
-    protected void initChannel(@NonNull WrapperNioSocketChannel channel) throws Exception {
+    protected void initChannel(@NonNull WrapperNioSocketChannel<S> channel) throws Exception {
         channel.pipeline()
-                .addLast("frame", new TCPFramingCodec(channel))
-                .addLast("encode", new TCPEncoder(channel))
-                .addLast("handle", new TCPHandler(channel));
+                .addLast("frame", new TCPFramingCodec<>(channel))
+                .addLast("encode", new TCPEncoder<>(channel))
+                .addLast("handle", new TCPHandler<>(channel));
 
         this.addedCallback.accept(channel);
     }

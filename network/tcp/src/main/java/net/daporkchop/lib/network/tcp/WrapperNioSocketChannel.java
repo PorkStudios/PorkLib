@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.network.tcp;
 
+import io.netty.channel.Channel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.concurrent.Future;
 import lombok.Getter;
@@ -42,41 +43,43 @@ import java.util.Map;
  */
 @Getter
 @Accessors(fluent = true)
-public class WrapperNioSocketChannel extends NioSocketChannel implements NetSession {
-    protected final TCPEndpoint endpoint;
-    protected final DummyTCPChannel defaultChannel = new DummyTCPChannel(this, 0);
-    protected final Map<Integer, DummyTCPChannel> channels = PorkUtil.newSoftCache();
-    protected final AbstractUserSession userSession;
+public class WrapperNioSocketChannel<S extends AbstractUserSession<S>> extends NioSocketChannel implements NetSession<S> {
+    protected final TCPEndpoint<?, S, ?> endpoint;
+    protected final DummyTCPChannel<S> defaultChannel = new DummyTCPChannel<>(this, 0);
+    protected final Map<Integer, DummyTCPChannel<S>> channels = PorkUtil.newSoftCache();
+    protected final S userSession;
 
-    public WrapperNioSocketChannel(@NonNull TCPEndpoint endpoint) {
-        PUnsafe.putObject(this.userSession = (AbstractUserSession) (this.endpoint = endpoint).protocol().sessionFactory().newSession(), ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);
+    public WrapperNioSocketChannel(@NonNull TCPEndpoint<?, S, ?> endpoint) {
+        this.endpoint = endpoint;
+        this.userSession = endpoint.protocol().sessionFactory().newSession();
+        PUnsafe.putObject(this, ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <E extends PEndpoint<E>> E endpoint() {
+    public <E extends PEndpoint<E, S>> E endpoint() {
         return (E) this.endpoint;
     }
 
     @Override
-    public PChannel channel(int id) {
+    public PChannel<S> channel(int id) {
         if (id == 0) {
             return this.defaultChannel;
         } else {
             synchronized (this.channels) {
-                return this.channels.computeIfAbsent(id, i -> new DummyTCPChannel(this, i));
+                return this.channels.computeIfAbsent(id, i -> new DummyTCPChannel<>(this, i));
             }
         }
     }
 
     @Override
-    public NetSession send(@NonNull Object packet, Reliability reliability) {
+    public NetSession<S> send(@NonNull Object packet, Reliability reliability) {
         this.write(new ChanneledPacket<>(packet, 0));
         return this;
     }
 
     @Override
-    public NetSession send(@NonNull Object packet, Reliability reliability, int channelId) {
+    public NetSession<S> send(@NonNull Object packet, Reliability reliability, int channelId) {
         if (!this.channels.containsKey(channelId)) {
             throw new IllegalArgumentException(String.format("Unknown channel id: %d", channelId));
         }
@@ -108,7 +111,7 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements NetSess
     }
 
     @Override
-    public NetSession flushBuffer() {
+    public NetSession<S> flushBuffer() {
         this.flush();
         return this;
     }
@@ -119,7 +122,7 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements NetSess
     }
 
     @Override
-    public NetSession fallbackReliability(@NonNull Reliability reliability) throws IllegalArgumentException {
+    public NetSession<S> fallbackReliability(@NonNull Reliability reliability) throws IllegalArgumentException {
         if (reliability != Reliability.RELIABLE_ORDERED) {
             throw new IllegalArgumentException(reliability.name());
         }
@@ -137,20 +140,13 @@ public class WrapperNioSocketChannel extends NioSocketChannel implements NetSess
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <S extends AbstractUserSession<S>> S userSession() {
-        return (S) this.userSession;
+    public S userSession() {
+        return this.userSession;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public Protocol<?, ? extends AbstractUserSession> protocol() {
-        return this.endpoint.protocol(); //TODO
-    }
-
-    @Override
-    public NetSession protocol(@NonNull Protocol<?, ? extends AbstractUserSession> protocol) {
-        return this; //TODO
+    public Protocol<?, S> protocol() {
+        return this.endpoint.protocol();
     }
 
     @Override

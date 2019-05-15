@@ -16,13 +16,14 @@
 package net.daporkchop.lib.network.endpoint;
 
 import net.daporkchop.lib.network.EndpointType;
+import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
  * An endpoint that can accept incoming connections.
  *
  * @author DaPorkchop_
  */
-public interface PServer extends BaseMultiEndpoint<PServer> {
+public interface PServer<S extends AbstractUserSession<S>> extends BaseMultiEndpoint<PServer<S>, S> {
     @Override
     default EndpointType type() {
         return EndpointType.SERVER;

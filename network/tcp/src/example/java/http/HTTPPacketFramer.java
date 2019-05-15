@@ -32,7 +32,7 @@ public class HTTPPacketFramer implements Framer<HTTPSession>, Logging {
     public void unpack(@NonNull ByteBuf buf, @NonNull HTTPSession session, @NonNull List<ChanneledPacket<ByteBuf>> frames) {
         TOP:
         while (buf.isReadable()) {
-            if (session.headers != null) {
+            if (session.headers.isCompleted()) {
                 logger.debug("Read %d bytes!", buf.readableBytes());
                 frames.add(new ChanneledPacket<>(buf.readRetainedSlice(buf.readableBytes()), 1));
             } else {
@@ -60,7 +60,7 @@ public class HTTPPacketFramer implements Framer<HTTPSession>, Logging {
                             if (c == '\n') {
                                 byte[] arr = new byte[buf.readerIndex() - origPos];
                                 buf.getBytes(origPos, arr);
-                                session.headers = new String(arr, UTF8.utf8);
+                                session.headers.complete(new String(arr, UTF8.utf8));
                                 frames.add(new ChanneledPacket<>(buf.retainedSlice(origPos, buf.readerIndex() - origPos), 0));
                                 logger.debug("Read headers!", buf.readableBytes());
                                 continue TOP;

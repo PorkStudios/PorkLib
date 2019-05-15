@@ -28,6 +28,7 @@ import net.daporkchop.lib.network.endpoint.PMultiClient;
 import net.daporkchop.lib.network.endpoint.PServer;
 import net.daporkchop.lib.network.endpoint.Pp2pEndpoint;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
+import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.Reliability;
 import net.daporkchop.lib.network.tcp.endpoint.TCPClient;
 import net.daporkchop.lib.network.transport.TransportEngine;
@@ -54,11 +55,11 @@ public class TCPEngine extends NettyEngine {
     }
 
     @SuppressWarnings("unchecked")
-    public static <B extends Builder<B>> B builder(@NonNull Framer framer) {
+    public static <B extends Builder<B>, S extends AbstractUserSession<S>> B builder(@NonNull Framer<S> framer) {
         return (B) new Builder<B>(framer);
     }
 
-    public static TCPEngine of(@NonNull Framer framer) {
+    public static <S extends AbstractUserSession<S>> TCPEngine of(@NonNull Framer<S> framer) {
         return new TCPEngine(framer);
     }
 
@@ -90,28 +91,8 @@ public class TCPEngine extends NettyEngine {
     }
 
     @Override
-    public PClient createClient(@NonNull ClientBuilder builder) {
-        return new TCPClient(builder);
-    }
-
-    @Override
-    public PMultiClient createMultiClient() {
-        return null;
-    }
-
-    @Override
-    public PServer createServer(@NonNull InetSocketAddress bindAddress) {
-        return null;
-    }
-
-    @Override
-    public PMulti createMulti(@NonNull InetSocketAddress bindAddress) {
-        return null;
-    }
-
-    @Override
-    public Pp2pEndpoint createP2P(@NonNull InetSocketAddress bindAddress) {
-        return null;
+    public <S extends AbstractUserSession<S>> PClient<S> createClient(@NonNull ClientBuilder<S> builder) {
+        return new TCPClient<>(builder);
     }
 
     @Override

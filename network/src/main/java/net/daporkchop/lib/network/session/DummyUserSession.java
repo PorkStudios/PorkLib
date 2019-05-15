@@ -20,5 +20,5 @@ package net.daporkchop.lib.network.session;
  *
  * @author DaPorkchop_
  */
-public final class NoopUserSession extends AbstractUserSession<NoopUserSession> {
+public final class DummyUserSession extends AbstractUserSession<DummyUserSession> {
 }

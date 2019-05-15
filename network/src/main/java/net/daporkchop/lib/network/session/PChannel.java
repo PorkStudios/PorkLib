@@ -31,20 +31,20 @@ import net.daporkchop.lib.network.transport.NetSession;
  *
  * @author DaPorkchop_
  */
-public interface PChannel extends Reliable<PChannel> {
+public interface PChannel<S extends AbstractUserSession<S>> extends Reliable<PChannel<S>> {
     /**
      * Gets this channel's underlying session.
      *
      * @return this channel's underlying session
      */
-    <S extends AbstractUserSession<S>> S session();
+    S session();
 
     /**
      * Gets this channel's underlying internal session.
      *
      * @return this channel's underlying internal session
      */
-    NetSession internalSession();
+    NetSession<S> internalSession();
 
     /**
      * Gets this channel's id.
@@ -58,7 +58,7 @@ public interface PChannel extends Reliable<PChannel> {
      *
      * @return the local endpoint associated with this channel's underlying session
      */
-    default <E extends PEndpoint<E>> E endpoint() {
+    default <E extends PEndpoint<E, S>> E endpoint() {
         return this.internalSession().endpoint();
     }
 
@@ -73,7 +73,7 @@ public interface PChannel extends Reliable<PChannel> {
      *                    used (see {@link #fallbackReliability()})
      * @return this channel
      */
-    PChannel send(@NonNull Object packet, Reliability reliability);
+    PChannel<S> send(@NonNull Object packet, Reliability reliability);
 
     /**
      * Sends a single packet to the remote endpoint over this channel, using this channel's fallback reliability
@@ -84,7 +84,7 @@ public interface PChannel extends Reliable<PChannel> {
      * @param packet the packet to be sent
      * @return this channel
      */
-    default PChannel send(@NonNull Object packet) {
+    default PChannel<S> send(@NonNull Object packet) {
         return this.send(packet, this.fallbackReliability());
     }
 

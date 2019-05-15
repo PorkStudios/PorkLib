@@ -17,14 +17,15 @@ package net.daporkchop.lib.network.endpoint;
 
 import io.netty.util.concurrent.Future;
 import net.daporkchop.lib.network.EndpointType;
-import net.daporkchop.lib.network.session.UserSession;
+import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.session.BaseUserSession;
 
 /**
  * A client can connect to a single remote endpoint.
  *
  * @author DaPorkchop_
  */
-public interface PClient extends PEndpoint<PClient>, UserSession<PClient> {
+public interface PClient<S extends AbstractUserSession<S>> extends PEndpoint<PClient<S>, S>, BaseUserSession<PClient<S>, S> {
     @Override
     default EndpointType type() {
         return EndpointType.CLIENT;
@@ -32,11 +33,17 @@ public interface PClient extends PEndpoint<PClient>, UserSession<PClient> {
 
     @Override
     default void closeNow() {
-        UserSession.super.closeNow();
+        BaseUserSession.super.closeNow();
     }
 
     @Override
     default Future<Void> closeAsync() {
-        return UserSession.super.closeAsync();
+        return BaseUserSession.super.closeAsync();
     }
+
+    /**
+     * Gets this session's user session instance.
+     * @return this session's user session instance
+     */
+    S userSession();
 }

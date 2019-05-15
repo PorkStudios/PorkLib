@@ -29,13 +29,13 @@ import java.io.IOException;
  *
  * @author DaPorkchop_
  */
-public interface PSession<Impl extends PSession<Impl>> extends CloseableFuture, Reliable<Impl> {
+public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUserSession<S>> extends CloseableFuture, Reliable<Impl> {
     /**
      * Gets the local endpoint associated with this session.
      *
      * @return the local endpoint associated with this session
      */
-    <E extends PEndpoint<E>> E endpoint();
+    <E extends PEndpoint<E, S>> E endpoint();
 
     /**
      * Gets an open channel on this session with a given id.
@@ -43,7 +43,7 @@ public interface PSession<Impl extends PSession<Impl>> extends CloseableFuture, 
      * @param id the id of the channel to get
      * @return a channel with the given id
      */
-    PChannel channel(int id);
+    PChannel<S> channel(int id);
 
     /**
      * Sends a single packet to the remote endpoint.

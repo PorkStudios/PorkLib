@@ -16,13 +16,14 @@
 package net.daporkchop.lib.network.endpoint;
 
 import net.daporkchop.lib.network.EndpointType;
+import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
  * A client that can connect to multiple remote servers concurrently.
  *
  * @author DaPorkchop_
  */
-public interface PMultiClient extends BaseMultiEndpoint<PMultiClient>, Connecting<PMultiClient> {
+public interface PMultiClient<S extends AbstractUserSession<S>> extends BaseMultiEndpoint<PMultiClient<S>, S>, Connecting<PMultiClient<S>> {
     @Override
     default EndpointType type() {
         return EndpointType.MULTI_CLIENT;

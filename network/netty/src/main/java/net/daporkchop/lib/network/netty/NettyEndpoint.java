@@ -31,9 +31,9 @@ import net.daporkchop.lib.network.session.AbstractUserSession;
  */
 @Getter
 @Accessors(fluent = true)
-public abstract class NettyEndpoint<Impl extends PEndpoint<Impl>, C extends Channel, E extends NettyEngine> implements PEndpoint<Impl> {
+public abstract class NettyEndpoint<Impl extends PEndpoint<Impl, S>, S extends AbstractUserSession<S>, C extends Channel, E extends NettyEngine> implements PEndpoint<Impl, S> {
     protected final E transportEngine;
-    protected final Protocol<?, ? extends AbstractUserSession> protocol;
+    protected final Protocol<?, S> protocol;
     protected final EventLoopGroup group;
 
     /**

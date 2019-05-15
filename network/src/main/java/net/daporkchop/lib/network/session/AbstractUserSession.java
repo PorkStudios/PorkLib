@@ -24,6 +24,6 @@ import net.daporkchop.lib.network.transport.NetSession;
  */
 @Getter
 @Accessors(fluent = true)
-public abstract class AbstractUserSession<Impl extends AbstractUserSession<Impl>> implements UserSession<Impl> {
-    protected final NetSession internalSession = null;
+public abstract class AbstractUserSession<S extends AbstractUserSession<S>> implements BaseUserSession<S, S> {
+    protected final NetSession<S> internalSession = null;
 }

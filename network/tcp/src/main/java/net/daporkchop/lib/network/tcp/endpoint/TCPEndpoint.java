@@ -25,12 +25,13 @@ import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.endpoint.builder.EndpointBuilder;
 import net.daporkchop.lib.network.netty.LoopPool;
 import net.daporkchop.lib.network.netty.NettyEndpoint;
+import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.tcp.TCPEngine;
 
 /**
  * @author DaPorkchop_
  */
-public abstract class TCPEndpoint<Impl extends PEndpoint<Impl>, C extends Channel> extends NettyEndpoint<Impl, C, TCPEngine> {
+public abstract class TCPEndpoint<Impl extends PEndpoint<Impl, S>, S extends AbstractUserSession<S>, C extends Channel> extends NettyEndpoint<Impl, S, C, TCPEngine> {
     protected TCPEndpoint(@NonNull EndpointBuilder builder)    {
         super(builder);
     }

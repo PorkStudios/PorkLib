@@ -31,7 +31,7 @@ import java.util.concurrent.Executor;
  */
 @Getter
 @Accessors(chain = true, fluent = true)
-public abstract class EndpointBuilder<Impl extends EndpointBuilder<Impl, R>, R extends PEndpoint> {
+public abstract class EndpointBuilder<Impl extends EndpointBuilder<Impl, R, S>, R extends PEndpoint<R, S>, S extends AbstractUserSession<S>> {
     /**
      * The {@link TransportEngine} to use.
      * <p>
@@ -44,7 +44,7 @@ public abstract class EndpointBuilder<Impl extends EndpointBuilder<Impl, R>, R e
      * <p>
      * Must be set!
      */
-    protected Protocol<?, ? extends AbstractUserSession> protocol;
+    protected Protocol<?, S> protocol;
 
     @SuppressWarnings("unchecked")
     public Impl engine(@NonNull TransportEngine engine) {
@@ -52,11 +52,7 @@ public abstract class EndpointBuilder<Impl extends EndpointBuilder<Impl, R>, R e
         return (Impl) this;
     }
 
-    @SuppressWarnings("unchecked")
-    public Impl protocol(@NonNull Protocol<?, ? extends AbstractUserSession> protocol) {
-        this.protocol = protocol;
-        return (Impl) this;
-    }
+    public abstract <NEW_S extends AbstractUserSession<NEW_S>> EndpointBuilder protocol(@NonNull Protocol<?, NEW_S> protocol);
 
     public R build() {
         this.validate();

@@ -22,6 +22,7 @@ import net.daporkchop.lib.network.endpoint.PMultiClient;
 import net.daporkchop.lib.network.endpoint.PServer;
 import net.daporkchop.lib.network.endpoint.Pp2pEndpoint;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
+import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.Reliability;
 
 import java.net.InetSocketAddress;
@@ -39,34 +40,34 @@ public interface TransportEngine {
      * @param builder the builder to use
      * @return the newly created client
      */
-    PClient createClient(@NonNull ClientBuilder builder);
+    <S extends AbstractUserSession<S>> PClient<S> createClient(@NonNull ClientBuilder<S> builder);
 
     /**
      * Creates a new multi-client.
      * @return the newly created multi-client
      */
-    PMultiClient createMultiClient();
+    //<S extends AbstractUserSession<S>> PMultiClient<S> createMultiClient();
 
     /**
      * Creates a new server that will bind to the given address.
      * @param bindAddress the address that the new server will be bound to
      * @return the newly created server
      */
-    PServer createServer(@NonNull InetSocketAddress bindAddress);
+    //<S extends AbstractUserSession<S>> PServer<S> createServer(@NonNull InetSocketAddress bindAddress);
 
     /**
      * Creates a new multi endpoint that will bind to the given address.
      * @param bindAddress the address that the new multi endpoint will be bound to
      * @return the newly created multi endpoint
      */
-    PMulti createMulti(@NonNull InetSocketAddress bindAddress);
+    //<S extends AbstractUserSession<S>> PMulti<S> createMulti(@NonNull InetSocketAddress bindAddress);
 
     /**
      * Creates a new p2p endpoint that will bind to the given address.
      * @param bindAddress the address that the new p2p endpoint will be bound to
      * @return the newly created p2p endpoint
      */
-    Pp2pEndpoint createP2P(@NonNull InetSocketAddress bindAddress);
+    //<S extends AbstractUserSession<S>> Pp2pEndpoint<S> createP2P(@NonNull InetSocketAddress bindAddress);
 
     //reliability methods
     /**

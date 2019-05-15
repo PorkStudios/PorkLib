@@ -22,21 +22,21 @@ import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.protocol.SimpleProtocol;
-import net.daporkchop.lib.network.session.NoopUserSession;
+import net.daporkchop.lib.network.session.DummyUserSession;
 
 import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-public class MinecraftPingProtocol implements SimpleProtocol<ByteBuf, NoopUserSession>, Logging {
+public class MinecraftPingProtocol implements SimpleProtocol<ByteBuf, DummyUserSession>, Logging {
     @Override
-    public ByteBuf decode(@NonNull DataIn in, @NonNull NoopUserSession session, int channel) throws IOException {
+    public ByteBuf decode(@NonNull DataIn in, @NonNull DummyUserSession session, int channel) throws IOException {
         return ((NettyByteBufIn) in).buf();
     }
 
     @Override
-    public void encode(@NonNull DataOut out, @NonNull ByteBuf packet, @NonNull NoopUserSession session, int channel) throws IOException {
+    public void encode(@NonNull DataOut out, @NonNull ByteBuf packet, @NonNull DummyUserSession session, int channel) throws IOException {
         while (packet.isReadable()) {
             out.write(packet.readByte() & 0xFF);
         }
@@ -44,7 +44,7 @@ public class MinecraftPingProtocol implements SimpleProtocol<ByteBuf, NoopUserSe
     }
 
     @Override
-    public void handle(@NonNull ByteBuf packet, @NonNull NoopUserSession session, int channel) {
+    public void handle(@NonNull ByteBuf packet, @NonNull DummyUserSession session, int channel) {
         logger.debug("Handling packet @ %d bytes", packet.readableBytes());
         switch (MinecraftPacketFramer.readVarInt(packet)) {
             case 0x00:
@@ -61,7 +61,7 @@ public class MinecraftPingProtocol implements SimpleProtocol<ByteBuf, NoopUserSe
     }
 
     @Override
-    public NoopUserSession newSession() {
-        return new NoopUserSession();
+    public DummyUserSession newSession() {
+        return new DummyUserSession();
     }
 }

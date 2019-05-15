@@ -24,7 +24,9 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.tcp.TCPEngine;
 import net.daporkchop.lib.network.tcp.WrapperNioSocketChannel;
 import net.daporkchop.lib.network.transport.ChanneledPacket;
 import net.daporkchop.lib.network.tcp.endpoint.TCPEndpoint;
@@ -37,14 +39,14 @@ import java.util.List;
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public class TCPFramingCodec extends ByteToMessageCodec<ChanneledPacket<ByteBuf>> {
+public class TCPFramingCodec<S extends AbstractUserSession<S>> extends ByteToMessageCodec<ChanneledPacket<ByteBuf>> {
     @NonNull
-    protected final WrapperNioSocketChannel session;
+    protected final WrapperNioSocketChannel<S> session;
 
     @Override
     @SuppressWarnings("unchecked")
     protected void encode(ChannelHandlerContext ctx, ChanneledPacket<ByteBuf> msg, ByteBuf out) throws Exception {
-        this.session.<TCPEndpoint>endpoint().transportEngine().framer().pack(msg, (AbstractUserSession) this.session.userSession(), out);
+        this.session.<TCPEndpoint>endpoint().transportEngine().framer().pack(msg, this.session.userSession(), out);
         msg.packet().release();
     }
 

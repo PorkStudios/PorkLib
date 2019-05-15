@@ -16,18 +16,17 @@
 package net.daporkchop.lib.network.endpoint;
 
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.session.UserSession;
 
 import java.util.Collection;
 
 /**
  * @author DaPorkchop_
  */
-interface BaseMultiEndpoint<Impl extends BaseMultiEndpoint<Impl>> extends PEndpoint<Impl> {
+interface BaseMultiEndpoint<Impl extends BaseMultiEndpoint<Impl, S>, S extends AbstractUserSession<S>> extends PEndpoint<Impl, S> {
     /**
      * Gets all sessions currently connected to this endpoint.
      *
      * @return all sessions currently connected to this endpoint
      */
-    <S extends AbstractUserSession<S>> Collection<S> sessions();
+    Collection<S> sessions();
 }

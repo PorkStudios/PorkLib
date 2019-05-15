@@ -28,14 +28,14 @@ import net.daporkchop.lib.network.transport.TransportEngine;
  *
  * @author DaPorkchop_
  */
-public interface UserSession<Impl extends UserSession<Impl>> extends PSession<Impl> {
+public interface BaseUserSession<Impl extends BaseUserSession<Impl, S>, S extends AbstractUserSession<S>> extends PSession<Impl, S> {
     @Override
-    default <E extends PEndpoint<E>> E endpoint() {
+    default <E extends PEndpoint<E, S>> E endpoint() {
         return this.internalSession().endpoint();
     }
 
     @Override
-    default PChannel channel(int id) {
+    default PChannel<S> channel(int id) {
         return this.internalSession().channel(id);
     }
 
@@ -112,5 +112,5 @@ public interface UserSession<Impl extends UserSession<Impl>> extends PSession<Im
      *
      * @return the internal transport-level session instance
      */
-    NetSession internalSession();
+    NetSession<S> internalSession();
 }

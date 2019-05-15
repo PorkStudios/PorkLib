@@ -35,9 +35,9 @@ import net.daporkchop.lib.network.netty.NettyHandler;
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public class TCPHandler extends NettyHandler implements Logging {
+public class TCPHandler<S extends AbstractUserSession<S>> extends NettyHandler implements Logging {
     @NonNull
-    protected final WrapperNioSocketChannel session;
+    protected final WrapperNioSocketChannel<S> session;
 
     @Override
     @SuppressWarnings("unchecked")
@@ -46,10 +46,10 @@ public class TCPHandler extends NettyHandler implements Logging {
             throw new IllegalArgumentException(msg == null ? "null" : msg.getClass().getCanonicalName());
         }
 
-        Protocol<Object, ? extends AbstractUserSession> protocol = (Protocol<Object, ? extends AbstractUserSession>) this.session.protocol();
-        ChanneledPacket<ByteBuf> pck = (ChanneledPacket<ByteBuf>) msg;
+        Protocol<Object, S> protocol = (Protocol<Object, S>) this.session.protocol();
+        ChanneledPacket pck = (ChanneledPacket) msg;
 
-        Object decoded = protocol.decoder().decode(NettyUtil.wrapIn(pck.packet()), this.session.userSession(), pck.channel());
+        Object decoded = protocol.decoder().decode(NettyUtil.wrapIn((ByteBuf) pck.packet()), this.session.userSession(), pck.channel());
         protocol.handler().handle(decoded, this.session.userSession(), pck.channel());
     }
 

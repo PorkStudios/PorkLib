@@ -36,17 +36,17 @@ import java.util.List;
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public class TCPEncoder extends MessageToMessageEncoder<ChanneledPacket> {
+public class TCPEncoder<S extends AbstractUserSession<S>> extends MessageToMessageEncoder<ChanneledPacket> {
     @NonNull
-    protected final WrapperNioSocketChannel session;
+    protected final WrapperNioSocketChannel<S> session;
 
     @Override
     @SuppressWarnings("unchecked")
     protected void encode(ChannelHandlerContext ctx, ChanneledPacket msg, List<Object> out) throws Exception {
         if (!msg.encoded()) {
             ByteBuf buf = ctx.alloc().ioBuffer();
-            ((Protocol<Object, ? extends AbstractUserSession>) this.session.protocol())
-                    .encoder().encode(NettyUtil.wrapOut(buf), msg.packet(), session.userSession(), msg.channel());
+            ((Protocol<Object, S>) this.session.protocol())
+                    .encoder().encode(NettyUtil.wrapOut(buf), msg.packet(), this.session.userSession(), msg.channel());
             msg.packet(buf).encoded(true);
         }
         out.add(msg);

@@ -31,7 +31,7 @@ public interface Connecting<Impl extends Connecting<Impl>> {
      * @param address the address of the endpoint to connect to
      * @return this instance
      */
-    Connecting<Impl> connect(@NonNull InetSocketAddress address);
+    Impl connect(@NonNull InetSocketAddress address);
 
     /**
      * Connects to a remote endpoint.
@@ -40,7 +40,7 @@ public interface Connecting<Impl extends Connecting<Impl>> {
      * @param port    the port to connect on
      * @return this instance
      */
-    default Connecting<Impl> connect(@NonNull String address, int port) {
+    default Impl connect(@NonNull String address, int port) {
         return this.connect(new InetSocketAddress(address, port));
     }
 }

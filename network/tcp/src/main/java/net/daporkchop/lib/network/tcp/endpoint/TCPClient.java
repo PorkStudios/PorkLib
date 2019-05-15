@@ -22,6 +22,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.network.endpoint.PClient;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.netty.LoopPool;
+import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.transport.NetSession;
 import net.daporkchop.lib.network.tcp.pipeline.TCPChannelInitializer;
 import net.daporkchop.lib.network.tcp.WrapperNioSocketChannel;
@@ -29,26 +30,32 @@ import net.daporkchop.lib.network.tcp.WrapperNioSocketChannel;
 /**
  * @author DaPorkchop_
  */
-public class TCPClient extends TCPEndpoint<PClient, WrapperNioSocketChannel> implements PClient {
+public class TCPClient<S extends AbstractUserSession<S>> extends TCPEndpoint<PClient<S>, S, WrapperNioSocketChannel<S>> implements PClient<S> {
+    @SuppressWarnings("unchecked")
     public TCPClient(@NonNull ClientBuilder builder) {
         super(builder);
 
         try {
             Bootstrap bootstrap = new Bootstrap()
                     .group(this.group)
-                    .channelFactory(() -> new WrapperNioSocketChannel(this))
+                    .channelFactory(() -> new WrapperNioSocketChannel<>(this))
                     .handler(new TCPChannelInitializer<>(this));
 
             this.transportEngine.clientOptions().forEach(bootstrap::option);
 
-            this.channel = (WrapperNioSocketChannel) bootstrap.connect(builder.address()).syncUninterruptibly().channel();
+            this.channel = (WrapperNioSocketChannel<S>) bootstrap.connect(builder.address()).syncUninterruptibly().channel();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public NetSession internalSession() {
+    public NetSession<S> internalSession() {
         return this.channel;
+    }
+
+    @Override
+    public S userSession() {
+        return this.channel.userSession();
     }
 }

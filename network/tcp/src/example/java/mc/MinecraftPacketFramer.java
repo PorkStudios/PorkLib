@@ -18,7 +18,7 @@ package mc;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.session.NoopUserSession;
+import net.daporkchop.lib.network.session.DummyUserSession;
 import net.daporkchop.lib.network.transport.ChanneledPacket;
 import net.daporkchop.lib.network.tcp.Framer;
 
@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * @author DaPorkchop_
  */
-public class MinecraftPacketFramer implements Framer<NoopUserSession>, Logging {
+public class MinecraftPacketFramer implements Framer<DummyUserSession>, Logging {
     protected static int readVarInt(@NonNull ByteBuf buf) {
         int numRead = 0;
         int result = 0;
@@ -58,7 +58,7 @@ public class MinecraftPacketFramer implements Framer<NoopUserSession>, Logging {
     }
 
     @Override
-    public void unpack(@NonNull ByteBuf buf, @NonNull NoopUserSession session, @NonNull List<ChanneledPacket<ByteBuf>> frames) {
+    public void unpack(@NonNull ByteBuf buf, @NonNull DummyUserSession session, @NonNull List<ChanneledPacket<ByteBuf>> frames) {
         int origPos = buf.readerIndex();
         while (buf.readableBytes() >= 2) {
             int size = readVarInt(buf);
@@ -76,7 +76,7 @@ public class MinecraftPacketFramer implements Framer<NoopUserSession>, Logging {
     }
 
     @Override
-    public void pack(@NonNull ChanneledPacket<ByteBuf> packet, @NonNull NoopUserSession session, @NonNull ByteBuf out) {
+    public void pack(@NonNull ChanneledPacket<ByteBuf> packet, @NonNull DummyUserSession session, @NonNull ByteBuf out) {
         writeVarInt(out, packet.packet().readableBytes());
         out.writeBytes(packet.packet());
     }

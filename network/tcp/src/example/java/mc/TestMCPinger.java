@@ -35,13 +35,12 @@ public class TestMCPinger implements Logging {
     public static void main(String... args) {
         logger.enableANSI().setLogAmount(LogAmount.DEBUG).info("Starting client...");
 
-        PClient client = new ClientBuilder()
+        PClient<?> client = ClientBuilder.of(new MinecraftPingProtocol())
                 .engine(TCPEngine.builder()
                         .clientOption(ChannelOption.TCP_NODELAY, true)
                         .framer(new MinecraftPacketFramer())
                         .build())
                 .address(new InetSocketAddress("mc.pepsi.team", 25565))
-                .protocol(new MinecraftPingProtocol())
                 .build();
 
         logger.info("Pinging server...");

@@ -15,16 +15,12 @@
 
 package net.daporkchop.lib.network.endpoint;
 
-import io.netty.util.concurrent.Future;
 import lombok.NonNull;
 import net.daporkchop.lib.network.EndpointType;
 import net.daporkchop.lib.network.protocol.Protocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.session.UserSession;
 import net.daporkchop.lib.network.util.CloseableFuture;
 import net.daporkchop.lib.network.util.TransportEngineHolder;
-
-import java.util.Collection;
 
 /**
  * An endpoint is one of the ends on a connection. Connections consist of two endpoints, one local one and
@@ -32,7 +28,7 @@ import java.util.Collection;
  *
  * @author DaPorkchop_
  */
-public interface PEndpoint<Impl extends PEndpoint<Impl>> extends CloseableFuture, TransportEngineHolder {
+public interface PEndpoint<Impl extends PEndpoint<Impl, S>, S extends AbstractUserSession<S>> extends CloseableFuture, TransportEngineHolder {
     /**
      * @return this endpoint's type
      */

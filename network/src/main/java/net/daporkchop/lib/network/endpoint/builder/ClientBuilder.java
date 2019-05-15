@@ -15,21 +15,30 @@
 
 package net.daporkchop.lib.network.endpoint.builder;
 
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.network.endpoint.PClient;
+import net.daporkchop.lib.network.protocol.Protocol;
+import net.daporkchop.lib.network.session.AbstractUserSession;
 
 import java.net.InetSocketAddress;
 
 /**
  * @author DaPorkchop_
  */
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Setter
 @Accessors(chain = true, fluent = true)
-public class ClientBuilder extends EndpointBuilder<ClientBuilder, PClient> {
+public class ClientBuilder<S extends AbstractUserSession<S>> extends EndpointBuilder<ClientBuilder<S>, PClient<S>, S> {
+    public static <S extends AbstractUserSession<S>> ClientBuilder<S> of(@NonNull Protocol<?, S> protocol)  {
+        return new ClientBuilder<>().protocol(protocol);
+    }
+
     /**
      * The address of the remote endpoint to connect to.
      * <p>
@@ -37,6 +46,13 @@ public class ClientBuilder extends EndpointBuilder<ClientBuilder, PClient> {
      */
     @NonNull
     protected InetSocketAddress address;
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <NEW_S extends AbstractUserSession<NEW_S>> ClientBuilder<NEW_S> protocol(@NonNull Protocol<?, NEW_S> protocol)   {
+        ((ClientBuilder<NEW_S>) this).protocol = protocol;
+        return (ClientBuilder<NEW_S>) this;
+    }
 
     @Override
     protected void validate() {
@@ -47,7 +63,7 @@ public class ClientBuilder extends EndpointBuilder<ClientBuilder, PClient> {
     }
 
     @Override
-    protected PClient doBuild() {
+    protected PClient<S> doBuild() {
         return this.engine.createClient(this);
     }
 }

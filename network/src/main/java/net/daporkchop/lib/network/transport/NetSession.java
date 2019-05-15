@@ -27,27 +27,18 @@ import net.daporkchop.lib.unsafe.PUnsafe;
  *
  * @author DaPorkchop_
  */
-public interface NetSession extends PSession<NetSession> {
+public interface NetSession<S extends AbstractUserSession<S>> extends PSession<NetSession<S>, S> {
     long ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET = PUnsafe.pork_getOffset(AbstractUserSession.class, "internalSession");
 
     /**
      * Gets this session's user session instance
      *
-     * @param <S> the type of the user session
      * @return this session's user session instance
      */
-    <S extends AbstractUserSession<S>> S userSession();
+    S userSession();
 
     /**
      * @return the currently used protocol
      */
-    Protocol<?, ? extends AbstractUserSession> protocol();
-
-    /**
-     * Sets the currently used protocol.
-     *
-     * @param protocol the new protocol to use
-     * @return this session
-     */
-    NetSession protocol(@NonNull Protocol<?, ? extends AbstractUserSession> protocol);
+    Protocol<?, S> protocol(); //TODO: remove
 }

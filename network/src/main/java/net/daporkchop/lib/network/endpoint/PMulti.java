@@ -16,6 +16,7 @@
 package net.daporkchop.lib.network.endpoint;
 
 import net.daporkchop.lib.network.EndpointType;
+import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
  * A merged server/multi-client that can simultaneously accept incoming connections and send multiple
@@ -23,7 +24,7 @@ import net.daporkchop.lib.network.EndpointType;
  *
  * @author DaPorkchop_
  */
-public interface PMulti extends BaseMultiEndpoint<PMulti>, Connecting<PMulti> {
+public interface PMulti<S extends AbstractUserSession<S>> extends BaseMultiEndpoint<PMulti<S>, S>, Connecting<PMulti<S>> {
     @Override
     default EndpointType type() {
         return EndpointType.MULTI;

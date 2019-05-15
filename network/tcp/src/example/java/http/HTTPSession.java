@@ -15,11 +15,14 @@
 
 package http;
 
+import net.daporkchop.lib.concurrent.future.ReturnableFuture;
+import net.daporkchop.lib.concurrent.future.impl.SimpleReturnableFuture;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
  * @author DaPorkchop_
  */
 public class HTTPSession extends AbstractUserSession<HTTPSession> {
-    protected String headers;
+    protected final ReturnableFuture<String> headers = new SimpleReturnableFuture<>();
+    protected String body = "";
 }

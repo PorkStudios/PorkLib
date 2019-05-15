@@ -16,6 +16,7 @@
 package net.daporkchop.lib.network.endpoint;
 
 import net.daporkchop.lib.network.EndpointType;
+import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
  * An extension of {@link PMulti} which is intended for use in peer-to-peer (p2p) applications. This will
@@ -24,7 +25,7 @@ import net.daporkchop.lib.network.EndpointType;
  * @author DaPorkchop_
  */
 //TODO: this class could probably do with a better name :P
-public interface Pp2pEndpoint extends BaseMultiEndpoint<PMulti>, Connecting<PMulti> {
+public interface Pp2pEndpoint<S extends AbstractUserSession<S>> extends BaseMultiEndpoint<Pp2pEndpoint<S>, S>, Connecting<Pp2pEndpoint<S>> {
     @Override
     default EndpointType type() {
         return EndpointType.P2P;

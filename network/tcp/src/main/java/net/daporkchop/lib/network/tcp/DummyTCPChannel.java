@@ -31,24 +31,24 @@ import net.daporkchop.lib.network.transport.TransportEngine;
  */
 @RequiredArgsConstructor
 @Accessors(fluent = true)
-public class DummyTCPChannel implements PChannel {
+public class DummyTCPChannel<S extends AbstractUserSession<S>> implements PChannel<S> {
     @NonNull
-    protected final WrapperNioSocketChannel session;
+    protected final WrapperNioSocketChannel<S> session;
     @Getter
     protected final int id;
 
     @Override
-    public <S extends AbstractUserSession<S>> S session() {
+    public S session() {
         return this.session.userSession();
     }
 
     @Override
-    public NetSession internalSession() {
+    public NetSession<S> internalSession() {
         return this.session;
     }
 
     @Override
-    public PChannel send(@NonNull Object packet, Reliability reliability) {
+    public PChannel<S> send(@NonNull Object packet, Reliability reliability) {
         this.session.send(packet, Reliability.RELIABLE_ORDERED, this.id);
         return this;
     }
@@ -64,7 +64,7 @@ public class DummyTCPChannel implements PChannel {
     }
 
     @Override
-    public PChannel fallbackReliability(@NonNull Reliability reliability) throws IllegalArgumentException {
+    public PChannel<S> fallbackReliability(@NonNull Reliability reliability) throws IllegalArgumentException {
         if (reliability != Reliability.RELIABLE_ORDERED)    {
             throw new IllegalArgumentException(reliability.name());
         }

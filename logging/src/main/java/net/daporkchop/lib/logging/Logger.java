@@ -121,13 +121,6 @@ public interface Logger {
     }
 
     /**
-     * Writes a blank line to the log using the {@link LogLevel#INFO} level.
-     */
-    default Logger info() {
-        return this.log(LogLevel.INFO, "");
-    }
-
-    /**
      * Writes a plain message to the log using the {@link LogLevel#SUCCESS} level.
      *
      * @param message the message to be written
@@ -157,13 +150,6 @@ public interface Logger {
         StringJoiner joiner = new StringJoiner("\n");
         getStackTrace(throwable, joiner::add);
         return this.success(joiner.toString());
-    }
-
-    /**
-     * Writes a blank line to the log using the {@link LogLevel#SUCCESS} level.
-     */
-    default Logger success() {
-        return this.log(LogLevel.SUCCESS, "");
     }
 
     /**
@@ -199,13 +185,6 @@ public interface Logger {
     }
 
     /**
-     * Writes a blank line to the log using the {@link LogLevel#ERROR} level.
-     */
-    default Logger error() {
-        return this.log(LogLevel.ERROR, "");
-    }
-
-    /**
      * Writes a plain message to the log using the {@link LogLevel#FATAL} level.
      *
      * @param message the message to be written
@@ -235,13 +214,6 @@ public interface Logger {
         StringJoiner joiner = new StringJoiner("\n");
         getStackTrace(throwable, joiner::add);
         return this.fatal(joiner.toString());
-    }
-
-    /**
-     * Writes a blank line to the log using the {@link LogLevel#FATAL} level.
-     */
-    default Logger fatal() {
-        return this.log(LogLevel.FATAL, "");
     }
 
     /**
@@ -277,13 +249,6 @@ public interface Logger {
     }
 
     /**
-     * Writes a blank line to the log using the {@link LogLevel#ALERT} level.
-     */
-    default Logger alert() {
-        return this.log(LogLevel.ALERT, "");
-    }
-
-    /**
      * Writes a plain message to the log using the {@link LogLevel#WARN} level.
      *
      * @param message the message to be written
@@ -313,13 +278,6 @@ public interface Logger {
         StringJoiner joiner = new StringJoiner("\n");
         getStackTrace(throwable, joiner::add);
         return this.warn(joiner.toString());
-    }
-
-    /**
-     * Writes a blank line to the log using the {@link LogLevel#WARN} level.
-     */
-    default Logger warn() {
-        return this.log(LogLevel.WARN, "");
     }
 
     /**
@@ -355,13 +313,6 @@ public interface Logger {
     }
 
     /**
-     * Writes a blank line to the log using the {@link LogLevel#TRACE} level.
-     */
-    default Logger trace() {
-        return this.log(LogLevel.TRACE, "");
-    }
-
-    /**
      * Writes a plain message to the log using the {@link LogLevel#DEBUG} level.
      *
      * @param message the message to be written
@@ -391,13 +342,6 @@ public interface Logger {
         StringJoiner joiner = new StringJoiner("\n");
         getStackTrace(throwable, joiner::add);
         return this.debug(joiner.toString());
-    }
-
-    /**
-     * Writes a blank line to the log using the {@link LogLevel#DEBUG} level.
-     */
-    default Logger debug() {
-        return this.log(LogLevel.DEBUG, "");
     }
 
     //

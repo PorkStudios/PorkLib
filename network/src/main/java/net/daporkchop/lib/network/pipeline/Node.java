@@ -20,7 +20,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.network.pipeline.event.ExceptionCaught;
 import net.daporkchop.lib.network.pipeline.event.MessageReceived;
 import net.daporkchop.lib.network.pipeline.event.MessageSent;
-import net.daporkchop.lib.network.pipeline.event.PipelineEvent;
+import net.daporkchop.lib.network.pipeline.event.PipelineHandler;
 import net.daporkchop.lib.network.pipeline.event.SessionClosed;
 import net.daporkchop.lib.network.pipeline.event.SessionOpened;
 import net.daporkchop.lib.network.session.AbstractUserSession;
@@ -39,9 +39,9 @@ import java.util.function.Predicate;
  *
  * @author DaPorkchop_
  */
-abstract class Node<S extends AbstractUserSession<S>> {
+class Node<S extends AbstractUserSession<S>> implements PipelineHandler.Firing<S> {
     protected final String name;
-    protected final PipelineEvent<S> event;
+    protected final PipelineHandler<S> handler;
 
     protected Node<S> next;
     protected Node<S> prev;
@@ -57,12 +57,12 @@ abstract class Node<S extends AbstractUserSession<S>> {
     protected final MessageReceived.Callback<S, Object> messageReceived;
     protected final MessageSent.Callback<S, Object> messageSent;
 
-    public Node(String name, @NonNull PipelineEvent<S> event) {
+    public Node(String name, @NonNull PipelineHandler<S> handler) {
         this.name = name;
-        this.event = event;
+        this.handler = handler;
 
-        if (event instanceof MessageReceived) {
-            this.canReceive = TypeParameterMatcher.find(event, MessageReceived.class, "I");
+        if (handler instanceof MessageReceived) {
+            this.canReceive = TypeParameterMatcher.find(handler, MessageReceived.class, "I");
             this.messageReceived = (session, msg, channel) -> {
                 //not using computeIfAbsent due to lambda allocation
                 Node<S> next = this.postReceivedDelegates.get(msg.getClass());
@@ -75,8 +75,8 @@ abstract class Node<S extends AbstractUserSession<S>> {
             this.canReceive = null;
             this.messageReceived = null;
         }
-        if (event instanceof MessageSent) {
-            this.canSend = TypeParameterMatcher.find(event, MessageSent.class, "I");
+        if (handler instanceof MessageSent) {
+            this.canSend = TypeParameterMatcher.find(handler, MessageSent.class, "I");
             this.messageSent = (session, msg, channel) -> {
                 Node<S> next = this.postSentDelegates.get(msg.getClass());
                 if (next == null) {
@@ -90,24 +90,29 @@ abstract class Node<S extends AbstractUserSession<S>> {
         }
     }
 
-    protected void fireSessionOpened(@NonNull S session) {
-        ((SessionOpened<S>) this.event).sessionOpened(session, this.sessionOpened);
+    @Override
+    public void fireSessionOpened(@NonNull S session) {
+        ((SessionOpened<S>) this.handler).sessionOpened(session, this.sessionOpened);
     }
 
-    protected void fireSessionClosed(@NonNull S session) {
-        ((SessionClosed<S>) this.event).sessionClosed(session, this.sessionClosed);
+    @Override
+    public void fireSessionClosed(@NonNull S session) {
+        ((SessionClosed<S>) this.handler).sessionClosed(session, this.sessionClosed);
     }
 
-    protected void fireExceptionCaught(@NonNull S session, @NonNull Throwable t) {
-        ((ExceptionCaught<S>) this.event).exceptionCaught(session, t, this.exceptionCaught);
+    @Override
+    public void fireExceptionCaught(@NonNull S session, @NonNull Throwable t) {
+        ((ExceptionCaught<S>) this.handler).exceptionCaught(session, t, this.exceptionCaught);
     }
 
-    protected void fireMessageReceived(@NonNull S session, @NonNull Object msg, int channel) {
-        ((MessageReceived<S, Object, Object>) this.event).messageReceived(session, msg, channel, this.messageReceived);
+    @Override
+    public void fireMessageReceived(@NonNull S session, @NonNull Object msg, int channel) {
+        ((MessageReceived<S, Object, Object>) this.handler).messageReceived(session, msg, channel, this.messageReceived);
     }
 
-    protected void fireMessageSent(@NonNull S session, @NonNull Object msg, int channel) {
-        ((MessageSent<S, Object, Object>) this.event).messageSent(session, msg, channel, this.messageSent);
+    @Override
+    public void fireMessageSent(@NonNull S session, @NonNull Object msg, int channel) {
+        ((MessageSent<S, Object, Object>) this.handler).messageSent(session, msg, channel, this.messageSent);
     }
 
     protected void updateRelations() {
@@ -131,8 +136,8 @@ abstract class Node<S extends AbstractUserSession<S>> {
         return this.canSend != null && this.canSend.match(msg);
     }
 
-    protected Node<S> findNextMatchingEvent(@NonNull Predicate<PipelineEvent<S>> condition) {
-        return this.findNextMatchingNode(node -> condition.test(node.event));
+    protected Node<S> findNextMatchingEvent(@NonNull Predicate<PipelineHandler<S>> condition) {
+        return this.findNextMatchingNode(node -> condition.test(node.handler));
     }
 
     protected Node<S> findNextMatchingNode(@NonNull Predicate<Node<S>> condition) {
@@ -143,8 +148,8 @@ abstract class Node<S extends AbstractUserSession<S>> {
         return curr;
     }
 
-    protected Node<S> findPrevMatchingEvent(@NonNull Predicate<PipelineEvent<S>> condition) {
-        return this.findPrevMatchingNode(node -> condition.test(node.event));
+    protected Node<S> findPrevMatchingEvent(@NonNull Predicate<PipelineHandler<S>> condition) {
+        return this.findPrevMatchingNode(node -> condition.test(node.handler));
     }
 
     protected Node<S> findPrevMatchingNode(@NonNull Predicate<Node<S>> condition) {

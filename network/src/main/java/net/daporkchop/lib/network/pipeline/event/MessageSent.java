@@ -22,7 +22,7 @@ import net.daporkchop.lib.network.session.AbstractUserSession;
  * @author DaPorkchop_
  */
 @FunctionalInterface
-public interface MessageSent<S extends AbstractUserSession<S>, I, O> extends PipelineEvent<S> {
+public interface MessageSent<S extends AbstractUserSession<S>, I, O> extends PipelineHandler<S> {
     /**
      * Called every time a message is being sent.
      *

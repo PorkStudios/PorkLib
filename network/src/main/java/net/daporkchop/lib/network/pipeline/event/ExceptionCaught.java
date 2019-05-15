@@ -22,7 +22,7 @@ import net.daporkchop.lib.network.session.AbstractUserSession;
  * @author DaPorkchop_
  */
 @FunctionalInterface
-public interface ExceptionCaught<S extends AbstractUserSession<S>> extends PipelineEvent<S> {
+public interface ExceptionCaught<S extends AbstractUserSession<S>> extends PipelineHandler<S> {
     /**
      * Called every time an exception is caught while encoding, decoding, handling or otherwise processing a session.
      *

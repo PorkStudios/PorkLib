@@ -15,14 +15,10 @@
 
 package net.daporkchop.lib.network.pipeline;
 
-import lombok.NonNull;
 import net.daporkchop.lib.logging.Logger;
 import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.pipeline.event.PipelineEvent;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.unsafe.PUnsafe;
-
-import java.util.StringJoiner;
 
 /**
  * The node at the tail of the pipeline. This node will be the last to receive inbound packets/events and the first
@@ -30,9 +26,9 @@ import java.util.StringJoiner;
  *
  * @author DaPorkchop_
  */
-public class Tail<S extends AbstractUserSession<S>> extends PipelineEdge<S> implements Logging {
-    public Tail(PipelineEvent<S> event) {
-        super(event);
+public class Tail<S extends AbstractUserSession<S>> extends Edge<S> implements Logging {
+    public Tail(Filter<S> filter) {
+        super(filter);
     }
 
     @Override

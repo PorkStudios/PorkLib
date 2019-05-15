@@ -15,8 +15,6 @@
 
 package net.daporkchop.lib.network.pipeline;
 
-import lombok.NonNull;
-import net.daporkchop.lib.network.pipeline.event.PipelineEvent;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
@@ -24,9 +22,9 @@ import net.daporkchop.lib.network.session.AbstractUserSession;
  *
  * @author DaPorkchop_
  */
-abstract class PipelineEdge<S extends AbstractUserSession<S>> extends Node<S> {
-    public PipelineEdge(PipelineEvent<S> event) {
-        super(null, event);
+abstract class Edge<S extends AbstractUserSession<S>> extends Node<S> {
+    public Edge(Filter<S> filter) {
+        super(null, filter);
     }
 
     @Override

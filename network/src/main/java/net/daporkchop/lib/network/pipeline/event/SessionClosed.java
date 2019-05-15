@@ -22,7 +22,7 @@ import net.daporkchop.lib.network.session.AbstractUserSession;
  * @author DaPorkchop_
  */
 @FunctionalInterface
-public interface SessionClosed<S extends AbstractUserSession<S>> extends PipelineEvent<S> {
+public interface SessionClosed<S extends AbstractUserSession<S>> extends PipelineHandler<S> {
     /**
      * Called every time a session is closed.
      *

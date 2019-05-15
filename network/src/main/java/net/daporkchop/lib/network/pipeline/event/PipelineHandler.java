@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.network.pipeline.event;
 
+import lombok.NonNull;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
@@ -22,10 +23,19 @@ import net.daporkchop.lib.network.session.AbstractUserSession;
  *
  * @author DaPorkchop_
  */
-public interface PipelineEvent<S extends AbstractUserSession<S>> {
+public interface PipelineHandler<S extends AbstractUserSession<S>> {
     /**
      * A class that can fire pipeline events.
      */
-    interface Firing {
+    interface Firing<S extends AbstractUserSession<S>> {
+        void fireSessionOpened(@NonNull S session);
+
+        void fireSessionClosed(@NonNull S session);
+
+        void fireExceptionCaught(@NonNull S session, @NonNull Throwable t);
+
+        void fireMessageReceived(@NonNull S session, @NonNull Object msg, int channel);
+
+        void fireMessageSent(@NonNull S session, @NonNull Object msg, int channel);
     }
 }

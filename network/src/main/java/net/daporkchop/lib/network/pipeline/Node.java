@@ -39,7 +39,7 @@ import java.util.function.Predicate;
  *
  * @author DaPorkchop_
  */
-class Node<S extends AbstractUserSession<S>> implements PipelineHandler.Firing<S> {
+class Node<S extends AbstractUserSession<S>> implements PipelineHandler.Events<S> {
     protected final String name;
     protected final PipelineHandler<S> handler;
 
@@ -69,7 +69,7 @@ class Node<S extends AbstractUserSession<S>> implements PipelineHandler.Firing<S
                 if (next == null) {
                     this.postReceivedDelegates.put(msg.getClass(), next = this.findNextMatchingNode(node -> node.canReceive(msg)));
                 }
-                next.fireMessageReceived(session, msg, channel);
+                next.messageReceived(session, msg, channel);
             };
         } else {
             this.canReceive = null;
@@ -82,7 +82,7 @@ class Node<S extends AbstractUserSession<S>> implements PipelineHandler.Firing<S
                 if (next == null) {
                     this.postSentDelegates.put(msg.getClass(), next = this.findPrevMatchingNode(node -> node.canSend(msg)));
                 }
-                next.fireMessageSent(session, msg, channel);
+                next.messageSent(session, msg, channel);
             };
         } else {
             this.canSend = null;
@@ -91,27 +91,27 @@ class Node<S extends AbstractUserSession<S>> implements PipelineHandler.Firing<S
     }
 
     @Override
-    public void fireSessionOpened(@NonNull S session) {
+    public void sessionOpened(@NonNull S session) {
         ((SessionOpened<S>) this.handler).sessionOpened(session, this.sessionOpened);
     }
 
     @Override
-    public void fireSessionClosed(@NonNull S session) {
+    public void sessionClosed(@NonNull S session) {
         ((SessionClosed<S>) this.handler).sessionClosed(session, this.sessionClosed);
     }
 
     @Override
-    public void fireExceptionCaught(@NonNull S session, @NonNull Throwable t) {
+    public void exceptionCaught(@NonNull S session, @NonNull Throwable t) {
         ((ExceptionCaught<S>) this.handler).exceptionCaught(session, t, this.exceptionCaught);
     }
 
     @Override
-    public void fireMessageReceived(@NonNull S session, @NonNull Object msg, int channel) {
+    public void messageReceived(@NonNull S session, @NonNull Object msg, int channel) {
         ((MessageReceived<S, Object, Object>) this.handler).messageReceived(session, msg, channel, this.messageReceived);
     }
 
     @Override
-    public void fireMessageSent(@NonNull S session, @NonNull Object msg, int channel) {
+    public void messageSent(@NonNull S session, @NonNull Object msg, int channel) {
         ((MessageSent<S, Object, Object>) this.handler).messageSent(session, msg, channel, this.messageSent);
     }
 
@@ -123,9 +123,9 @@ class Node<S extends AbstractUserSession<S>> implements PipelineHandler.Firing<S
     }
 
     protected void updateSelf() {
-        this.sessionOpened = this.findNextMatchingEvent(SessionOpened.class::isInstance)::fireSessionOpened;
-        this.sessionClosed = this.findNextMatchingEvent(SessionClosed.class::isInstance)::fireSessionClosed;
-        this.exceptionCaught = this.findNextMatchingEvent(ExceptionCaught.class::isInstance)::fireExceptionCaught;
+        this.sessionOpened = this.findNextMatchingEvent(SessionOpened.class::isInstance)::sessionOpened;
+        this.sessionClosed = this.findNextMatchingEvent(SessionClosed.class::isInstance)::sessionClosed;
+        this.exceptionCaught = this.findNextMatchingEvent(ExceptionCaught.class::isInstance)::exceptionCaught;
     }
 
     protected boolean canReceive(Object msg)    {

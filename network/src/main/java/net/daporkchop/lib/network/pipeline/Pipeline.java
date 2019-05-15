@@ -17,6 +17,7 @@ package net.daporkchop.lib.network.pipeline;
 
 import lombok.NonNull;
 import net.daporkchop.lib.network.pipeline.event.PipelineHandler;
+import net.daporkchop.lib.network.pipeline.handler.PipelineEventAdapter;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -29,14 +30,14 @@ import java.util.function.Predicate;
 /**
  * @author DaPorkchop_
  */
-public class Pipeline<S extends AbstractUserSession<S>> implements PipelineHandler.Firing<S> {
+public class Pipeline<S extends AbstractUserSession<S>> implements PipelineHandler.Events<S> {
     protected final Head<S> head;
     protected final Tail<S> tail;
 
     protected final Lock readLock; //less pointer chasing!
     protected final Lock writeLock;
 
-    public Pipeline(@NonNull Filter<S> head, @NonNull Filter<S> tail)   {
+    public Pipeline(@NonNull PipelineEventAdapter<S> head, @NonNull PipelineEventAdapter<S> tail)   {
         this(new Head<>(head), new Tail<>(tail));
     }
 
@@ -50,50 +51,50 @@ public class Pipeline<S extends AbstractUserSession<S>> implements PipelineHandl
     }
 
     @Override
-    public void fireSessionOpened(@NonNull S session) {
+    public void sessionOpened(@NonNull S session) {
         this.readLock.lock();
         try {
-            this.head.fireSessionOpened(session);
+            this.head.sessionOpened(session);
         } finally {
             this.readLock.unlock();
         }
     }
 
     @Override
-    public void fireSessionClosed(@NonNull S session) {
+    public void sessionClosed(@NonNull S session) {
         this.readLock.lock();
         try {
-            this.head.fireSessionClosed(session);
+            this.head.sessionClosed(session);
         } finally {
             this.readLock.unlock();
         }
     }
 
     @Override
-    public void fireExceptionCaught(@NonNull S session, @NonNull Throwable t) {
+    public void exceptionCaught(@NonNull S session, @NonNull Throwable t) {
         this.readLock.lock();
         try {
-            this.head.fireExceptionCaught(session, t);
+            this.head.exceptionCaught(session, t);
         } finally {
             this.readLock.unlock();
         }
     }
 
     @Override
-    public void fireMessageReceived(@NonNull S session, @NonNull Object msg, int channel) {
+    public void messageReceived(@NonNull S session, @NonNull Object msg, int channel) {
         this.readLock.lock();
         try {
-            this.head.fireMessageReceived(session, msg, channel);
+            this.head.messageReceived(session, msg, channel);
         } finally {
             this.readLock.unlock();
         }
     }
 
     @Override
-    public void fireMessageSent(@NonNull S session, @NonNull Object msg, int channel) {
+    public void messageSent(@NonNull S session, @NonNull Object msg, int channel) {
         this.readLock.lock();
         try {
-            this.tail.fireMessageSent(session, msg, channel);
+            this.tail.messageSent(session, msg, channel);
         } finally {
             this.readLock.unlock();
         }

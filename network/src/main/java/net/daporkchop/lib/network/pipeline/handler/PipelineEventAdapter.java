@@ -13,29 +13,32 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol;
+package net.daporkchop.lib.network.pipeline.handler;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.network.pipeline.event.ExceptionCaught;
+import net.daporkchop.lib.network.pipeline.event.MessageReceived;
+import net.daporkchop.lib.network.pipeline.event.MessageSent;
+import net.daporkchop.lib.network.pipeline.event.SessionClosed;
+import net.daporkchop.lib.network.pipeline.event.SessionOpened;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
-import java.io.IOException;
-
 /**
- * Encodes packets from their object form into their binary form.
- *
  * @author DaPorkchop_
  */
-@FunctionalInterface
-public interface Encoder<P, S extends AbstractUserSession<S>> {
-    /**
-     * Encodes a packet.
-     *
-     * @param out     a {@link DataOut} to write packet data to
-     * @param packet  the packet to encode
-     * @param session the session that the packet will be sent on
-     * @param channel the channel that the packet will be sent on
-     * @throws IOException if an IO exception occurs you dummy
-     */
-    void encode(@NonNull DataOut out, @NonNull P packet, @NonNull S session, int channel) throws IOException;
+public interface PipelineEventAdapter<S extends AbstractUserSession<S>> extends SessionOpened<S>, SessionClosed<S>, ExceptionCaught<S> {
+    @Override
+    default void sessionOpened(@NonNull S session, @NonNull SessionOpened.Callback<S> next) {
+        next.sessionOpened(session);
+    }
+
+    @Override
+    default void sessionClosed(@NonNull S session, @NonNull SessionClosed.Callback<S> next) {
+        next.sessionClosed(session);
+    }
+
+    @Override
+    default void exceptionCaught(@NonNull S session, @NonNull Throwable t, @NonNull ExceptionCaught.Callback<S> next) {
+        next.exceptionCaught(session, t);
+    }
 }

@@ -27,15 +27,15 @@ public interface PipelineHandler<S extends AbstractUserSession<S>> {
     /**
      * A class that can fire pipeline events.
      */
-    interface Firing<S extends AbstractUserSession<S>> {
-        void fireSessionOpened(@NonNull S session);
+    interface Events<S extends AbstractUserSession<S>> {
+        void sessionOpened(@NonNull S session);
 
-        void fireSessionClosed(@NonNull S session);
+        void sessionClosed(@NonNull S session);
 
-        void fireExceptionCaught(@NonNull S session, @NonNull Throwable t);
+        void exceptionCaught(@NonNull S session, @NonNull Throwable t);
 
-        void fireMessageReceived(@NonNull S session, @NonNull Object msg, int channel);
+        void messageReceived(@NonNull S session, @NonNull Object msg, int channel);
 
-        void fireMessageSent(@NonNull S session, @NonNull Object msg, int channel);
+        void messageSent(@NonNull S session, @NonNull Object msg, int channel);
     }
 }

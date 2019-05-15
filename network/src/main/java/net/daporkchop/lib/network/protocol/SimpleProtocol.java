@@ -22,24 +22,9 @@ import net.daporkchop.lib.network.session.AbstractUserSession;
  *
  * @author DaPorkchop_
  */
-public interface SimpleProtocol<P, S extends AbstractUserSession<S>> extends Protocol<P, S>, SessionFactory<S>, Encoder<P, S>, Decoder<P, S>, Handler<P, S> {
+public interface SimpleProtocol<P, S extends AbstractUserSession<S>> extends Protocol<P, S>, SessionFactory<S> {
     @Override
     default SessionFactory<S> sessionFactory() {
-        return this;
-    }
-
-    @Override
-    default Encoder<P, S> encoder() {
-        return this;
-    }
-
-    @Override
-    default Decoder<P, S> decoder() {
-        return this;
-    }
-
-    @Override
-    default Handler<P, S> handler() {
         return this;
     }
 }

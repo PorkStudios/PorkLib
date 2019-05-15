@@ -27,19 +27,4 @@ public interface Protocol<P, S extends AbstractUserSession<S>> {
      * @return this protocol's session factory
      */
     SessionFactory<S> sessionFactory();
-
-    /**
-     * @return this protocol's packet encoder
-     */
-    Encoder<P, S> encoder();
-
-    /**
-     * @return this protocol's packet decoder
-     */
-    Decoder<P, S> decoder();
-
-    /**
-     * @return this protocol's packet handler
-     */
-    Handler<P, S> handler();
 }

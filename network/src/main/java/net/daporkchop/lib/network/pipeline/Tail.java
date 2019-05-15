@@ -17,6 +17,7 @@ package net.daporkchop.lib.network.pipeline;
 
 import net.daporkchop.lib.logging.Logger;
 import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.network.pipeline.handler.PipelineEventAdapter;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
@@ -27,7 +28,7 @@ import net.daporkchop.lib.unsafe.PUnsafe;
  * @author DaPorkchop_
  */
 public class Tail<S extends AbstractUserSession<S>> extends Edge<S> implements Logging {
-    public Tail(Filter<S> filter) {
+    public Tail(PipelineEventAdapter<S> filter) {
         super(filter);
     }
 

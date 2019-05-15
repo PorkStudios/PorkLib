@@ -15,16 +15,70 @@
 
 package net.daporkchop.lib.network.pipeline;
 
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import net.daporkchop.lib.network.pipeline.event.ExceptionCaught;
+import net.daporkchop.lib.network.pipeline.event.MessageReceived;
+import net.daporkchop.lib.network.pipeline.event.MessageSent;
+import net.daporkchop.lib.network.pipeline.event.SessionClosed;
+import net.daporkchop.lib.network.pipeline.event.SessionOpened;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
- * The base for all nodes in a pipeline.
+ * Holds all the filters in place.
+ * <p>
+ * Basically just a glorified node from a doubly-linked list.
  *
  * @author DaPorkchop_
  */
-abstract class Node<S extends AbstractUserSession<S>> {
-    protected String name;
+@RequiredArgsConstructor
+@Getter
+@Setter
+public abstract class Node<S extends AbstractUserSession<S>> {
+    protected final String name;
+    protected final Filter<S> filter;
 
     protected Node<S> next;
     protected Node<S> prev;
+
+    protected SessionOpened.Callback<S> sessionOpened;
+    protected SessionClosed.Callback<S> sessionClosed;
+    protected ExceptionCaught.Callback<S> exceptionCaught;
+    protected MessageReceived.Callback<S, Object> messageReceived;
+    protected MessageSent.Callback<S, Object> messageSent;
+
+    protected void fireSessionOpened(@NonNull S session) {
+        this.filter.sessionOpened(session, this.sessionOpened);
+    }
+
+    protected void fireSessionClosed(@NonNull S session) {
+        this.filter.sessionClosed(session, this.sessionClosed);
+    }
+
+    protected void fireExceptionCaught(@NonNull S session, @NonNull Throwable t) {
+        this.filter.exceptionCaught(session, t, this.exceptionCaught);
+    }
+
+    protected void fireMessageReceived(@NonNull S session, @NonNull Object msg, int channel) {
+        this.filter.messageReceived(session, msg, channel, this.messageReceived);
+    }
+
+    protected void fireMessageSent(@NonNull S session, @NonNull Object msg, int channel) {
+        this.filter.messageSent(session, msg, channel, this.messageSent);
+    }
+
+    protected void updateRelations()  {
+        this.next.prev = this;
+    }
+
+    protected void updateSelf()  {
+        this.sessionOpened = this.next::fireSessionOpened;
+        this.sessionClosed = this.next::fireSessionClosed;
+        this.exceptionCaught = this.next::fireExceptionCaught;
+
+        this.messageReceived = this.next::fireMessageReceived; //TODO: have these two events find the first compatible filter in the pipeline
+        this.messageSent = this.next::fireMessageSent;
+    }
 }

@@ -15,21 +15,30 @@
 
 package net.daporkchop.lib.network.pipeline;
 
+import lombok.NonNull;
+import net.daporkchop.lib.network.pipeline.event.ExceptionCaught;
+import net.daporkchop.lib.network.pipeline.event.MessageReceived;
+import net.daporkchop.lib.network.pipeline.event.MessageSent;
+import net.daporkchop.lib.network.pipeline.event.SessionClosed;
+import net.daporkchop.lib.network.pipeline.event.SessionOpened;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
- * The node at the tail of the pipeline. This node will be the last to receive inbound packets/events and the first
- * to receive outbound packets.
- *
  * @author DaPorkchop_
  */
-abstract class Tail<S extends AbstractUserSession<S>> extends Node<S> {
-    public Tail() {
-        super(null, null);
+public interface Filter<S extends AbstractUserSession<S>> extends SessionOpened<S>, SessionClosed<S>, ExceptionCaught<S> {
+    @Override
+    default void sessionOpened(@NonNull S session, @NonNull SessionOpened.Callback<S> next) {
+        next.sessionOpened(session);
     }
 
     @Override
-    protected void updateRelations() {
-        this.next.prev = this;
+    default void sessionClosed(@NonNull S session, @NonNull SessionClosed.Callback<S> next) {
+        next.sessionClosed(session);
+    }
+
+    @Override
+    default void exceptionCaught(@NonNull S session, @NonNull Throwable t, @NonNull ExceptionCaught.Callback<S> next) {
+        next.exceptionCaught(session, t);
     }
 }

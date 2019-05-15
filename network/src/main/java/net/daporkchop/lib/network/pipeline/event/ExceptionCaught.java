@@ -13,14 +13,27 @@
  *
  */
 
-package net.daporkchop.lib.network.pipeline;
+package net.daporkchop.lib.network.pipeline.event;
 
+import lombok.NonNull;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
- * Handles inbound packets (packets that are being decoded for processing).
- *
  * @author DaPorkchop_
  */
-interface InboundNode<I, O, S extends AbstractUserSession<S>> {
+@FunctionalInterface
+public interface ExceptionCaught<S extends AbstractUserSession<S>> {
+    /**
+     * Called every time an exception is caught while encoding, decoding, handling or otherwise processing a session.
+     *
+     * @param session the session that the exception was caught on
+     * @param t       the exception that was caught
+     * @param next    delegates the event to the next node in the pipeline
+     */
+    void exceptionCaught(@NonNull S session, @NonNull Throwable t, @NonNull Callback<S> next);
+
+    @FunctionalInterface
+    interface Callback<S extends AbstractUserSession> {
+        void exceptionCaught(@NonNull S session, @NonNull Throwable t);
+    }
 }

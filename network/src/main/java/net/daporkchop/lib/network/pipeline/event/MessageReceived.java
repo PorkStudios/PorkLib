@@ -13,14 +13,28 @@
  *
  */
 
-package net.daporkchop.lib.network.pipeline;
+package net.daporkchop.lib.network.pipeline.event;
 
+import lombok.NonNull;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
- * Filters outbound packets (packets that are being encoded for sending).
- *
  * @author DaPorkchop_
  */
-interface OutboundNode<I, O, S extends AbstractUserSession<S>> {
+@FunctionalInterface
+public interface MessageReceived<S extends AbstractUserSession<S>, I, O> {
+    /**
+     * Called every time a message is received.
+     *
+     * @param session the session that received the message
+     * @param msg     the message that was received
+     * @param channel the id of the channel that the message was received on
+     * @param next    delegates the event to the next node in the pipeline
+     */
+    void messageReceived(@NonNull S session, @NonNull I msg, int channel, @NonNull Callback<S, O> next);
+
+    @FunctionalInterface
+    interface Callback<S extends AbstractUserSession<S>, O> {
+        void messageReceived(@NonNull S session, @NonNull O msg, int channel);
+    }
 }

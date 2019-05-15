@@ -13,23 +13,28 @@
  *
  */
 
-package net.daporkchop.lib.network.pipeline;
+package net.daporkchop.lib.network.pipeline.event;
 
+import lombok.NonNull;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
- * The node at the tail of the pipeline. This node will be the last to receive inbound packets/events and the first
- * to receive outbound packets.
- *
  * @author DaPorkchop_
  */
-abstract class Tail<S extends AbstractUserSession<S>> extends Node<S> {
-    public Tail() {
-        super(null, null);
-    }
+@FunctionalInterface
+public interface MessageSent<S extends AbstractUserSession<S>, I, O> {
+    /**
+     * Called every time a message is being sent.
+     *
+     * @param session the session that will be sending the message
+     * @param msg     the message that will be sent
+     * @param channel the id of the channel that the message will be sent on
+     * @param next    delegates the event to the next node in the pipeline
+     */
+    void messageSent(@NonNull S session, @NonNull I msg, int channel, @NonNull Callback<S, O> next);
 
-    @Override
-    protected void updateRelations() {
-        this.next.prev = this;
+    @FunctionalInterface
+    interface Callback<S extends AbstractUserSession<S>, O> {
+        void messageSent(@NonNull S session, @NonNull O msg, int channel);
     }
 }

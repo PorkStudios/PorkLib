@@ -23,5 +23,8 @@ import net.daporkchop.lib.network.session.AbstractUserSession;
  *
  * @author DaPorkchop_
  */
-abstract class Head<S extends AbstractUserSession<S>> extends Node<S> implements OutboundNode<Object, Object, S> {
+abstract class Head<S extends AbstractUserSession<S>> extends Node<S> {
+    public Head() {
+        super(null, null);
+    }
 }

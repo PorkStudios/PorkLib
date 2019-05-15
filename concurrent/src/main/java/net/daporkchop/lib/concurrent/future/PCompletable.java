@@ -13,34 +13,47 @@
  *
  */
 
-import net.daporkchop.lib.common.function.throwing.ERunnable;
-import net.daporkchop.lib.concurrent.future.PCompletable;
-import net.daporkchop.lib.concurrent.tasks.TaskExecutor;
-import net.daporkchop.lib.concurrent.tasks.impl.SimpleThreadPoolTaskExecutor;
+package net.daporkchop.lib.concurrent.future;
+
+import lombok.NonNull;
 
 import java.util.concurrent.TimeUnit;
 
 /**
+ * Waits until a specific task has been completed.
+ *
  * @author DaPorkchop_
  */
-public class ExecutorExample {
-    public static void main(String... args) {
-        TaskExecutor executor = SimpleThreadPoolTaskExecutor.builder()
-                .setCorePoolSize(2)
-                .setMaxPoolSize(4)
-                .setThreadKeepAliveTime(TimeUnit.SECONDS.toMillis(5L))
-                .build();
+public interface PCompletable extends BaseFuture<Void> {
+    /**
+     * Await completion of the task.
+     * <p>
+     * This method will block until the task has been completed.
+     */
+    void sync();
 
-        long time = System.currentTimeMillis();
-        PCompletable[] futures = new PCompletable[8];
-        for (int i = futures.length - 1; i >= 0; i--)   {
-            futures[i] = executor.submit((ERunnable) () -> Thread.sleep(5000L));
-        }
-        for (int i = futures.length - 1; i >= 0; i--)   {
-            futures[i].sync();
-        }
-        System.out.printf("Took %dms to wait %d*5000ms\n", System.currentTimeMillis() - time, futures.length);
+    /**
+     * @see #sync()
+     */
+    void syncInterruptably() throws InterruptedException;
 
-        executor.close();
+    /**
+     * @param time the maximum number of milliseconds to wait for
+     * @see #sync()
+     */
+    void sync(long time);
+
+    /**
+     * @param unit the time unit
+     * @param time the maximum number of units to wait for
+     * @see #sync()
+     */
+    default void sync(@NonNull TimeUnit unit, long time) {
+        this.sync(unit.toMillis(time));
     }
+
+    /**
+     * Completes the task, waking up all waiting threads.
+     */
+    void complete();
 }

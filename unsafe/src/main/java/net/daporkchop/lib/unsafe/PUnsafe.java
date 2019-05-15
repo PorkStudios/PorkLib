@@ -531,18 +531,18 @@ public abstract class PUnsafe {
     public static <V> V pork_swapObject(Object o, long pos, Object newValue) {
         Object v;
         do {
-            v = getObjectVolatile(o, pos);
-        } while (!compareAndSwapObject(o, pos, v, newValue));
+            v = UNSAFE.getObjectVolatile(o, pos);
+        } while (!UNSAFE.compareAndSwapObject(o, pos, v, newValue));
         return (V) v;
     }
 
     public static boolean pork_checkSwapIfNonNull(Object o, long pos, Object newValue) {
         Object v;
         do {
-            if ((v = getObjectVolatile(o, pos)) == null) {
+            if ((v = UNSAFE.getObjectVolatile(o, pos)) == null) {
                 return false;
             }
-        } while (!compareAndSwapObject(o, pos, v, newValue));
+        } while (!UNSAFE.compareAndSwapObject(o, pos, v, newValue));
         return true;
     }
 
@@ -550,10 +550,10 @@ public abstract class PUnsafe {
     public static <V> V pork_swapIfNonNull(Object o, long pos, Object newValue) {
         Object v;
         do {
-            if ((v = getObjectVolatile(o, pos)) == null) {
+            if ((v = UNSAFE.getObjectVolatile(o, pos)) == null) {
                 return null;
             }
-        } while (!compareAndSwapObject(o, pos, v, newValue));
+        } while (!UNSAFE.compareAndSwapObject(o, pos, v, newValue));
         return (V) v;
     }
 

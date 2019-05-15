@@ -22,10 +22,11 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.PCollections;
 import net.daporkchop.lib.common.misc.Tuple;
-import net.daporkchop.lib.concurrent.future.Future;
-import net.daporkchop.lib.concurrent.future.ReturnableFuture;
-import net.daporkchop.lib.concurrent.future.impl.SimpleFuture;
-import net.daporkchop.lib.concurrent.future.impl.SimpleReturnableFuture;
+import net.daporkchop.lib.concurrent.future.BaseFuture;
+import net.daporkchop.lib.concurrent.future.PCompletable;
+import net.daporkchop.lib.concurrent.future.PFuture;
+import net.daporkchop.lib.concurrent.future.impl.PCompletableImpl;
+import net.daporkchop.lib.concurrent.future.impl.PFutureImpl;
 import net.daporkchop.lib.concurrent.synchronization.NotificationQueue;
 import net.daporkchop.lib.concurrent.synchronization.impl.JavaNotificationQueue;
 import net.daporkchop.lib.concurrent.tasks.TaskExecutor;
@@ -34,12 +35,14 @@ import net.daporkchop.lib.unsafe.PUnsafe;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
@@ -72,7 +75,7 @@ public class SimpleThreadPoolTaskExecutor implements TaskExecutor {
     protected final long threadKeepAliveTime;
     protected final Collection<Thread> corePool;
     protected final Collection<Thread> supplementaryPool;
-    protected volatile Deque<Tuple<Runnable, Future>> tasks = new ConcurrentLinkedDeque<>();
+    protected volatile Deque<Consumer<Throwable>> tasks = new ConcurrentLinkedDeque<>();
     protected final NotificationQueue notificationQueue = new JavaNotificationQueue();
     protected final AtomicInteger activeTasks = new AtomicInteger();
     protected final ReadWriteLock closingLock = new ReentrantReadWriteLock();
@@ -101,22 +104,26 @@ public class SimpleThreadPoolTaskExecutor implements TaskExecutor {
     }
 
     @Override
-    public Future submit(@NonNull Runnable task) {
+    public PCompletable submit(@NonNull Runnable task) {
         this.closingLock.readLock().lock();
         try {
             if (this.closingDown != 0) {
                 throw new IllegalStateException("Executor stopped!");
             }
-            Future future = new SimpleFuture();
-            this.tasks.addLast(new Tuple<>(() -> {
-                try {
-                    task.run();
-                    future.complete();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    future.completeExceptionally(e);
+            PCompletable future = new PCompletableImpl();
+            this.tasks.addLast(t -> {
+                if (t != null)  {
+                    future.completeExceptionally(t);
+                } else {
+                    try {
+                        task.run();
+                        future.complete();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        future.completeExceptionally(e);
+                    }
                 }
-            }, future));
+            });
             this.considerNewWorkers();
             return future;
         } finally {
@@ -125,21 +132,25 @@ public class SimpleThreadPoolTaskExecutor implements TaskExecutor {
     }
 
     @Override
-    public <T> ReturnableFuture<T> submit(@NonNull Supplier<T> task) {
+    public <T> PFuture<T> submit(@NonNull Supplier<T> task) {
         this.closingLock.readLock().lock();
         try {
             if (this.closingDown != 0) {
                 throw new IllegalStateException("Executor stopped!");
             }
-            ReturnableFuture<T> future = new SimpleReturnableFuture<>();
-            this.tasks.addLast(new Tuple<>(() -> {
-                try {
-                    future.complete(task.get());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    future.completeExceptionally(e);
+            PFuture<T> future = new PFutureImpl<>();
+            this.tasks.addLast(t -> {
+                if (t != null)  {
+                    future.completeExceptionally(t);
+                } else {
+                    try {
+                        future.complete(task.get());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        future.completeExceptionally(e);
+                    }
                 }
-            }, future));
+            });
             this.considerNewWorkers();
             return future;
         } finally {
@@ -180,9 +191,9 @@ public class SimpleThreadPoolTaskExecutor implements TaskExecutor {
                 throw new IllegalStateException("Already stopped!");
             }
             if (cancel) {
-                InterruptedException e = new InterruptedException();
-                for (Tuple<Runnable, Future> tuple : this.tasks) {
-                    tuple.getB().completeExceptionally(e);
+                Exception e = new CancellationException();
+                for (Consumer<Throwable> task : this.tasks) {
+                    task.accept(e);
                 }
                 this.tasks = PCollections.emptyDeque();
             }
@@ -198,16 +209,16 @@ public class SimpleThreadPoolTaskExecutor implements TaskExecutor {
         do {
             hasRun = false;
             closingDownOld = this.closingDown;
-            if (firstRun)   {
+            if (firstRun) {
                 firstRun = false;
             } else {
                 this.notificationQueue.await(this.threadKeepAliveTime);
             }
             {
-                Tuple<Runnable, Future> task;
+                Consumer<Throwable> task;
                 while ((task = this.tasks.pollFirst()) != null) { //keep running tasks until the work queue is empty
                     hasRun = true; //mark this thread as having run to reset keepalive timer
-                    task.getA().run();
+                    task.accept(null);
                     this.activeTasks.decrementAndGet();
                 }
             }
@@ -219,7 +230,7 @@ public class SimpleThreadPoolTaskExecutor implements TaskExecutor {
             currentThreadGroup.remove(Thread.currentThread());
         }
 
-        if (!core)  {
+        if (!core) {
             System.out.println("Worker closing!");
         }
     }

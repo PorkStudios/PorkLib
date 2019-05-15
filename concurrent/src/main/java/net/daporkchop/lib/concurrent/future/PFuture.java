@@ -13,34 +13,65 @@
  *
  */
 
-import net.daporkchop.lib.common.function.throwing.ERunnable;
-import net.daporkchop.lib.concurrent.future.PCompletable;
-import net.daporkchop.lib.concurrent.tasks.TaskExecutor;
-import net.daporkchop.lib.concurrent.tasks.impl.SimpleThreadPoolTaskExecutor;
+package net.daporkchop.lib.concurrent.future;
+
+import lombok.NonNull;
 
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 /**
  * @author DaPorkchop_
  */
-public class ExecutorExample {
-    public static void main(String... args) {
-        TaskExecutor executor = SimpleThreadPoolTaskExecutor.builder()
-                .setCorePoolSize(2)
-                .setMaxPoolSize(4)
-                .setThreadKeepAliveTime(TimeUnit.SECONDS.toMillis(5L))
-                .build();
+public interface PFuture<R> extends BaseFuture<R> {
+    /**
+     * @return the value, or {@code null} if not yet complete
+     */
+    R get();
 
-        long time = System.currentTimeMillis();
-        PCompletable[] futures = new PCompletable[8];
-        for (int i = futures.length - 1; i >= 0; i--)   {
-            futures[i] = executor.submit((ERunnable) () -> Thread.sleep(5000L));
-        }
-        for (int i = futures.length - 1; i >= 0; i--)   {
-            futures[i].sync();
-        }
-        System.out.printf("Took %dms to wait %d*5000ms\n", System.currentTimeMillis() - time, futures.length);
-
-        executor.close();
+    /**
+     * @return the value, or the given default value if not yet complete
+     */
+    default R getOrDefault(R def)   {
+        return this.isComplete() ? this.get() : def;
     }
+
+    /**
+     * @return the value, or a value computed by the given supplier if not yet complete
+     */
+    default R getOrCompute(@NonNull Supplier<R> supplier)   {
+        return this.isComplete() ? this.get() : supplier.get();
+    }
+
+    /**
+     * Await completion of the task.
+     * <p>
+     * This method will block until the task has been completed.
+     */
+    R sync();
+
+    /**
+     * @see #sync()
+     */
+    R syncInterruptably() throws InterruptedException;
+
+    /**
+     * @param time the maximum number of milliseconds to wait for
+     * @see #sync()
+     */
+    R sync(long time);
+
+    /**
+     * @param unit the time unit
+     * @param time the maximum number of units to wait for
+     * @see #sync()
+     */
+    default R sync(@NonNull TimeUnit unit, long time) {
+        return this.sync(unit.toMillis(time));
+    }
+
+    /**
+     * Completes the task, waking up all waiting threads.
+     */
+    void complete(@NonNull R value);
 }

@@ -16,17 +16,17 @@
 package net.daporkchop.lib.concurrent.tasks.impl;
 
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.concurrent.future.Future;
-import net.daporkchop.lib.concurrent.future.ReturnableFuture;
-import net.daporkchop.lib.concurrent.future.impl.SimpleFuture;
-import net.daporkchop.lib.concurrent.future.impl.SimpleReturnableFuture;
+import net.daporkchop.lib.concurrent.future.PCompletable;
+import net.daporkchop.lib.concurrent.future.PFuture;
+import net.daporkchop.lib.concurrent.future.impl.PCompletableImpl;
+import net.daporkchop.lib.concurrent.future.impl.PFutureImpl;
 import net.daporkchop.lib.concurrent.tasks.TaskScheduler;
 import net.daporkchop.lib.math.primitive.PMath;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.CancellationException;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
@@ -45,12 +45,15 @@ public class TimerTaskScheduler implements TaskScheduler {
     }
 
     @Override
-    public Future schedule(@NonNull Runnable task, long time) {
+    public PCompletable schedule(@NonNull Runnable task, long time) {
         synchronized (this.mutex) {
-            Future future = new SimpleFuture();
+            PCompletable future = new PCompletableImpl();
             this.timer.schedule(new TimerTask() {
+                volatile boolean started = false;
+
                 @Override
                 public void run() {
+                    this.started = true;
                     try {
                         task.run();
                         future.complete();
@@ -59,23 +62,50 @@ public class TimerTaskScheduler implements TaskScheduler {
                         future.completeExceptionally(e);
                     }
                 }
+
+                @Override
+                public boolean cancel() {
+                    if (super.cancel()) {
+                        if (!this.started) {
+                            future.completeExceptionally(new CancellationException());
+                        }
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
             }, PMath.max(System.currentTimeMillis() - time, 0L));
             return future;
         }
     }
 
     @Override
-    public <T> ReturnableFuture<T> schedule(@NonNull Supplier<T> task, long time) {
+    public <T> PFuture<T> schedule(@NonNull Supplier<T> task, long time) {
         synchronized (this.mutex) {
-            ReturnableFuture<T> future = new SimpleReturnableFuture<>();
+            PFuture<T> future = new PFutureImpl<>();
             this.timer.schedule(new TimerTask() {
+                volatile boolean started = false;
+
                 @Override
                 public void run() {
+                    this.started = true;
                     try {
                         future.complete(task.get());
                     } catch (Exception e) {
                         e.printStackTrace();
                         future.completeExceptionally(e);
+                    }
+                }
+
+                @Override
+                public boolean cancel() {
+                    if (super.cancel()) {
+                        if (!this.started) {
+                            future.completeExceptionally(new CancellationException());
+                        }
+                        return true;
+                    } else {
+                        return false;
                     }
                 }
             }, PMath.max(System.currentTimeMillis() - time, 0L));

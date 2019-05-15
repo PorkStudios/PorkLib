@@ -17,58 +17,45 @@ package net.daporkchop.lib.concurrent.future;
 
 import lombok.NonNull;
 
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+
 /**
  * @author DaPorkchop_
  */
-public interface Future {
+public interface BaseFuture<R> {
     /**
-     * Blocks the invoking thread until this {@link Future} is completed.
-     * <p>
-     * If this {@link Future} was completed with an exception, the exception will be thrown (unsafely).
+     * Adds a listener.
+     *
+     * @param callback a function to run when this future is completed
      */
-    default void sync() {
-        try {
-            this.syncInterruptably();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+    void addListener(@NonNull BiConsumer<R, Throwable> callback);
+
+    /**
+     * Adds a listener.
+     *
+     * @param callback a function to run when this future is completed
+     */
+    default void addListener(@NonNull Consumer<R> callback) {
+        this.addListener((r, t) -> callback.accept(r));
     }
 
     /**
-     * Blocks the invoking thread until this {@link Future} is completed.
-     * <p>
-     * If this {@link Future} was completed with an exception, the exception will be thrown (unsafely).
+     * Adds a listener.
      *
-     * @throws InterruptedException if the thread is interrupted
+     * @param callback a function to run when this future is completed
      */
-    void syncInterruptably() throws InterruptedException;
+    default void addListener(@NonNull Runnable callback) {
+        this.addListener((r, t) -> callback.run());
+    }
 
     /**
-     * Checks whether or not this {@link Future} has been completed.
-     * <p>
-     * This method will not block the invoking thread.
-     *
-     * @return whether or not this {@link Future} has been complete
+     * @return whether or not the task has been completed
      */
-    boolean isCompleted();
+    boolean isComplete();
 
     /**
-     * Completes this {@link Future}.
-     * <p>
-     * Any waiting threads will be notified, and this instance will be marked as completed.
-     * <p>
-     * If this {@link Future} is already completed, the results are undefined.
+     * @param t the exception that will be thrown
      */
-    void complete();
-
-    /**
-     * Completes this {@link Future} with an exception.
-     * <p>
-     * Any waiting threads will have this exception thrown, and this instance will be marked as completed.
-     * <p>
-     * If this {@link Future} is already completed, the results are undefined.
-     *
-     * @param e the exception
-     */
-    void completeExceptionally(@NonNull Exception e);
+    void completeExceptionally(@NonNull Throwable t);
 }

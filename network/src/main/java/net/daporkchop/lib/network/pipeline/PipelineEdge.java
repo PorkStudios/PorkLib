@@ -13,27 +13,26 @@
  *
  */
 
-package net.daporkchop.lib.network.pipeline.event;
+package net.daporkchop.lib.network.pipeline;
 
 import lombok.NonNull;
+import net.daporkchop.lib.network.pipeline.event.PipelineEvent;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
+ * Superclass for {@link Head} and {@link Tail}, the two ends of a {@link Pipeline}.
+ *
  * @author DaPorkchop_
  */
-@FunctionalInterface
-public interface ExceptionCaught<S extends AbstractUserSession<S>> extends PipelineEvent<S> {
-    /**
-     * Called every time an exception is caught while encoding, decoding, handling or otherwise processing a session.
-     *
-     * @param session the session that the exception was caught on
-     * @param t       the exception that was caught
-     * @param next    delegates the event to the next node in the pipeline
-     */
-    void exceptionCaught(@NonNull S session, @NonNull Throwable t, @NonNull Callback<S> next);
+abstract class PipelineEdge<S extends AbstractUserSession<S>> extends Node<S> {
+    public PipelineEdge(PipelineEvent<S> event) {
+        super(null, event);
+    }
 
-    @FunctionalInterface
-    interface Callback<S extends AbstractUserSession> {
-        void exceptionCaught(@NonNull S session, @NonNull Throwable t);
+    @Override
+    protected void updateSelf() {
+        this.sessionOpened = null;
+        this.sessionClosed = null;
+        this.exceptionCaught = null;
     }
 }

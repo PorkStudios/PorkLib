@@ -15,70 +15,143 @@
 
 package net.daporkchop.lib.network.pipeline;
 
-import lombok.Getter;
+import io.netty.util.internal.TypeParameterMatcher;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import net.daporkchop.lib.network.pipeline.event.ExceptionCaught;
 import net.daporkchop.lib.network.pipeline.event.MessageReceived;
 import net.daporkchop.lib.network.pipeline.event.MessageSent;
+import net.daporkchop.lib.network.pipeline.event.PipelineEvent;
 import net.daporkchop.lib.network.pipeline.event.SessionClosed;
 import net.daporkchop.lib.network.pipeline.event.SessionOpened;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+
+import java.util.IdentityHashMap;
+import java.util.Map;
+import java.util.function.Predicate;
 
 /**
  * Holds all the filters in place.
  * <p>
  * Basically just a glorified node from a doubly-linked list.
+ * <p>
+ * Tail -> prev -> prev -> prev -> Head
+ * Tail <- next <- next <- next <- Head
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-@Setter
-public abstract class Node<S extends AbstractUserSession<S>> {
+abstract class Node<S extends AbstractUserSession<S>> {
     protected final String name;
-    protected final Filter<S> filter;
+    protected final PipelineEvent<S> event;
 
     protected Node<S> next;
     protected Node<S> prev;
 
+    protected final TypeParameterMatcher canReceive;
+    protected final Map<Class<?>, Node<S>> postReceivedDelegates = new IdentityHashMap<>(); //TODO: optimized class map?
+    protected final TypeParameterMatcher canSend;
+    protected final Map<Class<?>, Node<S>> postSentDelegates = new IdentityHashMap<>();
+
     protected SessionOpened.Callback<S> sessionOpened;
     protected SessionClosed.Callback<S> sessionClosed;
     protected ExceptionCaught.Callback<S> exceptionCaught;
-    protected MessageReceived.Callback<S, Object> messageReceived;
-    protected MessageSent.Callback<S, Object> messageSent;
+    protected final MessageReceived.Callback<S, Object> messageReceived;
+    protected final MessageSent.Callback<S, Object> messageSent;
+
+    public Node(String name, @NonNull PipelineEvent<S> event) {
+        this.name = name;
+        this.event = event;
+
+        if (event instanceof MessageReceived) {
+            this.canReceive = TypeParameterMatcher.find(event, MessageReceived.class, "I");
+            this.messageReceived = (session, msg, channel) -> {
+                //not using computeIfAbsent due to lambda allocation
+                Node<S> next = this.postReceivedDelegates.get(msg.getClass());
+                if (next == null) {
+                    this.postReceivedDelegates.put(msg.getClass(), next = this.findNextMatchingNode(node -> node.canReceive(msg)));
+                }
+                next.fireMessageReceived(session, msg, channel);
+            };
+        } else {
+            this.canReceive = null;
+            this.messageReceived = null;
+        }
+        if (event instanceof MessageSent) {
+            this.canSend = TypeParameterMatcher.find(event, MessageSent.class, "I");
+            this.messageSent = (session, msg, channel) -> {
+                Node<S> next = this.postSentDelegates.get(msg.getClass());
+                if (next == null) {
+                    this.postSentDelegates.put(msg.getClass(), next = this.findPrevMatchingNode(node -> node.canSend(msg)));
+                }
+                next.fireMessageSent(session, msg, channel);
+            };
+        } else {
+            this.canSend = null;
+            this.messageSent = null;
+        }
+    }
 
     protected void fireSessionOpened(@NonNull S session) {
-        this.filter.sessionOpened(session, this.sessionOpened);
+        ((SessionOpened<S>) this.event).sessionOpened(session, this.sessionOpened);
     }
 
     protected void fireSessionClosed(@NonNull S session) {
-        this.filter.sessionClosed(session, this.sessionClosed);
+        ((SessionClosed<S>) this.event).sessionClosed(session, this.sessionClosed);
     }
 
     protected void fireExceptionCaught(@NonNull S session, @NonNull Throwable t) {
-        this.filter.exceptionCaught(session, t, this.exceptionCaught);
+        ((ExceptionCaught<S>) this.event).exceptionCaught(session, t, this.exceptionCaught);
     }
 
     protected void fireMessageReceived(@NonNull S session, @NonNull Object msg, int channel) {
-        this.filter.messageReceived(session, msg, channel, this.messageReceived);
+        ((MessageReceived<S, Object, Object>) this.event).messageReceived(session, msg, channel, this.messageReceived);
     }
 
     protected void fireMessageSent(@NonNull S session, @NonNull Object msg, int channel) {
-        this.filter.messageSent(session, msg, channel, this.messageSent);
+        ((MessageSent<S, Object, Object>) this.event).messageSent(session, msg, channel, this.messageSent);
     }
 
-    protected void updateRelations()  {
+    protected void updateRelations() {
         this.next.prev = this;
+
+        this.postReceivedDelegates.clear();
+        this.postSentDelegates.clear();
     }
 
-    protected void updateSelf()  {
-        this.sessionOpened = this.next::fireSessionOpened;
-        this.sessionClosed = this.next::fireSessionClosed;
-        this.exceptionCaught = this.next::fireExceptionCaught;
+    protected void updateSelf() {
+        this.sessionOpened = this.findNextMatchingEvent(SessionOpened.class::isInstance)::fireSessionOpened;
+        this.sessionClosed = this.findNextMatchingEvent(SessionClosed.class::isInstance)::fireSessionClosed;
+        this.exceptionCaught = this.findNextMatchingEvent(ExceptionCaught.class::isInstance)::fireExceptionCaught;
+    }
 
-        this.messageReceived = this.next::fireMessageReceived; //TODO: have these two events find the first compatible filter in the pipeline
-        this.messageSent = this.next::fireMessageSent;
+    protected boolean canReceive(Object msg)    {
+        return this.canReceive != null && this.canReceive.match(msg);
+    }
+
+    protected boolean canSend(Object msg)    {
+        return this.canSend != null && this.canSend.match(msg);
+    }
+
+    protected Node<S> findNextMatchingEvent(@NonNull Predicate<PipelineEvent<S>> condition) {
+        return this.findNextMatchingNode(node -> condition.test(node.event));
+    }
+
+    protected Node<S> findNextMatchingNode(@NonNull Predicate<Node<S>> condition) {
+        Node<S> curr = this.next;
+        while (!(curr instanceof Tail) && !condition.test(curr)) {
+            curr = curr.next;
+        }
+        return curr;
+    }
+
+    protected Node<S> findPrevMatchingEvent(@NonNull Predicate<PipelineEvent<S>> condition) {
+        return this.findPrevMatchingNode(node -> condition.test(node.event));
+    }
+
+    protected Node<S> findPrevMatchingNode(@NonNull Predicate<Node<S>> condition) {
+        Node<S> curr = this.prev;
+        while (!(curr instanceof Head) && !condition.test(curr)) {
+            curr = curr.prev;
+        }
+        return curr;
     }
 }

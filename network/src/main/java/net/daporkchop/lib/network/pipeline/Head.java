@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.network.pipeline;
 
+import net.daporkchop.lib.network.pipeline.event.PipelineEvent;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
@@ -23,8 +24,14 @@ import net.daporkchop.lib.network.session.AbstractUserSession;
  *
  * @author DaPorkchop_
  */
-abstract class Head<S extends AbstractUserSession<S>> extends Node<S> {
-    public Head() {
-        super(null, null);
+public class Head<S extends AbstractUserSession<S>> extends PipelineEdge<S> {
+    public Head(PipelineEvent<S> event) {
+        super(event);
+    }
+
+    @Override
+    protected void updateRelations() {
+        super.updateRelations();
+        this.prev = null;
     }
 }

@@ -18,13 +18,11 @@ package net.daporkchop.lib.network.pipeline.event;
 import lombok.NonNull;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
-import java.util.function.Consumer;
-
 /**
  * @author DaPorkchop_
  */
 @FunctionalInterface
-public interface SessionClosed<S extends AbstractUserSession<S>> {
+public interface SessionClosed<S extends AbstractUserSession<S>> extends PipelineEvent<S> {
     /**
      * Called every time a session is closed.
      *

@@ -16,8 +16,8 @@
 package net.daporkchop.lib.concurrent.tasks;
 
 import lombok.NonNull;
-import net.daporkchop.lib.concurrent.future.Future;
-import net.daporkchop.lib.concurrent.future.ReturnableFuture;
+import net.daporkchop.lib.concurrent.future.PCompletable;
+import net.daporkchop.lib.concurrent.future.PFuture;
 
 import java.util.function.Supplier;
 
@@ -28,23 +28,23 @@ import java.util.function.Supplier;
  */
 public interface TaskExecutor {
     /**
-     * Submits a task to this executor. It will be executed at some point, and return an instance of {@link Future} that may be used
+     * Submits a task to this executor. It will be executed at some point, and return an instance of {@link PCompletable} that may be used
      * to track the task's execution status.
      *
      * @param task the task that will be run
-     * @return an instance of {@link Future} that will be completed when the task has finished execution
+     * @return an instance of {@link PCompletable} that will be completed when the task has finished execution
      */
-    Future submit(@NonNull Runnable task);
+    PCompletable submit(@NonNull Runnable task);
 
     /**
-     * Submits a task to this executor. It will be executed at some point, and return an instance of {@link ReturnableFuture} that may
+     * Submits a task to this executor. It will be executed at some point, and return an instance of {@link PFuture} that may
      * be used to track the task's execution status.
      *
      * @param task that task that will be run
      * @param <T>  the return type from the task
-     * @return an instance of {@link ReturnableFuture} that will be completed with the task's return value when the task has finished execution
+     * @return an instance of {@link PFuture} that will be completed with the task's return value when the task has finished execution
      */
-    <T> ReturnableFuture<T> submit(@NonNull Supplier<T> task);
+    <T> PFuture<T> submit(@NonNull Supplier<T> task);
 
     /**
      * Queues this executor for shutdown.
@@ -60,7 +60,7 @@ public interface TaskExecutor {
      * Forcibly shuts down this executor.
      * <p>
      * Any tasks that are currently executing will be executed to completion.
-     * Any queued tasks will be removed from the queue and not executed, and their corresponding {@link Future}s will be completed
+     * Any queued tasks will be removed from the queue and not executed, and their corresponding {@link PCompletable}s will be completed
      * with an {@link InterruptedException}.
      * After the currently running tasks have finished, any resources allocated by this executor will be released.
      * <p>

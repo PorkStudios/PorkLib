@@ -16,8 +16,8 @@
 package net.daporkchop.lib.concurrent.tasks;
 
 import lombok.NonNull;
-import net.daporkchop.lib.concurrent.future.Future;
-import net.daporkchop.lib.concurrent.future.ReturnableFuture;
+import net.daporkchop.lib.concurrent.future.PCompletable;
+import net.daporkchop.lib.concurrent.future.PFuture;
 
 import java.util.concurrent.TimeUnit;
 import java.util.function.BooleanSupplier;
@@ -36,9 +36,9 @@ public interface TaskScheduler extends TaskExecutor {
      *
      * @param task the task to be run
      * @param time the time at which the task will begin execution
-     * @return an instance of {@link Future} that will be completed when the task has finished execution
+     * @return an instance of {@link PCompletable} that will be completed when the task has finished execution
      */
-    Future schedule(@NonNull Runnable task, long time);
+    PCompletable schedule(@NonNull Runnable task, long time);
 
     /**
      * Schedules a task to be executed at a future time.
@@ -48,23 +48,23 @@ public interface TaskScheduler extends TaskExecutor {
      * @param task the task to be run
      * @param time the time at which the task will begin execution
      * @param <T>  the return type from the task
-     * @return an instance of {@link ReturnableFuture} that will be completed with the task's return value when the task has finished execution
+     * @return an instance of {@link PFuture} that will be completed with the task's return value when the task has finished execution
      */
-    <T> ReturnableFuture<T> schedule(@NonNull Supplier<T> task, long time);
+    <T> PFuture<T> schedule(@NonNull Supplier<T> task, long time);
 
-    default Future scheduleIn(@NonNull Runnable task, long delay) {
+    default PCompletable scheduleIn(@NonNull Runnable task, long delay) {
         return this.schedule(task, System.currentTimeMillis() + delay);
     }
 
-    default <T> ReturnableFuture<T> scheduleIn(@NonNull Supplier<T> task, long delay) {
+    default <T> PFuture<T> scheduleIn(@NonNull Supplier<T> task, long delay) {
         return this.schedule(task, System.currentTimeMillis() + delay);
     }
 
-    default Future scheduleIn(@NonNull Runnable task, @NonNull TimeUnit unit, long delay) {
+    default PCompletable scheduleIn(@NonNull Runnable task, @NonNull TimeUnit unit, long delay) {
         return this.schedule(task, System.currentTimeMillis() + unit.toMillis(delay));
     }
 
-    default <T> ReturnableFuture<T> scheduleIn(@NonNull Supplier<T> task, @NonNull TimeUnit unit, long delay) {
+    default <T> PFuture<T> scheduleIn(@NonNull Supplier<T> task, @NonNull TimeUnit unit, long delay) {
         return this.schedule(task, System.currentTimeMillis() + unit.toMillis(delay));
     }
 
@@ -93,36 +93,36 @@ public interface TaskScheduler extends TaskExecutor {
      * @param startTime the time at which the task will start executing
      * @param interval  the interval between executions of the task
      */
-    default void scheduleRepeating(@NonNull Runnable task, long startTime, long interval)   {
+    default void scheduleRepeating(@NonNull Runnable task, long startTime, long interval) {
         this.scheduleRepeating(() -> {
             task.run();
             return true;
         }, startTime, interval);
     }
 
-    default void scheduleRepeating(@NonNull BooleanSupplier task, long interval)    {
+    default void scheduleRepeating(@NonNull BooleanSupplier task, long interval) {
         this.scheduleRepeating(task, 0L, interval);
     }
 
-    default void scheduleRepeating(@NonNull BooleanSupplier task, @NonNull TimeUnit intervalUnit, long interval)  {
+    default void scheduleRepeating(@NonNull BooleanSupplier task, @NonNull TimeUnit intervalUnit, long interval) {
         this.scheduleRepeating(task, 0L, intervalUnit.toMillis(interval));
     }
 
-    default void scheduleRepeating(@NonNull BooleanSupplier task, long delay, @NonNull TimeUnit intervalUnit, long interval)  {
+    default void scheduleRepeating(@NonNull BooleanSupplier task, long delay, @NonNull TimeUnit intervalUnit, long interval) {
         this.scheduleRepeating(task, System.currentTimeMillis() + delay, intervalUnit.toMillis(interval));
     }
 
-    default void scheduleRepeating(@NonNull BooleanSupplier task, @NonNull TimeUnit delayUnit, long delay, @NonNull TimeUnit intervalUnit, long interval)  {
+    default void scheduleRepeating(@NonNull BooleanSupplier task, @NonNull TimeUnit delayUnit, long delay, @NonNull TimeUnit intervalUnit, long interval) {
         this.scheduleRepeating(task, System.currentTimeMillis() + delayUnit.toMillis(delay), intervalUnit.toMillis(interval));
     }
 
     @Override
-    default Future submit(@NonNull Runnable task) {
+    default PCompletable submit(@NonNull Runnable task) {
         return this.schedule(task, 0L);
     }
 
     @Override
-    default <T> ReturnableFuture<T> submit(@NonNull Supplier<T> task) {
+    default <T> PFuture<T> submit(@NonNull Supplier<T> task) {
         return this.schedule(task, 0L);
     }
 }

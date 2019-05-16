@@ -13,41 +13,36 @@
  *
  */
 
-package net.daporkchop.lib.network.pipeline.util;
+package net.daporkchop.lib.network.tcp;
 
 import lombok.NonNull;
-import net.daporkchop.lib.network.pipeline.Pipeline;
-import net.daporkchop.lib.network.pipeline.event.ClosedListener;
-import net.daporkchop.lib.network.pipeline.event.ExceptionListener;
-import net.daporkchop.lib.network.pipeline.event.OpenedListener;
-import net.daporkchop.lib.network.pipeline.event.ReceivedListener;
-import net.daporkchop.lib.network.pipeline.event.SendingListener;
+import net.daporkchop.lib.network.pipeline.PipelineEdgeListener;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
  * @author DaPorkchop_
  */
-public interface AllEventsListener<S extends AbstractUserSession<S>> extends OpenedListener<S>, ClosedListener<S>, ReceivedListener<S, Object>, SendingListener<S, Object>, ExceptionListener<S> {
+public class TCPEdgeListener<S extends AbstractUserSession<S>> implements PipelineEdgeListener<S> {
     @Override
-    void opened(@NonNull EventContext<S> context, @NonNull S session);
-
-    @Override
-    void closed(@NonNull EventContext<S> context, @NonNull S session);
-
-    @Override
-    void received(@NonNull EventContext<S> context, @NonNull S session, @NonNull Object msg, int channel);
-
-    @Override
-    void sending(@NonNull EventContext<S> context, @NonNull S session, @NonNull Object msg, int channel);
-
-    @Override
-    void exceptionCaught(@NonNull EventContext<S> context, @NonNull S session, @NonNull Throwable t);
-
-    @Override
-    default void added(@NonNull Pipeline<S> pipeline, @NonNull S session) {
+    public void fireOpened(@NonNull S session) {
     }
 
     @Override
-    default void removed(@NonNull Pipeline<S> pipeline, @NonNull S session) {
+    public void fireClosed(@NonNull S session) {
+    }
+
+    @Override
+    public void fireReceived(@NonNull S session, @NonNull Object msg, int channel) {
+    }
+
+    @Override
+    public void fireSending(@NonNull S session, @NonNull Object msg, int channel) {
+        //TODO: i'm gonna need some way to notify the ChannelPromise that a packet was sent with
+        //see MessageToMessageEncoder
+        //maybe i should synchronize the whole pipeline? i think each channel only gets one thread at a time anyway
+    }
+
+    @Override
+    public void fireExceptionCaught(@NonNull S session, @NonNull Throwable t) {
     }
 }

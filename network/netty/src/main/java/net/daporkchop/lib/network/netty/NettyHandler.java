@@ -16,6 +16,7 @@
 package net.daporkchop.lib.network.netty;
 
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.ChannelOutboundHandler;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;

@@ -25,6 +25,7 @@ import net.daporkchop.lib.binary.netty.NettyByteBufOut;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
+import net.daporkchop.lib.network.pipeline.Pipeline;
 import net.daporkchop.lib.network.protocol.Protocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.PChannel;
@@ -48,11 +49,14 @@ public class WrapperNioSocketChannel<S extends AbstractUserSession<S>> extends N
     protected final DummyTCPChannel<S> defaultChannel = new DummyTCPChannel<>(this, 0);
     protected final Map<Integer, DummyTCPChannel<S>> channels = PorkUtil.newSoftCache();
     protected final S userSession;
+    protected final Pipeline<S> dataPipeline;
 
     public WrapperNioSocketChannel(@NonNull TCPEndpoint<?, S, ?> endpoint) {
         this.endpoint = endpoint;
         this.userSession = endpoint.protocol().sessionFactory().newSession();
         PUnsafe.putObject(this, ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);
+
+        this.dataPipeline = new Pipeline<>(this.userSession, )
     }
 
     @Override

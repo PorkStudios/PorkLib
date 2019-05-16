@@ -16,14 +16,15 @@
 package net.daporkchop.lib.network.tcp.netty;
 
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelOutboundHandlerAdapter;
+import io.netty.channel.ChannelPromise;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.tcp.WrapperNioSocketChannel;
-import net.daporkchop.lib.network.netty.NettyHandler;
+import net.daporkchop.lib.network.transport.ChanneledPacket;
 
 /**
  * @author DaPorkchop_
@@ -31,33 +32,13 @@ import net.daporkchop.lib.network.netty.NettyHandler;
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public class TCPHandler<S extends AbstractUserSession<S>> extends NettyHandler implements Logging {
+public class TCPWriter<S extends AbstractUserSession<S>> extends ChannelOutboundHandlerAdapter {
     @NonNull
     protected final WrapperNioSocketChannel<S> session;
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        this.session.dataPipeline().fireReceived(this.session.userSession(), msg, -1);
-    }
-
-    @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        this.session.dataPipeline().fireOpened(this.session.userSession());
-
-        super.channelActive(ctx);
-    }
-
-    @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        this.session.dataPipeline().fireClosed(this.session.userSession());
-
-        super.channelInactive(ctx);
-    }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        this.session.dataPipeline().fireExceptionCaught(this.session.userSession(), cause);
-
-        super.exceptionCaught(ctx, cause);
+    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+        ChanneledPacket pck = (ChanneledPacket) msg;
+        this.session.dataPipeline().fireSending(this.session.userSession(), pck.packet(), pck.channel());
     }
 }

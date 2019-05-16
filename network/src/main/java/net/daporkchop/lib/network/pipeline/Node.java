@@ -15,50 +15,168 @@
 
 package net.daporkchop.lib.network.pipeline;
 
+import io.netty.util.internal.TypeParameterMatcher;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.network.pipeline.event.ClosedListener;
+import net.daporkchop.lib.network.pipeline.event.ExceptionListener;
+import net.daporkchop.lib.network.pipeline.event.OpenedListener;
+import net.daporkchop.lib.network.pipeline.event.ReceivedListener;
+import net.daporkchop.lib.network.pipeline.event.SendingListener;
 import net.daporkchop.lib.network.pipeline.util.EventContext;
+import net.daporkchop.lib.network.pipeline.util.FireEvents;
 import net.daporkchop.lib.network.pipeline.util.PipelineListener;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+
+import java.util.IdentityHashMap;
+import java.util.Map;
 
 /**
  * @author DaPorkchop_
  */
 @Accessors(fluent = true)
-class Node<S extends AbstractUserSession<S>> implements EventContext<S> {
+class Node<S extends AbstractUserSession<S>> implements FireEvents<S> {
     @Getter
     protected final Pipeline<S> pipeline;
     protected final PipelineListener<S> listener;
 
+    protected final String name;
+
     protected Node<S> next;
     protected Node<S> prev;
 
-    public Node(@NonNull Pipeline<S> pipeline, @NonNull PipelineListener<S> listener)   {
+    private final TypeParameterMatcher canReceive;
+    private final TypeParameterMatcher canSend;
+
+    protected final Context context = new Context();
+
+    public Node(@NonNull Pipeline<S> pipeline, @NonNull String name, @NonNull PipelineListener<S> listener) {
         this.pipeline = pipeline;
+        this.name = name;
         this.listener = listener;
+
+        this.canReceive = listener instanceof ReceivedListener ? TypeParameterMatcher.find(listener, ReceivedListener.class, "I") : null;
+        this.canSend = listener instanceof SendingListener ? TypeParameterMatcher.find(listener, SendingListener.class, "I") : null;
     }
 
     @Override
     public void fireOpened(@NonNull S session) {
+        ((OpenedListener<S>) this.listener).opened(this.context, session);
     }
 
     @Override
     public void fireClosed(@NonNull S session) {
+        ((ClosedListener<S>) this.listener).closed(this.context, session);
     }
 
     @Override
     public void fireReceived(@NonNull S session, @NonNull Object msg, int channel) {
+        ((ReceivedListener<S, Object>) this.listener).received(this.context, session, msg, channel);
     }
 
     @Override
     public void fireSending(@NonNull S session, @NonNull Object msg, int channel) {
+        ((SendingListener<S, Object>) this.listener).sending(this.context, session, msg, channel);
     }
 
     @Override
     public void fireExceptionCaught(@NonNull S session, @NonNull Throwable t) {
+        ((ExceptionListener<S>) this.listener).exceptionCaught(this.context, session, t);
     }
 
-    protected void rebuild()    {
+    protected boolean canReceive(@NonNull Object o) {
+        return this.canReceive != null && this.canReceive.match(o);
+    }
+
+    protected boolean canSend(@NonNull Object o) {
+        return this.canSend != null && this.canSend.match(o);
+    }
+
+    protected void rebuild() {
+        this.context.rebuild();
+    }
+
+    protected class Context implements EventContext<S> {
+        protected OpenedListener.Fire<S> opened;
+        protected ClosedListener.Fire<S> closed;
+        protected ExceptionListener.Fire<S> exception;
+
+        protected final Map<Class<?>, ReceivedListener.Fire<S>> received = new IdentityHashMap<>(); //TODO: optimized map for classes?
+        protected final Map<Class<?>, SendingListener.Fire<S>> sending = new IdentityHashMap<>();
+
+        @Override
+        public Pipeline<S> pipeline() {
+            return Node.this.pipeline;
+        }
+
+        @Override
+        public void fireOpened(@NonNull S session) {
+            this.opened.fireOpened(session);
+        }
+
+        @Override
+        public void fireClosed(@NonNull S session) {
+            this.closed.fireClosed(session);
+        }
+
+        @Override
+        public void fireReceived(@NonNull S session, @NonNull Object msg, int channel) {
+            ReceivedListener.Fire<S> callback = this.received.get(msg.getClass());
+            if (callback == null) {
+                //no computeIfAbsent due to lambda allocation
+                Node<S> node = Node.this.next;
+                while (node != null && !node.canReceive(msg)) {
+                    node = node.next;
+                }
+                this.received.put(msg.getClass(), callback = node == null ? this.pipeline().listener : node);
+            }
+            callback.fireReceived(session, msg, channel);
+        }
+
+        @Override
+        public void fireSending(@NonNull S session, @NonNull Object msg, int channel) {
+            SendingListener.Fire<S> callback = this.sending.get(msg.getClass());
+            if (callback == null) {
+                Node<S> node = Node.this.next;
+                while (node != null && !node.canSend(msg)) {
+                    node = node.next;
+                }
+                this.sending.put(msg.getClass(), callback = node == null ? this.pipeline().listener : node);
+            }
+            callback.fireSending(session, msg, channel);
+        }
+
+        @Override
+        public void fireExceptionCaught(@NonNull S session, @NonNull Throwable t) {
+            this.exception.fireExceptionCaught(session, t);
+        }
+
+        protected void rebuild() {
+            {
+                Node<S> node = Node.this.next;
+                while (node != null && !(node.listener instanceof OpenedListener)) {
+                    node = node.next;
+                }
+                this.opened = node == null ? this.pipeline().listener : node;
+            }
+            {
+                Node<S> node = Node.this.next;
+                while (node != null && !(node.listener instanceof ClosedListener)) {
+                    node = node.next;
+                }
+                this.closed = node == null ? this.pipeline().listener : node;
+            }
+            {
+                Node<S> node = Node.this.next;
+                while (node != null && !(node.listener instanceof ExceptionListener)) {
+                    node = node.next;
+                }
+                this.exception = node == null ? this.pipeline().listener : node;
+            }
+
+            this.received.clear();
+            this.sending.clear();
+        }
     }
 }

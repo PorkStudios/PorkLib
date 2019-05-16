@@ -13,28 +13,33 @@
  *
  */
 
-package net.daporkchop.lib.network.pipeline.event;
+package net.daporkchop.lib.network.pipeline.util;
 
 import lombok.NonNull;
+import net.daporkchop.lib.network.pipeline.Pipeline;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
+ * Represents a listener on a pipeline.
+ * <p>
+ * All pipeline members must inherit from this class.
+ *
  * @author DaPorkchop_
  */
-@FunctionalInterface
-public interface MessageSent<S extends AbstractUserSession<S>, I, O> extends PipelineHandler<S> {
+public interface PipelineListener<S extends AbstractUserSession<S>> {
     /**
-     * Called every time a message is being sent.
+     * Fired when this listener is added to a pipeline.
      *
-     * @param session the session that will be sending the message
-     * @param msg     the message that will be sent
-     * @param channel the id of the channel that the message will be sent on
-     * @param next    delegates the event to the next node in the pipeline
+     * @param pipeline the pipeline that this listener was added to
+     * @param session  the session that the pipeline belongs to
      */
-    void messageSent(@NonNull S session, @NonNull I msg, int channel, @NonNull Callback<S, O> next);
+    void added(@NonNull Pipeline<S> pipeline, @NonNull S session);
 
-    @FunctionalInterface
-    interface Callback<S extends AbstractUserSession<S>, O> {
-        void messageSent(@NonNull S session, @NonNull O msg, int channel);
-    }
+    /**
+     * Fired when this listener is removed from a pipeline.
+     *
+     * @param pipeline the pipeline that this listener was removed from
+     * @param session  the session that the pipeline belongs to
+     */
+    void removed(@NonNull Pipeline<S> pipeline, @NonNull S session);
 }

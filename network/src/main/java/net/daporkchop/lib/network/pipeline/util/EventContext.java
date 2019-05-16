@@ -13,32 +13,39 @@
  *
  */
 
-package net.daporkchop.lib.network.pipeline.handler;
+package net.daporkchop.lib.network.pipeline.util;
 
 import lombok.NonNull;
-import net.daporkchop.lib.network.pipeline.event.ExceptionCaught;
-import net.daporkchop.lib.network.pipeline.event.MessageReceived;
-import net.daporkchop.lib.network.pipeline.event.MessageSent;
-import net.daporkchop.lib.network.pipeline.event.SessionClosed;
-import net.daporkchop.lib.network.pipeline.event.SessionOpened;
+import net.daporkchop.lib.network.pipeline.Pipeline;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
+ * The context for processing events.
+ * <p>
+ * Distinct for every listener in a pipeline.
+ * <p>
+ * Holding a reference to an {@link EventContext} object outside of a handler method is unsafe.
+ *
  * @author DaPorkchop_
  */
-public interface BasePipelineAdapter<S extends AbstractUserSession<S>> extends SessionOpened<S>, SessionClosed<S>, ExceptionCaught<S> {
-    @Override
-    default void sessionOpened(@NonNull S session, @NonNull SessionOpened.Callback<S> next) {
-        next.sessionOpened(session);
-    }
+public interface EventContext<S extends AbstractUserSession<S>> extends FireEvents<S> {
+    /**
+     * @return the pipeline that this context is on
+     */
+    Pipeline<S> pipeline();
 
     @Override
-    default void sessionClosed(@NonNull S session, @NonNull SessionClosed.Callback<S> next) {
-        next.sessionClosed(session);
-    }
+    void fireOpened(@NonNull S session);
 
     @Override
-    default void exceptionCaught(@NonNull S session, @NonNull Throwable t, @NonNull ExceptionCaught.Callback<S> next) {
-        next.exceptionCaught(session, t);
-    }
+    void fireClosed(@NonNull S session);
+
+    @Override
+    void fireReceived(@NonNull S session, @NonNull Object msg, int channel);
+
+    @Override
+    void fireSending(@NonNull S session, @NonNull Object msg, int channel);
+
+    @Override
+    void fireExceptionCaught(@NonNull S session, @NonNull Throwable t);
 }

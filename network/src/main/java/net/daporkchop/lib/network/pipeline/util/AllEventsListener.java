@@ -13,38 +13,41 @@
  *
  */
 
-package net.daporkchop.lib.network.pipeline;
+package net.daporkchop.lib.network.pipeline.util;
 
-import net.daporkchop.lib.logging.Logger;
-import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.pipeline.handler.BasePipelineAdapter;
+import lombok.NonNull;
+import net.daporkchop.lib.network.pipeline.Pipeline;
+import net.daporkchop.lib.network.pipeline.event.ClosedListener;
+import net.daporkchop.lib.network.pipeline.event.ExceptionListener;
+import net.daporkchop.lib.network.pipeline.event.OpenedListener;
+import net.daporkchop.lib.network.pipeline.event.ReceivedListener;
+import net.daporkchop.lib.network.pipeline.event.SendingListener;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.unsafe.PUnsafe;
 
 /**
- * The node at the tail of the pipeline. This node will be the last to receive inbound packets/events and the first
- * to receive outbound packets.
- *
  * @author DaPorkchop_
  */
-public class Tail<S extends AbstractUserSession<S>> extends Edge<S> implements Logging {
-    public Tail(BasePipelineAdapter<S> filter) {
-        super(filter);
+public interface AllEventsListener<S extends AbstractUserSession<S>> extends OpenedListener<S>, ClosedListener<S>, ReceivedListener<S, Object>, SendingListener<S, Object>, ExceptionListener<S> {
+    @Override
+    void opened(@NonNull EventContext<S> context, @NonNull S session);
+
+    @Override
+    void closed(@NonNull EventContext<S> context, @NonNull S session);
+
+    @Override
+    void received(@NonNull EventContext<S> context, @NonNull S session, @NonNull Object msg, int channel);
+
+    @Override
+    void sending(@NonNull EventContext<S> context, @NonNull S session, @NonNull Object msg, int channel);
+
+    @Override
+    void exceptionCaught(@NonNull EventContext<S> context, @NonNull S session, @NonNull Throwable t);
+
+    @Override
+    default void added(@NonNull Pipeline<S> pipeline, @NonNull S session) {
     }
 
     @Override
-    protected void updateRelations() {
-        this.next = null;
-    }
-
-    @Override
-    protected void updateSelf() {
-        super.updateSelf();
-        this.exceptionCaught = (session, t) -> {
-            StringBuilder builder = new StringBuilder();
-            Logger.getStackTrace(t, builder::append);
-            logger.alert("An exception reached the end of the pipeline!\n\n%s", builder.toString());
-            PUnsafe.throwException(t);
-        };
+    default void removed(@NonNull Pipeline<S> pipeline, @NonNull S session) {
     }
 }

@@ -16,26 +16,24 @@
 package net.daporkchop.lib.network.pipeline.event;
 
 import lombok.NonNull;
+import net.daporkchop.lib.network.pipeline.util.EventContext;
+import net.daporkchop.lib.network.pipeline.util.PipelineListener;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
- * Base interface for all pipeline events, simply as a convenient way to mark them.
- *
  * @author DaPorkchop_
  */
-public interface PipelineHandler<S extends AbstractUserSession<S>> {
+public interface ExceptionListener<S extends AbstractUserSession<S>> extends PipelineListener<S> {
     /**
-     * A class that can fire pipeline events.
+     * Fired when an exception is caught while processing a session.
+     *
+     * @param context the event handler context
+     * @param session the session that the exception was caught on
+     * @param t       the exception that was caught
      */
-    interface Events<S extends AbstractUserSession<S>> {
-        void sessionOpened(@NonNull S session);
+    void exceptionCaught(@NonNull EventContext<S> context, @NonNull S session, @NonNull Throwable t);
 
-        void sessionClosed(@NonNull S session);
-
-        void exceptionCaught(@NonNull S session, @NonNull Throwable t);
-
-        void messageReceived(@NonNull S session, @NonNull Object msg, int channel);
-
-        void messageSent(@NonNull S session, @NonNull Object msg, int channel);
+    interface Fire<S extends AbstractUserSession<S>> {
+        void fireExceptionCaught(@NonNull S session, @NonNull Throwable t);
     }
 }

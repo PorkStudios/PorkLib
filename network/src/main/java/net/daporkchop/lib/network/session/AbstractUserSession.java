@@ -16,9 +16,7 @@
 package net.daporkchop.lib.network.session;
 
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.network.pipeline.event.PipelineHandler;
 import net.daporkchop.lib.network.transport.NetSession;
 
 /**

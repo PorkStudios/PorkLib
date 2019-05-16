@@ -13,20 +13,26 @@
  *
  */
 
-package net.daporkchop.lib.network.pipeline.handler;
+package net.daporkchop.lib.network.pipeline.event;
 
 import lombok.NonNull;
-import net.daporkchop.lib.network.pipeline.event.MessageReceived;
-import net.daporkchop.lib.network.pipeline.event.MessageSent;
+import net.daporkchop.lib.network.pipeline.util.EventContext;
+import net.daporkchop.lib.network.pipeline.util.PipelineListener;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
  * @author DaPorkchop_
  */
-public interface PacketCodec<S extends AbstractUserSession<S>, I, O> extends MessageSent<S, I, O>, MessageReceived<S, O, I> {
-    @Override
-    void messageReceived(@NonNull S session, @NonNull O msg, int channel, @NonNull MessageReceived.Callback<S, I> next);
+public interface OpenedListener<S extends AbstractUserSession<S>> extends PipelineListener<S> {
+    /**
+     * Fired when a session is opened.
+     *
+     * @param context the event handler context
+     * @param session the session that was opened
+     */
+    void opened(@NonNull EventContext<S> context, @NonNull S session);
 
-    @Override
-    void messageSent(@NonNull S session, @NonNull I msg, int channel, @NonNull MessageSent.Callback<S, O> next);
+    interface Fire<S extends AbstractUserSession<S>> {
+        void fireOpened(@NonNull S session);
+    }
 }

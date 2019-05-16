@@ -15,8 +15,6 @@
 
 package net.daporkchop.lib.network.protocol;
 
-import lombok.NonNull;
-import net.daporkchop.lib.network.pipeline.event.PipelineHandler;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**

@@ -15,233 +15,60 @@
 
 package net.daporkchop.lib.network.pipeline;
 
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.network.pipeline.event.PipelineHandler;
-import net.daporkchop.lib.network.pipeline.handler.BasePipelineAdapter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.network.pipeline.util.FireEvents;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 /**
+ * A simplified and optimized version of Netty's ChannelPipeline.
+ *
  * @author DaPorkchop_
  */
-public class Pipeline<S extends AbstractUserSession<S>> implements PipelineHandler.Events<S> {
-    protected final Head<S> head;
-    protected final Tail<S> tail;
+@Accessors(fluent = true)
+public class Pipeline<S extends AbstractUserSession<S>> implements FireEvents<S> {
+    @Getter
+    protected final AbstractUserSession<S> session;
 
-    protected final Lock readLock; //less pointer chasing!
+    protected final Lock readLock;
     protected final Lock writeLock;
 
-    public Pipeline(@NonNull BasePipelineAdapter<S> head, @NonNull BasePipelineAdapter<S> tail)   {
-        this(new Head<>(head), new Tail<>(tail));
-    }
+    protected final List<Node<S>> nodes = new ArrayList<>();
 
-    public Pipeline(@NonNull Head<S> head, @NonNull Tail<S> tail)   {
-        this.head = head;
-        this.tail = tail;
+    public Pipeline(@NonNull AbstractUserSession<S> session)    {
+        this.session = session;
 
-        ReadWriteLock lock = new ReentrantReadWriteLock();
-        this.readLock = lock.readLock();
-        this.writeLock = lock.writeLock();
-    }
-
-    @Override
-    public void sessionOpened(@NonNull S session) {
-        this.readLock.lock();
-        try {
-            this.head.sessionOpened(session);
-        } finally {
-            this.readLock.unlock();
+        {
+            ReadWriteLock lock = new ReentrantReadWriteLock();
+            this.readLock = lock.readLock();
+            this.writeLock = lock.writeLock();
         }
     }
 
     @Override
-    public void sessionClosed(@NonNull S session) {
-        this.readLock.lock();
-        try {
-            this.head.sessionClosed(session);
-        } finally {
-            this.readLock.unlock();
-        }
+    public void fireOpened(@NonNull S session) {
     }
 
     @Override
-    public void exceptionCaught(@NonNull S session, @NonNull Throwable t) {
-        this.readLock.lock();
-        try {
-            this.head.exceptionCaught(session, t);
-        } finally {
-            this.readLock.unlock();
-        }
+    public void fireClosed(@NonNull S session) {
     }
 
     @Override
-    public void messageReceived(@NonNull S session, @NonNull Object msg, int channel) {
-        this.readLock.lock();
-        try {
-            this.head.messageReceived(session, msg, channel);
-        } finally {
-            this.readLock.unlock();
-        }
+    public void fireReceived(@NonNull S session, @NonNull Object msg, int channel) {
     }
 
     @Override
-    public void messageSent(@NonNull S session, @NonNull Object msg, int channel) {
-        this.readLock.lock();
-        try {
-            this.tail.messageSent(session, msg, channel);
-        } finally {
-            this.readLock.unlock();
-        }
+    public void fireSending(@NonNull S session, @NonNull Object msg, int channel) {
     }
 
-    public Pipeline<S> addFirst(@NonNull PipelineHandler<S> handler)   {
-        return this.addFirst(handler.toString(), handler);
-    }
-
-    public Pipeline<S> addFirst(@NonNull String name, @NonNull PipelineHandler<S> handler)   {
-        this.writeLock.lock();
-        try {
-            this.insertBetween(this.head.prev, this.head, new Node<>(name, handler));
-            return this;
-        } finally {
-            this.writeLock.unlock();
-        }
-    }
-
-    public Pipeline<S> addLast(@NonNull PipelineHandler<S> handler)   {
-        return this.addLast(handler.toString(), handler);
-    }
-
-    public Pipeline<S> addLast(@NonNull String name, @NonNull PipelineHandler<S> handler)   {
-        this.writeLock.lock();
-        try {
-            this.insertBetween(this.tail, this.tail.next, new Node<>(name, handler));
-            return this;
-        } finally {
-            this.writeLock.unlock();
-        }
-    }
-
-    public Pipeline<S> replace(@NonNull String name, @NonNull PipelineHandler<S> handler)   {
-        this.writeLock.lock();
-        try {
-            Node<S> toAdd = new Node<>(name, handler);
-            this.forEachNode(old -> {
-                if (name.equals(old.name))  {
-                    old.prev.next = toAdd;
-                    old.next.prev = toAdd;
-                    toAdd.next = old.next;
-                    toAdd.prev = old.prev;
-                    return false;
-                } else {
-                    return true;
-                }
-            });
-            if (toAdd.next == null) {
-                throw new IllegalArgumentException(String.format("Unable to find node with name: \"%s\"", name));
-            } else {
-                this.update();
-                return this;
-            }
-        } finally {
-            this.writeLock.unlock();
-        }
-    }
-
-    public Pipeline<S> remove(@NonNull String name)   {
-        this.writeLock.lock();
-        try {
-            AtomicBoolean flag = new AtomicBoolean(false);
-            this.forEachNode(old -> {
-                if (name.equals(old.name))  {
-                    old.prev.next = old.next;
-                    old.next.prev = old.prev;
-                    flag.set(true);
-                    return false;
-                } else {
-                    return true;
-                }
-            });
-            if (!flag.get()) {
-                throw new IllegalArgumentException(String.format("Unable to find node with name: \"%s\"", name));
-            } else {
-                this.update();
-                return this;
-            }
-        } finally {
-            this.writeLock.unlock();
-        }
-    }
-
-    protected void insertBetween(@NonNull Node<S> first, @NonNull Node<S> second, @NonNull Node<S> toAdd)    {
-        this.writeLock.lock();
-        try {
-            this.checkInsert(toAdd.name);
-            if (first.next != second || second.prev != first)   {
-                throw new IllegalStateException();
-            }
-
-            first.next = toAdd;
-            toAdd.next = second;
-
-            second.prev = toAdd;
-            toAdd.prev = first;
-
-            this.update();
-        } finally {
-            this.writeLock.unlock();
-        }
-    }
-
-    protected void checkInsert(@NonNull String name)    {
-        this.forEachNode(node -> {
-            if (name.equals(node.name)) {
-                throw new IllegalArgumentException(String.format("Cannot insert node with duplicate name: \"%s\"!", name));
-            }
-        });
-    }
-
-    protected void update()  {
-        this.writeLock.lock();
-        try {
-            Node<S> node = this.head;
-            do {
-                node.updateRelations();
-            } while (!(node instanceof Tail) && (node = node.next) != null);
-            node = this.head;
-            do {
-                node.updateSelf();
-            } while (!(node instanceof Tail) && (node = node.next) != null);
-        } finally {
-            this.writeLock.unlock();
-        }
-    }
-
-    protected void forEachNode(@NonNull Consumer<Node<S>> consumer) {
-        this.readLock.lock();
-        try {
-            Node<S> node = this.head;
-            do {
-                consumer.accept(node);
-            } while (!(node instanceof Tail) && (node = node.next) != null);
-        } finally {
-            this.readLock.unlock();
-        }
-    }
-
-    protected void forEachNode(@NonNull Predicate<Node<S>> condition) {
-        this.readLock.lock();
-        try {
-            Node<S> node = this.head;
-            while (condition.test(node) && !(node instanceof Tail) && (node = node.next) != null);
-        } finally {
-            this.readLock.unlock();
-        }
+    @Override
+    public void fireExceptionCaught(@NonNull S session, @NonNull Throwable t) {
     }
 }

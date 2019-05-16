@@ -13,25 +13,36 @@
  *
  */
 
-package net.daporkchop.lib.network.pipeline;
+package net.daporkchop.lib.network.pipeline.util;
 
-import net.daporkchop.lib.network.pipeline.handler.BasePipelineAdapter;
+import lombok.NonNull;
+import net.daporkchop.lib.network.pipeline.event.ClosedListener;
+import net.daporkchop.lib.network.pipeline.event.ExceptionListener;
+import net.daporkchop.lib.network.pipeline.event.OpenedListener;
+import net.daporkchop.lib.network.pipeline.event.ReceivedListener;
+import net.daporkchop.lib.network.pipeline.event.SendingListener;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
- * The node at the head of the pipeline. This node will be the first to receive inbound packets/events and the last
- * to receive outbound packets.
+ * A type capable of firing events.
  *
  * @author DaPorkchop_
+ * @see net.daporkchop.lib.network.pipeline.Pipeline
+ * @see EventContext
  */
-public class Head<S extends AbstractUserSession<S>> extends Edge<S> {
-    public Head(BasePipelineAdapter<S> filter) {
-        super(filter);
-    }
+public interface FireEvents<S extends AbstractUserSession<S>> extends OpenedListener.Fire<S>, ClosedListener.Fire<S>, ReceivedListener.Fire<S>, SendingListener.Fire<S>, ExceptionListener.Fire<S> {
+    @Override
+    void fireOpened(@NonNull S session);
 
     @Override
-    protected void updateRelations() {
-        super.updateRelations();
-        this.prev = null;
-    }
+    void fireClosed(@NonNull S session);
+
+    @Override
+    void fireReceived(@NonNull S session, @NonNull Object msg, int channel);
+
+    @Override
+    void fireSending(@NonNull S session, @NonNull Object msg, int channel);
+
+    @Override
+    void fireExceptionCaught(@NonNull S session, @NonNull Throwable t);
 }

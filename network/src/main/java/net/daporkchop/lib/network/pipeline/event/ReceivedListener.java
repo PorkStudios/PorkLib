@@ -13,9 +13,28 @@
  *
  */
 
+package net.daporkchop.lib.network.pipeline.event;
+
+import lombok.NonNull;
+import net.daporkchop.lib.network.pipeline.util.EventContext;
+import net.daporkchop.lib.network.pipeline.util.PipelineListener;
+import net.daporkchop.lib.network.session.AbstractUserSession;
+
 /**
- * Basically just a dumbed-down version of Netty's ChannelPipeline.
- *
  * @author DaPorkchop_
  */
-package net.daporkchop.lib.network.pipeline;
+public interface ReceivedListener<S extends AbstractUserSession<S>, I> extends PipelineListener<S> {
+    /**
+     * Fired when a message is received on a session.
+     *
+     * @param context the event handler context
+     * @param session the session that the message was received on
+     * @param msg     the message that was received
+     * @param channel the channel that the message was received on. If unknown or unset, this will be {@code -1}
+     */
+    void received(@NonNull EventContext<S> context, @NonNull S session, @NonNull I msg, int channel);
+
+    interface Fire<S extends AbstractUserSession<S>> {
+        void fireReceived(@NonNull S session, @NonNull Object msg, int channel);
+    }
+}

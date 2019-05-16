@@ -16,23 +16,23 @@
 package net.daporkchop.lib.network.pipeline.event;
 
 import lombok.NonNull;
+import net.daporkchop.lib.network.pipeline.util.EventContext;
+import net.daporkchop.lib.network.pipeline.util.PipelineListener;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
  * @author DaPorkchop_
  */
-@FunctionalInterface
-public interface SessionClosed<S extends AbstractUserSession<S>> extends PipelineHandler<S> {
+public interface ClosedListener<S extends AbstractUserSession<S>> extends PipelineListener<S> {
     /**
-     * Called every time a session is closed.
+     * Fired when a session is closed.
      *
+     * @param context the event handler context
      * @param session the session that was closed
-     * @param next    delegates the event to the next node in the pipeline
      */
-    void sessionClosed(@NonNull S session, @NonNull Callback<S> next);
+    void closed(@NonNull EventContext<S> context, @NonNull S session);
 
-    @FunctionalInterface
-    interface Callback<S extends AbstractUserSession>   {
-        void sessionClosed(@NonNull S session);
+    interface Fire<S extends AbstractUserSession<S>> {
+        void fireClosed(@NonNull S session);
     }
 }

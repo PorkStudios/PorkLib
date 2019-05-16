@@ -13,25 +13,28 @@
  *
  */
 
-package net.daporkchop.lib.network.pipeline.handler;
+package net.daporkchop.lib.network.pipeline.event;
 
 import lombok.NonNull;
-import net.daporkchop.lib.network.pipeline.event.MessageReceived;
+import net.daporkchop.lib.network.pipeline.util.EventContext;
+import net.daporkchop.lib.network.pipeline.util.PipelineListener;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
- * A filter for incoming packets.
- *
- * This allows modifying the data in a packet without completely replacing it,
- *
  * @author DaPorkchop_
  */
-public interface InboundPacketFilter<S extends AbstractUserSession<S>, P> extends MessageReceived<S, P, P> {
-    @Override
-    default void messageReceived(@NonNull S session, @NonNull P msg, int channel, @NonNull Callback<S, P> next) {
-        this.filter(session, msg, channel);
-        next.messageReceived(session, msg, channel);
-    }
+public interface SendingListener<S extends AbstractUserSession<S>, I> extends PipelineListener<S> {
+    /**
+     * Fired when a message is being sent on a session.
+     *
+     * @param context the event handler context
+     * @param session the session that the message will be sent on
+     * @param msg     the message that will be sent
+     * @param channel the channel that the message will be sent on
+     */
+    void sending(@NonNull EventContext<S> context, @NonNull S session, @NonNull I msg, int channel);
 
-    void filter(@NonNull S session, @NonNull P msg, int channel);
+    interface Fire<S extends AbstractUserSession<S>> {
+        void fireSending(@NonNull S session, @NonNull Object msg, int channel);
+    }
 }

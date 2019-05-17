@@ -15,14 +15,32 @@
 
 package net.daporkchop.lib.network.protocol;
 
+import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.network.pipeline.Pipeline;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
-import java.util.function.Supplier;
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-@FunctionalInterface
-public interface SessionFactory<S extends AbstractUserSession<S>> {
+public interface SimpleDataProtocol<S extends AbstractUserSession<S>> extends SimpleProtocol<S>, DataProtocol<S>, DataProtocol.Codec<S> {
+    @Override
+    default Codec<S> codec() {
+        return this;
+    }
+
+    @Override
     S newSession();
+
+    @Override
+    void initPipeline(@NonNull Pipeline<S> pipeline, @NonNull S session);
+
+    @Override
+    Object decode(@NonNull DataIn in, @NonNull S session) throws IOException;
+
+    @Override
+    void encode(@NonNull DataOut out, @NonNull Object msg, @NonNull S session) throws IOException;
 }

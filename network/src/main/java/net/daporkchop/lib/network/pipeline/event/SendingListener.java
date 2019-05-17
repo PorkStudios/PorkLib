@@ -35,6 +35,6 @@ public interface SendingListener<S extends AbstractUserSession<S>, I> extends Pi
     void sending(@NonNull EventContext<S> context, @NonNull S session, @NonNull I msg, int channel);
 
     interface Fire<S extends AbstractUserSession<S>> {
-        void fireSending(@NonNull S session, @NonNull Object msg, int channel);
+        void sending(@NonNull S session, @NonNull Object msg, int channel);
     }
 }

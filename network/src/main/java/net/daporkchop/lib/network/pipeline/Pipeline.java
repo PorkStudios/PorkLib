@@ -19,20 +19,13 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.network.pipeline.event.SendingListener;
-import net.daporkchop.lib.network.pipeline.util.EventContext;
-import net.daporkchop.lib.network.pipeline.util.FireEvents;
 import net.daporkchop.lib.network.pipeline.util.PipelineListener;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
-import java.nio.channels.Pipe;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * A simplified and optimized version of Netty's ChannelPipeline.
@@ -64,13 +57,13 @@ public class Pipeline<S extends AbstractUserSession<S>> {
 
     public void fireOpened() {
         synchronized (this.mutex)   {
-            this.head.fireOpened(this.session);
+            this.head.opened(this.session);
         }
     }
 
     public void fireClosed() {
         synchronized (this.mutex)   {
-            this.head.fireClosed(this.session);
+            this.head.closed(this.session);
 
             this.nodes.forEach(n -> n.listener.removed(this, this.session));
             this.nodes.clear();
@@ -80,21 +73,21 @@ public class Pipeline<S extends AbstractUserSession<S>> {
 
     public void fireReceived(@NonNull Object msg, int channel) {
         synchronized (this.mutex)   {
-            this.head.fireReceived(this.session, msg, channel);
+            this.head.received(this.session, msg, channel);
         }
     }
 
     public void fireSending(@NonNull Object msg, int channel, @NonNull List<Object> sendQueue) {
         synchronized (this.mutex)   {
             this.sendQueue = sendQueue;
-            this.tail.fireSending(this.session, msg, channel);
+            this.tail.sending(this.session, msg, channel);
             this.sendQueue = null;
         }
     }
 
     public void fireExceptionCaught(@NonNull Throwable t) {
         synchronized (this.mutex)   {
-            this.head.fireExceptionCaught(this.session, t);
+            this.head.exceptionCaught(this.session, t);
         }
     }
 

@@ -32,17 +32,17 @@ import net.daporkchop.lib.network.session.AbstractUserSession;
  */
 public interface FireEvents<S extends AbstractUserSession<S>> extends OpenedListener.Fire<S>, ClosedListener.Fire<S>, ReceivedListener.Fire<S>, SendingListener.Fire<S>, ExceptionListener.Fire<S> {
     @Override
-    void fireOpened(@NonNull S session);
+    void opened(@NonNull S session);
 
     @Override
-    void fireClosed(@NonNull S session);
+    void closed(@NonNull S session);
 
     @Override
-    void fireReceived(@NonNull S session, @NonNull Object msg, int channel);
+    void received(@NonNull S session, @NonNull Object msg, int channel);
 
     @Override
-    void fireSending(@NonNull S session, @NonNull Object msg, int channel);
+    void sending(@NonNull S session, @NonNull Object msg, int channel);
 
     @Override
-    void fireExceptionCaught(@NonNull S session, @NonNull Throwable t);
+    void exceptionCaught(@NonNull S session, @NonNull Throwable t);
 }

@@ -16,24 +16,43 @@
 package net.daporkchop.lib.network.protocol;
 
 import lombok.NonNull;
-import net.daporkchop.lib.network.pipeline.Pipeline;
-import net.daporkchop.lib.network.pipeline.util.PipelineListener;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
+import java.io.IOException;
+
 /**
+ * A {@link Protocol} that also encodes and decodes packets.
+ *
  * @author DaPorkchop_
  */
-@FunctionalInterface
-public interface PipelineInitializer<S extends AbstractUserSession<S>> {
+public interface DataProtocol<S extends AbstractUserSession<S>> extends Protocol<S> {
     /**
-     * Initializes the event pipeline for a session.
-     * <p>
-     * The pipeline will always have been initialized first according to the transport engine, however unless you
-     * know what you're doing you should always add your handlers last (using {@link Pipeline#addLast(PipelineListener)}
-     * or {@link Pipeline#addLast(String, PipelineListener)}).
-     *
-     * @param pipeline the pipeline to be initialized
-     * @param session  the session to which the pipeline belongs
+     * @return this protocol's codec
      */
-    void initPipeline(@NonNull Pipeline<S> pipeline, @NonNull S session);
+    Codec<S> codec();
+
+    /**
+     * @author DaPorkchop_
+     */
+    interface Codec<S extends AbstractUserSession<S>> {
+        /**
+         * Decodes a packet, reading no data more than required.
+         *
+         * @param in      a {@link DataIn} to read data from
+         * @param session the session that the data was received on
+         * @return a decoded packet
+         */
+        Object decode(@NonNull DataIn in, @NonNull S session) throws IOException;
+
+        /**
+         * Encodes a message.
+         *
+         * @param out     a {@link DataOut} to write data to
+         * @param msg     the message that should be sent
+         * @param session the session that the message will be sent on
+         */
+        void encode(@NonNull DataOut out, @NonNull Object msg, @NonNull S session) throws IOException;
+    }
 }

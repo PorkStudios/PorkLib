@@ -33,6 +33,6 @@ public interface OpenedListener<S extends AbstractUserSession<S>> extends Pipeli
     void opened(@NonNull EventContext<S> context, @NonNull S session);
 
     interface Fire<S extends AbstractUserSession<S>> {
-        void fireOpened(@NonNull S session);
+        void opened(@NonNull S session);
     }
 }

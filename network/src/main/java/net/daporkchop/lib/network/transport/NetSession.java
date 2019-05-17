@@ -36,9 +36,4 @@ public interface NetSession<S extends AbstractUserSession<S>> extends PSession<N
      * @return this session's user session instance
      */
     S userSession();
-
-    /**
-     * @return the currently used protocol
-     */
-    Protocol<?, S> protocol(); //TODO: remove
 }

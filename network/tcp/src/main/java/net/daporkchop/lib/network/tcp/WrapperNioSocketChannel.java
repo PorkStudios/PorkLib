@@ -56,7 +56,7 @@ public class WrapperNioSocketChannel<S extends AbstractUserSession<S>> extends N
         this.userSession = endpoint.protocol().sessionFactory().newSession();
         PUnsafe.putObject(this, ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);
 
-        this.dataPipeline = new Pipeline<>(this.userSession, )
+        this.dataPipeline = new Pipeline<>(this.userSession, new TCPEdgeListener<>());
     }
 
     @Override
@@ -108,8 +108,14 @@ public class WrapperNioSocketChannel<S extends AbstractUserSession<S>> extends N
     public DataOut writer() {
         return new NettyByteBufOut(this.alloc().ioBuffer())    {
             @Override
+            public void flush() throws IOException {
+                WrapperNioSocketChannel.this.write(this.buf);
+                this.buf(WrapperNioSocketChannel.this.alloc().ioBuffer());
+            }
+
+            @Override
             public void close() throws IOException {
-                WrapperNioSocketChannel.this.write(new ChanneledPacket<>(this.buf, 0).encoded(true));
+                WrapperNioSocketChannel.this.write(this.buf);
             }
         };
     }
@@ -146,11 +152,6 @@ public class WrapperNioSocketChannel<S extends AbstractUserSession<S>> extends N
     @Override
     public S userSession() {
         return this.userSession;
-    }
-
-    @Override
-    public Protocol<?, S> protocol() {
-        return this.endpoint.protocol();
     }
 
     @Override

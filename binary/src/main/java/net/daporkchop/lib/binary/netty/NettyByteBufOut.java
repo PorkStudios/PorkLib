@@ -16,9 +16,11 @@
 package net.daporkchop.lib.binary.netty;
 
 import io.netty.buffer.ByteBuf;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataOut;
 
@@ -31,10 +33,11 @@ import java.io.IOException;
  */
 @AllArgsConstructor
 @Getter
+@Setter(value = AccessLevel.PROTECTED)
 @Accessors(fluent = true)
 public class NettyByteBufOut extends DataOut {
     @NonNull
-    protected final ByteBuf buf;
+    protected ByteBuf buf;
 
     static {
         NettyUtil.ensureNettyPresent();

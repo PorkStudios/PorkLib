@@ -45,7 +45,8 @@ public class TCPChannelInitializer<E extends TCPEndpoint<?, S, ?>, S extends Abs
 
     @Override
     protected void initChannel(@NonNull WrapperNioSocketChannel<S> channel) throws Exception {
-        channel.pipeline().addLast("handle", new TCPHandler<>(channel));
+        channel.pipeline()
+                .addLast("handle", new TCPHandler<>(channel));
 
         this.addedCallback.accept(channel);
     }

@@ -33,25 +33,25 @@ import net.daporkchop.lib.network.session.AbstractUserSession;
  */
 public interface PipelineEdgeListener<S extends AbstractUserSession<S>> extends FireEvents<S>, Logging {
     @Override
-    default void fireOpened(@NonNull S session) {
+    default void opened(@NonNull S session) {
     }
 
     @Override
-    default void fireClosed(@NonNull S session) {
+    default void closed(@NonNull S session) {
     }
 
     @Override
-    default void fireReceived(@NonNull S session, @NonNull Object msg, int channel) {
+    default void received(@NonNull S session, @NonNull Object msg, int channel) {
         logger.warn("Received message reached the end of the pipeline: %s", msg.getClass().getCanonicalName());
     }
 
     @Override
-    default void fireSending(@NonNull S session, @NonNull Object msg, int channel) {
+    default void sending(@NonNull S session, @NonNull Object msg, int channel) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    default void fireExceptionCaught(@NonNull S session, @NonNull Throwable t) {
+    default void exceptionCaught(@NonNull S session, @NonNull Throwable t) {
         StringBuilder builder = new StringBuilder();
         Logger.getStackTrace(t, builder::append);
         logger.alert("Exception reached the end of the pipeline!\n\n%s", builder);

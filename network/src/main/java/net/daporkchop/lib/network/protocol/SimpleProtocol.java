@@ -24,7 +24,7 @@ import net.daporkchop.lib.network.session.AbstractUserSession;
  *
  * @author DaPorkchop_
  */
-public interface SimpleProtocol<S extends AbstractUserSession<S>> extends Protocol<S>, SessionFactory<S>, PipelineInitializer<S> {
+public interface SimpleProtocol<S extends AbstractUserSession<S>> extends Protocol<S>, Protocol.SessionFactory<S>, Protocol.PipelineInitializer<S> {
     @Override
     default SessionFactory<S> sessionFactory() {
         return this;

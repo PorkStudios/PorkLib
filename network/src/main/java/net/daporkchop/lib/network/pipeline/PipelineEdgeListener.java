@@ -16,6 +16,7 @@
 package net.daporkchop.lib.network.pipeline;
 
 import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.logging.Logger;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.pipeline.Pipeline;
@@ -28,32 +29,37 @@ import net.daporkchop.lib.network.pipeline.util.EventContext;
 import net.daporkchop.lib.network.pipeline.util.FireEvents;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
+import java.io.IOException;
+
 /**
  * @author DaPorkchop_
  */
-public interface PipelineEdgeListener<S extends AbstractUserSession<S>> extends FireEvents<S>, Logging {
+public abstract class PipelineEdgeListener<S extends AbstractUserSession<S>> implements FireEvents<S>, Logging {
     @Override
-    default void opened(@NonNull S session) {
+    public void opened(@NonNull S session) {
+        session.onOpened();
     }
 
     @Override
-    default void closed(@NonNull S session) {
+    public void closed(@NonNull S session) {
+        session.onClosed();
     }
 
     @Override
-    default void received(@NonNull S session, @NonNull Object msg, int channel) {
-        logger.warn("Received message reached the end of the pipeline: %s", msg.getClass().getCanonicalName());
+    public void received(@NonNull S session, @NonNull Object msg, int channel) {
+        session.onReceived(msg, channel);
     }
 
     @Override
-    default void sending(@NonNull S session, @NonNull Object msg, int channel) {
+    public final void sending(@NonNull S session, @NonNull Object msg, int channel) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    default void exceptionCaught(@NonNull S session, @NonNull Throwable t) {
-        StringBuilder builder = new StringBuilder();
+    public void exceptionCaught(@NonNull S session, @NonNull Throwable t) {
+        /*StringBuilder builder = new StringBuilder();
         Logger.getStackTrace(t, builder::append);
-        logger.alert("Exception reached the end of the pipeline!\n\n%s", builder);
+        logger.alert("Exception reached the end of the pipeline!\n\n%s", builder);*/
+        session.onException(t);
     }
 }

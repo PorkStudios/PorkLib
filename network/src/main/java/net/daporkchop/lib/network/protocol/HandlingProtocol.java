@@ -13,38 +13,47 @@
  *
  */
 
-package net.daporkchop.lib.network.endpoint;
+package net.daporkchop.lib.network.protocol;
 
 import lombok.NonNull;
-import net.daporkchop.lib.network.EndpointType;
-import net.daporkchop.lib.network.protocol.Protocol;
+import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.util.CloseableFuture;
-import net.daporkchop.lib.network.util.TransportEngineHolder;
+
+import java.io.IOException;
 
 /**
- * An endpoint is one of the ends on a connection. Connections consist of two endpoints, one local one and
- * a remote one.
+ * A {@link Protocol} that can handle messages when they reach the end of the pipeline.
+ * <p>
+ * Protocols which inherit from this will prevent the methods {@link AbstractUserSession#onReceived(Object, int)}
+ * and {@link AbstractUserSession#onBinary(DataIn, int)} from firing.
  *
  * @author DaPorkchop_
  */
-public interface PEndpoint<Impl extends PEndpoint<Impl, S>, S extends AbstractUserSession<S>> extends CloseableFuture, TransportEngineHolder {
+public interface HandlingProtocol<S extends AbstractUserSession<S>> extends Protocol<S> {
     /**
-     * @return this endpoint's type
+     * @return this protocol's message handler
      */
-    @NonNull
-    EndpointType type();
+    Handler<S> handler();
 
-    /**
-     * Closes this endpoint, blocking until it is closed.
-     * <p>
-     * Closing an endpoint will result in all connections associated with it being closed.
-     */
-    @Override
-    void closeNow();
+    interface Handler<S> {
+        /**
+         * Fired if a message reaches the end of the pipeline.
+         *
+         * @param session the session that the message was received on
+         * @param msg     the message that was received
+         * @param channel the channel that the message was received on
+         */
+        void onReceived(@NonNull S session, @NonNull Object msg, int channel);
 
-    /**
-     * @return the default protocol that will be used initially for all connections to and from this endpoint
-     */
-    Protocol<S> protocol();
+        /**
+         * Fired if raw binary data reaches the end of the pipeline.
+         * <p>
+         * Whether or not a certain message qualifies as binary or not depends on the transport engine.
+         *
+         * @param session the session that the data was received on
+         * @param in      a {@link DataIn} to read data from
+         * @param channel the channel that the data was received on
+         */
+        void onBinary(@NonNull S session, @NonNull DataIn in, int channel) throws IOException;
+    }
 }

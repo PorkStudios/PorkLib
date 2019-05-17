@@ -39,8 +39,8 @@ public interface SimpleDataProtocol<S extends AbstractUserSession<S>> extends Si
     void initPipeline(@NonNull Pipeline<S> pipeline, @NonNull S session);
 
     @Override
-    Object decode(@NonNull DataIn in, @NonNull S session) throws IOException;
+    Object decode(@NonNull S session, @NonNull DataIn in, int channel) throws IOException;
 
     @Override
-    void encode(@NonNull DataOut out, @NonNull Object msg, @NonNull S session) throws IOException;
+    void encode(@NonNull DataOut out, @NonNull S session, @NonNull Object msg, int channel) throws IOException;
 }

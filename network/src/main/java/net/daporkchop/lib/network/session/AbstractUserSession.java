@@ -32,6 +32,26 @@ public abstract class AbstractUserSession<S extends AbstractUserSession<S>> impl
     private final NetSession<S> internalSession = null;
 
     /**
+     * Fired when this session is opened (i.e. an opened event reaches the end of the pipeline).
+     */
+    public void onOpened() {
+    }
+
+    /**
+     * Fired when this session is closed (i.e. a closed event reaches the end of the pipeline).
+     */
+    public void onClosed() {
+    }
+
+    /**
+     * Fired when an exception is caught while updating this session.
+     *
+     * @param t the exception that was caught
+     */
+    public void onException(@NonNull Throwable t) {
+    }
+
+    /**
      * Fired if a message reaches the end of the pipeline.
      * <p>
      * Many protocol implementations will never allow packets to get this far down the pipeline, this method is here

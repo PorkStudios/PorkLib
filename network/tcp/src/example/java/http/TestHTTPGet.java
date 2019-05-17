@@ -34,7 +34,7 @@ public class TestHTTPGet implements Logging {
         logger.enableANSI().setLogAmount(LogAmount.DEBUG).info("Starting client...");
 
         PClient<HTTPSession> client = ClientBuilder.of(new HTTPProtocol())
-                .engine(TCPEngine.of(new HTTPPacketFramer()))
+                .engine(TCPEngine.defaultInstance())
                 .address(new InetSocketAddress("gist.githubusercontent.com", 80))
                 .build();
 
@@ -43,9 +43,7 @@ public class TestHTTPGet implements Logging {
                         "User-Agent: PorkLib\r\n\r\n")
                 .flushBuffer();
 
-        logger.info("Headers:\n%s", client.userSession().headers.get());
-        PorkUtil.sleep(200L); //TODO: event handlers so we can wait for the connection to be closed
-        logger.info("Body:\n%s", client.userSession().body);
-        client.closeAsync();
+        client.userSession().complete.sync();
+        logger.info("Headers:\n%s\nBody:\n%s", client.userSession().headers, client.userSession().body);
     }
 }

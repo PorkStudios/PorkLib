@@ -24,11 +24,11 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.network.endpoint.PClient;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
+import net.daporkchop.lib.network.netty.NettyEngine;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.Reliability;
 import net.daporkchop.lib.network.tcp.endpoint.TCPClient;
 import net.daporkchop.lib.network.transport.TransportEngine;
-import net.daporkchop.lib.network.netty.NettyEngine;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -36,10 +36,10 @@ import java.util.Map;
 
 /**
  * An implementation of {@link TransportEngine} for the TCP/IP transport protocol.
- *
+ * <p>
  * Default pipeline layout:
- * "tcp_framer" =>
- * "tcp_handler" => {@link net.daporkchop.lib.network.tcp.netty.TCPHandler}
+ * "tcp_framer"  => {@link net.daporkchop.lib.network.tcp.pipeline.Framer.DefaultFramer}
+ * "protocol"    => {@link net.daporkchop.lib.network.tcp.pipeline.TCPDataCodec} (only if endpoint protocol is {@link net.daporkchop.lib.network.protocol.DataProtocol})
  *
  * @author DaPorkchop_
  */
@@ -51,6 +51,15 @@ public class TCPEngine extends NettyEngine {
     @SuppressWarnings("unchecked")
     public static <B extends Builder<B>> B builder() {
         return (B) new Builder<B>();
+    }
+
+    public static TCPEngine defaultInstance() {
+        return new TCPEngine(
+                Collections.emptyMap(),
+                Collections.emptyMap(),
+                null,
+                true
+        );
     }
 
     protected TCPEngine(@NonNull Builder<?> builder) {
@@ -87,7 +96,6 @@ public class TCPEngine extends NettyEngine {
     }
 
     @AllArgsConstructor
-    @NoArgsConstructor
     @Getter
     @Accessors(fluent = true)
     public static class Builder<Impl extends Builder<Impl>> extends NettyEngine.Builder<Impl, TCPEngine> {

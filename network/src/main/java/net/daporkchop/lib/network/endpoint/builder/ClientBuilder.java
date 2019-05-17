@@ -35,7 +35,7 @@ import java.net.InetSocketAddress;
 @Setter
 @Accessors(chain = true, fluent = true)
 public class ClientBuilder<S extends AbstractUserSession<S>> extends EndpointBuilder<ClientBuilder<S>, PClient<S>, S> {
-    public static <S extends AbstractUserSession<S>> ClientBuilder<S> of(@NonNull Protocol<?, S> protocol)  {
+    public static <S extends AbstractUserSession<S>> ClientBuilder<S> of(@NonNull Protocol<S> protocol)  {
         return new ClientBuilder<>().protocol(protocol);
     }
 
@@ -49,7 +49,7 @@ public class ClientBuilder<S extends AbstractUserSession<S>> extends EndpointBui
 
     @Override
     @SuppressWarnings("unchecked")
-    public <NEW_S extends AbstractUserSession<NEW_S>> ClientBuilder<NEW_S> protocol(@NonNull Protocol<?, NEW_S> protocol)   {
+    public <NEW_S extends AbstractUserSession<NEW_S>> ClientBuilder<NEW_S> protocol(@NonNull Protocol<NEW_S> protocol)   {
         ((ClientBuilder<NEW_S>) this).protocol = protocol;
         return (ClientBuilder<NEW_S>) this;
     }

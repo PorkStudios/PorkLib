@@ -16,7 +16,6 @@
 package net.daporkchop.lib.network.netty;
 
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.epoll.Epoll;
 import io.netty.channel.nio.NioEventLoopGroup;
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.PorkUtil;

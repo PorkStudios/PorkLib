@@ -13,14 +13,16 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp;
+package net.daporkchop.lib.network.protocol;
 
-import lombok.NonNull;
-import net.daporkchop.lib.network.pipeline.PipelineEdgeListener;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
  * @author DaPorkchop_
  */
-public class TCPEdgeListener<S extends AbstractUserSession<S>> implements PipelineEdgeListener<S> {
+public interface SimpleHandlingProtocol<S extends AbstractUserSession<S>> extends HandlingProtocol<S>, HandlingProtocol.Handler<S> {
+    @Override
+    default Handler<S> handler() {
+        return this;
+    }
 }

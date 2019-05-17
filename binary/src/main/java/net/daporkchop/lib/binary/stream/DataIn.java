@@ -350,6 +350,16 @@ public abstract class DataIn extends InputStream {
         return b;
     }
 
+    /**
+     * Reads all available bytes from this stream, as returned by {@link #available()}.
+     * @return all available bytes from this stream
+     */
+    public byte[] readAllAvailableBytes() throws IOException {
+        byte[] b = new byte[this.available()];
+        this.readFully(b);
+        return b;
+    }
+
     @Override
     public abstract void close() throws IOException;
 }

@@ -15,14 +15,27 @@
 
 package http;
 
-import net.daporkchop.lib.concurrent.future.ReturnableFuture;
-import net.daporkchop.lib.concurrent.future.impl.SimpleReturnableFuture;
+import lombok.NonNull;
+import net.daporkchop.lib.concurrent.future.PCompletable;
+import net.daporkchop.lib.concurrent.future.impl.PCompletableImpl;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
  * @author DaPorkchop_
  */
 public class HTTPSession extends AbstractUserSession<HTTPSession> {
-    protected final ReturnableFuture<String> headers = new SimpleReturnableFuture<>();
+    protected final PCompletable complete = new PCompletableImpl();
+    protected boolean headersComplete = false;
+    protected String headers = "";
     protected String body = "";
+
+    @Override
+    public void onClosed() {
+        this.complete.complete();
+    }
+
+    @Override
+    public void onException(@NonNull Throwable t) {
+        this.complete.completeExceptionally(t);
+    }
 }

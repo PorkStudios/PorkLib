@@ -20,6 +20,12 @@ import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.network.pipeline.Pipeline;
+import net.daporkchop.lib.network.protocol.DataProtocol;
+import net.daporkchop.lib.network.protocol.HandlingProtocol;
+import net.daporkchop.lib.network.protocol.Protocol;
+import net.daporkchop.lib.network.protocol.SimpleDataProtocol;
+import net.daporkchop.lib.network.protocol.SimpleHandlingProtocol;
 import net.daporkchop.lib.network.protocol.SimpleProtocol;
 
 import java.io.IOException;
@@ -27,26 +33,45 @@ import java.io.IOException;
 /**
  * @author DaPorkchop_
  */
-public class HTTPProtocol implements SimpleProtocol<String, HTTPSession>, Logging {
+public class HTTPProtocol implements SimpleDataProtocol<HTTPSession>, SimpleHandlingProtocol<HTTPSession>, Logging {
     @Override
-    public String decode(@NonNull DataIn in, @NonNull HTTPSession session, int channel) throws IOException {
-        return new String(in.readFully(new byte[in.available()]), UTF8.utf8);
+    public HTTPSession newSession() {
+        return new HTTPSession();
     }
 
     @Override
-    public void encode(@NonNull DataOut out, @NonNull String packet, @NonNull HTTPSession session, int channel) throws IOException {
-        out.writeBytes(packet.getBytes(UTF8.utf8));
+    public void initPipeline(@NonNull Pipeline<HTTPSession> pipeline, @NonNull HTTPSession session) {
+        pipeline.replace("tcp_framer", new HTTPPacketFramer());
     }
 
     @Override
-    public void handle(@NonNull String packet, @NonNull HTTPSession session, int channel) {
-        if (channel == 1) {
-            TestHTTPGet.data += packet;
+    public Object decode(@NonNull HTTPSession session, @NonNull DataIn in, int channel) throws IOException {
+        return new String(in.readAllAvailableBytes(), UTF8.utf8);
+    }
+
+    @Override
+    public void encode(@NonNull DataOut out, @NonNull HTTPSession session, @NonNull Object msg, int channel) throws IOException {
+        if (msg instanceof String)  {
+            out.write(((String) msg).getBytes(UTF8.utf8));
+        } else {
+            throw new IllegalArgumentException(msg.getClass().getCanonicalName());
         }
     }
 
     @Override
-    public HTTPSession newSession() {
-        return new HTTPSession();
+    public void onReceived(@NonNull HTTPSession session, @NonNull Object msg, int channel) {
+        if (msg instanceof String)  {
+            if (session.headersComplete)    {
+                session.body += msg;
+            } else {
+                session.headers += msg;
+            }
+        } else {
+            throw new IllegalArgumentException(msg.getClass().getCanonicalName());
+        }
+    }
+
+    @Override
+    public void onBinary(@NonNull HTTPSession session, @NonNull DataIn in, int channel) throws IOException {
     }
 }

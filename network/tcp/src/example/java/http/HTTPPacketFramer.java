@@ -29,57 +29,32 @@ import java.util.List;
  */
 public class HTTPPacketFramer implements Framer<HTTPSession>, Logging {
     @Override
-    public void unpack(@NonNull ByteBuf buf, @NonNull HTTPSession session, @NonNull List<ChanneledPacket<ByteBuf>> frames) {
+    public void unpack(@NonNull HTTPSession session, @NonNull ByteBuf buf, @NonNull UnpackOut<HTTPSession> frames) {
         TOP:
-        while (buf.isReadable()) {
-            if (session.headers.isCompleted()) {
-                logger.debug("Read %d bytes!", buf.readableBytes());
-                frames.add(new ChanneledPacket<>(buf.readRetainedSlice(buf.readableBytes()), 1));
-            } else {
+        while (buf.isReadable())    {
+            if (session.headersComplete)    {
+                frames.received(session, buf.readRetainedSlice(buf.readableBytes()), 1);
+            } else if (buf.readableBytes() >= 4) {
                 int origPos = buf.readerIndex();
-                int i = -1;
-                while (buf.isReadable()) {
-                    char c = (char) (buf.readByte() & 0xFFFF);
-                    switch (i) {
-                        case -1:
-                        case 1:
-                            if (c == '\r') {
-                                i++;
-                            } else {
-                                i = -1;
-                            }
-                            break;
-                        case 0:
-                            if (c == '\n') {
-                                i++;
-                            } else {
-                                i = -1;
-                            }
-                            break;
-                        case 2:
-                            if (c == '\n') {
-                                byte[] arr = new byte[buf.readerIndex() - origPos];
-                                buf.getBytes(origPos, arr);
-                                session.headers.complete(new String(arr, UTF8.utf8));
-                                frames.add(new ChanneledPacket<>(buf.retainedSlice(origPos, buf.readerIndex() - origPos), 0));
-                                logger.debug("Read headers!", buf.readableBytes());
-                                continue TOP;
-                            } else {
-                                i = -1;
-                            }
-                            break;
-                        default:
-                            throw new IllegalStateException(String.valueOf(i));
+                while (buf.readableBytes() >= 4)    {
+                    if (buf.readByte() == '\r'
+                            && buf.readByte() == '\n'
+                            && buf.readByte() == '\r'
+                            && buf.readByte() == '\n')  {
+                        int len = buf.readerIndex() - origPos;
+                        frames.received(session, buf.readerIndex(origPos).readRetainedSlice(len), 0);
+                        session.headersComplete = true;
+                        continue TOP;
                     }
                 }
-                logger.debug("Unable to find headers.");
+                buf.readerIndex(origPos);
                 return;
             }
         }
     }
 
     @Override
-    public void pack(@NonNull ChanneledPacket<ByteBuf> packet, @NonNull HTTPSession session, @NonNull ByteBuf out) {
-        out.writeBytes(packet.packet());
+    public void pack(@NonNull HTTPSession session, @NonNull ByteBuf packet, int channel, @NonNull PackOut<HTTPSession> frames) {
+        frames.sending(session, packet, channel);
     }
 }

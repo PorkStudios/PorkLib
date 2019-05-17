@@ -20,9 +20,12 @@ import io.netty.channel.ChannelInitializer;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.network.protocol.DataProtocol;
+import net.daporkchop.lib.network.protocol.HandlingProtocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.tcp.WrapperNioSocketChannel;
 import net.daporkchop.lib.network.tcp.endpoint.TCPEndpoint;
+import net.daporkchop.lib.network.tcp.pipeline.TCPDataCodec;
 
 import java.util.function.Consumer;
 
@@ -46,7 +49,13 @@ public class TCPChannelInitializer<E extends TCPEndpoint<?, S, ?>, S extends Abs
     @Override
     protected void initChannel(@NonNull WrapperNioSocketChannel<S> channel) throws Exception {
         channel.pipeline()
+                .addLast("write", new TCPWriter<>(channel))
                 .addLast("handle", new TCPHandler<>(channel));
+
+        if (this.endpoint.protocol() instanceof DataProtocol)   {
+            channel.dataPipeline()
+                    .addLast("protocol", new TCPDataCodec<>((DataProtocol<S>) this.endpoint.protocol(), channel.alloc()));
+        }
 
         this.addedCallback.accept(channel);
     }

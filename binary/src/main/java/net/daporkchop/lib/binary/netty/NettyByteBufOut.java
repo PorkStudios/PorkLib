@@ -19,6 +19,7 @@ import io.netty.buffer.ByteBuf;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -32,11 +33,11 @@ import java.io.IOException;
  * @author DaPorkchop_
  */
 @AllArgsConstructor
+@NoArgsConstructor
 @Getter
-@Setter(value = AccessLevel.PROTECTED)
-@Accessors(fluent = true)
+@Setter
+@Accessors(fluent = true, chain = true)
 public class NettyByteBufOut extends DataOut {
-    @NonNull
     protected ByteBuf buf;
 
     static {

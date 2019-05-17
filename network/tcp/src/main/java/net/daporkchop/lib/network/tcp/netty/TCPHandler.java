@@ -37,26 +37,26 @@ public class TCPHandler<S extends AbstractUserSession<S>> extends NettyHandler i
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        this.session.dataPipeline().fireReceived(this.session.userSession(), msg, -1);
+        this.session.dataPipeline().fireReceived(msg, -1);
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        this.session.dataPipeline().fireOpened(this.session.userSession());
+        this.session.dataPipeline().fireOpened();
 
         super.channelActive(ctx);
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        this.session.dataPipeline().fireClosed(this.session.userSession());
+        this.session.dataPipeline().fireClosed();
 
         super.channelInactive(ctx);
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        this.session.dataPipeline().fireExceptionCaught(this.session.userSession(), cause);
+        this.session.dataPipeline().fireExceptionCaught(cause);
 
         super.exceptionCaught(ctx, cause);
     }

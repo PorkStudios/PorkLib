@@ -16,20 +16,63 @@
 package net.daporkchop.lib.network.tcp.pipeline;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.binary.netty.NettyByteBufIn;
+import net.daporkchop.lib.binary.netty.NettyByteBufOut;
 import net.daporkchop.lib.network.pipeline.handler.Codec;
 import net.daporkchop.lib.network.pipeline.util.EventContext;
+import net.daporkchop.lib.network.protocol.DataProtocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
+import java.io.IOException;
+
 /**
+ * Handles encoding/decoding packets when using a {@link DataProtocol}.
+ *
  * @author DaPorkchop_
  */
-public class TCPCodec<S extends AbstractUserSession<S>> implements Codec<S, ByteBuf, Object> {
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public class TCPDataCodec<S extends AbstractUserSession<S>> implements Codec<S, ByteBuf, Object> {
+    @NonNull
+    protected final DataProtocol<S> protocol;
+    @NonNull
+    protected final ByteBufAllocator alloc;
+
+    protected final NettyByteBufIn in = new NettyByteBufIn();
+    protected final NettyByteBufOut out = new NettyByteBufOut();
+
     @Override
     public void received(@NonNull EventContext<S> context, @NonNull S session, @NonNull ByteBuf msg, int channel) {
+        try {
+            Object decoded = this.protocol.codec().decode(session, this.in.buf(msg), channel);
+            if (decoded != null) {
+                context.received(session, decoded, channel);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            this.in.buf(null);
+            msg.release();
+        }
     }
 
     @Override
     public void sending(@NonNull EventContext<S> context, @NonNull S session, @NonNull Object msg, int channel) {
+        ByteBuf buf = this.alloc.ioBuffer();
+        try {
+            this.protocol.codec().encode(this.out.buf(buf), session, msg, channel);
+        } catch (IOException e) {
+            buf.release();
+            throw new RuntimeException(e);
+        } finally {
+            this.out.buf(null);
+        }
+        context.sending(session, buf, channel);
     }
 }

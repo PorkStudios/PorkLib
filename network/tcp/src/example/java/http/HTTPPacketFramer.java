@@ -20,7 +20,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.transport.ChanneledPacket;
-import net.daporkchop.lib.network.tcp.Framer;
+import net.daporkchop.lib.network.tcp.pipeline.Framer;
 
 import java.util.List;
 

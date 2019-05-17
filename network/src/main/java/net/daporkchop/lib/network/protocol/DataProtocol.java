@@ -40,19 +40,20 @@ public interface DataProtocol<S extends AbstractUserSession<S>> extends Protocol
         /**
          * Decodes a packet, reading no data more than required.
          *
-         * @param in      a {@link DataIn} to read data from
          * @param session the session that the data was received on
+         * @param in      a {@link DataIn} to read data from
+         * @param channel the channel that the data was received on
          * @return a decoded packet
          */
-        Object decode(@NonNull DataIn in, @NonNull S session) throws IOException;
+        Object decode(@NonNull S session, @NonNull DataIn in, int channel) throws IOException;
 
         /**
          * Encodes a message.
-         *
-         * @param out     a {@link DataOut} to write data to
-         * @param msg     the message that should be sent
+         *  @param out     a {@link DataOut} to write data to
          * @param session the session that the message will be sent on
+         * @param msg     the message that should be sent
+         * @param channel the channel that the message will be sent on
          */
-        void encode(@NonNull DataOut out, @NonNull Object msg, @NonNull S session) throws IOException;
+        void encode(@NonNull DataOut out, @NonNull S session, @NonNull Object msg, int channel) throws IOException;
     }
 }

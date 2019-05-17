@@ -13,47 +13,48 @@
  *
  */
 
-package net.daporkchop.lib.network.session;
+package net.daporkchop.lib.network.protocol;
 
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.experimental.Accessors;
+import net.daporkchop.lib.binary.Data;
 import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.network.transport.NetSession;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.network.session.AbstractUserSession;
 
 import java.io.IOException;
 
 /**
+ * A simple message that can be sent over the network.
+ *
  * @author DaPorkchop_
  */
-@Getter
-@Accessors(fluent = true)
-public abstract class AbstractUserSession<S extends AbstractUserSession<S>> implements BaseUserSession<S, S> {
-    private final NetSession<S> internalSession = null;
-
+public interface Packet<S extends AbstractUserSession<S>> extends Data {
     /**
-     * Fired if a message reaches the end of the pipeline.
+     * Decodes the message from it's binary representation.
      * <p>
-     * Many protocol implementations will never allow packets to get this far down the pipeline, this method is here
-     * mainly to serve as a sort of backup handling option.
-     *
-     * @param msg     the message that was received
-     * @param channel the channel that the message was received on
-     */
-    public void onReceived(@NonNull Object msg, int channel) {
-    }
-
-    /**
-     * Fired if raw binary data reaches the end of the pipeline.
-     * <p>
-     * Whether or not a certain message qualifies as binary or not depends on the transport engine.
-     * <p>
-     * Many protocol implementations will never allow packets to get this far down the pipeline, this method is here
-     * mainly to serve as a sort of backup handling option.
+     * Be aware that this object instance may have been newly instantiated using
+     * {@link net.daporkchop.lib.unsafe.PUnsafe#allocateInstance(Class)}, so implementing classes should assume that
+     * no constructors or default values will be set.
      *
      * @param in      a {@link DataIn} to read data from
-     * @param channel the channel that the data was received on
+     * @param session the session that the packet was received on
      */
-    public void onBinary(@NonNull DataIn in, int channel) throws IOException {
-    }
+    void decode(@NonNull DataIn in, @NonNull S session) throws IOException;
+
+    /**
+     * Encodes this message into it's binary representation.
+     *
+     * @param out     a {@link DataOut} to write data to
+     * @param session the session that the packet will be sent on
+     */
+    void encode(@NonNull DataOut out, @NonNull S session) throws IOException;
+
+    /**
+     * Handles this packet.
+     * <p>
+     * One may assume that {@link #read(DataIn)} will have been called successfully before this method is called.
+     *
+     * @param session the session that the packet was received on
+     */
+    void handle(@NonNull S session);
 }

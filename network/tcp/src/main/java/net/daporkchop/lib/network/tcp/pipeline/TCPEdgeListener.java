@@ -13,24 +13,41 @@
  *
  */
 
-package net.daporkchop.lib.network.pipeline.handler;
+package net.daporkchop.lib.network.tcp.pipeline;
 
+import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.network.pipeline.Pipeline;
-import net.daporkchop.lib.network.pipeline.event.ReceivedListener;
-import net.daporkchop.lib.network.pipeline.event.SendingListener;
-import net.daporkchop.lib.network.pipeline.util.EventContext;
+import net.daporkchop.lib.binary.netty.NettyUtil;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.network.pipeline.PipelineEdgeListener;
+import net.daporkchop.lib.network.protocol.HandlingProtocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-public interface Codec<S extends AbstractUserSession<S>, RECEIVED_IN, SENDING_IN> extends ReceivedListener<S, RECEIVED_IN>, SendingListener<S, SENDING_IN> {
+public class TCPEdgeListener<S extends AbstractUserSession<S>> extends PipelineEdgeListener<S> {
     @Override
-    default void added(@NonNull Pipeline<S> pipeline, @NonNull S session) {
-    }
-
-    @Override
-    default void removed(@NonNull Pipeline<S> pipeline, @NonNull S session) {
+    public void received(@NonNull S session, @NonNull Object msg, int channel) {
+        if (msg instanceof ByteBuf) {
+            try (DataIn in = NettyUtil.wrapIn((ByteBuf) msg)) {
+                if (session.endpoint().protocol() instanceof HandlingProtocol)  {
+                    ((HandlingProtocol<S>) session.endpoint().protocol()).handler().onBinary(session, in, channel);
+                } else {
+                    session.onBinary(in, channel);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            ((ByteBuf) msg).release();
+        } else {
+            if (session.endpoint().protocol() instanceof HandlingProtocol)  {
+                ((HandlingProtocol<S>) session.endpoint().protocol()).handler().onReceived(session, msg, channel);
+            } else {
+                session.onReceived(msg, channel);
+            }
+        }
     }
 }

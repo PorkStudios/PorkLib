@@ -23,7 +23,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.netty.NettyByteBufIn;
 import net.daporkchop.lib.binary.netty.NettyByteBufOut;
-import net.daporkchop.lib.network.pipeline.handler.Codec;
+import net.daporkchop.lib.network.pipeline.event.ReceivedListener;
+import net.daporkchop.lib.network.pipeline.event.SendingListener;
 import net.daporkchop.lib.network.pipeline.util.EventContext;
 import net.daporkchop.lib.network.protocol.DataProtocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
@@ -38,7 +39,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public class TCPDataCodec<S extends AbstractUserSession<S>> implements Codec<S, ByteBuf, Object> {
+public class TCPDataCodec<S extends AbstractUserSession<S>> implements ReceivedListener<S, ByteBuf>, SendingListener<S, Object> {
     @NonNull
     protected final DataProtocol<S> protocol;
     @NonNull

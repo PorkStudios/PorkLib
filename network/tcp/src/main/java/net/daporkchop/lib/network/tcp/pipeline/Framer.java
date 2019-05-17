@@ -19,19 +19,15 @@ import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.network.pipeline.event.ReceivedListener;
 import net.daporkchop.lib.network.pipeline.event.SendingListener;
-import net.daporkchop.lib.network.pipeline.handler.Codec;
 import net.daporkchop.lib.network.pipeline.util.EventContext;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-
-import java.util.function.Consumer;
-import java.util.function.ObjIntConsumer;
 
 /**
  * Allows for sending individual packets down the pipeline.
  *
  * @author DaPorkchop_
  */
-public interface Framer<S extends AbstractUserSession<S>> extends Codec<S, ByteBuf, ByteBuf> {
+public interface Framer<S extends AbstractUserSession<S>> extends ReceivedListener<S, ByteBuf>, SendingListener<S, ByteBuf> {
     @Override
     default void received(@NonNull EventContext<S> context, @NonNull S session, @NonNull ByteBuf msg, int channel) {
         this.unpack(session, msg, context::received);

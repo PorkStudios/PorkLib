@@ -33,7 +33,8 @@ public interface PipelineListener<S extends AbstractUserSession<S>> {
      * @param pipeline the pipeline that this listener was added to
      * @param session  the session that the pipeline belongs to
      */
-    void added(@NonNull Pipeline<S> pipeline, @NonNull S session);
+    default void added(@NonNull Pipeline<S> pipeline, @NonNull S session)   {
+    }
 
     /**
      * Fired when this listener is removed from a pipeline.
@@ -41,5 +42,6 @@ public interface PipelineListener<S extends AbstractUserSession<S>> {
      * @param pipeline the pipeline that this listener was removed from
      * @param session  the session that the pipeline belongs to
      */
-    void removed(@NonNull Pipeline<S> pipeline, @NonNull S session);
+    default void removed(@NonNull Pipeline<S> pipeline, @NonNull S session) {
+    }
 }

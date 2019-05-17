@@ -142,7 +142,7 @@ class Node<S extends AbstractUserSession<S>> implements FireEvents<S> {
                 while (node != null && !node.canSend(msg)) {
                     node = node.next;
                 }
-                this.sending.put(msg.getClass(), callback = node == null ? this.pipeline().listener : node);
+                this.sending.put(msg.getClass(), callback = node == null ? this.pipeline().actualSender : node);
             }
             callback.fireSending(session, msg, channel);
         }

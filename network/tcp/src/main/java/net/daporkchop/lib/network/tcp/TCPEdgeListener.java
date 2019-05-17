@@ -23,26 +23,4 @@ import net.daporkchop.lib.network.session.AbstractUserSession;
  * @author DaPorkchop_
  */
 public class TCPEdgeListener<S extends AbstractUserSession<S>> implements PipelineEdgeListener<S> {
-    @Override
-    public void fireOpened(@NonNull S session) {
-    }
-
-    @Override
-    public void fireClosed(@NonNull S session) {
-    }
-
-    @Override
-    public void fireReceived(@NonNull S session, @NonNull Object msg, int channel) {
-    }
-
-    @Override
-    public void fireSending(@NonNull S session, @NonNull Object msg, int channel) {
-        //TODO: i'm gonna need some way to notify the ChannelPromise that a packet was sent with
-        //see MessageToMessageEncoder
-        //maybe i should synchronize the whole pipeline? i think each channel only gets one thread at a time anyway
-    }
-
-    @Override
-    public void fireExceptionCaught(@NonNull S session, @NonNull Throwable t) {
-    }
 }

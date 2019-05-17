@@ -13,24 +13,24 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.pipeline;
+package net.daporkchop.lib.network.pipeline.handler;
 
-import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.network.pipeline.event.MessageReceived;
-import net.daporkchop.lib.network.pipeline.event.MessageSent;
-import net.daporkchop.lib.network.pipeline.handler.PacketCodec;
+import net.daporkchop.lib.network.pipeline.Pipeline;
+import net.daporkchop.lib.network.pipeline.event.ReceivedListener;
+import net.daporkchop.lib.network.pipeline.event.SendingListener;
+import net.daporkchop.lib.network.pipeline.util.EventContext;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
  * @author DaPorkchop_
  */
-public class TCPEncoder<S extends AbstractUserSession<S>> implements PacketCodec<S, Object, ByteBuf> {
+public interface Codec<S extends AbstractUserSession<S>, RECEIVED_IN, SENDING_IN> extends ReceivedListener<S, RECEIVED_IN>, SendingListener<S, SENDING_IN> {
     @Override
-    public void messageReceived(@NonNull S session, @NonNull ByteBuf msg, int channel, @NonNull MessageReceived.Callback<S, Object> next) {
+    default void added(@NonNull Pipeline<S> pipeline, @NonNull S session) {
     }
 
     @Override
-    public void messageSent(@NonNull S session, @NonNull Object msg, int channel, @NonNull MessageSent.Callback<S, ByteBuf> next) {
+    default void removed(@NonNull Pipeline<S> pipeline, @NonNull S session) {
     }
 }

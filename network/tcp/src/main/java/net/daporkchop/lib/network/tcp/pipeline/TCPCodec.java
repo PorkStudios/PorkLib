@@ -13,32 +13,23 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.netty;
+package net.daporkchop.lib.network.tcp.pipeline;
 
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.MessageToMessageEncoder;
-import lombok.Getter;
+import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
+import net.daporkchop.lib.network.pipeline.handler.Codec;
+import net.daporkchop.lib.network.pipeline.util.EventContext;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.tcp.WrapperNioSocketChannel;
-import net.daporkchop.lib.network.transport.ChanneledPacket;
-
-import java.util.List;
 
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-public class TCPWriter<S extends AbstractUserSession<S>> extends MessageToMessageEncoder<ChanneledPacket> {
-    @NonNull
-    protected final WrapperNioSocketChannel<S> session;
+public class TCPCodec<S extends AbstractUserSession<S>> implements Codec<S, ByteBuf, Object> {
+    @Override
+    public void received(@NonNull EventContext<S> context, @NonNull S session, @NonNull ByteBuf msg, int channel) {
+    }
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, ChanneledPacket msg, List<Object> out) throws Exception {
-        this.session.dataPipeline().fireSending(msg.packet(), msg.channel(), out);
+    public void sending(@NonNull EventContext<S> context, @NonNull S session, @NonNull Object msg, int channel) {
     }
 }

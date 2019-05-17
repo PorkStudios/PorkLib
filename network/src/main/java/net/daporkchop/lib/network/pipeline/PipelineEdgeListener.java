@@ -16,6 +16,8 @@
 package net.daporkchop.lib.network.pipeline;
 
 import lombok.NonNull;
+import net.daporkchop.lib.logging.Logger;
+import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.pipeline.Pipeline;
 import net.daporkchop.lib.network.pipeline.event.ClosedListener;
 import net.daporkchop.lib.network.pipeline.event.ExceptionListener;
@@ -29,19 +31,29 @@ import net.daporkchop.lib.network.session.AbstractUserSession;
 /**
  * @author DaPorkchop_
  */
-public interface PipelineEdgeListener<S extends AbstractUserSession<S>> extends FireEvents<S> {
+public interface PipelineEdgeListener<S extends AbstractUserSession<S>> extends FireEvents<S>, Logging {
     @Override
-    void fireOpened(@NonNull S session);
+    default void fireOpened(@NonNull S session) {
+    }
 
     @Override
-    void fireClosed(@NonNull S session);
+    default void fireClosed(@NonNull S session) {
+    }
 
     @Override
-    void fireReceived(@NonNull S session, @NonNull Object msg, int channel);
+    default void fireReceived(@NonNull S session, @NonNull Object msg, int channel) {
+        logger.warn("Received message reached the end of the pipeline: %s", msg.getClass().getCanonicalName());
+    }
 
     @Override
-    void fireSending(@NonNull S session, @NonNull Object msg, int channel);
+    default void fireSending(@NonNull S session, @NonNull Object msg, int channel) {
+        throw new UnsupportedOperationException();
+    }
 
     @Override
-    void fireExceptionCaught(@NonNull S session, @NonNull Throwable t);
+    default void fireExceptionCaught(@NonNull S session, @NonNull Throwable t) {
+        StringBuilder builder = new StringBuilder();
+        Logger.getStackTrace(t, builder::append);
+        logger.alert("Exception reached the end of the pipeline!\n\n%s", builder);
+    }
 }

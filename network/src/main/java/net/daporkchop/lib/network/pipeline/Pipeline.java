@@ -18,16 +18,20 @@ package net.daporkchop.lib.network.pipeline;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.network.pipeline.event.SendingListener;
+import net.daporkchop.lib.network.pipeline.util.EventContext;
 import net.daporkchop.lib.network.pipeline.util.FireEvents;
 import net.daporkchop.lib.network.pipeline.util.PipelineListener;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
+import java.nio.channels.Pipe;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
@@ -36,81 +40,61 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * @author DaPorkchop_
  */
 @Accessors(fluent = true)
-public class Pipeline<S extends AbstractUserSession<S>> implements FireEvents<S> {
+public class Pipeline<S extends AbstractUserSession<S>> {
     @Getter
     protected final S session;
 
-    protected final Lock readLock;
-    protected final Lock writeLock;
+    protected final Object mutex = new Object[0];
 
     protected final List<Node<S>> nodes = new ArrayList<>();
+    protected Node<S> head;
+    protected Node<S> tail;
 
     protected final PipelineEdgeListener<S> listener;
+
+    protected List<Object> sendQueue;
+    protected final SendingListener.Fire<S> actualSender = (s, msg, channel) -> Pipeline.this.sendQueue.add(msg);
 
     protected int fallbackIdCounter = 0;
 
     public Pipeline(@NonNull S session, @NonNull PipelineEdgeListener<S> listener) {
         this.session = session;
         this.listener = listener;
+    }
 
-        {
-            ReadWriteLock lock = new ReentrantReadWriteLock();
-            this.readLock = lock.readLock();
-            this.writeLock = lock.writeLock();
+    public void fireOpened() {
+        synchronized (this.mutex)   {
+            this.head.fireOpened(this.session);
         }
     }
 
-    @Override
-    public void fireOpened(@NonNull S session) {
-        this.readLock.lock();
-        try {
-            this.nodes.get(0).fireOpened(session);
-        } finally {
-            this.readLock.unlock();
-        }
-    }
-
-    @Override
-    public void fireClosed(@NonNull S session) {
-        this.writeLock.lock();
-        try {
-            this.nodes.get(0).fireClosed(session);
+    public void fireClosed() {
+        synchronized (this.mutex)   {
+            this.head.fireClosed(this.session);
 
             this.nodes.forEach(n -> n.listener.removed(this, this.session));
             this.nodes.clear();
             this.rebuild();
-        } finally {
-            this.writeLock.unlock();
         }
     }
 
-    @Override
-    public void fireReceived(@NonNull S session, @NonNull Object msg, int channel) {
-        this.readLock.lock();
-        try {
-            this.nodes.get(0).fireReceived(session, msg, channel);
-        } finally {
-            this.readLock.unlock();
+    public void fireReceived(@NonNull Object msg, int channel) {
+        synchronized (this.mutex)   {
+            this.head.fireReceived(this.session, msg, channel);
         }
     }
 
-    @Override
-    public void fireSending(@NonNull S session, @NonNull Object msg, int channel) {
-        this.readLock.lock();
-        try {
-            this.nodes.get(0).fireSending(session, msg, channel);
-        } finally {
-            this.readLock.unlock();
+    public void fireSending(@NonNull Object msg, int channel, @NonNull List<Object> sendQueue) {
+        synchronized (this.mutex)   {
+            this.sendQueue = sendQueue;
+            this.tail.fireSending(this.session, msg, channel);
+            this.sendQueue = null;
         }
     }
 
-    @Override
-    public void fireExceptionCaught(@NonNull S session, @NonNull Throwable t) {
-        this.readLock.lock();
-        try {
-            this.nodes.get(0).fireExceptionCaught(session, t);
-        } finally {
-            this.readLock.unlock();
+    public void fireExceptionCaught(@NonNull Throwable t) {
+        synchronized (this.mutex)   {
+            this.head.fireExceptionCaught(this.session, t);
         }
     }
 
@@ -119,15 +103,12 @@ public class Pipeline<S extends AbstractUserSession<S>> implements FireEvents<S>
     }
 
     public Pipeline<S> addFirst(@NonNull String name, @NonNull PipelineListener<S> listener) {
-        this.writeLock.lock();
-        try {
+        synchronized (this.mutex) {
             this.assertNotContains(name);
             this.nodes.add(0, new Node<>(this, name, listener));
             this.rebuild();
             listener.added(this, this.session);
             return this;
-        } finally {
-            this.writeLock.unlock();
         }
     }
 
@@ -136,21 +117,17 @@ public class Pipeline<S extends AbstractUserSession<S>> implements FireEvents<S>
     }
 
     public Pipeline<S> addLast(@NonNull String name, @NonNull PipelineListener<S> listener) {
-        this.writeLock.lock();
-        try {
+        synchronized (this.mutex) {
             this.assertNotContains(name);
             this.nodes.add(new Node<>(this, name, listener));
             this.rebuild();
             listener.added(this, this.session);
             return this;
-        } finally {
-            this.writeLock.unlock();
         }
     }
 
     public Pipeline<S> remove(@NonNull String name) {
-        this.writeLock.lock();
-        try {
+        synchronized (this.mutex) {
             for (Iterator<Node<S>> itr = this.nodes.iterator(); itr.hasNext();) {
                 Node<S> node = itr.next();
                 if (name.equals(node.name))   {
@@ -161,14 +138,11 @@ public class Pipeline<S extends AbstractUserSession<S>> implements FireEvents<S>
                 }
             }
             throw new IllegalStateException(String.format("No listener with name \"%s\"!", name));
-        } finally {
-            this.writeLock.unlock();
         }
     }
 
     public Pipeline<S> replace(@NonNull String name, @NonNull PipelineListener<S> listener) {
-        this.writeLock.lock();
-        try {
+        synchronized (this.mutex) {
             for (ListIterator<Node<S>> itr = this.nodes.listIterator(); itr.hasNext();) {
                 Node<S> node = itr.next();
                 if (name.equals(node.name))   {
@@ -180,27 +154,21 @@ public class Pipeline<S extends AbstractUserSession<S>> implements FireEvents<S>
                 }
             }
             throw new IllegalStateException(String.format("No listener with name \"%s\"!", name));
-        } finally {
-            this.writeLock.unlock();
         }
     }
 
     protected void assertNotContains(@NonNull String name) {
-        this.readLock.lock();
-        try {
+        synchronized (this.mutex) {
             this.nodes.forEach(node -> {
                 if (name.equals(node.name)) {
                     throw new IllegalStateException(String.format("Listener with name \"%s\" already present!", name));
                 }
             });
-        } finally {
-            this.readLock.unlock();
         }
     }
 
     protected void rebuild() {
-        this.writeLock.lock();
-        try {
+        synchronized (this.mutex) {
             this.nodes.forEach(node -> {
                 node.next = null;
                 node.prev = null;
@@ -220,8 +188,6 @@ public class Pipeline<S extends AbstractUserSession<S>> implements FireEvents<S>
                 this.nodes.get(i - 1).prev = this.nodes.get(i - 2);
             }
             this.nodes.forEach(Node::rebuild);
-        } finally {
-            this.writeLock.unlock();
         }
     }
 }

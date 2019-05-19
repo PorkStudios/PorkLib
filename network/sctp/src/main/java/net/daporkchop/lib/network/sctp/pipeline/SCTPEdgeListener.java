@@ -13,9 +13,10 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.pipeline;
+package net.daporkchop.lib.network.sctp.pipeline;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.sctp.SctpMessage;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.netty.NettyUtil;
 import net.daporkchop.lib.binary.stream.DataIn;
@@ -29,5 +30,14 @@ import java.io.IOException;
 /**
  * @author DaPorkchop_
  */
-public class TCPEdgeListener<S extends AbstractUserSession<S>> extends NettyEdgeListener<S> {
+public class SCTPEdgeListener<S extends AbstractUserSession<S>> extends NettyEdgeListener<S> {
+    @Override
+    public void received(@NonNull S session, @NonNull Object msg, int channel) {
+        if (msg instanceof SctpMessage) {
+            SctpMessage sctp = (SctpMessage) msg;
+            msg = sctp.content();
+            channel = sctp.streamIdentifier();
+        }
+        super.received(session, msg, channel);
+    }
 }

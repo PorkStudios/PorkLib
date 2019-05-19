@@ -13,21 +13,22 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.pipeline;
+package net.daporkchop.lib.network.sctp.endpoint;
 
-import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.netty.NettyUtil;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.network.netty.pipeline.NettyEdgeListener;
-import net.daporkchop.lib.network.pipeline.PipelineEdgeListener;
-import net.daporkchop.lib.network.protocol.HandlingProtocol;
+import net.daporkchop.lib.network.EndpointType;
+import net.daporkchop.lib.network.endpoint.PEndpoint;
+import net.daporkchop.lib.network.endpoint.builder.EndpointBuilder;
+import net.daporkchop.lib.network.netty.NettyEndpoint;
+import net.daporkchop.lib.network.sctp.SCTPEngine;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-
-import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-public class TCPEdgeListener<S extends AbstractUserSession<S>> extends NettyEdgeListener<S> {
+public abstract class SCTPEndpoint<Impl extends PEndpoint<Impl, S>, S extends AbstractUserSession<S>, C extends Channel> extends NettyEndpoint<Impl, S, C, SCTPEngine> {
+    protected SCTPEndpoint(@NonNull EndpointBuilder builder) {
+        super(builder);
+    }
 }

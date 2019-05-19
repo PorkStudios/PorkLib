@@ -13,21 +13,47 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.pipeline;
+package net.daporkchop.lib.network.sctp.endpoint;
 
-import io.netty.buffer.ByteBuf;
+import io.netty.bootstrap.Bootstrap;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.netty.NettyUtil;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.network.netty.pipeline.NettyEdgeListener;
-import net.daporkchop.lib.network.pipeline.PipelineEdgeListener;
-import net.daporkchop.lib.network.protocol.HandlingProtocol;
+import net.daporkchop.lib.network.endpoint.PClient;
+import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
+import net.daporkchop.lib.network.endpoint.builder.EndpointBuilder;
+import net.daporkchop.lib.network.sctp.netty.SCTPChannelInitializer;
+import net.daporkchop.lib.network.sctp.netty.session.WrapperNioSctpChannel;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-
-import java.io.IOException;
+import net.daporkchop.lib.network.transport.NetSession;
 
 /**
  * @author DaPorkchop_
  */
-public class TCPEdgeListener<S extends AbstractUserSession<S>> extends NettyEdgeListener<S> {
+public class SCTPClient<S extends AbstractUserSession<S>> extends SCTPEndpoint<PClient<S>, S, WrapperNioSctpChannel<S>> implements PClient<S> {
+    @SuppressWarnings("unchecked")
+    protected SCTPClient(@NonNull ClientBuilder<S> builder) {
+        super(builder);
+
+        try {
+            Bootstrap bootstrap = new Bootstrap()
+                    .group(this.group)
+                    .channelFactory(() -> new WrapperNioSctpChannel<>(this))
+                    .handler(new SCTPChannelInitializer<>(this));
+
+            this.transportEngine.clientOptions().forEach(bootstrap::option);
+
+            this.channel = (WrapperNioSctpChannel<S>) bootstrap.connect(builder.address()).syncUninterruptibly().channel();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public S userSession() {
+        return this.channel.userSession();
+    }
+
+    @Override
+    public NetSession<S> internalSession() {
+        return this.channel;
+    }
 }

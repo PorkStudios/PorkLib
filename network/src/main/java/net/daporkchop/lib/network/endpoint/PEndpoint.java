@@ -32,7 +32,6 @@ public interface PEndpoint<Impl extends PEndpoint<Impl, S>, S extends AbstractUs
     /**
      * @return this endpoint's type
      */
-    @NonNull
     EndpointType type();
 
     /**

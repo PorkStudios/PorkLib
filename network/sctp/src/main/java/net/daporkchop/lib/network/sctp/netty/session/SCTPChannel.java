@@ -13,54 +13,64 @@
  *
  */
 
-package net.daporkchop.lib.network.netty;
+package net.daporkchop.lib.network.sctp.netty.session;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelOutboundHandler;
+import io.netty.util.concurrent.Future;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.session.PChannel;
+import net.daporkchop.lib.network.session.Reliability;
 import net.daporkchop.lib.network.transport.NetSession;
+import net.daporkchop.lib.network.transport.TransportEngine;
 
 /**
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-@Getter
 @Accessors(fluent = true)
-public abstract class NettyHandler<S extends AbstractUserSession<S>, Ch extends NetSession<S>> extends ChannelInboundHandlerAdapter {
+public class SCTPChannel<S extends AbstractUserSession<S>> implements PChannel<S> {
     @NonNull
-    protected final Ch session;
+    protected final WrapperNioSctpChannel<S> session;
+    @Getter
+    protected final int id;
+    @Getter
+    protected Reliability fallbackReliability = Reliability.RELIABLE_ORDERED;
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        this.session.dataPipeline().fireReceived(msg, -1);
+    public S session() {
+        return this.session.userSession();
     }
 
     @Override
-    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-        this.session.dataPipeline().fireOpened();
-
-        super.channelRegistered(ctx);
+    public NetSession<S> internalSession() {
+        return this.session;
     }
 
     @Override
-    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-        this.session.dataPipeline().fireClosed();
-        this.session.closeAsync();
-
-        super.channelUnregistered(ctx);
+    public PChannel<S> send(@NonNull Object packet, Reliability reliability) {
+        this.session.send(packet, this.fallbackReliability, this.id);
+        return this;
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        this.session.dataPipeline().fireExceptionCaught(cause);
+    public Future<Void> sendFuture(@NonNull Object packet, Reliability reliability) {
+        return this.session.sendAsync(packet, this.fallbackReliability, this.id);
+    }
 
-        super.exceptionCaught(ctx, cause);
+    @Override
+    public PChannel<S> fallbackReliability(@NonNull Reliability reliability) throws IllegalArgumentException {
+        if (reliability != Reliability.RELIABLE_ORDERED && reliability != Reliability.RELIABLE)    {
+            throw new IllegalArgumentException(reliability.name());
+        }
+        this.fallbackReliability = reliability;
+        return this;
+    }
+
+    @Override
+    public TransportEngine transportEngine() {
+        return this.session.transportEngine();
     }
 }

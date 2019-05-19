@@ -13,21 +13,18 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.pipeline;
+package net.daporkchop.lib.network.sctp.netty;
 
-import io.netty.buffer.ByteBuf;
-import lombok.NonNull;
-import net.daporkchop.lib.binary.netty.NettyUtil;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.network.netty.pipeline.NettyEdgeListener;
-import net.daporkchop.lib.network.pipeline.PipelineEdgeListener;
-import net.daporkchop.lib.network.protocol.HandlingProtocol;
+import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.network.netty.NettyHandler;
+import net.daporkchop.lib.network.sctp.netty.session.WrapperNioSctpChannel;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-
-import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-public class TCPEdgeListener<S extends AbstractUserSession<S>> extends NettyEdgeListener<S> {
+public class SCTPHandler<S extends AbstractUserSession<S>> extends NettyHandler<S, WrapperNioSctpChannel<S>> implements Logging {
+    public SCTPHandler(WrapperNioSctpChannel<S> session) {
+        super(session);
+    }
 }

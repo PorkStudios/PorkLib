@@ -13,13 +13,12 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.pipeline;
+package net.daporkchop.lib.network.netty.pipeline;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.netty.NettyUtil;
 import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.network.netty.pipeline.NettyEdgeListener;
 import net.daporkchop.lib.network.pipeline.PipelineEdgeListener;
 import net.daporkchop.lib.network.protocol.HandlingProtocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
@@ -29,5 +28,26 @@ import java.io.IOException;
 /**
  * @author DaPorkchop_
  */
-public class TCPEdgeListener<S extends AbstractUserSession<S>> extends NettyEdgeListener<S> {
+public abstract class NettyEdgeListener<S extends AbstractUserSession<S>> extends PipelineEdgeListener<S> {
+    @Override
+    public void received(@NonNull S session, @NonNull Object msg, int channel) {
+        if (msg instanceof ByteBuf) {
+            try (DataIn in = NettyUtil.wrapIn((ByteBuf) msg)) {
+                if (session.endpoint().protocol() instanceof HandlingProtocol)  {
+                    ((HandlingProtocol<S>) session.endpoint().protocol()).handler().onBinary(session, in, channel);
+                } else {
+                    session.onBinary(in, channel);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            ((ByteBuf) msg).release();
+        } else {
+            if (session.endpoint().protocol() instanceof HandlingProtocol)  {
+                ((HandlingProtocol<S>) session.endpoint().protocol()).handler().onReceived(session, msg, channel);
+            } else {
+                session.onReceived(msg, channel);
+            }
+        }
+    }
 }

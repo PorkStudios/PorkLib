@@ -13,67 +13,52 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp;
+package net.daporkchop.lib.network.sctp.netty;
 
-import io.netty.util.concurrent.Future;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.sctp.SctpMessage;
+import io.netty.handler.codec.MessageToMessageEncoder;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.network.sctp.netty.session.WrapperNioSctpChannel;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.session.PChannel;
 import net.daporkchop.lib.network.session.Reliability;
-import net.daporkchop.lib.network.tcp.netty.session.WrapperNioSocketChannel;
-import net.daporkchop.lib.network.transport.NetSession;
-import net.daporkchop.lib.network.transport.TransportEngine;
+import net.daporkchop.lib.network.transport.ChanneledPacket;
+import net.daporkchop.lib.network.transport.WrappedPacket;
+
+import java.util.List;
 
 /**
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
+@Getter
 @Accessors(fluent = true)
-public class DummyTCPChannel<S extends AbstractUserSession<S>> implements PChannel<S> {
+public class SCTPWriter<S extends AbstractUserSession<S>> extends MessageToMessageEncoder<Object> {
     @NonNull
-    protected final WrapperNioSocketChannel<S> session;
-    @Getter
-    protected final int id;
+    protected final WrapperNioSctpChannel<S> session;
 
     @Override
-    public S session() {
-        return this.session.userSession();
-    }
-
-    @Override
-    public NetSession<S> internalSession() {
-        return this.session;
-    }
-
-    @Override
-    public PChannel<S> send(@NonNull Object packet, Reliability reliability) {
-        this.session.send(packet, Reliability.RELIABLE_ORDERED, this.id);
-        return this;
-    }
-
-    @Override
-    public Future<Void> sendFuture(@NonNull Object packet, Reliability reliability) {
-        return this.session.sendAsync(packet, Reliability.RELIABLE_ORDERED, this.id);
-    }
-
-    @Override
-    public Reliability fallbackReliability() {
-        return Reliability.RELIABLE_ORDERED;
-    }
-
-    @Override
-    public PChannel<S> fallbackReliability(@NonNull Reliability reliability) throws IllegalArgumentException {
-        if (reliability != Reliability.RELIABLE_ORDERED)    {
-            throw new IllegalArgumentException(reliability.name());
+    protected void encode(ChannelHandlerContext ctx, Object msg, List<Object> out) throws Exception {
+        int channel = 0;
+        boolean unordered = false;
+        if (msg instanceof WrappedPacket)   {
+            WrappedPacket pck = (WrappedPacket) msg;
+            msg = pck.packet();
+            channel = pck.channel();
+            unordered = pck.reliability() == Reliability.RELIABLE;
         }
-        return this;
-    }
-
-    @Override
-    public TransportEngine transportEngine() {
-        return this.session.transportEngine();
+        if (msg instanceof ByteBuf) {
+            ((ByteBuf) msg).retain();
+        }
+        this.session.dataPipeline().fireSending(msg, channel, out);
+        for (int i = out.size() - 1; i >= 0; i--)   {
+            if (out.get(i) instanceof ByteBuf)  {
+                out.set(i, new SctpMessage(0, channel, unordered, (ByteBuf) out.get(i)));
+            }
+        }
     }
 }

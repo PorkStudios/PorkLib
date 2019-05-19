@@ -29,7 +29,7 @@ import net.daporkchop.lib.network.tcp.netty.session.WrapperNioSocketChannel;
  */
 public class TCPClient<S extends AbstractUserSession<S>> extends TCPEndpoint<PClient<S>, S, WrapperNioSocketChannel<S>> implements PClient<S> {
     @SuppressWarnings("unchecked")
-    public TCPClient(@NonNull ClientBuilder builder) {
+    public TCPClient(@NonNull ClientBuilder<S> builder) {
         super(builder);
 
         try {
@@ -47,12 +47,12 @@ public class TCPClient<S extends AbstractUserSession<S>> extends TCPEndpoint<PCl
     }
 
     @Override
-    public NetSession<S> internalSession() {
-        return this.channel;
+    public S userSession() {
+        return this.channel.userSession();
     }
 
     @Override
-    public S userSession() {
-        return this.channel.userSession();
+    public NetSession<S> internalSession() {
+        return this.channel;
     }
 }

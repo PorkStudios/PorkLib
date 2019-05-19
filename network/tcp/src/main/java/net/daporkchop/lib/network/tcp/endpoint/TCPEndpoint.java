@@ -35,9 +35,4 @@ public abstract class TCPEndpoint<Impl extends PEndpoint<Impl, S>, S extends Abs
     protected TCPEndpoint(@NonNull EndpointBuilder builder)    {
         super(builder);
     }
-
-    @Override
-    public TCPEngine transportEngine() {
-        return super.transportEngine();
-    }
 }

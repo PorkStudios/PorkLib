@@ -13,7 +13,7 @@
  *
  */
 
-package tcp.mc;
+package mc;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;

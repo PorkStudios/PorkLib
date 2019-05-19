@@ -20,12 +20,10 @@ import io.netty.channel.ChannelInitializer;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.common.reference.InstancePool;
 import net.daporkchop.lib.network.pipeline.Pipeline;
-import net.daporkchop.lib.network.pipeline.util.PipelineListener;
 import net.daporkchop.lib.network.protocol.DataProtocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.tcp.netty.session.TCPSocketChannel;
+import net.daporkchop.lib.network.tcp.netty.session.TCPNioSocket;
 import net.daporkchop.lib.network.tcp.endpoint.TCPEndpoint;
 import net.daporkchop.lib.network.tcp.pipeline.Framer;
 import net.daporkchop.lib.network.tcp.pipeline.TCPDataCodec;
@@ -37,13 +35,13 @@ import java.util.function.Consumer;
  */
 @RequiredArgsConstructor
 @Getter
-public class TCPChannelInitializer<E extends TCPEndpoint<?, S, ?>, S extends AbstractUserSession<S>> extends ChannelInitializer<TCPSocketChannel<S>> {
+public class TCPChannelInitializer<E extends TCPEndpoint<?, S, ?>, S extends AbstractUserSession<S>> extends ChannelInitializer<TCPNioSocket<S>> {
     @NonNull
     protected final E endpoint;
     @NonNull
-    protected final Consumer<TCPSocketChannel<S>> addedCallback;
+    protected final Consumer<TCPNioSocket<S>> addedCallback;
     @NonNull
-    protected final Consumer<TCPSocketChannel<S>> removedCallback;
+    protected final Consumer<TCPNioSocket<S>> removedCallback;
 
     public TCPChannelInitializer(@NonNull E endpoint) {
         this(endpoint, ch -> {}, ch -> {});
@@ -51,7 +49,7 @@ public class TCPChannelInitializer<E extends TCPEndpoint<?, S, ?>, S extends Abs
 
     @Override
     @SuppressWarnings("unchecked")
-    protected void initChannel(@NonNull TCPSocketChannel<S> channel) throws Exception {
+    protected void initChannel(@NonNull TCPNioSocket<S> channel) throws Exception {
         channel.pipeline()
                 .addLast("write", new TCPWriter<>(channel))
                 .addLast("handle", new TCPHandler<>(channel));
@@ -74,6 +72,6 @@ public class TCPChannelInitializer<E extends TCPEndpoint<?, S, ?>, S extends Abs
     @SuppressWarnings("unchecked")
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
         super.channelUnregistered(ctx);
-        this.removedCallback.accept((TCPSocketChannel) ctx.channel());
+        this.removedCallback.accept((TCPNioSocket) ctx.channel());
     }
 }

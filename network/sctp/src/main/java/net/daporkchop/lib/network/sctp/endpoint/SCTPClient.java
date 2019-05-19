@@ -19,16 +19,15 @@ import io.netty.bootstrap.Bootstrap;
 import lombok.NonNull;
 import net.daporkchop.lib.network.endpoint.PClient;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
-import net.daporkchop.lib.network.endpoint.builder.EndpointBuilder;
 import net.daporkchop.lib.network.sctp.netty.SCTPChannelInitializer;
-import net.daporkchop.lib.network.sctp.netty.session.WrapperNioSctpChannel;
+import net.daporkchop.lib.network.sctp.netty.session.SCTPNioChannel;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.transport.NetSession;
 
 /**
  * @author DaPorkchop_
  */
-public class SCTPClient<S extends AbstractUserSession<S>> extends SCTPEndpoint<PClient<S>, S, WrapperNioSctpChannel<S>> implements PClient<S> {
+public class SCTPClient<S extends AbstractUserSession<S>> extends SCTPEndpoint<PClient<S>, S, SCTPNioChannel<S>> implements PClient<S> {
     @SuppressWarnings("unchecked")
     public SCTPClient(@NonNull ClientBuilder<S> builder) {
         super(builder);
@@ -36,12 +35,12 @@ public class SCTPClient<S extends AbstractUserSession<S>> extends SCTPEndpoint<P
         try {
             Bootstrap bootstrap = new Bootstrap()
                     .group(this.group)
-                    .channelFactory(() -> new WrapperNioSctpChannel<>(this))
+                    .channelFactory(() -> new SCTPNioChannel<>(this))
                     .handler(new SCTPChannelInitializer<>(this));
 
             this.transportEngine.clientOptions().forEach(bootstrap::option);
 
-            this.channel = (WrapperNioSctpChannel<S>) bootstrap.connect(builder.address()).syncUninterruptibly().channel();
+            this.channel = (SCTPNioChannel<S>) bootstrap.connect(builder.address()).syncUninterruptibly().channel();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

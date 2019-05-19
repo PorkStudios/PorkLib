@@ -18,13 +18,12 @@ package net.daporkchop.lib.network.tcp.pipeline;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.CompositeByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.pipeline.Pipeline;
 import net.daporkchop.lib.network.pipeline.event.ReceivedListener;
 import net.daporkchop.lib.network.pipeline.event.SendingListener;
 import net.daporkchop.lib.network.pipeline.util.EventContext;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.tcp.netty.session.TCPSocketChannel;
+import net.daporkchop.lib.network.tcp.netty.session.TCPNioSocket;
 
 /**
  * Allows for sending individual packets down the pipeline.
@@ -51,7 +50,7 @@ public abstract class Framer<S extends AbstractUserSession<S>> implements Receiv
 
     @Override
     public void added(@NonNull Pipeline<S> pipeline, @NonNull S session) {
-        this.cumulation = ((TCPSocketChannel<S>) session.internalSession()).alloc().compositeDirectBuffer();
+        this.cumulation = ((TCPNioSocket<S>) session.internalSession()).alloc().compositeDirectBuffer();
     }
 
     @Override

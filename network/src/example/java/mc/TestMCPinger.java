@@ -13,10 +13,10 @@
  *
  */
 
-package tcp.mc;
+package mc;
 
-import tcp.mc.packet.HandshakePacket;
-import tcp.mc.packet.PingPacket;
+import mc.packet.HandshakePacket;
+import mc.packet.PingPacket;
 import net.daporkchop.lib.logging.LogAmount;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.endpoint.PClient;
@@ -36,18 +36,18 @@ public class TestMCPinger implements Logging {
         logger.enableANSI().setLogAmount(LogAmount.DEBUG).info("Starting client...");
 
         PClient<MCSession> client = ClientBuilder.of(new MinecraftPingProtocol())
-                                                 .engine(TCPEngine.defaultInstance())
-                                                 .address(new InetSocketAddress(HOST, PORT))
-                                                 .build();
+                .engine(TCPEngine.defaultInstance())
+                .address(new InetSocketAddress(HOST, PORT))
+                .build();
 
         logger.info("Pinging server...");
         client.send(new HandshakePacket(-1, HOST, PORT, 0x01))
-              .write(out -> out.writeVarInt(0x00)) //currently there's no method for protocol states, so we have to hack this in due to conflicting packet IDs
-              .sendFlush(new PingPacket(System.currentTimeMillis()));
+                .write(out -> out.writeVarInt(0x00)) //currently there's no method for protocol states, so we have to hack this in due to conflicting packet IDs
+                .sendFlush(new PingPacket(System.currentTimeMillis()));
 
         client.userSession().ping.addListener(ping -> {
             logger.success("Response: %s", client.userSession().response)
-                  .success("Ping: %dms", ping);
+                    .success("Ping: %dms", ping);
             client.closeAsync().addListener(v -> logger.success("Closed."));
         });
     }

@@ -13,18 +13,38 @@
  *
  */
 
-package net.daporkchop.lib.network.sctp.netty;
+package mc.packet;
 
-import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.netty.NettyHandler;
-import net.daporkchop.lib.network.sctp.netty.session.SCTPNioChannel;
-import net.daporkchop.lib.network.session.AbstractUserSession;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import mc.MCSession;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.network.protocol.packet.OutboundPacket;
+
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-public class SCTPHandler<S extends AbstractUserSession<S>> extends NettyHandler<S, SCTPNioChannel<S>> implements Logging {
-    public SCTPHandler(SCTPNioChannel<S> session) {
-        super(session);
+@AllArgsConstructor
+@NoArgsConstructor
+@Setter
+@Accessors(fluent = true, chain = true)
+public class HandshakePacket implements OutboundPacket<MCSession> {
+    protected int protocolVersion;
+    @NonNull
+    protected String remoteHost;
+    protected int remotePort;
+    protected int nextState;
+
+    @Override
+    public void encode(@NonNull DataOut out, @NonNull MCSession session) throws IOException {
+        out.writeVarInt(this.protocolVersion);
+        out.writeUTF(this.remoteHost);
+        out.writeUShort(this.remotePort);
+        out.writeVarInt(this.nextState);
     }
 }

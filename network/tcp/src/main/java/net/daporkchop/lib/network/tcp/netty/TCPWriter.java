@@ -23,7 +23,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.tcp.netty.session.TCPSocketChannel;
+import net.daporkchop.lib.network.tcp.netty.session.TCPNioSocket;
 import net.daporkchop.lib.network.transport.ChanneledPacket;
 
 import java.util.List;
@@ -36,7 +36,7 @@ import java.util.List;
 @Accessors(fluent = true)
 public class TCPWriter<S extends AbstractUserSession<S>> extends MessageToMessageEncoder<Object> {
     @NonNull
-    protected final TCPSocketChannel<S> session;
+    protected final TCPNioSocket<S> session;
 
     @Override
     protected void encode(ChannelHandlerContext ctx, Object msg, List<Object> out) throws Exception {

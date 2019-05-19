@@ -13,29 +13,27 @@
  *
  */
 
-package tcp.http;
+package chat;
 
 import lombok.NonNull;
-import net.daporkchop.lib.concurrent.future.PCompletable;
-import net.daporkchop.lib.concurrent.future.impl.PCompletableImpl;
-import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.protocol.PacketProtocol;
+import chat.packet.ChatPacket;
+import chat.packet.LoginPacket;
+import chat.packet.MessagePacket;
 
 /**
  * @author DaPorkchop_
  */
-public class HTTPSession extends AbstractUserSession<HTTPSession> {
-    protected final PCompletable complete = new PCompletableImpl();
-    protected boolean headersComplete = false;
-    protected String headers = "";
-    protected String body = "";
-
+public class ChatProtocol extends PacketProtocol<ChatSession> {
     @Override
-    public void onClosed() {
-        this.complete.complete();
+    protected void registerPackets(@NonNull Registerer registerer) {
+        registerer.bidirectional(0x00, MessagePacket.class)
+                  .bidirectional(0x01, LoginPacket.class)
+                  .bidirectional(0x02, ChatPacket.class);
     }
 
     @Override
-    public void onException(@NonNull Throwable t) {
-        this.complete.completeExceptionally(t);
+    public ChatSession newSession() {
+        return new ChatSession();
     }
 }

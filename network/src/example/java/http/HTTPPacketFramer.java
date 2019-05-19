@@ -13,7 +13,7 @@
  *
  */
 
-package tcp.http;
+package http;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;

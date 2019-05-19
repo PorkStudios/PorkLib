@@ -13,32 +13,38 @@
  *
  */
 
-package tcp.chat;
+package mc;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.network.EndpointType;
-import net.daporkchop.lib.network.session.AbstractUserSession;
-import tcp.chat.packet.MessagePacket;
+import lombok.NonNull;
+import mc.packet.HandshakePacket;
+import mc.packet.PingPacket;
+import mc.packet.PongPacket;
+import mc.packet.ResponsePacket;
+import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.network.pipeline.Pipeline;
+import net.daporkchop.lib.network.protocol.PacketProtocol;
 
 /**
  * @author DaPorkchop_
  */
-@Getter
-@Setter
-@Accessors(fluent = true, chain = true)
-public class ChatSession extends AbstractUserSession<ChatSession> {
-    protected String name;
-
-    public boolean isLoggedIn() {
-        return this.name != null;
+public class MinecraftPingProtocol extends PacketProtocol<MCSession> implements Logging {
+    @Override
+    protected void registerPackets(@NonNull Registerer registerer) {
+        registerer.outbound(0x00, HandshakePacket.class)
+                .outbound(0x01, PingPacket.class)
+                .inbound(0x00, ResponsePacket.class)
+                .inbound(0x01, PongPacket.class);
     }
 
     @Override
-    public void onOpened() {
-        if (this.endpoint().type() == EndpointType.SERVER)  {
-            this.sendFlush(new MessagePacket("Server", "Please log in!"));
-        }
+    public void initPipeline(@NonNull Pipeline<MCSession> pipeline, @NonNull MCSession session) {
+        super.initPipeline(pipeline, session);
+
+        pipeline.replace("tcp_framer", new MinecraftPacketFramer());
+    }
+
+    @Override
+    public MCSession newSession() {
+        return new MCSession();
     }
 }

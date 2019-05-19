@@ -23,10 +23,9 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.network.sctp.netty.session.WrapperNioSctpChannel;
+import net.daporkchop.lib.network.sctp.netty.session.SCTPNioChannel;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.Reliability;
-import net.daporkchop.lib.network.transport.ChanneledPacket;
 import net.daporkchop.lib.network.transport.WrappedPacket;
 
 import java.util.List;
@@ -39,7 +38,7 @@ import java.util.List;
 @Accessors(fluent = true)
 public class SCTPWriter<S extends AbstractUserSession<S>> extends MessageToMessageEncoder<Object> {
     @NonNull
-    protected final WrapperNioSctpChannel<S> session;
+    protected final SCTPNioChannel<S> session;
 
     @Override
     protected void encode(ChannelHandlerContext ctx, Object msg, List<Object> out) throws Exception {

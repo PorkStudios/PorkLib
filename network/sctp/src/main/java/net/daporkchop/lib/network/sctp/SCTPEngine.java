@@ -29,6 +29,7 @@ import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.netty.NettyEngine;
 import net.daporkchop.lib.network.sctp.endpoint.SCTPClient;
+import net.daporkchop.lib.network.sctp.endpoint.SCTPServer;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.BaseUserSession;
 import net.daporkchop.lib.network.session.Reliability;
@@ -89,7 +90,7 @@ public class SCTPEngine extends NettyEngine {
 
     @Override
     public <S extends AbstractUserSession<S>> PServer<S> createServer(@NonNull ServerBuilder<S> builder) {
-        throw new UnsupportedOperationException(); //TODO
+        return new SCTPServer<>(builder);
     }
 
     @Override

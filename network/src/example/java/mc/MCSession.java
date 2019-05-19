@@ -13,50 +13,35 @@
  *
  */
 
-package tcp.chat.packet;
+package mc;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.protocol.packet.Packet;
-import tcp.chat.ChatSession;
-
-import java.io.IOException;
+import net.daporkchop.lib.concurrent.future.PFuture;
+import net.daporkchop.lib.concurrent.future.impl.PFutureImpl;
+import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-@NoArgsConstructor
 @Getter
 @Setter
 @Accessors(fluent = true, chain = true)
-public class MessagePacket implements Packet<ChatSession>, Logging {
+public class MCSession extends AbstractUserSession<MCSession> {
+    protected final PFuture<Long> ping = new PFutureImpl<>();
+
     @NonNull
-    protected String sender;
-    @NonNull
-    protected String message;
+    protected String response = "";
 
     @Override
-    public void decode(@NonNull DataIn in, @NonNull ChatSession session) throws IOException {
-        this.sender(in.readUTF())
-            .message(in.readUTF());
+    public void onClosed() {
+        this.ping.tryComplete(-1L);
     }
 
     @Override
-    public void encode(@NonNull DataOut out, @NonNull ChatSession session) throws IOException {
-        out.writeUTF(this.sender);
-        out.writeUTF(this.message);
-    }
-
-    @Override
-    public void handle(@NonNull ChatSession session) {
-        logger.channel("Chat").info("<%s> %s", this.sender, this.message);
+    public void onException(@NonNull Throwable t) {
+        this.ping.tryCompleteExceptionally(t);
     }
 }

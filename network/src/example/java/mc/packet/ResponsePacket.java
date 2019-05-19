@@ -13,35 +13,37 @@
  *
  */
 
-package tcp.mc;
+package mc.packet;
 
-import lombok.Getter;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.concurrent.future.PFuture;
-import net.daporkchop.lib.concurrent.future.impl.PFutureImpl;
-import net.daporkchop.lib.network.session.AbstractUserSession;
+import mc.MCSession;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.network.protocol.packet.InboundPacket;
+
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-@Getter
+@AllArgsConstructor
+@NoArgsConstructor
 @Setter
 @Accessors(fluent = true, chain = true)
-public class MCSession extends AbstractUserSession<MCSession> {
-    protected final PFuture<Long> ping = new PFutureImpl<>();
-
+public class ResponsePacket implements InboundPacket<MCSession> {
     @NonNull
-    protected String response = "";
+    protected String response;
 
     @Override
-    public void onClosed() {
-        this.ping.tryComplete(-1L);
+    public void decode(@NonNull DataIn in, @NonNull MCSession session) throws IOException {
+        this.response(in.readUTF());
     }
 
     @Override
-    public void onException(@NonNull Throwable t) {
-        this.ping.tryCompleteExceptionally(t);
+    public void handle(@NonNull MCSession session) {
+        session.response(this.response);
     }
 }

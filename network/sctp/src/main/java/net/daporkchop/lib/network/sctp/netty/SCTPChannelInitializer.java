@@ -21,12 +21,10 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.reference.InstancePool;
 import net.daporkchop.lib.network.pipeline.Pipeline;
-import net.daporkchop.lib.network.pipeline.util.PipelineListener;
 import net.daporkchop.lib.network.protocol.DataProtocol;
 import net.daporkchop.lib.network.sctp.endpoint.SCTPEndpoint;
-import net.daporkchop.lib.network.sctp.netty.session.WrapperNioSctpChannel;
+import net.daporkchop.lib.network.sctp.netty.session.SCTPNioChannel;
 import net.daporkchop.lib.network.sctp.pipeline.SCTPDataCodec;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
@@ -38,13 +36,13 @@ import java.util.function.Consumer;
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public class SCTPChannelInitializer<E extends SCTPEndpoint<?, S, ?>, S extends AbstractUserSession<S>> extends ChannelInitializer<WrapperNioSctpChannel<S>> {
+public class SCTPChannelInitializer<E extends SCTPEndpoint<?, S, ?>, S extends AbstractUserSession<S>> extends ChannelInitializer<SCTPNioChannel<S>> {
     @NonNull
     protected final E endpoint;
     @NonNull
-    protected final Consumer<WrapperNioSctpChannel<S>> addedCallback;
+    protected final Consumer<SCTPNioChannel<S>> addedCallback;
     @NonNull
-    protected final Consumer<WrapperNioSctpChannel<S>> removedCallback;
+    protected final Consumer<SCTPNioChannel<S>> removedCallback;
 
     public SCTPChannelInitializer(@NonNull E endpoint) {
         this(endpoint, ch -> {
@@ -54,7 +52,7 @@ public class SCTPChannelInitializer<E extends SCTPEndpoint<?, S, ?>, S extends A
 
     @Override
     @SuppressWarnings("unchecked")
-    protected void initChannel(@NonNull WrapperNioSctpChannel<S> channel) throws Exception {
+    protected void initChannel(@NonNull SCTPNioChannel<S> channel) throws Exception {
         channel.pipeline()
                .addLast("write", new SCTPWriter<>(channel))
                .addLast("handle", new SCTPHandler<>(channel));
@@ -74,6 +72,6 @@ public class SCTPChannelInitializer<E extends SCTPEndpoint<?, S, ?>, S extends A
     @SuppressWarnings("unchecked")
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
         super.channelUnregistered(ctx);
-        this.removedCallback.accept((WrapperNioSctpChannel<S>) ctx.channel());
+        this.removedCallback.accept((SCTPNioChannel<S>) ctx.channel());
     }
 }

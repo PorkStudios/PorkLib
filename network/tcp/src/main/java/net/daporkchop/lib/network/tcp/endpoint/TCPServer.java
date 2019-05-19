@@ -21,8 +21,8 @@ import net.daporkchop.lib.network.endpoint.PServer;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.tcp.netty.TCPChannelInitializer;
-import net.daporkchop.lib.network.tcp.netty.session.TCPServerSocketChannel;
-import net.daporkchop.lib.network.tcp.netty.session.TCPSocketChannel;
+import net.daporkchop.lib.network.tcp.netty.session.TCPNioServerSocket;
+import net.daporkchop.lib.network.tcp.netty.session.TCPNioSocket;
 
 import java.util.Collection;
 import java.util.Map;
@@ -31,8 +31,8 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author DaPorkchop_
  */
-public class TCPServer<S extends AbstractUserSession<S>> extends TCPEndpoint<PServer<S>, S, TCPServerSocketChannel<S>> implements PServer<S> {
-    protected final Map<TCPSocketChannel<S>, S> sessions = new ConcurrentHashMap<>();
+public class TCPServer<S extends AbstractUserSession<S>> extends TCPEndpoint<PServer<S>, S, TCPNioServerSocket<S>> implements PServer<S> {
+    protected final Map<TCPNioSocket<S>, S> sessions = new ConcurrentHashMap<>();
 
     @SuppressWarnings("unchecked")
     public TCPServer(@NonNull ServerBuilder<S> builder) {
@@ -41,7 +41,7 @@ public class TCPServer<S extends AbstractUserSession<S>> extends TCPEndpoint<PSe
         try {
             ServerBootstrap bootstrap = new ServerBootstrap()
                     .group(this.group)
-                    .channelFactory(() -> new TCPServerSocketChannel<>(this))
+                    .channelFactory(() -> new TCPNioServerSocket<>(this))
                     .childHandler(new TCPChannelInitializer<>(
                             this,
                             s -> this.sessions.put(s, s.userSession()),
@@ -50,7 +50,7 @@ public class TCPServer<S extends AbstractUserSession<S>> extends TCPEndpoint<PSe
 
             this.transportEngine.serverOptions().forEach(bootstrap::option);
 
-            this.channel = (TCPServerSocketChannel<S>) bootstrap.bind(builder.bind()).syncUninterruptibly().channel();
+            this.channel = (TCPNioServerSocket<S>) bootstrap.bind(builder.bind()).syncUninterruptibly().channel();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

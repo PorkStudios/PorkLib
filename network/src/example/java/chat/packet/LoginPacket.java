@@ -13,38 +13,50 @@
  *
  */
 
-package tcp.mc;
+package chat.packet;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import tcp.mc.packet.HandshakePacket;
-import tcp.mc.packet.PingPacket;
-import tcp.mc.packet.PongPacket;
-import tcp.mc.packet.ResponsePacket;
-import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.pipeline.Pipeline;
-import net.daporkchop.lib.network.protocol.PacketProtocol;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.network.protocol.packet.Packet;
+import chat.ChatSession;
+
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-public class MinecraftPingProtocol extends PacketProtocol<MCSession> implements Logging {
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@Accessors(fluent = true, chain = true)
+public class LoginPacket implements Packet<ChatSession> {
+    @NonNull
+    protected String name;
+
     @Override
-    protected void registerPackets(@NonNull Registerer registerer) {
-        registerer.outbound(0x00, HandshakePacket.class)
-                  .outbound(0x01, PingPacket.class)
-                  .inbound(0x00, ResponsePacket.class)
-                  .inbound(0x01, PongPacket.class);
+    public void decode(@NonNull DataIn in, @NonNull ChatSession session) throws IOException {
+        this.name = in.readUTF();
     }
 
     @Override
-    public void initPipeline(@NonNull Pipeline<MCSession> pipeline, @NonNull MCSession session) {
-        super.initPipeline(pipeline, session);
-
-        pipeline.replace("tcp_framer", new MinecraftPacketFramer());
+    public void encode(@NonNull DataOut out, @NonNull ChatSession session) throws IOException {
+        out.writeUTF(this.name);
     }
 
     @Override
-    public MCSession newSession() {
-        return new MCSession();
+    public void handle(@NonNull ChatSession session) {
+        if (session.isLoggedIn()) {
+            throw new IllegalStateException("already logged in!");
+        } else {
+            session.name(this.name);
+            session.sendFlush(new MessagePacket("Server", String.format("Welcome, %s!", this.name)));
+        }
     }
 }

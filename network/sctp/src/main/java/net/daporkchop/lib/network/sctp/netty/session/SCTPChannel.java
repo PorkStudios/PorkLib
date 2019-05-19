@@ -33,7 +33,7 @@ import net.daporkchop.lib.network.transport.TransportEngine;
 @Accessors(fluent = true)
 public class SCTPChannel<S extends AbstractUserSession<S>> implements PChannel<S> {
     @NonNull
-    protected final WrapperNioSctpChannel<S> session;
+    protected final SCTPNioChannel<S> session;
     @Getter
     protected final int id;
     @Getter

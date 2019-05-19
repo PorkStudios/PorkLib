@@ -13,7 +13,7 @@
  *
  */
 
-package tcp.chat;
+package chat;
 
 import net.daporkchop.lib.logging.LogAmount;
 import net.daporkchop.lib.logging.Logging;
@@ -21,10 +21,10 @@ import net.daporkchop.lib.network.endpoint.PClient;
 import net.daporkchop.lib.network.endpoint.PServer;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
-import net.daporkchop.lib.network.tcp.TCPEngine;
-import tcp.chat.packet.ChatPacket;
-import tcp.chat.packet.LoginPacket;
-import tcp.chat.packet.MessagePacket;
+import net.daporkchop.lib.network.sctp.SCTPEngine;
+import net.daporkchop.lib.network.transport.TransportEngine;
+import chat.packet.ChatPacket;
+import chat.packet.LoginPacket;
 
 import java.net.InetSocketAddress;
 import java.util.Scanner;
@@ -35,23 +35,25 @@ import java.util.Scanner;
 public class Chat implements Logging {
     protected static final int PORT = 29873;
 
+    protected static final TransportEngine ENGINE = SCTPEngine.defaultInstance();
+
     public static void main(String... args) {
         logger.enableANSI().redirectStdOut().setLogAmount(LogAmount.DEBUG);
 
         PServer<ChatSession> server = ServerBuilder.of(new ChatProtocol())
-                                                   .engine(TCPEngine.defaultInstance())
-                                                   .bind(new InetSocketAddress(PORT))
-                                                   .build();
+                .engine(ENGINE)
+                .bind(new InetSocketAddress(PORT))
+                .build();
 
         PClient<ChatSession> client = ClientBuilder.of(new ChatProtocol())
-                                                   .engine(TCPEngine.defaultInstance())
-                                                   .address(new InetSocketAddress("localhost", PORT))
-                                                   .build();
+                .engine(ENGINE)
+                .address(new InetSocketAddress("localhost", PORT))
+                .build();
 
-        try (Scanner scanner = new Scanner(System.in))  {
+        try (Scanner scanner = new Scanner(System.in)) {
             String line;
-            while (!"/dc".equals(line= scanner.nextLine().trim()))  {
-                if (client.userSession().name() == null)    {
+            while (!"/dc".equals(line = scanner.nextLine().trim())) {
+                if (client.userSession().name() == null) {
                     client.sendFlush(new LoginPacket(client.userSession().name = line));
                 } else {
                     client.sendFlush(new ChatPacket(line));

@@ -13,16 +13,16 @@
  *
  */
 
-package tcp.mc.packet;
+package mc.packet;
 
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import tcp.mc.MCSession;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.network.protocol.packet.OutboundPacket;
+import mc.MCSession;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.network.protocol.packet.InboundPacket;
 
 import java.io.IOException;
 
@@ -33,18 +33,16 @@ import java.io.IOException;
 @NoArgsConstructor
 @Setter
 @Accessors(fluent = true, chain = true)
-public class HandshakePacket implements OutboundPacket<MCSession> {
-    protected int protocolVersion;
-    @NonNull
-    protected String remoteHost;
-    protected int remotePort;
-    protected int nextState;
+public class PongPacket implements InboundPacket<MCSession> {
+    protected long time;
 
     @Override
-    public void encode(@NonNull DataOut out, @NonNull MCSession session) throws IOException {
-        out.writeVarInt(this.protocolVersion);
-        out.writeUTF(this.remoteHost);
-        out.writeUShort(this.remotePort);
-        out.writeVarInt(this.nextState);
+    public void decode(@NonNull DataIn in, @NonNull MCSession session) throws IOException {
+        this.time = in.readLong();
+    }
+
+    @Override
+    public void handle(@NonNull MCSession session) {
+        session.ping().complete(System.currentTimeMillis() - this.time);
     }
 }

@@ -13,37 +13,29 @@
  *
  */
 
-package tcp.mc.packet;
+package http;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import tcp.mc.MCSession;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.network.protocol.packet.InboundPacket;
-
-import java.io.IOException;
+import net.daporkchop.lib.concurrent.future.PCompletable;
+import net.daporkchop.lib.concurrent.future.impl.PCompletableImpl;
+import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-@NoArgsConstructor
-@Setter
-@Accessors(fluent = true, chain = true)
-public class ResponsePacket implements InboundPacket<MCSession> {
-    @NonNull
-    protected String response;
+public class HTTPSession extends AbstractUserSession<HTTPSession> {
+    protected final PCompletable complete = new PCompletableImpl();
+    protected boolean headersComplete = false;
+    protected String headers = "";
+    protected String body = "";
 
     @Override
-    public void decode(@NonNull DataIn in, @NonNull MCSession session) throws IOException {
-        this.response(in.readUTF());
+    public void onClosed() {
+        this.complete.complete();
     }
 
     @Override
-    public void handle(@NonNull MCSession session) {
-        session.response(this.response);
+    public void onException(@NonNull Throwable t) {
+        this.complete.completeExceptionally(t);
     }
 }

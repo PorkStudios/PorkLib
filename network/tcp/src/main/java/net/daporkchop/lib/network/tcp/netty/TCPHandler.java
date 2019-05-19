@@ -18,13 +18,13 @@ package net.daporkchop.lib.network.tcp.netty;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.netty.NettyHandler;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.tcp.netty.session.TCPSocketChannel;
+import net.daporkchop.lib.network.tcp.netty.session.TCPNioSocket;
 
 /**
  * @author DaPorkchop_
  */
-public class TCPHandler<S extends AbstractUserSession<S>> extends NettyHandler<S, TCPSocketChannel<S>> implements Logging {
-    public TCPHandler(TCPSocketChannel<S> session) {
+public class TCPHandler<S extends AbstractUserSession<S>> extends NettyHandler<S, TCPNioSocket<S>> implements Logging {
+    public TCPHandler(TCPNioSocket<S> session) {
         super(session);
     }
 }

@@ -13,50 +13,32 @@
  *
  */
 
-package tcp.chat.packet;
+package chat;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.network.protocol.packet.Packet;
-import tcp.chat.ChatSession;
-
-import java.io.IOException;
+import net.daporkchop.lib.network.EndpointType;
+import net.daporkchop.lib.network.session.AbstractUserSession;
+import chat.packet.MessagePacket;
 
 /**
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-@NoArgsConstructor
 @Getter
 @Setter
 @Accessors(fluent = true, chain = true)
-public class LoginPacket implements Packet<ChatSession> {
-    @NonNull
+public class ChatSession extends AbstractUserSession<ChatSession> {
     protected String name;
 
-    @Override
-    public void decode(@NonNull DataIn in, @NonNull ChatSession session) throws IOException {
-        this.name = in.readUTF();
+    public boolean isLoggedIn() {
+        return this.name != null;
     }
 
     @Override
-    public void encode(@NonNull DataOut out, @NonNull ChatSession session) throws IOException {
-        out.writeUTF(this.name);
-    }
-
-    @Override
-    public void handle(@NonNull ChatSession session) {
-        if (session.isLoggedIn()) {
-            throw new IllegalStateException("already logged in!");
-        } else {
-            session.name(this.name);
-            session.sendFlush(new MessagePacket("Server", String.format("Welcome, %s!", this.name)));
+    public void onOpened() {
+        if (this.endpoint().type() == EndpointType.SERVER)  {
+            this.sendFlush(new MessagePacket("Server", "Please log in!"));
         }
     }
 }

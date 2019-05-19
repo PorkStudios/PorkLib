@@ -13,49 +13,50 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.netty.session;
+package chat.packet;
 
-import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.util.internal.SocketUtils;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.tcp.endpoint.TCPEndpoint;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.network.endpoint.PServer;
+import net.daporkchop.lib.network.protocol.packet.Packet;
+import chat.ChatSession;
 
-import java.nio.channels.SocketChannel;
-import java.util.List;
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
+@AllArgsConstructor
+@NoArgsConstructor
 @Getter
-@Accessors(fluent = true)
-public class TCPServerSocketChannel<S extends AbstractUserSession<S>> extends NioServerSocketChannel {
+@Setter
+@Accessors(fluent = true, chain = true)
+public class ChatPacket implements Packet<ChatSession> {
     @NonNull
-    protected final TCPEndpoint<?, S, ?> endpoint;
+    protected String message;
 
     @Override
-    protected int doReadMessages(List<Object> buf) throws Exception {
-        SocketChannel ch = SocketUtils.accept(this.javaChannel());
+    public void decode(@NonNull DataIn in, @NonNull ChatSession session) throws IOException {
+        this.message = in.readUTF();
+    }
 
-        try {
-            if (ch != null) {
-                buf.add(new TCPSocketChannel<>(this.endpoint, this, ch));
-                return 1;
-            }
-        } catch (Throwable t) {
-            t.printStackTrace();
+    @Override
+    public void encode(@NonNull DataOut out, @NonNull ChatSession session) throws IOException {
+        out.writeUTF(this.message);
+    }
 
-            try {
-                ch.close();
-            } catch (Throwable t2) {
-                t2.printStackTrace();
-            }
+    @Override
+    public void handle(@NonNull ChatSession session) {
+        if (session.name() == null) {
+            session.sendFlush(new MessagePacket("Server", "Not logged in!"));
+        } else {
+            session.<PServer<ChatSession>>endpoint().sessions().forEach(s -> s.sendFlush(new MessagePacket(session.name(), this.message)));
         }
-
-        return 0;
     }
 }

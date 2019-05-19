@@ -13,34 +13,32 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.netty.session;
+package net.daporkchop.lib.network.sctp.netty.session;
 
+import com.sun.nio.sctp.SctpChannel;
 import io.netty.channel.Channel;
-import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.ssl.SslContext;
-import io.netty.handler.ssl.SslHandler;
+import io.netty.channel.sctp.SctpMessage;
+import io.netty.channel.sctp.nio.NioSctpChannel;
 import io.netty.util.concurrent.Future;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.binary.netty.NettyByteBufOut;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.network.EndpointType;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.pipeline.Pipeline;
+import net.daporkchop.lib.network.sctp.endpoint.SCTPEndpoint;
+import net.daporkchop.lib.network.sctp.pipeline.SCTPEdgeListener;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.PChannel;
 import net.daporkchop.lib.network.session.Reliability;
-import net.daporkchop.lib.network.tcp.pipeline.TCPEdgeListener;
 import net.daporkchop.lib.network.transport.ChanneledPacket;
 import net.daporkchop.lib.network.transport.NetSession;
 import net.daporkchop.lib.network.transport.TransportEngine;
-import net.daporkchop.lib.network.tcp.endpoint.TCPEndpoint;
+import net.daporkchop.lib.network.transport.WrappedPacket;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
-import java.io.IOException;
-import java.nio.channels.SocketChannel;
 import java.util.Map;
 
 /**
@@ -48,31 +46,30 @@ import java.util.Map;
  */
 @Getter
 @Accessors(fluent = true)
-public class TCPSocketChannel<S extends AbstractUserSession<S>> extends NioSocketChannel implements TCPSession<S> {
-    protected final TCPEndpoint<?, S, ?> endpoint;
-    protected final DummyTCPChannel<S> defaultChannel = new DummyTCPChannel<>(this, 0);
-    protected final Map<Integer, DummyTCPChannel<S>> channels = PorkUtil.newSoftCache();
+public class SCTPNioChannel<S extends AbstractUserSession<S>> extends NioSctpChannel implements NetSession<S> {
+    protected final SCTPEndpoint<?, S, ?> endpoint;
+    protected final Map<Integer, SCTPChannel<S>> channels = PorkUtil.newSoftCache();
     protected final S userSession;
     protected final Pipeline<S> dataPipeline;
 
-    protected SslHandler ssl;
+    protected Reliability fallbackReliability = Reliability.RELIABLE_ORDERED;
 
-    public TCPSocketChannel(@NonNull TCPEndpoint<?, S, ?> endpoint) {
+    public SCTPNioChannel(@NonNull SCTPEndpoint<?, S, ?> endpoint) {
         this.endpoint = endpoint;
         this.userSession = endpoint.protocol().sessionFactory().newSession();
         PUnsafe.putObject(this.userSession, ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);
 
-        this.dataPipeline = new Pipeline<>(this.userSession, new TCPEdgeListener<>());
+        this.dataPipeline = new Pipeline<>(this.userSession, new SCTPEdgeListener<>());
     }
 
-    public TCPSocketChannel(@NonNull TCPEndpoint<?, S, ?> endpoint, Channel parent, SocketChannel socket) {
-        super(parent, socket);
+    public SCTPNioChannel(@NonNull SCTPEndpoint<?, S, ?> endpoint, Channel parent, SctpChannel sctpChannel) {
+        super(parent, sctpChannel);
 
         this.endpoint = endpoint;
         this.userSession = endpoint.protocol().sessionFactory().newSession();
         PUnsafe.putObject(this.userSession, ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);
 
-        this.dataPipeline = new Pipeline<>(this.userSession, new TCPEdgeListener<>());
+        this.dataPipeline = new Pipeline<>(this.userSession, new SCTPEdgeListener<>());
     }
 
     @Override
@@ -83,71 +80,74 @@ public class TCPSocketChannel<S extends AbstractUserSession<S>> extends NioSocke
 
     @Override
     public PChannel<S> channel(int id) {
-        if (id == 0) {
-            return this.defaultChannel;
-        } else {
-            synchronized (this.channels) {
-                return this.channels.computeIfAbsent(id, i -> new DummyTCPChannel<>(this, i));
-            }
+        synchronized (this.channels) {
+            return this.channels.computeIfAbsent(id, i -> new SCTPChannel<>(this, i));
         }
     }
 
     @Override
     public NetSession<S> send(@NonNull Object packet, Reliability reliability) {
-        this.write(packet);
+        reliability = this.reliability(reliability);
+        this.write(reliability == Reliability.RELIABLE_ORDERED ? packet : new WrappedPacket<>(packet, 0, reliability));
         return this;
     }
 
     @Override
     public NetSession<S> sendFlush(@NonNull Object packet, Reliability reliability) {
-        this.writeAndFlush(packet);
+        reliability = this.reliability(reliability);
+        this.writeAndFlush(reliability == Reliability.RELIABLE_ORDERED ? packet : new WrappedPacket<>(packet, 0, reliability));
         return this;
     }
 
     @Override
     public NetSession<S> send(@NonNull Object packet, Reliability reliability, int channelId) {
-        this.write(channelId == 0 ? packet : new ChanneledPacket<>(packet, channelId));
+        reliability = this.reliability(reliability);
+        this.write(reliability == Reliability.RELIABLE_ORDERED && channelId == 0 ? packet : new WrappedPacket<>(packet, channelId, reliability));
         return this;
     }
 
     @Override
     public NetSession<S> sendFlush(@NonNull Object packet, Reliability reliability, int channelId) {
-        this.writeAndFlush(channelId == 0 ? packet : new ChanneledPacket<>(packet, channelId));
+        reliability = this.reliability(reliability);
+        this.write(reliability == Reliability.RELIABLE_ORDERED && channelId == 0 ? packet : new WrappedPacket<>(packet, channelId, reliability));
         return this;
     }
 
     @Override
     public Future<Void> sendAsync(@NonNull Object packet, Reliability reliability) {
-        return this.write(packet);
+        reliability = this.reliability(reliability);
+        return this.write(reliability == Reliability.RELIABLE_ORDERED ? packet : new WrappedPacket<>(packet, 0, reliability));
     }
 
     @Override
     public Future<Void> sendFlushAsync(@NonNull Object packet, Reliability reliability) {
-        return this.writeAndFlush(packet);
+        reliability = this.reliability(reliability);
+        return this.writeAndFlush(reliability == Reliability.RELIABLE_ORDERED ? packet : new WrappedPacket<>(packet, 0, reliability));
     }
 
     @Override
     public Future<Void> sendAsync(@NonNull Object packet, Reliability reliability, int channelId) {
-        return this.write(channelId == 0 ? packet : new ChanneledPacket<>(packet, channelId));
+        reliability = this.reliability(reliability);
+        return this.write(reliability == Reliability.RELIABLE_ORDERED && channelId == 0 ? packet : new WrappedPacket<>(packet, channelId, reliability));
     }
 
     @Override
     public Future<Void> sendFlushAsync(@NonNull Object packet, Reliability reliability, int channelId) {
-        return this.writeAndFlush(channelId == 0 ? packet : new ChanneledPacket<>(packet, channelId));
+        reliability = this.reliability(reliability);
+        return this.write(reliability == Reliability.RELIABLE_ORDERED && channelId == 0 ? packet : new WrappedPacket<>(packet, channelId, reliability));
+    }
+
+    public Reliability reliability(Reliability reliability) {
+        if (reliability == null || (reliability != Reliability.RELIABLE_ORDERED && reliability != Reliability.RELIABLE)) {
+            return this.fallbackReliability;
+        } else {
+            return reliability;
+        }
     }
 
     @Override
     public DataOut writer() {
-        return new NettyByteBufOut(this.alloc().ioBuffer())    {
-            @Override
-            public void close() throws IOException {
-                if (this.buf.writerIndex() == 0)    {
-                    this.buf.release();
-                } else {
-                    TCPSocketChannel.this.write(this.buf);
-                }
-            }
-        };
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -157,15 +157,11 @@ public class TCPSocketChannel<S extends AbstractUserSession<S>> extends NioSocke
     }
 
     @Override
-    public Reliability fallbackReliability() {
-        return Reliability.RELIABLE_ORDERED;
-    }
-
-    @Override
     public NetSession<S> fallbackReliability(@NonNull Reliability reliability) throws IllegalArgumentException {
-        if (reliability != Reliability.RELIABLE_ORDERED) {
+        if (reliability != Reliability.RELIABLE_ORDERED && reliability != Reliability.RELIABLE) {
             throw new IllegalArgumentException(reliability.name());
         }
+        this.fallbackReliability = reliability;
         return this;
     }
 
@@ -195,26 +191,6 @@ public class TCPSocketChannel<S extends AbstractUserSession<S>> extends NioSocke
             return this.endpoint.closeAsync();
         } else {
             return this.close();
-        }
-    }
-
-    @Override
-    public TCPSession<S> enableSSLServer(@NonNull SslContext context) {
-        if (context.isServer()) {
-            this.pipeline().addFirst("ssl", this.ssl = context.newHandler(this.alloc()));
-            return this;
-        } else {
-            throw new IllegalArgumentException("SSL context is for client!");
-        }
-    }
-
-    @Override
-    public TCPSession<S> enableSSLClient(@NonNull SslContext context, @NonNull String host, int port) {
-        if (context.isClient()) {
-            this.pipeline().addFirst("ssl", this.ssl = context.newHandler(this.alloc(), host, port));
-            return this;
-        } else {
-            throw new IllegalArgumentException("SSL context is for server!");
         }
     }
 }

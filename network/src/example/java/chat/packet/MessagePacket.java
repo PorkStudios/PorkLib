@@ -13,16 +13,19 @@
  *
  */
 
-package tcp.mc.packet;
+package chat.packet;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import tcp.mc.MCSession;
+import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.network.protocol.packet.OutboundPacket;
+import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.network.protocol.packet.Packet;
+import chat.ChatSession;
 
 import java.io.IOException;
 
@@ -31,13 +34,29 @@ import java.io.IOException;
  */
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
 @Setter
 @Accessors(fluent = true, chain = true)
-public class PingPacket implements OutboundPacket<MCSession> {
-    protected long time;
+public class MessagePacket implements Packet<ChatSession>, Logging {
+    @NonNull
+    protected String sender;
+    @NonNull
+    protected String message;
 
     @Override
-    public void encode(@NonNull DataOut out, @NonNull MCSession session) throws IOException {
-        out.writeLong(this.time);
+    public void decode(@NonNull DataIn in, @NonNull ChatSession session) throws IOException {
+        this.sender(in.readUTF())
+            .message(in.readUTF());
+    }
+
+    @Override
+    public void encode(@NonNull DataOut out, @NonNull ChatSession session) throws IOException {
+        out.writeUTF(this.sender);
+        out.writeUTF(this.message);
+    }
+
+    @Override
+    public void handle(@NonNull ChatSession session) {
+        logger.channel("Chat").info("<%s> %s", this.sender, this.message);
     }
 }

@@ -13,27 +13,49 @@
  *
  */
 
-package tcp.chat;
+package net.daporkchop.lib.network.tcp.netty.session;
 
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.util.internal.SocketUtils;
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.network.protocol.PacketProtocol;
-import tcp.chat.packet.ChatPacket;
-import tcp.chat.packet.LoginPacket;
-import tcp.chat.packet.MessagePacket;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.tcp.endpoint.TCPEndpoint;
+
+import java.nio.channels.SocketChannel;
+import java.util.List;
 
 /**
  * @author DaPorkchop_
  */
-public class ChatProtocol extends PacketProtocol<ChatSession> {
-    @Override
-    protected void registerPackets(@NonNull Registerer registerer) {
-        registerer.bidirectional(0x00, MessagePacket.class)
-                  .bidirectional(0x01, LoginPacket.class)
-                  .bidirectional(0x02, ChatPacket.class);
-    }
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public class TCPNioServerSocket<S extends AbstractUserSession<S>> extends NioServerSocketChannel {
+    @NonNull
+    protected final TCPEndpoint<?, S, ?> endpoint;
 
     @Override
-    public ChatSession newSession() {
-        return new ChatSession();
+    protected int doReadMessages(List<Object> buf) throws Exception {
+        SocketChannel ch = SocketUtils.accept(this.javaChannel());
+
+        try {
+            if (ch != null) {
+                buf.add(new TCPNioSocket<>(this.endpoint, this, ch));
+                return 1;
+            }
+        } catch (Throwable t) {
+            t.printStackTrace();
+
+            try {
+                ch.close();
+            } catch (Throwable t2) {
+                t2.printStackTrace();
+            }
+        }
+
+        return 0;
     }
 }

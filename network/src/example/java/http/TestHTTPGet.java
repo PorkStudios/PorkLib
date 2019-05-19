@@ -13,7 +13,7 @@
  *
  */
 
-package tcp.http;
+package http;
 
 import net.daporkchop.lib.logging.LogAmount;
 import net.daporkchop.lib.logging.Logging;

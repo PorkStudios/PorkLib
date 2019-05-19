@@ -13,36 +13,37 @@
  *
  */
 
-package tcp.mc.packet;
+package net.daporkchop.lib.network.sctp.netty.session;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
+import com.sun.nio.sctp.SctpChannel;
+import io.netty.channel.sctp.nio.NioSctpChannel;
+import io.netty.channel.sctp.nio.NioSctpServerChannel;
+import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import tcp.mc.MCSession;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.network.protocol.packet.InboundPacket;
+import net.daporkchop.lib.network.sctp.endpoint.SCTPEndpoint;
+import net.daporkchop.lib.network.session.AbstractUserSession;
 
-import java.io.IOException;
+import java.util.List;
 
 /**
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-@NoArgsConstructor
-@Setter
-@Accessors(fluent = true, chain = true)
-public class PongPacket implements InboundPacket<MCSession> {
-    protected long time;
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public class SCTPNioServerChannel<S extends AbstractUserSession<S>> extends NioSctpServerChannel {
+    @NonNull
+    protected final SCTPEndpoint<?, S, ?> endpoint;
 
     @Override
-    public void decode(@NonNull DataIn in, @NonNull MCSession session) throws IOException {
-        this.time = in.readLong();
-    }
-
-    @Override
-    public void handle(@NonNull MCSession session) {
-        session.ping().complete(System.currentTimeMillis() - this.time);
+    protected int doReadMessages(List<Object> buf) throws Exception {
+        SctpChannel ch = javaChannel().accept();
+        if (ch == null) {
+            return 0;
+        }
+        buf.add(new SCTPNioChannel<>(this.endpoint, this, ch));
+        return 1;
     }
 }

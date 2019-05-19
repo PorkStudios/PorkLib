@@ -33,7 +33,7 @@ import net.daporkchop.lib.network.transport.TransportEngine;
 @Accessors(fluent = true)
 public class DummyTCPChannel<S extends AbstractUserSession<S>> implements PChannel<S> {
     @NonNull
-    protected final TCPSocketChannel<S> session;
+    protected final TCPNioSocket<S> session;
     @Getter
     protected final int id;
 

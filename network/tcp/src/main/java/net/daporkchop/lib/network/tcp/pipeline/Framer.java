@@ -16,6 +16,7 @@
 package net.daporkchop.lib.network.tcp.pipeline;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.CompositeByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.network.pipeline.Pipeline;
 import net.daporkchop.lib.network.pipeline.event.ReceivedListener;
@@ -30,15 +31,14 @@ import net.daporkchop.lib.network.tcp.WrapperNioSocketChannel;
  * @author DaPorkchop_
  */
 public abstract class Framer<S extends AbstractUserSession<S>> implements ReceivedListener<S, ByteBuf>, SendingListener<S, ByteBuf> {
-    protected ByteBuf cumulation;
+    protected CompositeByteBuf cumulation;
     protected int ctr = 0;
 
     @Override
     public final void received(@NonNull EventContext<S> context, @NonNull S session, @NonNull ByteBuf msg, int channel) {
-        this.cumulation.writeBytes(msg);
-        this.unpack(session, this.cumulation, context::received);
+        this.unpack(session, this.cumulation.addComponent(true, msg), context::received);
         if (this.ctr++ >= 16)    {
-            this.cumulation.discardReadBytes();
+            this.cumulation.discardReadComponents();
             this.ctr = 0;
         }
     }
@@ -50,7 +50,7 @@ public abstract class Framer<S extends AbstractUserSession<S>> implements Receiv
 
     @Override
     public void added(@NonNull Pipeline<S> pipeline, @NonNull S session) {
-        this.cumulation = ((WrapperNioSocketChannel<S>) session.internalSession()).alloc().ioBuffer();
+        this.cumulation = ((WrapperNioSocketChannel<S>) session.internalSession()).alloc().compositeDirectBuffer();
     }
 
     @Override

@@ -63,6 +63,7 @@ public class MinecraftPacketFramer extends Framer<MCSession> implements Logging 
     @Override
     public void unpack(@NonNull MCSession session, @NonNull ByteBuf buf, @NonNull UnpackOut<MCSession> frames) {
         int origPos = buf.readerIndex();
+        logger.debug("Attempting to unpack frames: starting at %d, with %d bytes remaining!", origPos, buf.readableBytes());
         int size;
         while ((size = readVarInt(buf)) != -1) {
             buf.readerIndex(origPos);

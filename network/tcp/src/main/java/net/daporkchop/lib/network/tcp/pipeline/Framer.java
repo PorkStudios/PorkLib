@@ -23,7 +23,7 @@ import net.daporkchop.lib.network.pipeline.event.ReceivedListener;
 import net.daporkchop.lib.network.pipeline.event.SendingListener;
 import net.daporkchop.lib.network.pipeline.util.EventContext;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.tcp.WrapperNioSocketChannel;
+import net.daporkchop.lib.network.tcp.netty.session.WrapperNioSocketChannel;
 
 /**
  * Allows for sending individual packets down the pipeline.

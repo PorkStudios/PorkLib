@@ -23,7 +23,7 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.netty.NettyHandler;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.tcp.WrapperNioSocketChannel;
+import net.daporkchop.lib.network.tcp.netty.session.WrapperNioSocketChannel;
 
 /**
  * @author DaPorkchop_

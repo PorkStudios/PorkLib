@@ -20,20 +20,20 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.network.endpoint.PClient;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.netty.NettyEngine;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.session.BaseUserSession;
 import net.daporkchop.lib.network.session.Reliability;
 import net.daporkchop.lib.network.tcp.endpoint.TCPClient;
+import net.daporkchop.lib.network.tcp.netty.session.TCPSession;
 import net.daporkchop.lib.network.transport.TransportEngine;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -42,6 +42,9 @@ import java.util.Map;
  * Default pipeline layout:
  * "tcp_framer"  => {@link net.daporkchop.lib.network.tcp.pipeline.Framer.DefaultFramer}
  * "protocol"    => {@link net.daporkchop.lib.network.tcp.pipeline.TCPDataCodec} (only if endpoint protocol is {@link net.daporkchop.lib.network.protocol.DataProtocol})
+ * <p>
+ * All internal sessions ({@link BaseUserSession#internalSession()}) for endpoints made using this transport engine will be instances of
+ * {@link TCPSession}, allowing users to enable features such as SSL.
  *
  * @author DaPorkchop_
  */

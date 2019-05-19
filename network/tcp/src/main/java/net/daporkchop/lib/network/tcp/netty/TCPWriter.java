@@ -23,7 +23,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.tcp.WrapperNioSocketChannel;
+import net.daporkchop.lib.network.tcp.netty.session.WrapperNioSocketChannel;
 import net.daporkchop.lib.network.transport.ChanneledPacket;
 
 import java.util.List;

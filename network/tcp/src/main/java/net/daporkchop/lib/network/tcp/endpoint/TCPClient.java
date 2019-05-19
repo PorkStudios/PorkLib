@@ -22,7 +22,7 @@ import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.transport.NetSession;
 import net.daporkchop.lib.network.tcp.netty.TCPChannelInitializer;
-import net.daporkchop.lib.network.tcp.WrapperNioSocketChannel;
+import net.daporkchop.lib.network.tcp.netty.session.WrapperNioSocketChannel;
 
 /**
  * @author DaPorkchop_

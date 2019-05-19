@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp;
+package net.daporkchop.lib.network.tcp.netty.session;
 
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
@@ -23,8 +23,6 @@ import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.transport.NetSession;
 
 import javax.net.ssl.SSLException;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
 import java.io.File;
 import java.io.InputStream;
 import java.security.PrivateKey;

@@ -13,9 +13,8 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp;
+package net.daporkchop.lib.network.tcp.netty.session;
 
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslHandler;
@@ -27,15 +26,14 @@ import net.daporkchop.lib.binary.netty.NettyByteBufOut;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.concurrent.future.PCompletable;
-import net.daporkchop.lib.concurrent.future.PFuture;
 import net.daporkchop.lib.concurrent.future.impl.PCompletableImpl;
-import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.EndpointType;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.pipeline.Pipeline;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.PChannel;
 import net.daporkchop.lib.network.session.Reliability;
+import net.daporkchop.lib.network.tcp.DummyTCPChannel;
 import net.daporkchop.lib.network.tcp.pipeline.TCPEdgeListener;
 import net.daporkchop.lib.network.transport.ChanneledPacket;
 import net.daporkchop.lib.network.transport.NetSession;

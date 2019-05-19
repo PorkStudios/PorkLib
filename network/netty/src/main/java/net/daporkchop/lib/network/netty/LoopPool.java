@@ -16,6 +16,8 @@
 package net.daporkchop.lib.network.netty;
 
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.Epoll;
+import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.PorkUtil;
@@ -42,7 +44,12 @@ public class LoopPool {
     public static EventLoopGroup defaultGroup() {
         synchronized (GROUP_CACHE) {
             if (DEFAULT_GROUP == null) {
-                DEFAULT_GROUP = new NioEventLoopGroup(PorkUtil.CPU_COUNT);
+                if (false && Epoll.isAvailable())    {
+                    //TODO: this breaks TCP due to it using EpollSocketChannel instead of NioSocketChannel
+                    DEFAULT_GROUP = new EpollEventLoopGroup(PorkUtil.CPU_COUNT, PorkUtil.DEFAULT_EXECUTOR);
+                } else {
+                    DEFAULT_GROUP = new NioEventLoopGroup(PorkUtil.CPU_COUNT, PorkUtil.DEFAULT_EXECUTOR);
+                }
             }
             return useGroup(DEFAULT_GROUP);
         }

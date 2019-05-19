@@ -13,38 +13,31 @@
  *
  */
 
-package mc;
+package tcp.mc.packet;
 
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import mc.packet.HandshakePacket;
-import mc.packet.PingPacket;
-import mc.packet.PongPacket;
-import mc.packet.ResponsePacket;
-import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.pipeline.Pipeline;
-import net.daporkchop.lib.network.protocol.PacketProtocol;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import tcp.mc.MCSession;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.network.protocol.packet.OutboundPacket;
+
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-public class MinecraftPingProtocol extends PacketProtocol<MCSession> implements Logging {
-    @Override
-    protected void registerPackets(@NonNull Registerer registerer) {
-        registerer.outbound(0x00, HandshakePacket.class)
-                  .outbound(0x01, PingPacket.class)
-                  .inbound(0x00, ResponsePacket.class)
-                  .inbound(0x01, PongPacket.class);
-    }
+@AllArgsConstructor
+@NoArgsConstructor
+@Setter
+@Accessors(fluent = true, chain = true)
+public class PingPacket implements OutboundPacket<MCSession> {
+    protected long time;
 
     @Override
-    public void initPipeline(@NonNull Pipeline<MCSession> pipeline, @NonNull MCSession session) {
-        super.initPipeline(pipeline, session);
-
-        pipeline.replace("tcp_framer", new MinecraftPacketFramer());
-    }
-
-    @Override
-    public MCSession newSession() {
-        return new MCSession();
+    public void encode(@NonNull DataOut out, @NonNull MCSession session) throws IOException {
+        out.writeLong(this.time);
     }
 }

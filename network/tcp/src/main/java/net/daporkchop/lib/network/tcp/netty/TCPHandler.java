@@ -15,21 +15,16 @@
 
 package net.daporkchop.lib.network.tcp.netty;
 
-import io.netty.channel.ChannelHandlerContext;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.netty.NettyHandler;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.tcp.netty.session.WrapperNioSocketChannel;
+import net.daporkchop.lib.network.tcp.netty.session.TCPSocketChannel;
 
 /**
  * @author DaPorkchop_
  */
-public class TCPHandler<S extends AbstractUserSession<S>> extends NettyHandler<S, WrapperNioSocketChannel<S>> implements Logging {
-    public TCPHandler(WrapperNioSocketChannel<S> session) {
+public class TCPHandler<S extends AbstractUserSession<S>> extends NettyHandler<S, TCPSocketChannel<S>> implements Logging {
+    public TCPHandler(TCPSocketChannel<S> session) {
         super(session);
     }
 }

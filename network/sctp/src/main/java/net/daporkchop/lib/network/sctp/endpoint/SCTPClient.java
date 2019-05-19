@@ -30,7 +30,7 @@ import net.daporkchop.lib.network.transport.NetSession;
  */
 public class SCTPClient<S extends AbstractUserSession<S>> extends SCTPEndpoint<PClient<S>, S, WrapperNioSctpChannel<S>> implements PClient<S> {
     @SuppressWarnings("unchecked")
-    protected SCTPClient(@NonNull ClientBuilder<S> builder) {
+    public SCTPClient(@NonNull ClientBuilder<S> builder) {
         super(builder);
 
         try {

@@ -23,7 +23,6 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.PChannel;
 import net.daporkchop.lib.network.session.Reliability;
-import net.daporkchop.lib.network.tcp.netty.session.WrapperNioSocketChannel;
 import net.daporkchop.lib.network.transport.NetSession;
 import net.daporkchop.lib.network.transport.TransportEngine;
 
@@ -34,7 +33,7 @@ import net.daporkchop.lib.network.transport.TransportEngine;
 @Accessors(fluent = true)
 public class DummyTCPChannel<S extends AbstractUserSession<S>> implements PChannel<S> {
     @NonNull
-    protected final WrapperNioSocketChannel<S> session;
+    protected final TCPSocketChannel<S> session;
     @Getter
     protected final int id;
 

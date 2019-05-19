@@ -13,16 +13,18 @@
  *
  */
 
-package mc.packet;
+package tcp.chat.packet;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import mc.MCSession;
+import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.network.protocol.packet.OutboundPacket;
+import net.daporkchop.lib.network.protocol.packet.Packet;
+import tcp.chat.ChatSession;
 
 import java.io.IOException;
 
@@ -31,13 +33,30 @@ import java.io.IOException;
  */
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
 @Setter
 @Accessors(fluent = true, chain = true)
-public class PingPacket implements OutboundPacket<MCSession> {
-    protected long time;
+public class LoginPacket implements Packet<ChatSession> {
+    @NonNull
+    protected String name;
 
     @Override
-    public void encode(@NonNull DataOut out, @NonNull MCSession session) throws IOException {
-        out.writeLong(this.time);
+    public void decode(@NonNull DataIn in, @NonNull ChatSession session) throws IOException {
+        this.name = in.readUTF();
+    }
+
+    @Override
+    public void encode(@NonNull DataOut out, @NonNull ChatSession session) throws IOException {
+        out.writeUTF(this.name);
+    }
+
+    @Override
+    public void handle(@NonNull ChatSession session) {
+        if (session.isLoggedIn()) {
+            throw new IllegalStateException("already logged in!");
+        } else {
+            session.name(this.name);
+            session.sendFlush(new MessagePacket("Server", String.format("Welcome, %s!", this.name)));
+        }
     }
 }

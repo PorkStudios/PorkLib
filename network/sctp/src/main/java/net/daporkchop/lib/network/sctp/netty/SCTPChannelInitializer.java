@@ -62,8 +62,7 @@ public class SCTPChannelInitializer<E extends SCTPEndpoint<?, S, ?>, S extends A
         Pipeline<S> pipeline = channel.dataPipeline();
 
         if (this.endpoint.protocol() instanceof DataProtocol) {
-            pipeline
-                    .addLast("protocol", new SCTPDataCodec<>((DataProtocol<S>) this.endpoint.protocol(), channel.alloc()));
+            pipeline.addLast("protocol", new SCTPDataCodec<>((DataProtocol<S>) this.endpoint.protocol(), channel.alloc()));
         }
 
         this.endpoint.protocol().pipelineInitializer().initPipeline(pipeline, channel.userSession());

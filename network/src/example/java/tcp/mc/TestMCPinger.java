@@ -13,10 +13,10 @@
  *
  */
 
-package mc;
+package tcp.mc;
 
-import mc.packet.HandshakePacket;
-import mc.packet.PingPacket;
+import tcp.mc.packet.HandshakePacket;
+import tcp.mc.packet.PingPacket;
 import net.daporkchop.lib.logging.LogAmount;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.endpoint.PClient;

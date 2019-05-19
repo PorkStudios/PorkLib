@@ -131,5 +131,19 @@ public abstract class PacketProtocol<S extends AbstractUserSession<S>> implement
             }
             return this;
         }
+
+        public <P extends Packet<S>> Registerer bidirectional(int id, @NonNull Class<P> clazz) {
+            if (this.outbound.putIfAbsent(clazz, id) != null || this.inbound.putIfAbsent(id, clazz) != null)  {
+                throw new IllegalStateException(String.format("Packet class \"%s\" already registered!", clazz.getCanonicalName()));
+            }
+            return this;
+        }
+
+        public <P extends Packet<S>> Registerer bidirectional(int id, @NonNull Class<P> clazz, @NonNull Supplier<P> supplier) {
+            if (this.outbound.putIfAbsent(clazz, id) != null || this.inbound.putIfAbsent(id, clazz) != null || this.classToSupplier.putIfAbsent(clazz, supplier) != null)  {
+                throw new IllegalStateException(String.format("Packet class \"%s\" already registered!", clazz.getCanonicalName()));
+            }
+            return this;
+        }
     }
 }

@@ -13,46 +13,29 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.endpoint;
+package tcp.http;
 
-import io.netty.bootstrap.Bootstrap;
 import lombok.NonNull;
-import net.daporkchop.lib.network.endpoint.PClient;
-import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
+import net.daporkchop.lib.concurrent.future.PCompletable;
+import net.daporkchop.lib.concurrent.future.impl.PCompletableImpl;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.transport.NetSession;
-import net.daporkchop.lib.network.tcp.netty.TCPChannelInitializer;
-import net.daporkchop.lib.network.tcp.netty.session.TCPSocketChannel;
 
 /**
  * @author DaPorkchop_
  */
-public class TCPClient<S extends AbstractUserSession<S>> extends TCPEndpoint<PClient<S>, S, TCPSocketChannel<S>> implements PClient<S> {
-    @SuppressWarnings("unchecked")
-    public TCPClient(@NonNull ClientBuilder<S> builder) {
-        super(builder);
+public class HTTPSession extends AbstractUserSession<HTTPSession> {
+    protected final PCompletable complete = new PCompletableImpl();
+    protected boolean headersComplete = false;
+    protected String headers = "";
+    protected String body = "";
 
-        try {
-            Bootstrap bootstrap = new Bootstrap()
-                    .group(this.group)
-                    .channelFactory(() -> new TCPSocketChannel<>(this))
-                    .handler(new TCPChannelInitializer<>(this));
-
-            this.transportEngine.clientOptions().forEach(bootstrap::option);
-
-            this.channel = (TCPSocketChannel<S>) bootstrap.connect(builder.address()).syncUninterruptibly().channel();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    @Override
+    public void onClosed() {
+        this.complete.complete();
     }
 
     @Override
-    public S userSession() {
-        return this.channel.userSession();
-    }
-
-    @Override
-    public NetSession<S> internalSession() {
-        return this.channel;
+    public void onException(@NonNull Throwable t) {
+        this.complete.completeExceptionally(t);
     }
 }

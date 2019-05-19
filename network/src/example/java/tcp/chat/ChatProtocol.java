@@ -13,46 +13,27 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.endpoint;
+package tcp.chat;
 
-import io.netty.bootstrap.Bootstrap;
 import lombok.NonNull;
-import net.daporkchop.lib.network.endpoint.PClient;
-import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
-import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.transport.NetSession;
-import net.daporkchop.lib.network.tcp.netty.TCPChannelInitializer;
-import net.daporkchop.lib.network.tcp.netty.session.TCPSocketChannel;
+import net.daporkchop.lib.network.protocol.PacketProtocol;
+import tcp.chat.packet.ChatPacket;
+import tcp.chat.packet.LoginPacket;
+import tcp.chat.packet.MessagePacket;
 
 /**
  * @author DaPorkchop_
  */
-public class TCPClient<S extends AbstractUserSession<S>> extends TCPEndpoint<PClient<S>, S, TCPSocketChannel<S>> implements PClient<S> {
-    @SuppressWarnings("unchecked")
-    public TCPClient(@NonNull ClientBuilder<S> builder) {
-        super(builder);
-
-        try {
-            Bootstrap bootstrap = new Bootstrap()
-                    .group(this.group)
-                    .channelFactory(() -> new TCPSocketChannel<>(this))
-                    .handler(new TCPChannelInitializer<>(this));
-
-            this.transportEngine.clientOptions().forEach(bootstrap::option);
-
-            this.channel = (TCPSocketChannel<S>) bootstrap.connect(builder.address()).syncUninterruptibly().channel();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+public class ChatProtocol extends PacketProtocol<ChatSession> {
+    @Override
+    protected void registerPackets(@NonNull Registerer registerer) {
+        registerer.bidirectional(0x00, MessagePacket.class)
+                  .bidirectional(0x01, LoginPacket.class)
+                  .bidirectional(0x02, ChatPacket.class);
     }
 
     @Override
-    public S userSession() {
-        return this.channel.userSession();
-    }
-
-    @Override
-    public NetSession<S> internalSession() {
-        return this.channel;
+    public ChatSession newSession() {
+        return new ChatSession();
     }
 }

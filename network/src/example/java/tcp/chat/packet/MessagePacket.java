@@ -13,46 +13,50 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.endpoint;
+package tcp.chat.packet;
 
-import io.netty.bootstrap.Bootstrap;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.network.endpoint.PClient;
-import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
-import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.transport.NetSession;
-import net.daporkchop.lib.network.tcp.netty.TCPChannelInitializer;
-import net.daporkchop.lib.network.tcp.netty.session.TCPSocketChannel;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.network.protocol.packet.Packet;
+import tcp.chat.ChatSession;
+
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-public class TCPClient<S extends AbstractUserSession<S>> extends TCPEndpoint<PClient<S>, S, TCPSocketChannel<S>> implements PClient<S> {
-    @SuppressWarnings("unchecked")
-    public TCPClient(@NonNull ClientBuilder<S> builder) {
-        super(builder);
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@Accessors(fluent = true, chain = true)
+public class MessagePacket implements Packet<ChatSession>, Logging {
+    @NonNull
+    protected String sender;
+    @NonNull
+    protected String message;
 
-        try {
-            Bootstrap bootstrap = new Bootstrap()
-                    .group(this.group)
-                    .channelFactory(() -> new TCPSocketChannel<>(this))
-                    .handler(new TCPChannelInitializer<>(this));
-
-            this.transportEngine.clientOptions().forEach(bootstrap::option);
-
-            this.channel = (TCPSocketChannel<S>) bootstrap.connect(builder.address()).syncUninterruptibly().channel();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    @Override
+    public void decode(@NonNull DataIn in, @NonNull ChatSession session) throws IOException {
+        this.sender(in.readUTF())
+            .message(in.readUTF());
     }
 
     @Override
-    public S userSession() {
-        return this.channel.userSession();
+    public void encode(@NonNull DataOut out, @NonNull ChatSession session) throws IOException {
+        out.writeUTF(this.sender);
+        out.writeUTF(this.message);
     }
 
     @Override
-    public NetSession<S> internalSession() {
-        return this.channel;
+    public void handle(@NonNull ChatSession session) {
+        logger.channel("Chat").info("<%s> %s", this.sender, this.message);
     }
 }

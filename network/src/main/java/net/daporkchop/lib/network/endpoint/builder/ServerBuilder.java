@@ -13,42 +13,58 @@
  *
  */
 
-package http;
+package net.daporkchop.lib.network.endpoint.builder;
 
-import net.daporkchop.lib.logging.LogAmount;
-import net.daporkchop.lib.logging.Logging;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.network.endpoint.PClient;
-import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
-import net.daporkchop.lib.network.tcp.TCPEngine;
+import net.daporkchop.lib.network.endpoint.PServer;
+import net.daporkchop.lib.network.protocol.Protocol;
+import net.daporkchop.lib.network.session.AbstractUserSession;
 
 import java.net.InetSocketAddress;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author DaPorkchop_
  */
-public class TestHTTPGet implements Logging {
-    protected static final String HOST = "maven.daporkchop.net";
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Getter
+@Setter
+@Accessors(chain = true, fluent = true)
+public class ServerBuilder<S extends AbstractUserSession<S>> extends EndpointBuilder<ServerBuilder<S>, PServer<S>, S> {
+    public static <S extends AbstractUserSession<S>> ServerBuilder<S> of(@NonNull Protocol<S> protocol)  {
+        return new ServerBuilder<>().protocol(protocol);
+    }
 
-    public static void main(String... args) {
-        logger.enableANSI().setLogAmount(LogAmount.DEBUG).info("Starting client...");
+    /**
+     * The local address to bind to.
+     * <p>
+     * Must be set!
+     */
+    @NonNull
+    protected InetSocketAddress bind;
 
-        PClient<HTTPSession> client = ClientBuilder.of(new HTTPProtocol())
-                                                   .engine(TCPEngine.defaultInstance())
-                                                   .address(new InetSocketAddress(HOST, 443))
-                                                   .build();
-        logger.success("Client started.").info("Sending request...");
+    @Override
+    @SuppressWarnings("unchecked")
+    public <NEW_S extends AbstractUserSession<NEW_S>> ServerBuilder<NEW_S> protocol(@NonNull Protocol<NEW_S> protocol)   {
+        ((ServerBuilder<NEW_S>) this).protocol = protocol;
+        return (ServerBuilder<NEW_S>) this;
+    }
 
-        client.sendFlushAsync("GET / HTTP/1.1\r\n" +
-                "Host: " + HOST + "\r\n" +
-                "User-Agent: PorkLib\r\n\r\n")
-              .addListener(v -> logger.success("Request sent."));
-
-        client.userSession().complete.sync(TimeUnit.SECONDS, 5L);
-        logger.info("Headers:\n%s\nBody:\n%s", client.userSession().headers, client.userSession().body);
-        if (!client.userSession().complete.isComplete())    {
-            logger.warn("Connection not automatically closed by server, forcibly closing it!");
-            client.closeAsync().addListener(v -> logger.success("Client closed."));
+    @Override
+    protected void validate() {
+        if (this.bind == null) {
+            throw new NullPointerException("bind");
         }
+        super.validate();
+    }
+
+    @Override
+    protected PServer<S> doBuild() {
+        return this.engine.createServer(this);
     }
 }

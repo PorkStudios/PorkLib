@@ -13,40 +13,35 @@
  *
  */
 
-package mc.packet;
+package tcp.mc;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import mc.MCSession;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.network.protocol.packet.OutboundPacket;
-import net.daporkchop.lib.network.protocol.packet.Packet;
-
-import java.io.IOException;
+import net.daporkchop.lib.concurrent.future.PFuture;
+import net.daporkchop.lib.concurrent.future.impl.PFutureImpl;
+import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-@NoArgsConstructor
+@Getter
 @Setter
 @Accessors(fluent = true, chain = true)
-public class HandshakePacket implements OutboundPacket<MCSession> {
-    protected int protocolVersion;
+public class MCSession extends AbstractUserSession<MCSession> {
+    protected final PFuture<Long> ping = new PFutureImpl<>();
+
     @NonNull
-    protected String remoteHost;
-    protected int remotePort;
-    protected int nextState;
+    protected String response = "";
 
     @Override
-    public void encode(@NonNull DataOut out, @NonNull MCSession session) throws IOException {
-        out.writeVarInt(this.protocolVersion);
-        out.writeUTF(this.remoteHost);
-        out.writeUShort(this.remotePort);
-        out.writeVarInt(this.nextState);
+    public void onClosed() {
+        this.ping.tryComplete(-1L);
+    }
+
+    @Override
+    public void onException(@NonNull Throwable t) {
+        this.ping.tryCompleteExceptionally(t);
     }
 }

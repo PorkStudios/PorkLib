@@ -17,15 +17,12 @@ package net.daporkchop.lib.network.transport;
 
 import lombok.NonNull;
 import net.daporkchop.lib.network.endpoint.PClient;
-import net.daporkchop.lib.network.endpoint.PMulti;
-import net.daporkchop.lib.network.endpoint.PMultiClient;
 import net.daporkchop.lib.network.endpoint.PServer;
-import net.daporkchop.lib.network.endpoint.Pp2pEndpoint;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
+import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.Reliability;
 
-import java.net.InetSocketAddress;
 import java.util.Collection;
 
 /**
@@ -35,8 +32,10 @@ import java.util.Collection;
  */
 public interface TransportEngine {
     //endpoint creation methods
+
     /**
      * Creates a new client that will connect to the given address.
+     *
      * @param builder the builder to use
      * @return the newly created client
      */
@@ -50,10 +49,11 @@ public interface TransportEngine {
 
     /**
      * Creates a new server that will bind to the given address.
-     * @param bindAddress the address that the new server will be bound to
+     *
+     * @param builder the builder to use
      * @return the newly created server
      */
-    //<S extends AbstractUserSession<S>> PServer<S> createServer(@NonNull InetSocketAddress bindAddress);
+    <S extends AbstractUserSession<S>> PServer<S> createServer(@NonNull ServerBuilder<S> builder);
 
     /**
      * Creates a new multi endpoint that will bind to the given address.
@@ -70,6 +70,7 @@ public interface TransportEngine {
     //<S extends AbstractUserSession<S>> Pp2pEndpoint<S> createP2P(@NonNull InetSocketAddress bindAddress);
 
     //reliability methods
+
     /**
      * Gets all reliability levels supported by this engine.
      *
@@ -87,7 +88,7 @@ public interface TransportEngine {
         return this.supportedReliabilities().contains(reliability);
     }
 
-    default boolean isBinary(@NonNull Object object)    {
+    default boolean isBinary(@NonNull Object object) {
         return true;
     }
 }

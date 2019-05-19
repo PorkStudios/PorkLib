@@ -13,16 +13,12 @@
  *
  */
 
-package http;
+package tcp.http;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.transport.ChanneledPacket;
 import net.daporkchop.lib.network.tcp.pipeline.Framer;
-
-import java.util.List;
 
 /**
  * @author DaPorkchop_

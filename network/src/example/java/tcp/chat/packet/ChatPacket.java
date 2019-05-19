@@ -13,16 +13,19 @@
  *
  */
 
-package mc.packet;
+package tcp.chat.packet;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import mc.MCSession;
 import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.network.protocol.packet.InboundPacket;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.network.endpoint.PServer;
+import net.daporkchop.lib.network.protocol.packet.Packet;
+import tcp.chat.ChatSession;
 
 import java.io.IOException;
 
@@ -31,19 +34,29 @@ import java.io.IOException;
  */
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
 @Setter
 @Accessors(fluent = true, chain = true)
-public class ResponsePacket implements InboundPacket<MCSession> {
+public class ChatPacket implements Packet<ChatSession> {
     @NonNull
-    protected String response;
+    protected String message;
 
     @Override
-    public void decode(@NonNull DataIn in, @NonNull MCSession session) throws IOException {
-        this.response(in.readUTF());
+    public void decode(@NonNull DataIn in, @NonNull ChatSession session) throws IOException {
+        this.message = in.readUTF();
     }
 
     @Override
-    public void handle(@NonNull MCSession session) {
-        session.response(this.response);
+    public void encode(@NonNull DataOut out, @NonNull ChatSession session) throws IOException {
+        out.writeUTF(this.message);
+    }
+
+    @Override
+    public void handle(@NonNull ChatSession session) {
+        if (session.name() == null) {
+            session.sendFlush(new MessagePacket("Server", "Not logged in!"));
+        } else {
+            session.<PServer<ChatSession>>endpoint().sessions().forEach(s -> s.sendFlush(new MessagePacket(session.name(), this.message)));
+        }
     }
 }

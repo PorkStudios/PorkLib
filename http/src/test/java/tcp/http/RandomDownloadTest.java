@@ -13,7 +13,7 @@
  *
  */
 
-package http;import com.google.gson.JsonParser;
+package tcp.http;import com.google.gson.JsonParser;
 import net.daporkchop.lib.common.test.TestRandomData;
 import net.daporkchop.lib.encoding.basen.Base58;
 import net.daporkchop.lib.http.SimpleHTTP;

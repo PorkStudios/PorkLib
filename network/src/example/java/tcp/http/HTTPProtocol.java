@@ -13,7 +13,7 @@
  *
  */
 
-package http;
+package tcp.http;
 
 import lombok.NonNull;
 import net.daporkchop.lib.binary.UTF8;

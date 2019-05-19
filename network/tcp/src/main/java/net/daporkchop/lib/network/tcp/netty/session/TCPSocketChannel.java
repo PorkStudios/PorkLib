@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.network.tcp.netty.session;
 
+import io.netty.channel.Channel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslHandler;
@@ -25,8 +26,6 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.netty.NettyByteBufOut;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.concurrent.future.PCompletable;
-import net.daporkchop.lib.concurrent.future.impl.PCompletableImpl;
 import net.daporkchop.lib.network.EndpointType;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.pipeline.Pipeline;
@@ -41,6 +40,7 @@ import net.daporkchop.lib.network.tcp.endpoint.TCPEndpoint;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
+import java.nio.channels.SocketChannel;
 import java.util.Map;
 
 /**
@@ -48,7 +48,7 @@ import java.util.Map;
  */
 @Getter
 @Accessors(fluent = true)
-public class WrapperNioSocketChannel<S extends AbstractUserSession<S>> extends NioSocketChannel implements TCPSession<S> {
+public class TCPSocketChannel<S extends AbstractUserSession<S>> extends NioSocketChannel implements TCPSession<S> {
     protected final TCPEndpoint<?, S, ?> endpoint;
     protected final DummyTCPChannel<S> defaultChannel = new DummyTCPChannel<>(this, 0);
     protected final Map<Integer, DummyTCPChannel<S>> channels = PorkUtil.newSoftCache();
@@ -57,7 +57,17 @@ public class WrapperNioSocketChannel<S extends AbstractUserSession<S>> extends N
 
     protected SslHandler ssl;
 
-    public WrapperNioSocketChannel(@NonNull TCPEndpoint<?, S, ?> endpoint) {
+    public TCPSocketChannel(@NonNull TCPEndpoint<?, S, ?> endpoint) {
+        this.endpoint = endpoint;
+        this.userSession = endpoint.protocol().sessionFactory().newSession();
+        PUnsafe.putObject(this.userSession, ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);
+
+        this.dataPipeline = new Pipeline<>(this.userSession, new TCPEdgeListener<>());
+    }
+
+    public TCPSocketChannel(@NonNull TCPEndpoint<?, S, ?> endpoint, Channel parent, SocketChannel socket) {
+        super(parent, socket);
+
         this.endpoint = endpoint;
         this.userSession = endpoint.protocol().sessionFactory().newSession();
         PUnsafe.putObject(this.userSession, ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);
@@ -134,7 +144,7 @@ public class WrapperNioSocketChannel<S extends AbstractUserSession<S>> extends N
                 if (this.buf.writerIndex() == 0)    {
                     this.buf.release();
                 } else {
-                    WrapperNioSocketChannel.this.write(this.buf);
+                    TCPSocketChannel.this.write(this.buf);
                 }
             }
         };

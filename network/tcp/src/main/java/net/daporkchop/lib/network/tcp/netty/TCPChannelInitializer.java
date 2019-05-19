@@ -25,7 +25,7 @@ import net.daporkchop.lib.network.pipeline.Pipeline;
 import net.daporkchop.lib.network.pipeline.util.PipelineListener;
 import net.daporkchop.lib.network.protocol.DataProtocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.tcp.netty.session.WrapperNioSocketChannel;
+import net.daporkchop.lib.network.tcp.netty.session.TCPSocketChannel;
 import net.daporkchop.lib.network.tcp.endpoint.TCPEndpoint;
 import net.daporkchop.lib.network.tcp.pipeline.Framer;
 import net.daporkchop.lib.network.tcp.pipeline.TCPDataCodec;
@@ -37,13 +37,13 @@ import java.util.function.Consumer;
  */
 @RequiredArgsConstructor
 @Getter
-public class TCPChannelInitializer<E extends TCPEndpoint<?, S, ?>, S extends AbstractUserSession<S>> extends ChannelInitializer<WrapperNioSocketChannel<S>> {
+public class TCPChannelInitializer<E extends TCPEndpoint<?, S, ?>, S extends AbstractUserSession<S>> extends ChannelInitializer<TCPSocketChannel<S>> {
     @NonNull
     protected final E endpoint;
     @NonNull
-    protected final Consumer<WrapperNioSocketChannel<S>> addedCallback;
+    protected final Consumer<TCPSocketChannel<S>> addedCallback;
     @NonNull
-    protected final Consumer<WrapperNioSocketChannel<S>> removedCallback;
+    protected final Consumer<TCPSocketChannel<S>> removedCallback;
 
     public TCPChannelInitializer(@NonNull E endpoint) {
         this(endpoint, ch -> {}, ch -> {});
@@ -51,15 +51,14 @@ public class TCPChannelInitializer<E extends TCPEndpoint<?, S, ?>, S extends Abs
 
     @Override
     @SuppressWarnings("unchecked")
-    protected void initChannel(@NonNull WrapperNioSocketChannel<S> channel) throws Exception {
+    protected void initChannel(@NonNull TCPSocketChannel<S> channel) throws Exception {
         channel.pipeline()
                 .addLast("write", new TCPWriter<>(channel))
                 .addLast("handle", new TCPHandler<>(channel));
 
         Pipeline<S> pipeline = channel.dataPipeline();
 
-        pipeline
-                .addLast("tcp_framer", (PipelineListener<S>) InstancePool.getInstance(Framer.DefaultFramer.class));
+        pipeline.addLast("tcp_framer", new Framer.DefaultFramer<>());
 
         if (this.endpoint.protocol() instanceof DataProtocol)   {
             pipeline
@@ -75,6 +74,6 @@ public class TCPChannelInitializer<E extends TCPEndpoint<?, S, ?>, S extends Abs
     @SuppressWarnings("unchecked")
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
         super.channelUnregistered(ctx);
-        this.removedCallback.accept((WrapperNioSocketChannel) ctx.channel());
+        this.removedCallback.accept((TCPSocketChannel) ctx.channel());
     }
 }

@@ -13,36 +13,49 @@
  *
  */
 
-package mc.packet;
+package net.daporkchop.lib.network.tcp.netty.session;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.util.internal.SocketUtils;
+import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import mc.MCSession;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.network.protocol.packet.InboundPacket;
+import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.tcp.endpoint.TCPEndpoint;
 
-import java.io.IOException;
+import java.nio.channels.SocketChannel;
+import java.util.List;
 
 /**
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-@NoArgsConstructor
-@Setter
-@Accessors(fluent = true, chain = true)
-public class PongPacket implements InboundPacket<MCSession> {
-    protected long time;
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public class TCPServerSocketChannel<S extends AbstractUserSession<S>> extends NioServerSocketChannel {
+    @NonNull
+    protected final TCPEndpoint<?, S, ?> endpoint;
 
     @Override
-    public void decode(@NonNull DataIn in, @NonNull MCSession session) throws IOException {
-        this.time = in.readLong();
-    }
+    protected int doReadMessages(List<Object> buf) throws Exception {
+        SocketChannel ch = SocketUtils.accept(this.javaChannel());
 
-    @Override
-    public void handle(@NonNull MCSession session) {
-        session.ping().complete(System.currentTimeMillis() - this.time);
+        try {
+            if (ch != null) {
+                buf.add(new TCPSocketChannel<>(this.endpoint, this, ch));
+                return 1;
+            }
+        } catch (Throwable t) {
+            t.printStackTrace();
+
+            try {
+                ch.close();
+            } catch (Throwable t2) {
+                t2.printStackTrace();
+            }
+        }
+
+        return 0;
     }
 }

@@ -66,7 +66,7 @@ public class DefaultLogger extends SimpleLogger {
      * <p>
      * Be aware that this method may only be invoked once, and cannot be undone.
      */
-    public void redirectStdOut() {
+    public DefaultLogger redirectStdOut() {
         if (!hasRedirectedStdOut.getAndSet(true)) {
             try {
                 Logger fakeLogger = this.channel("stdout");
@@ -100,6 +100,7 @@ public class DefaultLogger extends SimpleLogger {
                 throw new RuntimeException(e);
             }
         }
+        return this;
     }
 
     /**

@@ -13,46 +13,38 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.endpoint;
+package tcp.mc;
 
-import io.netty.bootstrap.Bootstrap;
 import lombok.NonNull;
-import net.daporkchop.lib.network.endpoint.PClient;
-import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
-import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.transport.NetSession;
-import net.daporkchop.lib.network.tcp.netty.TCPChannelInitializer;
-import net.daporkchop.lib.network.tcp.netty.session.TCPSocketChannel;
+import tcp.mc.packet.HandshakePacket;
+import tcp.mc.packet.PingPacket;
+import tcp.mc.packet.PongPacket;
+import tcp.mc.packet.ResponsePacket;
+import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.network.pipeline.Pipeline;
+import net.daporkchop.lib.network.protocol.PacketProtocol;
 
 /**
  * @author DaPorkchop_
  */
-public class TCPClient<S extends AbstractUserSession<S>> extends TCPEndpoint<PClient<S>, S, TCPSocketChannel<S>> implements PClient<S> {
-    @SuppressWarnings("unchecked")
-    public TCPClient(@NonNull ClientBuilder<S> builder) {
-        super(builder);
-
-        try {
-            Bootstrap bootstrap = new Bootstrap()
-                    .group(this.group)
-                    .channelFactory(() -> new TCPSocketChannel<>(this))
-                    .handler(new TCPChannelInitializer<>(this));
-
-            this.transportEngine.clientOptions().forEach(bootstrap::option);
-
-            this.channel = (TCPSocketChannel<S>) bootstrap.connect(builder.address()).syncUninterruptibly().channel();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+public class MinecraftPingProtocol extends PacketProtocol<MCSession> implements Logging {
+    @Override
+    protected void registerPackets(@NonNull Registerer registerer) {
+        registerer.outbound(0x00, HandshakePacket.class)
+                  .outbound(0x01, PingPacket.class)
+                  .inbound(0x00, ResponsePacket.class)
+                  .inbound(0x01, PongPacket.class);
     }
 
     @Override
-    public S userSession() {
-        return this.channel.userSession();
+    public void initPipeline(@NonNull Pipeline<MCSession> pipeline, @NonNull MCSession session) {
+        super.initPipeline(pipeline, session);
+
+        pipeline.replace("tcp_framer", new MinecraftPacketFramer());
     }
 
     @Override
-    public NetSession<S> internalSession() {
-        return this.channel;
+    public MCSession newSession() {
+        return new MCSession();
     }
 }

@@ -13,15 +13,14 @@
  *
  */
 
-package mc;
+package tcp.chat;
 
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.concurrent.future.PFuture;
-import net.daporkchop.lib.concurrent.future.impl.PFutureImpl;
+import net.daporkchop.lib.network.EndpointType;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import tcp.chat.packet.MessagePacket;
 
 /**
  * @author DaPorkchop_
@@ -29,19 +28,17 @@ import net.daporkchop.lib.network.session.AbstractUserSession;
 @Getter
 @Setter
 @Accessors(fluent = true, chain = true)
-public class MCSession extends AbstractUserSession<MCSession> {
-    protected final PFuture<Long> ping = new PFutureImpl<>();
+public class ChatSession extends AbstractUserSession<ChatSession> {
+    protected String name;
 
-    @NonNull
-    protected String response = "";
-
-    @Override
-    public void onClosed() {
-        this.ping.tryComplete(-1L);
+    public boolean isLoggedIn() {
+        return this.name != null;
     }
 
     @Override
-    public void onException(@NonNull Throwable t) {
-        this.ping.tryCompleteExceptionally(t);
+    public void onOpened() {
+        if (this.endpoint().type() == EndpointType.SERVER)  {
+            this.sendFlush(new MessagePacket("Server", "Please log in!"));
+        }
     }
 }

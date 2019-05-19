@@ -13,46 +13,38 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.endpoint;
+package tcp.mc.packet;
 
-import io.netty.bootstrap.Bootstrap;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.network.endpoint.PClient;
-import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
-import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.transport.NetSession;
-import net.daporkchop.lib.network.tcp.netty.TCPChannelInitializer;
-import net.daporkchop.lib.network.tcp.netty.session.TCPSocketChannel;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import tcp.mc.MCSession;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.network.protocol.packet.OutboundPacket;
+
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-public class TCPClient<S extends AbstractUserSession<S>> extends TCPEndpoint<PClient<S>, S, TCPSocketChannel<S>> implements PClient<S> {
-    @SuppressWarnings("unchecked")
-    public TCPClient(@NonNull ClientBuilder<S> builder) {
-        super(builder);
-
-        try {
-            Bootstrap bootstrap = new Bootstrap()
-                    .group(this.group)
-                    .channelFactory(() -> new TCPSocketChannel<>(this))
-                    .handler(new TCPChannelInitializer<>(this));
-
-            this.transportEngine.clientOptions().forEach(bootstrap::option);
-
-            this.channel = (TCPSocketChannel<S>) bootstrap.connect(builder.address()).syncUninterruptibly().channel();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+@AllArgsConstructor
+@NoArgsConstructor
+@Setter
+@Accessors(fluent = true, chain = true)
+public class HandshakePacket implements OutboundPacket<MCSession> {
+    protected int protocolVersion;
+    @NonNull
+    protected String remoteHost;
+    protected int remotePort;
+    protected int nextState;
 
     @Override
-    public S userSession() {
-        return this.channel.userSession();
-    }
-
-    @Override
-    public NetSession<S> internalSession() {
-        return this.channel;
+    public void encode(@NonNull DataOut out, @NonNull MCSession session) throws IOException {
+        out.writeVarInt(this.protocolVersion);
+        out.writeUTF(this.remoteHost);
+        out.writeUShort(this.remotePort);
+        out.writeVarInt(this.nextState);
     }
 }

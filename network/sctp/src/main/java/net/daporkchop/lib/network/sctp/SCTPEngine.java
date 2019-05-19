@@ -24,10 +24,15 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.network.endpoint.PClient;
+import net.daporkchop.lib.network.endpoint.PServer;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
+import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.netty.NettyEngine;
+import net.daporkchop.lib.network.sctp.endpoint.SCTPClient;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.session.BaseUserSession;
 import net.daporkchop.lib.network.session.Reliability;
+import net.daporkchop.lib.network.transport.TransportEngine;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -36,6 +41,10 @@ import java.util.Iterator;
 import java.util.Map;
 
 /**
+ * An implementation of {@link TransportEngine} for the SCTP/IP transport protocol.
+ * <p>
+ * Default pipeline layout:
+ * "protocol"    => {@link net.daporkchop.lib.network.sctp.pipeline.SCTPDataCodec} (only if endpoint protocol is {@link net.daporkchop.lib.network.protocol.DataProtocol})
  * @author DaPorkchop_
  */
 public class SCTPEngine extends NettyEngine {
@@ -75,7 +84,12 @@ public class SCTPEngine extends NettyEngine {
 
     @Override
     public <S extends AbstractUserSession<S>> PClient<S> createClient(@NonNull ClientBuilder<S> builder) {
-        return null;
+        return new SCTPClient<>(builder);
+    }
+
+    @Override
+    public <S extends AbstractUserSession<S>> PServer<S> createServer(@NonNull ServerBuilder<S> builder) {
+        throw new UnsupportedOperationException(); //TODO
     }
 
     @Override

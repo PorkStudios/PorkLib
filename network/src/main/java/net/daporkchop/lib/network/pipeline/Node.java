@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.network.pipeline;
 
+import net.daporkchop.lib.network.session.Reliability;
 import net.daporkchop.lib.network.util.TypeParameterMatcher;
 import lombok.Getter;
 import lombok.NonNull;
@@ -76,8 +77,8 @@ class Node<S extends AbstractUserSession<S>> implements FireEvents<S> {
     }
 
     @Override
-    public void sending(@NonNull S session, @NonNull Object msg, int channel) {
-        ((SendingListener<S, Object>) this.listener).sending(this.context, session, msg, channel);
+    public void sending(@NonNull S session, @NonNull Object msg, Reliability reliability, int channel) {
+        ((SendingListener<S, Object>) this.listener).sending(this.context, session, msg, reliability, channel);
     }
 
     @Override
@@ -135,16 +136,16 @@ class Node<S extends AbstractUserSession<S>> implements FireEvents<S> {
         }
 
         @Override
-        public void sending(@NonNull S session, @NonNull Object msg, int channel) {
+        public void sending(@NonNull S session, @NonNull Object msg, Reliability reliability, int channel) {
             SendingListener.Fire<S> callback = this.sending.get(msg.getClass());
             if (callback == null) {
                 Node<S> node = Node.this.prev;
                 while (node != null && !node.canSend(msg)) {
                     node = node.prev;
                 }
-                this.sending.put(msg.getClass(), callback = node == null ? this.pipeline().actualSender : node);
+                this.sending.put(msg.getClass(), callback = node == null ? this.pipeline()::addCallback : node);
             }
-            callback.sending(session, msg, channel);
+            callback.sending(session, msg, reliability, channel);
         }
 
         @Override

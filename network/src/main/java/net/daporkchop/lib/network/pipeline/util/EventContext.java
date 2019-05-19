@@ -18,6 +18,7 @@ package net.daporkchop.lib.network.pipeline.util;
 import lombok.NonNull;
 import net.daporkchop.lib.network.pipeline.Pipeline;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.session.Reliability;
 
 /**
  * The context for processing events.
@@ -44,7 +45,7 @@ public interface EventContext<S extends AbstractUserSession<S>> extends FireEven
     void received(@NonNull S session, @NonNull Object msg, int channel);
 
     @Override
-    void sending(@NonNull S session, @NonNull Object msg, int channel);
+    void sending(@NonNull S session, @NonNull Object msg, Reliability reliability, int channel);
 
     @Override
     void exceptionCaught(@NonNull S session, @NonNull Throwable t);

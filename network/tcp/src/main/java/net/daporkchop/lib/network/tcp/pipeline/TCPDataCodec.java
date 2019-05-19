@@ -28,6 +28,7 @@ import net.daporkchop.lib.network.pipeline.event.SendingListener;
 import net.daporkchop.lib.network.pipeline.util.EventContext;
 import net.daporkchop.lib.network.protocol.DataProtocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.session.Reliability;
 
 import java.io.IOException;
 
@@ -64,9 +65,9 @@ public class TCPDataCodec<S extends AbstractUserSession<S>> implements ReceivedL
     }
 
     @Override
-    public void sending(@NonNull EventContext<S> context, @NonNull S session, @NonNull Object msg, int channel) {
+    public void sending(@NonNull EventContext<S> context, @NonNull S session, @NonNull Object msg, Reliability reliability, int channel) {
         if (session.transportEngine().isBinary(msg)) {
-            context.sending(session, msg, channel);
+            context.sending(session, msg, reliability, channel);
         } else {
             ByteBuf buf = this.alloc.ioBuffer();
             try {
@@ -77,7 +78,7 @@ public class TCPDataCodec<S extends AbstractUserSession<S>> implements ReceivedL
             } finally {
                 this.out.buf(null);
             }
-            context.sending(session, buf, channel);
+            context.sending(session, buf, reliability, channel);
         }
     }
 }

@@ -54,6 +54,6 @@ public class HTTPPacketFramer extends Framer<HTTPSession> implements Logging {
 
     @Override
     public void pack(@NonNull HTTPSession session, @NonNull ByteBuf packet, int channel, @NonNull PackOut<HTTPSession> frames) {
-        frames.sending(session, packet, channel);
+        frames.add(session, packet);
     }
 }

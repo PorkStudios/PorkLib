@@ -80,7 +80,7 @@ public class MinecraftPacketFramer extends Framer<MCSession> implements Logging 
         ByteBuf len = packet.alloc().ioBuffer();
         writeVarInt(len, packet.readableBytes());
 
-        frames.sending(session, len, channel);
-        frames.sending(session, packet, channel);
+        frames.add(session, len);
+        frames.add(session, packet);
     }
 }

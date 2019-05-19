@@ -19,6 +19,9 @@ import lombok.NonNull;
 import net.daporkchop.lib.network.pipeline.util.EventContext;
 import net.daporkchop.lib.network.pipeline.util.PipelineListener;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.session.Reliability;
+
+import java.util.List;
 
 /**
  * @author DaPorkchop_
@@ -26,15 +29,21 @@ import net.daporkchop.lib.network.session.AbstractUserSession;
 public interface SendingListener<S extends AbstractUserSession<S>, I> extends PipelineListener<S> {
     /**
      * Fired when a message is being sent on a session.
-     *
-     * @param context the event handler context
+     *  @param context the event handler context
      * @param session the session that the message will be sent on
      * @param msg     the message that will be sent
+     * @param reliability the reliability that the message will be sent with
      * @param channel the channel that the message will be sent on
      */
-    void sending(@NonNull EventContext<S> context, @NonNull S session, @NonNull I msg, int channel);
+    void sending(@NonNull EventContext<S> context, @NonNull S session, @NonNull I msg, Reliability reliability, int channel);
 
+    @FunctionalInterface
     interface Fire<S extends AbstractUserSession<S>> {
-        void sending(@NonNull S session, @NonNull Object msg, int channel);
+        void sending(@NonNull S session, @NonNull Object msg, Reliability reliability, int channel);
+    }
+
+    @FunctionalInterface
+    interface QueueAdder {
+        void add(@NonNull List<Object> sendQueue, @NonNull Object msg, Reliability reliability, int channel);
     }
 }

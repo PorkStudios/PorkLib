@@ -22,6 +22,7 @@ import net.daporkchop.lib.network.pipeline.event.OpenedListener;
 import net.daporkchop.lib.network.pipeline.event.ReceivedListener;
 import net.daporkchop.lib.network.pipeline.event.SendingListener;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.session.Reliability;
 
 /**
  * A type capable of firing events.
@@ -41,7 +42,7 @@ public interface FireEvents<S extends AbstractUserSession<S>> extends OpenedList
     void received(@NonNull S session, @NonNull Object msg, int channel);
 
     @Override
-    void sending(@NonNull S session, @NonNull Object msg, int channel);
+    void sending(@NonNull S session, @NonNull Object msg, Reliability reliability, int channel);
 
     @Override
     void exceptionCaught(@NonNull S session, @NonNull Throwable t);

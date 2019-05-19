@@ -16,6 +16,7 @@
 package net.daporkchop.lib.network.sctp.netty.session;
 
 import com.sun.nio.sctp.SctpChannel;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.sctp.SctpMessage;
 import io.netty.channel.sctp.nio.NioSctpChannel;
@@ -28,6 +29,7 @@ import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.network.EndpointType;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.pipeline.Pipeline;
+import net.daporkchop.lib.network.pipeline.event.SendingListener;
 import net.daporkchop.lib.network.sctp.endpoint.SCTPEndpoint;
 import net.daporkchop.lib.network.sctp.pipeline.SCTPEdgeListener;
 import net.daporkchop.lib.network.session.AbstractUserSession;
@@ -47,6 +49,19 @@ import java.util.Map;
 @Getter
 @Accessors(fluent = true)
 public class SCTPNioChannel<S extends AbstractUserSession<S>> extends NioSctpChannel implements NetSession<S> {
+    protected static final SendingListener.QueueAdder QUEUE_ADDER = (sendQueue, msg, reliability, channel) -> {
+        if (msg instanceof SctpMessage) {
+            sendQueue.add(msg);
+        } else if (msg instanceof ByteBuf)  {
+            if (reliability == null || (reliability != Reliability.RELIABLE_ORDERED && reliability != Reliability.RELIABLE))    {
+                reliability = Reliability.RELIABLE_ORDERED;
+            }
+            sendQueue.add(new SctpMessage(0, channel, reliability == Reliability.RELIABLE, (ByteBuf) msg));
+        } else {
+            throw new IllegalArgumentException(String.format("Invalid message type: \"%s\"!", msg.getClass().getCanonicalName()));
+        }
+    };
+
     protected final SCTPEndpoint<?, S, ?> endpoint;
     protected final Map<Integer, SCTPChannel<S>> channels = PorkUtil.newSoftCache();
     protected final S userSession;
@@ -69,7 +84,7 @@ public class SCTPNioChannel<S extends AbstractUserSession<S>> extends NioSctpCha
         this.userSession = endpoint.protocol().sessionFactory().newSession();
         PUnsafe.putObject(this.userSession, ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);
 
-        this.dataPipeline = new Pipeline<>(this.userSession, new SCTPEdgeListener<>());
+        this.dataPipeline = new Pipeline<>(this.userSession, new SCTPEdgeListener<>(), QUEUE_ADDER);
     }
 
     @Override

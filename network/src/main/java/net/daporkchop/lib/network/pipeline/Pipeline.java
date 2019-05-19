@@ -21,6 +21,7 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.network.pipeline.event.SendingListener;
 import net.daporkchop.lib.network.pipeline.util.PipelineListener;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.session.Reliability;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -54,13 +55,18 @@ protected static  <S extends AbstractUserSession<S>> PipelineListener<S> noopLis
     protected final PipelineEdgeListener<S> listener;
 
     protected List<Object> sendQueue;
-    protected final SendingListener.Fire<S> actualSender = (s, msg, channel) -> Pipeline.this.sendQueue.add(msg);
+    protected final SendingListener.QueueAdder queueAdder;
 
     protected int fallbackIdCounter = 0;
 
-    public Pipeline(@NonNull S session, @NonNull PipelineEdgeListener<S> listener) {
+    public Pipeline(@NonNull S session, @NonNull PipelineEdgeListener<S> listener)  {
+        this(session, listener, (sendQueue, msg, reliability, channel) -> sendQueue.add(msg));
+    }
+
+    public Pipeline(@NonNull S session, @NonNull PipelineEdgeListener<S> listener, @NonNull SendingListener.QueueAdder queueAdder) {
         this.session = session;
         this.listener = listener;
+        this.queueAdder = queueAdder;
 
         this.head = new Node<>(this, "head", noopListener());
         this.tail = new Node<>(this, "tail", noopListener());
@@ -90,10 +96,10 @@ protected static  <S extends AbstractUserSession<S>> PipelineListener<S> noopLis
         }
     }
 
-    public void fireSending(@NonNull Object msg, int channel, @NonNull List<Object> sendQueue) {
+    public void fireSending(@NonNull Object msg, Reliability reliability, int channel, @NonNull List<Object> sendQueue) {
         synchronized (this.mutex) {
             this.sendQueue = sendQueue;
-            this.tail.context.sending(this.session, msg, channel);
+            this.tail.context.sending(this.session, msg, reliability, channel);
             this.sendQueue = null;
         }
     }
@@ -207,5 +213,9 @@ protected static  <S extends AbstractUserSession<S>> PipelineListener<S> noopLis
             this.head.rebuild();
             this.tail.rebuild();
         }
+    }
+
+    protected void addCallback(S session, @NonNull Object msg, Reliability reliability, int channel)    {
+        this.queueAdder.add(this.sendQueue, msg, reliability, channel);
     }
 }

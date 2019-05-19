@@ -23,6 +23,7 @@ import net.daporkchop.lib.network.pipeline.event.ReceivedListener;
 import net.daporkchop.lib.network.pipeline.event.SendingListener;
 import net.daporkchop.lib.network.pipeline.util.EventContext;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.session.Reliability;
 import net.daporkchop.lib.network.tcp.netty.session.TCPNioSocket;
 
 /**
@@ -44,7 +45,7 @@ public abstract class Framer<S extends AbstractUserSession<S>> implements Receiv
     }
 
     @Override
-    public final void sending(@NonNull EventContext<S> context, @NonNull S session, @NonNull ByteBuf msg, int channel) {
+    public final void sending(@NonNull EventContext<S> context, @NonNull S session, @NonNull ByteBuf msg, Reliability reliability, int channel) {
         this.pack(session, msg, channel, context::sending);
     }
 
@@ -87,6 +88,9 @@ public abstract class Framer<S extends AbstractUserSession<S>> implements Receiv
 
     @FunctionalInterface
     protected interface PackOut<S extends AbstractUserSession<S>> extends SendingListener.Fire<S> {
+        default void add(@NonNull S session, @NonNull ByteBuf buf)  {
+            this.sending(session, buf, null, -1);
+        }
     }
 
     public static class DefaultFramer<S extends AbstractUserSession<S>> extends Framer<S> {
@@ -106,10 +110,10 @@ public abstract class Framer<S extends AbstractUserSession<S>> implements Receiv
 
         @Override
         public void pack(@NonNull S session, @NonNull ByteBuf packet, int channel, @NonNull PackOut<S> frames) {
-            frames.sending(session, packet.alloc().ioBuffer(8)
+            frames.add(session, packet.alloc().ioBuffer(8)
                                           .writeInt(packet.readableBytes())
-                                          .writeInt(channel), -1);
-            frames.sending(session, packet, -1);
+                                          .writeInt(channel));
+            frames.add(session, packet);
         }
     }
 }

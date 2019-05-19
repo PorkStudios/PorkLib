@@ -16,20 +16,10 @@
 package net.daporkchop.lib.network.pipeline;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.logging.Logger;
 import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.pipeline.Pipeline;
-import net.daporkchop.lib.network.pipeline.event.ClosedListener;
-import net.daporkchop.lib.network.pipeline.event.ExceptionListener;
-import net.daporkchop.lib.network.pipeline.event.OpenedListener;
-import net.daporkchop.lib.network.pipeline.event.ReceivedListener;
-import net.daporkchop.lib.network.pipeline.event.SendingListener;
-import net.daporkchop.lib.network.pipeline.util.EventContext;
 import net.daporkchop.lib.network.pipeline.util.FireEvents;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-
-import java.io.IOException;
+import net.daporkchop.lib.network.session.Reliability;
 
 /**
  * @author DaPorkchop_
@@ -51,7 +41,7 @@ public abstract class PipelineEdgeListener<S extends AbstractUserSession<S>> imp
     }
 
     @Override
-    public final void sending(@NonNull S session, @NonNull Object msg, int channel) {
+    public final void sending(@NonNull S session, @NonNull Object msg, Reliability reliability, int channel) {
         throw new UnsupportedOperationException();
     }
 

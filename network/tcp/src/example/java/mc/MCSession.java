@@ -37,13 +37,11 @@ public class MCSession extends AbstractUserSession<MCSession> {
 
     @Override
     public void onClosed() {
-        if (this.ping.isComplete()) {
-            this.ping.complete(-1L);
-        }
+        this.ping.tryComplete(-1L);
     }
 
     @Override
     public void onException(@NonNull Throwable t) {
-        this.ping.completeExceptionally(t);
+        this.ping.tryCompleteExceptionally(t);
     }
 }

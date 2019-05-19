@@ -58,4 +58,9 @@ public interface BaseFuture<R> {
      * @param t the exception that will be thrown
      */
     void completeExceptionally(@NonNull Throwable t);
+
+    /**
+     * @param t the exception that will be thrown
+     */
+    void tryCompleteExceptionally(@NonNull Throwable t);
 }

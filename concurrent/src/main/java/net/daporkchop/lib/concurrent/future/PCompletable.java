@@ -56,4 +56,9 @@ public interface PCompletable extends BaseFuture<Void> {
      * Completes the task, waking up all waiting threads.
      */
     void complete();
+
+    /**
+     * Completes the task, waking up all waiting threads.
+     */
+    void tryComplete();
 }

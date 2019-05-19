@@ -107,11 +107,46 @@ public class PCompletableImpl implements PCompletable {
     }
 
     @Override
+    public void tryComplete() {
+        synchronized (this.mutex) {
+            if (!this.complete) {
+                this.complete = true;
+                this.mutex.notifyAll();
+
+                if (this.listeners != null) {
+                    for (BiConsumer<Void, Throwable> callback : this.listeners) {
+                        callback.accept(null, null);
+                    }
+                    this.listeners = null;
+                }
+            }
+        }
+    }
+
+    @Override
     public void completeExceptionally(@NonNull Throwable t) {
         synchronized (this.mutex) {
             if (this.complete) {
                 throw new IllegalStateException("Already completed!");
             } else {
+                this.t = t;
+                this.complete = true;
+                this.mutex.notifyAll();
+
+                if (this.listeners != null) {
+                    for (BiConsumer<Void, Throwable> callback : this.listeners) {
+                        callback.accept(null, t);
+                    }
+                    this.listeners = null;
+                }
+            }
+        }
+    }
+
+    @Override
+    public void tryCompleteExceptionally(@NonNull Throwable t) {
+        synchronized (this.mutex) {
+            if (!this.complete) {
                 this.t = t;
                 this.complete = true;
                 this.mutex.notifyAll();

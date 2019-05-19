@@ -74,4 +74,9 @@ public interface PFuture<R> extends BaseFuture<R> {
      * Completes the task, waking up all waiting threads.
      */
     void complete(@NonNull R value);
+
+    /**
+     * Completes the task, waking up all waiting threads.
+     */
+    void tryComplete(@NonNull R value);
 }

@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * @author DaPorkchop_
  */
-public class HTTPPacketFramer implements Framer<HTTPSession>, Logging {
+public class HTTPPacketFramer extends Framer<HTTPSession> implements Logging {
     @Override
     public void unpack(@NonNull HTTPSession session, @NonNull ByteBuf buf, @NonNull UnpackOut<HTTPSession> frames) {
         TOP:

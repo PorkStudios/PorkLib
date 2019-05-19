@@ -17,25 +17,45 @@ package net.daporkchop.lib.network.tcp.pipeline;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
+import net.daporkchop.lib.network.pipeline.Pipeline;
 import net.daporkchop.lib.network.pipeline.event.ReceivedListener;
 import net.daporkchop.lib.network.pipeline.event.SendingListener;
 import net.daporkchop.lib.network.pipeline.util.EventContext;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.tcp.WrapperNioSocketChannel;
 
 /**
  * Allows for sending individual packets down the pipeline.
  *
  * @author DaPorkchop_
  */
-public interface Framer<S extends AbstractUserSession<S>> extends ReceivedListener<S, ByteBuf>, SendingListener<S, ByteBuf> {
+public abstract class Framer<S extends AbstractUserSession<S>> implements ReceivedListener<S, ByteBuf>, SendingListener<S, ByteBuf> {
+    protected ByteBuf cumulation;
+    protected int ctr = 0;
+
     @Override
-    default void received(@NonNull EventContext<S> context, @NonNull S session, @NonNull ByteBuf msg, int channel) {
-        this.unpack(session, msg, context::received);
+    public final void received(@NonNull EventContext<S> context, @NonNull S session, @NonNull ByteBuf msg, int channel) {
+        this.cumulation.writeBytes(msg);
+        this.unpack(session, this.cumulation, context::received);
+        if (this.ctr++ >= 16)    {
+            this.cumulation.discardReadBytes();
+            this.ctr = 0;
+        }
     }
 
     @Override
-    default void sending(@NonNull EventContext<S> context, @NonNull S session, @NonNull ByteBuf msg, int channel) {
+    public final void sending(@NonNull EventContext<S> context, @NonNull S session, @NonNull ByteBuf msg, int channel) {
         this.pack(session, msg, channel, context::sending);
+    }
+
+    @Override
+    public void added(@NonNull Pipeline<S> pipeline, @NonNull S session) {
+        this.cumulation = ((WrapperNioSocketChannel<S>) session.internalSession()).alloc().ioBuffer();
+    }
+
+    @Override
+    public void removed(@NonNull Pipeline<S> pipeline, @NonNull S session) {
+        this.cumulation.release();
     }
 
     /**
@@ -48,7 +68,7 @@ public interface Framer<S extends AbstractUserSession<S>> extends ReceivedListen
      *                input buffer using {@link ByteBuf#readRetainedSlice(int)} or similar methods, so long
      *                as the reader index is incremented correctly
      */
-    void unpack(@NonNull S session, @NonNull ByteBuf buf, @NonNull UnpackOut<S> frames);
+    protected abstract void unpack(@NonNull S session, @NonNull ByteBuf buf, @NonNull UnpackOut<S> frames);
 
     /**
      * Packs an encoded packet into (a) frame(s).
@@ -58,17 +78,17 @@ public interface Framer<S extends AbstractUserSession<S>> extends ReceivedListen
      * @param channel the id that the channel will be sent on
      * @param frames  buffers may be passed to this method for sequential sending
      */
-    void pack(@NonNull S session, @NonNull ByteBuf packet, int channel, @NonNull PackOut<S> frames);
+    protected abstract void pack(@NonNull S session, @NonNull ByteBuf packet, int channel, @NonNull PackOut<S> frames);
 
     @FunctionalInterface
-    interface UnpackOut<S extends AbstractUserSession<S>> extends ReceivedListener.Fire<S> {
+    protected interface UnpackOut<S extends AbstractUserSession<S>> extends ReceivedListener.Fire<S> {
     }
 
     @FunctionalInterface
-    interface PackOut<S extends AbstractUserSession<S>> extends SendingListener.Fire<S> {
+    protected interface PackOut<S extends AbstractUserSession<S>> extends SendingListener.Fire<S> {
     }
 
-    class DefaultFramer<S extends AbstractUserSession<S>> implements Framer<S> {
+    public static class DefaultFramer<S extends AbstractUserSession<S>> extends Framer<S> {
         @Override
         public void unpack(@NonNull S session, @NonNull ByteBuf buf, @NonNull UnpackOut<S> frames) {
             int origIndex = buf.readerIndex();

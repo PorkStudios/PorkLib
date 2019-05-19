@@ -58,6 +58,7 @@ public abstract class PacketProtocol<S extends AbstractUserSession<S>> implement
     @Override
     @SuppressWarnings("unchecked")
     public Object decode(@NonNull S session, @NonNull DataIn in, int channel) throws IOException {
+        Logging.logger.debug("Packet size: %d bytes", in.available());
         int id = in.readVarInt();
         Logging.logger.debug("Packet id: %d", id);
         Class<? extends InboundPacket<S>> clazz = this.inbound.get(id);

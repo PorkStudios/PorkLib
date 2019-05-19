@@ -124,11 +124,47 @@ public class PFutureImpl<R> implements PFuture<R> {
     }
 
     @Override
+    public void tryComplete(@NonNull R value) {
+        synchronized (this.mutex)   {
+            if (!this.complete)  {
+                this.value = value;
+                this.complete = true;
+                this.mutex.notifyAll();
+
+                if (this.listeners != null) {
+                    for (BiConsumer<R, Throwable> callback : this.listeners) {
+                        callback.accept(value, null);
+                    }
+                    this.listeners = null;
+                }
+            }
+        }
+    }
+
+    @Override
     public void completeExceptionally(@NonNull Throwable t) {
         synchronized (this.mutex)   {
             if (this.complete)  {
                 throw new IllegalStateException("Already completed!");
             } else {
+                this.t = t;
+                this.complete = true;
+                this.mutex.notifyAll();
+
+                if (this.listeners != null) {
+                    for (BiConsumer<R, Throwable> callback : this.listeners) {
+                        callback.accept(null, t);
+                    }
+                    this.listeners = null;
+                }
+            }
+        }
+    }
+
+    @Override
+    public void tryCompleteExceptionally(@NonNull Throwable t) {
+        synchronized (this.mutex)   {
+            if (!this.complete)  {
                 this.t = t;
                 this.complete = true;
                 this.mutex.notifyAll();

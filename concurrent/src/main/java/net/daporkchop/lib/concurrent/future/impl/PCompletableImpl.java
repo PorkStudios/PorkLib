@@ -19,14 +19,13 @@ import lombok.NonNull;
 import net.daporkchop.lib.concurrent.future.PCompletable;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BiConsumer;
 
 /**
  * A very simple implementation of {@link PCompletable}, with everything synchronized on a single mutex.
- *
+ * <p>
  * I could probably make this faster and lighter by using Unsafe atomic swaps later...
  *
  * @author DaPorkchop_
@@ -39,11 +38,11 @@ public class PCompletableImpl implements PCompletable {
 
     @Override
     public void sync() {
-        synchronized (this.mutex)   {
-            while (!this.complete)  {
+        synchronized (this.mutex) {
+            while (!this.complete) {
                 try {
                     this.mutex.wait();
-                } catch (InterruptedException e)    {
+                } catch (InterruptedException e) {
                 }
             }
 
@@ -55,8 +54,8 @@ public class PCompletableImpl implements PCompletable {
 
     @Override
     public void syncInterruptably() throws InterruptedException {
-        synchronized (this.mutex)   {
-            if (!this.complete)  {
+        synchronized (this.mutex) {
+            if (!this.complete) {
                 this.mutex.wait();
             }
 
@@ -68,15 +67,13 @@ public class PCompletableImpl implements PCompletable {
 
     @Override
     public void sync(long time) {
-        long now = System.currentTimeMillis();
-        long end = now + time;
-        synchronized (this.mutex)   {
-            while (!this.complete && now + time < end) {
+        synchronized (this.mutex) {
+            if (!this.complete) {
                 try {
-                    this.mutex.wait(end - now);
-                } catch (InterruptedException e)    {
+                    this.mutex.wait(time);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
                 }
-                now = System.currentTimeMillis();
             }
 
             if (this.complete && this.t != null) {
@@ -92,8 +89,8 @@ public class PCompletableImpl implements PCompletable {
 
     @Override
     public void complete() {
-        synchronized (this.mutex)   {
-            if (this.complete)  {
+        synchronized (this.mutex) {
+            if (this.complete) {
                 throw new IllegalStateException("Already completed!");
             } else {
                 this.complete = true;
@@ -111,8 +108,8 @@ public class PCompletableImpl implements PCompletable {
 
     @Override
     public void completeExceptionally(@NonNull Throwable t) {
-        synchronized (this.mutex)   {
-            if (this.complete)  {
+        synchronized (this.mutex) {
+            if (this.complete) {
                 throw new IllegalStateException("Already completed!");
             } else {
                 this.t = t;

@@ -58,12 +58,14 @@ public class TCPChannelInitializer<E extends TCPEndpoint<?, S, ?>, S extends Abs
                 .addLast("handle", new TCPHandler<>(channel));
 
         Pipeline<S> pipeline = channel.dataPipeline();
+
+        pipeline
+                .addLast("tcp_framer", (PipelineListener<S>) InstancePool.getInstance(Framer.DefaultFramer.class));
+
         if (this.endpoint.protocol() instanceof DataProtocol)   {
             pipeline
                     .addLast("protocol", new TCPDataCodec<>((DataProtocol<S>) this.endpoint.protocol(), channel.alloc()));
         }
-        pipeline
-               .addLast("tcp_framer", (PipelineListener<S>) InstancePool.getInstance(Framer.DefaultFramer.class));
 
         this.endpoint.protocol().pipelineInitializer().initPipeline(pipeline, channel.userSession());
 

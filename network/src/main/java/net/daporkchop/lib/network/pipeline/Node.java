@@ -56,8 +56,8 @@ class Node<S extends AbstractUserSession<S>> implements FireEvents<S> {
         this.name = name;
         this.listener = listener;
 
-        this.canReceive = listener instanceof ReceivedListener ? TypeParameterMatcher.find(listener, ReceivedListener.class, "I") : null;
-        this.canSend = listener instanceof SendingListener ? TypeParameterMatcher.find(listener, SendingListener.class, "I") : null;
+        this.canReceive = listener instanceof ReceivedListener ? TypeParameterMatcher.find(listener.getClass(), ReceivedListener.class, "I") : null;
+        this.canSend = listener instanceof SendingListener ? TypeParameterMatcher.find(listener.getClass(), SendingListener.class, "I") : null;
     }
 
     @Override
@@ -86,11 +86,11 @@ class Node<S extends AbstractUserSession<S>> implements FireEvents<S> {
     }
 
     protected boolean canReceive(@NonNull Object o) {
-        return this.canReceive != null && this.canReceive.match(o);
+        return this.canReceive != null && this.canReceive.test(o);
     }
 
     protected boolean canSend(@NonNull Object o) {
-        return this.canSend != null && this.canSend.match(o);
+        return this.canSend != null && this.canSend.test(o);
     }
 
     protected void rebuild() {
@@ -138,9 +138,9 @@ class Node<S extends AbstractUserSession<S>> implements FireEvents<S> {
         public void sending(@NonNull S session, @NonNull Object msg, int channel) {
             SendingListener.Fire<S> callback = this.sending.get(msg.getClass());
             if (callback == null) {
-                Node<S> node = Node.this.next;
+                Node<S> node = Node.this.prev;
                 while (node != null && !node.canSend(msg)) {
-                    node = node.next;
+                    node = node.prev;
                 }
                 this.sending.put(msg.getClass(), callback = node == null ? this.pipeline().actualSender : node);
             }

@@ -15,7 +15,6 @@
 
 package http;
 
-import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.logging.LogAmount;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.endpoint.PClient;
@@ -23,28 +22,33 @@ import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.tcp.TCPEngine;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author DaPorkchop_
  */
 public class TestHTTPGet implements Logging {
-    protected static String data = "";
+    protected static final String HOST = "maven.daporkchop.net";
 
     public static void main(String... args) {
         logger.enableANSI().setLogAmount(LogAmount.DEBUG).info("Starting client...");
 
         PClient<HTTPSession> client = ClientBuilder.of(new HTTPProtocol())
-                .engine(TCPEngine.defaultInstance())
-                .address(new InetSocketAddress("gist.githubusercontent.com", 80))
-                .build();
-        logger.info("Client started.").info("Awaiting content...");
+                                                   .engine(TCPEngine.defaultInstance())
+                                                   .address(new InetSocketAddress(HOST, 443))
+                                                   .build();
+        logger.success("Client started.").info("Sending request...");
 
-        client.send("GET /DaMatrix/8b7ff92fcc7e49c0f511a8ed207d8e92/raw/teampepsi-server-players.json HTTP/1.1\r\n" +
-                        "Host: gist.githubusercontent.com\r\n" +
-                        "User-Agent: PorkLib\r\n\r\n")
-                .flushBuffer();
+        client.sendFlushAsync("GET / HTTP/1.1\r\n" +
+                "Host: " + HOST + "\r\n" +
+                "User-Agent: PorkLib\r\n\r\n")
+              .addListener(v -> logger.success("Request sent."));
 
-        client.userSession().complete.sync();
-        logger.info("Headers:\n%s\nBody:\n%s", client.userSession().headers, client.userSession().body).info("Complete.");
+        client.userSession().complete.sync(TimeUnit.SECONDS, 5L);
+        logger.info("Headers:\n%s\nBody:\n%s", client.userSession().headers, client.userSession().body);
+        if (!client.userSession().complete.isComplete())    {
+            logger.warn("Connection not automatically closed by server, forcibly closing it!");
+            client.closeAsync().addListener(v -> logger.success("Client closed."));
+        }
     }
 }

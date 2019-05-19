@@ -32,6 +32,7 @@ import net.daporkchop.lib.network.transport.TransportEngine;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -55,7 +56,7 @@ public class TCPEngine extends NettyEngine {
 
     public static TCPEngine defaultInstance() {
         return new TCPEngine(
-                Collections.emptyMap(),
+                Collections.singletonMap(ChannelOption.SO_KEEPALIVE, true),
                 Collections.emptyMap(),
                 null,
                 true

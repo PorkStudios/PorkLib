@@ -33,6 +33,7 @@ public class HTTPPacketFramer implements Framer<HTTPSession>, Logging {
         TOP:
         while (buf.isReadable())    {
             if (session.headersComplete)    {
+                logger.debug("Read %d bytes!", buf.readableBytes());
                 frames.received(session, buf.readRetainedSlice(buf.readableBytes()), 1);
             } else if (buf.readableBytes() >= 4) {
                 int origPos = buf.readerIndex();
@@ -42,12 +43,14 @@ public class HTTPPacketFramer implements Framer<HTTPSession>, Logging {
                             && buf.readByte() == '\r'
                             && buf.readByte() == '\n')  {
                         int len = buf.readerIndex() - origPos;
+                        logger.debug("Read headers @ %d bytes!", len);
                         frames.received(session, buf.readerIndex(origPos).readRetainedSlice(len), 0);
                         session.headersComplete = true;
                         continue TOP;
                     }
                 }
                 buf.readerIndex(origPos);
+                logger.debug("Headers didn't end after %d bytes...", buf.readableBytes());
                 return;
             }
         }

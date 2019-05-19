@@ -75,6 +75,37 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
     }
 
     /**
+     * Sends a single packet to the remote endpoint.
+     * <p>
+     * All packets sent using these methods will be sent on channel 0, which may not be closed.
+     *
+     * The send buffer will also be flushed after this operation.
+     *
+     * @param packet      the packet to be sent
+     * @param reliability the reliability that the packet is to be sent with. If {@code null} or unsupported by this
+     *                    session's transport protocol, this session's fallback reliability level will be
+     *                    used (see {@link #fallbackReliability()})
+     * @return this session
+     */
+    default Impl sendFlush(@NonNull Object packet, Reliability reliability) {
+        return this.send(packet, reliability).flushBuffer();
+    }
+
+    /**
+     * Sends a single packet to the remote endpoint, using this session's default reliability level.
+     * <p>
+     * All packets sent using these methods will be sent on channel 0, which may not be closed.
+     *
+     * The send buffer will also be flushed after this operation.
+     *
+     * @param packet the packet to be sent
+     * @return this session
+     */
+    default Impl sendFlush(@NonNull Object packet) {
+        return this.sendFlush(packet, this.fallbackReliability());
+    }
+
+    /**
      * Sends a single packet to the remote endpoint over a specific channel.
      *
      * @param packet      the packet to be sent
@@ -96,6 +127,36 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
      */
     default Impl send(@NonNull Object packet, int channelId) {
         return this.send(packet, this.fallbackReliability(), channelId);
+    }
+
+    /**
+     * Sends a single packet to the remote endpoint over a specific channel.
+     *
+     * The send buffer will also be flushed after this operation.
+     *
+     * @param packet      the packet to be sent
+     * @param reliability the reliability that the packet is to be sent with. If {@code null} or unsupported by this
+     *                    session's transport protocol, this session's fallback reliability level will be
+     *                    used (see {@link #fallbackReliability()})
+     * @param channelId   the id of the channel that the packet will be sent on
+     * @return this session
+     */
+    default Impl sendFlush(@NonNull Object packet, Reliability reliability, int channelId)  {
+        return this.send(packet, reliability, channelId).flushBuffer();
+    }
+
+    /**
+     * Sends a single packet to the remote endpoint over a specific channel, using this channel's fallback reliability
+     * level.
+     *
+     * The send buffer will also be flushed after this operation.
+     *
+     * @param packet    the packet to be sent
+     * @param channelId the id of the channel that the packet will be sent on
+     * @return this session
+     */
+    default Impl sendFlush(@NonNull Object packet, int channelId) {
+        return this.sendFlush(packet, this.fallbackReliability(), channelId);
     }
 
     /**
@@ -128,6 +189,41 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
     }
 
     /**
+     * Sends a single packet to the remote endpoint.
+     * <p>
+     * All packets sent using these methods will be sent on channel 0, which may not be closed.
+     * <p>
+     * This method is non-blocking, and returns a future that may be used to track the packet as it is sent.
+     *
+     * The send buffer will also be flushed after this operation.
+     *
+     * @param packet      the packet to be sent
+     * @param reliability the reliability that the packet is to be sent with. If {@code null} or unsupported by this
+     *                    session's transport protocol, this session's fallback reliability level will be
+     *                    used (see {@link #fallbackReliability()})
+     * @return a future which may be used to track the packet as it is sent
+     */
+    default Future<Void> sendFlushAsync(@NonNull Object packet, Reliability reliability)    {
+        return this.sendAsync(packet, reliability).addListener(v -> this.flushBuffer());
+    }
+
+    /**
+     * Sends a single packet to the remote endpoint, using this session's default reliability level.
+     * <p>
+     * All packets sent using these methods will be sent on channel 0, which may not be closed.
+     * <p>
+     * This method is non-blocking, and returns a future that may be used to track the packet as it is sent.
+     *
+     * The send buffer will also be flushed after this operation.
+     *
+     * @param packet the packet to be sent
+     * @return a future which may be used to track the packet as it is sent
+     */
+    default Future<Void> sendFlushAsync(@NonNull Object packet) {
+        return this.sendFlushAsync(packet, this.fallbackReliability());
+    }
+
+    /**
      * Sends a single packet to the remote endpoint over a specific channel.
      * <p>
      * This method is non-blocking, and returns a future that may be used to track the packet as it is sent.
@@ -156,13 +252,44 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
     }
 
     /**
+     * Sends a single packet to the remote endpoint over a specific channel.
+     * <p>
+     * This method is non-blocking, and returns a future that may be used to track the packet as it is sent.
+     *
+     * The send buffer will also be flushed after this operation.
+     *
+     * @param packet      the packet to be sent
+     * @param reliability the reliability that the packet is to be sent with. If {@code null} or unsupported by this
+     *                    session's transport protocol, this session's fallback reliability level will be
+     *                    used (see {@link #fallbackReliability()})
+     * @param channelId   the id of the channel that the packet will be sent on
+     * @return a future which may be used to track the packet as it is sent
+     */
+    default Future<Void> sendFlushAsync(@NonNull Object packet, Reliability reliability, int channelId) {
+        return this.sendAsync(packet, reliability, channelId).addListener(v -> this.flushBuffer());
+    }
+
+    /**
+     * Sends a single packet to the remote endpoint over a specific channel, using this channel's fallback reliability
+     * level.
+     * <p>
+     * This method is non-blocking, and returns a future that may be used to track the packet as it is sent.
+     *
+     * The send buffer will also be flushed after this operation.
+     *
+     * @param packet    the packet to be sent
+     * @param channelId the id of the channel that the packet will be sent on
+     * @return a future which may be used to track the packet as it is sent
+     */
+    default Future<Void> sendFlushAsync(@NonNull Object packet, int channelId) {
+        return this.sendFlushAsync(packet, this.fallbackReliability(), channelId);
+    }
+
+    /**
      * Gets a {@link DataOut} which may be used to write raw binary data to the session.
      * <p>
      * The data written to the output stream returned by this method will be buffered until the stream is
-     * closed by the user.
-     * <p>
-     * Note that data sent using this method will bypass the user protocol for encoding and be passed
-     * directly to the formatting pipeline (encryption, etc.) for sending.
+     * closed or flushed using {@link DataOut#close()} or {@link DataOut#flush()}, respectively.
      *
      * @return a {@link DataOut} for writing raw binary to the session
      */

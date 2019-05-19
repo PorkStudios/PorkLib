@@ -27,6 +27,8 @@ import net.daporkchop.lib.network.protocol.Protocol;
 import net.daporkchop.lib.network.protocol.SimpleDataProtocol;
 import net.daporkchop.lib.network.protocol.SimpleHandlingProtocol;
 import net.daporkchop.lib.network.protocol.SimpleProtocol;
+import net.daporkchop.lib.network.tcp.TCPSession;
+import org.bouncycastle.util.test.Test;
 
 import java.io.IOException;
 
@@ -42,6 +44,8 @@ public class HTTPProtocol implements SimpleDataProtocol<HTTPSession>, SimpleHand
     @Override
     public void initPipeline(@NonNull Pipeline<HTTPSession> pipeline, @NonNull HTTPSession session) {
         pipeline.replace("tcp_framer", new HTTPPacketFramer());
+
+        ((TCPSession<HTTPSession>) session.internalSession()).enableSSLClient(TestHTTPGet.HOST, 443);
     }
 
     @Override

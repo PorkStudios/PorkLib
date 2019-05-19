@@ -15,64 +15,45 @@
 
 package net.daporkchop.lib.network.util;
 
+import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.util.PArrays;
+import net.daporkchop.lib.common.util.PorkUtil;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.function.Predicate;
 
 /**
  * Fixes issues in the original implementation with finding generics in interfaces.
  */
-public abstract class TypeParameterMatcher {
-    protected static final Map<Class<?>, TypeParameterMatcher> getCache = new IdentityHashMap<>();
-    protected static final Map<Class<?>, Map<String, TypeParameterMatcher>> findCache = new IdentityHashMap<>();
+@FunctionalInterface
+public interface TypeParameterMatcher extends Predicate<Object> {
+    Map<Class<?>, TypeParameterMatcher> getCache = Collections.synchronizedMap(PorkUtil.newSoftCache());
+    Map<LookupKey, Class<?>> findCache = Collections.synchronizedMap(PorkUtil.newSoftCache());
 
-    private static final TypeParameterMatcher NOOP = new TypeParameterMatcher() {
-        @Override
-        public boolean match(Object msg) {
-            return true;
-        }
-    };
-
-    public static TypeParameterMatcher get(final Class<?> parameterType) {
-        TypeParameterMatcher matcher = getCache.get(parameterType);
-        if (matcher == null) {
-            if (parameterType == Object.class) {
-                matcher = NOOP;
-            } else {
-                matcher = new ReflectiveMatcher(parameterType);
-            }
-            getCache.put(parameterType, matcher);
-        }
-
-        return matcher;
+    static TypeParameterMatcher get(final Class<?> parameterType) {
+        return getCache.computeIfAbsent(parameterType, type -> type::isInstance);
     }
 
-    public static TypeParameterMatcher find(final Object object, final Class<?> parametrizedSuperclass, final String typeParamName) {
-        final Class<?> thisClass = object.getClass();
+    static TypeParameterMatcher find(final Class<?> thisClass, final Class<?> parametrizedSuperclass, final String typeParamName) {
+        LookupKey key = new LookupKey(thisClass, parametrizedSuperclass, typeParamName);
 
-        Map<String, TypeParameterMatcher> map = findCache.get(thisClass);
-        if (map == null) {
-            map = new HashMap<>();
-            findCache.put(thisClass, map);
+        Class<?> type = findCache.get(key);
+        if (type == null)   {
+            findCache.put(key, type = findRecursive(thisClass, thisClass, parametrizedSuperclass, typeParamName));
         }
 
-        TypeParameterMatcher matcher = map.get(typeParamName);
-        if (matcher == null) {
-            matcher = get(findRecursive(object.getClass(), object.getClass(), parametrizedSuperclass, typeParamName));
-            map.put(typeParamName, matcher);
-        }
-
-        return matcher;
+        return get(type);
     }
 
-    private static Class<?> findRecursive(final Class<?> thisClass, Class<?> currentClass, Class<?> parametrizedSuperclass, String typeParamName) {
+    static Class<?> findRecursive(final Class<?> thisClass, Class<?> currentClass, Class<?> parametrizedSuperclass, String typeParamName) {
         Class<?> clazz;
         if (currentClass.getSuperclass() != null) {
             if ((clazz = check(thisClass, currentClass, parametrizedSuperclass, typeParamName, currentClass.getSuperclass())) != null) {
@@ -91,7 +72,7 @@ public abstract class TypeParameterMatcher {
         return null;
     }
 
-    private static Class<?> check(final Class<?> thisClass, Class<?> currentClass, Class<?> parametrizedSuperclass, String typeParamName, Class<?> superClass) {
+    static Class<?> check(final Class<?> thisClass, Class<?> currentClass, Class<?> parametrizedSuperclass, String typeParamName, Class<?> superClass) {
         if (superClass == parametrizedSuperclass) {
             int typeParamIndex = -1;
             TypeVariable<?>[] typeParams = superClass.getTypeParameters();
@@ -154,26 +135,27 @@ public abstract class TypeParameterMatcher {
         return null;
     }
 
-    private static Class<?> fail(Class<?> type, String typeParamName) {
-        throw new IllegalStateException(
-                "cannot determine the type of the type parameter '" + typeParamName + "': " + type);
-    }
+    @RequiredArgsConstructor
+    final class LookupKey {
+        protected final Class thisClass;
+        protected final Class parametrizedSuperclass;
+        protected final String typeParamName;
 
-    TypeParameterMatcher() {
-    }
-
-    public abstract boolean match(Object msg);
-
-    private static final class ReflectiveMatcher extends TypeParameterMatcher {
-        private final Class<?> type;
-
-        ReflectiveMatcher(Class<?> type) {
-            this.type = type;
+        @Override
+        public int hashCode() {
+            return (this.thisClass.hashCode() * 558506051 + this.parametrizedSuperclass.hashCode()) * 363584059 + this.typeParamName.hashCode();
         }
 
         @Override
-        public boolean match(Object msg) {
-            return type.isInstance(msg);
+        public boolean equals(Object obj) {
+            if (obj == this) {
+                return true;
+            } else if (obj instanceof LookupKey) {
+                LookupKey key = (LookupKey) obj;
+                return key.thisClass == this.thisClass && key.parametrizedSuperclass == this.parametrizedSuperclass && this.typeParamName.equals(key.typeParamName);
+            } else {
+                return false;
+            }
         }
     }
 }

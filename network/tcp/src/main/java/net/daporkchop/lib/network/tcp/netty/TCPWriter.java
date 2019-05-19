@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.network.tcp.netty;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageEncoder;
 import lombok.Getter;
@@ -33,12 +34,17 @@ import java.util.List;
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public class TCPWriter<S extends AbstractUserSession<S>> extends MessageToMessageEncoder<ChanneledPacket> {
+public class TCPWriter<S extends AbstractUserSession<S>> extends MessageToMessageEncoder<Object> {
     @NonNull
     protected final WrapperNioSocketChannel<S> session;
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, ChanneledPacket msg, List<Object> out) throws Exception {
-        this.session.dataPipeline().fireSending(msg.packet(), msg.channel(), out);
+    protected void encode(ChannelHandlerContext ctx, Object msg, List<Object> out) throws Exception {
+        if (msg instanceof ChanneledPacket) {
+            ChanneledPacket pck = (ChanneledPacket) msg;
+            this.session.dataPipeline().fireSending(pck.packet(), pck.channel(), out);
+        } else {
+            this.session.dataPipeline().fireSending(msg, 0, out);
+        }
     }
 }

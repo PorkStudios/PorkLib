@@ -34,14 +34,22 @@ import java.util.ListIterator;
  */
 @Accessors(fluent = true)
 public class Pipeline<S extends AbstractUserSession<S>> {
+    protected static final PipelineListener NOOP_LISTENER = new PipelineListener() {
+    };
+
+    @SuppressWarnings("unchecked")
+protected static  <S extends AbstractUserSession<S>> PipelineListener<S> noopListener(){
+    return (PipelineListener<S>) NOOP_LISTENER;
+}
+
     @Getter
     protected final S session;
 
     protected final Object mutex = new Object[0];
 
     protected final List<Node<S>> nodes = new ArrayList<>();
-    protected Node<S> head;
-    protected Node<S> tail;
+    protected final Node<S> head;
+    protected final Node<S> tail;
 
     protected final PipelineEdgeListener<S> listener;
 
@@ -53,6 +61,9 @@ public class Pipeline<S extends AbstractUserSession<S>> {
     public Pipeline(@NonNull S session, @NonNull PipelineEdgeListener<S> listener) {
         this.session = session;
         this.listener = listener;
+
+        this.head = new Node<>(this, "head", noopListener());
+        this.tail = new Node<>(this, "tail", noopListener());
 
         this.rebuild();
     }
@@ -164,9 +175,9 @@ public class Pipeline<S extends AbstractUserSession<S>> {
 
     protected void rebuild() {
         synchronized (this.mutex) {
+            this.head.next = this.head.prev = null;
+            this.tail.next = this.tail.prev = null;
             if (this.nodes.isEmpty()) {
-                this.head = this.tail = new Node<>(this, "", new PipelineListener<S>() {
-                });
             } else {
                 this.nodes.forEach(node -> {
                     node.next = null;
@@ -178,19 +189,23 @@ public class Pipeline<S extends AbstractUserSession<S>> {
                     node.next = this.nodes.get(j + 1);
                     node.prev = this.nodes.get(j - 1);
                 }
-                this.nodes.get(0).prev = null;
-                this.nodes.get(0).next = null;
-                this.nodes.get(i - 1).prev = null;
-                this.nodes.get(i - 1).next = null;
-                if (i >= 2) {
+
+                this.head.next = this.nodes.get(0);
+                this.nodes.get(0).prev = this.head;
+                this.tail.prev = this.nodes.get(i - 1);
+                this.nodes.get(i - 1).next = this.tail;
+
+                if (i == 1) {
+                    this.nodes.get(0).next = this.tail;
+                    this.nodes.get(i - 1).prev = this.head;
+                } else if (i >= 2) {
                     this.nodes.get(0).next = this.nodes.get(1);
                     this.nodes.get(i - 1).prev = this.nodes.get(i - 2);
                 }
                 this.nodes.forEach(Node::rebuild);
-
-                this.head = this.nodes.get(0);
-                this.tail = this.nodes.get(i - 1);
             }
+            this.head.rebuild();
+            this.tail.rebuild();
         }
     }
 }

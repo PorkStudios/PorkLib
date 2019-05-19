@@ -21,9 +21,9 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.network.netty.NettyHandler;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.tcp.WrapperNioSocketChannel;
-import net.daporkchop.lib.network.netty.NettyHandler;
 
 /**
  * @author DaPorkchop_
@@ -41,17 +41,19 @@ public class TCPHandler<S extends AbstractUserSession<S>> extends NettyHandler i
     }
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
+        logger.info("Channel active, SSL handshake complete: %b", this.session.ssl().handshakeFuture().isDone());
         this.session.dataPipeline().fireOpened();
 
-        super.channelActive(ctx);
+        super.channelRegistered(ctx);
     }
 
     @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
         this.session.dataPipeline().fireClosed();
+        this.session.closeAsync();
 
-        super.channelInactive(ctx);
+        super.channelUnregistered(ctx);
     }
 
     @Override

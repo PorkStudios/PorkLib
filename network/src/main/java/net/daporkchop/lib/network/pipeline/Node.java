@@ -15,7 +15,7 @@
 
 package net.daporkchop.lib.network.pipeline;
 
-import io.netty.util.internal.TypeParameterMatcher;
+import net.daporkchop.lib.network.util.TypeParameterMatcher;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;

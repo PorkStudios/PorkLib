@@ -53,17 +53,19 @@ public class Pipeline<S extends AbstractUserSession<S>> {
     public Pipeline(@NonNull S session, @NonNull PipelineEdgeListener<S> listener) {
         this.session = session;
         this.listener = listener;
+
+        this.rebuild();
     }
 
     public void fireOpened() {
-        synchronized (this.mutex)   {
-            this.head.opened(this.session);
+        synchronized (this.mutex) {
+            this.head.context.opened(this.session);
         }
     }
 
     public void fireClosed() {
-        synchronized (this.mutex)   {
-            this.head.closed(this.session);
+        synchronized (this.mutex) {
+            this.head.context.closed(this.session);
 
             this.nodes.forEach(n -> n.listener.removed(this, this.session));
             this.nodes.clear();
@@ -72,22 +74,22 @@ public class Pipeline<S extends AbstractUserSession<S>> {
     }
 
     public void fireReceived(@NonNull Object msg, int channel) {
-        synchronized (this.mutex)   {
-            this.head.received(this.session, msg, channel);
+        synchronized (this.mutex) {
+            this.head.context.received(this.session, msg, channel);
         }
     }
 
     public void fireSending(@NonNull Object msg, int channel, @NonNull List<Object> sendQueue) {
-        synchronized (this.mutex)   {
+        synchronized (this.mutex) {
             this.sendQueue = sendQueue;
-            this.tail.sending(this.session, msg, channel);
+            this.tail.context.sending(this.session, msg, channel);
             this.sendQueue = null;
         }
     }
 
     public void fireExceptionCaught(@NonNull Throwable t) {
-        synchronized (this.mutex)   {
-            this.head.exceptionCaught(this.session, t);
+        synchronized (this.mutex) {
+            this.head.context.exceptionCaught(this.session, t);
         }
     }
 
@@ -121,9 +123,9 @@ public class Pipeline<S extends AbstractUserSession<S>> {
 
     public Pipeline<S> remove(@NonNull String name) {
         synchronized (this.mutex) {
-            for (Iterator<Node<S>> itr = this.nodes.iterator(); itr.hasNext();) {
+            for (Iterator<Node<S>> itr = this.nodes.iterator(); itr.hasNext(); ) {
                 Node<S> node = itr.next();
-                if (name.equals(node.name))   {
+                if (name.equals(node.name)) {
                     itr.remove();
                     this.rebuild();
                     node.listener.removed(this, this.session);
@@ -136,9 +138,9 @@ public class Pipeline<S extends AbstractUserSession<S>> {
 
     public Pipeline<S> replace(@NonNull String name, @NonNull PipelineListener<S> listener) {
         synchronized (this.mutex) {
-            for (ListIterator<Node<S>> itr = this.nodes.listIterator(); itr.hasNext();) {
+            for (ListIterator<Node<S>> itr = this.nodes.listIterator(); itr.hasNext(); ) {
                 Node<S> node = itr.next();
-                if (name.equals(node.name))   {
+                if (name.equals(node.name)) {
                     itr.set(new Node<>(this, name, listener));
                     this.rebuild();
                     node.listener.removed(this, this.session);
@@ -162,25 +164,33 @@ public class Pipeline<S extends AbstractUserSession<S>> {
 
     protected void rebuild() {
         synchronized (this.mutex) {
-            this.nodes.forEach(node -> {
-                node.next = null;
-                node.prev = null;
-            });
-            int i = this.nodes.size();
-            for (int j = i - 2; j > 0; j--) {
-                Node<S> node = this.nodes.get(j);
-                node.next = this.nodes.get(j + 1);
-                node.prev = this.nodes.get(j - 1);
+            if (this.nodes.isEmpty()) {
+                this.head = this.tail = new Node<>(this, "", new PipelineListener<S>() {
+                });
+            } else {
+                this.nodes.forEach(node -> {
+                    node.next = null;
+                    node.prev = null;
+                });
+                int i = this.nodes.size();
+                for (int j = i - 2; j > 0; j--) {
+                    Node<S> node = this.nodes.get(j);
+                    node.next = this.nodes.get(j + 1);
+                    node.prev = this.nodes.get(j - 1);
+                }
+                this.nodes.get(0).prev = null;
+                this.nodes.get(0).next = null;
+                this.nodes.get(i - 1).prev = null;
+                this.nodes.get(i - 1).next = null;
+                if (i >= 2) {
+                    this.nodes.get(0).next = this.nodes.get(1);
+                    this.nodes.get(i - 1).prev = this.nodes.get(i - 2);
+                }
+                this.nodes.forEach(Node::rebuild);
+
+                this.head = this.nodes.get(0);
+                this.tail = this.nodes.get(i - 1);
             }
-            this.nodes.get(0).prev = null;
-            this.nodes.get(0).next = null;
-            this.nodes.get(i - 1).prev = null;
-            this.nodes.get(i - 1).next = null;
-            if (i >= 2) {
-                this.nodes.get(0).next = this.nodes.get(1);
-                this.nodes.get(i - 1).prev = this.nodes.get(i - 2);
-            }
-            this.nodes.forEach(Node::rebuild);
         }
     }
 }

@@ -13,7 +13,9 @@
  *
  */
 
-package io.netty.util.internal;
+package net.daporkchop.lib.network.util;
+
+import net.daporkchop.lib.common.util.PArrays;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.GenericArrayType;
@@ -21,12 +23,15 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Map;
 
 /**
  * Fixes issues in the original implementation with finding generics in interfaces.
  */
 public abstract class TypeParameterMatcher {
+    protected static final Map<Class<?>, TypeParameterMatcher> getCache = new IdentityHashMap<>();
+    protected static final Map<Class<?>, Map<String, TypeParameterMatcher>> findCache = new IdentityHashMap<>();
 
     private static final TypeParameterMatcher NOOP = new TypeParameterMatcher() {
         @Override
@@ -36,9 +41,6 @@ public abstract class TypeParameterMatcher {
     };
 
     public static TypeParameterMatcher get(final Class<?> parameterType) {
-        final Map<Class<?>, TypeParameterMatcher> getCache =
-                InternalThreadLocalMap.get().typeParameterMatcherGetCache();
-
         TypeParameterMatcher matcher = getCache.get(parameterType);
         if (matcher == null) {
             if (parameterType == Object.class) {
@@ -52,11 +54,7 @@ public abstract class TypeParameterMatcher {
         return matcher;
     }
 
-    public static TypeParameterMatcher find(
-            final Object object, final Class<?> parametrizedSuperclass, final String typeParamName) {
-
-        final Map<Class<?>, Map<String, TypeParameterMatcher>> findCache =
-                InternalThreadLocalMap.get().typeParameterMatcherFindCache();
+    public static TypeParameterMatcher find(final Object object, final Class<?> parametrizedSuperclass, final String typeParamName) {
         final Class<?> thisClass = object.getClass();
 
         Map<String, TypeParameterMatcher> map = findCache.get(thisClass);
@@ -67,20 +65,30 @@ public abstract class TypeParameterMatcher {
 
         TypeParameterMatcher matcher = map.get(typeParamName);
         if (matcher == null) {
-            matcher = get(find0(object, parametrizedSuperclass, typeParamName));
+            matcher = get(findRecursive(object.getClass(), object.getClass(), parametrizedSuperclass, typeParamName));
             map.put(typeParamName, matcher);
         }
 
         return matcher;
     }
 
-    private static Class<?> find0(final Object object, Class<?> parametrizedSuperclass, String typeParamName) {
-        return findRecursive(object.getClass(), object.getClass(), parametrizedSuperclass, typeParamName);
-    }
-
     private static Class<?> findRecursive(final Class<?> thisClass, Class<?> currentClass, Class<?> parametrizedSuperclass, String typeParamName) {
         Class<?> clazz;
-        if ((clazz = check(thisClass, currentClass, parametrizedSuperclass, typeParamName, )))
+        if (currentClass.getSuperclass() != null) {
+            if ((clazz = check(thisClass, currentClass, parametrizedSuperclass, typeParamName, currentClass.getSuperclass())) != null) {
+                return clazz;
+            } else if ((clazz = findRecursive(thisClass, currentClass.getSuperclass(), parametrizedSuperclass, typeParamName)) != null) {
+                return clazz;
+            }
+        }
+        for (Class<?> interfaz : currentClass.getInterfaces()) {
+            if ((clazz = check(thisClass, currentClass, parametrizedSuperclass, typeParamName, interfaz)) != null) {
+                return clazz;
+            } else if ((clazz = findRecursive(thisClass, interfaz, parametrizedSuperclass, typeParamName)) != null) {
+                return clazz;
+            }
+        }
+        return null;
     }
 
     private static Class<?> check(final Class<?> thisClass, Class<?> currentClass, Class<?> parametrizedSuperclass, String typeParamName, Class<?> superClass) {
@@ -98,9 +106,9 @@ public abstract class TypeParameterMatcher {
                 throw new IllegalStateException("unknown type parameter '" + typeParamName + "': " + parametrizedSuperclass);
             }
 
-            Type genericSuperType = currentClass.getGenericSuperclass();
+            Type genericSuperType;
             if (superClass.isInterface()) {
-                //TODO: i'm here
+                genericSuperType = currentClass.getGenericInterfaces()[PArrays.indexOf(currentClass.getInterfaces(), superClass)];
             } else {
                 genericSuperType = currentClass.getGenericSuperclass();
             }
@@ -142,13 +150,8 @@ public abstract class TypeParameterMatcher {
                     return Object.class;
                 }
             }
-
-            return fail(thisClass, typeParamName);
         }
-        currentClass = currentClass.getSuperclass();
-        if (currentClass == null) {
-            return fail(thisClass, typeParamName);
-        }
+        return null;
     }
 
     private static Class<?> fail(Class<?> type, String typeParamName) {

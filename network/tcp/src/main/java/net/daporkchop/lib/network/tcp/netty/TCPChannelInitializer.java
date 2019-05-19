@@ -20,11 +20,15 @@ import io.netty.channel.ChannelInitializer;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.common.reference.InstancePool;
+import net.daporkchop.lib.network.pipeline.Pipeline;
+import net.daporkchop.lib.network.pipeline.util.PipelineListener;
 import net.daporkchop.lib.network.protocol.DataProtocol;
 import net.daporkchop.lib.network.protocol.HandlingProtocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.tcp.WrapperNioSocketChannel;
 import net.daporkchop.lib.network.tcp.endpoint.TCPEndpoint;
+import net.daporkchop.lib.network.tcp.pipeline.Framer;
 import net.daporkchop.lib.network.tcp.pipeline.TCPDataCodec;
 
 import java.util.function.Consumer;
@@ -47,15 +51,21 @@ public class TCPChannelInitializer<E extends TCPEndpoint<?, S, ?>, S extends Abs
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected void initChannel(@NonNull WrapperNioSocketChannel<S> channel) throws Exception {
         channel.pipeline()
                 .addLast("write", new TCPWriter<>(channel))
                 .addLast("handle", new TCPHandler<>(channel));
 
+        Pipeline<S> pipeline = channel.dataPipeline();
         if (this.endpoint.protocol() instanceof DataProtocol)   {
-            channel.dataPipeline()
+            pipeline
                     .addLast("protocol", new TCPDataCodec<>((DataProtocol<S>) this.endpoint.protocol(), channel.alloc()));
         }
+        pipeline
+               .addLast("tcp_framer", (PipelineListener<S>) InstancePool.getInstance(Framer.DefaultFramer.class));
+
+        this.endpoint.protocol().pipelineInitializer().initPipeline(pipeline, channel.userSession());
 
         this.addedCallback.accept(channel);
     }

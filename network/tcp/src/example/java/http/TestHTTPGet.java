@@ -37,6 +37,7 @@ public class TestHTTPGet implements Logging {
                 .engine(TCPEngine.defaultInstance())
                 .address(new InetSocketAddress("gist.githubusercontent.com", 80))
                 .build();
+        logger.info("Client started.").info("Awaiting content...");
 
         client.send("GET /DaMatrix/8b7ff92fcc7e49c0f511a8ed207d8e92/raw/teampepsi-server-players.json HTTP/1.1\r\n" +
                         "Host: gist.githubusercontent.com\r\n" +
@@ -44,6 +45,6 @@ public class TestHTTPGet implements Logging {
                 .flushBuffer();
 
         client.userSession().complete.sync();
-        logger.info("Headers:\n%s\nBody:\n%s", client.userSession().headers, client.userSession().body);
+        logger.info("Headers:\n%s\nBody:\n%s", client.userSession().headers, client.userSession().body).info("Complete.");
     }
 }

@@ -18,7 +18,7 @@ package mc;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.session.DummyUserSession;
+import net.daporkchop.lib.network.session.DefaultUserSession;
 import net.daporkchop.lib.network.transport.ChanneledPacket;
 import net.daporkchop.lib.network.tcp.pipeline.Framer;
 
@@ -27,12 +27,15 @@ import java.util.List;
 /**
  * @author DaPorkchop_
  */
-public class MinecraftPacketFramer implements Framer<DummyUserSession>, Logging {
+public class MinecraftPacketFramer implements Framer<MCSession>, Logging {
     protected static int readVarInt(@NonNull ByteBuf buf) {
         int numRead = 0;
         int result = 0;
         byte read;
         do {
+            if (!buf.isReadable())  {
+                return -1;
+            }
             read = buf.readByte();
             int value = (read & 0b01111111);
             result |= (value << (7 * numRead));
@@ -58,26 +61,29 @@ public class MinecraftPacketFramer implements Framer<DummyUserSession>, Logging 
     }
 
     @Override
-    public void unpack(@NonNull ByteBuf buf, @NonNull DummyUserSession session, @NonNull List<ChanneledPacket<ByteBuf>> frames) {
+    public void unpack(@NonNull MCSession session, @NonNull ByteBuf buf, @NonNull UnpackOut<MCSession> frames) {
         int origPos = buf.readerIndex();
-        while (buf.readableBytes() >= 2) {
-            int size = readVarInt(buf);
+        int size;
+        while ((size = readVarInt(buf)) != -1) {
+            buf.readerIndex(origPos);
             if (buf.readableBytes() >= size) {
                 logger.debug("Read packet @ %d bytes", size);
-                frames.add(new ChanneledPacket<>(buf.readRetainedSlice(size), 0));
+                frames.received(session, buf.readRetainedSlice(readVarInt(buf)), 0);
+                origPos = buf.readerIndex();
             } else {
                 logger.debug("Unable to read %d bytes", size);
-                buf.readerIndex(origPos);
                 return;
             }
-            origPos = buf.readerIndex();
         }
         buf.readerIndex(origPos);
     }
 
     @Override
-    public void pack(@NonNull ChanneledPacket<ByteBuf> packet, @NonNull DummyUserSession session, @NonNull ByteBuf out) {
-        writeVarInt(out, packet.packet().readableBytes());
-        out.writeBytes(packet.packet());
+    public void pack(@NonNull MCSession session, @NonNull ByteBuf packet, int channel, @NonNull PackOut<MCSession> frames) {
+        ByteBuf len = packet.alloc().ioBuffer();
+        writeVarInt(len, packet.readableBytes());
+
+        frames.sending(session, len, channel);
+        frames.sending(session, packet, channel);
     }
 }

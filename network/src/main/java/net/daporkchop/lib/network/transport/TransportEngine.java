@@ -86,4 +86,8 @@ public interface TransportEngine {
     default boolean isReliabilitySupported(@NonNull Reliability reliability) {
         return this.supportedReliabilities().contains(reliability);
     }
+
+    default boolean isBinary(@NonNull Object object)    {
+        return true;
+    }
 }

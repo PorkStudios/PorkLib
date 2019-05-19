@@ -13,52 +13,37 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.netty;
+package mc;
 
-import io.netty.channel.ChannelHandlerContext;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.netty.NettyHandler;
+import net.daporkchop.lib.concurrent.future.PFuture;
+import net.daporkchop.lib.concurrent.future.impl.PFutureImpl;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.tcp.WrapperNioSocketChannel;
 
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
 @Getter
-@Accessors(fluent = true)
-public class TCPHandler<S extends AbstractUserSession<S>> extends NettyHandler implements Logging {
+@Setter
+@Accessors(fluent = true, chain = true)
+public class MCSession extends AbstractUserSession<MCSession> {
+    protected final PFuture<Long> ping = new PFutureImpl<>();
+
     @NonNull
-    protected final WrapperNioSocketChannel<S> session;
+    protected String response = "";
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        this.session.dataPipeline().fireReceived(msg, -1);
+    public void onClosed() {
+        if (this.ping.isComplete()) {
+            this.ping.complete(-1L);
+        }
     }
 
     @Override
-    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-        this.session.dataPipeline().fireOpened();
-
-        super.channelRegistered(ctx);
-    }
-
-    @Override
-    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-        this.session.dataPipeline().fireClosed();
-        this.session.closeAsync();
-
-        super.channelUnregistered(ctx);
-    }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        this.session.dataPipeline().fireExceptionCaught(cause);
-
-        super.exceptionCaught(ctx, cause);
+    public void onException(@NonNull Throwable t) {
+        this.ping.completeExceptionally(t);
     }
 }

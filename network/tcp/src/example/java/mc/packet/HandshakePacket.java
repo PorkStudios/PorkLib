@@ -13,12 +13,40 @@
  *
  */
 
-package net.daporkchop.lib.network.session;
+package mc.packet;
+
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import mc.MCSession;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.network.protocol.packet.OutboundPacket;
+import net.daporkchop.lib.network.protocol.packet.Packet;
+
+import java.io.IOException;
 
 /**
- * An {@link AbstractUserSession} that does nothing.
- *
  * @author DaPorkchop_
  */
-public final class DummyUserSession extends AbstractUserSession<DummyUserSession> {
+@AllArgsConstructor
+@NoArgsConstructor
+@Setter
+@Accessors(fluent = true, chain = true)
+public class HandshakePacket implements OutboundPacket<MCSession> {
+    protected int protocolVersion;
+    @NonNull
+    protected String remoteHost;
+    protected int remotePort;
+    protected int nextState;
+
+    @Override
+    public void encode(@NonNull DataOut out, @NonNull MCSession session) throws IOException {
+        out.writeVarInt(this.protocolVersion);
+        out.writeUTF(this.remoteHost);
+        out.writeUShort(this.remotePort);
+        out.writeVarInt(this.nextState);
+    }
 }

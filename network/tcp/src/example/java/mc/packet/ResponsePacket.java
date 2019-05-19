@@ -13,48 +13,37 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol;
+package mc.packet;
 
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.Data;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import mc.MCSession;
 import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.protocol.packet.InboundPacket;
 
 import java.io.IOException;
 
 /**
- * A simple message that can be sent over the network.
- *
  * @author DaPorkchop_
  */
-public interface Packet<S extends AbstractUserSession<S>> extends Data {
-    /**
-     * Decodes the message from it's binary representation.
-     * <p>
-     * Be aware that this object instance may have been newly instantiated using
-     * {@link net.daporkchop.lib.unsafe.PUnsafe#allocateInstance(Class)}, so implementing classes should assume that
-     * no constructors or default values will be set.
-     *
-     * @param in      a {@link DataIn} to read data from
-     * @param session the session that the packet was received on
-     */
-    void decode(@NonNull DataIn in, @NonNull S session) throws IOException;
+@AllArgsConstructor
+@NoArgsConstructor
+@Setter
+@Accessors(fluent = true, chain = true)
+public class ResponsePacket implements InboundPacket<MCSession> {
+    @NonNull
+    protected String response;
 
-    /**
-     * Encodes this message into it's binary representation.
-     *
-     * @param out     a {@link DataOut} to write data to
-     * @param session the session that the packet will be sent on
-     */
-    void encode(@NonNull DataOut out, @NonNull S session) throws IOException;
+    @Override
+    public void decode(@NonNull DataIn in, @NonNull MCSession session) throws IOException {
+        this.response(in.readUTF());
+    }
 
-    /**
-     * Handles this packet.
-     * <p>
-     * One may assume that {@link #read(DataIn)} will have been called successfully before this method is called.
-     *
-     * @param session the session that the packet was received on
-     */
-    void handle(@NonNull S session);
+    @Override
+    public void handle(@NonNull MCSession session) {
+        session.response(this.response);
+    }
 }

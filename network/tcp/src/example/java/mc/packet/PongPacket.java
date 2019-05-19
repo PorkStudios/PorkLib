@@ -13,52 +13,36 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.netty;
+package mc.packet;
 
-import io.netty.channel.ChannelHandlerContext;
-import lombok.Getter;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.netty.NettyHandler;
-import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.tcp.WrapperNioSocketChannel;
+import mc.MCSession;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.network.protocol.packet.InboundPacket;
+
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-public class TCPHandler<S extends AbstractUserSession<S>> extends NettyHandler implements Logging {
-    @NonNull
-    protected final WrapperNioSocketChannel<S> session;
+@AllArgsConstructor
+@NoArgsConstructor
+@Setter
+@Accessors(fluent = true, chain = true)
+public class PongPacket implements InboundPacket<MCSession> {
+    protected long time;
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        this.session.dataPipeline().fireReceived(msg, -1);
+    public void decode(@NonNull DataIn in, @NonNull MCSession session) throws IOException {
+        this.time = in.readLong();
     }
 
     @Override
-    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-        this.session.dataPipeline().fireOpened();
-
-        super.channelRegistered(ctx);
-    }
-
-    @Override
-    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-        this.session.dataPipeline().fireClosed();
-        this.session.closeAsync();
-
-        super.channelUnregistered(ctx);
-    }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        this.session.dataPipeline().fireExceptionCaught(cause);
-
-        super.exceptionCaught(ctx, cause);
+    public void handle(@NonNull MCSession session) {
+        session.ping().complete(System.currentTimeMillis() - this.time);
     }
 }

@@ -65,15 +65,19 @@ public class TCPDataCodec<S extends AbstractUserSession<S>> implements ReceivedL
 
     @Override
     public void sending(@NonNull EventContext<S> context, @NonNull S session, @NonNull Object msg, int channel) {
-        ByteBuf buf = this.alloc.ioBuffer();
-        try {
-            this.protocol.codec().encode(this.out.buf(buf), session, msg, channel);
-        } catch (IOException e) {
-            buf.release();
-            throw new RuntimeException(e);
-        } finally {
-            this.out.buf(null);
+        if (session.transportEngine().isBinary(msg)) {
+            context.sending(session, msg, channel);
+        } else {
+            ByteBuf buf = this.alloc.ioBuffer();
+            try {
+                this.protocol.codec().encode(this.out.buf(buf), session, msg, channel);
+            } catch (IOException e) {
+                buf.release();
+                throw new RuntimeException(e);
+            } finally {
+                this.out.buf(null);
+            }
+            context.sending(session, buf, channel);
         }
-        context.sending(session, buf, channel);
     }
 }

@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.network.tcp;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import lombok.AllArgsConstructor;
@@ -94,6 +95,11 @@ public class TCPEngine extends NettyEngine {
     @Override
     public boolean isReliabilitySupported(@NonNull Reliability reliability) {
         return reliability == Reliability.RELIABLE_ORDERED;
+    }
+
+    @Override
+    public boolean isBinary(@NonNull Object object) {
+        return object instanceof ByteBuf;
     }
 
     @AllArgsConstructor

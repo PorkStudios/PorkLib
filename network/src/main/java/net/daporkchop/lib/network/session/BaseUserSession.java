@@ -54,8 +54,22 @@ public interface BaseUserSession<Impl extends BaseUserSession<Impl, S>, S extend
 
     @Override
     @SuppressWarnings("unchecked")
+    default Impl sendFlush(@NonNull Object packet, Reliability reliability) {
+        this.internalSession().sendFlush(packet, reliability);
+        return (Impl) this;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
     default Impl send(@NonNull Object packet, Reliability reliability, int channelId) {
         this.internalSession().send(packet, reliability, channelId);
+        return (Impl) this;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    default Impl sendFlush(@NonNull Object packet, Reliability reliability, int channelId) {
+        this.internalSession().sendFlush(packet, reliability, channelId);
         return (Impl) this;
     }
 
@@ -65,8 +79,18 @@ public interface BaseUserSession<Impl extends BaseUserSession<Impl, S>, S extend
     }
 
     @Override
+    default Future<Void> sendFlushAsync(@NonNull Object packet, Reliability reliability) {
+        return this.internalSession().sendFlushAsync(packet, reliability);
+    }
+
+    @Override
     default Future<Void> sendAsync(@NonNull Object packet, Reliability reliability, int channelId) {
         return this.internalSession().sendAsync(packet, reliability, channelId);
+    }
+
+    @Override
+    default Future<Void> sendFlushAsync(@NonNull Object packet, Reliability reliability, int channelId) {
+        return this.internalSession().sendFlushAsync(packet, reliability, channelId);
     }
 
     @Override

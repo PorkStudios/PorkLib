@@ -15,14 +15,31 @@
 
 package net.daporkchop.lib.network.protocol;
 
+import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.network.pipeline.Pipeline;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-public interface SimpleHandlingProtocol<S extends AbstractUserSession<S>> extends HandlingProtocol<S>, HandlingProtocol.Handler<S> {
+public interface SimpleHandlingProtocol<S extends AbstractUserSession<S>> extends SimpleProtocol<S>, HandlingProtocol<S>, HandlingProtocol.Handler<S> {
     @Override
     default Handler<S> handler() {
         return this;
     }
+
+    @Override
+    S newSession();
+
+    @Override
+    void initPipeline(@NonNull Pipeline<S> pipeline, @NonNull S session);
+
+    @Override
+    void onReceived(@NonNull S session, @NonNull Object msg, int channel);
+
+    @Override
+    void onBinary(@NonNull S session, @NonNull DataIn in, int channel) throws IOException;
 }

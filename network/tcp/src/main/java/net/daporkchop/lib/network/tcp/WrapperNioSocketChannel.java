@@ -133,15 +133,21 @@ public class WrapperNioSocketChannel<S extends AbstractUserSession<S>> extends N
     @Override
     public DataOut writer() {
         return new NettyByteBufOut(this.alloc().ioBuffer())    {
-            @Override
+            /*@Override
             public void flush() throws IOException {
-                WrapperNioSocketChannel.this.write(this.buf);
-                this.buf(WrapperNioSocketChannel.this.alloc().ioBuffer());
-            }
+                if (this.buf.writerIndex() != 0) {
+                    WrapperNioSocketChannel.this.write(this.buf);
+                    this.buf(WrapperNioSocketChannel.this.alloc().ioBuffer());
+                }
+            }*/
 
             @Override
             public void close() throws IOException {
-                WrapperNioSocketChannel.this.write(this.buf);
+                if (this.buf.writerIndex() == 0)    {
+                    this.buf.release();
+                } else {
+                    WrapperNioSocketChannel.this.write(this.buf);
+                }
             }
         };
     }

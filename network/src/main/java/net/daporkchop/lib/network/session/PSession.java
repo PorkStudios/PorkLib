@@ -289,7 +289,7 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
      * Gets a {@link DataOut} which may be used to write raw binary data to the session.
      * <p>
      * The data written to the output stream returned by this method will be buffered until the stream is
-     * closed or flushed using {@link DataOut#close()} or {@link DataOut#flush()}, respectively.
+     * closed or flushed using {@link DataOut#close()}, respectively.
      *
      * @return a {@link DataOut} for writing raw binary to the session
      */

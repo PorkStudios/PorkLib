@@ -19,6 +19,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.transport.NetSession;
 
 import java.io.IOException;
@@ -49,6 +50,8 @@ public abstract class AbstractUserSession<S extends AbstractUserSession<S>> impl
      * @param t the exception that was caught
      */
     public void onException(@NonNull Throwable t) {
+        Logging.logger.alert(new RuntimeException(t));
+        this.closeAsync();
     }
 
     /**

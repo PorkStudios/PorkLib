@@ -13,52 +13,23 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.netty;
+package net.daporkchop.lib.network.protocol.packet;
 
-import io.netty.channel.ChannelHandlerContext;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.netty.NettyHandler;
+import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.tcp.WrapperNioSocketChannel;
+
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-public class TCPHandler<S extends AbstractUserSession<S>> extends NettyHandler implements Logging {
-    @NonNull
-    protected final WrapperNioSocketChannel<S> session;
-
-    @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        this.session.dataPipeline().fireReceived(msg, -1);
-    }
-
-    @Override
-    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-        this.session.dataPipeline().fireOpened();
-
-        super.channelRegistered(ctx);
-    }
-
-    @Override
-    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-        this.session.dataPipeline().fireClosed();
-        this.session.closeAsync();
-
-        super.channelUnregistered(ctx);
-    }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        this.session.dataPipeline().fireExceptionCaught(cause);
-
-        super.exceptionCaught(ctx, cause);
-    }
+public interface OutboundPacket<S extends AbstractUserSession<S>> {
+    /**
+     * Encodes this message into it's binary representation.
+     *
+     * @param out     a {@link DataOut} to write data to
+     * @param session the session that the packet will be sent on
+     */
+    void encode(@NonNull DataOut out, @NonNull S session) throws IOException;
 }

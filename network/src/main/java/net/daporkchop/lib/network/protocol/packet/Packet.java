@@ -13,52 +13,28 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.netty;
+package net.daporkchop.lib.network.protocol.packet;
 
-import io.netty.channel.ChannelHandlerContext;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.netty.NettyHandler;
+import net.daporkchop.lib.binary.Data;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.tcp.WrapperNioSocketChannel;
+
+import java.io.IOException;
 
 /**
+ * A simple message that can be sent over the network.
+ *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-public class TCPHandler<S extends AbstractUserSession<S>> extends NettyHandler implements Logging {
-    @NonNull
-    protected final WrapperNioSocketChannel<S> session;
+public interface Packet<S extends AbstractUserSession<S>> extends InboundPacket<S>, OutboundPacket<S> {
+    @Override
+    void decode(@NonNull DataIn in, @NonNull S session) throws IOException;
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        this.session.dataPipeline().fireReceived(msg, -1);
-    }
+    void encode(@NonNull DataOut out, @NonNull S session) throws IOException;
 
     @Override
-    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-        this.session.dataPipeline().fireOpened();
-
-        super.channelRegistered(ctx);
-    }
-
-    @Override
-    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-        this.session.dataPipeline().fireClosed();
-        this.session.closeAsync();
-
-        super.channelUnregistered(ctx);
-    }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        this.session.dataPipeline().fireExceptionCaught(cause);
-
-        super.exceptionCaught(ctx, cause);
-    }
+    void handle(@NonNull S session);
 }

@@ -45,7 +45,6 @@ public class NettyByteBufIn extends DataIn {
 
     @Override
     public void close() throws IOException {
-        this.buf.release();
     }
 
     @Override

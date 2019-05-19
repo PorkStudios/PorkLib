@@ -13,52 +13,31 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.netty;
+package mc.packet;
 
-import io.netty.channel.ChannelHandlerContext;
-import lombok.Getter;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.netty.NettyHandler;
-import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.tcp.WrapperNioSocketChannel;
+import mc.MCSession;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.network.protocol.packet.OutboundPacket;
+
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-public class TCPHandler<S extends AbstractUserSession<S>> extends NettyHandler implements Logging {
-    @NonNull
-    protected final WrapperNioSocketChannel<S> session;
+@AllArgsConstructor
+@NoArgsConstructor
+@Setter
+@Accessors(fluent = true, chain = true)
+public class PingPacket implements OutboundPacket<MCSession> {
+    protected long time;
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        this.session.dataPipeline().fireReceived(msg, -1);
-    }
-
-    @Override
-    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-        this.session.dataPipeline().fireOpened();
-
-        super.channelRegistered(ctx);
-    }
-
-    @Override
-    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-        this.session.dataPipeline().fireClosed();
-        this.session.closeAsync();
-
-        super.channelUnregistered(ctx);
-    }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        this.session.dataPipeline().fireExceptionCaught(cause);
-
-        super.exceptionCaught(ctx, cause);
+    public void encode(@NonNull DataOut out, @NonNull MCSession session) throws IOException {
+        out.writeLong(this.time);
     }
 }

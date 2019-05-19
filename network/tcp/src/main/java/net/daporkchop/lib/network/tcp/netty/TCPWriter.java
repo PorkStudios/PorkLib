@@ -40,11 +40,15 @@ public class TCPWriter<S extends AbstractUserSession<S>> extends MessageToMessag
 
     @Override
     protected void encode(ChannelHandlerContext ctx, Object msg, List<Object> out) throws Exception {
+        int channel = 0;
         if (msg instanceof ChanneledPacket) {
             ChanneledPacket pck = (ChanneledPacket) msg;
-            this.session.dataPipeline().fireSending(pck.packet(), pck.channel(), out);
-        } else {
-            this.session.dataPipeline().fireSending(msg, 0, out);
+            msg = pck.packet();
+            channel = pck.channel();
         }
+        if (msg instanceof ByteBuf) {
+            ((ByteBuf) msg).retain(); //prevent buf from being released unintentionally
+        }
+        this.session.dataPipeline().fireSending(msg, channel, out);
     }
 }

@@ -13,52 +13,36 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.netty;
+package net.daporkchop.lib.network.protocol.packet;
 
-import io.netty.channel.ChannelHandlerContext;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.netty.NettyHandler;
+import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.tcp.WrapperNioSocketChannel;
+
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-public class TCPHandler<S extends AbstractUserSession<S>> extends NettyHandler implements Logging {
-    @NonNull
-    protected final WrapperNioSocketChannel<S> session;
+public interface InboundPacket<S extends AbstractUserSession<S>> {
+    /**
+     * Decodes the message from it's binary representation.
+     * <p>
+     * Be aware that this object instance may have been newly instantiated using
+     * {@link net.daporkchop.lib.unsafe.PUnsafe#allocateInstance(Class)}, so implementing classes should assume that
+     * no constructors or default values will be set.
+     *
+     * @param in      a {@link DataIn} to read data from
+     * @param session the session that the packet was received on
+     */
+    void decode(@NonNull DataIn in, @NonNull S session) throws IOException;
 
-    @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        this.session.dataPipeline().fireReceived(msg, -1);
-    }
-
-    @Override
-    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-        this.session.dataPipeline().fireOpened();
-
-        super.channelRegistered(ctx);
-    }
-
-    @Override
-    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-        this.session.dataPipeline().fireClosed();
-        this.session.closeAsync();
-
-        super.channelUnregistered(ctx);
-    }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        this.session.dataPipeline().fireExceptionCaught(cause);
-
-        super.exceptionCaught(ctx, cause);
-    }
+    /**
+     * Handles this packet.
+     * <p>
+     * One may assume that {@link #decode(DataIn, AbstractUserSession)} will have been called successfully before this method is called.
+     *
+     * @param session the session that the packet was received on
+     */
+    void handle(@NonNull S session);
 }

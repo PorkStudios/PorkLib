@@ -15,7 +15,8 @@
 
 package mc;
 
-import io.netty.channel.ChannelOption;
+import mc.packet.HandshakePacket;
+import mc.packet.PingPacket;
 import net.daporkchop.lib.logging.LogAmount;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.endpoint.PClient;
@@ -23,45 +24,30 @@ import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.tcp.TCPEngine;
 
 import java.net.InetSocketAddress;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * @author DaPorkchop_
  */
 public class TestMCPinger implements Logging {
-    protected static long startTime = -1L;
-    protected static CompletableFuture<Long> endTime = new CompletableFuture<>();
+    protected static final String HOST = "mc.pepsi.team";
+    protected static final int PORT = 25565;
 
     public static void main(String... args) {
         logger.enableANSI().setLogAmount(LogAmount.DEBUG).info("Starting client...");
 
-        PClient<?> client = ClientBuilder.of(new MinecraftPingProtocol())
-                .engine(TCPEngine.builder()
-                        .clientOption(ChannelOption.TCP_NODELAY, true)
-                        .framer(new MinecraftPacketFramer())
-                        .build())
-                .address(new InetSocketAddress("mc.pepsi.team", 25565))
-                .build();
+        PClient<MCSession> client = ClientBuilder.of(new MinecraftPingProtocol())
+                                                 .engine(TCPEngine.defaultInstance())
+                                                 .address(new InetSocketAddress(HOST, PORT))
+                                                 .build();
 
         logger.info("Pinging server...");
-        client.write(out -> out
-                //handshake
-                .writeVarInt(0x00) //packet id
-                .writeVarInt(-1) //protocol version
-                .writeUTF("localhost")
-                .writeUShort(25565) //port
-                .writeVarInt(0x01) //next state
-        ).write(out -> out
-                //request
-                .writeVarInt(0x00) //packet id
-        ).write(out -> out
-                //ping
-                .writeVarInt(0x01)
-                .writeLong(startTime = System.currentTimeMillis())
-        ).flushBuffer();
+        client.send(new HandshakePacket(-1, HOST, PORT, 0x01))
+              .write(out -> out.writeVarInt(0x00)) //currently there's no method for protocol states, so we have to hack this in due to conflicting packet IDs
+              .sendFlush(new PingPacket(System.currentTimeMillis()));
 
-        endTime.thenAccept(ping -> {
-            logger.success("Ping: %dms", System.currentTimeMillis() - ping);
+        client.userSession().ping.addListener(ping -> {
+            logger.success("Response: %s", client.userSession().response)
+                  .success("Ping: %dms", ping);
             client.closeAsync().addListener(v -> logger.success("Closed."));
         });
     }

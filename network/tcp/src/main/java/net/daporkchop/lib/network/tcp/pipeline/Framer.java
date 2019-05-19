@@ -56,9 +56,17 @@ public interface Framer<S extends AbstractUserSession<S>> extends ReceivedListen
      * @param session the session that the packet will be sent on
      * @param packet  a buffer containing the encoded packet
      * @param channel the id that the channel will be sent on
-     * @param frames     buffers may be passed to this method for sequential sending
+     * @param frames  buffers may be passed to this method for sequential sending
      */
     void pack(@NonNull S session, @NonNull ByteBuf packet, int channel, @NonNull PackOut<S> frames);
+
+    @FunctionalInterface
+    interface UnpackOut<S extends AbstractUserSession<S>> extends ReceivedListener.Fire<S> {
+    }
+
+    @FunctionalInterface
+    interface PackOut<S extends AbstractUserSession<S>> extends SendingListener.Fire<S> {
+    }
 
     class DefaultFramer<S extends AbstractUserSession<S>> implements Framer<S> {
         @Override
@@ -78,17 +86,9 @@ public interface Framer<S extends AbstractUserSession<S>> extends ReceivedListen
         @Override
         public void pack(@NonNull S session, @NonNull ByteBuf packet, int channel, @NonNull PackOut<S> frames) {
             frames.sending(session, packet.alloc().ioBuffer(8)
-            .writeInt(packet.readableBytes())
-            .writeInt(channel), -1);
+                                          .writeInt(packet.readableBytes())
+                                          .writeInt(channel), -1);
             frames.sending(session, packet, -1);
         }
-    }
-
-    @FunctionalInterface
-    interface UnpackOut<S extends AbstractUserSession<S>> extends ReceivedListener.Fire<S> {
-    }
-
-    @FunctionalInterface
-    interface PackOut<S extends AbstractUserSession<S>> extends SendingListener.Fire<S> {
     }
 }

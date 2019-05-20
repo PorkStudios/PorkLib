@@ -17,10 +17,9 @@ package net.daporkchop.lib.network.sctp.endpoint;
 
 import io.netty.channel.Channel;
 import lombok.NonNull;
-import net.daporkchop.lib.network.EndpointType;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.endpoint.builder.EndpointBuilder;
-import net.daporkchop.lib.network.netty.NettyEndpoint;
+import net.daporkchop.lib.network.netty.endpoint.NettyEndpoint;
 import net.daporkchop.lib.network.sctp.SCTPEngine;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 

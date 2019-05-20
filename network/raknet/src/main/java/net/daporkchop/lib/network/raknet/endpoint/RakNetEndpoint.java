@@ -13,17 +13,16 @@
  *
  */
 
-package net.daporkchop.lib.network.netty;
+package net.daporkchop.lib.network.raknet.endpoint;
 
-import io.netty.channel.Channel;
-import io.netty.channel.EventLoopGroup;
-import io.netty.util.concurrent.Future;
+import com.nukkitx.network.raknet.RakNet;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.endpoint.builder.EndpointBuilder;
 import net.daporkchop.lib.network.protocol.Protocol;
+import net.daporkchop.lib.network.raknet.RakNetEngine;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
@@ -31,51 +30,13 @@ import net.daporkchop.lib.network.session.AbstractUserSession;
  */
 @Getter
 @Accessors(fluent = true)
-public abstract class NettyEndpoint<Impl extends PEndpoint<Impl, S>, S extends AbstractUserSession<S>, C extends Channel, E extends NettyEngine> implements PEndpoint<Impl, S> {
-    protected final E transportEngine;
+public abstract class RakNetEndpoint<Impl extends PEndpoint<Impl, S>, S extends AbstractUserSession<S>, R extends RakNet> implements PEndpoint<Impl, S> {
+    protected final RakNetEngine transportEngine;
     protected final Protocol<S> protocol;
-    protected final EventLoopGroup group;
+    protected R rakNet;
 
-    /**
-     * The Netty channel instance that backs this endpoint.
-     * <p>
-     * Must be set before implementation constructor returns!
-     */
-    protected C channel;
-
-    @SuppressWarnings("unchecked")
-    protected NettyEndpoint(@NonNull EndpointBuilder builder) {
-        this.transportEngine = (E) builder.engine();
+    public RakNetEndpoint(@NonNull EndpointBuilder<?, ?, S> builder)    {
+        this.transportEngine = (RakNetEngine) builder.engine();
         this.protocol = builder.protocol();
-
-        EventLoopGroup group;
-        if ((group = this.transportEngine.group()) == null) {
-            group = LoopPool.defaultGroup();
-        } else if (this.transportEngine.autoShutdownGroup()) {
-            LoopPool.useGroup(group);
-        }
-        this.group = group;
-    }
-
-    @Override
-    public void closeNow() {
-        this.channel.close().syncUninterruptibly();
-        if (this.group != null) {
-            this.group.shutdownGracefully().syncUninterruptibly();
-        }
-    }
-
-    @Override
-    public boolean isClosed() {
-        return this.channel.isOpen();
-    }
-
-    @Override
-    public Future<Void> closeAsync() {
-        return this.channel.close().addListener(v -> {
-            if (this.transportEngine.autoShutdownGroup()) {
-                LoopPool.returnGroup(this.group);
-            }
-        });
     }
 }

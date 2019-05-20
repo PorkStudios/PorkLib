@@ -38,6 +38,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * An implementation of {@link TransportEngine} for the SCTP/IP transport protocol.
@@ -49,7 +50,7 @@ import java.util.Map;
  * @author DaPorkchop_
  */
 public class SCTPEngine extends NettyEngine {
-    protected static final Collection<Reliability> RELIABILITIES = EnumSet.of(Reliability.RELIABLE, Reliability.RELIABLE_ORDERED);
+    protected static final Set<Reliability> RELIABILITIES = Collections.unmodifiableSet(EnumSet.of(Reliability.RELIABLE, Reliability.RELIABLE_ORDERED));
 
     @SuppressWarnings("unchecked")
     public static <B extends Builder<B>> B builder() {

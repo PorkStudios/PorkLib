@@ -13,21 +13,33 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.endpoint;
+package net.daporkchop.lib.network.raknet.impl;
 
-import io.netty.channel.Channel;
-import lombok.NonNull;
-import net.daporkchop.lib.network.endpoint.PEndpoint;
-import net.daporkchop.lib.network.endpoint.builder.EndpointBuilder;
-import net.daporkchop.lib.network.netty.endpoint.NettyEndpoint;
+import com.nukkitx.network.raknet.EncapsulatedPacket;
+import com.nukkitx.network.raknet.RakNetSessionListener;
+import com.nukkitx.network.raknet.RakNetState;
+import com.nukkitx.network.util.DisconnectReason;
+import io.netty.buffer.ByteBuf;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.tcp.TCPEngine;
+import net.daporkchop.lib.network.transport.NetSession;
 
 /**
  * @author DaPorkchop_
  */
-public abstract class TCPEndpoint<Impl extends PEndpoint<Impl, S>, S extends AbstractUserSession<S>, C extends Channel> extends NettyEndpoint<Impl, S, C, TCPEngine> {
-    protected TCPEndpoint(@NonNull EndpointBuilder builder)    {
-        super(builder);
+public class SessionListener<S extends AbstractUserSession<S>> implements RakNetSessionListener, NetSession<S> {
+    @Override
+    public void onSessionChangeState(RakNetState state) {
+    }
+
+    @Override
+    public void onDisconnect(DisconnectReason reason) {
+    }
+
+    @Override
+    public void onEncapsulated(EncapsulatedPacket packet) {
+    }
+
+    @Override
+    public void onDirect(ByteBuf buf) {
     }
 }

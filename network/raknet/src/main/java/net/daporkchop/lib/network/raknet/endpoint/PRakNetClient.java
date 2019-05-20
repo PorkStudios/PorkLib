@@ -13,21 +13,49 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.endpoint;
+package net.daporkchop.lib.network.raknet.endpoint;
 
-import io.netty.channel.Channel;
+import com.nukkitx.network.raknet.RakNetClient;
+import com.nukkitx.network.raknet.RakNetClientSession;
+import com.nukkitx.network.raknet.RakNetSession;
+import io.netty.channel.EventLoopGroup;
 import lombok.NonNull;
-import net.daporkchop.lib.network.endpoint.PEndpoint;
-import net.daporkchop.lib.network.endpoint.builder.EndpointBuilder;
-import net.daporkchop.lib.network.netty.endpoint.NettyEndpoint;
+import net.daporkchop.lib.network.endpoint.PClient;
+import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
+import net.daporkchop.lib.network.protocol.Protocol;
+import net.daporkchop.lib.network.raknet.impl.SessionListener;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.tcp.TCPEngine;
+import net.daporkchop.lib.network.transport.NetSession;
+
+import java.net.InetSocketAddress;
 
 /**
  * @author DaPorkchop_
  */
-public abstract class TCPEndpoint<Impl extends PEndpoint<Impl, S>, S extends AbstractUserSession<S>, C extends Channel> extends NettyEndpoint<Impl, S, C, TCPEngine> {
-    protected TCPEndpoint(@NonNull EndpointBuilder builder)    {
+public class PRakNetClient<S extends AbstractUserSession<S>> extends RakNetEndpoint<PClient<S>, S, RakNetClient> implements PClient<S> {
+    protected final RakNetClientSession session;
+
+    public PRakNetClient(@NonNull ClientBuilder<S> builder) {
         super(builder);
+
+        EventLoopGroup group = this.transportEngine.useGroup();
+        if (group != null)  {
+            this.rakNet = new RakNetClient(new InetSocketAddress(0), group);
+        } else {
+            this.rakNet = new RakNetClient(new InetSocketAddress(0));
+        }
+        this.session = (RakNetClientSession) this.rakNet.connect(builder.address());
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public S userSession() {
+        return ((SessionListener<S>) this.session.getListener()).userSession();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public NetSession<S> internalSession() {
+        return (SessionListener<S>) this.session.getListener();
     }
 }

@@ -16,7 +16,7 @@
 package net.daporkchop.lib.network.pipeline;
 
 import net.daporkchop.lib.network.session.Reliability;
-import net.daporkchop.lib.network.util.TypeParameterMatcher;
+import net.daporkchop.lib.network.util.GenericMatcher;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
@@ -47,8 +47,8 @@ class Node<S extends AbstractUserSession<S>> implements FireEvents<S> {
     protected Node<S> next;
     protected Node<S> prev;
 
-    private final TypeParameterMatcher canReceive;
-    private final TypeParameterMatcher canSend;
+    private final GenericMatcher canReceive;
+    private final GenericMatcher canSend;
 
     protected final Context context = new Context();
 
@@ -57,8 +57,8 @@ class Node<S extends AbstractUserSession<S>> implements FireEvents<S> {
         this.name = name;
         this.listener = listener;
 
-        this.canReceive = listener instanceof ReceivedListener ? TypeParameterMatcher.find(listener.getClass(), ReceivedListener.class, "I") : null;
-        this.canSend = listener instanceof SendingListener ? TypeParameterMatcher.find(listener.getClass(), SendingListener.class, "I") : null;
+        this.canReceive = listener instanceof ReceivedListener ? GenericMatcher.find(listener.getClass(), ReceivedListener.class, "I") : null;
+        this.canSend = listener instanceof SendingListener ? GenericMatcher.find(listener.getClass(), SendingListener.class, "I") : null;
     }
 
     @Override
@@ -87,11 +87,11 @@ class Node<S extends AbstractUserSession<S>> implements FireEvents<S> {
     }
 
     protected boolean canReceive(@NonNull Object o) {
-        return this.canReceive != null && this.canReceive.test(o);
+        return this.canReceive != null && this.canReceive.getType().isInstance(o);
     }
 
     protected boolean canSend(@NonNull Object o) {
-        return this.canSend != null && this.canSend.test(o);
+        return this.canSend != null && this.canSend.getType().isInstance(o);
     }
 
     protected void rebuild() {

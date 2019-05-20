@@ -21,6 +21,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.network.pipeline.Pipeline;
 import net.daporkchop.lib.network.pipeline.event.ReceivedListener;
 import net.daporkchop.lib.network.pipeline.event.SendingListener;
+import net.daporkchop.lib.network.pipeline.handler.Codec;
 import net.daporkchop.lib.network.pipeline.util.EventContext;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.Reliability;
@@ -31,7 +32,7 @@ import net.daporkchop.lib.network.tcp.netty.session.TCPNioSocket;
  *
  * @author DaPorkchop_
  */
-public abstract class Framer<S extends AbstractUserSession<S>> implements ReceivedListener<S, ByteBuf>, SendingListener<S, ByteBuf> {
+public abstract class Framer<S extends AbstractUserSession<S>> implements Codec<S, ByteBuf, ByteBuf> {
     protected CompositeByteBuf cumulation;
     protected int ctr = 0;
 

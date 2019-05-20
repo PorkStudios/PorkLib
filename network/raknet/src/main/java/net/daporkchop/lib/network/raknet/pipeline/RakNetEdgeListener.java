@@ -13,33 +13,13 @@
  *
  */
 
-package net.daporkchop.lib.network.raknet.impl;
+package net.daporkchop.lib.network.raknet.pipeline;
 
-import com.nukkitx.network.raknet.EncapsulatedPacket;
-import com.nukkitx.network.raknet.RakNetSessionListener;
-import com.nukkitx.network.raknet.RakNetState;
-import com.nukkitx.network.util.DisconnectReason;
-import io.netty.buffer.ByteBuf;
+import net.daporkchop.lib.network.pipeline.PipelineEdgeListener;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.transport.NetSession;
 
 /**
  * @author DaPorkchop_
  */
-public class SessionListener<S extends AbstractUserSession<S>> implements RakNetSessionListener, NetSession<S> {
-    @Override
-    public void onSessionChangeState(RakNetState state) {
-    }
-
-    @Override
-    public void onDisconnect(DisconnectReason reason) {
-    }
-
-    @Override
-    public void onEncapsulated(EncapsulatedPacket packet) {
-    }
-
-    @Override
-    public void onDirect(ByteBuf buf) {
-    }
+public class RakNetEdgeListener<S extends AbstractUserSession<S>> extends PipelineEdgeListener<S> {
 }

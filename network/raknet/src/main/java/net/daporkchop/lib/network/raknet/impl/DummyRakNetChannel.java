@@ -13,47 +13,51 @@
  *
  */
 
-package net.daporkchop.lib.network.raknet.endpoint;
+package net.daporkchop.lib.network.raknet.impl;
 
-import com.nukkitx.network.raknet.RakNetClient;
-import com.nukkitx.network.raknet.RakNetClientSession;
-import io.netty.channel.EventLoopGroup;
+import io.netty.util.concurrent.Future;
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.network.endpoint.PClient;
-import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
-import net.daporkchop.lib.network.raknet.impl.PRakNetSession;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.transport.NetSession;
-
-import java.net.InetSocketAddress;
+import net.daporkchop.lib.network.session.PChannel;
+import net.daporkchop.lib.network.session.Reliability;
+import net.daporkchop.lib.network.transport.TransportEngine;
 
 /**
  * @author DaPorkchop_
  */
-public class PRakNetClient<S extends AbstractUserSession<S>> extends RakNetEndpoint<PClient<S>, S, RakNetClient> implements PClient<S> {
-    protected final RakNetClientSession session;
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true, chain = true)
+public class DummyRakNetChannel<S extends AbstractUserSession<S>> implements PChannel<S> {
+    @NonNull
+    protected final PRakNetSession<S> internalSession;
+    protected final int id;
+    @Setter
+    @NonNull
+    protected Reliability fallbackReliability = Reliability.RELIABLE_ORDERED;
 
-    public PRakNetClient(@NonNull ClientBuilder<S> builder) {
-        super(builder);
-
-        if (this.group != null)  {
-            this.rakNet = new RakNetClient(new InetSocketAddress(0), this.group);
-        } else {
-            this.rakNet = new RakNetClient(new InetSocketAddress(0));
-        }
-        this.session = (RakNetClientSession) this.rakNet.connect(builder.address());
-        this.session.setListener(new PRakNetSession<>(this, this.session));
+    @Override
+    public S session() {
+        return this.internalSession.userSession;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public S userSession() {
-        return ((PRakNetSession<S>) this.session.getListener()).userSession();
+    public PChannel<S> send(@NonNull Object packet, Reliability reliability) {
+        this.internalSession.send(packet, reliability, this.id);
+        return this;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public NetSession<S> internalSession() {
-        return (PRakNetSession<S>) this.session.getListener();
+    public Future<Void> sendFuture(@NonNull Object packet, Reliability reliability) {
+        return this.internalSession.sendAsync(packet, reliability, this.id);
+    }
+
+    @Override
+    public TransportEngine transportEngine() {
+        return this.internalSession.endpoint.transportEngine();
     }
 }

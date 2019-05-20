@@ -35,7 +35,6 @@ import net.daporkchop.lib.network.sctp.pipeline.SCTPEdgeListener;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.PChannel;
 import net.daporkchop.lib.network.session.Reliability;
-import net.daporkchop.lib.network.transport.ChanneledPacket;
 import net.daporkchop.lib.network.transport.NetSession;
 import net.daporkchop.lib.network.transport.TransportEngine;
 import net.daporkchop.lib.network.transport.WrappedPacket;
@@ -49,7 +48,7 @@ import java.util.Map;
 @Getter
 @Accessors(fluent = true)
 public class SCTPNioChannel<S extends AbstractUserSession<S>> extends NioSctpChannel implements NetSession<S> {
-    protected static final SendingListener.QueueAdder QUEUE_ADDER = (sendQueue, msg, reliability, channel) -> {
+    protected static final SendingListener.QueueAdder QUEUE_ADDER = (sendQueue, S session, msg, reliability, channel) -> {
         if (msg instanceof SctpMessage) {
             sendQueue.add(msg);
         } else if (msg instanceof ByteBuf)  {
@@ -115,16 +114,16 @@ public class SCTPNioChannel<S extends AbstractUserSession<S>> extends NioSctpCha
     }
 
     @Override
-    public NetSession<S> send(@NonNull Object packet, Reliability reliability, int channelId) {
+    public NetSession<S> send(@NonNull Object packet, Reliability reliability, int channel) {
         reliability = this.reliability(reliability);
-        this.write(reliability == Reliability.RELIABLE_ORDERED && channelId == 0 ? packet : new WrappedPacket<>(packet, channelId, reliability));
+        this.write(reliability == Reliability.RELIABLE_ORDERED && channel == 0 ? packet : new WrappedPacket<>(packet, channel, reliability));
         return this;
     }
 
     @Override
-    public NetSession<S> sendFlush(@NonNull Object packet, Reliability reliability, int channelId) {
+    public NetSession<S> sendFlush(@NonNull Object packet, Reliability reliability, int channel) {
         reliability = this.reliability(reliability);
-        this.write(reliability == Reliability.RELIABLE_ORDERED && channelId == 0 ? packet : new WrappedPacket<>(packet, channelId, reliability));
+        this.write(reliability == Reliability.RELIABLE_ORDERED && channel == 0 ? packet : new WrappedPacket<>(packet, channel, reliability));
         return this;
     }
 
@@ -141,15 +140,15 @@ public class SCTPNioChannel<S extends AbstractUserSession<S>> extends NioSctpCha
     }
 
     @Override
-    public Future<Void> sendAsync(@NonNull Object packet, Reliability reliability, int channelId) {
+    public Future<Void> sendAsync(@NonNull Object packet, Reliability reliability, int channel) {
         reliability = this.reliability(reliability);
-        return this.write(reliability == Reliability.RELIABLE_ORDERED && channelId == 0 ? packet : new WrappedPacket<>(packet, channelId, reliability));
+        return this.write(reliability == Reliability.RELIABLE_ORDERED && channel == 0 ? packet : new WrappedPacket<>(packet, channel, reliability));
     }
 
     @Override
-    public Future<Void> sendFlushAsync(@NonNull Object packet, Reliability reliability, int channelId) {
+    public Future<Void> sendFlushAsync(@NonNull Object packet, Reliability reliability, int channel) {
         reliability = this.reliability(reliability);
-        return this.write(reliability == Reliability.RELIABLE_ORDERED && channelId == 0 ? packet : new WrappedPacket<>(packet, channelId, reliability));
+        return this.write(reliability == Reliability.RELIABLE_ORDERED && channel == 0 ? packet : new WrappedPacket<>(packet, channel, reliability));
     }
 
     public Reliability reliability(Reliability reliability) {

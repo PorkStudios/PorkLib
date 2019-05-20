@@ -105,14 +105,14 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
     }
 
     @Override
-    public NetSession<S> send(@NonNull Object packet, Reliability reliability, int channelId) {
-        this.write(channelId == 0 ? packet : new ChanneledPacket<>(packet, channelId));
+    public NetSession<S> send(@NonNull Object packet, Reliability reliability, int channel) {
+        this.write(channel == 0 ? packet : new ChanneledPacket<>(packet, channel));
         return this;
     }
 
     @Override
-    public NetSession<S> sendFlush(@NonNull Object packet, Reliability reliability, int channelId) {
-        this.writeAndFlush(channelId == 0 ? packet : new ChanneledPacket<>(packet, channelId));
+    public NetSession<S> sendFlush(@NonNull Object packet, Reliability reliability, int channel) {
+        this.writeAndFlush(channel == 0 ? packet : new ChanneledPacket<>(packet, channel));
         return this;
     }
 
@@ -127,13 +127,13 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
     }
 
     @Override
-    public Future<Void> sendAsync(@NonNull Object packet, Reliability reliability, int channelId) {
-        return this.write(channelId == 0 ? packet : new ChanneledPacket<>(packet, channelId));
+    public Future<Void> sendAsync(@NonNull Object packet, Reliability reliability, int channel) {
+        return this.write(channel == 0 ? packet : new ChanneledPacket<>(packet, channel));
     }
 
     @Override
-    public Future<Void> sendFlushAsync(@NonNull Object packet, Reliability reliability, int channelId) {
-        return this.writeAndFlush(channelId == 0 ? packet : new ChanneledPacket<>(packet, channelId));
+    public Future<Void> sendFlushAsync(@NonNull Object packet, Reliability reliability, int channel) {
+        return this.writeAndFlush(channel == 0 ? packet : new ChanneledPacket<>(packet, channel));
     }
 
     @Override

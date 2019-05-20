@@ -16,6 +16,8 @@
 package net.daporkchop.lib.network.raknet.endpoint;
 
 import com.nukkitx.network.raknet.RakNet;
+import io.netty.channel.EventLoopGroup;
+import io.netty.util.concurrent.EventExecutor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
@@ -32,11 +34,13 @@ import net.daporkchop.lib.network.session.AbstractUserSession;
 @Accessors(fluent = true)
 public abstract class RakNetEndpoint<Impl extends PEndpoint<Impl, S>, S extends AbstractUserSession<S>, R extends RakNet> implements PEndpoint<Impl, S> {
     protected final RakNetEngine transportEngine;
+    protected final EventLoopGroup group;
     protected final Protocol<S> protocol;
     protected R rakNet;
 
     public RakNetEndpoint(@NonNull EndpointBuilder<?, ?, S> builder)    {
         this.transportEngine = (RakNetEngine) builder.engine();
+        this.group = this.transportEngine.useGroup();
         this.protocol = builder.protocol();
     }
 }

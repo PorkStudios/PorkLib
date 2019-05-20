@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.network.raknet;
 
+import com.nukkitx.network.raknet.RakNetReliability;
 import io.netty.channel.EventLoopGroup;
 import lombok.AccessLevel;
 import lombok.NonNull;
@@ -31,7 +32,9 @@ import net.daporkchop.lib.network.transport.TransportEngine;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -41,6 +44,34 @@ import java.util.Set;
 @Accessors(fluent = true)
 public class RakNetEngine implements TransportEngine {
     protected static final Set<Reliability> RELIABILITIES = Collections.unmodifiableSet(EnumSet.allOf(Reliability.class));
+
+    protected static final Map<Reliability, RakNetReliability> TO_RAKNET = new EnumMap<>(Reliability.class);
+    protected static final Map<RakNetReliability, Reliability> FROM_RAKNET = new EnumMap<>(RakNetReliability.class);
+
+    static {
+        TO_RAKNET.put(Reliability.UNRELIABLE, RakNetReliability.UNRELIABLE);
+        TO_RAKNET.put(Reliability.UNRELIABLE_SEQUENCED, RakNetReliability.UNRELIABLE_SEQUENCED);
+        TO_RAKNET.put(Reliability.RELIABLE, RakNetReliability.RELIABLE);
+        TO_RAKNET.put(Reliability.RELIABLE_ORDERED, RakNetReliability.RELIABLE_ORDERED);
+        TO_RAKNET.put(Reliability.RELIABLE_SEQUENCED, RakNetReliability.RELIABLE_SEQUENCED);
+
+        FROM_RAKNET.put(RakNetReliability.UNRELIABLE, Reliability.UNRELIABLE);
+        FROM_RAKNET.put(RakNetReliability.UNRELIABLE_SEQUENCED, Reliability.UNRELIABLE_SEQUENCED);
+        FROM_RAKNET.put(RakNetReliability.RELIABLE, Reliability.RELIABLE);
+        FROM_RAKNET.put(RakNetReliability.RELIABLE_ORDERED, Reliability.RELIABLE_ORDERED);
+        FROM_RAKNET.put(RakNetReliability.RELIABLE_SEQUENCED, Reliability.RELIABLE_SEQUENCED);
+        FROM_RAKNET.put(RakNetReliability.UNRELIABLE_WITH_ACK_RECEIPT, Reliability.UNRELIABLE);
+        FROM_RAKNET.put(RakNetReliability.RELIABLE_WITH_ACK_RECEIPT, Reliability.RELIABLE);
+        FROM_RAKNET.put(RakNetReliability.RELIABLE_ORDERED_WITH_ACK_RECEIPT, Reliability.RELIABLE_ORDERED);
+    }
+
+    public static RakNetReliability toRakNet(@NonNull Reliability reliability)  {
+        return TO_RAKNET.get(reliability);
+    }
+
+    public static Reliability fromRakNet(@NonNull RakNetReliability reliability)  {
+        return FROM_RAKNET.get(reliability);
+    }
 
     public static RakNetEngine defaultInstance() {
         return new RakNetEngine(null, true);

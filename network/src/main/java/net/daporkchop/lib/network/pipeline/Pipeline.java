@@ -55,15 +55,15 @@ protected static  <S extends AbstractUserSession<S>> PipelineListener<S> noopLis
     protected final PipelineEdgeListener<S> listener;
 
     protected List<Object> sendQueue;
-    protected final SendingListener.QueueAdder queueAdder;
+    protected final SendingListener.QueueAdder<S> queueAdder;
 
     protected int fallbackIdCounter = 0;
 
     public Pipeline(@NonNull S session, @NonNull PipelineEdgeListener<S> listener)  {
-        this(session, listener, (sendQueue, msg, reliability, channel) -> sendQueue.add(msg));
+        this(session, listener, (sendQueue, s, msg, reliability, channel) -> sendQueue.add(msg));
     }
 
-    public Pipeline(@NonNull S session, @NonNull PipelineEdgeListener<S> listener, @NonNull SendingListener.QueueAdder queueAdder) {
+    public Pipeline(@NonNull S session, @NonNull PipelineEdgeListener<S> listener, @NonNull SendingListener.QueueAdder<S> queueAdder) {
         this.session = session;
         this.listener = listener;
         this.queueAdder = queueAdder;
@@ -96,7 +96,7 @@ protected static  <S extends AbstractUserSession<S>> PipelineListener<S> noopLis
         }
     }
 
-    public void fireSending(@NonNull Object msg, Reliability reliability, int channel, @NonNull List<Object> sendQueue) {
+    public void fireSending(@NonNull Object msg, Reliability reliability, int channel, List<Object> sendQueue) {
         synchronized (this.mutex) {
             this.sendQueue = sendQueue;
             this.tail.context.sending(this.session, msg, reliability, channel);
@@ -215,7 +215,7 @@ protected static  <S extends AbstractUserSession<S>> PipelineListener<S> noopLis
         }
     }
 
-    protected void addCallback(S session, @NonNull Object msg, Reliability reliability, int channel)    {
-        this.queueAdder.add(this.sendQueue, msg, reliability, channel);
+    protected void addCallback(@NonNull S session, @NonNull Object msg, Reliability reliability, int channel)    {
+        this.queueAdder.add(this.sendQueue, session, msg, reliability, channel);
     }
 }

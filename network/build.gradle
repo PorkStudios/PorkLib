@@ -19,8 +19,5 @@ dependencies {
     compile project(":encoding")
     compile project(":logging")
 
-    exampleCompile project(":network:network-sctp")
-    exampleCompile project(":network:network-tcp")
-
     compile "io.netty:netty-common:$nettyVersion"
 }

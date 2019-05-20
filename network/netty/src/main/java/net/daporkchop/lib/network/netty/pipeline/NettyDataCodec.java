@@ -13,11 +13,10 @@
  *
  */
 
-package net.daporkchop.lib.network.sctp.pipeline;
+package net.daporkchop.lib.network.netty.pipeline;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.channel.sctp.SctpMessage;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -34,14 +33,12 @@ import net.daporkchop.lib.network.session.Reliability;
 import java.io.IOException;
 
 /**
- * Handles encoding/decoding packets when using a {@link DataProtocol}.
- *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public class SCTPDataCodec<S extends AbstractUserSession<S>> implements ReceivedListener<S, SctpMessage>, SendingListener<S, Object> {
+public class NettyDataCodec<S extends AbstractUserSession<S>> implements ReceivedListener<S, ByteBuf>, SendingListener<S, Object> {
     @NonNull
     protected final DataProtocol<S> protocol;
     @NonNull
@@ -51,9 +48,9 @@ public class SCTPDataCodec<S extends AbstractUserSession<S>> implements Received
     protected final NettyByteBufOut out = new NettyByteBufOut();
 
     @Override
-    public void received(@NonNull EventContext<S> context, @NonNull S session, @NonNull SctpMessage msg, int channel) {
+    public void received(@NonNull EventContext<S> context, @NonNull S session, @NonNull ByteBuf msg, int channel) {
         try {
-            Object decoded = this.protocol.codec().decode(session, this.in.buf(msg.content()), msg.streamIdentifier());
+            Object decoded = this.protocol.codec().decode(session, this.in.buf(msg), channel);
             if (decoded != null) {
                 context.received(session, decoded, channel);
             }

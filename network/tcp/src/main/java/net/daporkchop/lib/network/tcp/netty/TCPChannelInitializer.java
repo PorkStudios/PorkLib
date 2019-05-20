@@ -20,13 +20,13 @@ import io.netty.channel.ChannelInitializer;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.network.netty.pipeline.NettyDataCodec;
 import net.daporkchop.lib.network.pipeline.Pipeline;
 import net.daporkchop.lib.network.protocol.DataProtocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.tcp.netty.session.TCPNioSocket;
 import net.daporkchop.lib.network.tcp.endpoint.TCPEndpoint;
 import net.daporkchop.lib.network.tcp.pipeline.Framer;
-import net.daporkchop.lib.network.tcp.pipeline.TCPDataCodec;
 
 import java.util.function.Consumer;
 
@@ -59,8 +59,7 @@ public class TCPChannelInitializer<E extends TCPEndpoint<?, S, ?>, S extends Abs
         pipeline.addLast("tcp_framer", new Framer.DefaultFramer<>());
 
         if (this.endpoint.protocol() instanceof DataProtocol)   {
-            pipeline
-                    .addLast("protocol", new TCPDataCodec<>((DataProtocol<S>) this.endpoint.protocol(), channel.alloc()));
+            pipeline.addLast("protocol", new NettyDataCodec<>((DataProtocol<S>) this.endpoint.protocol(), channel.alloc()));
         }
 
         this.endpoint.protocol().pipelineInitializer().initPipeline(pipeline, channel.userSession());

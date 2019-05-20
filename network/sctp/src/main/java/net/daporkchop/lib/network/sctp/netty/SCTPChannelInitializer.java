@@ -21,11 +21,13 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.reference.InstancePool;
+import net.daporkchop.lib.network.netty.pipeline.NettyDataCodec;
 import net.daporkchop.lib.network.pipeline.Pipeline;
 import net.daporkchop.lib.network.protocol.DataProtocol;
 import net.daporkchop.lib.network.sctp.endpoint.SCTPEndpoint;
 import net.daporkchop.lib.network.sctp.netty.session.SCTPNioChannel;
-import net.daporkchop.lib.network.sctp.pipeline.SCTPDataCodec;
+import net.daporkchop.lib.network.sctp.pipeline.SCTPPacker;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 import java.util.function.Consumer;
@@ -59,8 +61,10 @@ public class SCTPChannelInitializer<E extends SCTPEndpoint<?, S, ?>, S extends A
 
         Pipeline<S> pipeline = channel.dataPipeline();
 
+        pipeline.addLast("sctp_packer", InstancePool.getInstance(SCTPPacker.class));
+
         if (this.endpoint.protocol() instanceof DataProtocol) {
-            pipeline.addLast("protocol", new SCTPDataCodec<>((DataProtocol<S>) this.endpoint.protocol(), channel.alloc()));
+            pipeline.addLast("protocol", new NettyDataCodec<>((DataProtocol<S>) this.endpoint.protocol(), channel.alloc()));
         }
 
         this.endpoint.protocol().pipelineInitializer().initPipeline(pipeline, channel.userSession());

@@ -13,43 +13,30 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.netty;
+package net.daporkchop.lib.network.sctp.pipeline;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.MessageToMessageEncoder;
-import lombok.Getter;
+import io.netty.channel.sctp.SctpMessage;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
+import net.daporkchop.lib.network.pipeline.event.SendingListener;
+import net.daporkchop.lib.network.pipeline.util.EventContext;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.Reliability;
-import net.daporkchop.lib.network.tcp.netty.session.TCPNioSocket;
-import net.daporkchop.lib.network.transport.ChanneledPacket;
-
-import java.util.List;
 
 /**
+ * Packs {@link ByteBuf}s into {@link SctpMessage}s.
+ *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-public class TCPWriter<S extends AbstractUserSession<S>> extends MessageToMessageEncoder<Object> {
-    @NonNull
-    protected final TCPNioSocket<S> session;
-
+public class SCTPPacker<S extends AbstractUserSession<S>> implements SendingListener<S, ByteBuf> {
     @Override
-    protected void encode(ChannelHandlerContext ctx, Object msg, List<Object> out) throws Exception {
-        int channel = 0;
-        if (msg instanceof ChanneledPacket) {
-            ChanneledPacket pck = (ChanneledPacket) msg;
-            msg = pck.packet();
-            channel = pck.channel();
-        }
-        if (msg instanceof ByteBuf) {
-            ((ByteBuf) msg).retain(); //prevent buf from being released unintentionally
-        }
-        this.session.dataPipeline().fireSending(msg, Reliability.RELIABLE_ORDERED, channel, out);
+    public void sending(@NonNull EventContext<S> context, @NonNull S session, @NonNull ByteBuf msg, Reliability reliability, int channel) {
+        boolean unordered = reliability == null || reliability != Reliability.RELIABLE;
+        context.sending(
+                session,
+                new SctpMessage(0, channel, unordered, msg),
+                unordered ? Reliability.RELIABLE : Reliability.RELIABLE_ORDERED,
+                channel
+        );
     }
 }

@@ -31,21 +31,21 @@ import net.daporkchop.lib.network.netty.NettyEngine;
 import net.daporkchop.lib.network.sctp.endpoint.SCTPClient;
 import net.daporkchop.lib.network.sctp.endpoint.SCTPServer;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.session.BaseUserSession;
 import net.daporkchop.lib.network.session.Reliability;
 import net.daporkchop.lib.network.transport.TransportEngine;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.Iterator;
 import java.util.Map;
 
 /**
  * An implementation of {@link TransportEngine} for the SCTP/IP transport protocol.
  * <p>
  * Default pipeline layout:
- * "protocol"    => {@link net.daporkchop.lib.network.sctp.pipeline.SCTPDataCodec} (only if endpoint protocol is {@link net.daporkchop.lib.network.protocol.DataProtocol})
+ * "sctp_packer" => {@link net.daporkchop.lib.network.sctp.pipeline.SCTPPacker}
+ * "protocol"    => {@link net.daporkchop.lib.network.netty.pipeline.NettyDataCodec} (only if endpoint protocol is {@link net.daporkchop.lib.network.protocol.DataProtocol})
+ *
  * @author DaPorkchop_
  */
 public class SCTPEngine extends NettyEngine {

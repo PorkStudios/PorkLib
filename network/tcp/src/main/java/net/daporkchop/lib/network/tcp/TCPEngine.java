@@ -44,7 +44,7 @@ import java.util.Map;
  * <p>
  * Default pipeline layout:
  * "tcp_framer"  => {@link net.daporkchop.lib.network.tcp.pipeline.Framer.DefaultFramer}
- * "protocol"    => {@link net.daporkchop.lib.network.tcp.pipeline.TCPDataCodec} (only if endpoint protocol is {@link net.daporkchop.lib.network.protocol.DataProtocol})
+ * "protocol"    => {@link net.daporkchop.lib.network.netty.pipeline.NettyDataCodec} (only if endpoint protocol is {@link net.daporkchop.lib.network.protocol.DataProtocol})
  * <p>
  * All internal sessions ({@link BaseUserSession#internalSession()}) for endpoints made using this transport engine will be instances of
  * {@link TCPSession}, allowing users to enable features such as SSL.

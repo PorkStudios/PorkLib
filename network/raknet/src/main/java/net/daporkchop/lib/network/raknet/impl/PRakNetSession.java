@@ -30,11 +30,14 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.binary.netty.NettyByteBufOut;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.network.pipeline.Pipeline;
+import net.daporkchop.lib.network.protocol.DataProtocol;
 import net.daporkchop.lib.network.raknet.RakNetEngine;
 import net.daporkchop.lib.network.raknet.endpoint.RakNetEndpoint;
+import net.daporkchop.lib.network.raknet.pipeline.RakNetDataCodec;
 import net.daporkchop.lib.network.raknet.pipeline.RakNetEdgeListener;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.PChannel;
@@ -43,6 +46,7 @@ import net.daporkchop.lib.network.transport.NetSession;
 import net.daporkchop.lib.network.transport.TransportEngine;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
+import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -56,8 +60,9 @@ public class PRakNetSession<S extends AbstractUserSession<S>> implements RakNetS
     protected final RakNetSession delegate;
     protected final S userSession;
     protected final Pipeline<S> dataPipeline;
-    protected final Promise<Void> closeFuture;
-    protected final EventExecutor executor;
+    protected final EventExecutor group;
+    protected final Promise<Void> connectFuture;
+    protected final Promise<Void> disconnectFuture;
 
     protected final DummyRakNetChannel<S> defaultChannel = new DummyRakNetChannel<>(this, 0);
     protected final Map<Integer, DummyRakNetChannel<S>> channels = PorkUtil.newSoftCache();
@@ -69,8 +74,9 @@ public class PRakNetSession<S extends AbstractUserSession<S>> implements RakNetS
     public PRakNetSession(@NonNull RakNetEndpoint<?, S, ?> endpoint, @NonNull RakNetSession delegate) {
         this.endpoint = endpoint;
         this.delegate = delegate;
-        this.executor = endpoint.group().next();
-        this.closeFuture = this.executor.newPromise();
+        this.group = endpoint.group().next();
+        this.connectFuture = this.group.newPromise();
+        this.disconnectFuture = this.group.newPromise();
 
         this.userSession = endpoint.protocol().sessionFactory().newSession();
         PUnsafe.putObject(this.userSession, ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);
@@ -91,19 +97,23 @@ public class PRakNetSession<S extends AbstractUserSession<S>> implements RakNetS
     @Override
     public void onSessionChangeState(RakNetState state) {
         if (state == RakNetState.CONNECTED) {
+            if (this.endpoint.protocol() instanceof DataProtocol) {
+                this.dataPipeline.addLast("protocol", new RakNetDataCodec<>((DataProtocol<S>) this.endpoint.protocol(), this.delegate));
+            }
+
             this.dataPipeline.fireOpened();
+            this.connectFuture.setSuccess(null);
         }
     }
 
     @Override
     public void onDisconnect(DisconnectReason reason) {
         this.dataPipeline.fireClosed();
-        this.closeFuture.setSuccess(null);
     }
 
     @Override
     public void onEncapsulated(EncapsulatedPacket packet) {
-        //TODO: handle packets lol
+        this.dataPipeline.fireReceived(packet.getBuffer(), packet.getOrderingChannel() & 0xFFFF);
     }
 
     @Override
@@ -136,7 +146,7 @@ public class PRakNetSession<S extends AbstractUserSession<S>> implements RakNetS
 
     @Override
     public Future<Void> sendAsync(@NonNull Object packet, Reliability reliability) {
-        return this.executor.submit(() -> {
+        return this.group.submit(() -> {
             this.dataPipeline.fireSending(packet, reliability, 0, null);
             return null;
         });
@@ -144,7 +154,7 @@ public class PRakNetSession<S extends AbstractUserSession<S>> implements RakNetS
 
     @Override
     public Future<Void> sendAsync(@NonNull Object packet, Reliability reliability, int channel) {
-        return this.executor.submit(() -> {
+        return this.group.submit(() -> {
             this.dataPipeline.fireSending(packet, reliability, channel, null);
             return null;
         });
@@ -152,7 +162,16 @@ public class PRakNetSession<S extends AbstractUserSession<S>> implements RakNetS
 
     @Override
     public DataOut writer() {
-        return null;
+        return new NettyByteBufOut(this.delegate.allocateBuffer(32)) {
+            @Override
+            public void close() throws IOException {
+                if (this.buf.writerIndex() == 0) {
+                    this.buf.release();
+                } else {
+                    PRakNetSession.this.sendAsync(this.buf);
+                }
+            }
+        };
     }
 
     @Override
@@ -162,7 +181,7 @@ public class PRakNetSession<S extends AbstractUserSession<S>> implements RakNetS
 
     @Override
     public void closeNow() {
-        this.closeAsync().syncUninterruptibly();
+        this.delegate.disconnect();
     }
 
     @Override
@@ -172,8 +191,12 @@ public class PRakNetSession<S extends AbstractUserSession<S>> implements RakNetS
 
     @Override
     public Future<Void> closeAsync() {
-        this.delegate.disconnect();
-        return this.closeFuture;
+        this.group.submit(() -> {
+            this.delegate.disconnect();
+            this.disconnectFuture.trySuccess(null);
+            return null;
+        });
+        return this.disconnectFuture;
     }
 
     @Override

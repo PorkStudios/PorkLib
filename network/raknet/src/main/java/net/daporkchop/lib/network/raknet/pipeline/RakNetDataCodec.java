@@ -13,18 +13,16 @@
  *
  */
 
-package net.daporkchop.lib.network.netty.pipeline;
+package net.daporkchop.lib.network.raknet.pipeline;
 
+import com.nukkitx.network.raknet.RakNetSession;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.netty.NettyByteBufIn;
 import net.daporkchop.lib.binary.netty.NettyByteBufOut;
-import net.daporkchop.lib.network.pipeline.event.ReceivedListener;
-import net.daporkchop.lib.network.pipeline.event.SendingListener;
 import net.daporkchop.lib.network.pipeline.handler.Codec;
 import net.daporkchop.lib.network.pipeline.util.EventContext;
 import net.daporkchop.lib.network.protocol.DataProtocol;
@@ -39,11 +37,11 @@ import java.io.IOException;
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public class NettyDataCodec<S extends AbstractUserSession<S>> implements Codec<S, ByteBuf, Object> {
+public class RakNetDataCodec<S extends AbstractUserSession<S>> implements Codec<S, ByteBuf, Object> {
     @NonNull
     protected final DataProtocol<S> protocol;
     @NonNull
-    protected final ByteBufAllocator alloc;
+    protected final RakNetSession session;
 
     protected final NettyByteBufIn in = new NettyByteBufIn();
     protected final NettyByteBufOut out = new NettyByteBufOut();
@@ -68,7 +66,7 @@ public class NettyDataCodec<S extends AbstractUserSession<S>> implements Codec<S
         if (session.transportEngine().isBinary(msg)) {
             context.sending(session, msg, reliability, channel);
         } else {
-            ByteBuf buf = this.alloc.ioBuffer();
+            ByteBuf buf = this.session.allocateBuffer(32);
             try {
                 this.protocol.codec().encode(this.out.buf(buf), session, msg, channel);
             } catch (IOException e) {

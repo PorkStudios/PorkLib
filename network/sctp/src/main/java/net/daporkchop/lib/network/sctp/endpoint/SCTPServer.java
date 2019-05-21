@@ -25,6 +25,7 @@ import net.daporkchop.lib.network.sctp.netty.session.SCTPNioServerChannel;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -58,6 +59,6 @@ public class SCTPServer<S extends AbstractUserSession<S>> extends SCTPEndpoint<P
 
     @Override
     public Collection<S> sessions() {
-        return this.sessions.values();
+        return Collections.unmodifiableCollection(this.sessions.values());
     }
 }

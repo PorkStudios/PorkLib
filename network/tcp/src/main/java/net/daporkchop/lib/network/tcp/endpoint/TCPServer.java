@@ -25,6 +25,7 @@ import net.daporkchop.lib.network.tcp.netty.session.TCPNioServerSocket;
 import net.daporkchop.lib.network.tcp.netty.session.TCPNioSocket;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -58,6 +59,6 @@ public class TCPServer<S extends AbstractUserSession<S>> extends TCPEndpoint<PSe
 
     @Override
     public Collection<S> sessions() {
-        return this.sessions.values();
+        return Collections.unmodifiableCollection(this.sessions.values());
     }
 }

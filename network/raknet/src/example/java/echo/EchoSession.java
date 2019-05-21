@@ -13,55 +13,40 @@
  *
  */
 
-package net.daporkchop.lib.network.raknet.endpoint;
+package echo;
 
-import com.nukkitx.network.raknet.RakNet;
-import io.netty.channel.EventLoop;
-import io.netty.channel.EventLoopGroup;
-import io.netty.util.concurrent.EventExecutor;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.Promise;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.network.endpoint.PEndpoint;
-import net.daporkchop.lib.network.endpoint.builder.EndpointBuilder;
-import net.daporkchop.lib.network.protocol.Protocol;
-import net.daporkchop.lib.network.raknet.RakNetEngine;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.common.test.TestRandomData;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
 @Getter
-@Accessors(fluent = true)
-public abstract class RakNetEndpoint<Impl extends PEndpoint<Impl, S>, S extends AbstractUserSession<S>, R extends RakNet> implements PEndpoint<Impl, S> {
-    protected final RakNetEngine transportEngine;
-    protected final EventLoopGroup group;
-    protected final Protocol<S> protocol;
-    protected R rakNet;
+public class EchoSession extends AbstractUserSession<EchoSession> {
+    protected final byte[] secret = TestRandomData.getRandomBytes(1 << 20);
 
-    public RakNetEndpoint(@NonNull EndpointBuilder<?, ?, S> builder)    {
-        this.transportEngine = (RakNetEngine) builder.engine();
-        this.group = this.transportEngine.useGroup();
-        this.protocol = builder.protocol();
+    @Override
+    public void onOpened() {
+        super.onOpened();
     }
 
     @Override
-    public boolean isClosed() {
-        return !this.rakNet.isRunning();
+    public void onClosed() {
+        super.onClosed();
     }
 
     @Override
-    public void closeNow() {
-        this.rakNet.close();
+    public void onException(@NonNull Throwable t) {
+        super.onException(t);
     }
 
     @Override
-    public Future<Void> closeAsync() {
-        return this.group.submit(() -> {
-            this.rakNet.close();
-            return null;
-        });
+    public void onBinary(@NonNull DataIn in, int channel) throws IOException {
+        super.onBinary(in, channel);
     }
 }

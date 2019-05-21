@@ -26,6 +26,7 @@ import net.daporkchop.lib.network.endpoint.PServer;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.raknet.endpoint.PRakNetClient;
+import net.daporkchop.lib.network.raknet.endpoint.PRakNetServer;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.Reliability;
 import net.daporkchop.lib.network.transport.TransportEngine;
@@ -92,7 +93,7 @@ public class RakNetEngine implements TransportEngine {
 
     @Override
     public <S extends AbstractUserSession<S>> PServer<S> createServer(@NonNull ServerBuilder<S> builder) {
-        return null;
+        return new PRakNetServer<>(builder);
     }
 
     @Override

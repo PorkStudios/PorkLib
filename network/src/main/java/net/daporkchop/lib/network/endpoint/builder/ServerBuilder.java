@@ -21,12 +21,13 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.network.endpoint.PClient;
 import net.daporkchop.lib.network.endpoint.PServer;
 import net.daporkchop.lib.network.protocol.Protocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 import java.net.InetSocketAddress;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * @author DaPorkchop_
@@ -36,7 +37,7 @@ import java.net.InetSocketAddress;
 @Setter
 @Accessors(chain = true, fluent = true)
 public class ServerBuilder<S extends AbstractUserSession<S>> extends EndpointBuilder<ServerBuilder<S>, PServer<S>, S> {
-    public static <S extends AbstractUserSession<S>> ServerBuilder<S> of(@NonNull Protocol<S> protocol)  {
+    public static <S extends AbstractUserSession<S>> ServerBuilder<S> of(@NonNull Protocol<S> protocol) {
         return new ServerBuilder<>().protocol(protocol);
     }
 
@@ -48,9 +49,23 @@ public class ServerBuilder<S extends AbstractUserSession<S>> extends EndpointBui
     @NonNull
     protected InetSocketAddress bind;
 
+    /**
+     * Checks if an incoming connection from a given address is valid.
+     * <p>
+     * This could be used to ban certain IP addresses.
+     */
+    @NonNull
+    protected Predicate<InetSocketAddress> connectionFilter = addr -> true;
+
+    /**
+     * Responds to incoming ping requests.
+     */
+    @NonNull
+    protected Function<InetSocketAddress, byte[]> pingHandler = addr -> new byte[0];
+
     @Override
     @SuppressWarnings("unchecked")
-    public <NEW_S extends AbstractUserSession<NEW_S>> ServerBuilder<NEW_S> protocol(@NonNull Protocol<NEW_S> protocol)   {
+    public <NEW_S extends AbstractUserSession<NEW_S>> ServerBuilder<NEW_S> protocol(@NonNull Protocol<NEW_S> protocol) {
         ((ServerBuilder<NEW_S>) this).protocol = protocol;
         return (ServerBuilder<NEW_S>) this;
     }

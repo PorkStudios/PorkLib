@@ -26,12 +26,13 @@ import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.transport.NetSession;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.ExecutionException;
 
 /**
  * @author DaPorkchop_
  */
 public class PRakNetClient<S extends AbstractUserSession<S>> extends RakNetEndpoint<PClient<S>, S, RakNetClient> implements PClient<S> {
-    protected final RakNetClientSession session;
+    protected RakNetClientSession session;
 
     public PRakNetClient(@NonNull ClientBuilder<S> builder) {
         super(builder);
@@ -41,8 +42,14 @@ public class PRakNetClient<S extends AbstractUserSession<S>> extends RakNetEndpo
         } else {
             this.rakNet = new RakNetClient(new InetSocketAddress(0));
         }
-        this.session = (RakNetClientSession) this.rakNet.connect(builder.address());
-        this.session.setListener(new PRakNetSession<>(this, this.session));
+        try {
+            this.rakNet.bind().whenComplete((aVoid, throwable) -> {
+                this.session.setListener(new PRakNetSession<>(this, this.session));
+                this.session = (RakNetClientSession) this.rakNet.connect(builder.address());
+            }).get();
+        } catch (InterruptedException | ExecutionException e)    {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

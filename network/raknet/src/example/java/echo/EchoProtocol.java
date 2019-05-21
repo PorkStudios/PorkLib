@@ -13,55 +13,25 @@
  *
  */
 
-package net.daporkchop.lib.network.raknet.endpoint;
+package echo;
 
-import com.nukkitx.network.raknet.RakNet;
-import io.netty.channel.EventLoop;
-import io.netty.channel.EventLoopGroup;
-import io.netty.util.concurrent.EventExecutor;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.Promise;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.network.endpoint.PEndpoint;
-import net.daporkchop.lib.network.endpoint.builder.EndpointBuilder;
+import net.daporkchop.lib.network.pipeline.Pipeline;
 import net.daporkchop.lib.network.protocol.Protocol;
-import net.daporkchop.lib.network.raknet.RakNetEngine;
-import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.protocol.SimpleProtocol;
 
 /**
  * @author DaPorkchop_
  */
-@Getter
-@Accessors(fluent = true)
-public abstract class RakNetEndpoint<Impl extends PEndpoint<Impl, S>, S extends AbstractUserSession<S>, R extends RakNet> implements PEndpoint<Impl, S> {
-    protected final RakNetEngine transportEngine;
-    protected final EventLoopGroup group;
-    protected final Protocol<S> protocol;
-    protected R rakNet;
+public class EchoProtocol implements SimpleProtocol<EchoSession> {
+    public static final int PORT = 24857;
 
-    public RakNetEndpoint(@NonNull EndpointBuilder<?, ?, S> builder)    {
-        this.transportEngine = (RakNetEngine) builder.engine();
-        this.group = this.transportEngine.useGroup();
-        this.protocol = builder.protocol();
+    @Override
+    public EchoSession newSession() {
+        return new EchoSession();
     }
 
     @Override
-    public boolean isClosed() {
-        return !this.rakNet.isRunning();
-    }
-
-    @Override
-    public void closeNow() {
-        this.rakNet.close();
-    }
-
-    @Override
-    public Future<Void> closeAsync() {
-        return this.group.submit(() -> {
-            this.rakNet.close();
-            return null;
-        });
+    public void initPipeline(@NonNull Pipeline<EchoSession> pipeline, @NonNull EchoSession session) {
     }
 }

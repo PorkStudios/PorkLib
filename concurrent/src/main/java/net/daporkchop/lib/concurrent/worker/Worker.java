@@ -13,46 +13,34 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.cache;
+package net.daporkchop.lib.concurrent.worker;
 
 import lombok.NonNull;
+import net.daporkchop.lib.concurrent.future.Future;
+import net.daporkchop.lib.concurrent.future.Promise;
 
-import java.util.function.Supplier;
+import java.util.concurrent.Callable;
 
 /**
- * A thread cache is essentially a {@link ThreadLocal}, able to store objects per-thread
+ * A wrapper around (an) asynchronous thread(s) which can execute tasks.
  *
  * @author DaPorkchop_
  */
-public interface ThreadCache<T> extends Cache<T> {
+public interface Worker {
     /**
-     * Creates a new {@link ThreadCache} using a given supplier
+     * Schedules a task to be run by this worker at some point.
      *
-     * @param theSupplier the supplier to use
-     * @param <T>         the type to be cached
-     * @return a {@link ThreadCache} for the given type using the given supplier
+     * @param task the task to be run
+     * @return a {@link Promise} which may be used to track the task
      */
-    static <T> ThreadCache<T> of(@NonNull Supplier<T> theSupplier) {
-        return new ThreadCache<T>() {
-            private final Supplier<T> supplier = theSupplier;
-            private final ThreadLocal<T> threadLocal = ThreadLocal.withInitial(this.supplier);
-
-            @Override
-            public T get() {
-                return this.threadLocal.get();
-            }
-
-            @Override
-            public T getUncached() {
-                return this.supplier.get();
-            }
-        };
-    }
+    Promise submit(@NonNull Runnable task);
 
     /**
-     * Create a new instance, regardless of thread-local state
+     * Schedules a task to be run by this worker at some point.
      *
-     * @return a new instance
+     * @param task the task to be run
+     * @param <R>  the return type of the task
+     * @return a {@link Future} which may be used to track the task and get the return value
      */
-    T getUncached();
+    <R> Future<R> submit(@NonNull Callable<R> task);
 }

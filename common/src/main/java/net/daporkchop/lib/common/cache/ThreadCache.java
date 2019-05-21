@@ -13,48 +13,46 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.cache;
+package net.daporkchop.lib.common.cache;
 
 import lombok.NonNull;
 
-import java.lang.ref.SoftReference;
 import java.util.function.Supplier;
 
 /**
- * A {@link ThreadCache} that keeps only a soft reference to objects.
- * <p>
- * Soft references will only be garbage collected when the JVM is running low on memory, and as such a soft cache should not
- * be more cpu-intensive than a plain thread-local cache unless the heap is mostly full (or just too small).
+ * A thread cache is essentially a {@link ThreadLocal}, able to store objects per-thread
  *
  * @author DaPorkchop_
  */
-public class SoftThreadCache<T> implements ThreadCache<T> {
-    public static <T> SoftThreadCache<T> of(@NonNull Supplier<T> supplier) {
-        return new SoftThreadCache<>(supplier);
-    }
-    private final Supplier<T> supplier;
-    private final ThreadLocal<SoftReference<T>> threadLocal;
+public interface ThreadCache<T> extends Cache<T> {
+    /**
+     * Creates a new {@link ThreadCache} using a given supplier
+     *
+     * @param theSupplier the supplier to use
+     * @param <T>         the type to be cached
+     * @return a {@link ThreadCache} for the given type using the given supplier
+     */
+    static <T> ThreadCache<T> of(@NonNull Supplier<T> theSupplier) {
+        return new ThreadCache<T>() {
+            private final Supplier<T> supplier = theSupplier;
+            private final ThreadLocal<T> threadLocal = ThreadLocal.withInitial(this.supplier);
 
-    protected SoftThreadCache(@NonNull Supplier<T> supplier) {
-        this.supplier = supplier;
-        this.threadLocal = ThreadLocal.withInitial(() -> null);
+            @Override
+            public T get() {
+                return this.threadLocal.get();
+            }
+
+            @Override
+            public T getUncached() {
+                return this.supplier.get();
+            }
+        };
     }
 
-    @Override
-    public T get() {
-        SoftReference<T> ref = this.threadLocal.get();
-        T val;
-        if (ref == null || (val = ref.get()) == null) {
-            this.threadLocal.set(new SoftReference<>(val = this.supplier.get()));
-        }
-        if (val == null) {
-            throw new NullPointerException();
-        }
-        return val;
-    }
-
-    @Override
-    public T getUncached() {
-        return this.supplier.get();
-    }
+    /**
+     * Create a new instance, regardless of thread-local state
+     *
+     * @return a new instance
+     */
+    T getUncached();
 }

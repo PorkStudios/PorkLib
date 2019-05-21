@@ -13,37 +13,43 @@
  *
  */
 
-package net.daporkchop.lib.crypto.cipher.block;
+package net.daporkchop.lib.common.cache;
 
 import lombok.NonNull;
-import net.daporkchop.lib.common.cache.SoftThreadCache;
-import net.daporkchop.lib.common.cache.ThreadCache;
-import net.daporkchop.lib.hash.util.Digest;
 
-import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
- * A function that updates a block cipher's IV (initialization vector) before initialization
+ * A cache holds a reference to an object
  *
  * @author DaPorkchop_
  */
-public interface IVUpdater extends Consumer<byte[]> {
-    IVUpdater SHA_256 = ofHash(Digest.SHA_256);
-    IVUpdater SHA3_256 = ofHash(Digest.SHA3_256);
+public interface Cache<T> {
+    /**
+     * Gets a simple cache that won't hold a reference to the object until requested
+     *
+     * @param supplier the supplier for the object type
+     * @param <T>      the type
+     * @return a cache
+     */
+    static <T> Cache<T> of(@NonNull Supplier<T> supplier) {
+        return new Cache<T>() {
+            private T val;
 
-    static IVUpdater ofHash(@NonNull Digest digest) {
-        ThreadCache<byte[]> cache = SoftThreadCache.of(() -> new byte[digest.getHashSize()]);
-        return iv -> {
-            byte[] buf = cache.get();
-            for (int i = 0; i < iv.length; i += buf.length) {
-                digest.start(buf).append(iv).hash();
-                for (int j = 0; j < buf.length && j + i < iv.length; j++) {
-                    iv[i + j] = buf[j];
+            @Override
+            public synchronized T get() {
+                if (this.val == null && (this.val = supplier.get()) == null) {
+                    throw new NullPointerException();
                 }
+                return this.val;
             }
         };
     }
 
-    @Override
-    void accept(byte[] iv);
+    /**
+     * Get an instance
+     *
+     * @return an instance
+     */
+    T get();
 }

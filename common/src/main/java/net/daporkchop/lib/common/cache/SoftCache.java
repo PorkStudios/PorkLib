@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.cache;
+package net.daporkchop.lib.common.cache;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;

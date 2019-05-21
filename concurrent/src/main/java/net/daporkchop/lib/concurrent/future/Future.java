@@ -13,43 +13,10 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.cache;
-
-import lombok.NonNull;
-
-import java.util.function.Supplier;
+package net.daporkchop.lib.concurrent.future;
 
 /**
- * A cache holds a reference to an object
- *
  * @author DaPorkchop_
  */
-public interface Cache<T> {
-    /**
-     * Gets a simple cache that won't hold a reference to the object until requested
-     *
-     * @param supplier the supplier for the object type
-     * @param <T>      the type
-     * @return a cache
-     */
-    static <T> Cache<T> of(@NonNull Supplier<T> supplier) {
-        return new Cache<T>() {
-            private T val;
-
-            @Override
-            public synchronized T get() {
-                if (this.val == null && (this.val = supplier.get()) == null) {
-                    throw new NullPointerException();
-                }
-                return this.val;
-            }
-        };
-    }
-
-    /**
-     * Get an instance
-     *
-     * @return an instance
-     */
-    T get();
+public interface Future<V> extends Completable {
 }

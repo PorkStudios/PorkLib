@@ -13,37 +13,48 @@
  *
  */
 
-package net.daporkchop.lib.crypto.cipher.block;
+package net.daporkchop.lib.common.cache;
 
 import lombok.NonNull;
-import net.daporkchop.lib.common.cache.SoftThreadCache;
-import net.daporkchop.lib.common.cache.ThreadCache;
-import net.daporkchop.lib.hash.util.Digest;
 
-import java.util.function.Consumer;
+import java.lang.ref.SoftReference;
+import java.util.function.Supplier;
 
 /**
- * A function that updates a block cipher's IV (initialization vector) before initialization
+ * A {@link ThreadCache} that keeps only a soft reference to objects.
+ * <p>
+ * Soft references will only be garbage collected when the JVM is running low on memory, and as such a soft cache should not
+ * be more cpu-intensive than a plain thread-local cache unless the heap is mostly full (or just too small).
  *
  * @author DaPorkchop_
  */
-public interface IVUpdater extends Consumer<byte[]> {
-    IVUpdater SHA_256 = ofHash(Digest.SHA_256);
-    IVUpdater SHA3_256 = ofHash(Digest.SHA3_256);
+public class SoftThreadCache<T> implements ThreadCache<T> {
+    public static <T> SoftThreadCache<T> of(@NonNull Supplier<T> supplier) {
+        return new SoftThreadCache<>(supplier);
+    }
+    private final Supplier<T> supplier;
+    private final ThreadLocal<SoftReference<T>> threadLocal;
 
-    static IVUpdater ofHash(@NonNull Digest digest) {
-        ThreadCache<byte[]> cache = SoftThreadCache.of(() -> new byte[digest.getHashSize()]);
-        return iv -> {
-            byte[] buf = cache.get();
-            for (int i = 0; i < iv.length; i += buf.length) {
-                digest.start(buf).append(iv).hash();
-                for (int j = 0; j < buf.length && j + i < iv.length; j++) {
-                    iv[i + j] = buf[j];
-                }
-            }
-        };
+    protected SoftThreadCache(@NonNull Supplier<T> supplier) {
+        this.supplier = supplier;
+        this.threadLocal = ThreadLocal.withInitial(() -> null);
     }
 
     @Override
-    void accept(byte[] iv);
+    public T get() {
+        SoftReference<T> ref = this.threadLocal.get();
+        T val;
+        if (ref == null || (val = ref.get()) == null) {
+            this.threadLocal.set(new SoftReference<>(val = this.supplier.get()));
+        }
+        if (val == null) {
+            throw new NullPointerException();
+        }
+        return val;
+    }
+
+    @Override
+    public T getUncached() {
+        return this.supplier.get();
+    }
 }

@@ -15,8 +15,61 @@
 
 package net.daporkchop.lib.concurrent.future;
 
+import lombok.NonNull;
+import net.daporkchop.lib.concurrent.util.exception.AlreadyCompleteException;
+import net.daporkchop.lib.unsafe.PUnsafe;
+
 /**
  * @author DaPorkchop_
  */
-public interface Future<V> extends Completable {
+public interface Future<V> extends Completable<Future<V>> {
+    /**
+     * Gets the value that this {@link Future} was completed with, blocking until completion if not yet complete.
+     * <p>
+     * Throws exceptions unsafely if it is completed with an error.
+     *
+     * @return the return value
+     */
+    default V get() {
+        try {
+            return this.getExceptionally();
+        } catch (Exception e) {
+            PUnsafe.throwException(e);
+            return null;
+        }
+    }
+
+    /**
+     * Gets the value that this {@link Future} was completed with, blocking until completion if not yet complete.
+     *
+     * @return the return value
+     * @throws Exception if this {@link Future} is completed with an error
+     */
+    V getExceptionally() throws Exception;
+
+    /**
+     * Marks this {@link Promise} as being successfully completed.
+     * <p>
+     * This will cause all attached listeners to be executed, and wake up any waiting threads.
+     *
+     * @param value the value
+     * @throws AlreadyCompleteException if this {@link Promise} is already complete
+     */
+    void completeSuccessfully(@NonNull V value) throws AlreadyCompleteException;
+
+    /**
+     * Attempts to mark this {@link Promise} as being successfully completed, doing nothing if it is already
+     * complete.
+     *
+     * @return whether this could be completed successfully
+     * @see #completeSuccessfully(Object)
+     */
+    default boolean tryCompleteSuccessfully(@NonNull V value) {
+        try {
+            this.completeSuccessfully(value);
+            return true;
+        } catch (AlreadyCompleteException e) {
+            return false;
+        }
+    }
 }

@@ -22,13 +22,7 @@ import net.daporkchop.lib.concurrent.util.exception.AlreadyCompleteException;
  *
  * @author DaPorkchop_
  */
-public interface Promise extends Completable {
-    @Override
-    boolean isSuccess();
-
-    @Override
-    Throwable getError();
-
+public interface Promise extends Completable<Promise> {
     /**
      * Marks this {@link Promise} as being successfully completed.
      * <p>

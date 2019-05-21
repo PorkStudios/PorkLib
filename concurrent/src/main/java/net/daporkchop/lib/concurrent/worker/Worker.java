@@ -43,4 +43,14 @@ public interface Worker {
      * @return a {@link Future} which may be used to track the task and get the return value
      */
     <R> Future<R> submit(@NonNull Callable<R> task);
+
+    /**
+     * @return a new {@link Promise} backed by this worker
+     */
+    Promise newPromise();
+
+    /**
+     * @return a new {@link Future} backed by this worker
+     */
+    <R> Future<R> newFuture();
 }

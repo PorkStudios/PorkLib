@@ -27,7 +27,7 @@ import java.util.function.Consumer;
  *
  * @author DaPorkchop_
  */
-interface Completable {
+interface Completable<I extends Completable<I>> {
     /**
      * @return whether or not this {@link Promise} or {@link Future} completed successfully
      */
@@ -61,12 +61,35 @@ interface Completable {
     /**
      * @return the exception that caused this {@link Promise} or {@link Future} to be completed with an error, or {@code null} if this wasn't completed with an error
      */
-    Throwable getError();
+    Exception getError();
 
     /**
      * @return the {@link Worker} that owns this {@link Promise} or {@link Future}, or {@code null} if this is not owned by a worker
      */
     Worker getWorker();
+
+    //
+    //
+    // sync methods
+    //
+    //
+
+    /**
+     * Waits for this {@link Promise} or {@link Future} to be completed, blocking the invoking thread.
+     * <p>
+     * This method will ignore thread interrupts.
+     *
+     * @return this {@link Promise} or {@link Future}
+     */
+    I sync();
+
+    /**
+     * Waits for this {@link Promise} or {@link Future} to be completed, blocking the invoking thread.
+     *
+     * @return this {@link Promise} or {@link Future}
+     * @throws InterruptedException if the thread is interrupted
+     */
+    I syncInterruptably() throws InterruptedException;
 
     //
     //
@@ -82,16 +105,16 @@ interface Completable {
      * @param error the error
      * @throws AlreadyCompleteException if this {@link Promise} or {@link Future} is already complete
      */
-    void completeError(@NonNull Throwable error) throws AlreadyCompleteException;
+    void completeError(@NonNull Exception error) throws AlreadyCompleteException;
 
     /**
      * Attempts to mark this {@link Promise} or {@link Future} as being successfully completed, doing nothing if it is already
      * complete.
      *
      * @return whether this could be completed successfully
-     * @see #completeError(Throwable)
+     * @see #completeError(Exception)
      */
-    default boolean tryCompleteError(@NonNull Throwable error) {
+    default boolean tryCompleteError(@NonNull Exception error) {
         try {
             this.completeError(error);
             return true;
@@ -185,11 +208,52 @@ interface Completable {
      * @param callback the function to run if this {@link Promise} or {@link Future} completed successfully
      * @return whether or not the callback was run
      */
-    default boolean ifError(@NonNull Consumer<Throwable> callback) {
+    default boolean ifError(@NonNull Consumer<Exception> callback) {
         boolean error = this.isError();
         if (error) {
             callback.accept(this.getError());
         }
         return error;
     }
+
+    //
+    //
+    // Listener methods
+    //
+    //
+
+    /**
+     * Adds a listener that will be run when {@link Promise} or {@link Future} is completed.
+     * @param callback the function to run
+     * @return this {@link Promise} or {@link Future}
+     */
+    I addListener(@NonNull Consumer<I> callback);
+
+    /**
+     * Adds a listener that will be run when this {@link Promise} or {@link Future} is completed.
+     *
+     * @param callback the function to run
+     */
+    I addListener(@NonNull Runnable callback);
+
+    /**
+     * Adds a listener that will be run when this {@link Promise} or {@link Future} is completed successfully.
+     *
+     * @param callback the function to run
+     */
+    I addSuccessListener(@NonNull Runnable callback);
+
+    /**
+     * Adds a listener that will be run when this {@link Promise} or {@link Future} is completed with an error.
+     *
+     * @param callback the function to run
+     */
+    I addErrorListener(@NonNull Runnable callback);
+
+    /**
+     * Adds a listener that will be run when this {@link Promise} or {@link Future} is completed with an error.
+     *
+     * @param callback the function to run
+     */
+    I addErrorListener(@NonNull Consumer<Exception> callback);
 }

@@ -15,18 +15,29 @@
 
 package net.daporkchop.lib.concurrent.worker.impl;
 
+import lombok.AllArgsConstructor;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.concurrent.future.Completable;
 import net.daporkchop.lib.concurrent.future.Future;
 import net.daporkchop.lib.concurrent.future.Promise;
-import net.daporkchop.lib.concurrent.worker.Worker;
 import net.daporkchop.lib.concurrent.worker.WorkerPool;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * @author DaPorkchop_
  */
 public class ThreadPerTaskPool implements WorkerPool {
+    protected static final long ACTIVE_OFFSET = PUnsafe.pork_getOffset(ThreadPerTaskPool.class, "active");
+
+    protected volatile boolean terminated = false;
+
+    protected volatile int active = 0;
+
     @Override
     public Worker next() {
         return this;
@@ -34,17 +45,22 @@ public class ThreadPerTaskPool implements WorkerPool {
 
     @Override
     public Promise stop() {
-        return null;
+        return this.terminate();
     }
 
     @Override
     public Promise terminate() {
+        this.terminated = true;
         return null;
     }
 
     @Override
     public Promise submit(@NonNull Runnable task) {
-        return null;
+        if (this.terminated)    {
+            task.run();
+            //TODO
+        } else {
+        }
     }
 
     @Override
@@ -53,12 +69,47 @@ public class ThreadPerTaskPool implements WorkerPool {
     }
 
     @Override
-    public Promise newPromise() {
+    public <P> Promise submit(P arg, @NonNull Consumer<P> task) {
         return null;
     }
 
     @Override
-    public <R> Future<R> newFuture() {
+    public <P, R> Future<R> submit(P arg, @NonNull Function<P, R> task) {
         return null;
+    }
+
+    @AllArgsConstructor
+    @RequiredArgsConstructor
+    protected class Worker extends Thread   {
+        final Object arg;
+        final Object func;
+        final Completable completable;
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public void run() {
+            PUnsafe.getAndAddInt(ThreadPerTaskPool.class, ACTIVE_OFFSET, 1);
+            try {
+                if (this.arg == null) {
+                    if (this.func instanceof Runnable)  {
+                        ((Runnable) this.func).run();
+                        ((Promise) this.completable).completeSuccessfully();
+                    } else {
+                        ((Future) this.completable).completeSuccessfully(((Callable) this.func).call());
+                    }
+                } else {
+                    if (this.func instanceof Consumer)  {
+                        ((Consumer) this.func).accept(this.arg);
+                        ((Promise) this.completable).completeSuccessfully();
+                    } else {
+                        ((Future) this.completable).completeSuccessfully(((Function) this.func).apply(this.arg));
+                    }
+                }
+            } catch (Exception e)   {
+                this.completable.completeError(e);
+            } finally {
+                PUnsafe.getAndAddInt(ThreadPerTaskPool.class, ACTIVE_OFFSET, -1);
+            }
+        }
     }
 }

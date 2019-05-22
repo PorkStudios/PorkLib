@@ -16,6 +16,8 @@
 package net.daporkchop.lib.concurrent.worker;
 
 import lombok.NonNull;
+import net.daporkchop.lib.concurrent.future.impl.DefaultFuture;
+import net.daporkchop.lib.concurrent.future.impl.DefaultPromise;
 import net.daporkchop.lib.concurrent.future.Future;
 import net.daporkchop.lib.concurrent.future.Promise;
 
@@ -87,10 +89,14 @@ public interface Worker {
     /**
      * @return a new {@link Promise} backed by this worker
      */
-    Promise newPromise();
+    default Promise newPromise()     {
+        return new DefaultPromise(this);
+    }
 
     /**
      * @return a new {@link Future} backed by this worker
      */
-    <R> Future<R> newFuture();
+    default <R> Future<R> newFuture()   {
+        return new DefaultFuture<>(this);
+    }
 }

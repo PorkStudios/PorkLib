@@ -13,87 +13,74 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.future;
+package net.daporkchop.lib.concurrent.lock.impl;
 
+import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.concurrent.util.exception.AlreadyCompleteException;
-import net.daporkchop.lib.concurrent.worker.Worker;
+import net.daporkchop.lib.concurrent.lock.Latch;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-public abstract class DefaultCompletable<I extends Completable<I>> implements Completable<I> {
-    protected static final long LISTENERS_OFFSET = PUnsafe.pork_getOffset(DefaultCompletable.class, "listeners");
-    protected static final long ERROR_OFFSET = PUnsafe.pork_getOffset(DefaultCompletable.class, "error");
-
+public class CountingLatch implements Latch {
+    protected static final long LISTENERS_OFFSET = PUnsafe.pork_getOffset(CountingLatch.class, "listeners");
+    protected static final long TICKETS_OFFSET = PUnsafe.pork_getOffset(CountingLatch.class, "tickets");
+    
+    protected final Object mutex = new Object[0];
+    protected volatile Object listeners = null;
     @NonNull
-    protected final Worker worker;
-    protected final Object mutex = new Object[0]; //TODO: pool these
-    protected volatile Object listeners;
-    protected volatile Exception error = null;
+    protected volatile int tickets;
 
     @Override
-    public Exception getError() {
-        return this.error;
+    public int tickets() {
+        return this.tickets;
     }
 
     @Override
-    public Worker getWorker() {
-        return worker;
+    public void release() {
+        if (PUnsafe.getAndAddInt(this, TICKETS_OFFSET, -1) - 1 == 0)    {
+            this.tickets = -1;
+            this.fireListeners();
+        }
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public I sync() {
-        while (!this.isComplete()) {
+    public void sync() {
+        while (this.tickets > 0) {
             try {
                 synchronized (this.mutex) {
                     this.mutex.wait();
                 }
-            } catch (InterruptedException e) {
+            } catch (InterruptedException e)    {
                 throw new RuntimeException(e);
             }
         }
-        return (I) this;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public I syncInterruptably() throws InterruptedException {
-        while (!this.isComplete()) {
+    public void syncInterruptably() throws InterruptedException {
+        while (this.tickets > 0) {
             synchronized (this.mutex) {
                 this.mutex.wait();
             }
         }
-        return (I) this;
-    }
-
-    @Override
-    public void completeError(@NonNull Exception error) throws AlreadyCompleteException {
-        synchronized (this.mutex) {
-            if (this.isSuccess() || PUnsafe.pork_checkSwapIfNonNull(this, ERROR_OFFSET, error)) {
-                throw new AlreadyCompleteException();
-            }
-        }
-        this.fireListeners();
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public I addListener(@NonNull Consumer<I> callback) {
+    public void addListener(@NonNull Runnable callback) {
         Object prev, next;
         do {
             if ((prev = this.listeners) == null) {
-                if (this.isComplete()) {
-                    this.worker.submit((I) this, callback);
-                    return (I) this;
+                if (this.tickets <= 0) {
+                    callback.run();
+                    return;
                 } else {
                     //first listener
                     next = callback;
@@ -106,7 +93,7 @@ public abstract class DefaultCompletable<I extends Completable<I>> implements Co
                 ((List) next).add(callback);
             }
         } while (!PUnsafe.compareAndSwapObject(this, LISTENERS_OFFSET, prev, next));
-        return (I) this;
+        return;
     }
 
     @SuppressWarnings("unchecked")
@@ -114,11 +101,11 @@ public abstract class DefaultCompletable<I extends Completable<I>> implements Co
         Object obj = PUnsafe.pork_swapIfNonNull(this, LISTENERS_OFFSET, null);
         if (obj != null) {
             if (obj instanceof List) {
-                for (Consumer<I> listener : (List<Consumer<I>>) obj) {
-                    this.worker.submit((I) this, listener);
+                for (Runnable listener : (List<Runnable>) obj) {
+                    listener.run();
                 }
-            } else if (obj instanceof Consumer) {
-                this.worker.submit((I) this, (Consumer<I>) obj);
+            } else if (obj instanceof Runnable) {
+                ((Runnable) obj).run();
             }
         }
     }

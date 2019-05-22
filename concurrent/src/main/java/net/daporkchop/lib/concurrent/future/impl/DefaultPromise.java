@@ -13,15 +13,12 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.future;
+package net.daporkchop.lib.concurrent.future.impl;
 
-import lombok.NonNull;
 import net.daporkchop.lib.concurrent.future.Promise;
 import net.daporkchop.lib.concurrent.util.exception.AlreadyCompleteException;
 import net.daporkchop.lib.concurrent.worker.Worker;
 import net.daporkchop.lib.unsafe.PUnsafe;
-
-import java.util.function.Consumer;
 
 /**
  * @author DaPorkchop_

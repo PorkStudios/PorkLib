@@ -27,7 +27,7 @@ import java.util.function.Consumer;
  *
  * @author DaPorkchop_
  */
-interface Completable<I extends Completable<I>> {
+public interface Completable<I extends Completable<I>> {
     /**
      * @return whether or not this {@link Promise} or {@link Future} completed successfully
      */

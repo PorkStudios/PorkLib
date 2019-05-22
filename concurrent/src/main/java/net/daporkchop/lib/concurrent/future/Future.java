@@ -48,6 +48,30 @@ public interface Future<V> extends Completable<Future<V>> {
     V getExceptionally() throws Exception;
 
     /**
+     * Gets the value that this {@link Future} was completed with, returning {@code null} if not yet complete.
+     * <p>
+     * Throws exceptions unsafely if it is completed with an error.
+     *
+     * @return the return value
+     */
+    default V getNow() {
+        try {
+            return this.getNowExceptionally();
+        } catch (Exception e) {
+            PUnsafe.throwException(e);
+            return null;
+        }
+    }
+
+    /**
+     * Gets the value that this {@link Future} was completed with, returning {@code null} if not yet complete.
+     *
+     * @return the return value
+     * @throws Exception if this {@link Future} is completed with an error
+     */
+    V getNowExceptionally() throws Exception;
+
+    /**
      * Marks this {@link Promise} as being successfully completed.
      * <p>
      * This will cause all attached listeners to be executed, and wake up any waiting threads.

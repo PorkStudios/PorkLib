@@ -20,6 +20,8 @@ import net.daporkchop.lib.concurrent.future.Future;
 import net.daporkchop.lib.concurrent.future.Promise;
 
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * A wrapper around (an) asynchronous thread(s) which can execute tasks.
@@ -28,7 +30,15 @@ import java.util.concurrent.Callable;
  */
 public interface Worker {
     /**
+     * @return the {@link WorkerPool} to which this worker belongs
+     */
+    WorkerPool pool();
+
+    /**
      * Schedules a task to be run by this worker at some point.
+     * <p>
+     * If this worker has been shut down, the task may either be run by the invoking thread or by some global
+     * thread pool.
      *
      * @param task the task to be run
      * @return a {@link Promise} which may be used to track the task
@@ -37,12 +47,42 @@ public interface Worker {
 
     /**
      * Schedules a task to be run by this worker at some point.
+     * <p>
+     * If this worker has been shut down, the task may either be run by the invoking thread or by some global
+     * thread pool.
      *
      * @param task the task to be run
      * @param <R>  the return type of the task
      * @return a {@link Future} which may be used to track the task and get the return value
      */
     <R> Future<R> submit(@NonNull Callable<R> task);
+
+    /**
+     * Schedules a task to be run by this worker at some point.
+     * <p>
+     * If this worker has been shut down, the task may either be run by the invoking thread or by some global
+     * thread pool.
+     *
+     * @param arg the argument to pass to the task
+     * @param task the task to be run
+     * @param <P>  the parameter type of the task
+     * @return a {@link Future} which may be used to track the task and get the return value
+     */
+    <P> Promise submit(P arg, @NonNull Consumer<P> task);
+
+    /**
+     * Schedules a task to be run by this worker at some point.
+     * <p>
+     * If this worker has been shut down, the task may either be run by the invoking thread or by some global
+     * thread pool.
+     *
+     * @param arg the argument to pass to the task
+     * @param task the task to be run
+     * @param <P>  the parameter type of the task
+     * @param <R>  the return type of the task
+     * @return a {@link Future} which may be used to track the task and get the return value
+     */
+    <P, R> Future<R> submit(P arg, @NonNull Function<P, R> task);
 
     /**
      * @return a new {@link Promise} backed by this worker

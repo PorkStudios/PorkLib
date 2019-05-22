@@ -234,26 +234,46 @@ interface Completable<I extends Completable<I>> {
      *
      * @param callback the function to run
      */
-    I addListener(@NonNull Runnable callback);
+    default I addListener(@NonNull Runnable callback)   {
+        return this.addListener(i -> callback.run());
+    }
 
     /**
      * Adds a listener that will be run when this {@link Promise} or {@link Future} is completed successfully.
      *
      * @param callback the function to run
      */
-    I addSuccessListener(@NonNull Runnable callback);
+    default I addSuccessListener(@NonNull Runnable callback)    {
+        return this.addListener(i -> {
+            if (i.isSuccess())  {
+                callback.run();
+            }
+        });
+    }
 
     /**
      * Adds a listener that will be run when this {@link Promise} or {@link Future} is completed with an error.
      *
      * @param callback the function to run
      */
-    I addErrorListener(@NonNull Runnable callback);
+    default I addErrorListener(@NonNull Runnable callback)  {
+        return this.addListener(i -> {
+            if (i.isError())    {
+                callback.run();
+            }
+        });
+    }
 
     /**
      * Adds a listener that will be run when this {@link Promise} or {@link Future} is completed with an error.
      *
      * @param callback the function to run
      */
-    I addErrorListener(@NonNull Consumer<Exception> callback);
+    default I addErrorListener(@NonNull Consumer<Exception> callback)   {
+        return this.addListener(i -> {
+            if (i.isError())    {
+                callback.accept(i.getError());
+            }
+        });
+    }
 }

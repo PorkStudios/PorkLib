@@ -13,34 +13,16 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.lock.impl;
-
-import net.daporkchop.lib.concurrent.lock.Lock;
-import net.daporkchop.lib.unsafe.PUnsafe;
+package net.daporkchop.lib.concurrent.worker;
 
 /**
+ * A {@link CappedSizePool} with a constant worker count.
+ *
  * @author DaPorkchop_
  */
-public class ReentrantLock implements Lock {
-    protected final Object mutex = new Object[0];
-
+public interface FixedSizePool extends CappedSizePool {
     @Override
-    public void lock() {
-        PUnsafe.monitorEnter(this.mutex);
-    }
-
-    @Override
-    public void lockInterruptably() throws InterruptedException {
-        this.lock();
-    }
-
-    @Override
-    public boolean tryLock() {
-        return PUnsafe.tryMonitorEnter(this.mutex);
-    }
-
-    @Override
-    public void unlock() {
-        PUnsafe.monitorExit(this.mutex);
+    default int activeWorkers() {
+        return this.maxWorkers();
     }
 }

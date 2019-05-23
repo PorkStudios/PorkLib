@@ -18,9 +18,15 @@ package net.daporkchop.lib.concurrent.worker.impl;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.concurrent.future.Completable;
 import net.daporkchop.lib.concurrent.future.Future;
 import net.daporkchop.lib.concurrent.future.Promise;
+import net.daporkchop.lib.concurrent.worker.CappedSizePool;
+import net.daporkchop.lib.concurrent.worker.DynamicPool;
+import net.daporkchop.lib.concurrent.worker.TimeoutPool;
+import net.daporkchop.lib.concurrent.worker.Worker;
 import net.daporkchop.lib.concurrent.worker.WorkerPool;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
@@ -31,12 +37,17 @@ import java.util.function.Function;
 /**
  * @author DaPorkchop_
  */
-public class ThreadPerTaskPool implements WorkerPool {
+public class ThreadPerTaskPool implements DynamicPool {
+    protected static final long PROMISE_OFFSET = PUnsafe.pork_getOffset(ThreadPerTaskPool.class, "terminationPromise");
     protected static final long ACTIVE_OFFSET = PUnsafe.pork_getOffset(ThreadPerTaskPool.class, "active");
 
-    protected volatile boolean terminated = false;
-
+    protected volatile Promise terminationPromise = null;
     protected volatile int active = 0;
+
+    @Override
+    public int activeWorkers() {
+        return this.active;
+    }
 
     @Override
     public Worker next() {
@@ -50,45 +61,65 @@ public class ThreadPerTaskPool implements WorkerPool {
 
     @Override
     public Promise terminate() {
-        this.terminated = true;
-        return null;
+        PUnsafe.compareAndSwapObject(this, PROMISE_OFFSET, null, this.newPromise());
+        return this.terminationPromise;
     }
 
     @Override
     public Promise submit(@NonNull Runnable task) {
-        if (this.terminated)    {
-            task.run();
-            //TODO
+        if (this.terminationPromise != null)    {
+            return DefaultWorkerPool.INSTANCE.submit(task);
         } else {
+            Promise promise = this.newPromise();
+            new TaskWorker().func(task).completable(promise).start();
+            return promise;
         }
     }
 
     @Override
     public <R> Future<R> submit(@NonNull Callable<R> task) {
-        return null;
+        if (this.terminationPromise != null)    {
+            return DefaultWorkerPool.INSTANCE.submit(task);
+        } else {
+            Future<R> future = this.newFuture();
+            new TaskWorker().func(task).completable(future).start();
+            return future;
+        }
     }
 
     @Override
     public <P> Promise submit(P arg, @NonNull Consumer<P> task) {
-        return null;
+        if (this.terminationPromise != null)    {
+            return DefaultWorkerPool.INSTANCE.submit(arg, task);
+        } else {
+            Promise promise = this.newPromise();
+            new TaskWorker().func(task).arg(arg).completable(promise).start();
+            return promise;
+        }
     }
 
     @Override
     public <P, R> Future<R> submit(P arg, @NonNull Function<P, R> task) {
-        return null;
+        if (this.terminationPromise != null)    {
+            return DefaultWorkerPool.INSTANCE.submit(arg, task);
+        } else {
+            Future<R> future = this.newFuture();
+            new TaskWorker().func(task).arg(arg).completable(future).start();
+            return future;
+        }
     }
 
-    @AllArgsConstructor
-    @RequiredArgsConstructor
-    protected class Worker extends Thread   {
-        final Object arg;
-        final Object func;
-        final Completable completable;
+    @Setter
+    @Accessors(fluent = true, chain = true)
+    protected class TaskWorker extends Thread   {
+        protected Object arg;
+        protected Object func;
+        protected Completable completable;
 
         @Override
         @SuppressWarnings("unchecked")
         public void run() {
-            PUnsafe.getAndAddInt(ThreadPerTaskPool.class, ACTIVE_OFFSET, 1);
+            PUnsafe.getAndAddInt(ThreadPerTaskPool.this, ACTIVE_OFFSET, 1);
             try {
                 if (this.arg == null) {
                     if (this.func instanceof Runnable)  {
@@ -108,7 +139,9 @@ public class ThreadPerTaskPool implements WorkerPool {
             } catch (Exception e)   {
                 this.completable.completeError(e);
             } finally {
-                PUnsafe.getAndAddInt(ThreadPerTaskPool.class, ACTIVE_OFFSET, -1);
+                if (PUnsafe.getAndAddInt(ThreadPerTaskPool.this, ACTIVE_OFFSET, -1) == 1 && ThreadPerTaskPool.this.terminationPromise != null)  {
+                    ThreadPerTaskPool.this.terminationPromise.completeSuccessfully();
+                }
             }
         }
     }

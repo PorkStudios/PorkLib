@@ -29,10 +29,11 @@ public interface Lock {
     /**
      * Obtains the lock, blocking until it could be obtained.
      */
-    void lockInteruptably() throws InterruptedException;
+    void lockInterruptably() throws InterruptedException;
 
     /**
      * Attempts to obtain the lock immediately.
+     *
      * @return whether or not the lock was obtained
      */
     boolean tryLock();

@@ -13,34 +13,18 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.lock.impl;
-
-import net.daporkchop.lib.concurrent.lock.Lock;
-import net.daporkchop.lib.unsafe.PUnsafe;
+package net.daporkchop.lib.concurrent.worker;
 
 /**
+ * A {@link WorkerPool} whose workers will shut down after being idle for a certain amount of time.
+ * <p>
+ * Workers in such a pool may permanently cease to exist after timing out, or may start up again when a task is submitted.
+ *
  * @author DaPorkchop_
  */
-public class ReentrantLock implements Lock {
-    protected final Object mutex = new Object[0];
-
-    @Override
-    public void lock() {
-        PUnsafe.monitorEnter(this.mutex);
-    }
-
-    @Override
-    public void lockInterruptably() throws InterruptedException {
-        this.lock();
-    }
-
-    @Override
-    public boolean tryLock() {
-        return PUnsafe.tryMonitorEnter(this.mutex);
-    }
-
-    @Override
-    public void unlock() {
-        PUnsafe.monitorExit(this.mutex);
-    }
+public interface TimeoutPool extends WorkerPool {
+    /**
+     * @return the maximum number of milliseconds that a worker will be idle for before shutting down
+     */
+    long timeoutDelay();
 }

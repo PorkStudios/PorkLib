@@ -13,18 +13,16 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.worker;
+package net.daporkchop.lib.concurrent.worker.pool;
 
 /**
- * A {@link WorkerPool} whose workers will shut down after being idle for a certain amount of time.
- * <p>
- * Workers in such a pool may permanently cease to exist after timing out, or may start up again when a task is submitted.
+ * A {@link WorkerPool} whose workers may come and go as needed, and tasks transferred between workers to keep load low.
  *
  * @author DaPorkchop_
  */
-public interface TimeoutPool extends WorkerPool {
+public interface DynamicPool extends WorkerPool {
     /**
-     * @return the maximum number of milliseconds that a worker will be idle for before shutting down
+     * @return the number of workers currently active (executing or waiting for tasks)
      */
-    long timeoutDelay();
+    int activeWorkers();
 }

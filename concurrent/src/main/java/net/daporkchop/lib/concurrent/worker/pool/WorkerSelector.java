@@ -13,21 +13,25 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.worker;
+package net.daporkchop.lib.concurrent.worker.pool;
+
+import lombok.NonNull;
+import net.daporkchop.lib.concurrent.worker.Worker;
 
 /**
- * A {@link WorkerPool} with a fixed maximum number of workers.
+ * Chooses a worker from a pool.
  *
  * @author DaPorkchop_
+ * @see net.daporkchop.lib.concurrent.worker.selector.RandomSelector
+ * @see net.daporkchop.lib.concurrent.worker.selector.RoundRobinSelector
  */
-public interface CappedSizePool extends WorkerPool {
+@FunctionalInterface
+public interface WorkerSelector {
     /**
-     * @return the number of workers currently running (executing or waiting for tasks)
+     * Chooses a worker from a pool.
+     *
+     * @param pool all the workers in the pool
+     * @return the worker to use. Must be from the pool parameter, otherwise results are undefined
      */
-    int activeWorkers();
-
-    /**
-     * @return the maximum number of workers
-     */
-    int maxWorkers();
+    Worker select(@NonNull Worker[] pool);
 }

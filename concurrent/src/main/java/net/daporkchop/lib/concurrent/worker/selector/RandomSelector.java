@@ -13,16 +13,32 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.worker;
+package net.daporkchop.lib.concurrent.worker.selector;
+
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.concurrent.worker.Worker;
+import net.daporkchop.lib.concurrent.worker.pool.WorkerSelector;
+
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * A {@link WorkerPool} whose workers may come and go as needed, and tasks transferred between workers to keep load low.
+ * Randomly selects the next worker.
  *
  * @author DaPorkchop_
  */
-public interface DynamicPool extends WorkerPool {
-    /**
-     * @return the number of workers currently active (executing or waiting for tasks)
-     */
-    int activeWorkers();
+@RequiredArgsConstructor
+public class RandomSelector implements WorkerSelector {
+    @NonNull
+    protected final Random random;
+
+    public RandomSelector() {
+        this(ThreadLocalRandom.current());
+    }
+
+    @Override
+    public Worker select(@NonNull Worker[] pool) {
+        return pool[this.random.nextInt(pool.length)];
+    }
 }

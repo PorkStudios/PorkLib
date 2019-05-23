@@ -13,16 +13,22 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.worker;
+package net.daporkchop.lib.concurrent.worker.selector;
+
+import lombok.NonNull;
+import net.daporkchop.lib.concurrent.worker.Worker;
+import net.daporkchop.lib.concurrent.worker.pool.WorkerSelector;
 
 /**
- * A {@link CappedSizePool} with a constant worker count.
+ * Hands tasks to each worker in order.
  *
  * @author DaPorkchop_
  */
-public interface FixedSizePool extends CappedSizePool {
+public class RoundRobinSelector implements WorkerSelector {
+    protected int i = 0;
+
     @Override
-    default int activeWorkers() {
-        return this.maxWorkers();
+    public Worker select(@NonNull Worker[] pool) {
+        return pool[this.i++ % pool.length];
     }
 }

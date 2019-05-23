@@ -15,19 +15,14 @@
 
 package net.daporkchop.lib.concurrent.worker.impl;
 
-import lombok.AllArgsConstructor;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.concurrent.future.Completable;
 import net.daporkchop.lib.concurrent.future.Future;
 import net.daporkchop.lib.concurrent.future.Promise;
-import net.daporkchop.lib.concurrent.worker.CappedSizePool;
-import net.daporkchop.lib.concurrent.worker.DynamicPool;
-import net.daporkchop.lib.concurrent.worker.TimeoutPool;
+import net.daporkchop.lib.concurrent.worker.pool.DynamicPool;
 import net.daporkchop.lib.concurrent.worker.Worker;
-import net.daporkchop.lib.concurrent.worker.WorkerPool;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.util.concurrent.Callable;

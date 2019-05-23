@@ -15,29 +15,44 @@
 
 package net.daporkchop.lib.concurrent.worker.impl;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.concurrent.future.Future;
 import net.daporkchop.lib.concurrent.future.Promise;
+import net.daporkchop.lib.concurrent.worker.pool.FixedSizePool;
 import net.daporkchop.lib.concurrent.worker.Worker;
 import net.daporkchop.lib.concurrent.worker.pool.WorkerPool;
+import net.daporkchop.lib.concurrent.worker.pool.WorkerSelector;
+import net.daporkchop.lib.concurrent.worker.selector.RoundRobinSelector;
 
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
- * A very simple {@link WorkerPool} implementation. Simply hands tasks over to {@link java.util.concurrent.ForkJoinPool}.
+ * A {@link WorkerPool} that submits tasks to any one of a fixed number of workers, blocking the thread attempting
+ * to submit a task until an idle one is found.
  *
  * @author DaPorkchop_
  */
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class DefaultWorkerPool implements WorkerPool {
-    public static final DefaultWorkerPool INSTANCE = new DefaultWorkerPool();
+public class FixedBlockingPool implements FixedSizePool {
+    protected final WorkerSelector selector;
+    protected final TaskWorker[] workers;
 
-    protected final ForkJoinPool delegate = ForkJoinPool.commonPool();
+    public FixedBlockingPool(int workerCount)   {
+        this(workerCount, new RoundRobinSelector());
+    }
+
+    public FixedBlockingPool(int workerCount, @NonNull WorkerSelector selector)   {
+        this.workers = new TaskWorker[workerCount];
+        this.selector = selector;
+    }
+
+    @Override
+    public int maxWorkers() {
+        return this.workers.length;
+    }
 
     @Override
     public Worker next() {
@@ -46,65 +61,65 @@ public class DefaultWorkerPool implements WorkerPool {
 
     @Override
     public Promise stop() {
-        throw new UnsupportedOperationException("Cannot stop default pool!");
+        return null;
     }
 
     @Override
     public Promise terminate() {
-        throw new UnsupportedOperationException("Cannot terminate default pool!");
+        return null;
     }
 
     @Override
     public Promise submit(@NonNull Runnable task) {
-        Promise promise = this.newPromise();
-        this.delegate.submit(() -> {
-            try {
-                task.run();
-                promise.completeSuccessfully();
-            } catch (Exception e)   {
-                promise.completeError(e);
-            }
-        });
-        return promise;
+        return this.next().submit(task);
     }
 
     @Override
     public <R> Future<R> submit(@NonNull Callable<R> task) {
-        Future<R> future = this.newFuture();
-        this.delegate.submit(() -> {
-            try {
-                future.completeSuccessfully(task.call());
-            } catch (Exception e)   {
-                future.completeError(e);
-            }
-        });
-        return future;
+        return this.next().submit(task);
     }
 
     @Override
     public <P> Promise submit(P arg, @NonNull Consumer<P> task) {
-        Promise promise = this.newPromise();
-        this.delegate.submit(() -> {
-            try {
-                task.accept(arg);
-                promise.completeSuccessfully();
-            } catch (Exception e)   {
-                promise.completeError(e);
-            }
-        });
-        return promise;
+        return this.next().submit(arg, task);
     }
 
     @Override
     public <P, R> Future<R> submit(P arg, @NonNull Function<P, R> task) {
-        Future<R> future = this.newFuture();
-        this.delegate.submit(() -> {
-            try {
-                future.completeSuccessfully(task.apply(arg));
-            } catch (Exception e)   {
-                future.completeError(e);
-            }
-        });
-        return future;
+        return this.next().submit(arg, task);
+    }
+
+    protected class TaskWorker extends Thread implements Worker   {
+        protected final BlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(1);
+
+        @Override
+        public void run() {
+            super.run();
+        }
+
+        @Override
+        public WorkerPool pool() {
+            return FixedBlockingPool.this;
+        }
+
+        @Override
+        public Promise submit(@NonNull Runnable task) {
+            return this.queue.put(task);
+        }
+
+        @Override
+        public <R> Future<R> submit(@NonNull Callable<R> task) {
+            return null;
+        }
+
+        @Override
+        public <P> Promise submit(P arg, @NonNull Consumer<P> task) {
+            return null;
+        }
+
+        @Override
+        public <P, R> Future<R> submit(P arg, @NonNull Function<P, R> task) {
+            return null;
+        }
     }
 }

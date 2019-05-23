@@ -20,6 +20,7 @@ import net.daporkchop.lib.concurrent.future.impl.DefaultFuture;
 import net.daporkchop.lib.concurrent.future.impl.DefaultPromise;
 import net.daporkchop.lib.concurrent.future.Future;
 import net.daporkchop.lib.concurrent.future.Promise;
+import net.daporkchop.lib.concurrent.worker.pool.WorkerPool;
 
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;

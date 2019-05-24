@@ -40,7 +40,6 @@ import java.util.function.Supplier;
  */
 public class FixedQueuedPool implements FixedSizePool {
     protected static final long ACTIVE_OFFSET = PUnsafe.pork_getOffset(TaskWorker.class, "active");
-    protected static final long LOCK_OFFSET = PUnsafe.pork_getOffset(TaskWorker.class, "lock");
 
     protected final WorkerSelector selector;
     protected final TaskWorker[] workers;
@@ -56,6 +55,9 @@ public class FixedQueuedPool implements FixedSizePool {
         this.workers = new TaskWorker[this.active = workerCount];
         this.selector = selector;
         this.queue = queue;
+        for (int i = 0; i < workerCount; i++)    {
+            (this.workers[i] = new TaskWorker()).start();
+        }
     }
 
     @Override
@@ -72,6 +74,7 @@ public class FixedQueuedPool implements FixedSizePool {
     public Promise stop() {
         for (TaskWorker worker : this.workers)  {
             worker.active = false;
+            worker.interrupt();
         }
         return this.termination;
     }
@@ -79,8 +82,11 @@ public class FixedQueuedPool implements FixedSizePool {
     @Override
     public Promise terminate() {
         for (TaskWorker worker : this.workers)  {
-            worker.active = false;
-            worker.interrupt();
+            synchronized (worker.mutex) {
+                worker.active = false;
+                worker.queue.clear();
+                worker.interrupt();
+            }
         }
         return this.termination;
     }

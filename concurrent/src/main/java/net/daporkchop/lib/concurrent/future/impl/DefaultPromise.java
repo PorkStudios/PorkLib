@@ -43,6 +43,7 @@ public class DefaultPromise extends DefaultCompletable<Promise> implements Promi
             if (this.isError() || !PUnsafe.compareAndSwapInt(this, SUCCESS_OFFSET, 0, 1))   {
                 throw new AlreadyCompleteException();
             }
+            this.mutex.notifyAll();
         }
         this.fireListeners();
     }

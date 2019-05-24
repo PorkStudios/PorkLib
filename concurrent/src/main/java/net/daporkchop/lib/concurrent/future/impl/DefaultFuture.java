@@ -65,6 +65,7 @@ public class DefaultFuture<V> extends DefaultCompletable<Future<V>> implements F
             if (this.isError() || !PUnsafe.compareAndSwapObject(this, VALUE_OFFSET, null, value))   {
                 throw new AlreadyCompleteException();
             }
+            this.mutex.notifyAll();
         }
         this.fireListeners();
     }

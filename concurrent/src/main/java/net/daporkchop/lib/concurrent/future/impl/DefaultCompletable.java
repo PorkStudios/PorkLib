@@ -82,6 +82,7 @@ public abstract class DefaultCompletable<I extends Completable<I>> implements Co
             if (this.isSuccess() || !PUnsafe.compareAndSwapObject(this, ERROR_OFFSET, null, error)) {
                 throw new AlreadyCompleteException();
             }
+            this.mutex.notifyAll();
         }
         this.fireListeners();
     }

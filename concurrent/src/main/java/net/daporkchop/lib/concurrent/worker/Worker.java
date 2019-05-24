@@ -25,6 +25,7 @@ import net.daporkchop.lib.concurrent.worker.pool.WorkerPool;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * A wrapper around (an) asynchronous thread(s) which can execute tasks.
@@ -54,11 +55,11 @@ public interface Worker {
      * If this worker has been shut down, the task may either be run by the invoking thread or by some global
      * thread pool.
      *
-     * @param task the task to be run
      * @param <R>  the return type of the task
+     * @param task the task to be run
      * @return a {@link Future} which may be used to track the task and get the return value
      */
-    <R> Future<R> submit(@NonNull Callable<R> task);
+    <R> Future<R> submit(@NonNull Supplier<R> task);
 
     /**
      * Schedules a task to be run by this worker at some point.

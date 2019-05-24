@@ -15,6 +15,7 @@
 
 import net.daporkchop.lib.common.function.throwing.ERunnable;
 import net.daporkchop.lib.concurrent.future.Promise;
+import net.daporkchop.lib.concurrent.worker.impl.FixedBlockingPool;
 import net.daporkchop.lib.concurrent.worker.impl.FixedQueuedPool;
 import net.daporkchop.lib.concurrent.worker.pool.WorkerPool;
 
@@ -23,7 +24,7 @@ import net.daporkchop.lib.concurrent.worker.pool.WorkerPool;
  */
 public class ExecutorExample {
     public static void main(String... args) {
-        WorkerPool pool = new FixedQueuedPool(4);
+        WorkerPool pool = new FixedBlockingPool(4);
 
         long time = System.currentTimeMillis();
         Promise[] promises = new Promise[8];

@@ -26,15 +26,14 @@ import net.daporkchop.lib.concurrent.worker.selector.RoundRobinSelector;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.util.Queue;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- * A {@link WorkerPool} that submits tasks to any one of a fixed number of workers, blocking the thread attempting
- * to submit a task until an idle one is found.
+ * A {@link WorkerPool} that submits tasks to any one of a fixed number of workers, adding tasks to an execution
+ * queue.
  *
  * @author DaPorkchop_
  */
@@ -97,7 +96,7 @@ public class FixedQueuedPool implements FixedSizePool {
     }
 
     @Override
-    public <R> Future<R> submit(@NonNull Callable<R> task) {
+    public <R> Future<R> submit(@NonNull Supplier<R> task) {
         return this.next().submit(task);
     }
 
@@ -177,8 +176,25 @@ public class FixedQueuedPool implements FixedSizePool {
         }
 
         @Override
-        public <R> Future<R> submit(@NonNull Callable<R> task) {
-            return null;
+        public <R> Future<R> submit(@NonNull Supplier<R> task) {
+            PUnsafe.monitorEnter(this.mutex);
+            try {
+                if (this.active)    {
+                    Future<R> future = this.newFuture();
+                    this.queue.add(() -> {
+                        try {
+                            future.completeSuccessfully(task.get());
+                        } catch (Exception e)   {
+                            future.completeError(e);
+                        }
+                    });
+                    this.mutex.notifyAll();
+                    return future;
+                }
+            } finally {
+                PUnsafe.monitorExit(this.mutex);
+            }
+            return DefaultWorkerPool.INSTANCE.submit(task);
         }
 
         @Override
@@ -206,7 +222,24 @@ public class FixedQueuedPool implements FixedSizePool {
 
         @Override
         public <P, R> Future<R> submit(P arg, @NonNull Function<P, R> task) {
-            return null;
+            PUnsafe.monitorEnter(this.mutex);
+            try {
+                if (this.active)    {
+                    Future<R> future = this.newFuture();
+                    this.queue.add(() -> {
+                        try {
+                            future.completeSuccessfully(task.apply(arg));
+                        } catch (Exception e)   {
+                            future.completeError(e);
+                        }
+                    });
+                    this.mutex.notifyAll();
+                    return future;
+                }
+            } finally {
+                PUnsafe.monitorExit(this.mutex);
+            }
+            return DefaultWorkerPool.INSTANCE.submit(arg, task);
         }
     }
 }

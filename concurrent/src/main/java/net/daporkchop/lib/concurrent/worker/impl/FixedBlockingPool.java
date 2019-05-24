@@ -18,19 +18,16 @@ package net.daporkchop.lib.concurrent.worker.impl;
 import lombok.NonNull;
 import net.daporkchop.lib.concurrent.future.Future;
 import net.daporkchop.lib.concurrent.future.Promise;
-import net.daporkchop.lib.concurrent.lock.PLock;
-import net.daporkchop.lib.concurrent.lock.impl.ReentrantPLock;
-import net.daporkchop.lib.concurrent.worker.pool.FixedSizePool;
 import net.daporkchop.lib.concurrent.worker.Worker;
+import net.daporkchop.lib.concurrent.worker.pool.FixedSizePool;
 import net.daporkchop.lib.concurrent.worker.pool.WorkerPool;
 import net.daporkchop.lib.concurrent.worker.pool.WorkerSelector;
 import net.daporkchop.lib.concurrent.worker.selector.RoundRobinSelector;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * A {@link WorkerPool} that submits tasks to any one of a fixed number of workers, blocking the thread attempting
@@ -39,19 +36,24 @@ import java.util.function.Function;
  * @author DaPorkchop_
  */
 public class FixedBlockingPool implements FixedSizePool {
-    protected static final long LOCK_OFFSET = PUnsafe.pork_getOffset(TaskWorker.class, "lock");
+    protected static final long ACTIVE_OFFSET = PUnsafe.pork_getOffset(TaskWorker.class, "active");
+    protected static final long TASK_OFFSET = PUnsafe.pork_getOffset(TaskWorker.class, "task");
 
     protected final WorkerSelector selector;
     protected final TaskWorker[] workers;
-    protected volatile boolean active = true;
+    protected final Promise termination = this.newPromise();
+    protected volatile int active;
 
-    public FixedBlockingPool(int workerCount)   {
+    public FixedBlockingPool(int workerCount) {
         this(workerCount, new RoundRobinSelector());
     }
 
-    public FixedBlockingPool(int workerCount, @NonNull WorkerSelector selector)   {
-        this.workers = new TaskWorker[workerCount];
+    public FixedBlockingPool(int workerCount, @NonNull WorkerSelector selector) {
+        this.workers = new TaskWorker[this.active = workerCount];
         this.selector = selector;
+        for (int i = 0; i < workerCount; i++)    {
+            (this.workers[i] = new TaskWorker()).start();
+        }
     }
 
     @Override
@@ -66,12 +68,22 @@ public class FixedBlockingPool implements FixedSizePool {
 
     @Override
     public Promise stop() {
-        return null;
+        for (TaskWorker worker : this.workers)  {
+            worker.active = false;
+            worker.interrupt();
+        }
+        return this.termination;
     }
 
     @Override
     public Promise terminate() {
-        return null;
+        for (TaskWorker worker : this.workers)  {
+            synchronized (worker.mutex) {
+                worker.active = false;
+                worker.interrupt();
+            }
+        }
+        return this.termination;
     }
 
     @Override
@@ -80,7 +92,7 @@ public class FixedBlockingPool implements FixedSizePool {
     }
 
     @Override
-    public <R> Future<R> submit(@NonNull Callable<R> task) {
+    public <R> Future<R> submit(@NonNull Supplier<R> task) {
         return this.next().submit(task);
     }
 
@@ -94,27 +106,38 @@ public class FixedBlockingPool implements FixedSizePool {
         return this.next().submit(arg, task);
     }
 
-    protected class TaskWorker extends Thread implements Worker   {
-        protected final Runnable[] mutex = new Runnable[1];
+    protected class TaskWorker extends Thread implements Worker {
+        protected final Object mutex = new Object[0];
+        protected volatile Runnable task = null;
+        protected volatile boolean active = true;
 
         @Override
         public void run() {
-            while (FixedBlockingPool.this.active)   {
-                Runnable task;
-                try {
-                    synchronized (this.mutex) {
-                        this.mutex.wait();
-                        task = this.mutex[0];
-                        this.mutex[0] = null;
+            Runnable task;
+            PUnsafe.monitorEnter(this.mutex);
+            try {
+                while (this.active) {
+                    while (this.active && (task = PUnsafe.getAndSetObject(this, TASK_OFFSET, null)) != null) {
+                        this.mutex.notify();
+                        PUnsafe.monitorExit(this.mutex);
+                        try {
+                            task.run();
+                        } catch (Exception e) {
+                            new RuntimeException(e).printStackTrace();
+                        }
+                        PUnsafe.monitorEnter(this.mutex);
                     }
-                } catch (InterruptedException e)    {
-                    continue;
+                    try {
+                        this.mutex.wait();
+                    } catch (InterruptedException e) {
+                        continue;
+                    }
                 }
-                try {
-                    task.run();
-                } catch (Exception e)   {
-                    new RuntimeException(e).printStackTrace();
+                if (PUnsafe.getAndAddInt(FixedBlockingPool.this, ACTIVE_OFFSET, -1) == 1) {
+                    FixedBlockingPool.this.termination.completeSuccessfully();
                 }
+            } finally {
+                PUnsafe.monitorExit(this.mutex);
             }
         }
 
@@ -125,25 +148,120 @@ public class FixedBlockingPool implements FixedSizePool {
 
         @Override
         public Promise submit(@NonNull Runnable task) {
-            synchronized (this.mutex)   {
-
+            PUnsafe.monitorEnter(this.mutex);
+            try {
+                if (this.active)    {
+                    Promise promise = this.newPromise();
+                    Runnable realTask = () -> {
+                        try {
+                            task.run();
+                            promise.completeSuccessfully();
+                        } catch (Exception e)   {
+                            promise.completeError(e);
+                        }
+                    };
+                    while (!PUnsafe.compareAndSwapObject(this, TASK_OFFSET, null, realTask))    {
+                        try {
+                            this.mutex.wait();
+                        } catch (InterruptedException e)    {
+                            Thread.currentThread().interrupt();
+                        }
+                    }
+                    this.mutex.notify();
+                    return promise;
+                }
+            } finally {
+                PUnsafe.monitorExit(this.mutex);
             }
-            return null;
+            return DefaultWorkerPool.INSTANCE.submit(task);
         }
 
         @Override
-        public <R> Future<R> submit(@NonNull Callable<R> task) {
-            return null;
+        public <R> Future<R> submit(@NonNull Supplier<R> task) {
+            PUnsafe.monitorEnter(this.mutex);
+            try {
+                if (this.active)    {
+                    Future<R> future = this.newFuture();
+                    Runnable realTask = () -> {
+                        try {
+                            future.completeSuccessfully(task.get());
+                        } catch (Exception e)   {
+                            future.completeError(e);
+                        }
+                    };
+                    while (!PUnsafe.compareAndSwapObject(this, TASK_OFFSET, null, realTask))    {
+                        try {
+                            this.mutex.wait();
+                        } catch (InterruptedException e)    {
+                            Thread.currentThread().interrupt();
+                        }
+                    }
+                    this.mutex.notify();
+                    return future;
+                }
+            } finally {
+                PUnsafe.monitorExit(this.mutex);
+            }
+            return DefaultWorkerPool.INSTANCE.submit(task);
         }
 
         @Override
         public <P> Promise submit(P arg, @NonNull Consumer<P> task) {
-            return null;
+            PUnsafe.monitorEnter(this.mutex);
+            try {
+                if (this.active)    {
+                    Promise promise = this.newPromise();
+                    Runnable realTask = () -> {
+                        try {
+                            task.accept(arg);
+                            promise.completeSuccessfully();
+                        } catch (Exception e)   {
+                            promise.completeError(e);
+                        }
+                    };
+                    while (!PUnsafe.compareAndSwapObject(this, TASK_OFFSET, null, realTask))    {
+                        try {
+                            this.mutex.wait();
+                        } catch (InterruptedException e)    {
+                            Thread.currentThread().interrupt();
+                        }
+                    }
+                    this.mutex.notify();
+                    return promise;
+                }
+            } finally {
+                PUnsafe.monitorExit(this.mutex);
+            }
+            return DefaultWorkerPool.INSTANCE.submit(arg, task);
         }
 
         @Override
         public <P, R> Future<R> submit(P arg, @NonNull Function<P, R> task) {
-            return null;
+            PUnsafe.monitorEnter(this.mutex);
+            try {
+                if (this.active)    {
+                    Future<R> future = this.newFuture();
+                    Runnable realTask = () -> {
+                        try {
+                            future.completeSuccessfully(task.apply(arg));
+                        } catch (Exception e)   {
+                            future.completeError(e);
+                        }
+                    };
+                    while (!PUnsafe.compareAndSwapObject(this, TASK_OFFSET, null, realTask))    {
+                        try {
+                            this.mutex.wait();
+                        } catch (InterruptedException e)    {
+                            Thread.currentThread().interrupt();
+                        }
+                    }
+                    this.mutex.notify();
+                    return future;
+                }
+            } finally {
+                PUnsafe.monitorExit(this.mutex);
+            }
+            return DefaultWorkerPool.INSTANCE.submit(arg, task);
         }
     }
 }

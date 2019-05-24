@@ -28,6 +28,7 @@ import net.daporkchop.lib.unsafe.PUnsafe;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * @author DaPorkchop_
@@ -72,7 +73,7 @@ public class ThreadPerTaskPool implements DynamicPool {
     }
 
     @Override
-    public <R> Future<R> submit(@NonNull Callable<R> task) {
+    public <R> Future<R> submit(@NonNull Supplier<R> task) {
         if (this.terminationPromise != null)    {
             return DefaultWorkerPool.INSTANCE.submit(task);
         } else {
@@ -121,7 +122,7 @@ public class ThreadPerTaskPool implements DynamicPool {
                         ((Runnable) this.func).run();
                         ((Promise) this.completable).completeSuccessfully();
                     } else {
-                        ((Future) this.completable).completeSuccessfully(((Callable) this.func).call());
+                        ((Future) this.completable).completeSuccessfully(((Supplier) this.func).get());
                     }
                 } else {
                     if (this.func instanceof Consumer)  {

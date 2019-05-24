@@ -23,10 +23,10 @@ import net.daporkchop.lib.concurrent.future.Promise;
 import net.daporkchop.lib.concurrent.worker.Worker;
 import net.daporkchop.lib.concurrent.worker.pool.WorkerPool;
 
-import java.util.concurrent.Callable;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * A very simple {@link WorkerPool} implementation. Simply hands tasks over to {@link java.util.concurrent.ForkJoinPool}.
@@ -69,11 +69,11 @@ public class DefaultWorkerPool implements WorkerPool {
     }
 
     @Override
-    public <R> Future<R> submit(@NonNull Callable<R> task) {
+    public <R> Future<R> submit(@NonNull Supplier<R> task) {
         Future<R> future = this.newFuture();
         this.delegate.submit(() -> {
             try {
-                future.completeSuccessfully(task.call());
+                future.completeSuccessfully(task.get());
             } catch (Exception e)   {
                 future.completeError(e);
             }

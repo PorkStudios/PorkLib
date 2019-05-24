@@ -14,33 +14,27 @@
  */
 
 import net.daporkchop.lib.common.function.throwing.ERunnable;
-import net.daporkchop.lib.concurrent.future.PCompletable;
-import net.daporkchop.lib.concurrent.tasks.TaskExecutor;
-import net.daporkchop.lib.concurrent.tasks.impl.SimpleThreadPoolTaskExecutor;
-
-import java.util.concurrent.TimeUnit;
+import net.daporkchop.lib.concurrent.future.Promise;
+import net.daporkchop.lib.concurrent.worker.impl.FixedQueuedPool;
+import net.daporkchop.lib.concurrent.worker.pool.WorkerPool;
 
 /**
  * @author DaPorkchop_
  */
 public class ExecutorExample {
     public static void main(String... args) {
-        TaskExecutor executor = SimpleThreadPoolTaskExecutor.builder()
-                .setCorePoolSize(2)
-                .setMaxPoolSize(4)
-                .setThreadKeepAliveTime(TimeUnit.SECONDS.toMillis(5L))
-                .build();
+        WorkerPool pool = new FixedQueuedPool(4);
 
         long time = System.currentTimeMillis();
-        PCompletable[] futures = new PCompletable[8];
-        for (int i = futures.length - 1; i >= 0; i--)   {
-            futures[i] = executor.submit((ERunnable) () -> Thread.sleep(5000L));
+        Promise[] promises = new Promise[8];
+        for (int i = promises.length - 1; i >= 0; i--) {
+            promises[i] = pool.submit((ERunnable) () -> Thread.sleep(5000L));
         }
-        for (int i = futures.length - 1; i >= 0; i--)   {
-            futures[i].sync();
+        for (int i = promises.length - 1; i >= 0; i--) {
+            promises[i].sync();
         }
-        System.out.printf("Took %dms to wait %d*5000ms\n", System.currentTimeMillis() - time, futures.length);
+        System.out.printf("Took %dms to wait %d*5000ms\n", System.currentTimeMillis() - time, promises.length);
 
-        executor.close();
+        pool.stop();
     }
 }

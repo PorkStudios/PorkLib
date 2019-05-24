@@ -13,33 +13,34 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.lock;
+package net.daporkchop.lib.concurrent.lock.impl;
+
+import net.daporkchop.lib.concurrent.lock.PLock;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 /**
- * Allows limiting access to a specific resource to one thread at a time.
- *
  * @author DaPorkchop_
  */
-public interface Lock {
-    /**
-     * Obtains the lock, blocking until it could be obtained.
-     */
-    void lock();
+public class ReentrantPLock implements PLock {
+    protected final Object mutex = new Object[0];
 
-    /**
-     * Obtains the lock, blocking until it could be obtained.
-     */
-    void lockInterruptably() throws InterruptedException;
+    @Override
+    public void lock() {
+        PUnsafe.monitorEnter(this.mutex);
+    }
 
-    /**
-     * Attempts to obtain the lock immediately.
-     *
-     * @return whether or not the lock was obtained
-     */
-    boolean tryLock();
+    @Override
+    public void lockInterruptably() throws InterruptedException {
+        this.lock();
+    }
 
-    /**
-     * Releases the lock.
-     */
-    void unlock();
+    @Override
+    public boolean tryLock() {
+        return PUnsafe.tryMonitorEnter(this.mutex);
+    }
+
+    @Override
+    public void unlock() {
+        PUnsafe.monitorExit(this.mutex);
+    }
 }

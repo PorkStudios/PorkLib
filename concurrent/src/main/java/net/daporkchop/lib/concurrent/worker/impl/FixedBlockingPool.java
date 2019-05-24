@@ -18,13 +18,15 @@ package net.daporkchop.lib.concurrent.worker.impl;
 import lombok.NonNull;
 import net.daporkchop.lib.concurrent.future.Future;
 import net.daporkchop.lib.concurrent.future.Promise;
+import net.daporkchop.lib.concurrent.lock.PLock;
+import net.daporkchop.lib.concurrent.lock.impl.ReentrantPLock;
 import net.daporkchop.lib.concurrent.worker.pool.FixedSizePool;
 import net.daporkchop.lib.concurrent.worker.Worker;
 import net.daporkchop.lib.concurrent.worker.pool.WorkerPool;
 import net.daporkchop.lib.concurrent.worker.pool.WorkerSelector;
 import net.daporkchop.lib.concurrent.worker.selector.RoundRobinSelector;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
@@ -37,8 +39,11 @@ import java.util.function.Function;
  * @author DaPorkchop_
  */
 public class FixedBlockingPool implements FixedSizePool {
+    protected static final long LOCK_OFFSET = PUnsafe.pork_getOffset(TaskWorker.class, "lock");
+
     protected final WorkerSelector selector;
     protected final TaskWorker[] workers;
+    protected volatile boolean active = true;
 
     public FixedBlockingPool(int workerCount)   {
         this(workerCount, new RoundRobinSelector());
@@ -56,7 +61,7 @@ public class FixedBlockingPool implements FixedSizePool {
 
     @Override
     public Worker next() {
-        return this;
+        return this.selector.select(this.workers);
     }
 
     @Override
@@ -90,11 +95,27 @@ public class FixedBlockingPool implements FixedSizePool {
     }
 
     protected class TaskWorker extends Thread implements Worker   {
-        protected final BlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(1);
+        protected final Runnable[] mutex = new Runnable[1];
 
         @Override
         public void run() {
-            super.run();
+            while (FixedBlockingPool.this.active)   {
+                Runnable task;
+                try {
+                    synchronized (this.mutex) {
+                        this.mutex.wait();
+                        task = this.mutex[0];
+                        this.mutex[0] = null;
+                    }
+                } catch (InterruptedException e)    {
+                    continue;
+                }
+                try {
+                    task.run();
+                } catch (Exception e)   {
+                    new RuntimeException(e).printStackTrace();
+                }
+            }
         }
 
         @Override
@@ -104,7 +125,10 @@ public class FixedBlockingPool implements FixedSizePool {
 
         @Override
         public Promise submit(@NonNull Runnable task) {
-            return this.queue.put(task);
+            synchronized (this.mutex)   {
+
+            }
+            return null;
         }
 
         @Override

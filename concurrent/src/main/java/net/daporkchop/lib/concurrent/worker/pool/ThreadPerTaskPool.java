@@ -18,18 +18,8 @@ package net.daporkchop.lib.concurrent.worker.pool;
 import net.daporkchop.lib.concurrent.worker.WorkerPool;
 
 /**
- * A {@link WorkerPool} with a fixed maximum number of workers.
- *
+ * A {@link WorkerPool} that creates a new thread for every invocation of {@link #next()}.
  * @author DaPorkchop_
  */
-public interface CappedSizePool extends WorkerPool {
-    /**
-     * @return the number of workers currently running (executing or waiting for tasks)
-     */
-    int activeWorkers();
-
-    /**
-     * @return the maximum number of workers
-     */
-    int maxWorkers();
+public class ThreadPerTaskPool implements WorkerPool {
 }

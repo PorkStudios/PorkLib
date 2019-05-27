@@ -13,18 +13,15 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.worker.pool;
-
-import net.daporkchop.lib.concurrent.worker.WorkerPool;
+package net.daporkchop.lib.concurrent.util;
 
 /**
- * A {@link WorkerPool} whose workers may come and go as needed, and tasks transferred between workers to keep load low.
+ * A type that holds a mutex.
+ * <p>
+ * The mutex is always an Object[] with a size of 0, for lowest possible memory consumption.
  *
  * @author DaPorkchop_
  */
-public interface DynamicPool extends WorkerPool {
-    /**
-     * @return the number of workers currently active (executing or waiting for tasks)
-     */
-    int activeWorkers();
+public abstract class DefaultMutexHolder {
+    protected final Object mutex = new Object[0];
 }

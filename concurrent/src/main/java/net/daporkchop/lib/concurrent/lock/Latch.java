@@ -15,7 +15,7 @@
 
 package net.daporkchop.lib.concurrent.lock;
 
-import lombok.NonNull;
+import net.daporkchop.lib.concurrent.util.Listenable;
 
 /**
  * A lock with a certain number of tickets. This can be used to wait until a certain number of threads have
@@ -23,11 +23,18 @@ import lombok.NonNull;
  *
  * @author DaPorkchop_
  */
-public interface Latch {
+public interface Latch extends Listenable<Latch> {
     /**
-     * @return the current number of unreturned tickets
+     * @return the current number of missing tickets
      */
     int tickets();
+
+    /**
+     * @return whether or not all tickets have been returned to the latch
+     */
+    default boolean isReleased() {
+        return this.tickets() == 0;
+    }
 
     /**
      * Returns a ticket to the latch, decrementing the ticket count by 1.
@@ -43,13 +50,4 @@ public interface Latch {
      * Waits until all tickets are returned.
      */
     void syncInterruptably() throws InterruptedException;
-
-    /**
-     * Adds a listener to this latch that will be invoked when the ticket count reaches 0.
-     * <p>
-     * The listener will be invoked on the final thread to return a ticket.
-     *
-     * @param callback the function to invoke when all tickets are returned
-     */
-    void addListener(@NonNull Runnable callback);
 }

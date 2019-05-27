@@ -16,6 +16,7 @@
 package net.daporkchop.lib.concurrent.future;
 
 import lombok.NonNull;
+import net.daporkchop.lib.concurrent.util.Listenable;
 import net.daporkchop.lib.concurrent.util.exception.AlreadyCompleteException;
 import net.daporkchop.lib.concurrent.util.exception.NotCompleteException;
 import net.daporkchop.lib.concurrent.worker.Worker;
@@ -27,7 +28,7 @@ import java.util.function.Consumer;
  *
  * @author DaPorkchop_
  */
-public interface Completable<I extends Completable<I>> {
+public interface Completable<I extends Completable<I>> extends Listenable<I> {
     /**
      * @return whether or not this {@link Promise} or {@link Future} completed successfully
      */
@@ -162,6 +163,7 @@ public interface Completable<I extends Completable<I>> {
      * @param callback the function to run
      * @return this {@link Promise} or {@link Future}
      */
+    @Override
     I addListener(@NonNull Consumer<I> callback);
 
     /**

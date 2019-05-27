@@ -19,11 +19,12 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.concurrent.future.Promise;
+import net.daporkchop.lib.concurrent.lock.Latch;
+import net.daporkchop.lib.concurrent.lock.impl.CountingLatch;
 import net.daporkchop.lib.concurrent.worker.Task;
 import net.daporkchop.lib.concurrent.worker.WorkerGroup;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
-import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -31,70 +32,70 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * A {@link WorkerGroup} with a fixed number of worker threads, all fetching tasks from a single shared {@link BlockingQueue}.
+ *
  * @author DaPorkchop_
  */
 @Accessors(fluent = true)
 public class FixedQueuedGroup implements WorkerGroup {
-    protected static final long ALIVE_OFFSET = PUnsafe.pork_getOffset(FixedQueuedGroup.class, "alive");
     protected static final long OPEN_OFFSET = PUnsafe.pork_getOffset(FixedQueuedGroup.class, "open");
 
     protected final Thread[] workers;
     protected final BlockingQueue<Runnable> queue;
     @Getter
     protected final Promise closePromise = DefaultGroup.INSTANCE.newPromise();
-    protected volatile int alive;
+    protected final Latch latch;
     protected volatile int open = 1;
 
-    public FixedQueuedGroup(int workers)    {
+    public FixedQueuedGroup(int workers) {
         this(workers, Executors.defaultThreadFactory(), new LinkedBlockingQueue<>());
     }
 
-    public FixedQueuedGroup(int workers, @NonNull ThreadFactory factory)    {
+    public FixedQueuedGroup(int workers, @NonNull ThreadFactory factory) {
         this(workers, factory, new LinkedBlockingQueue<>());
     }
-    public FixedQueuedGroup(int workers, @NonNull BlockingQueue<Runnable> queue)    {
+
+    public FixedQueuedGroup(int workers, @NonNull BlockingQueue<Runnable> queue) {
         this(workers, Executors.defaultThreadFactory(), queue);
     }
 
-    public FixedQueuedGroup(int workers, @NonNull ThreadFactory factory, @NonNull BlockingQueue<Runnable> queue)    {
-        if (workers < 1)    {
+    public FixedQueuedGroup(int workers, @NonNull ThreadFactory factory, @NonNull BlockingQueue<Runnable> queue) {
+        if (workers < 1) {
             throw new IllegalArgumentException("Must have at least 1 worker!");
         }
-        this.workers = new Thread[this.alive = workers];
+        this.workers = new Thread[workers];
+        this.latch = new CountingLatch(workers).addListener(latch -> this.closePromise.completeSuccessfully());
         this.queue = queue;
 
         Runnable func = () -> {
             try {
                 Runnable task;
-                while (this.open != 0)   {
+                while (this.open != 0) {
                     try {
-                        if ((task = this.queue.poll(500L, TimeUnit.MILLISECONDS)) != null)   {
+                        if ((task = this.queue.poll(500L, TimeUnit.MILLISECONDS)) != null) {
                             try {
                                 task.run();
-                            } catch (Exception e)   {
+                            } catch (Exception e) {
                                 new RuntimeException(e).printStackTrace();
                             } finally {
                                 task = null; //allow task to be garbage-collected
                             }
                         }
-                    } catch (InterruptedException e)    {
+                    } catch (InterruptedException e) {
                         //accept interrupts from close
                     }
                 }
-            } catch (Exception e)   {
+            } catch (Exception e) {
                 this.closePromise.tryCompleteError(e);
                 throw new RuntimeException(e);
             } finally {
-                if (PUnsafe.getAndAddInt(this, ALIVE_OFFSET, -1) == 1)  {
-                    //decremented from 1 to 0
-                    this.closePromise.tryCompleteSuccessfully();
-                }
+                this.latch.release();
             }
         };
-        for (int i = 0; i < workers; i++)   {
+        for (int i = 0; i < workers; i++) {
             this.workers[i] = factory.newThread(func);
         }
-        for (int i = 0; i < workers; i++)   {
+        for (int i = 0; i < workers; i++) {
             this.workers[i].start();
         }
     }
@@ -102,11 +103,11 @@ public class FixedQueuedGroup implements WorkerGroup {
     @Override
     public Promise closeAsync() {
         if (PUnsafe.compareAndSwapInt(this, OPEN_OFFSET, 1, 0)) {
-            for (Thread t : this.workers)   {
+            for (Thread t : this.workers) {
                 t.interrupt(); //interrupt all workers to notify them that they shouldn't poll the queue any more
             }
-            for (Runnable r : this.queue)   {
-                if (r instanceof Task)  {
+            for (Runnable r : this.queue) {
+                if (r instanceof Task) {
                     ((Task) r).cancel(); //cancel all tasks
                 }
             }

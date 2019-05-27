@@ -13,16 +13,23 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.worker.pool;
+package net.daporkchop.lib.concurrent.util;
+
+import lombok.NonNull;
+
+import java.util.function.Consumer;
 
 /**
- * A {@link CappedSizePool} with a constant worker count.
+ * A type that may have listeners added to it to await some event.
  *
  * @author DaPorkchop_
  */
-public interface FixedSizePool extends CappedSizePool {
-    @Override
-    default int activeWorkers() {
-        return this.maxWorkers();
-    }
+public interface Listenable<I extends Listenable<I>> {
+    /**
+     * Adds a new listener.
+     *
+     * @param listener the function that will be notified
+     * @return this instance
+     */
+    I addListener(@NonNull Consumer<I> listener);
 }

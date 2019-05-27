@@ -15,98 +15,63 @@
 
 package net.daporkchop.lib.concurrent.lock.impl;
 
-import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.concurrent.lock.Latch;
+import net.daporkchop.lib.concurrent.util.DefaultListenable;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-public class CountingLatch implements Latch {
-    protected static final long LISTENERS_OFFSET = PUnsafe.pork_getOffset(CountingLatch.class, "listeners");
+@Accessors(fluent = true)
+public class CountingLatch extends DefaultListenable<Latch> implements Latch {
     protected static final long TICKETS_OFFSET = PUnsafe.pork_getOffset(CountingLatch.class, "tickets");
-    
-    protected final Object mutex = new Object[0];
-    protected volatile Object listeners = null;
+
     @NonNull
+    @Getter
     protected volatile int tickets;
 
     @Override
-    public int tickets() {
-        return this.tickets;
-    }
-
-    @Override
     public void release() {
-        if (PUnsafe.getAndAddInt(this, TICKETS_OFFSET, -1) - 1 == 0)    {
-            this.tickets = -1;
-            this.fireListeners();
+        if (PUnsafe.getAndAddInt(this, TICKETS_OFFSET, -1) == 1) {
+            //decremented from 1 to 0
+            synchronized (this.mutex) {
+                this.fireListeners();
+                this.mutex.notifyAll();
+            }
         }
     }
 
     @Override
     public void sync() {
-        while (this.tickets > 0) {
-            try {
-                synchronized (this.mutex) {
+        synchronized (this.mutex) {
+            while (this.tickets > 0) {
+                try {
                     this.mutex.wait();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
                 }
-            } catch (InterruptedException e)    {
-                throw new RuntimeException(e);
             }
         }
     }
 
     @Override
     public void syncInterruptably() throws InterruptedException {
-        while (this.tickets > 0) {
-            synchronized (this.mutex) {
+        synchronized (this.mutex) {
+            while (this.tickets > 0) {
                 this.mutex.wait();
             }
         }
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public void addListener(@NonNull Runnable callback) {
-        Object prev, next;
-        do {
-            if ((prev = this.listeners) == null) {
-                if (this.tickets <= 0) {
-                    callback.run();
-                    return;
-                } else {
-                    //first listener
-                    next = callback;
-                }
-            } else if (prev instanceof List) {
-                ((List) prev).add(callback);
-                next = prev;
-            } else {
-                next = new LinkedList<>(); //TODO: pool these
-                ((List) next).add(callback);
-            }
-        } while (!PUnsafe.compareAndSwapObject(this, LISTENERS_OFFSET, prev, next));
-        return;
-    }
-
-    @SuppressWarnings("unchecked")
-    protected void fireListeners() {
-        Object obj = PUnsafe.pork_swapIfNonNull(this, LISTENERS_OFFSET, null);
-        if (obj != null) {
-            if (obj instanceof List) {
-                for (Runnable listener : (List<Runnable>) obj) {
-                    listener.run();
-                }
-            } else if (obj instanceof Runnable) {
-                ((Runnable) obj).run();
-            }
-        }
+    protected void doFireListener(@NonNull Consumer<Latch> listener) {
+        listener.accept(this);
     }
 }

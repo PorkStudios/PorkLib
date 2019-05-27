@@ -29,26 +29,38 @@ import java.util.function.Supplier;
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
 public abstract class Task<C extends Completable<C>, F> implements Runnable {
-    @NonNull
-    protected final C completable;
-    @NonNull
-    protected final F func;
-
     @Override
-    public final void run() {
-        try {
-            this.doRun();
-        } catch (Exception e)   {
-            this.completable.completeError(e);
+    public abstract void run();
+
+    public abstract void cancel();
+
+    @RequiredArgsConstructor
+    @Getter
+    private static abstract class AbstractTask<C extends Completable<C>, F> extends Task {
+        @NonNull
+        protected final C completable;
+        @NonNull
+        protected final F func;
+
+        @Override
+        public final void run() {
+            try {
+                this.doRun();
+            } catch (Exception e)   {
+                this.completable.completeError(e);
+            }
         }
+
+        @Override
+        public void cancel() {
+            this.completable.cancel();
+        }
+
+        protected abstract void doRun() throws Exception;
     }
 
-    protected abstract void doRun() throws Exception;
-
-    public static class Run extends Task<Promise, Runnable> {
+    public static class Run extends AbstractTask<Promise, Runnable> {
         public Run(Promise completable, Runnable func) {
             super(completable, func);
         }
@@ -60,7 +72,7 @@ public abstract class Task<C extends Completable<C>, F> implements Runnable {
         }
     }
 
-    public static class RunParam<P> extends Task<Promise, Consumer<P>>  {
+    public static class RunParam<P> extends AbstractTask<Promise, Consumer<P>>  {
         protected final P param;
 
         public RunParam(Promise completable, Consumer<P> func, P param) {
@@ -76,7 +88,7 @@ public abstract class Task<C extends Completable<C>, F> implements Runnable {
         }
     }
 
-    public static class Compute<R> extends Task<Future<R>, Supplier<R>> {
+    public static class Compute<R> extends AbstractTask<Future<R>, Supplier<R>> {
         public Compute(Future<R> completable, Supplier<R> func) {
             super(completable, func);
         }
@@ -87,7 +99,7 @@ public abstract class Task<C extends Completable<C>, F> implements Runnable {
         }
     }
 
-    public static class ComputeParam<P, R> extends Task<Future<R>, Function<P, R>>  {
+    public static class ComputeParam<P, R> extends AbstractTask<Future<R>, Function<P, R>>  {
         protected final P param;
 
         public ComputeParam(Future<R> completable, Function<P, R> func, P param) {

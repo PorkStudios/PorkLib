@@ -15,14 +15,17 @@
 
 import net.daporkchop.lib.common.function.throwing.ERunnable;
 import net.daporkchop.lib.concurrent.future.Promise;
+import net.daporkchop.lib.concurrent.worker.WorkerGroup;
 import net.daporkchop.lib.concurrent.worker.WorkerPool;
+import net.daporkchop.lib.concurrent.worker.group.FixedQueuedGroup;
+import net.daporkchop.lib.concurrent.worker.group.ThreadPerTaskGroup;
 
 /**
  * @author DaPorkchop_
  */
 public class ExecutorExample {
     public static void main(String... args) {
-        WorkerPool pool = new ThreadPerTaskPool();
+        WorkerGroup pool = new FixedQueuedGroup(4);
 
         long time = System.currentTimeMillis();
         Promise[] promises = new Promise[8];
@@ -34,6 +37,6 @@ public class ExecutorExample {
         }
         System.out.printf("Took %dms to wait %d*5000ms\n", System.currentTimeMillis() - time, promises.length);
 
-        pool.stop();
+        pool.closeAsync();
     }
 }

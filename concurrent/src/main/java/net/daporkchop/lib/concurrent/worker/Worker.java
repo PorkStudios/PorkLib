@@ -16,6 +16,7 @@
 package net.daporkchop.lib.concurrent.worker;
 
 import lombok.NonNull;
+import net.daporkchop.lib.concurrent.CloseableFuture;
 import net.daporkchop.lib.concurrent.future.Future;
 import net.daporkchop.lib.concurrent.future.Promise;
 import net.daporkchop.lib.concurrent.future.impl.DefaultFuture;
@@ -30,7 +31,7 @@ import java.util.function.Supplier;
  *
  * @author DaPorkchop_
  */
-public interface Worker {
+public interface Worker extends CloseableFuture {
     /**
      * Submits a task to be run by this worker at some point.
      * <p>

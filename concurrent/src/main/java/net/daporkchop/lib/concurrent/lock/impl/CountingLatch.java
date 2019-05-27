@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.concurrent.lock.impl;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -28,14 +29,20 @@ import java.util.function.Consumer;
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
 @Accessors(fluent = true)
 public class CountingLatch extends DefaultListenable<Latch> implements Latch {
     protected static final long TICKETS_OFFSET = PUnsafe.pork_getOffset(CountingLatch.class, "tickets");
 
-    @NonNull
     @Getter
     protected volatile int tickets;
+
+    public CountingLatch(int tickets)   {
+        if (tickets < 0)   {
+            throw new IllegalArgumentException("Number of tickets cannot be negative!");
+        } else if ((this.tickets = tickets) == 0)   {
+            this.fireListeners();
+        }
+    }
 
     @Override
     public void release() {

@@ -13,13 +13,27 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.worker.pool;
+package net.daporkchop.lib.concurrent.lock.impl;
 
-import net.daporkchop.lib.concurrent.worker.WorkerPool;
+import net.daporkchop.lib.concurrent.lock.DynamicLatch;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 /**
- * A {@link WorkerPool} that creates a new thread for every invocation of {@link #next()}.
  * @author DaPorkchop_
  */
-public class ThreadPerTaskPool implements WorkerPool {
+public class CountingDynamicLatch extends CountingLatch implements DynamicLatch {
+    public CountingDynamicLatch() {
+        super(0);
+    }
+
+    public CountingDynamicLatch(int startTickets) {
+        super(startTickets);
+    }
+
+    @Override
+    public void obtain() {
+        if (PUnsafe.getAndAddInt(this, TICKETS_OFFSET, 1) == 0) {
+            this.resetListeners();
+        }
+    }
 }

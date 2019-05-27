@@ -31,6 +31,9 @@ public interface WorkerPool extends CloseableFuture {
      * Finds and returns a worker from this pool.
      * <p>
      * The exact behavior of this method is highly implementation-dependant.
+     * <p>
+     * The worker must be closed using {@link Worker#closeAsync()} or {@link Worker#closeNow()} in order to be
+     * returned to the pool, otherwise a resource leak may occur.
      *
      * @return a worker from this pool
      */

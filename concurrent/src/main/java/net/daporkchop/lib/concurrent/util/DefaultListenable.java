@@ -67,5 +67,15 @@ public abstract class DefaultListenable<I extends Listenable<I>> extends Default
         }
     }
 
+    protected final void resetListeners()   {
+        synchronized (this.mutex)   {
+            if (this.listener != this.mutex)    {
+                throw new IllegalStateException("Listeners not fired!");
+            } else {
+                this.listener = null;
+            }
+        }
+    }
+
     protected abstract void doFireListener(@NonNull Consumer<I> listener);
 }

@@ -15,10 +15,10 @@
 
 package net.daporkchop.lib.concurrent.lock;
 
-import lombok.NonNull;
-
 /**
  * A {@link Latch} that can also have it's ticket count increased after creation.
+ * <p>
+ * Listeners must be re-added every time the ticket count reaches 0.
  *
  * @author DaPorkchop_
  */

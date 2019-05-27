@@ -34,13 +34,29 @@ public class DefaultPromise extends DefaultCompletable<Promise> implements Promi
 
     @Override
     public boolean isSuccess() {
-        return this.success != 0;
+        return this.success == 1;
+    }
+
+    @Override
+    public boolean isCancelled() {
+        return this.success == 2;
     }
 
     @Override
     public void completeSuccessfully() throws AlreadyCompleteException {
         synchronized (this.mutex)   {
             if (this.isError() || !PUnsafe.compareAndSwapInt(this, SUCCESS_OFFSET, 0, 1))   {
+                throw new AlreadyCompleteException();
+            }
+            this.mutex.notifyAll();
+        }
+        this.fireListeners();
+    }
+
+    @Override
+    public void cancel() throws AlreadyCompleteException {
+        synchronized (this.mutex)   {
+            if (this.isError() || !PUnsafe.compareAndSwapInt(this, SUCCESS_OFFSET, 0, 2))   {
                 throw new AlreadyCompleteException();
             }
             this.mutex.notifyAll();

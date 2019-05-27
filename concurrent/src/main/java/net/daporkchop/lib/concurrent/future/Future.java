@@ -19,6 +19,9 @@ import lombok.NonNull;
 import net.daporkchop.lib.concurrent.util.exception.AlreadyCompleteException;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+
 /**
  * @author DaPorkchop_
  */
@@ -64,6 +67,21 @@ public interface Future<V> extends Completable<Future<V>> {
     }
 
     /**
+     * Gets the value that this {@link Future} was completed with, returning the given default value if not yet complete.
+     * <p>
+     * Throws exceptions unsafely if it is completed with an error.
+     *
+     * @return the return value
+     */
+    default V getNowOrDefault(V def) {
+        try {
+            return this.getNowExceptionally();
+        } catch (Exception e) {
+            return def;
+        }
+    }
+
+    /**
      * Gets the value that this {@link Future} was completed with, returning {@code null} if not yet complete.
      *
      * @return the return value
@@ -95,5 +113,27 @@ public interface Future<V> extends Completable<Future<V>> {
         } catch (AlreadyCompleteException e) {
             return false;
         }
+    }
+
+    /**
+     * Adds a listener that will be run when this {@link Promise} or {@link Future} is completed.
+     *
+     * @param callback the function to run
+     */
+    default Future<V> addListener(@NonNull BiConsumer<V, Exception> callback)   {
+        return this.addListener(i -> callback.accept(i.getNowOrDefault(null), i.getError()));
+    }
+
+    /**
+     * Adds a listener that will be run when this {@link Promise} or {@link Future} is completed successfully.
+     *
+     * @param callback the function to run
+     */
+    default Future<V> addSuccessListener(@NonNull Consumer<V> callback)    {
+        return this.addListener(i -> {
+            if (i.isSuccess())  {
+                callback.accept(i.get());
+            }
+        });
     }
 }

@@ -34,6 +34,11 @@ public interface Completable<I extends Completable<I>> {
     boolean isSuccess();
 
     /**
+     * @return whether or not this {@link Promise} or {@link Future} was cancelled
+     */
+    boolean isCancelled();
+
+    /**
      * @return whether or not this {@link Promise} or {@link Future} completed with an error
      */
     default boolean isError() {
@@ -44,7 +49,7 @@ public interface Completable<I extends Completable<I>> {
      * @return whether or not this {@link Promise} or {@link Future} is complete
      */
     default boolean isComplete() {
-        return this.isSuccess() || this.isError();
+        return this.isSuccess() || this.isError() || this.isCancelled();
     }
 
     /**
@@ -104,7 +109,7 @@ public interface Completable<I extends Completable<I>> {
      *
      * @param error the error
      */
-    void completeError(@NonNull Exception error);
+    void completeError(@NonNull Exception error) throws AlreadyCompleteException;
 
     /**
      * Attempts to mark this {@link Promise} or {@link Future} as being successfully completed, doing nothing if it is already
@@ -122,97 +127,28 @@ public interface Completable<I extends Completable<I>> {
         }
     }
 
-    //
-    //
-    // Instant callback methods
-    //
-    //
+    /**
+     * Marks this {@link Promise} or {@link Future} as being cancelled.
+     * <p>
+     * This will cause all attached listeners to be executed, and wake up any waiting threads.
+     */
+    void cancel() throws AlreadyCompleteException;
 
     /**
-     * Runs a function if this {@link Promise} or {@link Future} is complete.
+     * Attempts to mark this {@link Promise} or {@link Future} as being being cancelled, doing nothing if it is already complete.
+     * <p>
+     * This will cause all attached listeners to be executed, and wake up any waiting threads.
      *
-     * @param callback the function to run if this {@link Promise} or {@link Future} is complete
-     * @return whether or not the callback was run
+     * @return whether this could be completed successfully
+     * @see #cancel()
      */
-    default boolean ifComplete(@NonNull Runnable callback) {
-        boolean complete = this.isComplete();
-        if (complete) {
-            callback.run();
-        }
-        return complete;
-    }
-
-    /**
-     * Runs a function if this {@link Promise} or {@link Future} is incomplete.
-     *
-     * @param callback the function to run if this {@link Promise} or {@link Future} is incomplete
-     * @return whether or not the callback was run
-     */
-    default boolean ifIncomplete(@NonNull Runnable callback) {
-        boolean complete = this.isComplete();
-        if (!complete) {
-            callback.run();
-        }
-        return complete;
-    }
-
-    /**
-     * Runs a function if this {@link Promise} or {@link Future} is complete.
-     *
-     * @param ifCallback   the function to run if this {@link Promise} or {@link Future} is complete
-     * @param elseCallback the function to run if this {@link Promise} or {@link Future} is not complete
-     * @return whether or not this {@link Promise} or {@link Future} is complete
-     */
-    default boolean ifCompleteElse(@NonNull Runnable ifCallback, @NonNull Runnable elseCallback) {
-        if (this.isComplete()) {
-            ifCallback.run();
+    default boolean tryCancel() {
+        try {
+            this.cancel();
             return true;
-        } else {
-            elseCallback.run();
+        } catch (AlreadyCompleteException e) {
             return false;
         }
-    }
-
-    /**
-     * Runs a function if this {@link Promise} or {@link Future} completed successfully.
-     *
-     * @param callback the function to run if this {@link Promise} or {@link Future} completed successfully
-     * @return whether or not the callback was run
-     */
-    default boolean ifSuccess(@NonNull Runnable callback) {
-        boolean success = this.isSuccess();
-        if (success) {
-            callback.run();
-        }
-        return success;
-    }
-
-    /**
-     * Runs a function if this {@link Promise} or {@link Future} completed successfully.
-     *
-     * @param callback the function to run if this {@link Promise} or {@link Future} completed successfully
-     * @return whether or not the callback was run
-     */
-    default boolean ifError(@NonNull Runnable callback) {
-        boolean error = this.isError();
-        if (error) {
-            callback.run();
-        }
-        return error;
-    }
-
-    /**
-     * Runs a function if this {@link Promise} or {@link Future} completed successfully.
-     *
-     * @param callback the function to run if this {@link Promise} or {@link Future} completed successfully
-     * @return whether or not the callback was run
-     */
-    default boolean ifError(@NonNull Consumer<Exception> callback) {
-        boolean error = this.isError();
-        if (error) {
-            callback.accept(this.getError());
-        }
-        return error;
     }
 
     //
@@ -272,6 +208,19 @@ public interface Completable<I extends Completable<I>> {
         return this.addListener(i -> {
             if (i.isError())    {
                 callback.accept(i.getError());
+            }
+        });
+    }
+
+    /**
+     * Adds a listener that will be run when this {@link Promise} or {@link Future} is cancelled.
+     *
+     * @param callback the function to run
+     */
+    default I addCancelListener(@NonNull Runnable callback)    {
+        return this.addListener(i -> {
+            if (i.isCancelled())  {
+                callback.run();
             }
         });
     }

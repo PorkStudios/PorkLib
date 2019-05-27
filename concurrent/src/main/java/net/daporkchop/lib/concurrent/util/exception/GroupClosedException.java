@@ -13,36 +13,10 @@
  *
  */
 
-package net.daporkchop.lib.concurrent;
-
-import net.daporkchop.lib.concurrent.future.Promise;
+package net.daporkchop.lib.concurrent.util.exception;
 
 /**
- * A type that can be closed at some point in the future (asynchronously).
- *
  * @author DaPorkchop_
  */
-public interface CloseableFuture {
-    /**
-     * Closes this instance now, blocking until the close operation is complete.
-     */
-    default void closeNow() {
-        this.closeAsync().sync();
-    }
-
-    /**
-     * Starts the close operation for this instance if it hasn't been started already.
-     *
-     * @return the {@link Promise} that will be notified when this instance is closed
-     */
-    Promise closeAsync();
-
-    /**
-     * Gets the {@link Promise} that will be notified when this instance is closed.
-     * <p>
-     * Invoking this method does not start the close operation.
-     *
-     * @return the {@link Promise} that will be notified when this instance is closed
-     */
-    Promise closePromise();
+public class GroupClosedException extends RuntimeException {
 }

@@ -13,36 +13,39 @@
  *
  */
 
-package net.daporkchop.lib.concurrent;
+package net.daporkchop.lib.concurrent.worker.group;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import net.daporkchop.lib.concurrent.future.Promise;
+import net.daporkchop.lib.concurrent.worker.WorkerGroup;
+
+import java.util.concurrent.ForkJoinPool;
 
 /**
- * A type that can be closed at some point in the future (asynchronously).
+ * A simple {@link WorkerGroup} that forwards tasks on to {@link ForkJoinPool}.
  *
  * @author DaPorkchop_
  */
-public interface CloseableFuture {
-    /**
-     * Closes this instance now, blocking until the close operation is complete.
-     */
-    default void closeNow() {
-        this.closeAsync().sync();
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class DefaultGroup implements WorkerGroup {
+    public static final DefaultGroup INSTANCE = new DefaultGroup();
+
+    protected final ForkJoinPool pool = ForkJoinPool.commonPool();
+
+    @Override
+    public Promise closeAsync() {
+        throw new UnsupportedOperationException();
     }
 
-    /**
-     * Starts the close operation for this instance if it hasn't been started already.
-     *
-     * @return the {@link Promise} that will be notified when this instance is closed
-     */
-    Promise closeAsync();
+    @Override
+    public Promise closePromise() {
+        throw new UnsupportedOperationException();
+    }
 
-    /**
-     * Gets the {@link Promise} that will be notified when this instance is closed.
-     * <p>
-     * Invoking this method does not start the close operation.
-     *
-     * @return the {@link Promise} that will be notified when this instance is closed
-     */
-    Promise closePromise();
+    @Override
+    public void submitFast(@NonNull Runnable task) {
+        this.pool.submit(task);
+    }
 }

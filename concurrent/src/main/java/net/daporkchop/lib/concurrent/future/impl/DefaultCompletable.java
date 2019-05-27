@@ -79,7 +79,7 @@ public abstract class DefaultCompletable<I extends Completable<I>> implements Co
     @Override
     public void completeError(@NonNull Exception error) throws AlreadyCompleteException {
         synchronized (this.mutex) {
-            if (this.isSuccess() || !PUnsafe.compareAndSwapObject(this, ERROR_OFFSET, null, error)) {
+            if (this.isSuccess() || this.isCancelled() || !PUnsafe.compareAndSwapObject(this, ERROR_OFFSET, null, error)) {
                 throw new AlreadyCompleteException();
             }
             this.mutex.notifyAll();

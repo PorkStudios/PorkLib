@@ -13,36 +13,50 @@
  *
  */
 
-package net.daporkchop.lib.concurrent;
+package net.daporkchop.lib.concurrent.worker.group;
 
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.concurrent.future.Promise;
+import net.daporkchop.lib.concurrent.util.exception.GroupClosedException;
+import net.daporkchop.lib.concurrent.worker.WorkerGroup;
+import net.daporkchop.lib.unsafe.PUnsafe;
+
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 /**
- * A type that can be closed at some point in the future (asynchronously).
+ * A simple implementation of {@link WorkerGroup} that creates a new thread for every submitted task.
  *
  * @author DaPorkchop_
  */
-public interface CloseableFuture {
-    /**
-     * Closes this instance now, blocking until the close operation is complete.
-     */
-    default void closeNow() {
-        this.closeAsync().sync();
+@RequiredArgsConstructor
+@Accessors(fluent = true)
+public class ThreadPerTaskGroup implements WorkerGroup {
+    @NonNull
+    protected final ThreadFactory factory;
+
+    @Getter
+    protected final Promise closePromise = DefaultGroup.INSTANCE.newPromise();
+
+    public ThreadPerTaskGroup() {
+        this(Executors.defaultThreadFactory());
     }
 
-    /**
-     * Starts the close operation for this instance if it hasn't been started already.
-     *
-     * @return the {@link Promise} that will be notified when this instance is closed
-     */
-    Promise closeAsync();
+    @Override
+    public Promise closeAsync() {
+        this.closePromise.tryCancel();
+        return this.closePromise;
+    }
 
-    /**
-     * Gets the {@link Promise} that will be notified when this instance is closed.
-     * <p>
-     * Invoking this method does not start the close operation.
-     *
-     * @return the {@link Promise} that will be notified when this instance is closed
-     */
-    Promise closePromise();
+    @Override
+    public void submitFast(@NonNull Runnable task) throws GroupClosedException {
+        if (this.closePromise.isCancelled()) {
+            throw new GroupClosedException();
+        } else {
+            this.factory.newThread(task).start();
+        }
+    }
 }

@@ -16,10 +16,10 @@
 package net.daporkchop.lib.concurrent.worker;
 
 import lombok.NonNull;
-import net.daporkchop.lib.concurrent.future.impl.DefaultFuture;
-import net.daporkchop.lib.concurrent.future.impl.DefaultPromise;
 import net.daporkchop.lib.concurrent.future.Future;
 import net.daporkchop.lib.concurrent.future.Promise;
+import net.daporkchop.lib.concurrent.future.impl.DefaultFuture;
+import net.daporkchop.lib.concurrent.future.impl.DefaultPromise;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -32,66 +32,80 @@ import java.util.function.Supplier;
  */
 public interface Worker {
     /**
-     * Schedules a task to be run by this worker at some point.
+     * Submits a task to be run by this worker at some point.
      * <p>
-     * If this worker has been shut down, the task may either be run by the invoking thread or by some global
-     * thread pool.
+     * This will not allocate an additional {@link Promise} or {@link Future} instance, which may provide a
+     * performance boost.
+     *
+     * @param task the task to run
+     */
+    void submitFast(@NonNull Runnable task);
+
+    /**
+     * Schedules a task to be run by this worker at some point.
      *
      * @param task the task to be run
      * @return a {@link Promise} which may be used to track the task
      */
-    Promise submit(@NonNull Runnable task);
+    default Promise submit(@NonNull Runnable task) {
+        Promise promise = this.newPromise();
+        this.submitFast(new Task.Run(promise, task));
+        return promise;
+    }
 
     /**
      * Schedules a task to be run by this worker at some point.
-     * <p>
-     * If this worker has been shut down, the task may either be run by the invoking thread or by some global
-     * thread pool.
+     *
+     * @param param the argument to pass to the task
+     * @param task  the task to be run
+     * @param <P>   the parameter type of the task
+     * @return a {@link Future} which may be used to track the task and get the return value
+     */
+    default <P> Promise submit(P param, @NonNull Consumer<P> task) {
+        Promise promise = this.newPromise();
+        this.submitFast(new Task.RunParam<>(promise, task, param));
+        return promise;
+    }
+
+    /**
+     * Schedules a task to be run by this worker at some point.
      *
      * @param <R>  the return type of the task
      * @param task the task to be run
      * @return a {@link Future} which may be used to track the task and get the return value
      */
-    <R> Future<R> submit(@NonNull Supplier<R> task);
+    default <R> Future<R> submit(@NonNull Supplier<R> task) {
+        Future<R> future = this.newFuture();
+        this.submitFast(new Task.Compute<>(future, task));
+        return future;
+    }
 
     /**
      * Schedules a task to be run by this worker at some point.
-     * <p>
-     * If this worker has been shut down, the task may either be run by the invoking thread or by some global
-     * thread pool.
      *
-     * @param arg the argument to pass to the task
-     * @param task the task to be run
-     * @param <P>  the parameter type of the task
+     * @param param the argument to pass to the task
+     * @param task  the task to be run
+     * @param <P>   the parameter type of the task
+     * @param <R>   the return type of the task
      * @return a {@link Future} which may be used to track the task and get the return value
      */
-    <P> Promise submit(P arg, @NonNull Consumer<P> task);
-
-    /**
-     * Schedules a task to be run by this worker at some point.
-     * <p>
-     * If this worker has been shut down, the task may either be run by the invoking thread or by some global
-     * thread pool.
-     *
-     * @param arg the argument to pass to the task
-     * @param task the task to be run
-     * @param <P>  the parameter type of the task
-     * @param <R>  the return type of the task
-     * @return a {@link Future} which may be used to track the task and get the return value
-     */
-    <P, R> Future<R> submit(P arg, @NonNull Function<P, R> task);
+    default <P, R> Future<R> submit(P param, @NonNull Function<P, R> task) {
+        Future<R> future = this.newFuture();
+        this.submitFast(new Task.ComputeParam<>(future, task, param));
+        return future;
+    }
 
     /**
      * @return a new {@link Promise} backed by this worker
      */
-    default Promise newPromise()     {
+    default Promise newPromise() {
         return new DefaultPromise(this);
     }
 
     /**
      * @return a new {@link Future} backed by this worker
      */
-    default <R> Future<R> newFuture()   {
+    default <R> Future<R> newFuture() {
         return new DefaultFuture<>(this);
     }
 }

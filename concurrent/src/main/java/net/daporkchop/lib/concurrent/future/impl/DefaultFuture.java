@@ -20,14 +20,17 @@ import net.daporkchop.lib.concurrent.future.Future;
 import net.daporkchop.lib.concurrent.util.exception.AlreadyCompleteException;
 import net.daporkchop.lib.concurrent.worker.Worker;
 import net.daporkchop.lib.unsafe.PUnsafe;
+import org.omg.PortableInterceptor.SUCCESSFUL;
 
 /**
  * @author DaPorkchop_
  */
 public class DefaultFuture<V> extends DefaultCompletable<Future<V>> implements Future<V> {
     protected static final long VALUE_OFFSET = PUnsafe.pork_getOffset(DefaultFuture.class, "value");
+    protected static final long CANCELLED_OFFSET = PUnsafe.pork_getOffset(DefaultFuture.class, "cancelled");
 
     protected volatile V value = null;
+    protected volatile int cancelled = 0;
 
     public DefaultFuture(Worker worker) {
         super(worker);
@@ -36,6 +39,11 @@ public class DefaultFuture<V> extends DefaultCompletable<Future<V>> implements F
     @Override
     public boolean isSuccess() {
         return this.value != null;
+    }
+
+    @Override
+    public boolean isCancelled() {
+        return this.cancelled != 0;
     }
 
     @Override
@@ -62,7 +70,18 @@ public class DefaultFuture<V> extends DefaultCompletable<Future<V>> implements F
     @Override
     public void completeSuccessfully(@NonNull V value) throws AlreadyCompleteException {
         synchronized (this.mutex)   {
-            if (this.isError() || !PUnsafe.compareAndSwapObject(this, VALUE_OFFSET, null, value))   {
+            if (this.isError() || this.isCancelled() || !PUnsafe.compareAndSwapObject(this, VALUE_OFFSET, null, value))   {
+                throw new AlreadyCompleteException();
+            }
+            this.mutex.notifyAll();
+        }
+        this.fireListeners();
+    }
+
+    @Override
+    public void cancel() throws AlreadyCompleteException {
+        synchronized (this.mutex)   {
+            if (this.isError() || this.isSuccess() || !PUnsafe.compareAndSwapInt(this, CANCELLED_OFFSET, 0, 1))   {
                 throw new AlreadyCompleteException();
             }
             this.mutex.notifyAll();

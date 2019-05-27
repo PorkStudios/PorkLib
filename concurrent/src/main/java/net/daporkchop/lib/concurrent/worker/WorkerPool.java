@@ -13,18 +13,26 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.worker.pool;
+package net.daporkchop.lib.concurrent.worker;
 
-import net.daporkchop.lib.concurrent.worker.WorkerPool;
+import net.daporkchop.lib.concurrent.CloseableFuture;
 
 /**
- * A {@link WorkerPool} whose workers may come and go as needed, and tasks transferred between workers to keep load low.
+ * A pool of {@link Worker}s.
+ * <p>
+ * This differs from {@link WorkerGroup} in that it's intended to be used in applications where there are
+ * multiple tasks running that each use a single {@link Worker} (such as a web server, where each connection
+ * is serviced by the same thread). Using a worker pool, the threads can be shared between tasks.
  *
  * @author DaPorkchop_
  */
-public interface DynamicPool extends WorkerPool {
+public interface WorkerPool extends CloseableFuture {
     /**
-     * @return the number of workers currently active (executing or waiting for tasks)
+     * Finds and returns a worker from this pool.
+     * <p>
+     * The exact behavior of this method is highly implementation-dependant.
+     *
+     * @return a worker from this pool
      */
-    int activeWorkers();
+    Worker next();
 }

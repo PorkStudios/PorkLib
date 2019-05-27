@@ -13,25 +13,27 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.worker.pool;
+package net.daporkchop.lib.concurrent.worker.pool.selector;
 
 import lombok.NonNull;
 import net.daporkchop.lib.concurrent.worker.Worker;
+import net.daporkchop.lib.concurrent.worker.WorkerPool;
 
 /**
  * Chooses a worker from a pool.
  *
  * @author DaPorkchop_
- * @see net.daporkchop.lib.concurrent.worker.selector.RandomSelector
- * @see net.daporkchop.lib.concurrent.worker.selector.RoundRobinSelector
+ * @see net.daporkchop.lib.concurrent.worker.pool.selector.RandomSelector
+ * @see net.daporkchop.lib.concurrent.worker.pool.selector.RoundRobinSelector
  */
 @FunctionalInterface
 public interface WorkerSelector {
     /**
      * Chooses a worker from a pool.
      *
-     * @param pool all the workers in the pool
+     * @param pool    the {@link WorkerPool} to which the workers belong
+     * @param workers all the workers in the pool
      * @return the worker to use. Must be from the pool parameter, otherwise results are undefined
      */
-    Worker select(@NonNull Worker[] pool);
+    Worker select(@NonNull WorkerPool pool, @NonNull Worker[] workers);
 }

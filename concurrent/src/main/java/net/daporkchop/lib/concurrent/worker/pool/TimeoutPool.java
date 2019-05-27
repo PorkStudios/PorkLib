@@ -15,6 +15,8 @@
 
 package net.daporkchop.lib.concurrent.worker.pool;
 
+import net.daporkchop.lib.concurrent.worker.WorkerPool;
+
 /**
  * A {@link WorkerPool} whose workers will shut down after being idle for a certain amount of time.
  * <p>

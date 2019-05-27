@@ -20,9 +20,7 @@ import net.daporkchop.lib.concurrent.future.impl.DefaultFuture;
 import net.daporkchop.lib.concurrent.future.impl.DefaultPromise;
 import net.daporkchop.lib.concurrent.future.Future;
 import net.daporkchop.lib.concurrent.future.Promise;
-import net.daporkchop.lib.concurrent.worker.pool.WorkerPool;
 
-import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -33,11 +31,6 @@ import java.util.function.Supplier;
  * @author DaPorkchop_
  */
 public interface Worker {
-    /**
-     * @return the {@link WorkerPool} to which this worker belongs
-     */
-    WorkerPool pool();
-
     /**
      * Schedules a task to be run by this worker at some point.
      * <p>

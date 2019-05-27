@@ -13,22 +13,32 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.worker.selector;
+package net.daporkchop.lib.concurrent.worker.pool.selector;
 
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.concurrent.worker.Worker;
-import net.daporkchop.lib.concurrent.worker.pool.WorkerSelector;
+import net.daporkchop.lib.concurrent.worker.WorkerPool;
+
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Hands tasks to each worker in order.
+ * Randomly selects the next worker.
  *
  * @author DaPorkchop_
  */
-public class RoundRobinSelector implements WorkerSelector {
-    protected int i = 0;
+@RequiredArgsConstructor
+public class RandomSelector implements WorkerSelector {
+    @NonNull
+    protected final Random random;
+
+    public RandomSelector() {
+        this(ThreadLocalRandom.current());
+    }
 
     @Override
-    public Worker select(@NonNull Worker[] pool) {
-        return pool[this.i++ % pool.length];
+    public Worker select(@NonNull WorkerPool pool, @NonNull Worker[] workers) {
+        return workers[this.random.nextInt(workers.length)];
     }
 }

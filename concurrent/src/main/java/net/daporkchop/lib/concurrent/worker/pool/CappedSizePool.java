@@ -15,6 +15,8 @@
 
 package net.daporkchop.lib.concurrent.worker.pool;
 
+import net.daporkchop.lib.concurrent.worker.WorkerPool;
+
 /**
  * A {@link WorkerPool} with a fixed maximum number of workers.
  *

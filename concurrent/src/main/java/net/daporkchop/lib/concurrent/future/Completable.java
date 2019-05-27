@@ -103,9 +103,8 @@ public interface Completable<I extends Completable<I>> {
      * This will cause all attached listeners to be executed, and wake up any waiting threads.
      *
      * @param error the error
-     * @throws AlreadyCompleteException if this {@link Promise} or {@link Future} is already complete
      */
-    void completeError(@NonNull Exception error) throws AlreadyCompleteException;
+    void completeError(@NonNull Exception error);
 
     /**
      * Attempts to mark this {@link Promise} or {@link Future} as being successfully completed, doing nothing if it is already

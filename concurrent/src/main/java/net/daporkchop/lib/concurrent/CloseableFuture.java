@@ -13,18 +13,34 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.worker.pool;
+package net.daporkchop.lib.concurrent;
 
-import net.daporkchop.lib.concurrent.worker.WorkerPool;
+import net.daporkchop.lib.concurrent.future.Promise;
 
 /**
- * A {@link WorkerPool} whose workers may come and go as needed, and tasks transferred between workers to keep load low.
+ * A type that can be closed at some point in the future (asynchronously).
  *
  * @author DaPorkchop_
  */
-public interface DynamicPool extends WorkerPool {
+public interface CloseableFuture {
     /**
-     * @return the number of workers currently active (executing or waiting for tasks)
+     * Closes this instance now, blocking until the close operation is complete.
      */
-    int activeWorkers();
+    default void closeNow() {
+        this.closeAsync().sync();
+    }
+
+    /**
+     * Starts the close operation for this instance if it hasn't been started already.
+     * @return the {@link Promise} that will be notified when this instance is closed
+     */
+    Promise closeAsync();
+
+    /**
+     * Gets the {@link Promise} that will be notified when this instance is closed.
+     *
+     * Invoking this method does not start the close operation.
+     * @return the {@link Promise} that will be notified when this instance is closed
+     */
+    Promise closePromise();
 }

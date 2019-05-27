@@ -13,44 +13,14 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.worker.pool;
+package net.daporkchop.lib.concurrent.worker;
 
-import net.daporkchop.lib.concurrent.future.Promise;
-import net.daporkchop.lib.concurrent.worker.Worker;
+import net.daporkchop.lib.concurrent.CloseableFuture;
 
 /**
- * A pool of {@link Worker}s.
+ * A group of one or more {@link Worker}s that can execute tasks concurrently.
  *
  * @author DaPorkchop_
  */
-public interface WorkerPool extends Worker {
-    /**
-     * Finds and returns a worker from this pool.
-     * <p>
-     * The exact behavior of this method is highly implementation-dependant.
-     *
-     * @return a worker from this pool
-     */
-    Worker next();
-
-    /**
-     * Stops this worker pool. This will cause the pool to stop accepting new tasks, execute all tasks currently
-     * queued, and terminate once all tasks are complete.
-     *
-     * @return a promise that can be used to track the shutdown status of this pool
-     */
-    Promise stop();
-
-    /**
-     * Terminates this worker pool. This will cause the pool to execute any currently queued tasks to completion
-     * and exit, leaving queued tasks completed with an exception.
-     *
-     * @return a promise that can be used to track the shutdown status of this pool
-     */
-    Promise terminate();
-
-    @Override
-    default WorkerPool pool() {
-        return this;
-    }
+public interface WorkerGroup extends CloseableFuture, Worker {
 }

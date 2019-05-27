@@ -13,37 +13,39 @@
  *
  */
 
-package net.daporkchop.lib.crypto.cipher.block;
+package net.daporkchop.lib.concurrent.worker.group;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.common.cache.SoftThreadCache;
-import net.daporkchop.lib.common.cache.ThreadCache;
-import net.daporkchop.lib.hash.util.Digest;
+import net.daporkchop.lib.concurrent.future.Promise;
+import net.daporkchop.lib.concurrent.worker.WorkerGroup;
 
-import java.util.function.Consumer;
+import java.util.concurrent.ForkJoinPool;
 
 /**
- * A function that updates a block cipher's IV (initialization vector) before initialization
+ * A simple {@link WorkerGroup} that forwards tasks on to {@link ForkJoinPool}.
  *
  * @author DaPorkchop_
  */
-public interface IVUpdater extends Consumer<byte[]> {
-    IVUpdater SHA_256 = ofHash(Digest.SHA_256);
-    IVUpdater SHA3_256 = ofHash(Digest.SHA3_256);
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class DefaultGroup implements WorkerGroup {
+    public static final DefaultGroup INSTANCE = new DefaultGroup();
 
-    static IVUpdater ofHash(@NonNull Digest digest) {
-        ThreadCache<byte[]> cache = SoftThreadCache.of(() -> new byte[digest.getHashSize()]);
-        return iv -> {
-            byte[] buf = cache.get();
-            for (int i = 0; i < iv.length; i += buf.length) {
-                digest.start(buf).append(iv).hash();
-                for (int j = 0; j < buf.length && j + i < iv.length; j++) {
-                    iv[i + j] = buf[j];
-                }
-            }
-        };
+    protected final ForkJoinPool pool = ForkJoinPool.commonPool();
+
+    @Override
+    public Promise closeAsync() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    void accept(byte[] iv);
+    public Promise closePromise() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void submitFast(@NonNull Runnable task) {
+        this.pool.submit(task);
+    }
 }

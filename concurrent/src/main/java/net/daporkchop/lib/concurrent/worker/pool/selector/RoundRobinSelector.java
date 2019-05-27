@@ -13,43 +13,22 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.cache;
+package net.daporkchop.lib.concurrent.worker.pool.selector;
 
 import lombok.NonNull;
-
-import java.util.function.Supplier;
+import net.daporkchop.lib.concurrent.worker.Worker;
+import net.daporkchop.lib.concurrent.worker.WorkerPool;
 
 /**
- * A cache holds a reference to an object
+ * Hands tasks to each worker in order.
  *
  * @author DaPorkchop_
  */
-public interface Cache<T> {
-    /**
-     * Gets a simple cache that won't hold a reference to the object until requested
-     *
-     * @param supplier the supplier for the object type
-     * @param <T>      the type
-     * @return a cache
-     */
-    static <T> Cache<T> of(@NonNull Supplier<T> supplier) {
-        return new Cache<T>() {
-            private T val;
+public class RoundRobinSelector implements WorkerSelector {
+    protected int i = 0;
 
-            @Override
-            public synchronized T get() {
-                if (this.val == null && (this.val = supplier.get()) == null) {
-                    throw new NullPointerException();
-                }
-                return this.val;
-            }
-        };
+    @Override
+    public Worker select(@NonNull WorkerPool pool, @NonNull Worker[] workers) {
+        return workers[this.i++ % workers.length];
     }
-
-    /**
-     * Get an instance
-     *
-     * @return an instance
-     */
-    T get();
 }

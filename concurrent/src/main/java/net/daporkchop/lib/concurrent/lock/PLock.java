@@ -13,37 +13,33 @@
  *
  */
 
-package net.daporkchop.lib.crypto.cipher.block;
-
-import lombok.NonNull;
-import net.daporkchop.lib.common.cache.SoftThreadCache;
-import net.daporkchop.lib.common.cache.ThreadCache;
-import net.daporkchop.lib.hash.util.Digest;
-
-import java.util.function.Consumer;
+package net.daporkchop.lib.concurrent.lock;
 
 /**
- * A function that updates a block cipher's IV (initialization vector) before initialization
+ * Allows limiting access to a specific resource to one thread at a time.
  *
  * @author DaPorkchop_
  */
-public interface IVUpdater extends Consumer<byte[]> {
-    IVUpdater SHA_256 = ofHash(Digest.SHA_256);
-    IVUpdater SHA3_256 = ofHash(Digest.SHA3_256);
+public interface PLock {
+    /**
+     * Obtains the lock, blocking until it could be obtained.
+     */
+    void lock();
 
-    static IVUpdater ofHash(@NonNull Digest digest) {
-        ThreadCache<byte[]> cache = SoftThreadCache.of(() -> new byte[digest.getHashSize()]);
-        return iv -> {
-            byte[] buf = cache.get();
-            for (int i = 0; i < iv.length; i += buf.length) {
-                digest.start(buf).append(iv).hash();
-                for (int j = 0; j < buf.length && j + i < iv.length; j++) {
-                    iv[i + j] = buf[j];
-                }
-            }
-        };
-    }
+    /**
+     * Obtains the lock, blocking until it could be obtained.
+     */
+    void lockInterruptably() throws InterruptedException;
 
-    @Override
-    void accept(byte[] iv);
+    /**
+     * Attempts to obtain the lock immediately.
+     *
+     * @return whether or not the lock was obtained
+     */
+    boolean tryLock();
+
+    /**
+     * Releases the lock.
+     */
+    void unlock();
 }

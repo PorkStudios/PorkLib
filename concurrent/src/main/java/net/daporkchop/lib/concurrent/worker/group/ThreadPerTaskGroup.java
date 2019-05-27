@@ -13,37 +13,50 @@
  *
  */
 
-package net.daporkchop.lib.crypto.cipher.block;
+package net.daporkchop.lib.concurrent.worker.group;
 
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.common.cache.SoftThreadCache;
-import net.daporkchop.lib.common.cache.ThreadCache;
-import net.daporkchop.lib.hash.util.Digest;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.concurrent.future.Promise;
+import net.daporkchop.lib.concurrent.util.exception.GroupClosedException;
+import net.daporkchop.lib.concurrent.worker.WorkerGroup;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
-import java.util.function.Consumer;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 /**
- * A function that updates a block cipher's IV (initialization vector) before initialization
+ * A simple implementation of {@link WorkerGroup} that creates a new thread for every submitted task.
  *
  * @author DaPorkchop_
  */
-public interface IVUpdater extends Consumer<byte[]> {
-    IVUpdater SHA_256 = ofHash(Digest.SHA_256);
-    IVUpdater SHA3_256 = ofHash(Digest.SHA3_256);
+@RequiredArgsConstructor
+@Accessors(fluent = true)
+public class ThreadPerTaskGroup implements WorkerGroup {
+    @NonNull
+    protected final ThreadFactory factory;
 
-    static IVUpdater ofHash(@NonNull Digest digest) {
-        ThreadCache<byte[]> cache = SoftThreadCache.of(() -> new byte[digest.getHashSize()]);
-        return iv -> {
-            byte[] buf = cache.get();
-            for (int i = 0; i < iv.length; i += buf.length) {
-                digest.start(buf).append(iv).hash();
-                for (int j = 0; j < buf.length && j + i < iv.length; j++) {
-                    iv[i + j] = buf[j];
-                }
-            }
-        };
+    @Getter
+    protected final Promise closePromise = DefaultGroup.INSTANCE.newPromise();
+
+    public ThreadPerTaskGroup() {
+        this(Executors.defaultThreadFactory());
     }
 
     @Override
-    void accept(byte[] iv);
+    public Promise closeAsync() {
+        this.closePromise.tryCancel();
+        return this.closePromise;
+    }
+
+    @Override
+    public void submitFast(@NonNull Runnable task) throws GroupClosedException {
+        if (this.closePromise.isCancelled()) {
+            throw new GroupClosedException();
+        } else {
+            this.factory.newThread(task).start();
+        }
+    }
 }

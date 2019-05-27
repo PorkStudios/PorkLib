@@ -13,37 +13,41 @@
  *
  */
 
-package net.daporkchop.lib.crypto.cipher.block;
+package net.daporkchop.lib.concurrent.lock;
 
-import lombok.NonNull;
-import net.daporkchop.lib.common.cache.SoftThreadCache;
-import net.daporkchop.lib.common.cache.ThreadCache;
-import net.daporkchop.lib.hash.util.Digest;
-
-import java.util.function.Consumer;
+import net.daporkchop.lib.concurrent.util.Listenable;
 
 /**
- * A function that updates a block cipher's IV (initialization vector) before initialization
+ * A lock with a certain number of tickets. This can be used to wait until a certain number of threads have
+ * completed a task.
  *
  * @author DaPorkchop_
  */
-public interface IVUpdater extends Consumer<byte[]> {
-    IVUpdater SHA_256 = ofHash(Digest.SHA_256);
-    IVUpdater SHA3_256 = ofHash(Digest.SHA3_256);
+public interface Latch extends Listenable<Latch> {
+    /**
+     * @return the current number of missing tickets
+     */
+    int tickets();
 
-    static IVUpdater ofHash(@NonNull Digest digest) {
-        ThreadCache<byte[]> cache = SoftThreadCache.of(() -> new byte[digest.getHashSize()]);
-        return iv -> {
-            byte[] buf = cache.get();
-            for (int i = 0; i < iv.length; i += buf.length) {
-                digest.start(buf).append(iv).hash();
-                for (int j = 0; j < buf.length && j + i < iv.length; j++) {
-                    iv[i + j] = buf[j];
-                }
-            }
-        };
+    /**
+     * @return whether or not all tickets have been returned to the latch
+     */
+    default boolean isReleased() {
+        return this.tickets() == 0;
     }
 
-    @Override
-    void accept(byte[] iv);
+    /**
+     * Returns a ticket to the latch, decrementing the ticket count by 1.
+     */
+    void release();
+
+    /**
+     * Waits until all tickets are returned.
+     */
+    void sync();
+
+    /**
+     * Waits until all tickets are returned.
+     */
+    void syncInterruptably() throws InterruptedException;
 }

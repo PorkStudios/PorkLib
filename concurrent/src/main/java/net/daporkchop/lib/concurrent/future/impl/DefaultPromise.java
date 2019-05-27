@@ -13,33 +13,54 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.cache;
+package net.daporkchop.lib.concurrent.future.impl;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-
-import java.lang.ref.SoftReference;
-import java.util.function.Supplier;
+import net.daporkchop.lib.concurrent.future.Promise;
+import net.daporkchop.lib.concurrent.util.exception.AlreadyCompleteException;
+import net.daporkchop.lib.concurrent.worker.Worker;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-public class SoftCache<T> implements Cache<T> {
-    @NonNull
-    protected final Supplier<T> supplier;
+public class DefaultPromise extends DefaultCompletable<Promise> implements Promise {
+    protected static final long SUCCESS_OFFSET = PUnsafe.pork_getOffset(DefaultPromise.class, "success");
 
-    protected SoftReference<T> ref;
+    protected volatile int success = 0;
+
+    public DefaultPromise(Worker worker) {
+        super(worker);
+    }
 
     @Override
-    public synchronized T get() {
-        T val;
-        if (this.ref == null || (val = this.ref.get()) == null) {
-            this.ref = new SoftReference<>(val = this.supplier.get());
+    public boolean isSuccess() {
+        return this.success == 1;
+    }
+
+    @Override
+    public boolean isCancelled() {
+        return this.success == 2;
+    }
+
+    @Override
+    public void completeSuccessfully() throws AlreadyCompleteException {
+        synchronized (this.mutex)   {
+            if (this.isError() || !PUnsafe.compareAndSwapInt(this, SUCCESS_OFFSET, 0, 1))   {
+                throw new AlreadyCompleteException();
+            }
+            this.mutex.notifyAll();
         }
-        if (val == null) {
-            throw new NullPointerException();
+        this.fireListeners();
+    }
+
+    @Override
+    public void cancel() throws AlreadyCompleteException {
+        synchronized (this.mutex)   {
+            if (this.isError() || !PUnsafe.compareAndSwapInt(this, SUCCESS_OFFSET, 0, 2))   {
+                throw new AlreadyCompleteException();
+            }
+            this.mutex.notifyAll();
         }
-        return val;
+        this.fireListeners();
     }
 }

@@ -13,54 +13,32 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.future;
+package net.daporkchop.lib.concurrent.worker.pool.selector;
 
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.concurrent.worker.Worker;
+import net.daporkchop.lib.concurrent.worker.WorkerPool;
 
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
+ * Randomly selects the next worker.
+ *
  * @author DaPorkchop_
  */
-public interface BaseFuture<R> {
-    /**
-     * Adds a listener.
-     *
-     * @param callback a function to run when this future is completed
-     */
-    void addListener(@NonNull BiConsumer<R, Throwable> callback);
+@RequiredArgsConstructor
+public class RandomSelector implements WorkerSelector {
+    @NonNull
+    protected final Random random;
 
-    /**
-     * Adds a listener.
-     *
-     * @param callback a function to run when this future is completed
-     */
-    default void addListener(@NonNull Consumer<R> callback) {
-        this.addListener((r, t) -> callback.accept(r));
+    public RandomSelector() {
+        this(ThreadLocalRandom.current());
     }
 
-    /**
-     * Adds a listener.
-     *
-     * @param callback a function to run when this future is completed
-     */
-    default void addListener(@NonNull Runnable callback) {
-        this.addListener((r, t) -> callback.run());
+    @Override
+    public Worker select(@NonNull WorkerPool pool, @NonNull Worker[] workers) {
+        return workers[this.random.nextInt(workers.length)];
     }
-
-    /**
-     * @return whether or not the task has been completed
-     */
-    boolean isComplete();
-
-    /**
-     * @param t the exception that will be thrown
-     */
-    void completeExceptionally(@NonNull Throwable t);
-
-    /**
-     * @param t the exception that will be thrown
-     */
-    void tryCompleteExceptionally(@NonNull Throwable t);
 }

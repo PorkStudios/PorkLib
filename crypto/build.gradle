@@ -15,7 +15,6 @@
 
 dependencies {
     compile project(":binary")
-    compile project(":concurrent")
     compile project(":encoding")
     compile project(":hash")
     compile project(":math")

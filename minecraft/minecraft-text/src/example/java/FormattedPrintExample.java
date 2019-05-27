@@ -30,9 +30,9 @@ public class FormattedPrintExample implements Logging {
 
         //various text messages to test the json text thingy
         logger.info("{    \"text\": \"foo\",    \"bold\": \"true\",    \"extra\": [    {        \"text\": \"bar\"    },    {        \"text\": \"baz\",        \"bold\": \"false\"    },    {        \"text\": \"qux\",        \"bold\": \"true\"    }]}");
-        logger.info().info("2b2t:");
+        logger.info("\n2b2t:");
         logger.info("{\"text\":\"\",\"extra\":[{\"text\":\"2B \",\"italic\":true,\"bold\":true,\"color\":\"gray\"},{\"text\":\"A blackhole of destruction into\\n\",\"color\":\"gold\"},{\"text\":\"2T \",\"italic\":true,\"bold\":true,\"color\":\"gray\"},{\"text\":\"a singularity of power\",\"color\":\"gold\"}]}");
-        logger.info().info("Mineplex:");
+        logger.info("\nMineplex:");
         logger.info("{\"text\":\"\",\"extra\":[{\"text\":\" \"},{\"text\":\"---\",\"strikethrough\":true,\"color\":\"blue\"},{\"text\":\"[-\",\"strikethrough\":true,\"bold\":true,\"color\":\"dark_gray\"},{\"text\":\" \",\"color\":\"white\"},{\"text\":\"Mineplex \",\"bold\":true,\"color\":\"gold\"},{\"text\":\"Games \",\"bold\":true,\"color\":\"white\"},{\"text\":\"[\",\"color\":\"dark_gray\"},{\"text\":\"US\",\"color\":\"gray\"},{\"text\":\"] \",\"color\":\"dark_gray\"},{\"text\":\"-]\",\"strikethrough\":true,\"bold\":true,\"color\":\"dark_gray\"},{\"text\":\"---\",\"strikethrough\":true,\"color\":\"blue\"},{\"text\":\"\\n \",\"color\":\"white\"},{\"text\":\"CLANS SEASON 6\",\"bold\":true,\"color\":\"red\"}]}");
     }
 }

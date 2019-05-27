@@ -13,37 +13,18 @@
  *
  */
 
-package net.daporkchop.lib.crypto.cipher.block;
-
-import lombok.NonNull;
-import net.daporkchop.lib.common.cache.SoftThreadCache;
-import net.daporkchop.lib.common.cache.ThreadCache;
-import net.daporkchop.lib.hash.util.Digest;
-
-import java.util.function.Consumer;
+package net.daporkchop.lib.concurrent.lock;
 
 /**
- * A function that updates a block cipher's IV (initialization vector) before initialization
+ * A {@link Latch} that can also have it's ticket count increased after creation.
+ * <p>
+ * Listeners must be re-added every time the ticket count reaches 0.
  *
  * @author DaPorkchop_
  */
-public interface IVUpdater extends Consumer<byte[]> {
-    IVUpdater SHA_256 = ofHash(Digest.SHA_256);
-    IVUpdater SHA3_256 = ofHash(Digest.SHA3_256);
-
-    static IVUpdater ofHash(@NonNull Digest digest) {
-        ThreadCache<byte[]> cache = SoftThreadCache.of(() -> new byte[digest.getHashSize()]);
-        return iv -> {
-            byte[] buf = cache.get();
-            for (int i = 0; i < iv.length; i += buf.length) {
-                digest.start(buf).append(iv).hash();
-                for (int j = 0; j < buf.length && j + i < iv.length; j++) {
-                    iv[i + j] = buf[j];
-                }
-            }
-        };
-    }
-
-    @Override
-    void accept(byte[] iv);
+public interface DynamicLatch extends Latch {
+    /**
+     * Obtains a new ticket, increasing the ticket count by 1.
+     */
+    void obtain();
 }

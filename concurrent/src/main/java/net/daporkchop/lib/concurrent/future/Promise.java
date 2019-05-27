@@ -13,37 +13,38 @@
  *
  */
 
-package net.daporkchop.lib.crypto.cipher.block;
+package net.daporkchop.lib.concurrent.future;
 
-import lombok.NonNull;
-import net.daporkchop.lib.common.cache.SoftThreadCache;
-import net.daporkchop.lib.common.cache.ThreadCache;
-import net.daporkchop.lib.hash.util.Digest;
-
-import java.util.function.Consumer;
+import net.daporkchop.lib.concurrent.util.exception.AlreadyCompleteException;
 
 /**
- * A function that updates a block cipher's IV (initialization vector) before initialization
+ * A future which can return nothing or throw an exception.
  *
  * @author DaPorkchop_
  */
-public interface IVUpdater extends Consumer<byte[]> {
-    IVUpdater SHA_256 = ofHash(Digest.SHA_256);
-    IVUpdater SHA3_256 = ofHash(Digest.SHA3_256);
+public interface Promise extends Completable<Promise> {
+    /**
+     * Marks this {@link Promise} as being successfully completed.
+     * <p>
+     * This will cause all attached listeners to be executed, and wake up any waiting threads.
+     *
+     * @throws AlreadyCompleteException if this {@link Promise} is already complete
+     */
+    void completeSuccessfully() throws AlreadyCompleteException;
 
-    static IVUpdater ofHash(@NonNull Digest digest) {
-        ThreadCache<byte[]> cache = SoftThreadCache.of(() -> new byte[digest.getHashSize()]);
-        return iv -> {
-            byte[] buf = cache.get();
-            for (int i = 0; i < iv.length; i += buf.length) {
-                digest.start(buf).append(iv).hash();
-                for (int j = 0; j < buf.length && j + i < iv.length; j++) {
-                    iv[i + j] = buf[j];
-                }
-            }
-        };
+    /**
+     * Attempts to mark this {@link Promise} as being successfully completed, doing nothing if it is already
+     * complete.
+     *
+     * @return whether this could be completed successfully
+     * @see #completeSuccessfully()
+     */
+    default boolean tryCompleteSuccessfully() {
+        try {
+            this.completeSuccessfully();
+            return true;
+        } catch (AlreadyCompleteException e) {
+            return false;
+        }
     }
-
-    @Override
-    void accept(byte[] iv);
 }

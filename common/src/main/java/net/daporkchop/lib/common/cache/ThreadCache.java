@@ -13,37 +13,46 @@
  *
  */
 
-package net.daporkchop.lib.crypto.cipher.block;
+package net.daporkchop.lib.common.cache;
 
 import lombok.NonNull;
-import net.daporkchop.lib.common.cache.SoftThreadCache;
-import net.daporkchop.lib.common.cache.ThreadCache;
-import net.daporkchop.lib.hash.util.Digest;
 
-import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
- * A function that updates a block cipher's IV (initialization vector) before initialization
+ * A thread cache is essentially a {@link ThreadLocal}, able to store objects per-thread
  *
  * @author DaPorkchop_
  */
-public interface IVUpdater extends Consumer<byte[]> {
-    IVUpdater SHA_256 = ofHash(Digest.SHA_256);
-    IVUpdater SHA3_256 = ofHash(Digest.SHA3_256);
+public interface ThreadCache<T> extends Cache<T> {
+    /**
+     * Creates a new {@link ThreadCache} using a given supplier
+     *
+     * @param theSupplier the supplier to use
+     * @param <T>         the type to be cached
+     * @return a {@link ThreadCache} for the given type using the given supplier
+     */
+    static <T> ThreadCache<T> of(@NonNull Supplier<T> theSupplier) {
+        return new ThreadCache<T>() {
+            private final Supplier<T> supplier = theSupplier;
+            private final ThreadLocal<T> threadLocal = ThreadLocal.withInitial(this.supplier);
 
-    static IVUpdater ofHash(@NonNull Digest digest) {
-        ThreadCache<byte[]> cache = SoftThreadCache.of(() -> new byte[digest.getHashSize()]);
-        return iv -> {
-            byte[] buf = cache.get();
-            for (int i = 0; i < iv.length; i += buf.length) {
-                digest.start(buf).append(iv).hash();
-                for (int j = 0; j < buf.length && j + i < iv.length; j++) {
-                    iv[i + j] = buf[j];
-                }
+            @Override
+            public T get() {
+                return this.threadLocal.get();
+            }
+
+            @Override
+            public T getUncached() {
+                return this.supplier.get();
             }
         };
     }
 
-    @Override
-    void accept(byte[] iv);
+    /**
+     * Create a new instance, regardless of thread-local state
+     *
+     * @return a new instance
+     */
+    T getUncached();
 }

@@ -13,48 +13,15 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.cache;
-
-import lombok.NonNull;
-
-import java.lang.ref.SoftReference;
-import java.util.function.Supplier;
+package net.daporkchop.lib.concurrent.util;
 
 /**
- * A {@link ThreadCache} that keeps only a soft reference to objects.
+ * A type that holds a mutex.
  * <p>
- * Soft references will only be garbage collected when the JVM is running low on memory, and as such a soft cache should not
- * be more cpu-intensive than a plain thread-local cache unless the heap is mostly full (or just too small).
+ * The mutex is always an Object[] with a size of 0, for lowest possible memory consumption.
  *
  * @author DaPorkchop_
  */
-public class SoftThreadCache<T> implements ThreadCache<T> {
-    public static <T> SoftThreadCache<T> of(@NonNull Supplier<T> supplier) {
-        return new SoftThreadCache<>(supplier);
-    }
-    private final Supplier<T> supplier;
-    private final ThreadLocal<SoftReference<T>> threadLocal;
-
-    protected SoftThreadCache(@NonNull Supplier<T> supplier) {
-        this.supplier = supplier;
-        this.threadLocal = ThreadLocal.withInitial(() -> null);
-    }
-
-    @Override
-    public T get() {
-        SoftReference<T> ref = this.threadLocal.get();
-        T val;
-        if (ref == null || (val = ref.get()) == null) {
-            this.threadLocal.set(new SoftReference<>(val = this.supplier.get()));
-        }
-        if (val == null) {
-            throw new NullPointerException();
-        }
-        return val;
-    }
-
-    @Override
-    public T getUncached() {
-        return this.supplier.get();
-    }
+public abstract class DefaultMutexHolder {
+    protected final Object mutex = new Object[0];
 }

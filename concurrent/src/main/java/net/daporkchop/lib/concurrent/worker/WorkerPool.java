@@ -13,52 +13,29 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.future;
+package net.daporkchop.lib.concurrent.worker;
 
-import lombok.NonNull;
-
-import java.util.concurrent.TimeUnit;
+import net.daporkchop.lib.concurrent.CloseableFuture;
 
 /**
- * Waits until a specific task has been completed.
+ * A pool of {@link Worker}s.
+ * <p>
+ * This differs from {@link WorkerGroup} in that it's intended to be used in applications where there are
+ * multiple tasks running that each use a single {@link Worker} (such as a web server, where each connection
+ * is serviced by the same thread). Using a worker pool, the threads can be shared between tasks.
  *
  * @author DaPorkchop_
  */
-public interface PCompletable extends BaseFuture<Void> {
+public interface WorkerPool extends CloseableFuture {
     /**
-     * Await completion of the task.
+     * Finds and returns a worker from this pool.
      * <p>
-     * This method will block until the task has been completed.
+     * The exact behavior of this method is highly implementation-dependant.
+     * <p>
+     * The worker must be closed using {@link Worker#closeAsync()} or {@link Worker#closeNow()} in order to be
+     * returned to the pool, otherwise a resource leak may occur.
+     *
+     * @return a worker from this pool
      */
-    void sync();
-
-    /**
-     * @see #sync()
-     */
-    void syncInterruptably() throws InterruptedException;
-
-    /**
-     * @param time the maximum number of milliseconds to wait for
-     * @see #sync()
-     */
-    void sync(long time);
-
-    /**
-     * @param unit the time unit
-     * @param time the maximum number of units to wait for
-     * @see #sync()
-     */
-    default void sync(@NonNull TimeUnit unit, long time) {
-        this.sync(unit.toMillis(time));
-    }
-
-    /**
-     * Completes the task, waking up all waiting threads.
-     */
-    void complete();
-
-    /**
-     * Completes the task, waking up all waiting threads.
-     */
-    void tryComplete();
+    Worker next();
 }

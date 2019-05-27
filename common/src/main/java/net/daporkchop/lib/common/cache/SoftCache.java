@@ -13,70 +13,33 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.future;
+package net.daporkchop.lib.common.cache;
 
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
-import java.util.concurrent.TimeUnit;
+import java.lang.ref.SoftReference;
 import java.util.function.Supplier;
 
 /**
  * @author DaPorkchop_
  */
-public interface PFuture<R> extends BaseFuture<R> {
-    /**
-     * @return the value, or {@code null} if not yet complete
-     */
-    R get();
+@RequiredArgsConstructor
+public class SoftCache<T> implements Cache<T> {
+    @NonNull
+    protected final Supplier<T> supplier;
 
-    /**
-     * @return the value, or the given default value if not yet complete
-     */
-    default R getOrDefault(R def)   {
-        return this.isComplete() ? this.get() : def;
+    protected SoftReference<T> ref;
+
+    @Override
+    public synchronized T get() {
+        T val;
+        if (this.ref == null || (val = this.ref.get()) == null) {
+            this.ref = new SoftReference<>(val = this.supplier.get());
+        }
+        if (val == null) {
+            throw new NullPointerException();
+        }
+        return val;
     }
-
-    /**
-     * @return the value, or a value computed by the given supplier if not yet complete
-     */
-    default R getOrCompute(@NonNull Supplier<R> supplier)   {
-        return this.isComplete() ? this.get() : supplier.get();
-    }
-
-    /**
-     * Await completion of the task.
-     * <p>
-     * This method will block until the task has been completed.
-     */
-    R sync();
-
-    /**
-     * @see #sync()
-     */
-    R syncInterruptably() throws InterruptedException;
-
-    /**
-     * @param time the maximum number of milliseconds to wait for
-     * @see #sync()
-     */
-    R sync(long time);
-
-    /**
-     * @param unit the time unit
-     * @param time the maximum number of units to wait for
-     * @see #sync()
-     */
-    default R sync(@NonNull TimeUnit unit, long time) {
-        return this.sync(unit.toMillis(time));
-    }
-
-    /**
-     * Completes the task, waking up all waiting threads.
-     */
-    void complete(@NonNull R value);
-
-    /**
-     * Completes the task, waking up all waiting threads.
-     */
-    void tryComplete(@NonNull R value);
 }

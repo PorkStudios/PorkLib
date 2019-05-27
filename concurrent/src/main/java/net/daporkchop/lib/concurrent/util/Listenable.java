@@ -13,37 +13,23 @@
  *
  */
 
-package net.daporkchop.lib.crypto.cipher.block;
+package net.daporkchop.lib.concurrent.util;
 
 import lombok.NonNull;
-import net.daporkchop.lib.common.cache.SoftThreadCache;
-import net.daporkchop.lib.common.cache.ThreadCache;
-import net.daporkchop.lib.hash.util.Digest;
 
 import java.util.function.Consumer;
 
 /**
- * A function that updates a block cipher's IV (initialization vector) before initialization
+ * A type that may have listeners added to it to await some event.
  *
  * @author DaPorkchop_
  */
-public interface IVUpdater extends Consumer<byte[]> {
-    IVUpdater SHA_256 = ofHash(Digest.SHA_256);
-    IVUpdater SHA3_256 = ofHash(Digest.SHA3_256);
-
-    static IVUpdater ofHash(@NonNull Digest digest) {
-        ThreadCache<byte[]> cache = SoftThreadCache.of(() -> new byte[digest.getHashSize()]);
-        return iv -> {
-            byte[] buf = cache.get();
-            for (int i = 0; i < iv.length; i += buf.length) {
-                digest.start(buf).append(iv).hash();
-                for (int j = 0; j < buf.length && j + i < iv.length; j++) {
-                    iv[i + j] = buf[j];
-                }
-            }
-        };
-    }
-
-    @Override
-    void accept(byte[] iv);
+public interface Listenable<I extends Listenable<I>> {
+    /**
+     * Adds a new listener.
+     *
+     * @param listener the function that will be notified
+     * @return this instance
+     */
+    I addListener(@NonNull Consumer<I> listener);
 }

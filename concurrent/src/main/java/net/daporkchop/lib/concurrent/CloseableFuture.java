@@ -13,46 +13,36 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.cache;
+package net.daporkchop.lib.concurrent;
 
-import lombok.NonNull;
-
-import java.util.function.Supplier;
+import net.daporkchop.lib.concurrent.future.Promise;
 
 /**
- * A thread cache is essentially a {@link ThreadLocal}, able to store objects per-thread
+ * A type that can be closed at some point in the future (asynchronously).
  *
  * @author DaPorkchop_
  */
-public interface ThreadCache<T> extends Cache<T> {
+public interface CloseableFuture {
     /**
-     * Creates a new {@link ThreadCache} using a given supplier
-     *
-     * @param theSupplier the supplier to use
-     * @param <T>         the type to be cached
-     * @return a {@link ThreadCache} for the given type using the given supplier
+     * Closes this instance now, blocking until the close operation is complete.
      */
-    static <T> ThreadCache<T> of(@NonNull Supplier<T> theSupplier) {
-        return new ThreadCache<T>() {
-            private final Supplier<T> supplier = theSupplier;
-            private final ThreadLocal<T> threadLocal = ThreadLocal.withInitial(this.supplier);
-
-            @Override
-            public T get() {
-                return this.threadLocal.get();
-            }
-
-            @Override
-            public T getUncached() {
-                return this.supplier.get();
-            }
-        };
+    default void closeNow() {
+        this.closeAsync().sync();
     }
 
     /**
-     * Create a new instance, regardless of thread-local state
+     * Starts the close operation for this instance if it hasn't been started already.
      *
-     * @return a new instance
+     * @return the {@link Promise} that will be notified when this instance is closed
      */
-    T getUncached();
+    Promise closeAsync();
+
+    /**
+     * Gets the {@link Promise} that will be notified when this instance is closed.
+     * <p>
+     * Invoking this method does not start the close operation.
+     *
+     * @return the {@link Promise} that will be notified when this instance is closed
+     */
+    Promise closePromise();
 }

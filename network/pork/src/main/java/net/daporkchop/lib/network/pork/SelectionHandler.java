@@ -30,8 +30,17 @@ public interface SelectionHandler {
     /**
      * Handles an event.
      *
-     * @param key the key that was selected
+     * @param flags the flags (from {@link SelectionKey}) of the selection operation
      * @throws Exception if an exception occurs
      */
-    void handle(@NonNull SelectionKey key) throws Exception;
+    void handle(int flags) throws Exception;
+
+    /**
+     * Handles an exception if one is caught while invoking {@link #handle(int)}.
+     *
+     * @param e the exception that was caught
+     */
+    default void handleException(@NonNull Exception e) {
+        e.printStackTrace();
+    }
 }

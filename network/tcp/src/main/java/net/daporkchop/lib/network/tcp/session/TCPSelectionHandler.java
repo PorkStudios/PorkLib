@@ -13,32 +13,48 @@
  *
  */
 
-package net.daporkchop.lib.network.transport;
+package net.daporkchop.lib.network.tcp.session;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.network.session.Reliability;
+import net.daporkchop.lib.network.pork.SelectionHandler;
+import net.daporkchop.lib.network.session.AbstractUserSession;
+
+import java.nio.channels.SelectionKey;
+import java.nio.channels.SocketChannel;
 
 /**
  * @author DaPorkchop_
  */
 @Getter
 @Accessors(fluent = true)
-public class WrappedPacket<P> extends ChanneledPacket<P> {
-    protected final Reliability reliability;
+public class TCPSelectionHandler<S extends AbstractUserSession<S>> implements SelectionHandler {
+    protected final TCPNetSession<S> session;
+    protected final ByteBufAllocator alloc;
+    protected final SocketChannel channel;
 
-    public WrappedPacket(P packet, int channel, @NonNull Reliability reliability) {
-        super(packet, channel);
-        this.reliability = reliability;
+    public TCPSelectionHandler(@NonNull TCPNetSession<S> session) {
+        this.session = session;
+        this.alloc = session.alloc;
+        this.channel = session.channel;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <NEW_P> WrappedPacket<NEW_P> packet(@NonNull NEW_P packet)    {
-        ((WrappedPacket<NEW_P>) this).packet = packet;
-        return (WrappedPacket<NEW_P>) this;
+    public void handle(int flags) throws Exception {
+        if ((flags & SelectionKey.OP_READ) != 0) {
+            ByteBuf buf = this.alloc.ioBuffer();
+            try {
+                if (buf.nioBufferCount() != 1) {
+                    throw new IllegalStateException(String.format("Illegal number of NIO buffers: %d", buf.nioBufferCount()));
+                }
+                this.channel.read(buf.nioBuffer());
+                //TODO: handle
+            } finally {
+                buf.release();
+            }
+        }
     }
 }

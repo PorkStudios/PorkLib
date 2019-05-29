@@ -15,9 +15,7 @@
 
 package net.daporkchop.lib.network.endpoint;
 
-import lombok.NonNull;
 import net.daporkchop.lib.network.EndpointType;
-import net.daporkchop.lib.network.protocol.Protocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.util.CloseableFuture;
 import net.daporkchop.lib.network.util.TransportEngineHolder;
@@ -41,9 +39,4 @@ public interface PEndpoint<Impl extends PEndpoint<Impl, S>, S extends AbstractUs
      */
     @Override
     void closeNow();
-
-    /**
-     * @return the default protocol that will be used initially for all connections to and from this endpoint
-     */
-    Protocol<S> protocol();
 }

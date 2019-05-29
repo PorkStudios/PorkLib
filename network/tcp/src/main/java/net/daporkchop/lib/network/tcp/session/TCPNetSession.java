@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.network.tcp.session;
 
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.util.concurrent.Future;
 import lombok.Getter;
 import lombok.NonNull;
@@ -29,6 +30,8 @@ import net.daporkchop.lib.network.session.Reliability;
 import net.daporkchop.lib.network.transport.NetSession;
 import net.daporkchop.lib.network.transport.TransportEngine;
 
+import java.nio.channels.SocketChannel;
+
 /**
  * @author DaPorkchop_
  */
@@ -40,6 +43,10 @@ public class TCPNetSession<S extends AbstractUserSession<S>> implements NetSessi
     protected final S userSession;
     @NonNull
     protected final PEndpoint<?, S> endpoint;
+    @NonNull
+    protected final SocketChannel channel;
+    @NonNull
+    protected final ByteBufAllocator alloc;
 
     @Override
     public PChannel<S> channel(int id) {

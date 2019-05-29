@@ -13,47 +13,17 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol;
+package net.daporkchop.lib.network.session;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.network.session.AbstractUserSession;
-
-import java.io.IOException;
+import net.daporkchop.lib.network.endpoint.PEndpoint;
 
 /**
- * A {@link Protocol} that also encodes and decodes packets.
+ * Constructs new session instances.
  *
  * @author DaPorkchop_
  */
-public interface DataProtocol<S extends AbstractUserSession<S>> extends Protocol<S> {
-    /**
-     * @return this protocol's codec
-     */
-    Codec<S> codec();
-
-    /**
-     * @author DaPorkchop_
-     */
-    interface Codec<S extends AbstractUserSession<S>> {
-        /**
-         * Decodes a packet, reading no data more than required.
-         *
-         * @param session the session that the data was received on
-         * @param in      a {@link DataIn} to read data from
-         * @param channel the channel that the data was received on
-         * @return a decoded packet
-         */
-        Object decode(@NonNull S session, @NonNull DataIn in, int channel) throws IOException;
-
-        /**
-         * Encodes a message.
-         *  @param out     a {@link DataOut} to write data to
-         * @param session the session that the message will be sent on
-         * @param msg     the message that should be sent
-         * @param channel the channel that the message will be sent on
-         */
-        void encode(@NonNull DataOut out, @NonNull S session, @NonNull Object msg, int channel) throws IOException;
-    }
+@FunctionalInterface
+public interface SessionFactory<S extends AbstractUserSession<S>> {
+    S newSession();
 }

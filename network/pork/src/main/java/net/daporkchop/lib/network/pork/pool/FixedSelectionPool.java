@@ -21,10 +21,14 @@ import net.daporkchop.lib.concurrent.future.Promise;
 import net.daporkchop.lib.concurrent.lock.Latch;
 import net.daporkchop.lib.concurrent.lock.impl.CountingLatch;
 import net.daporkchop.lib.network.pork.SelectionHandler;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectableChannel;
+import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
+import java.util.Iterator;
 import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -35,9 +39,12 @@ import java.util.concurrent.ThreadFactory;
  * @author DaPorkchop_
  */
 public class FixedSelectionPool extends AbstractSelectionPool {
+    protected static final long OPEN_OFFSET = PUnsafe.pork_getOffset(FixedSelectionPool.class, "open");
+
     protected final Latch latch;
     protected final Worker[] workers;
     protected final Balancer balancer;
+    protected volatile int open = 1;
 
     public FixedSelectionPool(int workers)  {
         this(workers, Executors.defaultThreadFactory(), new RoundRobinBalancer());
@@ -64,17 +71,23 @@ public class FixedSelectionPool extends AbstractSelectionPool {
     }
 
     @Override
-    public void register(@NonNull SelectableChannel channel, @NonNull SelectionHandler handler) {
+    public void register(@NonNull SelectableChannel channel, int interestOps, @NonNull SelectionHandler handler) {
+        Selector selector = this.workers[this.balancer.balance(this.workers.length)].selector;
+        try {
+            channel.register(selector, interestOps, handler);
+        } catch (ClosedChannelException e)  {
+            throw new IllegalStateException(e);
+        }
     }
 
     @Override
     public Promise closeAsync() {
+        if (PUnsafe.compareAndSwapInt(this, OPEN_OFFSET, 1, 0)) {
+            for (Worker worker : this.workers)  {
+                worker.selector.wakeup();
+            }
+        }
         return this.closePromise;
-    }
-
-    @FunctionalInterface
-    public interface Balancer   {
-        int balance(int workerCount);
     }
 
     protected class Worker implements Runnable  {
@@ -93,10 +106,40 @@ public class FixedSelectionPool extends AbstractSelectionPool {
         @Override
         public void run() {
             try {
+                while (FixedSelectionPool.this.open != 0) {
+                    this.selector.select();
+                    for (Iterator<SelectionKey> iter = this.selector.selectedKeys().iterator(); iter.hasNext();)    {
+                        SelectionKey key = iter.next();
+                        SelectionHandler handler = (SelectionHandler) key.attachment();
+                        try {
+                            handler.handle(key.readyOps());
+                        } catch (Exception e)   {
+                            if (key.attachment() instanceof SelectionHandler)   {
+                                try {
+                                    ((SelectionHandler) key.attachment()).handleException(e);
+                                    continue;
+                                } catch (Exception e1)  {
+                                    new RuntimeException(e1).printStackTrace();
+                                }
+                            }
+                            new RuntimeException(e).printStackTrace();
+                        } finally {
+                            iter.remove();
+                        }
+                    }
+                }
+                this.selector.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             } finally {
                 FixedSelectionPool.this.latch.release();
             }
         }
+    }
+
+    @FunctionalInterface
+    public interface Balancer   {
+        int balance(int workerCount);
     }
 
     public static final class RoundRobinBalancer  implements Balancer  {

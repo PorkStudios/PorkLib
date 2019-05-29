@@ -13,29 +13,45 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp;
+package net.daporkchop.lib.network.tcp.endpoint;
 
+import io.netty.util.concurrent.Future;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.network.pork.SelectionHandler;
+import net.daporkchop.lib.network.endpoint.PEndpoint;
+import net.daporkchop.lib.network.endpoint.builder.EndpointBuilder;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.tcp.session.TCPNetSession;
+import net.daporkchop.lib.network.tcp.TCPEngine;
+import net.daporkchop.lib.network.transport.TransportEngine;
 
-import java.nio.channels.SelectionKey;
+import java.nio.channels.SelectableChannel;
 
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
 @Accessors(fluent = true)
-public class TCPSelectionHandler<S extends AbstractUserSession<S>> implements SelectionHandler {
-    @NonNull
-    protected final TCPNetSession<S> session;
+public abstract class TCPEndpoint<Impl extends PEndpoint<Impl, S>, S extends AbstractUserSession<S>, C extends SelectableChannel> implements PEndpoint<Impl, S> {
+    @Getter
+    protected final TCPEngine transportEngine;
+
+    protected C channel;
+
+    public TCPEndpoint(@NonNull EndpointBuilder<?, ?, S> builder)   {
+        this.transportEngine = (TCPEngine) builder.engine();
+    }
 
     @Override
-    public void handle(@NonNull SelectionKey key) throws Exception {
+    public void closeNow() {
+    }
+
+    @Override
+    public boolean isClosed() {
+        return !this.channel.isOpen();
+    }
+
+    @Override
+    public Future<Void> closeAsync() {
+        return null;
     }
 }

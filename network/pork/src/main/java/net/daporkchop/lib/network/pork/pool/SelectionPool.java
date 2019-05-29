@@ -31,10 +31,11 @@ public interface SelectionPool extends CloseableFuture {
     /**
      * Chooses a worker from this pool and registers the given channel and handler to that worker-
      *
-     * @param channel the channel
-     * @param handler the handler that will handle events on the channel
+     * @param channel     the channel
+     * @param interestOps the operations (from {@link java.nio.channels.SelectionKey}) that should be listened for
+     * @param handler     the handler that will handle events on the channel
      */
-    void register(@NonNull SelectableChannel channel, @NonNull SelectionHandler handler);
+    void register(@NonNull SelectableChannel channel, int interestOps, @NonNull SelectionHandler handler);
 
     @Override
     Promise closeAsync();

@@ -13,31 +13,39 @@
  *
  */
 
-package net.daporkchop.lib.network.sctp.pipeline;
+package net.daporkchop.lib.network.tcp;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.sctp.SctpMessage;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.netty.NettyUtil;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.network.netty.pipeline.NettyEdgeListener;
-import net.daporkchop.lib.network.pipeline.PipelineEdgeListener;
-import net.daporkchop.lib.network.protocol.HandlingProtocol;
+import net.daporkchop.lib.network.endpoint.PClient;
+import net.daporkchop.lib.network.endpoint.PServer;
+import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
+import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.session.Reliability;
+import net.daporkchop.lib.network.tcp.endpoint.TCPClient;
+import net.daporkchop.lib.network.transport.TransportEngine;
 
-import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * @author DaPorkchop_
  */
-public class SCTPEdgeListener<S extends AbstractUserSession<S>> extends NettyEdgeListener<S> {
+public class TCPEngine implements TransportEngine {
+    protected static final Collection<Reliability> SUPPORTED_RELIABILITES = Collections.singleton(Reliability.RELIABLE_ORDERED);
+
     @Override
-    public void received(@NonNull S session, @NonNull Object msg, int channel) {
-        if (msg instanceof SctpMessage) {
-            SctpMessage sctp = (SctpMessage) msg;
-            msg = sctp.content();
-            channel = sctp.streamIdentifier();
-        }
-        super.received(session, msg, channel);
+    public <S extends AbstractUserSession<S>> PClient<S> createClient(@NonNull ClientBuilder<S> builder) {
+        return new TCPClient<>(builder);
+    }
+
+    @Override
+    public <S extends AbstractUserSession<S>> PServer<S> createServer(@NonNull ServerBuilder<S> builder) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Collection<Reliability> supportedReliabilities() {
+        return SUPPORTED_RELIABILITES;
     }
 }

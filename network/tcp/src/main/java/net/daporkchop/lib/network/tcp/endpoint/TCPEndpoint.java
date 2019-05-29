@@ -15,12 +15,15 @@
 
 package net.daporkchop.lib.network.tcp.endpoint;
 
-import io.netty.util.concurrent.Future;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.concurrent.future.Promise;
+import net.daporkchop.lib.concurrent.worker.group.DefaultGroup;
+import net.daporkchop.lib.network.EndpointType;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.endpoint.builder.EndpointBuilder;
+import net.daporkchop.lib.network.pork.pool.SelectionPool;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.tcp.TCPEngine;
 import net.daporkchop.lib.network.transport.TransportEngine;
@@ -34,6 +37,8 @@ import java.nio.channels.SelectableChannel;
 public abstract class TCPEndpoint<Impl extends PEndpoint<Impl, S>, S extends AbstractUserSession<S>, C extends SelectableChannel> implements PEndpoint<Impl, S> {
     @Getter
     protected final TCPEngine transportEngine;
+    @Getter
+    protected final Promise closePromise = DefaultGroup.INSTANCE.newPromise();
 
     protected C channel;
 
@@ -42,16 +47,7 @@ public abstract class TCPEndpoint<Impl extends PEndpoint<Impl, S>, S extends Abs
     }
 
     @Override
-    public void closeNow() {
-    }
-
-    @Override
-    public boolean isClosed() {
-        return !this.channel.isOpen();
-    }
-
-    @Override
-    public Future<Void> closeAsync() {
-        return null;
+    public Promise closeAsync() {
+        return this.closePromise;
     }
 }

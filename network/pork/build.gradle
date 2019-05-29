@@ -15,5 +15,4 @@
 
 dependencies {
     compile project(":network")
-    compile project(":concurrent")
 }

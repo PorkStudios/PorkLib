@@ -20,8 +20,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
-import net.daporkchop.lib.network.pipeline.Pipeline;
-import net.daporkchop.lib.network.util.CloseableFuture;
+import net.daporkchop.lib.concurrent.CloseableFuture;
 
 import java.io.IOException;
 

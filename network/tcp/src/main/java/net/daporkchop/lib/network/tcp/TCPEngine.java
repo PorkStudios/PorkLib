@@ -15,11 +15,18 @@
 
 package net.daporkchop.lib.network.tcp;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.network.endpoint.PClient;
 import net.daporkchop.lib.network.endpoint.PServer;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
+import net.daporkchop.lib.network.pork.pool.FixedSelectionPool;
+import net.daporkchop.lib.network.pork.pool.SelectionPool;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.Reliability;
 import net.daporkchop.lib.network.tcp.endpoint.TCPClient;
@@ -27,12 +34,27 @@ import net.daporkchop.lib.network.transport.TransportEngine;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * @author DaPorkchop_
  */
+@Getter
+@Accessors(fluent = true)
 public class TCPEngine implements TransportEngine {
     protected static final Collection<Reliability> SUPPORTED_RELIABILITES = Collections.singleton(Reliability.RELIABLE_ORDERED);
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    protected final SelectionPool pool;
+    protected final boolean autoClosePool;
+
+    protected TCPEngine(@NonNull Builder builder) {
+        this.pool = builder.pool;
+        this.autoClosePool = builder.autoClosePool;
+    }
 
     @Override
     public <S extends AbstractUserSession<S>> PClient<S> createClient(@NonNull ClientBuilder<S> builder) {
@@ -47,5 +69,24 @@ public class TCPEngine implements TransportEngine {
     @Override
     public Collection<Reliability> supportedReliabilities() {
         return SUPPORTED_RELIABILITES;
+    }
+
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    @Setter
+    @Getter
+    @Accessors(fluent = true, chain = true)
+    public static class Builder {
+        @NonNull
+        protected SelectionPool pool;
+        protected boolean autoClosePool;
+
+        public synchronized TCPEngine build() {
+            if (this.pool == null) {
+                //TODO: default selection pool
+                this.pool = new FixedSelectionPool(1, (ThreadFactory) Thread::new);
+                this.autoClosePool = true;
+            }
+            return new TCPEngine(this);
+        }
     }
 }

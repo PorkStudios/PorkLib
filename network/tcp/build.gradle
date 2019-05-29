@@ -14,5 +14,5 @@
  */
 
 dependencies {
-    compile project(":network:network-netty")
+    compile project(":network:network-pork")
 }

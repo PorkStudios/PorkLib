@@ -36,11 +36,6 @@ public interface BaseUserSession<Impl extends BaseUserSession<Impl, S>, S extend
     }
 
     @Override
-    default Pipeline<S> dataPipeline() {
-        return this.internalSession().dataPipeline();
-    }
-
-    @Override
     default PChannel<S> channel(int id) {
         return this.internalSession().channel(id);
     }

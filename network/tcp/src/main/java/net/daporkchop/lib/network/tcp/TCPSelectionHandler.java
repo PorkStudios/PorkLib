@@ -13,37 +13,29 @@
  *
  */
 
-package mc.packet;
+package net.daporkchop.lib.network.tcp;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import mc.MCSession;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.network.protocol.packet.InboundPacket;
+import net.daporkchop.lib.network.pork.SelectionHandler;
+import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.tcp.session.TCPNetSession;
 
-import java.io.IOException;
+import java.nio.channels.SelectionKey;
 
 /**
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-@NoArgsConstructor
-@Setter
-@Accessors(fluent = true, chain = true)
-public class ResponsePacket implements InboundPacket<MCSession> {
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public class TCPSelectionHandler<S extends AbstractUserSession<S>> implements SelectionHandler {
     @NonNull
-    protected String response;
+    protected final TCPNetSession<S> session;
 
     @Override
-    public void decode(@NonNull DataIn in, @NonNull MCSession session) throws IOException {
-        this.response(in.readUTF());
-    }
-
-    @Override
-    public void handle(@NonNull MCSession session) {
-        session.response(this.response);
+    public void handle(@NonNull SelectionKey key) throws Exception {
     }
 }

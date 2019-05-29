@@ -13,21 +13,32 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.pipeline;
+package net.daporkchop.lib.network.pork.pool;
 
-import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.netty.NettyUtil;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.network.netty.pipeline.NettyEdgeListener;
-import net.daporkchop.lib.network.pipeline.PipelineEdgeListener;
-import net.daporkchop.lib.network.protocol.HandlingProtocol;
-import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.concurrent.CloseableFuture;
+import net.daporkchop.lib.concurrent.future.Promise;
+import net.daporkchop.lib.network.pork.SelectionHandler;
 
-import java.io.IOException;
+import java.nio.channels.SelectableChannel;
 
 /**
+ * A pool of workers that work in parallel accepting data from {@link java.nio.channels.Selector}s.
+ *
  * @author DaPorkchop_
  */
-public class TCPEdgeListener<S extends AbstractUserSession<S>> extends NettyEdgeListener<S> {
+public interface SelectionPool extends CloseableFuture {
+    /**
+     * Chooses a worker from this pool and registers the given channel and handler to that worker-
+     *
+     * @param channel the channel
+     * @param handler the handler that will handle events on the channel
+     */
+    void register(@NonNull SelectableChannel channel, @NonNull SelectionHandler handler);
+
+    @Override
+    Promise closeAsync();
+
+    @Override
+    Promise closePromise();
 }

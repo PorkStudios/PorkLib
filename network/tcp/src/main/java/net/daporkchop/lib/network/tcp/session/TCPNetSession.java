@@ -13,13 +13,16 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.netty.session;
+package net.daporkchop.lib.network.tcp.session;
 
 import io.netty.util.concurrent.Future;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.network.endpoint.PEndpoint;
+import net.daporkchop.lib.network.pipeline.Pipeline;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.PChannel;
 import net.daporkchop.lib.network.session.Reliability;
@@ -30,32 +33,51 @@ import net.daporkchop.lib.network.transport.TransportEngine;
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
+@Getter
 @Accessors(fluent = true)
-public class DummyTCPChannel<S extends AbstractUserSession<S>> implements PChannel<S> {
+public class TCPNetSession<S extends AbstractUserSession<S>> implements NetSession<S> {
     @NonNull
-    protected final TCPNioSocket<S> session;
-    @Getter
-    protected final int id;
+    protected final S userSession;
+    @NonNull
+    protected final PEndpoint<?, S> endpoint;
 
     @Override
-    public S session() {
-        return this.session.userSession();
+    public PChannel<S> channel(int id) {
+        return null;
     }
 
     @Override
-    public NetSession<S> internalSession() {
-        return this.session;
+    public NetSession<S> send(@NonNull Object packet, Reliability reliability) {
+        return null;
     }
 
     @Override
-    public PChannel<S> send(@NonNull Object packet, Reliability reliability) {
-        this.session.send(packet, Reliability.RELIABLE_ORDERED, this.id);
-        return this;
+    public NetSession<S> send(@NonNull Object packet, Reliability reliability, int channel) {
+        return null;
     }
 
     @Override
-    public Future<Void> sendFuture(@NonNull Object packet, Reliability reliability) {
-        return this.session.sendAsync(packet, Reliability.RELIABLE_ORDERED, this.id);
+    public Future<Void> sendAsync(@NonNull Object packet, Reliability reliability) {
+        return null;
+    }
+
+    @Override
+    public Future<Void> sendAsync(@NonNull Object packet, Reliability reliability, int channel) {
+        return null;
+    }
+
+    @Override
+    public DataOut writer() {
+        return null;
+    }
+
+    @Override
+    public NetSession<S> flushBuffer() {
+        return null;
+    }
+
+    @Override
+    public void closeNow() {
     }
 
     @Override
@@ -64,7 +86,7 @@ public class DummyTCPChannel<S extends AbstractUserSession<S>> implements PChann
     }
 
     @Override
-    public PChannel<S> fallbackReliability(@NonNull Reliability reliability) throws IllegalArgumentException {
+    public NetSession<S> fallbackReliability(@NonNull Reliability reliability) throws IllegalArgumentException {
         if (reliability != Reliability.RELIABLE_ORDERED)    {
             throw new IllegalArgumentException(reliability.name());
         }
@@ -72,7 +94,17 @@ public class DummyTCPChannel<S extends AbstractUserSession<S>> implements PChann
     }
 
     @Override
+    public boolean isClosed() {
+        return false;
+    }
+
+    @Override
+    public Future<Void> closeAsync() {
+        return null;
+    }
+
+    @Override
     public TransportEngine transportEngine() {
-        return this.session.transportEngine();
+        return null;
     }
 }

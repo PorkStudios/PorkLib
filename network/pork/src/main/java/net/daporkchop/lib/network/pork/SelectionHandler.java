@@ -13,21 +13,25 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.endpoint;
+package net.daporkchop.lib.network.pork;
 
-import io.netty.channel.Channel;
 import lombok.NonNull;
-import net.daporkchop.lib.network.endpoint.PEndpoint;
-import net.daporkchop.lib.network.endpoint.builder.EndpointBuilder;
-import net.daporkchop.lib.network.netty.endpoint.NettyEndpoint;
-import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.tcp.TCPEngine;
+
+import java.nio.channels.SelectionKey;
 
 /**
+ * A handler fired when a key is selectable.
+ * <p>
+ * The attachment on the given {@link SelectionKey} will always be this handler instance.
+ *
  * @author DaPorkchop_
  */
-public abstract class TCPEndpoint<Impl extends PEndpoint<Impl, S>, S extends AbstractUserSession<S>, C extends Channel> extends NettyEndpoint<Impl, S, C, TCPEngine> {
-    protected TCPEndpoint(@NonNull EndpointBuilder builder)    {
-        super(builder);
-    }
+public interface SelectionHandler {
+    /**
+     * Handles an event.
+     *
+     * @param key the key that was selected
+     * @throws Exception if an exception occurs
+     */
+    void handle(@NonNull SelectionKey key) throws Exception;
 }

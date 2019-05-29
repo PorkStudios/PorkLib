@@ -13,29 +13,18 @@
  *
  */
 
-package http;
+package net.daporkchop.lib.network.pork.pool;
 
-import lombok.NonNull;
-import net.daporkchop.lib.concurrent.future.PCompletable;
-import net.daporkchop.lib.concurrent.future.impl.PCompletableImpl;
-import net.daporkchop.lib.network.session.AbstractUserSession;
+import lombok.Getter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.concurrent.future.Promise;
+import net.daporkchop.lib.concurrent.worker.group.DefaultGroup;
 
 /**
  * @author DaPorkchop_
  */
-public class HTTPSession extends AbstractUserSession<HTTPSession> {
-    protected final PCompletable complete = new PCompletableImpl();
-    protected boolean headersComplete = false;
-    protected String headers = "";
-    protected String body = "";
-
-    @Override
-    public void onClosed() {
-        this.complete.complete();
-    }
-
-    @Override
-    public void onException(@NonNull Throwable t) {
-        this.complete.completeExceptionally(t);
-    }
+@Getter
+@Accessors(fluent = true)
+public abstract class AbstractSelectionPool implements SelectionPool {
+    protected final Promise closePromise = DefaultGroup.INSTANCE.newPromise();
 }

@@ -37,11 +37,6 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
     <E extends PEndpoint<E, S>> E endpoint();
 
     /**
-     * @return this session's pipeline
-     */
-    Pipeline<S> dataPipeline();
-
-    /**
      * Gets an open channel on this session with a given id.
      *
      * @param id the id of the channel to get

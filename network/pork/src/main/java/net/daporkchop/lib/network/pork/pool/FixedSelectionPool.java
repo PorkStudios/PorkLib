@@ -71,11 +71,11 @@ public class FixedSelectionPool extends AbstractSelectionPool {
     }
 
     @Override
-    public void register(@NonNull SelectableChannel channel, int interestOps, @NonNull SelectionHandler handler) {
+    public SelectionKey register(@NonNull SelectableChannel channel, int interestOps, @NonNull SelectionHandler handler) {
         Selector selector = this.workers[this.balancer.balance(this.workers.length)].selector;
         try {
             channel.configureBlocking(false);
-            channel.register(selector, interestOps, handler);
+            return channel.register(selector, interestOps, handler);
         } catch (IOException e)  {
             throw new IllegalStateException(e);
         }

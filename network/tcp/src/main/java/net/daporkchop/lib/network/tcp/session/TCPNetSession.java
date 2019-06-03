@@ -15,7 +15,9 @@
 
 package net.daporkchop.lib.network.tcp.session;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.CompositeByteBuf;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -53,6 +55,8 @@ public class TCPNetSession<S extends AbstractUserSession<S>> implements NetSessi
     protected final Pipeline<S> pipeline;
     protected final Promise closePromise;
 
+    protected final CompositeByteBuf sendBuffer;
+
     public TCPNetSession(@NonNull TCPEndpoint<?, S, ?> endpoint, @NonNull SocketChannel channel)    {
         this(endpoint, channel, DefaultGroup.INSTANCE.newPromise());
     }
@@ -65,6 +69,8 @@ public class TCPNetSession<S extends AbstractUserSession<S>> implements NetSessi
         this.userSession = endpoint.sessionFactory().newSession();
         PUnsafe.putObject(this.userSession, NetSession.ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);
         this.pipeline = new Pipeline<>(this.userSession, new TCPPipelineEdgeListener<>(this));
+
+        this.sendBuffer = this.alloc.compositeBuffer();
     }
 
     @Override

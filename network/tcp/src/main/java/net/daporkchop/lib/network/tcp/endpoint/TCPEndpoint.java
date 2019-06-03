@@ -18,6 +18,7 @@ package net.daporkchop.lib.network.tcp.endpoint;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.function.io.IORunnable;
 import net.daporkchop.lib.concurrent.future.Promise;
 import net.daporkchop.lib.concurrent.worker.group.DefaultGroup;
 import net.daporkchop.lib.network.EndpointType;
@@ -28,6 +29,7 @@ import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.tcp.TCPEngine;
 import net.daporkchop.lib.network.transport.TransportEngine;
 
+import java.io.IOException;
 import java.nio.channels.SelectableChannel;
 
 /**
@@ -44,10 +46,19 @@ public abstract class TCPEndpoint<Impl extends PEndpoint<Impl, S>, S extends Abs
 
     public TCPEndpoint(@NonNull EndpointBuilder<?, ?, S> builder)   {
         this.transportEngine = (TCPEngine) builder.engine();
+        
+        if (this.transportEngine.autoClosePool())   {
+            this.closePromise.addListener((IORunnable) this.transportEngine.pool()::closeAsync);
+        }
     }
 
     @Override
     public Promise closeAsync() {
+        try {
+            this.channel.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         return this.closePromise;
     }
 }

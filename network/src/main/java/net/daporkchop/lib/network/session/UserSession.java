@@ -13,13 +13,26 @@
  *
  */
 
-package net.daporkchop.lib.network.raknet.pipeline;
+package net.daporkchop.lib.network.session;
 
-import net.daporkchop.lib.network.pipeline.PipelineEdgeListener;
-import net.daporkchop.lib.network.session.AbstractUserSession;
+import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.concurrent.future.Promise;
+import net.daporkchop.lib.network.endpoint.PEndpoint;
+import net.daporkchop.lib.network.transport.NetSession;
+import net.daporkchop.lib.network.transport.TransportEngine;
 
 /**
+ * A user-level session implementation. End users will most likely only ever be interacting with this class (and
+ * subclasses thereof).
+ *
  * @author DaPorkchop_
  */
-public class RakNetEdgeListener<S extends AbstractUserSession<S>> extends PipelineEdgeListener<S> {
+public interface UserSession<Impl extends UserSession<Impl, S>, S extends AbstractUserSession<S>> extends PSession<Impl, S> {
+    /**
+     * Gets the internal transport-level session instance.
+     *
+     * @return the internal transport-level session instance
+     */
+    NetSession<S> internalSession();
 }

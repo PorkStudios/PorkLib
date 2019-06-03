@@ -16,20 +16,20 @@
 package net.daporkchop.lib.network.tcp.session;
 
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.util.concurrent.Future;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.concurrent.future.Promise;
+import net.daporkchop.lib.concurrent.worker.group.DefaultGroup;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
-import net.daporkchop.lib.network.pipeline.Pipeline;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.session.PChannel;
 import net.daporkchop.lib.network.session.Reliability;
 import net.daporkchop.lib.network.transport.NetSession;
 import net.daporkchop.lib.network.transport.TransportEngine;
 
+import java.io.IOException;
 import java.nio.channels.SocketChannel;
 
 /**
@@ -47,11 +47,7 @@ public class TCPNetSession<S extends AbstractUserSession<S>> implements NetSessi
     protected final SocketChannel channel;
     @NonNull
     protected final ByteBufAllocator alloc;
-
-    @Override
-    public PChannel<S> channel(int id) {
-        return null;
-    }
+    protected final Promise closePromise = DefaultGroup.INSTANCE.newPromise();
 
     @Override
     public NetSession<S> send(@NonNull Object packet, Reliability reliability) {
@@ -64,12 +60,12 @@ public class TCPNetSession<S extends AbstractUserSession<S>> implements NetSessi
     }
 
     @Override
-    public Future<Void> sendAsync(@NonNull Object packet, Reliability reliability) {
+    public Promise sendAsync(@NonNull Object packet, Reliability reliability) {
         return null;
     }
 
     @Override
-    public Future<Void> sendAsync(@NonNull Object packet, Reliability reliability, int channel) {
+    public Promise sendAsync(@NonNull Object packet, Reliability reliability, int channel) {
         return null;
     }
 
@@ -80,11 +76,7 @@ public class TCPNetSession<S extends AbstractUserSession<S>> implements NetSessi
 
     @Override
     public NetSession<S> flushBuffer() {
-        return null;
-    }
-
-    @Override
-    public void closeNow() {
+        return this;
     }
 
     @Override
@@ -101,17 +93,17 @@ public class TCPNetSession<S extends AbstractUserSession<S>> implements NetSessi
     }
 
     @Override
-    public boolean isClosed() {
-        return false;
-    }
-
-    @Override
-    public Future<Void> closeAsync() {
-        return null;
+    public Promise closeAsync() {
+        try {
+            this.channel.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return this.closePromise;
     }
 
     @Override
     public TransportEngine transportEngine() {
-        return null;
+        return this.endpoint.transportEngine();
     }
 }

@@ -15,6 +15,8 @@
 
 package net.daporkchop.lib.network.tcp;
 
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.PooledByteBufAllocator;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -48,10 +50,12 @@ public class TCPEngine implements TransportEngine {
         return new Builder();
     }
 
+    protected final ByteBufAllocator alloc;
     protected final SelectionPool pool;
     protected final boolean autoClosePool;
 
     protected TCPEngine(@NonNull Builder builder) {
+        this.alloc = builder.alloc();
         this.pool = builder.pool;
         this.autoClosePool = builder.autoClosePool;
     }
@@ -77,10 +81,15 @@ public class TCPEngine implements TransportEngine {
     @Accessors(fluent = true, chain = true)
     public static class Builder {
         @NonNull
+        protected ByteBufAllocator alloc;
+        @NonNull
         protected SelectionPool pool;
         protected boolean autoClosePool;
 
         public synchronized TCPEngine build() {
+            if (this.alloc == null) {
+                this.alloc = PooledByteBufAllocator.DEFAULT;
+            }
             if (this.pool == null) {
                 //TODO: default selection pool
                 this.pool = new FixedSelectionPool(1, (ThreadFactory) Thread::new);

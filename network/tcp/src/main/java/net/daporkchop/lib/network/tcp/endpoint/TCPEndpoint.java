@@ -26,6 +26,7 @@ import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.endpoint.builder.EndpointBuilder;
 import net.daporkchop.lib.network.pork.pool.SelectionPool;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.session.SessionFactory;
 import net.daporkchop.lib.network.tcp.TCPEngine;
 import net.daporkchop.lib.network.transport.TransportEngine;
 
@@ -41,12 +42,15 @@ public abstract class TCPEndpoint<Impl extends PEndpoint<Impl, S>, S extends Abs
     protected final TCPEngine transportEngine;
     @Getter
     protected final Promise closePromise = DefaultGroup.INSTANCE.newPromise();
+    @Getter
+    protected final SessionFactory<S> sessionFactory;
 
     protected C channel;
 
     public TCPEndpoint(@NonNull EndpointBuilder<?, ?, S> builder)   {
         this.transportEngine = (TCPEngine) builder.engine();
-        
+        this.sessionFactory = builder.sessionFactory();
+
         if (this.transportEngine.autoClosePool())   {
             this.closePromise.addListener((IORunnable) this.transportEngine.pool()::closeAsync);
         }

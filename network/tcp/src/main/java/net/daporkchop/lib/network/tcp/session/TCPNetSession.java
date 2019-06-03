@@ -24,10 +24,13 @@ import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.concurrent.future.Promise;
 import net.daporkchop.lib.concurrent.worker.group.DefaultGroup;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
+import net.daporkchop.lib.network.pipeline.Pipeline;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.Reliability;
+import net.daporkchop.lib.network.tcp.endpoint.TCPEndpoint;
 import net.daporkchop.lib.network.transport.NetSession;
 import net.daporkchop.lib.network.transport.TransportEngine;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
 import java.nio.channels.SocketChannel;
@@ -35,19 +38,34 @@ import java.nio.channels.SocketChannel;
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
 public class TCPNetSession<S extends AbstractUserSession<S>> implements NetSession<S> {
     @NonNull
     protected final S userSession;
     @NonNull
-    protected final PEndpoint<?, S> endpoint;
+    protected final TCPEndpoint<?, S, ?> endpoint;
     @NonNull
     protected final SocketChannel channel;
     @NonNull
     protected final ByteBufAllocator alloc;
-    protected final Promise closePromise = DefaultGroup.INSTANCE.newPromise();
+    @NonNull
+    protected final Pipeline<S> pipeline;
+    protected final Promise closePromise;
+
+    public TCPNetSession(@NonNull TCPEndpoint<?, S, ?> endpoint, @NonNull SocketChannel channel)    {
+        this(endpoint, channel, DefaultGroup.INSTANCE.newPromise());
+    }
+
+    public TCPNetSession(@NonNull TCPEndpoint<?, S, ?> endpoint, @NonNull SocketChannel channel, @NonNull Promise closePromise)    {
+        this.endpoint = endpoint;
+        this.channel = channel;
+        this.closePromise = closePromise;
+        this.alloc = endpoint.transportEngine().alloc();
+        this.userSession = endpoint.sessionFactory().newSession();
+        PUnsafe.putObject(this.userSession, NetSession.ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);
+        this.pipeline = new Pipeline<>(this.userSession, new TCPPipelineEdgeListener<>(this));
+    }
 
     @Override
     public NetSession<S> send(@NonNull Object packet, Reliability reliability) {

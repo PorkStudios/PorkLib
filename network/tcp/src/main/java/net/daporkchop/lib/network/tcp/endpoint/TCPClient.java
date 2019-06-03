@@ -15,30 +15,41 @@
 
 package net.daporkchop.lib.network.tcp.endpoint;
 
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.network.endpoint.PClient;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.endpoint.builder.EndpointBuilder;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.tcp.session.TCPNetSession;
 import net.daporkchop.lib.network.transport.NetSession;
 
+import java.io.IOException;
+import java.nio.channels.Channels;
 import java.nio.channels.SocketChannel;
 
 /**
  * @author DaPorkchop_
  */
+@Getter
+@Accessors(fluent = true)
 public class TCPClient<S extends AbstractUserSession<S>> extends TCPEndpoint<PClient<S>, S, SocketChannel> implements PClient<S> {
+    protected final TCPNetSession<S> internalSession;
+
     public TCPClient(@NonNull ClientBuilder<S> builder) {
         super(builder);
+
+        try {
+            SocketChannel channel = SocketChannel.open(builder.address());
+            this.internalSession = new TCPNetSession<>(this, null, this.closePromise);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public S userSession() {
-        return null;
-    }
-
-    @Override
-    public NetSession<S> internalSession() {
-        return null;
+        return this.internalSession.userSession();
     }
 }

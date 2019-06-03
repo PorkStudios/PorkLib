@@ -34,6 +34,6 @@ public interface ExceptionListener<S extends AbstractUserSession<S>> extends Pip
     void exceptionCaught(@NonNull EventContext<S> context, @NonNull S session, @NonNull Throwable t);
 
     interface Fire<S extends AbstractUserSession<S>> {
-        void exceptionCaught(@NonNull S session, @NonNull Throwable t);
+        void fireException(@NonNull S session, @NonNull Throwable t);
     }
 }

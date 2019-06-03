@@ -19,6 +19,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.concurrent.future.Promise;
 import net.daporkchop.lib.network.EndpointType;
+import net.daporkchop.lib.network.pipeline.Pipeline;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.Reliability;
 import net.daporkchop.lib.network.session.UserSession;
@@ -47,6 +48,17 @@ public interface PClient<S extends AbstractUserSession<S>> extends PEndpoint<PCl
     @SuppressWarnings("unchecked")
     default <E extends PEndpoint<E, S>> E endpoint() {
         return (E) this;
+    }
+
+    @Override
+    default Reliability fallbackReliability() {
+        return this.internalSession().fallbackReliability();
+    }
+
+    @Override
+    default PClient<S> fallbackReliability(@NonNull Reliability reliability) throws IllegalArgumentException {
+        this.internalSession().fallbackReliability(reliability);
+        return this;
     }
 
     @Override
@@ -83,13 +95,7 @@ public interface PClient<S extends AbstractUserSession<S>> extends PEndpoint<PCl
     }
 
     @Override
-    default Reliability fallbackReliability() {
-        return this.internalSession().fallbackReliability();
-    }
-
-    @Override
-    default PClient<S> fallbackReliability(@NonNull Reliability reliability) throws IllegalArgumentException {
-        this.internalSession().fallbackReliability(reliability);
-        return this;
+    default Pipeline<S> pipeline() {
+        return this.internalSession().pipeline();
     }
 }

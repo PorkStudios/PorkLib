@@ -35,6 +35,6 @@ public interface ReceivedListener<S extends AbstractUserSession<S>, I> extends P
     void received(@NonNull EventContext<S> context, @NonNull S session, @NonNull I msg, int channel);
 
     interface Fire<S extends AbstractUserSession<S>> {
-        void received(@NonNull S session, @NonNull Object msg, int channel);
+        void fireReceived(@NonNull S session, @NonNull Object msg, int channel);
     }
 }

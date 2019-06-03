@@ -13,41 +13,51 @@
  *
  */
 
-package net.daporkchop.lib.network.netty.pipeline;
+package net.daporkchop.lib.network.tcp.session;
 
 import io.netty.buffer.ByteBuf;
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.netty.NettyUtil;
-import net.daporkchop.lib.binary.stream.DataIn;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.network.pipeline.PipelineEdgeListener;
-import net.daporkchop.lib.network.protocol.HandlingProtocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.session.Reliability;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * @author DaPorkchop_
  */
-public abstract class NettyEdgeListener<S extends AbstractUserSession<S>> extends PipelineEdgeListener<S> {
+@RequiredArgsConstructor
+@Getter
+public class TCPPipelineEdgeListener<S extends AbstractUserSession<S>> extends PipelineEdgeListener<S> {
+    @NonNull
+    protected final TCPNetSession<S> session;
+
     @Override
-    public void fireReceived(@NonNull S session, @NonNull Object msg, int channel) {
-        if (msg instanceof ByteBuf) {
-            try (DataIn in = NettyUtil.wrapIn((ByteBuf) msg)) {
-                if (session.endpoint().protocol() instanceof HandlingProtocol)  {
-                    ((HandlingProtocol<S>) session.endpoint().protocol()).handler().onBinary(session, in, channel);
-                } else {
-                    session.onBinary(in, channel);
+    public void fireSending(@NonNull S session, @NonNull Object msg, Reliability reliability, int channel) {
+        try {
+            if (msg instanceof ByteBuf) {
+                ByteBuf buf = (ByteBuf) msg;
+                switch (buf.nioBufferCount()) {
+                    case 0:
+                        break;
+                    case 1:
+                        this.session.channel.write(buf.nioBuffer()); //TODO: figure out how to deal with incomplete writes
+                        break;
+                    default:
+                        this.session.channel.write(buf.nioBuffers());
+                        break;
                 }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            ((ByteBuf) msg).release();
-        } else {
-            if (session.endpoint().protocol() instanceof HandlingProtocol)  {
-                ((HandlingProtocol<S>) session.endpoint().protocol()).handler().onReceived(session, msg, channel);
+            } else if (msg instanceof ByteBuffer) {
+                this.session.channel.write((ByteBuffer) msg);
             } else {
-                session.onReceived(msg, channel);
+                throw new IllegalArgumentException(String.format("TCP cannot send message type: \"%s\"!", PorkUtil.getClassName(msg)));
             }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }

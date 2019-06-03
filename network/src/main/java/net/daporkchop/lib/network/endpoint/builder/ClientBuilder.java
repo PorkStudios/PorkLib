@@ -26,6 +26,7 @@ import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.SessionFactory;
 
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 
 /**
  * @author DaPorkchop_
@@ -45,13 +46,17 @@ public class ClientBuilder<S extends AbstractUserSession<S>> extends EndpointBui
      * Must be set!
      */
     @NonNull
-    protected InetSocketAddress address;
+    protected SocketAddress address;
 
     @Override
     @SuppressWarnings("unchecked")
     public <NEW_S extends AbstractUserSession<NEW_S>> ClientBuilder<NEW_S> sessionFactory(@NonNull SessionFactory<NEW_S> sessionFactory) {
         ((ClientBuilder<NEW_S>) this).sessionFactory = sessionFactory;
         return (ClientBuilder<NEW_S>) this;
+    }
+
+    public ClientBuilder<S> address(@NonNull String host, int port) {
+        return this.address(new InetSocketAddress(host, port));
     }
 
     @Override

@@ -36,17 +36,17 @@ public interface EventContext<S extends AbstractUserSession<S>> extends FireEven
     Pipeline<S> pipeline();
 
     @Override
-    void opened(@NonNull S session);
+    void fireOpened(@NonNull S session);
 
     @Override
-    void closed(@NonNull S session);
+    void fireClosed(@NonNull S session);
 
     @Override
-    void received(@NonNull S session, @NonNull Object msg, int channel);
+    void fireReceived(@NonNull S session, @NonNull Object msg, int channel);
 
     @Override
-    void sending(@NonNull S session, @NonNull Object msg, Reliability reliability, int channel);
+    void fireSending(@NonNull S session, @NonNull Object msg, Reliability reliability, int channel);
 
     @Override
-    void exceptionCaught(@NonNull S session, @NonNull Throwable t);
+    void fireException(@NonNull S session, @NonNull Throwable t);
 }

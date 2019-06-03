@@ -44,7 +44,9 @@ public class TCPSelectionHandler<S extends AbstractUserSession<S>> implements Se
 
     @Override
     public void handle(int flags) throws Exception {
-        if ((flags & SelectionKey.OP_READ) != 0) {
+        if (this.channel.isOpen())  {
+            this.session.closePromise.tryCompleteSuccessfully();
+        } else        if ((flags & SelectionKey.OP_READ) != 0) {
             ByteBuf buf = this.alloc.ioBuffer();
             try {
                 if (buf.nioBufferCount() != 1) {

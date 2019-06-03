@@ -15,87 +15,35 @@
 
 package net.daporkchop.lib.network.endpoint;
 
-import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.concurrent.future.Promise;
+import io.netty.util.concurrent.Future;
 import net.daporkchop.lib.network.EndpointType;
-import net.daporkchop.lib.network.pipeline.Pipeline;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.session.Reliability;
-import net.daporkchop.lib.network.session.UserSession;
-import net.daporkchop.lib.network.transport.NetSession;
+import net.daporkchop.lib.network.session.BaseUserSession;
 
 /**
  * A client can connect to a single remote endpoint.
  *
  * @author DaPorkchop_
  */
-public interface PClient<S extends AbstractUserSession<S>> extends PEndpoint<PClient<S>, S>, UserSession<PClient<S>, S> {
+public interface PClient<S extends AbstractUserSession<S>> extends PEndpoint<PClient<S>, S>, BaseUserSession<PClient<S>, S> {
     @Override
     default EndpointType type() {
         return EndpointType.CLIENT;
     }
 
+    @Override
+    default void closeNow() {
+        BaseUserSession.super.closeNow();
+    }
+
+    @Override
+    default Future<Void> closeAsync() {
+        return BaseUserSession.super.closeAsync();
+    }
+
     /**
+     * Gets this session's user session instance.
      * @return this session's user session instance
      */
     S userSession();
-
-    @Override
-    NetSession<S> internalSession();
-
-    @Override
-    @SuppressWarnings("unchecked")
-    default <E extends PEndpoint<E, S>> E endpoint() {
-        return (E) this;
-    }
-
-    @Override
-    default Reliability fallbackReliability() {
-        return this.internalSession().fallbackReliability();
-    }
-
-    @Override
-    default PClient<S> fallbackReliability(@NonNull Reliability reliability) throws IllegalArgumentException {
-        this.internalSession().fallbackReliability(reliability);
-        return this;
-    }
-
-    @Override
-    default PClient<S> send(@NonNull Object packet, Reliability reliability) {
-        this.internalSession().send(packet, reliability);
-        return this;
-    }
-
-    @Override
-    default PClient<S> send(@NonNull Object packet, Reliability reliability, int channel) {
-        this.internalSession().send(packet, reliability, channel);
-        return this;
-    }
-
-    @Override
-    default Promise sendAsync(@NonNull Object packet, Reliability reliability) {
-        return this.internalSession().sendAsync(packet, reliability);
-    }
-
-    @Override
-    default Promise sendAsync(@NonNull Object packet, Reliability reliability, int channel) {
-        return this.internalSession().sendAsync(packet, reliability, channel);
-    }
-
-    @Override
-    default DataOut writer() {
-        return this.internalSession().writer();
-    }
-
-    @Override
-    default PClient<S> flushBuffer() {
-        this.internalSession().flushBuffer();
-        return this;
-    }
-
-    @Override
-    default Pipeline<S> pipeline() {
-        return this.internalSession().pipeline();
-    }
 }

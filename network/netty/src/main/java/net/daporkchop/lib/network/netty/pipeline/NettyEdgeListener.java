@@ -30,7 +30,7 @@ import java.io.IOException;
  */
 public abstract class NettyEdgeListener<S extends AbstractUserSession<S>> extends PipelineEdgeListener<S> {
     @Override
-    public void fireReceived(@NonNull S session, @NonNull Object msg, int channel) {
+    public void received(@NonNull S session, @NonNull Object msg, int channel) {
         if (msg instanceof ByteBuf) {
             try (DataIn in = NettyUtil.wrapIn((ByteBuf) msg)) {
                 if (session.endpoint().protocol() instanceof HandlingProtocol)  {

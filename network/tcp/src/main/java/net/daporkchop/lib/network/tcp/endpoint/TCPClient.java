@@ -15,41 +15,44 @@
 
 package net.daporkchop.lib.network.tcp.endpoint;
 
-import lombok.Getter;
+import io.netty.bootstrap.Bootstrap;
 import lombok.NonNull;
-import lombok.experimental.Accessors;
 import net.daporkchop.lib.network.endpoint.PClient;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
-import net.daporkchop.lib.network.endpoint.builder.EndpointBuilder;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.tcp.session.TCPNetSession;
 import net.daporkchop.lib.network.transport.NetSession;
-
-import java.io.IOException;
-import java.nio.channels.Channels;
-import java.nio.channels.SocketChannel;
+import net.daporkchop.lib.network.tcp.netty.TCPChannelInitializer;
+import net.daporkchop.lib.network.tcp.netty.session.TCPNioSocket;
 
 /**
  * @author DaPorkchop_
  */
-@Getter
-@Accessors(fluent = true)
-public class TCPClient<S extends AbstractUserSession<S>> extends TCPEndpoint<PClient<S>, S, SocketChannel> implements PClient<S> {
-    protected final TCPNetSession<S> internalSession;
-
+public class TCPClient<S extends AbstractUserSession<S>> extends TCPEndpoint<PClient<S>, S, TCPNioSocket<S>> implements PClient<S> {
+    @SuppressWarnings("unchecked")
     public TCPClient(@NonNull ClientBuilder<S> builder) {
         super(builder);
 
         try {
-            SocketChannel channel = SocketChannel.open(builder.address());
-            this.internalSession = new TCPNetSession<>(this, null, this.closePromise);
-        } catch (IOException e) {
+            Bootstrap bootstrap = new Bootstrap()
+                    .group(this.group)
+                    .channelFactory(() -> new TCPNioSocket<>(this))
+                    .handler(new TCPChannelInitializer<>(this));
+
+            this.transportEngine.clientOptions().forEach(bootstrap::option);
+
+            this.channel = (TCPNioSocket<S>) bootstrap.connect(builder.address()).syncUninterruptibly().channel();
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
     public S userSession() {
-        return this.internalSession.userSession();
+        return this.channel.userSession();
+    }
+
+    @Override
+    public NetSession<S> internalSession() {
+        return this.channel;
     }
 }

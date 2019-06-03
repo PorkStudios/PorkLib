@@ -39,6 +39,11 @@ public interface SendingListener<S extends AbstractUserSession<S>, I> extends Pi
 
     @FunctionalInterface
     interface Fire<S extends AbstractUserSession<S>> {
-        void fireSending(@NonNull S session, @NonNull Object msg, Reliability reliability, int channel);
+        void sending(@NonNull S session, @NonNull Object msg, Reliability reliability, int channel);
+    }
+
+    @FunctionalInterface
+    interface QueueAdder<S extends AbstractUserSession<S>> {
+        void add(@NonNull List<Object> sendQueue, @NonNull S session, @NonNull Object msg, Reliability reliability, int channel);
     }
 }

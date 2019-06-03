@@ -193,8 +193,4 @@ public class PorkUtil {
             Thread.currentThread().interrupt();
         }
     }
-
-    public static String getClassName(Object obj)   {
-        return obj == null ? "null" : obj.getClass().getCanonicalName();
-    }
 }

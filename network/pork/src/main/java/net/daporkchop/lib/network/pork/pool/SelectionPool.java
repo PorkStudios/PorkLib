@@ -21,7 +21,6 @@ import net.daporkchop.lib.concurrent.future.Promise;
 import net.daporkchop.lib.network.pork.SelectionHandler;
 
 import java.nio.channels.SelectableChannel;
-import java.nio.channels.SelectionKey;
 
 /**
  * A pool of workers that work in parallel accepting data from {@link java.nio.channels.Selector}s.
@@ -32,11 +31,10 @@ public interface SelectionPool extends CloseableFuture {
     /**
      * Chooses a worker from this pool and registers the given channel and handler to that worker-
      *
-     * @param channel     the channel
-     * @param interestOps the operations (from {@link java.nio.channels.SelectionKey}) that should be listened for
-     * @param handler     the handler that will handle events on the channel
+     * @param channel the channel
+     * @param handler the handler that will handle events on the channel
      */
-    SelectionKey register(@NonNull SelectableChannel channel, int interestOps, @NonNull SelectionHandler handler);
+    void register(@NonNull SelectableChannel channel, @NonNull SelectionHandler handler);
 
     @Override
     Promise closeAsync();

@@ -19,13 +19,8 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.concurrent.future.Promise;
 import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.endpoint.PEndpoint;
-import net.daporkchop.lib.network.pipeline.Pipeline;
 import net.daporkchop.lib.network.transport.NetSession;
-import net.daporkchop.lib.network.transport.TransportEngine;
 
 import java.io.IOException;
 
@@ -34,17 +29,17 @@ import java.io.IOException;
  */
 @Getter
 @Accessors(fluent = true)
-public abstract class AbstractUserSession<S extends AbstractUserSession<S>> implements UserSession<S, S> {
+public abstract class AbstractUserSession<S extends AbstractUserSession<S>> implements BaseUserSession<S, S> {
     private final NetSession<S> internalSession = null;
 
     /**
-     * Fired when this session is opened (i.e. an fireOpened event reaches the end of the pipeline).
+     * Fired when this session is opened (i.e. an opened event reaches the end of the pipeline).
      */
     public void onOpened() {
     }
 
     /**
-     * Fired when this session is closed (i.e. a fireClosed event reaches the end of the pipeline).
+     * Fired when this session is closed (i.e. a closed event reaches the end of the pipeline).
      */
     public void onClosed() {
     }
@@ -83,83 +78,5 @@ public abstract class AbstractUserSession<S extends AbstractUserSession<S>> impl
      * @param channel the channel that the data was received on
      */
     public void onBinary(@NonNull DataIn in, int channel) throws IOException {
-    }
-
-    //
-    //
-    // finalize implementatation methods for UserSession
-    //
-    //
-    @Override
-    public final <E extends PEndpoint<E, S>> E endpoint() {
-        return this.internalSession.endpoint();
-    }
-
-    @Override
-    public final Reliability fallbackReliability() {
-        return this.internalSession.fallbackReliability();
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public final S fallbackReliability(@NonNull Reliability reliability) throws IllegalArgumentException {
-        this.internalSession.fallbackReliability(reliability);
-        return (S) this;
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public final S send(@NonNull Object packet, Reliability reliability) {
-        this.internalSession.send(packet, reliability);
-        return (S) this;
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public final S send(@NonNull Object packet, Reliability reliability, int channel) {
-        this.internalSession.send(packet, reliability, channel);
-        return (S) this;
-    }
-
-    @Override
-    public final Promise sendAsync(@NonNull Object packet, Reliability reliability) {
-        return this.internalSession.sendAsync(packet, reliability);
-    }
-
-    @Override
-    public final Promise sendAsync(@NonNull Object packet, Reliability reliability, int channel) {
-        return this.internalSession.sendAsync(packet, reliability, channel);
-    }
-
-    @Override
-    public final DataOut writer() {
-        return this.internalSession.writer();
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public final S flushBuffer() {
-        this.internalSession.flushBuffer();
-        return (S) this;
-    }
-
-    @Override
-    public final Promise closeAsync() {
-        return this.internalSession.closeAsync();
-    }
-
-    @Override
-    public final Promise closePromise() {
-        return this.internalSession.closePromise();
-    }
-
-    @Override
-    public final TransportEngine transportEngine() {
-        return this.internalSession.transportEngine();
-    }
-
-    @Override
-    public final Pipeline<S> pipeline() {
-        return this.internalSession.pipeline();
     }
 }

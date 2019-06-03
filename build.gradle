@@ -64,18 +64,18 @@ allprojects {
 
     repositories {
         mavenLocal()
-        /*maven {
+        maven {
             name = "DaPorkchop_"
             url = "https://maven.daporkchop.net/"
-        }*/
+        }
         maven {
             name = "Sonatype Snapshots"
             url = "https://oss.sonatype.org/content/repositories/snapshots/"
         }
-        /*maven {
+        maven {
             name = "NukkitX Snapshots"
             url = "https://repo.nukkitx.com/maven-releases/"
-        }*/
+        }
         mavenCentral()
     }
 

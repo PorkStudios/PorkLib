@@ -18,6 +18,7 @@ package net.daporkchop.lib.network.pipeline;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.network.pipeline.event.SendingListener;
 import net.daporkchop.lib.network.pipeline.util.PipelineListener;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.Reliability;
@@ -38,9 +39,9 @@ public class Pipeline<S extends AbstractUserSession<S>> {
     };
 
     @SuppressWarnings("unchecked")
-    protected static <S extends AbstractUserSession<S>> PipelineListener<S> noopListener() {
-        return (PipelineListener<S>) NOOP_LISTENER;
-    }
+protected static  <S extends AbstractUserSession<S>> PipelineListener<S> noopListener(){
+    return (PipelineListener<S>) NOOP_LISTENER;
+}
 
     @Getter
     protected final S session;
@@ -53,11 +54,19 @@ public class Pipeline<S extends AbstractUserSession<S>> {
 
     protected final PipelineEdgeListener<S> listener;
 
+    protected List<Object> sendQueue;
+    protected final SendingListener.QueueAdder<S> queueAdder;
+
     protected int fallbackIdCounter = 0;
 
-    public Pipeline(@NonNull S session, @NonNull PipelineEdgeListener<S> listener) {
+    public Pipeline(@NonNull S session, @NonNull PipelineEdgeListener<S> listener)  {
+        this(session, listener, (sendQueue, s, msg, reliability, channel) -> sendQueue.add(msg));
+    }
+
+    public Pipeline(@NonNull S session, @NonNull PipelineEdgeListener<S> listener, @NonNull SendingListener.QueueAdder<S> queueAdder) {
         this.session = session;
         this.listener = listener;
+        this.queueAdder = queueAdder;
 
         this.head = new Node<>(this, "head", noopListener());
         this.tail = new Node<>(this, "tail", noopListener());
@@ -67,13 +76,13 @@ public class Pipeline<S extends AbstractUserSession<S>> {
 
     public void fireOpened() {
         synchronized (this.mutex) {
-            this.head.context.fireOpened(this.session);
+            this.head.context.opened(this.session);
         }
     }
 
     public void fireClosed() {
         synchronized (this.mutex) {
-            this.head.context.fireClosed(this.session);
+            this.head.context.closed(this.session);
 
             this.nodes.forEach(n -> n.listener.removed(this, this.session));
             this.nodes.clear();
@@ -83,19 +92,21 @@ public class Pipeline<S extends AbstractUserSession<S>> {
 
     public void fireReceived(@NonNull Object msg, int channel) {
         synchronized (this.mutex) {
-            this.head.context.fireReceived(this.session, msg, channel);
+            this.head.context.received(this.session, msg, channel);
         }
     }
 
-    public void fireSending(@NonNull Object msg, Reliability reliability, int channel) {
+    public void fireSending(@NonNull Object msg, Reliability reliability, int channel, List<Object> sendQueue) {
         synchronized (this.mutex) {
-            this.tail.context.fireSending(this.session, msg, reliability, channel);
+            this.sendQueue = sendQueue;
+            this.tail.context.sending(this.session, msg, reliability, channel);
+            this.sendQueue = null;
         }
     }
 
-    public void fireException(@NonNull Throwable t) {
+    public void fireExceptionCaught(@NonNull Throwable t) {
         synchronized (this.mutex) {
-            this.head.context.fireException(this.session, t);
+            this.head.context.exceptionCaught(this.session, t);
         }
     }
 
@@ -204,7 +215,7 @@ public class Pipeline<S extends AbstractUserSession<S>> {
         }
     }
 
-    protected void addCallback(@NonNull S session, @NonNull Object msg, Reliability reliability, int channel) {
+    protected void addCallback(@NonNull S session, @NonNull Object msg, Reliability reliability, int channel)    {
         this.queueAdder.add(this.sendQueue, session, msg, reliability, channel);
     }
 }

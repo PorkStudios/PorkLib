@@ -33,6 +33,6 @@ public interface ClosedListener<S extends AbstractUserSession<S>> extends Pipeli
     void closed(@NonNull EventContext<S> context, @NonNull S session);
 
     interface Fire<S extends AbstractUserSession<S>> {
-        void fireClosed(@NonNull S session);
+        void closed(@NonNull S session);
     }
 }

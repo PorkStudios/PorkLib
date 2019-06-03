@@ -26,25 +26,27 @@ import net.daporkchop.lib.network.session.Reliability;
  */
 public abstract class PipelineEdgeListener<S extends AbstractUserSession<S>> implements FireEvents<S>, Logging {
     @Override
-    public void fireOpened(@NonNull S session) {
+    public void opened(@NonNull S session) {
         session.onOpened();
     }
 
     @Override
-    public void fireClosed(@NonNull S session) {
+    public void closed(@NonNull S session) {
         session.onClosed();
     }
 
     @Override
-    public void fireReceived(@NonNull S session, @NonNull Object msg, int channel) {
+    public void received(@NonNull S session, @NonNull Object msg, int channel) {
         session.onReceived(msg, channel);
     }
 
     @Override
-    public abstract void fireSending(@NonNull S session, @NonNull Object msg, Reliability reliability, int channel);
+    public final void sending(@NonNull S session, @NonNull Object msg, Reliability reliability, int channel) {
+        throw new UnsupportedOperationException();
+    }
 
     @Override
-    public void fireException(@NonNull S session, @NonNull Throwable t) {
+    public void exceptionCaught(@NonNull S session, @NonNull Throwable t) {
         /*StringBuilder builder = new StringBuilder();
         Logger.getStackTrace(t, builder::append);
         logger.alert("Exception reached the end of the pipeline!\n\n%s", builder);*/

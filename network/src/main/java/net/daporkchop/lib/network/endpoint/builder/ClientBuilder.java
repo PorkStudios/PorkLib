@@ -22,11 +22,10 @@ import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.network.endpoint.PClient;
+import net.daporkchop.lib.network.protocol.Protocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.session.SessionFactory;
 
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 
 /**
  * @author DaPorkchop_
@@ -36,8 +35,8 @@ import java.net.SocketAddress;
 @Setter
 @Accessors(chain = true, fluent = true)
 public class ClientBuilder<S extends AbstractUserSession<S>> extends EndpointBuilder<ClientBuilder<S>, PClient<S>, S> {
-    public static <S extends AbstractUserSession<S>> ClientBuilder<S> of(@NonNull SessionFactory<S> sessionFactory)  {
-        return new ClientBuilder<>().sessionFactory(sessionFactory);
+    public static <S extends AbstractUserSession<S>> ClientBuilder<S> of(@NonNull Protocol<S> protocol)  {
+        return new ClientBuilder<>().protocol(protocol);
     }
 
     /**
@@ -46,17 +45,13 @@ public class ClientBuilder<S extends AbstractUserSession<S>> extends EndpointBui
      * Must be set!
      */
     @NonNull
-    protected SocketAddress address;
+    protected InetSocketAddress address;
 
     @Override
     @SuppressWarnings("unchecked")
-    public <NEW_S extends AbstractUserSession<NEW_S>> ClientBuilder<NEW_S> sessionFactory(@NonNull SessionFactory<NEW_S> sessionFactory) {
-        ((ClientBuilder<NEW_S>) this).sessionFactory = sessionFactory;
+    public <NEW_S extends AbstractUserSession<NEW_S>> ClientBuilder<NEW_S> protocol(@NonNull Protocol<NEW_S> protocol)   {
+        ((ClientBuilder<NEW_S>) this).protocol = protocol;
         return (ClientBuilder<NEW_S>) this;
-    }
-
-    public ClientBuilder<S> address(@NonNull String host, int port) {
-        return this.address(new InetSocketAddress(host, port));
     }
 
     @Override

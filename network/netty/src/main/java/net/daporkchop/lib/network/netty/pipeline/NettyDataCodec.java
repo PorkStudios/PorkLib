@@ -23,6 +23,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.netty.NettyByteBufIn;
 import net.daporkchop.lib.binary.netty.NettyByteBufOut;
+import net.daporkchop.lib.network.pipeline.event.ReceivedListener;
+import net.daporkchop.lib.network.pipeline.event.SendingListener;
 import net.daporkchop.lib.network.pipeline.handler.Codec;
 import net.daporkchop.lib.network.pipeline.util.EventContext;
 import net.daporkchop.lib.network.protocol.DataProtocol;
@@ -51,7 +53,7 @@ public class NettyDataCodec<S extends AbstractUserSession<S>> implements Codec<S
         try {
             Object decoded = this.protocol.codec().decode(session, this.in.buf(msg), channel);
             if (decoded != null) {
-                context.fireReceived(session, decoded, channel);
+                context.received(session, decoded, channel);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -64,7 +66,7 @@ public class NettyDataCodec<S extends AbstractUserSession<S>> implements Codec<S
     @Override
     public void sending(@NonNull EventContext<S> context, @NonNull S session, @NonNull Object msg, Reliability reliability, int channel) {
         if (session.transportEngine().isBinary(msg)) {
-            context.fireSending(session, msg, reliability, channel);
+            context.sending(session, msg, reliability, channel);
         } else {
             ByteBuf buf = this.alloc.ioBuffer();
             try {
@@ -75,7 +77,7 @@ public class NettyDataCodec<S extends AbstractUserSession<S>> implements Codec<S
             } finally {
                 this.out.buf(null);
             }
-            context.fireSending(session, buf, reliability, channel);
+            context.sending(session, buf, reliability, channel);
         }
     }
 }

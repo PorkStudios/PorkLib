@@ -15,49 +15,77 @@
 
 package net.daporkchop.lib.network.tcp;
 
-import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.PooledByteBufAllocator;
-import lombok.AccessLevel;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.network.endpoint.PClient;
 import net.daporkchop.lib.network.endpoint.PServer;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
-import net.daporkchop.lib.network.pork.pool.FixedSelectionPool;
-import net.daporkchop.lib.network.pork.pool.SelectionPool;
+import net.daporkchop.lib.network.netty.NettyEngine;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.session.BaseUserSession;
 import net.daporkchop.lib.network.session.Reliability;
 import net.daporkchop.lib.network.tcp.endpoint.TCPClient;
+import net.daporkchop.lib.network.tcp.endpoint.TCPServer;
+import net.daporkchop.lib.network.tcp.netty.session.TCPSession;
 import net.daporkchop.lib.network.transport.TransportEngine;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.concurrent.ThreadFactory;
+import java.util.Map;
 
 /**
+ * An implementation of {@link TransportEngine} for the TCP/IP transport protocol.
+ * <p>
+ * Default pipeline layout:
+ * "tcp_framer"  => {@link net.daporkchop.lib.network.tcp.pipeline.Framer.DefaultFramer}
+ * "protocol"    => {@link net.daporkchop.lib.network.netty.pipeline.NettyDataCodec} (only if endpoint protocol is {@link net.daporkchop.lib.network.protocol.DataProtocol})
+ * <p>
+ * All internal sessions ({@link BaseUserSession#internalSession()}) for endpoints made using this transport engine will be instances of
+ * {@link TCPSession}, allowing users to enable features such as SSL.
+ *
  * @author DaPorkchop_
  */
 @Getter
 @Accessors(fluent = true)
-public class TCPEngine implements TransportEngine {
-    protected static final Collection<Reliability> SUPPORTED_RELIABILITES = Collections.singleton(Reliability.RELIABLE_ORDERED);
+public class TCPEngine extends NettyEngine {
+    protected static final Collection<Reliability> RELIABILITIES = Collections.singleton(Reliability.RELIABLE_ORDERED);
 
-    public static Builder builder() {
-        return new Builder();
+    @SuppressWarnings("unchecked")
+    public static <B extends Builder<B>> B builder() {
+        return (B) new Builder<B>();
     }
 
-    protected final ByteBufAllocator alloc;
-    protected final SelectionPool pool;
-    protected final boolean autoClosePool;
+    public static TCPEngine defaultInstance() {
+        return new TCPEngine(
+                Collections.singletonMap(ChannelOption.SO_KEEPALIVE, true),
+                Collections.emptyMap(),
+                null,
+                true
+        );
+    }
 
-    protected TCPEngine(@NonNull Builder builder) {
-        this.alloc = builder.alloc();
-        this.pool = builder.pool;
-        this.autoClosePool = builder.autoClosePool;
+    protected TCPEngine(@NonNull Builder<?> builder) {
+        super(
+                builder.clientOptions(),
+                builder.serverOptions(),
+                builder.group(),
+                builder.autoShutdownGroup()
+        );
+    }
+
+    protected TCPEngine(@NonNull Map<ChannelOption, Object> clientOptions, @NonNull Map<ChannelOption, Object> serverOptions, EventLoopGroup group, boolean autoShutdownGroup) {
+        super(
+                Collections.unmodifiableMap(clientOptions),
+                Collections.unmodifiableMap(serverOptions),
+                group,
+                group == null || autoShutdownGroup
+        );
     }
 
     @Override
@@ -67,34 +95,30 @@ public class TCPEngine implements TransportEngine {
 
     @Override
     public <S extends AbstractUserSession<S>> PServer<S> createServer(@NonNull ServerBuilder<S> builder) {
-        throw new UnsupportedOperationException();
+        return new TCPServer<>(builder);
     }
 
     @Override
     public Collection<Reliability> supportedReliabilities() {
-        return SUPPORTED_RELIABILITES;
+        return RELIABILITIES;
     }
 
-    @NoArgsConstructor(access = AccessLevel.PROTECTED)
-    @Setter
-    @Getter
-    @Accessors(fluent = true, chain = true)
-    public static class Builder {
-        @NonNull
-        protected ByteBufAllocator alloc;
-        @NonNull
-        protected SelectionPool pool;
-        protected boolean autoClosePool;
+    @Override
+    public boolean isReliabilitySupported(@NonNull Reliability reliability) {
+        return reliability == Reliability.RELIABLE_ORDERED;
+    }
 
-        public synchronized TCPEngine build() {
-            if (this.alloc == null) {
-                this.alloc = PooledByteBufAllocator.DEFAULT;
-            }
-            if (this.pool == null) {
-                //TODO: default selection pool
-                this.pool = new FixedSelectionPool(1, (ThreadFactory) Thread::new);
-                this.autoClosePool = true;
-            }
+    @Override
+    public boolean isBinary(@NonNull Object object) {
+        return object instanceof ByteBuf;
+    }
+
+    @AllArgsConstructor
+    @Getter
+    @Accessors(fluent = true)
+    public static class Builder<Impl extends Builder<Impl>> extends NettyEngine.Builder<Impl, TCPEngine> {
+        @Override
+        protected TCPEngine doBuild() {
             return new TCPEngine(this);
         }
     }

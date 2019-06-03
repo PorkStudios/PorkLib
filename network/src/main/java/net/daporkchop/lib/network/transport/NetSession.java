@@ -15,7 +15,8 @@
 
 package net.daporkchop.lib.network.transport;
 
-import io.netty.buffer.ByteBufAllocator;
+import lombok.NonNull;
+import net.daporkchop.lib.network.protocol.Protocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.PSession;
 import net.daporkchop.lib.unsafe.PUnsafe;
@@ -30,12 +31,9 @@ public interface NetSession<S extends AbstractUserSession<S>> extends PSession<N
     long ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET = PUnsafe.pork_getOffset(AbstractUserSession.class, "internalSession");
 
     /**
+     * Gets this session's user session instance
+     *
      * @return this session's user session instance
      */
     S userSession();
-
-    /**
-     * @return this session's {@link ByteBufAllocator}
-     */
-    ByteBufAllocator alloc();
 }

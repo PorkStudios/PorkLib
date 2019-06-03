@@ -62,27 +62,27 @@ class Node<S extends AbstractUserSession<S>> implements FireEvents<S> {
     }
 
     @Override
-    public void fireOpened(@NonNull S session) {
+    public void opened(@NonNull S session) {
         ((OpenedListener<S>) this.listener).opened(this.context, session);
     }
 
     @Override
-    public void fireClosed(@NonNull S session) {
+    public void closed(@NonNull S session) {
         ((ClosedListener<S>) this.listener).closed(this.context, session);
     }
 
     @Override
-    public void fireReceived(@NonNull S session, @NonNull Object msg, int channel) {
+    public void received(@NonNull S session, @NonNull Object msg, int channel) {
         ((ReceivedListener<S, Object>) this.listener).received(this.context, session, msg, channel);
     }
 
     @Override
-    public void fireSending(@NonNull S session, @NonNull Object msg, Reliability reliability, int channel) {
+    public void sending(@NonNull S session, @NonNull Object msg, Reliability reliability, int channel) {
         ((SendingListener<S, Object>) this.listener).sending(this.context, session, msg, reliability, channel);
     }
 
     @Override
-    public void fireException(@NonNull S session, @NonNull Throwable t) {
+    public void exceptionCaught(@NonNull S session, @NonNull Throwable t) {
         ((ExceptionListener<S>) this.listener).exceptionCaught(this.context, session, t);
     }
 
@@ -112,17 +112,17 @@ class Node<S extends AbstractUserSession<S>> implements FireEvents<S> {
         }
 
         @Override
-        public void fireOpened(@NonNull S session) {
-            this.opened.fireOpened(session);
+        public void opened(@NonNull S session) {
+            this.opened.opened(session);
         }
 
         @Override
-        public void fireClosed(@NonNull S session) {
-            this.closed.fireClosed(session);
+        public void closed(@NonNull S session) {
+            this.closed.closed(session);
         }
 
         @Override
-        public void fireReceived(@NonNull S session, @NonNull Object msg, int channel) {
+        public void received(@NonNull S session, @NonNull Object msg, int channel) {
             ReceivedListener.Fire<S> callback = this.received.get(msg.getClass());
             if (callback == null) {
                 //no computeIfAbsent due to lambda allocation
@@ -132,11 +132,11 @@ class Node<S extends AbstractUserSession<S>> implements FireEvents<S> {
                 }
                 this.received.put(msg.getClass(), callback = node == null ? this.pipeline().listener : node);
             }
-            callback.fireReceived(session, msg, channel);
+            callback.received(session, msg, channel);
         }
 
         @Override
-        public void fireSending(@NonNull S session, @NonNull Object msg, Reliability reliability, int channel) {
+        public void sending(@NonNull S session, @NonNull Object msg, Reliability reliability, int channel) {
             SendingListener.Fire<S> callback = this.sending.get(msg.getClass());
             if (callback == null) {
                 Node<S> node = Node.this.prev;
@@ -145,12 +145,12 @@ class Node<S extends AbstractUserSession<S>> implements FireEvents<S> {
                 }
                 this.sending.put(msg.getClass(), callback = node == null ? this.pipeline()::addCallback : node);
             }
-            callback.fireSending(session, msg, reliability, channel);
+            callback.sending(session, msg, reliability, channel);
         }
 
         @Override
-        public void fireException(@NonNull S session, @NonNull Throwable t) {
-            this.exception.fireException(session, t);
+        public void exceptionCaught(@NonNull S session, @NonNull Throwable t) {
+            this.exception.exceptionCaught(session, t);
         }
 
         protected void rebuild() {

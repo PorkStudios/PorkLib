@@ -15,15 +15,16 @@
 
 package net.daporkchop.lib.network.endpoint.builder;
 
-import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.PooledByteBufAllocator;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
+import net.daporkchop.lib.network.protocol.Protocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.session.SessionFactory;
 import net.daporkchop.lib.network.transport.TransportEngine;
+
+import java.util.concurrent.Executor;
 
 /**
  * @author DaPorkchop_
@@ -34,23 +35,16 @@ public abstract class EndpointBuilder<Impl extends EndpointBuilder<Impl, R, S>, 
     /**
      * The {@link TransportEngine} to use.
      * <p>
-     * Must be set!
+     * If {@code null}, TCP with simple packet framing will be used.
      */
     protected TransportEngine engine;
 
     /**
-     * The {@link SessionFactory} to use.
+     * The default protocol that will be used initially for all connections to and from this endpoint.
      * <p>
      * Must be set!
      */
-    protected SessionFactory<S> sessionFactory;
-
-    /**
-     * The {@link ByteBufAllocator} to use.
-     * <p>
-     * If {@code null}, {@link PooledByteBufAllocator#DEFAULT} will be used.
-     */
-    protected ByteBufAllocator alloc;
+    protected Protocol<S> protocol;
 
     @SuppressWarnings("unchecked")
     public Impl engine(@NonNull TransportEngine engine) {
@@ -58,7 +52,7 @@ public abstract class EndpointBuilder<Impl extends EndpointBuilder<Impl, R, S>, 
         return (Impl) this;
     }
 
-    public abstract <NEW_S extends AbstractUserSession<NEW_S>> EndpointBuilder sessionFactory(@NonNull SessionFactory<NEW_S> sessionFactory);
+    public abstract <NEW_S extends AbstractUserSession<NEW_S>> EndpointBuilder protocol(@NonNull Protocol<NEW_S> protocol);
 
     public R build() {
         this.validate();
@@ -66,14 +60,10 @@ public abstract class EndpointBuilder<Impl extends EndpointBuilder<Impl, R, S>, 
     }
 
     protected void validate() {
-        if (this.sessionFactory == null) {
-            throw new NullPointerException("sessionFactory");
-        }
-        if (this.engine == null) {
+        if (this.protocol == null) {
+            throw new NullPointerException("protocol");
+        } else if (this.engine == null) {
             throw new NullPointerException("engine");
-        }
-        if (this.alloc == null) {
-            this.alloc = PooledByteBufAllocator.DEFAULT;
         }
     }
 

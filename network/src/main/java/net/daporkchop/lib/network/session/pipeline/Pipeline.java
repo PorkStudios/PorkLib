@@ -13,13 +13,13 @@
  *
  */
 
-package net.daporkchop.lib.network.pipeline;
+package net.daporkchop.lib.network.session.pipeline;
 
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.network.pipeline.event.SendingListener;
-import net.daporkchop.lib.network.pipeline.util.PipelineListener;
+import net.daporkchop.lib.network.session.pipeline.event.SendingListener;
+import net.daporkchop.lib.network.session.pipeline.util.PipelineListener;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.Reliability;
 

@@ -20,7 +20,8 @@ import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
-import net.daporkchop.lib.network.pipeline.Pipeline;
+import net.daporkchop.lib.network.session.pipeline.Pipeline;
+import net.daporkchop.lib.network.session.pipeline.PipelineHandler;
 import net.daporkchop.lib.network.util.CloseableFuture;
 
 import java.io.IOException;
@@ -39,7 +40,27 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
     /**
      * @return this session's pipeline
      */
-    Pipeline<S> dataPipeline();
+    default Pipeline<S> dataPipeline() {
+        SessionHandler<S> handler = this.handler();
+        if (handler instanceof PipelineHandler) {
+            return ((PipelineHandler<S>) handler).pipeline();
+        } else {
+            throw new IllegalStateException("Not using a pipeline!");
+        }
+    }
+
+    /**
+     * @return the current {@link SessionHandler}
+     */
+    SessionHandler<S> handler();
+
+    /**
+     * Sets the {@link SessionHandler} for this session.
+     *
+     * @param handler the new {@link SessionHandler} to use
+     * @return this session
+     */
+    Impl handler(@NonNull SessionHandler<S> handler);
 
     /**
      * Sends a single packet to the remote endpoint.
@@ -70,7 +91,7 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
      * Sends a single packet to the remote endpoint.
      * <p>
      * All packets sent using these methods will be sent on channel 0, which may not be closed.
-     *
+     * <p>
      * The send buffer will also be flushed after this operation.
      *
      * @param packet      the packet to be sent
@@ -87,7 +108,7 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
      * Sends a single packet to the remote endpoint, using this session's default reliability level.
      * <p>
      * All packets sent using these methods will be sent on channel 0, which may not be closed.
-     *
+     * <p>
      * The send buffer will also be flushed after this operation.
      *
      * @param packet the packet to be sent
@@ -104,7 +125,7 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
      * @param reliability the reliability that the packet is to be sent with. If {@code null} or unsupported by this
      *                    session's transport protocol, this session's fallback reliability level will be
      *                    used (see {@link #fallbackReliability()})
-     * @param channel   the id of the channel that the packet will be sent on
+     * @param channel     the id of the channel that the packet will be sent on
      * @return this session
      */
     Impl send(@NonNull Object packet, Reliability reliability, int channel);
@@ -113,7 +134,7 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
      * Sends a single packet to the remote endpoint over a specific channel, using this channel's fallback reliability
      * level.
      *
-     * @param packet    the packet to be sent
+     * @param packet  the packet to be sent
      * @param channel the id of the channel that the packet will be sent on
      * @return this session
      */
@@ -123,27 +144,27 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
 
     /**
      * Sends a single packet to the remote endpoint over a specific channel.
-     *
+     * <p>
      * The send buffer will also be flushed after this operation.
      *
      * @param packet      the packet to be sent
      * @param reliability the reliability that the packet is to be sent with. If {@code null} or unsupported by this
      *                    session's transport protocol, this session's fallback reliability level will be
      *                    used (see {@link #fallbackReliability()})
-     * @param channel   the id of the channel that the packet will be sent on
+     * @param channel     the id of the channel that the packet will be sent on
      * @return this session
      */
-    default Impl sendFlush(@NonNull Object packet, Reliability reliability, int channel)  {
+    default Impl sendFlush(@NonNull Object packet, Reliability reliability, int channel) {
         return this.send(packet, reliability, channel).flushBuffer();
     }
 
     /**
      * Sends a single packet to the remote endpoint over a specific channel, using this channel's fallback reliability
      * level.
-     *
+     * <p>
      * The send buffer will also be flushed after this operation.
      *
-     * @param packet    the packet to be sent
+     * @param packet  the packet to be sent
      * @param channel the id of the channel that the packet will be sent on
      * @return this session
      */
@@ -186,7 +207,7 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
      * All packets sent using these methods will be sent on channel 0, which may not be closed.
      * <p>
      * This method is non-blocking, and returns a future that may be used to track the packet as it is sent.
-     *
+     * <p>
      * The send buffer will also be flushed after this operation.
      *
      * @param packet      the packet to be sent
@@ -195,7 +216,7 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
      *                    used (see {@link #fallbackReliability()})
      * @return a future which may be used to track the packet as it is sent
      */
-    default Future<Void> sendFlushAsync(@NonNull Object packet, Reliability reliability)    {
+    default Future<Void> sendFlushAsync(@NonNull Object packet, Reliability reliability) {
         return this.sendAsync(packet, reliability).addListener(v -> this.flushBuffer());
     }
 
@@ -205,7 +226,7 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
      * All packets sent using these methods will be sent on channel 0, which may not be closed.
      * <p>
      * This method is non-blocking, and returns a future that may be used to track the packet as it is sent.
-     *
+     * <p>
      * The send buffer will also be flushed after this operation.
      *
      * @param packet the packet to be sent
@@ -224,7 +245,7 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
      * @param reliability the reliability that the packet is to be sent with. If {@code null} or unsupported by this
      *                    session's transport protocol, this session's fallback reliability level will be
      *                    used (see {@link #fallbackReliability()})
-     * @param channel   the id of the channel that the packet will be sent on
+     * @param channel     the id of the channel that the packet will be sent on
      * @return a future which may be used to track the packet as it is sent
      */
     Future<Void> sendAsync(@NonNull Object packet, Reliability reliability, int channel);
@@ -235,7 +256,7 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
      * <p>
      * This method is non-blocking, and returns a future that may be used to track the packet as it is sent.
      *
-     * @param packet    the packet to be sent
+     * @param packet  the packet to be sent
      * @param channel the id of the channel that the packet will be sent on
      * @return a future which may be used to track the packet as it is sent
      */
@@ -247,14 +268,14 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
      * Sends a single packet to the remote endpoint over a specific channel.
      * <p>
      * This method is non-blocking, and returns a future that may be used to track the packet as it is sent.
-     *
+     * <p>
      * The send buffer will also be flushed after this operation.
      *
      * @param packet      the packet to be sent
      * @param reliability the reliability that the packet is to be sent with. If {@code null} or unsupported by this
      *                    session's transport protocol, this session's fallback reliability level will be
      *                    used (see {@link #fallbackReliability()})
-     * @param channel   the id of the channel that the packet will be sent on
+     * @param channel     the id of the channel that the packet will be sent on
      * @return a future which may be used to track the packet as it is sent
      */
     default Future<Void> sendFlushAsync(@NonNull Object packet, Reliability reliability, int channel) {
@@ -266,10 +287,10 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
      * level.
      * <p>
      * This method is non-blocking, and returns a future that may be used to track the packet as it is sent.
-     *
+     * <p>
      * The send buffer will also be flushed after this operation.
      *
-     * @param packet    the packet to be sent
+     * @param packet  the packet to be sent
      * @param channel the id of the channel that the packet will be sent on
      * @return a future which may be used to track the packet as it is sent
      */

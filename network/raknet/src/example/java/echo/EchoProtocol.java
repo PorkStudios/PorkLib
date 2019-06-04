@@ -16,8 +16,7 @@
 package echo;
 
 import lombok.NonNull;
-import net.daporkchop.lib.network.pipeline.Pipeline;
-import net.daporkchop.lib.network.protocol.Protocol;
+import net.daporkchop.lib.network.session.pipeline.Pipeline;
 import net.daporkchop.lib.network.protocol.SimpleProtocol;
 
 /**

@@ -21,7 +21,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.network.netty.pipeline.NettyDataCodec;
-import net.daporkchop.lib.network.pipeline.Pipeline;
+import net.daporkchop.lib.network.session.pipeline.Pipeline;
 import net.daporkchop.lib.network.protocol.DataProtocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.tcp.netty.session.TCPNioSocket;

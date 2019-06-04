@@ -15,16 +15,8 @@
 
 package net.daporkchop.lib.network.tcp.pipeline;
 
-import io.netty.buffer.ByteBuf;
-import lombok.NonNull;
-import net.daporkchop.lib.binary.netty.NettyUtil;
-import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.network.netty.pipeline.NettyEdgeListener;
-import net.daporkchop.lib.network.pipeline.PipelineEdgeListener;
-import net.daporkchop.lib.network.protocol.HandlingProtocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-
-import java.io.IOException;
 
 /**
  * @author DaPorkchop_

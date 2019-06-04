@@ -13,37 +13,27 @@
  *
  */
 
-package net.daporkchop.lib.network.pipeline.util;
+package net.daporkchop.lib.network.session.pipeline.event;
 
 import lombok.NonNull;
-import net.daporkchop.lib.network.pipeline.event.ClosedListener;
-import net.daporkchop.lib.network.pipeline.event.ExceptionListener;
-import net.daporkchop.lib.network.pipeline.event.OpenedListener;
-import net.daporkchop.lib.network.pipeline.event.ReceivedListener;
-import net.daporkchop.lib.network.pipeline.event.SendingListener;
+import net.daporkchop.lib.network.session.pipeline.util.EventContext;
+import net.daporkchop.lib.network.session.pipeline.util.PipelineListener;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.session.Reliability;
 
 /**
- * A type capable of firing events.
- *
  * @author DaPorkchop_
- * @see net.daporkchop.lib.network.pipeline.Pipeline
- * @see EventContext
  */
-public interface FireEvents<S extends AbstractUserSession<S>> extends OpenedListener.Fire<S>, ClosedListener.Fire<S>, ReceivedListener.Fire<S>, SendingListener.Fire<S>, ExceptionListener.Fire<S> {
-    @Override
-    void opened(@NonNull S session);
+public interface ExceptionListener<S extends AbstractUserSession<S>> extends PipelineListener<S> {
+    /**
+     * Fired when an exception is caught while processing a session.
+     *
+     * @param context the event handler context
+     * @param session the session that the exception was caught on
+     * @param t       the exception that was caught
+     */
+    void exceptionCaught(@NonNull EventContext<S> context, @NonNull S session, @NonNull Throwable t);
 
-    @Override
-    void closed(@NonNull S session);
-
-    @Override
-    void received(@NonNull S session, @NonNull Object msg, int channel);
-
-    @Override
-    void sending(@NonNull S session, @NonNull Object msg, Reliability reliability, int channel);
-
-    @Override
-    void exceptionCaught(@NonNull S session, @NonNull Throwable t);
+    interface Fire<S extends AbstractUserSession<S>> {
+        void exceptionCaught(@NonNull S session, @NonNull Throwable t);
+    }
 }

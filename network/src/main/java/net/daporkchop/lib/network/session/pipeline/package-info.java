@@ -13,26 +13,12 @@
  *
  */
 
-package net.daporkchop.lib.network.pipeline.event;
-
-import lombok.NonNull;
-import net.daporkchop.lib.network.pipeline.util.EventContext;
-import net.daporkchop.lib.network.pipeline.util.PipelineListener;
-import net.daporkchop.lib.network.session.AbstractUserSession;
-
 /**
+ * An optional way of handling events on a session.
+ *
+ * Pipelines are a potentially far more powerful message handling system than simply using a plain
+ * {@link net.daporkchop.lib.network.session.SessionHandler}.
+ *
  * @author DaPorkchop_
  */
-public interface ClosedListener<S extends AbstractUserSession<S>> extends PipelineListener<S> {
-    /**
-     * Fired when a session is closed.
-     *
-     * @param context the event handler context
-     * @param session the session that was closed
-     */
-    void closed(@NonNull EventContext<S> context, @NonNull S session);
-
-    interface Fire<S extends AbstractUserSession<S>> {
-        void closed(@NonNull S session);
-    }
-}
+package net.daporkchop.lib.network.session.pipeline;

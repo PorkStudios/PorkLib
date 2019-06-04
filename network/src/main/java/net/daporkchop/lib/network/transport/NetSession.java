@@ -15,8 +15,6 @@
 
 package net.daporkchop.lib.network.transport;
 
-import lombok.NonNull;
-import net.daporkchop.lib.network.protocol.Protocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.PSession;
 import net.daporkchop.lib.unsafe.PUnsafe;
@@ -31,9 +29,16 @@ public interface NetSession<S extends AbstractUserSession<S>> extends PSession<N
     long ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET = PUnsafe.pork_getOffset(AbstractUserSession.class, "internalSession");
 
     /**
-     * Gets this session's user session instance
-     *
      * @return this session's user session instance
      */
     S userSession();
+
+    /**
+     * Configures this session to use a {@link net.daporkchop.lib.network.session.pipeline.Pipeline} for handling events.
+     * <p>
+     * Warning! This will cause the current {@link net.daporkchop.lib.network.session.SessionHandler} to be replaced!
+     *
+     * @return this session
+     */
+    NetSession<S> usePipeline();
 }

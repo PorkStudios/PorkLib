@@ -13,11 +13,11 @@
  *
  */
 
-package net.daporkchop.lib.network.pipeline;
+package net.daporkchop.lib.network.session.pipeline;
 
 import lombok.NonNull;
 import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.pipeline.util.FireEvents;
+import net.daporkchop.lib.network.session.pipeline.util.FireEvents;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.Reliability;
 

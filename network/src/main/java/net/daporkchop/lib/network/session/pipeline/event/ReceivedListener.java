@@ -13,37 +13,28 @@
  *
  */
 
-package net.daporkchop.lib.network.pipeline.event;
+package net.daporkchop.lib.network.session.pipeline.event;
 
 import lombok.NonNull;
-import net.daporkchop.lib.network.pipeline.util.EventContext;
-import net.daporkchop.lib.network.pipeline.util.PipelineListener;
+import net.daporkchop.lib.network.session.pipeline.util.EventContext;
+import net.daporkchop.lib.network.session.pipeline.util.PipelineListener;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.session.Reliability;
-
-import java.util.List;
 
 /**
  * @author DaPorkchop_
  */
-public interface SendingListener<S extends AbstractUserSession<S>, I> extends PipelineListener<S> {
+public interface ReceivedListener<S extends AbstractUserSession<S>, I> extends PipelineListener<S> {
     /**
-     * Fired when a message is being sent on a session.
-     *  @param context the event handler context
-     * @param session the session that the message will be sent on
-     * @param msg     the message that will be sent
-     * @param reliability the reliability that the message will be sent with
-     * @param channel the channel that the message will be sent on
+     * Fired when a message is received on a session.
+     *
+     * @param context the event handler context
+     * @param session the session that the message was received on
+     * @param msg     the message that was received
+     * @param channel the channel that the message was received on. If unknown or unset, this will be {@code -1}
      */
-    void sending(@NonNull EventContext<S> context, @NonNull S session, @NonNull I msg, Reliability reliability, int channel);
+    void received(@NonNull EventContext<S> context, @NonNull S session, @NonNull I msg, int channel);
 
-    @FunctionalInterface
     interface Fire<S extends AbstractUserSession<S>> {
-        void sending(@NonNull S session, @NonNull Object msg, Reliability reliability, int channel);
-    }
-
-    @FunctionalInterface
-    interface QueueAdder<S extends AbstractUserSession<S>> {
-        void add(@NonNull List<Object> sendQueue, @NonNull S session, @NonNull Object msg, Reliability reliability, int channel);
+        void received(@NonNull S session, @NonNull Object msg, int channel);
     }
 }

@@ -17,7 +17,7 @@ package net.daporkchop.lib.network.protocol;
 
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.network.pipeline.Pipeline;
+import net.daporkchop.lib.network.session.pipeline.Pipeline;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 import java.io.IOException;

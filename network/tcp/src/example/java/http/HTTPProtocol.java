@@ -20,7 +20,7 @@ import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.pipeline.Pipeline;
+import net.daporkchop.lib.network.session.pipeline.Pipeline;
 import net.daporkchop.lib.network.protocol.SimpleDataProtocol;
 import net.daporkchop.lib.network.protocol.SimpleHandlingProtocol;
 import net.daporkchop.lib.network.tcp.netty.session.TCPSession;

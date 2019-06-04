@@ -13,31 +13,37 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol;
+package net.daporkchop.lib.network.session.pipeline.event;
 
 import lombok.NonNull;
-import net.daporkchop.lib.network.session.pipeline.Pipeline;
+import net.daporkchop.lib.network.session.pipeline.util.EventContext;
+import net.daporkchop.lib.network.session.pipeline.util.PipelineListener;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.session.Reliability;
+
+import java.util.List;
 
 /**
- * A protocol that handles packet encoding, decoding and handling itself without delegating to external objects.
- *
  * @author DaPorkchop_
  */
-public interface SimpleProtocol<S extends AbstractUserSession<S>> extends Protocol<S>, Protocol.SessionFactory<S>, Protocol.PipelineInitializer<S> {
-    @Override
-    default SessionFactory<S> sessionFactory() {
-        return this;
+public interface SendingListener<S extends AbstractUserSession<S>, I> extends PipelineListener<S> {
+    /**
+     * Fired when a message is being sent on a session.
+     *  @param context the event handler context
+     * @param session the session that the message will be sent on
+     * @param msg     the message that will be sent
+     * @param reliability the reliability that the message will be sent with
+     * @param channel the channel that the message will be sent on
+     */
+    void sending(@NonNull EventContext<S> context, @NonNull S session, @NonNull I msg, Reliability reliability, int channel);
+
+    @FunctionalInterface
+    interface Fire<S extends AbstractUserSession<S>> {
+        void sending(@NonNull S session, @NonNull Object msg, Reliability reliability, int channel);
     }
 
-    @Override
-    default PipelineInitializer<S> pipelineInitializer() {
-        return this;
+    @FunctionalInterface
+    interface QueueAdder<S extends AbstractUserSession<S>> {
+        void add(@NonNull List<Object> sendQueue, @NonNull S session, @NonNull Object msg, Reliability reliability, int channel);
     }
-
-    @Override
-    S newSession();
-
-    @Override
-    void initPipeline(@NonNull Pipeline<S> pipeline, @NonNull S session);
 }

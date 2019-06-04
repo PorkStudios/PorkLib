@@ -13,28 +13,35 @@
  *
  */
 
-package net.daporkchop.lib.network.pipeline.event;
+package net.daporkchop.lib.network.session.pipeline.util;
 
 import lombok.NonNull;
-import net.daporkchop.lib.network.pipeline.util.EventContext;
-import net.daporkchop.lib.network.pipeline.util.PipelineListener;
+import net.daporkchop.lib.network.session.pipeline.Pipeline;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
+ * Represents a listener on a pipeline.
+ * <p>
+ * All pipeline members must inherit from this class.
+ *
  * @author DaPorkchop_
  */
-public interface ReceivedListener<S extends AbstractUserSession<S>, I> extends PipelineListener<S> {
+public interface PipelineListener<S extends AbstractUserSession<S>> {
     /**
-     * Fired when a message is received on a session.
+     * Fired when this listener is added to a pipeline.
      *
-     * @param context the event handler context
-     * @param session the session that the message was received on
-     * @param msg     the message that was received
-     * @param channel the channel that the message was received on. If unknown or unset, this will be {@code -1}
+     * @param pipeline the pipeline that this listener was added to
+     * @param session  the session that the pipeline belongs to
      */
-    void received(@NonNull EventContext<S> context, @NonNull S session, @NonNull I msg, int channel);
+    default void added(@NonNull Pipeline<S> pipeline, @NonNull S session)   {
+    }
 
-    interface Fire<S extends AbstractUserSession<S>> {
-        void received(@NonNull S session, @NonNull Object msg, int channel);
+    /**
+     * Fired when this listener is removed from a pipeline.
+     *
+     * @param pipeline the pipeline that this listener was removed from
+     * @param session  the session that the pipeline belongs to
+     */
+    default void removed(@NonNull Pipeline<S> pipeline, @NonNull S session) {
     }
 }

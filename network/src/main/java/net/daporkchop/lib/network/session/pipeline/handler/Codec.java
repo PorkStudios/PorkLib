@@ -13,31 +13,22 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol;
+package net.daporkchop.lib.network.session.pipeline.handler;
 
 import lombok.NonNull;
-import net.daporkchop.lib.network.session.pipeline.Pipeline;
+import net.daporkchop.lib.network.session.pipeline.event.ReceivedListener;
+import net.daporkchop.lib.network.session.pipeline.event.SendingListener;
+import net.daporkchop.lib.network.session.pipeline.util.EventContext;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.session.Reliability;
 
 /**
- * A protocol that handles packet encoding, decoding and handling itself without delegating to external objects.
- *
  * @author DaPorkchop_
  */
-public interface SimpleProtocol<S extends AbstractUserSession<S>> extends Protocol<S>, Protocol.SessionFactory<S>, Protocol.PipelineInitializer<S> {
+public interface Codec<S extends AbstractUserSession<S>, RECEIVED_IN, SENDING_IN> extends ReceivedListener<S, RECEIVED_IN>, SendingListener<S, SENDING_IN> {
     @Override
-    default SessionFactory<S> sessionFactory() {
-        return this;
-    }
+    void received(@NonNull EventContext<S> context, @NonNull S session, @NonNull RECEIVED_IN msg, int channel);
 
     @Override
-    default PipelineInitializer<S> pipelineInitializer() {
-        return this;
-    }
-
-    @Override
-    S newSession();
-
-    @Override
-    void initPipeline(@NonNull Pipeline<S> pipeline, @NonNull S session);
+    void sending(@NonNull EventContext<S> context, @NonNull S session, @NonNull SENDING_IN msg, Reliability reliability, int channel);
 }

@@ -13,35 +13,37 @@
  *
  */
 
-package net.daporkchop.lib.network.pipeline.util;
+package net.daporkchop.lib.network.session.pipeline.util;
 
 import lombok.NonNull;
-import net.daporkchop.lib.network.pipeline.Pipeline;
+import net.daporkchop.lib.network.session.pipeline.event.ClosedListener;
+import net.daporkchop.lib.network.session.pipeline.event.ExceptionListener;
+import net.daporkchop.lib.network.session.pipeline.event.OpenedListener;
+import net.daporkchop.lib.network.session.pipeline.event.ReceivedListener;
+import net.daporkchop.lib.network.session.pipeline.event.SendingListener;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.session.Reliability;
 
 /**
- * Represents a listener on a pipeline.
- * <p>
- * All pipeline members must inherit from this class.
+ * A type capable of firing events.
  *
  * @author DaPorkchop_
+ * @see net.daporkchop.lib.network.session.pipeline.Pipeline
+ * @see EventContext
  */
-public interface PipelineListener<S extends AbstractUserSession<S>> {
-    /**
-     * Fired when this listener is added to a pipeline.
-     *
-     * @param pipeline the pipeline that this listener was added to
-     * @param session  the session that the pipeline belongs to
-     */
-    default void added(@NonNull Pipeline<S> pipeline, @NonNull S session)   {
-    }
+public interface FireEvents<S extends AbstractUserSession<S>> extends OpenedListener.Fire<S>, ClosedListener.Fire<S>, ReceivedListener.Fire<S>, SendingListener.Fire<S>, ExceptionListener.Fire<S> {
+    @Override
+    void opened(@NonNull S session);
 
-    /**
-     * Fired when this listener is removed from a pipeline.
-     *
-     * @param pipeline the pipeline that this listener was removed from
-     * @param session  the session that the pipeline belongs to
-     */
-    default void removed(@NonNull Pipeline<S> pipeline, @NonNull S session) {
-    }
+    @Override
+    void closed(@NonNull S session);
+
+    @Override
+    void received(@NonNull S session, @NonNull Object msg, int channel);
+
+    @Override
+    void sending(@NonNull S session, @NonNull Object msg, Reliability reliability, int channel);
+
+    @Override
+    void exceptionCaught(@NonNull S session, @NonNull Throwable t);
 }

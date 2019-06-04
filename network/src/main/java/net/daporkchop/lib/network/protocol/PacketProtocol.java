@@ -21,7 +21,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.pipeline.Pipeline;
+import net.daporkchop.lib.network.session.pipeline.Pipeline;
 import net.daporkchop.lib.network.protocol.packet.InboundPacket;
 import net.daporkchop.lib.network.protocol.packet.OutboundPacket;
 import net.daporkchop.lib.network.protocol.packet.Packet;

@@ -13,28 +13,17 @@
  *
  */
 
-package net.daporkchop.lib.network.pipeline.util;
+package net.daporkchop.lib.network.session;
 
 import lombok.NonNull;
-import net.daporkchop.lib.network.pipeline.Pipeline;
-import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.session.Reliability;
+import net.daporkchop.lib.network.session.pipeline.util.EventContext;
 
 /**
- * The context for processing events.
- * <p>
- * Distinct for every listener in a pipeline.
- * <p>
- * Holding a reference to an {@link EventContext} object outside of a handler method is unsafe.
+ * Handles events that are fired on a {@link PSession}.
  *
  * @author DaPorkchop_
  */
-public interface EventContext<S extends AbstractUserSession<S>> extends FireEvents<S> {
-    /**
-     * @return the pipeline that this context is on
-     */
-    Pipeline<S> pipeline();
-
+public interface SessionHandler<S extends AbstractUserSession<S>> extends EventContext<S> {
     @Override
     void opened(@NonNull S session);
 

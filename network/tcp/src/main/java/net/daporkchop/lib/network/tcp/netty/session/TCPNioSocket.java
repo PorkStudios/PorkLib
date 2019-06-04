@@ -22,14 +22,17 @@ import io.netty.handler.ssl.SslHandler;
 import io.netty.util.concurrent.Future;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.netty.NettyByteBufOut;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.network.EndpointType;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
-import net.daporkchop.lib.network.pipeline.Pipeline;
+import net.daporkchop.lib.network.session.SessionHandler;
+import net.daporkchop.lib.network.session.pipeline.Pipeline;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.Reliability;
+import net.daporkchop.lib.network.session.pipeline.PipelineHandler;
 import net.daporkchop.lib.network.tcp.pipeline.TCPEdgeListener;
 import net.daporkchop.lib.network.transport.ChanneledPacket;
 import net.daporkchop.lib.network.transport.NetSession;
@@ -44,20 +47,19 @@ import java.nio.channels.SocketChannel;
  * @author DaPorkchop_
  */
 @Getter
-@Accessors(fluent = true)
+@Accessors(fluent = true, chain = true)
 public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketChannel implements TCPSession<S> {
     protected final TCPEndpoint<?, S, ?> endpoint;
     protected final S userSession;
-    protected final Pipeline<S> dataPipeline;
-
     protected SslHandler ssl;
+    @Setter
+    @NonNull
+    protected SessionHandler<S> handler;
 
     public TCPNioSocket(@NonNull TCPEndpoint<?, S, ?> endpoint) {
         this.endpoint = endpoint;
         this.userSession = endpoint.protocol().sessionFactory().newSession();
         PUnsafe.putObject(this.userSession, ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);
-
-        this.dataPipeline = new Pipeline<>(this.userSession, new TCPEdgeListener<>());
     }
 
     public TCPNioSocket(@NonNull TCPEndpoint<?, S, ?> endpoint, Channel parent, SocketChannel socket) {
@@ -66,8 +68,6 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
         this.endpoint = endpoint;
         this.userSession = endpoint.protocol().sessionFactory().newSession();
         PUnsafe.putObject(this.userSession, ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);
-
-        this.dataPipeline = new Pipeline<>(this.userSession, new TCPEdgeListener<>());
     }
 
     @Override
@@ -200,5 +200,10 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
         } else {
             throw new IllegalArgumentException("SSL context is for server!");
         }
+    }
+
+    @Override
+    public NetSession<S> usePipeline() {
+        return this.handler(new PipelineHandler<>(new Pipeline<>(this.userSession, new TCPEdgeListener<>())));
     }
 }

@@ -13,27 +13,48 @@
  *
  */
 
-package net.daporkchop.lib.network.pipeline.event;
+package net.daporkchop.lib.network.session.pipeline;
 
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.network.pipeline.util.EventContext;
-import net.daporkchop.lib.network.pipeline.util.PipelineListener;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.session.Reliability;
+import net.daporkchop.lib.network.session.SessionHandler;
 
 /**
  * @author DaPorkchop_
  */
-public interface ExceptionListener<S extends AbstractUserSession<S>> extends PipelineListener<S> {
-    /**
-     * Fired when an exception is caught while processing a session.
-     *
-     * @param context the event handler context
-     * @param session the session that the exception was caught on
-     * @param t       the exception that was caught
-     */
-    void exceptionCaught(@NonNull EventContext<S> context, @NonNull S session, @NonNull Throwable t);
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public class PipelineHandler<S extends AbstractUserSession<S>> implements SessionHandler<S> {
+    @NonNull
+    protected final Pipeline<S> pipeline;
 
-    interface Fire<S extends AbstractUserSession<S>> {
-        void exceptionCaught(@NonNull S session, @NonNull Throwable t);
+    @Override
+    public void opened(@NonNull S session) {
+        this.pipeline.fireOpened();
+    }
+
+    @Override
+    public void closed(@NonNull S session) {
+        this.pipeline.fireClosed();
+    }
+
+    @Override
+    public void received(@NonNull S session, @NonNull Object msg, int channel) {
+        this.pipeline.fireReceived(msg, channel);
+    }
+
+    @Override
+    public void sending(@NonNull S session, @NonNull Object msg, Reliability reliability, int channel) {
+        this.pipeline.fireSending(m);
+    }
+
+    @Override
+    public void exceptionCaught(@NonNull S session, @NonNull Throwable t) {
+        this.pipeline.fireExceptionCaught(t);
     }
 }

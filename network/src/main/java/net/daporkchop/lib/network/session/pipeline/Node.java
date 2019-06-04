@@ -13,21 +13,21 @@
  *
  */
 
-package net.daporkchop.lib.network.pipeline;
+package net.daporkchop.lib.network.session.pipeline;
 
 import net.daporkchop.lib.network.session.Reliability;
 import net.daporkchop.lib.network.util.GenericMatcher;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.network.pipeline.event.ClosedListener;
-import net.daporkchop.lib.network.pipeline.event.ExceptionListener;
-import net.daporkchop.lib.network.pipeline.event.OpenedListener;
-import net.daporkchop.lib.network.pipeline.event.ReceivedListener;
-import net.daporkchop.lib.network.pipeline.event.SendingListener;
-import net.daporkchop.lib.network.pipeline.util.EventContext;
-import net.daporkchop.lib.network.pipeline.util.FireEvents;
-import net.daporkchop.lib.network.pipeline.util.PipelineListener;
+import net.daporkchop.lib.network.session.pipeline.event.ClosedListener;
+import net.daporkchop.lib.network.session.pipeline.event.ExceptionListener;
+import net.daporkchop.lib.network.session.pipeline.event.OpenedListener;
+import net.daporkchop.lib.network.session.pipeline.event.ReceivedListener;
+import net.daporkchop.lib.network.session.pipeline.event.SendingListener;
+import net.daporkchop.lib.network.session.pipeline.util.EventContext;
+import net.daporkchop.lib.network.session.pipeline.util.FireEvents;
+import net.daporkchop.lib.network.session.pipeline.util.PipelineListener;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 import java.util.IdentityHashMap;
@@ -107,11 +107,6 @@ class Node<S extends AbstractUserSession<S>> implements FireEvents<S> {
         protected final Map<Class<?>, SendingListener.Fire<S>> sending = new IdentityHashMap<>();
 
         @Override
-        public Pipeline<S> pipeline() {
-            return Node.this.pipeline;
-        }
-
-        @Override
         public void opened(@NonNull S session) {
             this.opened.opened(session);
         }
@@ -130,7 +125,7 @@ class Node<S extends AbstractUserSession<S>> implements FireEvents<S> {
                 while (node != null && !node.canReceive(msg)) {
                     node = node.next;
                 }
-                this.received.put(msg.getClass(), callback = node == null ? this.pipeline().listener : node);
+                this.received.put(msg.getClass(), callback = node == null ? Node.this.pipeline.listener : node);
             }
             callback.received(session, msg, channel);
         }
@@ -143,7 +138,7 @@ class Node<S extends AbstractUserSession<S>> implements FireEvents<S> {
                 while (node != null && !node.canSend(msg)) {
                     node = node.prev;
                 }
-                this.sending.put(msg.getClass(), callback = node == null ? this.pipeline()::addCallback : node);
+                this.sending.put(msg.getClass(), callback = node == null ? Node.this.pipeline::addCallback : node);
             }
             callback.sending(session, msg, reliability, channel);
         }
@@ -159,21 +154,21 @@ class Node<S extends AbstractUserSession<S>> implements FireEvents<S> {
                 while (node != null && !(node.listener instanceof OpenedListener)) {
                     node = node.next;
                 }
-                this.opened = node == null ? this.pipeline().listener : node;
+                this.opened = node == null ? Node.this.pipeline.listener : node;
             }
             {
                 Node<S> node = Node.this.next;
                 while (node != null && !(node.listener instanceof ClosedListener)) {
                     node = node.next;
                 }
-                this.closed = node == null ? this.pipeline().listener : node;
+                this.closed = node == null ? Node.this.pipeline.listener : node;
             }
             {
                 Node<S> node = Node.this.next;
                 while (node != null && !(node.listener instanceof ExceptionListener)) {
                     node = node.next;
                 }
-                this.exception = node == null ? this.pipeline().listener : node;
+                this.exception = node == null ? Node.this.pipeline.listener : node;
             }
 
             this.received.clear();

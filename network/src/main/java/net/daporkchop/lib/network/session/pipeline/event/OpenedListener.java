@@ -13,22 +13,26 @@
  *
  */
 
-package net.daporkchop.lib.network.pipeline.handler;
+package net.daporkchop.lib.network.session.pipeline.event;
 
 import lombok.NonNull;
-import net.daporkchop.lib.network.pipeline.event.ReceivedListener;
-import net.daporkchop.lib.network.pipeline.event.SendingListener;
-import net.daporkchop.lib.network.pipeline.util.EventContext;
+import net.daporkchop.lib.network.session.pipeline.util.EventContext;
+import net.daporkchop.lib.network.session.pipeline.util.PipelineListener;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.session.Reliability;
 
 /**
  * @author DaPorkchop_
  */
-public interface Codec<S extends AbstractUserSession<S>, RECEIVED_IN, SENDING_IN> extends ReceivedListener<S, RECEIVED_IN>, SendingListener<S, SENDING_IN> {
-    @Override
-    void received(@NonNull EventContext<S> context, @NonNull S session, @NonNull RECEIVED_IN msg, int channel);
+public interface OpenedListener<S extends AbstractUserSession<S>> extends PipelineListener<S> {
+    /**
+     * Fired when a session is opened.
+     *
+     * @param context the event handler context
+     * @param session the session that was opened
+     */
+    void opened(@NonNull EventContext<S> context, @NonNull S session);
 
-    @Override
-    void sending(@NonNull EventContext<S> context, @NonNull S session, @NonNull SENDING_IN msg, Reliability reliability, int channel);
+    interface Fire<S extends AbstractUserSession<S>> {
+        void opened(@NonNull S session);
+    }
 }

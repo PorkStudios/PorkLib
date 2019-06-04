@@ -19,7 +19,7 @@ import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.netty.NettyUtil;
 import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.network.pipeline.PipelineEdgeListener;
+import net.daporkchop.lib.network.session.pipeline.PipelineEdgeListener;
 import net.daporkchop.lib.network.protocol.HandlingProtocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 

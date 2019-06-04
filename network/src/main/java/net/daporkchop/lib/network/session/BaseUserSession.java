@@ -19,7 +19,7 @@ import io.netty.util.concurrent.Future;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
-import net.daporkchop.lib.network.pipeline.Pipeline;
+import net.daporkchop.lib.network.session.pipeline.Pipeline;
 import net.daporkchop.lib.network.transport.NetSession;
 import net.daporkchop.lib.network.transport.TransportEngine;
 
@@ -38,6 +38,18 @@ public interface BaseUserSession<Impl extends BaseUserSession<Impl, S>, S extend
     @Override
     default Pipeline<S> dataPipeline() {
         return this.internalSession().dataPipeline();
+    }
+
+    @Override
+    default SessionHandler<S> handler() {
+        return this.internalSession().handler();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    default Impl handler(@NonNull SessionHandler<S> handler) {
+        this.internalSession().handler(handler);
+        return (Impl) this;
     }
 
     @Override

@@ -28,16 +28,13 @@ import net.daporkchop.lib.binary.netty.NettyByteBufOut;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.network.EndpointType;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
-import net.daporkchop.lib.network.session.SessionHandler;
-import net.daporkchop.lib.network.session.pipeline.Pipeline;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.Reliability;
-import net.daporkchop.lib.network.session.pipeline.PipelineHandler;
-import net.daporkchop.lib.network.tcp.pipeline.TCPEdgeListener;
+import net.daporkchop.lib.network.session.SessionHandler;
+import net.daporkchop.lib.network.tcp.endpoint.TCPEndpoint;
 import net.daporkchop.lib.network.transport.ChanneledPacket;
 import net.daporkchop.lib.network.transport.NetSession;
 import net.daporkchop.lib.network.transport.TransportEngine;
-import net.daporkchop.lib.network.tcp.endpoint.TCPEndpoint;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
@@ -122,10 +119,10 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
 
     @Override
     public DataOut writer() {
-        return new NettyByteBufOut(this.alloc().ioBuffer())    {
+        return new NettyByteBufOut(this.alloc().ioBuffer()) {
             @Override
             public void close() throws IOException {
-                if (this.buf.writerIndex() == 0)    {
+                if (this.buf.writerIndex() == 0) {
                     this.buf.release();
                 } else {
                     TCPNioSocket.this.write(this.buf);
@@ -200,10 +197,5 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
         } else {
             throw new IllegalArgumentException("SSL context is for server!");
         }
-    }
-
-    @Override
-    public NetSession<S> usePipeline() {
-        return this.handler(new PipelineHandler<>(new Pipeline<>(this.userSession, new TCPEdgeListener<>())));
     }
 }

@@ -15,9 +15,6 @@
 
 package net.daporkchop.lib.network.protocol;
 
-import lombok.NonNull;
-import net.daporkchop.lib.network.session.pipeline.Pipeline;
-import net.daporkchop.lib.network.session.pipeline.util.PipelineListener;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
@@ -30,29 +27,6 @@ public interface Protocol<S extends AbstractUserSession<S>> {
      * @return this protocol's session factory
      */
     SessionFactory<S> sessionFactory();
-
-    /**
-     * @return this protocol's pipeline initializer
-     */
-    PipelineInitializer<S> pipelineInitializer();
-
-    /**
-     * @author DaPorkchop_
-     */
-    @FunctionalInterface
-    interface PipelineInitializer<S extends AbstractUserSession<S>> {
-        /**
-         * Initializes the event pipeline for a session.
-         * <p>
-         * The pipeline will always have been initialized first according to the transport engine, however unless you
-         * know what you're doing you should always add your handlers last (using {@link Pipeline#addLast(PipelineListener)}
-         * or {@link Pipeline#addLast(String, PipelineListener)}).
-         *
-         * @param pipeline the pipeline to be initialized
-         * @param session  the session to which the pipeline belongs
-         */
-        void initPipeline(@NonNull Pipeline<S> pipeline, @NonNull S session);
-    }
 
     /**
      * @author DaPorkchop_

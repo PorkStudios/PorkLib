@@ -32,13 +32,4 @@ public interface NetSession<S extends AbstractUserSession<S>> extends PSession<N
      * @return this session's user session instance
      */
     S userSession();
-
-    /**
-     * Configures this session to use a {@link net.daporkchop.lib.network.session.pipeline.Pipeline} for handling events.
-     * <p>
-     * Warning! This will cause the current {@link net.daporkchop.lib.network.session.SessionHandler} to be replaced!
-     *
-     * @return this session
-     */
-    NetSession<S> usePipeline();
 }

@@ -13,15 +13,12 @@
  *
  */
 
-package net.daporkchop.lib.network.util;
+package net.daporkchop.lib.common.util;
 
-import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.common.util.PArrays;
-import net.daporkchop.lib.common.util.PorkUtil;
+import lombok.experimental.UtilityClass;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.GenericArrayType;
@@ -33,44 +30,47 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * A helper class for looking up generic parameters in implementation classes.
+ *
+ * Inspired by Netty's GenericParameterMatcher, but far more powerful.
+ *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-@Getter
+@UtilityClass
 public class GenericMatcher {
-    protected static final Map<Key, GenericMatcher> CACHE = PorkUtil.newSoftCache();
+    private static final Map<Key, Class<?>> CACHE = PorkUtil.newSoftCache(); //TODO: SoftCache doesn't have soft keys
 
     /**
-     * Finds the value of a generic type in a particular implementation of a class.
+     * Finds the parameter of a generic type in a particular implementation of a class.
      *
      * @param thisClass  the implementation class. Must inherit from {@code superClass}!
      * @param superClass the class that holds the generic type that needs to be looked up
      * @param name       the generic type name
-     * @return a {@link GenericMatcher}
+     * @return the class type that is passed to the generic parameter
      */
-    public static GenericMatcher find(@NonNull Class<?> thisClass, @NonNull Class<?> superClass, @NonNull String name) {
+    public static Class<?> find(@NonNull Class<?> thisClass, @NonNull Class<?> superClass, @NonNull String name) {
         return CACHE.computeIfAbsent(new Key(thisClass, superClass, name), key -> doFind(key.thisClass, key.superClass, key.name));
     }
 
-    private static GenericMatcher doFind(@NonNull Class<?> thisClass, @NonNull Class<?> superClass, @NonNull String name) {
+    private static Class<?> doFind(@NonNull Class<?> thisClass, @NonNull Class<?> superClass, @NonNull String name) {
         List<Class<?>> hierarchy = getHierarchy(thisClass, superClass);
-        if (hierarchy == null)  {
+        if (hierarchy == null) {
             throw new IllegalArgumentException(String.format("%s does not inherit from %s!", thisClass, superClass));
         }
-        return new GenericMatcher(lookup(hierarchy, name));
+        return lookup(hierarchy, name);
     }
 
     private static List<Class<?>> getHierarchy(@NonNull Class<?> current, @NonNull Class<?> superClass) {
         List<Class<?>> list = null;
         if (current == superClass) {
             list = new ArrayList<>();
-        } else if (current.getSuperclass() != null)   {
+        } else if (current.getSuperclass() != null) {
             list = getHierarchy(current.getSuperclass(), superClass);
         }
-        if (list == null && superClass.isInterface())   {
+        if (list == null && superClass.isInterface()) {
             Class<?>[] interfaces = current.getInterfaces();
-            for (Class<?> interfaz : interfaces)    {
-                if ((list = getHierarchy(interfaz, superClass)) != null)    {
+            for (Class<?> interfaz : interfaces) {
+                if ((list = getHierarchy(interfaz, superClass)) != null) {
                     break;
                 }
             }
@@ -82,7 +82,7 @@ public class GenericMatcher {
     }
 
     private static Class<?> lookup(@NonNull List<Class<?>> hierarchy, @NonNull String name) {
-        for (int i = 0; i < hierarchy.size() - 1; i++)    {
+        for (int i = 0; i < hierarchy.size() - 1; i++) {
             Class<?> clazz = hierarchy.get(i);
             Class<?> next = hierarchy.get(i + 1);
 
@@ -96,12 +96,12 @@ public class GenericMatcher {
                     }
                 }
             }
-            if (index == -1)    {
+            if (index == -1) {
                 throw new IllegalArgumentException(String.format("Unknown generic name: \"%s\"", name));
             }
 
             Type genericSuperType;
-            if (clazz.isInterface())    {
+            if (clazz.isInterface()) {
                 genericSuperType = next.getGenericInterfaces()[PArrays.indexOf(next.getInterfaces(), clazz)];
             } else {
                 genericSuperType = next.getGenericSuperclass();
@@ -139,9 +139,6 @@ public class GenericMatcher {
         }
         return null;
     }
-
-    @NonNull
-    protected final Class<?> type;
 
     @RequiredArgsConstructor
     @EqualsAndHashCode

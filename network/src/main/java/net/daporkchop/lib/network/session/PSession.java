@@ -20,8 +20,6 @@ import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
-import net.daporkchop.lib.network.session.pipeline.Pipeline;
-import net.daporkchop.lib.network.session.pipeline.PipelineHandler;
 import net.daporkchop.lib.network.transport.TransportEngine;
 import net.daporkchop.lib.network.util.CloseableFuture;
 import net.daporkchop.lib.network.util.TransportEngineHolder;
@@ -39,18 +37,6 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
      * @return the local endpoint associated with this session
      */
     <E extends PEndpoint<E, S>> E endpoint();
-
-    /**
-     * @return this session's pipeline
-     */
-    default Pipeline<S> dataPipeline() {
-        SessionHandler<S> handler = this.handler();
-        if (handler instanceof PipelineHandler) {
-            return ((PipelineHandler<S>) handler).pipeline();
-        } else {
-            throw new IllegalStateException("Not using a pipeline!");
-        }
-    }
 
     /**
      * @return the current {@link SessionHandler}

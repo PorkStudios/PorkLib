@@ -13,43 +13,11 @@
  *
  */
 
-package net.daporkchop.lib.network.session.pipeline;
-
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.session.Reliability;
-import net.daporkchop.lib.network.session.SessionHandler;
-
 /**
+ * As TCP consists only of a single continuous bi-directional binary stream, message-based protocols will need to split
+ * incoming data into "frames", in order to create the illusion of a message-based protocol over the stream that TCP
+ * provides.
+ *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-public class PipelineHandler<S extends AbstractUserSession<S>> extends SessionHandler<S> {
-    @NonNull
-    protected final Pipeline<S> pipeline;
-
-    @Override
-    public void onOpened(@NonNull S session, boolean incoming) {
-        this.pipeline.fireOpened();
-    }
-
-    @Override
-    public void onClosed(@NonNull S session) {
-        this.pipeline.fireClosed();
-    }
-
-    @Override
-    public void onException(@NonNull S session, @NonNull Throwable t) {
-        this.pipeline.fireExceptionCaught(t);
-    }
-
-    @Override
-    public void onReceived(@NonNull S session, @NonNull Object msg, int channel) {
-        this.pipeline.fireReceived(msg, channel);
-    }
-}
+package net.daporkchop.lib.network.tcp.frame;

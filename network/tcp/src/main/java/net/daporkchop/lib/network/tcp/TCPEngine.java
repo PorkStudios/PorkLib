@@ -15,7 +15,6 @@
 
 package net.daporkchop.lib.network.tcp;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import lombok.AllArgsConstructor;
@@ -32,6 +31,7 @@ import net.daporkchop.lib.network.session.BaseUserSession;
 import net.daporkchop.lib.network.session.Reliability;
 import net.daporkchop.lib.network.tcp.endpoint.TCPClient;
 import net.daporkchop.lib.network.tcp.endpoint.TCPServer;
+import net.daporkchop.lib.network.tcp.frame.Framer;
 import net.daporkchop.lib.network.tcp.netty.session.TCPSession;
 import net.daporkchop.lib.network.transport.TransportEngine;
 
@@ -43,7 +43,7 @@ import java.util.Map;
  * An implementation of {@link TransportEngine} for the TCP/IP transport protocol.
  * <p>
  * Default pipeline layout:
- * "tcp_framer"  => {@link net.daporkchop.lib.network.tcp.pipeline.Framer.DefaultFramer}
+ * "tcp_framer"  => {@link Framer.DefaultFramer}
  * "protocol"    => {@link net.daporkchop.lib.network.netty.pipeline.NettyDataCodec} (only if endpoint protocol is {@link net.daporkchop.lib.network.protocol.DataProtocol})
  * <p>
  * All internal sessions ({@link BaseUserSession#internalSession()}) for endpoints made using this transport engine will be instances of
@@ -106,11 +106,6 @@ public class TCPEngine extends NettyEngine {
     @Override
     public boolean isReliabilitySupported(@NonNull Reliability reliability) {
         return reliability == Reliability.RELIABLE_ORDERED;
-    }
-
-    @Override
-    public boolean isBinary(@NonNull Object object) {
-        return object instanceof ByteBuf;
     }
 
     @AllArgsConstructor

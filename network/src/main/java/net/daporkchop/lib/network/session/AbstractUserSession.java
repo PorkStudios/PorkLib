@@ -33,13 +33,13 @@ public abstract class AbstractUserSession<S extends AbstractUserSession<S>> impl
     private final NetSession<S> internalSession = null;
 
     /**
-     * Fired when this session is opened (i.e. an opened event reaches the end of the pipeline).
+     * @see SessionHandler#onOpened(AbstractUserSession, boolean)
      */
-    public void onOpened() {
+    public void onOpened(boolean incoming) {
     }
 
     /**
-     * Fired when this session is closed (i.e. a closed event reaches the end of the pipeline).
+     * Fired when this session is closed (i.e. a onClosed event reaches the end of the pipeline).
      */
     public void onClosed() {
     }

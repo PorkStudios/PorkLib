@@ -26,7 +26,7 @@ import net.daporkchop.lib.network.protocol.DataProtocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.tcp.netty.session.TCPNioSocket;
 import net.daporkchop.lib.network.tcp.endpoint.TCPEndpoint;
-import net.daporkchop.lib.network.tcp.pipeline.Framer;
+import net.daporkchop.lib.network.tcp.frame.Framer;
 
 import java.util.function.Consumer;
 

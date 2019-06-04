@@ -18,7 +18,7 @@ package mc;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.tcp.pipeline.Framer;
+import net.daporkchop.lib.network.tcp.frame.Framer;
 
 /**
  * @author DaPorkchop_

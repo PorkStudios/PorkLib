@@ -15,12 +15,15 @@
 
 package net.daporkchop.lib.network.netty;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.binary.netty.NettyUtil;
+import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.network.transport.TransportEngine;
 
 import java.util.Collections;
@@ -44,6 +47,16 @@ public abstract class NettyEngine implements TransportEngine {
 
     public NettyEngine() {
         this(Collections.emptyMap(), Collections.emptyMap(), null, true);
+    }
+
+    @Override
+    public boolean isBinary(@NonNull Object msg) {
+        return msg instanceof ByteBuf;
+    }
+
+    @Override
+    public DataIn attemptRead(@NonNull Object msg) {
+        return msg instanceof ByteBuf ? NettyUtil.wrapIn((ByteBuf) msg) : null;
     }
 
     @Getter
@@ -100,17 +113,17 @@ public abstract class NettyEngine implements TransportEngine {
         }
 
         @SuppressWarnings("unchecked")
-        public Impl autoShutdownGroup(boolean autoShutdownGroup)    {
+        public Impl autoShutdownGroup(boolean autoShutdownGroup) {
             this.autoShutdownGroup = autoShutdownGroup;
             return (Impl) this;
         }
 
-        public final R build()    {
+        public final R build() {
             this.validate();
             return this.doBuild();
         }
 
-        protected void validate()   {
+        protected void validate() {
             if (this.group == null) {
                 this.autoShutdownGroup = true;
             }

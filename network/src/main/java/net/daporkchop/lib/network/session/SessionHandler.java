@@ -16,26 +16,70 @@
 package net.daporkchop.lib.network.session;
 
 import lombok.NonNull;
-import net.daporkchop.lib.network.session.pipeline.util.EventContext;
+import net.daporkchop.lib.binary.stream.DataIn;
+
+import java.io.IOException;
 
 /**
  * Handles events that are fired on a {@link PSession}.
  *
  * @author DaPorkchop_
  */
-public interface SessionHandler<S extends AbstractUserSession<S>> extends EventContext<S> {
-    @Override
-    void opened(@NonNull S session);
+public abstract class SessionHandler<S extends AbstractUserSession<S>> {
+    /**
+     * Fired when a session is opened (connection is complete).
+     *
+     * @param session  the session
+     * @param incoming whether or not the session was incoming (remote endpoint initiated connection to local
+     *                 endpoint) or outgoing (local endpoint initiated connection to remote endpoint)
+     */
+    public void onOpened(@NonNull S session, boolean incoming) {
+        session.onOpened(incoming);
+    }
 
-    @Override
-    void closed(@NonNull S session);
+    /**
+     * Fired when a session is closed (connection is onClosed).
+     *
+     * @param session the session
+     */
+    public void onClosed(@NonNull S session) {
+        session.onClosed();
+    }
 
-    @Override
-    void received(@NonNull S session, @NonNull Object msg, int channel);
+    /**
+     * Fired when an exception is caught at any point when processing something related to a specific session.
+     *
+     * @param session the session
+     * @param t       the exception
+     */
+    public void onException(@NonNull S session, @NonNull Throwable t) {
+        session.onException(t);
+    }
 
-    @Override
-    void sending(@NonNull S session, @NonNull Object msg, Reliability reliability, int channel);
+    /**
+     * Fired when a message is received.
+     *
+     * @param session the session
+     * @param msg     the message that was received
+     * @param channel the channel that the message was received on
+     */
+    public void onReceived(@NonNull S session, @NonNull Object msg, int channel) {
+        try (DataIn in = session.transportEngine().attemptRead(msg)) {
+            if (in == null) {
+                this.handleMessage(session, msg, channel);
+            } else {
+                this.handleBinary(session, in, channel);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-    @Override
-    void exceptionCaught(@NonNull S session, @NonNull Throwable t);
+    protected void handleMessage(@NonNull S session, @NonNull Object msg, int channel) {
+        session.onReceived(msg, channel);
+    }
+
+    protected void handleBinary(@NonNull S session, @NonNull DataIn in, int channel) throws IOException {
+        session.onBinary(in, channel);
+    }
 }

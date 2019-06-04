@@ -16,6 +16,7 @@
 package net.daporkchop.lib.network.transport;
 
 import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.network.endpoint.PClient;
 import net.daporkchop.lib.network.endpoint.PServer;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
@@ -23,6 +24,7 @@ import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.Reliability;
 
+import java.nio.ByteBuffer;
 import java.util.Collection;
 
 /**
@@ -88,7 +90,22 @@ public interface TransportEngine {
         return this.supportedReliabilities().contains(reliability);
     }
 
-    default boolean isBinary(@NonNull Object object) {
-        return true;
+    default boolean isBinary(@NonNull Object msg) {
+        return msg instanceof byte[] || msg instanceof ByteBuffer;
+    }
+
+    /**
+     * Attempts to wrap a message into a {@link DataIn} for binary reading.
+     * @param msg the message to wrap
+     * @return the wrapped message, or {@code null} if the message does not contain binary data
+     */
+    default DataIn attemptRead(@NonNull Object msg) {
+        DataIn in = null;
+        if (msg instanceof byte[])  {
+            in = DataIn.wrap(ByteBuffer.wrap((byte[]) msg));
+        } else if (msg instanceof ByteBuffer)   {
+            in = DataIn.wrap((ByteBuffer) msg);
+        }
+        return in;
     }
 }

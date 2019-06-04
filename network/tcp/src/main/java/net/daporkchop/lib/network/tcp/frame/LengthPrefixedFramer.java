@@ -13,47 +13,51 @@
  *
  */
 
-package net.daporkchop.lib.network.session;
+package net.daporkchop.lib.network.tcp.frame;
 
+import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.network.transport.TransportEngine;
-import net.daporkchop.lib.network.util.TransportEngineHolder;
-
-import java.util.Collection;
+import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
+ * A {@link Framer} that prefixes messages with a length field indicating the size of each frame.
+ *
  * @author DaPorkchop_
  */
-public interface Reliable<Impl extends Reliable<Impl>> extends TransportEngineHolder {
-    /**
-     * Gets this channel's fallback reliability level. Packets that are sent without having a specific reliability
-     * defined will be sent using this reliability.
-     *
-     * @return this channel's fallback reliability level
-     */
-    Reliability fallbackReliability();
+public abstract class LengthPrefixedFramer<S extends AbstractUserSession<S>> extends Framer<S> {
+    @Override
+    protected void unpack(@NonNull S session, @NonNull ByteBuf buf, @NonNull UnpackOut<S> frames) {
+        //TODO
+    }
 
-    /**
-     * Gets this channel's fallback reliability level. Packets that are sent without having a specific reliability
-     * defined will be sent using this reliability.
-     *
-     * @param reliability the new fallback reliability level to use
-     * @return this channel's fallback reliability level
-     * @throws IllegalArgumentException if the given reliability level is not supported by this channel
-     */
-    Impl fallbackReliability(@NonNull Reliability reliability) throws IllegalArgumentException;
-
-    /**
-     * @see TransportEngine#supportedReliabilities()
-     */
-    default Collection<Reliability> supportedReliabilities()    {
-        return this.transportEngine().supportedReliabilities();
+    @Override
+    protected void pack(@NonNull S session, @NonNull ByteBuf packet, int channel, @NonNull PackOut<S> frames) {
+        ByteBuf prefix = packet.alloc().ioBuffer(this.lengthFieldLength());
+        this.writeLengthField(prefix, packet.readableBytes());
+        frames.add(session, prefix);
+        frames.add(session, packet);
     }
 
     /**
-     * @see TransportEngine#isReliabilitySupported(Reliability)
+     * @return the length of the length field, in bytes
      */
-    default boolean isReliabilitySupported(@NonNull Reliability reliability) {
-        return this.transportEngine().isReliabilitySupported(reliability);
-    }
+    protected abstract int lengthFieldLength();
+
+    /**
+     * Writes a length field to a given buffer
+     *
+     * @param buf    the buffer to write to
+     * @param length the length to write
+     */
+    protected abstract void writeLengthField(@NonNull ByteBuf buf, int length);
+
+    /**
+     * Reads a length field from a given buffer.
+     * <p>
+     * The buffer is guaranteed to have at least {@link #lengthFieldLength()} bytes readable.
+     *
+     * @param buf the buffer to read from
+     * @return the length
+     */
+    protected abstract int readLengthField(@NonNull ByteBuf buf);
 }

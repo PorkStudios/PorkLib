@@ -22,16 +22,19 @@ import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.session.pipeline.Pipeline;
 import net.daporkchop.lib.network.session.pipeline.PipelineHandler;
+import net.daporkchop.lib.network.transport.TransportEngine;
 import net.daporkchop.lib.network.util.CloseableFuture;
+import net.daporkchop.lib.network.util.TransportEngineHolder;
 
 import java.io.IOException;
+import java.util.Collection;
 
 /**
  * A session represents a single connection between two endpoints.
  *
  * @author DaPorkchop_
  */
-public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUserSession<S>> extends CloseableFuture, Reliable<Impl> {
+public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUserSession<S>> extends CloseableFuture, TransportEngineHolder {
     /**
      * @return the local endpoint associated with this session
      */
@@ -332,6 +335,37 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
      * @return this session
      */
     Impl flushBuffer();
+    /**
+     * Gets this channel's fallback reliability level. Packets that are sent without having a specific reliability
+     * defined will be sent using this reliability.
+     *
+     * @return this channel's fallback reliability level
+     */
+    Reliability fallbackReliability();
+
+    /**
+     * Gets this channel's fallback reliability level. Packets that are sent without having a specific reliability
+     * defined will be sent using this reliability.
+     *
+     * @param reliability the new fallback reliability level to use
+     * @return this channel's fallback reliability level
+     * @throws IllegalArgumentException if the given reliability level is not supported by this channel
+     */
+    Impl fallbackReliability(@NonNull Reliability reliability) throws IllegalArgumentException;
+
+    /**
+     * @see TransportEngine#supportedReliabilities()
+     */
+    default Collection<Reliability> supportedReliabilities()    {
+        return this.transportEngine().supportedReliabilities();
+    }
+
+    /**
+     * @see TransportEngine#isReliabilitySupported(Reliability)
+     */
+    default boolean isReliabilitySupported(@NonNull Reliability reliability) {
+        return this.transportEngine().isReliabilitySupported(reliability);
+    }
 
     /**
      * Closes this session, blocking until it is closed.

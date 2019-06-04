@@ -13,47 +13,24 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol;
+package net.daporkchop.lib.network.session.handle;
 
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.util.PacketMetadata;
 
 import java.io.IOException;
 
 /**
- * A {@link Protocol} that can handle messages when they reach the end of the pipeline.
- * <p>
- * Protocols which inherit from this will prevent the methods {@link AbstractUserSession#onReceived(Object, int)}
- * and {@link AbstractUserSession#onBinary(DataIn, int)} from firing.
+ * The same as {@link BinaryHandler}, but without the additional session parameter.
  *
  * @author DaPorkchop_
  */
-public interface HandlingProtocol<S extends AbstractUserSession<S>> extends Protocol<S> {
+@FunctionalInterface
+public interface SelfBinaryHandler {
     /**
-     * @return this protocol's message handler
+     * @see BinaryHandler#onReceive(AbstractUserSession, DataIn, PacketMetadata)
      */
-    Handler<S> handler();
-
-    interface Handler<S> {
-        /**
-         * Fired if a message reaches the end of the pipeline.
-         *
-         * @param session the session that the message was received on
-         * @param msg     the message that was received
-         * @param channel the channel that the message was received on
-         */
-        void onReceived(@NonNull S session, @NonNull Object msg, int channel);
-
-        /**
-         * Fired if raw binary data reaches the end of the pipeline.
-         * <p>
-         * Whether or not a certain message qualifies as binary or not depends on the transport engine.
-         *
-         * @param session the session that the data was received on
-         * @param in      a {@link DataIn} to read data from
-         * @param channel the channel that the data was received on
-         */
-        void onBinary(@NonNull S session, @NonNull DataIn in, int channel) throws IOException;
-    }
+    void onReceive(@NonNull DataIn in, @NonNull PacketMetadata metadata) throws IOException;
 }

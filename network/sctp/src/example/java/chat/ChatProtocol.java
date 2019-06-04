@@ -16,7 +16,6 @@
 package chat;
 
 import lombok.NonNull;
-import net.daporkchop.lib.network.protocol.PacketProtocol;
 import chat.packet.ChatPacket;
 import chat.packet.LoginPacket;
 import chat.packet.MessagePacket;

@@ -93,21 +93,44 @@ public final class PacketMetadata {
         return this;
     }
 
-    public boolean checkReliabilitySet()    {
+    public boolean checkReliabilitySet() {
         return (this.setFlags & RELIABILITY_MASK) != 0;
     }
 
-    public boolean checkChannelIdSet()    {
+    public boolean checkChannelIdSet() {
         return (this.setFlags & CHANNELID_MASK) != 0;
     }
 
-    public boolean checkProtocolIdSet()    {
+    public boolean checkProtocolIdSet() {
         return (this.setFlags & PROTOCOLID_MASK) != 0;
     }
 
+    /**
+     * Clears this {@link PacketMetadata} instance and makes it available to the recycler for future reuse.
+     * <p>
+     * This method should not be invoked by user code unless you know EXACTLY what you're doing!
+     */
     public void release() {
         this.reliability = null;
         this.channelId = this.protocolId = this.setFlags = 0;
-        this.handle.recycle(this);
+        if (this.handle != null) {
+            this.handle.recycle(this);
+        }
+    }
+
+    /**
+     * Creates a duplicate of this {@link PacketMetadata} instance.
+     * <p>
+     * This method should not be invoked by user code unless you know EXACTLY what you're doing!
+     *
+     * @return a duplicate of this {@link PacketMetadata} instance
+     */
+    public PacketMetadata clone() {
+        PacketMetadata clone = RECYCLER.get();
+        clone.reliability = this.reliability;
+        clone.channelId = this.channelId;
+        clone.protocolId = this.protocolId;
+        clone.setFlags = this.setFlags;
+        return clone;
     }
 }

@@ -13,40 +13,54 @@
  *
  */
 
-package net.daporkchop.lib.network.netty.pipeline;
+package net.daporkchop.lib.network.session.encode;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.util.Recycler;
+import lombok.AccessLevel;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.netty.NettyUtil;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.network.session.pipeline.PipelineEdgeListener;
-import net.daporkchop.lib.network.session.AbstractUserSession;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.network.util.PacketMetadata;
 
 import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-public abstract class NettyEdgeListener<S extends AbstractUserSession<S>> extends PipelineEdgeListener<S> {
-    @Override
-    public void received(@NonNull S session, @NonNull Object msg, int channel) {
-        if (msg instanceof ByteBuf) {
-            try (DataIn in = NettyUtil.wrapIn((ByteBuf) msg)) {
-                if (session.endpoint().protocol() instanceof HandlingProtocol)  {
-                    ((HandlingProtocol<S>) session.endpoint().protocol()).handler().onBinary(session, in, channel);
-                } else {
-                    session.onBinary(in, channel);
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            ((ByteBuf) msg).release();
-        } else {
-            if (session.endpoint().protocol() instanceof HandlingProtocol)  {
-                ((HandlingProtocol<S>) session.endpoint().protocol()).handler().onReceived(session, msg, channel);
-            } else {
-                session.onReceived(msg, channel);
-            }
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+class BinaryOut extends DataOut {
+    private static final Recycler<BinaryOut> RECYCLER = new Recycler<BinaryOut>() {
+        @Override
+        protected BinaryOut newObject(Handle<BinaryOut> handle) {
+            return new BinaryOut(handle);
         }
+    };
+
+    public static BinaryOut get(@NonNull PacketMetadata metadata, @NonNull SendCallback callback, @NonNull ByteBufAllocator alloc) {
+        BinaryOut out = RECYCLER.get();
+        out.metadata = metadata;
+        out.callback = callback;
+        out.alloc = alloc;
+        return out;
+    }
+
+    @NonNull
+    private final Recycler.Handle<BinaryOut> handle;
+
+    private PacketMetadata metadata;
+    private SendCallback callback;
+    private ByteBufAllocator alloc;
+    private ByteBuf buf;
+
+    @Override
+    public void flush() throws IOException {
+        //TODO
+    }
+
+    @Override
+    public void close() throws IOException {
+        this.flush();
     }
 }

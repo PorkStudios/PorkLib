@@ -13,33 +13,31 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol;
+package net.daporkchop.lib.network.session.handle;
 
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.network.session.pipeline.Pipeline;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.util.PacketMetadata;
 
 import java.io.IOException;
 
 /**
+ * A handler for incoming binary messages.
+ *
  * @author DaPorkchop_
  */
-public interface SimpleHandlingProtocol<S extends AbstractUserSession<S>> extends SimpleProtocol<S>, HandlingProtocol<S>, HandlingProtocol.Handler<S> {
-    @Override
-    default Handler<S> handler() {
-        return this;
-    }
-
-    @Override
-    S newSession();
-
-    @Override
-    void initPipeline(@NonNull Pipeline<S> pipeline, @NonNull S session);
-
-    @Override
-    void onReceived(@NonNull S session, @NonNull Object msg, int channel);
-
-    @Override
-    void onBinary(@NonNull S session, @NonNull DataIn in, int channel) throws IOException;
+@FunctionalInterface
+public interface BinaryHandler<S extends AbstractUserSession<S>> {
+    /**
+     * Handles incoming binary data.
+     *
+     * @param session  the session that the data was received on
+     * @param in       a {@link DataIn} to read data from
+     * @param metadata the metadata of the received data. While this parameter is guaranteed to be non-null, no
+     *                 certainties are made about whether all fields are set (can be checked using the corresponding
+     *                 methods in {@link PacketMetadata}), and keeping a reference to the instance outside of the
+     *                 scope of this method should be considered unsafe.
+     */
+    void onReceive(@NonNull S session, @NonNull DataIn in, @NonNull PacketMetadata metadata) throws IOException;
 }

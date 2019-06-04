@@ -13,34 +13,24 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol;
+package net.daporkchop.lib.network.session.encode;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.network.session.pipeline.Pipeline;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-
-import java.io.IOException;
+import net.daporkchop.lib.network.util.PacketMetadata;
 
 /**
+ * Encodes messages for transmission.
+ *
  * @author DaPorkchop_
  */
-public interface SimpleDataProtocol<S extends AbstractUserSession<S>> extends SimpleProtocol<S>, DataProtocol<S>, DataProtocol.Codec<S> {
-    @Override
-    default Codec<S> codec() {
-        return this;
-    }
-
-    @Override
-    S newSession();
-
-    @Override
-    void initPipeline(@NonNull Pipeline<S> pipeline, @NonNull S session);
-
-    @Override
-    Object decode(@NonNull S session, @NonNull DataIn in, int channel) throws IOException;
-
-    @Override
-    void encode(@NonNull DataOut out, @NonNull S session, @NonNull Object msg, int channel) throws IOException;
+@FunctionalInterface
+public interface MessageEncoder<S extends AbstractUserSession<S>> {
+    /**
+     * Encodes a message into network-ready message(s).
+     * @param msg the message to encode
+     * @param metadata the metadata of the message
+     * @param callback a callback function that should be invoked for every network message that should be sent
+     */
+    void encodeMessage(@NonNull Object msg, @NonNull PacketMetadata metadata, @NonNull SendCallback callback);
 }

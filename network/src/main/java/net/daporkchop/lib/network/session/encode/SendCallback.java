@@ -13,11 +13,20 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":crypto")
-    compile project(":encoding")
-    compile project(":logging")
+package net.daporkchop.lib.network.session.encode;
 
-    compile "io.netty:netty-buffer:$nettyVersion"
+import lombok.NonNull;
+import net.daporkchop.lib.network.util.PacketMetadata;
+
+/**
+ * @author DaPorkchop_
+ */
+@FunctionalInterface
+public interface SendCallback {
+    /**
+     * Sends a message to the remote endpoint.
+     * @param msg
+     * @param metadata
+     */
+    void send(@NonNull Object msg, @NonNull PacketMetadata metadata);
 }

@@ -13,31 +13,36 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol;
+package net.daporkchop.lib.network.session.encode;
 
 import lombok.NonNull;
-import net.daporkchop.lib.network.session.pipeline.Pipeline;
+import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.util.PacketMetadata;
+
+import java.io.IOException;
 
 /**
- * A protocol that handles packet encoding, decoding and handling itself without delegating to external objects.
+ * Encodes messages into a network-ready binary form.
  *
  * @author DaPorkchop_
  */
-public interface SimpleProtocol<S extends AbstractUserSession<S>> extends Protocol<S>, Protocol.SessionFactory<S>, Protocol.PipelineInitializer<S> {
+@FunctionalInterface
+public interface BinaryEncoder<S extends AbstractUserSession<S>> extends MessageEncoder<S> {
     @Override
-    default SessionFactory<S> sessionFactory() {
-        return this;
+    default void encodeMessage(@NonNull Object msg, @NonNull PacketMetadata metadata, @NonNull SendCallback callback) {
+        try (BinaryOut out = BinaryOut.get()) {
+
+        }
     }
 
-    @Override
-    default PipelineInitializer<S> pipelineInitializer() {
-        return this;
-    }
-
-    @Override
-    S newSession();
-
-    @Override
-    void initPipeline(@NonNull Pipeline<S> pipeline, @NonNull S session);
+    /**
+     * Encodes a message into binary.
+     *
+     * @param message the message to encode
+     * @param out     a {@link DataOut} to write data to. This will buffer all data written to it, buffered data will only
+     *                be sent after {@link DataOut#flush()} or {@link DataOut#close()} is called or this method returns
+     * @throws IOException if an IO exception occurs you dummy
+     */
+    void encodeMessage(@NonNull Object message, @NonNull DataOut out) throws IOException;
 }

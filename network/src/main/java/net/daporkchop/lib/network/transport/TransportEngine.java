@@ -15,6 +15,8 @@
 
 package net.daporkchop.lib.network.transport;
 
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.PooledByteBufAllocator;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.network.endpoint.PClient;
@@ -88,6 +90,10 @@ public interface TransportEngine {
      */
     default boolean isReliabilitySupported(@NonNull Reliability reliability) {
         return this.supportedReliabilities().contains(reliability);
+    }
+
+    default ByteBufAllocator alloc()    {
+        return PooledByteBufAllocator.DEFAULT;
     }
 
     default boolean isBinary(@NonNull Object msg) {

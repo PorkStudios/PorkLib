@@ -22,7 +22,6 @@ import mc.packet.PongPacket;
 import mc.packet.ResponsePacket;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.session.pipeline.Pipeline;
-import net.daporkchop.lib.network.protocol.PacketProtocol;
 
 /**
  * @author DaPorkchop_

@@ -44,9 +44,9 @@ public class TestHTTPGet implements Logging {
                 "User-Agent: PorkLib\r\n\r\n")
               .addListener(v -> logger.success("Request sent."));
 
-        client.userSession().complete.sync(TimeUnit.SECONDS, 5L);
+        client.userSession().complete.awaitUninterruptibly(5L, TimeUnit.SECONDS);
         logger.info("Headers:\n%s\nBody:\n%s", client.userSession().headers, client.userSession().body);
-        if (!client.userSession().complete.isComplete())    {
+        if (!client.userSession().complete.isSuccess())    {
             logger.warn("Connection not automatically closed by server, forcibly closing it!");
             client.closeAsync().addListener(v -> logger.success("Client closed."));
         }

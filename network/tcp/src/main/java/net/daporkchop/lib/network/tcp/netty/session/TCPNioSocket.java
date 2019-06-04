@@ -25,12 +25,10 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.netty.NettyByteBufOut;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.network.EndpointType;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.pipeline.Pipeline;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.session.PChannel;
 import net.daporkchop.lib.network.session.Reliability;
 import net.daporkchop.lib.network.tcp.pipeline.TCPEdgeListener;
 import net.daporkchop.lib.network.transport.ChanneledPacket;
@@ -41,7 +39,6 @@ import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
 import java.nio.channels.SocketChannel;
-import java.util.Map;
 
 /**
  * @author DaPorkchop_
@@ -50,8 +47,6 @@ import java.util.Map;
 @Accessors(fluent = true)
 public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketChannel implements TCPSession<S> {
     protected final TCPEndpoint<?, S, ?> endpoint;
-    protected final DummyTCPChannel<S> defaultChannel = new DummyTCPChannel<>(this, 0);
-    protected final Map<Integer, DummyTCPChannel<S>> channels = PorkUtil.newSoftCache();
     protected final S userSession;
     protected final Pipeline<S> dataPipeline;
 
@@ -79,17 +74,6 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
     @SuppressWarnings("unchecked")
     public <E extends PEndpoint<E, S>> E endpoint() {
         return (E) this.endpoint;
-    }
-
-    @Override
-    public PChannel<S> channel(int id) {
-        if (id == 0) {
-            return this.defaultChannel;
-        } else {
-            synchronized (this.channels) {
-                return this.channels.computeIfAbsent(id, i -> new DummyTCPChannel<>(this, i));
-            }
-        }
     }
 
     @Override

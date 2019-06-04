@@ -13,32 +13,37 @@
  *
  */
 
-package net.daporkchop.lib.network.pork.pool;
+package mc.packet;
 
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.concurrent.CloseableFuture;
-import net.daporkchop.lib.concurrent.future.Promise;
-import net.daporkchop.lib.network.pork.SelectionHandler;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import mc.MCSession;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.network.protocol.packet.InboundPacket;
 
-import java.nio.channels.SelectableChannel;
+import java.io.IOException;
 
 /**
- * A pool of workers that work in parallel accepting data from {@link java.nio.channels.Selector}s.
- *
  * @author DaPorkchop_
  */
-public interface SelectionPool extends CloseableFuture {
-    /**
-     * Chooses a worker from this pool and registers the given channel and handler to that worker-
-     *
-     * @param channel the channel
-     * @param handler the handler that will handle events on the channel
-     */
-    void register(@NonNull SelectableChannel channel, @NonNull SelectionHandler handler);
+@AllArgsConstructor
+@NoArgsConstructor
+@Setter
+@Accessors(fluent = true, chain = true)
+public class ResponsePacket implements InboundPacket<MCSession> {
+    @NonNull
+    protected String response;
 
     @Override
-    Promise closeAsync();
+    public void decode(@NonNull DataIn in, @NonNull MCSession session) throws IOException {
+        this.response(in.readUTF());
+    }
 
     @Override
-    Promise closePromise();
+    public void handle(@NonNull MCSession session) {
+        session.response(this.response);
+    }
 }

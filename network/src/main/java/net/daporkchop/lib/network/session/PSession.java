@@ -42,14 +42,6 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
     Pipeline<S> dataPipeline();
 
     /**
-     * Gets an open channel on this session with a given id.
-     *
-     * @param id the id of the channel to get
-     * @return a channel with the given id
-     */
-    PChannel<S> channel(int id);
-
-    /**
      * Sends a single packet to the remote endpoint.
      * <p>
      * All packets sent using these methods will be sent on channel 0, which may not be closed.

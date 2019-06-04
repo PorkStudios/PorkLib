@@ -41,11 +41,6 @@ public interface BaseUserSession<Impl extends BaseUserSession<Impl, S>, S extend
     }
 
     @Override
-    default PChannel<S> channel(int id) {
-        return this.internalSession().channel(id);
-    }
-
-    @Override
     @SuppressWarnings("unchecked")
     default Impl send(@NonNull Object packet, Reliability reliability) {
         this.internalSession().send(packet, reliability);

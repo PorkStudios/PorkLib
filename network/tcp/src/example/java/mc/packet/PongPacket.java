@@ -13,36 +13,36 @@
  *
  */
 
-package mc;
+package mc.packet;
 
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GlobalEventExecutor;
-import io.netty.util.concurrent.Promise;
-import lombok.Getter;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.network.session.AbstractUserSession;
+import mc.MCSession;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.network.protocol.packet.InboundPacket;
+
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-@Getter
+@AllArgsConstructor
+@NoArgsConstructor
 @Setter
 @Accessors(fluent = true, chain = true)
-public class MCSession extends AbstractUserSession<MCSession> {
-    protected final Promise<Long> ping = GlobalEventExecutor.INSTANCE.newPromise();
-
-    @NonNull
-    protected String response = "";
+public class PongPacket implements InboundPacket<MCSession> {
+    protected long time;
 
     @Override
-    public void onClosed() {
-        this.ping.trySuccess(-1L);
+    public void decode(@NonNull DataIn in, @NonNull MCSession session) throws IOException {
+        this.time = in.readLong();
     }
 
     @Override
-    public void onException(@NonNull Throwable t) {
-        this.ping.tryFailure(t);
+    public void handle(@NonNull MCSession session) {
+        session.ping().trySuccess(System.currentTimeMillis() - this.time);
     }
 }

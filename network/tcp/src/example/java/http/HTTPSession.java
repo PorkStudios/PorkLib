@@ -15,27 +15,28 @@
 
 package http;
 
+import io.netty.util.concurrent.DefaultEventExecutorGroup;
+import io.netty.util.concurrent.GlobalEventExecutor;
+import io.netty.util.concurrent.Promise;
 import lombok.NonNull;
-import net.daporkchop.lib.concurrent.future.PCompletable;
-import net.daporkchop.lib.concurrent.future.impl.PCompletableImpl;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
  * @author DaPorkchop_
  */
 public class HTTPSession extends AbstractUserSession<HTTPSession> {
-    protected final PCompletable complete = new PCompletableImpl();
+    protected final Promise<Void> complete = GlobalEventExecutor.INSTANCE.newPromise();
     protected boolean headersComplete = false;
     protected String headers = "";
     protected String body = "";
 
     @Override
     public void onClosed() {
-        this.complete.complete();
+        this.complete.trySuccess(null);
     }
 
     @Override
     public void onException(@NonNull Throwable t) {
-        this.complete.completeExceptionally(t);
+        this.complete.tryFailure(t);
     }
 }

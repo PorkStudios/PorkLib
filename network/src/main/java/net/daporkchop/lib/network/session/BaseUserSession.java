@@ -21,6 +21,7 @@ import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.transport.NetSession;
 import net.daporkchop.lib.network.transport.TransportEngine;
+import net.daporkchop.lib.network.util.Reliability;
 
 /**
  * A user-level session implementation. End users will most likely only ever be interacting with this class (and

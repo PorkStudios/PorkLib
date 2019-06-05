@@ -16,13 +16,14 @@
 package net.daporkchop.lib.network.tcp.endpoint;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelOption;
 import lombok.NonNull;
 import net.daporkchop.lib.network.endpoint.PServer;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.tcp.netty.TCPChannelInitializer;
-import net.daporkchop.lib.network.tcp.netty.session.TCPNioServerSocket;
-import net.daporkchop.lib.network.tcp.netty.session.TCPNioSocket;
+import net.daporkchop.lib.network.tcp.session.TCPNioServerSocket;
+import net.daporkchop.lib.network.tcp.session.TCPNioSocket;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -41,6 +42,8 @@ public class TCPServer<S extends AbstractUserSession<S>> extends TCPEndpoint<PSe
 
         try {
             ServerBootstrap bootstrap = new ServerBootstrap()
+                    .option(ChannelOption.ALLOCATOR, this.transportEngine.alloc())
+                    .childOption(ChannelOption.ALLOCATOR, this.transportEngine.alloc())
                     .group(this.group)
                     .channelFactory(() -> new TCPNioServerSocket<>(this))
                     .childHandler(new TCPChannelInitializer<>(

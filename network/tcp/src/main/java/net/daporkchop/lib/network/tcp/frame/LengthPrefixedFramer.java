@@ -18,7 +18,6 @@ package net.daporkchop.lib.network.tcp.frame;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.session.Reliability;
 import net.daporkchop.lib.network.util.PacketMetadata;
 
 import java.util.List;

@@ -19,7 +19,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.CompositeByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.tcp.netty.session.TCPNioSocket;
+import net.daporkchop.lib.network.tcp.session.TCPNioSocket;
 import net.daporkchop.lib.network.util.PacketMetadata;
 
 import java.util.List;

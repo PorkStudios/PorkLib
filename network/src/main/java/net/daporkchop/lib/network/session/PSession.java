@@ -22,6 +22,7 @@ import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.transport.TransportEngine;
 import net.daporkchop.lib.network.util.CloseableFuture;
+import net.daporkchop.lib.network.util.Reliability;
 import net.daporkchop.lib.network.util.TransportEngineHolder;
 
 import java.io.IOException;

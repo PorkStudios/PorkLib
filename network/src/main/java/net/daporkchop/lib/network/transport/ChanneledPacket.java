@@ -22,7 +22,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.network.session.Reliability;
 
 /**
  * @author DaPorkchop_

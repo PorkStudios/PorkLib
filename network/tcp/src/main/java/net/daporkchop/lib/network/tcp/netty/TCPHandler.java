@@ -21,10 +21,9 @@ import net.daporkchop.lib.binary.netty.NettyUtil;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.netty.NettyHandler;
-import net.daporkchop.lib.network.protocol.packet.Packet;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.session.Reliability;
-import net.daporkchop.lib.network.tcp.netty.session.TCPNioSocket;
+import net.daporkchop.lib.network.util.Reliability;
+import net.daporkchop.lib.network.tcp.session.TCPNioSocket;
 import net.daporkchop.lib.network.util.PacketMetadata;
 
 import java.io.IOException;

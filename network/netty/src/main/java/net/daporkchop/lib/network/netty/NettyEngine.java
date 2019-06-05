@@ -16,11 +16,12 @@
 package net.daporkchop.lib.network.netty;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.netty.NettyUtil;
 import net.daporkchop.lib.binary.stream.DataIn;
@@ -33,20 +34,27 @@ import java.util.Map;
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
 public abstract class NettyEngine implements TransportEngine {
-    @NonNull
     protected final Map<ChannelOption, Object> clientOptions;
-    @NonNull
     protected final Map<ChannelOption, Object> serverOptions;
 
-    protected final EventLoopGroup group;
+    protected final NioEventLoopGroup group;
     protected final boolean autoShutdownGroup;
 
-    public NettyEngine() {
-        this(Collections.emptyMap(), Collections.emptyMap(), null, true);
+    protected final ByteBufAllocator alloc;
+
+    public NettyEngine(@NonNull Builder<? extends Builder, ?> builder) {
+        builder.validate();
+
+        this.clientOptions = Collections.unmodifiableMap(builder.clientOptions);
+        this.serverOptions = Collections.unmodifiableMap(builder.serverOptions);
+
+        this.group = builder.group;
+        this.autoShutdownGroup = builder.autoShutdownGroup;
+
+        this.alloc = builder.alloc;
     }
 
     @Override
@@ -66,11 +74,11 @@ public abstract class NettyEngine implements TransportEngine {
         protected final Map<ChannelOption, Object> serverOptions = new HashMap<>();
 
         /**
-         * The event loop group to use.
+         * The {@link NioEventLoopGroup} use.
          * <p>
          * If {@code null}, a default one will be used.
          */
-        protected EventLoopGroup group;
+        protected NioEventLoopGroup group;
 
         /**
          * Whether or not to automatically shut down the {@link #group} when endpoints are closed.
@@ -81,6 +89,13 @@ public abstract class NettyEngine implements TransportEngine {
          * If {@link #group} is {@code null}, this value is forcibly set to {@code true}.
          */
         protected boolean autoShutdownGroup = true;
+
+        /**
+         * The {@link ByteBufAllocator} to use.
+         * <p>
+         * If {@code null}, {@link PooledByteBufAllocator#DEFAULT} will be used.
+         */
+        protected ByteBufAllocator alloc;
 
         public <T> Impl option(@NonNull ChannelOption<T> option, T value) {
             return this.clientOption(option, value).serverOption(option, value);
@@ -107,7 +122,7 @@ public abstract class NettyEngine implements TransportEngine {
         }
 
         @SuppressWarnings("unchecked")
-        public Impl group(EventLoopGroup group) {
+        public Impl group(NioEventLoopGroup group) {
             this.group = group;
             return (Impl) this;
         }
@@ -115,6 +130,12 @@ public abstract class NettyEngine implements TransportEngine {
         @SuppressWarnings("unchecked")
         public Impl autoShutdownGroup(boolean autoShutdownGroup) {
             this.autoShutdownGroup = autoShutdownGroup;
+            return (Impl) this;
+        }
+
+        @SuppressWarnings("unchecked")
+        public Impl alloc(ByteBufAllocator alloc) {
+            this.alloc = alloc;
             return (Impl) this;
         }
 
@@ -126,6 +147,9 @@ public abstract class NettyEngine implements TransportEngine {
         protected void validate() {
             if (this.group == null) {
                 this.autoShutdownGroup = true;
+            }
+            if (this.alloc == null) {
+                this.alloc = PooledByteBufAllocator.DEFAULT;
             }
         }
 

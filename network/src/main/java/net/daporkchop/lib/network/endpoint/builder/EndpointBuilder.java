@@ -23,6 +23,7 @@ import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.protocol.Protocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.session.SessionFactory;
 import net.daporkchop.lib.network.transport.TransportEngine;
 import sun.rmi.runtime.Log;
 
@@ -40,11 +41,11 @@ public abstract class EndpointBuilder<Impl extends EndpointBuilder<Impl, R, S>, 
     protected TransportEngine engine;
 
     /**
-     * The default protocol that will be used initially for all connections to and from this endpoint.
+     * The {@link SessionFactory} that will create new session instances for every connection to and from this endpoint.
      * <p>
      * Must be set!
      */
-    protected Protocol<S> protocol;
+    protected SessionFactory<S> sessionFactory;
 
     /**
      * The {@link Logger} to use for printing messages.
@@ -59,7 +60,7 @@ public abstract class EndpointBuilder<Impl extends EndpointBuilder<Impl, R, S>, 
         return (Impl) this;
     }
 
-    public abstract <NEW_S extends AbstractUserSession<NEW_S>> EndpointBuilder protocol(@NonNull Protocol<NEW_S> protocol);
+    public abstract <NEW_S extends AbstractUserSession<NEW_S>> EndpointBuilder sessionFactory(@NonNull SessionFactory<NEW_S> sessionFactory);
 
     public R build() {
         this.validate();
@@ -67,8 +68,8 @@ public abstract class EndpointBuilder<Impl extends EndpointBuilder<Impl, R, S>, 
     }
 
     protected void validate() {
-        if (this.protocol == null) {
-            throw new NullPointerException("protocol");
+        if (this.sessionFactory == null) {
+            throw new NullPointerException("sessionFactory");
         } else if (this.engine == null) {
             throw new NullPointerException("engine");
         }

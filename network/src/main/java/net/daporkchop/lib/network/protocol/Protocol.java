@@ -16,23 +16,11 @@
 package net.daporkchop.lib.network.protocol;
 
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.session.SessionFactory;
 
 /**
- * The simplest possible representation of a protocol.
- *
  * @author DaPorkchop_
  */
+//TODO: make this class actually be useful for something
 public interface Protocol<S extends AbstractUserSession<S>> {
-    /**
-     * @return this protocol's session factory
-     */
-    SessionFactory<S> sessionFactory();
-
-    /**
-     * @author DaPorkchop_
-     */
-    @FunctionalInterface
-    interface SessionFactory<S extends AbstractUserSession<S>> {
-        S newSession();
-    }
 }

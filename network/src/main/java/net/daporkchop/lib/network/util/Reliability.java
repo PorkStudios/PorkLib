@@ -13,13 +13,35 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.pipeline;
-
-import net.daporkchop.lib.network.netty.pipeline.NettyEdgeListener;
-import net.daporkchop.lib.network.session.AbstractUserSession;
+package net.daporkchop.lib.network.util;
 
 /**
+ * Various reliability levels that a packet may be sent with.
+ *
  * @author DaPorkchop_
  */
-public class TCPEdgeListener<S extends AbstractUserSession<S>> extends NettyEdgeListener<S> {
+public enum Reliability {
+    /**
+     * No guarantees are made that the packet will arrive at all or in what order.
+     */
+    UNRELIABLE,
+    /**
+     * No guarantees are made that the packet will arrive at all. However, if a newer sequenced packet arrives before
+     * older ones, the older ones will be discarded when and if they arrive.
+     */
+    UNRELIABLE_SEQUENCED,
+    /**
+     * The packet is sure to arrive, no guarantees are made as to ordering.
+     */
+    RELIABLE,
+    /**
+     * The packet is sure to arrive. However, if a newer sequenced packet arrives before
+     * older ones, the older ones will be discarded when and if they arrive.
+     */
+    RELIABLE_SEQUENCED,
+    /**
+     * The packet is sure to arrive in the same order as it was sent.
+     */
+    RELIABLE_ORDERED,
+    ;
 }

@@ -13,23 +13,20 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.netty.session;
+package net.daporkchop.lib.network.tcp.session;
 
 import io.netty.channel.Channel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.ssl.SslContext;
-import io.netty.handler.ssl.SslHandler;
 import io.netty.util.concurrent.Future;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.netty.NettyByteBufOut;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.network.EndpointType;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.session.Reliability;
+import net.daporkchop.lib.network.util.Reliability;
 import net.daporkchop.lib.network.tcp.endpoint.TCPEndpoint;
 import net.daporkchop.lib.network.tcp.frame.Framer;
 import net.daporkchop.lib.network.transport.ChanneledPacket;
@@ -45,7 +42,7 @@ import java.nio.channels.SocketChannel;
  */
 @Getter
 @Accessors(fluent = true, chain = true)
-public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketChannel implements NetSession<S> {
+public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketChannel implements TCPSession<S> {
     protected final TCPEndpoint<?, S, ?> endpoint;
     protected final S userSession;
     protected final boolean incoming;
@@ -54,7 +51,7 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
     public TCPNioSocket(@NonNull TCPEndpoint<?, S, ?> endpoint) {
         this.incoming = false;
         this.endpoint = endpoint;
-        this.userSession = endpoint.protocol().sessionFactory().newSession();
+        this.userSession = endpoint.sessionFactory().newSession();
         PUnsafe.putObject(this.userSession, ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);
     }
 
@@ -63,7 +60,7 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
 
         this.incoming = true;
         this.endpoint = endpoint;
-        this.userSession = endpoint.protocol().sessionFactory().newSession();
+        this.userSession = endpoint.sessionFactory().newSession();
         PUnsafe.putObject(this.userSession, ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);
 
         this.closeFuture().addListener(v -> this.onClosed());
@@ -179,5 +176,14 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
         } else {
             return this.close();
         }
+    }
+
+    @Override
+    public TCPSession<S> framer(@NonNull Framer<S> framer) {
+        Framer<S> old = this.framer;
+        framer.init(this.userSession);
+        this.framer = framer;
+        old.release(this.userSession);
+        return this;
     }
 }

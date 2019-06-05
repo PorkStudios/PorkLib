@@ -21,7 +21,6 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.network.session.Reliability;
 
 /**
  * Additional metadata that is used as part of a packet's encoding.

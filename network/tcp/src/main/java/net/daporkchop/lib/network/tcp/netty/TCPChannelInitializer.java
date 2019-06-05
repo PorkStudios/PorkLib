@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.tcp.TCPEngine;
 import net.daporkchop.lib.network.tcp.endpoint.TCPEndpoint;
-import net.daporkchop.lib.network.tcp.netty.session.TCPNioSocket;
+import net.daporkchop.lib.network.tcp.session.TCPNioSocket;
 
 import java.util.function.Consumer;
 

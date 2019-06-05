@@ -13,40 +13,32 @@
  *
  */
 
-package net.daporkchop.lib.network.netty.pipeline;
+package net.daporkchop.lib.network.tcp.session;
 
-import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.netty.NettyUtil;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.network.session.pipeline.PipelineEdgeListener;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-
-import java.io.IOException;
+import net.daporkchop.lib.network.tcp.frame.Framer;
+import net.daporkchop.lib.network.transport.NetSession;
 
 /**
  * @author DaPorkchop_
  */
-public abstract class NettyEdgeListener<S extends AbstractUserSession<S>> extends PipelineEdgeListener<S> {
+public interface TCPSession<S extends AbstractUserSession<S>> extends NetSession<S> {
+    /**
+     * @return the {@link Framer} used by this session
+     */
+    Framer<S> framer();
+
+    /**
+     * Sets the {@link Framer} used by this session.
+     * @param framer the framer to use
+     * @return this session
+     */
+    TCPSession<S> framer(@NonNull Framer<S> framer);
+
     @Override
-    public void received(@NonNull S session, @NonNull Object msg, int channel) {
-        if (msg instanceof ByteBuf) {
-            try (DataIn in = NettyUtil.wrapIn((ByteBuf) msg)) {
-                if (session.endpoint().protocol() instanceof HandlingProtocol)  {
-                    ((HandlingProtocol<S>) session.endpoint().protocol()).handler().onBinary(session, in, channel);
-                } else {
-                    session.onBinary(in, channel);
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            ((ByteBuf) msg).release();
-        } else {
-            if (session.endpoint().protocol() instanceof HandlingProtocol)  {
-                ((HandlingProtocol<S>) session.endpoint().protocol()).handler().onReceived(session, msg, channel);
-            } else {
-                session.onReceived(msg, channel);
-            }
-        }
+    default void onClosed() {
+        this.framer().release(this.userSession());
+        NetSession.super.onClosed();
     }
 }

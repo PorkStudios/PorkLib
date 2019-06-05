@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.netty.session;
+package net.daporkchop.lib.network.tcp.session;
 
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.internal.SocketUtils;

@@ -24,7 +24,7 @@ import net.daporkchop.lib.network.endpoint.PServer;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.session.Reliability;
+import net.daporkchop.lib.network.util.Reliability;
 
 import java.nio.ByteBuffer;
 import java.util.Collection;

@@ -28,9 +28,9 @@ import net.daporkchop.lib.common.cache.SoftThreadCache;
 import net.daporkchop.lib.common.cache.ThreadCache;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.session.Reliability;
+import net.daporkchop.lib.network.util.Reliability;
 import net.daporkchop.lib.network.session.encode.SendCallback;
-import net.daporkchop.lib.network.tcp.netty.session.TCPNioSocket;
+import net.daporkchop.lib.network.tcp.session.TCPNioSocket;
 import net.daporkchop.lib.network.transport.ChanneledPacket;
 import net.daporkchop.lib.network.util.PacketMetadata;
 

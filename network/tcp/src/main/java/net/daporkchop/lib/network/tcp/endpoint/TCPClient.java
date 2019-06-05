@@ -16,13 +16,14 @@
 package net.daporkchop.lib.network.tcp.endpoint;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.ChannelOption;
 import lombok.NonNull;
 import net.daporkchop.lib.network.endpoint.PClient;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.transport.NetSession;
 import net.daporkchop.lib.network.tcp.netty.TCPChannelInitializer;
-import net.daporkchop.lib.network.tcp.netty.session.TCPNioSocket;
+import net.daporkchop.lib.network.tcp.session.TCPNioSocket;
 
 /**
  * @author DaPorkchop_
@@ -34,6 +35,7 @@ public class TCPClient<S extends AbstractUserSession<S>> extends TCPEndpoint<PCl
 
         try {
             Bootstrap bootstrap = new Bootstrap()
+                    .option(ChannelOption.ALLOCATOR, this.transportEngine.alloc())
                     .group(this.group)
                     .channelFactory(() -> new TCPNioSocket<>(this))
                     .handler(new TCPChannelInitializer<>(this));

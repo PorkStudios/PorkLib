@@ -31,11 +31,9 @@ import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.netty.NettyEngine;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.session.BaseUserSession;
-import net.daporkchop.lib.network.session.Reliability;
+import net.daporkchop.lib.network.util.Reliability;
 import net.daporkchop.lib.network.tcp.endpoint.TCPClient;
 import net.daporkchop.lib.network.tcp.endpoint.TCPServer;
-import net.daporkchop.lib.network.tcp.netty.session.TCPSession;
 import net.daporkchop.lib.network.transport.TransportEngine;
 
 import javax.net.ssl.SSLException;
@@ -48,9 +46,6 @@ import java.util.Collections;
 
 /**
  * An implementation of {@link TransportEngine} for the TCP/IP transport protocol.
- * <p>
- * All internal sessions ({@link BaseUserSession#internalSession()}) for endpoints made using this transport engine
- * will be instances of {@link TCPSession}.
  *
  * @author DaPorkchop_
  */
@@ -72,7 +67,7 @@ public final class TCPEngine extends NettyEngine {
     private final SslContext sslClientContext;
 
     protected TCPEngine(@NonNull Builder builder) {
-        super(builder.clientOptions(), builder.serverOptions(), builder.group(), builder.autoShutdownGroup());
+        super(builder);
 
         this.sslServerContext = builder.sslServerContext();
         this.sslClientContext = builder.sslClientContext();

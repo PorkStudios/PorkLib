@@ -27,6 +27,7 @@ import net.daporkchop.lib.network.netty.LoopPool;
 import net.daporkchop.lib.network.netty.NettyEngine;
 import net.daporkchop.lib.network.protocol.Protocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.session.SessionFactory;
 
 /**
  * @author DaPorkchop_
@@ -35,7 +36,7 @@ import net.daporkchop.lib.network.session.AbstractUserSession;
 @Accessors(fluent = true)
 public abstract class NettyEndpoint<Impl extends PEndpoint<Impl, S>, S extends AbstractUserSession<S>, C extends Channel, E extends NettyEngine> implements PEndpoint<Impl, S> {
     protected final E transportEngine;
-    protected final Protocol<S> protocol;
+    protected final SessionFactory<S> sessionFactory;
     protected final EventLoopGroup group;
 
     /**
@@ -48,7 +49,7 @@ public abstract class NettyEndpoint<Impl extends PEndpoint<Impl, S>, S extends A
     @SuppressWarnings("unchecked")
     protected NettyEndpoint(@NonNull EndpointBuilder builder) {
         this.transportEngine = (E) builder.engine();
-        this.protocol = builder.protocol();
+        this.sessionFactory = builder.sessionFactory();
 
         EventLoopGroup group;
         if ((group = this.transportEngine.group()) == null) {

@@ -24,6 +24,7 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.network.endpoint.PServer;
 import net.daporkchop.lib.network.protocol.Protocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.session.SessionFactory;
 
 import java.net.InetSocketAddress;
 import java.util.function.Function;
@@ -37,8 +38,8 @@ import java.util.function.Predicate;
 @Setter
 @Accessors(chain = true, fluent = true)
 public class ServerBuilder<S extends AbstractUserSession<S>> extends EndpointBuilder<ServerBuilder<S>, PServer<S>, S> {
-    public static <S extends AbstractUserSession<S>> ServerBuilder<S> of(@NonNull Protocol<S> protocol) {
-        return new ServerBuilder<>().protocol(protocol);
+    public static <S extends AbstractUserSession<S>> ServerBuilder<S> of(@NonNull SessionFactory<S> sessionFactory) {
+        return new ServerBuilder<>().sessionFactory(sessionFactory);
     }
 
     /**
@@ -65,8 +66,8 @@ public class ServerBuilder<S extends AbstractUserSession<S>> extends EndpointBui
 
     @Override
     @SuppressWarnings("unchecked")
-    public <NEW_S extends AbstractUserSession<NEW_S>> ServerBuilder<NEW_S> protocol(@NonNull Protocol<NEW_S> protocol) {
-        ((ServerBuilder<NEW_S>) this).protocol = protocol;
+    public <NEW_S extends AbstractUserSession<NEW_S>> ServerBuilder<NEW_S> sessionFactory(@NonNull SessionFactory<NEW_S> sessionFactory) {
+        ((ServerBuilder<NEW_S>) this).sessionFactory = sessionFactory;
         return (ServerBuilder<NEW_S>) this;
     }
 

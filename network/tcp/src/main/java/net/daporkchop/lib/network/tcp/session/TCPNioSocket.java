@@ -18,6 +18,7 @@ package net.daporkchop.lib.network.tcp.session;
 import io.netty.channel.Channel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.Promise;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
@@ -46,13 +47,21 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
     protected final TCPEndpoint<?, S, ?> endpoint;
     protected final S userSession;
     protected final boolean incoming;
-    protected Framer<S> framer; //TODO: set this
+    protected final Framer<S> framer;
+    protected final Promise<Void> connectFuture;
 
     public TCPNioSocket(@NonNull TCPEndpoint<?, S, ?> endpoint) {
         this.incoming = false;
         this.endpoint = endpoint;
         this.userSession = endpoint.sessionFactory().newSession();
         PUnsafe.putObject(this.userSession, ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);
+
+        @SuppressWarnings("unchecked")
+        Framer<S> framer = (Framer<S>) this.endpoint.transportEngine().framerFactory().newFramer();
+        (this.framer = framer).init(this.userSession);
+
+        this.connectFuture = this.newPromise();
+        this.closeFuture().addListener(v -> this.onClosed());
     }
 
     public TCPNioSocket(@NonNull TCPEndpoint<?, S, ?> endpoint, Channel parent, SocketChannel socket) {
@@ -63,6 +72,11 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
         this.userSession = endpoint.sessionFactory().newSession();
         PUnsafe.putObject(this.userSession, ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);
 
+        @SuppressWarnings("unchecked")
+        Framer<S> framer = (Framer<S>) this.endpoint.transportEngine().framerFactory().newFramer();
+        (this.framer = framer).init(this.userSession);
+
+        this.connectFuture = this.newPromise();
         this.closeFuture().addListener(v -> this.onClosed());
     }
 
@@ -74,25 +88,25 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
 
     @Override
     public NetSession<S> send(@NonNull Object packet, Reliability reliability) {
-        this.write(packet);
+        this.write(packet).syncUninterruptibly();
         return this;
     }
 
     @Override
     public NetSession<S> sendFlush(@NonNull Object packet, Reliability reliability) {
-        this.writeAndFlush(packet);
+        this.writeAndFlush(packet).syncUninterruptibly();
         return this;
     }
 
     @Override
     public NetSession<S> send(@NonNull Object packet, Reliability reliability, int channel) {
-        this.write(channel == 0 ? packet : ChanneledPacket.getInstance(packet, channel));
+        this.write(channel == 0 ? packet : ChanneledPacket.getInstance(packet, channel)).syncUninterruptibly();
         return this;
     }
 
     @Override
     public NetSession<S> sendFlush(@NonNull Object packet, Reliability reliability, int channel) {
-        this.writeAndFlush(channel == 0 ? packet : ChanneledPacket.getInstance(packet, channel));
+        this.writeAndFlush(channel == 0 ? packet : ChanneledPacket.getInstance(packet, channel)).syncUninterruptibly();
         return this;
     }
 
@@ -179,11 +193,14 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
     }
 
     @Override
-    public TCPSession<S> framer(@NonNull Framer<S> framer) {
-        Framer<S> old = this.framer;
-        framer.init(this.userSession);
-        this.framer = framer;
-        old.release(this.userSession);
-        return this;
+    public void onOpened(boolean incoming) {
+        this.connectFuture.trySuccess(null);
+        TCPSession.super.onOpened(incoming);
+    }
+
+    @Override
+    public void onException(@NonNull Exception e) {
+        this.connectFuture.tryFailure(e);
+        TCPSession.super.onException(e);
     }
 }

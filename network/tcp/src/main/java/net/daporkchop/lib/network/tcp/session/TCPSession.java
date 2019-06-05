@@ -29,15 +29,9 @@ public interface TCPSession<S extends AbstractUserSession<S>> extends NetSession
      */
     Framer<S> framer();
 
-    /**
-     * Sets the {@link Framer} used by this session.
-     * @param framer the framer to use
-     * @return this session
-     */
-    TCPSession<S> framer(@NonNull Framer<S> framer);
-
     @Override
     default void onClosed() {
+        this.closeAsync();
         this.framer().release(this.userSession());
         NetSession.super.onClosed();
     }

@@ -35,6 +35,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class LoopPool {
     protected static EventLoopGroup DEFAULT_GROUP;
     protected static final Map<EventLoopGroup, AtomicInteger> GROUP_CACHE = new IdentityHashMap<>();
+    public static int DEFAULT_THREAD_COUNT = PorkUtil.CPU_COUNT;
 
     /**
      * Provides a default instance of an {@link EventLoopGroup}. For most applications, this should suffice. This
@@ -46,9 +47,9 @@ public class LoopPool {
             if (DEFAULT_GROUP == null) {
                 if (false && Epoll.isAvailable())    {
                     //TODO: this breaks TCP due to it using EpollSocketChannel instead of NioSocketChannel
-                    DEFAULT_GROUP = new EpollEventLoopGroup(PorkUtil.CPU_COUNT, PorkUtil.DEFAULT_EXECUTOR);
+                    DEFAULT_GROUP = new EpollEventLoopGroup(DEFAULT_THREAD_COUNT, PorkUtil.DEFAULT_EXECUTOR);
                 } else {
-                    DEFAULT_GROUP = new NioEventLoopGroup(PorkUtil.CPU_COUNT, PorkUtil.DEFAULT_EXECUTOR);
+                    DEFAULT_GROUP = new NioEventLoopGroup(DEFAULT_THREAD_COUNT, PorkUtil.DEFAULT_EXECUTOR);
                 }
             }
             return useGroup(DEFAULT_GROUP);

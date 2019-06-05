@@ -44,6 +44,7 @@ class BinaryOut extends DataOut {
         out.metadata = metadata;
         out.callback = callback;
         out.alloc = alloc == null ? PooledByteBufAllocator.DEFAULT : alloc;
+        out.checkRealloc();
         return out;
     }
 
@@ -116,8 +117,8 @@ class BinaryOut extends DataOut {
 
     @Override
     public synchronized void flush() throws IOException {
-        this.callback.send(this.buf, this.metadata);
-        this.buf = null;
+            this.callback.send(this.buf, this.metadata);
+            this.buf = null;
     }
 
     @Override

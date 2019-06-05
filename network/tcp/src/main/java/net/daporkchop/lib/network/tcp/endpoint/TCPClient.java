@@ -42,10 +42,11 @@ public class TCPClient<S extends AbstractUserSession<S>> extends TCPEndpoint<PCl
 
             this.transportEngine.clientOptions().forEach(bootstrap::option);
 
-            this.channel = (TCPNioSocket<S>) bootstrap.connect(builder.address()).syncUninterruptibly().channel();
+            this.channel = (TCPNioSocket<S>) bootstrap.connect(builder.address()).channel();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        this.channel.connectFuture().syncUninterruptibly();
     }
 
     @Override

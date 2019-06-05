@@ -22,6 +22,7 @@ import net.daporkchop.lib.logging.LogAmount;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.endpoint.PClient;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
+import net.daporkchop.lib.network.netty.LoopPool;
 import net.daporkchop.lib.network.tcp.TCPEngine;
 
 import java.net.InetSocketAddress;
@@ -36,17 +37,18 @@ public class TestMCPinger implements Logging {
     public static void main(String... args) {
         logger.enableANSI().setLogAmount(LogAmount.DEBUG).info("Starting client...");
 
+        LoopPool.DEFAULT_THREAD_COUNT = 1;
         PClient<MCSession> client = ClientBuilder.of(MCSession::new)
                 .engine(TCPEngine.builder().framerFactory(MCFramer::new).build())
                 .address(new InetSocketAddress(HOST, PORT))
                 .build();
 
         logger.info("Pinging server...");
-        client.userSession().send(new HandshakePacket(-1, HOST, PORT, 0x01))
+        client.userSession()
+                .sendFlush(new HandshakePacket(-1, HOST, PORT, 0x01))
                 .changeState(MCState.PING)
                 .send(new RequestPacket())
-                .send(new PingPacket())
-                .flushBuffer();
+                .sendFlush(new PingPacket());
 
         client.userSession().ping.addListener(ping -> {
             logger.success("Response: %s", client.userSession().response)

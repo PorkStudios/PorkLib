@@ -16,9 +16,11 @@
 package net.daporkchop.lib.network.endpoint;
 
 import io.netty.util.concurrent.Future;
+import net.daporkchop.lib.logging.Logger;
 import net.daporkchop.lib.network.EndpointType;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.BaseUserSession;
+import net.daporkchop.lib.network.session.PSession;
 
 /**
  * A client can connect to a single remote endpoint.
@@ -39,6 +41,11 @@ public interface PClient<S extends AbstractUserSession<S>> extends PEndpoint<PCl
     @Override
     default Future<Void> closeAsync() {
         return BaseUserSession.super.closeAsync();
+    }
+
+    @Override
+    default Logger logger() {
+        return BaseUserSession.super.logger();
     }
 
     /**

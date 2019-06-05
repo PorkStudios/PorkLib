@@ -41,18 +41,18 @@ public abstract class NettyHandler<S extends AbstractUserSession<S>, Ch extends 
     public abstract void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception;
 
     @Override
-    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
         this.session.onOpened(this.session.incoming());
 
-        super.channelRegistered(ctx);
+        super.channelActive(ctx);
     }
 
     @Override
-    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         //handler is fired by closeFuture
         this.session.closeAsync();
 
-        super.channelUnregistered(ctx);
+        super.channelInactive(ctx);
     }
 
     @Override

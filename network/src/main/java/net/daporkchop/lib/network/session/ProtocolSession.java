@@ -41,7 +41,7 @@ public abstract class ProtocolSession<S extends ProtocolSession<S, P>, P extends
     protected final P protocol;
 
     public ProtocolSession()    {
-        this.protocol = InstancePool.getInstance(GenericMatcher.uncheckedFind(ProtocolSession.class, this.getClass(), "P"));
+        this.protocol = InstancePool.getInstance(GenericMatcher.uncheckedFind(this.getClass(), ProtocolSession.class, "P"));
     }
 
     @Override

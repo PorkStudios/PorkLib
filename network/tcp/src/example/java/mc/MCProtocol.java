@@ -19,32 +19,21 @@ import lombok.NonNull;
 import mc.packet.HandshakePacket;
 import mc.packet.PingPacket;
 import mc.packet.PongPacket;
+import mc.packet.RequestPacket;
 import mc.packet.ResponsePacket;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.protocol.StatedPacketProtocol;
-import net.daporkchop.lib.network.session.pipeline.Pipeline;
 
 /**
  * @author DaPorkchop_
  */
 public class MCProtocol extends StatedPacketProtocol<MCProtocol, MCSession, MCState> implements Logging {
     @Override
-    protected void registerPackets(@NonNull Registerer registerer) {
-        registerer.outbound(0x00, HandshakePacket.class)
-                .outbound(0x01, PingPacket.class)
-                .inbound(0x00, ResponsePacket.class)
-                .inbound(0x01, PongPacket.class);
-    }
-
-    @Override
-    public void initPipeline(@NonNull Pipeline<MCSession> pipeline, @NonNull MCSession session) {
-        super.initPipeline(pipeline, session);
-
-        pipeline.replace("tcp_framer", new MinecraftPacketFramer());
-    }
-
-    @Override
-    public MCSession newSession() {
-        return new MCSession();
+    protected void registerPackets(@NonNull Registry registry) {
+        registry.registerOutbound(MCState.HANDSHAKE, 0x00, HandshakePacket.class)
+                .registerOutbound(MCState.PING, 0x00, RequestPacket.class)
+                .registerIncoming(MCState.PING, 0x00, ResponsePacket.class)
+                .registerOutbound(MCState.PING, 0x01, PingPacket.class)
+                .registerIncoming(MCState.PING, 0x01, PongPacket.class);
     }
 }

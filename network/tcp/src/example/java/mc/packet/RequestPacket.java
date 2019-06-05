@@ -15,34 +15,18 @@
 
 package mc.packet;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 import mc.MCSession;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.network.protocol.packet.IncomingPacket;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.network.protocol.packet.OutboundPacket;
 
 import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-@NoArgsConstructor
-@Setter
-@Accessors(fluent = true, chain = true)
-public class PongPacket implements IncomingPacket<MCSession> {
-    protected long time;
-
+public class RequestPacket implements OutboundPacket<MCSession> {
     @Override
-    public void decode(@NonNull DataIn in, @NonNull MCSession session) throws IOException {
-        this.time = in.readLong();
-    }
-
-    @Override
-    public void handle(@NonNull MCSession session) {
-        session.ping().trySuccess(System.currentTimeMillis() - this.time);
+    public void encode(@NonNull DataOut out, @NonNull MCSession session) throws IOException {
     }
 }

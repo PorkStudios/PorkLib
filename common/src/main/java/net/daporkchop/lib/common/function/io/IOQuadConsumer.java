@@ -13,36 +13,24 @@
  *
  */
 
-package mc.packet;
+package net.daporkchop.lib.common.function.io;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import mc.MCSession;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.network.protocol.packet.IncomingPacket;
+import net.daporkchop.lib.common.util.PConstants;
 
 import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-@NoArgsConstructor
-@Setter
-@Accessors(fluent = true, chain = true)
-public class PongPacket implements IncomingPacket<MCSession> {
-    protected long time;
-
-    @Override
-    public void decode(@NonNull DataIn in, @NonNull MCSession session) throws IOException {
-        this.time = in.readLong();
+@FunctionalInterface
+public interface IOQuadConsumer<T, U, V, W> extends PConstants {
+    default void accept(T t, U u, V v, W w) {
+        try {
+            this.acceptThrowing(t, u, v, w);
+        } catch (IOException e) {
+            throw this.exception(e);
+        }
     }
 
-    @Override
-    public void handle(@NonNull MCSession session) {
-        session.ping().trySuccess(System.currentTimeMillis() - this.time);
-    }
+    void acceptThrowing(T t, U u, V v, W w) throws IOException;
 }

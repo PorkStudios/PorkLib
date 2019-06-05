@@ -16,7 +16,6 @@
 package net.daporkchop.lib.network.protocol.packet;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.Data;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.network.session.AbstractUserSession;
@@ -28,7 +27,7 @@ import java.io.IOException;
  *
  * @author DaPorkchop_
  */
-public interface Packet<S extends AbstractUserSession<S>> extends InboundPacket<S>, OutboundPacket<S> {
+public interface Packet<S extends AbstractUserSession<S>> extends IncomingPacket<S>, OutboundPacket<S> {
     @Override
     void decode(@NonNull DataIn in, @NonNull S session) throws IOException;
 

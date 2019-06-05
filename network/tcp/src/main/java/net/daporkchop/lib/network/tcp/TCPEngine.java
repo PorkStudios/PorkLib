@@ -22,6 +22,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.cache.Cache;
 import net.daporkchop.lib.common.cache.SoftCache;
@@ -31,10 +32,12 @@ import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.netty.NettyEngine;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.util.Reliability;
 import net.daporkchop.lib.network.tcp.endpoint.TCPClient;
 import net.daporkchop.lib.network.tcp.endpoint.TCPServer;
+import net.daporkchop.lib.network.tcp.frame.DefaultFramer;
+import net.daporkchop.lib.network.tcp.frame.FramerFactory;
 import net.daporkchop.lib.network.transport.TransportEngine;
+import net.daporkchop.lib.network.util.Reliability;
 
 import javax.net.ssl.SSLException;
 import java.io.File;
@@ -66,11 +69,15 @@ public final class TCPEngine extends NettyEngine {
     private final SslContext sslServerContext;
     private final SslContext sslClientContext;
 
+    private final FramerFactory framerFactory;
+
     protected TCPEngine(@NonNull Builder builder) {
         super(builder);
 
         this.sslServerContext = builder.sslServerContext();
         this.sslClientContext = builder.sslClientContext();
+
+        this.framerFactory = builder.framerFactory;
     }
 
     @Override
@@ -95,10 +102,18 @@ public final class TCPEngine extends NettyEngine {
 
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     @Getter
-    @Accessors(fluent = true)
+    @Accessors(fluent = true, chain = true)
     public static final class Builder extends NettyEngine.Builder<Builder, TCPEngine> {
         protected SslContext sslServerContext;
         protected SslContext sslClientContext;
+
+        /**
+         * The {@link FramerFactory} to use.
+         * <p>
+         * If {@code null}, a factory that supplies instances of {@link DefaultFramer} will be used.
+         */
+        @Setter
+        protected FramerFactory framerFactory;
 
         /**
          * Enables SSL on the server side.
@@ -178,6 +193,15 @@ public final class TCPEngine extends NettyEngine {
         public Builder enableSSLClient(@NonNull SslContext context) {
             this.sslClientContext = context;
             return this;
+        }
+
+        @Override
+        protected void validate() {
+            super.validate();
+
+            if (this.framerFactory == null) {
+                this.framerFactory = DefaultFramer::new;
+            }
         }
 
         @Override

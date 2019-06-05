@@ -39,14 +39,4 @@ public class MCSession extends StatedProtocolSession<MCSession, MCProtocol, MCSt
     public MCSession() {
         super(InstancePool.getInstance(MCProtocol.class), MCState.HANDSHAKE);
     }
-
-    @Override
-    public void onClosed() {
-        this.ping.trySuccess(-1L);
-    }
-
-    @Override
-    public void onException(@NonNull Exception e) {
-        this.ping.tryFailure(e);
-    }
 }

@@ -22,7 +22,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import mc.MCSession;
 import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.network.protocol.packet.InboundPacket;
+import net.daporkchop.lib.network.protocol.packet.IncomingPacket;
 
 import java.io.IOException;
 
@@ -33,7 +33,7 @@ import java.io.IOException;
 @NoArgsConstructor
 @Setter
 @Accessors(fluent = true, chain = true)
-public class ResponsePacket implements InboundPacket<MCSession> {
+public class ResponsePacket implements IncomingPacket<MCSession> {
     @NonNull
     protected String response;
 

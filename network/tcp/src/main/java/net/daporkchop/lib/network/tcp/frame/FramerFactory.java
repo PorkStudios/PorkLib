@@ -13,36 +13,19 @@
  *
  */
 
-package mc.packet;
+package net.daporkchop.lib.network.tcp.frame;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import mc.MCSession;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.network.protocol.packet.IncomingPacket;
-
-import java.io.IOException;
+import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
+ * Constructs new {@link Framer} instances.
+ *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-@NoArgsConstructor
-@Setter
-@Accessors(fluent = true, chain = true)
-public class PongPacket implements IncomingPacket<MCSession> {
-    protected long time;
-
-    @Override
-    public void decode(@NonNull DataIn in, @NonNull MCSession session) throws IOException {
-        this.time = in.readLong();
-    }
-
-    @Override
-    public void handle(@NonNull MCSession session) {
-        session.ping().trySuccess(System.currentTimeMillis() - this.time);
-    }
+@FunctionalInterface
+public interface FramerFactory<S extends AbstractUserSession<S>> {
+    /**
+     * @return a new {@link Framer} instance
+     */
+    Framer<S> newFramer();
 }

@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * @author DaPorkchop_
  */
-public class MinecraftPacketFramer extends Framer<MCSession> implements Logging {
+public class MCFramer extends Framer<MCSession> implements Logging {
     protected static int readVarInt(@NonNull ByteBuf buf) {
         int numRead = 0;
         int result = 0;

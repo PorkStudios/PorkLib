@@ -31,7 +31,7 @@ import java.util.Map;
 
 /**
  * A helper class for looking up generic parameters in implementation classes.
- *
+ * <p>
  * Inspired by Netty's GenericParameterMatcher, but far more powerful.
  *
  * @author DaPorkchop_
@@ -50,6 +50,14 @@ public class GenericMatcher {
      */
     public static Class<?> find(@NonNull Class<?> thisClass, @NonNull Class<?> superClass, @NonNull String name) {
         return CACHE.computeIfAbsent(new Key(thisClass, superClass, name), key -> doFind(key.thisClass, key.superClass, key.name));
+    }
+
+    /**
+     * @see #find(Class, Class, String)
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> Class<T> uncheckedFind(@NonNull Class<?> thisClass, @NonNull Class<?> superClass, @NonNull String name) {
+        return (Class<T>) find(thisClass, superClass, name);
     }
 
     private static Class<?> doFind(@NonNull Class<?> thisClass, @NonNull Class<?> superClass, @NonNull String name) {

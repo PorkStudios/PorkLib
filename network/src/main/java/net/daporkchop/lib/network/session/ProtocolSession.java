@@ -20,6 +20,8 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.common.reference.InstancePool;
+import net.daporkchop.lib.common.util.GenericMatcher;
 import net.daporkchop.lib.network.protocol.Protocol;
 import net.daporkchop.lib.network.session.encode.SendCallback;
 import net.daporkchop.lib.network.util.PacketMetadata;
@@ -37,6 +39,10 @@ import java.io.IOException;
 public abstract class ProtocolSession<S extends ProtocolSession<S, P>, P extends Protocol<P, S>> extends AbstractUserSession<S> {
     @NonNull
     protected final P protocol;
+
+    public ProtocolSession()    {
+        this.protocol = InstancePool.getInstance(GenericMatcher.uncheckedFind(ProtocolSession.class, this.getClass(), "P"));
+    }
 
     @Override
     @SuppressWarnings("unchecked")

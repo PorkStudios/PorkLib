@@ -17,6 +17,7 @@ package mc;
 
 import mc.packet.HandshakePacket;
 import mc.packet.PingPacket;
+import mc.packet.RequestPacket;
 import net.daporkchop.lib.logging.LogAmount;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.endpoint.PClient;
@@ -35,15 +36,17 @@ public class TestMCPinger implements Logging {
     public static void main(String... args) {
         logger.enableANSI().setLogAmount(LogAmount.DEBUG).info("Starting client...");
 
-        PClient<MCSession> client = ClientBuilder.of(new MCProtocol())
-                .engine(TCPEngine.defaultInstance())
+        PClient<MCSession> client = ClientBuilder.of(MCSession::new)
+                .engine(TCPEngine.builder().framerFactory(MCFramer::new).build())
                 .address(new InetSocketAddress(HOST, PORT))
                 .build();
 
         logger.info("Pinging server...");
-        client.send(new HandshakePacket(-1, HOST, PORT, 0x01))
-                .write(out -> out.writeVarInt(0x00)) //currently there's no method for protocol states, so we have to hack this in due to conflicting packet IDs
-                .sendFlush(new PingPacket(System.currentTimeMillis()));
+        client.userSession().send(new HandshakePacket(-1, HOST, PORT, 0x01))
+                .changeState(MCState.PING)
+                .send(new RequestPacket())
+                .send(new PingPacket())
+                .flushBuffer();
 
         client.userSession().ping.addListener(ping -> {
             logger.success("Response: %s", client.userSession().response)

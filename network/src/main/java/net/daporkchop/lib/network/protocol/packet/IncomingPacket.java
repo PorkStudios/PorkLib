@@ -24,7 +24,7 @@ import java.io.IOException;
 /**
  * @author DaPorkchop_
  */
-public interface InboundPacket<S extends AbstractUserSession<S>> {
+public interface IncomingPacket<S extends AbstractUserSession<S>> {
     /**
      * Decodes the message from it's binary representation.
      * <p>

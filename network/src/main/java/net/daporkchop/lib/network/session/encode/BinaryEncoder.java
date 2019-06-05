@@ -42,10 +42,10 @@ public interface BinaryEncoder<S extends AbstractUserSession<S>> extends Message
      * Encodes a message into binary.
      *
      * @param session the session
-     * @param message the message to encode
+     * @param msg the message to encode
      * @param out     a {@link DataOut} to write data to. This will buffer all data written to it, buffered data will only
      *                be sent after {@link DataOut#flush()} or {@link DataOut#close()} is called or this method returns
      * @throws IOException if an IO exception occurs you dummy
      */
-    void encodeMessage(@NonNull S session, @NonNull Object message, @NonNull DataOut out) throws IOException;
+    void encodeMessage(@NonNull S session, @NonNull Object msg, @NonNull DataOut out) throws IOException;
 }

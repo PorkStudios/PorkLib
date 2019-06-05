@@ -13,40 +13,34 @@
  *
  */
 
-package mc;
+package net.daporkchop.lib.network.session;
 
-import io.netty.util.concurrent.GlobalEventExecutor;
-import io.netty.util.concurrent.Promise;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.reference.InstancePool;
-import net.daporkchop.lib.network.session.StatedProtocolSession;
+import net.daporkchop.lib.network.protocol.StatedProtocol;
 
 /**
  * @author DaPorkchop_
  */
 @Getter
-@Setter
 @Accessors(fluent = true, chain = true)
-public class MCSession extends StatedProtocolSession<MCSession, MCProtocol, MCState> {
-    protected final Promise<Long> ping = GlobalEventExecutor.INSTANCE.newPromise();
-
+public abstract class StatedProtocolSession<S extends StatedProtocolSession<S, P, E>, P extends StatedProtocol<P, S, E>, E extends Enum<E>> extends ProtocolSession<S, P> {
     @NonNull
-    protected String response = "";
+    protected E state;
 
-    public MCSession() {
-        super(InstancePool.getInstance(MCProtocol.class), MCState.HANDSHAKE);
+    public StatedProtocolSession(P protocol, @NonNull E initialState) {
+        super(protocol);
+
+        this.state = initialState;
     }
 
-    @Override
-    public void onClosed() {
-        this.ping.trySuccess(-1L);
-    }
-
-    @Override
-    public void onException(@NonNull Exception e) {
-        this.ping.tryFailure(e);
+    @SuppressWarnings("unchecked")
+    public synchronized S changeState(@NonNull E nextState)  {
+        if (this.protocol.onStateChange((S) this, nextState))   {
+            this.state = nextState;
+        }
+        return (S) this;
     }
 }

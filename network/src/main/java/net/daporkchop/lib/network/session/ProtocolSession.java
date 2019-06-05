@@ -13,40 +13,58 @@
  *
  */
 
-package mc;
+package net.daporkchop.lib.network.session;
 
-import io.netty.util.concurrent.GlobalEventExecutor;
-import io.netty.util.concurrent.Promise;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.reference.InstancePool;
-import net.daporkchop.lib.network.session.StatedProtocolSession;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.network.protocol.Protocol;
+import net.daporkchop.lib.network.session.encode.SendCallback;
+import net.daporkchop.lib.network.util.PacketMetadata;
+
+import java.io.IOException;
 
 /**
+ * A {@link AbstractUserSession} that uses a {@link Protocol}.
+ *
  * @author DaPorkchop_
  */
+@RequiredArgsConstructor
 @Getter
-@Setter
-@Accessors(fluent = true, chain = true)
-public class MCSession extends StatedProtocolSession<MCSession, MCProtocol, MCState> {
-    protected final Promise<Long> ping = GlobalEventExecutor.INSTANCE.newPromise();
-
+@Accessors(fluent = true)
+public abstract class ProtocolSession<S extends ProtocolSession<S, P>, P extends Protocol<P, S>> extends AbstractUserSession<S> {
     @NonNull
-    protected String response = "";
+    protected final P protocol;
 
-    public MCSession() {
-        super(InstancePool.getInstance(MCProtocol.class), MCState.HANDSHAKE);
+    @Override
+    @SuppressWarnings("unchecked")
+    public void onOpened(boolean incoming) {
+        this.protocol.onOpened((S) this, incoming);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void onClosed() {
-        this.ping.trySuccess(-1L);
+        this.protocol.onClosed((S) this);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void onException(@NonNull Exception e) {
-        this.ping.tryFailure(e);
+        this.protocol.onException((S) this, e);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void onReceive(@NonNull DataIn in, @NonNull PacketMetadata metadata) throws IOException {
+        this.protocol.onReceive((S) this, in, metadata);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void encodeMessage(@NonNull Object msg, @NonNull PacketMetadata metadata, @NonNull SendCallback callback) {
+        this.protocol.encodeMessage((S) this, msg, metadata, callback);
     }
 }

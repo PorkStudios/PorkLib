@@ -13,37 +13,12 @@
  *
  */
 
-package mc;
-
-import lombok.NonNull;
-import mc.packet.HandshakePacket;
-import mc.packet.PingPacket;
-import mc.packet.PongPacket;
-import mc.packet.ResponsePacket;
-import net.daporkchop.lib.logging.Logging;
-import net.daporkchop.lib.network.session.pipeline.Pipeline;
+package net.daporkchop.lib.common.function;
 
 /**
  * @author DaPorkchop_
  */
-public class MinecraftPingProtocol extends PacketProtocol<MCSession> implements Logging {
-    @Override
-    protected void registerPackets(@NonNull Registerer registerer) {
-        registerer.outbound(0x00, HandshakePacket.class)
-                .outbound(0x01, PingPacket.class)
-                .inbound(0x00, ResponsePacket.class)
-                .inbound(0x01, PongPacket.class);
-    }
-
-    @Override
-    public void initPipeline(@NonNull Pipeline<MCSession> pipeline, @NonNull MCSession session) {
-        super.initPipeline(pipeline, session);
-
-        pipeline.replace("tcp_framer", new MinecraftPacketFramer());
-    }
-
-    @Override
-    public MCSession newSession() {
-        return new MCSession();
-    }
+@FunctionalInterface
+public interface TriConsumer<T, U, V> {
+    void accept(T t, U u, V v);
 }

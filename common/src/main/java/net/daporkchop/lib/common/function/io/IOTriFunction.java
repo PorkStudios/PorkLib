@@ -13,40 +13,28 @@
  *
  */
 
-package mc;
+package net.daporkchop.lib.common.function.io;
 
-import io.netty.util.concurrent.GlobalEventExecutor;
-import io.netty.util.concurrent.Promise;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.reference.InstancePool;
-import net.daporkchop.lib.network.session.StatedProtocolSession;
+import net.daporkchop.lib.common.util.PConstants;
+
+import java.io.IOException;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 /**
+ * A {@link Function} that can throw an {@link IOException}
+ *
  * @author DaPorkchop_
  */
-@Getter
-@Setter
-@Accessors(fluent = true, chain = true)
-public class MCSession extends StatedProtocolSession<MCSession, MCProtocol, MCState> {
-    protected final Promise<Long> ping = GlobalEventExecutor.INSTANCE.newPromise();
-
-    @NonNull
-    protected String response = "";
-
-    public MCSession() {
-        super(InstancePool.getInstance(MCProtocol.class), MCState.HANDSHAKE);
+@FunctionalInterface
+public interface IOTriFunction<T, U, V, R> extends PConstants {
+    default R apply(T t, U u, V v) {
+        try {
+            return this.applyThrowing(t, u, v);
+        } catch (IOException e) {
+            throw this.exception(e);
+        }
     }
 
-    @Override
-    public void onClosed() {
-        this.ping.trySuccess(-1L);
-    }
-
-    @Override
-    public void onException(@NonNull Exception e) {
-        this.ping.tryFailure(e);
-    }
+    R applyThrowing(T t, U u, V v) throws IOException;
 }

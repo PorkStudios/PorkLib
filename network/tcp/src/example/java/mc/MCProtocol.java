@@ -15,38 +15,36 @@
 
 package mc;
 
-import io.netty.util.concurrent.GlobalEventExecutor;
-import io.netty.util.concurrent.Promise;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.reference.InstancePool;
-import net.daporkchop.lib.network.session.StatedProtocolSession;
+import mc.packet.HandshakePacket;
+import mc.packet.PingPacket;
+import mc.packet.PongPacket;
+import mc.packet.ResponsePacket;
+import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.network.protocol.StatedPacketProtocol;
+import net.daporkchop.lib.network.session.pipeline.Pipeline;
 
 /**
  * @author DaPorkchop_
  */
-@Getter
-@Setter
-@Accessors(fluent = true, chain = true)
-public class MCSession extends StatedProtocolSession<MCSession, MCProtocol, MCState> {
-    protected final Promise<Long> ping = GlobalEventExecutor.INSTANCE.newPromise();
-
-    @NonNull
-    protected String response = "";
-
-    public MCSession() {
-        super(InstancePool.getInstance(MCProtocol.class), MCState.HANDSHAKE);
+public class MCProtocol extends StatedPacketProtocol<MCProtocol, MCSession, MCState> implements Logging {
+    @Override
+    protected void registerPackets(@NonNull Registerer registerer) {
+        registerer.outbound(0x00, HandshakePacket.class)
+                .outbound(0x01, PingPacket.class)
+                .inbound(0x00, ResponsePacket.class)
+                .inbound(0x01, PongPacket.class);
     }
 
     @Override
-    public void onClosed() {
-        this.ping.trySuccess(-1L);
+    public void initPipeline(@NonNull Pipeline<MCSession> pipeline, @NonNull MCSession session) {
+        super.initPipeline(pipeline, session);
+
+        pipeline.replace("tcp_framer", new MinecraftPacketFramer());
     }
 
     @Override
-    public void onException(@NonNull Exception e) {
-        this.ping.tryFailure(e);
+    public MCSession newSession() {
+        return new MCSession();
     }
 }

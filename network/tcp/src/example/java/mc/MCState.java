@@ -15,38 +15,11 @@
 
 package mc;
 
-import io.netty.util.concurrent.GlobalEventExecutor;
-import io.netty.util.concurrent.Promise;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.reference.InstancePool;
-import net.daporkchop.lib.network.session.StatedProtocolSession;
-
 /**
  * @author DaPorkchop_
  */
-@Getter
-@Setter
-@Accessors(fluent = true, chain = true)
-public class MCSession extends StatedProtocolSession<MCSession, MCProtocol, MCState> {
-    protected final Promise<Long> ping = GlobalEventExecutor.INSTANCE.newPromise();
-
-    @NonNull
-    protected String response = "";
-
-    public MCSession() {
-        super(InstancePool.getInstance(MCProtocol.class), MCState.HANDSHAKE);
-    }
-
-    @Override
-    public void onClosed() {
-        this.ping.trySuccess(-1L);
-    }
-
-    @Override
-    public void onException(@NonNull Exception e) {
-        this.ping.tryFailure(e);
-    }
+public enum MCState {
+    HANDSHAKE,
+    PING,
+    ;
 }

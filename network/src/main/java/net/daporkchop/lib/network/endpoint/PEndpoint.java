@@ -15,9 +15,8 @@
 
 package net.daporkchop.lib.network.endpoint;
 
-import lombok.NonNull;
+import net.daporkchop.lib.logging.Logger;
 import net.daporkchop.lib.network.EndpointType;
-import net.daporkchop.lib.network.protocol.Protocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.SessionFactory;
 import net.daporkchop.lib.network.util.CloseableFuture;
@@ -42,6 +41,11 @@ public interface PEndpoint<Impl extends PEndpoint<Impl, S>, S extends AbstractUs
      */
     @Override
     void closeNow();
+
+    /**
+     * @return the {@link Logger} used by this endpoint
+     */
+    Logger logger();
 
     /**
      * @return the {@link SessionFactory} that will create new session instances for every connection to and from this endpoint

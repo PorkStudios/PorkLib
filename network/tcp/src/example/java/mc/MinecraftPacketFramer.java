@@ -19,6 +19,9 @@ import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.tcp.frame.Framer;
+import net.daporkchop.lib.network.util.PacketMetadata;
+
+import java.util.List;
 
 /**
  * @author DaPorkchop_
@@ -57,17 +60,17 @@ public class MinecraftPacketFramer extends Framer<MCSession> implements Logging 
     }
 
     @Override
-    public void unpack(@NonNull MCSession session, @NonNull ByteBuf buf, @NonNull UnpackOut<MCSession> frames) {
+    protected void unpack(@NonNull MCSession session, @NonNull ByteBuf buf, @NonNull UnpackCallback callback) {
         int origPos = buf.readerIndex();
         logger.debug("Attempting to unpack frames: starting at %d, with %d bytes remaining!", origPos, buf.readableBytes());
         int size;
         while ((size = readVarInt(buf)) != -1) {
-            buf.readerIndex(origPos);
             if (buf.readableBytes() >= size) {
                 logger.debug("Read packet @ %d bytes", size);
-                frames.received(session, buf.readRetainedSlice(readVarInt(buf)), 0);
+                callback.add(buf.readRetainedSlice(size), 0, readVarInt(buf));
                 origPos = buf.readerIndex();
             } else {
+                buf.readerIndex(origPos);
                 logger.debug("Unable to read %d bytes", size);
                 return;
             }
@@ -76,11 +79,11 @@ public class MinecraftPacketFramer extends Framer<MCSession> implements Logging 
     }
 
     @Override
-    public void pack(@NonNull MCSession session, @NonNull ByteBuf packet, int channel, @NonNull PackOut<MCSession> frames) {
-        ByteBuf len = packet.alloc().ioBuffer();
-        writeVarInt(len, packet.readableBytes());
-
-        frames.add(session, len);
-        frames.add(session, packet);
+    protected void pack(@NonNull MCSession session, @NonNull ByteBuf packet, @NonNull PacketMetadata metadata, @NonNull List<ByteBuf> frames) {
+        ByteBuf headers = packet.alloc().ioBuffer();
+        writeVarInt(headers, packet.readableBytes());
+        writeVarInt(headers, metadata.protocolId());
+        frames.add(headers);
+        frames.add(packet);
     }
 }

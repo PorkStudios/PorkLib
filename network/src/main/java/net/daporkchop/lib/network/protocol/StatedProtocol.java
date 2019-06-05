@@ -13,40 +13,32 @@
  *
  */
 
-package mc;
+package net.daporkchop.lib.network.protocol;
 
-import io.netty.util.concurrent.GlobalEventExecutor;
-import io.netty.util.concurrent.Promise;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.reference.InstancePool;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.network.session.StatedProtocolSession;
+import net.daporkchop.lib.network.util.PacketMetadata;
+
+import java.io.IOException;
 
 /**
+ * A {@link Protocol} that handles differently depending on the current session state.
+ *
  * @author DaPorkchop_
  */
-@Getter
-@Setter
-@Accessors(fluent = true, chain = true)
-public class MCSession extends StatedProtocolSession<MCSession, MCProtocol, MCState> {
-    protected final Promise<Long> ping = GlobalEventExecutor.INSTANCE.newPromise();
-
-    @NonNull
-    protected String response = "";
-
-    public MCSession() {
-        super(InstancePool.getInstance(MCProtocol.class), MCState.HANDSHAKE);
-    }
-
-    @Override
-    public void onClosed() {
-        this.ping.trySuccess(-1L);
-    }
-
-    @Override
-    public void onException(@NonNull Exception e) {
-        this.ping.tryFailure(e);
+public interface StatedProtocol<P extends StatedProtocol<P, S, E>, S extends StatedProtocolSession<S, P, E>, E extends Enum<E>> extends Protocol<P, S> {
+    /**
+     * Fired before a session's state changes.
+     * <p>
+     * This method may refuse the state change.
+     *
+     * @param session   the session whose state is changing
+     * @param nextState the next state to be changed to
+     * @return whether or not the state change is allowed
+     */
+    default boolean onStateChange(@NonNull S session, @NonNull E nextState) {
+        return true;
     }
 }

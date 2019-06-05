@@ -35,7 +35,7 @@ public class TestMCPinger implements Logging {
     public static void main(String... args) {
         logger.enableANSI().setLogAmount(LogAmount.DEBUG).info("Starting client...");
 
-        PClient<MCSession> client = ClientBuilder.of(new MinecraftPingProtocol())
+        PClient<MCSession> client = ClientBuilder.of(new MCProtocol())
                 .engine(TCPEngine.defaultInstance())
                 .address(new InetSocketAddress(HOST, PORT))
                 .build();

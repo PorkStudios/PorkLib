@@ -21,6 +21,7 @@ import io.netty.util.concurrent.Future;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.logging.Logger;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.endpoint.builder.EndpointBuilder;
 import net.daporkchop.lib.network.netty.LoopPool;
@@ -37,6 +38,7 @@ import net.daporkchop.lib.network.session.SessionFactory;
 public abstract class NettyEndpoint<Impl extends PEndpoint<Impl, S>, S extends AbstractUserSession<S>, C extends Channel, E extends NettyEngine> implements PEndpoint<Impl, S> {
     protected final E transportEngine;
     protected final SessionFactory<S> sessionFactory;
+    protected final Logger logger;
     protected final EventLoopGroup group;
 
     /**
@@ -50,6 +52,7 @@ public abstract class NettyEndpoint<Impl extends PEndpoint<Impl, S>, S extends A
     protected NettyEndpoint(@NonNull EndpointBuilder builder) {
         this.transportEngine = (E) builder.engine();
         this.sessionFactory = builder.sessionFactory();
+        this.logger = builder.logger();
 
         EventLoopGroup group;
         if ((group = this.transportEngine.group()) == null) {

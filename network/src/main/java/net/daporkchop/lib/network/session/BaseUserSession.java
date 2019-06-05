@@ -23,6 +23,8 @@ import net.daporkchop.lib.network.transport.NetSession;
 import net.daporkchop.lib.network.transport.TransportEngine;
 import net.daporkchop.lib.network.util.Reliability;
 
+import java.net.SocketAddress;
+
 /**
  * A user-level session implementation. End users will most likely only ever be interacting with this class (and
  * subclasses thereof).
@@ -33,18 +35,6 @@ public interface BaseUserSession<Impl extends BaseUserSession<Impl, S>, S extend
     @Override
     default <E extends PEndpoint<E, S>> E endpoint() {
         return this.internalSession().endpoint();
-    }
-
-    @Override
-    default SessionHandler<S> handler() {
-        return this.internalSession().handler();
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    default Impl handler(@NonNull SessionHandler<S> handler) {
-        this.internalSession().handler(handler);
-        return (Impl) this;
     }
 
     @Override
@@ -137,6 +127,16 @@ public interface BaseUserSession<Impl extends BaseUserSession<Impl, S>, S extend
     @Override
     default TransportEngine transportEngine() {
         return this.internalSession().transportEngine();
+    }
+
+    @Override
+    default SocketAddress localAddress() {
+        return this.internalSession().localAddress();
+    }
+
+    @Override
+    default SocketAddress remoteAddress() {
+        return this.internalSession().remoteAddress();
     }
 
     /**

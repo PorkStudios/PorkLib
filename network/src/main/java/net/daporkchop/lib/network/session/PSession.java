@@ -19,6 +19,7 @@ import io.netty.util.concurrent.Future;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.function.io.IOConsumer;
+import net.daporkchop.lib.logging.Logger;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.transport.TransportEngine;
 import net.daporkchop.lib.network.util.CloseableFuture;
@@ -26,6 +27,8 @@ import net.daporkchop.lib.network.util.Reliability;
 import net.daporkchop.lib.network.util.TransportEngineHolder;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.SocketAddress;
 import java.util.Collection;
 
 /**
@@ -309,6 +312,7 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
      * @return this session
      */
     Impl flushBuffer();
+
     /**
      * Gets this channel's fallback reliability level. Packets that are sent without having a specific reliability
      * defined will be sent using this reliability.
@@ -330,7 +334,7 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
     /**
      * @see TransportEngine#supportedReliabilities()
      */
-    default Collection<Reliability> supportedReliabilities()    {
+    default Collection<Reliability> supportedReliabilities() {
         return this.transportEngine().supportedReliabilities();
     }
 
@@ -340,6 +344,23 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
     default boolean isReliabilitySupported(@NonNull Reliability reliability) {
         return this.transportEngine().isReliabilitySupported(reliability);
     }
+
+    /**
+     * @return the {@link Logger} used by this session
+     */
+    default Logger logger() {
+        return this.endpoint().logger();
+    }
+
+    /**
+     * @return the {@link SocketAddress} of the local endpoint
+     */
+    SocketAddress localAddress();
+
+    /**
+     * @return the {@link SocketAddress} of the remote endpoint
+     */
+    SocketAddress remoteAddress();
 
     /**
      * Closes this session, blocking until it is closed.

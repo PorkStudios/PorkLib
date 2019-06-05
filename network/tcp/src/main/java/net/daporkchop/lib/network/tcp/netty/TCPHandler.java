@@ -15,10 +15,19 @@
 
 package net.daporkchop.lib.network.tcp.netty;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
+import net.daporkchop.lib.binary.netty.NettyUtil;
+import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.netty.NettyHandler;
+import net.daporkchop.lib.network.protocol.packet.Packet;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.session.Reliability;
 import net.daporkchop.lib.network.tcp.netty.session.TCPNioSocket;
+import net.daporkchop.lib.network.util.PacketMetadata;
+
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
@@ -26,5 +35,19 @@ import net.daporkchop.lib.network.tcp.netty.session.TCPNioSocket;
 public class TCPHandler<S extends AbstractUserSession<S>> extends NettyHandler<S, TCPNioSocket<S>> implements Logging {
     public TCPHandler(TCPNioSocket<S> session) {
         super(session);
+    }
+
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        this.session.framer().received(this.session.userSession(), (ByteBuf) msg, (buf, channelId, protocolId) -> {
+            PacketMetadata metadata = PacketMetadata.instance(Reliability.RELIABLE_ORDERED, channelId, protocolId, true);
+            try (DataIn in = NettyUtil.wrapIn(buf)) {
+                this.session.onReceive(in, metadata); //TODO: recycle this lambda
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } finally {
+                metadata.release();
+            }
+        });
     }
 }

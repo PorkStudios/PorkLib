@@ -42,6 +42,11 @@ public interface NetSession<S extends AbstractUserSession<S>> extends PSession<N
      */
     S userSession();
 
+    /**
+     * @return whether or not this connection is an incoming connection
+     */
+    boolean incoming();
+
     @Override
     default void onOpened(boolean incoming) {
         this.userSession().onOpened(incoming);

@@ -18,6 +18,10 @@ package net.daporkchop.lib.network.tcp.frame;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.session.Reliability;
+import net.daporkchop.lib.network.util.PacketMetadata;
+
+import java.util.List;
 
 /**
  * A {@link Framer} that prefixes messages with a length field indicating the size of each frame.
@@ -26,20 +30,37 @@ import net.daporkchop.lib.network.session.AbstractUserSession;
  */
 public abstract class LengthPrefixedFramer<S extends AbstractUserSession<S>> extends Framer<S> {
     @Override
-    protected void unpack(@NonNull S session, @NonNull ByteBuf buf, @NonNull UnpackOut<S> frames) {
-        //TODO
+    protected void unpack(@NonNull S session, @NonNull ByteBuf buf, @NonNull UnpackCallback callback) {
+        int lengthFieldLength = this.lengthFieldLength();
+        int headerLength = this.channelIdLength() + this.protocolIdLength();
+
+        int readerIndex = buf.readerIndex();
+        while (buf.readableBytes() >= lengthFieldLength)    {
+            int length = this.readLengthField(buf);
+            if (buf.readableBytes() >= length)  {
+                int channelId = this.readChannelId(buf);
+                int protocolId = this.readProtocolId(buf);
+                callback.add(buf.readRetainedSlice(length - headerLength), channelId, protocolId);
+                readerIndex = buf.readerIndex();
+            } else {
+                buf.readerIndex(readerIndex);
+                return;
+            }
+        }
     }
 
     @Override
-    protected void pack(@NonNull S session, @NonNull ByteBuf packet, int channel, @NonNull PackOut<S> frames) {
-        ByteBuf prefix = packet.alloc().ioBuffer(this.lengthFieldLength());
-        this.writeLengthField(prefix, packet.readableBytes());
-        frames.add(session, prefix);
-        frames.add(session, packet);
+    protected void pack(@NonNull S session, @NonNull ByteBuf packet, @NonNull PacketMetadata metadata, @NonNull List<ByteBuf> frames) {
+        ByteBuf header = packet.alloc().ioBuffer(this.lengthFieldLength() + this.channelIdLength() + this.protocolIdLength());
+        this.writeLengthField(header, packet.readableBytes());
+        this.writeChannelId(packet, metadata.channelId());
+        this.writeProtocolId(packet, metadata.protocolId());
+        frames.add(header);
+        frames.add(packet);
     }
 
     /**
-     * @return the length of the length field, in bytes
+     * @return the length of the length field (excluding headers), in bytes
      */
     protected abstract int lengthFieldLength();
 
@@ -60,4 +81,50 @@ public abstract class LengthPrefixedFramer<S extends AbstractUserSession<S>> ext
      * @return the length
      */
     protected abstract int readLengthField(@NonNull ByteBuf buf);
+
+    /**
+     * @return the length of the channel ID field (excluding headers), in bytes
+     */
+    protected abstract int channelIdLength();
+
+    /**
+     * Writes a channel ID field to a given buffer
+     *
+     * @param buf    the buffer to write to
+     * @param channelId the length to write
+     */
+    protected abstract void writeChannelId(@NonNull ByteBuf buf, int channelId);
+
+    /**
+     * Reads a channel ID field from a given buffer.
+     * <p>
+     * The buffer is guaranteed to have at least {@link #channelIdLength()} bytes readable.
+     *
+     * @param buf the buffer to read from
+     * @return the length
+     */
+    protected abstract int readChannelId(@NonNull ByteBuf buf);
+
+    /**
+     * @return the length of the protocol ID field (excluding headers), in bytes
+     */
+    protected abstract int protocolIdLength();
+
+    /**
+     * Writes a protocol ID field to a given buffer
+     *
+     * @param buf    the buffer to write to
+     * @param protocolId the length to write
+     */
+    protected abstract void writeProtocolId(@NonNull ByteBuf buf, int protocolId);
+
+    /**
+     * Reads a protocol ID field from a given buffer.
+     * <p>
+     * The buffer is guaranteed to have at least {@link #protocolIdLength()} bytes readable.
+     *
+     * @param buf the buffer to read from
+     * @return the length
+     */
+    protected abstract int readProtocolId(@NonNull ByteBuf buf);
 }

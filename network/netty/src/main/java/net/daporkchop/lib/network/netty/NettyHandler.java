@@ -15,15 +15,15 @@
 
 package net.daporkchop.lib.network.netty;
 
-import io.netty.channel.Channel;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelOutboundHandler;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.network.endpoint.PEndpoint;
+import net.daporkchop.lib.binary.netty.NettyUtil;
+import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.transport.NetSession;
 
@@ -38,20 +38,18 @@ public abstract class NettyHandler<S extends AbstractUserSession<S>, Ch extends 
     protected final Ch session;
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        this.session.dataPipeline().fireReceived(msg, -1);
-    }
+    public abstract void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception;
 
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-        this.session.dataPipeline().fireOpened();
+        this.session.onOpened(this.session.incoming());
 
         super.channelRegistered(ctx);
     }
 
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-        this.session.dataPipeline().fireClosed();
+        //handler is fired by closeFuture
         this.session.closeAsync();
 
         super.channelUnregistered(ctx);
@@ -59,7 +57,9 @@ public abstract class NettyHandler<S extends AbstractUserSession<S>, Ch extends 
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        this.session.dataPipeline().fireExceptionCaught(cause);
+        if (cause instanceof Exception) {
+            this.session.onException((Exception) cause);
+        }
 
         super.exceptionCaught(ctx, cause);
     }

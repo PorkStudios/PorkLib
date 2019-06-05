@@ -13,32 +13,60 @@
  *
  */
 
-package net.daporkchop.lib.network.transport;
+package net.daporkchop.lib.network.tcp.frame;
 
-import lombok.Getter;
+import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.network.session.Reliability;
+import net.daporkchop.lib.network.session.AbstractUserSession;
 
 /**
+ * A default {@link Framer} implementation that uses a 4-byte value for the length field, channel id and protocol id.
+ *
  * @author DaPorkchop_
  */
-@Getter
-@Accessors(fluent = true)
-public class WrappedPacket<P> extends ChanneledPacket<P> {
-    protected final Reliability reliability;
-
-    public WrappedPacket(P packet, int channel, @NonNull Reliability reliability) {
-        super(packet, channel);
-        this.reliability = reliability;
+public class DefaultFramer<S extends AbstractUserSession<S>> extends LengthPrefixedFramer<S> {
+    @Override
+    protected int lengthFieldLength() {
+        return 4;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <NEW_P> WrappedPacket<NEW_P> packet(@NonNull NEW_P packet)    {
-        ((WrappedPacket<NEW_P>) this).packet = packet;
-        return (WrappedPacket<NEW_P>) this;
+    protected void writeLengthField(@NonNull ByteBuf buf, int length) {
+        buf.writeInt(length);
+    }
+
+    @Override
+    protected int readLengthField(@NonNull ByteBuf buf) {
+        return buf.readInt();
+    }
+
+    @Override
+    protected int channelIdLength() {
+        return 4;
+    }
+
+    @Override
+    protected void writeChannelId(@NonNull ByteBuf buf, int channelId) {
+        buf.writeInt(channelId);
+    }
+
+    @Override
+    protected int readChannelId(@NonNull ByteBuf buf) {
+        return buf.readInt();
+    }
+
+    @Override
+    protected int protocolIdLength() {
+        return 4;
+    }
+
+    @Override
+    protected void writeProtocolId(@NonNull ByteBuf buf, int protocolId) {
+        buf.writeInt(protocolId);
+    }
+
+    @Override
+    protected int readProtocolId(@NonNull ByteBuf buf) {
+        return buf.readInt();
     }
 }

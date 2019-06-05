@@ -15,6 +15,8 @@
 
 package net.daporkchop.lib.network.transport;
 
+import io.netty.util.Recycler;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -25,19 +27,38 @@ import net.daporkchop.lib.network.session.Reliability;
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
+@Setter(AccessLevel.PRIVATE)
 @Accessors(fluent = true, chain = true)
-public class ChanneledPacket<P> {
+public final class ChanneledPacket<P> {
+    protected static final Recycler<ChanneledPacket<Object>> RECYCLER = new Recycler<ChanneledPacket<Object>>() {
+        @Override
+        @SuppressWarnings("unchecked")
+        protected ChanneledPacket newObject(Handle<ChanneledPacket<Object>> handle) {
+            return new ChanneledPacket<>(handle);
+        }
+    };
+
+    public static <P> ChanneledPacket<P> getInstance(@NonNull P packet, int channel)  {
+        return RECYCLER.get().packet(packet).channel(channel);
+    }
+
     @NonNull
+    protected final Recycler.Handle<ChanneledPacket<P>> handle;
+
     protected P packet;
-    protected final int channel;
-    @Setter
-    protected boolean encoded = false;
+    protected int channel;
 
     @SuppressWarnings("unchecked")
     public <NEW_P> ChanneledPacket<NEW_P> packet(@NonNull NEW_P packet)    {
         ((ChanneledPacket<NEW_P>) this).packet = packet;
         return (ChanneledPacket<NEW_P>) this;
+    }
+
+    public void release()   {
+        this.packet = null;
+        this.channel = -1;
+        this.handle.recycle(this);
     }
 }

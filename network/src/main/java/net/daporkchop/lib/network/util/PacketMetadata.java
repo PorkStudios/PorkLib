@@ -37,6 +37,7 @@ public final class PacketMetadata {
     protected static final int RELIABILITY_MASK = 1 << 0;
     protected static final int CHANNELID_MASK = 1 << 1;
     protected static final int PROTOCOLID_MASK = 1 << 2;
+    protected static final int ORIGINAL_MASK = 1 << 3;
 
     private static final Recycler<PacketMetadata> RECYCLER = new Recycler<PacketMetadata>() {
         @Override
@@ -53,11 +54,12 @@ public final class PacketMetadata {
      * @param protocolId  the protocol id
      * @return an instance of {@link PacketMetadata} with the given settings
      */
-    public static PacketMetadata instance(Reliability reliability, int channelId, int protocolId) {
+    public static PacketMetadata instance(Reliability reliability, int channelId, int protocolId, boolean original) {
         PacketMetadata metadata = RECYCLER.get();
         metadata.reliability = reliability;
         metadata.channelId = channelId;
         metadata.protocolId = protocolId;
+        metadata.setFlags = original ? ORIGINAL_MASK : 0;
         return metadata;
     }
 
@@ -105,6 +107,10 @@ public final class PacketMetadata {
         return (this.setFlags & PROTOCOLID_MASK) != 0;
     }
 
+    public boolean isOriginal() {
+        return (this.setFlags & PROTOCOLID_MASK) != 0;
+    }
+
     /**
      * Clears this {@link PacketMetadata} instance and makes it available to the recycler for future reuse.
      * <p>
@@ -130,7 +136,7 @@ public final class PacketMetadata {
         clone.reliability = this.reliability;
         clone.channelId = this.channelId;
         clone.protocolId = this.protocolId;
-        clone.setFlags = this.setFlags;
+        clone.setFlags = this.setFlags & ~ORIGINAL_MASK;
         return clone;
     }
 }

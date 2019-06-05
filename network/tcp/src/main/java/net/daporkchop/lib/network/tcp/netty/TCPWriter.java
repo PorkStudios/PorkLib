@@ -24,6 +24,8 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.cache.SoftThreadCache;
+import net.daporkchop.lib.common.cache.ThreadCache;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.Reliability;
@@ -42,6 +44,8 @@ import java.util.List;
 @Getter
 @Accessors(fluent = true)
 public class TCPWriter<S extends AbstractUserSession<S>> extends MessageToMessageEncoder<Object> {
+    protected static final ThreadCache<SendCallbackImpl> SEND_CALLBACK_CACHE = SoftThreadCache.of(SendCallbackImpl::new);
+
     @NonNull
     protected final TCPNioSocket<S> session;
 
@@ -52,19 +56,19 @@ public class TCPWriter<S extends AbstractUserSession<S>> extends MessageToMessag
             ChanneledPacket pck = (ChanneledPacket) msg;
             msg = pck.packet();
             channel = pck.channel();
+            pck.release();
         }
         if (msg instanceof ByteBuf) {
             ((ByteBuf) msg).retain(); //prevent buf from being released unintentionally
         }
-        PacketMetadata metadata = PacketMetadata.instance(Reliability.RELIABLE_ORDERED, 0, 0);
+        PacketMetadata metadata = PacketMetadata.instance(Reliability.RELIABLE_ORDERED, channel, 0, true);
+        SendCallbackImpl callback = SEND_CALLBACK_CACHE.get().out(out).session(this.session);
         try {
-            this.session.encodeMessage(msg, metadata, (outMsg, outMeta) -> {
-
-            });
+            this.session.encodeMessage(msg, metadata, callback);
         } finally {
+            callback.reset();
             metadata.release();
         }
-        this.session.dataPipeline().fireSending(msg, Reliability.RELIABLE_ORDERED, channel, out);
     }
 
     @Getter
@@ -72,25 +76,40 @@ public class TCPWriter<S extends AbstractUserSession<S>> extends MessageToMessag
     @Accessors(fluent = true, chain = true)
     private static final class SendCallbackImpl implements SendCallback {
         protected List<Object> out;
-        protected TCPNioSocket socket;
+        protected TCPNioSocket session;
 
         @Override
+        @SuppressWarnings("unchecked")
         public void send(@NonNull Object msg, @NonNull PacketMetadata metadata) {
-            if (msg instanceof byte[])  {
-                msg = Unpooled.wrappedBuffer((byte[]) msg);
-            } else if (msg instanceof ByteBuffer)   {
-                msg = Unpooled.wrappedBuffer((ByteBuffer) msg);
-            } else if (msg instanceof byte[][])  {
-                msg = Unpooled.wrappedBuffer((byte[][]) msg);
-            } else if (msg instanceof ByteBuffer[])   {
-                msg = Unpooled.wrappedBuffer((ByteBuffer[]) msg);
+            try {
+                if (metadata.checkReliabilitySet()) {
+                    throw new IllegalStateException("reliability set");
+                }
+
+                if (msg instanceof byte[]) {
+                    msg = Unpooled.wrappedBuffer((byte[]) msg);
+                } else if (msg instanceof ByteBuffer) {
+                    msg = Unpooled.wrappedBuffer((ByteBuffer) msg);
+                } else if (msg instanceof byte[][]) {
+                    msg = Unpooled.wrappedBuffer((byte[][]) msg);
+                } else if (msg instanceof ByteBuffer[]) {
+                    msg = Unpooled.wrappedBuffer((ByteBuffer[]) msg);
+                }
+                if (msg instanceof ByteBuf) {
+                    this.session.framer().sending(this.session.userSession(), (ByteBuf) msg, metadata, this.out);
+                } else {
+                    throw new IllegalStateException("Not a ByteBuf: " + PorkUtil.className(msg));
+                }
+            } finally {
+                if (!metadata.isOriginal()) {
+                    metadata.release();
+                }
             }
-            if (msg instanceof ByteBuf) {
-                ByteBuf buf = (ByteBuf) msg;
-                this.socket.framer().
-            } else {
-                throw new IllegalStateException("Not a ByteBuf: " + PorkUtil.className(msg));
-            }
+        }
+
+        public void reset() {
+            this.out = null;
+            this.session = null;
         }
     }
 }

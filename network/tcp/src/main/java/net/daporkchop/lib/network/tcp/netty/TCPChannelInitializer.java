@@ -21,6 +21,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.tcp.TCPEngine;
 import net.daporkchop.lib.network.tcp.endpoint.TCPEndpoint;
 import net.daporkchop.lib.network.tcp.netty.session.TCPNioSocket;
 
@@ -48,13 +49,21 @@ public class TCPChannelInitializer<E extends TCPEndpoint<?, S, ?>, S extends Abs
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected void initChannel(@NonNull TCPNioSocket<S> channel) throws Exception {
         channel.pipeline()
                 .addLast("write", new TCPWriter<>(channel))
                 .addLast("handle", new TCPHandler<>(channel));
 
-        //TODO: fire listeners and stuff
+        TCPEngine engine = this.endpoint.transportEngine();
+        if (channel.incoming()) {
+            if (engine.sslServerContext() != null)  {
+                channel.pipeline().addFirst("ssl", engine.sslServerContext().newHandler(channel.alloc()));
+            }
+        } else {
+            if (engine.sslClientContext() != null)  {
+                channel.pipeline().addFirst("ssl", engine.sslClientContext().newHandler(channel.alloc(), channel.remoteAddress().getHostString(), channel.remoteAddress().getPort()));
+            }
+        }
 
         this.addedCallback.accept(channel);
     }

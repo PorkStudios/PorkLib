@@ -45,13 +45,14 @@ import java.nio.channels.SocketChannel;
  */
 @Getter
 @Accessors(fluent = true, chain = true)
-public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketChannel implements TCPSession<S> {
+public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketChannel implements NetSession<S> {
     protected final TCPEndpoint<?, S, ?> endpoint;
     protected final S userSession;
+    protected final boolean incoming;
     protected Framer<S> framer; //TODO: set this
-    protected SslHandler ssl;
 
     public TCPNioSocket(@NonNull TCPEndpoint<?, S, ?> endpoint) {
+        this.incoming = false;
         this.endpoint = endpoint;
         this.userSession = endpoint.protocol().sessionFactory().newSession();
         PUnsafe.putObject(this.userSession, ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);
@@ -60,9 +61,12 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
     public TCPNioSocket(@NonNull TCPEndpoint<?, S, ?> endpoint, Channel parent, SocketChannel socket) {
         super(parent, socket);
 
+        this.incoming = true;
         this.endpoint = endpoint;
         this.userSession = endpoint.protocol().sessionFactory().newSession();
         PUnsafe.putObject(this.userSession, ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);
+
+        this.closeFuture().addListener(v -> this.onClosed());
     }
 
     @Override
@@ -85,13 +89,13 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
 
     @Override
     public NetSession<S> send(@NonNull Object packet, Reliability reliability, int channel) {
-        this.write(channel == 0 ? packet : new ChanneledPacket<>(packet, channel));
+        this.write(channel == 0 ? packet : ChanneledPacket.getInstance(packet, channel));
         return this;
     }
 
     @Override
     public NetSession<S> sendFlush(@NonNull Object packet, Reliability reliability, int channel) {
-        this.writeAndFlush(channel == 0 ? packet : new ChanneledPacket<>(packet, channel));
+        this.writeAndFlush(channel == 0 ? packet : ChanneledPacket.getInstance(packet, channel));
         return this;
     }
 
@@ -107,12 +111,12 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
 
     @Override
     public Future<Void> sendAsync(@NonNull Object packet, Reliability reliability, int channel) {
-        return this.write(channel == 0 ? packet : new ChanneledPacket<>(packet, channel));
+        return this.write(channel == 0 ? packet : ChanneledPacket.getInstance(packet, channel));
     }
 
     @Override
     public Future<Void> sendFlushAsync(@NonNull Object packet, Reliability reliability, int channel) {
-        return this.writeAndFlush(channel == 0 ? packet : new ChanneledPacket<>(packet, channel));
+        return this.writeAndFlush(channel == 0 ? packet : ChanneledPacket.getInstance(packet, channel));
     }
 
     @Override
@@ -174,26 +178,6 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
             return this.endpoint.closeAsync();
         } else {
             return this.close();
-        }
-    }
-
-    @Override
-    public TCPSession<S> enableSSLServer(@NonNull SslContext context) {
-        if (context.isServer()) {
-            this.pipeline().addFirst("ssl", this.ssl = context.newHandler(this.alloc()));
-            return this;
-        } else {
-            throw new IllegalArgumentException("SSL context is for client!");
-        }
-    }
-
-    @Override
-    public TCPSession<S> enableSSLClient(@NonNull SslContext context, @NonNull String host, int port) {
-        if (context.isClient()) {
-            this.pipeline().addFirst("ssl", this.ssl = context.newHandler(this.alloc(), host, port));
-            return this;
-        } else {
-            throw new IllegalArgumentException("SSL context is for server!");
         }
     }
 }

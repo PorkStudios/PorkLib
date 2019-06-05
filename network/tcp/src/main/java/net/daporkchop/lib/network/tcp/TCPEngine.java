@@ -15,12 +15,16 @@
 
 package net.daporkchop.lib.network.tcp;
 
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
-import lombok.AllArgsConstructor;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.cache.Cache;
+import net.daporkchop.lib.common.cache.SoftCache;
 import net.daporkchop.lib.network.endpoint.PClient;
 import net.daporkchop.lib.network.endpoint.PServer;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
@@ -31,61 +35,47 @@ import net.daporkchop.lib.network.session.BaseUserSession;
 import net.daporkchop.lib.network.session.Reliability;
 import net.daporkchop.lib.network.tcp.endpoint.TCPClient;
 import net.daporkchop.lib.network.tcp.endpoint.TCPServer;
-import net.daporkchop.lib.network.tcp.frame.Framer;
 import net.daporkchop.lib.network.tcp.netty.session.TCPSession;
 import net.daporkchop.lib.network.transport.TransportEngine;
 
+import javax.net.ssl.SSLException;
+import java.io.File;
+import java.io.InputStream;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
 
 /**
  * An implementation of {@link TransportEngine} for the TCP/IP transport protocol.
  * <p>
- * Default pipeline layout:
- * "tcp_framer"  => {@link Framer.DefaultFramer}
- * "protocol"    => {@link net.daporkchop.lib.network.netty.pipeline.NettyDataCodec} (only if endpoint protocol is {@link net.daporkchop.lib.network.protocol.DataProtocol})
- * <p>
- * All internal sessions ({@link BaseUserSession#internalSession()}) for endpoints made using this transport engine will be instances of
- * {@link TCPSession}, allowing users to enable features such as SSL.
+ * All internal sessions ({@link BaseUserSession#internalSession()}) for endpoints made using this transport engine
+ * will be instances of {@link TCPSession}.
  *
  * @author DaPorkchop_
  */
 @Getter
 @Accessors(fluent = true)
-public class TCPEngine extends NettyEngine {
+public final class TCPEngine extends NettyEngine {
     protected static final Collection<Reliability> RELIABILITIES = Collections.singleton(Reliability.RELIABLE_ORDERED);
+    protected static final Cache<TCPEngine> DEFAULT_CACHE = new SoftCache<>(() -> builder().build());
 
-    @SuppressWarnings("unchecked")
-    public static <B extends Builder<B>> B builder() {
-        return (B) new Builder<B>();
+    public static Builder builder() {
+        return new Builder();
     }
 
     public static TCPEngine defaultInstance() {
-        return new TCPEngine(
-                Collections.singletonMap(ChannelOption.SO_KEEPALIVE, true),
-                Collections.emptyMap(),
-                null,
-                true
-        );
+        return DEFAULT_CACHE.get();
     }
 
-    protected TCPEngine(@NonNull Builder<?> builder) {
-        super(
-                builder.clientOptions(),
-                builder.serverOptions(),
-                builder.group(),
-                builder.autoShutdownGroup()
-        );
-    }
+    private final SslContext sslServerContext;
+    private final SslContext sslClientContext;
 
-    protected TCPEngine(@NonNull Map<ChannelOption, Object> clientOptions, @NonNull Map<ChannelOption, Object> serverOptions, EventLoopGroup group, boolean autoShutdownGroup) {
-        super(
-                Collections.unmodifiableMap(clientOptions),
-                Collections.unmodifiableMap(serverOptions),
-                group,
-                group == null || autoShutdownGroup
-        );
+    protected TCPEngine(@NonNull Builder builder) {
+        super(builder.clientOptions(), builder.serverOptions(), builder.group(), builder.autoShutdownGroup());
+
+        this.sslServerContext = builder.sslServerContext();
+        this.sslClientContext = builder.sslClientContext();
     }
 
     @Override
@@ -108,10 +98,93 @@ public class TCPEngine extends NettyEngine {
         return reliability == Reliability.RELIABLE_ORDERED;
     }
 
-    @AllArgsConstructor
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
     @Getter
     @Accessors(fluent = true)
-    public static class Builder<Impl extends Builder<Impl>> extends NettyEngine.Builder<Impl, TCPEngine> {
+    public static final class Builder extends NettyEngine.Builder<Builder, TCPEngine> {
+        protected SslContext sslServerContext;
+        protected SslContext sslClientContext;
+
+        /**
+         * Enables SSL on the server side.
+         *
+         * @param key          the key file
+         * @param keyCertChain the certificate chain file
+         * @return this builder
+         */
+        public Builder enableSSLServer(@NonNull File key, @NonNull File keyCertChain) {
+            try {
+                return this.enableSSLServer(SslContextBuilder.forServer(keyCertChain, key).build());
+            } catch (SSLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        /**
+         * Enables SSL on the server side.
+         *
+         * @param key          the key data
+         * @param keyCertChain the certificate chain data
+         * @return this builder
+         */
+        public Builder enableSSLServer(@NonNull InputStream key, @NonNull InputStream keyCertChain) {
+            try {
+                return this.enableSSLServer(SslContextBuilder.forServer(keyCertChain, key).build());
+            } catch (SSLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        /**
+         * Enables SSL on the server side.
+         *
+         * @param key          the key data
+         * @param keyCertChain the certificate chain data
+         * @return this builder
+         */
+        public Builder enableSSLServer(@NonNull PrivateKey key, @NonNull X509Certificate... keyCertChain) {
+            try {
+                return this.enableSSLServer(SslContextBuilder.forServer(key, keyCertChain).build());
+            } catch (SSLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        /**
+         * Enables SSL on the server side.
+         *
+         * @param context the SSL context to be used
+         * @return this builder
+         */
+        public Builder enableSSLServer(SslContext context) {
+            this.sslServerContext = context;
+            return this;
+        }
+
+        /**
+         * Enables SSL on the client side.
+         *
+         * @return this builder
+         */
+        public Builder enableSSLClient() {
+            try {
+                return this.enableSSLClient(SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).build());
+            } catch (SSLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        /**
+         * Enables SSL on the client side.
+         *
+         * @param context the SSL context to be used
+         * @return this builder
+         */
+        public Builder enableSSLClient(@NonNull SslContext context) {
+            this.sslClientContext = context;
+            return this;
+        }
+
         @Override
         protected TCPEngine doBuild() {
             return new TCPEngine(this);

@@ -49,6 +49,9 @@ public interface ThreadCache<T> extends Cache<T> {
         };
     }
 
+    @Override
+    T get();
+
     /**
      * Create a new instance, regardless of thread-local state
      *

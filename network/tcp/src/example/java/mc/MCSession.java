@@ -15,7 +15,6 @@
 
 package mc;
 
-import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import io.netty.util.concurrent.Promise;
 import lombok.Getter;
@@ -42,7 +41,7 @@ public class MCSession extends AbstractUserSession<MCSession> {
     }
 
     @Override
-    public void onException(@NonNull Throwable t) {
-        this.ping.tryFailure(t);
+    public void onException(@NonNull Exception e) {
+        this.ping.tryFailure(e);
     }
 }

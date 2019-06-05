@@ -20,7 +20,11 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.network.session.encode.SelfMessageEncoder;
+import net.daporkchop.lib.network.session.encode.SendCallback;
+import net.daporkchop.lib.network.session.handle.SelfSessionHandler;
 import net.daporkchop.lib.network.transport.NetSession;
+import net.daporkchop.lib.network.util.PacketMetadata;
 
 import java.io.IOException;
 
@@ -29,54 +33,26 @@ import java.io.IOException;
  */
 @Getter
 @Accessors(fluent = true)
-public abstract class AbstractUserSession<S extends AbstractUserSession<S>> implements BaseUserSession<S, S> {
+public abstract class AbstractUserSession<S extends AbstractUserSession<S>> implements BaseUserSession<S, S>, SelfSessionHandler, SelfMessageEncoder {
     private final NetSession<S> internalSession = null;
 
-    /**
-     * @see SessionHandler#onOpened(AbstractUserSession, boolean)
-     */
+    @Override
     public void onOpened(boolean incoming) {
     }
 
-    /**
-     * Fired when this session is closed (i.e. a onClosed event reaches the end of the pipeline).
-     */
+    @Override
     public void onClosed() {
     }
 
-    /**
-     * Fired when an exception is caught while updating this session.
-     *
-     * @param t the exception that was caught
-     */
-    public void onException(@NonNull Throwable t) {
-        Logging.logger.alert(new RuntimeException(t));
+    @Override
+    public void onException(@NonNull Exception e) {
+        Logging.logger.alert(new RuntimeException(e));
         this.closeAsync();
     }
 
-    /**
-     * Fired if a message reaches the end of the pipeline.
-     * <p>
-     * Many protocol implementations will never allow packets to get this far down the pipeline, this method is here
-     * mainly to serve as a sort of backup handling option.
-     *
-     * @param msg     the message that was received
-     * @param channel the channel that the message was received on
-     */
-    public void onReceived(@NonNull Object msg, int channel) {
-    }
+    @Override
+    public abstract void onReceive(@NonNull DataIn in, @NonNull PacketMetadata metadata) throws IOException;
 
-    /**
-     * Fired if raw binary data reaches the end of the pipeline.
-     * <p>
-     * Whether or not a certain message qualifies as binary or not depends on the transport engine.
-     * <p>
-     * Many protocol implementations will never allow packets to get this far down the pipeline, this method is here
-     * mainly to serve as a sort of backup handling option.
-     *
-     * @param in      a {@link DataIn} to read data from
-     * @param channel the channel that the data was received on
-     */
-    public void onBinary(@NonNull DataIn in, int channel) throws IOException {
-    }
+    @Override
+    public abstract void encodeMessage(@NonNull Object msg, @NonNull PacketMetadata metadata, @NonNull SendCallback callback);
 }

@@ -13,24 +13,38 @@
  *
  */
 
-package net.daporkchop.lib.network.session.handle;
+package net.daporkchop.lib.network.session.encode;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.util.PacketMetadata;
 
 import java.io.IOException;
 
 /**
- * The same as {@link BinaryHandler}, but without the additional session parameter.
+ * Encodes messages into a network-ready binary form, but without the additional session parameter.
  *
  * @author DaPorkchop_
  */
 @FunctionalInterface
-public interface SelfBinaryHandler {
+public interface SelfBinaryEncoder extends SelfMessageEncoder {
+    @Override
+    default void encodeMessage(@NonNull Object msg, @NonNull PacketMetadata metadata, @NonNull SendCallback callback) {
+        try (BinaryOut out = BinaryOut.get(metadata, callback, null)) {
+            this.encodeMessage(msg, out);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
-     * @see BinaryHandler#onReceive(AbstractUserSession, DataIn, PacketMetadata)
+     * Encodes a message into binary.
+     *
+     * @param message the message to encode
+     * @param out     a {@link DataOut} to write data to. This will buffer all data written to it, buffered data will only
+     *                be sent after {@link DataOut#flush()} or {@link DataOut#close()} is called or this method returns
+     * @throws IOException if an IO exception occurs you dummy
      */
-    void onReceive(@NonNull DataIn in, @NonNull PacketMetadata metadata) throws IOException;
+    void encodeMessage(@NonNull Object message, @NonNull DataOut out) throws IOException;
 }

@@ -39,19 +39,6 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
     <E extends PEndpoint<E, S>> E endpoint();
 
     /**
-     * @return the current {@link SessionHandler}
-     */
-    SessionHandler<S> handler();
-
-    /**
-     * Sets the {@link SessionHandler} for this session.
-     *
-     * @param handler the new {@link SessionHandler} to use
-     * @return this session
-     */
-    Impl handler(@NonNull SessionHandler<S> handler);
-
-    /**
      * Sends a single packet to the remote endpoint.
      * <p>
      * All packets sent using these methods will be sent on channel 0, which may not be closed.

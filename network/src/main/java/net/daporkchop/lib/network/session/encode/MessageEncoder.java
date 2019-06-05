@@ -28,9 +28,10 @@ import net.daporkchop.lib.network.util.PacketMetadata;
 public interface MessageEncoder<S extends AbstractUserSession<S>> {
     /**
      * Encodes a message into network-ready message(s).
+     * @param session the session
      * @param msg the message to encode
      * @param metadata the metadata of the message
      * @param callback a callback function that should be invoked for every network message that should be sent
      */
-    void encodeMessage(@NonNull Object msg, @NonNull PacketMetadata metadata, @NonNull SendCallback callback);
+    void encodeMessage(@NonNull S session, @NonNull Object msg, @NonNull PacketMetadata metadata, @NonNull SendCallback callback);
 }

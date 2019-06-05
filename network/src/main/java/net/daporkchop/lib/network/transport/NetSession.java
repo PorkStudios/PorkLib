@@ -15,9 +15,18 @@
 
 package net.daporkchop.lib.network.transport;
 
+import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.PSession;
+import net.daporkchop.lib.network.session.encode.SelfMessageEncoder;
+import net.daporkchop.lib.network.session.encode.SendCallback;
+import net.daporkchop.lib.network.session.handle.SelfSessionHandler;
+import net.daporkchop.lib.network.session.handle.SessionHandler;
+import net.daporkchop.lib.network.util.PacketMetadata;
 import net.daporkchop.lib.unsafe.PUnsafe;
+
+import java.io.IOException;
 
 /**
  * An internally-used representation of a session, used as an extra layer of abstraction to allow for creation of
@@ -25,11 +34,36 @@ import net.daporkchop.lib.unsafe.PUnsafe;
  *
  * @author DaPorkchop_
  */
-public interface NetSession<S extends AbstractUserSession<S>> extends PSession<NetSession<S>, S> {
+public interface NetSession<S extends AbstractUserSession<S>> extends PSession<NetSession<S>, S>, SelfSessionHandler, SelfMessageEncoder {
     long ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET = PUnsafe.pork_getOffset(AbstractUserSession.class, "internalSession");
 
     /**
      * @return this session's user session instance
      */
     S userSession();
+
+    @Override
+    default void onOpened(boolean incoming) {
+        this.userSession().onOpened(incoming);
+    }
+
+    @Override
+    default void onClosed() {
+        this.userSession().onClosed();
+    }
+
+    @Override
+    default void onException(@NonNull Exception e) {
+        this.userSession().onException(e);
+    }
+
+    @Override
+    default void onReceive(@NonNull DataIn in, @NonNull PacketMetadata metadata) throws IOException {
+        this.userSession().onReceive(in, metadata);
+    }
+
+    @Override
+    default void encodeMessage(@NonNull Object msg, @NonNull PacketMetadata metadata, @NonNull SendCallback callback) {
+        this.userSession().encodeMessage(msg, metadata, callback);
+    }
 }

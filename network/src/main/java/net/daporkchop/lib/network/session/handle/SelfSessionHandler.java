@@ -13,12 +13,38 @@
  *
  */
 
-package net.daporkchop.lib.network.session;
+package net.daporkchop.lib.network.session.handle;
+
+import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.util.PacketMetadata;
+
+import java.io.IOException;
 
 /**
- * An {@link AbstractUserSession} that does nothing.
+ * The same as {@link SessionHandler}, but without the additional session parameter.
  *
  * @author DaPorkchop_
  */
-public final class DefaultUserSession extends AbstractUserSession<DefaultUserSession> {
+public interface SelfSessionHandler {
+    /**
+     * @see SessionHandler#onOpened(AbstractUserSession, boolean)
+     */
+    void onOpened(boolean incoming);
+
+    /**
+     * @see SessionHandler#onClosed(AbstractUserSession)
+     */
+    void onClosed();
+
+    /**
+     * @see SessionHandler#onException(AbstractUserSession, Exception)
+     */
+    void onException(@NonNull Exception e);
+
+    /**
+     * @see SessionHandler#onReceive(AbstractUserSession, DataIn, PacketMetadata)
+     */
+    void onReceive(@NonNull DataIn in, @NonNull PacketMetadata metadata) throws IOException;
 }

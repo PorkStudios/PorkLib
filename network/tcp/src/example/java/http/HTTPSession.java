@@ -15,7 +15,6 @@
 
 package http;
 
-import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import io.netty.util.concurrent.Promise;
 import lombok.NonNull;
@@ -36,7 +35,7 @@ public class HTTPSession extends AbstractUserSession<HTTPSession> {
     }
 
     @Override
-    public void onException(@NonNull Throwable t) {
-        this.complete.tryFailure(t);
+    public void onException(@NonNull Exception e) {
+        this.complete.tryFailure(e);
     }
 }

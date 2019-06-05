@@ -30,8 +30,8 @@ import net.daporkchop.lib.network.EndpointType;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.Reliability;
-import net.daporkchop.lib.network.session.SessionHandler;
 import net.daporkchop.lib.network.tcp.endpoint.TCPEndpoint;
+import net.daporkchop.lib.network.tcp.frame.Framer;
 import net.daporkchop.lib.network.transport.ChanneledPacket;
 import net.daporkchop.lib.network.transport.NetSession;
 import net.daporkchop.lib.network.transport.TransportEngine;
@@ -48,10 +48,8 @@ import java.nio.channels.SocketChannel;
 public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketChannel implements TCPSession<S> {
     protected final TCPEndpoint<?, S, ?> endpoint;
     protected final S userSession;
+    protected Framer<S> framer; //TODO: set this
     protected SslHandler ssl;
-    @Setter
-    @NonNull
-    protected SessionHandler<S> handler;
 
     public TCPNioSocket(@NonNull TCPEndpoint<?, S, ?> endpoint) {
         this.endpoint = endpoint;

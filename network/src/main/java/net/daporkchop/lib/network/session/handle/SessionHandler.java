@@ -13,19 +13,21 @@
  *
  */
 
-package net.daporkchop.lib.network.session;
+package net.daporkchop.lib.network.session.handle;
 
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.util.PacketMetadata;
 
 import java.io.IOException;
 
 /**
- * Handles events that are fired on a {@link PSession}.
+ * Handles session events.
  *
  * @author DaPorkchop_
  */
-public abstract class SessionHandler<S extends AbstractUserSession<S>> {
+public interface SessionHandler<S extends AbstractUserSession<S>> {
     /**
      * Fired when a session is opened (connection is complete).
      *
@@ -33,53 +35,31 @@ public abstract class SessionHandler<S extends AbstractUserSession<S>> {
      * @param incoming whether or not the session was incoming (remote endpoint initiated connection to local
      *                 endpoint) or outgoing (local endpoint initiated connection to remote endpoint)
      */
-    public void onOpened(@NonNull S session, boolean incoming) {
-        session.onOpened(incoming);
-    }
+    void onOpened(@NonNull S session, boolean incoming);
 
     /**
      * Fired when a session is closed (connection is onClosed).
      *
      * @param session the session
      */
-    public void onClosed(@NonNull S session) {
-        session.onClosed();
-    }
+    void onClosed(@NonNull S session);
 
     /**
      * Fired when an exception is caught at any point when processing something related to a specific session.
-     *
-     * @param session the session
-     * @param t       the exception
+     *  @param session the session
+     * @param e       the exception
      */
-    public void onException(@NonNull S session, @NonNull Throwable t) {
-        session.onException(t);
-    }
+    void onException(@NonNull S session, @NonNull Exception e);
 
     /**
-     * Fired when a message is received.
+     * Handles incoming binary data.
      *
-     * @param session the session
-     * @param msg     the message that was received
-     * @param channel the channel that the message was received on
+     * @param session  the session that the data was received on
+     * @param in       a {@link DataIn} to read data from
+     * @param metadata the metadata of the received data. While this parameter is guaranteed to be non-null, no
+     *                 certainties are made about whether all fields are set (can be checked using the corresponding
+     *                 methods in {@link PacketMetadata}), and keeping a reference to the instance outside of the
+     *                 scope of this method should be considered unsafe.
      */
-    public void onReceived(@NonNull S session, @NonNull Object msg, int channel) {
-        try (DataIn in = session.transportEngine().attemptRead(msg)) {
-            if (in == null) {
-                this.handleMessage(session, msg, channel);
-            } else {
-                this.handleBinary(session, in, channel);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    protected void handleMessage(@NonNull S session, @NonNull Object msg, int channel) {
-        session.onReceived(msg, channel);
-    }
-
-    protected void handleBinary(@NonNull S session, @NonNull DataIn in, int channel) throws IOException {
-        session.onBinary(in, channel);
-    }
+    void onReceive(@NonNull S session, @NonNull DataIn in, @NonNull PacketMetadata metadata) throws IOException;
 }

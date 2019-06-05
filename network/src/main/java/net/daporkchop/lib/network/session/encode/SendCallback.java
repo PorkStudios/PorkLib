@@ -25,8 +25,9 @@ import net.daporkchop.lib.network.util.PacketMetadata;
 public interface SendCallback {
     /**
      * Sends a message to the remote endpoint.
-     * @param msg
-     * @param metadata
+     *
+     * @param msg      the message to send
+     * @param metadata the metadata of the message to send
      */
     void send(@NonNull Object msg, @NonNull PacketMetadata metadata);
 }

@@ -13,47 +13,24 @@
  *
  */
 
-package net.daporkchop.lib.network.protocol;
+package net.daporkchop.lib.network.session.encode;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-
-import java.io.IOException;
+import net.daporkchop.lib.network.util.PacketMetadata;
 
 /**
- * A {@link Protocol} that also encodes and decodes packets.
+ * Encodes messages for transmission, but without the additional session parameter.
  *
  * @author DaPorkchop_
  */
-public interface DataProtocol<S extends AbstractUserSession<S>> extends Protocol<S> {
+@FunctionalInterface
+public interface SelfMessageEncoder {
     /**
-     * @return this protocol's codec
+     * Encodes a message into network-ready message(s).
+     * @param msg the message to encode
+     * @param metadata the metadata of the message
+     * @param callback a callback function that should be invoked for every network message that should be sent
      */
-    Codec<S> codec();
-
-    /**
-     * @author DaPorkchop_
-     */
-    interface Codec<S extends AbstractUserSession<S>> {
-        /**
-         * Decodes a packet, reading no data more than required.
-         *
-         * @param session the session that the data was received on
-         * @param in      a {@link DataIn} to read data from
-         * @param channel the channel that the data was received on
-         * @return a decoded packet
-         */
-        Object decode(@NonNull S session, @NonNull DataIn in, int channel) throws IOException;
-
-        /**
-         * Encodes a message.
-         *  @param out     a {@link DataOut} to write data to
-         * @param session the session that the message will be sent on
-         * @param msg     the message that should be sent
-         * @param channel the channel that the message will be sent on
-         */
-        void encode(@NonNull DataOut out, @NonNull S session, @NonNull Object msg, int channel) throws IOException;
-    }
+    void encodeMessage(@NonNull Object msg, @NonNull PacketMetadata metadata, @NonNull SendCallback callback);
 }

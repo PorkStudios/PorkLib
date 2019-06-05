@@ -25,7 +25,6 @@ import net.daporkchop.lib.binary.netty.NettyByteBufIn;
 import net.daporkchop.lib.binary.netty.NettyByteBufOut;
 import net.daporkchop.lib.network.session.pipeline.handler.Codec;
 import net.daporkchop.lib.network.session.pipeline.util.EventContext;
-import net.daporkchop.lib.network.protocol.DataProtocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.Reliability;
 

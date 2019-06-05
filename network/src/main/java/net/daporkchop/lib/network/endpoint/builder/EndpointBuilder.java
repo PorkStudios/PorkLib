@@ -18,13 +18,13 @@ package net.daporkchop.lib.network.endpoint.builder;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.logging.Logger;
+import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.protocol.Protocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.transport.TransportEngine;
-
-import java.util.concurrent.Executor;
+import sun.rmi.runtime.Log;
 
 /**
  * @author DaPorkchop_
@@ -46,6 +46,13 @@ public abstract class EndpointBuilder<Impl extends EndpointBuilder<Impl, R, S>, 
      */
     protected Protocol<S> protocol;
 
+    /**
+     * The {@link Logger} to use for printing messages.
+     * <p>
+     * If {@code null}, {@link Logging#logger} will be used on a custom channel.
+     */
+    protected Logger logger;
+
     @SuppressWarnings("unchecked")
     public Impl engine(@NonNull TransportEngine engine) {
         this.engine = engine;
@@ -64,6 +71,9 @@ public abstract class EndpointBuilder<Impl extends EndpointBuilder<Impl, R, S>, 
             throw new NullPointerException("protocol");
         } else if (this.engine == null) {
             throw new NullPointerException("engine");
+        }
+        if (this.logger == null)    {
+            this.logger = Logging.logger.channel("network");
         }
     }
 

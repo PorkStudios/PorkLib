@@ -41,8 +41,8 @@ public class EchoSession extends AbstractUserSession<EchoSession> {
     }
 
     @Override
-    public void onException(@NonNull Throwable t) {
-        super.onException(t);
+    public void onException(@NonNull Exception e) {
+        super.onException(e);
     }
 
     @Override

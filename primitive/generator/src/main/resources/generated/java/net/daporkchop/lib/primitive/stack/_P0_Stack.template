@@ -1,0 +1,23 @@
+_headers_
+
+/**
+ * A very simple representation of a stack.
+ *
+ * @author DaPorkchop_
+ */
+public interface _P0_Stack_gH_ {
+    /**
+     * Pushes a value to the stack.
+     *
+     * @param val the value to be pushed
+     * @throws StackOverflowException if there is no space remaining in the stack
+     */
+    void push(_p0_ val) throws StackOverflowException;
+
+    /**
+     * Pops a value from the stack.
+     *
+     * @throws StackUnderflowException if there are no values present in the stack
+     */
+    _p0_ pop() throws StackUnderflowException;
+}

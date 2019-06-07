@@ -15,7 +15,6 @@
 
 package net.daporkchop.lib.primitive.generator;
 
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
@@ -26,12 +25,11 @@ import java.util.Collection;
 
 @Accessors(chain = true)
 @Setter
-@Getter
 @NoArgsConstructor
 public class Primitive {
     public static final Collection<Primitive> primitives = new ArrayDeque<>();
     public static final String PARAM_DEF = "P%d";
-    public static final String FULLNAME_DEF = String.format("_%s_", PARAM_DEF);
+    public static final String DISPLAYNAME_DEF = String.format("_%s_", PARAM_DEF);
     public static final String FULLNAME_FORCE_DEF = String.format("_fullname%s_", PARAM_DEF);
     public static final String NAME_DEF = String.format("_%s_", PARAM_DEF.toLowerCase());
     public static final String NAME_FORCE_DEF = String.format("_name%s_", PARAM_DEF);
@@ -43,13 +41,7 @@ public class Primitive {
     public static final String GENERIC_DEF = String.format("_G%s_", PARAM_DEF);
     public static final String GENERIC_SUPER_P_DEF = String.format("_Gsuper%s_", PARAM_DEF);
     public static final String GENERIC_EXTENDS_P_DEF = String.format("_Gextends%s_", PARAM_DEF);
-    public static final String WRITE_P_DEF = String.format("_write%s_", PARAM_DEF);
-    public static final String READ_P_DEF = String.format("_read%s_", PARAM_DEF);
-    public static final String STRING_FORMAT_DEF = String.format("_fmt%s_", PARAM_DEF);
-
     public static final String GENERIC_HEADER_DEF = "_gH_";
-    public static final String GENERIC_SUPER_DEF = "_gSuper_";
-    public static final String GENERIC_EXTENDS_DEF = "_gExtends_";
 
     public static final String HEADERS_DEF = "_headers_";
     public static final String LICENSE_DEF = "_copyright_";
@@ -60,7 +52,7 @@ public class Primitive {
 
     public static int countVariables(@NonNull String filename) {
         for (int i = 0; ; i++) {
-            String s = String.format(FULLNAME_DEF, i);
+            String s = String.format(DISPLAYNAME_DEF, i);
             if (!filename.contains(s)) {
                 return i;
             }
@@ -88,60 +80,6 @@ public class Primitive {
             }
         }
         return (s.endsWith(", ") ? s.substring(0, s.length() - 2) : s) + '>';
-    }
-
-    public static String getGenericSuper(Primitive... primitives) {
-        if (primitives.length == 0) {
-            return "";
-        }
-        int i = 0;
-        for (Primitive p : primitives) {
-            if (p.generic) {
-                i++;
-            }
-        }
-        if (i == 0) {
-            return "";
-        }
-        String s = "<";
-        for (int j = 0; j < primitives.length; j++) {
-            if (primitives[j].generic) {
-                s += "? super ";
-                s += (char) ('A' + j);
-                s += ", ";
-            }
-        }
-        if (s.endsWith(", ")) {
-            s = s.substring(0, s.length() - 2);
-        }
-        return s + '>';
-    }
-
-    public static String getGenericExtends(Primitive... primitives) {
-        if (primitives.length == 0) {
-            return "";
-        }
-        int i = 0;
-        for (Primitive p : primitives) {
-            if (p.generic) {
-                i++;
-            }
-        }
-        if (i == 0) {
-            return "";
-        }
-        String s = "<";
-        for (int j = 0; j < primitives.length; j++) {
-            if (primitives[j].generic) {
-                s += "? extends ";
-                s += (char) ('A' + j);
-                s += ", ";
-            }
-        }
-        if (s.endsWith(", ")) {
-            s = s.substring(0, s.length() - 2);
-        }
-        return s + '>';
     }
 
     public static String getGenericSuper(int x, Primitive... primitives) {
@@ -197,21 +135,20 @@ public class Primitive {
         }
         return s + '>';
     }
+
     @NonNull
-    private String fullName;
+    public String fullName;
     @NonNull
-    private String name;
+    public String displayName;
     @NonNull
-    private String hashCode;
-    private boolean generic;
+    public String name;
     @NonNull
-    private String emptyValue;
+    public String hashCode;
+    public boolean generic;
     @NonNull
-    private String equals;
+    public String emptyValue;
     @NonNull
-    private String serializationName;
-    @NonNull
-    private String stringFormat;
+    public String equals;
 
     public String format(@NonNull String text, int i) {
         return this.format(text, i, true);
@@ -230,7 +167,7 @@ public class Primitive {
             }
         }
         return text
-                .replaceAll(String.format(FULLNAME_DEF, i), this.fullName)
+                .replaceAll(String.format(DISPLAYNAME_DEF, i), this.displayName)
                 .replaceAll(String.format(FULLNAME_FORCE_DEF, i), this.generic ? String.valueOf((char) ('A' + i)) : this.fullName)
                 .replaceAll(String.format(NAME_DEF, i), this.generic ? String.valueOf((char) ('A' + i)) : this.name)
                 .replaceAll(String.format(NAME_FORCE_DEF, i), this.name)
@@ -241,14 +178,18 @@ public class Primitive {
                 .replaceAll(String.format(NON_GENERIC_DEF, i), this.generic ? "" : this.name)
                 .replaceAll(String.format(GENERIC_DEF, i), this.generic ? "<" + ((char) ('A' + i)) + "> " : "")
                 .replaceAll(String.format(GENERIC_SUPER_P_DEF, i), getGenericSuper(i, this))
-                .replaceAll(String.format(GENERIC_EXTENDS_P_DEF, i), getGenericExtends(i, this))
-                .replaceAll(String.format(WRITE_P_DEF, i), String.format("write%s", this.serializationName == null ? this.fullName : this.serializationName))
-                .replaceAll(String.format(READ_P_DEF, i), String.format("read%s", this.serializationName == null ? this.fullName : this.serializationName))
-                .replaceAll(String.format(STRING_FORMAT_DEF, i), this.stringFormat);
+                .replaceAll(String.format(GENERIC_EXTENDS_P_DEF, i), getGenericExtends(i, this));
     }
 
     public Primitive setGeneric() {
         this.generic = true;
+        return this;
+    }
+
+    public Primitive build()    {
+        if (this.displayName == null)   {
+            this.displayName = this.fullName;
+        }
         return this;
     }
 

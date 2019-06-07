@@ -77,7 +77,7 @@ public class Generator implements Logging {
                         .setHashCode("x ? 1 : 0")
                         .setEmptyValue("false")
                         .setEquals("a == b")
-                        .setStringFormat("%b")
+                        .build()
         );
         primitives.add(
                 new Primitive()
@@ -86,17 +86,17 @@ public class Generator implements Logging {
                         .setHashCode("x & 0xFF")
                         .setEmptyValue("Byte.MIN_VALUE")
                         .setEquals("a == b")
-                        .setStringFormat("%d")
+                        .build()
         );
         primitives.add(
                 new Primitive()
                         .setFullName("Character")
+                        .setDisplayName("Char")
                         .setName("char")
                         .setHashCode("(x >> 24) ^ (x >> 16) ^ (x >> 8) ^ x")
                         .setEmptyValue("Character.MAX_VALUE")
                         .setEquals("a == b")
-                        .setSerializationName("Char")
-                        .setStringFormat("%c")
+                        .build()
         );
         primitives.add(
                 new Primitive()
@@ -105,17 +105,17 @@ public class Generator implements Logging {
                         .setHashCode("(x >> 8) ^ x")
                         .setEmptyValue("Short.MIN_VALUE")
                         .setEquals("a == b")
-                        .setStringFormat("%d")
+                        .build()
         );
         primitives.add(
                 new Primitive()
                         .setFullName("Integer")
+                        .setDisplayName("Int")
                         .setName("int")
                         .setHashCode("(x >> 24) ^ (x >> 16) ^ (x >> 8) ^ x")
                         .setEmptyValue("Integer.MIN_VALUE")
                         .setEquals("a == b")
-                        .setSerializationName("Int")
-                        .setStringFormat("%d")
+                        .build()
         );
         primitives.add(
                 new Primitive()
@@ -124,7 +124,7 @@ public class Generator implements Logging {
                         .setHashCode("hashInteger((int) (x >> 32)) ^ hashInteger((int) x)")
                         .setEmptyValue("Long.MIN_VALUE")
                         .setEquals("a == b")
-                        .setStringFormat("%d")
+                        .build()
         );
         primitives.add(
                 new Primitive()
@@ -133,7 +133,7 @@ public class Generator implements Logging {
                         .setHashCode("hashInteger(Float.floatToIntBits(x))")
                         .setEmptyValue("Float.NaN")
                         .setEquals("a == b")
-                        .setStringFormat("%f")
+                        .build()
         );
         primitives.add(
                 new Primitive()
@@ -142,7 +142,7 @@ public class Generator implements Logging {
                         .setHashCode("hashLong(Double.doubleToLongBits(x))")
                         .setEmptyValue("Double.NaN")
                         .setEquals("a == b")
-                        .setStringFormat("%f")
+                        .build()
         );
         primitives.add(
                 new Primitive()
@@ -152,7 +152,7 @@ public class Generator implements Logging {
                         .setGeneric()
                         .setEmptyValue("null")
                         .setEquals("Objects.equals(a, b)")
-                        .setStringFormat("%s")
+                        .build()
         );
 
         try (InputStream is = new FileInputStream(new File(".", "../../LICENSE"))) {
@@ -190,6 +190,7 @@ public class Generator implements Logging {
                 (double) SIZE.get() / 1024.0d / 1024.0d
         );
     }
+
     @NonNull
     public final File inRoot;
     @NonNull
@@ -227,7 +228,7 @@ public class Generator implements Logging {
                     this.forEachPrimitiveRecursive(primitives -> {
                         String s1 = s;
                         for (int i = 0; i < primitives.length; i++) {
-                            s1 = s1.replaceAll(String.format(FULLNAME_DEF, i), primitives[i].getFullName());
+                            s1 = s1.replaceAll(String.format(DISPLAYNAME_DEF, i), primitives[i].displayName);
                         }
                         this.generated.add(s1.replaceAll("\\.template", ".java"));
                     }, count, new JsonObject());
@@ -280,7 +281,7 @@ public class Generator implements Logging {
                 int countUpper = Primitive.countVariables(name.toUpperCase());
                 if (countUpper > count) {
                     for (int i = 0; ; i++) {
-                        String s = String.format(FULLNAME_DEF.toLowerCase(), i);
+                        String s = String.format(DISPLAYNAME_DEF.toLowerCase(), i);
                         if (name.contains(s)) {
                             name = name.replaceAll(s, "");
                         } else {
@@ -317,7 +318,7 @@ public class Generator implements Logging {
             {
                 String s = name.replaceAll(".template", ".java");
                 for (int i = 0; i < count; i++) {
-                    s = s.replaceAll(String.format(FULLNAME_DEF, i), "Byte");
+                    s = s.replaceAll(String.format(DISPLAYNAME_DEF, i), "Byte");
                 }
                 File potentialOut = new File(out, s);
                 if (potentialOut.exists() && potentialOut.lastModified() >= lastModified) {
@@ -368,7 +369,7 @@ public class Generator implements Logging {
             Primitive.primitives.forEach(primitive -> {
                 if (valid.size() != 0) {
                     //only if not empty
-                    String primitiveFullName = primitive.getFullName();
+                    String primitiveFullName = primitive.fullName;
                     boolean flag = false;
                     for (JsonElement element : valid) {
                         if (element.getAsString().equalsIgnoreCase(primitiveFullName)) {
@@ -402,9 +403,7 @@ public class Generator implements Logging {
                             ref.set(primitives1[i].format(ref.get(), i));
                         }
                         builder.append(ref.get()
-                                .replaceAll(GENERIC_HEADER_DEF, Primitive.getGenericHeader(primitives1))
-                                .replaceAll(GENERIC_SUPER_DEF, Primitive.getGenericSuper(primitives1))
-                                .replaceAll(GENERIC_EXTENDS_DEF, Primitive.getGenericExtends(primitives1)));
+                                .replaceAll(GENERIC_HEADER_DEF, Primitive.getGenericHeader(primitives1)));
                     }, depth, settings);
                 }
                 contentOut = contentOut.replaceAll(METHODS_DEF, builder.toString());
@@ -427,8 +426,6 @@ public class Generator implements Logging {
 
             contentOut = contentOut
                     .replaceAll(GENERIC_HEADER_DEF, Primitive.getGenericHeader(primitives))
-                    .replaceAll(GENERIC_SUPER_DEF, Primitive.getGenericSuper(primitives))
-                    .replaceAll(GENERIC_EXTENDS_DEF, Primitive.getGenericExtends(primitives))
                     .replaceAll(HEADERS_DEF, String.format("%s\n\n%s\n\n%s", LICENSE_DEF, PACKAGE_DEF, IMPORTS_DEF))
                     .replaceAll(PACKAGE_DEF, packageName)
                     .replaceAll(IMPORTS_DEF, imports)
@@ -480,14 +477,14 @@ public class Generator implements Logging {
         if (this.imports == null) {
             this.importList.clear();
             Collections.addAll(
-                    this.importList,
-                    "lombok.*",
-                    "java.util.*",
-                    "java.util.concurrent.*",
-                    "java.util.concurrent.atomic.*",
-                    "java.util.concurrent.locks.*",
-                    "java.io.*",
-                    "java.nio.*"
+                    this.importList//,
+                    //"lombok.*",
+                    //"java.util.*",
+                    //"java.util.concurrent.*",
+                    //"java.util.concurrent.atomic.*",
+                    //"java.util.concurrent.locks.*",
+                    //"java.io.*",
+                    //"java.nio.*"
             );
             this.importList.addAll(this.additionalImports);
             this.getImportsRecursive(this.inRoot);
@@ -549,7 +546,7 @@ public class Generator implements Logging {
             Primitive.primitives.forEach(primitive -> {
                 if (valid.size() != 0) {
                     //only if not empty
-                    String primitiveFullName = primitive.getFullName();
+                    String primitiveFullName = primitive.fullName;
                     boolean flag = false;
                     for (JsonElement element : valid) {
                         if (element.getAsString().equalsIgnoreCase(primitiveFullName)) {

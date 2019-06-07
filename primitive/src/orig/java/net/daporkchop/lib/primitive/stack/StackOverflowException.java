@@ -13,26 +13,16 @@
  *
  */
 
-sourceSets {
-    orig
-    generated
-}
+package net.daporkchop.lib.primitive.stack;
 
-dependencies {
-    generatedCompile sourceSets.orig.output
-    compile sourceSets.generated.output
-}
+/**
+ * Thrown when a push exceeds the bounds of a stack.
+ *
+ * @author DaPorkchop_
+ */
+public class StackOverflowException extends RuntimeException {
+    public static final StackOverflowException INSTANCE = new StackOverflowException();
 
-task deleteSource(type: Delete) {
-    delete "src/generated"
-    delete "src/test"
-}
-
-clean.dependsOn(deleteSource)
-
-compileJava.dependsOn(":primitive:generator:gen")
-
-compileJava {
-    options.fork = true
-    options.forkOptions.setMemoryMaximumSize("2g")
+    private StackOverflowException() {
+    }
 }

@@ -1,0 +1,11 @@
+_headers_
+
+import net.daporkchop.lib.primitive.stack._P0_Stack;
+
+/**
+ * A {@link _P0_Stack} implementation backed by an array.
+ *
+ * @author DaPorkchop_
+ */
+public class _P0_ArrayStack_gH_ implements _P0_Stack_gH_ {
+}

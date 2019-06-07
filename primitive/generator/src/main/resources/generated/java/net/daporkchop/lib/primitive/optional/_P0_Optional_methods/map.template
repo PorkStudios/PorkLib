@@ -1,9 +1,0 @@
-    <method%@SuppressWarnings("unchecked")%>
-    public <method%<U>%> _methodP0_Optional<%<U>%> map(@NonNull _P0__methodP0_Function mapper) {
-        if (!this.isPresent()) {
-            return _methodP0_Optional.empty();
-        } else {
-            return _methodP0_Optional.ofNullable(<method%(U) %>mapper.apply(this.value));
-        }
-    }
-

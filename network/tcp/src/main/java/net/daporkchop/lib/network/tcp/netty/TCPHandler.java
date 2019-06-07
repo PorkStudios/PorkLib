@@ -31,13 +31,14 @@ import java.io.IOException;
 /**
  * @author DaPorkchop_
  */
-public class TCPHandler<S extends AbstractUserSession<S>> extends NettyHandler<S, TCPNioSocket<S>> implements Logging {
+public class TCPHandler<S extends AbstractUserSession<S>> extends NettyHandler<S, TCPNioSocket<S>> {
     public TCPHandler(TCPNioSocket<S> session) {
         super(session);
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        this.session.logger().debug("Received message @ %d bytes...", ((ByteBuf) msg).readableBytes());
         this.session.framer().received(this.session.userSession(), (ByteBuf) msg, (buf, channelId, protocolId) -> {
             PacketMetadata metadata = PacketMetadata.instance(Reliability.RELIABLE_ORDERED, channelId, protocolId, true);
             try (DataIn in = NettyUtil.wrapIn(buf)) {
@@ -46,6 +47,7 @@ public class TCPHandler<S extends AbstractUserSession<S>> extends NettyHandler<S
                 throw new RuntimeException(e);
             } finally {
                 metadata.release();
+                buf.release();
             }
         });
     }

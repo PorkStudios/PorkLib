@@ -88,36 +88,34 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
 
     @Override
     public NetSession<S> send(@NonNull Object packet, Reliability reliability) {
-        this.write(packet).syncUninterruptibly();
-        return this;
+        return this.send(packet, reliability, 0);
     }
 
     @Override
     public NetSession<S> sendFlush(@NonNull Object packet, Reliability reliability) {
-        this.writeAndFlush(packet).syncUninterruptibly();
-        return this;
+        return this.sendFlush(packet, reliability, 0);
     }
 
     @Override
     public NetSession<S> send(@NonNull Object packet, Reliability reliability, int channel) {
-        this.write(channel == 0 ? packet : ChanneledPacket.getInstance(packet, channel)).syncUninterruptibly();
+        this.write(channel == 0 ? packet : ChanneledPacket.getInstance(packet, channel));
         return this;
     }
 
     @Override
     public NetSession<S> sendFlush(@NonNull Object packet, Reliability reliability, int channel) {
-        this.writeAndFlush(channel == 0 ? packet : ChanneledPacket.getInstance(packet, channel)).syncUninterruptibly();
+        this.writeAndFlush(channel == 0 ? packet : ChanneledPacket.getInstance(packet, channel));
         return this;
     }
 
     @Override
     public Future<Void> sendAsync(@NonNull Object packet, Reliability reliability) {
-        return this.write(packet);
+        return this.sendAsync(packet, reliability, 0);
     }
 
     @Override
     public Future<Void> sendFlushAsync(@NonNull Object packet, Reliability reliability) {
-        return this.writeAndFlush(packet);
+        return this.sendFlushAsync(packet, reliability, 0);
     }
 
     @Override
@@ -194,13 +192,19 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
 
     @Override
     public void onOpened(boolean incoming) {
-        this.connectFuture.trySuccess(null);
-        TCPSession.super.onOpened(incoming);
+        try {
+            TCPSession.super.onOpened(incoming);
+        } finally {
+            this.connectFuture.trySuccess(null);
+        }
     }
 
     @Override
     public void onException(@NonNull Exception e) {
-        this.connectFuture.tryFailure(e);
-        TCPSession.super.onException(e);
+        try {
+            TCPSession.super.onException(e);
+        } finally {
+            this.connectFuture.tryFailure(e);
+        }
     }
 }

@@ -46,5 +46,6 @@ public class HandshakePacket implements OutboundPacket<MCSession> {
         out.writeUTF(this.remoteHost);
         out.writeUShort(this.remotePort);
         out.writeVarInt(this.nextState);
+        session.logger().debug("encoded handshake");
     }
 }

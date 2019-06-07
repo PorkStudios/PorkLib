@@ -107,7 +107,7 @@ public final class PacketMetadata {
     }
 
     public boolean isOriginal() {
-        return (this.setFlags & PROTOCOLID_MASK) != 0;
+        return (this.setFlags & ORIGINAL_MASK) != 0;
     }
 
     /**

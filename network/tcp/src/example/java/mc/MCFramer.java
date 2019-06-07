@@ -59,29 +59,44 @@ public class MCFramer extends Framer<MCSession> implements Logging {
         } while (value != 0);
     }
 
+    protected static int varIntLength(int value) {
+        int i = 0;
+        do {
+            value >>>= 7;
+            i++;
+        } while (value != 0);
+        return i;
+    }
+
     @Override
     protected void unpack(@NonNull MCSession session, @NonNull ByteBuf buf, @NonNull UnpackCallback callback) {
-        int origPos = buf.readerIndex();
-        logger.debug("Attempting to unpack frames: starting at %d, with %d bytes remaining!", origPos, buf.readableBytes());
+        buf.markReaderIndex();
+        logger.debug("Attempting to unpack frames with %d bytes remaining!", buf.readableBytes());
         int size;
         while ((size = readVarInt(buf)) != -1) {
             if (buf.readableBytes() >= size) {
-                logger.debug("Read packet @ %d bytes", size);
-                callback.add(buf.readRetainedSlice(size), 0, readVarInt(buf));
-                origPos = buf.readerIndex();
+                int id = readVarInt(buf);
+                logger.debug("Read packet id %d @ %d bytes", id, size);
+                try {
+                    callback.add(buf.copy(buf.readerIndex(), size), 0, id);
+                } finally {
+                    buf.skipBytes(size);
+                    buf.markReaderIndex();
+                }
             } else {
-                buf.readerIndex(origPos);
+                buf.resetReaderIndex();
                 logger.debug("Unable to read %d bytes", size);
                 return;
             }
         }
-        buf.readerIndex(origPos);
+        buf.resetReaderIndex();
     }
 
     @Override
     protected void pack(@NonNull MCSession session, @NonNull ByteBuf packet, @NonNull PacketMetadata metadata, @NonNull List<ByteBuf> frames) {
+        logger.debug("Packing message @ %d bytes", packet.readableBytes());
         ByteBuf headers = packet.alloc().ioBuffer();
-        writeVarInt(headers, packet.readableBytes());
+        writeVarInt(headers, packet.readableBytes() + varIntLength(metadata.protocolId()));
         writeVarInt(headers, metadata.protocolId());
         frames.add(headers);
         frames.add(packet);

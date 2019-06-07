@@ -40,6 +40,7 @@ public abstract class StatedProtocolSession<S extends StatedProtocolSession<S, P
     public synchronized S changeState(@NonNull E nextState)  {
         if (this.protocol.onStateChange((S) this, nextState))   {
             this.state = nextState;
+            this.logger().debug("State changed to: %s", nextState);
         }
         return (S) this;
     }

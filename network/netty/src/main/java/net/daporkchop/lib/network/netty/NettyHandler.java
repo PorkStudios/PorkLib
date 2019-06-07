@@ -15,27 +15,36 @@
 
 package net.daporkchop.lib.network.netty;
 
-import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.ChannelPromise;
+import io.netty.util.Recycler;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.binary.netty.NettyUtil;
-import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.transport.NetSession;
 
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public abstract class NettyHandler<S extends AbstractUserSession<S>, Ch extends NetSession<S>> extends ChannelInboundHandlerAdapter {
-    @NonNull
+public abstract class NettyHandler<S extends AbstractUserSession<S>, Ch extends NetSession<S>> extends ChannelDuplexHandler {
     protected final Ch session;
+    private final GenericFutureListener<Future<Void>> writeExHandler;
+
+    public NettyHandler(@NonNull Ch session)    {
+        this.session = session;
+        this.writeExHandler = f -> {
+            if (!f.isSuccess() && f.cause() instanceof Exception)   {
+                this.session.onException((Exception) f.cause());
+            }
+        };
+    }
 
     @Override
     public abstract void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception;
@@ -59,8 +68,13 @@ public abstract class NettyHandler<S extends AbstractUserSession<S>, Ch extends 
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         if (cause instanceof Exception) {
             this.session.onException((Exception) cause);
+        } else {
+            super.exceptionCaught(ctx, cause);
         }
+    }
 
-        super.exceptionCaught(ctx, cause);
+    @Override
+    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+        super.write(ctx, msg, promise.addListener(this.writeExHandler));
     }
 }

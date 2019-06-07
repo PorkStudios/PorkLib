@@ -65,6 +65,7 @@ public class TCPWriter<S extends AbstractUserSession<S>> extends MessageToMessag
         SendCallbackImpl callback = SEND_CALLBACK_CACHE.get().out(out).session(this.session);
         try {
             this.session.encodeMessage(msg, metadata, callback);
+            out.removeIf(o -> !((ByteBuf) o).isReadable());
         } finally {
             callback.reset();
             metadata.release();

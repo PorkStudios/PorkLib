@@ -22,6 +22,7 @@ import com.google.gson.JsonParser;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.UTF8;
+import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.logging.Logging;
 import sun.misc.IOUtils;
 
@@ -61,7 +62,7 @@ public class Generator implements Logging {
     public static final AtomicLong FILES = new AtomicLong(0L);
     public static final AtomicLong SIZE = new AtomicLong(0L);
     private static final Collection<String> TREE_ROOTS = Arrays.asList(
-            "main",
+            "generated",
             "test"
     );
     public static String LICENSE;
@@ -330,9 +331,7 @@ public class Generator implements Logging {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            if (!out.exists() && !out.mkdirs()) {
-                throw new IllegalStateException();
-            }
+            PFiles.ensureDirectoryExists(out);
             JsonObject settings;
             {
                 File settingsFile = new File(file.getAbsolutePath().replace(".template", ".json"));
@@ -349,7 +348,8 @@ public class Generator implements Logging {
             String imports = this.imports;
             if (settings.has("imports")) {
                 Collection<String> toAdd = StreamSupport.stream(settings.getAsJsonArray("imports").spliterator(), false)
-                        .map(JsonElement::getAsString).collect(Collectors.toList());
+                        .map(JsonElement::getAsString)
+                        .collect(Collectors.toList());
                 for (String s : toAdd) {
                     imports += String.format("\nimport %s;", s);
                 }

@@ -13,12 +13,17 @@
  *
  */
 
+sourceSets {
+    generated
+}
+
 dependencies {
-    compile "com.zaxxer:SparseBitSet:$sparseBitSetVersion"
+    compile sourceSets.generated.output
 }
 
 task deleteSource(type: Delete) {
-    delete "src"
+    delete "src/generated"
+    delete "src/test"
 }
 
 clean.dependsOn(deleteSource)

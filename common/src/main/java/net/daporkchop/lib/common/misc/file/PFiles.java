@@ -45,7 +45,7 @@ public interface PFiles {
      * @throws NotADirectoryException         if the given path is not a directory
      */
     static File ensureDirectoryExists(@NonNull File directory) throws CannotCreateDirectoryException, NotADirectoryException {
-        if (!directory.exists() && !directory.mkdirs()) {
+        if (!directory.exists() && !directory.mkdirs() && !directory.exists()) { //second check to make sure directory wasn't created by another thread
             throw new CannotCreateDirectoryException(directory);
         } else if (!directory.isDirectory()) {
             throw new NotADirectoryException(directory);

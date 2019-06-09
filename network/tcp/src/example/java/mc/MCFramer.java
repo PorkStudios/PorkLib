@@ -75,12 +75,12 @@ public class MCFramer extends Framer<MCSession> implements Logging {
         int size;
         while ((size = readVarInt(buf)) != -1) {
             if (buf.readableBytes() >= size) {
-                int id = readVarInt(buf);
-                logger.debug("Read packet id %d @ %d bytes", id, size);
+                ByteBuf copy = buf.copy(buf.readerIndex(), size);
                 try {
-                    callback.add(buf.copy(buf.readerIndex(), size), 0, id);
+                    callback.add(copy, 0, readVarInt(copy));
                 } finally {
                     buf.skipBytes(size);
+                    copy.release();
                     buf.markReaderIndex();
                 }
             } else {

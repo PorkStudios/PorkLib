@@ -47,7 +47,6 @@ public class TCPHandler<S extends AbstractUserSession<S>> extends NettyHandler<S
                 throw new RuntimeException(e);
             } finally {
                 metadata.release();
-                buf.release();
             }
         });
     }

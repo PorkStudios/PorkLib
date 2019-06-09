@@ -48,12 +48,12 @@ public class TestMCPinger implements Logging {
         client.userSession()
                 .changeState(MCState.PING)
                 .send(new RequestPacket())
-                .sendFlush(new PingPacket());
+                .sendFlush(new PingPacket(System.currentTimeMillis()));
         logger.success("Ping sent.");
 
-        client.userSession().ping.addListener(ping -> {
+        client.userSession().ping.addListener(f -> {
             logger.success("Response: %s", client.userSession().response)
-                    .success("Ping: %dms", ping);
+                    .success("Ping: %dms", f.getNow());
             client.closeAsync().addListener(v -> logger.success("Closed."));
         });
     }

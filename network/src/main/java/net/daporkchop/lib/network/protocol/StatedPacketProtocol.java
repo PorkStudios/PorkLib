@@ -69,6 +69,7 @@ public abstract class StatedPacketProtocol<P extends StatedProtocol<P, S, E>, S 
     @Override
     @SuppressWarnings("unchecked")
     public void onReceive(@NonNull S session, @NonNull DataIn in, @NonNull PacketMetadata metadata) throws IOException {
+        //session.logger().debug("Protocol received packet @ %d bytes, with ID: %d", in.available(), metadata.protocolId());
         E enumState = session.state();
         ProtocolState state = this.states.get(enumState);
         Member member = state.incoming.get(metadata.protocolId());

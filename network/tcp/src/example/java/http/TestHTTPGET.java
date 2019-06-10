@@ -13,53 +13,46 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.endpoint;
+package http;
 
-import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.ChannelOption;
-import lombok.NonNull;
+import net.daporkchop.lib.logging.LogAmount;
+import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.endpoint.PClient;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
-import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.transport.NetSession;
-import net.daporkchop.lib.network.tcp.netty.TCPChannelInitializer;
-import net.daporkchop.lib.network.tcp.session.TCPNioSocket;
+import net.daporkchop.lib.network.netty.LoopPool;
+import net.daporkchop.lib.network.tcp.TCPEngine;
 
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 
 /**
  * @author DaPorkchop_
  */
-public class TCPClient<S extends AbstractUserSession<S>> extends TCPEndpoint<PClient<S>, S, TCPNioSocket<S>> implements PClient<S> {
-    @SuppressWarnings("unchecked")
-    public TCPClient(@NonNull ClientBuilder<S> builder) {
-        super(builder);
+public class TestHTTPGET implements Logging {
+    protected static final String HOST = "maven.daporkchop.net";
+    protected static final int PORT = 443;
+    protected static final String URL = "/";
 
-        try {
-            InetSocketAddress address = builder.address();
-            Bootstrap bootstrap = new Bootstrap()
-                    .option(ChannelOption.ALLOCATOR, this.transportEngine.alloc())
-                    .group(this.group)
-                    .channelFactory(() -> new TCPNioSocket<>(this, address))
-                    .handler(new TCPChannelInitializer<>(this));
+    public static void main(String... args)    {
+        logger.enableANSI().setLogAmount(LogAmount.DEBUG).info("Starting client...");
 
-            this.transportEngine.clientOptions().forEach(bootstrap::option);
+        LoopPool.DEFAULT_THREAD_COUNT = 1;
+        PClient<HTTPSession> client = ClientBuilder.of(HTTPSession::new)
+                .engine(TCPEngine.builder().enableSSLClient().framerFactory(HTTPFramer::new).build())
+                .address(new InetSocketAddress(HOST, PORT))
+                .build();
 
-            this.channel = (TCPNioSocket<S>) bootstrap.connect(builder.address()).channel();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        this.channel.connectFuture().syncUninterruptibly();
-    }
+        logger.info("Sending request...");
+        client.sendFlushAsync("GET " + URL + " HTTP/1.1\r\n" +
+                "Host: " + HOST + "\r\n" +
+                "User-Agent: PorkLib\r\n\r\n").syncUninterruptibly();
+        logger.success("Request sent.");
 
-    @Override
-    public S userSession() {
-        return this.channel.userSession();
-    }
-
-    @Override
-    public NetSession<S> internalSession() {
-        return this.channel;
+        client.userSession().promise.addListener(f -> {
+            if (f.isSuccess()) {
+                logger.success((String) f.getNow());
+            } else {
+                logger.alert(f.cause());
+            }
+        });
     }
 }

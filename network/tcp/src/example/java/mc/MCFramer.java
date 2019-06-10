@@ -18,6 +18,7 @@ package mc;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.network.tcp.frame.AbstractFramer;
 import net.daporkchop.lib.network.tcp.frame.Framer;
 import net.daporkchop.lib.network.util.PacketMetadata;
 
@@ -26,7 +27,7 @@ import java.util.List;
 /**
  * @author DaPorkchop_
  */
-public class MCFramer extends Framer<MCSession> implements Logging {
+public class MCFramer extends AbstractFramer<MCSession> implements Logging {
     protected static int readVarInt(@NonNull ByteBuf buf) {
         int numRead = 0;
         int result = 0;
@@ -69,7 +70,7 @@ public class MCFramer extends Framer<MCSession> implements Logging {
     }
 
     @Override
-    protected void unpack(@NonNull MCSession session, @NonNull ByteBuf buf, @NonNull UnpackCallback callback) {
+    protected void unpack(@NonNull MCSession session, @NonNull ByteBuf buf, @NonNull Framer.UnpackCallback callback) {
         buf.markReaderIndex();
         logger.debug("Attempting to unpack frames with %d bytes remaining!", buf.readableBytes());
         int size;

@@ -38,10 +38,11 @@ public class TCPHandler<S extends AbstractUserSession<S>> extends NettyHandler<S
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        this.session.logger().debug("Received message @ %d bytes...", ((ByteBuf) msg).readableBytes());
-        this.session.framer().received(this.session.userSession(), (ByteBuf) msg, (buf, channelId, protocolId) -> {
+        ByteBuf buf = (ByteBuf) msg;
+        this.session.logger().debug("Received message @ %d bytes...", buf.readableBytes());
+        this.session.framer().received(this.session.userSession(), buf, (bb, channelId, protocolId) -> {
             PacketMetadata metadata = PacketMetadata.instance(Reliability.RELIABLE_ORDERED, channelId, protocolId, true);
-            try (DataIn in = NettyUtil.wrapIn(buf)) {
+            try (DataIn in = NettyUtil.wrapIn(bb)) {
                 this.session.onReceive(in, metadata); //TODO: recycle this lambda
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -49,5 +50,6 @@ public class TCPHandler<S extends AbstractUserSession<S>> extends NettyHandler<S
                 metadata.release();
             }
         });
+        buf.release();
     }
 }

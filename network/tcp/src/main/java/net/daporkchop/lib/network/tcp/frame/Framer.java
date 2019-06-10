@@ -16,67 +16,58 @@
 package net.daporkchop.lib.network.tcp.frame;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.CompositeByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.tcp.session.TCPNioSocket;
 import net.daporkchop.lib.network.util.PacketMetadata;
 
 import java.util.List;
 
 /**
- * Allows for sending individual packets down the pipeline.
+ * Packs binary messages into "frames",
  *
  * @author DaPorkchop_
  */
-public abstract class Framer<S extends AbstractUserSession<S>> {
-    protected CompositeByteBuf cumulation;
-    protected int ctr = 0;
-
-    public final void received(@NonNull S session, @NonNull ByteBuf msg, @NonNull UnpackCallback callback) {
-        this.unpack(session, this.cumulation.addComponent(true, msg), callback);
-        if (this.ctr++ >= 16) {
-            this.cumulation.discardSomeReadBytes();
-            this.ctr = 0;
-        }
-    }
-
-    public final void sending(@NonNull S session, @NonNull ByteBuf msg, @NonNull PacketMetadata metadata, @NonNull List<ByteBuf> frames) {
-        this.pack(session, msg, metadata, frames);
-    }
-
-    public void init(@NonNull S session) {
-        this.cumulation = ((TCPNioSocket<S>) session.internalSession()).alloc().compositeDirectBuffer();
-    }
-
-    public void release(@NonNull S session) {
-        this.cumulation.release();
-        this.cumulation = null;
-    }
-
+public interface Framer<S extends AbstractUserSession<S>> {
     /**
-     * Decodes as many frames as can be read from the given buffer. If an entire frame cannot be read (as the
-     * buffer is incomplete), the data should be left in the buffer.
+     * Called when data is received over the TCP channel. The data is not guaranteed to be a complete frame.
+     * <p>
+     * Note that any data not read from the buffer will be discarded.
      *
      * @param session  the session that the data was received on
-     * @param buf      the buffer to read frames from
-     * @param callback destination for unpacked frames. Buffers should be added to this after being removed from the
-     *                 input buffer using {@link ByteBuf#readRetainedSlice(int)} or similar methods, so long
-     *                 as the reader index is incremented correctly
+     * @param msg      the data that was received. This buffer should not be released (unless explicitly retained elsewhere)
+     * @param callback a callback function that each complete frame should be passed to individually for processing
      */
-    protected abstract void unpack(@NonNull S session, @NonNull ByteBuf buf, @NonNull UnpackCallback callback);
+    void received(@NonNull S session, @NonNull ByteBuf msg, @NonNull UnpackCallback callback);
 
     /**
-     * Packs an encoded packet into (a) frame(s).
+     * Called when data is about to be sent over the TCP channel. This method may be used to pack outbound messages into frames (such as prefixing them
+     * with a length header).
      *
-     * @param session the session that the packet will be sent on
-     * @param packet  a buffer containing the encoded packet
-     * @param frames  buffers may be passed to this method for sequential sending
+     * @param session  the session that the data will be sent on
+     * @param msg      the data that will be sent. This buffer should not be released, and should probably also be added to the outbound frames list unless
+     *                 there is a specific reason why not to send it
+     * @param metadata additional metadata to be sent alongside the packet or otherwise used for it. If any metadata fields are set that cannot be used
+     *                 by this framer, an {@link IllegalArgumentException} should be thrown
+     * @param frames   a list of {@link ByteBuf}s that will be sent (sequentially) over the TCP channel
      */
-    protected abstract void pack(@NonNull S session, @NonNull ByteBuf packet, @NonNull PacketMetadata metadata, @NonNull List<ByteBuf> frames);
+    void sending(@NonNull S session, @NonNull ByteBuf msg, @NonNull PacketMetadata metadata, @NonNull List<ByteBuf> frames);
+
+    /**
+     * Called when the framer instance is initialized for a connecting session.
+     *
+     * @param session the session that is connecting
+     */
+    void init(@NonNull S session);
+
+    /**
+     * Called when the framer instance is released from a connected session.
+     *
+     * @param session the session that is disconnecting
+     */
+    void release(@NonNull S session);
 
     @FunctionalInterface
-    public interface UnpackCallback {
+    interface UnpackCallback {
         void add(@NonNull ByteBuf buf, int channelId, int protocolId);
 
         default void add(@NonNull ByteBuf buf, int protocolId) {

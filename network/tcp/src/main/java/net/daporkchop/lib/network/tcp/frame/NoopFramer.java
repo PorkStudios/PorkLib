@@ -13,26 +13,40 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.session;
+package net.daporkchop.lib.network.tcp.frame;
 
+import io.netty.buffer.ByteBuf;
+import lombok.NonNull;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.tcp.frame.AbstractFramer;
-import net.daporkchop.lib.network.tcp.frame.Framer;
-import net.daporkchop.lib.network.transport.NetSession;
+import net.daporkchop.lib.network.util.PacketMetadata;
+
+import java.util.List;
 
 /**
+ * A {@link Framer} that doesn't use any sort of length prefixing or encode any metadata, and simply sends binary messages as they are.
+ *
  * @author DaPorkchop_
  */
-public interface TCPSession<S extends AbstractUserSession<S>> extends NetSession<S> {
-    /**
-     * @return the {@link Framer} used by this session
-     */
-    Framer<S> framer();
+public class NoopFramer<S extends AbstractUserSession<S>> implements Framer<S> {
+    @Override
+    public void received(@NonNull S session, @NonNull ByteBuf msg, @NonNull UnpackCallback callback) {
+        callback.add(msg);
+    }
 
     @Override
-    default void onClosed() {
-        this.closeAsync();
-        this.framer().release(this.userSession());
-        NetSession.super.onClosed();
+    public void sending(@NonNull S session, @NonNull ByteBuf msg, @NonNull PacketMetadata metadata, @NonNull List<ByteBuf> frames) {
+        if (metadata.checkAnySet(~PacketMetadata.ORIGINAL_MASK))    {
+            throw new IllegalStateException();
+        } else {
+            frames.add(msg);
+        }
+    }
+
+    @Override
+    public void init(@NonNull S session) {
+    }
+
+    @Override
+    public void release(@NonNull S session) {
     }
 }

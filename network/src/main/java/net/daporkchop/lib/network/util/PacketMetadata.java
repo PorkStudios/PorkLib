@@ -34,9 +34,9 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true, fluent = true)
 public final class PacketMetadata {
     protected static final int RELIABILITY_MASK = 1 << 0;
-    protected static final int CHANNELID_MASK = 1 << 1;
-    protected static final int PROTOCOLID_MASK = 1 << 2;
-    protected static final int ORIGINAL_MASK = 1 << 3;
+    public static final int CHANNELID_MASK = 1 << 1;
+    public static final int PROTOCOLID_MASK = 1 << 2;
+    public static final int ORIGINAL_MASK = 1 << 3;
 
     private static final Recycler<PacketMetadata> RECYCLER = new Recycler<PacketMetadata>() {
         @Override
@@ -104,6 +104,10 @@ public final class PacketMetadata {
 
     public boolean checkProtocolIdSet() {
         return (this.setFlags & PROTOCOLID_MASK) != 0;
+    }
+
+    public boolean checkAnySet(int mask)    {
+        return (this.setFlags & mask) != 0;
     }
 
     public boolean isOriginal() {

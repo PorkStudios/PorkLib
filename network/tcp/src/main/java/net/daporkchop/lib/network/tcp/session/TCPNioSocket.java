@@ -27,15 +27,17 @@ import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.network.EndpointType;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.tcp.frame.Framer;
 import net.daporkchop.lib.network.util.Reliability;
 import net.daporkchop.lib.network.tcp.endpoint.TCPEndpoint;
-import net.daporkchop.lib.network.tcp.frame.Framer;
+import net.daporkchop.lib.network.tcp.frame.AbstractFramer;
 import net.daporkchop.lib.network.transport.ChanneledPacket;
 import net.daporkchop.lib.network.transport.NetSession;
 import net.daporkchop.lib.network.transport.TransportEngine;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
 
 /**
@@ -49,10 +51,12 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
     protected final boolean incoming;
     protected final Framer<S> framer;
     protected final Promise<Void> connectFuture;
+    protected final InetSocketAddress address;
 
-    public TCPNioSocket(@NonNull TCPEndpoint<?, S, ?> endpoint) {
+    public TCPNioSocket(@NonNull TCPEndpoint<?, S, ?> endpoint, @NonNull InetSocketAddress address) {
         this.incoming = false;
         this.endpoint = endpoint;
+        this.address = address;
         this.userSession = endpoint.sessionFactory().newSession();
         PUnsafe.putObject(this.userSession, ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);
 
@@ -68,6 +72,7 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
         super(parent, socket);
 
         this.incoming = true;
+        this.address = null;
         this.endpoint = endpoint;
         this.userSession = endpoint.sessionFactory().newSession();
         PUnsafe.putObject(this.userSession, ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);

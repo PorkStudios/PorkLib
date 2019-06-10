@@ -27,9 +27,9 @@ import java.util.List;
  *
  * @author DaPorkchop_
  */
-public abstract class LengthPrefixedFramer<S extends AbstractUserSession<S>> extends Framer<S> {
+public abstract class LengthPrefixedFramer<S extends AbstractUserSession<S>> extends AbstractFramer<S> {
     @Override
-    protected void unpack(@NonNull S session, @NonNull ByteBuf buf, @NonNull UnpackCallback callback) {
+    protected void unpack(@NonNull S session, @NonNull ByteBuf buf, @NonNull Framer.UnpackCallback callback) {
         int lengthFieldLength = this.lengthFieldLength();
         int headerLength = this.channelIdLength() + this.protocolIdLength();
 

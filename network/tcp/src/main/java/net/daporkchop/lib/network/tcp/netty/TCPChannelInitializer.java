@@ -25,6 +25,7 @@ import net.daporkchop.lib.network.tcp.TCPEngine;
 import net.daporkchop.lib.network.tcp.endpoint.TCPEndpoint;
 import net.daporkchop.lib.network.tcp.session.TCPNioSocket;
 
+import java.net.InetSocketAddress;
 import java.util.function.Consumer;
 
 /**
@@ -61,7 +62,13 @@ public class TCPChannelInitializer<E extends TCPEndpoint<?, S, ?>, S extends Abs
             }
         } else {
             if (engine.sslClientContext() != null)  {
-                channel.pipeline().addFirst("ssl", engine.sslClientContext().newHandler(channel.alloc(), channel.remoteAddress().getHostString(), channel.remoteAddress().getPort()));
+                InetSocketAddress address = channel.address();
+                if (address != null)    {
+                    channel.pipeline().addFirst("ssl", engine.sslClientContext().newHandler(channel.alloc(), address.getHostString(), address.getPort()));
+                } else {
+                    channel.logger().warn("No target address found, but client SSL is enabled!");
+                    channel.pipeline().addFirst("ssl", engine.sslClientContext().newHandler(channel.alloc()));
+                }
             }
         }
 

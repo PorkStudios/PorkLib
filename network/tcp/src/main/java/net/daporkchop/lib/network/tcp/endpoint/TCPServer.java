@@ -17,6 +17,7 @@ package net.daporkchop.lib.network.tcp.endpoint;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.group.ChannelGroup;
 import lombok.NonNull;
 import net.daporkchop.lib.network.endpoint.PServer;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
@@ -52,6 +53,7 @@ public class TCPServer<S extends AbstractUserSession<S>> extends TCPEndpoint<PSe
                             this.sessions::remove
                     ));
 
+            this.transportEngine.clientOptions().forEach(bootstrap::childOption);
             this.transportEngine.serverOptions().forEach(bootstrap::option);
 
             this.channel = (TCPNioServerSocket<S>) bootstrap.bind(builder.bind()).syncUninterruptibly().channel();

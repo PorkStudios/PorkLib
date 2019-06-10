@@ -67,9 +67,13 @@ public class HTTPSession extends AbstractUserSession<HTTPSession> {
             }
             break;
             case 1: {
-                int i;
-                while ((i = in.read()) != -1)   {
-                    this.body.writeByte(i);
+                if (in.available() == 0)    {
+                    this.logger().debug("Read EOF!");
+                    this.closeAsync();
+                    return;
+                }
+                for (int i = in.available() - 1; i >= 0; i--)   {
+                    this.body.writeByte(in.read());
                 }
                 if (this.contentLength != -1)   {
                     if (this.body.readableBytes() > this.contentLength) {

@@ -33,7 +33,7 @@ public abstract class AbstractFramer<S extends AbstractUserSession<S>> implement
 
     @Override
     public final void received(@NonNull S session, @NonNull ByteBuf msg, @NonNull Framer.UnpackCallback callback) {
-        this.unpack(session, this.cumulation.addComponent(true, msg), callback);
+        this.unpack(session, this.cumulation.addComponent(true, msg.retain()), callback);
         if (this.ctr++ >= 16) {
             this.cumulation.discardSomeReadBytes();
             this.ctr = 0;
@@ -52,8 +52,9 @@ public abstract class AbstractFramer<S extends AbstractUserSession<S>> implement
 
     @Override
     public void release(@NonNull S session) {
-        this.cumulation.release();
+        CompositeByteBuf buf = this.cumulation;
         this.cumulation = null;
+        buf.release();
     }
 
     /**

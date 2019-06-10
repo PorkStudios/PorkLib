@@ -42,9 +42,9 @@ public class TestHTTPGET implements Logging {
                 .build();
 
         logger.info("Sending request...");
-        client.sendFlushAsync("GET " + URL + " HTTP/1.1\r\n" +
+        client.sendFlushNow("GET " + URL + " HTTP/1.1\r\n" +
                 "Host: " + HOST + "\r\n" +
-                "User-Agent: PorkLib\r\n\r\n").syncUninterruptibly();
+                "User-Agent: PorkLib\r\n\r\n");
         logger.success("Request sent.");
 
         client.userSession().promise.addListener(f -> {

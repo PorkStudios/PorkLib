@@ -21,6 +21,7 @@ import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.transport.NetSession;
 import net.daporkchop.lib.network.transport.TransportEngine;
+import net.daporkchop.lib.network.util.Priority;
 import net.daporkchop.lib.network.util.Reliability;
 
 import java.net.SocketAddress;
@@ -38,51 +39,8 @@ public interface BaseUserSession<Impl extends BaseUserSession<Impl, S>, S extend
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    default Impl send(@NonNull Object packet, Reliability reliability) {
-        this.internalSession().send(packet, reliability);
-        return (Impl) this;
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    default Impl sendFlush(@NonNull Object packet, Reliability reliability) {
-        this.internalSession().sendFlush(packet, reliability);
-        return (Impl) this;
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    default Impl send(@NonNull Object packet, Reliability reliability, int channel) {
-        this.internalSession().send(packet, reliability, channel);
-        return (Impl) this;
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    default Impl sendFlush(@NonNull Object packet, Reliability reliability, int channel) {
-        this.internalSession().sendFlush(packet, reliability, channel);
-        return (Impl) this;
-    }
-
-    @Override
-    default Future<Void> sendAsync(@NonNull Object packet, Reliability reliability) {
-        return this.internalSession().sendAsync(packet, reliability);
-    }
-
-    @Override
-    default Future<Void> sendFlushAsync(@NonNull Object packet, Reliability reliability) {
-        return this.internalSession().sendFlushAsync(packet, reliability);
-    }
-
-    @Override
-    default Future<Void> sendAsync(@NonNull Object packet, Reliability reliability, int channel) {
-        return this.internalSession().sendAsync(packet, reliability, channel);
-    }
-
-    @Override
-    default Future<Void> sendFlushAsync(@NonNull Object packet, Reliability reliability, int channel) {
-        return this.internalSession().sendFlushAsync(packet, reliability, channel);
+    default Future<Void> send(@NonNull Object message, int channel, Reliability reliability, Priority priority, int flags) {
+        return this.internalSession().send(message, channel, reliability, priority, flags);
     }
 
     @Override

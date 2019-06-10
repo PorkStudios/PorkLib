@@ -44,11 +44,10 @@ public class TestMCPinger implements Logging {
                 .build();
 
         logger.info("Pinging server...");
-        client.sendFlushAsync(new HandshakePacket(-1, HOST, PORT, 0x01)).syncUninterruptibly();
-        client.userSession()
-                .changeState(MCState.PING)
-                .send(new RequestPacket())
-                .sendFlush(new PingPacket(System.currentTimeMillis()));
+        client.sendFlushNow(new HandshakePacket(-1, HOST, PORT, 0x01));
+        client.userSession().changeState(MCState.PING);
+        client.send(new RequestPacket());
+        client.sendFlush(new PingPacket(System.currentTimeMillis()));
         logger.success("Ping sent.");
 
         client.userSession().ping.addListener(f -> {

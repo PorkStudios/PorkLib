@@ -16,6 +16,7 @@
 package net.daporkchop.lib.network.tcp.session;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
@@ -28,12 +29,14 @@ import net.daporkchop.lib.network.EndpointType;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.tcp.frame.Framer;
+import net.daporkchop.lib.network.util.Priority;
 import net.daporkchop.lib.network.util.Reliability;
 import net.daporkchop.lib.network.tcp.endpoint.TCPEndpoint;
 import net.daporkchop.lib.network.tcp.frame.AbstractFramer;
 import net.daporkchop.lib.network.transport.ChanneledPacket;
 import net.daporkchop.lib.network.transport.NetSession;
 import net.daporkchop.lib.network.transport.TransportEngine;
+import net.daporkchop.lib.network.util.SendFlags;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
@@ -92,45 +95,23 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
     }
 
     @Override
-    public NetSession<S> send(@NonNull Object packet, Reliability reliability) {
-        return this.send(packet, reliability, 0);
-    }
-
-    @Override
-    public NetSession<S> sendFlush(@NonNull Object packet, Reliability reliability) {
-        return this.sendFlush(packet, reliability, 0);
-    }
-
-    @Override
-    public NetSession<S> send(@NonNull Object packet, Reliability reliability, int channel) {
-        this.write(channel == 0 ? packet : ChanneledPacket.getInstance(packet, channel));
-        return this;
-    }
-
-    @Override
-    public NetSession<S> sendFlush(@NonNull Object packet, Reliability reliability, int channel) {
-        this.writeAndFlush(channel == 0 ? packet : ChanneledPacket.getInstance(packet, channel));
-        return this;
-    }
-
-    @Override
-    public Future<Void> sendAsync(@NonNull Object packet, Reliability reliability) {
-        return this.sendAsync(packet, reliability, 0);
-    }
-
-    @Override
-    public Future<Void> sendFlushAsync(@NonNull Object packet, Reliability reliability) {
-        return this.sendFlushAsync(packet, reliability, 0);
-    }
-
-    @Override
-    public Future<Void> sendAsync(@NonNull Object packet, Reliability reliability, int channel) {
-        return this.write(channel == 0 ? packet : ChanneledPacket.getInstance(packet, channel));
-    }
-
-    @Override
-    public Future<Void> sendFlushAsync(@NonNull Object packet, Reliability reliability, int channel) {
-        return this.writeAndFlush(channel == 0 ? packet : ChanneledPacket.getInstance(packet, channel));
+    public Future<Void> send(@NonNull Object message, int channel, Reliability reliability, Priority priority, int flags) {
+        if (channel != 0)    {
+            message = ChanneledPacket.getInstance(message, channel);
+        }
+        if ((flags & SendFlags.ASYNC) != 0) {
+            Object screwJava = message; //reeeeee
+            return this.eventLoop().submit(
+                    () -> this.send(screwJava, 0, null, null, flags & ~(SendFlags.ASYNC | SendFlags.SYNC)),
+                    null
+            );
+        } else {
+            ChannelFuture future = (flags & SendFlags.FLUSH) != 0 ? this.writeAndFlush(message) : this.write(message);
+            if ((flags & SendFlags.SYNC) != 0) {
+                future.syncUninterruptibly();
+            }
+            return future;
+        }
     }
 
     @Override

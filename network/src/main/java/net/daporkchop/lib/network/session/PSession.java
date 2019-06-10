@@ -23,11 +23,12 @@ import net.daporkchop.lib.logging.Logger;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.transport.TransportEngine;
 import net.daporkchop.lib.network.util.CloseableFuture;
+import net.daporkchop.lib.network.util.Priority;
 import net.daporkchop.lib.network.util.Reliability;
+import net.daporkchop.lib.network.util.SendFlags;
 import net.daporkchop.lib.network.util.TransportEngineHolder;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.SocketAddress;
 import java.util.Collection;
 
@@ -43,240 +44,81 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
     <E extends PEndpoint<E, S>> E endpoint();
 
     /**
-     * Sends a single packet to the remote endpoint.
-     * <p>
-     * All packets sent using these methods will be sent on channel 0.
+     * Sends a message to the remote endpoint on channel 0, using this session's fallback reliability level, {@link Priority#NORMAL}, and no additional
+     * flags.
      *
-     * @param packet      the packet to be sent
-     * @param reliability the reliability that the packet is to be sent with. If {@code null} or unsupported by this
-     *                    session's transport protocol, this session's fallback reliability level will be
-     *                    used (see {@link #fallbackReliability()})
-     * @return this session
+     * @see #send(Object, int, Reliability, Priority, int)
      */
-    Impl send(@NonNull Object packet, Reliability reliability);
-
-    /**
-     * Sends a single packet to the remote endpoint, using this session's default reliability level.
-     * <p>
-     * All packets sent using these methods will be sent on channel 0.
-     *
-     * @param packet the packet to be sent
-     * @return this session
-     */
-    default Impl send(@NonNull Object packet) {
-        return this.send(packet, this.fallbackReliability(), 0);
+    default Future<Void> send(@NonNull Object message)  {
+        return this.send(message, 0, this.fallbackReliability(), Priority.NORMAL, 0);
     }
 
     /**
-     * Sends a single packet to the remote endpoint.
-     * <p>
-     * All packets sent using these methods will be sent on channel 0.
-     * <p>
-     * The send buffer will also be flushed after this operation.
+     * Sends a message to the remote endpoint on channel 0, using this session's fallback reliability level, {@link Priority#NORMAL}, and the
+     * {@link SendFlags#FLUSH} flag.
      *
-     * @param packet      the packet to be sent
-     * @param reliability the reliability that the packet is to be sent with. If {@code null} or unsupported by this
-     *                    session's transport protocol, this session's fallback reliability level will be
-     *                    used (see {@link #fallbackReliability()})
-     * @return this session
+     * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Impl sendFlush(@NonNull Object packet, Reliability reliability) {
-        return this.send(packet, reliability, 0).flushBuffer();
+    default Future<Void> sendFlush(@NonNull Object message)  {
+        return this.send(message, 0, this.fallbackReliability(), Priority.NORMAL, SendFlags.FLUSH);
     }
 
     /**
-     * Sends a single packet to the remote endpoint, using this session's default reliability level.
-     * <p>
-     * All packets sent using these methods will be sent on channel 0.
-     * <p>
-     * The send buffer will also be flushed after this operation.
+     * Sends a message to the remote endpoint on channel 0, using this session's fallback reliability level, {@link Priority#NORMAL}, and the
+     * {@link SendFlags#SYNC} flag.
      *
-     * @param packet the packet to be sent
-     * @return this session
+     * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Impl sendFlush(@NonNull Object packet) {
-        return this.sendFlush(packet, this.fallbackReliability(), 0);
+    default Future<Void> sendNow(@NonNull Object message)  {
+        return this.send(message, 0, this.fallbackReliability(), Priority.NORMAL, SendFlags.SYNC);
     }
 
     /**
-     * Sends a single packet to the remote endpoint over a specific channel.
+     * Sends a message to the remote endpoint on channel 0, using this session's fallback reliability level, {@link Priority#NORMAL}, and the
+     * {@link SendFlags#ASYNC} flag.
      *
-     * @param packet      the packet to be sent
-     * @param reliability the reliability that the packet is to be sent with. If {@code null} or unsupported by this
-     *                    session's transport protocol, this session's fallback reliability level will be
-     *                    used (see {@link #fallbackReliability()})
-     * @param channel     the id of the channel that the packet will be sent on
-     * @return this session
+     * @see #send(Object, int, Reliability, Priority, int)
      */
-    Impl send(@NonNull Object packet, Reliability reliability, int channel);
-
-    /**
-     * Sends a single packet to the remote endpoint over a specific channel, using this channel's fallback reliability
-     * level.
-     *
-     * @param packet  the packet to be sent
-     * @param channel the id of the channel that the packet will be sent on
-     * @return this session
-     */
-    default Impl send(@NonNull Object packet, int channel) {
-        return this.send(packet, this.fallbackReliability(), channel);
+    default Future<Void> sendAsync(@NonNull Object message)  {
+        return this.send(message, 0, this.fallbackReliability(), Priority.NORMAL, SendFlags.ASYNC);
     }
 
     /**
-     * Sends a single packet to the remote endpoint over a specific channel.
-     * <p>
-     * The send buffer will also be flushed after this operation.
+     * Sends a message to the remote endpoint on channel 0, using this session's fallback reliability level, {@link Priority#NORMAL}, and the
+     * following flags:
+     * - {@link SendFlags#SYNC}
+     * - {@link SendFlags#FLUSH}
      *
-     * @param packet      the packet to be sent
-     * @param reliability the reliability that the packet is to be sent with. If {@code null} or unsupported by this
-     *                    session's transport protocol, this session's fallback reliability level will be
-     *                    used (see {@link #fallbackReliability()})
-     * @param channel     the id of the channel that the packet will be sent on
-     * @return this session
+     * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Impl sendFlush(@NonNull Object packet, Reliability reliability, int channel) {
-        return this.send(packet, reliability, channel).flushBuffer();
+    default Future<Void> sendFlushNow(@NonNull Object message)  {
+        return this.send(message, 0, this.fallbackReliability(), Priority.NORMAL, SendFlags.SYNC | SendFlags.FLUSH);
     }
 
     /**
-     * Sends a single packet to the remote endpoint over a specific channel, using this channel's fallback reliability
-     * level.
-     * <p>
-     * The send buffer will also be flushed after this operation.
+     * Sends a message to the remote endpoint on channel 0, using this session's fallback reliability level, {@link Priority#NORMAL}, and the
+     * following flags:
+     * - {@link SendFlags#ASYNC}
+     * - {@link SendFlags#FLUSH}
      *
-     * @param packet  the packet to be sent
-     * @param channel the id of the channel that the packet will be sent on
-     * @return this session
+     * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Impl sendFlush(@NonNull Object packet, int channel) {
-        return this.sendFlush(packet, this.fallbackReliability(), channel);
+    default Future<Void> sendFlushAsync(@NonNull Object message)  {
+        return this.send(message, 0, this.fallbackReliability(), Priority.NORMAL, SendFlags.ASYNC | SendFlags.FLUSH);
     }
 
     /**
-     * Sends a single packet to the remote endpoint.
-     * <p>
-     * All packets sent using these methods will be sent on channel 0.
-     * <p>
-     * This method is non-blocking, and returns a future that may be used to track the packet as it is sent.
+     * Sends a message to the remote endpoint.
      *
-     * @param packet      the packet to be sent
-     * @param reliability the reliability that the packet is to be sent with. If {@code null} or unsupported by this
-     *                    session's transport protocol, this session's fallback reliability level will be
-     *                    used (see {@link #fallbackReliability()})
-     * @return a future which may be used to track the packet as it is sent
+     * @param message     the message to be sent
+     * @param channel     the id of the channel to send the message on
+     * @param reliability the reliability that the message is to be sent with. Some transport engines may ignore this
+     * @param priority    the priority that the message is to be sent with. Some transport engines may ignore this
+     * @param flags       additional flags that the message is to be sent with. Valid are any fields from {@link net.daporkchop.lib.network.util.SendFlags}, and
+     *                    flags may also be ORed together
+     * @return a {@link Future} that may be used to monitor the message as it is sent. Depending on the flags that are set (or if none are set), this may return {@code null}
      */
-    Future<Void> sendAsync(@NonNull Object packet, Reliability reliability);
-
-    /**
-     * Sends a single packet to the remote endpoint, using this session's default reliability level.
-     * <p>
-     * All packets sent using these methods will be sent on channel 0.
-     * <p>
-     * This method is non-blocking, and returns a future that may be used to track the packet as it is sent.
-     *
-     * @param packet the packet to be sent
-     * @return a future which may be used to track the packet as it is sent
-     */
-    default Future<Void> sendAsync(@NonNull Object packet) {
-        return this.sendAsync(packet, this.fallbackReliability(), 0);
-    }
-
-    /**
-     * Sends a single packet to the remote endpoint.
-     * <p>
-     * All packets sent using these methods will be sent on channel 0.
-     * <p>
-     * This method is non-blocking, and returns a future that may be used to track the packet as it is sent.
-     * <p>
-     * The send buffer will also be flushed after this operation.
-     *
-     * @param packet      the packet to be sent
-     * @param reliability the reliability that the packet is to be sent with. If {@code null} or unsupported by this
-     *                    session's transport protocol, this session's fallback reliability level will be
-     *                    used (see {@link #fallbackReliability()})
-     * @return a future which may be used to track the packet as it is sent
-     */
-    default Future<Void> sendFlushAsync(@NonNull Object packet, Reliability reliability) {
-        return this.sendAsync(packet, reliability, 0).addListener(v -> this.flushBuffer());
-    }
-
-    /**
-     * Sends a single packet to the remote endpoint, using this session's default reliability level.
-     * <p>
-     * All packets sent using these methods will be sent on channel 0.
-     * <p>
-     * This method is non-blocking, and returns a future that may be used to track the packet as it is sent.
-     * <p>
-     * The send buffer will also be flushed after this operation.
-     *
-     * @param packet the packet to be sent
-     * @return a future which may be used to track the packet as it is sent
-     */
-    default Future<Void> sendFlushAsync(@NonNull Object packet) {
-        return this.sendFlushAsync(packet, this.fallbackReliability(), 0);
-    }
-
-    /**
-     * Sends a single packet to the remote endpoint over a specific channel.
-     * <p>
-     * This method is non-blocking, and returns a future that may be used to track the packet as it is sent.
-     *
-     * @param packet      the packet to be sent
-     * @param reliability the reliability that the packet is to be sent with. If {@code null} or unsupported by this
-     *                    session's transport protocol, this session's fallback reliability level will be
-     *                    used (see {@link #fallbackReliability()})
-     * @param channel     the id of the channel that the packet will be sent on
-     * @return a future which may be used to track the packet as it is sent
-     */
-    Future<Void> sendAsync(@NonNull Object packet, Reliability reliability, int channel);
-
-    /**
-     * Sends a single packet to the remote endpoint over a specific channel, using this channel's fallback reliability
-     * level.
-     * <p>
-     * This method is non-blocking, and returns a future that may be used to track the packet as it is sent.
-     *
-     * @param packet  the packet to be sent
-     * @param channel the id of the channel that the packet will be sent on
-     * @return a future which may be used to track the packet as it is sent
-     */
-    default Future<Void> sendAsync(@NonNull Object packet, int channel) {
-        return this.sendAsync(packet, this.fallbackReliability(), channel);
-    }
-
-    /**
-     * Sends a single packet to the remote endpoint over a specific channel.
-     * <p>
-     * This method is non-blocking, and returns a future that may be used to track the packet as it is sent.
-     * <p>
-     * The send buffer will also be flushed after this operation.
-     *
-     * @param packet      the packet to be sent
-     * @param reliability the reliability that the packet is to be sent with. If {@code null} or unsupported by this
-     *                    session's transport protocol, this session's fallback reliability level will be
-     *                    used (see {@link #fallbackReliability()})
-     * @param channel     the id of the channel that the packet will be sent on
-     * @return a future which may be used to track the packet as it is sent
-     */
-    default Future<Void> sendFlushAsync(@NonNull Object packet, Reliability reliability, int channel) {
-        return this.sendAsync(packet, reliability, channel).addListener(v -> this.flushBuffer());
-    }
-
-    /**
-     * Sends a single packet to the remote endpoint over a specific channel, using this channel's fallback reliability
-     * level.
-     * <p>
-     * This method is non-blocking, and returns a future that may be used to track the packet as it is sent.
-     * <p>
-     * The send buffer will also be flushed after this operation.
-     *
-     * @param packet  the packet to be sent
-     * @param channel the id of the channel that the packet will be sent on
-     * @return a future which may be used to track the packet as it is sent
-     */
-    default Future<Void> sendFlushAsync(@NonNull Object packet, int channel) {
-        return this.sendFlushAsync(packet, this.fallbackReliability(), channel);
-    }
+    Future<Void> send(@NonNull Object message, int channel, Reliability reliability, Priority priority, int flags);
 
     /**
      * Gets a {@link DataOut} which may be used to write raw binary data to the session.

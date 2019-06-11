@@ -1,11 +1,42 @@
 _headers_
 
 import net.daporkchop.lib.primitive.stack._P0_Stack;
+import net.daporkchop.lib.primitive.stack.StackOverflowException;
+import net.daporkchop.lib.primitive.stack.StackUnderflowException;
 
 /**
- * A {@link _P0_Stack} implementation backed by an array.
+ * A {@link _P0_Stack} implementation backed by a fixed-size array.
  *
  * @author DaPorkchop_
  */
 public class _P0_ArrayStack_gH_ implements _P0_Stack_gH_ {
+    protected final _nameP0_[] arr;
+    protected int pos = 0;
+
+    public _P0_ArrayStack(int size) {
+        this.arr = new _nameP0_[size];
+    }
+
+    @Override
+    public void push(_p0_ val) throws StackOverflowException    {
+        if (this.pos + 1 >= this.arr.length)    {
+            throw StackOverflowException.INSTANCE;
+        } else {
+            this.arr[this.pos++] = val;
+        }
+    }
+
+    @Override
+    public _p0_ pop() throws StackUnderflowException    {
+        if (this.pos <= 0)  {
+            throw StackUnderflowException.INSTANCE;
+        } else {
+            <%int i = this.pos--;
+            @SuppressWarnings("unchecked")
+            _p0_ val = _castP0_this.arr[i];
+            this.arr[i] = _P0E_;
+            return val;%>
+            <!%return this.arr[this.pos--];%>
+        }
+    }
 }

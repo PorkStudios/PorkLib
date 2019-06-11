@@ -157,13 +157,15 @@ public class Primitive {
     public String format(@NonNull String text, int i, boolean removeGenericThings) {
         if (i == 0) {
             if (this.generic) {
-                if (removeGenericThings) {
-                    text = text
-                            .replaceAll("<%", "")
-                            .replaceAll("%>", "");
-                }
+                text = text.replaceAll("\\s*?<!%[\\s\\S]*?%>", "")
+                        .replaceAll("<!%[\\s\\S]*?%>", "")
+                        .replaceAll("(\\s*?)<%([\\s\\S]*?)%>", "$1$2")
+                        .replaceAll("<%([\\s\\S]*?)%>", "$1");
             } else {
-                text = text.replaceAll("<%([\\s\\S]*?)%>", "");
+                text = text.replaceAll("\\s*?<%[\\s\\S]*?%>", "")
+                        .replaceAll("<%[\\s\\S]*?%>", "")
+                        .replaceAll("(\\s*?)<!%([\\s\\S]*?)%>", "$1$2")
+                        .replaceAll("<!%([\\s\\S]*?)%>", "$1");
             }
         }
         return text

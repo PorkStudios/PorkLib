@@ -54,6 +54,11 @@ public interface _P0_Collection_gH_ extends Synchronizable<_P0_Collection_gH_> {
      */
     void forEach(_P0_Consumer_gH_ consumer);
 
+    /**
+     * @return an {@link _P0_Iterator} over the elements in this collection
+     */
+    _P0_Iterator_gH_ iterator();
+
     @Override
     default _P0_Collection_gH_ sync(Object mutex)    {
         throw new UnsupportedOperationException(); //TODO

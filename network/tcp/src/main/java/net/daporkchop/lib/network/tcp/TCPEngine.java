@@ -18,11 +18,11 @@ package net.daporkchop.lib.network.tcp;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import io.netty.handler.ssl.util.SelfSignedCertificate;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.cache.Cache;
 import net.daporkchop.lib.common.cache.SoftCache;
@@ -43,6 +43,7 @@ import javax.net.ssl.SSLException;
 import java.io.File;
 import java.io.InputStream;
 import java.security.PrivateKey;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.Collections;
@@ -104,6 +105,8 @@ public final class TCPEngine extends NettyEngine {
     @Getter
     @Accessors(fluent = true, chain = true)
     public static final class Builder extends NettyEngine.Builder<Builder, TCPEngine> {
+        protected static SelfSignedCertificate SELF_SIGNED_CERTIFICATE;
+
         protected SslContext sslServerContext;
         protected SslContext sslClientContext;
 
@@ -112,7 +115,6 @@ public final class TCPEngine extends NettyEngine {
          * <p>
          * If {@code null}, a factory that supplies instances of {@link DefaultFramer} will be used.
          */
-        @Setter
         protected FramerFactory framerFactory;
 
         /**
@@ -161,6 +163,36 @@ public final class TCPEngine extends NettyEngine {
         }
 
         /**
+         * Enables SSL on the server side using a self-signed certificate.
+         *
+         * @return this builder
+         */
+        public Builder enableSSLServerSelfSigned() {
+            if (SELF_SIGNED_CERTIFICATE == null) {
+                synchronized (Builder.class) {
+                    if (SELF_SIGNED_CERTIFICATE == null) {
+                        try {
+                            SELF_SIGNED_CERTIFICATE = new SelfSignedCertificate();
+                        } catch (CertificateException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                }
+            }
+            return this.enableSSLServerSelfSigned(SELF_SIGNED_CERTIFICATE);
+        }
+
+        /**
+         * Enables SSL on the server side using a self-signed certificate.
+         *
+         * @param certificate the {@link SelfSignedCertificate} to use
+         * @return this builder
+         */
+        public Builder enableSSLServerSelfSigned(@NonNull SelfSignedCertificate certificate) {
+            return this.enableSSLServer(certificate.key(), certificate.cert());
+        }
+
+        /**
          * Enables SSL on the server side.
          *
          * @param context the SSL context to be used
@@ -192,6 +224,11 @@ public final class TCPEngine extends NettyEngine {
          */
         public Builder enableSSLClient(@NonNull SslContext context) {
             this.sslClientContext = context;
+            return this;
+        }
+
+        public <S extends AbstractUserSession<S>> Builder framerFactory(@NonNull FramerFactory<S> framerFactory) {
+            this.framerFactory = framerFactory;
             return this;
         }
 

@@ -27,14 +27,14 @@ import java.util.List;
 /**
  * @author DaPorkchop_
  */
-public class HTTPFramer extends AbstractFramer<HTTPSession> {
+public class HTTPFramer<S extends HTTPSession<S>> extends AbstractFramer<S> {
     private boolean headersComplete = false;
     private int lastIndex = 0;
     private boolean chunked = false;
     private int nextChunkLength = -1;
 
     @Override
-    protected void unpack(@NonNull HTTPSession session, @NonNull ByteBuf buf, @NonNull Framer.UnpackCallback callback) {
+    protected void unpack(@NonNull S session, @NonNull ByteBuf buf, @NonNull Framer.UnpackCallback callback) {
         if (!this.headersComplete) {
             while (true) {
                 buf.readerIndex(this.lastIndex);
@@ -109,7 +109,18 @@ public class HTTPFramer extends AbstractFramer<HTTPSession> {
     }
 
     @Override
-    protected void pack(@NonNull HTTPSession session, @NonNull ByteBuf packet, @NonNull PacketMetadata metadata, @NonNull List<ByteBuf> frames) {
-        frames.add(packet);
+    protected void pack(@NonNull S session, @NonNull ByteBuf packet, @NonNull PacketMetadata metadata, @NonNull List<ByteBuf> frames) {
+        switch (metadata.channelId())  {
+            case 0:
+                frames.add(packet);
+                break;
+            case 1:
+                frames.add(packet.alloc().ioBuffer().writeBytes(Integer.toHexString(packet.readableBytes()).getBytes()).writeByte('\r').writeByte('\n'));
+                frames.add(packet);
+                frames.add(packet.alloc().ioBuffer(2).writeByte('\r').writeByte('\n'));
+                break;
+            default:
+                throw new IllegalStateException();
+        }
     }
 }

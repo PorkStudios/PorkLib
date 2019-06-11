@@ -71,6 +71,16 @@ public class ServerBuilder<S extends AbstractUserSession<S>> extends EndpointBui
         return (ServerBuilder<NEW_S>) this;
     }
 
+    public ServerBuilder<S> bind(@NonNull String host, int port)    {
+        this.bind = new InetSocketAddress(host, port);
+        return this;
+    }
+
+    public ServerBuilder<S> bind(int port)    {
+        this.bind = new InetSocketAddress(port);
+        return this;
+    }
+
     @Override
     protected void validate() {
         if (this.bind == null) {

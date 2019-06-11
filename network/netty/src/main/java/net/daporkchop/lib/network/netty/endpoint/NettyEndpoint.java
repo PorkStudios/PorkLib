@@ -18,6 +18,7 @@ package net.daporkchop.lib.network.netty.endpoint;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GlobalEventExecutor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
@@ -65,10 +66,7 @@ public abstract class NettyEndpoint<Impl extends PEndpoint<Impl, S>, S extends A
 
     @Override
     public void closeNow() {
-        this.channel.close().syncUninterruptibly();
-        if (this.group != null) {
-            this.group.shutdownGracefully().syncUninterruptibly();
-        }
+        this.closeAsync().syncUninterruptibly();
     }
 
     @Override
@@ -78,10 +76,18 @@ public abstract class NettyEndpoint<Impl extends PEndpoint<Impl, S>, S extends A
 
     @Override
     public Future<Void> closeAsync() {
-        return this.channel.close().addListener(v -> {
+        if (this.channel == null)   {
+            //exception was caught while starting channel, safely close executor and shut down
             if (this.transportEngine.autoShutdownGroup()) {
                 LoopPool.returnGroup(this.group);
             }
-        });
+            return GlobalEventExecutor.INSTANCE.newPromise();
+        } else {
+            return this.channel.close().addListener(v -> {
+                if (this.transportEngine.autoShutdownGroup()) {
+                    LoopPool.returnGroup(this.group);
+                }
+            });
+        }
     }
 }

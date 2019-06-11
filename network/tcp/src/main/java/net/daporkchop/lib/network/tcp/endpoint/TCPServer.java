@@ -58,6 +58,7 @@ public class TCPServer<S extends AbstractUserSession<S>> extends TCPEndpoint<PSe
 
             this.channel = (TCPNioServerSocket<S>) bootstrap.bind(builder.bind()).syncUninterruptibly().channel();
         } catch (Exception e) {
+            this.closeAsync();
             throw new RuntimeException(e);
         }
     }

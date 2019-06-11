@@ -43,13 +43,15 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
      */
     <E extends PEndpoint<E, S>> E endpoint();
 
+    // normal send
+
     /**
      * Sends a message to the remote endpoint on channel 0, using this session's fallback reliability level, {@link Priority#NORMAL}, and no additional
      * flags.
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> send(@NonNull Object message)  {
+    default Future<Void> send(@NonNull Object message) {
         return this.send(message, 0, this.fallbackReliability(), Priority.NORMAL, 0);
     }
 
@@ -59,7 +61,7 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendFlush(@NonNull Object message)  {
+    default Future<Void> sendFlush(@NonNull Object message) {
         return this.send(message, 0, this.fallbackReliability(), Priority.NORMAL, SendFlags.FLUSH);
     }
 
@@ -69,7 +71,7 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendNow(@NonNull Object message)  {
+    default Future<Void> sendNow(@NonNull Object message) {
         return this.send(message, 0, this.fallbackReliability(), Priority.NORMAL, SendFlags.SYNC);
     }
 
@@ -79,7 +81,7 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendAsync(@NonNull Object message)  {
+    default Future<Void> sendAsync(@NonNull Object message) {
         return this.send(message, 0, this.fallbackReliability(), Priority.NORMAL, SendFlags.ASYNC);
     }
 
@@ -91,7 +93,7 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendFlushNow(@NonNull Object message)  {
+    default Future<Void> sendFlushNow(@NonNull Object message) {
         return this.send(message, 0, this.fallbackReliability(), Priority.NORMAL, SendFlags.SYNC | SendFlags.FLUSH);
     }
 
@@ -103,8 +105,404 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendFlushAsync(@NonNull Object message)  {
+    default Future<Void> sendFlushAsync(@NonNull Object message) {
         return this.send(message, 0, this.fallbackReliability(), Priority.NORMAL, SendFlags.ASYNC | SendFlags.FLUSH);
+    }
+
+    // send + channel
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using this session's fallback reliability level, {@link Priority#NORMAL}, and no additional
+     * flags.
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> send(@NonNull Object message, int channel) {
+        return this.send(message, channel, this.fallbackReliability(), Priority.NORMAL, 0);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using this session's fallback reliability level, {@link Priority#NORMAL}, and the
+     * {@link SendFlags#FLUSH} flag.
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> sendFlush(@NonNull Object message, int channel) {
+        return this.send(message, channel, this.fallbackReliability(), Priority.NORMAL, SendFlags.FLUSH);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using this session's fallback reliability level, {@link Priority#NORMAL}, and the
+     * {@link SendFlags#SYNC} flag.
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> sendNow(@NonNull Object message, int channel) {
+        return this.send(message, channel, this.fallbackReliability(), Priority.NORMAL, SendFlags.SYNC);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using this session's fallback reliability level, {@link Priority#NORMAL}, and the
+     * {@link SendFlags#ASYNC} flag.
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> sendAsync(@NonNull Object message, int channel) {
+        return this.send(message, channel, this.fallbackReliability(), Priority.NORMAL, SendFlags.ASYNC);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using this session's fallback reliability level, {@link Priority#NORMAL}, and the
+     * following flags:
+     * - {@link SendFlags#SYNC}
+     * - {@link SendFlags#FLUSH}
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> sendFlushNow(@NonNull Object message, int channel) {
+        return this.send(message, channel, this.fallbackReliability(), Priority.NORMAL, SendFlags.SYNC | SendFlags.FLUSH);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using this session's fallback reliability level, {@link Priority#NORMAL}, and the
+     * following flags:
+     * - {@link SendFlags#ASYNC}
+     * - {@link SendFlags#FLUSH}
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> sendFlushAsync(@NonNull Object message, int channel) {
+        return this.send(message, channel, this.fallbackReliability(), Priority.NORMAL, SendFlags.ASYNC | SendFlags.FLUSH);
+    }
+
+    // send + reliability
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using the given reliability level, {@link Priority#NORMAL}, and no additional
+     * flags.
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> send(@NonNull Object message, @NonNull Reliability reliability) {
+        return this.send(message, 0, reliability, Priority.NORMAL, 0);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using the given reliability level, {@link Priority#NORMAL}, and the
+     * {@link SendFlags#FLUSH} flag.
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> sendFlush(@NonNull Object message, @NonNull Reliability reliability) {
+        return this.send(message, 0, reliability, Priority.NORMAL, SendFlags.FLUSH);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using the given reliability level, {@link Priority#NORMAL}, and the
+     * {@link SendFlags#SYNC} flag.
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> sendNow(@NonNull Object message, @NonNull Reliability reliability) {
+        return this.send(message, 0, reliability, Priority.NORMAL, SendFlags.SYNC);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using the given reliability level, {@link Priority#NORMAL}, and the
+     * {@link SendFlags#ASYNC} flag.
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> sendAsync(@NonNull Object message, @NonNull Reliability reliability) {
+        return this.send(message, 0, reliability, Priority.NORMAL, SendFlags.ASYNC);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using the given reliability level, {@link Priority#NORMAL}, and the
+     * following flags:
+     * - {@link SendFlags#SYNC}
+     * - {@link SendFlags#FLUSH}
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> sendFlushNow(@NonNull Object message, @NonNull Reliability reliability) {
+        return this.send(message, 0, reliability, Priority.NORMAL, SendFlags.SYNC | SendFlags.FLUSH);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using the given reliability level, {@link Priority#NORMAL}, and the
+     * following flags:
+     * - {@link SendFlags#ASYNC}
+     * - {@link SendFlags#FLUSH}
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> sendFlushAsync(@NonNull Object message, @NonNull Reliability reliability) {
+        return this.send(message, 0, reliability, Priority.NORMAL, SendFlags.ASYNC | SendFlags.FLUSH);
+    }
+
+    // send + priority
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using this session's fallback reliability level, the given priority, and no additional
+     * flags.
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> send(@NonNull Object message, @NonNull Priority priority) {
+        return this.send(message, 0, this.fallbackReliability(), priority, 0);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using this session's fallback reliability level, the given priority, and the
+     * {@link SendFlags#FLUSH} flag.
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> sendFlush(@NonNull Object message, @NonNull Priority priority) {
+        return this.send(message, 0, this.fallbackReliability(), priority, SendFlags.FLUSH);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using this session's fallback reliability level, the given priority, and the
+     * {@link SendFlags#SYNC} flag.
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> sendNow(@NonNull Object message, @NonNull Priority priority) {
+        return this.send(message, 0, this.fallbackReliability(), priority, SendFlags.SYNC);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using this session's fallback reliability level, the given priority, and the
+     * {@link SendFlags#ASYNC} flag.
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> sendAsync(@NonNull Object message, @NonNull Priority priority) {
+        return this.send(message, 0, this.fallbackReliability(), priority, SendFlags.ASYNC);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using this session's fallback reliability level, the given priority, and the
+     * following flags:
+     * - {@link SendFlags#SYNC}
+     * - {@link SendFlags#FLUSH}
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> sendFlushNow(@NonNull Object message, @NonNull Priority priority) {
+        return this.send(message, 0, this.fallbackReliability(), priority, SendFlags.SYNC | SendFlags.FLUSH);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using this session's fallback reliability level, the given priority, and the
+     * following flags:
+     * - {@link SendFlags#ASYNC}
+     * - {@link SendFlags#FLUSH}
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> sendFlushAsync(@NonNull Object message, @NonNull Priority priority) {
+        return this.send(message, 0, this.fallbackReliability(), priority, SendFlags.ASYNC | SendFlags.FLUSH);
+    }
+
+    // send + channel + reliability
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using the given reliability level, {@link Priority#NORMAL}, and no additional
+     * flags.
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> send(@NonNull Object message, int channel, @NonNull Reliability reliability) {
+        return this.send(message, channel, reliability, Priority.NORMAL, 0);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using the given reliability level, {@link Priority#NORMAL}, and the
+     * {@link SendFlags#FLUSH} flag.
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> sendFlush(@NonNull Object message, int channel, @NonNull Reliability reliability) {
+        return this.send(message, channel, reliability, Priority.NORMAL, SendFlags.FLUSH);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using the given reliability level, {@link Priority#NORMAL}, and the
+     * {@link SendFlags#SYNC} flag.
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> sendNow(@NonNull Object message, int channel, @NonNull Reliability reliability) {
+        return this.send(message, channel, reliability, Priority.NORMAL, SendFlags.SYNC);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using the given reliability level, {@link Priority#NORMAL}, and the
+     * {@link SendFlags#ASYNC} flag.
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> sendAsync(@NonNull Object message, int channel, @NonNull Reliability reliability) {
+        return this.send(message, channel, reliability, Priority.NORMAL, SendFlags.ASYNC);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using the given reliability level, {@link Priority#NORMAL}, and the
+     * following flags:
+     * - {@link SendFlags#SYNC}
+     * - {@link SendFlags#FLUSH}
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> sendFlushNow(@NonNull Object message, int channel, @NonNull Reliability reliability) {
+        return this.send(message, channel, reliability, Priority.NORMAL, SendFlags.SYNC | SendFlags.FLUSH);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using the given reliability level, {@link Priority#NORMAL}, and the
+     * following flags:
+     * - {@link SendFlags#ASYNC}
+     * - {@link SendFlags#FLUSH}
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> sendFlushAsync(@NonNull Object message, int channel, @NonNull Reliability reliability) {
+        return this.send(message, channel, reliability, Priority.NORMAL, SendFlags.ASYNC | SendFlags.FLUSH);
+    }
+
+    // send + channel + priority
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using this session's fallback reliability level, the given priority, and no additional
+     * flags.
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> send(@NonNull Object message, int channel, @NonNull Priority priority) {
+        return this.send(message, channel, this.fallbackReliability(), priority, 0);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using this session's fallback reliability level, the given priority, and the
+     * {@link SendFlags#FLUSH} flag.
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> sendFlush(@NonNull Object message, int channel, @NonNull Priority priority) {
+        return this.send(message, channel, this.fallbackReliability(), priority, SendFlags.FLUSH);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using this session's fallback reliability level, the given priority, and the
+     * {@link SendFlags#SYNC} flag.
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> sendNow(@NonNull Object message, int channel, @NonNull Priority priority) {
+        return this.send(message, channel, this.fallbackReliability(), priority, SendFlags.SYNC);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using this session's fallback reliability level, the given priority, and the
+     * {@link SendFlags#ASYNC} flag.
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> sendAsync(@NonNull Object message, int channel, @NonNull Priority priority) {
+        return this.send(message, channel, this.fallbackReliability(), priority, SendFlags.ASYNC);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using this session's fallback reliability level, the given priority, and the
+     * following flags:
+     * - {@link SendFlags#SYNC}
+     * - {@link SendFlags#FLUSH}
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> sendFlushNow(@NonNull Object message, int channel, @NonNull Priority priority) {
+        return this.send(message, channel, this.fallbackReliability(), priority, SendFlags.SYNC | SendFlags.FLUSH);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using this session's fallback reliability level, the given priority, and the
+     * following flags:
+     * - {@link SendFlags#ASYNC}
+     * - {@link SendFlags#FLUSH}
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> sendFlushAsync(@NonNull Object message, int channel, @NonNull Priority priority) {
+        return this.send(message, channel, this.fallbackReliability(), priority, SendFlags.ASYNC | SendFlags.FLUSH);
+    }
+
+    // send + reliability + priority
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using the given reliability level, the given priority, and no additional
+     * flags.
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> send(@NonNull Object message, @NonNull Reliability reliability, @NonNull Priority priority) {
+        return this.send(message, 0, reliability, priority, 0);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using the given reliability level, the given priority, and the
+     * {@link SendFlags#FLUSH} flag.
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> sendFlush(@NonNull Object message, @NonNull Reliability reliability, @NonNull Priority priority) {
+        return this.send(message, 0, reliability, priority, SendFlags.FLUSH);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using the given reliability level, the given priority, and the
+     * {@link SendFlags#SYNC} flag.
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> sendNow(@NonNull Object message, @NonNull Reliability reliability, @NonNull Priority priority) {
+        return this.send(message, 0, reliability, priority, SendFlags.SYNC);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using the given reliability level, the given priority, and the
+     * {@link SendFlags#ASYNC} flag.
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> sendAsync(@NonNull Object message, @NonNull Reliability reliability, @NonNull Priority priority) {
+        return this.send(message, 0, reliability, priority, SendFlags.ASYNC);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using the given reliability level, the given priority, and the
+     * following flags:
+     * - {@link SendFlags#SYNC}
+     * - {@link SendFlags#FLUSH}
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> sendFlushNow(@NonNull Object message, @NonNull Reliability reliability, @NonNull Priority priority) {
+        return this.send(message, 0, reliability, priority, SendFlags.SYNC | SendFlags.FLUSH);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using the given reliability level, the given priority, and the
+     * following flags:
+     * - {@link SendFlags#ASYNC}
+     * - {@link SendFlags#FLUSH}
+     *
+     * @see #send(Object, int, Reliability, Priority, int)
+     */
+    default Future<Void> sendFlushAsync(@NonNull Object message, @NonNull Reliability reliability, @NonNull Priority priority) {
+        return this.send(message, 0, reliability, priority, SendFlags.ASYNC | SendFlags.FLUSH);
     }
 
     /**

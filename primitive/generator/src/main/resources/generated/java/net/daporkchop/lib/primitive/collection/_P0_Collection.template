@@ -1,0 +1,61 @@
+_headers_
+
+import net.daporkchop.lib.primitive.function.consumer._P0_Consumer;
+import net.daporkchop.lib.primitive.util.Synchronizable;
+
+/**
+ * The most simple abstraction of a collection. Supports adding, removing, counting and iterating over
+ * elements. The exact behavior of all methods are implementation-specific.
+ *
+ * @author DaPorkchop_
+ */
+public interface _P0_Collection_gH_ extends Synchronizable<_P0_Collection_gH_> {
+    /**
+     * Adds a value to the collection.
+     * <p>
+     * Some implementations may refuse to add elements (e.g. if they have a maximum size or do not accept
+     * {@code null} values), and will return {@code false} if the add operation was refused. See
+     * documentation for the implementation for more information.
+     *
+     * @param val the value to be added
+     * @return whether or not the value was added
+     * @throws UnsupportedOperationException if this implementation does not allow adding elements
+     */
+    boolean add(_p0_ val) throws UnsupportedOperationException;
+
+    /**
+     * Removes a single instance of a value from the collection.
+     * <p>
+     * If no matching values could be found, this will return {@code false}, {@code true} otherwise.
+     *
+     * @param val the value to be removed
+     * @throws UnsupportedOperationException if this implementation does not allow removing elements
+     */
+    boolean remove(_p0_ val) throws UnsupportedOperationException;
+
+    /**
+     * @return the number of elements in this collection, or {@code -1} if the size is too large to fit in an {@code int}
+     */
+    int size();
+
+    /**
+     * For collections that allow more than {@code 2^31 - 1} elements.
+     *
+     * @return the number of elements in this collection
+     */
+    default long longSize() {
+        return this.size();
+    }
+
+    /**
+     * Passes each element in this collection to the given function.
+     *
+     * @param consumer the function to run
+     */
+    void forEach(_P0_Consumer_gH_ consumer);
+
+    @Override
+    default _P0_Collection_gH_ sync(Object mutex)    {
+        throw new UnsupportedOperationException(); //TODO
+    }
+}

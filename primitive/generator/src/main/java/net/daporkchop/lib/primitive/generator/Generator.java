@@ -384,7 +384,7 @@ public class Generator implements Logging {
                 this.populateToDepth(path, name, content, packageName, methods, depth, settings, imports, p);
             });
         } else {
-            String nameOut = name.replaceAll(".template", ".java");
+            String nameOut = name.replace(".template", ".java");
             String contentOut = content;
 
             if (methods.length != 0) {
@@ -426,7 +426,9 @@ public class Generator implements Logging {
 
             contentOut = contentOut
                     .replaceAll(GENERIC_HEADER_DEF, Primitive.getGenericHeader(primitives))
-                    .replaceAll(HEADERS_DEF, String.format("%s\n\n%s\n\n%s", LICENSE_DEF, PACKAGE_DEF, IMPORTS_DEF))
+                    .replaceAll(HEADERS_DEF, imports.isEmpty() ?
+                            String.format("%s\n\n%s", LICENSE_DEF, PACKAGE_DEF) :
+                            String.format("%s\n\n%s\n\n%s", LICENSE_DEF, PACKAGE_DEF, IMPORTS_DEF))
                     .replaceAll(PACKAGE_DEF, packageName)
                     .replaceAll(IMPORTS_DEF, imports)
                     .replaceAll(LICENSE_DEF, LICENSE);
@@ -487,7 +489,7 @@ public class Generator implements Logging {
                     //"java.nio.*"
             );
             this.importList.addAll(this.additionalImports);
-            this.getImportsRecursive(this.inRoot);
+            //this.getImportsRecursive(this.inRoot);
             this.importList.sort(String::compareTo);
 
             StringBuilder builder = new StringBuilder();
@@ -495,7 +497,7 @@ public class Generator implements Logging {
                 builder.append(String.format("import %s;\n", s));
             }
             String s = builder.toString();
-            this.imports = s.substring(0, s.length() - 1);
+            this.imports = s.isEmpty() ? "" : s.substring(0, s.length() - 1);
         }
     }
 

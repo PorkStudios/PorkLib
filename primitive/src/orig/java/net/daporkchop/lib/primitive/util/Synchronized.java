@@ -20,7 +20,7 @@ package net.daporkchop.lib.primitive.util;
  *
  * @author DaPorkchop_
  */
-public interface Synchronized<I extends Synchronizeable<I>> extends Synchronizeable<I> {
+public interface Synchronized<I extends Synchronizable<I>> extends Synchronizable<I> {
     @Override
     @SuppressWarnings("unchecked")
     default I sync(Object mutex) {

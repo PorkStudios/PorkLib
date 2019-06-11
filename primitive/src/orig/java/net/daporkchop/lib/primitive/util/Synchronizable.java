@@ -20,7 +20,7 @@ package net.daporkchop.lib.primitive.util;
  *
  * @author DaPorkchop_
  */
-public interface Synchronizeable<I extends Synchronizeable<I>> {
+public interface Synchronizable<I extends Synchronizable<I>> {
     /**
      * @see #sync(Object)
      */

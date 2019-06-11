@@ -1,14 +1,14 @@
 _headers_
 
 import net.daporkchop.lib.primitive.stack.sync._P0_SynchronizedStack;
-import net.daporkchop.lib.primitive.util.Synchronizeable;
+import net.daporkchop.lib.primitive.util.Synchronizable;
 
 /**
  * A very simple representation of a stack.
  *
  * @author DaPorkchop_
  */
-public interface _P0_Stack_gH_ extends Synchronizeable<_P0_Stack_gH_> {
+public interface _P0_Stack_gH_ extends Synchronizable<_P0_Stack_gH_> {
     /**
      * Pushes a value to the stack.
      *

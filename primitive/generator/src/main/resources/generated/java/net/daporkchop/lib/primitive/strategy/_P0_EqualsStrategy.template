@@ -1,8 +1,5 @@
 _headers_
 
-import net.daporkchop.lib.primitive.stack.sync._P0_SynchronizedStack;
-import net.daporkchop.lib.primitive.util.Synchronizable;
-
 /**
  * A user-defined function for checking for equality between values.
  *

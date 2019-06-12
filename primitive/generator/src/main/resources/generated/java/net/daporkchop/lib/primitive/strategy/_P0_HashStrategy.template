@@ -1,0 +1,34 @@
+_headers_
+
+/**
+ * A user-defined function for generating a hash from a value.
+ *
+ * @author DaPorkchop_
+ */
+@FunctionalInterface
+public interface _P0_HashStrategy_gH_ {
+    /**
+     * Hashes a value.
+     *
+     * @param val the value to hash
+     * @return the value's hash
+     */
+    long hash(_p0_ val);
+
+    /**
+     * Hashes a value.
+     * <p>
+     * Unlike {@link #hash(_nameP0_)}, this function returns an {@code int} as opposed to a {@code long}. This
+     * method may be used instead and implemented more efficiently for collections that only use a 32-bit hash
+     * code over a 64-bit one.
+     * <p>
+     * By default, this simply mixes the bits of the 64-bit hash returned by {@link #hash(_nameP0_)}.
+     *
+     * @param val the value to hash
+     * @return the value's hash
+     */
+    default int hashInt(_p0_ val) {
+        long l = this.hash(val);
+        return (int) (l >>> 32L) ^ (int) l;
+    }
+}

@@ -117,7 +117,7 @@ public class HTTPFramer<S extends HTTPSession<S>> extends AbstractFramer<S> {
             case 1:
                 frames.add(packet.alloc().ioBuffer().writeBytes(Integer.toHexString(packet.readableBytes()).getBytes()).writeByte('\r').writeByte('\n'));
                 frames.add(packet);
-                frames.add(packet.alloc().ioBuffer(2).writeByte('\r').writeByte('\n'));
+                frames.add(packet.alloc().ioBuffer(4).writeByte('\r').writeByte('\n').writeByte('\r').writeByte('\n'));
                 break;
             default:
                 throw new IllegalStateException();

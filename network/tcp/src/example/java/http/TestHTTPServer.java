@@ -56,15 +56,12 @@ public class TestHTTPServer implements Logging {
         @Override
         public void onReceive(@NonNull DataIn in, @NonNull PacketMetadata metadata) throws IOException {
             if (metadata.protocolId() == 0)  {
-                this.sendAsync("HTTP/1.1 200 OK\r\n" +
+                this.send("HTTP/1.1 200 OK\r\n" +
                         "Transfer-Encoding: chunked\r\n\r\n");
-                this.sendAsync("hello ", 1);
-                this.sendFlushAsync("world!", 1);
+                this.send("hello ", 1);
+                this.send("world!", 1);
+                this.sendFlush("", 1);
             }
-        }
-
-        @Override
-        public void encodeMessage(@NonNull Object msg, @NonNull PacketMetadata metadata, @NonNull SendCallback callback) {
         }
     }
 }

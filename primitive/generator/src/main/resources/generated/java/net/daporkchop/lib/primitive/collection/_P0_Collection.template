@@ -34,6 +34,30 @@ public interface _P0_Collection_gH_ extends Synchronizable<_P0_Collection_gH_> {
     boolean remove(_p0_ val) throws UnsupportedOperationException;
 
     /**
+     * Checks if the collection contains the given value.
+     * <p>
+     * This function checks for a value that is equal to the given value. What exactly constitutes equality
+     * between two values is up to the implementation to decide, although generally it will check using the
+     * {@code ==} operator or {@link Object#equals(Object)}.
+     *
+     * @param val the value to check for
+     * @return whether or not the collection contains an equal value
+     */
+    boolean contains(_p0_ val);
+
+    /**
+     * Passes each element in this collection to the given function.
+     *
+     * @param consumer the function to run
+     */
+    void forEach(_P0_Consumer_gH_ consumer);
+
+    /**
+     * @return an {@link _P0_Iterator} over the elements in this collection
+     */
+    _P0_Iterator_gH_ iterator();
+
+    /**
      * @return the number of elements in this collection, or {@code -1} if the size is too large to fit in an {@code int}
      */
     int size();
@@ -80,18 +104,6 @@ public interface _P0_Collection_gH_ extends Synchronizable<_P0_Collection_gH_> {
      * for performance reasons in some scenarios.
      */
     void release();
-
-    /**
-     * Passes each element in this collection to the given function.
-     *
-     * @param consumer the function to run
-     */
-    void forEach(_P0_Consumer_gH_ consumer);
-
-    /**
-     * @return an {@link _P0_Iterator} over the elements in this collection
-     */
-    _P0_Iterator_gH_ iterator();
 
     @Override
     default _P0_Collection_gH_ sync(Object mutex)    {

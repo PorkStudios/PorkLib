@@ -22,6 +22,15 @@ public interface _P0_Iterator_gH_ {
     _p0_ next() throws IterationCompleteException;
 
     /**
+     * Removes the current value.
+     * <p>
+     * This will also remove the value from the underlying collection.
+     *
+     * @return the removed value
+     */
+    _p0_ remove();
+
+    /**
      * Passes each remaining element in this iterator to the given function.
      *
      * @param consumer the function to run

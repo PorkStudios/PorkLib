@@ -20,7 +20,10 @@ sourceSets {
 
 dependencies {
     origCompile project(":unsafe")
+
+    generatedCompile project(":unsafe")
     generatedCompile sourceSets.orig.output
+
     compile sourceSets.generated.output
 }
 

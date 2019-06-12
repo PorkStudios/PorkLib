@@ -50,6 +50,9 @@ public class Primitive {
 
     public static final String METHODS_DEF = "_methods_";
 
+    public static final String UNSAFE_ARRAY_OFFSET_DEF = String.format("_arrOffset%s_", PARAM_DEF);
+    public static final String UNSAFE_ARRAY_SCALE_DEF = String.format("_arrScale%s_", PARAM_DEF);
+
     public static int countVariables(@NonNull String filename) {
         for (int i = 0; ; i++) {
             String s = String.format(DISPLAYNAME_DEF, i);
@@ -157,30 +160,32 @@ public class Primitive {
     public String format(@NonNull String text, int i, boolean removeGenericThings) {
         if (i == 0) {
             if (this.generic) {
-                text = text.replaceAll("\\s*?<!%[\\s\\S]*?%>", "")
-                        .replaceAll("<!%[\\s\\S]*?%>", "")
-                        .replaceAll("(\\s*?)<%([\\s\\S]*?)%>", "$1$2")
-                        .replaceAll("<%([\\s\\S]*?)%>", "$1");
+                text = text.replaceAll("\\s*?<~!%[\\s\\S]*?%>".replace("~", String.valueOf(i)), "")
+                        .replaceAll("<~!%[\\s\\S]*?%>".replace("~", String.valueOf(i)), "")
+                        .replaceAll("(\\s*?)<~%([\\s\\S]*?)%>".replace("~", String.valueOf(i)), "$1$2")
+                        .replaceAll("<~%([\\s\\S]*?)%>".replace("~", String.valueOf(i)), "$1");
             } else {
-                text = text.replaceAll("\\s*?<%[\\s\\S]*?%>", "")
-                        .replaceAll("<%[\\s\\S]*?%>", "")
-                        .replaceAll("(\\s*?)<!%([\\s\\S]*?)%>", "$1$2")
-                        .replaceAll("<!%([\\s\\S]*?)%>", "$1");
+                text = text.replaceAll("\\s*?<~%[\\s\\S]*?%>".replace("~", String.valueOf(i)), "")
+                        .replaceAll("<~%[\\s\\S]*?%>".replace("~", String.valueOf(i)), "")
+                        .replaceAll("(\\s*?)<~!%([\\s\\S]*?)%>".replace("~", String.valueOf(i)), "$1$2")
+                        .replaceAll("<~!%([\\s\\S]*?)%>".replace("~", String.valueOf(i)), "$1");
             }
         }
         return text
-                .replaceAll(String.format(DISPLAYNAME_DEF, i), this.displayName)
-                .replaceAll(String.format(FULLNAME_FORCE_DEF, i), this.generic ? String.valueOf((char) ('A' + i)) : this.fullName)
-                .replaceAll(String.format(NAME_DEF, i), this.generic ? String.valueOf((char) ('A' + i)) : this.name)
-                .replaceAll(String.format(NAME_FORCE_DEF, i), this.name)
-                .replaceAll(String.format(HASHCODE_DEF, i), this.hashCode)
-                .replaceAll(String.format(EQUALS_DEF, i), this.equals)
-                .replaceAll(String.format(CAST_DEF, i), this.generic ? "(" + (char) ('A' + i) + ") " : "")
-                .replaceAll(String.format(EMPTYVALUE_DEF, i), this.emptyValue)
-                .replaceAll(String.format(NON_GENERIC_DEF, i), this.generic ? "" : this.name)
-                .replaceAll(String.format(GENERIC_DEF, i), this.generic ? "<" + ((char) ('A' + i)) + "> " : "")
-                .replaceAll(String.format(GENERIC_SUPER_P_DEF, i), getGenericSuper(i, this))
-                .replaceAll(String.format(GENERIC_EXTENDS_P_DEF, i), getGenericExtends(i, this));
+                .replace(String.format(DISPLAYNAME_DEF, i), this.displayName)
+                .replace(String.format(FULLNAME_FORCE_DEF, i), this.generic ? String.valueOf((char) ('A' + i)) : this.fullName)
+                .replace(String.format(NAME_DEF, i), this.generic ? String.valueOf((char) ('A' + i)) : this.name)
+                .replace(String.format(NAME_FORCE_DEF, i), this.name)
+                .replace(String.format(CAST_DEF, i), this.generic ? "(" + (char) ('A' + i) + ") " : "")
+                .replace(String.format(EMPTYVALUE_DEF, i), this.emptyValue)
+                .replace(String.format(NON_GENERIC_DEF, i), this.generic ? "" : this.name)
+                .replace(String.format(GENERIC_DEF, i), this.generic ? "<" + ((char) ('A' + i)) + "> " : "")
+                .replace(String.format(GENERIC_SUPER_P_DEF, i), getGenericSuper(i, this))
+                .replace(String.format(GENERIC_EXTENDS_P_DEF, i), getGenericExtends(i, this))
+                .replace(String.format(UNSAFE_ARRAY_OFFSET_DEF, i), String.format("PUnsafe.ARRAY_%s_BASE_OFFSET", this.name.toUpperCase()))
+                .replace(String.format(UNSAFE_ARRAY_SCALE_DEF, i), String.format("PUnsafe.ARRAY_%s_INDEX_SCALE", this.name.toUpperCase()))
+                .replaceAll("_equalsP~\\(([^,]*?),([^)]*?)\\)_".replace("~", String.valueOf(i)), this.equals)
+                .replaceAll("_hashP~\\(([^)]*?)\\)_".replace("~", String.valueOf(i)), this.hashCode);
     }
 
     public Primitive setGeneric() {

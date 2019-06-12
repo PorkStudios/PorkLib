@@ -74,18 +74,18 @@ public class Generator implements Logging {
                 new Primitive()
                         .setFullName("Boolean")
                         .setName("boolean")
-                        .setHashCode("x ? 1 : 0")
+                        .setHashCode("$1 ? 1 : 0")
                         .setEmptyValue("false")
-                        .setEquals("a == b")
+                        .setEquals("$1 == $2")
                         .build()
         );
         primitives.add(
                 new Primitive()
                         .setFullName("Byte")
                         .setName("byte")
-                        .setHashCode("x & 0xFF")
+                        .setHashCode("$1 & 0xFF")
                         .setEmptyValue("Byte.MIN_VALUE")
-                        .setEquals("a == b")
+                        .setEquals("$1 == $2")
                         .build()
         );
         primitives.add(
@@ -93,18 +93,18 @@ public class Generator implements Logging {
                         .setFullName("Character")
                         .setDisplayName("Char")
                         .setName("char")
-                        .setHashCode("(x >> 24) ^ (x >> 16) ^ (x >> 8) ^ x")
+                        .setHashCode("($1 >>> 8) ^ $1")
                         .setEmptyValue("Character.MAX_VALUE")
-                        .setEquals("a == b")
+                        .setEquals("$1 == $2")
                         .build()
         );
         primitives.add(
                 new Primitive()
                         .setFullName("Short")
                         .setName("short")
-                        .setHashCode("(x >> 8) ^ x")
+                        .setHashCode("($1 >>> 8) ^ $1")
                         .setEmptyValue("Short.MIN_VALUE")
-                        .setEquals("a == b")
+                        .setEquals("$1 == $2")
                         .build()
         );
         primitives.add(
@@ -112,46 +112,46 @@ public class Generator implements Logging {
                         .setFullName("Integer")
                         .setDisplayName("Int")
                         .setName("int")
-                        .setHashCode("(x >> 24) ^ (x >> 16) ^ (x >> 8) ^ x")
+                        .setHashCode("($1 >>> 24) ^ ($1 >>> 16) ^ ($1 >>> 8) ^ $1")
                         .setEmptyValue("Integer.MIN_VALUE")
-                        .setEquals("a == b")
+                        .setEquals("$1 == $2")
                         .build()
         );
         primitives.add(
                 new Primitive()
                         .setFullName("Long")
                         .setName("long")
-                        .setHashCode("hashInteger((int) (x >> 32)) ^ hashInteger((int) x)")
+                        .setHashCode("(int) (($1 >>> 56) ^ ($1 >>> 48) ^ ($1 >>> 40) ^ ($1 >>> 32) ^ ($1 >>> 24) ^ ($1 >>> 16) ^ ($1 >>> 8) ^ $1)")
                         .setEmptyValue("Long.MIN_VALUE")
-                        .setEquals("a == b")
+                        .setEquals("$1 == $2")
                         .build()
         );
         primitives.add(
                 new Primitive()
                         .setFullName("Float")
                         .setName("float")
-                        .setHashCode("hashInteger(Float.floatToIntBits(x))")
+                        .setHashCode("Float.floatToIntBits($1)")
                         .setEmptyValue("Float.NaN")
-                        .setEquals("a == b")
+                        .setEquals("$1 == $2")
                         .build()
         );
         primitives.add(
                 new Primitive()
                         .setFullName("Double")
                         .setName("double")
-                        .setHashCode("hashLong(Double.doubleToLongBits(x))")
+                        .setHashCode("(int) Double.doubleToLongBits($1)")
                         .setEmptyValue("Double.NaN")
-                        .setEquals("a == b")
+                        .setEquals("$1 == $2")
                         .build()
         );
         primitives.add(
                 new Primitive()
                         .setFullName("Object")
                         .setName("Object")
-                        .setHashCode("Objects.hashCode(x)")
+                        .setHashCode("Objects.hashCode($1)")
                         .setGeneric()
                         .setEmptyValue("null")
-                        .setEquals("Objects.equals(a, b)")
+                        .setEquals("Objects.equals($1, $2)")
                         .build()
         );
 
@@ -479,7 +479,8 @@ public class Generator implements Logging {
         if (this.imports == null) {
             this.importList.clear();
             Collections.addAll(
-                    this.importList//,
+                    this.importList,
+                    "net.daporkchop.lib.unsafe.PUnsafe"//,
                     //"lombok.*",
                     //"java.util.*",
                     //"java.util.concurrent.*",

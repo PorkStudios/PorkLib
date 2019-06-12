@@ -31,12 +31,12 @@ public class _P0_ArrayStack_gH_ implements _P0_Stack_gH_ {
         if (this.pos <= 0)  {
             throw StackUnderflowException.INSTANCE;
         } else {
-            <%int i = this.pos--;
+            <0%int i = this.pos--;
             @SuppressWarnings("unchecked")
             _p0_ val = _castP0_this.arr[i];
             this.arr[i] = _P0E_;
             return val;%>
-            <!%return this.arr[this.pos--];%>
+            <0!%return this.arr[this.pos--];%>
         }
     }
 }

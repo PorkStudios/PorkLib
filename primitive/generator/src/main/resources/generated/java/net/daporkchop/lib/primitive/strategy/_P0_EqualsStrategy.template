@@ -1,0 +1,21 @@
+_headers_
+
+import net.daporkchop.lib.primitive.stack.sync._P0_SynchronizedStack;
+import net.daporkchop.lib.primitive.util.Synchronizable;
+
+/**
+ * A user-defined function for checking for equality between values.
+ *
+ * @author DaPorkchop_
+ */
+@FunctionalInterface
+public interface _P0_EqualsStrategy_gH_ {
+    /**
+     * Checks if two values are equal.
+     *
+     * @param a the first value
+     * @param b the second value
+     * @return whether or not the two values are equal
+     */
+    boolean equals(_p0_ a, _p0_ b);
+}

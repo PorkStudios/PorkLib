@@ -1,0 +1,185 @@
+$$$settings$$$
+{
+    "P0": {
+        "blacklist": [
+            "Object"
+        ]
+    }
+}
+_headers_
+
+import java.util.concurrent.atomic.AtomicLong;
+
+import net.daporkchop.lib.math.primitive.BinMath;
+import net.daporkchop.lib.unsafe.PCleaner;
+
+import net.daporkchop.lib.primitive.function.consumer._P0_Consumer;
+import net.daporkchop.lib.primitive.list._P0_List;
+import net.daporkchop.lib.primitive.list._P0_Listerator;
+
+/**
+ * A {@link _P0_List} backed by direct memory.
+ * <p>
+ * The memory block is doubled in size when the number of elements exceeds the size of the array, and
+ * shrunken when cleared or the number of elements is less than 1/4 the size of the array.
+ * <p>
+ * Be careful when using this class! Unless you are 110% certain that it will only ever be used by one
+ * thread, it is strongly advisable to synchronize access to this (using {@link #sync()}), as it can cause
+ * memory leaks when used concurrently.
+ *
+ * @author DaPorkchop_
+ */
+public class _P0_DirectList_gH_ implements _P0_List_gH_ {
+    protected long addr = -1L;
+    protected long len;
+    protected long size;
+    protected final long minSize;
+    protected final AtomicLong addrRef = new AtomicLong(-1L);
+    protected final PCleaner cleaner;
+
+    public _P0_DirectList()  {
+        this(16);
+    }
+
+    public _P0_DirectList(long minSize)  {
+        if (minSize <= 0)   {
+            throw new IllegalArgumentException("minSize must be at least 1!");
+        }
+        this.minSize = minSize;
+        this.cleaner = PCleaner.cleaner(this, this.addrRef);
+        this.clear();
+    }
+
+    @Override
+    public boolean add(_p0_ val)   {
+        if (this.shouldGrow(1L)) {
+            this.len <<= 1L;
+            this.addrRef.set(this.addr = PUnsafe.reallocateMemory(this.addr, this.len * _arrScaleP0_));
+        }
+        PUnsafe.put_P0_(this.addr + this.size++ * _arrScaleP0_, val);
+        return true;
+    }
+
+    @Override
+    public void add(int i, _p0_ val) throws IndexOutOfBoundsException   {
+        if (i == this.size) {
+            this.add(val); //don't try to shift elements
+            return;
+        } else if (i < 0L || i > this.size)  {
+            throw new IndexOutOfBoundsException(String.valueOf(i));
+        } else if (this.shouldGrow(1L)) {
+            this.len <<= 1L;
+            this.addrRef.set(this.addr = PUnsafe.reallocateMemory(this.addr, this.len * _arrScaleP0_));
+        }
+        PUnsafe.copyMemory(this.addr + (long) i * _arrScaleP0_, this.addr + (i + 1L) * _arrScaleP0_, (this.size - i) * _arrScaleP0_);
+        PUnsafe.put_P0_(this.addr + this.size++ * _arrScaleP0_, val);
+    }
+
+    protected boolean shouldGrow(long count) {
+        return this.size + count > this.len;
+    }
+
+    @Override
+    public boolean remove(_p0_ val)    {
+        long size = this.size;
+        for (long l = 0L; l < size; l++)    {
+            if (_equalsP0[[val![[PUnsafe.get_P0_(this.addr + l * _arrScaleP0_)!_)   {
+                PUnsafe.copyMemory(this.addr + (l + 1L) * _arrScaleP0_, this.addr + l * _arrScaleP0_, size - l);
+                this.checkShrink();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public _p0_ removeAt(int i) throws IndexOutOfBoundsException   {
+        if (i < 0 || i >= this.size)  {
+            throw new IndexOutOfBoundsException(String.valueOf(i));
+        } else {
+            _p0_ old = PUnsafe.get_P0_(this.addr + i * _arrScaleP0_);
+            PUnsafe.copyMemory(this.addr + (i + 1L) * _arrScaleP0_, this.addr + i * _arrScaleP0_, this.size - i);
+            this.checkShrink();
+            return old;
+        }
+    }
+
+    protected void checkShrink() {
+        if (this.size < this.len)   {
+            this.len >>= 1L;
+            this.addrRef.set(this.addr = PUnsafe.reallocateMemory(this.addr, this.len * _arrScaleP0_));
+        }
+    }
+
+    @Override
+    public _p0_ set(int i, _p0_ val) throws IndexOutOfBoundsException  {
+        if (i < 0 || i >= this.size)  {
+            throw new IndexOutOfBoundsException(String.valueOf(i));
+        } else {
+            _p0_ old = PUnsafe.get_P0_(this.addr + i * _arrScaleP0_);
+            PUnsafe.put_P0_(this.addr + i * _arrScaleP0_, val);
+            return old;
+        }
+    }
+
+    @Override
+    public int indexOf(_p0_ val){
+        long size = this.size;
+        if (size > Integer.MAX_VALUE)   {
+            throw new IllegalStateException("list larger than Integer.MAX_VALUE!");
+        }
+        for (long l = 0L; l < size; l++)    {
+            if (_equalsP0[[val![[PUnsafe.get_P0_(this.addr + l * _arrScaleP0_)!_)   {
+                return (int) l;
+            }
+        }
+        return -1;
+    }
+
+    @Override
+    public void forEach(_P0_Consumer consumer)  {
+        if (consumer == null)   {
+            throw new NullPointerException("consumer");
+        }
+        long size = this.size; //add as local variable to allow inlining into a register
+        for (long l = 0L; l < size; l++)    {
+            consumer.accept(PUnsafe.get_P0_(this.addr + l * _arrScaleP0_));
+        }
+    }
+
+    @Override
+    public _P0_Listerator_gH_ iterator()    {
+        return null; //TODO
+    }
+
+    @Override
+    public int size()   {
+        return this.size > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) this.size;
+    }
+
+    @Override
+    public long longSize()  {
+        return this.size;
+    }
+
+    @Override
+    public void clear() {
+        if (this.addr != -1L)   {
+            //don't free memory if not started yet
+            PUnsafe.freeMemory(this.addr);
+        }
+        this.addrRef.set(this.addr = PUnsafe.allocateMemory((this.len = this.minSize) * _arrScaleP0_));
+        this.size = 0L;
+    }
+
+    @Override
+    public void removeAll() {
+        PUnsafe.setMemory(this.addr, this.len * _arrScaleP0_, (byte) 0); //overwrite memory with zeroes
+        this.size = 0L;
+    }
+
+    @Override
+    public void release()   {
+        this.cleaner.clean();
+    }
+}

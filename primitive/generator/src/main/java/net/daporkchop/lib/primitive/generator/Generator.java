@@ -23,18 +23,18 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.common.misc.file.PFiles;
+import net.daporkchop.lib.common.reference.InstancePool;
 import net.daporkchop.lib.logging.Logging;
 import sun.misc.IOUtils;
 
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
+import java.io.StringReader;
 import java.text.NumberFormat;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -44,6 +44,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -66,11 +67,10 @@ public class Generator implements Logging {
             "test"
     );
     public static String LICENSE;
-    private static final JsonParser JSON_PARSER = new JsonParser();
     private static final JsonArray EMPTY_JSON_ARRAY = new JsonArray();
 
     static {
-        primitives.add(
+        PRIMITIVES.add(
                 new Primitive()
                         .setFullName("Boolean")
                         .setName("boolean")
@@ -79,7 +79,7 @@ public class Generator implements Logging {
                         .setEquals("$1 == $2")
                         .build()
         );
-        primitives.add(
+        PRIMITIVES.add(
                 new Primitive()
                         .setFullName("Byte")
                         .setName("byte")
@@ -88,7 +88,7 @@ public class Generator implements Logging {
                         .setEquals("$1 == $2")
                         .build()
         );
-        primitives.add(
+        PRIMITIVES.add(
                 new Primitive()
                         .setFullName("Character")
                         .setDisplayName("Char")
@@ -98,7 +98,7 @@ public class Generator implements Logging {
                         .setEquals("$1 == $2")
                         .build()
         );
-        primitives.add(
+        PRIMITIVES.add(
                 new Primitive()
                         .setFullName("Short")
                         .setName("short")
@@ -107,7 +107,7 @@ public class Generator implements Logging {
                         .setEquals("$1 == $2")
                         .build()
         );
-        primitives.add(
+        PRIMITIVES.add(
                 new Primitive()
                         .setFullName("Integer")
                         .setDisplayName("Int")
@@ -117,7 +117,7 @@ public class Generator implements Logging {
                         .setEquals("$1 == $2")
                         .build()
         );
-        primitives.add(
+        PRIMITIVES.add(
                 new Primitive()
                         .setFullName("Long")
                         .setName("long")
@@ -126,7 +126,7 @@ public class Generator implements Logging {
                         .setEquals("$1 == $2")
                         .build()
         );
-        primitives.add(
+        PRIMITIVES.add(
                 new Primitive()
                         .setFullName("Float")
                         .setName("float")
@@ -135,7 +135,7 @@ public class Generator implements Logging {
                         .setEquals("$1 == $2")
                         .build()
         );
-        primitives.add(
+        PRIMITIVES.add(
                 new Primitive()
                         .setFullName("Double")
                         .setName("double")
@@ -144,7 +144,7 @@ public class Generator implements Logging {
                         .setEquals("$1 == $2")
                         .build()
         );
-        primitives.add(
+        PRIMITIVES.add(
                 new Primitive()
                         .setFullName("Object")
                         .setName("Object")
@@ -335,10 +335,12 @@ public class Generator implements Logging {
             PFiles.ensureDirectoryExists(out);
             JsonObject settings;
             {
-                File settingsFile = new File(file.getAbsolutePath().replace(".template", ".json"));
-                if (settingsFile.exists()) {
-                    try (Reader reader = new InputStreamReader(new BufferedInputStream(new FileInputStream(settingsFile)))) {
-                        settings = JSON_PARSER.parse(reader).getAsJsonObject();
+                if (content.startsWith("$$$settings$$$"))   {
+                    String[] split = content.split("_headers_", 2);
+                    content = "_headers_" + split[1];
+                    try (Reader reader = new StringReader(split[0]))    {
+                        reader.skip("$$$settings$$$".length());
+                        settings = InstancePool.getInstance(JsonParser.class).parse(reader).getAsJsonObject();
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -346,17 +348,8 @@ public class Generator implements Logging {
                     settings = new JsonObject();
                 }
             }
-            String imports = this.imports;
-            if (settings.has("imports")) {
-                Collection<String> toAdd = StreamSupport.stream(settings.getAsJsonArray("imports").spliterator(), false)
-                        .map(JsonElement::getAsString)
-                        .collect(Collectors.toList());
-                for (String s : toAdd) {
-                    imports += String.format("\nimport %s;", s);
-                }
-            }
             System.out.printf("Generating %s\n", name);
-            this.populateToDepth(out, name, content, String.format("package %s;", packageName), methods, count, settings, imports);
+            this.populateToDepth(out, name, content, String.format("package %s;", packageName), methods, count, settings, this.imports);
         }
     }
 
@@ -364,25 +357,23 @@ public class Generator implements Logging {
         if (depth > primitives.length) {
             Primitive[] p = new Primitive[primitives.length + 1];
             System.arraycopy(primitives, 0, p, 0, primitives.length);
-            JsonArray validRoot = settings.has("valid") ? settings.getAsJsonArray("valid") : EMPTY_JSON_ARRAY;
-            JsonArray valid = validRoot.size() >= p.length ? validRoot.get(p.length - 1).getAsJsonArray() : EMPTY_JSON_ARRAY;
-            Primitive.primitives.forEach(primitive -> {
-                if (valid.size() != 0) {
-                    //only if not empty
-                    String primitiveFullName = primitive.fullName;
-                    boolean flag = false;
-                    for (JsonElement element : valid) {
-                        if (element.getAsString().equalsIgnoreCase(primitiveFullName)) {
-                            flag = true;
-                        }
-                    }
-                    if (!flag) {
-                        return;
+            Set<String> valid = Primitive.PRIMITIVES.stream().map(pr -> pr.name).collect(Collectors.toSet());
+            if (settings.has(String.format("P%d", primitives.length)))  {
+                JsonObject object = settings.getAsJsonObject(String.format("P%d", primitives.length));
+                if (object.has("whitelist"))    {
+                    valid = StreamSupport.stream(object.getAsJsonArray("whitelist").spliterator(), true).map(JsonElement::getAsString).collect(Collectors.toSet());
+                } else if (object.has("blacklist")) {
+                    for (JsonElement element : object.getAsJsonArray("blacklist"))  {
+                        valid.remove(element.getAsString());
                     }
                 }
-                p[p.length - 1] = primitive;
-                this.populateToDepth(path, name, content, packageName, methods, depth, settings, imports, p);
-            });
+            }
+            for (Primitive primitive : Primitive.PRIMITIVES)    {
+                if (valid.contains(primitive.name)) {
+                    p[p.length - 1] = primitive;
+                    this.populateToDepth(path, name, content, packageName, methods, depth, settings, imports, p);
+                }
+            }
         } else {
             String nameOut = name.replace(".template", ".java");
             String contentOut = content;
@@ -411,7 +402,7 @@ public class Generator implements Logging {
 
             if (depth == 0) {
                 int i = 0;
-                for (Primitive p : Primitive.primitives) {
+                for (Primitive p : Primitive.PRIMITIVES) {
                     nameOut = p.format(nameOut, i);
                     contentOut = p.format(contentOut, i++);
                 }
@@ -546,7 +537,7 @@ public class Generator implements Logging {
             System.arraycopy(primitives, 0, p, 0, primitives.length);
             JsonArray validRoot = settings.has("valid") ? settings.getAsJsonArray("valid") : EMPTY_JSON_ARRAY;
             JsonArray valid = validRoot.size() >= p.length ? validRoot.get(p.length - 1).getAsJsonArray() : EMPTY_JSON_ARRAY;
-            Primitive.primitives.forEach(primitive -> {
+            Primitive.PRIMITIVES.forEach(primitive -> {
                 if (valid.size() != 0) {
                     //only if not empty
                     String primitiveFullName = primitive.fullName;

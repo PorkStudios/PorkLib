@@ -57,7 +57,7 @@ public interface _P0_Collection_gH_ {
     _P0_Iterator_gH_ iterator();
 
     /**
-     * @return the number of elements in this collection, or {@code -1} if the size is too large to fit in an {@code int}
+     * @return the number of elements in this collection, or {@link Integer#MAX_VALUE} if the size is too large to fit in an {@code int}
      */
     int size();
 

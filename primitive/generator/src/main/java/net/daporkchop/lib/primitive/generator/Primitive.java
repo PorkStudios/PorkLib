@@ -27,7 +27,7 @@ import java.util.Collection;
 @Setter
 @NoArgsConstructor
 public class Primitive {
-    public static final Collection<Primitive> primitives = new ArrayDeque<>();
+    public static final Collection<Primitive> PRIMITIVES = new ArrayDeque<>();
     public static final String PARAM_DEF = "P%d";
     public static final String DISPLAYNAME_DEF = String.format("_%s_", PARAM_DEF);
     public static final String FULLNAME_FORCE_DEF = String.format("_fullname%s_", PARAM_DEF);
@@ -184,8 +184,8 @@ public class Primitive {
                 .replace(String.format(GENERIC_EXTENDS_P_DEF, i), getGenericExtends(i, this))
                 .replace(String.format(UNSAFE_ARRAY_OFFSET_DEF, i), String.format("PUnsafe.ARRAY_%s_BASE_OFFSET", this.name.toUpperCase()))
                 .replace(String.format(UNSAFE_ARRAY_SCALE_DEF, i), String.format("PUnsafe.ARRAY_%s_INDEX_SCALE", this.name.toUpperCase()))
-                .replaceAll("_equalsP~\\(([^,]*?),([^)]*?)\\)_".replace("~", String.valueOf(i)), this.equals)
-                .replaceAll("_hashP~\\(([^)]*?)\\)_".replace("~", String.valueOf(i)), this.hashCode);
+                .replaceAll("_equalsP~\\[\\[([^!]*?)!\\[\\[([^!]*?)!_".replace("~", String.valueOf(i)), this.equals)
+                .replaceAll("_hashP~\\[\\[([^!]*?)!_".replace("~", String.valueOf(i)), this.hashCode);
     }
 
     public Primitive setGeneric() {

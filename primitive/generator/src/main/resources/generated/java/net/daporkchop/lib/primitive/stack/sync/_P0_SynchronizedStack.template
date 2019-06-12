@@ -10,9 +10,9 @@ import net.daporkchop.lib.primitive.util.Synchronized;
  *
  * @author DaPorkchop_
  */
-public class _P0_SynchronizedStack_gH_ implements _P0_Stack_gH_, Synchronized<_P0_Stack_gH_> {
-    protected final _P0_Stack_gH_ delegate;
-    protected final Object mutex;
+public final class _P0_SynchronizedStack_gH_ implements _P0_Stack_gH_, Synchronized<_P0_Stack_gH_> {
+    private final _P0_Stack_gH_ delegate;
+    private final Object mutex;
 
     public _P0_SynchronizedStack(_P0_Stack_gH_ delegate, Object mutex) {
         if (delegate == null)   {
@@ -41,6 +41,6 @@ public class _P0_SynchronizedStack_gH_ implements _P0_Stack_gH_, Synchronized<_P
 
     @Override
     public _P0_Stack_gH_ sync(Object mutex) {
-        return this;
+        throw new UnsupportedOperationException();
     }
 }

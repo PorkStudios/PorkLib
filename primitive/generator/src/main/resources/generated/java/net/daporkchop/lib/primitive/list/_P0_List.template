@@ -1,13 +1,15 @@
 _headers_
 
 import net.daporkchop.lib.primitive.collection._P0_Collection;
+import net.daporkchop.lib.primitive.list.sync._P0_SynchronizedList;
+import net.daporkchop.lib.primitive.util.Synchronizable;
 
 /**
  * A {@link _P0_Collection} that maintains element order in a numeric sequence, without gaps.
  *
  * @author DaPorkchop_
  */
-public interface _P0_List_gH_ extends _P0_Collection_gH_ {
+public interface _P0_List_gH_ extends _P0_Collection_gH_, Synchronizable<_P0_List_gH_> {
     /**
      * Appends the given value to the end of the list.
      *
@@ -71,6 +73,6 @@ public interface _P0_List_gH_ extends _P0_Collection_gH_ {
 
     @Override
     default _P0_List_gH_ sync(Object mutex)    {
-        throw new UnsupportedOperationException(); //TODO
+        return new _P0_SynchronizedList_gH_(this, mutex);
     }
 }

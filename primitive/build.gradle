@@ -20,8 +20,10 @@ sourceSets {
 
 dependencies {
     origCompile project(":unsafe")
+    origCompile project(":math")
 
     generatedCompile project(":unsafe")
+    generatedCompile project(":math")
     generatedCompile sourceSets.orig.output
 
     compile sourceSets.generated.output

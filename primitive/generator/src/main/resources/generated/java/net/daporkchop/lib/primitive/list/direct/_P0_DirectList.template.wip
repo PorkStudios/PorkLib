@@ -7,23 +7,23 @@ import net.daporkchop.lib.primitive.list._P0_List;
 import net.daporkchop.lib.primitive.list._P0_Listerator;
 
 /**
- * A {@link _P0_List} backed by an array.
+ * A {@link _P0_List} backed by direct memory.
  * <p>
  * The array is doubled in size when the number of elements exceeds the size of the array, and is shrunken
  * when cleared or the number of elements is less than 1/4 the size of the array.
  *
  * @author DaPorkchop_
  */
-public class _P0_ArrayList_gH_ implements _P0_List_gH_ {
+public class _P0_DirectList_gH_ implements _P0_List_gH_ {
     protected _nameP0_[] arr;
     protected int size;
     protected final int minSize;
 
-    public _P0_ArrayList()  {
+    public _P0_DirectList()  {
         this(16);
     }
 
-    public _P0_ArrayList(int minSize)  {
+    public _P0_DirectList(int minSize)  {
         if (minSize <= 0)   {
             throw new IllegalArgumentException("minSize must be at least 1!");
         }

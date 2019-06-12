@@ -148,10 +148,10 @@ public class Generator implements Logging {
                 new Primitive()
                         .setFullName("Object")
                         .setName("Object")
-                        .setHashCode("Objects.hashCode($1)")
+                        .setHashCode("java.util.Objects.hashCode($1)")
                         .setGeneric()
                         .setEmptyValue("null")
-                        .setEquals("Objects.equals($1, $2)")
+                        .setEquals("java.util.Objects.equals($1, $2)")
                         .build()
         );
 

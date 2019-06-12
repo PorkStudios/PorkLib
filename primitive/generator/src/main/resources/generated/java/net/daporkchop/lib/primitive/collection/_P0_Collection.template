@@ -1,7 +1,6 @@
 _headers_
 
 import net.daporkchop.lib.primitive.function.consumer._P0_Consumer;
-import net.daporkchop.lib.primitive.util.Synchronizable;
 
 /**
  * The most simple abstraction of a collection. Supports adding, removing, counting and iterating over
@@ -9,7 +8,7 @@ import net.daporkchop.lib.primitive.util.Synchronizable;
  *
  * @author DaPorkchop_
  */
-public interface _P0_Collection_gH_ extends Synchronizable<_P0_Collection_gH_> {
+public interface _P0_Collection_gH_ {
     /**
      * Adds a value to the collection.
      * <p>
@@ -104,9 +103,4 @@ public interface _P0_Collection_gH_ extends Synchronizable<_P0_Collection_gH_> {
      * for performance reasons in some scenarios.
      */
     void release();
-
-    @Override
-    default _P0_Collection_gH_ sync(Object mutex)    {
-        throw new UnsupportedOperationException(); //TODO
-    }
 }

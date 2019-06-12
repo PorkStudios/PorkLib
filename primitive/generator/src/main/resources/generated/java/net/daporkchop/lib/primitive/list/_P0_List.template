@@ -9,6 +9,9 @@ import net.daporkchop.lib.primitive.collection._P0_Collection;
  */
 public interface _P0_List_gH_ extends _P0_Collection_gH_ {
     @Override
+    _P0_Listerator_gH_ iterator();
+
+    @Override
     default _P0_List_gH_ sync(Object mutex)    {
         throw new UnsupportedOperationException(); //TODO
     }

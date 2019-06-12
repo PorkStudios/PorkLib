@@ -48,6 +48,40 @@ public interface _P0_Collection_gH_ extends Synchronizable<_P0_Collection_gH_> {
     }
 
     /**
+     * Clears this collection, removing all elements.
+     * <p>
+     * After this method has been invoked, this instance is expected to be reset as if it were a newly created
+     * instance.
+     */
+    void clear();
+
+    /**
+     * Clears this collection, removing all elements.
+     * <p>
+     * Unlike {@link #clear()}, implementations may choose to not completely reset this instance's state, and
+     * rather maintain some allocated resources in order to preserve performance. However, by default this is
+     * simply a proxy to {@link #clear()}.
+     */
+    default void removeAll()    {
+        this.clear();
+    }
+
+    /**
+     * Releases any resources allocated by this collection.
+     * <p>
+     * After invoking this method the collection should not be used for any purpose, and attempting to invoke
+     * any methods on a released collection will produce undefined behavior.
+     * <p>
+     * The behavior of this method is highly implementation-dependant. This may e.g. free directly allocated
+     * memory, or simply make resources available for garbage collection.
+     * <p>
+     * Any actions done by this method are expected to be done automatically when this collection instance
+     * is garbage collected, this method simply allows doing it explicitly to free up as many resources as possible
+     * for performance reasons in some scenarios.
+     */
+    void release();
+
+    /**
      * Passes each element in this collection to the given function.
      *
      * @param consumer the function to run

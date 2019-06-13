@@ -86,15 +86,13 @@ public class _P0_ArrayList_gH_ implements _P0_List_gH_ {
             <0%@SuppressWarnings("unchecked")%>
             _p0_ old = _castP0_this.arr[i];
             System.arraycopy(this.arr, i + 1, this.arr, i, this.size-- - i);
-            this.checkShrink(1);
+            if (this.size < this.arr.length >> 2)   {
+                //we need to shrink the array
+                _nameP0_[] small = new _nameP0_[this.arr.length >> 1];
+                PUnsafe.copyMemory(this.arr, _arrOffsetP0_, small, _arrOffsetP0_, this.size * _arrScaleP0_);
+                this.arr = small;
+            }
             return old;
-        }
-    }
-
-    protected void checkShrink(int count) {
-        if (this.size - count < this.arr.length >> 2)   {
-            //we need to shrink the array
-            this.arr = java.util.Arrays.copyOfRange(this.arr, 0, BinMath.roundToNearestPowerOf2(this.size - count));
         }
     }
 

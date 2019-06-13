@@ -1,0 +1,36 @@
+_headers_
+
+import net.daporkchop.lib.primitive.strategy._P0_EqualsStrategy;
+
+/**
+ * A {@link _P0_ArrayList} that uses a custom {@link _P0_EqualsStrategy} to check for equality between values.
+ *
+ * @author DaPorkchop_
+ */
+public class _P0_CustomArrayList_gH_ extends _P0_ArrayList_gH_ {
+    protected final _P0_EqualsStrategy_gH_ strategy;
+
+    public _P0_CustomArrayList(_P0_EqualsStrategy_gH_ strategy)  {
+        super();
+
+        this.strategy = strategy;
+    }
+
+    public _P0_CustomArrayList(int minSize, _P0_EqualsStrategy_gH_ strategy)  {
+        super(minSize);
+
+        this.strategy = strategy;
+    }
+
+    @Override
+    <0%@SuppressWarnings("unchecked")%>
+    public int indexOf(_p0_ val){
+        int size = this.size;
+        for (int i = 0; i < size; i++)  {
+            if (this.strategy.equals(val, _castP0_this.arr[i]))   { //use strategy for value comparison
+                return i;
+            }
+        }
+        return -1;
+    }
+}

@@ -35,7 +35,7 @@ public interface _P0_Iterator_gH_ {
      *
      * @param consumer the function to run
      */
-    default void forEachRemaining(_P0_Consumer_gH_ consumer)    {
+    default void forEachRemaining(_P0_Consumer_gH_ consumer) {
         while (this.hasNext())  {
             consumer.accept(this.next());
         }

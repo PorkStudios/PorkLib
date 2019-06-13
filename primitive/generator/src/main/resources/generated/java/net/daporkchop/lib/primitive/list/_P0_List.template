@@ -29,6 +29,17 @@ public interface _P0_List_gH_ extends _P0_Collection_gH_, Synchronizable<_P0_Lis
     void add(int i, _p0_ val) throws IndexOutOfBoundsException;
 
     /**
+     * @see #add(int, _nameP0_)
+     */
+    default void add(int i, _p0_ val) throws IndexOutOfBoundsException {
+        if (i > Integer.MAX_VALUE)  {
+            throw new IndexOutOfBoundsException();
+        } else {
+            this.add((int) i, val);
+        }
+    }
+
+    /**
      * Removes a single instance of a value from the list, moving following values down to fill the gap.
      *
      * @see _P0_Collection#remove(_nameP0_)
@@ -39,10 +50,22 @@ public interface _P0_List_gH_ extends _P0_Collection_gH_, Synchronizable<_P0_Lis
     /**
      * Removes the element at the given index, moving following values down to fill the gap.
      *
+     * @param i the index of the value to remove
      * @return the value that was removed
      * @throws IndexOutOfBoundsException if the given index is not within the inclusive range of 0-({@link #size()} - 1)
      */
     _p0_ removeAt(int i) throws IndexOutOfBoundsException;
+
+    /**
+     * @see #removeAt(int)
+     */
+    default _p0_ removeAt(long i) throws IndexOutOfBoundsException {
+        if (i > Integer.MAX_VALUE)  {
+            throw new IndexOutOfBoundsException();
+        } else {
+            return this.removeAt((int) i);
+        }
+    }
 
     /**
      * Replaces the element at the given index with the given value.
@@ -55,6 +78,17 @@ public interface _P0_List_gH_ extends _P0_Collection_gH_, Synchronizable<_P0_Lis
     _p0_ set(int i, _p0_ val) throws IndexOutOfBoundsException;
 
     /**
+     * @see #set(int, _nameP0_)
+     */
+    default _p0_ set(long i, _p0_ val) throws IndexOutOfBoundsException {
+        if (i > Integer.MAX_VALUE)  {
+            throw new IndexOutOfBoundsException();
+        } else {
+            return this.set((int) i, val);
+        }
+    }
+
+    /**
      * Gets the first index of the given value in the list.
      *
      * @param val the value to search for
@@ -63,16 +97,75 @@ public interface _P0_List_gH_ extends _P0_Collection_gH_, Synchronizable<_P0_Lis
      */
     int indexOf(_p0_ val);
 
+    /**
+     * @see #indexOf(_nameP0_)
+     */
+    default long longIndexOf(_p0_ val) {
+        return this.indexOf(val);
+    }
+
     @Override
-    default boolean contains(_p0_ val)  {
+    default boolean contains(_p0_ val) {
         return this.indexOf(val) != -1;
     }
 
     @Override
-    _P0_Listerator_gH_ iterator();
+    default _P0_Listerator_gH_ iterator() {
+        return new _P0_Listerator_gH_() {
+            private int limit = _P0_List.this.size();
+            private int index = 0;
+            private boolean removed = false;
+
+            @Override
+            public int index() {
+                return this.index;
+            }
+
+            @Override
+            public boolean hasNext() {
+                return this.index < this.limit;
+            }
+
+            @Override
+            public _p0_ next() throws IterationCompleteException {
+                if (this.hasNext()) {
+                    int i = this.removed ? this.index : this.index++;
+                    this.removed = false;
+                    return _P0_List.this.get(i);
+                } else {
+                    throw new IterationCompleteException();
+                }
+            }
+
+            @Override
+            public _p0_ remove() {
+                if (!this.removed)  {
+                    this.removed = true;
+                    _P0_List.this.removeAt(this.index);
+                    this.limit--;
+                }
+            }
+
+            @Override
+            public boolean hasPrevious() {
+            }
+
+            @Override
+            public _p0_ prev() throws IterationCompleteException {
+            }
+
+            @Override
+            public void jump(int i) throws IndexOutOfBoundsException {
+            }
+
+            @Override
+            public _p0_ replace(_p0_ val) {
+            }
+        };
+    }
 
     @Override
-    default _P0_List_gH_ sync(Object mutex)    {
+    default _P0_List_gH_ sync(Object mutex) {
         return new _P0_SynchronizedList_gH_(this, mutex);
     }
 }

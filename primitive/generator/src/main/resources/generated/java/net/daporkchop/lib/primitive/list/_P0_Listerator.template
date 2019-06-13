@@ -17,6 +17,13 @@ public interface _P0_Listerator_gH_ extends _P0_Iterator_gH_ {
     int index();
 
     /**
+     * @see #index()
+     */
+    default long longIndex() {
+        return this.index();
+    }
+
+    /**
      * @see #hasNext()
      */
     boolean hasPrevious();
@@ -32,7 +39,7 @@ public interface _P0_Listerator_gH_ extends _P0_Iterator_gH_ {
     /**
      * @see #forEachRemaining(_P0_Consumer)
      */
-    default void forEachPreviousRemaining(_P0_Consumer_gH_ consumer)    {
+    default void forEachPreviousRemaining(_P0_Consumer_gH_ consumer) {
         while (this.hasPrevious())  {
             consumer.accept(this.prev());
         }
@@ -45,6 +52,17 @@ public interface _P0_Listerator_gH_ extends _P0_Iterator_gH_ {
      * @throws IndexOutOfBoundsException if the given index is not within the bounds of the list
      */
     void jump(int i) throws IndexOutOfBoundsException;
+
+    /**
+     * @see #jump(int)
+     */
+    default void jump(long i) throws IndexOutOfBoundsException {
+        if (i > Integer.MAX_VALUE)  {
+            throw new IndexOutOfBoundsException();
+        } else {
+            this.jump((int) i);
+        }
+    }
 
     /**
      * Replaces the value at the current position.

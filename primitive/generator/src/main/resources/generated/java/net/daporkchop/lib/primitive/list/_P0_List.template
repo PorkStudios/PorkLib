@@ -1,6 +1,7 @@
 _headers_
 
 import net.daporkchop.lib.primitive.collection._P0_Collection;
+import net.daporkchop.lib.primitive.collection.IterationCompleteException;
 import net.daporkchop.lib.primitive.list.sync._P0_SynchronizedList;
 import net.daporkchop.lib.primitive.util.Synchronizable;
 
@@ -31,7 +32,7 @@ public interface _P0_List_gH_ extends _P0_Collection_gH_, Synchronizable<_P0_Lis
     /**
      * @see #add(int, _nameP0_)
      */
-    default void add(int i, _p0_ val) throws IndexOutOfBoundsException {
+    default void add(long i, _p0_ val) throws IndexOutOfBoundsException {
         if (i > Integer.MAX_VALUE)  {
             throw new IndexOutOfBoundsException();
         } else {
@@ -64,6 +65,26 @@ public interface _P0_List_gH_ extends _P0_Collection_gH_, Synchronizable<_P0_Lis
             throw new IndexOutOfBoundsException();
         } else {
             return this.removeAt((int) i);
+        }
+    }
+
+    /**
+     * Retrieves the element at the given index.
+     *
+     * @param i the index of the value to get
+     * @return the value at the given index
+     * @throws IndexOutOfBoundsException if the given index is not within the inclusive range of 0-({@link #size()} - 1)
+     */
+    _p0_ get(int i) throws IndexOutOfBoundsException;
+
+    /**
+     * @see #get(int)
+     */
+    default _p0_ get(long i) throws IndexOutOfBoundsException {
+        if (i > Integer.MAX_VALUE)  {
+            throw new IndexOutOfBoundsException();
+        } else {
+            return this.get((int) i);
         }
     }
 
@@ -123,7 +144,7 @@ public interface _P0_List_gH_ extends _P0_Collection_gH_, Synchronizable<_P0_Lis
 
             @Override
             public boolean hasNext() {
-                return this.index < this.limit;
+                return this.removed ? this.index < this.limit : this.index < this.limit - 1;
             }
 
             @Override
@@ -133,7 +154,7 @@ public interface _P0_List_gH_ extends _P0_Collection_gH_, Synchronizable<_P0_Lis
                     this.removed = false;
                     return _P0_List.this.get(i);
                 } else {
-                    throw new IterationCompleteException();
+                    throw IterationCompleteException.INSTANCE;
                 }
             }
 
@@ -141,25 +162,39 @@ public interface _P0_List_gH_ extends _P0_Collection_gH_, Synchronizable<_P0_Lis
             public _p0_ remove() {
                 if (!this.removed)  {
                     this.removed = true;
-                    _P0_List.this.removeAt(this.index);
                     this.limit--;
+                    return _P0_List.this.removeAt(this.index);
+                } else {
+                    throw new IllegalStateException("already removed!");
                 }
             }
 
             @Override
-            public boolean hasPrevious() {
+            public boolean hasPrev() {
+                return this.removed ? this.index >= 0 : this.index > 0;
             }
 
             @Override
             public _p0_ prev() throws IterationCompleteException {
+                if (this.hasPrev()) {
+                    int i = this.removed ? this.index : this.index--;
+                    this.removed = false;
+                    return _P0_List.this.get(i);
+                } else {
+                    throw IterationCompleteException.INSTANCE;
+                }
             }
 
             @Override
             public void jump(int i) throws IndexOutOfBoundsException {
+                if (i < 0 || i >= this.limit)   {
+                    throw new IndexOutOfBoundsException();
+                }
             }
 
             @Override
             public _p0_ replace(_p0_ val) {
+                return _P0_List.this.set(this.index, val);
             }
         };
     }

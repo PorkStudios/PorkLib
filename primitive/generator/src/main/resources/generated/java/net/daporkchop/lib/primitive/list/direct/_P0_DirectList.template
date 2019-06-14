@@ -62,6 +62,11 @@ public class _P0_DirectList_gH_ implements _P0_List_gH_ {
 
     @Override
     public void add(int i, _p0_ val) throws IndexOutOfBoundsException   {
+        this.add((long) i, val);
+    }
+
+    @Override
+    public void add(long i, _p0_ val) throws IndexOutOfBoundsException   {
         if (i == this.size) {
             this.add(val); //don't try to shift elements
             return;
@@ -94,7 +99,12 @@ public class _P0_DirectList_gH_ implements _P0_List_gH_ {
 
     @Override
     public _p0_ removeAt(int i) throws IndexOutOfBoundsException   {
-        if (i < 0 || i >= this.size)  {
+        return this.removeAt((long) i);
+    }
+
+    @Override
+    public _p0_ removeAt(long i) throws IndexOutOfBoundsException   {
+        if (i < 0L || i >= this.size)  {
             throw new IndexOutOfBoundsException(String.valueOf(i));
         } else {
             _p0_ old = PUnsafe.get_P0_(this.addr + i * _arrScaleP0_);
@@ -112,7 +122,26 @@ public class _P0_DirectList_gH_ implements _P0_List_gH_ {
     }
 
     @Override
+    public _p0_ get(int i) throws IndexOutOfBoundsException   {
+        return this.get((long) i);
+    }
+
+    @Override
+    public _p0_ get(long i) throws IndexOutOfBoundsException   {
+        if (i < 0L || i >= this.size)  {
+            throw new IndexOutOfBoundsException(String.valueOf(i));
+        } else {
+            return PUnsafe.get_P0_(this.addr + i * _arrScaleP0_);
+        }
+    }
+
+    @Override
     public _p0_ set(int i, _p0_ val) throws IndexOutOfBoundsException  {
+        return this.set((long) i, val);
+    }
+
+    @Override
+    public _p0_ set(long i, _p0_ val) throws IndexOutOfBoundsException  {
         if (i < 0 || i >= this.size)  {
             throw new IndexOutOfBoundsException(String.valueOf(i));
         } else {
@@ -124,13 +153,19 @@ public class _P0_DirectList_gH_ implements _P0_List_gH_ {
 
     @Override
     public int indexOf(_p0_ val){
-        long size = this.size;
-        if (size > Integer.MAX_VALUE)   {
+        if (this.size > Integer.MAX_VALUE)   {
             throw new IllegalStateException("list larger than Integer.MAX_VALUE!");
+        } else {
+            return (int) this.longIndexOf(val);
         }
+    }
+
+    @Override
+    public long longIndexOf(_p0_ val){
+        long size = this.size;
         for (long l = 0L; l < size; l++)    {
             if (_equalsP0[[val![[PUnsafe.get_P0_(this.addr + l * _arrScaleP0_)!_)   {
-                return (int) l;
+                return l;
             }
         }
         return -1;
@@ -149,7 +184,7 @@ public class _P0_DirectList_gH_ implements _P0_List_gH_ {
 
     @Override
     public _P0_Listerator_gH_ iterator()    {
-        return null; //TODO
+        return _P0_List.super.iterator(); //TODO
     }
 
     @Override

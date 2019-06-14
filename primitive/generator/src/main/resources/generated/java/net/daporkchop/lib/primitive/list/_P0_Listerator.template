@@ -26,7 +26,7 @@ public interface _P0_Listerator_gH_ extends _P0_Iterator_gH_ {
     /**
      * @see #hasNext()
      */
-    boolean hasPrevious();
+    boolean hasPrev();
 
     /**
      * Moves the iterator backwards and returns the previous value.

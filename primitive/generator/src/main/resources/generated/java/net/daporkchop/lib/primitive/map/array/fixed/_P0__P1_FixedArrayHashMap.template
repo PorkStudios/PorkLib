@@ -1,0 +1,282 @@
+$$$settings$$$
+{
+    "P0": {
+        "blacklist": [
+            "boolean",
+            "float",
+            "double"
+        ]
+    }
+}
+_headers_
+
+import net.daporkchop.lib.math.primitive.BinMath;
+
+import net.daporkchop.lib.primitive.function.biconsumer._P0__P1_BiConsumer;
+import net.daporkchop.lib.primitive.function.consumer._P0_Consumer;
+import net.daporkchop.lib.primitive.function.consumer._P1_Consumer;
+import net.daporkchop.lib.primitive.map._P0__P1_Map;
+
+/**
+ * An implementation of {@link _P0__P1_Map} backed by a fixed-size array.
+ *
+ * @author DaPorkchop_
+ */
+public class _P0__P1_FixedArrayHashMap_gH_ implements _P0__P1_Map_gH_ {
+    protected _nameP0_[] keys;
+    protected _nameP1_[] values;
+    protected final int mask;
+    protected int size = 0;
+
+    public _P0__P1_FixedArrayHashMap(int size)  {
+        this(size, true);
+    }
+
+    /**
+     * Creates a new {@link _P0__P1_FixedArrayHashMap}.
+     *
+     * @param size      the size of the backing arrays. Must be a power of 2
+     * @param storeKeys whether or not to store keys. Refer to package-info.java in the parent package
+     *                  for more information.
+     */
+    public _P0__P1_FixedArrayHashMap(int size, boolean storeKeys)  {
+        if (!BinMath.isPow2(size))  {
+            throw new IllegalArgumentException("size must be a power of 2!");
+        } else {
+            this.keys = storeKeys ? new _nameP0_[size] : null;
+            this.values = new _nameP1_[size];
+            this.mask = size - 1;
+
+            this.clear();
+        }
+    }
+
+    @Override
+    public void put(_p0_ k, _p1_ v) {
+        this.validateKey(k);
+        int hash = this.hash(k) & this.mask;
+
+        if (!this.assertContainsKey(k, hash))    {
+            this.size++;
+            this.setKey(k, hash);
+        }
+        this.values[hash] = v;
+    }
+
+    @Override
+    public boolean putAndCheck(_p0_ k, _p1_ v)    {
+        this.validateKey(k);
+        int hash = this.hash(k) & this.mask;
+
+        boolean present = this.assertContainsKey(k, hash);
+        if (!present)    {
+            this.size++;
+            this.setKey(k, hash);
+        }
+        this.values[hash] = v;
+        return present;
+    }
+
+    @Override
+    public _p1_ putAndGet(_p0_ k, _p1_ v) {
+        this.validateKey(k);
+        int hash = this.hash(k) & this.mask;
+
+        if (!this.assertContainsKey(k, hash))    {
+            this.size++;
+            this.setKey(k, hash);
+        }
+
+        <1%@SuppressWarnings("unchecked")%>
+        _p1_ oldVal = _castP1_this.values[hash];
+        this.values[hash] = v;
+        return oldVal;
+    }
+
+    @Override
+    public _p1_ replace(_p0_ k, _p1_ v) {
+        this.validateKey(k);
+        int hash = this.hash(k) & this.mask;
+
+        if (!this.assertContainsKey(k, hash))    {
+            return _P1E_;
+        }
+        <1%@SuppressWarnings("unchecked")%>
+        _p1_ oldVal = _castP1_this.values[hash];
+        this.values[hash] = v;
+        return oldVal;
+    }
+
+    @Override
+    public boolean replaceAndCheck(_p0_ k, _p1_ v) {
+        this.validateKey(k);
+        int hash = this.hash(k) & this.mask;
+
+        if (!this.assertContainsKey(k, hash))    {
+            return false;
+        }
+        this.values[hash] = v;
+        return true;
+    }
+
+    @Override
+    public void remove(_p0_ k)  {
+        this.validateKey(k);
+        int hash = this.hash(k) & this.mask;
+
+        if (!this.assertContainsKey(k, hash))    {
+            return;
+        }
+        this.size--;
+        this.clearKey(k, hash);
+        this.values[hash] = _P1E_;
+    }
+
+    @Override
+    public boolean removeAndCheck(_p0_ k)   {
+        this.validateKey(k);
+        int hash = this.hash(k) & this.mask;
+
+        if (!this.assertContainsKey(k, hash))    {
+            return false;
+        }
+        this.size--;
+        this.clearKey(k, hash);
+        this.values[hash] = _P1E_;
+        return true;
+    }
+
+    @Override
+    public _p1_ removeAndGet(_p0_ k)    {
+        this.validateKey(k);
+        int hash = this.hash(k) & this.mask;
+
+        if (!this.assertContainsKey(k, hash))    {
+            return _P1E_;
+        }
+        this.size--;
+        this.clearKey(k, hash);
+        <1%@SuppressWarnings("unchecked")%>
+        _p1_ oldVal = _castP1_this.values[hash];
+        this.values[hash] = _P1E_;
+        return oldVal;
+    }
+
+    @Override
+    <1%@SuppressWarnings("unchecked")%>
+    public _p1_ get(_p0_ k) {
+        this.validateKey(k);
+        int hash = this.hash(k) & this.mask;
+
+        if (this.keys != null && this.nequals(k, this.keys[hash]))  {
+            return _P1E_;
+        }
+        return _castP1_this.values[hash];
+    }
+
+    @Override
+    public boolean containsKey(_p1_ k)  {
+        if (this.keys != null)  {
+            this.validateKey(k);
+            return this.equals(k, this.keys[hash]);
+        }
+        return false;
+    }
+
+    @Override
+    <0%@SuppressWarnings("unchecked")%>
+    public void forEachKey(_P0_Consumer_GP0_consumer) {
+        if (consumer == null)   {
+            throw new NullPointerException("consumer");
+        }
+        if (this.keys != null)  {
+            for (_nameP0_ k : this.keys)    {
+                if (this.nequals(k, _P0E_)) {
+                    consumer.accept(_castP0_k);
+                }
+            }
+        }
+    }
+
+    /**
+     * Passes each value in this map to the given function.
+     *
+     * @param consumer the function to run
+     */
+    <0%@SuppressWarnings("unchecked")%> //TODO: make this work for any parameter
+    default void forEachValue(_P1_Consumer_GP1_consumer) {
+        if (consumer == null)   {
+            throw new NullPointerException("consumer");
+        } else {
+            this.forEach((k, v) -> consumer.accept(v));
+        }
+    }
+
+    /**
+     * Passes each pair in this map to the given function.
+     *
+     * @param consumer the function to run
+     */
+    void forEach(_P0__P1_BiConsumer_gH_ consumer);
+
+    @Override
+    public int size()   {
+        return this.size;
+    }
+
+    @Override
+    public void clear()    {
+        this.size = 0;
+        java.util.Arrays.fill(this.values, _P1E_);
+        if (this.keys != null)  {
+            java.util.Arrays.fill(this.keys, _P0E_);
+        }
+    }
+
+    @Override
+    public void release()   {
+        this.keys = null;
+        this.values = null;
+    }
+
+    protected void validateKey(_p0_ k)  {
+        if (this.equals(k, _P0E_))  {
+            throw new IllegalArgumentException("Cannot use _P0E_ as a key!");
+        }
+    }
+
+    protected boolean assertContainsKey(_p0_ k, int hash) {
+        return this.keys != null && this.nequals(this.keys[hash], _P0E_) && !this.assertCheckCollision(k, hash);
+    }
+
+    protected boolean assertCheckCollision(_p0_ k, int hash) {
+        if (this.keys != null && this.nequals(this.keys[hash], k))  {
+            throw new IllegalStateException("Hash collision! old:" + this.keys[hash] + ", new:" + k);
+        }
+        return false;
+    }
+
+    protected void setKey(_p0_ k, int hash) {
+        if (this.keys != null)  {
+            this.keys[hash] = k;
+        }
+    }
+
+    protected void clearKey(_p0_ k, int hash) {
+        if (this.keys != null)  {
+            this.keys[hash] = _P0E_;
+        }
+    }
+
+    protected int hash(_p0_ k) {
+        return _hashP0|k|_
+    }
+
+    protected boolean equals(_p0_ a, _p0_ b)    {
+        return _equalsP0|a|b|_;
+    }
+
+    protected boolean nequals(_p0_ a, _p0_ b)    {
+        return _nequalsP0|a|b|_;
+    }
+}

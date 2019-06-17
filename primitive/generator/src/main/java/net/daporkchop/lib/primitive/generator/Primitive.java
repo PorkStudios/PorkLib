@@ -179,7 +179,7 @@ public class Primitive {
                 .replace(String.format(CAST_DEF, i), this.generic ? "(" + (char) ('A' + i) + ") " : "")
                 .replace(String.format(EMPTYVALUE_DEF, i), this.emptyValue)
                 .replace(String.format(NON_GENERIC_DEF, i), this.generic ? "" : this.name)
-                .replace(String.format(GENERIC_DEF, i), this.generic ? "<" + ((char) ('A' + i)) + "> " : "")
+                .replace(String.format(GENERIC_DEF, i), this.generic ? "<" + ((char) ('A' + i)) + "> " : " ")
                 .replace(String.format(GENERIC_SUPER_P_DEF, i), getGenericSuper(i, this))
                 .replace(String.format(GENERIC_EXTENDS_P_DEF, i), getGenericExtends(i, this))
                 .replace(String.format(UNSAFE_ARRAY_OFFSET_DEF, i), String.format("PUnsafe.ARRAY_%s_BASE_OFFSET", this.name.toUpperCase()))

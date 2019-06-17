@@ -29,6 +29,8 @@ import net.daporkchop.lib.network.util.PacketMetadata;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Scanner;
 
 /**
@@ -53,6 +55,10 @@ public class TestHTTPServer implements Logging {
     }
 
     static class HTTPServerSession extends HTTPSession<HTTPServerSession>    {
+        public HTTPServerSession() {
+            super(Collections.emptyMap());
+        }
+
         @Override
         public void onReceive(@NonNull DataIn in, @NonNull PacketMetadata metadata) throws IOException {
             if (metadata.protocolId() == 0)  {

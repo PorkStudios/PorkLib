@@ -47,7 +47,7 @@ public abstract class StatedPacketProtocol<P extends StatedProtocol<P, S, E>, S 
     private final Map<E, ProtocolState> states;
 
     public StatedPacketProtocol()    {
-        this.states = new EnumMap<>(GenericMatcher.<E>uncheckedFind(this.getClass(), StatedProtocol.class, "E"));
+        this.states = new EnumMap<>(GenericMatcher.<E, StatedProtocol>uncheckedFind(this.getClass(), StatedProtocol.class, "E"));
 
         this.registerPackets(new Registry());
     }

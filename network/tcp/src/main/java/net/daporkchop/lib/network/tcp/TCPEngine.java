@@ -37,7 +37,7 @@ import net.daporkchop.lib.network.tcp.endpoint.TCPServer;
 import net.daporkchop.lib.network.tcp.frame.DefaultFramer;
 import net.daporkchop.lib.network.tcp.frame.FramerFactory;
 import net.daporkchop.lib.network.transport.TransportEngine;
-import net.daporkchop.lib.network.util.Reliability;
+import net.daporkchop.lib.network.util.reliability.Reliability;
 
 import javax.net.ssl.SSLException;
 import java.io.File;

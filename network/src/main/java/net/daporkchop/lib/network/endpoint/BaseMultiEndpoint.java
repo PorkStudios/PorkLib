@@ -16,13 +16,16 @@
 package net.daporkchop.lib.network.endpoint;
 
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.util.group.Broadcaster;
 
 import java.util.Collection;
 
 /**
+ * An endpoint that can have multiple simultaneous connections.
+ *
  * @author DaPorkchop_
  */
-interface BaseMultiEndpoint<Impl extends BaseMultiEndpoint<Impl, S>, S extends AbstractUserSession<S>> extends PEndpoint<Impl, S> {
+interface BaseMultiEndpoint<Impl extends BaseMultiEndpoint<Impl, S>, S extends AbstractUserSession<S>> extends PEndpoint<Impl, S>, Broadcaster<Impl> {
     /**
      * Gets all sessions currently connected to this endpoint.
      *

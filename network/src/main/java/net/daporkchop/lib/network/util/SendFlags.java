@@ -15,6 +15,8 @@
 
 package net.daporkchop.lib.network.util;
 
+import net.daporkchop.lib.network.util.reliability.Reliability;
+
 /**
  * Additional modifiers that may be applied to messages being sent (via {@link net.daporkchop.lib.network.session.PSession#send(Object, int, Reliability, Priority, int)})
  * and related methods).

@@ -25,6 +25,7 @@ import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.tcp.netty.TCPChannelInitializer;
 import net.daporkchop.lib.network.tcp.session.TCPNioServerSocket;
 import net.daporkchop.lib.network.tcp.session.TCPNioSocket;
+import net.daporkchop.lib.network.util.reliability.Reliability;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -66,5 +67,16 @@ public class TCPServer<S extends AbstractUserSession<S>> extends TCPEndpoint<PSe
     @Override
     public Collection<S> sessions() {
         return Collections.unmodifiableCollection(this.sessions.values());
+    }
+
+    //TODO: remove these
+    @Override
+    public Reliability fallbackReliability() {
+        return null;
+    }
+
+    @Override
+    public PServer<S> fallbackReliability(@NonNull Reliability reliability) throws IllegalArgumentException {
+        return null;
     }
 }

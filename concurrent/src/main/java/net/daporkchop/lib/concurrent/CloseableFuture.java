@@ -27,7 +27,7 @@ public interface CloseableFuture {
      * Closes this instance now, blocking until the close operation is complete.
      */
     default void closeNow() {
-        this.closeAsync().sync();
+        this.closeAsync().syncUninterruptibly();
     }
 
     /**

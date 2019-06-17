@@ -48,7 +48,7 @@ public class GenericMatcher {
      * @param name       the generic type name
      * @return the class type that is passed to the generic parameter
      */
-    public static Class<?> find(@NonNull Class<?> thisClass, @NonNull Class<?> superClass, @NonNull String name) {
+    public static <C> Class<?> find(@NonNull Class<? extends C> thisClass, @NonNull Class<C> superClass, @NonNull String name) {
         return CACHE.computeIfAbsent(new Key(thisClass, superClass, name), key -> doFind(key.thisClass, key.superClass, key.name));
     }
 
@@ -56,7 +56,7 @@ public class GenericMatcher {
      * @see #find(Class, Class, String)
      */
     @SuppressWarnings("unchecked")
-    public static <T> Class<T> uncheckedFind(@NonNull Class<?> thisClass, @NonNull Class<?> superClass, @NonNull String name) {
+    public static <T, C> Class<T> uncheckedFind(@NonNull Class<? extends C> thisClass, @NonNull Class<C> superClass, @NonNull String name) {
         return (Class<T>) find(thisClass, superClass, name);
     }
 

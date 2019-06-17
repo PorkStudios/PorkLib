@@ -19,13 +19,10 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.concurrent.future.Completable;
 import net.daporkchop.lib.concurrent.util.DefaultListenable;
-import net.daporkchop.lib.concurrent.util.DefaultMutexHolder;
 import net.daporkchop.lib.concurrent.util.exception.AlreadyCompleteException;
 import net.daporkchop.lib.concurrent.worker.Worker;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -46,21 +43,16 @@ public abstract class DefaultCompletable<I extends Completable<I>> extends Defau
         return this.error;
     }
 
-    @Override
     public Worker getWorker() {
         return worker;
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public I sync() {
+    public I sync() throws InterruptedException {
         while (!this.isComplete()) {
-            try {
-                synchronized (this.mutex) {
-                    this.mutex.wait();
-                }
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+            synchronized (this.mutex) {
+                this.mutex.wait();
             }
         }
         return (I) this;
@@ -68,10 +60,14 @@ public abstract class DefaultCompletable<I extends Completable<I>> extends Defau
 
     @Override
     @SuppressWarnings("unchecked")
-    public I syncInterruptably() throws InterruptedException {
+    public I syncUninterruptibly() {
         while (!this.isComplete()) {
-            synchronized (this.mutex) {
-                this.mutex.wait();
+            try {
+                synchronized (this.mutex) {
+                    this.mutex.wait();
+                }
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
             }
         }
         return (I) this;

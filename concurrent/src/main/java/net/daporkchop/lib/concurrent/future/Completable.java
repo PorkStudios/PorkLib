@@ -69,11 +69,6 @@ public interface Completable<I extends Completable<I>> extends Listenable<I> {
      */
     Exception getError();
 
-    /**
-     * @return the {@link Worker} that owns this {@link Promise} or {@link Future}, or {@code null} if this is not owned by a worker
-     */
-    Worker getWorker();
-
     //
     //
     // sync methods
@@ -82,20 +77,20 @@ public interface Completable<I extends Completable<I>> extends Listenable<I> {
 
     /**
      * Waits for this {@link Promise} or {@link Future} to be completed, blocking the invoking thread.
+     *
+     * @return this {@link Promise} or {@link Future}
+     * @throws InterruptedException if the current thread is interrupted
+     */
+    I sync() throws InterruptedException;
+
+    /**
+     * Waits for this {@link Promise} or {@link Future} to be completed, blocking the invoking thread.
      * <p>
      * This method will ignore thread interrupts.
      *
      * @return this {@link Promise} or {@link Future}
      */
-    I sync();
-
-    /**
-     * Waits for this {@link Promise} or {@link Future} to be completed, blocking the invoking thread.
-     *
-     * @return this {@link Promise} or {@link Future}
-     * @throws InterruptedException if the thread is interrupted
-     */
-    I syncInterruptably() throws InterruptedException;
+    I syncUninterruptibly();
 
     //
     //

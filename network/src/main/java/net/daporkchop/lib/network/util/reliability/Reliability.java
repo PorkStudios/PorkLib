@@ -13,32 +13,35 @@
  *
  */
 
-package http;
-
-import lombok.AllArgsConstructor;
-import lombok.NonNull;
-import net.daporkchop.lib.binary.UTF8;
-import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.session.encode.SendCallback;
-import net.daporkchop.lib.network.util.PacketMetadata;
-
-import java.util.Collections;
-import java.util.Map;
+package net.daporkchop.lib.network.util.reliability;
 
 /**
+ * Various reliability levels that a packet may be sent with.
+ *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-public abstract class HTTPSession<S extends HTTPSession<S>> extends AbstractUserSession<S> {
-    public Map<String, String> headers;
-
-    @Override
-    public void encodeMessage(@NonNull Object msg, @NonNull PacketMetadata metadata, @NonNull SendCallback callback) {
-        if (msg instanceof String)  {
-            callback.send(((String) msg).getBytes(UTF8.utf8), metadata);
-        } else {
-            throw new IllegalStateException(String.format("Cannot send packet: %s", PorkUtil.className(msg)));
-        }
-    }
+public enum Reliability {
+    /**
+     * No guarantees are made that the packet will arrive at all or in what order.
+     */
+    UNRELIABLE,
+    /**
+     * No guarantees are made that the packet will arrive at all. However, if a newer sequenced packet arrives before
+     * older ones, the older ones will be discarded when and if they arrive.
+     */
+    UNRELIABLE_SEQUENCED,
+    /**
+     * The packet is sure to arrive, no guarantees are made as to ordering.
+     */
+    RELIABLE,
+    /**
+     * The packet is sure to arrive. However, if a newer sequenced packet arrives before
+     * older ones, the older ones will be discarded when and if they arrive.
+     */
+    RELIABLE_SEQUENCED,
+    /**
+     * The packet is sure to arrive in the same order as it was sent.
+     */
+    RELIABLE_ORDERED,
+    ;
 }

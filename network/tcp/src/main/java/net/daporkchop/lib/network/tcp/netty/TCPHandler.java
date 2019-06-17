@@ -19,10 +19,9 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import net.daporkchop.lib.binary.netty.NettyUtil;
 import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.netty.NettyHandler;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.util.Reliability;
+import net.daporkchop.lib.network.util.reliability.Reliability;
 import net.daporkchop.lib.network.tcp.session.TCPNioSocket;
 import net.daporkchop.lib.network.util.PacketMetadata;
 

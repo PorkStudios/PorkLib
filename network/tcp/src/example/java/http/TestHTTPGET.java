@@ -35,6 +35,7 @@ import net.daporkchop.lib.network.util.PacketMetadata;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -64,7 +65,7 @@ public class TestHTTPGET implements Logging {
             if (f.isSuccess()) {
                 logger.success((String) f.getNow());
             } else {
-                logger.alert(f.cause());
+                //logger.alert(f.cause());
             }
         });
     }
@@ -73,6 +74,10 @@ public class TestHTTPGET implements Logging {
         public Promise<String> promise = GlobalEventExecutor.INSTANCE.newPromise();
         public int contentLength = -1;
         public ByteBuf body = null;
+
+        public HTTPGetSession() {
+            super(null);
+        }
 
         @Override
         public void onReceive(@NonNull DataIn in, @NonNull PacketMetadata metadata) throws IOException {

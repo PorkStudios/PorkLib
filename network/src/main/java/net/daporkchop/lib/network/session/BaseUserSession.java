@@ -22,7 +22,7 @@ import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.transport.NetSession;
 import net.daporkchop.lib.network.transport.TransportEngine;
 import net.daporkchop.lib.network.util.Priority;
-import net.daporkchop.lib.network.util.Reliability;
+import net.daporkchop.lib.network.util.reliability.Reliability;
 
 import java.net.SocketAddress;
 

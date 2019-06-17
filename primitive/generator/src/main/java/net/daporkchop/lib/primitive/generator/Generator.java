@@ -77,6 +77,7 @@ public class Generator implements Logging {
                         .setHashCode("$1 ? 1 : 0")
                         .setEmptyValue("false")
                         .setEquals("$1 == $2")
+                        .setNequals("$1 != $2")
                         .build()
         );
         PRIMITIVES.add(
@@ -86,6 +87,7 @@ public class Generator implements Logging {
                         .setHashCode("$1 & 0xFF")
                         .setEmptyValue("Byte.MIN_VALUE")
                         .setEquals("$1 == $2")
+                        .setNequals("$1 != $2")
                         .build()
         );
         PRIMITIVES.add(
@@ -96,6 +98,7 @@ public class Generator implements Logging {
                         .setHashCode("($1 >>> 8) ^ $1")
                         .setEmptyValue("Character.MAX_VALUE")
                         .setEquals("$1 == $2")
+                        .setNequals("$1 != $2")
                         .build()
         );
         PRIMITIVES.add(
@@ -105,6 +108,7 @@ public class Generator implements Logging {
                         .setHashCode("($1 >>> 8) ^ $1")
                         .setEmptyValue("Short.MIN_VALUE")
                         .setEquals("$1 == $2")
+                        .setNequals("$1 != $2")
                         .build()
         );
         PRIMITIVES.add(
@@ -115,6 +119,7 @@ public class Generator implements Logging {
                         .setHashCode("($1 >>> 24) ^ ($1 >>> 16) ^ ($1 >>> 8) ^ $1")
                         .setEmptyValue("Integer.MIN_VALUE")
                         .setEquals("$1 == $2")
+                        .setNequals("$1 != $2")
                         .build()
         );
         PRIMITIVES.add(
@@ -124,6 +129,7 @@ public class Generator implements Logging {
                         .setHashCode("(int) (($1 >>> 56) ^ ($1 >>> 48) ^ ($1 >>> 40) ^ ($1 >>> 32) ^ ($1 >>> 24) ^ ($1 >>> 16) ^ ($1 >>> 8) ^ $1)")
                         .setEmptyValue("Long.MIN_VALUE")
                         .setEquals("$1 == $2")
+                        .setNequals("$1 != $2")
                         .build()
         );
         PRIMITIVES.add(
@@ -133,6 +139,7 @@ public class Generator implements Logging {
                         .setHashCode("Float.floatToIntBits($1)")
                         .setEmptyValue("Float.NaN")
                         .setEquals("$1 == $2")
+                        .setNequals("$1 != $2")
                         .build()
         );
         PRIMITIVES.add(
@@ -142,6 +149,7 @@ public class Generator implements Logging {
                         .setHashCode("(int) Double.doubleToLongBits($1)")
                         .setEmptyValue("Double.NaN")
                         .setEquals("$1 == $2")
+                        .setNequals("$1 != $2")
                         .build()
         );
         PRIMITIVES.add(
@@ -152,6 +160,7 @@ public class Generator implements Logging {
                         .setGeneric()
                         .setEmptyValue("null")
                         .setEquals("java.util.Objects.equals($1, $2)")
+                        .setNequals("!java.util.Objects.equals($1, $2)")
                         .build()
         );
 

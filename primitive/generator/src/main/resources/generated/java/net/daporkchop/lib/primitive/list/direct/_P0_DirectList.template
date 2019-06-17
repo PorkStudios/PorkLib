@@ -88,7 +88,7 @@ public class _P0_DirectList_gH_ implements _P0_List_gH_ {
     public boolean remove(_p0_ val)    {
         long size = this.size;
         for (long l = 0L; l < size; l++)    {
-            if (_equalsP0[[val![[PUnsafe.get_P0_(this.addr + l * _arrScaleP0_)!_)   {
+            if (_equalsP0|val|PUnsafe.get_P0_(this.addr + l * _arrScaleP0_)|_)   {
                 PUnsafe.copyMemory(this.addr + (l + 1L) * _arrScaleP0_, this.addr + l * _arrScaleP0_, size - l);
                 this.checkShrink();
                 return true;
@@ -164,7 +164,7 @@ public class _P0_DirectList_gH_ implements _P0_List_gH_ {
     public long longIndexOf(_p0_ val){
         long size = this.size;
         for (long l = 0L; l < size; l++)    {
-            if (_equalsP0[[val![[PUnsafe.get_P0_(this.addr + l * _arrScaleP0_)!_)   {
+            if (_equalsP0|val|PUnsafe.get_P0_(this.addr + l * _arrScaleP0_)|_)   {
                 return l;
             }
         }

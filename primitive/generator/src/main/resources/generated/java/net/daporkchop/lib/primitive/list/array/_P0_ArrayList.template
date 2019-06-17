@@ -122,7 +122,7 @@ public class _P0_ArrayList_gH_ implements _P0_List_gH_ {
     public int indexOf(_p0_ val){
         int size = this.size; //add as local variable to allow inlining into a register
         for (int i = 0; i < size; i++)  { //as much as i'd like to iterate backwards here, that isn't an option :(
-            if (_equalsP0[[val![[this.arr[i]!_)   {
+            if (_equalsP0|val|this.arr[i]|_)   {
                 return i;
             }
         }

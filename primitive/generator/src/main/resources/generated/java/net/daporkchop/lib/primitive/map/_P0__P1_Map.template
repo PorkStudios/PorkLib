@@ -44,7 +44,7 @@ public interface _P0__P1_Map_gH_ extends Synchronizable<_P0__P1_Map_gH_> {
      * @param v the value to use
      * @return whether or not the key was found in the map (and therefore whether or not an old pair was replaced)
      */
-    boolean putCheck(_p0_ k, _p1_ v);
+    boolean putAndCheck(_p0_ k, _p1_ v);
 
     /**
      * Inserts a new entry using a given key and value.
@@ -55,7 +55,7 @@ public interface _P0__P1_Map_gH_ extends Synchronizable<_P0__P1_Map_gH_> {
      * @param v the value to use
      * @return the value previously mapped to the given key, or {@code _P1E_} if the given key was not present
      */
-    _p1_ insert(_p0_ k, _p1_ v);
+    _p1_ putAndGet(_p0_ k, _p1_ v);
 
     /**
      * Replaces the value mapped to a pre-existing key.

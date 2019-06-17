@@ -152,24 +152,24 @@ public class Primitive {
     public String emptyValue;
     @NonNull
     public String equals;
+    @NonNull
+    public String nequals;
 
     public String format(@NonNull String text, int i) {
         return this.format(text, i, true);
     }
 
     public String format(@NonNull String text, int i, boolean removeGenericThings) {
-        if (i == 0) {
-            if (this.generic) {
-                text = text.replaceAll("\\s*?<~!%[\\s\\S]*?%>".replace("~", String.valueOf(i)), "")
-                        .replaceAll("<~!%[\\s\\S]*?%>".replace("~", String.valueOf(i)), "")
-                        .replaceAll("(\\s*?)<~%([\\s\\S]*?)%>".replace("~", String.valueOf(i)), "$1$2")
-                        .replaceAll("<~%([\\s\\S]*?)%>".replace("~", String.valueOf(i)), "$1");
-            } else {
-                text = text.replaceAll("\\s*?<~%[\\s\\S]*?%>".replace("~", String.valueOf(i)), "")
-                        .replaceAll("<~%[\\s\\S]*?%>".replace("~", String.valueOf(i)), "")
-                        .replaceAll("(\\s*?)<~!%([\\s\\S]*?)%>".replace("~", String.valueOf(i)), "$1$2")
-                        .replaceAll("<~!%([\\s\\S]*?)%>".replace("~", String.valueOf(i)), "$1");
-            }
+        if (this.generic) {
+            text = text.replaceAll("\\s*?<~!%[\\s\\S]*?%>".replace("~", String.valueOf(i)), "")
+                    .replaceAll("<~!%[\\s\\S]*?%>".replace("~", String.valueOf(i)), "")
+                    .replaceAll("(\\s*?)<~%([\\s\\S]*?)%>".replace("~", String.valueOf(i)), "$1$2")
+                    .replaceAll("<~%([\\s\\S]*?)%>".replace("~", String.valueOf(i)), "$1");
+        } else {
+            text = text.replaceAll("\\s*?<~%[\\s\\S]*?%>".replace("~", String.valueOf(i)), "")
+                    .replaceAll("<~%[\\s\\S]*?%>".replace("~", String.valueOf(i)), "")
+                    .replaceAll("(\\s*?)<~!%([\\s\\S]*?)%>".replace("~", String.valueOf(i)), "$1$2")
+                    .replaceAll("<~!%([\\s\\S]*?)%>".replace("~", String.valueOf(i)), "$1");
         }
         return text
                 .replace(String.format(DISPLAYNAME_DEF, i), this.displayName)
@@ -184,8 +184,9 @@ public class Primitive {
                 .replace(String.format(GENERIC_EXTENDS_P_DEF, i), getGenericExtends(i, this))
                 .replace(String.format(UNSAFE_ARRAY_OFFSET_DEF, i), String.format("PUnsafe.ARRAY_%s_BASE_OFFSET", this.name.toUpperCase()))
                 .replace(String.format(UNSAFE_ARRAY_SCALE_DEF, i), String.format("PUnsafe.ARRAY_%s_INDEX_SCALE", this.name.toUpperCase()))
-                .replaceAll("_equalsP~\\[\\[([^!]*?)!\\[\\[([^!]*?)!_".replace("~", String.valueOf(i)), this.equals)
-                .replaceAll("_hashP~\\[\\[([^!]*?)!_".replace("~", String.valueOf(i)), this.hashCode);
+                .replaceAll("_equalsP~\\|([^!]*?)\\|([^!]*?)\\|_".replace("~", String.valueOf(i)), this.equals)
+                .replaceAll("_nequalsP~\\|([^!]*?)\\|([^!]*?)\\|_".replace("~", String.valueOf(i)), this.nequals)
+                .replaceAll("_hashP~\\|([^!]*?)\\|_".replace("~", String.valueOf(i)), this.hashCode);
     }
 
     public Primitive setGeneric() {
@@ -193,8 +194,8 @@ public class Primitive {
         return this;
     }
 
-    public Primitive build()    {
-        if (this.displayName == null)   {
+    public Primitive build() {
+        if (this.displayName == null) {
             this.displayName = this.fullName;
         }
         return this;

@@ -19,33 +19,32 @@ import net.daporkchop.lib.math.primitive.BinMath;
 import net.daporkchop.lib.primitive.function.biconsumer._P0__P1_BiConsumer;
 import net.daporkchop.lib.primitive.function.consumer._P0_Consumer;
 import net.daporkchop.lib.primitive.function.consumer._P1_Consumer;
-import net.daporkchop.lib.primitive.map.hash.opennode._P0__P1_OpenNodeHashMap;
+import net.daporkchop.lib.primitive.map.hash.open._P0__P1_OpenHashMap;
 import net.daporkchop.lib.primitive.map._P0__P1_Map;
 
 /**
- * A hash-based {@link _P0__P1_Map} using a dual array, one with keys, one with values. The arrays will
- * expand as needed to avoid hash collisions, but will not shrink down until the map is explicitly cleared
- * with {@link #clear()} or {@link #release()}.
+ * A hash-based {@link _P0__P1_Map} using a single array of entry objects, which each hold the key, value,
+ * and the cached key hash. The arrays will expand as needed to avoid hash collisions, but will not
+ * shrink down until the map is explicitly cleared with {@link #clear()} or {@link #release()}.
  * <p>
  * Does not allow using {@code _P0E_} as a key.
  * Allows using {@code _P1E_} as a value.
  * <p>
- * Warning! If your key has a slow hash function, consider using {@link _P0__P1_OpenNodeHashMap}.
+ * Warning! If you want to avoid as many allocations as possible, consider using {@link _P0__P1_OpenHashMap}.
  *
  * @author DaPorkchop_
  */
-public class _P0__P1_OpenHashMap_gH_ implements _P0__P1_Map_gH_ {
-    protected _nameP0_[] keys;
-    protected _nameP1_[] values;
+public class _P0__P1_OpenNodeHashMap_gH_ implements _P0__P1_Map_gH_ {
+    protected Node_gH_[] nodes;
     protected int size;
     protected int mask;
     protected final int minSize;
 
-    public _P0__P1_OpenHashMap()    {
+    public _P0__P1_OpenNodeHashMap()    {
         this(16);
     }
 
-    public _P0__P1_OpenHashMap(int minSize)    {
+    public _P0__P1_OpenNodeHashMap(int minSize)    {
         if (!BinMath.isPow2(size))  {
             throw new IllegalArgumentException("size must be a power of 2!");
         } else {
@@ -329,5 +328,51 @@ public class _P0__P1_OpenHashMap_gH_ implements _P0__P1_Map_gH_ {
 
     protected boolean nequals(_p0_ key1, _p0_ key2)    {
         return _nequalsP0|key1|key2|_;
+    }
+
+    protected Node_gH_ newNode(_p0_ key, _p1_ value)  {
+        return new Node_gH_(key, value, this.hash(key));
+    }
+
+    protected static class Node_gH_ implements _P0__P1_Map.Entry_gH_ {
+        protected final _nameP0_ key;
+        protected final int hash;
+        protected _nameP1_ value;
+
+        public Node(_p0_ key, _p1_ value, int hash) {
+            this.key = key;
+            this.hash = hash;
+            this.value = value;
+        }
+
+        @Override
+        <0%@SuppressWarnings("unchecked")%>
+        public _p0_ key()   {
+            return _castP0_this.key;
+        }
+
+        @Override
+        <1%@SuppressWarnings("unchecked")%>
+        public _p1_ value() {
+            return _castP1_this.value;
+        }
+
+        @Override
+        public void replace(_p1_ v)   {
+            this.value = v;
+        }
+
+        @Override
+        public _p1_ replaceAndGet(_p1_ v)   {
+            <1%@SuppressWarnings("unchecked")%>
+            _p1_ oldValue = _castP1_this.value;
+            this.value = v;
+            return oldValue;
+        }
+
+        @Override
+        public boolean replaceSupported()  {
+            return true;
+        }
     }
 }

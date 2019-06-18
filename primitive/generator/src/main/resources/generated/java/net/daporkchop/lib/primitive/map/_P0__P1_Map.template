@@ -224,4 +224,57 @@ public interface _P0__P1_Map_gH_ extends Synchronizable<_P0__P1_Map_gH_> {
     default _P0__P1_Map_gH_ sync(Object mutex) {
         return new _P0__P1_SynchronizedMap_gH_(this, mutex);
     }
+
+    /**
+     * An entry represents a single key -> value pair inside a {@link _P0__P1_Map}.
+     * <p>
+     * Generally this is immutable, however some map implementations may allow replacing the value in an
+     * entry without having to make an invocation to {@link #put(_nameP0_, _nameP1_)}, {@link #replace(_nameP0_, _nameP1_)}
+     * or similar methods.
+     *
+     * @author DaPorkchop_
+     */
+    interface Entry_gH_ {
+        /**
+         * @return this entry's key
+         */
+        _p0_ key();
+
+        /**
+         * @return this entry's value
+         */
+        _p1_ value();
+
+        /**
+         * Replaces this entry's value with the new value.
+         *
+         * @param v the new value
+         */
+        default void replace(_p1_ v)   {
+            throw new UnsupportedOperationException();
+        }
+
+        /**
+         * Replaces this entry's value with the new value.
+         *
+         * @param v the new value
+         * @return the old value
+         */
+        default _p1_ replaceAndGet(_p1_ v)   {
+            throw new UnsupportedOperationException();
+        }
+
+        /**
+         * Checks if this entry supports replacing values.
+         * <p>
+         * If this method returns {@code true}, then it is guaranteed that the following methods are implemented:
+         * - {@link #replace(_nameP1_)}
+         * - {@link #replaceAndGet(_nameP1_)}
+         *
+         * @return whether or not this entry supports replacing values
+         */
+        default boolean replaceSupported()  {
+            return false;
+        }
+    }
 }

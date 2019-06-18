@@ -73,6 +73,7 @@ public class Generator implements Logging {
         PRIMITIVES.add(
                 new Primitive()
                         .setFullName("Boolean")
+                        .setDisplayName("Bool")
                         .setName("boolean")
                         .setHashCode("$1 ? 1 : 0")
                         .setEmptyValue("false")
@@ -155,6 +156,7 @@ public class Generator implements Logging {
         PRIMITIVES.add(
                 new Primitive()
                         .setFullName("Object")
+                        .setDisplayName("Obj")
                         .setName("Object")
                         .setHashCode("java.util.Objects.hashCode($1)")
                         .setGeneric()

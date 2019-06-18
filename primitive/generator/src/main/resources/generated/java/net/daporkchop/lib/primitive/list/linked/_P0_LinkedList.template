@@ -6,8 +6,6 @@ $$$settings$$$
 }
 _headers_
 
-import net.daporkchop.lib.math.primitive.BinMath;
-
 import net.daporkchop.lib.primitive.function.consumer._P0_Consumer;
 import net.daporkchop.lib.primitive.list._P0_List;
 import net.daporkchop.lib.primitive.list._P0_Listerator;
@@ -20,20 +18,12 @@ import net.daporkchop.lib.primitive.list._P0_Listerator;
  *
  * @author DaPorkchop_
  */
-public class _P0_ArrayList_gH_ implements _P0_List_gH_ {
-    protected _nameP0_[] arr;
+public class _P0_LinkedList_gH_ implements _P0_List_gH_ {
+    protected Node_gH_ first;
+    protected Node_gH_ last;
     protected int size;
-    protected final int minSize;
 
-    public _P0_ArrayList()  {
-        this(16);
-    }
-
-    public _P0_ArrayList(int minSize)  {
-        if (minSize <= 0)   {
-            throw new IllegalArgumentException("minSize must be at least 1!");
-        }
-        this.minSize = minSize;
+    public _P0_LinkedList()  {
         this.clear();
     }
 
@@ -103,12 +93,15 @@ public class _P0_ArrayList_gH_ implements _P0_List_gH_ {
     }
 
     @Override
-    <0%@SuppressWarnings("unchecked")%>
     public _p0_ get(int i) throws IndexOutOfBoundsException   {
         if (i < 0 || i >= this.size)  {
             throw new IndexOutOfBoundsException(String.valueOf(i));
         } else {
-            return _castP0_this.arr[i];
+            Node_gH_ node = this.first;
+            while (i-- > 0)   {
+                node = node.next;
+            }
+            return node.val;
         }
     }
 
@@ -117,33 +110,37 @@ public class _P0_ArrayList_gH_ implements _P0_List_gH_ {
         if (i < 0 || i >= this.size)  {
             throw new IndexOutOfBoundsException(String.valueOf(i));
         } else {
-            <0%@SuppressWarnings("unchecked")%>
-            _p0_ old = _castP0_this.arr[i];
-            this.arr[i] = val;
-            return old;
+            Node_gH_ node = this.first;
+            while (i-- > 0)   {
+                node = node.next;
+            }
+            return node.swapVal(val);
         }
     }
 
     @Override
     public int indexOf(_p0_ val){
-        int size = this.size; //add as local variable to allow inlining into a register
-        for (int i = 0; i < size; i++)  { //as much as i'd like to iterate backwards here, that isn't an option :(
-            if (this.equals(val, this.arr[i]))   {
+        Node_gH_ node = this.first;
+        int i = 0;
+        while (node != null)    {
+            if (this.equals(val, node.val)) {
                 return i;
+            } else {
+                node = node.next;
+                i++;
             }
         }
-        return -1;
     }
 
     @Override
-    <0%@SuppressWarnings("unchecked")%>
     public void forEach(_P0_Consumer_gH_ consumer)  {
         if (consumer == null)   {
             throw new NullPointerException("consumer");
         }
-        int size = this.size; //add as local variable to allow inlining into a register
-        for (int i = 0; i < size; i++)  {
-            consumer.accept(_castP0_this.arr[i]);
+        Node_gH_ node = this.first;
+        while (node != null)    {
+            consumer.accept(node.val);
+            node = node.next;
         }
     }
 
@@ -154,22 +151,57 @@ public class _P0_ArrayList_gH_ implements _P0_List_gH_ {
 
     @Override
     public void clear() {
-        this.arr = new _nameP0_[this.minSize]; //simply replace the array
-        this.size = 0;
-    }
-
-    @Override
-    public void removeAll() {
-        PUnsafe.setMemory(this.arr, _arrOffsetP0_, (long) this.arr.length * _arrScaleP0_, (byte) 0); //overwrite memory with zeroes
-        this.size = 0;
+        this.release(); //this method is safe here
+        this.size = 0; //we just need to update the size correctly
     }
 
     @Override
     public void release()   {
-        this.arr = null; //array is now available for garbage collection
+        this.first = this.last = null;
     }
 
     protected void equals(_p0_ a, _p0_ b)   {
         return _equalsP0|a|b|_;
+    }
+
+    protected static class Node_gH_ {
+        //I changed my mind about using Unsafe here because the performance loss has no benefit to balance
+        // it out, we simply don't need atomicity here
+        //protected static final long NEXT_OFFSET = PUnsafe.pork_getOffset(Node.class, "next");
+        //protected static final long PREV_OFFSET = PUnsafe.pork_getOffset(Node.class, "prev");
+        //protected static final long VAL_OFFSET = PUnsafe.pork_getOffset(Node.class, "val");
+    
+        protected Node_gH_ next;
+        protected Node_gH_ prev;
+        protected _p0_ val;
+        
+        public Node(_p0_ val)   {
+            this.next = this.prev = null;
+            this.val = val;
+        }
+        
+        public Node(_p0_ val, Node_gH_ next, Node_gH_ prev)   {
+            this.val = val;
+            this.next = next;
+            this.prev = prev;
+        }
+        
+        protected Node_gH_ swapNext(Node_gH_ newNext)   {
+            Node_gH_ old = this.next;
+            this.next = newNext;
+            return old;
+        }
+        
+        protected Node_gH_ swapPrev(Node_gH_ newPrev)   {
+            Node_gH_ old = this.prev;
+            this.prev = newPrev;
+            return old;
+        }
+
+        protected _p0_ swapVal(_p0_ newVal)   {
+            _p0_ old = this.val;
+            this.val = newVal;
+            return old;
+        }
     }
 }

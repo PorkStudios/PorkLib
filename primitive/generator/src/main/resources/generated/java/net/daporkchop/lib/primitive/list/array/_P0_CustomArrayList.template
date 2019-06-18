@@ -30,14 +30,7 @@ public class _P0_CustomArrayList_gH_ extends _P0_ArrayList_gH_ {
     }
 
     @Override
-    <0%@SuppressWarnings("unchecked")%>
-    public int indexOf(_p0_ val){
-        int size = this.size;
-        for (int i = 0; i < size; i++)  {
-            if (this.strategy.equals(val, _castP0_this.arr[i]))   { //use strategy for value comparison
-                return i;
-            }
-        }
-        return -1;
+    protected boolean equals(_p0_ a, _p0_ b){
+        return this.strategy.equals(a, b);
     }
 }

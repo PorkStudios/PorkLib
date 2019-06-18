@@ -1,0 +1,272 @@
+$$$settings$$$
+{
+    "P0": {
+        "blacklist": [
+            "boolean",
+            "float",
+            "double"
+        ]
+    }
+}
+_headers_
+
+import net.daporkchop.lib.math.primitive.BinMath;
+
+import net.daporkchop.lib.primitive.function.biconsumer._P0__P1_BiConsumer;
+import net.daporkchop.lib.primitive.function.consumer._P0_Consumer;
+import net.daporkchop.lib.primitive.function.consumer._P1_Consumer;
+import net.daporkchop.lib.primitive.map._P0__P1_Map;
+
+/**
+ * A hash-based {@link _P0__P1_Map} using a dual array, one with keys, one with values.
+ * <p>
+ * Does not allow using {@code _P0E_} as a key.
+ * Allows using {@code _P1E_} as a value.
+ * <p>
+ * Warning! If your key has a slow hash function, consider using {@link _P0__P1_OpenBucketHashMap}.
+ *
+ * @author DaPorkchop_
+ */
+public class _P0__P1_OpenHashMap_gH_ implements _P0__P1_Map_gH_ {
+    protected _nameP0_[] keys;
+    protected _nameP1_[] values;
+    protected int size;
+    protected int mask;
+    protected final int minSize;
+
+    public _P0__P1_OpenHashMap()    {
+        this(16);
+    }
+
+    public _P0__P1_OpenHashMap(int minSize)    {
+        if (!BinMath.isPow2(size))  {
+            throw new IllegalArgumentException("size must be a power of 2!");
+        } else {
+            this.minSize = minSize;
+
+            this.clear();
+        }
+    }
+
+    @Override
+    public void put(_p0_ k, _p1_ v) {
+        int hash = this.expandToFit(k);
+
+        if (this.keys[hash] == _P0E_)   {
+            this.keys[hash] = k;
+            this.size++;
+        }
+        this.values[hash] = v;
+    }
+
+    @Override
+    public boolean putAndCheck(_p0_ k, _p1_ v)  {
+        int hash = this.expandToFit(k);
+
+        boolean wasPresent = this.keys[hash] != _P0E_;
+        if (!wasPresent)   {
+            this.keys[hash] = k;
+            this.size++;
+        }
+        this.values[hash] = v;
+        return wasPresent;
+    }
+
+    @Override
+    public _p1_ putAndGet(_p0_ k, _p1_ v)   {
+        int hash = this.expandToFit(k);
+
+        if (this.keys[hash] == _P0E_)   {
+            this.keys[hash] = k;
+            this.size++;
+        }
+        <1%@SuppressWarnings("unchecked")%>
+        _p1_ oldValue = this.values[hash];
+        this.values[hash] = v;
+        return oldValue;
+    }
+
+    <0%@SuppressWarnings("unchecked")%>
+    protected int expandToFit(_p0_ k)  {
+        if (k == _P0E_) {
+            throw new IllegalArgumentException("Cannot use _P0E_ as key!");
+        }
+        int hash = this.hash(k) & this.mask;
+        while (this.keys[hash] != _P0E_ && this.nequals(this.keys[hash], k)){
+            this.grow();
+            hash = this.hash(k) & this.mask;
+        }
+        return hash;
+    }
+
+    /**
+     * Replaces the value mapped to a pre-existing key.
+     * <p>
+     * If no entry with the given key exists, this method does nothing.
+     *
+     * @param k the key to use
+     * @param v the value to use
+     * @return the value previously mapped to the given key, or {@code _P1E_} if the given key was not present
+     */
+    _p1_ replace(_p0_ k, _p1_ v);
+
+    /**
+     * Replaces the value mapped to a pre-existing key.
+     * <p>
+     * If no entry with the given key exists, this method does nothing.
+     *
+     * @param k the key to use
+     * @param v the value to use
+     * @return whether or not the key was found in the map (and therefore whether or not an old pair was replaced)
+     */
+    boolean replaceAndCheck(_p0_ k, _p1_ v);
+
+    /**
+     * Removes the entry with the given key.
+     * <p>
+     * If no entry with the given key exists, this method does nothing.
+     *
+     * @param k the key to be removed
+     */
+    void remove(_p0_ k);
+
+    /**
+     * Removes the entry with the given key.
+     * <p>
+     * If no entry with the given key exists, this method does nothing.
+     *
+     * @param k the key to be removed
+     * @return whether or not the given key could be found in the map (and therefore whether or not it was removed)
+     */
+    boolean removeAndCheck(_p0_ k);
+
+    /**
+     * Removes the entry with the given key.
+     * <p>
+     * If no entry with the given key exists, this method does nothing.
+     *
+     * @param k the key to be removed
+     * @return the value previously mapped to the given key, or {@code _P1E_} if the given key was not present
+     */
+    _p1_ removeAndGet(_p0_ k);
+
+    /**
+     * Retrieves the value mapped to the given key.
+     *
+     * @param k the key of the value to get
+     * @return the value mapped to the given key, or {@code _P1E_} if the given key was not present
+     */
+    _p1_ get(_p0_ k);
+
+    /**
+     * Checks whether a given key is present in the map.
+     *
+     * @param k the key to check for
+     * @return whether or not the given key is present
+     */
+    boolean containsKey(_p1_ k);
+
+    /**
+     * Passes each key in this map to the given function.
+     *
+     * @param consumer the function to run
+     */
+    default void forEachKey(_P0_Consumer_GP0_consumer) {
+        if (consumer == null)   {
+            throw new NullPointerException("consumer");
+        } else {
+            this.forEach((k, v) -> consumer.accept(k));
+        }
+    }
+
+    /**
+     * Passes each value in this map to the given function.
+     *
+     * @param consumer the function to run
+     */
+    default void forEachValue(_P1_Consumer_GP1_consumer) {
+        if (consumer == null)   {
+            throw new NullPointerException("consumer");
+        } else {
+            this.forEach((k, v) -> consumer.accept(v));
+        }
+    }
+
+    /**
+     * Passes each pair in this map to the given function.
+     *
+     * @param consumer the function to run
+     */
+    void forEach(_P0__P1_BiConsumer_gH_ consumer);
+
+    @Override
+    public int size()   {
+        return this.size;
+    }
+
+    protected void grow()   {
+        _nameP0_[] keys = new _nameP0_[this.keys.length << 1];
+        _nameP1_[] values = new _nameP1_[keys.length];
+        java.util.Arrays.fill(keys, _P0E_);
+        java.util.Arrays.fill(values, _P1E_);
+        this.updateLength(keys.length);
+
+        //recompute hashes and copy pairs into new arrays
+        for (int i = this.keys.length - 1; i >= 0; i--) {
+            <0%@SuppressWarnings("unchecked")%>
+            _p0_ k = _castP0_this.keys[i];
+            if (k != _P0E_) {
+                int hash = this.hash(k) & this.mask;
+
+                keys[hash] = k;
+                values[hash] = k; //there won't be any hash collisions here, because we're actually adding more bits onto the hash
+            }
+        }
+
+        this.keys = keys;
+        this.values = values;
+    }
+
+    protected void updateLength(int length) {
+        if (length < this.minSize || !BinMath.isPow2(length))   {
+            throw new IllegalArgumentException(String.valueOf(length));
+        } else {
+            this.mask = length - 1;
+        }
+    }
+
+    @Override
+    public void clear() {
+        this.updateLength(this.minSize);
+        this.size = 0;
+        this.keys = null;
+        this.values = null; //set to null first to allow garbage collection in case the min size is very big
+        this.keys = new _nameP0_[this.minSize];
+        this.values = new _nameP1_[this.minSize];
+    }
+
+    @Override
+    public void removeAll()    {
+        this.size = 0;
+        java.util.Arrays.fill(this.keys, _P0E_);
+        java.util.Arrays.fill(this.values, _P1E_);
+    }
+
+    @Override
+    public void release()   {
+        this.keys = null;
+        this.values = null;
+    }
+
+    protected int hash(_p0_ key)    {
+        return _hashP0|key|_;
+    }
+
+    protected boolean equals(_p0_ key1, _p0_ key2)    {
+        return _equalsP0|key1|key2|_;
+    }
+
+    protected boolean nequals(_p0_ key1, _p0_ key2)    {
+        return _nequalsP0|key1|key2|_;
+    }
+}

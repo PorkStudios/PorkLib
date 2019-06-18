@@ -6,6 +6,10 @@ $$$settings$$$
             "float",
             "double"
         ]
+    },
+    "genericNames": {
+        "P0": "K",
+        "P1": "V"
     }
 }
 _headers_

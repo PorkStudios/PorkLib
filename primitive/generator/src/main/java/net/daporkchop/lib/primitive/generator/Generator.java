@@ -387,13 +387,13 @@ public class Generator implements Logging {
             String nameOut = name.replace(".template", ".java");
             String contentOut = content;
 
-            if (methods.length != 0) {
+            if (methods.length != 0) { //TODO: figure out what this code actually does
                 StringBuilder builder = new StringBuilder();
                 for (String s : methods) {
                     this.forEachPrimitiveRecursive(primitives1 -> {
                         String in = s;
                         for (int i = primitives.length - 1; i >= 0; i--) {
-                            in = primitives[i].format(in, i, false);
+                            in = primitives[i].format(in, i);
                         }
                         in = in
                                 .replaceAll("_method", "_")
@@ -403,7 +403,7 @@ public class Generator implements Logging {
                             ref.set(primitives1[i].format(ref.get(), i));
                         }
                         builder.append(ref.get()
-                                .replaceAll(GENERIC_HEADER_DEF, Primitive.getGenericHeader(primitives1)));
+                                .replaceAll(GENERIC_HEADER_DEF, Primitive.getGenericHeader(settings, primitives1)));
                     }, depth, settings);
                 }
                 contentOut = contentOut.replaceAll(METHODS_DEF, builder.toString());
@@ -433,20 +433,20 @@ public class Generator implements Logging {
             if (depth == 0) {
                 int i = 0;
                 for (Primitive p : Primitive.PRIMITIVES) {
-                    nameOut = p.format(nameOut, i);
-                    contentOut = p.format(contentOut, i++);
+                    nameOut = p.format(nameOut, i, settings);
+                    contentOut = p.format(contentOut, i++, settings);
                 }
             } else {
                 for (int i = primitives.length - 1; i >= 0; i--) {
                     Primitive p = primitives[i];
-                    nameOut = p.format(nameOut, i);
-                    contentOut = p.format(contentOut, i);
+                    nameOut = p.format(nameOut, i, settings);
+                    contentOut = p.format(contentOut, i, settings);
                 }
             }
             File file = new File(path, nameOut);
 
             contentOut = contentOut
-                    .replaceAll(GENERIC_HEADER_DEF, Primitive.getGenericHeader(primitives))
+                    .replaceAll(GENERIC_HEADER_DEF, Primitive.getGenericHeader(settings, primitives))
                     .replaceAll(HEADERS_DEF, imports.isEmpty() ?
                             String.format("%s\n\n%s", LICENSE_DEF, PACKAGE_DEF) :
                             String.format("%s\n\n%s\n\n%s", LICENSE_DEF, PACKAGE_DEF, IMPORTS_DEF))

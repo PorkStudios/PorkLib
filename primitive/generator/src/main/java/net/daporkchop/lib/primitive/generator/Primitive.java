@@ -15,10 +15,13 @@
 
 package net.daporkchop.lib.primitive.generator;
 
+import com.google.gson.JsonObject;
+import com.sun.istack.internal.NotNull;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.util.PArrays;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
@@ -62,10 +65,17 @@ public class Primitive {
         }
     }
 
-    public static String getGenericHeader(Primitive... primitives) {
+    protected static String[] getGenericNames(@NonNull JsonObject settings, int count) {
+        return settings.has("genericNames") ?
+                PArrays.filled(count, String[]::new, i -> settings.getAsJsonObject("genericNames").get(String.format("P%d", i)).getAsString().trim()) :
+                PArrays.filled(count, String[]::new, i -> String.valueOf((char) ('A' + i)));
+    }
+
+    public static String getGenericHeader(@NonNull JsonObject settings, @NonNull Primitive... primitives) {
         if (primitives.length == 0) {
             return "";
         }
+        String[] genericNames = getGenericNames(settings, primitives.length);
         int i = 0;
         for (Primitive p : primitives) {
             if (p.generic) {
@@ -78,17 +88,17 @@ public class Primitive {
         String s = "<";
         for (int j = 0; j < primitives.length; j++) {
             if (primitives[j].generic) {
-                s += (char) ('A' + j);
-                s += ", ";
+                s += genericNames[j] + ", ";
             }
         }
         return (s.endsWith(", ") ? s.substring(0, s.length() - 2) : s) + '>';
     }
 
-    public static String getGenericSuper(int x, Primitive... primitives) {
+    public static String getGenericSuper(@NonNull JsonObject settings, int x, Primitive... primitives) {
         if (primitives.length == 0) {
             return "";
         }
+        String[] genericNames = getGenericNames(settings, primitives.length);
         int i = 0;
         for (Primitive p : primitives) {
             if (p.generic) {
@@ -101,9 +111,7 @@ public class Primitive {
         String s = "<";
         for (int j = 0; j < primitives.length; j++) {
             if (primitives[j].generic) {
-                s += "? super ";
-                s += (char) ('A' + j + x);
-                s += ", ";
+                s += "? super " + genericNames[j] + ", ";
             }
         }
         if (s.endsWith(", ")) {
@@ -112,10 +120,11 @@ public class Primitive {
         return s + '>';
     }
 
-    public static String getGenericExtends(int x, Primitive... primitives) {
+    public static String getGenericExtends(@NonNull JsonObject settings, int x, Primitive... primitives) {
         if (primitives.length == 0) {
             return "";
         }
+        String[] genericNames = getGenericNames(settings, primitives.length);
         int i = 0;
         for (Primitive p : primitives) {
             if (p.generic) {
@@ -128,9 +137,7 @@ public class Primitive {
         String s = "<";
         for (int j = 0; j < primitives.length; j++) {
             if (primitives[j].generic) {
-                s += "? extends ";
-                s += (char) ('A' + j + x);
-                s += ", ";
+                s += "? extends " + genericNames[j] + ", ";
             }
         }
         if (s.endsWith(", ")) {
@@ -155,11 +162,16 @@ public class Primitive {
     @NonNull
     public String nequals;
 
-    public String format(@NonNull String text, int i) {
-        return this.format(text, i, true);
+    public String format(@NonNull String text, int i)   {
+        return this.format(text, i, new JsonObject());
     }
 
-    public String format(@NonNull String text, int i, boolean removeGenericThings) {
+    public String format(@NonNull String text, int i, @NonNull JsonObject settings) {
+        String genericName = String.valueOf((char) ('A' + i));
+        if (settings.has("genericNames"))   {
+            genericName = settings.getAsJsonObject("genericNames").get(String.format("P%d", i)).getAsString();
+        }
+
         if (this.generic) {
             text = text.replaceAll("\\s*?<~!%[\\s\\S]*?%>".replace("~", String.valueOf(i)), "")
                     .replaceAll("<~!%[\\s\\S]*?%>".replace("~", String.valueOf(i)), "")
@@ -173,15 +185,15 @@ public class Primitive {
         }
         return text
                 .replace(String.format(DISPLAYNAME_DEF, i), this.displayName)
-                .replace(String.format(FULLNAME_FORCE_DEF, i), this.generic ? String.valueOf((char) ('A' + i)) : this.fullName)
-                .replace(String.format(NAME_DEF, i), this.generic ? String.valueOf((char) ('A' + i)) : this.name)
+                .replace(String.format(FULLNAME_FORCE_DEF, i), this.generic ? genericName : this.fullName)
+                .replace(String.format(NAME_DEF, i), this.generic ? genericName : this.name)
                 .replace(String.format(NAME_FORCE_DEF, i), this.name)
-                .replace(String.format(CAST_DEF, i), this.generic ? "(" + (char) ('A' + i) + ") " : "")
+                .replace(String.format(CAST_DEF, i), this.generic ? "(" + genericName + ") " : "")
                 .replace(String.format(EMPTYVALUE_DEF, i), this.emptyValue)
                 .replace(String.format(NON_GENERIC_DEF, i), this.generic ? "" : this.name)
-                .replace(String.format(GENERIC_DEF, i), this.generic ? "<" + ((char) ('A' + i)) + "> " : " ")
-                .replace(String.format(GENERIC_SUPER_P_DEF, i), getGenericSuper(i, this))
-                .replace(String.format(GENERIC_EXTENDS_P_DEF, i), getGenericExtends(i, this))
+                .replace(String.format(GENERIC_DEF, i), this.generic ? "<" + genericName + "> " : " ")
+                .replace(String.format(GENERIC_SUPER_P_DEF, i), getGenericSuper(settings, i, this))
+                .replace(String.format(GENERIC_EXTENDS_P_DEF, i), getGenericExtends(settings, i, this))
                 .replace(String.format(UNSAFE_ARRAY_OFFSET_DEF, i), String.format("PUnsafe.ARRAY_%s_BASE_OFFSET", this.name.toUpperCase()))
                 .replace(String.format(UNSAFE_ARRAY_SCALE_DEF, i), String.format("PUnsafe.ARRAY_%s_INDEX_SCALE", this.name.toUpperCase()))
                 .replaceAll("_equalsP~\\|([^!]*?)\\|([^!]*?)\\|_".replace("~", String.valueOf(i)), this.equals)

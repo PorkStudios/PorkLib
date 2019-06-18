@@ -344,10 +344,10 @@ public class Generator implements Logging {
             PFiles.ensureDirectoryExists(out);
             JsonObject settings;
             {
-                if (content.startsWith("$$$settings$$$"))   {
+                if (content.startsWith("$$$settings$$$")) {
                     String[] split = content.split("_headers_", 2);
                     content = "_headers_" + split[1];
-                    try (Reader reader = new StringReader(split[0]))    {
+                    try (Reader reader = new StringReader(split[0])) {
                         reader.skip("$$$settings$$$".length());
                         settings = InstancePool.getInstance(JsonParser.class).parse(reader).getAsJsonObject();
                     } catch (IOException e) {
@@ -367,17 +367,17 @@ public class Generator implements Logging {
             Primitive[] p = new Primitive[primitives.length + 1];
             System.arraycopy(primitives, 0, p, 0, primitives.length);
             Set<String> valid = Primitive.PRIMITIVES.stream().map(pr -> pr.name).collect(Collectors.toSet());
-            if (settings.has(String.format("P%d", primitives.length)))  {
+            if (settings.has(String.format("P%d", primitives.length))) {
                 JsonObject object = settings.getAsJsonObject(String.format("P%d", primitives.length));
-                if (object.has("whitelist"))    {
+                if (object.has("whitelist")) {
                     valid = StreamSupport.stream(object.getAsJsonArray("whitelist").spliterator(), true).map(JsonElement::getAsString).collect(Collectors.toSet());
                 } else if (object.has("blacklist")) {
-                    for (JsonElement element : object.getAsJsonArray("blacklist"))  {
+                    for (JsonElement element : object.getAsJsonArray("blacklist")) {
                         valid.remove(element.getAsString());
                     }
                 }
             }
-            for (Primitive primitive : Primitive.PRIMITIVES)    {
+            for (Primitive primitive : Primitive.PRIMITIVES) {
                 if (valid.contains(primitive.name)) {
                     p[p.length - 1] = primitive;
                     this.populateToDepth(path, name, content, packageName, methods, depth, settings, imports, p);
@@ -409,6 +409,27 @@ public class Generator implements Logging {
                 contentOut = contentOut.replaceAll(METHODS_DEF, builder.toString());
             }
 
+            {
+                boolean areAnyGeneric = false;
+                if (depth == 0) {
+                    areAnyGeneric = true;
+                } else {
+                    for (int i = primitives.length - 1; i >= 0; i--) {
+                        areAnyGeneric |= primitives[i].generic;
+                    }
+                }
+                if (areAnyGeneric) {
+                    contentOut = contentOut.replaceAll("\\s*?<!%[\\s\\S]*?%>", "")
+                            .replaceAll("<!%[\\s\\S]*?%>", "")
+                            .replaceAll("(\\s*?)<%([\\s\\S]*?)%>", "$1$2")
+                            .replaceAll("<%([\\s\\S]*?)%>", "$1");
+                } else {
+                    contentOut = contentOut.replaceAll("\\s*?<%[\\s\\S]*?%>", "")
+                            .replaceAll("<%[\\s\\S]*?%>", "")
+                            .replaceAll("(\\s*?)<!%([\\s\\S]*?)%>", "$1$2")
+                            .replaceAll("<!%([\\s\\S]*?)%>", "$1");
+                }
+            }
             if (depth == 0) {
                 int i = 0;
                 for (Primitive p : Primitive.PRIMITIVES) {

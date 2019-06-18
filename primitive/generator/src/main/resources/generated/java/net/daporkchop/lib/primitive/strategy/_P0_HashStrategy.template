@@ -37,4 +37,21 @@ public interface _P0_HashStrategy_gH_ {
         long l = this.hash(val);
         return (int) (l >>> 32L) ^ (int) l;
     }
+
+    /**
+     * A {@link _P0_HashStrategy} that returns an {@code int} hash by default instead of a {@code long}.
+     *
+     * @author DaPorkchop_
+     * @see _P0_HashStrategy
+     */
+    @FunctionalInterface
+    interface Int_gH_ extends _P0_HashStrategy_gH_ {
+        @Override
+        int hashInt(_p0_ val);
+
+        @Override
+        default long hash(_p0_ t)   {
+            return this.hashInt(t);
+        }
+    }
 }

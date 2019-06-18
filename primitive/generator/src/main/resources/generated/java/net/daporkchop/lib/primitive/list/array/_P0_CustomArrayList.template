@@ -12,6 +12,7 @@ import net.daporkchop.lib.primitive.strategy._P0_EqualsStrategy;
  * A {@link _P0_ArrayList} that uses a custom {@link _P0_EqualsStrategy} to check for equality between values.
  *
  * @author DaPorkchop_
+ * @see _P0_ArrayList
  */
 public class _P0_CustomArrayList_gH_ extends _P0_ArrayList_gH_ {
     protected final _P0_EqualsStrategy_gH_ strategy;

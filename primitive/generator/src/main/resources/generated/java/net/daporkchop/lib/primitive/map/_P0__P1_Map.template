@@ -68,9 +68,8 @@ public interface _P0__P1_Map_gH_ extends Synchronizable<_P0__P1_Map_gH_> {
      *
      * @param k the key to use
      * @param v the value to use
-     * @return the value previously mapped to the given key, or {@code _P1E_} if the given key was not present
      */
-    _p1_ replace(_p0_ k, _p1_ v);
+    void replace(_p0_ k, _p1_ v);
 
     /**
      * Replaces the value mapped to a pre-existing key.
@@ -82,6 +81,17 @@ public interface _P0__P1_Map_gH_ extends Synchronizable<_P0__P1_Map_gH_> {
      * @return whether or not the key was found in the map (and therefore whether or not an old pair was replaced)
      */
     boolean replaceAndCheck(_p0_ k, _p1_ v);
+
+    /**
+     * Replaces the value mapped to a pre-existing key.
+     * <p>
+     * If no entry with the given key exists, this method does nothing.
+     *
+     * @param k the key to use
+     * @param v the value to use
+     * @return the value previously mapped to the given key, or {@code _P1E_} if the given key was not present
+     */
+    _p1_ replaceAndGet(_p0_ k, _p1_ v);
 
     /**
      * Removes the entry with the given key.

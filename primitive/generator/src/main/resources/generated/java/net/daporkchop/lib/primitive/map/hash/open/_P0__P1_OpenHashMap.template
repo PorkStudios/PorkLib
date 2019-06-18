@@ -96,7 +96,7 @@ public class _P0__P1_OpenHashMap_gH_ implements _P0__P1_Map_gH_ {
     <0%@SuppressWarnings("unchecked")%>
     protected int expandToFit(_p0_ k)  {
         if (k == _P0E_) {
-            throw new IllegalArgumentException("Cannot use _P0E_ as key!");
+            throw new IllegalArgumentException("Cannot use `_P0E_` as key!");
         }
         int hash = this.hash(k) & this.mask;
         while (this.keys[hash] != _P0E_ && this.nequals(_castP0_this.keys[hash], k)){
@@ -110,7 +110,7 @@ public class _P0__P1_OpenHashMap_gH_ implements _P0__P1_Map_gH_ {
     <0%@SuppressWarnings("unchecked")%>
     public void replace(_p0_ k, _p1_ v) {
         if (k == _P0E_) {
-            throw new IllegalArgumentException("Cannot use _P0E_ as key!");
+            throw new IllegalArgumentException("Cannot use `_P0E_` as key!");
         }
         int hash = this.hash(k) & this.mask;
         if (this.keys[hash] != _P0E_ && this.equals(_castP0_this.keys[hash], k))   {
@@ -122,7 +122,7 @@ public class _P0__P1_OpenHashMap_gH_ implements _P0__P1_Map_gH_ {
     <0%@SuppressWarnings("unchecked")%>
     public boolean replaceAndCheck(_p0_ k, _p1_ v)  {
         if (k == _P0E_) {
-            throw new IllegalArgumentException("Cannot use _P0E_ as key!");
+            throw new IllegalArgumentException("Cannot use `_P0E_` as key!");
         }
         int hash = this.hash(k) & this.mask;
         if (this.keys[hash] != _P0E_ && this.equals(_castP0_this.keys[hash], k))   {
@@ -137,7 +137,7 @@ public class _P0__P1_OpenHashMap_gH_ implements _P0__P1_Map_gH_ {
     <%@SuppressWarnings("unchecked")%>
     public _p1_ replaceAndGet(_p0_ k, _p1_ v)   {
         if (k == _P0E_) {
-            throw new IllegalArgumentException("Cannot use _P0E_ as key!");
+            throw new IllegalArgumentException("Cannot use `_P0E_` as key!");
         }
         int hash = this.hash(k) & this.mask;
         if (this.keys[hash] != _P0E_ && this.equals(_castP0_this.keys[hash], k))   {
@@ -153,7 +153,7 @@ public class _P0__P1_OpenHashMap_gH_ implements _P0__P1_Map_gH_ {
     <0%@SuppressWarnings("unchecked")%>
     public void remove(_p0_ k)  {
         if (k == _P0E_) {
-            throw new IllegalArgumentException("Cannot use _P0E_ as key!");
+            throw new IllegalArgumentException("Cannot use `_P0E_` as key!");
         }
         int hash = this.hash(k) & this.mask;
         if (this.keys[hash] != _P0E_ && this.equals(_castP0_this.keys[hash], k))   {
@@ -167,7 +167,7 @@ public class _P0__P1_OpenHashMap_gH_ implements _P0__P1_Map_gH_ {
     <0%@SuppressWarnings("unchecked")%>
     public boolean removeAndCheck(_p0_ k)   {
         if (k == _P0E_) {
-            throw new IllegalArgumentException("Cannot use _P0E_ as key!");
+            throw new IllegalArgumentException("Cannot use `_P0E_` as key!");
         }
         int hash = this.hash(k) & this.mask;
         if (this.keys[hash] != _P0E_ && this.equals(_castP0_this.keys[hash], k))   {
@@ -184,7 +184,7 @@ public class _P0__P1_OpenHashMap_gH_ implements _P0__P1_Map_gH_ {
     <%@SuppressWarnings("unchecked")%>
     public _p1_ removeAndGet(_p0_ k)   {
         if (k == _P0E_) {
-            throw new IllegalArgumentException("Cannot use _P0E_ as key!");
+            throw new IllegalArgumentException("Cannot use `_P0E_` as key!");
         }
         int hash = this.hash(k) & this.mask;
         if (this.keys[hash] != _P0E_ && this.equals(_castP0_this.keys[hash], k))   {

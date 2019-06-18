@@ -192,21 +192,25 @@ public class _P0__P1_OpenHashMap_gH_ implements _P0__P1_Map_gH_ {
             _p1_ oldValue = _castP1_this.values[hash];
             this.values[hash] = _P0E_;
             return oldValue;
-        }
-    }
-
-    @Override
-    public _p1_ get(_p0_ k) {
-        int hash = this.hash(k) & this.mask;
-        if (this.keys[hash] != _P0E_ && this.equals(_castP0_this.keys[hash], k))    {
-            return this.values[hash];
         } else {
             return _P1E_;
         }
     }
 
     @Override
-    public boolean containsKey(_p1_ k) {
+    <%@SuppressWarnings("unchecked")%>
+    public _p1_ get(_p0_ k) {
+        int hash = this.hash(k) & this.mask;
+        if (this.keys[hash] != _P0E_ && this.equals(_castP0_this.keys[hash], k))    {
+            return _castP1_this.values[hash];
+        } else {
+            return _P1E_;
+        }
+    }
+
+    @Override
+    <0%@SuppressWarnings("unchecked")%>
+    public boolean containsKey(_p0_ k) {
         int hash = this.hash(k) & this.mask;
         return this.keys[hash] != _P0E_ && this.equals(_castP0_this.keys[hash], k);
     }

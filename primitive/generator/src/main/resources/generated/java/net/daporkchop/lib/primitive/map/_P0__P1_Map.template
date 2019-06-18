@@ -17,6 +17,7 @@ _headers_
 import net.daporkchop.lib.primitive.function.biconsumer._P0__P1_BiConsumer;
 import net.daporkchop.lib.primitive.function.consumer._P0_Consumer;
 import net.daporkchop.lib.primitive.function.consumer._P1_Consumer;
+import net.daporkchop.lib.primitive.map.sync._P0__P1_SynchronizedMap;
 import net.daporkchop.lib.primitive.util.Synchronizable;
 
 /**
@@ -136,7 +137,7 @@ public interface _P0__P1_Map_gH_ extends Synchronizable<_P0__P1_Map_gH_> {
      * @param k the key to check for
      * @return whether or not the given key is present
      */
-    boolean containsKey(_p1_ k);
+    boolean containsKey(_p0_ k);
 
     /**
      * Passes each key in this map to the given function.
@@ -221,6 +222,6 @@ public interface _P0__P1_Map_gH_ extends Synchronizable<_P0__P1_Map_gH_> {
 
     @Override
     default _P0__P1_Map_gH_ sync(Object mutex) {
-        throw new UnsupportedOperationException(); //TODO
+        return new _P0__P1_SynchronizedMap_gH_(this, mutex);
     }
 }

@@ -4,6 +4,9 @@ $$$settings$$$
         "blacklist": [
             "Object"
         ]
+    },
+    "genericNames": {
+        "P0": "E"
     }
 }
 _headers_

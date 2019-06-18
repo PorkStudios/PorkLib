@@ -1,3 +1,9 @@
+$$$settings$$$
+{
+     "genericNames": {
+         "P0": "T"
+     }
+}
 _headers_
 
 /**
@@ -8,5 +14,5 @@ _headers_
  */
 @FunctionalInterface
 public interface _P0_Consumer_gH_ {
-    void accept(_p0_ val);
+    void accept(_p0_ t);
 }

@@ -1,3 +1,9 @@
+$$$settings$$$
+{
+     "genericNames": {
+         "P0": "T"
+     }
+}
 _headers_
 
 /**
@@ -10,9 +16,9 @@ public interface _P0_EqualsStrategy_gH_ {
     /**
      * Checks if two values are equal.
      *
-     * @param a the first value
-     * @param b the second value
+     * @param t0 the first value
+     * @param t1 the second value
      * @return whether or not the two values are equal
      */
-    boolean equals(_p0_ a, _p0_ b);
+    boolean equals(_p0_ t0, _p0_ t1);
 }

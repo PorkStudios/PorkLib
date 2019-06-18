@@ -1,3 +1,9 @@
+$$$settings$$$
+{
+     "genericNames": {
+         "P0": "E"
+     }
+}
 _headers_
 
 import net.daporkchop.lib.math.primitive.BinMath;

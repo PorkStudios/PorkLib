@@ -1,3 +1,9 @@
+$$$settings$$$
+{
+     "genericNames": {
+         "P0": "T"
+     }
+}
 _headers_
 
 /**
@@ -10,10 +16,10 @@ public interface _P0_HashStrategy_gH_ {
     /**
      * Hashes a value.
      *
-     * @param val the value to hash
+     * @param t the value to hash
      * @return the value's hash
      */
-    long hash(_p0_ val);
+    long hash(_p0_ t);
 
     /**
      * Hashes a value.
@@ -24,7 +30,7 @@ public interface _P0_HashStrategy_gH_ {
      * <p>
      * By default, this simply mixes the bits of the 64-bit hash returned by {@link #hash(_nameP0_)}.
      *
-     * @param val the value to hash
+     * @param t the value to hash
      * @return the value's hash
      */
     default int hashInt(_p0_ val) {

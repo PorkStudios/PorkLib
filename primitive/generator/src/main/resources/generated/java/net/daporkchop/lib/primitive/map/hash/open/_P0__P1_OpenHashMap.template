@@ -46,7 +46,7 @@ public class _P0__P1_OpenHashMap_gH_ implements _P0__P1_Map_gH_ {
     }
 
     public _P0__P1_OpenHashMap(int minSize)    {
-        if (!BinMath.isPow2(size))  {
+        if (!BinMath.isPow2(minSize))  {
             throw new IllegalArgumentException("size must be a power of 2!");
         } else {
             this.minSize = minSize;

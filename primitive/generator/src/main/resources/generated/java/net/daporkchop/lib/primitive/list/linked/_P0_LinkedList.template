@@ -29,8 +29,12 @@ public class _P0_LinkedList_gH_ implements _P0_List_gH_ {
 
     @Override
     public boolean add(_p0_ val)   {
-        this.checkGrow(1);
-        this.arr[this.size++] = val;
+        if (this.size++ == 0) {
+            this.first = this.last = this.newNode(val, null, null);
+        } else {
+            Node_gH_ oldLast = this.last;
+            oldLast.next = this.last = this.newNode(val, null, oldLast);
+        }
         return true;
     }
 
@@ -41,37 +45,35 @@ public class _P0_LinkedList_gH_ implements _P0_List_gH_ {
             return;
         } else if (i < 0 || i > this.size)  {
             throw new IndexOutOfBoundsException(String.valueOf(i));
+        } else if (i == 0) {
+            Node_gH_ oldFirst = this.first;
+            oldFirst.next = this.first = this.newNode(val, oldFirst, null);
         } else {
-            this.checkGrow(1);
-            System.arraycopy(this.arr, i, this.arr, i + 1, this.size++ - i); //use arraycopy instead of unsafe because i'm not certain about how it works with overlapping memory regions
-            this.arr[i] = val;
+            Node_gH_ node = this.first;
+            while (i-- > 0) {
+                node = node.next;
+            }
+            Node_gH_ insert = this.newNode(val, node.prev, node);
+            node.prev.next = insert;
+            node.prev = insert;
         }
-    }
-
-    protected void checkGrow(int count) {
-        if (this.size + count > this.arr.length)    {
-            //we need to grow the array
-            _nameP0_[] big = new _nameP0_[BinMath.roundToNearestPowerOf2(this.size + count)];
-            PUnsafe.copyMemory(
-                this.arr,
-                _arrOffsetP0_,
-                big,
-                _arrOffsetP0_,
-                (long) this.size * _arrScaleP0_ //use size instead of array length to avoid copying too much stuff
-            );
-            this.arr = big; //old array is now eligible for garbage collection
-        }
+        this.size++;
     }
 
     @Override
     public boolean remove(_p0_ val)    {
-        int i = this.indexOf(val);
-        if (i != -1)    {
-            this.removeAt(i);
-            return true;
-        } else {
-            return false;
+        Node_gH_ node = this.first;
+        int i = 0;
+        while (node != null)    {
+            if (this.equals(val, node.val)) {
+                this.doRemove(node);
+                return true;
+            } else {
+                node = node.next;
+                i++;
+            }
         }
+        return false;
     }
 
     @Override
@@ -79,17 +81,23 @@ public class _P0_LinkedList_gH_ implements _P0_List_gH_ {
         if (i < 0 || i >= this.size)  {
             throw new IndexOutOfBoundsException(String.valueOf(i));
         } else {
-            <0%@SuppressWarnings("unchecked")%>
-            _p0_ old = _castP0_this.arr[i];
-            System.arraycopy(this.arr, i + 1, this.arr, i, this.size-- - i);
-            if (this.size < this.arr.length >> 2)   {
-                //we need to shrink the array
-                _nameP0_[] small = new _nameP0_[this.arr.length >> 1];
-                PUnsafe.copyMemory(this.arr, _arrOffsetP0_, small, _arrOffsetP0_, this.size * _arrScaleP0_);
-                this.arr = small;
+            Node_gH_ node = this.first;
+            while (i-- > 0)   {
+                node = node.next;
             }
-            return old;
+            return this.doRemove(node);
         }
+    }
+
+    protected _p0_ doRemove(Node_gH_ node)  {
+        this.size--;
+        if (node == this.first) {
+            this.first = node.next;
+        }
+        if (node == this.last)  {
+            this.last = node.prev;
+        }
+        return node.removeSelf();
     }
 
     @Override
@@ -164,6 +172,10 @@ public class _P0_LinkedList_gH_ implements _P0_List_gH_ {
         return _equalsP0|a|b|_;
     }
 
+    protected Node_gH_ newNode(_p0_ val, Node_gH_ next, Node_gH_ prev)  {
+        return new Node_gH_(val, next, prev);
+    }
+
     protected static class Node_gH_ {
         //I changed my mind about using Unsafe here because the performance loss has no benefit to balance
         // it out, we simply don't need atomicity here
@@ -174,12 +186,7 @@ public class _P0_LinkedList_gH_ implements _P0_List_gH_ {
         protected Node_gH_ next;
         protected Node_gH_ prev;
         protected _p0_ val;
-        
-        public Node(_p0_ val)   {
-            this.next = this.prev = null;
-            this.val = val;
-        }
-        
+
         public Node(_p0_ val, Node_gH_ next, Node_gH_ prev)   {
             this.val = val;
             this.next = next;
@@ -202,6 +209,18 @@ public class _P0_LinkedList_gH_ implements _P0_List_gH_ {
             _p0_ old = this.val;
             this.val = newVal;
             return old;
+        }
+
+        protected _p0_ removeSelf() {
+            if (this.next != null)  {
+                this.next.prev = this.prev;
+            }
+            if (this.prev != null)  {
+                this.prev.next = this.next;
+            }
+            this.next = this.prev = null;
+            <%return this.swapVal(null);%>
+            <~%return this.val;%>
         }
     }
 }

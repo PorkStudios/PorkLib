@@ -29,9 +29,8 @@ import net.daporkchop.lib.network.packet.UserProtocol;
 import net.daporkchop.lib.network.pork.packet.OpenChannelPacket;
 import net.daporkchop.lib.network.protocol.netty.NettyConnection;
 import net.daporkchop.lib.network.util.reliability.Reliability;
-import net.daporkchop.lib.primitive.map.IntegerObjectMap;
-import net.daporkchop.lib.primitive.map.PorkMaps;
-import net.daporkchop.lib.primitive.map.hashmap.IntegerObjectHashMap;
+import net.daporkchop.lib.primitive.map.IntObjMap;
+import net.daporkchop.lib.primitive.map.hash.open.IntObjOpenHashMap;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -43,7 +42,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @Getter
 public class WrapperNioSctpChannel extends NioSctpChannel implements NettyConnection, Logging {
     final SparseBitSet channelIds = new SparseBitSet();
-    final IntegerObjectMap<SctpChannel> channels = PorkMaps.synchronize(new IntegerObjectHashMap<>(), new ReentrantLock());
+    final IntObjMap<SctpChannel> channels = new IntObjOpenHashMap<SctpChannel>().sync();
     @NonNull
     private final Endpoint endpoint;
     private final Map<Class<? extends UserProtocol>, UserConnection> connections = new IdentityHashMap<>();

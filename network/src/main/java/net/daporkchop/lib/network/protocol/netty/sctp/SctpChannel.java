@@ -115,7 +115,7 @@ public class SctpChannel extends NettyChannel implements Logging {
                 this.closed = true;
                 synchronized (this.channel.channelIds) {
                     this.channel.channelIds.clear(this.id);
-                    this.channel.channels.remove(this.id, this);
+                    this.channel.channels.remove(this.id);
                 }
                 if (notifyRemote) {
                     this.channel.getControlChannel().send(new CloseChannelPacket(this.id), true);

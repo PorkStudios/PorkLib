@@ -22,12 +22,12 @@ import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.conn.UserConnection;
 import net.daporkchop.lib.network.packet.handler.MessageHandler;
 import net.daporkchop.lib.network.packet.handler.PacketHandler;
-import net.daporkchop.lib.primitive.map.ObjectIntegerMap;
-import net.daporkchop.lib.primitive.map.ObjectShortMap;
-import net.daporkchop.lib.primitive.map.ShortObjectMap;
-import net.daporkchop.lib.primitive.map.array.ShortObjectArrayMap;
-import net.daporkchop.lib.primitive.map.hashmap.ObjectIntegerHashMap;
-import net.daporkchop.lib.primitive.map.hashmap.ObjectShortHashMap;
+import net.daporkchop.lib.primitive.map.ObjIntMap;
+import net.daporkchop.lib.primitive.map.ObjShortMap;
+import net.daporkchop.lib.primitive.map.ShortObjMap;
+import net.daporkchop.lib.primitive.map.hash.open.ObjIntOpenHashMap;
+import net.daporkchop.lib.primitive.map.hash.open.ObjShortOpenHashMap;
+import net.daporkchop.lib.primitive.map.hash.open.ShortObjOpenHashMap;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -49,9 +49,9 @@ public class PacketRegistry implements Logging {
     public static int combine(short protocolId, short packetId) {
         return ((protocolId & 0xFFFF) << 16) | (packetId & 0xFFFF);
     }
-    private final ShortObjectMap<UserProtocol> idToProtocol = new ShortObjectArrayMap<>();
-    private final ObjectShortMap<Class<? extends UserProtocol>> protocolToId = new ObjectShortHashMap<>();
-    private final ObjectIntegerMap<Class<?>> packetToFullId = new ObjectIntegerHashMap<>(); //TODO: identityHashMap
+    private final ShortObjMap<UserProtocol> idToProtocol = new ShortObjOpenHashMap<>();
+    private final ObjShortMap<Class<? extends UserProtocol>> protocolToId = new ObjShortOpenHashMap<>();
+    private final ObjIntMap<Class<?>> packetToFullId = new ObjIntOpenHashMap<>(); //TODO: identityHashMap
     @Getter
     private final Collection<UserProtocol> protocols;
 

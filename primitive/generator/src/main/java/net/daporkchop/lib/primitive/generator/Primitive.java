@@ -33,6 +33,8 @@ public class Primitive {
     public static final Collection<Primitive> PRIMITIVES = new ArrayDeque<>();
     public static final String PARAM_DEF = "P%d";
     public static final String DISPLAYNAME_DEF = String.format("_%s_", PARAM_DEF);
+    public static final String BOXED_FORCE_DEF = String.format("_obj%s_", PARAM_DEF);
+    public static final String UNSAFE_FORCE_DEF = String.format("_unsafe%s_", PARAM_DEF);
     public static final String FULLNAME_FORCE_DEF = String.format("_fullname%s_", PARAM_DEF);
     public static final String NAME_DEF = String.format("_%s_", PARAM_DEF.toLowerCase());
     public static final String NAME_FORCE_DEF = String.format("_name%s_", PARAM_DEF);
@@ -151,6 +153,8 @@ public class Primitive {
     @NonNull
     public String displayName;
     @NonNull
+    public String unsafeName;
+    @NonNull
     public String name;
     @NonNull
     public String hashCode;
@@ -185,6 +189,8 @@ public class Primitive {
         }
         return text
                 .replace(String.format(DISPLAYNAME_DEF, i), this.displayName)
+                .replace(String.format(BOXED_FORCE_DEF, i), this.fullName)
+                .replace(String.format(UNSAFE_FORCE_DEF, i), this.unsafeName != null ? this.unsafeName : this.fullName)
                 .replace(String.format(FULLNAME_FORCE_DEF, i), this.generic ? genericName : this.fullName)
                 .replace(String.format(NAME_DEF, i), this.generic ? genericName : this.name)
                 .replace(String.format(NAME_FORCE_DEF, i), this.name)

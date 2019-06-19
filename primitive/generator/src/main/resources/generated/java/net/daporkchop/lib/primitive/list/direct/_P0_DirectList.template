@@ -2,7 +2,9 @@ $$$settings$$$
 {
     "P0": {
         "blacklist": [
-            "Object"
+            "Object",
+            "boolean",
+            "char"
         ]
     },
     "genericNames": {
@@ -59,7 +61,7 @@ public class _P0_DirectList_gH_ implements _P0_List_gH_ {
             this.len <<= 1L;
             this.addrRef.set(this.addr = PUnsafe.reallocateMemory(this.addr, this.len * _arrScaleP0_));
         }
-        PUnsafe.put_P0_(this.addr + this.size++ * _arrScaleP0_, val);
+        PUnsafe.put_unsafeP0_(this.addr + this.size++ * _arrScaleP0_, val);
         return true;
     }
 
@@ -80,7 +82,7 @@ public class _P0_DirectList_gH_ implements _P0_List_gH_ {
             this.addrRef.set(this.addr = PUnsafe.reallocateMemory(this.addr, this.len * _arrScaleP0_));
         }
         PUnsafe.copyMemory(this.addr + (long) i * _arrScaleP0_, this.addr + (i + 1L) * _arrScaleP0_, (this.size - i) * _arrScaleP0_);
-        PUnsafe.put_P0_(this.addr + this.size++ * _arrScaleP0_, val);
+        PUnsafe.put_unsafeP0_(this.addr + this.size++ * _arrScaleP0_, val);
     }
 
     protected boolean shouldGrow(long count) {
@@ -91,7 +93,7 @@ public class _P0_DirectList_gH_ implements _P0_List_gH_ {
     public boolean remove(_p0_ val)    {
         long size = this.size;
         for (long l = 0L; l < size; l++)    {
-            if (this.equals(val, PUnsafe.get_P0_(this.addr + l * _arrScaleP0_)))   {
+            if (this.equals(val, PUnsafe.get_unsafeP0_(this.addr + l * _arrScaleP0_)))   {
                 PUnsafe.copyMemory(this.addr + (l + 1L) * _arrScaleP0_, this.addr + l * _arrScaleP0_, size - l);
                 this.checkShrink();
                 return true;
@@ -110,7 +112,7 @@ public class _P0_DirectList_gH_ implements _P0_List_gH_ {
         if (i < 0L || i >= this.size)  {
             throw new IndexOutOfBoundsException(String.valueOf(i));
         } else {
-            _p0_ old = PUnsafe.get_P0_(this.addr + i * _arrScaleP0_);
+            _p0_ old = PUnsafe.get_unsafeP0_(this.addr + i * _arrScaleP0_);
             PUnsafe.copyMemory(this.addr + (i + 1L) * _arrScaleP0_, this.addr + i * _arrScaleP0_, this.size - i);
             this.checkShrink();
             return old;
@@ -134,7 +136,7 @@ public class _P0_DirectList_gH_ implements _P0_List_gH_ {
         if (i < 0L || i >= this.size)  {
             throw new IndexOutOfBoundsException(String.valueOf(i));
         } else {
-            return PUnsafe.get_P0_(this.addr + i * _arrScaleP0_);
+            return PUnsafe.get_unsafeP0_(this.addr + i * _arrScaleP0_);
         }
     }
 
@@ -148,8 +150,8 @@ public class _P0_DirectList_gH_ implements _P0_List_gH_ {
         if (i < 0 || i >= this.size)  {
             throw new IndexOutOfBoundsException(String.valueOf(i));
         } else {
-            _p0_ old = PUnsafe.get_P0_(this.addr + i * _arrScaleP0_);
-            PUnsafe.put_P0_(this.addr + i * _arrScaleP0_, val);
+            _p0_ old = PUnsafe.get_unsafeP0_(this.addr + i * _arrScaleP0_);
+            PUnsafe.put_unsafeP0_(this.addr + i * _arrScaleP0_, val);
             return old;
         }
     }
@@ -167,7 +169,7 @@ public class _P0_DirectList_gH_ implements _P0_List_gH_ {
     public long longIndexOf(_p0_ val){
         long size = this.size;
         for (long l = 0L; l < size; l++)    {
-            if (this.equals(val, PUnsafe.get_P0_(this.addr + l * _arrScaleP0_)))   {
+            if (this.equals(val, PUnsafe.get_unsafeP0_(this.addr + l * _arrScaleP0_)))   {
                 return l;
             }
         }
@@ -181,7 +183,7 @@ public class _P0_DirectList_gH_ implements _P0_List_gH_ {
         }
         long size = this.size; //add as local variable to allow inlining into a register
         for (long l = 0L; l < size; l++)    {
-            consumer.accept(PUnsafe.get_P0_(this.addr + l * _arrScaleP0_));
+            consumer.accept(PUnsafe.get_unsafeP0_(this.addr + l * _arrScaleP0_));
         }
     }
 
@@ -221,7 +223,7 @@ public class _P0_DirectList_gH_ implements _P0_List_gH_ {
         this.cleaner.clean();
     }
 
-    protected void equals(_p0_ a, _p0_ b)   {
+    protected boolean equals(_p0_ a, _p0_ b)   {
         return _equalsP0|a|b|_;
     }
 }

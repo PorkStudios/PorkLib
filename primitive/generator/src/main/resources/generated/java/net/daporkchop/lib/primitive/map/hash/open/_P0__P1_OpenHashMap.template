@@ -159,7 +159,7 @@ public class _P0__P1_OpenHashMap_gH_ implements _P0__P1_Map_gH_ {
         if (this.keys[hash] != _P0E_ && this.equals(_castP0_this.keys[hash], k))   {
             this.size--;
             this.keys[hash] = _P0E_;
-            this.values[hash] = _P0E_;
+            this.values[hash] = _P1E_;
         }
     }
 
@@ -173,7 +173,7 @@ public class _P0__P1_OpenHashMap_gH_ implements _P0__P1_Map_gH_ {
         if (this.keys[hash] != _P0E_ && this.equals(_castP0_this.keys[hash], k))   {
             this.size--;
             this.keys[hash] = _P0E_;
-            this.values[hash] = _P0E_;
+            this.values[hash] = _P1E_;
             return true;
         } else {
             return false;
@@ -191,7 +191,7 @@ public class _P0__P1_OpenHashMap_gH_ implements _P0__P1_Map_gH_ {
             this.size--;
             this.keys[hash] = _P0E_;
             _p1_ oldValue = _castP1_this.values[hash];
-            this.values[hash] = _P0E_;
+            this.values[hash] = _P1E_;
             return oldValue;
         } else {
             return _P1E_;
@@ -265,6 +265,7 @@ public class _P0__P1_OpenHashMap_gH_ implements _P0__P1_Map_gH_ {
         return this.size;
     }
 
+    <%@SuppressWarnings("unchecked")%>
     protected void grow()   {
         _nameP0_[] keys = new _nameP0_[this.keys.length << 1];
         _nameP1_[] values = new _nameP1_[keys.length];
@@ -274,13 +275,12 @@ public class _P0__P1_OpenHashMap_gH_ implements _P0__P1_Map_gH_ {
 
         //recompute hashes and copy pairs into new arrays
         for (int i = this.keys.length - 1; i >= 0; i--) {
-            <0%@SuppressWarnings("unchecked")%>
             _p0_ k = _castP0_this.keys[i];
             if (k != _P0E_) {
                 int hash = this.hash(k) & this.mask;
 
                 keys[hash] = k;
-                values[hash] = k; //there won't be any hash collisions here, because we're actually adding more bits onto the hash
+                values[hash] = _castP1_this.values[i]; //there won't be any hash collisions here, because we're actually adding more bits onto the hash
             }
         }
 

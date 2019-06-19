@@ -138,6 +138,7 @@ public class _P0_LinkedList_gH_ implements _P0_List_gH_ {
                 i++;
             }
         }
+        return -1;
     }
 
     @Override
@@ -168,7 +169,7 @@ public class _P0_LinkedList_gH_ implements _P0_List_gH_ {
         this.first = this.last = null;
     }
 
-    protected void equals(_p0_ a, _p0_ b)   {
+    protected boolean equals(_p0_ a, _p0_ b)   {
         return _equalsP0|a|b|_;
     }
 
@@ -220,7 +221,7 @@ public class _P0_LinkedList_gH_ implements _P0_List_gH_ {
             }
             this.next = this.prev = null;
             <%return this.swapVal(null);%>
-            <~%return this.val;%>
+            <!%return this.val;%>
         }
     }
 }

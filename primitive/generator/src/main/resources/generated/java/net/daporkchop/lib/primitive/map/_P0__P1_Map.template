@@ -173,6 +173,19 @@ public interface _P0__P1_Map_gH_ extends Synchronizable<_P0__P1_Map_gH_> {
     void forEach(_P0__P1_BiConsumer_gH_ consumer);
 
     /**
+     * Copies every entry from another map into this one, overwriting existing entries.
+     *
+     * @param map the source
+     */
+    default void putAll(_P0__P1_Map_gH_ map)    {
+        if (map == null)    {
+            throw new NullPointerException("map");
+        } else {
+            map.forEach(this::put);
+        }
+    }
+
+    /**
      * @return the number of elements in this collection, or {@link Integer#MAX_VALUE} if the size is too large to fit in an {@code int}
      */
     int size();

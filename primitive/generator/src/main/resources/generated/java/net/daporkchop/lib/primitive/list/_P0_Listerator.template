@@ -46,7 +46,7 @@ public interface _P0_Listerator_gH_ extends _P0_Iterator_gH_ {
      * @see #forEachRemaining(_P0_Consumer)
      */
     default void forEachPreviousRemaining(_P0_Consumer_gH_ consumer) {
-        while (this.hasPrevious())  {
+        while (this.hasPrev())  {
             consumer.accept(this.prev());
         }
     }

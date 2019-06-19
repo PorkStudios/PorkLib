@@ -26,6 +26,7 @@ dependencies {
     generatedCompile project(":math")
     generatedCompile sourceSets.orig.output
 
+    compile sourceSets.orig.output
     compile sourceSets.generated.output
 }
 

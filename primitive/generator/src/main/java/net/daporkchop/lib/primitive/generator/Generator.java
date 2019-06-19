@@ -116,6 +116,7 @@ public class Generator implements Logging {
                 new Primitive()
                         .setFullName("Integer")
                         .setDisplayName("Int")
+                        .setUnsafeName("Int")
                         .setName("int")
                         .setHashCode("($1 >>> 24) ^ ($1 >>> 16) ^ ($1 >>> 8) ^ $1")
                         .setEmptyValue("-1")

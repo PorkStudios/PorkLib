@@ -34,10 +34,10 @@ import net.daporkchop.lib.nbt.tag.pork.CharTag;
 import net.daporkchop.lib.nbt.tag.pork.DoubleArrayTag;
 import net.daporkchop.lib.nbt.tag.pork.FloatArrayTag;
 import net.daporkchop.lib.nbt.tag.pork.ShortArrayTag;
-import net.daporkchop.lib.primitive.map.ByteObjectMap;
-import net.daporkchop.lib.primitive.map.ObjectByteMap;
-import net.daporkchop.lib.primitive.map.hashmap.ByteObjectHashMap;
-import net.daporkchop.lib.primitive.map.hashmap.ObjectByteHashMap;
+import net.daporkchop.lib.primitive.map.ByteObjMap;
+import net.daporkchop.lib.primitive.map.ObjByteMap;
+import net.daporkchop.lib.primitive.map.hash.open.ByteObjOpenHashMap;
+import net.daporkchop.lib.primitive.map.hash.open.ObjByteOpenHashMap;
 
 import java.util.function.Function;
 
@@ -78,8 +78,8 @@ public class TagRegistry {
             .register(69, CharArrayTag.class, CharArrayTag::new)
             .finish();
 
-    private final ByteObjectMap<Function<String, ? extends Tag>> tagCreators = new ByteObjectHashMap<>();
-    private final ObjectByteMap<Class<? extends Tag>> tagIds = new ObjectByteHashMap<>();
+    private final ByteObjMap<Function<String, ? extends Tag>> tagCreators = new ByteObjOpenHashMap<>();
+    private final ObjByteMap<Class<? extends Tag>> tagIds = new ObjByteOpenHashMap<>();
     private volatile boolean finished = false;
 
     /**

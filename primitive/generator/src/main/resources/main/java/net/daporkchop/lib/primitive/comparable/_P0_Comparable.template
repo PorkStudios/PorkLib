@@ -1,5 +1,0 @@
-_headers_
-
-public interface _P0_Comparable_gH_ {
-    public int compareTo(_p0_ o);
-}

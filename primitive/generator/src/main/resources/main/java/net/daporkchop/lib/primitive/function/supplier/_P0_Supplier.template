@@ -1,5 +1,0 @@
-_headers_
-
-public interface _P0_Supplier_gH_ {
-    _p0_ get();
-}

@@ -20,7 +20,7 @@ import net.daporkchop.lib.minecraft.registry.Registry;
 import net.daporkchop.lib.minecraft.registry.ResourceLocation;
 import net.daporkchop.lib.minecraft.world.format.SaveFormat;
 import net.daporkchop.lib.minecraft.world.impl.InitFunctions;
-import net.daporkchop.lib.primitive.map.IntegerObjectMap;
+import net.daporkchop.lib.primitive.map.IntObjMap;
 
 import java.io.Closeable;
 import java.util.Map;
@@ -40,7 +40,7 @@ public interface MinecraftSave extends Closeable {
         return this.getRegistries().get(name);
     }
 
-    IntegerObjectMap<World> getWorlds();
+    IntObjMap<World> getWorlds();
 
     default World getWorld(int id) {
         return this.getWorlds().get(id);

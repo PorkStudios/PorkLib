@@ -24,10 +24,10 @@ import net.daporkchop.lib.network.packet.handler.MessageHandler;
 import net.daporkchop.lib.network.packet.handler.PacketHandler;
 import net.daporkchop.lib.network.pork.PorkProtocol;
 import net.daporkchop.lib.network.util.Version;
-import net.daporkchop.lib.primitive.map.ObjectShortMap;
-import net.daporkchop.lib.primitive.map.ShortObjectMap;
-import net.daporkchop.lib.primitive.map.array.ShortObjectArrayMap;
-import net.daporkchop.lib.primitive.map.hashmap.ObjectShortHashMap;
+import net.daporkchop.lib.primitive.map.ObjShortMap;
+import net.daporkchop.lib.primitive.map.ShortObjMap;
+import net.daporkchop.lib.primitive.map.hash.open.ObjShortOpenHashMap;
+import net.daporkchop.lib.primitive.map.hash.open.ShortObjOpenHashMap;
 
 /**
  * A {@link UserProtocol} defines a mapping of packet IDs to packet handlers, and can be used to contain per-connection data
@@ -36,8 +36,8 @@ import net.daporkchop.lib.primitive.map.hashmap.ObjectShortHashMap;
  * @author DaPorkchop_
  */
 public abstract class UserProtocol<C extends UserConnection> implements Logging {
-    final ShortObjectMap<MessageHandler> registered = new ShortObjectArrayMap<>();
-    final ObjectShortMap<Class<?>> packets = new ObjectShortHashMap<>();
+    final ShortObjMap<MessageHandler> registered = new ShortObjOpenHashMap<>();
+    final ObjShortMap<Class<?>> packets = new ObjShortOpenHashMap<>();
 
     @Getter
     private final String name;

@@ -30,7 +30,7 @@ import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.format.WorldManager;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 import net.daporkchop.lib.nbt.tag.notch.StringTag;
-import net.daporkchop.lib.primitive.function.bifunction.IntegerObjectObjectBiFunction;
+import net.daporkchop.lib.primitive.function.bifunction.IntObjObjBiFunction;
 
 import java.util.function.BiFunction;
 
@@ -48,7 +48,7 @@ public class InitFunctions {
     private BiFunction<Vec2i, World, Column> columnCreator = ColumnImpl::new;
 
     @NonNull
-    private IntegerObjectObjectBiFunction<Column, Chunk> chunkCreator = ChunkImpl::new;
+    private IntObjObjBiFunction<Column, Chunk> chunkCreator = ChunkImpl::new;
 
     @NonNull
     private BiFunction<World, CompoundTag, TileEntity> tileEntityCreator = (world, tag) -> {

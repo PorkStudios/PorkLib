@@ -21,7 +21,7 @@ import net.daporkchop.lib.minecraft.registry.ResourceLocation;
 import net.daporkchop.lib.minecraft.world.Column;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.World;
-import net.daporkchop.lib.primitive.function.biconsumer.IntegerObjectBiConsumer;
+import net.daporkchop.lib.primitive.function.biconsumer.IntObjBiConsumer;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -33,7 +33,7 @@ import java.util.function.BiConsumer;
 public interface SaveFormat extends Closeable {
     void init(@NonNull MinecraftSave save) throws IOException;
 
-    void loadWorlds(@NonNull IntegerObjectBiConsumer<WorldManager> addFunction);
+    void loadWorlds(@NonNull IntObjBiConsumer<WorldManager> addFunction);
 
     void closeWorld(@NonNull World world);
 

@@ -1,0 +1,80 @@
+$$$settings$$$
+{
+     "genericNames": {
+         "P0": "E"
+     }
+}
+_headers_
+
+import net.daporkchop.lib.primitive.collection._P0_Iterator;
+import net.daporkchop.lib.primitive.collection.IterationCompleteException;
+import net.daporkchop.lib.primitive.function.consumer._P0_Consumer;
+
+/**
+ * A {@link _P0_Iterator} that is specifically intended for iteration over a {@link _P0_List}, and allows some
+ * more advanced behaviors such as reverse iteration or skipping/replacing elements.
+ *
+ * @author DaPorkchop_
+ */
+public interface _P0_Listerator_gH_ extends _P0_Iterator_gH_ {
+    /**
+     * Gets the current iteration index.
+     */
+    int index();
+
+    /**
+     * @see #index()
+     */
+    default long longIndex() {
+        return this.index();
+    }
+
+    /**
+     * @see #hasNext()
+     */
+    boolean hasPrev();
+
+    /**
+     * Moves the iterator backwards and returns the previous value.
+     *
+     * @return the value at the new position
+     * @throws IterationCompleteException if no values remain
+     */
+    _p0_ prev() throws IterationCompleteException;
+
+    /**
+     * @see #forEachRemaining(_P0_Consumer)
+     */
+    default void forEachPreviousRemaining(_P0_Consumer_gH_ consumer) {
+        while (this.hasPrev())  {
+            consumer.accept(this.prev());
+        }
+    }
+
+    /**
+     * Jumps to a given index.
+     *
+     * @param i the new index
+     * @throws IndexOutOfBoundsException if the given index is not within the bounds of the list
+     */
+    void jump(int i) throws IndexOutOfBoundsException;
+
+    /**
+     * @see #jump(int)
+     */
+    default void jump(long i) throws IndexOutOfBoundsException {
+        if (i > Integer.MAX_VALUE)  {
+            throw new IndexOutOfBoundsException();
+        } else {
+            this.jump((int) i);
+        }
+    }
+
+    /**
+     * Replaces the value at the current position.
+     *
+     * @param val the new value
+     * @return the old (replaced) value
+     */
+    _p0_ replace(_p0_ val);
+}

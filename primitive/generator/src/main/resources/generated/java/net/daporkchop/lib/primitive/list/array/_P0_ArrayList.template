@@ -1,0 +1,176 @@
+$$$settings$$$
+{
+     "genericNames": {
+         "P0": "E"
+     }
+}
+_headers_
+
+import net.daporkchop.lib.math.primitive.BinMath;
+
+import net.daporkchop.lib.primitive.function.consumer._P0_Consumer;
+import net.daporkchop.lib.primitive.list._P0_List;
+import net.daporkchop.lib.primitive.list._P0_Listerator;
+
+/**
+ * A {@link _P0_List} backed by an array.
+ * <p>
+ * The array is doubled in size when the number of elements exceeds the size of the array, and is shrunken
+ * when cleared or the number of elements is less than 1/4 the size of the array.
+ *
+ * @author DaPorkchop_
+ */
+public class _P0_ArrayList_gH_ implements _P0_List_gH_ {
+    protected _nameP0_[] arr;
+    protected int size;
+    protected final int minSize;
+
+    public _P0_ArrayList()  {
+        this(16);
+    }
+
+    public _P0_ArrayList(int minSize)  {
+        if (minSize <= 0)   {
+            throw new IllegalArgumentException("minSize must be at least 1!");
+        }
+        this.minSize = minSize;
+        this.clear();
+    }
+
+    @Override
+    public boolean add(_p0_ val)   {
+        this.checkGrow(1);
+        this.arr[this.size++] = val;
+        return true;
+    }
+
+    @Override
+    public void add(int i, _p0_ val) throws IndexOutOfBoundsException   {
+        if (i == this.size) {
+            this.add(val); //don't try to shift elements
+            return;
+        } else if (i < 0 || i > this.size)  {
+            throw new IndexOutOfBoundsException(String.valueOf(i));
+        } else {
+            this.checkGrow(1);
+            System.arraycopy(this.arr, i, this.arr, i + 1, this.size++ - i); //use arraycopy instead of unsafe because i'm not certain about how it works with overlapping memory regions
+            this.arr[i] = val;
+        }
+    }
+
+    protected void checkGrow(int count) {
+        if (this.size + count > this.arr.length)    {
+            //we need to grow the array
+            _nameP0_[] big = new _nameP0_[BinMath.roundToNearestPowerOf2(this.size + count)];
+            PUnsafe.copyMemory(
+                this.arr,
+                _arrOffsetP0_,
+                big,
+                _arrOffsetP0_,
+                (long) this.size * _arrScaleP0_ //use size instead of array length to avoid copying too much stuff
+            );
+            this.arr = big; //old array is now eligible for garbage collection
+        }
+    }
+
+    @Override
+    public boolean remove(_p0_ val)    {
+        int i = this.indexOf(val);
+        if (i != -1)    {
+            this.removeAt(i);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public _p0_ removeAt(int i) throws IndexOutOfBoundsException   {
+        if (i < 0 || i >= this.size)  {
+            throw new IndexOutOfBoundsException(String.valueOf(i));
+        } else {
+            <0%@SuppressWarnings("unchecked")%>
+            _p0_ old = _castP0_this.arr[i];
+            System.arraycopy(this.arr, i + 1, this.arr, i, this.size-- - i);
+            if (this.size < this.arr.length >> 2)   {
+                //we need to shrink the array
+                _nameP0_[] small = new _nameP0_[this.arr.length >> 1];
+                PUnsafe.copyMemory(this.arr, _arrOffsetP0_, small, _arrOffsetP0_, this.size * _arrScaleP0_);
+                this.arr = small;
+            }
+            return old;
+        }
+    }
+
+    @Override
+    <0%@SuppressWarnings("unchecked")%>
+    public _p0_ get(int i) throws IndexOutOfBoundsException   {
+        if (i < 0 || i >= this.size)  {
+            throw new IndexOutOfBoundsException(String.valueOf(i));
+        } else {
+            return _castP0_this.arr[i];
+        }
+    }
+
+    @Override
+    public _p0_ set(int i, _p0_ val) throws IndexOutOfBoundsException  {
+        if (i < 0 || i >= this.size)  {
+            throw new IndexOutOfBoundsException(String.valueOf(i));
+        } else {
+            <0%@SuppressWarnings("unchecked")%>
+            _p0_ old = _castP0_this.arr[i];
+            this.arr[i] = val;
+            return old;
+        }
+    }
+
+    @Override
+    <0%@SuppressWarnings("unchecked")%>
+    public int indexOf(_p0_ val){
+        int size = this.size; //add as local variable to allow inlining into a register
+        for (int i = 0; i < size; i++)  { //as much as i'd like to iterate backwards here, that isn't an option :(
+            if (this.equals(val, _castP0_this.arr[i]))   {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    @Override
+    <0%@SuppressWarnings("unchecked")%>
+    public void forEach(_P0_Consumer_gH_ consumer)  {
+        if (consumer == null)   {
+            throw new NullPointerException("consumer");
+        }
+        int size = this.size; //add as local variable to allow inlining into a register
+        for (int i = 0; i < size; i++)  {
+            consumer.accept(_castP0_this.arr[i]);
+        }
+    }
+
+    @Override
+    public int size()   {
+        return this.size;
+    }
+
+    @Override
+    public void clear() {
+        this.arr = new _nameP0_[this.minSize]; //simply replace the array
+        this.size = 0;
+    }
+
+    @Override
+    public void removeAll() {
+        PUnsafe.setMemory(this.arr, _arrOffsetP0_, (long) this.arr.length * _arrScaleP0_, (byte) 0); //overwrite memory with zeroes
+        this.size = 0;
+    }
+
+    @Override
+    public void release()   {
+        this.arr = null; //array is now available for garbage collection
+    }
+
+    protected boolean equals(_p0_ a, _p0_ b)   {
+        return _equalsP0|a|b|_;
+    }
+}

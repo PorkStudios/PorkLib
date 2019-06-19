@@ -15,6 +15,8 @@
 
 package net.daporkchop.lib.math.vector.i;
 
+import net.daporkchop.lib.math.primitive.BinMath;
+
 /**
  * A simple 3D vector, consisting of an X, Y and Z coordinate
  * Because this is minecraft, we can safely assume that:
@@ -26,7 +28,7 @@ package net.daporkchop.lib.math.vector.i;
  * @author DaPorkchop_
  */
 public class MinecraftVec3i {
-    private static final int NUM_X_BITS = 1 + Log2.log2(Round2.roundInt(30000000));
+    private static final int NUM_X_BITS = 1 + Log2.log2(BinMath.roundToNearestPowerOf2(30000000));
     private static final int NUM_Z_BITS = NUM_X_BITS;
     private static final int NUM_Y_BITS = 64 - NUM_X_BITS - NUM_Z_BITS;
     private static final int Y_SHIFT = NUM_Z_BITS;
@@ -193,7 +195,7 @@ public class MinecraftVec3i {
         private static final int[] DE_BRUIJN = {0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8, 31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9};
 
         private static int calculateDeBruijn(int value) {
-            value = IsPow2.checkInt(value) ? value : Round2.roundInt(value);
+            value = IsPow2.checkInt(value) ? value : BinMath.roundToNearestPowerOf2(value);
             return DE_BRUIJN[(int) ((long) value * 125613361L >> 27) & 31];
         }
 
@@ -202,41 +204,6 @@ public class MinecraftVec3i {
         }
 
         private Log2() {
-        }
-    }
-
-    static class Round2 {
-        public static long roundLong(long value) {
-            long l = value - 1;
-            l = l | l >> 1;
-            l = l | l >> 2;
-            l = l | l >> 4;
-            l = l | l >> 8;
-            l = l | l >> 16;
-            l = l | l >> 32;
-            return l + 1;
-        }
-
-        public static int roundInt(int value) {
-            int i = value - 1;
-            i = i | i >> 1;
-            i = i | i >> 2;
-            i = i | i >> 4;
-            i = i | i >> 8;
-            i = i | i >> 16;
-            return i + 1;
-        }
-
-        public static short roundShort(short value) {
-            short s = (short) (value - 1);
-            s = (short) (s | s >> 1);
-            s = (short) (s | s >> 2);
-            s = (short) (s | s >> 4);
-            s = (short) (s | s >> 8);
-            return (short) (s + 1);
-        }
-
-        private Round2() {
         }
     }
 

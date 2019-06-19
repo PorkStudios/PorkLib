@@ -1,0 +1,49 @@
+$$$settings$$$
+{
+     "genericNames": {
+         "P0": "E"
+     }
+}
+_headers_
+
+import net.daporkchop.lib.primitive.function.consumer._P0_Consumer;
+
+/**
+ * Allows iterating over the elements in a {@link _P0_Collection}.
+ *
+ * @author DaPorkchop_
+ */
+public interface _P0_Iterator_gH_ {
+    /**
+     * @return whether or not there are elements remaining in this iterator
+     */
+    boolean hasNext();
+
+    /**
+     * Moves the iterator forward and returns the next value.
+     *
+     * @return the value at the new position
+     * @throws IterationCompleteException if no values remain
+     */
+    _p0_ next() throws IterationCompleteException;
+
+    /**
+     * Removes the current value.
+     * <p>
+     * This will also remove the value from the underlying collection.
+     *
+     * @return the removed value
+     */
+    _p0_ remove();
+
+    /**
+     * Passes each remaining element in this iterator to the given function.
+     *
+     * @param consumer the function to run
+     */
+    default void forEachRemaining(_P0_Consumer_gH_ consumer) {
+        while (this.hasNext())  {
+            consumer.accept(this.next());
+        }
+    }
+}

@@ -33,7 +33,7 @@ public class ExecutorExample {
             promises[i] = pool.submit((ERunnable) () -> Thread.sleep(5000L));
         }
         for (int i = promises.length - 1; i >= 0; i--) {
-            promises[i].sync();
+            promises[i].syncUninterruptibly();
         }
         System.out.printf("Took %dms to wait %d*5000ms\n", System.currentTimeMillis() - time, promises.length);
 

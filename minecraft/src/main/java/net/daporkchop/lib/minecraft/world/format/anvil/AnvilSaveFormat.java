@@ -17,6 +17,7 @@ package net.daporkchop.lib.minecraft.world.format.anvil;
 
 import lombok.Getter;
 import lombok.NonNull;
+import net.daporkchop.lib.common.misc.Tuple;
 import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.minecraft.registry.Registry;
 import net.daporkchop.lib.minecraft.registry.ResourceLocation;
@@ -30,8 +31,7 @@ import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 import net.daporkchop.lib.nbt.tag.notch.IntTag;
 import net.daporkchop.lib.nbt.tag.notch.ListTag;
 import net.daporkchop.lib.nbt.tag.notch.StringTag;
-import net.daporkchop.lib.primitive.function.biconsumer.IntegerObjectBiConsumer;
-import net.daporkchop.lib.primitive.tuple.ObjectObjectTuple;
+import net.daporkchop.lib.primitive.function.biconsumer.IntObjBiConsumer;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -85,7 +85,7 @@ public class AnvilSaveFormat implements SaveFormat {
     }
 
     @Override
-    public void loadWorlds(IntegerObjectBiConsumer<WorldManager> addFunction) {
+    public void loadWorlds(IntObjBiConsumer<WorldManager> addFunction) {
         addFunction.accept(0, new AnvilWorldManager(this, new File(this.root, "region")));
         //TODO: other dimensions
     }
@@ -107,11 +107,11 @@ public class AnvilSaveFormat implements SaveFormat {
                 throw new NullPointerException("Registries");
             }
             registriesTag.getContents().entrySet().stream()
-                    .map(entry -> new ObjectObjectTuple<>(new ResourceLocation(entry.getKey()), (CompoundTag) entry.getValue()))
+                    .map(entry -> new Tuple<>(new ResourceLocation(entry.getKey()), (CompoundTag) entry.getValue()))
                     .forEach(tuple -> {
-                        ResourceLocation registryName = tuple.getK();
+                        ResourceLocation registryName = tuple.getA();
                         Registry registry = new Registry(registryName);
-                        tuple.getV().<ListTag<CompoundTag>>get("ids").getValue().forEach(tag -> registry.registerEntry(new ResourceLocation(tag.<StringTag>get("K").getValue()), tag.<IntTag>get("V").getValue()));
+                        tuple.getB().<ListTag<CompoundTag>>get("ids").getValue().forEach(tag -> registry.registerEntry(new ResourceLocation(tag.<StringTag>get("K").getValue()), tag.<IntTag>get("V").getValue()));
                         addFunction.accept(registryName, registry);
                     });
         }

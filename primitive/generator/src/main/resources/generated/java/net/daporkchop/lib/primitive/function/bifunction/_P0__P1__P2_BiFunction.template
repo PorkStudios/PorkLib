@@ -1,0 +1,20 @@
+$$$settings$$$
+{
+     "genericNames": {
+         "P0": "T",
+         "P1": "U",
+         "P2": "R"
+     }
+}
+_headers_
+
+/**
+ * A function that accepts two parameters (_nameP0_, _nameP1_) and returns _nameP2_.
+ *
+ * @author DaPorkchop_
+ * @see java.util.function.BiFunction
+ */
+@FunctionalInterface
+public interface _P0__P1__P2_BiFunction_gH_ {
+    _p2_ apply(_p0_ t, _p1_ u);
+}

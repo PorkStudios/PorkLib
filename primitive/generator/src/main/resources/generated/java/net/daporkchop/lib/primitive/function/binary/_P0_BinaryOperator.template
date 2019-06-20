@@ -1,0 +1,18 @@
+$$$settings$$$
+{
+     "genericNames": {
+         "P0": "T"
+     }
+}
+_headers_
+
+/**
+ * A function that accepts a two _nameP0_s and returns _nameP0_.
+ *
+ * @author DaPorkchop_
+ * @see java.util.function.BinaryOperator
+ */
+@FunctionalInterface
+public interface _P0_BinaryOperator_gH_ {
+    _p0_ apply(_p0_ t, _p0_ u);
+}

@@ -26,7 +26,7 @@ import java.security.ProtectionDomain;
  * Wrapper class around {@link Unsafe}.
  * <p>
  * Really serves very little purpose except to avoid the otherwise unavoidable "Internal API" warnings at compile-time
- * caused by referencing anything in {@link sun}
+ * caused by referencing anything in {@link sun}.
  *
  * @author DaPorkchop_
  */

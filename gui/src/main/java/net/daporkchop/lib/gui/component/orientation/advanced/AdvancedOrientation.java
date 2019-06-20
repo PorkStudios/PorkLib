@@ -17,6 +17,7 @@ package net.daporkchop.lib.gui.component.orientation.advanced;
 
 import lombok.Getter;
 import lombok.NonNull;
+import net.daporkchop.lib.common.util.PArrays;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.orientation.Orientation;
@@ -24,7 +25,6 @@ import net.daporkchop.lib.gui.component.orientation.advanced.calculator.Advanced
 import net.daporkchop.lib.gui.component.orientation.advanced.calculator.DistUnit;
 import net.daporkchop.lib.gui.component.orientation.advanced.calculator.NullCalculator;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
-import net.daporkchop.lib.math.arrays.PArrays;
 
 import java.util.function.Consumer;
 

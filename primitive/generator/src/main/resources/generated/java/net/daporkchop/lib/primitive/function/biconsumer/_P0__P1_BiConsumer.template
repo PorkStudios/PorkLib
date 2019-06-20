@@ -1,0 +1,19 @@
+$$$settings$$$
+{
+     "genericNames": {
+         "P0": "T",
+         "P1": "U"
+     }
+}
+_headers_
+
+/**
+ * A function that accepts two parameters (_nameP0_, _nameP1_) and returns nothing.
+ *
+ * @author DaPorkchop_
+ * @see java.util.function.BiConsumer
+ */
+@FunctionalInterface
+public interface _P0__P1_BiConsumer_gH_ {
+    void accept(_p0_ t, _p1_ u);
+}

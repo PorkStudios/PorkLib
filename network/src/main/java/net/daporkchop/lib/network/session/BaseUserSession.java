@@ -50,10 +50,8 @@ public interface BaseUserSession<Impl extends BaseUserSession<Impl, S>, S extend
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    default Impl flushBuffer() {
+    default void flushBuffer() {
         this.internalSession().flushBuffer();
-        return (Impl) this;
     }
 
     @Override

@@ -68,15 +68,6 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
     }
 
     /**
-     * Flushes the send buffer for this session.
-     * <p>
-     * Note that depending on the transport engine, this method may do nothing.
-     *
-     * @return this session
-     */
-    Impl flushBuffer();
-
-    /**
      * @see TransportEngine#supportedReliabilities()
      */
     default Collection<Reliability> supportedReliabilities() {

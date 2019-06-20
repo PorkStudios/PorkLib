@@ -137,12 +137,6 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
     }
 
     @Override
-    public NetSession<S> flushBuffer() {
-        this.flush();
-        return this;
-    }
-
-    @Override
     public Reliability fallbackReliability() {
         return Reliability.RELIABLE_ORDERED;
     }
@@ -200,5 +194,10 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
         } finally {
             this.connectFuture.tryFailure(e);
         }
+    }
+
+    @Override
+    public void flushBuffer() {
+        this.flush();
     }
 }

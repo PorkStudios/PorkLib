@@ -15,12 +15,11 @@
 
 package net.daporkchop.lib.network.util.group;
 
-import io.netty.util.concurrent.Future;
 import lombok.NonNull;
 import net.daporkchop.lib.concurrent.future.Promise;
 import net.daporkchop.lib.network.util.Priority;
-import net.daporkchop.lib.network.util.reliability.Reliability;
 import net.daporkchop.lib.network.util.SendFlags;
+import net.daporkchop.lib.network.util.reliability.Reliability;
 import net.daporkchop.lib.network.util.reliability.Reliable;
 
 /**
@@ -500,7 +499,15 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      * @param priority    the priority that the message is to be sent with. Some transport engines may ignore this
      * @param flags       additional flags that the message is to be sent with. Valid are any fields from {@link net.daporkchop.lib.network.util.SendFlags}, and
      *                    flags may also be ORed together
-     * @return a {@link Future} that may be used to monitor the message as it is sent. Depending on the flags that are set (or if none are set), this may return {@code null}
+     * @return a {@link Promise} that will be notified once the message has been sent. Depending on the flags that are set (or if none are set), this may return {@code null}
      */
     Promise send(@NonNull Object message, int channel, Reliability reliability, Priority priority, int flags);
+
+    /**
+     * Flushes this channel's send buffer, if present.
+     * <p>
+     * This method will not block, however if this transport engine uses some form of send buffer it will immediately begin to send all queued data
+     * to the remote endpoint.
+     */
+    void flushBuffer();
 }

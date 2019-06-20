@@ -17,6 +17,7 @@ package net.daporkchop.lib.network.util.group;
 
 import io.netty.util.concurrent.Future;
 import lombok.NonNull;
+import net.daporkchop.lib.concurrent.future.Promise;
 import net.daporkchop.lib.network.util.Priority;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 import net.daporkchop.lib.network.util.SendFlags;
@@ -36,7 +37,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> send(@NonNull Object message) {
+    default Promise send(@NonNull Object message) {
         return this.send(message, 0, this.fallbackReliability(), Priority.NORMAL, 0);
     }
 
@@ -46,7 +47,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendFlush(@NonNull Object message) {
+    default Promise sendFlush(@NonNull Object message) {
         return this.send(message, 0, this.fallbackReliability(), Priority.NORMAL, SendFlags.FLUSH);
     }
 
@@ -56,7 +57,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendNow(@NonNull Object message) {
+    default Promise sendNow(@NonNull Object message) {
         return this.send(message, 0, this.fallbackReliability(), Priority.NORMAL, SendFlags.SYNC);
     }
 
@@ -66,7 +67,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendAsync(@NonNull Object message) {
+    default Promise sendAsync(@NonNull Object message) {
         return this.send(message, 0, this.fallbackReliability(), Priority.NORMAL, SendFlags.ASYNC);
     }
 
@@ -78,7 +79,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendFlushNow(@NonNull Object message) {
+    default Promise sendFlushNow(@NonNull Object message) {
         return this.send(message, 0, this.fallbackReliability(), Priority.NORMAL, SendFlags.SYNC | SendFlags.FLUSH);
     }
 
@@ -90,7 +91,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendFlushAsync(@NonNull Object message) {
+    default Promise sendFlushAsync(@NonNull Object message) {
         return this.send(message, 0, this.fallbackReliability(), Priority.NORMAL, SendFlags.ASYNC | SendFlags.FLUSH);
     }
 
@@ -102,7 +103,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> send(@NonNull Object message, int channel) {
+    default Promise send(@NonNull Object message, int channel) {
         return this.send(message, channel, this.fallbackReliability(), Priority.NORMAL, 0);
     }
 
@@ -112,7 +113,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendFlush(@NonNull Object message, int channel) {
+    default Promise sendFlush(@NonNull Object message, int channel) {
         return this.send(message, channel, this.fallbackReliability(), Priority.NORMAL, SendFlags.FLUSH);
     }
 
@@ -122,7 +123,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendNow(@NonNull Object message, int channel) {
+    default Promise sendNow(@NonNull Object message, int channel) {
         return this.send(message, channel, this.fallbackReliability(), Priority.NORMAL, SendFlags.SYNC);
     }
 
@@ -132,7 +133,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendAsync(@NonNull Object message, int channel) {
+    default Promise sendAsync(@NonNull Object message, int channel) {
         return this.send(message, channel, this.fallbackReliability(), Priority.NORMAL, SendFlags.ASYNC);
     }
 
@@ -144,7 +145,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendFlushNow(@NonNull Object message, int channel) {
+    default Promise sendFlushNow(@NonNull Object message, int channel) {
         return this.send(message, channel, this.fallbackReliability(), Priority.NORMAL, SendFlags.SYNC | SendFlags.FLUSH);
     }
 
@@ -156,7 +157,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendFlushAsync(@NonNull Object message, int channel) {
+    default Promise sendFlushAsync(@NonNull Object message, int channel) {
         return this.send(message, channel, this.fallbackReliability(), Priority.NORMAL, SendFlags.ASYNC | SendFlags.FLUSH);
     }
 
@@ -168,7 +169,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> send(@NonNull Object message, @NonNull Reliability reliability) {
+    default Promise send(@NonNull Object message, @NonNull Reliability reliability) {
         return this.send(message, 0, reliability, Priority.NORMAL, 0);
     }
 
@@ -178,7 +179,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendFlush(@NonNull Object message, @NonNull Reliability reliability) {
+    default Promise sendFlush(@NonNull Object message, @NonNull Reliability reliability) {
         return this.send(message, 0, reliability, Priority.NORMAL, SendFlags.FLUSH);
     }
 
@@ -188,7 +189,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendNow(@NonNull Object message, @NonNull Reliability reliability) {
+    default Promise sendNow(@NonNull Object message, @NonNull Reliability reliability) {
         return this.send(message, 0, reliability, Priority.NORMAL, SendFlags.SYNC);
     }
 
@@ -198,7 +199,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendAsync(@NonNull Object message, @NonNull Reliability reliability) {
+    default Promise sendAsync(@NonNull Object message, @NonNull Reliability reliability) {
         return this.send(message, 0, reliability, Priority.NORMAL, SendFlags.ASYNC);
     }
 
@@ -210,7 +211,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendFlushNow(@NonNull Object message, @NonNull Reliability reliability) {
+    default Promise sendFlushNow(@NonNull Object message, @NonNull Reliability reliability) {
         return this.send(message, 0, reliability, Priority.NORMAL, SendFlags.SYNC | SendFlags.FLUSH);
     }
 
@@ -222,7 +223,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendFlushAsync(@NonNull Object message, @NonNull Reliability reliability) {
+    default Promise sendFlushAsync(@NonNull Object message, @NonNull Reliability reliability) {
         return this.send(message, 0, reliability, Priority.NORMAL, SendFlags.ASYNC | SendFlags.FLUSH);
     }
 
@@ -234,7 +235,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> send(@NonNull Object message, @NonNull Priority priority) {
+    default Promise send(@NonNull Object message, @NonNull Priority priority) {
         return this.send(message, 0, this.fallbackReliability(), priority, 0);
     }
 
@@ -244,7 +245,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendFlush(@NonNull Object message, @NonNull Priority priority) {
+    default Promise sendFlush(@NonNull Object message, @NonNull Priority priority) {
         return this.send(message, 0, this.fallbackReliability(), priority, SendFlags.FLUSH);
     }
 
@@ -254,7 +255,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendNow(@NonNull Object message, @NonNull Priority priority) {
+    default Promise sendNow(@NonNull Object message, @NonNull Priority priority) {
         return this.send(message, 0, this.fallbackReliability(), priority, SendFlags.SYNC);
     }
 
@@ -264,7 +265,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendAsync(@NonNull Object message, @NonNull Priority priority) {
+    default Promise sendAsync(@NonNull Object message, @NonNull Priority priority) {
         return this.send(message, 0, this.fallbackReliability(), priority, SendFlags.ASYNC);
     }
 
@@ -276,7 +277,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendFlushNow(@NonNull Object message, @NonNull Priority priority) {
+    default Promise sendFlushNow(@NonNull Object message, @NonNull Priority priority) {
         return this.send(message, 0, this.fallbackReliability(), priority, SendFlags.SYNC | SendFlags.FLUSH);
     }
 
@@ -288,7 +289,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendFlushAsync(@NonNull Object message, @NonNull Priority priority) {
+    default Promise sendFlushAsync(@NonNull Object message, @NonNull Priority priority) {
         return this.send(message, 0, this.fallbackReliability(), priority, SendFlags.ASYNC | SendFlags.FLUSH);
     }
 
@@ -300,7 +301,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> send(@NonNull Object message, int channel, @NonNull Reliability reliability) {
+    default Promise send(@NonNull Object message, int channel, @NonNull Reliability reliability) {
         return this.send(message, channel, reliability, Priority.NORMAL, 0);
     }
 
@@ -310,7 +311,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendFlush(@NonNull Object message, int channel, @NonNull Reliability reliability) {
+    default Promise sendFlush(@NonNull Object message, int channel, @NonNull Reliability reliability) {
         return this.send(message, channel, reliability, Priority.NORMAL, SendFlags.FLUSH);
     }
 
@@ -320,7 +321,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendNow(@NonNull Object message, int channel, @NonNull Reliability reliability) {
+    default Promise sendNow(@NonNull Object message, int channel, @NonNull Reliability reliability) {
         return this.send(message, channel, reliability, Priority.NORMAL, SendFlags.SYNC);
     }
 
@@ -330,7 +331,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendAsync(@NonNull Object message, int channel, @NonNull Reliability reliability) {
+    default Promise sendAsync(@NonNull Object message, int channel, @NonNull Reliability reliability) {
         return this.send(message, channel, reliability, Priority.NORMAL, SendFlags.ASYNC);
     }
 
@@ -342,7 +343,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendFlushNow(@NonNull Object message, int channel, @NonNull Reliability reliability) {
+    default Promise sendFlushNow(@NonNull Object message, int channel, @NonNull Reliability reliability) {
         return this.send(message, channel, reliability, Priority.NORMAL, SendFlags.SYNC | SendFlags.FLUSH);
     }
 
@@ -354,7 +355,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendFlushAsync(@NonNull Object message, int channel, @NonNull Reliability reliability) {
+    default Promise sendFlushAsync(@NonNull Object message, int channel, @NonNull Reliability reliability) {
         return this.send(message, channel, reliability, Priority.NORMAL, SendFlags.ASYNC | SendFlags.FLUSH);
     }
 
@@ -366,7 +367,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> send(@NonNull Object message, int channel, @NonNull Priority priority) {
+    default Promise send(@NonNull Object message, int channel, @NonNull Priority priority) {
         return this.send(message, channel, this.fallbackReliability(), priority, 0);
     }
 
@@ -376,7 +377,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendFlush(@NonNull Object message, int channel, @NonNull Priority priority) {
+    default Promise sendFlush(@NonNull Object message, int channel, @NonNull Priority priority) {
         return this.send(message, channel, this.fallbackReliability(), priority, SendFlags.FLUSH);
     }
 
@@ -386,7 +387,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendNow(@NonNull Object message, int channel, @NonNull Priority priority) {
+    default Promise sendNow(@NonNull Object message, int channel, @NonNull Priority priority) {
         return this.send(message, channel, this.fallbackReliability(), priority, SendFlags.SYNC);
     }
 
@@ -396,7 +397,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendAsync(@NonNull Object message, int channel, @NonNull Priority priority) {
+    default Promise sendAsync(@NonNull Object message, int channel, @NonNull Priority priority) {
         return this.send(message, channel, this.fallbackReliability(), priority, SendFlags.ASYNC);
     }
 
@@ -408,7 +409,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendFlushNow(@NonNull Object message, int channel, @NonNull Priority priority) {
+    default Promise sendFlushNow(@NonNull Object message, int channel, @NonNull Priority priority) {
         return this.send(message, channel, this.fallbackReliability(), priority, SendFlags.SYNC | SendFlags.FLUSH);
     }
 
@@ -420,7 +421,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendFlushAsync(@NonNull Object message, int channel, @NonNull Priority priority) {
+    default Promise sendFlushAsync(@NonNull Object message, int channel, @NonNull Priority priority) {
         return this.send(message, channel, this.fallbackReliability(), priority, SendFlags.ASYNC | SendFlags.FLUSH);
     }
 
@@ -432,7 +433,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> send(@NonNull Object message, @NonNull Reliability reliability, @NonNull Priority priority) {
+    default Promise send(@NonNull Object message, @NonNull Reliability reliability, @NonNull Priority priority) {
         return this.send(message, 0, reliability, priority, 0);
     }
 
@@ -442,7 +443,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendFlush(@NonNull Object message, @NonNull Reliability reliability, @NonNull Priority priority) {
+    default Promise sendFlush(@NonNull Object message, @NonNull Reliability reliability, @NonNull Priority priority) {
         return this.send(message, 0, reliability, priority, SendFlags.FLUSH);
     }
 
@@ -452,7 +453,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendNow(@NonNull Object message, @NonNull Reliability reliability, @NonNull Priority priority) {
+    default Promise sendNow(@NonNull Object message, @NonNull Reliability reliability, @NonNull Priority priority) {
         return this.send(message, 0, reliability, priority, SendFlags.SYNC);
     }
 
@@ -462,7 +463,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendAsync(@NonNull Object message, @NonNull Reliability reliability, @NonNull Priority priority) {
+    default Promise sendAsync(@NonNull Object message, @NonNull Reliability reliability, @NonNull Priority priority) {
         return this.send(message, 0, reliability, priority, SendFlags.ASYNC);
     }
 
@@ -474,7 +475,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendFlushNow(@NonNull Object message, @NonNull Reliability reliability, @NonNull Priority priority) {
+    default Promise sendFlushNow(@NonNull Object message, @NonNull Reliability reliability, @NonNull Priority priority) {
         return this.send(message, 0, reliability, priority, SendFlags.SYNC | SendFlags.FLUSH);
     }
 
@@ -486,7 +487,7 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *
      * @see #send(Object, int, Reliability, Priority, int)
      */
-    default Future<Void> sendFlushAsync(@NonNull Object message, @NonNull Reliability reliability, @NonNull Priority priority) {
+    default Promise sendFlushAsync(@NonNull Object message, @NonNull Reliability reliability, @NonNull Priority priority) {
         return this.send(message, 0, reliability, priority, SendFlags.ASYNC | SendFlags.FLUSH);
     }
 
@@ -501,5 +502,5 @@ public interface Sender<Impl extends Sender<Impl>> extends Reliable<Impl> {
      *                    flags may also be ORed together
      * @return a {@link Future} that may be used to monitor the message as it is sent. Depending on the flags that are set (or if none are set), this may return {@code null}
      */
-    Future<Void> send(@NonNull Object message, int channel, Reliability reliability, Priority priority, int flags);
+    Promise send(@NonNull Object message, int channel, Reliability reliability, Priority priority, int flags);
 }

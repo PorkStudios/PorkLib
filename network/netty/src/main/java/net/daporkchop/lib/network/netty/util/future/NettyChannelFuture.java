@@ -75,7 +75,53 @@ public class NettyChannelFuture extends DefaultChannelPromise implements Promise
 
     @Override
     public Promise addListener(@NonNull Consumer<Promise> callback) {
-        this.addListener((GenericFutureListener<NettyChannelFuture>) callback::accept);
+        super.addListener((GenericFutureListener<NettyChannelFuture>) callback::accept);
+        return this;
+    }
+
+    @Override
+    public Promise addListener(@NonNull Runnable callback) {
+        super.addListener((GenericFutureListener<NettyChannelFuture>) f -> callback.run());
+        return this;
+    }
+
+    @Override
+    public Promise addSuccessListener(@NonNull Runnable callback) {
+        super.addListener((GenericFutureListener<NettyChannelFuture>) f -> {
+            if (f.isSuccess())  {
+                callback.run();
+            }
+        });
+        return this;
+    }
+
+    @Override
+    public Promise addErrorListener(@NonNull Runnable callback) {
+        super.addListener((GenericFutureListener<NettyChannelFuture>) f -> {
+            if (f.cause() != null)  {
+                callback.run();
+            }
+        });
+        return this;
+    }
+
+    @Override
+    public Promise addErrorListener(@NonNull Consumer<Exception> callback) {
+        super.addListener((GenericFutureListener<NettyChannelFuture>) f -> {
+            if (f.cause() != null)  {
+                callback.accept((Exception) f.cause());
+            }
+        });
+        return this;
+    }
+
+    @Override
+    public Promise addCancelListener(@NonNull Runnable callback) {
+        super.addListener((GenericFutureListener<NettyChannelFuture>) f -> {
+            if (f.isCancelled())  {
+                callback.run();
+            }
+        });
         return this;
     }
 }

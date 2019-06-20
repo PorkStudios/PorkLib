@@ -17,16 +17,18 @@ package net.daporkchop.lib.network.tcp.session;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.DefaultChannelPipeline;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.Promise;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.netty.NettyByteBufOut;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.concurrent.future.Promise;
 import net.daporkchop.lib.network.EndpointType;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
+import net.daporkchop.lib.network.netty.util.future.NettyChannelFuture;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.tcp.frame.Framer;
 import net.daporkchop.lib.network.util.Priority;
@@ -52,7 +54,7 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
     protected final S userSession;
     protected final boolean incoming;
     protected final Framer<S> framer;
-    protected final Promise<Void> connectFuture;
+    protected final io.netty.util.concurrent.Promise<Void> connectFuture;
     protected final InetSocketAddress address;
 
     public TCPNioSocket(@NonNull TCPEndpoint<?, S, ?> endpoint, @NonNull InetSocketAddress address) {
@@ -94,23 +96,30 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
     }
 
     @Override
-    public Future<Void> send(@NonNull Object message, int channel, Reliability reliability, Priority priority, int flags) {
+    public Promise send(@NonNull Object message, int channel, Reliability reliability, Priority priority, int flags) {
         if (channel != 0)    {
             message = ChanneledPacket.getInstance(message, channel);
         }
+        NettyChannelFuture future = new NettyChannelFuture(this, this.eventLoop());
         if ((flags & SendFlags.ASYNC) != 0) {
             Object screwJava = message; //reeeeee
-            return this.eventLoop().submit(
-                    () -> this.send(screwJava, 0, null, null, flags & ~(SendFlags.ASYNC | SendFlags.SYNC)),
+            this.eventLoop().submit(
+                    () -> this.doSend(screwJava, flags & ~(SendFlags.ASYNC | SendFlags.SYNC), future),
                     null
             );
-        } else {
-            ChannelFuture future = (flags & SendFlags.FLUSH) != 0 ? this.writeAndFlush(message) : this.write(message);
-            if ((flags & SendFlags.SYNC) != 0) {
-                future.syncUninterruptibly();
-            }
             return future;
+        } else {
+            return this.doSend(message, flags, future);
         }
+    }
+
+    protected Promise doSend(@NonNull Object message, int flags, @NonNull NettyChannelFuture future) {
+        if ((flags & SendFlags.FLUSH) != 0) {
+            this.writeAndFlush(message, future);
+        } else {
+            this.write(message, future);
+        }
+        return (flags & SendFlags.SYNC) != 0 ? future.syncUninterruptibly() : future;
     }
 
     @Override

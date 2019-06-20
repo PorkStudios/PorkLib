@@ -18,6 +18,7 @@ package net.daporkchop.lib.network.session;
 import io.netty.util.concurrent.Future;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.concurrent.future.Promise;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.transport.NetSession;
 import net.daporkchop.lib.network.transport.TransportEngine;
@@ -39,7 +40,7 @@ public interface BaseUserSession<Impl extends BaseUserSession<Impl, S>, S extend
     }
 
     @Override
-    default Future<Void> send(@NonNull Object message, int channel, Reliability reliability, Priority priority, int flags) {
+    default Promise send(@NonNull Object message, int channel, Reliability reliability, Priority priority, int flags) {
         return this.internalSession().send(message, channel, reliability, priority, flags);
     }
 

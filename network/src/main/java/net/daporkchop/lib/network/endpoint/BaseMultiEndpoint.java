@@ -16,6 +16,7 @@
 package net.daporkchop.lib.network.endpoint;
 
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.transport.NetSession;
 import net.daporkchop.lib.network.util.group.Broadcaster;
 
 import java.util.Collection;
@@ -32,4 +33,9 @@ interface BaseMultiEndpoint<Impl extends BaseMultiEndpoint<Impl, S>, S extends A
      * @return all sessions currently connected to this endpoint
      */
     Collection<S> sessions();
+
+    /**
+     * @see #sessions()
+     */
+    Collection<NetSession<S>> internalSessions();
 }

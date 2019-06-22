@@ -13,27 +13,58 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.session;
+package net.daporkchop.lib.network.netty.session;
 
-import net.daporkchop.lib.network.netty.session.NettySession;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelId;
+import io.netty.channel.ChannelOutboundInvoker;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.tcp.frame.AbstractFramer;
-import net.daporkchop.lib.network.tcp.frame.Framer;
 import net.daporkchop.lib.network.transport.NetSession;
 
 /**
+ * A {@link NetSession} used by all Netty-based transports.
+ *
  * @author DaPorkchop_
  */
-public interface TCPSession<S extends AbstractUserSession<S>> extends NettySession<S> {
+public interface NettySession<S extends AbstractUserSession<S>> extends NetSession<S> {
     /**
-     * @return the {@link Framer} used by this session
+     * @see Channel#id()
      */
-    Framer<S> framer();
+    ChannelId id();
 
-    @Override
-    default void onClosed() {
-        this.closeAsync();
-        this.framer().release(this.userSession());
-        NettySession.super.onClosed();
-    }
+    /**
+     * @see Channel#closeFuture()
+     */
+    ChannelFuture closeFuture();
+
+    /**
+     * @see Channel#write(Object)
+     */
+    ChannelFuture write(Object msg);
+
+    /**
+     * @see Channel#writeAndFlush(Object)
+     */
+    ChannelFuture writeAndFlush(Object msg);
+
+    /**
+     * @see Channel#flush()
+     */
+    ChannelOutboundInvoker flush();
+
+    /**
+     * @see Channel#disconnect()
+     */
+    ChannelFuture disconnect();
+
+    /**
+     * @see Channel#close()
+     */
+    ChannelFuture close();
+
+    /**
+     * @see Channel#deregister()
+     */
+    ChannelFuture deregister();
 }

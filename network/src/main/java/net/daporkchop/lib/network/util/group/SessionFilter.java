@@ -13,27 +13,25 @@
  *
  */
 
-package net.daporkchop.lib.network.tcp.session;
+package net.daporkchop.lib.network.util.group;
 
-import net.daporkchop.lib.network.netty.session.NettySession;
+import lombok.NonNull;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.tcp.frame.AbstractFramer;
-import net.daporkchop.lib.network.tcp.frame.Framer;
 import net.daporkchop.lib.network.transport.NetSession;
 
+import java.util.function.Predicate;
+
 /**
+ * Filters sessions that a message should be sent to when using send methods from {@link Broadcaster}.
+ *
  * @author DaPorkchop_
  */
-public interface TCPSession<S extends AbstractUserSession<S>> extends NettySession<S> {
-    /**
-     * @return the {@link Framer} used by this session
-     */
-    Framer<S> framer();
+@FunctionalInterface
+public interface SessionFilter<S extends AbstractUserSession<S>> extends Predicate<NetSession<S>> {
+    static <S extends AbstractUserSession<S>> SessionFilter<S> all()    {
+        return netSession -> true;
+    }
 
     @Override
-    default void onClosed() {
-        this.closeAsync();
-        this.framer().release(this.userSession());
-        NettySession.super.onClosed();
-    }
+    boolean test(@NonNull NetSession<S> netSession);
 }

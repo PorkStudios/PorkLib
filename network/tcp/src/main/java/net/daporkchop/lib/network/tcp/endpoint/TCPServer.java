@@ -18,41 +18,48 @@ package net.daporkchop.lib.network.tcp.endpoint;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.DefaultChannelGroup;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.NonNull;
+import net.daporkchop.lib.concurrent.future.Promise;
 import net.daporkchop.lib.network.endpoint.PServer;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
+import net.daporkchop.lib.network.netty.util.group.PorkChannelGroup;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.tcp.netty.TCPChannelInitializer;
 import net.daporkchop.lib.network.tcp.session.TCPNioServerSocket;
 import net.daporkchop.lib.network.tcp.session.TCPNioSocket;
+import net.daporkchop.lib.network.transport.NetSession;
+import net.daporkchop.lib.network.util.Priority;
 import net.daporkchop.lib.network.util.reliability.Reliability;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * @author DaPorkchop_
  */
 public class TCPServer<S extends AbstractUserSession<S>> extends TCPEndpoint<PServer<S>, S, TCPNioServerSocket<S>> implements PServer<S> {
-    protected final Map<TCPNioSocket<S>, S> sessions = new ConcurrentHashMap<>();
+    protected final PorkChannelGroup<S> sessions;
 
     @SuppressWarnings("unchecked")
     public TCPServer(@NonNull ServerBuilder<S> builder) {
         super(builder);
 
         try {
+            this.sessions = new PorkChannelGroup<>(this.group.next(), true);
             ServerBootstrap bootstrap = new ServerBootstrap()
                     .option(ChannelOption.ALLOCATOR, this.transportEngine.alloc())
                     .childOption(ChannelOption.ALLOCATOR, this.transportEngine.alloc())
                     .group(this.group)
                     .channelFactory(() -> new TCPNioServerSocket<>(this))
-                    .childHandler(new TCPChannelInitializer<>(
-                            this,
-                            s -> this.sessions.put(s, s.userSession()),
-                            this.sessions::remove
-                    ));
+                    .childHandler(new TCPChannelInitializer<>(this, this.sessions::add, this.sessions::remove));
 
             this.transportEngine.clientOptions().forEach(bootstrap::childOption);
             this.transportEngine.serverOptions().forEach(bootstrap::option);
@@ -66,7 +73,13 @@ public class TCPServer<S extends AbstractUserSession<S>> extends TCPEndpoint<PSe
 
     @Override
     public Collection<S> sessions() {
-        return Collections.unmodifiableCollection(this.sessions.values());
+        return this.internalSessions().stream().map(NetSession::userSession).collect(Collectors.toList());
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public Collection<NetSession<S>> internalSessions() {
+        return (Set<NetSession<S>>) (Object) this.sessions;
     }
 
     //TODO: remove these
@@ -78,5 +91,15 @@ public class TCPServer<S extends AbstractUserSession<S>> extends TCPEndpoint<PSe
     @Override
     public PServer<S> fallbackReliability(@NonNull Reliability reliability) throws IllegalArgumentException {
         return null;
+    }
+
+    @Override
+    public Promise broadcast(@NonNull Object message, int channel, Reliability reliability, Priority priority, int flags) {
+        return this.sessions.write(message); //TODO
+    }
+
+    @Override
+    public void flushBuffer() {
+        this.sessions.flush();
     }
 }

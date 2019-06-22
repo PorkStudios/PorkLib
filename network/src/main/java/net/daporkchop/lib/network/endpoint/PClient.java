@@ -16,6 +16,7 @@
 package net.daporkchop.lib.network.endpoint;
 
 import io.netty.util.concurrent.Future;
+import net.daporkchop.lib.concurrent.future.Promise;
 import net.daporkchop.lib.logging.Logger;
 import net.daporkchop.lib.network.EndpointType;
 import net.daporkchop.lib.network.session.AbstractUserSession;
@@ -39,7 +40,7 @@ public interface PClient<S extends AbstractUserSession<S>> extends PEndpoint<PCl
     }
 
     @Override
-    default Future<Void> closeAsync() {
+    default Promise closeAsync() {
         return BaseUserSession.super.closeAsync();
     }
 

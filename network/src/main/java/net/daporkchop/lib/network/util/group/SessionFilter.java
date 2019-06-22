@@ -28,10 +28,25 @@ import java.util.function.Predicate;
  */
 @FunctionalInterface
 public interface SessionFilter<S extends AbstractUserSession<S>> extends Predicate<NetSession<S>> {
-    static <S extends AbstractUserSession<S>> SessionFilter<S> all()    {
+    static <S extends AbstractUserSession<S>> SessionFilter<S> all() {
         return netSession -> true;
     }
 
     @Override
     boolean test(@NonNull NetSession<S> netSession);
+
+    /**
+     * A {@link SessionFilter} that filters by user session instead of by {@link NetSession}.
+     *
+     * @author DaPorkchop_
+     */
+    @FunctionalInterface
+    interface User<S extends AbstractUserSession<S>> extends SessionFilter<S> {
+        @Override
+        default boolean test(@NonNull NetSession<S> netSession) {
+            return this.test(netSession.userSession());
+        }
+
+        boolean test(@NonNull S session);
+    }
 }

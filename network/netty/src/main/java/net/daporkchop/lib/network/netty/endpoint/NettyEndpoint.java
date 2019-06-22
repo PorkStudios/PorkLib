@@ -16,17 +16,20 @@
 package net.daporkchop.lib.network.netty.endpoint;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.concurrent.future.Promise;
 import net.daporkchop.lib.logging.Logger;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.endpoint.builder.EndpointBuilder;
 import net.daporkchop.lib.network.netty.LoopPool;
 import net.daporkchop.lib.network.netty.NettyEngine;
+import net.daporkchop.lib.network.netty.util.future.NettyPromiseContainer;
 import net.daporkchop.lib.network.protocol.Protocol;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.SessionFactory;
@@ -36,21 +39,16 @@ import net.daporkchop.lib.network.session.SessionFactory;
  */
 @Getter
 @Accessors(fluent = true)
-public abstract class NettyEndpoint<Impl extends PEndpoint<Impl, S>, S extends AbstractUserSession<S>, C extends Channel, E extends NettyEngine> implements PEndpoint<Impl, S> {
+public abstract class NettyEndpoint<Impl extends PEndpoint<Impl, S>, S extends AbstractUserSession<S>, C extends Channel, E extends NettyEngine, B extends EndpointBuilder<B, Impl, S>> implements PEndpoint<Impl, S> {
     protected final E transportEngine;
     protected final SessionFactory<S> sessionFactory;
     protected final Logger logger;
     protected final EventLoopGroup group;
-
-    /**
-     * The Netty channel instance that backs this endpoint.
-     * <p>
-     * Must be set before implementation constructor returns!
-     */
-    protected C channel;
+    protected final Promise closePromise;
+    protected final C channel;
 
     @SuppressWarnings("unchecked")
-    protected NettyEndpoint(@NonNull EndpointBuilder builder) {
+    protected NettyEndpoint(@NonNull B builder) {
         this.transportEngine = (E) builder.engine();
         this.sessionFactory = builder.sessionFactory();
         this.logger = builder.logger();
@@ -58,11 +56,43 @@ public abstract class NettyEndpoint<Impl extends PEndpoint<Impl, S>, S extends A
         EventLoopGroup group;
         if ((group = this.transportEngine.group()) == null) {
             group = LoopPool.defaultGroup();
+            this.closePromise = new NettyPromiseContainer(GlobalEventExecutor.INSTANCE);
         } else if (this.transportEngine.autoShutdownGroup()) {
             LoopPool.useGroup(group);
+            this.closePromise = new NettyPromiseContainer(GlobalEventExecutor.INSTANCE);
+        } else {
+            this.closePromise = new NettyPromiseContainer(group.next());
         }
         this.group = group;
+
+        try {
+            this.preOpenChannel(builder);
+            ChannelFuture future = this.openChannel(builder);
+            this.channel = (C) future.channel();
+            future.sync();
+        } catch (Exception e)   {
+            this.closePromise.tryCompleteError(e);
+            this.closeAsync();
+            throw new RuntimeException(e);
+        }
+
+        this.channel.closeFuture().addListener(f -> {
+            if (f.isSuccess())  {
+                this.closePromise.tryCompleteSuccessfully();
+            } else {
+                this.closePromise.tryCompleteError((Exception) f.cause());
+            }
+        });
+        if (this.transportEngine.autoShutdownGroup())   {
+            this.channel.closeFuture().addListener(f -> LoopPool.returnGroup(this.group));
+        }
     }
+
+    protected void preOpenChannel(@NonNull B builder) throws Exception  {
+        //because java is dumb
+    }
+
+    protected abstract ChannelFuture openChannel(@NonNull B builder) throws Exception;
 
     @Override
     public void closeNow() {
@@ -70,24 +100,16 @@ public abstract class NettyEndpoint<Impl extends PEndpoint<Impl, S>, S extends A
     }
 
     @Override
-    public boolean isClosed() {
-        return this.channel.isOpen();
-    }
-
-    @Override
-    public Future<Void> closeAsync() {
+    public Promise closeAsync() {
         if (this.channel == null)   {
             //exception was caught while starting channel, safely close executor and shut down
             if (this.transportEngine.autoShutdownGroup()) {
                 LoopPool.returnGroup(this.group);
             }
-            return GlobalEventExecutor.INSTANCE.newPromise();
+            return this.closePromise;
         } else {
-            return this.channel.close().addListener(v -> {
-                if (this.transportEngine.autoShutdownGroup()) {
-                    LoopPool.returnGroup(this.group);
-                }
-            });
+            this.channel.close();
+            return this.closePromise;
         }
     }
 }

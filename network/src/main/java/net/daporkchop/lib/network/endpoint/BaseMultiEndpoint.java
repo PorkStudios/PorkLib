@@ -26,7 +26,7 @@ import java.util.Collection;
  *
  * @author DaPorkchop_
  */
-interface BaseMultiEndpoint<Impl extends BaseMultiEndpoint<Impl, S>, S extends AbstractUserSession<S>> extends PEndpoint<Impl, S>, Broadcaster<Impl> {
+public interface BaseMultiEndpoint<Impl extends BaseMultiEndpoint<Impl, S>, S extends AbstractUserSession<S>> extends PEndpoint<Impl, S>, Broadcaster<Impl, S> {
     /**
      * Gets all sessions currently connected to this endpoint.
      *

@@ -16,10 +16,8 @@
 package net.daporkchop.lib.network.tcp.session;
 
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.DefaultChannelPipeline;
+import io.netty.channel.ChannelException;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.util.concurrent.Future;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
@@ -28,7 +26,7 @@ import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.concurrent.future.Promise;
 import net.daporkchop.lib.network.EndpointType;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
-import net.daporkchop.lib.network.netty.util.future.NettyChannelFuture;
+import net.daporkchop.lib.network.netty.util.future.NettyChannelPromise;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.tcp.frame.Framer;
 import net.daporkchop.lib.network.util.Priority;
@@ -43,6 +41,7 @@ import net.daporkchop.lib.unsafe.PUnsafe;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
+import java.nio.channels.spi.SelectorProvider;
 
 /**
  * @author DaPorkchop_
@@ -50,33 +49,34 @@ import java.nio.channels.SocketChannel;
 @Getter
 @Accessors(fluent = true, chain = true)
 public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketChannel implements TCPSession<S> {
-    protected final TCPEndpoint<?, S, ?> endpoint;
+    protected static SocketChannel newSocket(SelectorProvider provider) {
+        try {
+            return provider.openSocketChannel();
+        } catch (IOException e) {
+            throw new ChannelException("Failed to open a socket.", e);
+        }
+    }
+
+    protected final TCPEndpoint<?, S, ?, ?> endpoint;
     protected final S userSession;
     protected final boolean incoming;
     protected final Framer<S> framer;
-    protected final io.netty.util.concurrent.Promise<Void> connectFuture;
+    protected final NettyChannelPromise closePromise = new NettyChannelPromise(this);
     protected final InetSocketAddress address;
 
-    public TCPNioSocket(@NonNull TCPEndpoint<?, S, ?> endpoint, @NonNull InetSocketAddress address) {
-        this.incoming = false;
-        this.endpoint = endpoint;
-        this.address = address;
-        this.userSession = endpoint.sessionFactory().newSession();
-        PUnsafe.putObject(this.userSession, ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);
-
-        @SuppressWarnings("unchecked")
-        Framer<S> framer = (Framer<S>) this.endpoint.transportEngine().framerFactory().newFramer();
-        (this.framer = framer).init(this.userSession);
-
-        this.connectFuture = this.newPromise();
-        this.closeFuture().addListener(v -> this.onClosed());
+    public TCPNioSocket(@NonNull TCPEndpoint<?, S, ?, ?> endpoint, @NonNull InetSocketAddress address) {
+        this(endpoint, address, null, null);
     }
 
-    public TCPNioSocket(@NonNull TCPEndpoint<?, S, ?> endpoint, Channel parent, SocketChannel socket) {
-        super(parent, socket);
+    public TCPNioSocket(@NonNull TCPEndpoint<?, S, ?, ?> endpoint, Channel parent, SocketChannel socket) {
+        this(endpoint, null, parent, socket == null ? newSocket(SelectorProvider.provider()) : socket);
+    }
+
+    public TCPNioSocket(@NonNull TCPEndpoint<?, S, ?, ?> endpoint, InetSocketAddress address, Channel parent, SocketChannel socket) {
+        super(parent, socket == null ? newSocket(SelectorProvider.provider()) : socket);
 
         this.incoming = true;
-        this.address = null;
+        this.address = address;
         this.endpoint = endpoint;
         this.userSession = endpoint.sessionFactory().newSession();
         PUnsafe.putObject(this.userSession, ABSTRACTUSERSESSION_INTERNALSESSION_OFFSET, this);
@@ -85,7 +85,6 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
         Framer<S> framer = (Framer<S>) this.endpoint.transportEngine().framerFactory().newFramer();
         (this.framer = framer).init(this.userSession);
 
-        this.connectFuture = this.newPromise();
         this.closeFuture().addListener(v -> this.onClosed());
     }
 
@@ -96,11 +95,11 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
     }
 
     @Override
-    public Promise send(@NonNull Object message, int channel, Reliability reliability, Priority priority, int flags) {
+    public NettyChannelPromise send(@NonNull Object message, int channel, Reliability reliability, Priority priority, int flags) {
         if (channel != 0)    {
             message = ChanneledPacket.getInstance(message, channel);
         }
-        NettyChannelFuture future = new NettyChannelFuture(this, this.eventLoop());
+        NettyChannelPromise future = new NettyChannelPromise(this, this.eventLoop());
         if ((flags & SendFlags.ASYNC) != 0) {
             Object screwJava = message; //reeeeee
             this.eventLoop().submit(
@@ -113,7 +112,7 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
         }
     }
 
-    protected Promise doSend(@NonNull Object message, int flags, @NonNull NettyChannelFuture future) {
+    protected NettyChannelPromise doSend(@NonNull Object message, int flags, @NonNull NettyChannelPromise future) {
         if ((flags & SendFlags.FLUSH) != 0) {
             this.writeAndFlush(message, future);
         } else {
@@ -150,11 +149,6 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
     }
 
     @Override
-    public boolean isClosed() {
-        return !this.isOpen();
-    }
-
-    @Override
     public TransportEngine transportEngine() {
         return this.endpoint.transportEngine();
     }
@@ -170,30 +164,23 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
     }
 
     @Override
-    public Future<Void> closeAsync() {
+    public Promise closeAsync() {
         if (this.endpoint.type() == EndpointType.CLIENT) {
             return this.endpoint.closeAsync();
         } else {
-            return this.close();
+            return (Promise) super.close(this.closePromise);
         }
     }
 
     @Override
-    public void onOpened(boolean incoming) {
-        try {
-            TCPSession.super.onOpened(incoming);
-        } finally {
-            this.connectFuture.trySuccess(null);
-        }
+    public Promise closePromise() {
+        return null;
     }
 
     @Override
-    public void onException(@NonNull Exception e) {
-        try {
-            TCPSession.super.onException(e);
-        } finally {
-            this.connectFuture.tryFailure(e);
-        }
+    public void onClosed() {
+        this.closePromise.tryCompleteSuccessfully();
+        TCPSession.super.onClosed();
     }
 
     @Override

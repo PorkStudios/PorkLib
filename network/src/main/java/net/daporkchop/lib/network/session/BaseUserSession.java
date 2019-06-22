@@ -55,11 +55,6 @@ public interface BaseUserSession<Impl extends BaseUserSession<Impl, S>, S extend
     }
 
     @Override
-    default void closeNow() {
-        this.internalSession().closeNow();
-    }
-
-    @Override
     default Reliability fallbackReliability() {
         return this.internalSession().fallbackReliability();
     }
@@ -72,13 +67,18 @@ public interface BaseUserSession<Impl extends BaseUserSession<Impl, S>, S extend
     }
 
     @Override
-    default boolean isClosed() {
-        return this.internalSession().isClosed();
+    default void closeNow() {
+        this.internalSession().closeNow();
     }
 
     @Override
-    default Future<Void> closeAsync() {
+    default Promise closeAsync() {
         return this.internalSession().closeAsync();
+    }
+
+    @Override
+    default Promise closePromise() {
+        return this.internalSession().closePromise();
     }
 
     @Override

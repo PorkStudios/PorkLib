@@ -26,8 +26,8 @@ import net.daporkchop.lib.network.tcp.TCPEngine;
 /**
  * @author DaPorkchop_
  */
-public abstract class TCPEndpoint<Impl extends PEndpoint<Impl, S>, S extends AbstractUserSession<S>, C extends Channel> extends NettyEndpoint<Impl, S, C, TCPEngine> {
-    protected TCPEndpoint(@NonNull EndpointBuilder builder)    {
+public abstract class TCPEndpoint<Impl extends PEndpoint<Impl, S>, S extends AbstractUserSession<S>, C extends Channel, B extends EndpointBuilder<B, Impl, S>> extends NettyEndpoint<Impl, S, C, TCPEngine, B> {
+    protected TCPEndpoint(@NonNull B builder)    {
         super(builder);
     }
 }

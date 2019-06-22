@@ -23,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.tcp.endpoint.TCPEndpoint;
+import net.daporkchop.lib.network.tcp.endpoint.TCPMultiEndpoint;
 
 import java.nio.channels.SocketChannel;
 import java.util.List;
@@ -35,7 +36,7 @@ import java.util.List;
 @Accessors(fluent = true)
 public class TCPNioServerSocket<S extends AbstractUserSession<S>> extends NioServerSocketChannel {
     @NonNull
-    protected final TCPEndpoint<?, S, ?> endpoint;
+    protected final TCPMultiEndpoint<?, S, ?, ?> endpoint;
 
     @Override
     protected int doReadMessages(List<Object> buf) throws Exception {

@@ -17,10 +17,7 @@ package net.daporkchop.lib.network.netty.util.group;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.ChannelGroupException;
-import io.netty.channel.group.ChannelGroupFuture;
 import io.netty.util.concurrent.BlockingOperationException;
 import io.netty.util.concurrent.DefaultPromise;
 import io.netty.util.concurrent.EventExecutor;
@@ -34,13 +31,12 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.concurrent.future.Promise;
 import net.daporkchop.lib.concurrent.util.exception.AlreadyCompleteException;
 import net.daporkchop.lib.network.netty.session.NettySession;
+import net.daporkchop.lib.network.netty.util.future.NettyChannelPromise;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -56,16 +52,19 @@ public class PorkChannelGroupFuture<S extends AbstractUserSession<S>> extends De
     protected int successCount;
     protected int failureCount;
 
-    private final ChannelFutureListener childListener = new ChannelFutureListener() {
-        @Override
-        public void operationComplete(ChannelFuture future) throws Exception {
+    public PorkChannelGroupFuture(@NonNull PorkChannelGroup<S> group, @NonNull Map<NettySession<S>, ChannelFuture> futures, EventExecutor executor) {
+        super(executor);
+        this.group = group;
+        this.futures = Collections.unmodifiableMap(futures);
+
+        GenericFutureListener<Future<Void>> childListener = future -> {
             boolean success = future.isSuccess();
             boolean callSetDone;
             synchronized (PorkChannelGroupFuture.this) {
                 if (success) {
-                    PorkChannelGroupFuture.this.successCount ++;
+                    PorkChannelGroupFuture.this.successCount++;
                 } else {
-                    PorkChannelGroupFuture.this.failureCount ++;
+                    PorkChannelGroupFuture.this.failureCount++;
                 }
 
                 callSetDone = PorkChannelGroupFuture.this.successCount + PorkChannelGroupFuture.this.failureCount == PorkChannelGroupFuture.this.futures.size();
@@ -75,7 +74,7 @@ public class PorkChannelGroupFuture<S extends AbstractUserSession<S>> extends De
             if (callSetDone) {
                 if (PorkChannelGroupFuture.this.failureCount > 0) {
                     List<Map.Entry<Channel, Throwable>> failed = new ArrayList<>(PorkChannelGroupFuture.this.failureCount);
-                    for (ChannelFuture f: PorkChannelGroupFuture.this.futures.values()) {
+                    for (ChannelFuture f : PorkChannelGroupFuture.this.futures.values()) {
                         if (!f.isSuccess()) {
                             failed.add(new DefaultEntry<>(f.channel(), f.cause()));
                         }
@@ -85,15 +84,10 @@ public class PorkChannelGroupFuture<S extends AbstractUserSession<S>> extends De
                     setSuccess0();
                 }
             }
-        }
-    };
+        };
 
-    public PorkChannelGroupFuture(@NonNull PorkChannelGroup<S> group, @NonNull Map<NettySession<S>, ChannelFuture> futures, EventExecutor executor) {
-        super(executor);
-        this.group = group;
-        this.futures = Collections.unmodifiableMap(futures);
-        for (ChannelFuture f: this.futures.values()) {
-            f.addListener(this.childListener);
+        for (ChannelFuture f : this.futures.values()) {
+            f.addListener(childListener);
         }
 
         // Done on arrival?
@@ -102,8 +96,8 @@ public class PorkChannelGroupFuture<S extends AbstractUserSession<S>> extends De
         }
     }
 
-    public ChannelFuture find(Channel channel) {
-        return this.futures.get(channel);
+    public ChannelFuture find(@NonNull NettySession<S> session) {
+        return this.futures.get(session);
     }
 
     public Iterator<ChannelFuture> iterator() {

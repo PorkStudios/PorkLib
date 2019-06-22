@@ -24,10 +24,19 @@ import io.netty.util.ReferenceCountUtil;
 import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.internal.PlatformDependent;
 import io.netty.util.internal.StringUtil;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.concurrent.future.Promise;
 import net.daporkchop.lib.network.netty.session.NettySession;
+import net.daporkchop.lib.network.netty.util.future.NettyPromiseWrapper;
 import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.util.Priority;
+import net.daporkchop.lib.network.util.group.Broadcaster;
 import net.daporkchop.lib.network.util.group.SessionFilter;
+import net.daporkchop.lib.network.util.reliability.Reliability;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.util.AbstractSet;
 import java.util.ArrayList;
@@ -39,16 +48,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Because {@link io.netty.channel.group.DefaultChannelGroup} is dumb and doesn't let me use a custom future class.
+ * <p>
+ * To be totally honest this class is now quite a bit different from the original one, I made a lot of API changes because reasons.
  *
  * @author DaPorkchop_
- * @see io.netty.channel.group.DefaultChannelGroup
  */
-public class PorkChannelGroup<S extends AbstractUserSession<S>> extends AbstractSet<NettySession<S>> {
-    private static final AtomicInteger nextId = new AtomicInteger();
+@Accessors(fluent = true, chain = true)
+public class PorkChannelGroup<S extends AbstractUserSession<S>> extends AbstractSet<NettySession<S>> implements Broadcaster<PorkChannelGroup<S>, S> {
+    protected static final long COUNT_OFFSET = PUnsafe.pork_getOffset(PorkChannelGroup.class, "count");
+    protected static final AtomicInteger NEXT_ID = new AtomicInteger();
 
-    // Create a safe duplicate of the message to write it to a channel but not affect other writes.
-    // See https://github.com/netty/netty/issues/1461
-    private static Object safeDuplicate(Object message) {
+    protected static Object safeDuplicate(Object message) {
         if (message instanceof ByteBuf) {
             return ((ByteBuf) message).retainedDuplicate();
         } else if (message instanceof ByteBufHolder) {
@@ -58,33 +68,27 @@ public class PorkChannelGroup<S extends AbstractUserSession<S>> extends Abstract
         }
     }
 
-    private final String name;
-    private final EventExecutor executor;
-    private final ConcurrentMap<ChannelId, NettySession<S>> channels = PlatformDependent.newConcurrentHashMap();
-    private final ChannelFutureListener remover = f -> this.remove(f.channel());
-    private final boolean stayClosed;
-    private volatile boolean closed;
+    @Getter
+    protected final String name;
+    protected final EventExecutor executor;
+    protected final ConcurrentMap<ChannelId, NettySession<S>> channels = PlatformDependent.newConcurrentHashMap();
+    protected final ChannelFutureListener remover = f -> this.remove(f.channel());
+    @Getter
+    protected final Promise closePromise;
+    @Getter
+    @Setter
+    protected Reliability fallbackReliability;
+    protected volatile int count = 0;
+    protected volatile boolean closed;
 
     public PorkChannelGroup(EventExecutor executor) {
-        this(executor, false);
+        this("group-0x" + Integer.toHexString(NEXT_ID.incrementAndGet()), executor);
     }
 
-    public PorkChannelGroup(String name, EventExecutor executor) {
-        this(name, executor, false);
-    }
-
-    public PorkChannelGroup(EventExecutor executor, boolean stayClosed) {
-        this("group-0x" + Integer.toHexString(nextId.incrementAndGet()), executor, stayClosed);
-    }
-
-    public PorkChannelGroup(@NonNull String name, @NonNull EventExecutor executor, boolean stayClosed) {
+    public PorkChannelGroup(@NonNull String name, @NonNull EventExecutor executor) {
         this.name = name;
         this.executor = executor;
-        this.stayClosed = stayClosed;
-    }
-
-    public String name() {
-        return this.name;
+        this.closePromise = new NettyPromiseWrapper(executor.newPromise());
     }
 
     @Override
@@ -107,8 +111,9 @@ public class PorkChannelGroup<S extends AbstractUserSession<S>> extends Abstract
         boolean added = this.channels.putIfAbsent(channel.id(), channel) == null;
         if (added) {
             channel.closeFuture().addListener(this.remover);
+            PUnsafe.getAndAddInt(this, COUNT_OFFSET, 1);
         }
-        if (this.stayClosed && this.closed) {
+        if (this.closed) {
             channel.closeAsync();
         }
         return added;
@@ -127,13 +132,16 @@ public class PorkChannelGroup<S extends AbstractUserSession<S>> extends Abstract
             return false;
         } else {
             c.closeFuture().removeListener(this.remover);
+            if (PUnsafe.getAndAddInt(this, COUNT_OFFSET, -1) == 1 && this.closed)  {
+                this.closePromise.tryCompleteSuccessfully();
+            }
             return true;
         }
     }
 
     @Override
     public void clear() {
-        channels.clear();
+        this.channels.clear();
     }
 
     @Override
@@ -151,62 +159,52 @@ public class PorkChannelGroup<S extends AbstractUserSession<S>> extends Abstract
         return new ArrayList<>(this.channels.values()).toArray(a);
     }
 
-    public PorkChannelGroupFuture<S> write(@NonNull Object message) {
-        return write(message, SessionFilter.all());
-    }
-
-    public PorkChannelGroupFuture<S> write(@NonNull Object message, @NonNull SessionFilter<S> filter) {
-        Map<NettySession<S>, ChannelFuture> futures = new LinkedHashMap<>(size());
-        for (NettySession<S> c : this.channels.values()) {
-            if (filter.test(c)) {
-                futures.put(c, c.write(safeDuplicate(message)));
-            }
-        }
-        PorkChannelGroupFuture<S> future = this.newFuture(futures);
-        ReferenceCountUtil.release(message);
-        return future;
-    }
-
-    public PorkChannelGroupFuture<S> disconnect() {
-        return disconnect(SessionFilter.all());
-    }
-
-    public PorkChannelGroupFuture<S> disconnect(@NonNull SessionFilter<S> filter) {
-        if (filter == null) {
-            throw new NullPointerException("matcher");
-        }
-
-        Map<NettySession<S>, ChannelFuture> futures = new LinkedHashMap<>(size());
+    @Override
+    public Promise broadcast(@NonNull Object message, int channel, Reliability reliability, Priority priority, int flags) {
+        Map<NettySession<S>, ChannelFuture> futures = new LinkedHashMap<>(this.size());
         for (NettySession<S> s : this.channels.values()) {
-            if (filter.test(s)) {
-                futures.put(s, s.disconnect());
-            }
+            futures.put(s, s.send(message, channel, reliability, priority, flags));
         }
-        /*
-        this.channels.values().stream()
-                .filter(filter)
-                .collect(Collectors.toMap(
-                        c -> c,
-                        NettySession::disconnect,
-                        (u, v) -> {
-                            throw new IllegalStateException(String.format("Duplicate key %s", u));
-                        },
-                        LinkedHashMap::new
-                ))
-         */
-
         return this.newFuture(futures);
     }
 
-    public PorkChannelGroupFuture<S> close() {
-        return close(SessionFilter.all());
+    @Override
+    public Promise broadcast(@NonNull SessionFilter<S> filter, @NonNull Object message, int channel, Reliability reliability, Priority priority, int flags) {
+        Map<NettySession<S>, ChannelFuture> futures = new LinkedHashMap<>(this.size());
+        for (NettySession<S> s : this.channels.values()) {
+            if (filter.test(s)) {
+                futures.put(s, s.send(message, channel, reliability, priority, flags));
+            }
+        }
+        return this.newFuture(futures);
     }
 
-    public PorkChannelGroupFuture<S> close(@NonNull SessionFilter<S> filter) {
-        if (this.stayClosed) {
-            this.closed = true;
+    @Override
+    public void flushBuffer() {
+        this.channels.forEach((id, session) -> session.flush()); //this causes fewer object allocations
+    }
+
+    @Override
+    public void flushBuffer(@NonNull SessionFilter<S> filter) {
+        for (NettySession<S> s : this.channels.values()) {
+            if (filter.test(s)) {
+                s.flush();
+            }
         }
-        Map<NettySession<S>, ChannelFuture> futures = new LinkedHashMap<>(size());
+    }
+
+    @Override
+    public Promise closeSessions() {
+        Map<NettySession<S>, ChannelFuture> futures = new LinkedHashMap<>(this.size());
+        for (NettySession<S> s : this.channels.values()) {
+            futures.put(s, s.close());
+        }
+        return this.newFuture(futures);
+    }
+
+    @Override
+    public Promise closeSessions(@NonNull SessionFilter<S> filter) {
+        Map<NettySession<S>, ChannelFuture> futures = new LinkedHashMap<>(this.size());
         for (NettySession<S> s : this.channels.values()) {
             if (filter.test(s)) {
                 futures.put(s, s.close());
@@ -215,61 +213,11 @@ public class PorkChannelGroup<S extends AbstractUserSession<S>> extends Abstract
         return this.newFuture(futures);
     }
 
-    public PorkChannelGroupFuture<S> deregister() {
-        return deregister(SessionFilter.all());
-    }
-
-    public PorkChannelGroupFuture<S> deregister(@NonNull SessionFilter<S> filter) {
-        Map<NettySession<S>, ChannelFuture> futures = new LinkedHashMap<>(size());
-        for (NettySession<S> s : this.channels.values()) {
-            if (filter.test(s)) {
-                futures.put(s, s.deregister());
-            }
-        }
-        return this.newFuture(futures);
-    }
-
-    public PorkChannelGroup<S> flush() {
-        return flush(SessionFilter.all());
-    }
-
-    public PorkChannelGroup<S> flush(@NonNull SessionFilter<S> filter) {
-        for (NettySession<S> s : this.channels.values()) {
-            if (filter.test(s)) {
-                s.flush();
-            }
-        }
-        return this;
-    }
-
-    public PorkChannelGroupFuture<S> writeAndFlush(Object message) {
-        return writeAndFlush(message, SessionFilter.all());
-    }
-
-    public PorkChannelGroupFuture<S> writeAndFlush(@NonNull Object message, @NonNull SessionFilter<S> filter) {
-        Map<NettySession<S>, ChannelFuture> futures = new LinkedHashMap<>(size());
-        for (NettySession<S> s : this.channels.values()) {
-            if (filter.test(s)) {
-                futures.put(s, s.writeAndFlush(safeDuplicate(message)));
-            }
-        }
-        PorkChannelGroupFuture<S> future = this.newFuture(futures);
-        ReferenceCountUtil.release(message);
-        return future;
-    }
-
-    public PorkChannelGroupFuture<S> newCloseFuture() {
-        return newCloseFuture(SessionFilter.all());
-    }
-
-    public PorkChannelGroupFuture<S> newCloseFuture(@NonNull SessionFilter<S> filter) {
-        Map<NettySession<S>, ChannelFuture> futures = new LinkedHashMap<>(size());
-        for (NettySession<S> s : this.channels.values()) {
-            if (filter.test(s)) {
-                futures.put(s, s.closeFuture());
-            }
-        }
-        return this.newFuture(futures);
+    @Override
+    public Promise closeAsync() {
+        this.closed = true;
+        this.channels.forEach((id, session) -> session.close()); //this causes fewer object allocations
+        return this.closePromise;
     }
 
     @Override

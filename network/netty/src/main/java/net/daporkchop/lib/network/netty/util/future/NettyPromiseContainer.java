@@ -15,113 +15,63 @@
 
 package net.daporkchop.lib.network.netty.util.future;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelPromise;
-import io.netty.channel.DefaultChannelPromise;
+import io.netty.util.concurrent.DefaultPromise;
 import io.netty.util.concurrent.EventExecutor;
-import io.netty.util.concurrent.GenericFutureListener;
 import lombok.NonNull;
 import net.daporkchop.lib.concurrent.future.Promise;
 import net.daporkchop.lib.concurrent.util.exception.AlreadyCompleteException;
-import net.daporkchop.lib.concurrent.worker.Worker;
 
 import java.util.function.Consumer;
 
 /**
  * @author DaPorkchop_
  */
-public class NettyChannelFuture extends DefaultChannelPromise implements Promise {
-    public NettyChannelFuture(Channel channel) {
-        super(channel);
-    }
-
-    public NettyChannelFuture(Channel channel, EventExecutor executor) {
-        super(channel, executor);
+public class NettyPromiseContainer extends DefaultPromise<Void> implements Promise {
+    public NettyPromiseContainer(EventExecutor executor) {
+        super(executor);
     }
 
     @Override
     public void completeSuccessfully() throws AlreadyCompleteException {
-        if (!this.trySuccess()) {
+        if (!super.trySuccess(null)) {
             throw new AlreadyCompleteException();
         }
     }
 
     @Override
     public Exception getError() {
-        return (Exception) this.cause();
-    }
-
-    @Override
-    public NettyChannelFuture sync() throws InterruptedException {
-        return (NettyChannelFuture) super.sync();
-    }
-
-    @Override
-    public NettyChannelFuture syncUninterruptibly() {
-        return (NettyChannelFuture) super.syncUninterruptibly();
+        return (Exception) super.cause();
     }
 
     @Override
     public void completeError(@NonNull Exception error) throws AlreadyCompleteException {
-        if (!this.tryFailure(error))    {
+        if (!super.tryFailure(error))   {
             throw new AlreadyCompleteException();
         }
     }
 
     @Override
     public void cancel() throws AlreadyCompleteException {
-        throw new UnsupportedOperationException();
+        if (!super.cancel(true))    {
+            throw new AlreadyCompleteException();
+        }
     }
 
     @Override
     public Promise addListener(@NonNull Consumer<Promise> callback) {
-        super.addListener((GenericFutureListener<NettyChannelFuture>) callback::accept);
+        super.addListener(f -> callback.accept((NettyPromiseContainer) f));
         return this;
     }
 
     @Override
-    public Promise addListener(@NonNull Runnable callback) {
-        super.addListener((GenericFutureListener<NettyChannelFuture>) f -> callback.run());
+    public NettyPromiseContainer sync() throws InterruptedException {
+        super.sync();
         return this;
     }
 
     @Override
-    public Promise addSuccessListener(@NonNull Runnable callback) {
-        super.addListener((GenericFutureListener<NettyChannelFuture>) f -> {
-            if (f.isSuccess())  {
-                callback.run();
-            }
-        });
-        return this;
-    }
-
-    @Override
-    public Promise addErrorListener(@NonNull Runnable callback) {
-        super.addListener((GenericFutureListener<NettyChannelFuture>) f -> {
-            if (f.cause() != null)  {
-                callback.run();
-            }
-        });
-        return this;
-    }
-
-    @Override
-    public Promise addErrorListener(@NonNull Consumer<Exception> callback) {
-        super.addListener((GenericFutureListener<NettyChannelFuture>) f -> {
-            if (f.cause() != null)  {
-                callback.accept((Exception) f.cause());
-            }
-        });
-        return this;
-    }
-
-    @Override
-    public Promise addCancelListener(@NonNull Runnable callback) {
-        super.addListener((GenericFutureListener<NettyChannelFuture>) f -> {
-            if (f.isCancelled())  {
-                callback.run();
-            }
-        });
+    public NettyPromiseContainer syncUninterruptibly() {
+        super.syncUninterruptibly();
         return this;
     }
 }

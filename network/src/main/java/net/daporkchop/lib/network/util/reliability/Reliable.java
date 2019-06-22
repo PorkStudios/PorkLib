@@ -39,5 +39,5 @@ public interface Reliable<Impl extends Reliable<Impl>> {
      * @return this channel's fallback reliability level
      * @throws IllegalArgumentException if the given reliability level is not supported by this channel
      */
-    Impl fallbackReliability(@NonNull Reliability reliability) throws IllegalArgumentException;
+    Impl fallbackReliability(Reliability reliability) throws IllegalArgumentException;
 }

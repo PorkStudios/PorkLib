@@ -16,7 +16,9 @@
 package net.daporkchop.lib.network.util.group;
 
 import lombok.NonNull;
+import net.daporkchop.lib.concurrent.CloseableFuture;
 import net.daporkchop.lib.concurrent.future.Promise;
+import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.util.Priority;
 import net.daporkchop.lib.network.util.SendFlags;
 import net.daporkchop.lib.network.util.reliability.Reliability;
@@ -27,7 +29,13 @@ import net.daporkchop.lib.network.util.reliability.Reliable;
  *
  * @author DaPorkchop_
  */
-public interface Broadcaster<Impl extends Broadcaster<Impl>> extends Reliable<Impl> {
+public interface Broadcaster<Impl extends Broadcaster<Impl, S>, S extends AbstractUserSession<S>> extends CloseableFuture, Reliable<Impl> {
+    //
+    //
+    // All send methods
+    //
+    //
+
     // normal send
 
     /**
@@ -503,6 +511,494 @@ public interface Broadcaster<Impl extends Broadcaster<Impl>> extends Reliable<Im
      */
     Promise broadcast(@NonNull Object message, int channel, Reliability reliability, Priority priority, int flags);
 
+    //
+    //
+    // Filtered send methods
+    //
+    //
+
+    // normal send
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using this session's fallback reliability level, {@link Priority#NORMAL}, and no additional
+     * flags.
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcast(@NonNull SessionFilter<S> filter, @NonNull Object message) {
+        return this.broadcast(filter, message, 0, this.fallbackReliability(), Priority.NORMAL, 0);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using this session's fallback reliability level, {@link Priority#NORMAL}, and the
+     * {@link SendFlags#FLUSH} flag.
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastFlush(@NonNull SessionFilter<S> filter, @NonNull Object message) {
+        return this.broadcast(filter, message, 0, this.fallbackReliability(), Priority.NORMAL, SendFlags.FLUSH);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using this session's fallback reliability level, {@link Priority#NORMAL}, and the
+     * {@link SendFlags#SYNC} flag.
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastNow(@NonNull SessionFilter<S> filter, @NonNull Object message) {
+        return this.broadcast(filter, message, 0, this.fallbackReliability(), Priority.NORMAL, SendFlags.SYNC);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using this session's fallback reliability level, {@link Priority#NORMAL}, and the
+     * {@link SendFlags#ASYNC} flag.
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastAsync(@NonNull SessionFilter<S> filter, @NonNull Object message) {
+        return this.broadcast(filter, message, 0, this.fallbackReliability(), Priority.NORMAL, SendFlags.ASYNC);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using this session's fallback reliability level, {@link Priority#NORMAL}, and the
+     * following flags:
+     * - {@link SendFlags#SYNC}
+     * - {@link SendFlags#FLUSH}
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastFlushNow(@NonNull SessionFilter<S> filter, @NonNull Object message) {
+        return this.broadcast(filter, message, 0, this.fallbackReliability(), Priority.NORMAL, SendFlags.SYNC | SendFlags.FLUSH);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using this session's fallback reliability level, {@link Priority#NORMAL}, and the
+     * following flags:
+     * - {@link SendFlags#ASYNC}
+     * - {@link SendFlags#FLUSH}
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastFlushAsync(@NonNull SessionFilter<S> filter, @NonNull Object message) {
+        return this.broadcast(filter, message, 0, this.fallbackReliability(), Priority.NORMAL, SendFlags.ASYNC | SendFlags.FLUSH);
+    }
+
+    // send + channel
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using this session's fallback reliability level, {@link Priority#NORMAL}, and no additional
+     * flags.
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcast(@NonNull SessionFilter<S> filter, @NonNull Object message, int channel) {
+        return this.broadcast(filter, message, channel, this.fallbackReliability(), Priority.NORMAL, 0);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using this session's fallback reliability level, {@link Priority#NORMAL}, and the
+     * {@link SendFlags#FLUSH} flag.
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastFlush(@NonNull SessionFilter<S> filter, @NonNull Object message, int channel) {
+        return this.broadcast(filter, message, channel, this.fallbackReliability(), Priority.NORMAL, SendFlags.FLUSH);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using this session's fallback reliability level, {@link Priority#NORMAL}, and the
+     * {@link SendFlags#SYNC} flag.
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastNow(@NonNull SessionFilter<S> filter, @NonNull Object message, int channel) {
+        return this.broadcast(filter, message, channel, this.fallbackReliability(), Priority.NORMAL, SendFlags.SYNC);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using this session's fallback reliability level, {@link Priority#NORMAL}, and the
+     * {@link SendFlags#ASYNC} flag.
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastAsync(@NonNull SessionFilter<S> filter, @NonNull Object message, int channel) {
+        return this.broadcast(filter, message, channel, this.fallbackReliability(), Priority.NORMAL, SendFlags.ASYNC);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using this session's fallback reliability level, {@link Priority#NORMAL}, and the
+     * following flags:
+     * - {@link SendFlags#SYNC}
+     * - {@link SendFlags#FLUSH}
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastFlushNow(@NonNull SessionFilter<S> filter, @NonNull Object message, int channel) {
+        return this.broadcast(filter, message, channel, this.fallbackReliability(), Priority.NORMAL, SendFlags.SYNC | SendFlags.FLUSH);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using this session's fallback reliability level, {@link Priority#NORMAL}, and the
+     * following flags:
+     * - {@link SendFlags#ASYNC}
+     * - {@link SendFlags#FLUSH}
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastFlushAsync(@NonNull SessionFilter<S> filter, @NonNull Object message, int channel) {
+        return this.broadcast(filter, message, channel, this.fallbackReliability(), Priority.NORMAL, SendFlags.ASYNC | SendFlags.FLUSH);
+    }
+
+    // send + reliability
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using the given reliability level, {@link Priority#NORMAL}, and no additional
+     * flags.
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcast(@NonNull SessionFilter<S> filter, @NonNull Object message, @NonNull Reliability reliability) {
+        return this.broadcast(filter, message, 0, reliability, Priority.NORMAL, 0);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using the given reliability level, {@link Priority#NORMAL}, and the
+     * {@link SendFlags#FLUSH} flag.
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastFlush(@NonNull SessionFilter<S> filter, @NonNull Object message, @NonNull Reliability reliability) {
+        return this.broadcast(filter, message, 0, reliability, Priority.NORMAL, SendFlags.FLUSH);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using the given reliability level, {@link Priority#NORMAL}, and the
+     * {@link SendFlags#SYNC} flag.
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastNow(@NonNull SessionFilter<S> filter, @NonNull Object message, @NonNull Reliability reliability) {
+        return this.broadcast(filter, message, 0, reliability, Priority.NORMAL, SendFlags.SYNC);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using the given reliability level, {@link Priority#NORMAL}, and the
+     * {@link SendFlags#ASYNC} flag.
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastAsync(@NonNull SessionFilter<S> filter, @NonNull Object message, @NonNull Reliability reliability) {
+        return this.broadcast(filter, message, 0, reliability, Priority.NORMAL, SendFlags.ASYNC);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using the given reliability level, {@link Priority#NORMAL}, and the
+     * following flags:
+     * - {@link SendFlags#SYNC}
+     * - {@link SendFlags#FLUSH}
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastFlushNow(@NonNull SessionFilter<S> filter, @NonNull Object message, @NonNull Reliability reliability) {
+        return this.broadcast(filter, message, 0, reliability, Priority.NORMAL, SendFlags.SYNC | SendFlags.FLUSH);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using the given reliability level, {@link Priority#NORMAL}, and the
+     * following flags:
+     * - {@link SendFlags#ASYNC}
+     * - {@link SendFlags#FLUSH}
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastFlushAsync(@NonNull SessionFilter<S> filter, @NonNull Object message, @NonNull Reliability reliability) {
+        return this.broadcast(filter, message, 0, reliability, Priority.NORMAL, SendFlags.ASYNC | SendFlags.FLUSH);
+    }
+
+    // send + priority
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using this session's fallback reliability level, the given priority, and no additional
+     * flags.
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcast(@NonNull SessionFilter<S> filter, @NonNull Object message, @NonNull Priority priority) {
+        return this.broadcast(filter, message, 0, this.fallbackReliability(), priority, 0);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using this session's fallback reliability level, the given priority, and the
+     * {@link SendFlags#FLUSH} flag.
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastFlush(@NonNull SessionFilter<S> filter, @NonNull Object message, @NonNull Priority priority) {
+        return this.broadcast(filter, message, 0, this.fallbackReliability(), priority, SendFlags.FLUSH);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using this session's fallback reliability level, the given priority, and the
+     * {@link SendFlags#SYNC} flag.
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastNow(@NonNull SessionFilter<S> filter, @NonNull Object message, @NonNull Priority priority) {
+        return this.broadcast(filter, message, 0, this.fallbackReliability(), priority, SendFlags.SYNC);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using this session's fallback reliability level, the given priority, and the
+     * {@link SendFlags#ASYNC} flag.
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastAsync(@NonNull SessionFilter<S> filter, @NonNull Object message, @NonNull Priority priority) {
+        return this.broadcast(filter, message, 0, this.fallbackReliability(), priority, SendFlags.ASYNC);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using this session's fallback reliability level, the given priority, and the
+     * following flags:
+     * - {@link SendFlags#SYNC}
+     * - {@link SendFlags#FLUSH}
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastFlushNow(@NonNull SessionFilter<S> filter, @NonNull Object message, @NonNull Priority priority) {
+        return this.broadcast(filter, message, 0, this.fallbackReliability(), priority, SendFlags.SYNC | SendFlags.FLUSH);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using this session's fallback reliability level, the given priority, and the
+     * following flags:
+     * - {@link SendFlags#ASYNC}
+     * - {@link SendFlags#FLUSH}
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastFlushAsync(@NonNull SessionFilter<S> filter, @NonNull Object message, @NonNull Priority priority) {
+        return this.broadcast(filter, message, 0, this.fallbackReliability(), priority, SendFlags.ASYNC | SendFlags.FLUSH);
+    }
+
+    // send + channel + reliability
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using the given reliability level, {@link Priority#NORMAL}, and no additional
+     * flags.
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcast(@NonNull SessionFilter<S> filter, @NonNull Object message, int channel, @NonNull Reliability reliability) {
+        return this.broadcast(filter, message, channel, reliability, Priority.NORMAL, 0);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using the given reliability level, {@link Priority#NORMAL}, and the
+     * {@link SendFlags#FLUSH} flag.
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastFlush(@NonNull SessionFilter<S> filter, @NonNull Object message, int channel, @NonNull Reliability reliability) {
+        return this.broadcast(filter, message, channel, reliability, Priority.NORMAL, SendFlags.FLUSH);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using the given reliability level, {@link Priority#NORMAL}, and the
+     * {@link SendFlags#SYNC} flag.
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastNow(@NonNull SessionFilter<S> filter, @NonNull Object message, int channel, @NonNull Reliability reliability) {
+        return this.broadcast(filter, message, channel, reliability, Priority.NORMAL, SendFlags.SYNC);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using the given reliability level, {@link Priority#NORMAL}, and the
+     * {@link SendFlags#ASYNC} flag.
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastAsync(@NonNull SessionFilter<S> filter, @NonNull Object message, int channel, @NonNull Reliability reliability) {
+        return this.broadcast(filter, message, channel, reliability, Priority.NORMAL, SendFlags.ASYNC);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using the given reliability level, {@link Priority#NORMAL}, and the
+     * following flags:
+     * - {@link SendFlags#SYNC}
+     * - {@link SendFlags#FLUSH}
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastFlushNow(@NonNull SessionFilter<S> filter, @NonNull Object message, int channel, @NonNull Reliability reliability) {
+        return this.broadcast(filter, message, channel, reliability, Priority.NORMAL, SendFlags.SYNC | SendFlags.FLUSH);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using the given reliability level, {@link Priority#NORMAL}, and the
+     * following flags:
+     * - {@link SendFlags#ASYNC}
+     * - {@link SendFlags#FLUSH}
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastFlushAsync(@NonNull SessionFilter<S> filter, @NonNull Object message, int channel, @NonNull Reliability reliability) {
+        return this.broadcast(filter, message, channel, reliability, Priority.NORMAL, SendFlags.ASYNC | SendFlags.FLUSH);
+    }
+
+    // send + channel + priority
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using this session's fallback reliability level, the given priority, and no additional
+     * flags.
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcast(@NonNull SessionFilter<S> filter, @NonNull Object message, int channel, @NonNull Priority priority) {
+        return this.broadcast(filter, message, channel, this.fallbackReliability(), priority, 0);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using this session's fallback reliability level, the given priority, and the
+     * {@link SendFlags#FLUSH} flag.
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastFlush(@NonNull SessionFilter<S> filter, @NonNull Object message, int channel, @NonNull Priority priority) {
+        return this.broadcast(filter, message, channel, this.fallbackReliability(), priority, SendFlags.FLUSH);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using this session's fallback reliability level, the given priority, and the
+     * {@link SendFlags#SYNC} flag.
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastNow(@NonNull SessionFilter<S> filter, @NonNull Object message, int channel, @NonNull Priority priority) {
+        return this.broadcast(filter, message, channel, this.fallbackReliability(), priority, SendFlags.SYNC);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using this session's fallback reliability level, the given priority, and the
+     * {@link SendFlags#ASYNC} flag.
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastAsync(@NonNull SessionFilter<S> filter, @NonNull Object message, int channel, @NonNull Priority priority) {
+        return this.broadcast(filter, message, channel, this.fallbackReliability(), priority, SendFlags.ASYNC);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using this session's fallback reliability level, the given priority, and the
+     * following flags:
+     * - {@link SendFlags#SYNC}
+     * - {@link SendFlags#FLUSH}
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastFlushNow(@NonNull SessionFilter<S> filter, @NonNull Object message, int channel, @NonNull Priority priority) {
+        return this.broadcast(filter, message, channel, this.fallbackReliability(), priority, SendFlags.SYNC | SendFlags.FLUSH);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on the given channel, using this session's fallback reliability level, the given priority, and the
+     * following flags:
+     * - {@link SendFlags#ASYNC}
+     * - {@link SendFlags#FLUSH}
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastFlushAsync(@NonNull SessionFilter<S> filter, @NonNull Object message, int channel, @NonNull Priority priority) {
+        return this.broadcast(filter, message, channel, this.fallbackReliability(), priority, SendFlags.ASYNC | SendFlags.FLUSH);
+    }
+
+    // send + reliability + priority
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using the given reliability level, the given priority, and no additional
+     * flags.
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcast(@NonNull SessionFilter<S> filter, @NonNull Object message, @NonNull Reliability reliability, @NonNull Priority priority) {
+        return this.broadcast(filter, message, 0, reliability, priority, 0);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using the given reliability level, the given priority, and the
+     * {@link SendFlags#FLUSH} flag.
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastFlush(@NonNull SessionFilter<S> filter, @NonNull Object message, @NonNull Reliability reliability, @NonNull Priority priority) {
+        return this.broadcast(filter, message, 0, reliability, priority, SendFlags.FLUSH);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using the given reliability level, the given priority, and the
+     * {@link SendFlags#SYNC} flag.
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastNow(@NonNull SessionFilter<S> filter, @NonNull Object message, @NonNull Reliability reliability, @NonNull Priority priority) {
+        return this.broadcast(filter, message, 0, reliability, priority, SendFlags.SYNC);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using the given reliability level, the given priority, and the
+     * {@link SendFlags#ASYNC} flag.
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastAsync(@NonNull SessionFilter<S> filter, @NonNull Object message, @NonNull Reliability reliability, @NonNull Priority priority) {
+        return this.broadcast(filter, message, 0, reliability, priority, SendFlags.ASYNC);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using the given reliability level, the given priority, and the
+     * following flags:
+     * - {@link SendFlags#SYNC}
+     * - {@link SendFlags#FLUSH}
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastFlushNow(@NonNull SessionFilter<S> filter, @NonNull Object message, @NonNull Reliability reliability, @NonNull Priority priority) {
+        return this.broadcast(filter, message, 0, reliability, priority, SendFlags.SYNC | SendFlags.FLUSH);
+    }
+
+    /**
+     * Sends a message to the remote endpoint on channel 0, using the given reliability level, the given priority, and the
+     * following flags:
+     * - {@link SendFlags#ASYNC}
+     * - {@link SendFlags#FLUSH}
+     *
+     * @see #broadcast(SessionFilter, Object, int, Reliability, Priority, int)
+     */
+    default Promise broadcastFlushAsync(@NonNull SessionFilter<S> filter, @NonNull Object message, @NonNull Reliability reliability, @NonNull Priority priority) {
+        return this.broadcast(filter, message, 0, reliability, priority, SendFlags.ASYNC | SendFlags.FLUSH);
+    }
+
+    /**
+     * Sends a message to the remote endpoint.
+     *
+     * @param filter      a {@link SessionFilter} to filter the sessions to which the message will be sent
+     * @param message     the message to be sent
+     * @param channel     the id of the channel to send the message on
+     * @param reliability the reliability that the message is to be sent with. Some transport engines may ignore this
+     * @param priority    the priority that the message is to be sent with. Some transport engines may ignore this
+     * @param flags       additional flags that the message is to be sent with. Valid are any fields from {@link net.daporkchop.lib.network.util.SendFlags}, and
+     *                    flags may also be ORed together
+     * @return a {@link Promise} that will be notified once the message has been sent. Depending on the flags that are set (or if none are set), this may return {@code null}
+     */
+    Promise broadcast(@NonNull SessionFilter<S> filter, @NonNull Object message, int channel, Reliability reliability, Priority priority, int flags);
+
+    //
+    //
+    // Flush methods
+    //
+    //
+
     /**
      * Flushes this channel's send buffer, if present.
      * <p>
@@ -510,4 +1006,34 @@ public interface Broadcaster<Impl extends Broadcaster<Impl>> extends Reliable<Im
      * to the remote endpoint.
      */
     void flushBuffer();
+
+    /**
+     * Flushes this channel's send buffer, if present.
+     * <p>
+     * This method will not block, however if this transport engine uses some form of send buffer it will immediately begin to broadcast all queued data
+     * to the remote endpoint.
+     *
+     * @param filter a {@link SessionFilter} to filter the sessions which will be flushed
+     */
+    void flushBuffer(@NonNull SessionFilter<S> filter);
+
+    //
+    //
+    // Close methods
+    //
+    //
+
+    /**
+     * Closes all sessions that match the given filter, without closing this {@link Broadcaster}.
+     *
+     * @return a {@link Promise} that will be notified once all matching sessions have been closed
+     */
+    Promise closeSessions();
+
+    /**
+     * Closes all sessions without closing this {@link Broadcaster}.
+     *
+     * @return a {@link Promise} that will be notified once all sessions have been closed
+     */
+    Promise closeSessions(@NonNull SessionFilter<S> filter);
 }

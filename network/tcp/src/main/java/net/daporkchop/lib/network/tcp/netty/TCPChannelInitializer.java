@@ -33,7 +33,7 @@ import java.util.function.Consumer;
  */
 @RequiredArgsConstructor
 @Getter
-public class TCPChannelInitializer<E extends TCPEndpoint<?, S, ?>, S extends AbstractUserSession<S>> extends ChannelInitializer<TCPNioSocket<S>> {
+public class TCPChannelInitializer<E extends TCPEndpoint<?, S, ?, ?>, S extends AbstractUserSession<S>> extends ChannelInitializer<TCPNioSocket<S>> {
     @NonNull
     protected final E endpoint;
     @NonNull

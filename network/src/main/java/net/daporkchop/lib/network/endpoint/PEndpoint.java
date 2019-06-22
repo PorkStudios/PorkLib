@@ -15,11 +15,11 @@
 
 package net.daporkchop.lib.network.endpoint;
 
+import net.daporkchop.lib.concurrent.CloseableFuture;
 import net.daporkchop.lib.logging.Logger;
 import net.daporkchop.lib.network.EndpointType;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.SessionFactory;
-import net.daporkchop.lib.network.util.CloseableFuture;
 import net.daporkchop.lib.network.util.TransportEngineHolder;
 
 /**

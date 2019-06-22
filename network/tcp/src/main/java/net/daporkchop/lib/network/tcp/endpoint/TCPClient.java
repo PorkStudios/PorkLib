@@ -16,41 +16,38 @@
 package net.daporkchop.lib.network.tcp.endpoint;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import lombok.NonNull;
 import net.daporkchop.lib.network.endpoint.PClient;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.session.AbstractUserSession;
-import net.daporkchop.lib.network.transport.NetSession;
 import net.daporkchop.lib.network.tcp.netty.TCPChannelInitializer;
 import net.daporkchop.lib.network.tcp.session.TCPNioSocket;
+import net.daporkchop.lib.network.transport.NetSession;
 
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 
 /**
  * @author DaPorkchop_
  */
-public class TCPClient<S extends AbstractUserSession<S>> extends TCPEndpoint<PClient<S>, S, TCPNioSocket<S>> implements PClient<S> {
-    @SuppressWarnings("unchecked")
-    public TCPClient(@NonNull ClientBuilder<S> builder) {
+public class TCPClient<S extends AbstractUserSession<S>> extends TCPEndpoint<PClient<S>, S, TCPNioSocket<S>, ClientBuilder<S>> implements PClient<S> {
+    public TCPClient(ClientBuilder<S> builder) {
         super(builder);
+    }
 
-        try {
-            InetSocketAddress address = builder.address();
-            Bootstrap bootstrap = new Bootstrap()
-                    .option(ChannelOption.ALLOCATOR, this.transportEngine.alloc())
-                    .group(this.group)
-                    .channelFactory(() -> new TCPNioSocket<>(this, address))
-                    .handler(new TCPChannelInitializer<>(this));
+    @Override
+    @SuppressWarnings("unchecked")
+    protected ChannelFuture openChannel(@NonNull ClientBuilder<S> builder) throws Exception {
+        InetSocketAddress address = builder.address();
+        Bootstrap bootstrap = new Bootstrap()
+                .option(ChannelOption.ALLOCATOR, this.transportEngine.alloc())
+                .group(this.group)
+                .channelFactory(() -> new TCPNioSocket<>(this, address))
+                .handler(new TCPChannelInitializer<>(this));
+        this.transportEngine.clientOptions().forEach(bootstrap::option);
 
-            this.transportEngine.clientOptions().forEach(bootstrap::option);
-
-            this.channel = (TCPNioSocket<S>) bootstrap.connect(builder.address()).channel();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        this.channel.connectFuture().syncUninterruptibly();
+        return bootstrap.connect(builder.address());
     }
 
     @Override

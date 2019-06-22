@@ -19,8 +19,12 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelId;
 import io.netty.channel.ChannelOutboundInvoker;
+import lombok.NonNull;
+import net.daporkchop.lib.network.netty.util.future.NettyChannelPromise;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.transport.NetSession;
+import net.daporkchop.lib.network.util.Priority;
+import net.daporkchop.lib.network.util.reliability.Reliability;
 
 /**
  * A {@link NetSession} used by all Netty-based transports.
@@ -39,32 +43,15 @@ public interface NettySession<S extends AbstractUserSession<S>> extends NetSessi
     ChannelFuture closeFuture();
 
     /**
-     * @see Channel#write(Object)
-     */
-    ChannelFuture write(Object msg);
-
-    /**
-     * @see Channel#writeAndFlush(Object)
-     */
-    ChannelFuture writeAndFlush(Object msg);
-
-    /**
      * @see Channel#flush()
      */
     ChannelOutboundInvoker flush();
-
-    /**
-     * @see Channel#disconnect()
-     */
-    ChannelFuture disconnect();
 
     /**
      * @see Channel#close()
      */
     ChannelFuture close();
 
-    /**
-     * @see Channel#deregister()
-     */
-    ChannelFuture deregister();
+    @Override
+    NettyChannelPromise send(@NonNull Object message, int channel, Reliability reliability, Priority priority, int flags);
 }

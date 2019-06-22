@@ -210,7 +210,7 @@ public final class TCPEngine extends NettyEngine {
          */
         public Builder enableSSLClient() {
             try {
-                return this.enableSSLClient(SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).build());
+                return this.enableSSLClient(SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).startTls(false).build());
             } catch (SSLException e) {
                 throw new RuntimeException(e);
             }

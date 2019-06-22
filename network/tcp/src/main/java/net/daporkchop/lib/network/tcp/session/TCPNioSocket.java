@@ -72,10 +72,10 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
         this(endpoint, null, parent, socket == null ? newSocket(SelectorProvider.provider()) : socket);
     }
 
-    public TCPNioSocket(@NonNull TCPEndpoint<?, S, ?, ?> endpoint, InetSocketAddress address, Channel parent, SocketChannel socket) {
+    protected TCPNioSocket(@NonNull TCPEndpoint<?, S, ?, ?> endpoint, InetSocketAddress address, Channel parent, SocketChannel socket) {
         super(parent, socket == null ? newSocket(SelectorProvider.provider()) : socket);
 
-        this.incoming = true;
+        this.incoming = address == null;
         this.address = address;
         this.endpoint = endpoint;
         this.userSession = endpoint.sessionFactory().newSession();

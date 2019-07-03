@@ -20,7 +20,7 @@ dependencies {
     compile "com.google.code.gson:gson:$gsonVersion"
 }
 
-task gen(type: JavaExec, dependsOn: 'classes') {
-    main = 'net.daporkchop.lib.primitive.generator.Generator'
+task gen(type: JavaExec, dependsOn: "classes") {
+    main = "net.daporkchop.lib.primitive.generator.Generator"
     classpath = sourceSets.main.runtimeClasspath
 }

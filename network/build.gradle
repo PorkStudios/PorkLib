@@ -13,26 +13,12 @@
  *
  */
 
-repositories {
-}
-
 dependencies {
     compile project(":binary")
-    compile project(":encoding")
+    compile project(":concurrent")
     compile project(":crypto")
-    compile project(":primitive")
+    compile project(":encoding")
     compile project(":logging")
 
-    compile "com.zaxxer:SparseBitSet:$sparseBitSetVersion"
-
-    /*compile("com.nukkitx.network:raknet:$raknetVersion") {
-        exclude group: "io.netty"
-    }*/
-
     compile "io.netty:netty-buffer:$nettyVersion"
-    compile "io.netty:netty-transport-native-epoll:$nettyVersion:linux-x86_64"
-    compile "io.netty:netty-transport-native-kqueue:$nettyVersion:osx-x86_64"
-
-    compile "io.netty:netty-transport:$nettyVersion"
-    compile "io.netty:netty-transport-sctp:$nettyVersion"
 }

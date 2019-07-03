@@ -362,13 +362,28 @@ public abstract class PUnsafe {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T allocateInstance(@NonNull Class<T> clazz) {
+    public static <T> T allocateInstance(Class<T> clazz) {
         try {
             return (T) UNSAFE.allocateInstance(clazz);
         } catch (InstantiationException e) {
             UNSAFE.throwException(e);
             throw new RuntimeException(e);
         }
+    }
+
+    @SuppressWarnings("deprecation")
+    public static void monitorEnter(Object o)   {
+        UNSAFE.monitorEnter(o);
+    }
+
+    @SuppressWarnings("deprecation")
+    public static void monitorExit(Object o)    {
+        UNSAFE.monitorExit(o);
+    }
+
+    @SuppressWarnings("deprecation")
+    public static boolean tryMonitorEnter(Object o) {
+        return UNSAFE.tryMonitorEnter(o);
     }
 
     public static void throwException(Throwable t) {

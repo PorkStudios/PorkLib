@@ -108,8 +108,8 @@ public class BufferIn extends DataIn {
     }
 
     @Override
-    public int readFully(@NonNull byte[] b, int off, int len) throws IOException {
+    public byte[] readFully(@NonNull byte[] b, int off, int len) throws IOException {
         this.buffer.get(b, off, len);
-        return len;
+        return b;
     }
 }

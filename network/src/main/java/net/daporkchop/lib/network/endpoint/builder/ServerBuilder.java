@@ -15,21 +15,82 @@
 
 package net.daporkchop.lib.network.endpoint.builder;
 
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.network.endpoint.server.PorkServer;
-import net.daporkchop.lib.network.endpoint.server.Server;
+import net.daporkchop.lib.network.endpoint.PServer;
+import net.daporkchop.lib.network.protocol.Protocol;
+import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.session.SessionFactory;
+
+import java.net.InetSocketAddress;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * @author DaPorkchop_
  */
-@Accessors(chain = true)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Setter
-public class ServerBuilder extends AbstractBuilder<Server, ServerBuilder> {
+@Accessors(chain = true, fluent = true)
+public class ServerBuilder<S extends AbstractUserSession<S>> extends EndpointBuilder<ServerBuilder<S>, PServer<S>, S> {
+    public static <S extends AbstractUserSession<S>> ServerBuilder<S> of(@NonNull SessionFactory<S> sessionFactory) {
+        return new ServerBuilder<>().sessionFactory(sessionFactory);
+    }
+
+    /**
+     * The local address to bind to.
+     * <p>
+     * Must be set!
+     */
+    @NonNull
+    protected InetSocketAddress bind;
+
+    /**
+     * Checks if an incoming connection from a given address is valid.
+     * <p>
+     * This could be used to ban certain IP addresses.
+     */
+    @NonNull
+    protected Predicate<InetSocketAddress> connectionFilter = addr -> true;
+
+    /**
+     * Responds to incoming ping requests.
+     */
+    @NonNull
+    protected Function<InetSocketAddress, byte[]> pingHandler = addr -> new byte[0];
+
     @Override
-    Server doBuild() {
-        return new PorkServer(this);
+    @SuppressWarnings("unchecked")
+    public <NEW_S extends AbstractUserSession<NEW_S>> ServerBuilder<NEW_S> sessionFactory(@NonNull SessionFactory<NEW_S> sessionFactory) {
+        ((ServerBuilder<NEW_S>) this).sessionFactory = sessionFactory;
+        return (ServerBuilder<NEW_S>) this;
+    }
+
+    public ServerBuilder<S> bind(@NonNull String host, int port)    {
+        this.bind = new InetSocketAddress(host, port);
+        return this;
+    }
+
+    public ServerBuilder<S> bind(int port)    {
+        this.bind = new InetSocketAddress(port);
+        return this;
+    }
+
+    @Override
+    protected void validate() {
+        if (this.bind == null) {
+            throw new NullPointerException("bind");
+        }
+        super.validate();
+    }
+
+    @Override
+    protected PServer<S> doBuild() {
+        return this.engine.createServer(this);
     }
 }

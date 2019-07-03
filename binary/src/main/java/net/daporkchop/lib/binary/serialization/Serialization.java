@@ -214,7 +214,7 @@ public class Serialization {
      * @return the object that was read
      */
     public <T> T read(@NonNull DataIn in) throws IOException {
-        return this.read(in, this.useVarInt ? in.readVarInt(true) : in.readInt());
+        return this.read(in, this.useVarInt ? in.readVarInt() : in.readInt());
     }
 
     /**
@@ -314,7 +314,7 @@ public class Serialization {
         if (serializer == null) {
             throw new IllegalArgumentException(String.format("Unregistered class: %s", value.getClass().getCanonicalName()));
         } else {
-            out.writeVarInt(id, true);
+            out.writeVarInt(id);
             serializer.write(value, out);
         }
     }

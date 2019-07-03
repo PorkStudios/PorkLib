@@ -27,7 +27,6 @@ import net.daporkchop.lib.unsafe.PUnsafe;
  */
 @Deprecated
 public interface PConstants {
-    int CPU_COUNT = Runtime.getRuntime().availableProcessors();
 
     static RuntimeException p_exception(@NonNull Throwable t) {
         PUnsafe.throwException(t);

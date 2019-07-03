@@ -17,7 +17,11 @@ package net.daporkchop.lib.binary.netty;
 
 import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
 
 import java.io.IOException;
@@ -28,17 +32,19 @@ import java.io.IOException;
  * @author DaPorkchop_
  */
 @AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@Accessors(fluent = true, chain = true)
 public class NettyByteBufIn extends DataIn {
-    @NonNull
-    private final ByteBuf buf;
+    protected ByteBuf buf;
 
-    {
+    static {
         NettyUtil.ensureNettyPresent();
     }
 
     @Override
     public void close() throws IOException {
-        this.buf.release();
     }
 
     @Override
@@ -92,9 +98,9 @@ public class NettyByteBufIn extends DataIn {
     }
 
     @Override
-    public int readFully(@NonNull byte[] b, int off, int len) throws IOException {
+    public byte[] readFully(@NonNull byte[] b, int off, int len) throws IOException {
         this.buf.readBytes(b, off, len);
-        return len;
+        return b;
     }
 
     @Override
@@ -114,5 +120,20 @@ public class NettyByteBufIn extends DataIn {
         } else {
             throw new IndexOutOfBoundsException();
         }
+    }
+
+    @Override
+    public synchronized void mark(int readlimit) {
+        this.buf.markReaderIndex();
+    }
+
+    @Override
+    public synchronized void reset() throws IOException {
+        this.buf.resetReaderIndex();
+    }
+
+    @Override
+    public boolean markSupported() {
+        return true;
     }
 }

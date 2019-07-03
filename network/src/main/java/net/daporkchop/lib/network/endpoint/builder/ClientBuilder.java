@@ -15,15 +15,56 @@
 
 package net.daporkchop.lib.network.endpoint.builder;
 
-import net.daporkchop.lib.network.endpoint.client.Client;
-import net.daporkchop.lib.network.endpoint.client.PorkClient;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.network.endpoint.PClient;
+import net.daporkchop.lib.network.protocol.Protocol;
+import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.network.session.SessionFactory;
+
+import java.net.InetSocketAddress;
 
 /**
  * @author DaPorkchop_
  */
-public class ClientBuilder extends AbstractBuilder<Client, ClientBuilder> {
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Getter
+@Setter
+@Accessors(chain = true, fluent = true)
+public class ClientBuilder<S extends AbstractUserSession<S>> extends EndpointBuilder<ClientBuilder<S>, PClient<S>, S> {
+    public static <S extends AbstractUserSession<S>> ClientBuilder<S> of(@NonNull SessionFactory<S> sessionFactory)  {
+        return new ClientBuilder<>().sessionFactory(sessionFactory);
+    }
+
+    /**
+     * The address of the remote endpoint to connect to.
+     * <p>
+     * Must be set!
+     */
+    @NonNull
+    protected InetSocketAddress address;
+
     @Override
-    Client doBuild() {
-        return new PorkClient(this);
+    @SuppressWarnings("unchecked")
+    public <NEW_S extends AbstractUserSession<NEW_S>> ClientBuilder<NEW_S> sessionFactory(@NonNull SessionFactory<NEW_S> sessionFactory)   {
+        ((ClientBuilder<NEW_S>) this).sessionFactory = sessionFactory;
+        return (ClientBuilder<NEW_S>) this;
+    }
+
+    @Override
+    protected void validate() {
+        if (this.address == null) {
+            throw new NullPointerException("address");
+        }
+        super.validate();
+    }
+
+    @Override
+    protected PClient<S> doBuild() {
+        return this.engine.createClient(this);
     }
 }

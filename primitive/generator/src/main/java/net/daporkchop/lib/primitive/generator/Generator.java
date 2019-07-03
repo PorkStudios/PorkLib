@@ -44,12 +44,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static java.lang.Math.max;
@@ -62,10 +64,11 @@ import static net.daporkchop.lib.primitive.generator.Primitive.*;
 public class Generator implements Logging {
     public static final AtomicLong FILES = new AtomicLong(0L);
     public static final AtomicLong SIZE = new AtomicLong(0L);
-    private static final Collection<String> TREE_ROOTS = Arrays.asList(
-            "generated",
-            "test"
-    );
+    private static final Collection<String> TREE_ROOTS = Stream.of(
+            null
+            , "generated"
+            //, "test"
+    ).filter(Objects::nonNull).collect(Collectors.toList());
     public static String LICENSE;
     private static final JsonArray EMPTY_JSON_ARRAY = new JsonArray();
 

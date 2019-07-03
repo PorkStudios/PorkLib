@@ -16,7 +16,7 @@
 package net.daporkchop.lib.network;
 
 /**
- * Used to differentiate the various endpoint types
+ * Used to differentiate the various endpoint types.
  *
  * @author DaPorkchop_
  */
@@ -24,17 +24,23 @@ public enum EndpointType {
     /**
      * An endpoint that has a single outgoing connection.
      * <p>
-     * A client can connect to either a {@link #SERVER} or {@link #MULTI} endpoint
+     * A client can connect to either a {@link #SERVER} or {@link #MULTI} endpoint.
      */
     CLIENT,
     /**
-     * An endpoint that accepts incoming connections.
+     * An endpoint that can have multiple outgoing connections.
      * <p>
-     * A server can accept connections from either a {@link #CLIENT} or {@link #MULTI} endpoint
+     * A multiclient can connect to either a {@link #SERVER} or {@link #MULTI} endpoint.
+     */
+    MULTI_CLIENT,
+    /**
+     * An endpoint that can have multiple incoming connections.
+     * <p>
+     * A server can accept connections from either {@link #CLIENT}, {@link #MULTI} or {@link #MULTI_CLIENT} endpoints.
      */
     SERVER,
     /**
-     * A mixture of {@link #CLIENT} and {@link #SERVER}.
+     * A mixture of {@link #MULTI_CLIENT} and {@link #SERVER}.
      * <p>
      * Multi endpoints can accept incoming connections and connect to multiple remote endpoints at the same time.
      */
@@ -43,7 +49,8 @@ public enum EndpointType {
      * An endpoint designed for use in p2p (peer-to-peer) applications.
      * <p>
      * Unlike {@link #MULTI}, p2p endpoints automagically exchange peer IDs with each other in order to build up a
-     * decentralized swarm. Additionally, they can only connect with other p2p endpoints.
+     * decentralized swarm. They can only connect with other p2p endpoints.
      */
-    P2P;
+    P2P,
+    ;
 }

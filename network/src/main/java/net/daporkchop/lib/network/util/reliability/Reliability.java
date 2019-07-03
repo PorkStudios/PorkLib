@@ -15,73 +15,33 @@
 
 package net.daporkchop.lib.network.util.reliability;
 
-import lombok.Getter;
-import lombok.NonNull;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-
-import static net.daporkchop.lib.network.util.reliability.Flags.*;
-
 /**
- * Allows specifying the reliability that a packet will arrive at its destination.
- * <p>
- * Note: when using TCP, this has no effect. The obvious reason is that TCP is effectively {@link Reliability#RELIABLE_ORDERED} :P
+ * Various reliability levels that a packet may be sent with.
  *
  * @author DaPorkchop_
  */
-@Getter
 public enum Reliability {
     /**
-     * No guarantees that the data will arrive
+     * No guarantees are made that the packet will arrive at all or in what order.
      */
-    UNRELIABLE(),
+    UNRELIABLE,
     /**
-     * No guarantees that the data will arrive, however when it arrives, older packets will be discarded
+     * No guarantees are made that the packet will arrive at all. However, if a newer sequenced packet arrives before
+     * older ones, the older ones will be discarded when and if they arrive.
      */
-    UNRELIABLE_SEQUENCED(FLAG_SEQUENCED),
+    UNRELIABLE_SEQUENCED,
     /**
-     * Guarantees that the packets will arrive
+     * The packet is sure to arrive, no guarantees are made as to ordering.
      */
-    RELIABLE(FLAG_RELIABLE),
+    RELIABLE,
     /**
-     * Guarantees that the packets will arrive, however when they arrive, older packets will be discarded
+     * The packet is sure to arrive. However, if a newer sequenced packet arrives before
+     * older ones, the older ones will be discarded when and if they arrive.
      */
-    RELIABLE_SEQUENCED(FLAG_RELIABLE, FLAG_SEQUENCED),
+    RELIABLE_SEQUENCED,
     /**
-     * Guarantees that the packets will arrive and be processed in the order they were sent in
+     * The packet is sure to arrive in the same order as it was sent.
      */
-    RELIABLE_ORDERED(FLAG_RELIABLE, FLAG_ORDERED);
-
-    public static final Collection<Reliability> NONE = Collections.emptyList();
-    public static final Collection<Reliability> ALL = Arrays.asList(
-            UNRELIABLE,
-            UNRELIABLE_SEQUENCED,
-            RELIABLE,
-            RELIABLE_SEQUENCED,
-            RELIABLE_ORDERED
-    );
-
-    private final int flags;
-
-    Reliability(@NonNull int... flags) {
-        int i = 0;
-        for (int j : flags) {
-            i |= 1 << j;
-        }
-        this.flags = i;
-    }
-
-    public boolean isReliable() {
-        return ((this.flags >>> FLAG_RELIABLE) & 1) == 1;
-    }
-
-    public boolean isOrdered() {
-        return ((this.flags >>> FLAG_ORDERED) & 1) == 1;
-    }
-
-    public boolean isSequenced() {
-        return ((this.flags >>> FLAG_SEQUENCED) & 1) == 1;
-    }
+    RELIABLE_ORDERED,
+    ;
 }

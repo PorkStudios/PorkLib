@@ -18,15 +18,15 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
+        classpath "com.github.jengelman.gradle.plugins:shadow:2.0.4"
     }
 }
 
 plugins {
-    id 'java'
-    id 'io.franzbecker.gradle-lombok' version '1.14' apply false
-    id 'maven-publish'
-    id 'com.github.johnrengelman.shadow' version '2.0.4' apply false
+    id "java"
+    id "io.franzbecker.gradle-lombok" version "1.14" apply false
+    id "maven-publish"
+    id "com.github.johnrengelman.shadow" version "2.0.4" apply false
 }
 
 dependencies {
@@ -38,28 +38,28 @@ dependencies {
 }
 
 allprojects {
-    apply plugin: 'java'
-    apply plugin: 'io.franzbecker.gradle-lombok'
-    apply plugin: 'maven-publish'
-    apply plugin: 'com.github.johnrengelman.shadow'
+    apply plugin: "java"
+    apply plugin: "io.franzbecker.gradle-lombok"
+    apply plugin: "maven-publish"
+    apply plugin: "com.github.johnrengelman.shadow"
 
-    group 'net.daporkchop.lib'
-    version '0.3.0-SNAPSHOT'
+    group "net.daporkchop.lib"
+    version "0.4.0-SNAPSHOT"
 
     sourceCompatibility = 1.8
 
     ext {
-        apacheCommonsCompressVersion = '1.16.1'
-        bouncycastleVersion = '1.59'
-        googleHttpClientVersion = '1.23.0'
-        gsonVersion = '2.8.5'
-        guavaVersion = '27.0-jre'
-        jnaVersion = '5.3.0'
-        junitVersion = '4.12'
-        nettyVersion = '4.1.32.Final'
-        raknetVersion = '1.2.1-SNAPSHOT'
-        sparseBitSetVersion = '1.1'
-        xzVersion = '1.8'
+        apacheCommonsCompressVersion = "1.16.1"
+        bouncycastleVersion = "1.59"
+        googleHttpClientVersion = "1.23.0"
+        gsonVersion = "2.8.5"
+        guavaVersion = "27.0-jre"
+        jnaVersion = "5.3.0"
+        junitVersion = "4.12"
+        nettyVersion = "4.1.36.Final"
+        raknetVersion = "1.4.0"
+        sparseBitSetVersion = "1.1"
+        xzVersion = "1.8"
     }
 
     repositories {
@@ -74,7 +74,7 @@ allprojects {
         }
         maven {
             name = "NukkitX Snapshots"
-            url = "https://repo.nukkitx.com/snapshot/"
+            url = "https://repo.nukkitx.com/maven-releases/"
         }
         mavenCentral()
     }
@@ -82,7 +82,7 @@ allprojects {
     jar {
         from project.sourceSets.main.output
         from(project.sourceSets.main.allSource) {
-            include '**/*.xml'
+            include "**/*.xml"
         }
         baseName = archivesBaseName
     }
@@ -123,7 +123,7 @@ allprojects {
     publishing {
         publications {
             maven(MavenPublication) {
-                groupId = 'net.daporkchop.lib'
+                groupId = "net.daporkchop.lib"
                 artifactId = "PorkLib".equalsIgnoreCase(project.name) ? "full" : project.name
                 version = project.version
 

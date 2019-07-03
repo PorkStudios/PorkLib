@@ -16,8 +16,8 @@
 package net.daporkchop.lib.crypto.cipher.block;
 
 import lombok.NonNull;
-import net.daporkchop.lib.concurrent.cache.SoftThreadCache;
-import net.daporkchop.lib.concurrent.cache.ThreadCache;
+import net.daporkchop.lib.common.cache.SoftThreadCache;
+import net.daporkchop.lib.common.cache.ThreadCache;
 import net.daporkchop.lib.hash.util.Digest;
 
 import java.util.function.Consumer;

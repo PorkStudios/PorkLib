@@ -16,7 +16,6 @@
 package net.daporkchop.lib.primitive.generator;
 
 import com.google.gson.JsonObject;
-import com.sun.istack.internal.NotNull;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;

@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author DaPorkchop_
@@ -61,6 +62,7 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
     protected final S userSession;
     protected final boolean incoming;
     protected final Framer<S> framer;
+    protected final AtomicBoolean closed = new AtomicBoolean(false);
     protected final NettyChannelPromise closePromise = new NettyChannelPromise(this);
     protected final InetSocketAddress address;
 
@@ -168,19 +170,17 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
         if (this.endpoint.type() == EndpointType.CLIENT) {
             return this.endpoint.closeAsync();
         } else {
-            return (Promise) super.close(this.closePromise);
+            if (this.closed.compareAndSet(false, true)) {
+                return (Promise) super.close(this.closePromise);
+            } else {
+                return this.closePromise;
+            }
         }
     }
 
     @Override
     public Promise closePromise() {
-        return null;
-    }
-
-    @Override
-    public void onClosed() {
-        this.closePromise.tryCompleteSuccessfully();
-        TCPSession.super.onClosed();
+        return this.closePromise;
     }
 
     @Override

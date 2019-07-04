@@ -27,8 +27,6 @@ sourceSets {
     }
 }
 
-System.out.println(sourceSets.main.java.sourceDirectories.files)
-
 dependencies {
     origCompile project(":unsafe")
     origCompile project(":math")

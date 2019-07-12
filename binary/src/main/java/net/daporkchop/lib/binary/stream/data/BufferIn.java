@@ -34,37 +34,31 @@ public class BufferIn extends DataIn {
 
     @Override
     public int read() throws IOException {
-        return this.buffer.remaining() == 0 ? -1 : this.buffer.get() & 255;
+        return this.buffer.hasRemaining() ? this.buffer.get() & 0xFF : -1;
     }
 
     @Override
     public int read(@NonNull byte[] b, int off, int len) throws IOException {
-        if (off >= 0 && len >= 0 && len <= b.length - off) {
-            if (len == 0) {
-                return 0;
-            } else {
-                int var4 = Math.min(this.buffer.remaining(), len);
-                if (var4 == 0) {
-                    return -1;
-                } else {
-                    this.buffer.get(b, off, var4);
-                    return var4;
-                }
-            }
+        if (this.buffer.hasRemaining()) {
+            len = Math.min(len, this.buffer.remaining());
+            this.buffer.get(b, off, len);
+            return len;
         } else {
-            throw new IndexOutOfBoundsException();
+            return -1;
         }
     }
 
     @Override
-    public long skip(long var1) throws IOException {
-        if (var1 <= 0L) {
+    public long skip(long cnt) throws IOException {
+        if (cnt <= 0L) {
             return 0L;
         } else {
-            int var3 = (int) var1;
-            int var4 = Math.min(this.buffer.remaining(), var3);
-            this.buffer.position(this.buffer.position() + var4);
-            return (long) var3;
+            if (cnt > Integer.MAX_VALUE) {
+                cnt = Integer.MAX_VALUE;
+            }
+            cnt = Math.min(this.buffer.remaining(), cnt);
+            this.buffer.position(this.buffer.position() + (int) cnt);
+            return cnt;
         }
     }
 

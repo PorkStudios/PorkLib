@@ -22,6 +22,7 @@ import net.daporkchop.lib.binary.stream.data.NonClosingStreamIn;
 import net.daporkchop.lib.binary.stream.data.StreamIn;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -65,7 +66,25 @@ public abstract class DataIn extends InputStream {
      * @return the wrapped buffer as a {@link DataIn}
      */
     public static DataIn wrap(@NonNull ByteBuffer buffer) {
-        return new BufferIn(buffer);
+        if (buffer.hasArray())  {
+            return new StreamIn(new ByteArrayInputStream(buffer.array(), buffer.position(), buffer.remaining()));
+        } else {
+            return new BufferIn(buffer);
+        }
+    }
+
+    /**
+     * Wraps a {@link ByteBuffer} to make it into an {@link InputStream}.
+     *
+     * @param buffer the buffer to wrap
+     * @return the wrapped buffer as an {@link InputStream}
+     */
+    public static InputStream wrapAsStream(@NonNull ByteBuffer buffer) {
+        if (buffer.hasArray())  {
+            return new ByteArrayInputStream(buffer.array(), buffer.position(), buffer.remaining());
+        } else {
+            return new BufferIn(buffer);
+        }
     }
 
     /**

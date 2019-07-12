@@ -16,36 +16,29 @@
 package net.daporkchop.lib.binary.netty;
 
 import io.netty.buffer.ByteBuf;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.Setter;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
 
 import java.io.IOException;
 
 /**
- * An implementation of {@link DataIn} that can read from a {@link ByteBuf}
+ * An implementation of {@link DataIn} that can read from a {@link ByteBuf}.
  *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-@NoArgsConstructor
+@RequiredArgsConstructor
 @Getter
-@Setter
-@Accessors(fluent = true, chain = true)
+@Accessors(fluent = true)
 public class NettyByteBufIn extends DataIn {
-    protected ByteBuf buf;
-
     static {
         NettyUtil.ensureNettyPresent();
     }
 
-    @Override
-    public void close() throws IOException {
-    }
+    @NonNull
+    protected final ByteBuf buf;
 
     @Override
     public int read() throws IOException {
@@ -53,8 +46,50 @@ public class NettyByteBufIn extends DataIn {
     }
 
     @Override
+    public int read(@NonNull byte[] b, int off, int len) throws IOException {
+        if (this.buf.isReadable()) {
+            len = Math.min(len, this.buf.readableBytes());
+            this.buf.readBytes(b, off, len);
+            return len;
+        } else {
+            return -1;
+        }
+    }
+
+    @Override
+    public byte[] readFully(@NonNull byte[] b, int off, int len) throws IOException {
+        this.buf.readBytes(b, off, len);
+        return b;
+    }
+
+    @Override
     public int available() throws IOException {
         return this.buf.readableBytes();
+    }
+
+    @Override
+    public long skip(long n) throws IOException {
+        if (n > Integer.MAX_VALUE) {
+            n = Integer.MAX_VALUE;
+        }
+        n = Math.min(this.buf.readableBytes(), n);
+        this.buf.skipBytes((int) n);
+        return n;
+    }
+
+    @Override
+    public synchronized void mark(int readlimit) {
+        this.buf.markReaderIndex();
+    }
+
+    @Override
+    public synchronized void reset() throws IOException {
+        this.buf.resetReaderIndex();
+    }
+
+    @Override
+    public boolean markSupported() {
+        return true;
     }
 
     @Override
@@ -98,42 +133,22 @@ public class NettyByteBufIn extends DataIn {
     }
 
     @Override
-    public byte[] readFully(@NonNull byte[] b, int off, int len) throws IOException {
-        this.buf.readBytes(b, off, len);
-        return b;
+    public void close() throws IOException {
     }
 
-    @Override
-    public int read(@NonNull byte[] b, int off, int len) throws IOException {
-        if (off >= 0 && len >= 0 && len <= b.length - off) {
-            if (len == 0) {
-                return 0;
-            } else {
-                int var4 = Math.min(this.buf.readableBytes(), len);
-                if (var4 == 0) {
-                    return -1;
-                } else {
-                    this.buf.readBytes(b, off, var4);
-                    return var4;
-                }
-            }
-        } else {
-            throw new IndexOutOfBoundsException();
+    /**
+     * A variant of {@link NettyByteBufIn} that invokes {@link ByteBuf#release()} on the buffer when it is closed.
+     *
+     * @author DaPorkchop_
+     */
+    public static final class Releasing extends NettyByteBufIn {
+        public Releasing(ByteBuf buf) {
+            super(buf);
         }
-    }
 
-    @Override
-    public synchronized void mark(int readlimit) {
-        this.buf.markReaderIndex();
-    }
-
-    @Override
-    public synchronized void reset() throws IOException {
-        this.buf.resetReaderIndex();
-    }
-
-    @Override
-    public boolean markSupported() {
-        return true;
+        @Override
+        public void close() throws IOException {
+            this.buf.release();
+        }
     }
 }

@@ -16,14 +16,13 @@
 package net.daporkchop.lib.binary.netty;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.util.PorkUtil;
 
 /**
- * Some methods for dealing with Netty's {@link ByteBuf} class
+ * Some methods for dealing with Netty's {@link ByteBuf} class.
  *
  * @author DaPorkchop_
  */
@@ -31,25 +30,17 @@ public interface NettyUtil {
     boolean NETTY_PRESENT = PorkUtil.classExistsWithName("io.netty.buffer.ByteBuf");
 
     static DataIn wrapIn(@NonNull ByteBuf buf) {
+        return wrapIn(buf, false);
+    }
+
+    static DataIn wrapIn(@NonNull ByteBuf buf, boolean release) {
         ensureNettyPresent();
-        return new NettyByteBufIn(buf);
+        return release ? new NettyByteBufIn.Releasing(buf) : new NettyByteBufIn(buf);
     }
 
     static DataOut wrapOut(@NonNull ByteBuf buf) {
         ensureNettyPresent();
         return new NettyByteBufOut(buf);
-    }
-
-    @Deprecated
-    static ByteBuf alloc(int size) {
-        ensureNettyPresent();
-        return ByteBufAllocator.DEFAULT.directBuffer(size);
-    }
-
-    @Deprecated
-    static ByteBuf alloc(int size, int max) {
-        ensureNettyPresent();
-        return ByteBufAllocator.DEFAULT.directBuffer(size, max);
     }
 
     static void ensureNettyPresent()    {

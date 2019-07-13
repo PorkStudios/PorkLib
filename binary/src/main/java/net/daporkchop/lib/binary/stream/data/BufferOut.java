@@ -33,12 +33,13 @@ public class BufferOut extends DataOut {
     private final ByteBuffer buffer;
 
     @Override
-    public void close() throws IOException {
+    public void write(int b) throws IOException {
+        this.buffer.put((byte) b);
     }
 
     @Override
-    public void write(int b) throws IOException {
-        this.buffer.put((byte) b);
+    public void write(@NonNull byte[] b, int off, int len) throws IOException {
+        this.buffer.put(b, off, len);
     }
 
     @Override
@@ -78,7 +79,6 @@ public class BufferOut extends DataOut {
     }
 
     @Override
-    public void write(@NonNull byte[] b, int off, int len) throws IOException {
-        this.buffer.put(b, off, len);
+    public void close() throws IOException {
     }
 }

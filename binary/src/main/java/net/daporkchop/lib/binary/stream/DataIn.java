@@ -16,9 +16,7 @@
 package net.daporkchop.lib.binary.stream;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.binary.stream.data.BufferIn;
-import net.daporkchop.lib.binary.stream.data.NonClosingStreamIn;
 import net.daporkchop.lib.binary.stream.data.StreamIn;
 
 import java.io.BufferedInputStream;
@@ -28,6 +26,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 
 /**
@@ -44,7 +43,7 @@ public abstract class DataIn extends InputStream {
      * @return the wrapped stream, or the original stream if it was already a {@link DataIn}
      */
     public static DataIn wrap(@NonNull InputStream in) {
-        return in instanceof DataIn ? (DataIn) in : new StreamIn(in);
+        return in instanceof DataIn ? (DataIn) in : new StreamIn(in, true);
     }
 
     /**
@@ -53,10 +52,10 @@ public abstract class DataIn extends InputStream {
      * Calling {@link #close()} on the returned {@link DataIn} will not cause the wrapped stream to be closed.
      *
      * @param in the stream to wrap
-     * @return the wrapped stream, or the original stream if it was already a {@link NonClosingStreamIn}
+     * @return the wrapped stream, or the original stream if it was already a {@link StreamIn}
      */
     public static DataIn wrapNonClosing(@NonNull InputStream in) {
-        return in instanceof NonClosingStreamIn ? (NonClosingStreamIn) in : new NonClosingStreamIn(in);
+        return in instanceof StreamIn ? ((StreamIn) in).close(false) : new StreamIn(in, false);
     }
 
     /**
@@ -66,8 +65,8 @@ public abstract class DataIn extends InputStream {
      * @return the wrapped buffer as a {@link DataIn}
      */
     public static DataIn wrap(@NonNull ByteBuffer buffer) {
-        if (buffer.hasArray())  {
-            return new StreamIn(new ByteArrayInputStream(buffer.array(), buffer.position(), buffer.remaining()));
+        if (buffer.hasArray()) {
+            return new StreamIn(new ByteArrayInputStream(buffer.array(), buffer.position(), buffer.remaining()), false);
         } else {
             return new BufferIn(buffer);
         }
@@ -80,7 +79,7 @@ public abstract class DataIn extends InputStream {
      * @return the wrapped buffer as an {@link InputStream}
      */
     public static InputStream wrapAsStream(@NonNull ByteBuffer buffer) {
-        if (buffer.hasArray())  {
+        if (buffer.hasArray()) {
             return new ByteArrayInputStream(buffer.array(), buffer.position(), buffer.remaining());
         } else {
             return new BufferIn(buffer);
@@ -184,11 +183,34 @@ public abstract class DataIn extends InputStream {
     }
 
     /**
+     * Read a char (16-bit) value
+     *
+     * @return a char
+     */
+    public char readChar() throws IOException {
+        return (char) (((this.read() & 0xFF) << 8)
+                | (this.read() & 0xFF));
+    }
+
+    /**
      * Reads a medium (24-bit) value
      *
      * @return a medium
      */
     public int readMedium() throws IOException {
+        int value = this.readUMedium();
+        if ((value & 0x800000) != 0) {
+            value |= 0xFF000000;
+        }
+        return value;
+    }
+
+    /**
+     * Reads a medium (24-bit) value
+     *
+     * @return a medium
+     */
+    public int readUMedium() throws IOException {
         return ((this.read() & 0xFF) << 16)
                 | ((this.read() & 0xFF) << 8)
                 | (this.read() & 0xFF);
@@ -258,7 +280,7 @@ public abstract class DataIn extends InputStream {
      * @return a string
      */
     public String readUTF() throws IOException {
-        return new String(this.readByteArray(), UTF8.utf8);
+        return new String(this.readByteArray(), StandardCharsets.UTF_8);
     }
 
     /**
@@ -342,7 +364,7 @@ public abstract class DataIn extends InputStream {
      * {@code return readFully(b, 0, b.length);}
      *
      * @param b the byte array to read into
-     * @return the number of bytes read
+     * @return the {@code byte[]} that the data was read into
      * @throws IOException if end of stream is reached before the required number required bytes are read
      */
     public byte[] readFully(@NonNull byte[] b) throws IOException {
@@ -355,7 +377,7 @@ public abstract class DataIn extends InputStream {
      * @param b   the byte array to read into
      * @param off the offset in the array to write data to
      * @param len the number of bytes to read
-     * @return the number of bytes read
+     * @return the {@code byte[]} that the data was read into
      * @throws IOException if end of stream is reached before the required number required bytes are read
      */
     public byte[] readFully(@NonNull byte[] b, int off, int len) throws IOException {
@@ -371,6 +393,7 @@ public abstract class DataIn extends InputStream {
 
     /**
      * Reads all available bytes from this stream, as returned by {@link #available()}.
+     *
      * @return all available bytes from this stream
      */
     public byte[] readAllAvailableBytes() throws IOException {

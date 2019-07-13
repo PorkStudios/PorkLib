@@ -16,7 +16,10 @@
 package net.daporkchop.lib.binary.stream.data;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataOut;
 
 import java.io.IOException;
@@ -28,14 +31,13 @@ import java.io.OutputStream;
  * @author DaPorkchop_
  */
 @AllArgsConstructor
+@Getter
+@Accessors(fluent = true, chain = true)
 public class StreamOut extends DataOut {
     @NonNull
-    private final OutputStream out;
-
-    @Override
-    public void close() throws IOException {
-        this.out.close();
-    }
+    protected final OutputStream out;
+    @Setter
+    protected boolean close;
 
     @Override
     public void write(int b) throws IOException {
@@ -43,7 +45,19 @@ public class StreamOut extends DataOut {
     }
 
     @Override
+    public void write(byte[] b, int off, int len) throws IOException {
+        this.out.write(b, off, len);
+    }
+
+    @Override
     public void flush() throws IOException {
         this.out.flush();
+    }
+
+    @Override
+    public void close() throws IOException {
+        if (this.close) {
+            this.out.close();
+        }
     }
 }

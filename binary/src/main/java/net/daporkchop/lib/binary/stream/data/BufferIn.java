@@ -49,6 +49,17 @@ public class BufferIn extends DataIn {
     }
 
     @Override
+    public byte[] readFully(@NonNull byte[] b, int off, int len) throws IOException {
+        this.buffer.get(b, off, len);
+        return b;
+    }
+
+    @Override
+    public int available() throws IOException {
+        return this.buffer.remaining();
+    }
+
+    @Override
     public long skip(long cnt) throws IOException {
         if (cnt <= 0L) {
             return 0L;
@@ -63,12 +74,18 @@ public class BufferIn extends DataIn {
     }
 
     @Override
-    public int available() throws IOException {
-        return this.buffer.remaining();
+    public synchronized void mark(int readlimit) {
+        this.buffer.mark();
     }
 
     @Override
-    public void close() throws IOException {
+    public synchronized void reset() throws IOException {
+        this.buffer.reset();
+    }
+
+    @Override
+    public boolean markSupported() {
+        return true;
     }
 
     @Override
@@ -79,6 +96,11 @@ public class BufferIn extends DataIn {
     @Override
     public short readShort() throws IOException {
         return this.buffer.getShort();
+    }
+
+    @Override
+    public char readChar() throws IOException {
+        return this.buffer.getChar();
     }
 
     @Override
@@ -102,8 +124,6 @@ public class BufferIn extends DataIn {
     }
 
     @Override
-    public byte[] readFully(@NonNull byte[] b, int off, int len) throws IOException {
-        this.buffer.get(b, off, len);
-        return b;
+    public void close() throws IOException {
     }
 }

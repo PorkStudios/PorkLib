@@ -16,9 +16,8 @@
 package net.daporkchop.lib.binary.stream;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.binary.stream.data.BufferOut;
-import net.daporkchop.lib.binary.stream.data.NonClosingStreamOut;
+import net.daporkchop.lib.binary.stream.data.SlashDevSlashNull;
 import net.daporkchop.lib.binary.stream.data.StreamOut;
 
 import java.io.BufferedOutputStream;
@@ -27,6 +26,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Provides simple methods for encoding data to a binary form
@@ -42,7 +42,7 @@ public abstract class DataOut extends OutputStream {
      * @return the wrapped stream, or the original stream if it was already an instance of {@link DataOut}
      */
     public static DataOut wrap(@NonNull OutputStream out) {
-        return out instanceof DataOut ? (DataOut) out : new StreamOut(out);
+        return out instanceof DataOut ? (DataOut) out : new StreamOut(out, true);
     }
 
     /**
@@ -54,7 +54,7 @@ public abstract class DataOut extends OutputStream {
      * @return the wrapped stream, or the original stream if it was already an instance of {@link DataOut}
      */
     public static DataOut wrapNonClosing(@NonNull OutputStream out) {
-        return out instanceof NonClosingStreamOut ? (NonClosingStreamOut) out : new NonClosingStreamOut(out);
+        return out instanceof StreamOut ? ((StreamOut) out).close(false) : new StreamOut(out, false);
     }
 
     /**
@@ -118,51 +118,10 @@ public abstract class DataOut extends OutputStream {
      * /dev/null
      *
      * @return an instance of {@link DataOut} that will discard any data written to it
+     * @see SlashDevSlashNull
      */
     public static DataOut slashDevSlashNull() {
-        return new DataOut() {
-            @Override
-            public void close() throws IOException {
-            }
-
-            @Override
-            public void write(int b) throws IOException {
-            }
-
-            @Override
-            public DataOut writeUTF(String s) throws IOException {
-                return this;
-            }
-
-            @Override
-            public DataOut writeByteArray(byte[] b) throws IOException {
-                return this;
-            }
-
-            @Override
-            public DataOut writeVarInt(int value) throws IOException {
-                return this;
-            }
-
-            @Override
-            public DataOut writeVarLong(long value) throws IOException {
-                return this;
-            }
-
-            @Override
-            public DataOut writeBytes(byte[] b) throws IOException {
-                return this;
-            }
-
-            @Override
-            public DataOut writeBytes(byte[] b, int off, int len) throws IOException {
-                return this;
-            }
-
-            @Override
-            public void write(byte[] b, int off, int len) throws IOException {
-            }
-        };
+        return new SlashDevSlashNull();
     }
 
     /**
@@ -216,11 +175,34 @@ public abstract class DataOut extends OutputStream {
     }
 
     /**
+     * Writes a char (16-bit) value
+     *
+     * @param c the char to write
+     */
+    public DataOut writeChar(char c) throws IOException {
+        this.write((c >>> 8) & 0xFF);
+        this.write(c & 0xFF);
+        return this;
+    }
+
+    /**
      * Writes an medium (24-bit) value
      *
      * @param m the medium to write
      */
     public DataOut writeMedium(int m) throws IOException {
+        if ((m & 0xFF000000) != 0)  {
+            m |= 0x800000;
+        }
+        return this.writeUMedium(m);
+    }
+
+    /**
+     * Writes an medium (24-bit) value
+     *
+     * @param m the medium to write
+     */
+    public DataOut writeUMedium(int m) throws IOException {
         this.write((m >>> 16) & 0xFF);
         this.write((m >>> 8) & 0xFF);
         this.write(m & 0xFF);
@@ -290,7 +272,7 @@ public abstract class DataOut extends OutputStream {
      * @param s the string to write
      */
     public DataOut writeUTF(@NonNull String s) throws IOException {
-        return this.writeByteArray(s.getBytes(UTF8.utf8));
+        return this.writeByteArray(s.getBytes(StandardCharsets.UTF_8));
     }
 
     /**
@@ -361,13 +343,5 @@ public abstract class DataOut extends OutputStream {
     }
 
     @Override
-    public void write(@NonNull byte[] b, int off, int len) throws IOException {
-        for (int i = 0; i < len; i++) {
-            this.write(b[i + off] & 0xFF);
-        }
-    }
-
-    @Override
     public abstract void close() throws IOException;
-
 }

@@ -16,7 +16,10 @@
 package net.daporkchop.lib.binary.stream.data;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
 
 import java.io.IOException;
@@ -28,14 +31,13 @@ import java.io.InputStream;
  * @author DaPorkchop_
  */
 @AllArgsConstructor
+@Getter
+@Accessors(fluent = true, chain = true)
 public class StreamIn extends DataIn {
     @NonNull
-    private final InputStream in;
-
-    @Override
-    public void close() throws IOException {
-        this.in.close();
-    }
+    protected final InputStream in;
+    @Setter
+    protected boolean close;
 
     @Override
     public int read() throws IOException {
@@ -43,7 +45,39 @@ public class StreamIn extends DataIn {
     }
 
     @Override
+    public int read(byte[] b, int off, int len) throws IOException {
+        return this.in.read(b, off, len);
+    }
+
+    @Override
     public int available() throws IOException {
         return this.in.available();
+    }
+
+    @Override
+    public long skip(long n) throws IOException {
+        return this.in.skip(n);
+    }
+
+    @Override
+    public void mark(int readlimit) {
+        this.in.mark(readlimit);
+    }
+
+    @Override
+    public void reset() throws IOException {
+        this.in.reset();
+    }
+
+    @Override
+    public boolean markSupported() {
+        return this.in.markSupported();
+    }
+
+    @Override
+    public void close() throws IOException {
+        if (this.close) {
+            this.in.close();
+        }
     }
 }

@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.network.tcp.session;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelException;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -127,11 +128,12 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
     public DataOut writer() {
         return new NettyByteBufOut(this.alloc().ioBuffer()) {
             @Override
-            public void close() throws IOException {
-                if (this.buf.writerIndex() == 0) {
-                    this.buf.release();
-                } else {
+            protected boolean handleClose(@NonNull ByteBuf buf) throws IOException {
+                if (this.buf.isReadable()) {
                     TCPNioSocket.this.write(this.buf);
+                    return false;
+                } else {
+                    return true;
                 }
             }
         };

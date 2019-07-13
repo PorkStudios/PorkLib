@@ -38,7 +38,7 @@ public class NettyByteBufIn extends DataIn {
     }
 
     @NonNull
-    protected final ByteBuf buf;
+    protected ByteBuf buf;
 
     @Override
     public int read() throws IOException {
@@ -103,8 +103,23 @@ public class NettyByteBufIn extends DataIn {
     }
 
     @Override
+    public int readUByte() throws IOException {
+        return this.buf.readUnsignedByte();
+    }
+
+    @Override
     public short readShort() throws IOException {
         return this.buf.readShort();
+    }
+
+    @Override
+    public int readUShort() throws IOException {
+        return this.buf.readUnsignedShort();
+    }
+
+    @Override
+    public char readChar() throws IOException {
+        return this.buf.readChar();
     }
 
     @Override
@@ -113,8 +128,18 @@ public class NettyByteBufIn extends DataIn {
     }
 
     @Override
+    public int readUMedium() throws IOException {
+        return this.buf.readUnsignedMedium();
+    }
+
+    @Override
     public int readInt() throws IOException {
         return this.buf.readInt();
+    }
+
+    @Override
+    public long readUInt() throws IOException {
+        return this.buf.readUnsignedInt();
     }
 
     @Override

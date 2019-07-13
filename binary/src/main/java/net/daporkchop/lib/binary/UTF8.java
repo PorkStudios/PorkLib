@@ -21,7 +21,13 @@ import java.nio.charset.Charset;
  * Just contains the UTF-8 charset
  *
  * @author DaPorkchop_
+ * @deprecated in favor of {@link java.nio.charset.StandardCharsets#UTF_8}, which I didn't know about when making this class
  */
+@Deprecated
 public class UTF8 {
+    /**
+     * @deprecated in favor of {@link java.nio.charset.StandardCharsets#UTF_8}, which I didn't know about when making this class
+     */
+    @Deprecated
     public static final Charset utf8 = Charset.forName("UTF-8");
 }

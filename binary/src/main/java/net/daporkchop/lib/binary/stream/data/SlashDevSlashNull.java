@@ -15,34 +15,57 @@
 
 package net.daporkchop.lib.binary.stream.data;
 
-import lombok.AllArgsConstructor;
-import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 /**
- * Similar to {@link StreamIn}, but doesn't close the input stream
+ * /dev/null
+ * <p>
+ * A {@link DataOut} implementation that simply discards all data written to it.
  *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-public class NonClosingStreamIn extends DataIn {
-    @NonNull
-    private final InputStream in;
-
+public class SlashDevSlashNull extends DataOut {
     @Override
     public void close() throws IOException {
     }
 
     @Override
-    public int read() throws IOException {
-        return this.in.read();
+    public void write(int b) throws IOException {
     }
 
     @Override
-    public int available() throws IOException {
-        return this.in.available();
+    public DataOut writeUTF(String s) throws IOException {
+        return this;
+    }
+
+    @Override
+    public DataOut writeByteArray(byte[] b) throws IOException {
+        return this;
+    }
+
+    @Override
+    public DataOut writeVarInt(int value) throws IOException {
+        return this;
+    }
+
+    @Override
+    public DataOut writeVarLong(long value) throws IOException {
+        return this;
+    }
+
+    @Override
+    public DataOut writeBytes(byte[] b) throws IOException {
+        return this;
+    }
+
+    @Override
+    public DataOut writeBytes(byte[] b, int off, int len) throws IOException {
+        return this;
+    }
+
+    @Override
+    public void write(byte[] b, int off, int len) throws IOException {
     }
 }

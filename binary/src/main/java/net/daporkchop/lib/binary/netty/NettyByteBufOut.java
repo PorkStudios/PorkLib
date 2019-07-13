@@ -16,12 +16,9 @@
 package net.daporkchop.lib.binary.netty;
 
 import io.netty.buffer.ByteBuf;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.Setter;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataOut;
 
@@ -32,82 +29,128 @@ import java.io.IOException;
  *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-@NoArgsConstructor
+@RequiredArgsConstructor
 @Getter
-@Setter
-@Accessors(fluent = true, chain = true)
-public class NettyByteBufOut extends DataOut {
-    protected ByteBuf buf;
-
+@Accessors(fluent = true)
+public abstract class NettyByteBufOut extends DataOut {
     static {
         NettyUtil.ensureNettyPresent();
     }
 
-    @Override
-    public void close() throws IOException {
-    }
+    @NonNull
+    protected ByteBuf buf;
 
     @Override
     public void write(int b) throws IOException {
+        this.ensureOpen();
         this.buf.writeByte(b);
     }
 
     @Override
+    public void write(@NonNull byte[] b, int off, int len) throws IOException {
+        this.ensureOpen();
+        this.buf.writeBytes(b, off, len);
+    }
+
+    @Override
     public DataOut writeBoolean(boolean b) throws IOException {
+        this.ensureOpen();
         this.buf.writeBoolean(b);
         return this;
     }
 
     @Override
     public DataOut writeByte(byte b) throws IOException {
+        this.ensureOpen();
         this.buf.writeByte(b & 0xFF);
         return this;
     }
 
     @Override
     public DataOut writeShort(short s) throws IOException {
+        this.ensureOpen();
         this.buf.writeShort(s & 0xFFFF);
         return this;
     }
 
     @Override
     public DataOut writeMedium(int m) throws IOException {
+        this.ensureOpen();
         this.buf.writeMedium(m & 0xFFFFFF);
         return this;
     }
 
     @Override
+    public DataOut writeUMedium(int m) throws IOException {
+        return this.writeMedium(m & 0xFFFFFF);
+    }
+
+    @Override
     public DataOut writeInt(int i) throws IOException {
+        this.ensureOpen();
         this.buf.writeInt(i);
         return this;
     }
 
     @Override
     public DataOut writeLong(long l) throws IOException {
+        this.ensureOpen();
         this.buf.writeLong(l);
         return this;
     }
 
     @Override
     public DataOut writeFloat(float f) throws IOException {
+        this.ensureOpen();
         this.buf.writeFloat(f);
         return this;
     }
 
     @Override
     public DataOut writeDouble(double d) throws IOException {
+        this.ensureOpen();
         this.buf.writeDouble(d);
         return this;
     }
 
     @Override
-    public void write(@NonNull byte[] b) throws IOException {
-        this.buf.writeBytes(b);
+    public final void close() throws IOException {
+        try {
+            this.ensureOpen();
+            if (this.handleClose(this.buf)) {
+                this.buf.release();
+            }
+        } finally {
+            this.buf = null;
+        }
     }
 
-    @Override
-    public void write(@NonNull byte[] b, int off, int len) throws IOException {
-        this.buf.writeBytes(b, off, len);
+    /**
+     * Called when this stream is closed.
+     *
+     * @param buf the buffer that this stream was writing to
+     * @return whether or not the buffer should be released
+     * @throws IOException if an IO exception occurs you dummy
+     */
+    protected abstract boolean handleClose(@NonNull ByteBuf buf) throws IOException;
+
+    protected final void ensureOpen() {
+        if (this.buf == null) {
+            throw new IllegalStateException("Already closed!");
+        }
+    }
+
+    /**
+     * A basic implementation of {@link NettyByteBufOut} that simply does nothing when closed.
+     */
+    static class Default extends NettyByteBufOut {
+        public Default(ByteBuf buf) {
+            super(buf);
+        }
+
+        @Override
+        protected boolean handleClose(@NonNull ByteBuf buf) throws IOException {
+            return false;
+        }
     }
 }

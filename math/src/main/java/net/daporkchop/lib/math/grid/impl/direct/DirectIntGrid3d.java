@@ -13,29 +13,35 @@
  *
  */
 
-package net.daporkchop.lib.math.arrays.grid.impl.heap;
+package net.daporkchop.lib.math.grid.impl.direct;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.math.arrays.grid.Grid3d;
+import net.daporkchop.lib.unsafe.capability.DirectMemoryHolder;
+import net.daporkchop.lib.unsafe.PUnsafe;
+import net.daporkchop.lib.math.grid.Grid3d;
 
 import static net.daporkchop.lib.math.primitive.PMath.floorI;
 
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-public class HeapIntGrid3d implements Grid3d {
-    @NonNull
-    protected final int[] values;
-
+public class DirectIntGrid3d extends DirectMemoryHolder.AbstractConstantSize implements Grid3d {
     protected final int startX;
-    protected final int startY;
-    protected final int startZ;
-
     protected final int width;
+    protected final int startY;
     protected final int height;
+    protected final int startZ;
     protected final int depth;
+
+    public DirectIntGrid3d(int startX, int startY, int startZ, int width, int height, int depth) {
+        super(((long) width * (long) height * (long) depth) << 2L);
+
+        this.startX = startX;
+        this.width = width;
+        this.startY = startY;
+        this.height = height;
+        this.startZ = startZ;
+        this.depth = depth;
+    }
 
     @Override
     public int startX() {
@@ -74,7 +80,7 @@ public class HeapIntGrid3d implements Grid3d {
 
     @Override
     public int getI(int x, int y, int z) {
-        return this.values[((x - this.startX) * this.height + y - this.startY) * this.depth + z - this.startZ];
+        return PUnsafe.getInt(this.getPos(x, y, z));
     }
 
     @Override
@@ -84,6 +90,15 @@ public class HeapIntGrid3d implements Grid3d {
 
     @Override
     public void setI(int x, int y, int z, int val) {
-        this.values[((x - this.startX) * this.height + y - this.startY) * this.depth + z - this.startZ] = val;
+        PUnsafe.putInt(this.getPos(x, y, z), val);
+    }
+
+    protected long getPos(int x, int y, int z) {
+        long off = (((x - this.startX) * this.height + y - this.startY) * this.depth + z - this.startZ) << 2L;
+        if (off >= this.size || off < 0L) {
+            throw new ArrayIndexOutOfBoundsException(String.format("(%d,%d,%d)", x, y, z));
+        } else {
+            return this.pos + off;
+        }
     }
 }

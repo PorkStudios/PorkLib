@@ -13,25 +13,77 @@
  *
  */
 
-package net.daporkchop.lib.math.arrays.grid.impl.direct;
+package net.daporkchop.lib.math.grid.impl.heap;
 
-import static net.daporkchop.lib.math.primitive.PMath.clamp;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.math.grid.Grid3d;
+
 import static net.daporkchop.lib.math.primitive.PMath.floorI;
 
 /**
  * @author DaPorkchop_
  */
-public class DirectOverflowingIntGrid2d extends DirectIntGrid2d {
-    public DirectOverflowingIntGrid2d(int startX, int startY, int width, int height) {
-        super(startX, startY, width, height);
-    }
+@RequiredArgsConstructor
+public class HeapIntGrid3d implements Grid3d {
+    @NonNull
+    protected final int[] values;
 
-    protected long getPos(int x, int y) {
-        return this.pos + ((clamp(x - this.startX, 0, this.width - 1) * this.height + clamp(y - this.startY, 0, this.height - 1)) << 2L);
+    protected final int startX;
+    protected final int startY;
+    protected final int startZ;
+
+    protected final int width;
+    protected final int height;
+    protected final int depth;
+
+    @Override
+    public int startX() {
+        return this.startX;
     }
 
     @Override
-    public boolean isOverflowing() {
-        return true;
+    public int endX() {
+        return this.startX + this.width;
+    }
+
+    @Override
+    public int startY() {
+        return this.startY;
+    }
+
+    @Override
+    public int endY() {
+        return this.startY + this.height;
+    }
+
+    @Override
+    public int startZ() {
+        return this.startZ;
+    }
+
+    @Override
+    public int endZ() {
+        return this.startZ + this.depth;
+    }
+
+    @Override
+    public double getD(int x, int y, int z) {
+        return this.getI(x, y, z);
+    }
+
+    @Override
+    public int getI(int x, int y, int z) {
+        return this.values[((x - this.startX) * this.height + y - this.startY) * this.depth + z - this.startZ];
+    }
+
+    @Override
+    public void setD(int x, int y, int z, double val) {
+        this.setI(x, y, z, floorI(val));
+    }
+
+    @Override
+    public void setI(int x, int y, int z, int val) {
+        this.values[((x - this.startX) * this.height + y - this.startY) * this.depth + z - this.startZ] = val;
     }
 }

@@ -13,25 +13,51 @@
  *
  */
 
-package net.daporkchop.lib.math.arrays.grid.impl.direct;
+package net.daporkchop.lib.math.grid.impl.heap;
 
-import static net.daporkchop.lib.math.primitive.PMath.clamp;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.math.grid.Grid1d;
+
+import static net.daporkchop.lib.math.primitive.PMath.floorI;
 
 /**
  * @author DaPorkchop_
  */
-public class DirectOverflowingIntGrid1d extends DirectIntGrid1d {
-    public DirectOverflowingIntGrid1d(int startX, int width) {
-        super(startX, width);
+@RequiredArgsConstructor
+public class HeapDoubleGrid1d implements Grid1d {
+    @NonNull
+    protected final double[] values;
+
+    protected final int startX;
+
+    @Override
+    public int startX() {
+        return this.startX;
     }
 
     @Override
-    protected long getPos(int x) {
-        return this.pos + (clamp(x - this.startX, 0, this.width - 1) << 2L);
+    public int endX() {
+        return this.startX + this.values.length;
     }
 
     @Override
-    public boolean isOverflowing() {
-        return true;
+    public double getD(int x) {
+        return this.values[x - this.startX];
+    }
+
+    @Override
+    public int getI(int x) {
+        return floorI(this.getD(x));
+    }
+
+    @Override
+    public void setD(int x, double val) {
+        this.values[x - this.startX] = val;
+    }
+
+    @Override
+    public void setI(int x, int val) {
+        this.setD(x, val);
     }
 }

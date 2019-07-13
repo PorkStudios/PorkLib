@@ -13,23 +13,27 @@
  *
  */
 
-package net.daporkchop.lib.math.arrays.grid.impl.heap;
+package net.daporkchop.lib.math.grid.impl.direct;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.math.arrays.grid.Grid1d;
+import net.daporkchop.lib.unsafe.capability.DirectMemoryHolder;
+import net.daporkchop.lib.unsafe.PUnsafe;
+import net.daporkchop.lib.math.grid.Grid1d;
 
 import static net.daporkchop.lib.math.primitive.PMath.floorI;
 
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-public class HeapDoubleGrid1d implements Grid1d {
-    @NonNull
-    protected final double[] values;
-
+public class DirectIntGrid1d extends DirectMemoryHolder.AbstractConstantSize implements Grid1d {
     protected final int startX;
+    protected final int width;
+
+    public DirectIntGrid1d(int startX, int width) {
+        super(width << 2L);
+
+        this.startX = startX;
+        this.width = width;
+    }
 
     @Override
     public int startX() {
@@ -38,26 +42,35 @@ public class HeapDoubleGrid1d implements Grid1d {
 
     @Override
     public int endX() {
-        return this.startX + this.values.length;
+        return this.startX + this.width;
     }
 
     @Override
     public double getD(int x) {
-        return this.values[x - this.startX];
+        return this.getI(x);
     }
 
     @Override
     public int getI(int x) {
-        return floorI(this.getD(x));
+        return PUnsafe.getInt(this.getPos(x));
     }
 
     @Override
     public void setD(int x, double val) {
-        this.values[x - this.startX] = val;
+        this.setI(x, floorI(val));
     }
 
     @Override
     public void setI(int x, int val) {
-        this.setD(x, val);
+        PUnsafe.putInt(this.getPos(x), val);
+    }
+
+    protected long getPos(int x) {
+        long off = (x - this.startX) << 2L;
+        if (off >= this.size || off < 0L) {
+            throw new ArrayIndexOutOfBoundsException(String.format("%d", x));
+        } else {
+            return this.pos + off;
+        }
     }
 }

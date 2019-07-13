@@ -16,7 +16,7 @@
 package example;
 
 import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.math.arrays.grid.Grid2d;
+import net.daporkchop.lib.math.grid.Grid2d;
 import net.daporkchop.lib.math.interpolation.InterpolationEngine;
 import net.daporkchop.lib.math.interpolation.NearestNeighborInterpolationEngine;
 import net.daporkchop.lib.math.interpolation.CubicInterpolationEngine;

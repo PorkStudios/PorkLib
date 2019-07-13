@@ -16,10 +16,9 @@
 package net.daporkchop.lib.math.interpolation;
 
 import lombok.NonNull;
-import net.daporkchop.lib.math.arrays.grid.Grid1d;
-import net.daporkchop.lib.math.arrays.grid.Grid2d;
-import net.daporkchop.lib.math.arrays.grid.Grid3d;
-import net.daporkchop.lib.math.interpolation.InterpolationEngine;
+import net.daporkchop.lib.math.grid.Grid1d;
+import net.daporkchop.lib.math.grid.Grid2d;
+import net.daporkchop.lib.math.grid.Grid3d;
 
 import static net.daporkchop.lib.math.primitive.PMath.floorI;
 

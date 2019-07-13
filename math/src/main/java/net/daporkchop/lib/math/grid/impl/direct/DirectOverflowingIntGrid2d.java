@@ -13,66 +13,25 @@
  *
  */
 
-package net.daporkchop.lib.math.arrays.grid.impl.direct;
+package net.daporkchop.lib.math.grid.impl.direct;
 
-import net.daporkchop.lib.unsafe.PCleaner;
-import net.daporkchop.lib.unsafe.capability.DirectMemoryHolder;
-import net.daporkchop.lib.unsafe.PUnsafe;
-import net.daporkchop.lib.math.arrays.grid.Grid1d;
-import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
-
+import static net.daporkchop.lib.math.primitive.PMath.clamp;
 import static net.daporkchop.lib.math.primitive.PMath.floorI;
 
 /**
  * @author DaPorkchop_
  */
-public class DirectIntGrid1d extends DirectMemoryHolder.AbstractConstantSize implements Grid1d {
-    protected final int startX;
-    protected final int width;
+public class DirectOverflowingIntGrid2d extends DirectIntGrid2d {
+    public DirectOverflowingIntGrid2d(int startX, int startY, int width, int height) {
+        super(startX, startY, width, height);
+    }
 
-    public DirectIntGrid1d(int startX, int width) {
-        super(width << 2L);
-
-        this.startX = startX;
-        this.width = width;
+    protected long getPos(int x, int y) {
+        return this.pos + ((clamp(x - this.startX, 0, this.width - 1) * this.height + clamp(y - this.startY, 0, this.height - 1)) << 2L);
     }
 
     @Override
-    public int startX() {
-        return this.startX;
-    }
-
-    @Override
-    public int endX() {
-        return this.startX + this.width;
-    }
-
-    @Override
-    public double getD(int x) {
-        return this.getI(x);
-    }
-
-    @Override
-    public int getI(int x) {
-        return PUnsafe.getInt(this.getPos(x));
-    }
-
-    @Override
-    public void setD(int x, double val) {
-        this.setI(x, floorI(val));
-    }
-
-    @Override
-    public void setI(int x, int val) {
-        PUnsafe.putInt(this.getPos(x), val);
-    }
-
-    protected long getPos(int x) {
-        long off = (x - this.startX) << 2L;
-        if (off >= this.size || off < 0L) {
-            throw new ArrayIndexOutOfBoundsException(String.format("%d", x));
-        } else {
-            return this.pos + off;
-        }
+    public boolean isOverflowing() {
+        return true;
     }
 }

@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.math.arrays.grid.impl.direct;
+package net.daporkchop.lib.math.grid.impl.direct;
 
 import static net.daporkchop.lib.math.primitive.PMath.clamp;
 

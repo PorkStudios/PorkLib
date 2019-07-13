@@ -13,11 +13,11 @@
  *
  */
 
-package net.daporkchop.lib.math.arrays.grid.impl.heap;
+package net.daporkchop.lib.math.grid.impl.heap;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.math.arrays.grid.Grid2d;
+import net.daporkchop.lib.math.grid.Grid3d;
 
 import static net.daporkchop.lib.math.primitive.PMath.floorI;
 
@@ -25,15 +25,17 @@ import static net.daporkchop.lib.math.primitive.PMath.floorI;
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-public class HeapIntGrid2d implements Grid2d {
+public class HeapDoubleGrid3d implements Grid3d {
     @NonNull
-    protected final int[] values;
+    protected final double[] values;
 
     protected final int startX;
     protected final int startY;
+    protected final int startZ;
 
     protected final int width;
     protected final int height;
+    protected final int depth;
 
     @Override
     public int startX() {
@@ -56,22 +58,32 @@ public class HeapIntGrid2d implements Grid2d {
     }
 
     @Override
-    public double getD(int x, int y) {
-        return this.getI(x, y);
+    public int startZ() {
+        return this.startZ;
     }
 
     @Override
-    public int getI(int x, int y) {
-        return this.values[(x - this.startX) * this.height + y - this.startY];
+    public int endZ() {
+        return this.startZ + this.depth;
     }
 
     @Override
-    public void setD(int x, int y, double val) {
-        this.setI(x, y, floorI(val));
+    public double getD(int x, int y, int z) {
+        return this.values[((x - this.startX) * this.height + y - this.startY) * this.depth + z - this.startZ];
     }
 
     @Override
-    public void setI(int x, int y, int val) {
-        this.values[(x - this.startX) * this.height + y - this.startY] = val;
+    public int getI(int x, int y, int z) {
+        return floorI(this.getD(x, y, z));
+    }
+
+    @Override
+    public void setD(int x, int y, int z, double val) {
+        this.values[((x - this.startX) * this.height + y - this.startY) * this.depth + z - this.startZ] = val;
+    }
+
+    @Override
+    public void setI(int x, int y, int z, int val) {
+        this.setD(x, y, z, val);
     }
 }

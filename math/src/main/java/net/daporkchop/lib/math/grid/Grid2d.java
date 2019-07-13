@@ -13,13 +13,13 @@
  *
  */
 
-package net.daporkchop.lib.math.arrays.grid;
+package net.daporkchop.lib.math.grid;
 
 import lombok.NonNull;
-import net.daporkchop.lib.math.arrays.grid.impl.direct.DirectIntGrid2d;
-import net.daporkchop.lib.math.arrays.grid.impl.direct.DirectOverflowingIntGrid2d;
-import net.daporkchop.lib.math.arrays.grid.impl.heap.HeapDoubleGrid2d;
-import net.daporkchop.lib.math.arrays.grid.impl.heap.HeapIntGrid2d;
+import net.daporkchop.lib.math.grid.impl.direct.DirectIntGrid2d;
+import net.daporkchop.lib.math.grid.impl.direct.DirectOverflowingIntGrid2d;
+import net.daporkchop.lib.math.grid.impl.heap.HeapDoubleGrid2d;
+import net.daporkchop.lib.math.grid.impl.heap.HeapIntGrid2d;
 
 /**
  * @author DaPorkchop_

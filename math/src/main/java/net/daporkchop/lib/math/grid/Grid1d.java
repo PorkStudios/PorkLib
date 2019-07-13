@@ -13,52 +13,63 @@
  *
  */
 
-package net.daporkchop.lib.math.arrays.grid.impl.heap;
+package net.daporkchop.lib.math.grid;
 
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.math.arrays.grid.Grid1d;
-
-import static net.daporkchop.lib.math.primitive.PMath.floorI;
+import net.daporkchop.lib.math.grid.impl.direct.DirectIntGrid1d;
+import net.daporkchop.lib.math.grid.impl.direct.DirectOverflowingIntGrid1d;
+import net.daporkchop.lib.math.grid.impl.heap.HeapDoubleGrid1d;
+import net.daporkchop.lib.math.grid.impl.heap.HeapIntGrid1d;
 
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-public class HeapIntGrid1d implements Grid1d {
-    @NonNull
-    protected final int[] values;
-
-    protected final int startX;
-
-    @Override
-    public int startX() {
-        return this.startX;
+public interface Grid1d {
+    static Grid1d of(@NonNull int[] arr)    {
+        return of(arr, 0);
     }
 
-    @Override
-    public int endX() {
-        return this.startX + this.values.length;
+    static Grid1d of(@NonNull int[] arr, int startX)    {
+        return new HeapIntGrid1d(arr, startX);
     }
 
-    @Override
-    public double getD(int x) {
-        return this.getI(x);
+    static Grid1d of(@NonNull double[] arr)    {
+        return of(arr, 0);
     }
 
-    @Override
-    public int getI(int x) {
-        return this.values[x - this.startX];
+    static Grid1d of(@NonNull double[] arr, int startX)    {
+        return new HeapDoubleGrid1d(arr, startX);
     }
 
-    @Override
-    public void setD(int x, double val) {
-        this.setI(x, floorI(val));
+    static Grid1d of(int width) {
+        return of(0, width, false);
     }
 
-    @Override
-    public void setI(int x, int val) {
-        this.values[x - this.startX] = val;
+    static Grid1d of(int width, boolean overflowing) {
+        return of(0, width, overflowing);
     }
+
+    static Grid1d of(int startX, int width) {
+        return of(startX, width, false);
+    }
+
+    static Grid1d of(int startX, int width, boolean overflowing) {
+        return overflowing ? new DirectOverflowingIntGrid1d(startX, width) : new DirectIntGrid1d(startX, width);
+    }
+
+    int startX();
+    int endX();
+    default boolean isOverflowing() {
+        return false;
+    }
+
+    //getters
+    double getD(int x);
+    
+    int getI(int x);
+
+    //setters
+    void setD(int x, double val);
+
+    void setI(int x, int val);
 }

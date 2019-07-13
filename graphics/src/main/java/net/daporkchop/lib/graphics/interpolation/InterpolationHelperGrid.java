@@ -17,12 +17,10 @@ package net.daporkchop.lib.graphics.interpolation;
 
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
-import net.daporkchop.lib.graphics.bitmap.image.PImage;
-import net.daporkchop.lib.math.arrays.grid.Grid2d;
+import net.daporkchop.lib.math.grid.Grid2d;
 
 import static net.daporkchop.lib.math.primitive.PMath.clamp;
 

@@ -20,10 +20,14 @@ import lombok.NonNull;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.IntFunction;
+import java.util.function.IntSupplier;
+import java.util.function.IntUnaryOperator;
+import java.util.function.LongSupplier;
+import java.util.function.LongUnaryOperator;
 import java.util.function.Supplier;
 
 /**
- * Utilities for dealing with arrays
+ * Utilities for dealing with arrays.
  *
  * @author DaPorkchop_
  */
@@ -33,7 +37,7 @@ public interface PArrays {
     }
 
     static void shuffle(@NonNull byte[] arr, @NonNull Random random) {
-        for (int i = 0; i < arr.length; i++) {
+        for (int i = arr.length - 1; i >= 0; i--) {
             int j = random.nextInt(arr.length);
             byte curr = arr[i];
             arr[i] = arr[j];
@@ -46,9 +50,22 @@ public interface PArrays {
     }
 
     static void shuffle(@NonNull short[] arr, @NonNull Random random) {
-        for (int i = 0; i < arr.length; i++) {
+        for (int i = arr.length - 1; i >= 0; i--) {
             int j = random.nextInt(arr.length);
             short curr = arr[i];
+            arr[i] = arr[j];
+            arr[j] = curr;
+        }
+    }
+
+    static void shuffle(@NonNull char[] arr) {
+        shuffle(arr, ThreadLocalRandom.current());
+    }
+
+    static void shuffle(@NonNull char[] arr, @NonNull Random random) {
+        for (int i = arr.length - 1; i >= 0; i--) {
+            int j = random.nextInt(arr.length);
+            char curr = arr[i];
             arr[i] = arr[j];
             arr[j] = curr;
         }
@@ -59,9 +76,48 @@ public interface PArrays {
     }
 
     static void shuffle(@NonNull int[] arr, @NonNull Random random) {
-        for (int i = 0; i < arr.length; i++) {
+        for (int i = arr.length - 1; i >= 0; i--) {
             int j = random.nextInt(arr.length);
             int curr = arr[i];
+            arr[i] = arr[j];
+            arr[j] = curr;
+        }
+    }
+
+    static void shuffle(@NonNull long[] arr) {
+        shuffle(arr, ThreadLocalRandom.current());
+    }
+
+    static void shuffle(@NonNull long[] arr, @NonNull Random random) {
+        for (int i = arr.length - 1; i >= 0; i--) {
+            int j = random.nextInt(arr.length);
+            long curr = arr[i];
+            arr[i] = arr[j];
+            arr[j] = curr;
+        }
+    }
+
+    static void shuffle(@NonNull float[] arr) {
+        shuffle(arr, ThreadLocalRandom.current());
+    }
+
+    static void shuffle(@NonNull float[] arr, @NonNull Random random) {
+        for (int i = arr.length - 1; i >= 0; i--) {
+            int j = random.nextInt(arr.length);
+            float curr = arr[i];
+            arr[i] = arr[j];
+            arr[j] = curr;
+        }
+    }
+
+    static void shuffle(@NonNull double[] arr) {
+        shuffle(arr, ThreadLocalRandom.current());
+    }
+
+    static void shuffle(@NonNull double[] arr, @NonNull Random random) {
+        for (int i = arr.length - 1; i >= 0; i--) {
+            int j = random.nextInt(arr.length);
+            double curr = arr[i];
             arr[i] = arr[j];
             arr[j] = curr;
         }
@@ -72,12 +128,44 @@ public interface PArrays {
     }
 
     static void shuffle(@NonNull Object[] arr, @NonNull Random random) {
-        for (int i = 0; i < arr.length; i++) {
+        for (int i = arr.length - 1; i >= 0; i--) {
             int j = random.nextInt(arr.length);
             Object curr = arr[i];
             arr[i] = arr[j];
             arr[j] = curr;
         }
+    }
+
+    static int[] filled(int size, @NonNull IntSupplier supplier)   {
+        int[] arr = new int[size];
+        for (int i = arr.length - 1; i >= 0; i--)   {
+            arr[i] = supplier.getAsInt();
+        }
+        return arr;
+    }
+
+    static int[] filled(int size, @NonNull IntUnaryOperator supplier)   {
+        int[] arr = new int[size];
+        for (int i = arr.length - 1; i >= 0; i--)   {
+            arr[i] = supplier.applyAsInt(i);
+        }
+        return arr;
+    }
+
+    static long[] filled(int size, @NonNull LongSupplier supplier)   {
+        long[] arr = new long[size];
+        for (int i = arr.length - 1; i >= 0; i--)   {
+            arr[i] = supplier.getAsLong();
+        }
+        return arr;
+    }
+
+    static long[] filled(int size, @NonNull LongUnaryOperator supplier)   {
+        long[] arr = new long[size];
+        for (int i = arr.length - 1; i >= 0; i--)   {
+            arr[i] = supplier.applyAsLong(i);
+        }
+        return arr;
     }
 
     static <T> T[] filled(int size, @NonNull IntFunction<T[]> arrayCreator, @NonNull Supplier<T> supplier)   {
@@ -135,6 +223,15 @@ public interface PArrays {
         return -1;
     }
 
+    static int indexOf(@NonNull char[] arr, char val)    {
+        for (int i = arr.length - 1; i >= 0; i--)   {
+            if (arr[i] == val)  {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     static int indexOf(@NonNull int[] arr, int val)    {
         for (int i = arr.length - 1; i >= 0; i--)   {
             if (arr[i] == val)  {
@@ -145,6 +242,24 @@ public interface PArrays {
     }
 
     static int indexOf(@NonNull long[] arr, long val)    {
+        for (int i = arr.length - 1; i >= 0; i--)   {
+            if (arr[i] == val)  {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    static int indexOf(@NonNull float[] arr, float val)    {
+        for (int i = arr.length - 1; i >= 0; i--)   {
+            if (arr[i] == val)  {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    static int indexOf(@NonNull double[] arr, double val)    {
         for (int i = arr.length - 1; i >= 0; i--)   {
             if (arr[i] == val)  {
                 return i;

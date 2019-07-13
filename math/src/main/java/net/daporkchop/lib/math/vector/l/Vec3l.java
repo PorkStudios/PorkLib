@@ -15,33 +15,20 @@
 
 package net.daporkchop.lib.math.vector.l;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 /**
- * A 3-dimensional vector
+ * A 3-dimensional vector.
  *
  * @author DaPorkchop_
  */
-public class Vec3l implements LongVector3 {
-    private final long x;
-    private final long y;
-    private final long z;
-
-    public Vec3l(long x, long y, long z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-    }
-
-    public long getX() {
-        return this.x;
-    }
-
-    public long getY() {
-        return this.y;
-    }
-
-    public long getZ() {
-        return this.z;
-    }
+@AllArgsConstructor
+@Getter
+public final class Vec3l implements LongVector3 {
+    protected final long x;
+    protected final long y;
+    protected final long z;
 
     @Override
     public LongVector3 add(long x, long y, long z) {
@@ -65,21 +52,22 @@ public class Vec3l implements LongVector3 {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof Vec3l)) {
+        if (!(obj instanceof LongVector3)) {
             return false;
         }
 
-        Vec3l vec = (Vec3l) obj;
-        return this.x == vec.x && this.y == vec.y && this.z == vec.z;
+        LongVector3 vec = (LongVector3) obj;
+        return this.x == vec.getX() && this.y == vec.getY() && this.z == vec.getZ();
     }
 
     @Override
     public int hashCode() {
-        return 31 * 31 * (int) (this.x ^ (this.x >>> 32)) + 31 * (int) (this.y ^ (this.y >>> 32)) + (int) (this.z ^ (this.z >>> 32));
+        long l = (this.x * 611573530454211019L + this.y) * 32185023686116541L + this.z;
+        return (int) (l ^ (l >>> 32L));
     }
 
     @Override
     public String toString() {
-        return "Vec3i(x=" + this.x + ", y=" + this.y + ", z=" + this.z + ')';
+        return String.format("Vec3l(%d,%d,%d)", this.x, this.y, this.z);
     }
 }

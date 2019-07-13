@@ -15,45 +15,23 @@
 
 package net.daporkchop.lib.math.vector.f;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+
 /**
- * A 3-dimensional vector
+ * A 3-dimensional vector.
  *
  * @author DaPorkchop_
  */
-public class Vec3fM implements FloatVector3 {
-    private volatile float x;
-    private volatile float y;
-    private volatile float z;
-
-    public Vec3fM(float x, float y, float z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-    }
-
-    public float getX() {
-        return this.x;
-    }
-
-    public void setX(float x) {
-        this.x = x;
-    }
-
-    public float getY() {
-        return this.y;
-    }
-
-    public void setY(float y) {
-        this.y = y;
-    }
-
-    public float getZ() {
-        return this.z;
-    }
-
-    public void setZ(float z) {
-        this.z = z;
-    }
+@AllArgsConstructor
+@Getter
+@Setter
+public final class Vec3fM implements FloatVector3 {
+    protected float x;
+    protected float y;
+    protected float z;
 
     @Override
     public FloatVector3 add(float x, float y, float z) {
@@ -89,24 +67,21 @@ public class Vec3fM implements FloatVector3 {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof Vec3fM)) {
+        if (!(obj instanceof FloatVector3)) {
             return false;
         }
 
-        Vec3fM vec = (Vec3fM) obj;
-        return this.x == vec.x && this.y == vec.y && this.z == vec.z;
+        FloatVector3 vec = (FloatVector3) obj;
+        return this.x == vec.getX() && this.y == vec.getY() && this.z == vec.getZ();
     }
 
     @Override
     public int hashCode() {
-        int xBits = Float.floatToIntBits(this.x);
-        int yBits = Float.floatToIntBits(this.y);
-        int zBits = Float.floatToIntBits(this.z);
-        return xBits * 31 * 31 + yBits * 31 + zBits;
+        return (Float.floatToIntBits(this.x) * 670807633 + Float.floatToIntBits(this.y)) * 1366495393 + Float.floatToIntBits(this.z);
     }
 
     @Override
     public String toString() {
-        return "Vec3fM(x=" + this.x + ", y=" + this.y + ", z=" + this.z + ')';
+        return String.format("Vec3fM(%f,%f,%f)", this.x, this.y, this.z);
     }
 }

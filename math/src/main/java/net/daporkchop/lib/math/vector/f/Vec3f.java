@@ -15,33 +15,21 @@
 
 package net.daporkchop.lib.math.vector.f;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 /**
- * A 3-dimensional vector
+ * A 3-dimensional vector.
  *
  * @author DaPorkchop_
  */
-public class Vec3f implements FloatVector3 {
-    private final float x;
-    private final float y;
-    private final float z;
-
-    public Vec3f(float x, float y, float z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-    }
-
-    public float getX() {
-        return this.x;
-    }
-
-    public float getY() {
-        return this.y;
-    }
-
-    public float getZ() {
-        return this.z;
-    }
+@AllArgsConstructor
+@Getter
+public final class Vec3f implements FloatVector3 {
+    protected final float x;
+    protected final float y;
+    protected final float z;
 
     @Override
     public FloatVector3 add(float x, float y, float z) {
@@ -65,24 +53,21 @@ public class Vec3f implements FloatVector3 {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof Vec3f)) {
+        if (!(obj instanceof FloatVector3)) {
             return false;
         }
 
-        Vec3f vec = (Vec3f) obj;
-        return this.x == vec.x && this.y == vec.y && this.z == vec.z;
+        FloatVector3 vec = (FloatVector3) obj;
+        return this.x == vec.getX() && this.y == vec.getY() && this.z == vec.getZ();
     }
 
     @Override
     public int hashCode() {
-        int xBits = Float.floatToIntBits(this.x);
-        int yBits = Float.floatToIntBits(this.y);
-        int zBits = Float.floatToIntBits(this.z);
-        return xBits * 31 * 31 + yBits * 31 + zBits;
+        return (Float.floatToIntBits(this.x) * 670807633 + Float.floatToIntBits(this.y)) * 1366495393 + Float.floatToIntBits(this.z);
     }
 
     @Override
     public String toString() {
-        return "Vec3f(x=" + this.x + ", y=" + this.y + ", z=" + this.z + ')';
+        return String.format("Vec3f(%f,%f,%f)", this.x, this.y, this.z);
     }
 }

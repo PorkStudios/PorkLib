@@ -15,33 +15,21 @@
 
 package net.daporkchop.lib.math.vector.d;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 /**
- * A 3-dimensional vector
+ * A 3-dimensional vector.
  *
  * @author DaPorkchop_
  */
-public class Vec3d implements DoubleVector3 {
-    private final double x;
-    private final double y;
-    private final double z;
-
-    public Vec3d(double x, double y, double z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-    }
-
-    public double getX() {
-        return this.x;
-    }
-
-    public double getY() {
-        return this.y;
-    }
-
-    public double getZ() {
-        return this.z;
-    }
+@AllArgsConstructor
+@Getter
+public final class Vec3d implements DoubleVector3 {
+    protected final double x;
+    protected final double y;
+    protected final double z;
 
     @Override
     public DoubleVector3 add(double x, double y, double z) {
@@ -65,24 +53,22 @@ public class Vec3d implements DoubleVector3 {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof Vec3d)) {
+        if (!(obj instanceof DoubleVector3)) {
             return false;
         }
 
-        Vec3d vec = (Vec3d) obj;
-        return this.x == vec.x && this.y == vec.y && this.z == vec.z;
+        DoubleVector3 vec = (DoubleVector3) obj;
+        return this.x == vec.getX() && this.y == vec.getY() && this.z == vec.getZ();
     }
 
     @Override
     public int hashCode() {
-        long xBits = Double.doubleToLongBits(this.x);
-        long yBits = Double.doubleToLongBits(this.y);
-        long zBits = Double.doubleToLongBits(this.z);
-        return 31 * 31 * (int) (xBits ^ (xBits >>> 32)) + 31 * (int) (yBits ^ (yBits >>> 32)) + (int) (zBits ^ (zBits >>> 32));
+        long l = (Double.doubleToLongBits(this.x) * 1260314835565697L + Double.doubleToLongBits(this.y)) * 617654310259680119L + Double.doubleToLongBits(this.z);
+        return (int) (l ^ (l >>> 32L));
     }
 
     @Override
     public String toString() {
-        return "Vec3d(x=" + this.x + ", y=" + this.y + ", z=" + this.z + ')';
+        return String.format("Vec3d(%f,%f,%f)", this.x, this.y, this.z);
     }
 }

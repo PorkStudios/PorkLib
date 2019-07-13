@@ -15,39 +15,25 @@
 
 package net.daporkchop.lib.math.vector.i;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+
 /**
- * A 2-dimensional vector
+ * A 2-dimensional vector.
  *
  * @author DaPorkchop_
  */
-public class Vec2iM implements IntVector2 {
-    private volatile int x;
-    private volatile int y;
-
-    public Vec2iM(int x, int y) {
-        this.x = x;
-        this.y = y;
-    }
+@RequiredArgsConstructor
+@Getter
+@Setter
+public final class Vec2iM implements IntVector2 {
+    private int x;
+    private int y;
 
     public Vec2iM(long encoded) {
         this.x = (int) (encoded >> 32);
         this.y = (int) encoded;
-    }
-
-    public int getX() {
-        return this.x;
-    }
-
-    public void setX(int x) {
-        this.x = x;
-    }
-
-    public int getY() {
-        return this.y;
-    }
-
-    public void setY(int y) {
-        this.y = y;
     }
 
     @Override
@@ -84,21 +70,21 @@ public class Vec2iM implements IntVector2 {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof Vec2iM)) {
+        if (!(obj instanceof IntVector2)) {
             return false;
         }
 
-        Vec2iM vec = (Vec2iM) obj;
-        return this.x == vec.x && this.y == vec.y;
+        IntVector2 vec = (IntVector2) obj;
+        return this.x == vec.getX() && this.y == vec.getY();
     }
 
     @Override
     public int hashCode() {
-        return this.x * 31 + this.y;
+        return this.x * 1799125309 + this.y;
     }
 
     @Override
     public String toString() {
-        return "Vec2i(x=" + this.x + ", y=" + this.y + ')';
+        return String.format("Vec2iM(%d,%d)", this.x, this.y);
     }
 }

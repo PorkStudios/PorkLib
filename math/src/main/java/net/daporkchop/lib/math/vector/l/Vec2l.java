@@ -15,27 +15,19 @@
 
 package net.daporkchop.lib.math.vector.l;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 /**
- * A 2-dimensional vector
+ * A 2-dimensional vector.
  *
  * @author DaPorkchop_
  */
-public class Vec2l implements LongVector2 {
-    private final long x;
-    private final long y;
-
-    public Vec2l(long x, long y) {
-        this.x = x;
-        this.y = y;
-    }
-
-    public long getX() {
-        return this.x;
-    }
-
-    public long getY() {
-        return this.y;
-    }
+@AllArgsConstructor
+@Getter
+public final class Vec2l implements LongVector2 {
+    protected final long x;
+    protected final long y;
 
     @Override
     public LongVector2 add(long x, long y) {
@@ -59,21 +51,22 @@ public class Vec2l implements LongVector2 {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof Vec2l)) {
+        if (!(obj instanceof LongVector2)) {
             return false;
         }
 
-        Vec2l vec = (Vec2l) obj;
-        return this.x == vec.x && this.y == vec.y;
+        LongVector2 vec = (LongVector2) obj;
+        return this.x == vec.getX() && this.y == vec.getY();
     }
 
     @Override
     public int hashCode() {
-        return 31 * (int) (this.x ^ (this.x >>> 32)) + (int) (this.y ^ (this.y >>> 32));
+        long l = this.x * 134743063592451439L + this.y;
+        return (int) (l ^ (l >>> 32L));
     }
 
     @Override
     public String toString() {
-        return "Vec2l(x=" + this.x + ", y=" + this.y + ')';
+        return String.format("Vec2l(%d,%d)", this.x, this.y);
     }
 }

@@ -15,45 +15,22 @@
 
 package net.daporkchop.lib.math.vector.i;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+
 /**
- * A 3-dimensional vector
+ * A 3-dimensional vector.
  *
  * @author DaPorkchop_
  */
-public class Vec3iM implements IntVector3 {
-    private volatile int x;
-    private volatile int y;
-    private volatile int z;
-
-    public Vec3iM(int x, int y, int z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-    }
-
-    public int getX() {
-        return this.x;
-    }
-
-    public void setX(int x) {
-        this.x = x;
-    }
-
-    public int getY() {
-        return this.y;
-    }
-
-    public void setY(int y) {
-        this.y = y;
-    }
-
-    public int getZ() {
-        return this.z;
-    }
-
-    public void setZ(int z) {
-        this.z = z;
-    }
+@RequiredArgsConstructor
+@Getter
+@Setter
+public final class Vec3iM implements IntVector3 {
+    private int x;
+    private int y;
+    private int z;
 
     @Override
     public IntVector3 add(int x, int y, int z) {
@@ -89,21 +66,21 @@ public class Vec3iM implements IntVector3 {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof Vec3iM)) {
+        if (!(obj instanceof IntVector3)) {
             return false;
         }
 
-        Vec3iM vec = (Vec3iM) obj;
-        return this.x == vec.x && this.y == vec.y && this.z == vec.z;
+        IntVector3 vec = (IntVector3) obj;
+        return this.x == vec.getX() && this.y == vec.getY() && this.z == vec.getZ();
     }
 
     @Override
     public int hashCode() {
-        return this.x * 31 * 31 + this.y * 31 + this.z;
+        return (this.x * 128675773 + this.y) * 659829659 + this.z;
     }
 
     @Override
     public String toString() {
-        return "Vec3iM(x=" + this.x + ", y=" + this.y + ", z=" + this.z + ')';
+        return String.format("Vec3iM(%d,%d,%d)", this.x, this.y, this.z);
     }
 }

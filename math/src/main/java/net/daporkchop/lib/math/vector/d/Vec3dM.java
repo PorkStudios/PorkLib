@@ -15,45 +15,23 @@
 
 package net.daporkchop.lib.math.vector.d;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+
 /**
- * A 3-dimensional vector
+ * A 3-dimensional vector.
  *
  * @author DaPorkchop_
  */
-public class Vec3dM implements DoubleVector3 {
-    private volatile double x;
-    private volatile double y;
-    private volatile double z;
-
-    public Vec3dM(double x, double y, double z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-    }
-
-    public double getX() {
-        return this.x;
-    }
-
-    public void setX(double x) {
-        this.x = x;
-    }
-
-    public double getY() {
-        return this.y;
-    }
-
-    public void setY(double y) {
-        this.y = y;
-    }
-
-    public double getZ() {
-        return this.z;
-    }
-
-    public void setZ(double z) {
-        this.z = z;
-    }
+@AllArgsConstructor
+@Getter
+@Setter
+public final class Vec3dM implements DoubleVector3 {
+    protected double x;
+    protected double y;
+    protected double z;
 
     @Override
     public DoubleVector3 add(double x, double y, double z) {
@@ -89,24 +67,22 @@ public class Vec3dM implements DoubleVector3 {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof Vec3dM)) {
+        if (!(obj instanceof DoubleVector3)) {
             return false;
         }
 
-        Vec3dM vec = (Vec3dM) obj;
-        return this.x == vec.x && this.y == vec.y && this.z == vec.z;
+        DoubleVector3 vec = (DoubleVector3) obj;
+        return this.x == vec.getX() && this.y == vec.getY() && this.z == vec.getZ();
     }
 
     @Override
     public int hashCode() {
-        long xBits = Double.doubleToLongBits(this.x);
-        long yBits = Double.doubleToLongBits(this.y);
-        long zBits = Double.doubleToLongBits(this.z);
-        return 31 * 31 * (int) (xBits ^ (xBits >>> 32)) + 31 * (int) (yBits ^ (yBits >>> 32)) + (int) (zBits ^ (zBits >>> 32));
+        long l = (Double.doubleToLongBits(this.x) * 1260314835565697L + Double.doubleToLongBits(this.y)) * 617654310259680119L + Double.doubleToLongBits(this.z);
+        return (int) (l ^ (l >>> 32L));
     }
 
     @Override
     public String toString() {
-        return "Vec3dM(x=" + this.x + ", y=" + this.y + ", z=" + this.z + ')';
+        return String.format("Vec3dM(%f,%f,%f)", this.x, this.y, this.z);
     }
 }

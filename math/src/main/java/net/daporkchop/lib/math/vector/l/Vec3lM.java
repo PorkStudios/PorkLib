@@ -15,45 +15,22 @@
 
 package net.daporkchop.lib.math.vector.l;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+
 /**
- * A 3-dimensional vector
+ * A 3-dimensional vector.
  *
  * @author DaPorkchop_
  */
-public class Vec3lM implements LongVector3 {
-    private volatile long x;
-    private volatile long y;
-    private volatile long z;
-
-    public Vec3lM(long x, long y, long z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-    }
-
-    public long getX() {
-        return this.x;
-    }
-
-    public void setX(long x) {
-        this.x = x;
-    }
-
-    public long getY() {
-        return this.y;
-    }
-
-    public void setY(long y) {
-        this.y = y;
-    }
-
-    public long getZ() {
-        return this.z;
-    }
-
-    public void setZ(long z) {
-        this.z = z;
-    }
+@AllArgsConstructor
+@Getter
+@Setter
+public final class Vec3lM implements LongVector3 {
+    protected long x;
+    protected long y;
+    protected long z;
 
     @Override
     public LongVector3 add(long x, long y, long z) {
@@ -89,21 +66,22 @@ public class Vec3lM implements LongVector3 {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof Vec3lM)) {
+        if (!(obj instanceof LongVector3)) {
             return false;
         }
 
-        Vec3lM vec = (Vec3lM) obj;
-        return this.x == vec.x && this.y == vec.y && this.z == vec.z;
+        LongVector3 vec = (LongVector3) obj;
+        return this.x == vec.getX() && this.y == vec.getY() && this.z == vec.getZ();
     }
 
     @Override
     public int hashCode() {
-        return 31 * 31 * (int) (this.x ^ (this.x >>> 32)) + 31 * (int) (this.y ^ (this.y >>> 32)) + (int) (this.z ^ (this.z >>> 32));
+        long l = (this.x * 611573530454211019L + this.y) * 32185023686116541L + this.z;
+        return (int) (l ^ (l >>> 32L));
     }
 
     @Override
     public String toString() {
-        return "Vec3iM(x=" + this.x + ", y=" + this.y + ", z=" + this.z + ')';
+        return String.format("Vec3lM(%d,%d,%d)", this.x, this.y, this.z);
     }
 }

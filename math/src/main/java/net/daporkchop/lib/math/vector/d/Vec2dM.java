@@ -15,35 +15,22 @@
 
 package net.daporkchop.lib.math.vector.d;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+
 /**
- * A 2-dimensional vector
+ * A 2-dimensional vector.
  *
  * @author DaPorkchop_
  */
-public class Vec2dM implements DoubleVector2 {
-    private volatile double x;
-    private volatile double y;
-
-    public Vec2dM(double x, double y) {
-        this.x = x;
-        this.y = y;
-    }
-
-    public double getX() {
-        return this.x;
-    }
-
-    public void setX(double x) {
-        this.x = x;
-    }
-
-    public double getY() {
-        return this.y;
-    }
-
-    public void setY(double y) {
-        this.y = y;
-    }
+@AllArgsConstructor
+@Getter
+@Setter
+public final class Vec2dM implements DoubleVector2 {
+    protected double x;
+    protected double y;
 
     @Override
     public DoubleVector2 add(double x, double y) {
@@ -75,23 +62,22 @@ public class Vec2dM implements DoubleVector2 {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof Vec2dM)) {
+        if (!(obj instanceof DoubleVector2)) {
             return false;
         }
 
-        Vec2dM vec = (Vec2dM) obj;
-        return this.x == vec.x && this.y == vec.y;
+        DoubleVector2 vec = (DoubleVector2) obj;
+        return this.x == vec.getX() && this.y == vec.getY();
     }
 
     @Override
     public int hashCode() {
-        long xBits = Double.doubleToLongBits(this.x);
-        long yBits = Double.doubleToLongBits(this.y);
-        return 31 * (int) (xBits ^ (xBits >>> 32)) + (int) (yBits ^ (yBits >>> 32));
+        long l = Double.doubleToLongBits(this.x) * 138816143696382679L + Double.doubleToLongBits(this.y);
+        return (int) (l ^ (l >>> 32L));
     }
 
     @Override
     public String toString() {
-        return "Vec2dM(x=" + this.x + ", y=" + this.y + ')';
+        return String.format("Vec2dM(%f,%f)", this.x, this.y);
     }
 }

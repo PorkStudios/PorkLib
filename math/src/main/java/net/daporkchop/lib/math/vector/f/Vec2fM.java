@@ -15,35 +15,22 @@
 
 package net.daporkchop.lib.math.vector.f;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+
 /**
- * A 2-dimensional vector
+ * A 2-dimensional vector.
  *
  * @author DaPorkchop_
  */
-public class Vec2fM implements FloatVector2 {
-    private volatile float x;
-    private volatile float y;
-
-    public Vec2fM(float x, float y) {
-        this.x = x;
-        this.y = y;
-    }
-
-    public float getX() {
-        return this.x;
-    }
-
-    public void setX(float x) {
-        this.x = x;
-    }
-
-    public float getY() {
-        return this.y;
-    }
-
-    public void setY(float y) {
-        this.y = y;
-    }
+@AllArgsConstructor
+@Getter
+@Setter
+public final class Vec2fM implements FloatVector2 {
+    protected float x;
+    protected float y;
 
     @Override
     public FloatVector2 add(float x, float y) {
@@ -75,23 +62,21 @@ public class Vec2fM implements FloatVector2 {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof Vec2fM)) {
+        if (!(obj instanceof FloatVector2)) {
             return false;
         }
 
-        Vec2fM vec = (Vec2fM) obj;
-        return this.x == vec.x && this.y == vec.y;
+        FloatVector2 vec = (FloatVector2) obj;
+        return this.x == vec.getX() && this.y == vec.getY();
     }
 
     @Override
     public int hashCode() {
-        int xBits = Float.floatToIntBits(this.x);
-        int yBits = Float.floatToIntBits(this.y);
-        return xBits ^ ((yBits >>> 16) | (yBits << 16));
+        return Float.floatToIntBits(this.x) * 926373397 + Float.floatToIntBits(this.y);
     }
 
     @Override
     public String toString() {
-        return "Vec2fM(x=" + this.x + ", y=" + this.y + ')';
+        return String.format("Vec2fM(%f,%f)", this.x, this.y);
     }
 }

@@ -15,8 +15,6 @@
 
 package net.daporkchop.lib.math.vector.i;
 
-import net.daporkchop.lib.math.primitive.BinMath;
-
 /**
  * A simple 3D vector, consisting of an X, Y and Z coordinate
  * Because this is minecraft, we can safely assume that:
@@ -28,7 +26,7 @@ import net.daporkchop.lib.math.primitive.BinMath;
  * @author DaPorkchop_
  */
 public class MinecraftVec3i {
-    private static final int NUM_X_BITS = 1 + Log2.log2(BinMath.roundToNearestPowerOf2(30000000));
+    private static final int NUM_X_BITS = 26;
     private static final int NUM_Z_BITS = NUM_X_BITS;
     private static final int NUM_Y_BITS = 64 - NUM_X_BITS - NUM_Z_BITS;
     private static final int Y_SHIFT = NUM_Z_BITS;
@@ -40,7 +38,7 @@ public class MinecraftVec3i {
     /**
      * The actual data containing the X,Y,Z coordinates
      */
-    private volatile long backing;
+    private long backing;
 
     /**
      * Create an empty vector at:
@@ -172,59 +170,29 @@ public class MinecraftVec3i {
     }
 
     /**
-     * Check if this vector is equal to another one
-     *
-     * @param vec The vector to compare with
-     * @return Whether to not this vector stores the same position as the given one
-     */
-    public boolean equals(MinecraftVec3i vec) {
-        return vec != null && vec.backing == this.backing;
-    }
-
-    /**
      * Make a duplicate of this vector
      *
      * @return A new object with the same coordinates as this vector
      */
+    @Override
     public MinecraftVec3i clone() {
-        MinecraftVec3i minecraftVec3i = this.clone();
         return new MinecraftVec3i(this.backing);
     }
 
-    static class Log2 {
-        private static final int[] DE_BRUIJN = {0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8, 31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9};
-
-        private static int calculateDeBruijn(int value) {
-            value = IsPow2.checkInt(value) ? value : BinMath.roundToNearestPowerOf2(value);
-            return DE_BRUIJN[(int) ((long) value * 125613361L >> 27) & 31];
-        }
-
-        public static int log2(int value) {
-            return calculateDeBruijn(value) - (IsPow2.checkInt(value) ? 0 : 1);
-        }
-
-        private Log2() {
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof MinecraftVec3i)  {
+            return this.backing == ((MinecraftVec3i) obj).backing;
+        } else if (obj instanceof IntVector3)   {
+            IntVector3 vec = (IntVector3) obj;
+            return this.getX() == vec.getX() && this.getY() == vec.getY() && this.getZ() == vec.getZ();
+        } else {
+            return false;
         }
     }
 
-    static class IsPow2 {
-        public static boolean checkLong(long value) {
-            return value != 0L && (value & value - 1L) == 0L;
-        }
-
-        public static boolean checkInt(int value) {
-            return value != 0 && (value & value - 1) == 0;
-        }
-
-        public static boolean checkShort(short value) {
-            return value != 0 && (value & value - 1) == 0;
-        }
-
-        public static boolean checkByte(byte value) {
-            return value != 0 && (value & value - 1) == 0;
-        }
-
-        private IsPow2() {
-        }
+    @Override
+    public int hashCode() {
+        return super.hashCode();
     }
 }

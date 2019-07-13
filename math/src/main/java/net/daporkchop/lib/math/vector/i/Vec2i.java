@@ -15,31 +15,23 @@
 
 package net.daporkchop.lib.math.vector.i;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 /**
  * A 2-dimensional vector
  *
  * @author DaPorkchop_
  */
-public class Vec2i implements IntVector2 {
-    private final int x;
-    private final int y;
-
-    public Vec2i(int x, int y) {
-        this.x = x;
-        this.y = y;
-    }
+@RequiredArgsConstructor
+@Getter
+public final class Vec2i implements IntVector2 {
+    protected final int x;
+    protected final int y;
 
     public Vec2i(long encoded) {
         this.x = (int) (encoded >> 32);
         this.y = (int) encoded;
-    }
-
-    public int getX() {
-        return this.x;
-    }
-
-    public int getY() {
-        return this.y;
     }
 
     @Override
@@ -68,21 +60,21 @@ public class Vec2i implements IntVector2 {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof Vec2i)) {
+        if (!(obj instanceof IntVector2)) {
             return false;
         }
 
-        Vec2i vec = (Vec2i) obj;
-        return this.x == vec.x && this.y == vec.y;
+        IntVector2 vec = (IntVector2) obj;
+        return this.x == vec.getX() && this.y == vec.getY();
     }
 
     @Override
     public int hashCode() {
-        return this.x * 31 + this.y;
+        return this.x * 1799125309 + this.y;
     }
 
     @Override
     public String toString() {
-        return "Vec2i(x=" + this.x + ", y=" + this.y + ')';
+        return String.format("Vec2i(%d,%d)", this.x, this.y);
     }
 }

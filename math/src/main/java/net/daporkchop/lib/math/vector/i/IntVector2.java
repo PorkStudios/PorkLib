@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.math.vector.i;
 
+//TODO: refactor all the vector stuff
 public interface IntVector2 {
     int getX();
 

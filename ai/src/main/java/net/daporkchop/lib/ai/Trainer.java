@@ -13,6 +13,29 @@
  *
  */
 
-dependencies {
-    compile "nl.sandergielisse:mythan:1.0-SNAPSHOT"
+package net.daporkchop.lib.ai;
+
+/**
+ * Helper class to manage training of AIs.
+ *
+ * @author DaPorkchop_
+ */
+//TODO: this should be made using futures and stuff, so that training may be paused, etc.
+public interface Trainer<A extends AI> /*extends Serializable*/ {
+    /**
+     * @return the specimen with the highest fitness
+     */
+    A fittestSpecimen();
+
+    /**
+     * @return the {@link Evaluator} instance being used by this trainer
+     */
+    Evaluator<A> evaluator();
+
+    /**
+     * Initiates the training cycle, continuing until a specimen reaches at least the given fitness.
+     *
+     * @param fitness the minimum fitness to train to
+     */
+    void trainToFitness(double fitness);
 }

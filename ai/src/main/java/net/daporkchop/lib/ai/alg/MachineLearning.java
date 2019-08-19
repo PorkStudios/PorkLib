@@ -13,6 +13,15 @@
  *
  */
 
-dependencies {
-    compile "nl.sandergielisse:mythan:1.0-SNAPSHOT"
+package net.daporkchop.lib.ai.alg;
+
+import net.daporkchop.lib.ai.AI;
+import net.daporkchop.lib.ai.Evaluator;
+
+/**
+ * Abstract representation of a machine learning algorithm.
+ *
+ * @author DaPorkchop_
+ */
+public interface MachineLearning<A extends AI, O extends TrainingOptions<A, O>> {
 }

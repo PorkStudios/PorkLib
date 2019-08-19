@@ -13,6 +13,14 @@
  *
  */
 
-dependencies {
-    compile "nl.sandergielisse:mythan:1.0-SNAPSHOT"
+package net.daporkchop.lib.ai;
+
+/**
+ * An {@link AI} based on a network of interconnected nodes.
+ *
+ * A neural network typically has a fixed number of inputs and outputs.
+ *
+ * @author DaPorkchop_
+ */
+public interface NeuralNetwork extends AI {
 }

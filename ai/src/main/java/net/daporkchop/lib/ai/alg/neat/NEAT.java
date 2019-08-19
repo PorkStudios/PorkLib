@@ -13,6 +13,10 @@
  *
  */
 
-dependencies {
-    compile "nl.sandergielisse:mythan:1.0-SNAPSHOT"
+package net.daporkchop.lib.ai.alg.neat;
+
+/**
+ * @author DaPorkchop_
+ */
+public class NEAT {
 }

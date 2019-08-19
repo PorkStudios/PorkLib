@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.ai.alg.neat;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -31,14 +32,14 @@ import net.daporkchop.lib.ai.alg.MachineLearning;
  * @see NEAT
  */
 @Accessors(chain = true, fluent = true)
-@RequiredArgsConstructor
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 public class NEATTrainer implements Trainer<NeuralNetwork, NEATOptions> {
     @NonNull
     @Getter
-    protected final NEATOptions options;
+    protected final Evaluator<NeuralNetwork> evaluator;
     @NonNull
     @Getter
-    protected final Evaluator<NeuralNetwork> evaluator;
+    protected final NEATOptions options;
     @NonNull
     @Getter
     protected final NEAT algorithm;

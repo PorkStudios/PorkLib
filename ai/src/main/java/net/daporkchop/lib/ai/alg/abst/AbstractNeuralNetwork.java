@@ -13,29 +13,34 @@
  *
  */
 
-package net.daporkchop.lib.ai.alg.neat;
+package net.daporkchop.lib.ai.alg.abst;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.ai.Evaluator;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.ai.NeuralNetwork;
-import net.daporkchop.lib.ai.Trainer;
-import net.daporkchop.lib.ai.alg.MachineLearning;
 
 /**
- * Implementation of the Neuroevolution of Augmenting Topologies (NEAT) algorithm, made by Kenneth O. Stanley
- * and Risto Miikkulainen (see http://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf).
+ * A basic implementation of {@link NeuralNetwork}.
  *
  * @author DaPorkchop_
  */
-public class NEAT implements MachineLearning<NeuralNetwork, NEATOptions> {
-    @Override
-    public NEATTrainer beginTraining(@NonNull Evaluator<NeuralNetwork> evaluator, @NonNull NEATOptions options) {
-        if (options.inputs <= 0)    {
-            throw new IllegalArgumentException("Number of inputs must be set!");
-        } else if (options.outputs <= 0)    {
-            throw new IllegalArgumentException("Number of outputs must be set!");
-        } else {
-            return new NEATTrainer(evaluator, options, this);
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public abstract class AbstractNeuralNetwork implements NeuralNetwork {
+    protected int inputs = -1;
+    protected int outputs = -1;
+
+    protected void validateParameters(@NonNull double[] inputs, @NonNull double[] outputs) throws IllegalArgumentException  {
+        if (inputs.length != this.inputs)   {
+            throw new IllegalArgumentException(String.format("Invalid input count! Expected %d, found %d", this.inputs, inputs.length));
+        } else if (outputs.length != this.outputs)   {
+            throw new IllegalArgumentException(String.format("Invalid output count! Expected %d, found %d", this.outputs, outputs.length));
         }
     }
 }

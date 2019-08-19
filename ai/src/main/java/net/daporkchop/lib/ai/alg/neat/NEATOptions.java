@@ -16,10 +16,13 @@
 package net.daporkchop.lib.ai.alg.neat;
 
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.ai.NeuralNetwork;
 import net.daporkchop.lib.ai.alg.TrainingOptions;
+
+import java.util.function.DoubleUnaryOperator;
 
 /**
  * Options for training a neural network using the NEAT algorithm.
@@ -30,6 +33,9 @@ import net.daporkchop.lib.ai.alg.TrainingOptions;
 @Getter
 @Setter
 public class NEATOptions extends TrainingOptions<NEATNetwork, NEATOptions> {
+    protected int inputs = 0;
+    protected int outputs = 0;
+
     protected double geneDisableChance = 0.75D;
     protected double mutationWeightChance = 0.8D;
     protected double mutationWeightRandomChance = 0.1D;
@@ -43,4 +49,7 @@ public class NEATOptions extends TrainingOptions<NEATNetwork, NEATOptions> {
     protected double generationEliminationPercentage = 0.9D;
     protected double breedCrossChance = 0.75D;
     protected double mutationWeightChanceRandomRange = 5.0D;
+
+    @NonNull
+    protected DoubleUnaryOperator activationFunction = x -> 1.0D / (1.0D + Math.exp(-4.9D * x)); //Mythan's "CustomizedSigmoidActivation"
 }

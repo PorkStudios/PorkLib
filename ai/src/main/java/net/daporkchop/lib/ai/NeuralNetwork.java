@@ -15,12 +15,47 @@
 
 package net.daporkchop.lib.ai;
 
+import lombok.NonNull;
+
 /**
  * An {@link AI} based on a network of interconnected nodes.
- *
+ * <p>
  * A neural network typically has a fixed number of inputs and outputs.
  *
  * @author DaPorkchop_
  */
 public interface NeuralNetwork extends AI {
+    /**
+     * Runs the network on the given input data, storing the output values in the given array.
+     *
+     * @param inputs  an array containing the input values
+     * @param outputs an array that the output values will be stored in
+     * @throws IllegalArgumentException if either parameters are not exactly the correct size (see {@link #inputs()} and {@link #outputs()}, respectively)
+     */
+    void compute(@NonNull double[] inputs, @NonNull double[] outputs) throws IllegalArgumentException;
+
+    /**
+     * Runs the network on the given input data, storing the output values in the returned array.
+     * <p>
+     * This method should be avoided in favor of {@link #compute(double[], double[])} if possible.
+     *
+     * @param inputs an array containing the input values
+     * @return an array containing the output values
+     * @throws IllegalArgumentException if the input array is not exactly the same size as {@link #inputs()}
+     */
+    default double[] compute(@NonNull double[] inputs) throws IllegalArgumentException {
+        double[] outputs = new double[this.outputs()];
+        this.compute(inputs, outputs);
+        return outputs;
+    }
+
+    /**
+     * @return the network's input count
+     */
+    int inputs();
+
+    /**
+     * @return the network's output count
+     */
+    int outputs();
 }

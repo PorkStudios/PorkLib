@@ -13,29 +13,9 @@
  *
  */
 
-package net.daporkchop.lib.ai.alg.neat;
-
-import lombok.NonNull;
-import net.daporkchop.lib.ai.Evaluator;
-import net.daporkchop.lib.ai.NeuralNetwork;
-import net.daporkchop.lib.ai.Trainer;
-import net.daporkchop.lib.ai.alg.MachineLearning;
-
 /**
- * Implementation of the Neuroevolution of Augmenting Topologies (NEAT) algorithm, made by Kenneth O. Stanley
- * and Risto Miikkulainen (see http://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf).
+ * This implementation of NEAT is based heavily off Mythan: https://github.com/SanderGielisse/Mythan
  *
  * @author DaPorkchop_
  */
-public class NEAT implements MachineLearning<NeuralNetwork, NEATOptions> {
-    @Override
-    public NEATTrainer beginTraining(@NonNull Evaluator<NeuralNetwork> evaluator, @NonNull NEATOptions options) {
-        if (options.inputs <= 0)    {
-            throw new IllegalArgumentException("Number of inputs must be set!");
-        } else if (options.outputs <= 0)    {
-            throw new IllegalArgumentException("Number of outputs must be set!");
-        } else {
-            return new NEATTrainer(evaluator, options, this);
-        }
-    }
-}
+package net.daporkchop.lib.ai.alg.neat;

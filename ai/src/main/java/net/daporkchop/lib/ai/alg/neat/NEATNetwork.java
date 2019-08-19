@@ -17,9 +17,11 @@ package net.daporkchop.lib.ai.alg.neat;
 
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.ai.NeuralNetwork;
+import net.daporkchop.lib.ai.alg.abst.AbstractNeuralNetwork;
 
 /**
  * An implementation of {@link NeuralNetwork} for use in NEAT training.
@@ -28,7 +30,37 @@ import net.daporkchop.lib.ai.NeuralNetwork;
  */
 @Accessors(fluent = true, chain = true)
 @Getter
-public class NEATNetwork implements NeuralNetwork {
+public class NEATNetwork extends AbstractNeuralNetwork {
+
+
+    @Override
+    public void compute(@NonNull double[] inputs, @NonNull double[] outputs) throws IllegalArgumentException {
+    }
+
     @Setter(AccessLevel.PACKAGE)
     protected double fitness = Double.NaN;
+
+    @Accessors(fluent = true)
+    @Getter
+    public static abstract class BaseNode   {
+        protected double weight;
+        protected int innovationNumber; //not quite sure what this is yet...
+        protected boolean enabled;
+    }
+
+    public static abstract class DependantNode extends BaseNode {
+
+    }
+
+    public static final class InputNode extends BaseNode    {
+        protected int inputIndex;
+    }
+
+    public static final class HiddenNode extends DependantNode    {
+        protected int cacheIndex;
+    }
+
+    public static final class OutputNode extends DependantNode    {
+        protected int outputIndex;
+    }
 }

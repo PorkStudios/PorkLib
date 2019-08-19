@@ -13,42 +13,22 @@
  *
  */
 
-package net.daporkchop.lib.ai;
+package net.daporkchop.lib.ai.alg.neat;
 
-import net.daporkchop.lib.ai.alg.MachineLearning;
-import net.daporkchop.lib.ai.alg.TrainingOptions;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.ai.NeuralNetwork;
 
 /**
- * Helper class to manage training of AIs.
+ * An implementation of {@link NeuralNetwork} for use in NEAT training.
  *
  * @author DaPorkchop_
  */
-//TODO: this should be made using futures and stuff, so that training may be paused, etc.
-public interface Trainer<A extends AI, O extends TrainingOptions<? extends A, O>> /*extends Serializable*/ {
-    /**
-     * @return the specimen with the highest fitness
-     */
-    A fittestSpecimen();
-
-    /**
-     * @return the options used by this trainer
-     */
-    O options();
-
-    /**
-     * @return the machine learning algorithm employed by this trainer
-     */
-    MachineLearning<A, O> algorithm();
-
-    /**
-     * @return the {@link Evaluator} instance being used by this trainer
-     */
-    Evaluator<? extends A> evaluator();
-
-    /**
-     * Initiates the training cycle, continuing until a specimen reaches at least the given fitness.
-     *
-     * @param fitness the minimum fitness to train to
-     */
-    void trainToFitness(double fitness);
+@Accessors(fluent = true, chain = true)
+@Getter
+public class NEATNetwork implements NeuralNetwork {
+    @Setter(AccessLevel.PACKAGE)
+    protected double fitness = Double.NaN;
 }

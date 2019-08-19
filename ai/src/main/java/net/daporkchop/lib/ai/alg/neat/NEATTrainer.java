@@ -13,42 +13,42 @@
  *
  */
 
-package net.daporkchop.lib.ai;
+package net.daporkchop.lib.ai.alg.neat;
 
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.ai.Evaluator;
+import net.daporkchop.lib.ai.NeuralNetwork;
+import net.daporkchop.lib.ai.Trainer;
 import net.daporkchop.lib.ai.alg.MachineLearning;
-import net.daporkchop.lib.ai.alg.TrainingOptions;
 
 /**
- * Helper class to manage training of AIs.
+ * Implementation of {@link Trainer} for the NEAT algorithm.
  *
  * @author DaPorkchop_
+ * @see NEAT
  */
-//TODO: this should be made using futures and stuff, so that training may be paused, etc.
-public interface Trainer<A extends AI, O extends TrainingOptions<? extends A, O>> /*extends Serializable*/ {
-    /**
-     * @return the specimen with the highest fitness
-     */
-    A fittestSpecimen();
+@Accessors(chain = true, fluent = true)
+@RequiredArgsConstructor
+public class NEATTrainer implements Trainer<NeuralNetwork, NEATOptions> {
+    @NonNull
+    @Getter
+    protected final NEATOptions options;
+    @NonNull
+    @Getter
+    protected final Evaluator<NeuralNetwork> evaluator;
+    @NonNull
+    @Getter
+    protected final NEAT algorithm;
 
-    /**
-     * @return the options used by this trainer
-     */
-    O options();
+    @Override
+    public NEATNetwork fittestSpecimen() {
+        return null;
+    }
 
-    /**
-     * @return the machine learning algorithm employed by this trainer
-     */
-    MachineLearning<A, O> algorithm();
-
-    /**
-     * @return the {@link Evaluator} instance being used by this trainer
-     */
-    Evaluator<? extends A> evaluator();
-
-    /**
-     * Initiates the training cycle, continuing until a specimen reaches at least the given fitness.
-     *
-     * @param fitness the minimum fitness to train to
-     */
-    void trainToFitness(double fitness);
+    @Override
+    public synchronized void trainToFitness(double fitness) {
+    }
 }

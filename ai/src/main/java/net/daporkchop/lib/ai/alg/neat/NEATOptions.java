@@ -13,42 +13,34 @@
  *
  */
 
-package net.daporkchop.lib.ai;
+package net.daporkchop.lib.ai.alg.neat;
 
-import net.daporkchop.lib.ai.alg.MachineLearning;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.ai.NeuralNetwork;
 import net.daporkchop.lib.ai.alg.TrainingOptions;
 
 /**
- * Helper class to manage training of AIs.
+ * Options for training a neural network using the NEAT algorithm.
  *
  * @author DaPorkchop_
  */
-//TODO: this should be made using futures and stuff, so that training may be paused, etc.
-public interface Trainer<A extends AI, O extends TrainingOptions<? extends A, O>> /*extends Serializable*/ {
-    /**
-     * @return the specimen with the highest fitness
-     */
-    A fittestSpecimen();
-
-    /**
-     * @return the options used by this trainer
-     */
-    O options();
-
-    /**
-     * @return the machine learning algorithm employed by this trainer
-     */
-    MachineLearning<A, O> algorithm();
-
-    /**
-     * @return the {@link Evaluator} instance being used by this trainer
-     */
-    Evaluator<? extends A> evaluator();
-
-    /**
-     * Initiates the training cycle, continuing until a specimen reaches at least the given fitness.
-     *
-     * @param fitness the minimum fitness to train to
-     */
-    void trainToFitness(double fitness);
+@Accessors(chain = true, fluent = true)
+@Getter
+@Setter
+public class NEATOptions extends TrainingOptions<NEATNetwork, NEATOptions> {
+    protected double geneDisableChance = 0.75D;
+    protected double mutationWeightChance = 0.8D;
+    protected double mutationWeightRandomChance = 0.1D;
+    protected double mutationWeightMaxDisturbance = 0.25D;
+    protected double mutationNewConnectionChance = 0.05D;
+    protected double mutationNewNodeChance = 0.03D;
+    protected double distanceExcessWeight = 1.0D;
+    protected double distanceDisjointWeight = 1.0D;
+    protected double distanceWeightsWeight = 0.4D;
+    protected double speciesCompatibilityDistance = 0.8D;
+    protected double generationEliminationPercentage = 0.9D;
+    protected double breedCrossChance = 0.75D;
+    protected double mutationWeightChanceRandomRange = 5.0D;
 }

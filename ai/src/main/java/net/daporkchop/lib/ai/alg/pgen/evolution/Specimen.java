@@ -13,43 +13,27 @@
  *
  */
 
-package net.daporkchop.lib.ai.alg.neat;
+package net.daporkchop.lib.ai.alg.pgen.evolution;
 
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.ai.NeuralNetwork;
-import net.daporkchop.lib.ai.alg.TrainingOptions;
-
-import java.util.function.DoubleUnaryOperator;
 
 /**
- * Options for training a neural network using the NEAT algorithm.
+ * A single member of a species.
  *
  * @author DaPorkchop_
  */
-@Accessors(chain = true, fluent = true)
-@Getter
-@Setter
-public class NEATOptions extends TrainingOptions<NEATNetwork, NEATOptions> {
-    protected int inputs = 0;
-    protected int outputs = 0;
+@Accessors(fluent = true)
+public class Specimen implements NeuralNetwork {
+    @Getter
+    protected final Species species;
+    @Getter
+    protected final Population population;
 
-    protected double geneDisableChance = 0.75D;
-    protected double mutationWeightChance = 0.8D;
-    protected double mutationWeightRandomChance = 0.1D;
-    protected double mutationWeightMaxDisturbance = 0.25D;
-    protected double mutationNewConnectionChance = 0.05D;
-    protected double mutationNewNodeChance = 0.03D;
-    protected double distanceExcessWeight = 1.0D;
-    protected double distanceDisjointWeight = 1.0D;
-    protected double distanceWeightsWeight = 0.4D;
-    protected double speciesCompatibilityDistance = 0.8D;
-    protected double generationEliminationPercentage = 0.9D;
-    protected double breedCrossChance = 0.75D;
-    protected double mutationWeightChanceRandomRange = 5.0D;
-
-    @NonNull
-    protected DoubleUnaryOperator activationFunction = x -> 1.0D / (1.0D + Math.exp(-4.9D * x)); //Mythan's "CustomizedSigmoidActivation"
+    public Specimen(@NonNull Population population) {
+        this.species = population.species;
+        this.population = population;
+    }
 }

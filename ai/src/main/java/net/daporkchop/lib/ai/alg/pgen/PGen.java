@@ -13,9 +13,28 @@
  *
  */
 
+package net.daporkchop.lib.ai.alg.pgen;
+
+import lombok.NonNull;
+import net.daporkchop.lib.ai.Evaluator;
+import net.daporkchop.lib.ai.NeuralNetwork;
+import net.daporkchop.lib.ai.alg.MachineLearning;
+
 /**
- * This implementation of NEAT is based heavily off Mythan: https://github.com/SanderGielisse/Mythan
+ * Implementation of the PGen (PorkGenetic) neural network training algorithm, kinda inspired by NEAT but not really
+ * because I don't really feel like actually reading up on it (i'm lazy lol)
  *
  * @author DaPorkchop_
  */
-package net.daporkchop.lib.ai.alg.neat;
+public class PGen implements MachineLearning<NeuralNetwork, PGenOptions> {
+    @Override
+    public PGenTrainer beginTraining(@NonNull Evaluator<NeuralNetwork> evaluator, @NonNull PGenOptions options) {
+        if (options.inputs <= 0)    {
+            throw new IllegalArgumentException("Number of inputs must be set!");
+        } else if (options.outputs <= 0)    {
+            throw new IllegalArgumentException("Number of outputs must be set!");
+        } else {
+            return new PGenTrainer(evaluator, options, this);
+        }
+    }
+}

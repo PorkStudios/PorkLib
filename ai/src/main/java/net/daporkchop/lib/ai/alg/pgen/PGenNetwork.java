@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.ai.alg.neat;
+package net.daporkchop.lib.ai.alg.pgen;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -25,26 +25,24 @@ import net.daporkchop.lib.ai.NeuralNetwork;
 import net.daporkchop.lib.ai.alg.abst.AbstractNeuralNetwork;
 
 import java.util.function.DoubleUnaryOperator;
-import java.util.function.UnaryOperator;
 
 /**
- * An implementation of {@link NeuralNetwork} for use in NEAT training.
+ * An implementation of {@link NeuralNetwork} for use in PGen training.
  *
  * This is not a particularly efficient implementation, it needs a lot of optimization both in terms of memory and
  * CPU resources, and doesn't allow multithreaded access, but it's basically just a proof-of-concept.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true, chain = true)
-public class NEATNetwork extends AbstractNeuralNetwork {
+public class PGenNetwork extends AbstractNeuralNetwork {
     protected final InputNode[] inputNodes;
     protected final OutputNode[] outputNodes;
     protected final HiddenNode[] hiddenNodes;
     protected final DoubleUnaryOperator activationFunction;
 
-    public NEATNetwork(@NonNull InputNode[] inputNodes, @NonNull OutputNode[] outputNodes, @NonNull HiddenNode[] hiddenNodes, @NonNull DoubleUnaryOperator activationFunction) {
+    public PGenNetwork(@NonNull InputNode[] inputNodes, @NonNull OutputNode[] outputNodes, @NonNull HiddenNode[] hiddenNodes, @NonNull DoubleUnaryOperator activationFunction) {
         super(inputNodes.length, outputNodes.length);
 
         this.inputNodes = inputNodes;

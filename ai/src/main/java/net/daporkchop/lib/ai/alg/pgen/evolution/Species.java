@@ -13,43 +13,44 @@
  *
  */
 
-package net.daporkchop.lib.ai.alg.neat;
+package net.daporkchop.lib.ai.alg.pgen.evolution;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.ai.Evaluator;
-import net.daporkchop.lib.ai.NeuralNetwork;
-import net.daporkchop.lib.ai.Trainer;
-import net.daporkchop.lib.ai.alg.MachineLearning;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Implementation of {@link Trainer} for the NEAT algorithm.
+ * A group of specimens with unique traits inherited over multiple generations.
+ *
+ * A species will split in half once the previous species' survivors of a single generation are considered too "different"
+ * from one another to produce offspring.
+ *
+ * However, there is still a low chance that survivors will breed with a member of another distinct species, bringing
+ * traits from a totally different gene pool into the species (assuming the offspring survives).
  *
  * @author DaPorkchop_
- * @see NEAT
  */
-@Accessors(chain = true, fluent = true)
-@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
-public class NEATTrainer implements Trainer<NeuralNetwork, NEATOptions> {
-    @NonNull
-    @Getter
-    protected final Evaluator<NeuralNetwork> evaluator;
-    @NonNull
-    @Getter
-    protected final NEATOptions options;
-    @NonNull
-    @Getter
-    protected final NEAT algorithm;
+@Getter
+@Accessors(fluent = true)
+public class Species {
+    protected final List<Population> populations;
 
-    @Override
-    public NEATNetwork fittestSpecimen() {
-        return null;
+    protected final int branchedOnGeneration;
+    protected int generation;
+
+    public Species()    {
+        this.populations = new ArrayList<>();
+
+        this.branchedOnGeneration = this.generation = 0;
     }
 
-    @Override
-    public synchronized void trainToFitness(double fitness) {
+    public Species(@NonNull Species parent) {
+        this.populations = new ArrayList<>(parent.populations);
+
+        this.branchedOnGeneration = this.generation = parent.generation;
     }
 }

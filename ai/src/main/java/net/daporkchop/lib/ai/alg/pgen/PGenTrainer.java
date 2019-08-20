@@ -13,29 +13,44 @@
  *
  */
 
-package net.daporkchop.lib.ai.alg.neat;
+package net.daporkchop.lib.ai.alg.pgen;
 
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.ai.Evaluator;
 import net.daporkchop.lib.ai.NeuralNetwork;
 import net.daporkchop.lib.ai.Trainer;
-import net.daporkchop.lib.ai.alg.MachineLearning;
 
 /**
- * Implementation of the Neuroevolution of Augmenting Topologies (NEAT) algorithm, made by Kenneth O. Stanley
- * and Risto Miikkulainen (see http://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf).
+ * Implementation of {@link Trainer} for the PGen algorithm.
  *
  * @author DaPorkchop_
+ * @see PGen
  */
-public class NEAT implements MachineLearning<NeuralNetwork, NEATOptions> {
+@Accessors(chain = true, fluent = true)
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+public class PGenTrainer implements Trainer<NeuralNetwork, PGenOptions> {
+    @NonNull
+    @Getter
+    protected final Evaluator<NeuralNetwork> evaluator;
+    @NonNull
+    @Getter
+    protected final PGenOptions options;
+    @NonNull
+    @Getter
+    protected final PGen algorithm;
+
+    protected final
+
     @Override
-    public NEATTrainer beginTraining(@NonNull Evaluator<NeuralNetwork> evaluator, @NonNull NEATOptions options) {
-        if (options.inputs <= 0)    {
-            throw new IllegalArgumentException("Number of inputs must be set!");
-        } else if (options.outputs <= 0)    {
-            throw new IllegalArgumentException("Number of outputs must be set!");
-        } else {
-            return new NEATTrainer(evaluator, options, this);
-        }
+    public PGenNetwork fittestSpecimen() {
+        return null;
+    }
+
+    @Override
+    public synchronized void trainToFitness(double fitness) {
     }
 }

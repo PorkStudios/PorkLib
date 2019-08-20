@@ -29,12 +29,11 @@ import net.daporkchop.lib.ai.NeuralNetwork;
  * @author DaPorkchop_
  */
 @AllArgsConstructor
-@NoArgsConstructor
 @Getter
 @Accessors(fluent = true)
 public abstract class AbstractNeuralNetwork implements NeuralNetwork {
-    protected int inputs = -1;
-    protected int outputs = -1;
+    protected final int inputs;
+    protected final int outputs;
 
     protected void validateParameters(@NonNull double[] inputs, @NonNull double[] outputs) throws IllegalArgumentException  {
         if (inputs.length != this.inputs)   {

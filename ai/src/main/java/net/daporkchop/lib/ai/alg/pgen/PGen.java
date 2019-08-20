@@ -19,6 +19,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.ai.Evaluator;
 import net.daporkchop.lib.ai.NeuralNetwork;
 import net.daporkchop.lib.ai.alg.MachineLearning;
+import net.daporkchop.lib.ai.alg.pgen.evolution.PGenTrainer;
 
 /**
  * Implementation of the PGen (PorkGenetic) neural network training algorithm, kinda inspired by NEAT but not really
@@ -34,7 +35,7 @@ public class PGen implements MachineLearning<NeuralNetwork, PGenOptions> {
         } else if (options.outputs <= 0)    {
             throw new IllegalArgumentException("Number of outputs must be set!");
         } else {
-            return new PGenTrainer(evaluator, options, this);
+            return new PGenTrainer(evaluator, options);
         }
     }
 }

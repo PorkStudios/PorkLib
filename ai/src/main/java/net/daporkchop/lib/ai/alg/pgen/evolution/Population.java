@@ -28,8 +28,6 @@ import lombok.experimental.Accessors;
  *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-@RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
 public class Population {
@@ -38,6 +36,12 @@ public class Population {
     @NonNull
     protected final Species species;
     protected final int generation;
+
+    public Population(@NonNull Specimen[] members, @NonNull Species species)    {
+        this.members = members;
+        this.species = species;
+        this.generation = species.generation;
+    }
 
     /**
      * @return the population that came before this one, or {@code null} if this is the base population

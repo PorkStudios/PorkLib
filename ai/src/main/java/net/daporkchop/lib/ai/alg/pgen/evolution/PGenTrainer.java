@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.ai.alg.pgen;
+package net.daporkchop.lib.ai.alg.pgen.evolution;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -23,6 +23,15 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.ai.Evaluator;
 import net.daporkchop.lib.ai.NeuralNetwork;
 import net.daporkchop.lib.ai.Trainer;
+import net.daporkchop.lib.ai.alg.pgen.PGen;
+import net.daporkchop.lib.ai.alg.pgen.PGenNetwork;
+import net.daporkchop.lib.ai.alg.pgen.PGenOptions;
+import net.daporkchop.lib.ai.alg.pgen.evolution.Species;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Implementation of {@link Trainer} for the PGen algorithm.
@@ -31,19 +40,22 @@ import net.daporkchop.lib.ai.Trainer;
  * @see PGen
  */
 @Accessors(chain = true, fluent = true)
-@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 public class PGenTrainer implements Trainer<NeuralNetwork, PGenOptions> {
-    @NonNull
     @Getter
     protected final Evaluator<NeuralNetwork> evaluator;
-    @NonNull
     @Getter
     protected final PGenOptions options;
-    @NonNull
-    @Getter
-    protected final PGen algorithm;
 
-    protected final
+    protected final List<Species> species = new ArrayList<>();
+    protected final int[] activeSpecies;
+    protected int generation = 0;
+
+    public PGenTrainer(@NonNull Evaluator<NeuralNetwork> evaluator, @NonNull PGenOptions options)   {
+        this.evaluator = evaluator;
+        this.options = options;
+
+        Arrays.fill(this.activeSpecies = new int[options.maxSpeciesCount()], -1);
+    }
 
     @Override
     public PGenNetwork fittestSpecimen() {
@@ -52,5 +64,18 @@ public class PGenTrainer implements Trainer<NeuralNetwork, PGenOptions> {
 
     @Override
     public synchronized void trainToFitness(double fitness) {
+        while (this.fittestSpecimen() == null || this.fittestSpecimen().fitness() < fitness)    {
+        }
+    }
+
+    protected void buildNextGeneration()    {
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        if (this.generation > 0)    {
+            //build generation based on previous one
+        } else {
+            //training has not started yet, generate random base population
+            Species species = new Species(this);
+            Population population = new Population(new Specimen[this.options.baseSpeciesSize()], species);
+        }
     }
 }

@@ -22,18 +22,21 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.ai.NeuralNetwork;
+import net.daporkchop.lib.ai.alg.TrainingOptions;
 
 /**
  * A basic implementation of {@link NeuralNetwork}.
  *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
 public abstract class AbstractNeuralNetwork implements NeuralNetwork {
     protected final int inputs;
     protected final int outputs;
+
+    protected double fitness = Double.NaN;
 
     protected void validateParameters(@NonNull double[] inputs, @NonNull double[] outputs) throws IllegalArgumentException  {
         if (inputs.length != this.inputs)   {

@@ -36,8 +36,7 @@ public class PGenOptions extends TrainingOptions<PGenNetwork, PGenOptions> {
     protected int outputs = 0;
 
     //these default values are somewhat very arbitrary
-    protected double mutationNewNodeChance = 0.1d;
-    protected double mutationNewConnectionChance = 0.2d;
+    protected double mutationNewConnectionChance = 0.3d;
     protected double mutationDeleteConnectionChance = 0.1d;
     protected double mutationWeightMaxDeviation = 0.06d;
     protected double speciesCrossBreedChance = 0.1d;

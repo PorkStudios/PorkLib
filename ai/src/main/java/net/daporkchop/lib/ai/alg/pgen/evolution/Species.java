@@ -17,7 +17,6 @@ package net.daporkchop.lib.ai.alg.pgen.evolution;
 
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.util.ArrayList;
@@ -26,8 +25,8 @@ import java.util.List;
 /**
  * A group of specimens with unique traits inherited over multiple generations.
  *
- * A species will split in half once the previous species' survivors of a single generation are considered too "different"
- * from one another to produce offspring.
+ * A species will split off from the base once the base species' survivors of a single generation are considered too
+ * "different" from one another to produce offspring.
  *
  * However, there is still a low chance that survivors will breed with a member of another distinct species, bringing
  * traits from a totally different gene pool into the species (assuming the offspring survives).
@@ -37,20 +36,33 @@ import java.util.List;
 @Getter
 @Accessors(fluent = true)
 public class Species {
+    protected final PGenTrainer trainer;
     protected final List<Population> populations;
 
+    protected final List<Integer> children = new ArrayList<>();
+
+    protected final int id;
+    protected final int parent;
     protected final int branchedOnGeneration;
     protected int generation;
 
-    public Species()    {
+    public Species(@NonNull PGenTrainer trainer)    {
+        this.trainer = trainer;
         this.populations = new ArrayList<>();
 
+        this.id = 0;
+        this.parent = -1;
+        trainer.species.add(this);
         this.branchedOnGeneration = this.generation = 0;
     }
 
-    public Species(@NonNull Species parent) {
+    public Species(@NonNull PGenTrainer trainer, @NonNull Species parent) {
+        this.trainer = trainer;
         this.populations = new ArrayList<>(parent.populations);
 
+        this.id = trainer.species.size();
+        this.parent = parent.id;
+        trainer.species.add(this);
         this.branchedOnGeneration = this.generation = parent.generation;
     }
 }

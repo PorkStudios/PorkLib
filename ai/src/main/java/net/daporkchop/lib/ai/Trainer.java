@@ -36,11 +36,6 @@ public interface Trainer<A extends AI, O extends TrainingOptions<? extends A, O>
     O options();
 
     /**
-     * @return the machine learning algorithm employed by this trainer
-     */
-    MachineLearning<A, O> algorithm();
-
-    /**
      * @return the {@link Evaluator} instance being used by this trainer
      */
     Evaluator<? extends A> evaluator();

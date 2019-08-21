@@ -32,7 +32,7 @@ public interface DirectMemoryHolder extends Releasable {
      * @throws AlreadyReleasedException if the memory was already released
      */
     @Override
-    void release() throws AlreadyReleasedException;
+    DirectMemoryHolder release() throws AlreadyReleasedException;
 
     /**
      * An abstract implementation of {@link DirectMemoryHolder} which handles the basic behaviors
@@ -51,13 +51,14 @@ public interface DirectMemoryHolder extends Releasable {
         }
 
         @Override
-        public void release() throws AlreadyReleasedException {
+        public DirectMemoryHolder release() throws AlreadyReleasedException {
             synchronized (this.cleaner) {
                 if (this.cleaner.isCleaned()) {
                     throw new AlreadyReleasedException();
                 }
                 this.cleaner.clean();
             }
+            return this;
         }
     }
 }

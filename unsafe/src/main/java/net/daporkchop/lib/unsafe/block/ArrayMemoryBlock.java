@@ -80,13 +80,14 @@ public class ArrayMemoryBlock implements MemoryBlock {
     }
 
     @Override
-    public void release() throws AlreadyReleasedException {
+    public MemoryBlock release() throws AlreadyReleasedException {
         synchronized (this) {
             if (this.array == null)   {
                 throw new AlreadyReleasedException();
             }
             this.array = null;
         }
+        return this;
     }
 
     @Override

@@ -13,59 +13,36 @@
  *
  */
 
-package net.daporkchop.lib.binary.buf;
+package net.daporkchop.lib.common.misc;
 
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
+import net.daporkchop.lib.unsafe.capability.Releasable;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 /**
- * A simple implementation of PorkBuf
+ * A type that has a certain number of references, which can be increased and decreased. When the reference count
+ * reaches 0, the instance is released.
  *
  * @author DaPorkchop_
+ * @see net.daporkchop.lib.unsafe.capability.Releasable
  */
-@RequiredArgsConstructor
-@NoArgsConstructor
-@Accessors(chain = true)
-public abstract class AbstractPorkBuf implements PorkBuf {
-    @Setter
-    protected long capacity;
-    @NonNull
-    protected long maxCapacity;
-    protected long readerIndex;
-    protected long writerIndex;
+public interface RefCounted extends Releasable {
+    /**
+     * Increases this instance's reference count by 1.
+     *
+     * @throws AlreadyReleasedException if this instance has already been released
+     */
+    RefCounted retain() throws AlreadyReleasedException;
 
+    /**
+     * Decreases this instance's reference count by 1.
+     * <p>
+     * If the reference count reaches 0, the instance will actually be released (see {@link Releasable#release()}).
+     */
     @Override
-    public long capacity() {
-        return this.capacity;
-    }
+    RefCounted release() throws AlreadyReleasedException;
 
-    @Override
-    public long maxCapacity() {
-        return this.maxCapacity;
-    }
-
-    @Override
-    public long writerIndex() {
-        return this.writerIndex;
-    }
-
-    @Override
-    public PorkBuf writerIndex(long index) {
-        this.writerIndex = index;
-        return this;
-    }
-
-    @Override
-    public long readerIndex() {
-        return this.readerIndex;
-    }
-
-    @Override
-    public PorkBuf readerIndex(long index) {
-        this.readerIndex = index;
-        return this;
-    }
+    /**
+     * @return this instance's reference count
+     */
+    int refCount();
 }

@@ -22,23 +22,4 @@ import net.daporkchop.lib.binary.buf.PorkBuf;
  * @author DaPorkchop_
  */
 public abstract class PorkFileChannel extends AbstractPorkBuf {
-    @Override
-    public PorkBuf putByte(byte b) {
-        return null;
-    }
-
-    @Override
-    public PorkBuf putByte(long index, byte b) {
-        return null;
-    }
-
-    @Override
-    public byte readByte() {
-        return 0;
-    }
-
-    @Override
-    public byte readByte(long index) {
-        return 0;
-    }
 }

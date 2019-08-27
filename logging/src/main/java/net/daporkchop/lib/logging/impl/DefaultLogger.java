@@ -23,6 +23,8 @@ import net.daporkchop.lib.logging.LogAmount;
 import net.daporkchop.lib.logging.LogLevel;
 import net.daporkchop.lib.logging.Logger;
 import net.daporkchop.lib.logging.console.ansi.ANSIMessagePrinter;
+import net.daporkchop.lib.logging.format.FormatParser;
+import net.daporkchop.lib.logging.format.MessageFormatter;
 import net.daporkchop.lib.logging.format.MessagePrinter;
 import net.daporkchop.lib.logging.format.SelfClosingMessagePrinter;
 import net.daporkchop.lib.logging.format.component.TextComponent;
@@ -200,8 +202,44 @@ public class DefaultLogger extends SimpleLogger {
     }
 
     @Override
-    public SimpleLogger setMessagePrinter(@NonNull MessagePrinter messagePrinter) {
+    public DefaultLogger setMessagePrinter(@NonNull MessagePrinter messagePrinter) {
         this.warn("Attempted to call setMessagePrinter() on an instance of %s!", DefaultLogger.class);
+        return this;
+    }
+
+    @Override
+    public DefaultLogger setFormatParser(@NonNull FormatParser formatParser) {
+        super.setFormatParser(formatParser);
+        return this;
+    }
+
+    @Override
+    public DefaultLogger setMessageFormatter(@NonNull MessageFormatter messageFormatter) {
+        super.setMessageFormatter(messageFormatter);
+        return this;
+    }
+
+    @Override
+    public DefaultLogger setAlertHeader(@NonNull TextComponent alertHeader) {
+        super.setAlertHeader(alertHeader);
+        return this;
+    }
+
+    @Override
+    public DefaultLogger setAlertPrefix(@NonNull TextComponent alertPrefix) {
+        super.setAlertPrefix(alertPrefix);
+        return this;
+    }
+
+    @Override
+    public DefaultLogger setAlertFooter(@NonNull TextComponent alertFooter) {
+        super.setAlertFooter(alertFooter);
+        return this;
+    }
+
+    @Override
+    public DefaultLogger setLogAmount(@NonNull LogAmount amount) {
+        super.setLogAmount(amount);
         return this;
     }
 }

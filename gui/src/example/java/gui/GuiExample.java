@@ -60,7 +60,7 @@ public class GuiExample implements Logging {
                         .minDimensionsAreValueSize())
                 .button("button2", button -> button
                         .orientRelative(0, 0.0d, 0.1d, 0.1d)
-                        .setClickHandler((mouseButton, x, y) -> logger.info("Bounds: %s", button.getWindow().getComponent("panel1.button2").getBounds())))
+                        .setClickHandler((mouseButton, x, y) -> logger.info("Bounds: %s", button.getWindow().getComponent("panel.button2").getBounds())))
                 .label("label1", "<html><span style=\"font-weight: bold\">" + LOREM_IPSUM + "</span></html>", label -> label
                         .orientRelative(0.5d, 0, 0.5d, 0.1d)
                         .setTooltip("This is a label. Labels can only display plain text.")

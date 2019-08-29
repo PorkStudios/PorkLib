@@ -157,6 +157,17 @@ public class PorkUtil {
         return (Map<K, V>) new SoftCache();
     }
 
+    public static void assertValidArrayIndex(int length, int start, int count)  {
+        if (start < 0 || count < 0 || start + count > length)   {
+            throw new ArrayIndexOutOfBoundsException(String.format(
+                    "Invalid array indices: (length=%d,start=%d,count=%d)",
+                    length,
+                    start,
+                    count
+            ));
+        }
+    }
+
     public static void simpleDisplayImage(@NonNull BufferedImage img) {
         simpleDisplayImage(img, false);
     }

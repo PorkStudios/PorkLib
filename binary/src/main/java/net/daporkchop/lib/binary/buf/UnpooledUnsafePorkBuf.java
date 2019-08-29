@@ -17,7 +17,10 @@ package net.daporkchop.lib.binary.buf;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
+import net.daporkchop.lib.binary.util.PlatformHelper;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
+import sun.nio.ch.DirectBuffer;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,52 +53,52 @@ public final class UnpooledUnsafePorkBuf extends AbstractPorkBuf {
 
     @Override
     public PorkBuf put(int b) {
-        return null;
+        return this;
     }
 
     @Override
     public PorkBuf putShort(short s) {
-        return null;
+        return this;
     }
 
     @Override
     public PorkBuf putShortLE(short s) {
-        return null;
+        return this;
     }
 
     @Override
     public PorkBuf putInt(int i) {
-        return null;
+        return this;
     }
 
     @Override
     public PorkBuf putIntLE(int i) {
-        return null;
+        return this;
     }
 
     @Override
     public PorkBuf putLong(long i) {
-        return null;
+        return this;
     }
 
     @Override
     public PorkBuf putLongLE(long i) {
-        return null;
+        return this;
     }
 
     @Override
-    public PorkBuf put(@NonNull byte[] b, int start, int len) {
-        return null;
+    public PorkBuf put(@NonNull byte[] b, int start, int count) {
+        return this;
     }
 
     @Override
     public PorkBuf put(@NonNull ByteBuf src, int start, int count) {
-        return null;
+        return this;
     }
 
     @Override
     public PorkBuf put(@NonNull ByteBuffer src, int start, int count) {
-        return null;
+        return this;
     }
 
     @Override
@@ -175,52 +178,77 @@ public final class UnpooledUnsafePorkBuf extends AbstractPorkBuf {
 
     @Override
     public PorkBuf set(long index, int b) {
-        return null;
+        this.assertInCapacity(index, 1L);
+        PUnsafe.putByte(this.addr + index, (byte) b);
+        return this;
     }
 
     @Override
     public PorkBuf setShort(long index, short s) {
-        return null;
+        this.assertInCapacity(index, 2L);
+        PlatformHelper.setShortBE(this.addr + index, s);
+        return this;
     }
 
     @Override
     public PorkBuf setShortLE(long index, short s) {
-        return null;
+        this.assertInCapacity(index, 2L);
+        PlatformHelper.setShortLE(this.addr + index, s);
+        return this;
     }
 
     @Override
     public PorkBuf setInt(long index, int i) {
-        return null;
+        this.assertInCapacity(index, 4L);
+        PlatformHelper.setIntBE(this.addr + index, i);
+        return this;
     }
 
     @Override
     public PorkBuf setIntLE(long index, int i) {
-        return null;
+        this.assertInCapacity(index, 4L);
+        PlatformHelper.setIntLE(this.addr + index, i);
+        return this;
     }
 
     @Override
     public PorkBuf setLong(long index, long i) {
-        return null;
+        this.assertInCapacity(index, 8L);
+        PlatformHelper.setLongBE(this.addr + index, i);
+        return this;
     }
 
     @Override
     public PorkBuf setLongLE(long index, long i) {
-        return null;
+        this.assertInCapacity(index, 8L);
+        PlatformHelper.setLongLE(this.addr + index, i);
+        return this;
     }
 
     @Override
-    public PorkBuf set(long index, @NonNull byte[] b, int start, int len) {
-        return null;
+    public PorkBuf set(long index, @NonNull byte[] b, int start, int count) {
+        PorkUtil.assertValidArrayIndex(b.length, start, count);
+        this.assertInCapacity(index, count);
+        PUnsafe.copyMemory(b, PUnsafe.ARRAY_BYTE_BASE_OFFSET + start, null, this.addr + start, count);
+        return this;
     }
 
     @Override
     public PorkBuf set(long index, @NonNull ByteBuf src, int start, int count) {
-        return null;
+        //TODO
+        return this;
     }
 
     @Override
     public PorkBuf set(long index, @NonNull ByteBuffer src, int start, int count) {
-        return null;
+        this.assertInCapacity(index, count);
+        PorkUtil.assertValidArrayIndex(src.limit(), start, count);
+        if (src.hasArray()) {
+            PUnsafe.copyMemory(src.array(), PUnsafe.ARRAY_BYTE_BASE_OFFSET + src.arrayOffset() + start, null, this.addr + start, count);
+        } else if (src instanceof DirectBuffer) {
+            //TODO: something about the internal API warnings
+        }
+        return this;
     }
 
     @Override
@@ -334,7 +362,7 @@ public final class UnpooledUnsafePorkBuf extends AbstractPorkBuf {
     }
 
     @Override
-    public PorkBuf read(@NonNull byte[] b, int start, int len) {
+    public PorkBuf read(@NonNull byte[] b, int start, int count) {
         return null;
     }
 
@@ -469,7 +497,7 @@ public final class UnpooledUnsafePorkBuf extends AbstractPorkBuf {
     }
 
     @Override
-    public PorkBuf get(long index, @NonNull byte[] b, int start, int len) {
+    public PorkBuf get(long index, @NonNull byte[] b, int start, int count) {
         return null;
     }
 

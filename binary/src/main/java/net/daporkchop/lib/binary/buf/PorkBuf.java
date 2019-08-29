@@ -71,7 +71,7 @@ public interface PorkBuf extends RefCounted {
     PorkBuf putLong(long i);
     PorkBuf putLongLE(long i);
     default PorkBuf put(@NonNull byte[] b) { return this.put(b, 0, b.length); }
-    PorkBuf put(@NonNull byte[] b, int start, int len);
+    PorkBuf put(@NonNull byte[] b, int start, int count);
     default PorkBuf put(@NonNull ByteBuf src) { return this.put(src, src.readerIndex(), src.readableBytes()); }
     default PorkBuf put(@NonNull ByteBuf src, int count) { return this.put(src, src.readerIndex(), count); }
     PorkBuf put(@NonNull ByteBuf src, int start, int count);
@@ -110,7 +110,7 @@ public interface PorkBuf extends RefCounted {
     PorkBuf setLong(long index, long i);
     PorkBuf setLongLE(long index, long i);
     default PorkBuf set(long index, @NonNull byte[] b) { return this.set(index, b, 0, b.length); }
-    PorkBuf set(long index, @NonNull byte[] b, int start, int len);
+    PorkBuf set(long index, @NonNull byte[] b, int start, int count);
     default PorkBuf set(long index, @NonNull ByteBuf src) { return this.set(index, src, src.readerIndex(), src.readableBytes()); }
     default PorkBuf set(long index, @NonNull ByteBuf src, int count) { return this.set(index, src, src.readerIndex(), count); }
     PorkBuf set(long index, @NonNull ByteBuf src, int start, int count);
@@ -149,7 +149,7 @@ public interface PorkBuf extends RefCounted {
     long readLong();
     long readLongLE();
     default PorkBuf read(@NonNull byte[] b) { return this.read(b, 0, b.length); }
-    PorkBuf read(@NonNull byte[] b, int start, int len);
+    PorkBuf read(@NonNull byte[] b, int start, int count);
     PorkBuf read(@NonNull ByteBuf dst);
     PorkBuf read(@NonNull ByteBuf dst, int count);
     PorkBuf read(@NonNull ByteBuf dst, int start, int count);
@@ -186,7 +186,7 @@ public interface PorkBuf extends RefCounted {
     long getLong(long index);
     long getLongLE(long index);
     default PorkBuf get(long index, @NonNull byte[] b) { return this.get(index, b, 0, b.length); }
-    PorkBuf get(long index, @NonNull byte[] b, int start, int len);
+    PorkBuf get(long index, @NonNull byte[] b, int start, int count);
     PorkBuf get(long index, @NonNull ByteBuf dst);
     PorkBuf get(long index, @NonNull ByteBuf dst, int count);
     PorkBuf get(long index, @NonNull ByteBuf dst, int start, int count);

@@ -69,4 +69,19 @@ public abstract class AbstractPorkBuf extends ReferenceCountedPorkBuf {
         }
         return this;
     }
+
+    protected void assertInCapacity(long index, long cnt) {
+        if (index < 0 || cnt < 0 || index + cnt > this.capacity)    {
+            throw new IllegalArgumentException(String.format(
+                    "Index out of bounds (pos=%d,count=%d,capacity=%d)",
+                    index,
+                    cnt,
+                    this.capacity
+            ));
+        }
+    }
+
+    protected void ensureWriteable(long cnt) {
+        //TODO
+    }
 }

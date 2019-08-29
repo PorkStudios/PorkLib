@@ -19,10 +19,9 @@ import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import net.daporkchop.lib.binary.UTF8;
-import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.OldDataIn;
 import net.daporkchop.lib.config.Config;
 import net.daporkchop.lib.config.PConfig;
-import net.daporkchop.lib.config.decoder.JsonConfigDecoder;
 import net.daporkchop.lib.config.decoder.PorkConfigDecoder;
 import net.daporkchop.lib.config.util.Element;
 import org.junit.Test;
@@ -31,7 +30,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigInteger;
 
 /**
  * @author DaPorkchop_
@@ -44,7 +42,7 @@ public class PorkConfigTest {
             Element.ContainerElement element = new PorkConfigDecoder().decode(in);
             System.out.println(element.toString());
         }
-        try (DataIn in = DataIn.wrap(PorkConfigTest.class.getResourceAsStream("/config.cfg"))) {
+        try (OldDataIn in = OldDataIn.wrap(PorkConfigTest.class.getResourceAsStream("/config.cfg"))) {
             Root rootInstance = config.load(Root.class, in);
             System.out.println(rootInstance);
             System.out.println(Root.INSTANCe);
@@ -53,7 +51,7 @@ public class PorkConfigTest {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             config.save(Root.INSTANCe, baos);
             System.out.printf("Saved: \n%s\n", new String(baos.toByteArray(), UTF8.utf8));
-            try (DataIn in = DataIn.wrap(new ByteArrayInputStream(baos.toByteArray()))) {
+            try (OldDataIn in = OldDataIn.wrap(new ByteArrayInputStream(baos.toByteArray()))) {
                 Root rootInstance = config.load(Root.class, in);
                 System.out.println(rootInstance);
                 System.out.println(Root.INSTANCe);

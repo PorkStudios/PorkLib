@@ -15,8 +15,8 @@
 
 package binary;import net.daporkchop.lib.binary.stream.bit.BitInputStream;
 import net.daporkchop.lib.binary.stream.bit.BitOutputStream;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -33,10 +33,10 @@ public class TestMain {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         for (int i = 50; i >= 0; i--) {
             int j = ThreadLocalRandom.current().nextInt(Integer.MAX_VALUE);
-            DataOut out = DataOut.wrap(baos);
+            OldDataOut out = OldDataOut.wrap(baos);
             out.writeVarInt(j);
             out.close();
-            DataIn in = DataIn.wrap(new ByteArrayInputStream(baos.toByteArray()));
+            OldDataIn in = OldDataIn.wrap(new ByteArrayInputStream(baos.toByteArray()));
             int k = in.readVarInt();
             if (j != k) {
                 throw new IllegalStateException(String.format("%d %d", j, k));
@@ -51,10 +51,10 @@ public class TestMain {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         for (int i = 500; i >= 0; i--) {
             long j = ThreadLocalRandom.current().nextLong();
-            DataOut out = DataOut.wrap(baos);
+            OldDataOut out = OldDataOut.wrap(baos);
             out.writeVarLong(j);
             out.close();
-            DataIn in = DataIn.wrap(new ByteArrayInputStream(baos.toByteArray()));
+            OldDataIn in = OldDataIn.wrap(new ByteArrayInputStream(baos.toByteArray()));
             long k = in.readVarLong();
             if (j != k) {
                 throw new IllegalStateException(String.format("%d %d", j, k));

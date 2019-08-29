@@ -16,12 +16,7 @@
 package net.daporkchop.lib.network.protocol;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.network.session.StatedProtocolSession;
-import net.daporkchop.lib.network.util.PacketMetadata;
-
-import java.io.IOException;
 
 /**
  * A {@link Protocol} that handles differently depending on the current session state.

@@ -17,8 +17,8 @@ package net.daporkchop.lib.dbextensions.leveldb;
 
 import lombok.NonNull;
 import net.daporkchop.lib.binary.serialization.Serializer;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 import net.daporkchop.lib.collections.stream.PStream;
 import net.daporkchop.lib.db.DBMap;
 import net.daporkchop.lib.db.util.KeyHasher;
@@ -75,7 +75,7 @@ public class LevelDBMap<K, V> extends LevelDBCollection implements DBMap<K, V> {
             } else if (keyHasher == null) {
                 keyHasher = obj -> {
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    try (DataOut out = DataOut.wrap(baos)) {
+                    try (OldDataOut out = OldDataOut.wrap(baos)) {
                         keySerializer.write(obj, out);
                     }
                     return baos.toByteArray();
@@ -141,7 +141,7 @@ public class LevelDBMap<K, V> extends LevelDBCollection implements DBMap<K, V> {
             if (data == null) {
                 return null;
             }
-            return this.valueSerializer.read(DataIn.wrap(ByteBuffer.wrap(data)));
+            return this.valueSerializer.read(OldDataIn.wrap(ByteBuffer.wrap(data)));
         } catch (IOException e) {
             throw new DBReadException(e);
         } finally {
@@ -156,7 +156,7 @@ public class LevelDBMap<K, V> extends LevelDBCollection implements DBMap<K, V> {
         try {
             this.ensureOpen();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            try (DataOut out = DataOut.wrap(baos)) {
+            try (OldDataOut out = OldDataOut.wrap(baos)) {
                 this.valueSerializer.write(value, out);
             }
             this.delegate.put(this.keyHasher.hash(key), baos.toByteArray());
@@ -176,7 +176,7 @@ public class LevelDBMap<K, V> extends LevelDBCollection implements DBMap<K, V> {
             byte[] hash = this.keyHasher.hash(key);
             boolean wasPresent = this.delegate.get(hash) != null;
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            try (DataOut out = DataOut.wrap(baos)) {
+            try (OldDataOut out = OldDataOut.wrap(baos)) {
                 this.valueSerializer.write(value, out);
             }
             this.delegate.put(hash, baos.toByteArray());
@@ -197,11 +197,11 @@ public class LevelDBMap<K, V> extends LevelDBCollection implements DBMap<K, V> {
             byte[] hash = this.keyHasher.hash(key);
             byte[] old = this.delegate.get(hash);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            try (DataOut out = DataOut.wrap(baos)) {
+            try (OldDataOut out = OldDataOut.wrap(baos)) {
                 this.valueSerializer.write(value, out);
             }
             this.delegate.put(hash, baos.toByteArray());
-            return this.valueSerializer.read(DataIn.wrap(ByteBuffer.wrap(old)));
+            return this.valueSerializer.read(OldDataIn.wrap(ByteBuffer.wrap(old)));
         } catch (IOException e) {
             throw new DBWriteException(e);
         } finally {
@@ -263,7 +263,7 @@ public class LevelDBMap<K, V> extends LevelDBCollection implements DBMap<K, V> {
             byte[] hash = this.keyHasher.hash(key);
             byte[] old = this.delegate.get(hash);
             this.delegate.delete(hash);
-            return this.valueSerializer.read(DataIn.wrap(ByteBuffer.wrap(old)));
+            return this.valueSerializer.read(OldDataIn.wrap(ByteBuffer.wrap(old)));
         } catch (IOException e) {
             throw new DBWriteException(e);
         } finally {
@@ -281,9 +281,9 @@ public class LevelDBMap<K, V> extends LevelDBCollection implements DBMap<K, V> {
                 while (iterator.hasNext()) {
                     Map.Entry<byte[], byte[]> entry = iterator.next();
                     K key = null;
-                    V val = this.valueSerializer.read(DataIn.wrap(ByteBuffer.wrap(entry.getValue())));
+                    V val = this.valueSerializer.read(OldDataIn.wrap(ByteBuffer.wrap(entry.getValue())));
                     if (this.serializeKeys) {
-                        key = this.keySerializer.read(DataIn.wrap(ByteBuffer.wrap(entry.getKey())));
+                        key = this.keySerializer.read(OldDataIn.wrap(ByteBuffer.wrap(entry.getKey())));
                     }
                     consumer.accept(key, val);
                 }
@@ -304,7 +304,7 @@ public class LevelDBMap<K, V> extends LevelDBCollection implements DBMap<K, V> {
                 this.ensureOpen();
                 try (DBIterator iterator = this.delegate.iterator()) {
                     while (iterator.hasNext()) {
-                        consumer.accept(this.keySerializer.read(DataIn.wrap(ByteBuffer.wrap(iterator.next().getValue()))));
+                        consumer.accept(this.keySerializer.read(OldDataIn.wrap(ByteBuffer.wrap(iterator.next().getValue()))));
                     }
                 }
             } catch (IOException e) {
@@ -325,7 +325,7 @@ public class LevelDBMap<K, V> extends LevelDBCollection implements DBMap<K, V> {
             this.ensureOpen();
             try (DBIterator iterator = this.delegate.iterator()) {
                 while (iterator.hasNext()) {
-                    consumer.accept(this.valueSerializer.read(DataIn.wrap(ByteBuffer.wrap(iterator.next().getValue()))));
+                    consumer.accept(this.valueSerializer.read(OldDataIn.wrap(ByteBuffer.wrap(iterator.next().getValue()))));
                 }
             }
         } catch (IOException e) {

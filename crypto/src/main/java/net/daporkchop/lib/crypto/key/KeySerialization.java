@@ -16,8 +16,8 @@
 package net.daporkchop.lib.crypto.key;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 import net.daporkchop.lib.crypto.sig.ec.CurveType;
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey;
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPublicKey;
@@ -27,16 +27,16 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
 public class KeySerialization {
-    public static void encodeEC(@NonNull DataOut out, @NonNull EllipticCurveKeyPair keyPair) throws IOException {
+    public static void encodeEC(@NonNull OldDataOut out, @NonNull EllipticCurveKeyPair keyPair) throws IOException {
         encodeEC(out, keyPair, true, true);
     }
 
-    public static void encodeEC(@NonNull DataOut out, @NonNull EllipticCurveKeyPair keyPair, boolean pubKey, boolean privKey) throws IOException {
+    public static void encodeEC(@NonNull OldDataOut out, @NonNull EllipticCurveKeyPair keyPair, boolean pubKey, boolean privKey) throws IOException {
         if (!(pubKey | privKey)) {
             throw new IllegalArgumentException("Must encode either public key, private key or both!");
         }
         out.writeUTF(keyPair.getCurveType().name());
-        try (ObjectOutputStream oos = new ObjectOutputStream(DataOut.wrapNonClosing(out))) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(OldDataOut.wrapNonClosing(out))) {
             if (privKey) {
                 oos.writeObject(keyPair.getPrivateKey());
             }
@@ -46,16 +46,16 @@ public class KeySerialization {
         }
     }
 
-    public static EllipticCurveKeyPair decodeEC(@NonNull DataIn in) throws IOException {
+    public static EllipticCurveKeyPair decodeEC(@NonNull OldDataIn in) throws IOException {
         return decodeEC(in, true, true);
     }
 
-    public static EllipticCurveKeyPair decodeEC(@NonNull DataIn in, boolean pubKey, boolean privKey) throws IOException {
+    public static EllipticCurveKeyPair decodeEC(@NonNull OldDataIn in, boolean pubKey, boolean privKey) throws IOException {
         if (!(pubKey | privKey)) {
             throw new IllegalArgumentException("Must encode either public key, private key or both!");
         }
         CurveType type = CurveType.valueOf(in.readUTF());
-        try (ObjectInputStream ois = new ObjectInputStream(DataIn.wrapNonClosing(in))) {
+        try (ObjectInputStream ois = new ObjectInputStream(OldDataIn.wrapNonClosing(in))) {
             if (pubKey && privKey) {
                 return new EllipticCurveKeyPair(type, (BCECPrivateKey) ois.readObject(), (BCECPublicKey) ois.readObject());
             } else if (pubKey) {

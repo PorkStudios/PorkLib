@@ -17,20 +17,18 @@ package net.daporkchop.lib.dbextensions.leveldb;
 
 import lombok.NonNull;
 import net.daporkchop.lib.binary.serialization.Serializer;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 import net.daporkchop.lib.collections.PIterator;
 import net.daporkchop.lib.collections.stream.PStream;
 import net.daporkchop.lib.db.DBSet;
 import net.daporkchop.lib.db.util.KeyHasher;
 import net.daporkchop.lib.db.util.exception.DBCloseException;
 import net.daporkchop.lib.db.util.exception.DBNotOpenException;
-import net.daporkchop.lib.db.util.exception.DBOpenException;
 import net.daporkchop.lib.db.util.exception.DBReadException;
 import net.daporkchop.lib.db.util.exception.DBWriteException;
 import net.daporkchop.lib.dbextensions.leveldb.builder.LevelDBSetBuilder;
 import net.daporkchop.lib.dbextensions.leveldb.util.LevelDBCollection;
-import net.daporkchop.lib.dbextensions.leveldb.util.LevelDBConfiguration;
 import net.daporkchop.lib.hash.util.Digest;
 import net.daporkchop.lib.hash.util.Digester;
 import net.daporkchop.lib.unsafe.PCleaner;
@@ -85,7 +83,7 @@ public class LevelDBSet<V> extends LevelDBCollection implements DBSet<V> {
         try {
             this.ensureOpen();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            try (DataOut out = DataOut.wrap(baos)) {
+            try (OldDataOut out = OldDataOut.wrap(baos)) {
                 this.valueSerializer.write(value, out);
             }
             this.delegate.put(this.hasher.hash(value), baos.toByteArray());
@@ -149,7 +147,7 @@ public class LevelDBSet<V> extends LevelDBCollection implements DBSet<V> {
             this.ensureOpen();
             try (DBIterator iterator = this.delegate.iterator())    {
                 while (iterator.hasNext())  {
-                    consumer.accept(this.valueSerializer.read(DataIn.wrap(ByteBuffer.wrap(iterator.next().getValue()))));
+                    consumer.accept(this.valueSerializer.read(OldDataIn.wrap(ByteBuffer.wrap(iterator.next().getValue()))));
                 }
             }
         } catch (IOException e) {
@@ -181,7 +179,7 @@ public class LevelDBSet<V> extends LevelDBCollection implements DBSet<V> {
             public V next() {
                 try {
                     this.curr = this.iterator.next();
-                    return LevelDBSet.this.valueSerializer.read(DataIn.wrap(ByteBuffer.wrap(this.curr.getValue())));
+                    return LevelDBSet.this.valueSerializer.read(OldDataIn.wrap(ByteBuffer.wrap(this.curr.getValue())));
                 } catch (IOException e) {
                     throw new DBReadException(e);
                 }
@@ -191,7 +189,7 @@ public class LevelDBSet<V> extends LevelDBCollection implements DBSet<V> {
             public V peek() {
                 try {
                     Map.Entry<byte[], byte[]> entry = this.iterator.peekNext();
-                    return LevelDBSet.this.valueSerializer.read(DataIn.wrap(ByteBuffer.wrap(entry.getValue())));
+                    return LevelDBSet.this.valueSerializer.read(OldDataIn.wrap(ByteBuffer.wrap(entry.getValue())));
                 } catch (IOException e) {
                     throw new DBReadException(e);
                 }

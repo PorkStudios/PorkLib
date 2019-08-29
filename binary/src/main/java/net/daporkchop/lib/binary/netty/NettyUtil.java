@@ -17,8 +17,8 @@ package net.daporkchop.lib.binary.netty;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 import net.daporkchop.lib.common.util.PorkUtil;
 
 /**
@@ -39,41 +39,41 @@ public interface NettyUtil {
     }
 
     /**
-     * Wraps a {@link ByteBuf} into a {@link DataIn} for reading.
+     * Wraps a {@link ByteBuf} into a {@link OldDataIn} for reading.
      * <p>
-     * When the {@link DataIn} is closed (using {@link DataIn#close()}), the {@link ByteBuf} will not be released.
+     * When the {@link OldDataIn} is closed (using {@link OldDataIn#close()}), the {@link ByteBuf} will not be released.
      *
      * @param buf the {@link ByteBuf} to read from
-     * @return a {@link DataIn} that can read data from the {@link ByteBuf}
+     * @return a {@link OldDataIn} that can read data from the {@link ByteBuf}
      */
-    static DataIn wrapIn(@NonNull ByteBuf buf) {
+    static OldDataIn wrapIn(@NonNull ByteBuf buf) {
         return wrapIn(buf, false);
     }
 
     /**
-     * Wraps a {@link ByteBuf} into a {@link DataIn} for reading.
+     * Wraps a {@link ByteBuf} into a {@link OldDataIn} for reading.
      * <p>
-     * When the {@link DataIn} is closed (using {@link DataIn#close()}), the {@link ByteBuf} may or may not be released, depending on the value of the
+     * When the {@link OldDataIn} is closed (using {@link OldDataIn#close()}), the {@link ByteBuf} may or may not be released, depending on the value of the
      * {@code release} parameter.
      *
      * @param buf     the {@link ByteBuf} to read from
-     * @param release whether or not to release the buffer when the {@link DataIn} is closed
-     * @return a {@link DataIn} that can read data from the {@link ByteBuf}
+     * @param release whether or not to release the buffer when the {@link OldDataIn} is closed
+     * @return a {@link OldDataIn} that can read data from the {@link ByteBuf}
      */
-    static DataIn wrapIn(@NonNull ByteBuf buf, boolean release) {
+    static OldDataIn wrapIn(@NonNull ByteBuf buf, boolean release) {
         ensureNettyPresent();
         return release ? new NettyByteBufIn.Releasing(buf) : new NettyByteBufIn(buf);
     }
 
     /**
-     * Wraps a {@link ByteBuf} into a {@link DataOut} for writing.
+     * Wraps a {@link ByteBuf} into a {@link OldDataOut} for writing.
      * <p>
-     * When the {@link DataOut} is closed (using {@link DataOut#close()}), the {@link ByteBuf} will not be released.
+     * When the {@link OldDataOut} is closed (using {@link OldDataOut#close()}), the {@link ByteBuf} will not be released.
      *
      * @param buf the {@link ByteBuf} to write to
-     * @return a {@link DataOut} that can write data to the {@link ByteBuf}
+     * @return a {@link OldDataOut} that can write data to the {@link ByteBuf}
      */
-    static DataOut wrapOut(@NonNull ByteBuf buf) {
+    static OldDataOut wrapOut(@NonNull ByteBuf buf) {
         ensureNettyPresent();
         return new NettyByteBufOut.Default(buf);
     }

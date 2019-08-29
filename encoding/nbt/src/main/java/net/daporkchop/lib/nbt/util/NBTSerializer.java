@@ -17,8 +17,8 @@ package net.daporkchop.lib.nbt.util;
 
 import lombok.NonNull;
 import net.daporkchop.lib.binary.serialization.Serializer;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 import net.daporkchop.lib.nbt.NBTIO;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 
@@ -31,14 +31,14 @@ import java.io.IOException;
  */
 public interface NBTSerializer<V> extends Serializer<V> {
     @Override
-    default void write(@NonNull V val, @NonNull DataOut out) throws IOException {
+    default void write(@NonNull V val, @NonNull OldDataOut out) throws IOException {
         CompoundTag tag = new CompoundTag("");
         this.write(val, tag);
         NBTIO.write(out, tag);
     }
 
     @Override
-    default V read(@NonNull DataIn in) throws IOException {
+    default V read(@NonNull OldDataIn in) throws IOException {
         CompoundTag tag = NBTIO.read(in);
         return this.read(tag);
     }

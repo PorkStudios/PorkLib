@@ -16,7 +16,6 @@
 package net.daporkchop.lib.db.util;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataOut;
 
 import java.io.IOException;
 

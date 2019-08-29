@@ -19,8 +19,8 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.serialization.Serializer;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 
 import java.io.IOException;
 
@@ -37,12 +37,12 @@ public class ByteArraySerializer implements Serializer<byte[]> {
     public static final Serializer<byte[]> INSTANCE = new ByteArraySerializer();
 
     @Override
-    public void write(@NonNull byte[] val, @NonNull DataOut out) throws IOException {
+    public void write(@NonNull byte[] val, @NonNull OldDataOut out) throws IOException {
         out.writeByteArray(val);
     }
 
     @Override
-    public byte[] read(@NonNull DataIn in) throws IOException {
+    public byte[] read(@NonNull OldDataIn in) throws IOException {
         return in.readByteArray();
     }
 }

@@ -16,8 +16,8 @@
 package net.daporkchop.lib.network.protocol;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 import net.daporkchop.lib.network.session.ProtocolSession;
 import net.daporkchop.lib.network.session.encode.BinaryEncoder;
 import net.daporkchop.lib.network.session.handle.SessionHandler;
@@ -49,8 +49,8 @@ public interface Protocol<P extends Protocol<P, S>, S extends ProtocolSession<S,
     }
 
     @Override
-    void encodeMessage(@NonNull S session, @NonNull Object msg, @NonNull DataOut out, @NonNull PacketMetadata metadata) throws IOException;
+    void encodeMessage(@NonNull S session, @NonNull Object msg, @NonNull OldDataOut out, @NonNull PacketMetadata metadata) throws IOException;
 
     @Override
-    void onReceive(@NonNull S session, @NonNull DataIn in, @NonNull PacketMetadata metadata) throws IOException;
+    void onReceive(@NonNull S session, @NonNull OldDataIn in, @NonNull PacketMetadata metadata) throws IOException;
 }

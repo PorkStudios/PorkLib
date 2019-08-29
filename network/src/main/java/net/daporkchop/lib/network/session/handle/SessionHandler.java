@@ -16,7 +16,7 @@
 package net.daporkchop.lib.network.session.handle;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.OldDataIn;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.util.PacketMetadata;
 
@@ -55,11 +55,11 @@ public interface SessionHandler<S extends AbstractUserSession<S>> {
      * Handles incoming binary data.
      *
      * @param session  the session that the data was received on
-     * @param in       a {@link DataIn} to read data from
+     * @param in       a {@link OldDataIn} to read data from
      * @param metadata the metadata of the received data. While this parameter is guaranteed to be non-null, no
      *                 certainties are made about whether all fields are set (can be checked using the corresponding
      *                 methods in {@link PacketMetadata}), and keeping a reference to the instance outside of the
      *                 scope of this method should be considered unsafe.
      */
-    void onReceive(@NonNull S session, @NonNull DataIn in, @NonNull PacketMetadata metadata) throws IOException;
+    void onReceive(@NonNull S session, @NonNull OldDataIn in, @NonNull PacketMetadata metadata) throws IOException;
 }

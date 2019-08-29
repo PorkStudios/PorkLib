@@ -21,8 +21,8 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 import net.daporkchop.lib.common.function.TriConsumer;
 import net.daporkchop.lib.common.function.io.IOQuadConsumer;
 import net.daporkchop.lib.common.function.io.IOTriConsumer;
@@ -54,7 +54,7 @@ public abstract class StatedPacketProtocol<P extends StatedProtocol<P, S, E>, S 
 
     @Override
     @SuppressWarnings("unchecked")
-    public void encodeMessage(@NonNull S session, @NonNull Object msg, @NonNull DataOut out, @NonNull PacketMetadata metadata) throws IOException {
+    public void encodeMessage(@NonNull S session, @NonNull Object msg, @NonNull OldDataOut out, @NonNull PacketMetadata metadata) throws IOException {
         E enumState = session.state();
         ProtocolState state = this.states.get(enumState);
         Member member = state.outbound.get(msg.getClass());
@@ -68,7 +68,7 @@ public abstract class StatedPacketProtocol<P extends StatedProtocol<P, S, E>, S 
 
     @Override
     @SuppressWarnings("unchecked")
-    public void onReceive(@NonNull S session, @NonNull DataIn in, @NonNull PacketMetadata metadata) throws IOException {
+    public void onReceive(@NonNull S session, @NonNull OldDataIn in, @NonNull PacketMetadata metadata) throws IOException {
         //session.logger().debug("Protocol received packet @ %d bytes, with ID: %d", in.available(), metadata.protocolId());
         E enumState = session.state();
         ProtocolState state = this.states.get(enumState);
@@ -96,8 +96,8 @@ public abstract class StatedPacketProtocol<P extends StatedProtocol<P, S, E>, S 
     protected class Member<M>  {
         protected final Class<M> clazz;
         protected final Supplier<M> supplier;
-        protected final IOTriConsumer<S, M, DataOut> encoder;
-        protected final IOQuadConsumer<S, M, DataIn, PacketMetadata> decoder;
+        protected final IOTriConsumer<S, M, OldDataOut> encoder;
+        protected final IOQuadConsumer<S, M, OldDataIn, PacketMetadata> decoder;
         protected final TriConsumer<S, M, PacketMetadata> handler;
         protected final int id;
     }
@@ -116,7 +116,7 @@ public abstract class StatedPacketProtocol<P extends StatedProtocol<P, S, E>, S 
             );
         }
 
-        public <M> Registry register(@NonNull E state, int id, @NonNull Class<M> clazz, @NonNull Supplier<M> supplier, @NonNull IOTriConsumer<S, M, DataOut> encoder, @NonNull IOQuadConsumer<S, M, DataIn, PacketMetadata> decoder, @NonNull TriConsumer<S, M, PacketMetadata> handler)  {
+        public <M> Registry register(@NonNull E state, int id, @NonNull Class<M> clazz, @NonNull Supplier<M> supplier, @NonNull IOTriConsumer<S, M, OldDataOut> encoder, @NonNull IOQuadConsumer<S, M, OldDataIn, PacketMetadata> decoder, @NonNull TriConsumer<S, M, PacketMetadata> handler)  {
             synchronized (StatedPacketProtocol.this) {
                 ProtocolState protocolState = StatedPacketProtocol.this.states.computeIfAbsent(state, ProtocolState::new);
                 if (protocolState.incoming.containsKey(id)) {
@@ -141,7 +141,7 @@ public abstract class StatedPacketProtocol<P extends StatedProtocol<P, S, E>, S 
             );
         }
 
-        public <M> Registry registerOutbound(@NonNull E state, int id, @NonNull Class<M> clazz, @NonNull IOTriConsumer<S, M, DataOut> encoder)  {
+        public <M> Registry registerOutbound(@NonNull E state, int id, @NonNull Class<M> clazz, @NonNull IOTriConsumer<S, M, OldDataOut> encoder)  {
             synchronized (StatedPacketProtocol.this) {
                 ProtocolState protocolState = StatedPacketProtocol.this.states.computeIfAbsent(state, ProtocolState::new);
                 if (protocolState.outbound.containsKey(clazz))  {
@@ -165,7 +165,7 @@ public abstract class StatedPacketProtocol<P extends StatedProtocol<P, S, E>, S 
             );
         }
 
-        public <M> Registry registerIncoming(@NonNull E state, int id, @NonNull Class<M> clazz, @NonNull Supplier<M> supplier, @NonNull IOQuadConsumer<S, M, DataIn, PacketMetadata> decoder, @NonNull TriConsumer<S, M, PacketMetadata> handler)  {
+        public <M> Registry registerIncoming(@NonNull E state, int id, @NonNull Class<M> clazz, @NonNull Supplier<M> supplier, @NonNull IOQuadConsumer<S, M, OldDataIn, PacketMetadata> decoder, @NonNull TriConsumer<S, M, PacketMetadata> handler)  {
             synchronized (StatedPacketProtocol.this) {
                 ProtocolState protocolState = StatedPacketProtocol.this.states.computeIfAbsent(state, ProtocolState::new);
                 if (protocolState.incoming.containsKey(id)) {

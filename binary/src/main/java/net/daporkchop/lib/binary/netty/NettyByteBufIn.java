@@ -20,19 +20,19 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.OldDataIn;
 
 import java.io.IOException;
 
 /**
- * An implementation of {@link DataIn} that can read from a {@link ByteBuf}.
+ * An implementation of {@link OldDataIn} that can read from a {@link ByteBuf}.
  *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public class NettyByteBufIn extends DataIn {
+public class NettyByteBufIn extends OldDataIn {
     static {
         NettyUtil.ensureNettyPresent();
     }

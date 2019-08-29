@@ -16,21 +16,17 @@
 package http;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.OldDataIn;
 import net.daporkchop.lib.logging.LogAmount;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.endpoint.PServer;
-import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.endpoint.builder.ServerBuilder;
 import net.daporkchop.lib.network.netty.LoopPool;
-import net.daporkchop.lib.network.session.encode.SendCallback;
 import net.daporkchop.lib.network.tcp.TCPEngine;
 import net.daporkchop.lib.network.util.PacketMetadata;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.Collections;
-import java.util.Map;
 import java.util.Scanner;
 
 /**
@@ -60,7 +56,7 @@ public class TestHTTPServer implements Logging {
         }
 
         @Override
-        public void onReceive(@NonNull DataIn in, @NonNull PacketMetadata metadata) throws IOException {
+        public void onReceive(@NonNull OldDataIn in, @NonNull PacketMetadata metadata) throws IOException {
             if (metadata.protocolId() == 0)  {
                 this.send("HTTP/1.1 200 OK\r\n" +
                         "Transfer-Encoding: chunked\r\n\r\n");

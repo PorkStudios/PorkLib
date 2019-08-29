@@ -17,7 +17,7 @@ package net.daporkchop.lib.nbt;
 
 import lombok.NonNull;
 import net.daporkchop.lib.binary.UTF8;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.encoding.compression.CompressionHelper;
 import net.daporkchop.lib.nbt.tag.TagRegistry;
@@ -29,7 +29,7 @@ import java.io.OutputStream;
 /**
  * @author DaPorkchop_
  */
-public class NBTOutputStream extends DataOut {
+public class NBTOutputStream extends OldDataOut {
     private final OutputStream out;
     private final TagRegistry defaultRegistry;
 

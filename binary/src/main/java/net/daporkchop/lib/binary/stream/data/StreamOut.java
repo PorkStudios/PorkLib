@@ -20,20 +20,20 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
 /**
- * An implementation of {@link DataOut} that can write data to an {@link OutputStream}
+ * An implementation of {@link OldDataOut} that can write data to an {@link OutputStream}
  *
  * @author DaPorkchop_
  */
 @AllArgsConstructor
 @Getter
 @Accessors(fluent = true, chain = true)
-public class StreamOut extends DataOut {
+public class StreamOut extends OldDataOut {
     @NonNull
     protected final OutputStream out;
     @Setter

@@ -18,8 +18,8 @@ package net.daporkchop.lib.nbt.tag;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 import net.daporkchop.lib.nbt.tag.notch.ListTag;
 
@@ -77,7 +77,7 @@ public abstract class Tag {
      * @param registry the registry of NBT tag ids
      * @throws IOException if an IO exception occurs you dummy
      */
-    public abstract void read(@NonNull DataIn in, @NonNull TagRegistry registry) throws IOException;
+    public abstract void read(@NonNull OldDataIn in, @NonNull TagRegistry registry) throws IOException;
 
     /**
      * Writes this tag to a stream
@@ -86,7 +86,7 @@ public abstract class Tag {
      * @param registry the registry of NBT tag ids
      * @throws IOException if an IO exception occurs you dummy
      */
-    public abstract void write(@NonNull DataOut out, @NonNull TagRegistry registry) throws IOException;
+    public abstract void write(@NonNull OldDataOut out, @NonNull TagRegistry registry) throws IOException;
 
     @Override
     public abstract String toString();

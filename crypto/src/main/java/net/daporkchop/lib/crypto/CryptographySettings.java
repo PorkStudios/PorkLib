@@ -19,8 +19,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.Data;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 import net.daporkchop.lib.crypto.cipher.Cipher;
 import net.daporkchop.lib.crypto.cipher.CipherInitSide;
 import net.daporkchop.lib.crypto.cipher.block.CipherMode;
@@ -142,12 +142,12 @@ public class CryptographySettings implements Data {
         this.streamCipherType = cryptographySettings.streamCipherType;
     }
 
-    public CryptographySettings(@NonNull DataIn in) throws IOException {
+    public CryptographySettings(@NonNull OldDataIn in) throws IOException {
         this.read(in);
     }
 
     @Override
-    public void read(DataIn in) throws IOException {
+    public void read(OldDataIn in) throws IOException {
         this.keyPair = in.readBoolean() ? KeySerialization.decodeEC(in, true, false) : null;
         if (this.keyPair != null) {
             this.cipherType = in.readEnum(CipherType::valueOf);
@@ -158,7 +158,7 @@ public class CryptographySettings implements Data {
     }
 
     @Override
-    public void write(DataOut out) throws IOException {
+    public void write(OldDataOut out) throws IOException {
         if (this.keyPair == null) {
             out.writeBoolean(false);
         } else {

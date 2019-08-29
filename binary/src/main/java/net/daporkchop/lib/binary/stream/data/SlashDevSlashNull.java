@@ -15,18 +15,18 @@
 
 package net.daporkchop.lib.binary.stream.data;
 
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 
 import java.io.IOException;
 
 /**
  * /dev/null
  * <p>
- * A {@link DataOut} implementation that simply discards all data written to it.
+ * A {@link OldDataOut} implementation that simply discards all data written to it.
  *
  * @author DaPorkchop_
  */
-public class SlashDevSlashNull extends DataOut {
+public class SlashDevSlashNull extends OldDataOut {
     @Override
     public void close() throws IOException {
     }
@@ -36,32 +36,32 @@ public class SlashDevSlashNull extends DataOut {
     }
 
     @Override
-    public DataOut writeUTF(String s) throws IOException {
+    public OldDataOut writeUTF(String s) throws IOException {
         return this;
     }
 
     @Override
-    public DataOut writeByteArray(byte[] b) throws IOException {
+    public OldDataOut writeByteArray(byte[] b) throws IOException {
         return this;
     }
 
     @Override
-    public DataOut writeVarInt(int value) throws IOException {
+    public OldDataOut writeVarInt(int value) throws IOException {
         return this;
     }
 
     @Override
-    public DataOut writeVarLong(long value) throws IOException {
+    public OldDataOut writeVarLong(long value) throws IOException {
         return this;
     }
 
     @Override
-    public DataOut writeBytes(byte[] b) throws IOException {
+    public OldDataOut writeBytes(byte[] b) throws IOException {
         return this;
     }
 
     @Override
-    public DataOut writeBytes(byte[] b, int off, int len) throws IOException {
+    public OldDataOut writeBytes(byte[] b, int off, int len) throws IOException {
         return this;
     }
 

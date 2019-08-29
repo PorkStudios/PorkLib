@@ -16,7 +16,7 @@
 package net.daporkchop.lib.network.session;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.concurrent.CloseableFuture;
 import net.daporkchop.lib.logging.Logger;
@@ -42,14 +42,14 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
     <E extends PEndpoint<E, S>> E endpoint();
 
     /**
-     * Gets a {@link DataOut} which may be used to write raw binary data to the session.
+     * Gets a {@link OldDataOut} which may be used to write raw binary data to the session.
      * <p>
      * The data written to the output stream returned by this method will be buffered until the stream is
-     * closed or flushed using {@link DataOut#close()}, respectively.
+     * closed or flushed using {@link OldDataOut#close()}, respectively.
      *
-     * @return a {@link DataOut} for writing raw binary to the session
+     * @return a {@link OldDataOut} for writing raw binary to the session
      */
-    DataOut writer();
+    OldDataOut writer();
 
     /**
      * Writes raw binary data to the session.
@@ -58,8 +58,8 @@ public interface PSession<Impl extends PSession<Impl, S>, S extends AbstractUser
      * @return this session
      */
     @SuppressWarnings("unchecked")
-    default Impl write(@NonNull IOConsumer<DataOut> callback) {
-        try (DataOut out = this.writer()) {
+    default Impl write(@NonNull IOConsumer<OldDataOut> callback) {
+        try (OldDataOut out = this.writer()) {
             callback.acceptThrowing(out);
         } catch (IOException e) {
             throw new RuntimeException(e);

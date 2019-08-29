@@ -26,8 +26,8 @@ import net.daporkchop.lib.binary.serialization.impl.ByteArraySerializer;
 import net.daporkchop.lib.binary.serialization.impl.ConstantLengthSerializer;
 import net.daporkchop.lib.binary.serialization.impl.StringSerializer;
 import net.daporkchop.lib.binary.serialization.impl.UUIDSerializer;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 
 import java.io.File;
 import java.io.IOException;
@@ -161,7 +161,7 @@ public class Serialization {
      * @throws IOException if an IO exception occurs you dummy
      */
     public <T> T read(@NonNull InputStream in) throws IOException {
-        return this.read(DataIn.wrap(in));
+        return this.read(OldDataIn.wrap(in));
     }
 
     /**
@@ -173,7 +173,7 @@ public class Serialization {
      * @throws IOException if an IO exception occurs you dummy
      */
     public <T> T read(@NonNull File in) throws IOException {
-        return this.read(DataIn.wrap(in));
+        return this.read(OldDataIn.wrap(in));
     }
 
     /**
@@ -185,7 +185,7 @@ public class Serialization {
      */
     public <T> T read(@NonNull ByteBuffer in) {
         try {
-            return this.read(DataIn.wrap(in));
+            return this.read(OldDataIn.wrap(in));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -209,24 +209,24 @@ public class Serialization {
     /**
      * Reads an object
      *
-     * @param in  a {@link DataIn} to read data from
+     * @param in  a {@link OldDataIn} to read data from
      * @param <T> the type of the object to be read
      * @return the object that was read
      */
-    public <T> T read(@NonNull DataIn in) throws IOException {
+    public <T> T read(@NonNull OldDataIn in) throws IOException {
         return this.read(in, this.useVarInt ? in.readVarInt() : in.readInt());
     }
 
     /**
      * Reads an object with a specific id
      *
-     * @param in  a {@link DataIn} to read data from
+     * @param in  a {@link OldDataIn} to read data from
      * @param id  the id of the object type to be read
      * @param <T> the type of the object to be read
      * @return the object that was read
      */
     @SuppressWarnings("unchecked")
-    public <T> T read(@NonNull DataIn in, int id) throws IOException {
+    public <T> T read(@NonNull OldDataIn in, int id) throws IOException {
         Serializer<T> serializer;
         this.mapAccessLock.readLock().lock();
         try {
@@ -250,7 +250,7 @@ public class Serialization {
      * @throws IOException if an IO exception occurs you dummy
      */
     public void write(@NonNull Object value, @NonNull OutputStream out) throws IOException {
-        this.write(value, DataOut.wrap(out));
+        this.write(value, OldDataOut.wrap(out));
     }
 
     /**
@@ -261,7 +261,7 @@ public class Serialization {
      * @throws IOException if an IO exception occurs you dummy
      */
     public void write(@NonNull Object value, @NonNull File out) throws IOException {
-        this.write(value, DataOut.wrap(out));
+        this.write(value, OldDataOut.wrap(out));
     }
 
     /**
@@ -272,7 +272,7 @@ public class Serialization {
      */
     public void write(@NonNull Object value, @NonNull ByteBuffer out) {
         try {
-            this.write(value, DataOut.wrap(out));
+            this.write(value, OldDataOut.wrap(out));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -296,11 +296,11 @@ public class Serialization {
      * Writes an object
      *
      * @param value the value to write
-     * @param out   a {@link DataOut} to write data to
+     * @param out   a {@link OldDataOut} to write data to
      * @throws IOException if an IO exception occurs you dummy
      */
     @SuppressWarnings("unchecked")
-    public void write(@NonNull Object value, @NonNull DataOut out) throws IOException {
+    public void write(@NonNull Object value, @NonNull OldDataOut out) throws IOException {
         Serializer serializer;
         int id;
         this.mapAccessLock.readLock().lock();

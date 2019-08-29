@@ -18,7 +18,7 @@ package net.daporkchop.lib.network.session;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.OldDataIn;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.session.encode.SelfMessageEncoder;
 import net.daporkchop.lib.network.session.encode.SendCallback;
@@ -51,7 +51,7 @@ public abstract class AbstractUserSession<S extends AbstractUserSession<S>> impl
     }
 
     @Override
-    public abstract void onReceive(@NonNull DataIn in, @NonNull PacketMetadata metadata) throws IOException;
+    public abstract void onReceive(@NonNull OldDataIn in, @NonNull PacketMetadata metadata) throws IOException;
 
     @Override
     public abstract void encodeMessage(@NonNull Object msg, @NonNull PacketMetadata metadata, @NonNull SendCallback callback);

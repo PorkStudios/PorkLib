@@ -18,7 +18,7 @@ package net.daporkchop.lib.network.transport;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.OldDataIn;
 import net.daporkchop.lib.network.endpoint.PClient;
 import net.daporkchop.lib.network.endpoint.PServer;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
@@ -101,16 +101,16 @@ public interface TransportEngine {
     }
 
     /**
-     * Attempts to wrap a message into a {@link DataIn} for binary reading.
+     * Attempts to wrap a message into a {@link OldDataIn} for binary reading.
      * @param msg the message to wrap
      * @return the wrapped message, or {@code null} if the message does not contain binary data
      */
-    default DataIn attemptRead(@NonNull Object msg) {
-        DataIn in = null;
+    default OldDataIn attemptRead(@NonNull Object msg) {
+        OldDataIn in = null;
         if (msg instanceof byte[])  {
-            in = DataIn.wrap(ByteBuffer.wrap((byte[]) msg));
+            in = OldDataIn.wrap(ByteBuffer.wrap((byte[]) msg));
         } else if (msg instanceof ByteBuffer)   {
-            in = DataIn.wrap((ByteBuffer) msg);
+            in = OldDataIn.wrap((ByteBuffer) msg);
         }
         return in;
     }

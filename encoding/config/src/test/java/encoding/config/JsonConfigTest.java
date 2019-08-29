@@ -19,8 +19,7 @@ import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import net.daporkchop.lib.binary.UTF8;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataIn;
 import net.daporkchop.lib.config.Config;
 import net.daporkchop.lib.config.PConfig;
 import net.daporkchop.lib.config.decoder.JsonConfigDecoder;
@@ -43,7 +42,7 @@ public class JsonConfigTest {
             Element.ContainerElement element = new JsonConfigDecoder().decode(in);
             //System.out.println(element.toString());
         }
-        try (DataIn in = DataIn.wrap(JsonConfigTest.class.getResourceAsStream("/config.json"))) {
+        try (OldDataIn in = OldDataIn.wrap(JsonConfigTest.class.getResourceAsStream("/config.json"))) {
             Root rootInstance = config.load(Root.class, in);
             System.out.println(rootInstance);
             System.out.println(Root.INSTANCe);

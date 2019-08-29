@@ -18,8 +18,8 @@ package net.daporkchop.lib.nbt.tag.notch;
 import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.UTF8;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 import net.daporkchop.lib.nbt.tag.Tag;
 import net.daporkchop.lib.nbt.tag.TagRegistry;
 
@@ -48,7 +48,7 @@ public class CompoundTag extends Tag {
     }
 
     @Override
-    public void read(@NonNull DataIn in, @NonNull TagRegistry registry) throws IOException {
+    public void read(@NonNull OldDataIn in, @NonNull TagRegistry registry) throws IOException {
         byte id;
         while ((id = in.readByte()) != 0) {
             String name;
@@ -64,7 +64,7 @@ public class CompoundTag extends Tag {
     }
 
     @Override
-    public void write(@NonNull DataOut out, @NonNull TagRegistry registry) throws IOException {
+    public void write(@NonNull OldDataOut out, @NonNull TagRegistry registry) throws IOException {
         for (Map.Entry<String, Tag> entry : this.contents.entrySet()) {
             byte id = registry.getId(entry.getValue().getClass());
             out.writeByte(id);

@@ -15,8 +15,8 @@
 
 package net.daporkchop.lib.crypto;
 
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 import net.daporkchop.lib.crypto.key.EllipticCurveKeyPair;
 import net.daporkchop.lib.crypto.key.KeySerialization;
 import net.daporkchop.lib.crypto.keygen.KeyGen;
@@ -33,8 +33,8 @@ public class SerializationTest {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         for (CurveType type : CurveType.values()) {
             EllipticCurveKeyPair keyPair = KeyGen.gen(type);
-            KeySerialization.encodeEC(DataOut.wrap(baos), keyPair);
-            EllipticCurveKeyPair decoded = KeySerialization.decodeEC(DataIn.wrap(new ByteArrayInputStream(baos.toByteArray())));
+            KeySerialization.encodeEC(OldDataOut.wrap(baos), keyPair);
+            EllipticCurveKeyPair decoded = KeySerialization.decodeEC(OldDataIn.wrap(new ByteArrayInputStream(baos.toByteArray())));
             baos.reset();
             if (!keyPair.equals(decoded)) {
                 throw new IllegalStateException(String.format("Decoded key pair was different from original on curve type %s", type.name));

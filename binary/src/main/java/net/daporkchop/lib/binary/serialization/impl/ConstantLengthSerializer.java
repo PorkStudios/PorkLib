@@ -18,8 +18,8 @@ package net.daporkchop.lib.binary.serialization.impl;
 import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.serialization.Serializer;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 import net.daporkchop.lib.binary.stream.optimizations.NonExpandingByteArrayOutputStream;
 
 import java.io.IOException;
@@ -37,12 +37,12 @@ public abstract class ConstantLengthSerializer<T> implements Serializer<T> {
      */
     public static final ConstantLengthSerializer<Boolean> BOOLEAN = new ConstantLengthSerializer<Boolean>(1) {
         @Override
-        protected void doWrite(@NonNull Boolean val, @NonNull DataOut out) throws IOException {
+        protected void doWrite(@NonNull Boolean val, @NonNull OldDataOut out) throws IOException {
             out.writeBoolean(val);
         }
 
         @Override
-        protected Boolean doRead(@NonNull DataIn in) throws IOException {
+        protected Boolean doRead(@NonNull OldDataIn in) throws IOException {
             return in.readBoolean();
         }
     };
@@ -53,12 +53,12 @@ public abstract class ConstantLengthSerializer<T> implements Serializer<T> {
      */
     public static final ConstantLengthSerializer<Byte> BYTE = new ConstantLengthSerializer<Byte>(1) {
         @Override
-        protected void doWrite(@NonNull Byte val, @NonNull DataOut out) throws IOException {
+        protected void doWrite(@NonNull Byte val, @NonNull OldDataOut out) throws IOException {
             out.writeByte(val);
         }
 
         @Override
-        protected Byte doRead(@NonNull DataIn in) throws IOException {
+        protected Byte doRead(@NonNull OldDataIn in) throws IOException {
             return in.readByte();
         }
     };
@@ -69,12 +69,12 @@ public abstract class ConstantLengthSerializer<T> implements Serializer<T> {
      */
     public static final ConstantLengthSerializer<Short> SHORT = new ConstantLengthSerializer<Short>(2) {
         @Override
-        protected void doWrite(@NonNull Short val, @NonNull DataOut out) throws IOException {
+        protected void doWrite(@NonNull Short val, @NonNull OldDataOut out) throws IOException {
             out.writeShort(val);
         }
 
         @Override
-        protected Short doRead(@NonNull DataIn in) throws IOException {
+        protected Short doRead(@NonNull OldDataIn in) throws IOException {
             return in.readShort();
         }
     };
@@ -85,12 +85,12 @@ public abstract class ConstantLengthSerializer<T> implements Serializer<T> {
      */
     public static final ConstantLengthSerializer<Integer> INT = new ConstantLengthSerializer<Integer>(4) {
         @Override
-        protected void doWrite(@NonNull Integer val, @NonNull DataOut out) throws IOException {
+        protected void doWrite(@NonNull Integer val, @NonNull OldDataOut out) throws IOException {
             out.writeInt(val);
         }
 
         @Override
-        protected Integer doRead(@NonNull DataIn in) throws IOException {
+        protected Integer doRead(@NonNull OldDataIn in) throws IOException {
             return in.readInt();
         }
     };
@@ -101,12 +101,12 @@ public abstract class ConstantLengthSerializer<T> implements Serializer<T> {
      */
     public static final ConstantLengthSerializer<Long> LONG = new ConstantLengthSerializer<Long>(8) {
         @Override
-        protected void doWrite(@NonNull Long val, @NonNull DataOut out) throws IOException {
+        protected void doWrite(@NonNull Long val, @NonNull OldDataOut out) throws IOException {
             out.writeLong(val);
         }
 
         @Override
-        protected Long doRead(@NonNull DataIn in) throws IOException {
+        protected Long doRead(@NonNull OldDataIn in) throws IOException {
             return in.readLong();
         }
     };
@@ -117,12 +117,12 @@ public abstract class ConstantLengthSerializer<T> implements Serializer<T> {
      */
     public static final ConstantLengthSerializer<Float> FLOAT = new ConstantLengthSerializer<Float>(4) {
         @Override
-        protected void doWrite(@NonNull Float val, @NonNull DataOut out) throws IOException {
+        protected void doWrite(@NonNull Float val, @NonNull OldDataOut out) throws IOException {
             out.writeFloat(val);
         }
 
         @Override
-        protected Float doRead(@NonNull DataIn in) throws IOException {
+        protected Float doRead(@NonNull OldDataIn in) throws IOException {
             return in.readFloat();
         }
     };
@@ -133,12 +133,12 @@ public abstract class ConstantLengthSerializer<T> implements Serializer<T> {
      */
     public static final ConstantLengthSerializer<Double> DOUBLE = new ConstantLengthSerializer<Double>(8) {
         @Override
-        protected void doWrite(@NonNull Double val, @NonNull DataOut out) throws IOException {
+        protected void doWrite(@NonNull Double val, @NonNull OldDataOut out) throws IOException {
             out.writeDouble(val);
         }
 
         @Override
-        protected Double doRead(@NonNull DataIn in) throws IOException {
+        protected Double doRead(@NonNull OldDataIn in) throws IOException {
             return in.readDouble();
         }
     };
@@ -155,7 +155,7 @@ public abstract class ConstantLengthSerializer<T> implements Serializer<T> {
         }
         return new ConstantLengthSerializer<byte[]>(arraySize) {
             @Override
-            protected void doWrite(@NonNull byte[] val, @NonNull DataOut out) throws IOException {
+            protected void doWrite(@NonNull byte[] val, @NonNull OldDataOut out) throws IOException {
                 if (val.length != arraySize) {
                     throw new IllegalArgumentException(String.format("Illegal array size: %d, expected %d", val.length, arraySize));
                 }
@@ -163,7 +163,7 @@ public abstract class ConstantLengthSerializer<T> implements Serializer<T> {
             }
 
             @Override
-            protected byte[] doRead(@NonNull DataIn in) throws IOException {
+            protected byte[] doRead(@NonNull OldDataIn in) throws IOException {
                 byte[] b = new byte[arraySize];
                 in.readFully(b, 0, arraySize);
                 return b;
@@ -183,24 +183,24 @@ public abstract class ConstantLengthSerializer<T> implements Serializer<T> {
     }
 
     @Override
-    public void write(@NonNull T val, @NonNull DataOut out) throws IOException {
+    public void write(@NonNull T val, @NonNull OldDataOut out) throws IOException {
         NonExpandingByteArrayOutputStream baos = NonExpandingByteArrayOutputStream.wrap(this.bufferCache.get());
-        try (DataOut theOut = DataOut.wrap(baos)) {
+        try (OldDataOut theOut = OldDataOut.wrap(baos)) {
             this.doWrite(val, theOut);
         }
         out.write(baos.getBuf());
     }
 
     @Override
-    public T read(@NonNull DataIn in) throws IOException {
+    public T read(@NonNull OldDataIn in) throws IOException {
         byte[] buf = this.bufferCache.get();
         in.readFully(buf, 0, this.size);
-        try (DataIn theIn = DataIn.wrap(ByteBuffer.wrap(buf))) {
+        try (OldDataIn theIn = OldDataIn.wrap(ByteBuffer.wrap(buf))) {
             return this.doRead(theIn);
         }
     }
 
-    protected abstract void doWrite(@NonNull T val, @NonNull DataOut out) throws IOException;
+    protected abstract void doWrite(@NonNull T val, @NonNull OldDataOut out) throws IOException;
 
-    protected abstract T doRead(@NonNull DataIn in) throws IOException;
+    protected abstract T doRead(@NonNull OldDataIn in) throws IOException;
 }

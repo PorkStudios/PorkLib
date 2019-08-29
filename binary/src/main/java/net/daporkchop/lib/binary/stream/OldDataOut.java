@@ -32,95 +32,95 @@ import java.nio.charset.StandardCharsets;
  * Provides simple methods for encoding data to a binary form
  *
  * @author DaPorkchop_
- * @see DataIn
+ * @see OldDataIn
  */
-public abstract class DataOut extends OutputStream {
+public abstract class OldDataOut extends OutputStream {
     /**
-     * Wraps an {@link OutputStream} to make it a {@link DataOut}
+     * Wraps an {@link OutputStream} to make it a {@link OldDataOut}
      *
      * @param out the {@link OutputStream} to wrap
-     * @return the wrapped stream, or the original stream if it was already an instance of {@link DataOut}
+     * @return the wrapped stream, or the original stream if it was already an instance of {@link OldDataOut}
      */
-    public static DataOut wrap(@NonNull OutputStream out) {
-        return out instanceof DataOut ? (DataOut) out : new StreamOut(out, true);
+    public static OldDataOut wrap(@NonNull OutputStream out) {
+        return out instanceof OldDataOut ? (OldDataOut) out : new StreamOut(out, true);
     }
 
     /**
-     * Wraps an {@link OutputStream} to make it a {@link DataOut}.
+     * Wraps an {@link OutputStream} to make it a {@link OldDataOut}.
      * <p>
-     * Calling {@link #close()} on the returned {@link DataOut} will not cause the wrapped stream to be closed.
+     * Calling {@link #close()} on the returned {@link OldDataOut} will not cause the wrapped stream to be closed.
      *
      * @param out the {@link OutputStream} to wrap
-     * @return the wrapped stream, or the original stream if it was already an instance of {@link DataOut}
+     * @return the wrapped stream, or the original stream if it was already an instance of {@link OldDataOut}
      */
-    public static DataOut wrapNonClosing(@NonNull OutputStream out) {
+    public static OldDataOut wrapNonClosing(@NonNull OutputStream out) {
         return out instanceof StreamOut ? ((StreamOut) out).close(false) : new StreamOut(out, false);
     }
 
     /**
-     * Wraps a {@link ByteBuffer} to make it a {@link DataOut}
+     * Wraps a {@link ByteBuffer} to make it a {@link OldDataOut}
      *
      * @param buffer the buffer to wrap
      * @return the wrapped buffer
      */
-    public static DataOut wrap(@NonNull ByteBuffer buffer) {
+    public static OldDataOut wrap(@NonNull ByteBuffer buffer) {
         return new BufferOut(buffer);
     }
 
     /**
      * @see #wrapBuffered(File)
      */
-    public static DataOut wrap(@NonNull File file) throws IOException {
+    public static OldDataOut wrap(@NonNull File file) throws IOException {
         return wrapBuffered(file);
     }
 
     /**
-     * Gets a {@link DataOut} for writing to a {@link File}.
+     * Gets a {@link OldDataOut} for writing to a {@link File}.
      * <p>
      * This stream will additionally be buffered for faster write access, using the default buffer size of 8192 bytes.
      *
      * @param file the file to write to
-     * @return a buffered {@link DataOut} that will write to the given file
+     * @return a buffered {@link OldDataOut} that will write to the given file
      * @throws IOException if an IO exception occurs you dummy
      */
-    public static DataOut wrapBuffered(@NonNull File file) throws IOException {
+    public static OldDataOut wrapBuffered(@NonNull File file) throws IOException {
         return wrap(new BufferedOutputStream(new FileOutputStream(file)));
     }
 
     /**
-     * Gets a {@link DataOut} for writing to a {@link File}.
+     * Gets a {@link OldDataOut} for writing to a {@link File}.
      * <p>
      * This stream will additionally be buffered for faster write access, using the given buffer size.
      *
      * @param file       the file to write to
      * @param bufferSize the size of the buffer to use
-     * @return a buffered {@link DataOut} that will write to the given file
+     * @return a buffered {@link OldDataOut} that will write to the given file
      * @throws IOException if an IO exception occurs you dummy
      */
-    public static DataOut wrapBuffered(@NonNull File file, int bufferSize) throws IOException {
+    public static OldDataOut wrapBuffered(@NonNull File file, int bufferSize) throws IOException {
         return wrap(new BufferedOutputStream(new FileOutputStream(file), bufferSize));
     }
 
     /**
-     * Gets a {@link DataOut} for writing to a {@link File}.
+     * Gets a {@link OldDataOut} for writing to a {@link File}.
      * <p>
-     * {@link DataOut} instances returned by this method will NOT be buffered.
+     * {@link OldDataOut} instances returned by this method will NOT be buffered.
      *
      * @param file the file to write to
-     * @return a direct {@link DataOut} that will write to the given file
+     * @return a direct {@link OldDataOut} that will write to the given file
      * @throws IOException if an IO exception occurs you dummy
      */
-    public static DataOut wrapNonBuffered(@NonNull File file) throws IOException {
+    public static OldDataOut wrapNonBuffered(@NonNull File file) throws IOException {
         return wrap(new FileOutputStream(file));
     }
 
     /**
      * /dev/null
      *
-     * @return an instance of {@link DataOut} that will discard any data written to it
+     * @return an instance of {@link OldDataOut} that will discard any data written to it
      * @see SlashDevSlashNull
      */
-    public static DataOut slashDevSlashNull() {
+    public static OldDataOut slashDevSlashNull() {
         return new SlashDevSlashNull();
     }
 
@@ -129,7 +129,7 @@ public abstract class DataOut extends OutputStream {
      *
      * @param b the boolean to write
      */
-    public DataOut writeBoolean(boolean b) throws IOException {
+    public OldDataOut writeBoolean(boolean b) throws IOException {
         this.write(b ? 1 : 0);
         return this;
     }
@@ -139,7 +139,7 @@ public abstract class DataOut extends OutputStream {
      *
      * @param b the byte to write
      */
-    public DataOut writeByte(byte b) throws IOException {
+    public OldDataOut writeByte(byte b) throws IOException {
         this.write(b & 0xFF);
         return this;
     }
@@ -149,7 +149,7 @@ public abstract class DataOut extends OutputStream {
      *
      * @param b the byte to write
      */
-    public DataOut writeUByte(int b) throws IOException {
+    public OldDataOut writeUByte(int b) throws IOException {
         this.write(b & 0xFF);
         return this;
     }
@@ -159,7 +159,7 @@ public abstract class DataOut extends OutputStream {
      *
      * @param s the short to write
      */
-    public DataOut writeShort(short s) throws IOException {
+    public OldDataOut writeShort(short s) throws IOException {
         this.write((s >>> 8) & 0xFF);
         this.write(s & 0xFF);
         return this;
@@ -170,7 +170,7 @@ public abstract class DataOut extends OutputStream {
      *
      * @param s the short to write
      */
-    public DataOut writeUShort(int s) throws IOException {
+    public OldDataOut writeUShort(int s) throws IOException {
         return this.writeShort((short) (s & 0xFFFF));
     }
 
@@ -179,7 +179,7 @@ public abstract class DataOut extends OutputStream {
      *
      * @param c the char to write
      */
-    public DataOut writeChar(char c) throws IOException {
+    public OldDataOut writeChar(char c) throws IOException {
         this.write((c >>> 8) & 0xFF);
         this.write(c & 0xFF);
         return this;
@@ -190,7 +190,7 @@ public abstract class DataOut extends OutputStream {
      *
      * @param m the medium to write
      */
-    public DataOut writeMedium(int m) throws IOException {
+    public OldDataOut writeMedium(int m) throws IOException {
         if ((m & 0xFF000000) != 0)  {
             m |= 0x800000;
         }
@@ -202,7 +202,7 @@ public abstract class DataOut extends OutputStream {
      *
      * @param m the medium to write
      */
-    public DataOut writeUMedium(int m) throws IOException {
+    public OldDataOut writeUMedium(int m) throws IOException {
         this.write((m >>> 16) & 0xFF);
         this.write((m >>> 8) & 0xFF);
         this.write(m & 0xFF);
@@ -214,7 +214,7 @@ public abstract class DataOut extends OutputStream {
      *
      * @param i the int to write
      */
-    public DataOut writeInt(int i) throws IOException {
+    public OldDataOut writeInt(int i) throws IOException {
         this.write((i >>> 24) & 0xFF);
         this.write((i >>> 16) & 0xFF);
         this.write((i >>> 8) & 0xFF);
@@ -227,7 +227,7 @@ public abstract class DataOut extends OutputStream {
      *
      * @param i the int to write
      */
-    public DataOut writeUInt(long i) throws IOException {
+    public OldDataOut writeUInt(long i) throws IOException {
         return this.writeInt((int) (i & 0xFFFFFFFFL));
     }
 
@@ -236,7 +236,7 @@ public abstract class DataOut extends OutputStream {
      *
      * @param l the long to write
      */
-    public DataOut writeLong(long l) throws IOException {
+    public OldDataOut writeLong(long l) throws IOException {
         this.write((int) (l >>> 56) & 0xFF);
         this.write((int) (l >>> 48) & 0xFF);
         this.write((int) (l >>> 40) & 0xFF);
@@ -253,7 +253,7 @@ public abstract class DataOut extends OutputStream {
      *
      * @param f the float to write
      */
-    public DataOut writeFloat(float f) throws IOException {
+    public OldDataOut writeFloat(float f) throws IOException {
         return this.writeInt(Float.floatToIntBits(f));
     }
 
@@ -262,7 +262,7 @@ public abstract class DataOut extends OutputStream {
      *
      * @param d the double to write
      */
-    public DataOut writeDouble(double d) throws IOException {
+    public OldDataOut writeDouble(double d) throws IOException {
         return this.writeLong(Double.doubleToLongBits(d));
     }
 
@@ -271,7 +271,7 @@ public abstract class DataOut extends OutputStream {
      *
      * @param s the string to write
      */
-    public DataOut writeUTF(@NonNull String s) throws IOException {
+    public OldDataOut writeUTF(@NonNull String s) throws IOException {
         return this.writeByteArray(s.getBytes(StandardCharsets.UTF_8));
     }
 
@@ -280,7 +280,7 @@ public abstract class DataOut extends OutputStream {
      *
      * @param b the bytes to write
      */
-    public DataOut writeByteArray(@NonNull byte[] b) throws IOException {
+    public OldDataOut writeByteArray(@NonNull byte[] b) throws IOException {
         return this.writeVarInt(b.length).writeBytes(b);
     }
 
@@ -290,7 +290,7 @@ public abstract class DataOut extends OutputStream {
      * @param e   the value to write
      * @param <E> the type of the enum
      */
-    public <E extends Enum<E>> DataOut writeEnum(@NonNull E e) throws IOException {
+    public <E extends Enum<E>> OldDataOut writeEnum(@NonNull E e) throws IOException {
         return this.writeUTF(e.name());
     }
 
@@ -301,7 +301,7 @@ public abstract class DataOut extends OutputStream {
      *
      * @param value the value to write
      */
-    public DataOut writeVarInt(int value) throws IOException {
+    public OldDataOut writeVarInt(int value) throws IOException {
         do {
             byte temp = (byte) (value & 0b01111111);
             value >>>= 7;
@@ -320,7 +320,7 @@ public abstract class DataOut extends OutputStream {
      *
      * @param value the value to write
      */
-    public DataOut writeVarLong(long value) throws IOException {
+    public OldDataOut writeVarLong(long value) throws IOException {
         do {
             byte temp = (byte) (value & 0b01111111);
             value >>>= 7L;
@@ -332,12 +332,12 @@ public abstract class DataOut extends OutputStream {
         return this;
     }
 
-    public DataOut writeBytes(@NonNull byte[] b) throws IOException {
+    public OldDataOut writeBytes(@NonNull byte[] b) throws IOException {
         this.write(b);
         return this;
     }
 
-    public DataOut writeBytes(@NonNull byte[] b, int off, int len) throws IOException {
+    public OldDataOut writeBytes(@NonNull byte[] b, int off, int len) throws IOException {
         this.write(b, off, len);
         return this;
     }

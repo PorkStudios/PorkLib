@@ -13,46 +13,50 @@
  *
  */
 
-package net.daporkchop.lib.binary.stream.optimizations;
+package net.daporkchop.lib.binary.stream;
 
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.BufferOverflowException;
+import net.daporkchop.lib.common.util.PorkUtil;
 
 /**
- * An implementation of {@link java.io.ByteArrayOutputStream} that doesn't expand, and
- * will therefore only be able to write the number of bytes it was initialized with
+ * A source from which one may read single bytes for an indefinite length.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-public class NonExpandingByteArrayOutputStream extends OutputStream {
+public interface ByteSource {
     /**
-     * Creates a new {@link NonExpandingByteArrayOutputStream}, wrapping a given buffer.
+     * Gets the next byte from this source.
      * <p>
-     * This has no advantage over the normal constructor, just a convenience method if you prefer
-     * static constructor-like things
+     * If no further bytes are available, this will throw an unchecked exception.
      *
-     * @param buf the buffer to use
-     * @return an instance of {@link NonExpandingByteArrayOutputStream} wrapping the given buffer
+     * @return the next byte (unsigned)
      */
-    public static NonExpandingByteArrayOutputStream wrap(@NonNull byte[] buf) {
-        return new NonExpandingByteArrayOutputStream(buf);
-    }
-    @NonNull
-    private final byte[] buf;
-    private int pos;
+    int next();
 
-    @Override
-    public void write(int b) throws IOException {
-        if (this.pos >= this.buf.length) {
-            throw new BufferOverflowException();
+    /**
+     * Fills the given byte array with data from this source.
+     * <p>
+     * If no further bytes are available, this will throw an unchecked exception.
+     *
+     * @param arr the byte array to fill
+     */
+    default void next(@NonNull byte[] arr) {
+        this.next(arr, 0, arr.length);
+    }
+
+    /**
+     * Fills the given byte array with data from this source.
+     * <p>
+     * If no further bytes are available, this will throw an unchecked exception.
+     *
+     * @param arr the byte array to fill
+     */
+    default void next(@NonNull byte[] arr, int start, int count) {
+        PorkUtil.assertValidArrayIndex(arr.length, start, count);
+
+        count += start;
+        for (int i = start; i < count; i++) {
+            arr[i] = (byte) this.next();
         }
-        this.buf[this.pos++] = (byte) b;
     }
 }

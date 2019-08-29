@@ -17,18 +17,18 @@ package net.daporkchop.lib.binary.stream.data;
 
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * An implementation of {@link DataOut} that can write to a {@link ByteBuffer}
+ * An implementation of {@link OldDataOut} that can write to a {@link ByteBuffer}
  *
  * @author DaPorkchop_
  */
 @AllArgsConstructor
-public class BufferOut extends DataOut {
+public class BufferOut extends OldDataOut {
     @NonNull
     private final ByteBuffer buffer;
 
@@ -43,37 +43,37 @@ public class BufferOut extends DataOut {
     }
 
     @Override
-    public DataOut writeByte(byte b) throws IOException {
+    public OldDataOut writeByte(byte b) throws IOException {
         this.buffer.put(b);
         return this;
     }
 
     @Override
-    public DataOut writeShort(short s) throws IOException {
+    public OldDataOut writeShort(short s) throws IOException {
         this.buffer.putShort(s);
         return this;
     }
 
     @Override
-    public DataOut writeInt(int i) throws IOException {
+    public OldDataOut writeInt(int i) throws IOException {
         this.buffer.putInt(i);
         return this;
     }
 
     @Override
-    public DataOut writeLong(long l) throws IOException {
+    public OldDataOut writeLong(long l) throws IOException {
         this.buffer.putLong(l);
         return this;
     }
 
     @Override
-    public DataOut writeFloat(float f) throws IOException {
+    public OldDataOut writeFloat(float f) throws IOException {
         this.buffer.putFloat(f);
         return this;
     }
 
     @Override
-    public DataOut writeDouble(double d) throws IOException {
+    public OldDataOut writeDouble(double d) throws IOException {
         this.buffer.putDouble(d);
         return this;
     }

@@ -16,7 +16,7 @@
 package net.daporkchop.lib.network.protocol.packet;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.OldDataIn;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 import java.io.IOException;
@@ -32,15 +32,15 @@ public interface IncomingPacket<S extends AbstractUserSession<S>> {
      * {@link net.daporkchop.lib.unsafe.PUnsafe#allocateInstance(Class)}, so implementing classes should assume that
      * no constructors or default values will be set.
      *
-     * @param in      a {@link DataIn} to read data from
+     * @param in      a {@link OldDataIn} to read data from
      * @param session the session that the packet was received on
      */
-    void decode(@NonNull DataIn in, @NonNull S session) throws IOException;
+    void decode(@NonNull OldDataIn in, @NonNull S session) throws IOException;
 
     /**
      * Handles this packet.
      * <p>
-     * One may assume that {@link #decode(DataIn, AbstractUserSession)} will have been called successfully before this method is called.
+     * One may assume that {@link #decode(OldDataIn, AbstractUserSession)} will have been called successfully before this method is called.
      *
      * @param session the session that the packet was received on
      */

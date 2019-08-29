@@ -22,7 +22,7 @@ import io.netty.util.Recycler;
 import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 import net.daporkchop.lib.network.util.PacketMetadata;
 
 import java.io.IOException;
@@ -31,7 +31,7 @@ import java.io.IOException;
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-class BinaryOut extends DataOut {
+class BinaryOut extends OldDataOut {
     private static final Recycler<BinaryOut> RECYCLER = new Recycler<BinaryOut>() {
         @Override
         protected BinaryOut newObject(Handle<BinaryOut> handle) {
@@ -62,43 +62,43 @@ class BinaryOut extends DataOut {
     }
 
     @Override
-    public DataOut writeShort(short s) throws IOException {
+    public OldDataOut writeShort(short s) throws IOException {
         this.checkRealloc().writeShort(s);
         return this;
     }
 
     @Override
-    public DataOut writeUShort(int s) throws IOException {
+    public OldDataOut writeUShort(int s) throws IOException {
         this.checkRealloc().writeShort(s);
         return this;
     }
 
     @Override
-    public DataOut writeMedium(int m) throws IOException {
+    public OldDataOut writeMedium(int m) throws IOException {
         this.checkRealloc().writeMedium(m);
         return this;
     }
 
     @Override
-    public DataOut writeInt(int i) throws IOException {
+    public OldDataOut writeInt(int i) throws IOException {
         this.checkRealloc().writeInt(i);
         return this;
     }
 
     @Override
-    public DataOut writeLong(long l) throws IOException {
+    public OldDataOut writeLong(long l) throws IOException {
         this.checkRealloc().writeLong(l);
         return this;
     }
 
     @Override
-    public DataOut writeBytes(@NonNull byte[] b) throws IOException {
+    public OldDataOut writeBytes(@NonNull byte[] b) throws IOException {
         this.checkRealloc().writeBytes(b);
         return this;
     }
 
     @Override
-    public DataOut writeBytes(@NonNull byte[] b, int off, int len) throws IOException {
+    public OldDataOut writeBytes(@NonNull byte[] b, int off, int len) throws IOException {
         this.checkRealloc().writeBytes(b, off, len);
         return this;
     }

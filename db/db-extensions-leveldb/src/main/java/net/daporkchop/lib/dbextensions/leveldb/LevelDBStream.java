@@ -17,8 +17,8 @@ package net.daporkchop.lib.dbextensions.leveldb;
 
 import lombok.NonNull;
 import net.daporkchop.lib.binary.serialization.Serializer;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 import net.daporkchop.lib.collections.PMap;
 import net.daporkchop.lib.collections.stream.PStream;
 import net.daporkchop.lib.collections.util.ConcurrencyHelper;
@@ -27,14 +27,11 @@ import net.daporkchop.lib.common.function.io.IORunnable;
 import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.db.DBStream;
 import net.daporkchop.lib.db.util.exception.DBNotOpenException;
-import net.daporkchop.lib.db.util.exception.DBReadException;
 import net.daporkchop.lib.dbextensions.leveldb.util.LevelDBCollection;
 import net.daporkchop.lib.dbextensions.leveldb.util.LevelDBConfiguration;
 import net.daporkchop.lib.unsafe.PCleaner;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.DBIterator;
-import org.iq80.leveldb.ReadOptions;
-import org.iq80.leveldb.Snapshot;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -44,7 +41,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntFunction;
@@ -137,7 +133,7 @@ public class LevelDBStream<V> extends LevelDBCollection implements DBStream<V> {
     public <T> PStream<T> map(@NonNull Function<V, T> mappingFunction) {
         this.run(entry -> {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            try (DataOut out = DataOut.wrap(baos)) {
+            try (OldDataOut out = OldDataOut.wrap(baos)) {
                 this.configuration.getSerialization().write(mappingFunction.apply(this.read(entry.getValue())), out);
             }
             this.delegate.put(entry.getKey(), baos.toByteArray());
@@ -217,7 +213,7 @@ public class LevelDBStream<V> extends LevelDBCollection implements DBStream<V> {
     }
 
     protected V read(@NonNull byte[] b) throws IOException {
-        DataIn in = DataIn.wrap(ByteBuffer.wrap(b));
+        OldDataIn in = OldDataIn.wrap(ByteBuffer.wrap(b));
         if (this.sourceDb != null) {
             return this.sourceSerializer.read(in);
         } else {

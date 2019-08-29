@@ -16,7 +16,7 @@
 package net.daporkchop.lib.network.session.handle;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.OldDataIn;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.util.PacketMetadata;
 
@@ -44,7 +44,7 @@ public interface SelfSessionHandler {
     void onException(@NonNull Exception e);
 
     /**
-     * @see SessionHandler#onReceive(AbstractUserSession, DataIn, PacketMetadata)
+     * @see SessionHandler#onReceive(AbstractUserSession, OldDataIn, PacketMetadata)
      */
-    void onReceive(@NonNull DataIn in, @NonNull PacketMetadata metadata) throws IOException;
+    void onReceive(@NonNull OldDataIn in, @NonNull PacketMetadata metadata) throws IOException;
 }

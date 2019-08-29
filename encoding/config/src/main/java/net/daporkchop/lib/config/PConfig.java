@@ -18,8 +18,8 @@ package net.daporkchop.lib.config;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 import net.daporkchop.lib.common.util.PConstants;
 import net.daporkchop.lib.config.attribute.Comment;
 import net.daporkchop.lib.config.decoder.ConfigDecoder;
@@ -56,15 +56,15 @@ public class PConfig {
     }
 
     @SuppressWarnings("unchecked")
-    public <C> C load(@NonNull Class<C> clazz, @NonNull DataIn in) throws IOException   {
+    public <C> C load(@NonNull Class<C> clazz, @NonNull OldDataIn in) throws IOException   {
         return this.load(PUnsafe.allocateInstance(clazz), in);
     }
 
     public <C> C load(@NonNull C obj, @NonNull File file) throws IOException {
-        return this.load(obj, DataIn.wrap(file));
+        return this.load(obj, OldDataIn.wrap(file));
     }
 
-    public <C> C load(@NonNull C obj, @NonNull DataIn in) throws IOException   {
+    public <C> C load(@NonNull C obj, @NonNull OldDataIn in) throws IOException   {
         Element.ContainerElement root = this.decoder.decode(in);
         Config config = PReflection.getAnnotation(obj.getClass(), Config.class);
         if (config != null) {
@@ -230,14 +230,14 @@ public class PConfig {
     }
 
     public void save(@NonNull Object obj, @NonNull OutputStream out) throws IOException    {
-        this.save(obj, DataOut.wrap(out));
+        this.save(obj, OldDataOut.wrap(out));
     }
 
     public void save(@NonNull Object obj, @NonNull File file) throws IOException    {
-        this.save(obj, DataOut.wrap(file));
+        this.save(obj, OldDataOut.wrap(file));
     }
 
-    public void save(@NonNull Object obj, @NonNull DataOut out) throws IOException  {
+    public void save(@NonNull Object obj, @NonNull OldDataOut out) throws IOException  {
         Element.ContainerElement root = Element.dummyContainer(null, null, null);
         this.saveRecursive(root, obj);
         this.decoder.encode(root, out);

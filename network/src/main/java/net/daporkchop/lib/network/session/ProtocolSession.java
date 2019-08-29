@@ -19,7 +19,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.OldDataIn;
 import net.daporkchop.lib.common.reference.InstancePool;
 import net.daporkchop.lib.common.util.GenericMatcher;
 import net.daporkchop.lib.network.protocol.Protocol;
@@ -64,7 +64,7 @@ public abstract class ProtocolSession<S extends ProtocolSession<S, P>, P extends
 
     @Override
     @SuppressWarnings("unchecked")
-    public void onReceive(@NonNull DataIn in, @NonNull PacketMetadata metadata) throws IOException {
+    public void onReceive(@NonNull OldDataIn in, @NonNull PacketMetadata metadata) throws IOException {
         this.protocol.onReceive((S) this, in, metadata);
     }
 

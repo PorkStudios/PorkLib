@@ -17,7 +17,7 @@ package net.daporkchop.lib.hash.util;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 import net.daporkchop.lib.common.util.PorkUtil;
 
 import java.io.File;
@@ -80,8 +80,8 @@ public class Digester {
         return this;
     }
 
-    public DataOut appendStream()   {
-        return new DataOut() {
+    public OldDataOut appendStream()   {
+        return new OldDataOut() {
             @Override
             public void close() throws IOException {
             }

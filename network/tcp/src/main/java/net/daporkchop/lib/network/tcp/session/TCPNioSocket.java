@@ -23,7 +23,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.netty.NettyByteBufOut;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 import net.daporkchop.lib.concurrent.future.Promise;
 import net.daporkchop.lib.network.EndpointType;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
@@ -125,7 +125,7 @@ public class TCPNioSocket<S extends AbstractUserSession<S>> extends NioSocketCha
     }
 
     @Override
-    public DataOut writer() {
+    public OldDataOut writer() {
         return new NettyByteBufOut(this.alloc().ioBuffer()) {
             @Override
             protected boolean handleClose(@NonNull ByteBuf buf) throws IOException {

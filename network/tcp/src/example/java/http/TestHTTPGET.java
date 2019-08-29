@@ -21,21 +21,18 @@ import io.netty.util.concurrent.GlobalEventExecutor;
 import io.netty.util.concurrent.Promise;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.UTF8;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.binary.stream.OldDataIn;
 import net.daporkchop.lib.logging.LogAmount;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.endpoint.PClient;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.netty.LoopPool;
-import net.daporkchop.lib.network.session.encode.SendCallback;
 import net.daporkchop.lib.network.tcp.TCPEngine;
 import net.daporkchop.lib.network.util.PacketMetadata;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -80,7 +77,7 @@ public class TestHTTPGET implements Logging {
         }
 
         @Override
-        public void onReceive(@NonNull DataIn in, @NonNull PacketMetadata metadata) throws IOException {
+        public void onReceive(@NonNull OldDataIn in, @NonNull PacketMetadata metadata) throws IOException {
             switch (metadata.protocolId())  {
                 case 0: {
                     if (this.headers != null)   {

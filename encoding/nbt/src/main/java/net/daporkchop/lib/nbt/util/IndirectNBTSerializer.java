@@ -18,8 +18,8 @@ package net.daporkchop.lib.nbt.util;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.serialization.Serializer;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 import net.daporkchop.lib.nbt.NBTIO;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 
@@ -35,13 +35,13 @@ public class IndirectNBTSerializer<V extends NBTSerializable> implements Seriali
     private final Supplier<V> blankInstanceSupplier;
 
     @Override
-    public void write(@NonNull V val, @NonNull DataOut out) throws IOException {
+    public void write(@NonNull V val, @NonNull OldDataOut out) throws IOException {
         CompoundTag tag = new CompoundTag("");
         NBTIO.write(out, tag);
     }
 
     @Override
-    public V read(@NonNull DataIn in) throws IOException {
+    public V read(@NonNull OldDataIn in) throws IOException {
         V val = this.blankInstanceSupplier.get();
         val.read(NBTIO.read(in));
         return val;

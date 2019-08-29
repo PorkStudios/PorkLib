@@ -21,7 +21,7 @@ import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import mc.MCSession;
-import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.OldDataIn;
 import net.daporkchop.lib.network.protocol.packet.IncomingPacket;
 
 import java.io.IOException;
@@ -37,7 +37,7 @@ public class PongPacket implements IncomingPacket<MCSession> {
     protected long time;
 
     @Override
-    public void decode(@NonNull DataIn in, @NonNull MCSession session) throws IOException {
+    public void decode(@NonNull OldDataIn in, @NonNull MCSession session) throws IOException {
         this.time = in.readLong();
     }
 

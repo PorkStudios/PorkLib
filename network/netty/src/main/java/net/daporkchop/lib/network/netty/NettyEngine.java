@@ -24,7 +24,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.netty.NettyUtil;
-import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.OldDataIn;
 import net.daporkchop.lib.network.transport.TransportEngine;
 
 import java.util.Collections;
@@ -63,7 +63,7 @@ public abstract class NettyEngine implements TransportEngine {
     }
 
     @Override
-    public DataIn attemptRead(@NonNull Object msg) {
+    public OldDataIn attemptRead(@NonNull Object msg) {
         return msg instanceof ByteBuf ? NettyUtil.wrapIn((ByteBuf) msg) : null;
     }
 

@@ -16,7 +16,7 @@
 package net.daporkchop.lib.logging;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 import net.daporkchop.lib.logging.format.FormatParser;
 import net.daporkchop.lib.logging.format.MessageFormatter;
 import net.daporkchop.lib.logging.format.MessagePrinter;
@@ -53,7 +53,7 @@ public interface Logger {
      * @param linePrinter a callback function that will be invoked once for each line
      */
     static void getStackTrace(@NonNull Throwable throwable, @NonNull Consumer<String> linePrinter) {
-        throwable.printStackTrace(new PrintWriter(DataOut.slashDevSlashNull(), true) {
+        throwable.printStackTrace(new PrintWriter(OldDataOut.slashDevSlashNull(), true) {
             @Override
             public void println(Object x) {
                 linePrinter.accept(String.valueOf(x));

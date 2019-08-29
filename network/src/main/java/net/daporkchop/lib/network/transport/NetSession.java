@@ -16,13 +16,12 @@
 package net.daporkchop.lib.network.transport;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.OldDataIn;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.PSession;
 import net.daporkchop.lib.network.session.encode.SelfMessageEncoder;
 import net.daporkchop.lib.network.session.encode.SendCallback;
 import net.daporkchop.lib.network.session.handle.SelfSessionHandler;
-import net.daporkchop.lib.network.session.handle.SessionHandler;
 import net.daporkchop.lib.network.util.PacketMetadata;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
@@ -63,7 +62,7 @@ public interface NetSession<S extends AbstractUserSession<S>> extends PSession<N
     }
 
     @Override
-    default void onReceive(@NonNull DataIn in, @NonNull PacketMetadata metadata) throws IOException {
+    default void onReceive(@NonNull OldDataIn in, @NonNull PacketMetadata metadata) throws IOException {
         this.userSession().onReceive(in, metadata);
     }
 

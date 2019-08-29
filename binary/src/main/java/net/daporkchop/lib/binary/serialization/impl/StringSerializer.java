@@ -19,8 +19,8 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.serialization.Serializer;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 
 import java.io.IOException;
 
@@ -34,12 +34,12 @@ public class StringSerializer implements Serializer<String> {
     public static final StringSerializer INSTANCE = new StringSerializer();
 
     @Override
-    public void write(@NonNull String value, @NonNull DataOut out) throws IOException {
+    public void write(@NonNull String value, @NonNull OldDataOut out) throws IOException {
         out.writeUTF(value);
     }
 
     @Override
-    public String read(@NonNull DataIn in) throws IOException {
+    public String read(@NonNull OldDataIn in) throws IOException {
         return in.readUTF();
     }
 }

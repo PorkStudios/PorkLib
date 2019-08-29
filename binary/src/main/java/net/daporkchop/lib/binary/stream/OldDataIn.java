@@ -33,38 +33,38 @@ import java.util.function.Function;
  * Provides simple methods for reading data from a binary form
  *
  * @author DaPorkchop_
- * @see DataOut
+ * @see OldDataOut
  */
-public abstract class DataIn extends InputStream {
+public abstract class OldDataIn extends InputStream {
     /**
-     * Wraps an {@link InputStream} to make it into a {@link DataIn}
+     * Wraps an {@link InputStream} to make it into a {@link OldDataIn}
      *
      * @param in the stream to wrap
-     * @return the wrapped stream, or the original stream if it was already a {@link DataIn}
+     * @return the wrapped stream, or the original stream if it was already a {@link OldDataIn}
      */
-    public static DataIn wrap(@NonNull InputStream in) {
-        return in instanceof DataIn ? (DataIn) in : new StreamIn(in, true);
+    public static OldDataIn wrap(@NonNull InputStream in) {
+        return in instanceof OldDataIn ? (OldDataIn) in : new StreamIn(in, true);
     }
 
     /**
-     * Wraps an {@link InputStream} to make it into a {@link DataIn}.
+     * Wraps an {@link InputStream} to make it into a {@link OldDataIn}.
      * <p>
-     * Calling {@link #close()} on the returned {@link DataIn} will not cause the wrapped stream to be closed.
+     * Calling {@link #close()} on the returned {@link OldDataIn} will not cause the wrapped stream to be closed.
      *
      * @param in the stream to wrap
      * @return the wrapped stream, or the original stream if it was already a {@link StreamIn}
      */
-    public static DataIn wrapNonClosing(@NonNull InputStream in) {
+    public static OldDataIn wrapNonClosing(@NonNull InputStream in) {
         return in instanceof StreamIn ? ((StreamIn) in).close(false) : new StreamIn(in, false);
     }
 
     /**
-     * Wraps a {@link ByteBuffer} to make it into a {@link DataIn}.
+     * Wraps a {@link ByteBuffer} to make it into a {@link OldDataIn}.
      *
      * @param buffer the buffer to wrap
-     * @return the wrapped buffer as a {@link DataIn}
+     * @return the wrapped buffer as a {@link OldDataIn}
      */
-    public static DataIn wrap(@NonNull ByteBuffer buffer) {
+    public static OldDataIn wrap(@NonNull ByteBuffer buffer) {
         if (buffer.hasArray()) {
             return new StreamIn(new ByteArrayInputStream(buffer.array(), buffer.position(), buffer.remaining()), false);
         } else {
@@ -89,49 +89,49 @@ public abstract class DataIn extends InputStream {
     /**
      * @see #wrapBuffered(File)
      */
-    public static DataIn wrap(@NonNull File file) throws IOException {
+    public static OldDataIn wrap(@NonNull File file) throws IOException {
         return wrapBuffered(file);
     }
 
     /**
-     * Gets a {@link DataIn} for reading from a {@link File}.
+     * Gets a {@link OldDataIn} for reading from a {@link File}.
      * <p>
      * The file will additionally be wrapped in a {@link BufferedInputStream} for faster read/write access, using
      * the default buffer size of {@link BufferedInputStream#DEFAULT_BUFFER_SIZE}.
      *
      * @param file the file to read from
-     * @return a buffered {@link DataIn} that will read from the given file
+     * @return a buffered {@link OldDataIn} that will read from the given file
      * @throws IOException if an IO exception occurs you dummy
      */
-    public static DataIn wrapBuffered(@NonNull File file) throws IOException {
+    public static OldDataIn wrapBuffered(@NonNull File file) throws IOException {
         return wrap(new BufferedInputStream(new FileInputStream(file)));
     }
 
     /**
-     * Gets a {@link DataIn} for reading from a {@link File}.
+     * Gets a {@link OldDataIn} for reading from a {@link File}.
      * <p>
      * The file will additionally be wrapped in a {@link BufferedInputStream} for faster read/write access, using
      * the given buffer size.
      *
      * @param file       the file to read from
      * @param bufferSize the size of the buffer to use
-     * @return a buffered {@link DataIn} that will read from the given file
+     * @return a buffered {@link OldDataIn} that will read from the given file
      * @throws IOException if an IO exception occurs you dummy
      */
-    public static DataIn wrapBuffered(@NonNull File file, int bufferSize) throws IOException {
+    public static OldDataIn wrapBuffered(@NonNull File file, int bufferSize) throws IOException {
         return wrap(new BufferedInputStream(new FileInputStream(file), bufferSize));
     }
 
     /**
-     * Gets a {@link DataIn} for reading from a {@link File}.
+     * Gets a {@link OldDataIn} for reading from a {@link File}.
      * <p>
-     * {@link DataIn} instances returned from this method will NOT be buffered.
+     * {@link OldDataIn} instances returned from this method will NOT be buffered.
      *
      * @param file the file to read from
-     * @return a direct {@link DataIn} that will read from the given file
+     * @return a direct {@link OldDataIn} that will read from the given file
      * @throws IOException if an IO exception occurs you dummy
      */
-    public static DataIn wrapNonBuffered(@NonNull File file) throws IOException {
+    public static OldDataIn wrapNonBuffered(@NonNull File file) throws IOException {
         return wrap(new FileInputStream(file));
     }
 

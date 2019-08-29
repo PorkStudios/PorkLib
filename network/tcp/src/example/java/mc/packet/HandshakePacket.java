@@ -21,7 +21,7 @@ import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import mc.MCSession;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 import net.daporkchop.lib.network.protocol.packet.OutboundPacket;
 
 import java.io.IOException;
@@ -41,7 +41,7 @@ public class HandshakePacket implements OutboundPacket<MCSession> {
     protected int nextState;
 
     @Override
-    public void encode(@NonNull DataOut out, @NonNull MCSession session) throws IOException {
+    public void encode(@NonNull OldDataOut out, @NonNull MCSession session) throws IOException {
         out.writeVarInt(this.protocolVersion);
         out.writeUTF(this.remoteHost);
         out.writeUShort(this.remotePort);

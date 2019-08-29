@@ -18,7 +18,7 @@ package net.daporkchop.lib.network.tcp.netty;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import net.daporkchop.lib.binary.netty.NettyUtil;
-import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.OldDataIn;
 import net.daporkchop.lib.network.netty.NettyHandler;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.util.reliability.Reliability;
@@ -41,7 +41,7 @@ public class TCPHandler<S extends AbstractUserSession<S>> extends NettyHandler<S
         this.session.logger().debug("Received message @ %d bytes...", buf.readableBytes());
         this.session.framer().received(this.session.userSession(), buf, (bb, channelId, protocolId) -> {
             PacketMetadata metadata = PacketMetadata.instance(Reliability.RELIABLE_ORDERED, channelId, protocolId, true);
-            try (DataIn in = NettyUtil.wrapIn(bb)) {
+            try (OldDataIn in = NettyUtil.wrapIn(bb)) {
                 this.session.onReceive(in, metadata); //TODO: recycle this lambda
             } catch (IOException e) {
                 throw new RuntimeException(e);

@@ -16,7 +16,7 @@
 package net.daporkchop.lib.network.session.encode;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.util.PacketMetadata;
 
@@ -43,10 +43,10 @@ public interface BinaryEncoder<S extends AbstractUserSession<S>> extends Message
      *
      * @param session  the session
      * @param msg      the message to encode
-     * @param out      a {@link DataOut} to write data to. This will buffer all data written to it, buffered data will only
-     *                 be sent after {@link DataOut#flush()} or {@link DataOut#close()} is called or this method returns
+     * @param out      a {@link OldDataOut} to write data to. This will buffer all data written to it, buffered data will only
+     *                 be sent after {@link OldDataOut#flush()} or {@link OldDataOut#close()} is called or this method returns
      * @param metadata packet metadata
      * @throws IOException if an IO exception occurs you dummy
      */
-    void encodeMessage(@NonNull S session, @NonNull Object msg, @NonNull DataOut out, @NonNull PacketMetadata metadata) throws IOException;
+    void encodeMessage(@NonNull S session, @NonNull Object msg, @NonNull OldDataOut out, @NonNull PacketMetadata metadata) throws IOException;
 }

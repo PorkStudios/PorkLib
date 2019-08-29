@@ -16,8 +16,7 @@
 package net.daporkchop.lib.network.session.encode;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.network.session.AbstractUserSession;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 import net.daporkchop.lib.network.util.PacketMetadata;
 
 import java.io.IOException;
@@ -42,9 +41,9 @@ public interface SelfBinaryEncoder extends SelfMessageEncoder {
      * Encodes a message into binary.
      *
      * @param message the message to encode
-     * @param out     a {@link DataOut} to write data to. This will buffer all data written to it, buffered data will only
-     *                be sent after {@link DataOut#flush()} or {@link DataOut#close()} is called or this method returns
+     * @param out     a {@link OldDataOut} to write data to. This will buffer all data written to it, buffered data will only
+     *                be sent after {@link OldDataOut#flush()} or {@link OldDataOut#close()} is called or this method returns
      * @throws IOException if an IO exception occurs you dummy
      */
-    void encodeMessage(@NonNull Object message, @NonNull DataOut out) throws IOException;
+    void encodeMessage(@NonNull Object message, @NonNull OldDataOut out) throws IOException;
 }

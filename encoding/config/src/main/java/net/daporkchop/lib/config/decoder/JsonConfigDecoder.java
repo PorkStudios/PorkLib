@@ -28,9 +28,8 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import net.daporkchop.lib.binary.UTF8;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 import net.daporkchop.lib.config.attribute.Comment;
 import net.daporkchop.lib.config.util.Element;
 import net.daporkchop.lib.reflection.PField;
@@ -53,7 +52,7 @@ public class JsonConfigDecoder implements ConfigDecoder {
     protected final PField<Number> jsonPrimitive_value = PField.of(JsonPrimitive.class, "value");
 
     @Override
-    public Element.ContainerElement decode(@NonNull DataIn in) throws IOException {
+    public Element.ContainerElement decode(@NonNull OldDataIn in) throws IOException {
         JsonElement element;
         try (Reader reader = new InputStreamReader(in)) {
             element = this.parser.parse(reader);
@@ -124,7 +123,7 @@ public class JsonConfigDecoder implements ConfigDecoder {
     }
 
     @Override
-    public void encode(@NonNull Element.ContainerElement root, @NonNull DataOut out) throws IOException {
+    public void encode(@NonNull Element.ContainerElement root, @NonNull OldDataOut out) throws IOException {
         JsonObject object = new JsonObject();
         this.encodeRecursive(root, object);
         out.write(this.gson.toJson(object).getBytes(UTF8.utf8));

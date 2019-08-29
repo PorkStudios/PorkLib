@@ -19,8 +19,8 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.serialization.Serializer;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -35,13 +35,13 @@ public class UUIDSerializer implements Serializer<UUID> {
     public static final UUIDSerializer INSTANCE = new UUIDSerializer();
 
     @Override
-    public void write(@NonNull UUID value, @NonNull DataOut out) throws IOException {
+    public void write(@NonNull UUID value, @NonNull OldDataOut out) throws IOException {
         out.writeLong(value.getMostSignificantBits());
         out.writeLong(value.getLeastSignificantBits());
     }
 
     @Override
-    public UUID read(@NonNull DataIn in) throws IOException {
+    public UUID read(@NonNull OldDataIn in) throws IOException {
         return new UUID(
                 in.readLong(),
                 in.readLong()

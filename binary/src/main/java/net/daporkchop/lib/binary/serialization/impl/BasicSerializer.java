@@ -19,8 +19,8 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.serialization.Serializer;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -49,7 +49,7 @@ public class BasicSerializer<T extends Serializable> implements Serializer<T> {
     }
 
     @Override
-    public void write(@NonNull T val, @NonNull DataOut out) throws IOException {
+    public void write(@NonNull T val, @NonNull OldDataOut out) throws IOException {
         try (ObjectOutputStream oOut = new ObjectOutputStream(out)) {
             oOut.writeObject(val);
         }
@@ -57,7 +57,7 @@ public class BasicSerializer<T extends Serializable> implements Serializer<T> {
 
     @Override
     @SuppressWarnings("unchecked")
-    public T read(@NonNull DataIn in) throws IOException {
+    public T read(@NonNull OldDataIn in) throws IOException {
         try (ObjectInputStream oIn = new ObjectInputStream(in)) {
             return (T) oIn.readObject();
         } catch (ClassNotFoundException e) {

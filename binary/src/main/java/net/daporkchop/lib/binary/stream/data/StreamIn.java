@@ -20,20 +20,20 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.OldDataIn;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * An implementation of {@link DataIn} that can read data from an {@link InputStream}
+ * An implementation of {@link OldDataIn} that can read data from an {@link InputStream}
  *
  * @author DaPorkchop_
  */
 @AllArgsConstructor
 @Getter
 @Accessors(fluent = true, chain = true)
-public class StreamIn extends DataIn {
+public class StreamIn extends OldDataIn {
     @NonNull
     protected final InputStream in;
     @Setter

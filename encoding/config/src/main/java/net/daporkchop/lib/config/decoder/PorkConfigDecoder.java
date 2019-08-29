@@ -16,20 +16,17 @@
 package net.daporkchop.lib.config.decoder;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.config.attribute.Comment;
 import net.daporkchop.lib.config.util.Element;
 import net.daporkchop.lib.reflection.util.Type;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.PrintStream;
-import java.io.Reader;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -42,7 +39,7 @@ import java.util.Map;
  */
 public class PorkConfigDecoder implements ConfigDecoder {
     @Override
-    public Element.ContainerElement decode(@NonNull DataIn in) throws IOException {
+    public Element.ContainerElement decode(@NonNull OldDataIn in) throws IOException {
         Element.ContainerElement root = Element.dummyContainer(null, null, null);
         this.decodeInto(root, new BufferedReader(new InputStreamReader(in)));
         return root;
@@ -226,8 +223,8 @@ public class PorkConfigDecoder implements ConfigDecoder {
     }
 
     @Override
-    public void encode(@NonNull Element.ContainerElement root, @NonNull DataOut out) throws IOException {
-        try (PrintStream stream = new PrintStream(DataOut.wrapNonClosing(out))) {
+    public void encode(@NonNull Element.ContainerElement root, @NonNull OldDataOut out) throws IOException {
+        try (PrintStream stream = new PrintStream(OldDataOut.wrapNonClosing(out))) {
             this.encodeRecursive(root, stream, 0);
         }
     }

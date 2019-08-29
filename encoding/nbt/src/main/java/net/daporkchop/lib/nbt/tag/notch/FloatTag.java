@@ -18,8 +18,8 @@ package net.daporkchop.lib.nbt.tag.notch;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 import net.daporkchop.lib.nbt.tag.Tag;
 import net.daporkchop.lib.nbt.tag.TagRegistry;
 
@@ -45,12 +45,12 @@ public class FloatTag extends Tag {
     }
 
     @Override
-    public void read(@NonNull DataIn in, @NonNull TagRegistry registry) throws IOException {
+    public void read(@NonNull OldDataIn in, @NonNull TagRegistry registry) throws IOException {
         this.value = in.readFloat();
     }
 
     @Override
-    public void write(@NonNull DataOut out, @NonNull TagRegistry registry) throws IOException {
+    public void write(@NonNull OldDataOut out, @NonNull TagRegistry registry) throws IOException {
         out.writeFloat(this.value);
     }
 

@@ -17,18 +17,18 @@ package net.daporkchop.lib.binary.stream.data;
 
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.OldDataIn;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * An implementation of {@link DataIn} that can read from a {@link ByteBuffer}
+ * An implementation of {@link OldDataIn} that can read from a {@link ByteBuffer}
  *
  * @author DaPorkchop_
  */
 @AllArgsConstructor
-public class BufferIn extends DataIn {
+public class BufferIn extends OldDataIn {
     @NonNull
     private final ByteBuffer buffer;
 

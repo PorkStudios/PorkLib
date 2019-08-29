@@ -20,19 +20,19 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 
 import java.io.IOException;
 
 /**
- * An implementation of {@link DataOut} that can write to a {@link ByteBuf}
+ * An implementation of {@link OldDataOut} that can write to a {@link ByteBuf}
  *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public abstract class NettyByteBufOut extends DataOut {
+public abstract class NettyByteBufOut extends OldDataOut {
     static {
         NettyUtil.ensureNettyPresent();
     }
@@ -53,61 +53,61 @@ public abstract class NettyByteBufOut extends DataOut {
     }
 
     @Override
-    public DataOut writeBoolean(boolean b) throws IOException {
+    public OldDataOut writeBoolean(boolean b) throws IOException {
         this.ensureOpen();
         this.buf.writeBoolean(b);
         return this;
     }
 
     @Override
-    public DataOut writeByte(byte b) throws IOException {
+    public OldDataOut writeByte(byte b) throws IOException {
         this.ensureOpen();
         this.buf.writeByte(b & 0xFF);
         return this;
     }
 
     @Override
-    public DataOut writeShort(short s) throws IOException {
+    public OldDataOut writeShort(short s) throws IOException {
         this.ensureOpen();
         this.buf.writeShort(s & 0xFFFF);
         return this;
     }
 
     @Override
-    public DataOut writeMedium(int m) throws IOException {
+    public OldDataOut writeMedium(int m) throws IOException {
         this.ensureOpen();
         this.buf.writeMedium(m & 0xFFFFFF);
         return this;
     }
 
     @Override
-    public DataOut writeUMedium(int m) throws IOException {
+    public OldDataOut writeUMedium(int m) throws IOException {
         return this.writeMedium(m & 0xFFFFFF);
     }
 
     @Override
-    public DataOut writeInt(int i) throws IOException {
+    public OldDataOut writeInt(int i) throws IOException {
         this.ensureOpen();
         this.buf.writeInt(i);
         return this;
     }
 
     @Override
-    public DataOut writeLong(long l) throws IOException {
+    public OldDataOut writeLong(long l) throws IOException {
         this.ensureOpen();
         this.buf.writeLong(l);
         return this;
     }
 
     @Override
-    public DataOut writeFloat(float f) throws IOException {
+    public OldDataOut writeFloat(float f) throws IOException {
         this.ensureOpen();
         this.buf.writeFloat(f);
         return this;
     }
 
     @Override
-    public DataOut writeDouble(double d) throws IOException {
+    public OldDataOut writeDouble(double d) throws IOException {
         this.ensureOpen();
         this.buf.writeDouble(d);
         return this;

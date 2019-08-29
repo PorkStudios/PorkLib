@@ -16,7 +16,7 @@
 package net.daporkchop.lib.network.protocol.packet;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 import java.io.IOException;
@@ -28,8 +28,8 @@ public interface OutboundPacket<S extends AbstractUserSession<S>> {
     /**
      * Encodes this message into it's binary representation.
      *
-     * @param out     a {@link DataOut} to write data to
+     * @param out     a {@link OldDataOut} to write data to
      * @param session the session that the packet will be sent on
      */
-    void encode(@NonNull DataOut out, @NonNull S session) throws IOException;
+    void encode(@NonNull OldDataOut out, @NonNull S session) throws IOException;
 }

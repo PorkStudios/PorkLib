@@ -19,7 +19,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.OldDataIn;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -32,7 +32,7 @@ import java.nio.channels.FileChannel;
  */
 @RequiredArgsConstructor
 @Getter
-public class BufferingFileInput extends DataIn {
+public class BufferingFileInput extends OldDataIn {
     @NonNull
     private final FileChannel channel;
     private final int bufferSize;

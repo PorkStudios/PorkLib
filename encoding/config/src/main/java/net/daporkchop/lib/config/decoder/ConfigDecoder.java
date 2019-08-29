@@ -16,8 +16,8 @@
 package net.daporkchop.lib.config.decoder;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.stream.OldDataOut;
 import net.daporkchop.lib.config.util.Element;
 
 import java.io.File;
@@ -29,14 +29,14 @@ import java.io.InputStream;
  */
 public interface ConfigDecoder {
     default Element.ContainerElement decode(@NonNull File file) throws IOException {
-        return this.decode(DataIn.wrap(file));
+        return this.decode(OldDataIn.wrap(file));
     }
 
     default Element.ContainerElement decode(@NonNull InputStream in) throws IOException {
-        return this.decode(DataIn.wrap(in));
+        return this.decode(OldDataIn.wrap(in));
     }
 
-    Element.ContainerElement decode(@NonNull DataIn in) throws IOException;
+    Element.ContainerElement decode(@NonNull OldDataIn in) throws IOException;
 
-    void encode(@NonNull Element.ContainerElement root, @NonNull DataOut out) throws IOException;
+    void encode(@NonNull Element.ContainerElement root, @NonNull OldDataOut out) throws IOException;
 }

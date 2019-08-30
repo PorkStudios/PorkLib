@@ -21,7 +21,7 @@ import io.netty.util.concurrent.GlobalEventExecutor;
 import io.netty.util.concurrent.Promise;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.UTF8;
-import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.io.OldDataIn;
 import net.daporkchop.lib.logging.LogAmount;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.endpoint.PClient;

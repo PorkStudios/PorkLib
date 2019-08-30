@@ -13,72 +13,59 @@
  *
  */
 
-package net.daporkchop.lib.binary.stream.data;
+package net.daporkchop.lib.binary.io.data;
 
-import lombok.AllArgsConstructor;
-import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.OldDataOut;
+import net.daporkchop.lib.binary.io.OldDataOut;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 /**
- * An implementation of {@link OldDataOut} that can write to a {@link ByteBuffer}
+ * /dev/null
+ * <p>
+ * A {@link OldDataOut} implementation that simply discards all data written to it.
  *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-public class BufferOut extends OldDataOut {
-    @NonNull
-    private final ByteBuffer buffer;
+public class SlashDevSlashNull extends OldDataOut {
+    @Override
+    public void close() throws IOException {
+    }
 
     @Override
     public void write(int b) throws IOException {
-        this.buffer.put((byte) b);
     }
 
     @Override
-    public void write(@NonNull byte[] b, int off, int len) throws IOException {
-        this.buffer.put(b, off, len);
-    }
-
-    @Override
-    public OldDataOut writeByte(byte b) throws IOException {
-        this.buffer.put(b);
+    public OldDataOut writeUTF(String s) throws IOException {
         return this;
     }
 
     @Override
-    public OldDataOut writeShort(short s) throws IOException {
-        this.buffer.putShort(s);
+    public OldDataOut writeByteArray(byte[] b) throws IOException {
         return this;
     }
 
     @Override
-    public OldDataOut writeInt(int i) throws IOException {
-        this.buffer.putInt(i);
+    public OldDataOut writeVarInt(int value) throws IOException {
         return this;
     }
 
     @Override
-    public OldDataOut writeLong(long l) throws IOException {
-        this.buffer.putLong(l);
+    public OldDataOut writeVarLong(long value) throws IOException {
         return this;
     }
 
     @Override
-    public OldDataOut writeFloat(float f) throws IOException {
-        this.buffer.putFloat(f);
+    public OldDataOut writeBytes(byte[] b) throws IOException {
         return this;
     }
 
     @Override
-    public OldDataOut writeDouble(double d) throws IOException {
-        this.buffer.putDouble(d);
+    public OldDataOut writeBytes(byte[] b, int off, int len) throws IOException {
         return this;
     }
 
     @Override
-    public void close() throws IOException {
+    public void write(byte[] b, int off, int len) throws IOException {
     }
 }

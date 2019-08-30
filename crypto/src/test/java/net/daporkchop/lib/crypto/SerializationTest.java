@@ -15,8 +15,8 @@
 
 package net.daporkchop.lib.crypto;
 
-import net.daporkchop.lib.binary.stream.OldDataIn;
-import net.daporkchop.lib.binary.stream.OldDataOut;
+import net.daporkchop.lib.binary.io.OldDataIn;
+import net.daporkchop.lib.binary.io.OldDataOut;
 import net.daporkchop.lib.crypto.key.EllipticCurveKeyPair;
 import net.daporkchop.lib.crypto.key.KeySerialization;
 import net.daporkchop.lib.crypto.keygen.KeyGen;

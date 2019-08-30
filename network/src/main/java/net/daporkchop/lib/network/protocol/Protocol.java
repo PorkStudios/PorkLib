@@ -16,8 +16,8 @@
 package net.daporkchop.lib.network.protocol;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.OldDataIn;
-import net.daporkchop.lib.binary.stream.OldDataOut;
+import net.daporkchop.lib.binary.io.OldDataIn;
+import net.daporkchop.lib.binary.io.OldDataOut;
 import net.daporkchop.lib.network.session.ProtocolSession;
 import net.daporkchop.lib.network.session.encode.BinaryEncoder;
 import net.daporkchop.lib.network.session.handle.SessionHandler;

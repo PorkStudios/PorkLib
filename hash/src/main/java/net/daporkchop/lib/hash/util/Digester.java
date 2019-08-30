@@ -17,7 +17,7 @@ package net.daporkchop.lib.hash.util;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.stream.OldDataOut;
+import net.daporkchop.lib.binary.io.OldDataOut;
 import net.daporkchop.lib.common.util.PorkUtil;
 
 import java.io.File;

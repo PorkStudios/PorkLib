@@ -13,13 +13,16 @@
  *
  */
 
-package net.daporkchop.lib.binary.stream;
+package net.daporkchop.lib.binary.io.source;
 
 import lombok.NonNull;
+import net.daporkchop.lib.binary.util.exception.EndOfStreamException;
 import net.daporkchop.lib.common.util.PorkUtil;
 
+import java.io.IOException;
+
 /**
- * A source from which one may read single bytes for an indefinite length.
+ * A source from which to read an indefinitely long sequence of bytes.
  *
  * @author DaPorkchop_
  */
@@ -27,36 +30,53 @@ public interface ByteSource {
     /**
      * Gets the next byte from this source.
      * <p>
-     * If no further bytes are available, this will throw an unchecked exception.
+     * If no further bytes are available, this will throw an {@link EndOfStreamException}.
      *
      * @return the next byte (unsigned)
+     * @throws EndOfStreamException if EOS is reached
+     * @throws IOException          if any exception occurs while reading
      */
-    int next();
+    int next() throws IOException;
 
     /**
-     * Fills the given byte array with data from this source.
-     * <p>
-     * If no further bytes are available, this will throw an unchecked exception.
-     *
-     * @param arr the byte array to fill
+     * @return the next byte (signed)
+     * @see #next()
      */
-    default void next(@NonNull byte[] arr) {
-        this.next(arr, 0, arr.length);
+    default byte nextByte() throws IOException {
+        return (byte) this.next();
+    }
+
+    /**
+     * @see #nextBytes(byte[], int, int)
+     */
+    default void nextBytes(@NonNull byte[] arr) throws IOException {
+        this.nextBytes(arr, 0, arr.length);
     }
 
     /**
      * Fills the given byte array with data from this source.
-     * <p>
-     * If no further bytes are available, this will throw an unchecked exception.
      *
-     * @param arr the byte array to fill
+     * @param arr   the array to fill
+     * @param start the index in the array to start filling at
+     * @param count the number of bytes to read
+     * @see #next()
      */
-    default void next(@NonNull byte[] arr, int start, int count) {
+    default void nextBytes(@NonNull byte[] arr, int start, int count) throws IOException {
         PorkUtil.assertValidArrayIndex(arr.length, start, count);
+        for (int i = start; i < start + count; i++) {
+            arr[i] = this.nextByte();
+        }
+    }
 
-        count += start;
-        for (int i = start; i < count; i++) {
-            arr[i] = (byte) this.next();
+    /**
+     * Skips (discards) the given number of bytes.
+     *
+     * @param count the number of bytes to skip
+     * @see #next()
+     */
+    default void skip(long count) throws IOException {
+        while (count-- > 0) {
+            this.next();
         }
     }
 }

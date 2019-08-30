@@ -16,7 +16,7 @@
 package net.daporkchop.lib.network.session;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.OldDataOut;
+import net.daporkchop.lib.binary.io.OldDataOut;
 import net.daporkchop.lib.concurrent.future.Promise;
 import net.daporkchop.lib.network.endpoint.PEndpoint;
 import net.daporkchop.lib.network.transport.NetSession;

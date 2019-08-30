@@ -20,7 +20,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.io.OldDataIn;
 
 import java.io.IOException;
 

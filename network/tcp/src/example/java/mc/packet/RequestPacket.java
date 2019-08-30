@@ -17,7 +17,7 @@ package mc.packet;
 
 import lombok.NonNull;
 import mc.MCSession;
-import net.daporkchop.lib.binary.stream.OldDataOut;
+import net.daporkchop.lib.binary.io.OldDataOut;
 import net.daporkchop.lib.network.protocol.packet.OutboundPacket;
 
 import java.io.IOException;

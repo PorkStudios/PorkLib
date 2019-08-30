@@ -18,6 +18,9 @@ package net.daporkchop.lib.binary.util.exception;
 import java.io.IOException;
 
 /**
+ * Thrown when a {@link net.daporkchop.lib.binary.io.source.DataSource} or similar class reaches the end of the data
+ * stream.
+ *
  * @author DaPorkchop_
  */
 public class EndOfStreamException extends IOException {

@@ -18,7 +18,7 @@ package net.daporkchop.lib.network.transport;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.io.OldDataIn;
 import net.daporkchop.lib.network.endpoint.PClient;
 import net.daporkchop.lib.network.endpoint.PServer;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;

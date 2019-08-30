@@ -16,7 +16,7 @@
 package http;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.io.OldDataIn;
 import net.daporkchop.lib.logging.LogAmount;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.endpoint.PServer;

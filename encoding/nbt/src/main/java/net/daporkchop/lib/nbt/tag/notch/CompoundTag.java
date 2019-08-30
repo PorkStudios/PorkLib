@@ -18,8 +18,8 @@ package net.daporkchop.lib.nbt.tag.notch;
 import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.UTF8;
-import net.daporkchop.lib.binary.stream.OldDataIn;
-import net.daporkchop.lib.binary.stream.OldDataOut;
+import net.daporkchop.lib.binary.io.OldDataIn;
+import net.daporkchop.lib.binary.io.OldDataOut;
 import net.daporkchop.lib.nbt.tag.Tag;
 import net.daporkchop.lib.nbt.tag.TagRegistry;
 

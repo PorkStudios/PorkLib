@@ -19,7 +19,7 @@ import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import net.daporkchop.lib.binary.UTF8;
-import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.io.OldDataIn;
 import net.daporkchop.lib.config.Config;
 import net.daporkchop.lib.config.PConfig;
 import net.daporkchop.lib.config.decoder.JsonConfigDecoder;

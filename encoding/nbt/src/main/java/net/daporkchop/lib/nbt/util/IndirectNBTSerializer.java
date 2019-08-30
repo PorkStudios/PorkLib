@@ -18,8 +18,8 @@ package net.daporkchop.lib.nbt.util;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.serialization.Serializer;
-import net.daporkchop.lib.binary.stream.OldDataIn;
-import net.daporkchop.lib.binary.stream.OldDataOut;
+import net.daporkchop.lib.binary.io.OldDataIn;
+import net.daporkchop.lib.binary.io.OldDataOut;
 import net.daporkchop.lib.nbt.NBTIO;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 

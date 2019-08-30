@@ -21,7 +21,7 @@ import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import mc.MCSession;
-import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.io.OldDataIn;
 import net.daporkchop.lib.network.protocol.packet.IncomingPacket;
 
 import java.io.IOException;

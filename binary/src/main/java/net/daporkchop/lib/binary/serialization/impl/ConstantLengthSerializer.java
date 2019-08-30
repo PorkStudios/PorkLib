@@ -18,9 +18,9 @@ package net.daporkchop.lib.binary.serialization.impl;
 import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.serialization.Serializer;
-import net.daporkchop.lib.binary.stream.OldDataIn;
-import net.daporkchop.lib.binary.stream.OldDataOut;
-import net.daporkchop.lib.binary.stream.optimizations.NonExpandingByteArrayOutputStream;
+import net.daporkchop.lib.binary.io.OldDataIn;
+import net.daporkchop.lib.binary.io.OldDataOut;
+import net.daporkchop.lib.binary.io.optimizations.NonExpandingByteArrayOutputStream;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

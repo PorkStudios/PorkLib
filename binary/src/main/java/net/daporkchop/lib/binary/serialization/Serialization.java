@@ -26,8 +26,8 @@ import net.daporkchop.lib.binary.serialization.impl.ByteArraySerializer;
 import net.daporkchop.lib.binary.serialization.impl.ConstantLengthSerializer;
 import net.daporkchop.lib.binary.serialization.impl.StringSerializer;
 import net.daporkchop.lib.binary.serialization.impl.UUIDSerializer;
-import net.daporkchop.lib.binary.stream.OldDataIn;
-import net.daporkchop.lib.binary.stream.OldDataOut;
+import net.daporkchop.lib.binary.io.OldDataIn;
+import net.daporkchop.lib.binary.io.OldDataOut;
 
 import java.io.File;
 import java.io.IOException;

@@ -13,10 +13,10 @@
  *
  */
 
-package binary;import net.daporkchop.lib.binary.stream.bit.BitInputStream;
-import net.daporkchop.lib.binary.stream.bit.BitOutputStream;
-import net.daporkchop.lib.binary.stream.OldDataIn;
-import net.daporkchop.lib.binary.stream.OldDataOut;
+package binary;import net.daporkchop.lib.binary.io.bit.BitInputStream;
+import net.daporkchop.lib.binary.io.bit.BitOutputStream;
+import net.daporkchop.lib.binary.io.OldDataIn;
+import net.daporkchop.lib.binary.io.OldDataOut;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;

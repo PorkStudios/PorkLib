@@ -18,7 +18,7 @@ package net.daporkchop.lib.network.tcp.netty;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import net.daporkchop.lib.binary.netty.NettyUtil;
-import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.io.OldDataIn;
 import net.daporkchop.lib.network.netty.NettyHandler;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.util.reliability.Reliability;

@@ -17,8 +17,8 @@ package net.daporkchop.lib.dbextensions.leveldb;
 
 import lombok.NonNull;
 import net.daporkchop.lib.binary.serialization.Serializer;
-import net.daporkchop.lib.binary.stream.OldDataIn;
-import net.daporkchop.lib.binary.stream.OldDataOut;
+import net.daporkchop.lib.binary.io.OldDataIn;
+import net.daporkchop.lib.binary.io.OldDataOut;
 import net.daporkchop.lib.collections.PIterator;
 import net.daporkchop.lib.collections.stream.PStream;
 import net.daporkchop.lib.db.DBSet;

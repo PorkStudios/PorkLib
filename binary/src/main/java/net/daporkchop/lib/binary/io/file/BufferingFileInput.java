@@ -13,16 +13,49 @@
  *
  */
 
-package net.daporkchop.lib.binary.util.capability;
+package net.daporkchop.lib.binary.io.file;
+
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.binary.io.OldDataIn;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 
 /**
+ * Allows reading from a {@link FileChannel} using a native byte buffer
+ *
  * @author DaPorkchop_
  */
-public interface Closeable<E extends Exception> extends AutoCloseable {
-    @Override
-    void close() throws E;
+@RequiredArgsConstructor
+@Getter
+public class BufferingFileInput extends OldDataIn {
+    @NonNull
+    private final FileChannel channel;
+    private final int bufferSize;
+    @NonNull
+    private long offset;
+    @Getter(AccessLevel.PRIVATE)
+    private ByteBuffer buffer;
 
-    boolean isClosed();
+    @Override
+    public int read() throws IOException {
+        if (this.buffer == null || !this.buffer.hasRemaining()) {
+            if (this.buffer == null) {
+                this.buffer = ByteBuffer.allocateDirect(this.bufferSize);
+            }
+            this.buffer.clear();
+            this.offset += this.channel.read(this.buffer, this.offset);
+            this.buffer.flip();
+        }
+        return this.buffer.get() & 0xFF;
+    }
+
+    @Override
+    public void close() throws IOException {
+        this.buffer = null;
+    }
 }

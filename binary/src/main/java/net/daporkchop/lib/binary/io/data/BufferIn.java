@@ -13,11 +13,11 @@
  *
  */
 
-package net.daporkchop.lib.binary.stream.data;
+package net.daporkchop.lib.binary.io.data;
 
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.io.OldDataIn;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

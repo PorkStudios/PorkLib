@@ -13,49 +13,33 @@
  *
  */
 
-package net.daporkchop.lib.binary.stream.file;
+package net.daporkchop.lib.binary.io;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.io.source.ByteSource;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
+import java.io.InputStream;
 
 /**
- * Allows reading from a {@link FileChannel} using a native byte buffer
+ * A source from which to read binary data.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-public class BufferingFileInput extends OldDataIn {
-    @NonNull
-    private final FileChannel channel;
-    private final int bufferSize;
-    @NonNull
-    private long offset;
-    @Getter(AccessLevel.PRIVATE)
-    private ByteBuffer buffer;
+public interface DataIn extends AutoCloseable, ByteSource {
+    /**
+     * Gets this {@link DataIn} instance as a vanilla Java {@link InputStream}. The {@link InputStream} returned
+     * by this instance is guaranteed to have access to the same data as this {@link DataIn} instance, and reading
+     * N bytes from one of them should have the same effect on the other as if N bytes had been skipped.
+     *
+     * @return a {@link InputStream} with access to the same data as this stream
+     */
+    InputStream java();
 
     @Override
-    public int read() throws IOException {
-        if (this.buffer == null || !this.buffer.hasRemaining()) {
-            if (this.buffer == null) {
-                this.buffer = ByteBuffer.allocateDirect(this.bufferSize);
-            }
-            this.buffer.clear();
-            this.offset += this.channel.read(this.buffer, this.offset);
-            this.buffer.flip();
-        }
-        return this.buffer.get() & 0xFF;
+    default int next() {
+        return 0;
     }
 
     @Override
-    public void close() throws IOException {
-        this.buffer = null;
-    }
+    void close() throws IOException;
 }

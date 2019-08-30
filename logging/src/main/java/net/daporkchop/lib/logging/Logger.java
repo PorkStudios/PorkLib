@@ -16,7 +16,7 @@
 package net.daporkchop.lib.logging;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.OldDataOut;
+import net.daporkchop.lib.binary.io.OldDataOut;
 import net.daporkchop.lib.logging.format.FormatParser;
 import net.daporkchop.lib.logging.format.MessageFormatter;
 import net.daporkchop.lib.logging.format.MessagePrinter;

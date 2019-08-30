@@ -14,7 +14,7 @@
  */
 
 package binary;import net.daporkchop.lib.binary.UTF8;
-import net.daporkchop.lib.binary.stream.bit.Huffman;
+import net.daporkchop.lib.binary.io.bit.Huffman;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;

@@ -16,7 +16,7 @@
 package net.daporkchop.lib.network.session.encode;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.OldDataOut;
+import net.daporkchop.lib.binary.io.OldDataOut;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.util.PacketMetadata;
 

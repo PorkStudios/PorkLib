@@ -16,7 +16,7 @@
 package net.daporkchop.lib.network.protocol.packet;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.OldDataOut;
+import net.daporkchop.lib.binary.io.OldDataOut;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 
 import java.io.IOException;

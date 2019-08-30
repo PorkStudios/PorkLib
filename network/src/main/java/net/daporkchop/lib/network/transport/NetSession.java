@@ -16,7 +16,7 @@
 package net.daporkchop.lib.network.transport;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.OldDataIn;
+import net.daporkchop.lib.binary.io.OldDataIn;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.PSession;
 import net.daporkchop.lib.network.session.encode.SelfMessageEncoder;

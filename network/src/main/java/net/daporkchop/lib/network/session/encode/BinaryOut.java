@@ -22,7 +22,7 @@ import io.netty.util.Recycler;
 import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.stream.OldDataOut;
+import net.daporkchop.lib.binary.io.OldDataOut;
 import net.daporkchop.lib.network.util.PacketMetadata;
 
 import java.io.IOException;

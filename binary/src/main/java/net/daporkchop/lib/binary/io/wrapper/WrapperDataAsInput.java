@@ -13,44 +13,55 @@
  *
  */
 
-package net.daporkchop.lib.binary.io;
+package net.daporkchop.lib.binary.io.wrapper;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.io.source.ByteSource;
-import net.daporkchop.lib.binary.io.source.DataSource;
-import net.daporkchop.lib.binary.io.wrapper.WrapperDataAsInput;
-import net.daporkchop.lib.binary.io.wrapper.WrapperInputAsData;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.binary.io.DataIn;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * Extension of {@link DataSource} which can also serve as an {@link InputStream}.
- *
  * @author DaPorkchop_
  */
-public interface DataIn extends AutoCloseable, DataSource {
-    static DataIn wrap(@NonNull InputStream stream) {
-        return wrap(stream, true);
-    }
-
-    static DataIn wrap(@NonNull InputStream stream, boolean forwardClose) {
-        if (stream instanceof WrapperDataAsInput)   {
-            return ((WrapperDataAsInput) stream).delegate();
-        } else {
-            return new WrapperInputAsData(stream, forwardClose);
-        }
-    }
-
-    /**
-     * Gets this {@link DataIn} instance as a vanilla Java {@link InputStream}. The {@link InputStream} returned
-     * by this instance is guaranteed to have access to the same data as this {@link DataIn} instance, and reading
-     * N bytes from one of them should have the same effect on the other as if N bytes had been skipped.
-     *
-     * @return a {@link InputStream} with access to the same data as this stream
-     */
-    InputStream java();
+@RequiredArgsConstructor
+@AllArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public class WrapperDataAsInput extends InputStream {
+    @NonNull
+    protected final DataIn delegate;
+    protected boolean forwardClose = false;
 
     @Override
-    void close() throws IOException;
+    public int read() throws IOException {
+        return this.delegate.next();
+    }
+
+    @Override
+    public int read(byte[] b) throws IOException {
+        return this.delegate.nextAvailableBytes(b);
+    }
+
+    @Override
+    public int read(byte[] b, int off, int len) throws IOException {
+        return this.delegate.nextAvailableBytes(b, off, len);
+    }
+
+    @Override
+    public long skip(long n) throws IOException {
+        this.delegate.skip(n); //TODO: i don't think this has exactly the same behavior
+        return n;
+    }
+
+    @Override
+    public void close() throws IOException {
+        if (this.forwardClose)  {
+            this.delegate.close();
+        }
+    }
 }

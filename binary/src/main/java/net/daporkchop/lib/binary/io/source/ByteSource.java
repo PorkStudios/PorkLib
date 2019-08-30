@@ -69,6 +69,34 @@ public interface ByteSource {
     }
 
     /**
+     * @see #nextBytes(byte[], int, int)
+     */
+    default int nextAvailableBytes(@NonNull byte[] arr) throws IOException {
+        return this.nextAvailableBytes(arr, 0, arr.length);
+    }
+
+    /**
+     * Fills the given byte array with as much data from this source as can be read.
+     *
+     * @param arr   the array to fill
+     * @param start the index in the array to start filling at
+     * @param count the number of bytes to read
+     * @return the number of bytes that were read
+     * @see #next()
+     */
+    default int nextAvailableBytes(@NonNull byte[] arr, int start, int count) throws IOException {
+        PorkUtil.assertValidArrayIndex(arr.length, start, count);
+        int i = 0;
+        try {
+            while (i < count)   {
+                arr[start + i++] = this.nextByte();
+            }
+        } catch (EndOfStreamException e)    {
+        }
+        return i;
+    }
+
+    /**
      * Skips (discards) the given number of bytes.
      *
      * @param count the number of bytes to skip

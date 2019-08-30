@@ -26,6 +26,7 @@ import net.daporkchop.lib.common.util.PorkUtil;
  *
  * @author DaPorkchop_
  */
+//TODO: get rid of this
 public interface NettyUtil {
     boolean NETTY_PRESENT = PorkUtil.classExistsWithName("io.netty.buffer.ByteBuf");
 

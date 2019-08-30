@@ -23,6 +23,7 @@ import java.nio.charset.Charset;
  * @author DaPorkchop_
  * @deprecated in favor of {@link java.nio.charset.StandardCharsets#UTF_8}, which I didn't know about when making this class
  */
+//TODO: get rid of this
 @Deprecated
 public class UTF8 {
     /**

@@ -16,7 +16,6 @@
 package net.daporkchop.lib.logging.impl;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.common.misc.Tuple;
 import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.logging.LogAmount;
@@ -36,6 +35,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -78,7 +78,7 @@ public class DefaultLogger extends SimpleLogger {
                     @Override
                     public synchronized void write(int b) throws IOException {
                         if (b == '\n') {
-                            fakeLogger.info(new String(this.baos.toByteArray(), UTF8.utf8));
+                            fakeLogger.info(new String(this.baos.toByteArray(), StandardCharsets.UTF_8));
                             this.baos.reset();
                         } else {
                             this.baos.write(b);
@@ -91,7 +91,7 @@ public class DefaultLogger extends SimpleLogger {
                     @Override
                     public synchronized void write(int b) throws IOException {
                         if (b == '\n') {
-                            fakeLogger.error(new String(this.baos.toByteArray(), UTF8.utf8));
+                            fakeLogger.error(new String(this.baos.toByteArray(), StandardCharsets.UTF_8));
                             this.baos.reset();
                         } else {
                             this.baos.write(b);

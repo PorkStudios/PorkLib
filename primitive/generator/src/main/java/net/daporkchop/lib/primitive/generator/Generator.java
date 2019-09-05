@@ -21,7 +21,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.common.reference.InstancePool;
 import net.daporkchop.lib.logging.Logging;
@@ -35,6 +34,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -461,7 +461,7 @@ public class Generator implements Logging {
                     .replaceAll(LICENSE_DEF, LICENSE);
 
             try (OutputStream os = new FileOutputStream(file)) {
-                byte[] b = contentOut.getBytes(UTF8.utf8);
+                byte[] b = contentOut.getBytes(StandardCharsets.UTF_8);
                 os.write(b);
                 SIZE.addAndGet(file.length());
                 FILES.incrementAndGet();

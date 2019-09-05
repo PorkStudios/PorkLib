@@ -16,9 +16,9 @@
 package net.daporkchop.lib.hash.util;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.encoding.basen.Base58;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -57,7 +57,7 @@ public class Base58WithHeaders {
             newData[i] = version; //fill with random data for hash
         }
 
-        byte[] hash = Digest.SHA512.hash(Digest.SHA512.hash(new byte[]{version}, prefix.getBytes(UTF8.utf8), content).getHash()).getHash();
+        byte[] hash = Digest.SHA512.hash(Digest.SHA512.hash(new byte[]{version}, prefix.getBytes(StandardCharsets.UTF_8), content).getHash()).getHash();
         System.arraycopy(hash, 0, newData, (newData.length - 4), 4);
         return Base58.INSTANCE.alphabet[prefix.length()] + prefix + Base58.encodeBase58(newData);
     }
@@ -95,7 +95,7 @@ public class Base58WithHeaders {
             hash[i - (rawData.length - 4)] = rawData[i];
             rawData[i] = version;
         }
-        byte[] newHash = Digest.SHA512.hash(Digest.SHA512.hash(new byte[]{version}, prefix.toString().getBytes(UTF8.utf8), data).getHash()).getHash();
+        byte[] newHash = Digest.SHA512.hash(Digest.SHA512.hash(new byte[]{version}, prefix.toString().getBytes(StandardCharsets.UTF_8), data).getHash()).getHash();
         for (int i = 0; i < 4; i++) {
             if (hash[i] != newHash[i]) {
                 throw new IllegalArgumentException("Invalid checksum!");

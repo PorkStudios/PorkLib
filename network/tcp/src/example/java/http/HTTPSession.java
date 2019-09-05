@@ -17,13 +17,12 @@ package http;
 
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.network.session.AbstractUserSession;
 import net.daporkchop.lib.network.session.encode.SendCallback;
 import net.daporkchop.lib.network.util.PacketMetadata;
 
-import java.util.Collections;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
@@ -36,7 +35,7 @@ public abstract class HTTPSession<S extends HTTPSession<S>> extends AbstractUser
     @Override
     public void encodeMessage(@NonNull Object msg, @NonNull PacketMetadata metadata, @NonNull SendCallback callback) {
         if (msg instanceof String)  {
-            callback.send(((String) msg).getBytes(UTF8.utf8), metadata);
+            callback.send(((String) msg).getBytes(StandardCharsets.UTF_8), metadata);
         } else {
             throw new IllegalStateException(String.format("Cannot send packet: %s", PorkUtil.className(msg)));
         }

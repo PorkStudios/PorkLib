@@ -16,7 +16,6 @@
 package net.daporkchop.lib.nbt;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.encoding.compression.CompressionHelper;
@@ -25,6 +24,7 @@ import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author DaPorkchop_
@@ -56,7 +56,7 @@ public class NBTOutputStream extends DataOut {
 
     public void writeTag(@NonNull CompoundTag tag, @NonNull TagRegistry registry) throws IOException {
         this.writeByte(registry.getId(CompoundTag.class));
-        byte[] b = tag.getName().getBytes(UTF8.utf8);
+        byte[] b = tag.getName().getBytes(StandardCharsets.UTF_8);
         this.writeShort((short) b.length);
         this.write(b);
         tag.write(this, registry);

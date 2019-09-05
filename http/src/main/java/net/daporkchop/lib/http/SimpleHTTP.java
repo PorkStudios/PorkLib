@@ -26,12 +26,12 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.InputStreamContent;
 import com.google.api.client.http.apache.ApacheHttpTransport;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.UTF8;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Map;
 
@@ -71,11 +71,11 @@ public class SimpleHTTP {
     }
 
     public static String postUrlEncodedAsString(@NonNull String url, @NonNull String content, Object... params) throws IOException {
-        return postAsString(new URL(url), content.getBytes(UTF8.utf8), "application/x-www-form-urlencoded", params);
+        return postAsString(new URL(url), content.getBytes(StandardCharsets.UTF_8), "application/x-www-form-urlencoded", params);
     }
 
     public static String postJsonAsString(@NonNull String url, @NonNull String json, Object... params) throws IOException {
-        return postAsString(new URL(url), json.getBytes(UTF8.utf8), "application/json", params);
+        return postAsString(new URL(url), json.getBytes(StandardCharsets.UTF_8), "application/json", params);
     }
 
     public static String postAsString(@NonNull String url, @NonNull byte[] content, @NonNull String contentType, Object... params) throws IOException {
@@ -91,11 +91,11 @@ public class SimpleHTTP {
     }
 
     public static byte[] postUrlEncoded(@NonNull String url, @NonNull String content, Object... params) throws IOException {
-        return post(new URL(url), content.getBytes(UTF8.utf8), "application/x-www-form-urlencoded", params);
+        return post(new URL(url), content.getBytes(StandardCharsets.UTF_8), "application/x-www-form-urlencoded", params);
     }
 
     public static byte[] postJson(@NonNull String url, @NonNull String json, Object... params) throws IOException {
-        return post(new URL(url), json.getBytes(UTF8.utf8), "application/json", params);
+        return post(new URL(url), json.getBytes(StandardCharsets.UTF_8), "application/json", params);
     }
 
     public static byte[] post(@NonNull String url, @NonNull byte[] content, @NonNull String contentType, Object... params) throws IOException {
@@ -111,11 +111,11 @@ public class SimpleHTTP {
     }
 
     public static String postUrlEncodedAsString(@NonNull URL url, @NonNull String content, Object... params) throws IOException {
-        return postAsString(url, content.getBytes(UTF8.utf8), "application/x-www-form-urlencoded", params);
+        return postAsString(url, content.getBytes(StandardCharsets.UTF_8), "application/x-www-form-urlencoded", params);
     }
 
     public static String postJsonAsString(@NonNull URL url, @NonNull String json, Object... params) throws IOException {
-        return postAsString(url, json.getBytes(UTF8.utf8), "application/json", params);
+        return postAsString(url, json.getBytes(StandardCharsets.UTF_8), "application/json", params);
     }
 
     public static String postAsString(@NonNull URL url, @NonNull byte[] content, @NonNull String contentType, Object... params) throws IOException {
@@ -131,11 +131,11 @@ public class SimpleHTTP {
     }
 
     public static byte[] postUrlEncoded(@NonNull URL url, @NonNull String content, Object... params) throws IOException {
-        return post(url, content.getBytes(UTF8.utf8), "application/x-www-form-urlencoded", params);
+        return post(url, content.getBytes(StandardCharsets.UTF_8), "application/x-www-form-urlencoded", params);
     }
 
     public static byte[] postJson(@NonNull URL url, @NonNull String json, Object... params) throws IOException {
-        return post(url, json.getBytes(UTF8.utf8), "application/json", params);
+        return post(url, json.getBytes(StandardCharsets.UTF_8), "application/json", params);
     }
 
     public static byte[] post(@NonNull URL url, @NonNull byte[] content, @NonNull String contentType, Object... params) throws IOException {

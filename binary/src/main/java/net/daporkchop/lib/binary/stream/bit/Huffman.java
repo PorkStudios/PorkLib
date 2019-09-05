@@ -16,7 +16,6 @@
 package net.daporkchop.lib.binary.stream.bit;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.math.primitive.BinMath;
 import net.daporkchop.lib.binary.util.map.CharacterBooleanHashMap;
 import net.daporkchop.lib.binary.util.map.CharacterBooleanMap;
@@ -26,6 +25,7 @@ import net.daporkchop.lib.binary.util.map.CharacterIntegerMap;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -77,7 +77,7 @@ public class Huffman {
                     indexes.put(c, j);
                     builder.append(c);
                 });
-                byte[] index = builder.toString().getBytes(UTF8.utf8);
+                byte[] index = builder.toString().getBytes(StandardCharsets.UTF_8);
                 stream.writeLength(index.length);
                 stream.write(index);
             }
@@ -114,7 +114,7 @@ public class Huffman {
                 int indexByteLength = stream.readLength();
                 byte[] b = new byte[indexByteLength];
                 stream.read(b);
-                String s = new String(b, UTF8.utf8);
+                String s = new String(b, StandardCharsets.UTF_8);
                 index = s.toCharArray();
             }
             int indexBits = BinMath.getNumBitsNeededFor(index.length);

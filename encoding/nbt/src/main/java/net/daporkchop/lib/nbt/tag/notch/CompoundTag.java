@@ -17,13 +17,13 @@ package net.daporkchop.lib.nbt.tag.notch;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.nbt.tag.Tag;
 import net.daporkchop.lib.nbt.tag.TagRegistry;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,7 +55,7 @@ public class CompoundTag extends Tag {
             {
                 byte[] b = new byte[in.readShort() & 0xFFFF];
                 in.readFully(b, 0, b.length);
-                name = new String(b, UTF8.utf8);
+                name = new String(b, StandardCharsets.UTF_8);
             }
             Tag tag = registry.create(id, name);
             tag.read(in, registry);
@@ -68,7 +68,7 @@ public class CompoundTag extends Tag {
         for (Map.Entry<String, Tag> entry : this.contents.entrySet()) {
             byte id = registry.getId(entry.getValue().getClass());
             out.writeByte(id);
-            byte[] name = entry.getKey().getBytes(UTF8.utf8);
+            byte[] name = entry.getKey().getBytes(StandardCharsets.UTF_8);
             out.writeShort((short) name.length);
             out.write(name);
             entry.getValue().write(out, registry);

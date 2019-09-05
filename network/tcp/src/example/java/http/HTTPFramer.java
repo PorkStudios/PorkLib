@@ -17,11 +17,11 @@ package http;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.network.tcp.frame.AbstractFramer;
 import net.daporkchop.lib.network.tcp.frame.Framer;
 import net.daporkchop.lib.network.util.PacketMetadata;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
@@ -84,7 +84,7 @@ public class HTTPFramer<S extends HTTPSession<S>> extends AbstractFramer<S> {
                         while (buf.readableBytes() >= 2)    {
                             buf.markReaderIndex();
                             if (buf.readByte() == '\r' && buf.readByte() == '\n')   {
-                                this.nextChunkLength = Integer.parseInt(buf.slice(origPos, count).toString(UTF8.utf8), 16) + 2;
+                                this.nextChunkLength = Integer.parseInt(buf.slice(origPos, count).toString(StandardCharsets.UTF_8), 16) + 2;
                                 break; //we read a complete length field
                             } else {
                                 count++;

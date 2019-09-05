@@ -27,10 +27,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.config.attribute.Comment;
 import net.daporkchop.lib.config.util.Element;
 import net.daporkchop.lib.reflection.PField;
@@ -41,6 +39,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
@@ -127,7 +126,7 @@ public class JsonConfigDecoder implements ConfigDecoder {
     public void encode(@NonNull Element.ContainerElement root, @NonNull DataOut out) throws IOException {
         JsonObject object = new JsonObject();
         this.encodeRecursive(root, object);
-        out.write(this.gson.toJson(object).getBytes(UTF8.utf8));
+        out.write(this.gson.toJson(object).getBytes(StandardCharsets.UTF_8));
     }
 
     protected void encodeRecursive(@NonNull Element.ContainerElement container, @NonNull JsonObject object) {

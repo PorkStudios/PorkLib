@@ -13,12 +13,14 @@
  *
  */
 
-package binary;import net.daporkchop.lib.binary.UTF8;
+package binary;
+
 import net.daporkchop.lib.binary.stream.bit.Huffman;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author DaPorkchop_
@@ -121,7 +123,7 @@ public class TestHuffman {
     @Test
     public void test() {
         for (String text : test_strings) {
-            System.out.println("Original length: " + text.getBytes(UTF8.utf8).length);
+            System.out.println("Original length: " + text.getBytes(StandardCharsets.UTF_8).length);
             byte[] shrunk;
             {
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();

@@ -16,7 +16,6 @@
 package example.crypto;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.common.function.Void;
 import net.daporkchop.lib.crypto.keygen.EntropyPool;
 import net.daporkchop.lib.encoding.Hexadecimal;
@@ -26,6 +25,7 @@ import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.nio.charset.StandardCharsets;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.IntSupplier;
@@ -129,7 +129,7 @@ public class EntropyGatherer {
             button.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(@NonNull MouseEvent e) {
-                    poolRef.get().update(inputGetter.get().getBytes(UTF8.utf8));
+                    poolRef.get().update(inputGetter.get().getBytes(StandardCharsets.UTF_8));
                     String s = Hexadecimal.encode(poolRef.get().get(sizeGetter.getAsInt(), new Random(seedGetter.getAsLong())));
                     Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(s), null);
                     System.out.printf("Generated: %s\n", s);

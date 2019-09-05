@@ -18,9 +18,7 @@ package encoding.config;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
-import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.config.Config;
 import net.daporkchop.lib.config.PConfig;
 import net.daporkchop.lib.config.decoder.JsonConfigDecoder;
@@ -31,6 +29,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author DaPorkchop_
@@ -51,7 +50,7 @@ public class JsonConfigTest {
         {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             config.save(Root.INSTANCe, baos);
-            System.out.printf("Saved: \n%s\n", new String(baos.toByteArray(), UTF8.utf8));
+            System.out.printf("Saved: \n%s\n", new String(baos.toByteArray(), StandardCharsets.UTF_8));
         }
     }
 

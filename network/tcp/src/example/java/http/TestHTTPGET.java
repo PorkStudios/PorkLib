@@ -20,22 +20,19 @@ import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import io.netty.util.concurrent.Promise;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.logging.LogAmount;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.endpoint.PClient;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.netty.LoopPool;
-import net.daporkchop.lib.network.session.encode.SendCallback;
 import net.daporkchop.lib.network.tcp.TCPEngine;
 import net.daporkchop.lib.network.util.PacketMetadata;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -86,7 +83,7 @@ public class TestHTTPGET implements Logging {
                     if (this.headers != null)   {
                         throw new IllegalStateException("Headers already read!");
                     } else {
-                        this.headers = Arrays.stream(new String(in.readAllAvailableBytes(), UTF8.utf8).split("\r\n"))
+                        this.headers = Arrays.stream(new String(in.readAllAvailableBytes(), StandardCharsets.UTF_8).split("\r\n"))
                                 .map(s -> s.split(": ", 2))
                                 .filter(a -> a.length == 2)
                                 .collect(Collectors.toMap(a -> a[0], a -> a[1]));
@@ -114,7 +111,7 @@ public class TestHTTPGET implements Logging {
                         if (this.body.readableBytes() > this.contentLength) {
                             throw new IllegalStateException("Read too many bytes!");
                         } else if (this.body.readableBytes() == this.contentLength) {
-                            this.promise.trySuccess(this.body.toString(UTF8.utf8));
+                            this.promise.trySuccess(this.body.toString(StandardCharsets.UTF_8));
                             this.body.release();
                             this.closeAsync();
                         }
@@ -131,7 +128,7 @@ public class TestHTTPGET implements Logging {
             if (this.headers == null)   {
                 this.promise.tryFailure(new IllegalStateException("Closed without reading headers!"));
             } else if (this.contentLength == -1)    {
-                this.promise.trySuccess(this.body.toString(UTF8.utf8));
+                this.promise.trySuccess(this.body.toString(StandardCharsets.UTF_8));
                 this.body.release();
             } else {
                 this.promise.tryFailure(new IllegalStateException("Closed without reading all bytes!"));

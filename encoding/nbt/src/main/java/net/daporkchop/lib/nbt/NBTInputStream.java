@@ -16,7 +16,6 @@
 package net.daporkchop.lib.nbt;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.encoding.compression.CompressionHelper;
@@ -25,6 +24,7 @@ import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Allows reading NBT tags from an input stream
@@ -63,7 +63,7 @@ public class NBTInputStream extends DataIn {
         }
         byte[] b = new byte[this.readShort() & 0xFFFF];
         this.readFully(b, 0, b.length);
-        CompoundTag tag = new CompoundTag(new String(b, UTF8.utf8));
+        CompoundTag tag = new CompoundTag(new String(b, StandardCharsets.UTF_8));
         tag.read(this, registry);
         return tag;
     }

@@ -62,6 +62,8 @@ public class NBTOutputStream extends DataOut {
         tag.write(this, registry);
     }
 
+    //inpustream implementations
+
     @Override
     public void close() throws IOException {
         this.out.close();
@@ -70,5 +72,20 @@ public class NBTOutputStream extends DataOut {
     @Override
     public void write(int b) throws IOException {
         this.out.write(b);
+    }
+
+    @Override
+    public void write(byte[] b) throws IOException {
+        this.out.write(b);
+    }
+
+    @Override
+    public void write(byte[] b, int off, int len) throws IOException {
+        this.out.write(b, off, len);
+    }
+
+    @Override
+    public void flush() throws IOException {
+        this.out.flush();
     }
 }

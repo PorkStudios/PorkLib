@@ -13,12 +13,25 @@
  *
  */
 
-dependencies {
-    compile project(":math")
-    compile project(":encoding")
-    compile project(":reflection")
+package net.daporkchop.lib.http;
 
-    compile "io.netty:netty-buffer:$nettyVersion"
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 
-    compile "com.zaxxer:SparseBitSet:$sparseBitSetVersion"
+/**
+ * An HTTP request.
+ *
+ * @author DaPorkchop_
+ */
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public class Request {
+    @NonNull
+    protected final RequestType type;
+    @NonNull
+    protected final String path;
+    //TODO: headers
 }

@@ -27,17 +27,6 @@ import net.daporkchop.lib.common.util.PorkUtil;
  * @author DaPorkchop_
  */
 public interface NettyUtil {
-    boolean NETTY_PRESENT = PorkUtil.classExistsWithName("io.netty.buffer.ByteBuf");
-
-    /**
-     * Ensures that Netty (or specifically netty-buffer) is present in the classpath by throwing an exception if it isn't.
-     */
-    static void ensureNettyPresent() {
-        if (!NETTY_PRESENT) {
-            throw new IllegalStateException("Netty not found in classpath!");
-        }
-    }
-
     /**
      * Wraps a {@link ByteBuf} into a {@link DataIn} for reading.
      * <p>
@@ -61,7 +50,6 @@ public interface NettyUtil {
      * @return a {@link DataIn} that can read data from the {@link ByteBuf}
      */
     static DataIn wrapIn(@NonNull ByteBuf buf, boolean release) {
-        ensureNettyPresent();
         return release ? new NettyByteBufIn.Releasing(buf) : new NettyByteBufIn(buf);
     }
 
@@ -74,7 +62,6 @@ public interface NettyUtil {
      * @return a {@link DataOut} that can write data to the {@link ByteBuf}
      */
     static DataOut wrapOut(@NonNull ByteBuf buf) {
-        ensureNettyPresent();
         return new NettyByteBufOut.Default(buf);
     }
 }

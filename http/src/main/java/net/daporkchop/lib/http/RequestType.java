@@ -13,12 +13,34 @@
  *
  */
 
-dependencies {
-    compile project(":math")
-    compile project(":encoding")
-    compile project(":reflection")
+package net.daporkchop.lib.http;
 
-    compile "io.netty:netty-buffer:$nettyVersion"
+import lombok.Getter;
+import lombok.experimental.Accessors;
 
-    compile "com.zaxxer:SparseBitSet:$sparseBitSetVersion"
+import java.nio.charset.StandardCharsets;
+
+/**
+ * The different HTTP request types.
+ *
+ * @author DaPorkchop_
+ */
+@Getter
+@Accessors(fluent = true)
+public enum RequestType {
+    GET,
+    HEAD,
+    POST,
+    PUT,
+    DELETE,
+    CONNECT,
+    OPTIONS,
+    TRACE,
+    PATCH;
+
+    private final byte[] asciiName;
+
+    RequestType()   {
+        this.asciiName = this.name().getBytes(StandardCharsets.US_ASCII);
+    }
 }

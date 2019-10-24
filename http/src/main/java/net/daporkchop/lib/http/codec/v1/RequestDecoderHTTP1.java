@@ -13,25 +13,28 @@
  *
  */
 
-package net.daporkchop.lib.http;
+package net.daporkchop.lib.http.codec.v1;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.ByteToMessageDecoder;
+import net.daporkchop.lib.http.RequestType;
+
+import java.util.List;
 
 /**
- * An HTTP request.
+ * Decodes HTTP/1.1 requests.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-public class Request {
-    @NonNull
-    protected final RequestType type;
-    @NonNull
-    protected final String query;
-    //TODO: headers
+public final class RequestDecoderHTTP1 extends ByteToMessageDecoder {
+    private RequestType type;
+    private String query;
+
+    private int lastIndex = 0;
+
+    @Override
+    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+        in.bytesBefore()
+    }
 }

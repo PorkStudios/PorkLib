@@ -15,23 +15,19 @@
 
 package net.daporkchop.lib.http;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
+import lombok.experimental.UtilityClass;
+
+import java.nio.charset.StandardCharsets;
 
 /**
- * An HTTP request.
+ * Contains various constant values used frequently throughout the library.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-public class Request {
-    @NonNull
-    protected final RequestType type;
-    @NonNull
-    protected final String query;
-    //TODO: headers
+@UtilityClass
+public class HTTP {
+    public final byte[] VERSION_BYTES = " HTTP/1.1".getBytes(StandardCharsets.ISO_8859_1);
+    public final byte[] NEWLINE_BYTES = "\r\n".getBytes(StandardCharsets.ISO_8859_1);
+
+    public final int MAX_HEADER_SIZE = 1 << 13; // 8 KiB
 }

@@ -23,22 +23,25 @@ import net.daporkchop.lib.http.Request;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import static net.daporkchop.lib.http.HTTP.*;
+
 /**
  * Encodes requests for HTTP/1.1.
  *
  * @author DaPorkchop_
  */
-public class RequestEncoderHTTP1 extends MessageToMessageEncoder<Request> {
-    private static final byte[] VERSION_BYTES = " HTTP/1.1".getBytes(StandardCharsets.ISO_8859_1);
-    private static final byte[] NEWLINE_BYTES = "\r\n".getBytes(StandardCharsets.ISO_8859_1);
-
+public final class RequestEncoderHTTP1 extends MessageToMessageEncoder<Request> {
     @Override
     protected void encode(ChannelHandlerContext ctx, Request msg, List<Object> out) throws Exception {
         ByteBuf buf = ctx.alloc().ioBuffer();
         buf.writeBytes(msg.type().asciiName())
                 .writeByte(' ')
-                .writeBytes(msg.path().getBytes(StandardCharsets.ISO_8859_1))
+                .writeBytes(msg.query().getBytes(StandardCharsets.ISO_8859_1))
                 .writeBytes(VERSION_BYTES)
                 .writeBytes(NEWLINE_BYTES); //request line
+
+        //TODO: send headers
+        buf.writeBytes(NEWLINE_BYTES);
+        out.add(buf);
     }
 }

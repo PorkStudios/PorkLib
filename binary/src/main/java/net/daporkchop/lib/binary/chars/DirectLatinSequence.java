@@ -26,7 +26,7 @@ import net.daporkchop.lib.unsafe.PUnsafe;
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public final class DirectASCIISequence implements CharSequence {
+public final class DirectLatinSequence implements CharSequence {
     private final long addr;
     private final int length;
 
@@ -50,7 +50,7 @@ public final class DirectASCIISequence implements CharSequence {
         if (subLen < 0) {
             throw new StringIndexOutOfBoundsException(subLen);
         }
-        return start == 0 && end == this.length ? this : new DirectASCIISequence(this.addr + start, subLen);
+        return start == 0 && end == this.length ? this : new DirectLatinSequence(this.addr + start, subLen);
     }
 
     @Override

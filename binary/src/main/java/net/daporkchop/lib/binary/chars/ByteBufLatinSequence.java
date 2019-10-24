@@ -13,28 +13,69 @@
  *
  */
 
-package net.daporkchop.lib.http;
+package net.daporkchop.lib.binary.chars;
 
+import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-
-import java.util.Map;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 /**
- * An HTTP request.
- *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public class Request {
+public final class ByteBufLatinSequence implements CharSequence {
     @NonNull
-    protected final RequestType type;
-    @NonNull
-    protected final String query;
-    @NonNull
-    protected final Map<String, String> headers;
+    private final ByteBuf buf;
+
+    @Override
+    public int length() {
+        return this.buf.writerIndex();
+    }
+
+    @Override
+    public char charAt(int index) {
+        return (char) (this.buf.getByte(index) & 0xFF);
+    }
+
+    @Override
+    public CharSequence subSequence(int start, int end) {
+        return start == 0 && end == this.buf.writerIndex() ? this : new ByteBufLatinSequence(this.buf.slice(start, end - start));
+    }
+
+    @Override
+    public int hashCode() {
+        final ByteBuf buf = this.buf;
+        final int len = buf.writerIndex();
+        int i = 0;
+        for (int j = 0; j < len; j++) {
+            i = i * 31 + (buf.getByte(j) & 0xFF);
+        }
+        return i;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        } else if (obj instanceof CharSequence) {
+            CharSequence seq = (CharSequence) obj;
+            final ByteBuf buf = this.buf;
+           final int len = buf.writerIndex();
+            if (seq.length() != len) {
+                return false;
+            }
+            int i = 0;
+            while (i < len && (char) (buf.getByte(i) & 0xFF) == seq.charAt(i)) {
+                i++;
+            }
+            return i == len;
+        } else {
+            return false;
+        }
+    }
 }

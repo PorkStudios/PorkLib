@@ -13,28 +13,17 @@
  *
  */
 
-package net.daporkchop.lib.http;
+package net.daporkchop.lib.http.util.exception;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
-
-import java.util.Map;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 /**
- * An HTTP request.
+ * Thrown when a request is not correctly formatted.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-public class Request {
-    @NonNull
-    protected final RequestType type;
-    @NonNull
-    protected final String query;
-    @NonNull
-    protected final Map<String, String> headers;
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class InvalidRequestException extends RuntimeException {
+    public static final InvalidRequestException INSTANCE = new InvalidRequestException();
 }

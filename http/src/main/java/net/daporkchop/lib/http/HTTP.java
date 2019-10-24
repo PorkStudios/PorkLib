@@ -18,6 +18,7 @@ package net.daporkchop.lib.http;
 import lombok.experimental.UtilityClass;
 
 import java.nio.charset.StandardCharsets;
+import java.util.regex.Pattern;
 
 /**
  * Contains various constant values used frequently throughout the library.
@@ -26,8 +27,13 @@ import java.nio.charset.StandardCharsets;
  */
 @UtilityClass
 public class HTTP {
+    //TODO: figure out which one of these is correct
+    //public final Pattern HEADER_PATTERN = Pattern.compile("(a-zA-Z0-9!#\\$%&'\\*\\+-\\.\\^_`\\|~)+: (a-zA-Z0-9!#\\$%&'\\*\\+-\\.\\^_`\\|~)+");
+    public final Pattern HEADER_PATTERN = Pattern.compile("([[:graph:]])+: ([[:graph:]])+");
+
     public final byte[] VERSION_BYTES = " HTTP/1.1".getBytes(StandardCharsets.ISO_8859_1);
     public final byte[] NEWLINE_BYTES = "\r\n".getBytes(StandardCharsets.ISO_8859_1);
 
     public final int MAX_HEADER_SIZE = 1 << 13; // 8 KiB
+    public final int MAX_HEADER_COUNT = 256;
 }

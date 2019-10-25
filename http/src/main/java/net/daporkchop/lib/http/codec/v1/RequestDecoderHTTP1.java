@@ -19,17 +19,16 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import net.daporkchop.lib.binary.chars.ByteBufLatinSequence;
+import net.daporkchop.lib.http.Request;
 import net.daporkchop.lib.http.RequestType;
 import net.daporkchop.lib.http.util.exception.InvalidRequestException;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
-import static net.daporkchop.lib.http.HTTP.*;
+import static net.daporkchop.lib.http.util.Constants.PATTERN_HEADER;
 
 /**
  * Decodes HTTP/1.1 requests.
@@ -47,32 +46,35 @@ public final class RequestDecoderHTTP1 extends ByteToMessageDecoder {
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
         int next = in.indexOf(this.lastIndex, in.writerIndex() - 1, (byte) '\r');
-        if (next != -1 && in.getByte(next + 1) != (byte) '\n')  {
+        if (next != -1 && in.getByte(next + 1) != (byte) '\n') {
             next = -1; // \r doesn't count if not followed by \n
         }
-        while (next != -1)  {
-            if (next == in.readerIndex())   {
+        while (next != -1) {
+            if (next == in.readerIndex()) {
                 //two newlines immediately after each other, end of headers
                 //validate what we have so far
-                if (this.type == null)  {
+                if (this.type == null) {
                     //request line was not sent
                     throw InvalidRequestException.INSTANCE;
                 }
                 Map<String, String> headers = this.headers.stream()
                         .map(ByteBufLatinSequence::new)
-                        .map(HEADER_PATTERN::matcher)
+                        .map(PATTERN_HEADER::matcher)
                         .peek(matcher -> {
                             if (!matcher.find()) {
                                 throw InvalidRequestException.INSTANCE;
                             }
                         })
                         .collect(Collectors.toMap(m -> m.group(1), m -> m.group(2)));
+                out.add(new Request.Simple(this.type, this.query, headers));
+                //TODO: replace self with logical pipeline member and forward any remaining data down the pipeline
+                return;
             }
             this.headers.add(in.slice(in.readerIndex(), next - 1));
             in.readerIndex(next + 1);
 
             next = in.indexOf(this.lastIndex, in.writerIndex() - 1, (byte) '\r');
-            if (next != -1 && in.getByte(next + 1) != (byte) '\n')  {
+            if (next != -1 && in.getByte(next + 1) != (byte) '\n') {
                 next = -1; // \r doesn't count if not followed by \n
             }
         }

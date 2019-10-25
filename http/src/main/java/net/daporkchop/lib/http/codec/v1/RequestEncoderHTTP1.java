@@ -23,7 +23,7 @@ import net.daporkchop.lib.http.Request;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import static net.daporkchop.lib.http.HTTP.*;
+import static net.daporkchop.lib.http.util.Constants.*;
 
 /**
  * Encodes requests for HTTP/1.1.
@@ -34,14 +34,21 @@ public final class RequestEncoderHTTP1 extends MessageToMessageEncoder<Request> 
     @Override
     protected void encode(ChannelHandlerContext ctx, Request msg, List<Object> out) throws Exception {
         ByteBuf buf = ctx.alloc().ioBuffer();
+
+        //request line
         buf.writeBytes(msg.type().asciiName())
                 .writeByte(' ')
-                .writeBytes(msg.query().getBytes(StandardCharsets.ISO_8859_1))
-                .writeBytes(VERSION_BYTES)
-                .writeBytes(NEWLINE_BYTES); //request line
+                .writeBytes(msg.query().getBytes(StandardCharsets.US_ASCII))
+                .writeBytes(BYTES_HTTP1_1)
+                .writeBytes(BYTES_CRLF);
 
-        //TODO: send headers
-        buf.writeBytes(NEWLINE_BYTES);
+        //TODO: optimize this a lot!
+        msg.forEachHeader((name, value) -> buf.writeBytes(name.getBytes(StandardCharsets.US_ASCII))
+                .writeBytes(BYTES_HEADER_SEPARATOR)
+                .writeBytes(value.getBytes(StandardCharsets.US_ASCII))
+                .writeBytes(BYTES_CRLF));
+
+        buf.writeBytes(BYTES_CRLF);
         out.add(buf);
     }
 }

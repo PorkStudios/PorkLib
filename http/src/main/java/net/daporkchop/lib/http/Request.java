@@ -21,20 +21,54 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 /**
  * An HTTP request.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-public class Request {
-    @NonNull
-    protected final RequestType type;
-    @NonNull
-    protected final String query;
-    @NonNull
-    protected final Map<String, String> headers;
+public interface Request {
+    /**
+     * @return the type of request.
+     */
+    RequestType type();
+
+    /**
+     * Gets the query line of the request.
+     * <p>
+     * All characters must be valid ASCII glyphs, otherwise the behavior is undefined.
+     *
+     * @return the query line of the request
+     */
+    String query();
+
+    /**
+     * Runs a callback function across each header on the request.
+     *
+     * @param callback the callback function to run
+     */
+    void forEachHeader(@NonNull BiConsumer<String, String> callback);
+
+    /**
+     * A simple implementation of {@link Request}.
+     *
+     * @author DaPorkchop_
+     */
+    @RequiredArgsConstructor
+    @Getter
+    @Accessors(fluent = true)
+    final class Simple implements Request {
+        @NonNull
+        protected final RequestType type;
+        @NonNull
+        protected final String query;
+        @NonNull
+        protected final Map<String, String> headers;
+
+        @Override
+        public void forEachHeader(@NonNull BiConsumer<String, String> callback) {
+            this.headers.forEach(callback);
+        }
+    }
 }

@@ -13,11 +13,10 @@
  *
  */
 
-package net.daporkchop.lib.http;
+package net.daporkchop.lib.http.util;
 
 import lombok.experimental.UtilityClass;
 
-import java.nio.charset.StandardCharsets;
 import java.util.regex.Pattern;
 
 /**
@@ -26,13 +25,14 @@ import java.util.regex.Pattern;
  * @author DaPorkchop_
  */
 @UtilityClass
-public class HTTP {
+public class Constants {
     //TODO: figure out which one of these is correct
-    //public final Pattern HEADER_PATTERN = Pattern.compile("(a-zA-Z0-9!#\\$%&'\\*\\+-\\.\\^_`\\|~)+: (a-zA-Z0-9!#\\$%&'\\*\\+-\\.\\^_`\\|~)+");
-    public final Pattern HEADER_PATTERN = Pattern.compile("([[:graph:]])+: ([[:graph:]])+");
+    //public final Pattern PATTERN_HEADER = Pattern.compile("(a-zA-Z0-9!#\\$%&'\\*\\+-\\.\\^_`\\|~)+: (a-zA-Z0-9!#\\$%&'\\*\\+-\\.\\^_`\\|~)+");
+    public final Pattern PATTERN_HEADER = Pattern.compile("([[:graph:]])+: ([[:graph:]])+");
 
-    public final byte[] VERSION_BYTES = " HTTP/1.1".getBytes(StandardCharsets.ISO_8859_1);
-    public final byte[] NEWLINE_BYTES = "\r\n".getBytes(StandardCharsets.ISO_8859_1);
+    public final byte[] BYTES_HTTP1_1 = new byte[]{(byte) ' ', (byte) 'H', (byte) 'T', (byte) 'T', (byte) 'P', (byte) '/', (byte) '1', (byte) '.', (byte) '1'};
+    public final byte[] BYTES_CRLF = new byte[]{(byte) '\r', (byte) '\n'};
+    public final byte[] BYTES_HEADER_SEPARATOR = new byte[]{(byte) ':', (byte) ' '};
 
     public final int MAX_HEADER_SIZE = 1 << 13; // 8 KiB
     public final int MAX_HEADER_COUNT = 256;

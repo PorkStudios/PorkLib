@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static net.daporkchop.lib.http.util.Constants.PATTERN_HEADER;
+import static net.daporkchop.lib.http.util.Constants.*;
 
 /**
  * Decodes HTTP/1.1 requests.
@@ -50,6 +50,8 @@ public final class RequestDecoderHTTP1 extends ByteToMessageDecoder {
             next = -1; // \r doesn't count if not followed by \n
         }
         while (next != -1) {
+            this.lastIndex = next + 1;
+
             if (next == in.readerIndex()) {
                 //two newlines immediately after each other, end of headers
                 //validate what we have so far

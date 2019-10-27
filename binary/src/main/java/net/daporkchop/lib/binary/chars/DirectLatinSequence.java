@@ -18,9 +18,13 @@ package net.daporkchop.lib.binary.chars;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 /**
+ * A wrapper around a direct memory address to allow it to be used as a {@link CharSequence} of 1-byte characters (aka. Latin, Extended ASCII or
+ * ISO/IEC 8859-1).
+ *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
@@ -28,7 +32,7 @@ import net.daporkchop.lib.unsafe.PUnsafe;
 @Accessors(fluent = true)
 public final class DirectLatinSequence implements CharSequence {
     private final long addr;
-    private final int length;
+    private final int  length;
 
     @Override
     public char charAt(int index) {
@@ -81,5 +85,16 @@ public final class DirectLatinSequence implements CharSequence {
         } else {
             return false;
         }
+    }
+
+    @Override
+    public String toString() {
+        final long addr = this.addr;
+        final int len = this.length;
+        char[] arr = new char[len];
+        for (int i = 0; i < len; i++) {
+            arr[i] = (char) (PUnsafe.getByte(addr + i * PUnsafe.ARRAY_CHAR_INDEX_SCALE) & 0xFF);
+        }
+        return PorkUtil.wrap(arr);
     }
 }

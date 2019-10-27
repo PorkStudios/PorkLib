@@ -18,9 +18,13 @@ package net.daporkchop.lib.binary.chars;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 /**
+ * A wrapper around a direct memory address to allow it to be used as a {@link CharSequence} of 2-byte characters (aka. UTF-16, just like a normal Java
+ * {@link String}).
+ *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
@@ -28,7 +32,7 @@ import net.daporkchop.lib.unsafe.PUnsafe;
 @Accessors(fluent = true)
 public final class DirectCharSequence implements CharSequence {
     private final long addr;
-    private final int length;
+    private final int  length;
 
     @Override
     public char charAt(int index) {
@@ -68,11 +72,11 @@ public final class DirectCharSequence implements CharSequence {
             return true;
         } else if (obj instanceof CharSequence) {
             CharSequence seq = (CharSequence) obj;
-            int len = this.length;
+            final long addr = this.addr;
+            final int len = this.length;
             if (seq.length() != len) {
                 return false;
             }
-            long addr = this.addr;
             int i = 0;
             while (i < len && PUnsafe.getChar(addr + i * PUnsafe.ARRAY_CHAR_INDEX_SCALE) == seq.charAt(i)) {
                 i++;
@@ -81,5 +85,13 @@ public final class DirectCharSequence implements CharSequence {
         } else {
             return false;
         }
+    }
+
+    @Override
+    public String toString() {
+        final int len = this.length;
+        char[] arr = new char[len];
+        PUnsafe.copyMemory(null, this.addr, arr, PUnsafe.ARRAY_CHAR_BASE_OFFSET, len * PUnsafe.ARRAY_CHAR_INDEX_SCALE);
+        return PorkUtil.wrap(arr);
     }
 }

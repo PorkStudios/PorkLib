@@ -13,26 +13,42 @@
  *
  */
 
-package net.daporkchop.lib.http.util;
+package net.daporkchop.lib.http;
 
-import lombok.experimental.UtilityClass;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 
-import java.util.regex.Pattern;
+import java.nio.charset.StandardCharsets;
 
 /**
- * Contains various constant values used frequently throughout the library.
+ * An abstract representation of an HTTP status code.
  *
  * @author DaPorkchop_
  */
-@UtilityClass
-public class Constants {
-    public final Pattern PATTERN_REQUEST = Pattern.compile("^([A-Z]+) ([^ ]+) HTTP/1\\.1$");
-    public final Pattern PATTERN_HEADER = Pattern.compile("([\\x20-\\x7E]+): ([\\x20-\\x7E]+)");
+public interface StatusCode {
+    /**
+     * @return this status code's name (textual representation)
+     */
+    CharSequence name();
 
-    public final byte[] BYTES_HTTP1_1 = {(byte) ' ', (byte) 'H', (byte) 'T', (byte) 'T', (byte) 'P', (byte) '/', (byte) '1', (byte) '.', (byte) '1'};
-    public final byte[] BYTES_CRLF = {(byte) '\r', (byte) '\n'};
-    public final byte[] BYTES_HEADER_SEPARATOR = {(byte) ':', (byte) ' '};
+    /**
+     * @return the status code's numeric ID
+     */
+    int code();
 
-    public final int MAX_HEADER_SIZE = 1 << 13; // 8 KiB
-    public final int MAX_HEADER_COUNT = 256;
+    /**
+     * Gets the encoded value of this status.
+     * <p>
+     * The returned value will contain ASCII-encoded text formatted as such (without quotes):
+     * " <numeric code> <text name>"
+     * <p>
+     * Intended only for internal use in order to obtain maximal performance when encoding responses.
+     * <p>
+     * Modifying the contents of the returned buffer will result in undefined behavior.
+     *
+     * @return the encoded value of this status
+     */
+    default ByteBuf encodedValue() {
+        return Unpooled.wrappedBuffer(String.format(" %d %s", this.code(), this.name()).getBytes(StandardCharsets.US_ASCII));
+    }
 }

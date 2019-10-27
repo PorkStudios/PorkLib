@@ -23,7 +23,11 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
+import java.nio.charset.StandardCharsets;
+
 /**
+ * A wrapper around a {@link ByteBuf} to allow it to be used as a {@link CharSequence} of 1-byte characters (aka. Latin, Extended ASCII or ISO/IEC 8859-1).
+ *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
@@ -82,11 +86,6 @@ public final class ByteBufLatinSequence implements CharSequence {
 
     @Override
     public String toString() {
-        //TODO: optimize this
-        char[] arr = new char[this.length()];
-        for (int i = this.length() - 1; i >= 0; i--)    {
-            arr[i] = this.charAt(i);
-        }
-        return PorkUtil.wrap(arr);
+        return this.buf.toString(StandardCharsets.ISO_8859_1);
     }
 }

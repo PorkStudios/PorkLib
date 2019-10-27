@@ -16,14 +16,16 @@
 package net.daporkchop.lib.http.codec;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.http.Response;
 import net.daporkchop.lib.http.StatusCode;
 import net.daporkchop.lib.http.util.StatusCodes;
 import net.daporkchop.lib.http.util.exception.HTTPException;
 
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
@@ -33,18 +35,54 @@ import java.util.Collections;
  * @author DaPorkchop_
  */
 public final class ExceptionHandlerServerHTTP extends ChannelInboundHandlerAdapter {
+    private static final byte[] BYTES_HEADER_BEGIN = "<html><head><title>".getBytes(StandardCharsets.US_ASCII);
+    private static final byte[] BYTES_HEADER_END = "</title></head><body><h1>".getBytes(StandardCharsets.US_ASCII);
+    private static final byte[] BYTES_TITLE_END = "</h1>".getBytes(StandardCharsets.US_ASCII);
+    private static final byte[] BYTES_TEXT_BEGIN = "<p>".getBytes(StandardCharsets.US_ASCII);
+    private static final byte[] BYTES_TEXT_END = "</p>".getBytes(StandardCharsets.US_ASCII);
+    private static final byte[] BYTES_FOOTER_BEGIN = "<hr><address>PorkLib v0.4.0-SNAPSHOT at ".getBytes(StandardCharsets.US_ASCII);
+    private static final byte[] BYTES_FOOTER_PORT = " port ".getBytes(StandardCharsets.US_ASCII);
+    private static final byte[] BYTES_FOOTER_END = "</address></body></html>".getBytes(StandardCharsets.US_ASCII);
+
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        super.exceptionCaught(ctx, cause);
-
         //TODO: do something else if the connection has already started transmitting a response
-        StatusCode status = cause instanceof HTTPException ? ((HTTPException) cause).status() : StatusCodes.Internal_Server_Error;
-        ByteBuf body = Unpooled.wrappedBuffer(String.format(
-                "<html><head><title>%1$d %2$s</title></head><body><h1>%2$s</h1><p>Placeholder error message</p><hr><address>PorkLib</address></body></html>",
-                status.code(),
-                status.name()
-        ).getBytes(StandardCharsets.US_ASCII));
-        Response response = new Response.Simple(status, body, Collections.emptyMap());
+        for (Throwable next = cause; next != null; next = next.getCause())  {
+            if (next instanceof HTTPException)  {
+                cause = next;
+                break;
+            }
+        }
+        HTTPException http = cause instanceof HTTPException ? (HTTPException) cause : null;
+
+        StatusCode status = http != null ? http.status() : StatusCodes.Internal_Server_Error;
+
+        ByteBuf body = ctx.alloc().ioBuffer();
+
+        body.writeBytes(BYTES_HEADER_BEGIN);
+        body.writeCharSequence(Integer.toUnsignedString(status.code()), StandardCharsets.UTF_8);
+        body.writeByte((byte) ' ');
+        body.writeCharSequence(status.msg(), StandardCharsets.UTF_8);
+        body.writeBytes(BYTES_HEADER_END);
+        body.writeCharSequence(status.msg(), StandardCharsets.UTF_8);
+        body.writeBytes(BYTES_TITLE_END);
+
+        if (status.errorMessage() != null)  {
+            body.writeBytes(BYTES_TEXT_BEGIN);
+            body.writeCharSequence(status.errorMessage(), StandardCharsets.UTF_8);
+            body.writeBytes(BYTES_TEXT_END);
+        }
+
+        body.writeBytes(BYTES_FOOTER_BEGIN);
+        {
+            InetSocketAddress address = (InetSocketAddress) ctx.channel().localAddress();
+            body.writeCharSequence(address.getHostString(), StandardCharsets.UTF_8);
+            body.writeBytes(BYTES_FOOTER_PORT);
+            body.writeCharSequence(Integer.toUnsignedString(address.getPort()), StandardCharsets.UTF_8);
+        }
+        body.writeBytes(BYTES_FOOTER_END);
+
+        Response response = new Response.Simple(status, body, Collections.singletonMap("Content-Type", "text/html; charset=utf-8"));
         ctx.writeAndFlush(response);
         ctx.close();
     }

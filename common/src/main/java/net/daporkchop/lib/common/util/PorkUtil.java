@@ -16,8 +16,6 @@
 package net.daporkchop.lib.common.util;
 
 import lombok.NonNull;
-import net.daporkchop.lib.common.util.exception.file.CannotDeleteFileException;
-import net.daporkchop.lib.common.util.exception.file.NotADirectoryException;
 import net.daporkchop.lib.unsafe.PUnsafe;
 import sun.misc.Cleaner;
 import sun.misc.SoftCache;
@@ -29,12 +27,10 @@ import java.awt.FlowLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -44,7 +40,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
-import java.util.stream.StreamSupport;
 
 /**
  * Some helper methods and values that I use all over the place
@@ -53,8 +48,8 @@ import java.util.stream.StreamSupport;
  */
 //TODO: clean this up a bit
 public class PorkUtil {
-    public static final ThreadLocal<byte[]> BUFFER_CACHE_SMALL = ThreadLocal.withInitial(() -> new byte[256]);
-    private static long STRING_VALUE_OFFSET = PUnsafe.pork_getOffset(String.class, "value");
+    public static final ThreadLocal<byte[]> BUFFER_CACHE_SMALL  = ThreadLocal.withInitial(() -> new byte[256]);
+    public static final long                OFFSET_STRING_VALUE = PUnsafe.pork_getOffset(String.class, "value");
     private static final Function<Throwable, StackTraceElement[]> GET_STACK_TRACE_WRAPPER;
     private static final AtomicInteger DEFAULT_EXECUTOR_THREAD_COUNTER = new AtomicInteger(0);
     public static final Executor DEFAULT_EXECUTOR = new ThreadPoolExecutor(
@@ -97,7 +92,7 @@ public class PorkUtil {
      */
     public static String wrap(@NonNull char[] chars) {
         String s = PUnsafe.allocateInstance(String.class);
-        PUnsafe.putObject(s, STRING_VALUE_OFFSET, chars);
+        PUnsafe.putObject(s, OFFSET_STRING_VALUE, chars);
         return s;
     }
 

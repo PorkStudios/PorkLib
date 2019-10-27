@@ -60,7 +60,7 @@ public enum StatusCodes implements StatusCode {
     Unauthorized(401),
     Payment_Required(402),
     Forbidden(403),
-    Not_Found(404),
+    Not_Found(404, "The requested URL was not found on this server."),
     Method_Not_Allowed(405),
     Not_Acceptable(406),
     Proxy_Authentication_Required(407),
@@ -74,7 +74,7 @@ public enum StatusCodes implements StatusCode {
     Unsupported_Media_Type(415),
     Range_Not_Satisfiable(416),
     Expectation_Failed(417),
-    Im_A_Teapot(418, "I'm a teapot"),
+    Im_A_Teapot(418, "I'm a teapot", "See <a href=\"https://tools.ietf.org/html/rfc2324\">https://tools.ietf.org/html/rfc2324</a>, section 2.3.2."),
     Misdirected_Request(421),
     Unprocessable_Entity(422),
     Locked(423),
@@ -99,18 +99,26 @@ public enum StatusCodes implements StatusCode {
     Network_Authentication_Required(511)
     ;
 
+    @Getter
+    private final String msg;
+    @Getter
+    private final String errorMessage;
     private final byte[] encodedValue;
     @Getter
     private final int code;
 
     StatusCodes(int code)    {
-        this(code, null);
+        this(code, null, null);
     }
 
-    StatusCodes(int code, String name)    {
+    StatusCodes(int code, String errorMessage)    {
+        this(code, null, errorMessage);
+    }
+
+    StatusCodes(int code, String name, String errorMessage)    {
         this.code = code;
-        name = (name == null ? this.name() : name.replace('_', ' ')).toUpperCase();
-        PUnsafe.putObject(this, PUnsafe.pork_getOffset(Enum.class, "name"), name);
+        this.errorMessage = errorMessage;
+        this.msg = name = (name == null ? this.name().replace('_', ' ') : name);
         this.encodedValue = String.format(" %d %s", code, name).getBytes(StandardCharsets.US_ASCII);
     }
 

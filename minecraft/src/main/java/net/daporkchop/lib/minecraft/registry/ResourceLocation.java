@@ -41,9 +41,9 @@ public class ResourceLocation {
         } else if (name.isEmpty()) {
             throw new IllegalArgumentException("name may not be empty!");
         } else if (modid.contains(":") || name.contains(":")) {
-            throw new IllegalArgumentException(String.format("Neither modid nor name may contain a colon! (given: modid=%s, name=%s)", modid, name));
+            throw new IllegalArgumentException(String.format("Neither modid nor name may contain a colon! (given: modid=%s, msg=%s)", modid, name));
         }/* else if (modid.contains(" ") || name.contains(" ")) {
-            throw new IllegalArgumentException(String.format("Neither modid nor name may contain a space! (given: modid=%s, name=%s)", modid, name));
+            throw new IllegalArgumentException(String.format("Neither modid nor name may contain a space! (given: modid=%s, msg=%s)", modid, msg));
         }*/
         this.modid = modid;
         this.name = name;

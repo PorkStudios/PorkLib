@@ -44,9 +44,9 @@ public interface StatusCode {
     }
 
     /**
-     * @return this status code's name (textual representation)
+     * @return this status code's message (textual representation)
      */
-    CharSequence name();
+    CharSequence msg();
 
     /**
      * @return the status code's numeric ID
@@ -57,7 +57,7 @@ public interface StatusCode {
      * Gets the encoded value of this status.
      * <p>
      * The returned value will contain ASCII-encoded text formatted as such (without quotes):
-     * " <numeric code> <text name>"
+     * " <code> <message>"
      * <p>
      * Intended only for internal use in order to obtain maximal performance when encoding responses.
      * <p>
@@ -66,11 +66,18 @@ public interface StatusCode {
      * @return the encoded value of this status
      */
     default ByteBuf encodedValue() {
-        return Unpooled.wrappedBuffer(String.format(" %d %s", this.code(), this.name()).getBytes(StandardCharsets.US_ASCII));
+        return Unpooled.wrappedBuffer(String.format(" %d %s", this.code(), this.msg()).getBytes(StandardCharsets.US_ASCII));
     }
 
     /**
-     * An unknown HTTP status code with no name (only the numeric ID).
+     * @return an additional textual error message that will be displayed on error pages, or {@code null} if none should be displayed
+     */
+    default CharSequence errorMessage()  {
+        return null;
+    }
+
+    /**
+     * An unknown HTTP status code with no message (only the numeric ID).
      *
      * @author DaPorkchop_
      */
@@ -81,8 +88,8 @@ public interface StatusCode {
         private final int code;
 
         @Override
-        public CharSequence name() {
-            return "(unknown)";
+        public CharSequence msg() {
+            return "UNKNOWN";
         }
 
         @Override
@@ -92,18 +99,12 @@ public interface StatusCode {
 
         @Override
         public boolean equals(Object o) {
-            if (o == this) {
-                return true;
-            } else if (o instanceof StatusCode) {
-                return ((StatusCode) o).code() == this.code;
-            } else {
-                return false;
-            }
+            return o == this || (o instanceof StatusCode && ((StatusCode) o).code() == this.code);
         }
 
         @Override
         public String toString() {
-            return String.format("StatusCode(%d (unknown))", this.code);
+            return String.format("StatusCode(%d UNKNOWN)", this.code);
         }
     }
 }

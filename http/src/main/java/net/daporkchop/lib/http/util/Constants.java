@@ -15,16 +15,21 @@
 
 package net.daporkchop.lib.http.util;
 
-import io.netty.util.AttributeKey;
+import io.netty.buffer.ByteBuf;
 import io.netty.util.collection.IntObjectHashMap;
 import io.netty.util.collection.IntObjectMap;
+import lombok.NonNull;
 import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.http.StatusCode;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.util.Arrays;
 import java.util.regex.Pattern;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
+
+import static net.daporkchop.lib.math.primitive.PMath.min;
 
 /**
  * Contains various constant values used frequently throughout the library.
@@ -33,6 +38,8 @@ import java.util.stream.Stream;
  */
 @UtilityClass
 public class Constants {
+    public final ThreadLocal<byte[]> CACHE_4KB_BUFFER = ThreadLocal.withInitial(() -> new byte[4096]);
+
     public final IntObjectMap<StatusCode> STATUS_CODES_BY_NUMERIC_ID = Stream.<StatusCode[]>of(StatusCodes.values())
             .flatMap(Arrays::stream)
             .collect(Collector.<StatusCode, IntObjectMap<StatusCode>>of(
@@ -53,9 +60,32 @@ public class Constants {
     public final byte[] BYTES_HEADER_SEPARATOR = {(byte) ':', (byte) ' '};
 
     // The maximum length of the query string
-    public final int MAX_QUERY_SIZE = 1 << 13; // 8 KiB
+    public final int MAX_QUERY_SIZE = 1 << 12; // 4 KiB
     // The maximum length of a single header line (including name)
     public final int MAX_HEADER_SIZE = 1 << 13; // 8 KiB
     // The maximum number of headers per request
     public final int MAX_HEADER_COUNT = 256;
+
+    public void writeUTF16ToByteBuf(@NonNull ByteBuf dst, @NonNull CharSequence str) {
+        if (str instanceof String)  {
+            writeUTF16ToByteBuf(dst, (String) str);
+        } else {
+            for (int i = 0, len = str.length(); i < len; i++)   {
+                dst.writeChar(str.charAt(i));
+            }
+        }
+    }
+
+    public void writeUTF16ToByteBuf(@NonNull ByteBuf dst, @NonNull String str) {
+        byte[] buf = CACHE_4KB_BUFFER.get();
+        char[] src = PUnsafe.getObject(str, PorkUtil.OFFSET_STRING_VALUE);
+        int remaining = src.length * PUnsafe.ARRAY_CHAR_INDEX_SCALE;
+        while (remaining > 0)   {
+            int count = min(remaining, buf.length);
+            int i = remaining - count;
+            remaining -= count;
+            PUnsafe.copyMemory(src, PUnsafe.ARRAY_CHAR_BASE_OFFSET + i, buf, PUnsafe.ARRAY_BYTE_BASE_OFFSET + i, count);
+            dst.writeBytes(buf, 0, count);
+        }
+    }
 }

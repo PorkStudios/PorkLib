@@ -23,9 +23,11 @@ import net.daporkchop.lib.http.Request;
 import net.daporkchop.lib.http.RequestType;
 import net.daporkchop.lib.http.util.exception.InvalidRequestException;
 
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
 import static net.daporkchop.lib.http.util.Constants.*;
@@ -72,7 +74,17 @@ public final class RequestDecoderHTTP1 extends ByteToMessageDecoder {
                 //TODO: replace self with logical pipeline member and forward any remaining data down the pipeline
                 return;
             }
-            this.headers.add(in.slice(in.readerIndex(), next - 1));
+
+            if (this.type == null) {
+                //attempt to read request line
+                CharSequence seq = new ByteBufLatinSequence(in.slice(in.readerIndex(), next - in.readerIndex()));
+                Matcher matcher = PATTERN_REQUEST.matcher(seq);
+                if (!matcher.find()) throw InvalidRequestException.INSTANCE;
+                this.type = RequestType.valueOf(matcher.group(1));
+                this.query = matcher.group(2);
+            } else {
+                this.headers.add(in.slice(in.readerIndex(), next - in.readerIndex()));
+            }
             in.readerIndex(next + 1);
 
             next = in.indexOf(this.lastIndex, in.writerIndex() - 1, (byte) '\r');

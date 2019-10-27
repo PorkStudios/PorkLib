@@ -26,6 +26,7 @@ import java.util.regex.Pattern;
  */
 @UtilityClass
 public class Constants {
+    public final Pattern PATTERN_REQUEST = Pattern.compile("(A-Z)+ (^ )+ HTTP\\/1\\.1");
     //TODO: figure out which one of these is correct
     //public final Pattern PATTERN_HEADER = Pattern.compile("(a-zA-Z0-9!#\\$%&'\\*\\+-\\.\\^_`\\|~)+: (a-zA-Z0-9!#\\$%&'\\*\\+-\\.\\^_`\\|~)+");
     public final Pattern PATTERN_HEADER = Pattern.compile("([[:graph:]])+: ([[:graph:]])+");

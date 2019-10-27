@@ -20,6 +20,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 /**
@@ -77,5 +78,15 @@ public final class ByteBufLatinSequence implements CharSequence {
         } else {
             return false;
         }
+    }
+
+    @Override
+    public String toString() {
+        //TODO: optimize this
+        char[] arr = new char[this.length()];
+        for (int i = this.length() - 1; i >= 0; i--)    {
+            arr[i] = this.charAt(i);
+        }
+        return PorkUtil.wrap(arr);
     }
 }

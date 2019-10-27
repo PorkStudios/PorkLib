@@ -19,8 +19,12 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import net.daporkchop.lib.binary.chars.ByteBufLatinSequence;
+import net.daporkchop.lib.common.function.throwing.EConsumer;
+import net.daporkchop.lib.common.function.throwing.EFunction;
+import net.daporkchop.lib.common.function.throwing.EUnaryOperator;
 import net.daporkchop.lib.http.Request;
 import net.daporkchop.lib.http.RequestType;
+import net.daporkchop.lib.http.util.exception.GenericHTTPException;
 import net.daporkchop.lib.http.util.exception.InvalidRequestException;
 
 import java.nio.charset.StandardCharsets;
@@ -57,15 +61,16 @@ public final class RequestDecoderHTTP1 extends ByteToMessageDecoder {
                 //validate what we have so far
                 if (this.type == null) {
                     //request line was not sent
-                    throw InvalidRequestException.INSTANCE;
+                    throw GenericHTTPException.BAD_REQUEST;
                 }
                 Map<String, String> headers = this.headers.stream()
                         .map(ByteBufLatinSequence::new)
-                        .map(PATTERN_HEADER::matcher)
-                        .peek(matcher -> {
+                        .map((EFunction<CharSequence, Matcher>) seq -> {
+                            Matcher matcher = PATTERN_HEADER.matcher(seq);
                             if (!matcher.find()) {
-                                throw InvalidRequestException.INSTANCE;
+                                throw GenericHTTPException.BAD_REQUEST;
                             }
+                            return matcher;
                         })
                         .collect(Collectors.toMap(m -> m.group(1), m -> m.group(2)));
                 out.add(new Request.Simple(this.type, this.query, headers));
@@ -93,6 +98,12 @@ public final class RequestDecoderHTTP1 extends ByteToMessageDecoder {
                 next = -1; // \r doesn't count if not followed by \n
             }
         }
+
+        if (this.type == null)  {
+            //request line has not been read completely
+
+        }
+
         this.lastIndex = in.writerIndex() - 1;
     }
 }

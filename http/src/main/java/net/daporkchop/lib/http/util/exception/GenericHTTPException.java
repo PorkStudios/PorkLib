@@ -15,16 +15,45 @@
 
 package net.daporkchop.lib.http.util.exception;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.http.StatusCode;
+import net.daporkchop.lib.http.util.StatusCodes;
 
 /**
- * Thrown when a request is not correctly formatted.
+ * An {@link HTTPException} containing a user-defined {@link StatusCode} (to avoid having to define implementations of {@link HTTPException} for every HTTP
+ * status code).
  *
  * @author DaPorkchop_
  */
-@Deprecated
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class InvalidRequestException extends RuntimeException {
-    public static final InvalidRequestException INSTANCE = new InvalidRequestException();
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public final class GenericHTTPException extends HTTPException {
+    public static final HTTPException BAD_REQUEST = new GenericHTTPException(StatusCodes.Bad_Request);
+
+    @NonNull
+    private final StatusCode status;
+
+    public GenericHTTPException(@NonNull StatusCode status, String s) {
+        super(s);
+        this.status = status;
+    }
+
+    public GenericHTTPException(@NonNull StatusCode status, String s, Throwable throwable) {
+        super(s, throwable);
+        this.status = status;
+    }
+
+    public GenericHTTPException(@NonNull StatusCode status, Throwable throwable) {
+        super(throwable);
+        this.status = status;
+    }
+
+    protected GenericHTTPException(@NonNull StatusCode status, String s, Throwable throwable, boolean noSuppress, boolean fillInStackTrace) {
+        super(s, throwable, noSuppress, fillInStackTrace);
+        this.status = status;
+    }
 }

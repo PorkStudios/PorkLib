@@ -15,9 +15,16 @@
 
 package net.daporkchop.lib.http.util;
 
+import io.netty.util.AttributeKey;
+import io.netty.util.collection.IntObjectHashMap;
+import io.netty.util.collection.IntObjectMap;
 import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.http.StatusCode;
 
+import java.util.Arrays;
 import java.util.regex.Pattern;
+import java.util.stream.Collector;
+import java.util.stream.Stream;
 
 /**
  * Contains various constant values used frequently throughout the library.
@@ -26,6 +33,17 @@ import java.util.regex.Pattern;
  */
 @UtilityClass
 public class Constants {
+    public final IntObjectMap<StatusCode> STATUS_CODES_BY_NUMERIC_ID = Stream.<StatusCode[]>of(StatusCodes.values())
+            .flatMap(Arrays::stream)
+            .collect(Collector.<StatusCode, IntObjectMap<StatusCode>>of(
+                    IntObjectHashMap::new,
+                    (map, code) -> map.put(code.code(), code),
+                    (map1, map2) -> {
+                        map2.forEach(map1::put);
+                        return map1;
+                    }
+            ));
+
     public final Pattern PATTERN_REQUEST = Pattern.compile("^([A-Z]+) ([^ ]+) HTTP/1\\.1$");
     public final Pattern PATTERN_HEADER = Pattern.compile("([\\x20-\\x7E]+): ([\\x20-\\x7E]+)");
 

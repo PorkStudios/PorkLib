@@ -15,16 +15,39 @@
 
 package net.daporkchop.lib.http.util.exception;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import net.daporkchop.lib.http.StatusCode;
 
 /**
- * Thrown when a request is not correctly formatted.
+ * An exception generated in the HTTP codec pipeline.
  *
  * @author DaPorkchop_
  */
-@Deprecated
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class InvalidRequestException extends RuntimeException {
-    public static final InvalidRequestException INSTANCE = new InvalidRequestException();
+public abstract class HTTPException extends Exception {
+    public HTTPException() {
+        super();
+    }
+
+    public HTTPException(String s) {
+        super(s);
+    }
+
+    public HTTPException(String s, Throwable throwable) {
+        super(s, throwable);
+    }
+
+    public HTTPException(Throwable throwable) {
+        super(throwable);
+    }
+
+    protected HTTPException(String s, Throwable throwable, boolean noSuppress, boolean fillInStackTrace) {
+        super(s, throwable, noSuppress, fillInStackTrace);
+    }
+
+    /**
+     * Gets a (possibly {@code null}) {@link StatusCode} associated with this exception.
+     *
+     * This may be used by other pipeline members to help describe the issue better.
+     * @return a (possibly {@code null}) {@link StatusCode} associated with this exception
+     */
+    public abstract StatusCode status();
 }

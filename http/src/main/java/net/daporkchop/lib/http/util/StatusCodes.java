@@ -118,4 +118,9 @@ public enum StatusCodes implements StatusCode {
     public ByteBuf encodedValue() {
         return Unpooled.wrappedBuffer(this.encodedValue);
     }
+
+    @Override
+    public String toString() {
+        return String.format("StatusCode(%d %s)", this.code, this.name());
+    }
 }

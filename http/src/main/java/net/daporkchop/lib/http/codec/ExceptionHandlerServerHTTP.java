@@ -13,18 +13,22 @@
  *
  */
 
-package net.daporkchop.lib.http.util.exception;
+package net.daporkchop.lib.http.codec;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 
 /**
- * Thrown when a request is not correctly formatted.
+ * Handles exceptions on an HTTP server.
  *
  * @author DaPorkchop_
  */
-@Deprecated
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class InvalidRequestException extends RuntimeException {
-    public static final InvalidRequestException INSTANCE = new InvalidRequestException();
+public final class ExceptionHandlerServerHTTP extends ChannelInboundHandlerAdapter {
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        super.exceptionCaught(ctx, cause);
+
+        //TODO: do something else if the connection has already started transmitting a response
+        //TODO: implement in the first place
+    }
 }

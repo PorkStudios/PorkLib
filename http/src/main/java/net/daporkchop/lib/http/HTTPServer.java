@@ -22,8 +22,11 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.http.codec.v1.RequestDecoderHTTP1;
 import net.daporkchop.lib.http.codec.v1.ResponseEncoderHTTP1;
+
+import java.util.Scanner;
 
 /**
  * Test class for things, will probably be turned into an actual HTTP server helper at some point.
@@ -44,13 +47,21 @@ public class HTTPServer {
                         .addLast("handle", new ChannelInboundHandlerAdapter()   {
                             @Override
                             public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-                                Request request = (Request) msg;
-                                System.out.printf("%s to \"%s\" from %s\n", request.type(), request.query(), ctx.channel().remoteAddress());
-                                ctx.channel().writeAndFlush("Hello World!").channel().close();
+                                if (msg instanceof Request) {
+                                    Request request = (Request) msg;
+                                    System.out.printf("%s to \"%s\" from %s\n", request.type(), request.query(), ctx.channel().remoteAddress());
+                                    ctx.channel().writeAndFlush("Hello World!").addListener(f -> ctx.channel().close());
+                                } else {
+                                    System.out.printf("[ERROR] Received invalid message (type: \"%s\"): %s\n", PorkUtil.className(msg), msg);
+                                }
                             }
                         });
                     }
                 })
                 .bind(8080).syncUninterruptibly().channel();
+
+        new Scanner(System.in).nextLine();
+
+        ch.close().addListener(c -> System.exit(0));
     }
 }

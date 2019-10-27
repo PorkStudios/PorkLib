@@ -52,9 +52,7 @@ public final class RequestDecoderHTTP1 extends ByteToMessageDecoder {
             next = -1; // \r doesn't count if not followed by \n
         }
         while (next != -1) {
-            this.lastIndex = next + 1;
-
-            if (next == in.readerIndex()) {
+            if (next - 1 == in.readerIndex()) {
                 //two newlines immediately after each other, end of headers
                 //validate what we have so far
                 if (this.type == null) {
@@ -72,6 +70,8 @@ public final class RequestDecoderHTTP1 extends ByteToMessageDecoder {
                         .collect(Collectors.toMap(m -> m.group(1), m -> m.group(2)));
                 out.add(new Request.Simple(this.type, this.query, headers));
                 //TODO: replace self with logical pipeline member and forward any remaining data down the pipeline
+                in.skipBytes(in.readableBytes());
+                ctx.pipeline().remove(this);
                 return;
             }
 
@@ -83,9 +83,10 @@ public final class RequestDecoderHTTP1 extends ByteToMessageDecoder {
                 this.type = RequestType.valueOf(matcher.group(1));
                 this.query = matcher.group(2);
             } else {
-                this.headers.add(in.slice(in.readerIndex(), next - in.readerIndex()));
+                int i = in.readerIndex() + 1;
+                this.headers.add(in.slice(i, next - i));
             }
-            in.readerIndex(next + 1);
+            in.readerIndex(this.lastIndex = next + 1);
 
             next = in.indexOf(this.lastIndex, in.writerIndex() - 1, (byte) '\r');
             if (next != -1 && in.getByte(next + 1) != (byte) '\n') {

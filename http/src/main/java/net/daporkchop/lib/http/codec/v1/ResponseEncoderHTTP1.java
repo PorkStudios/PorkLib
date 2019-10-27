@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.http.codec.v1;
 
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageEncoder;
 
@@ -29,6 +30,6 @@ import java.util.List;
 public final class ResponseEncoderHTTP1 extends MessageToMessageEncoder<String> {
     @Override
     protected void encode(ChannelHandlerContext ctx, String msg, List<Object> out) throws Exception {
-        out.add(String.format("HTTP/1.1 200 OK\r\nContent-Length: %d\n\r\n%s", msg.length(), msg).getBytes(StandardCharsets.US_ASCII));
+        out.add(Unpooled.wrappedBuffer(String.format("HTTP/1.1 200 OK\r\nContent-Length: %d\r\n\r\n%s", msg.length(), msg).getBytes(StandardCharsets.US_ASCII)));
     }
 }

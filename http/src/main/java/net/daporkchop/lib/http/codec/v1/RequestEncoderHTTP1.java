@@ -39,16 +39,16 @@ public final class RequestEncoderHTTP1 extends MessageToMessageEncoder<Request> 
         buf.writeBytes(msg.type().asciiName())
                 .writeByte(' ')
                 .writeBytes(msg.query().getBytes(StandardCharsets.US_ASCII))
-                .writeBytes(BYTES_HTTP1_1)
-                .writeBytes(BYTES_CRLF);
+                .writeByte(' ')
+                .writeBytes(BYTES_HTTP1_1);
 
         //TODO: optimize this a lot!
-        msg.forEachHeader((name, value) -> buf.writeBytes(name.getBytes(StandardCharsets.US_ASCII))
+        msg.forEachHeader((name, value) -> buf.writeBytes(BYTES_CRLF)
+                .writeBytes(name.getBytes(StandardCharsets.US_ASCII))
                 .writeBytes(BYTES_HEADER_SEPARATOR)
-                .writeBytes(value.getBytes(StandardCharsets.US_ASCII))
-                .writeBytes(BYTES_CRLF));
+                .writeBytes(value.getBytes(StandardCharsets.US_ASCII)));
 
-        buf.writeBytes(BYTES_CRLF);
+        buf.writeBytes(BYTES_2X_CRLF);
         out.add(buf);
     }
 }

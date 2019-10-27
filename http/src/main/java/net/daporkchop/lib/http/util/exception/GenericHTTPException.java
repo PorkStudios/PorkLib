@@ -32,10 +32,18 @@ import net.daporkchop.lib.http.util.StatusCodes;
 @Getter
 @Accessors(fluent = true)
 public final class GenericHTTPException extends HTTPException {
-    public static final HTTPException BAD_REQUEST = new GenericHTTPException(StatusCodes.Bad_Request);
+    public static final HTTPException Bad_Request                     = new GenericHTTPException(StatusCodes.Bad_Request, false);
+    public static final HTTPException Payload_Too_Large               = new GenericHTTPException(StatusCodes.Payload_Too_Large, false);
+    public static final HTTPException URI_Too_Long               = new GenericHTTPException(StatusCodes.URI_Too_Long, false);
+    public static final HTTPException Request_Header_Fields_Too_Large = new GenericHTTPException(StatusCodes.Request_Header_Fields_Too_Large, false);
 
     @NonNull
     private final StatusCode status;
+
+    public GenericHTTPException(@NonNull StatusCode status, boolean fillInStackTrace) {
+        super(null, null, true, fillInStackTrace);
+        this.status = status;
+    }
 
     public GenericHTTPException(@NonNull StatusCode status, String s) {
         super(s);

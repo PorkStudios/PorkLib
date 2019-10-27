@@ -15,8 +15,17 @@
 
 package net.daporkchop.lib.http.codec;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import net.daporkchop.lib.http.Response;
+import net.daporkchop.lib.http.StatusCode;
+import net.daporkchop.lib.http.util.StatusCodes;
+import net.daporkchop.lib.http.util.exception.HTTPException;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 
 /**
  * Handles exceptions on an HTTP server.
@@ -29,6 +38,14 @@ public final class ExceptionHandlerServerHTTP extends ChannelInboundHandlerAdapt
         super.exceptionCaught(ctx, cause);
 
         //TODO: do something else if the connection has already started transmitting a response
-        //TODO: implement in the first place
+        StatusCode status = cause instanceof HTTPException ? ((HTTPException) cause).status() : StatusCodes.Internal_Server_Error;
+        ByteBuf body = Unpooled.wrappedBuffer(String.format(
+                "<html><head><title>%1$d %2$s</title></head><body><h1>%2$s</h1><p>Placeholder error message</p><hr><address>PorkLib</address></body></html>",
+                status.code(),
+                status.name()
+        ).getBytes(StandardCharsets.US_ASCII));
+        Response response = new Response.Simple(status, body, Collections.emptyMap());
+        ctx.writeAndFlush(response);
+        ctx.close();
     }
 }

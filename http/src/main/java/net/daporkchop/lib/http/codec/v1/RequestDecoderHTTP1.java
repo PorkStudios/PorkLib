@@ -19,20 +19,15 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import net.daporkchop.lib.binary.chars.ByteBufLatinSequence;
-import net.daporkchop.lib.common.function.throwing.EConsumer;
-import net.daporkchop.lib.common.function.throwing.EFunction;
-import net.daporkchop.lib.common.function.throwing.EUnaryOperator;
 import net.daporkchop.lib.http.Request;
 import net.daporkchop.lib.http.RequestType;
 import net.daporkchop.lib.http.util.exception.GenericHTTPException;
-import net.daporkchop.lib.http.util.exception.InvalidRequestException;
 
-import java.nio.charset.StandardCharsets;
-import java.util.LinkedList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
-import java.util.stream.Collectors;
 
 import static net.daporkchop.lib.http.util.Constants.*;
 
@@ -45,9 +40,29 @@ public final class RequestDecoderHTTP1 extends ByteToMessageDecoder {
     private RequestType type;
     private String query;
 
-    private List<ByteBuf> headers = new LinkedList<>();
+    private Map<String, String> headers;
 
-    private int lastIndex = 0;
+    private int lastIndex;
+
+    @Override
+    public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+        super.handlerAdded(ctx);
+
+        super.setCumulator(COMPOSITE_CUMULATOR); //prevent lots of copying for no reason
+        this.headers = new HashMap<>();
+    }
+
+    @Override
+    protected void handlerRemoved0(ChannelHandlerContext ctx) throws Exception {
+        super.handlerRemoved0(ctx);
+
+        //set everything to null
+        //this allows a safe reset if this instance is re-used, or if not it can at least help the garbage collector a bit
+        this.type = null;
+        this.query = null;
+        this.headers = null;
+        this.lastIndex = 0;
+    }
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
@@ -61,35 +76,44 @@ public final class RequestDecoderHTTP1 extends ByteToMessageDecoder {
                 //validate what we have so far
                 if (this.type == null) {
                     //request line was not sent
-                    throw GenericHTTPException.BAD_REQUEST;
+                    throw GenericHTTPException.Bad_Request;
                 }
-                Map<String, String> headers = this.headers.stream()
-                        .map(ByteBufLatinSequence::new)
-                        .map((EFunction<CharSequence, Matcher>) seq -> {
-                            Matcher matcher = PATTERN_HEADER.matcher(seq);
-                            if (!matcher.find()) {
-                                throw GenericHTTPException.BAD_REQUEST;
-                            }
-                            return matcher;
-                        })
-                        .collect(Collectors.toMap(m -> m.group(1), m -> m.group(2)));
-                out.add(new Request.Simple(this.type, this.query, headers));
-                //TODO: replace self with logical pipeline member and forward any remaining data down the pipeline
+                out.add(new Request.Simple(this.type, this.query, Collections.unmodifiableMap(this.headers)));
+
+                //TODO: replace self with next required pipeline member and forward any remaining data down the pipeline
                 in.skipBytes(in.readableBytes());
                 ctx.pipeline().remove(this);
                 return;
             }
 
+            if (this.headers.size() >= MAX_HEADER_COUNT)    {
+                //if this is true there are already too many headers
+                throw GenericHTTPException.Request_Header_Fields_Too_Large;
+            }
+
             if (this.type == null) {
                 //attempt to read request line
-                CharSequence seq = new ByteBufLatinSequence(in.slice(in.readerIndex(), next - in.readerIndex()));
-                Matcher matcher = PATTERN_REQUEST.matcher(seq);
-                if (!matcher.find()) throw InvalidRequestException.INSTANCE;
+                int len = next - in.readerIndex();
+                if (len > MAX_QUERY_SIZE)   {
+                    throw GenericHTTPException.URI_Too_Long;
+                }
+                Matcher matcher = PATTERN_REQUEST.matcher(new ByteBufLatinSequence(in.slice(in.readerIndex(), len)));
+                if (!matcher.find()) {
+                    throw GenericHTTPException.Bad_Request;
+                }
                 this.type = RequestType.valueOf(matcher.group(1));
                 this.query = matcher.group(2);
             } else {
                 int i = in.readerIndex() + 1;
-                this.headers.add(in.slice(i, next - i));
+                int len = next - i;
+                if (len > MAX_HEADER_SIZE)  {
+                    throw GenericHTTPException.Request_Header_Fields_Too_Large;
+                }
+                Matcher matcher = PATTERN_HEADER.matcher(new ByteBufLatinSequence(in.slice(i, len)));
+                if (!matcher.find())    {
+                    throw GenericHTTPException.Bad_Request;
+                }
+                this.headers.put(matcher.group(1), matcher.group(2));
             }
             in.readerIndex(this.lastIndex = next + 1);
 
@@ -101,7 +125,14 @@ public final class RequestDecoderHTTP1 extends ByteToMessageDecoder {
 
         if (this.type == null)  {
             //request line has not been read completely
-
+            if (in.readableBytes() >= MAX_QUERY_SIZE)   {
+                throw GenericHTTPException.URI_Too_Long;
+            }
+        } else {
+            //we're reading headers
+            if (in.readableBytes() >= MAX_HEADER_SIZE)  {
+                throw GenericHTTPException.Request_Header_Fields_Too_Large;
+            }
         }
 
         this.lastIndex = in.writerIndex() - 1;

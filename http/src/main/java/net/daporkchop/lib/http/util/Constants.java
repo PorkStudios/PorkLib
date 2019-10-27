@@ -47,10 +47,15 @@ public class Constants {
     public final Pattern PATTERN_REQUEST = Pattern.compile("^([A-Z]+) ([^ ]+) HTTP/1\\.1$");
     public final Pattern PATTERN_HEADER = Pattern.compile("([\\x20-\\x7E]+): ([\\x20-\\x7E]+)");
 
-    public final byte[] BYTES_HTTP1_1 = {(byte) ' ', (byte) 'H', (byte) 'T', (byte) 'T', (byte) 'P', (byte) '/', (byte) '1', (byte) '.', (byte) '1'};
+    public final byte[] BYTES_HTTP1_1 = {(byte) 'H', (byte) 'T', (byte) 'T', (byte) 'P', (byte) '/', (byte) '1', (byte) '.', (byte) '1'};
     public final byte[] BYTES_CRLF = {(byte) '\r', (byte) '\n'};
+    public final byte[] BYTES_2X_CRLF = {(byte) '\r', (byte) '\n', (byte) '\r', (byte) '\n'};
     public final byte[] BYTES_HEADER_SEPARATOR = {(byte) ':', (byte) ' '};
 
+    // The maximum length of the query string
+    public final int MAX_QUERY_SIZE = 1 << 13; // 8 KiB
+    // The maximum length of a single header line (including name)
     public final int MAX_HEADER_SIZE = 1 << 13; // 8 KiB
+    // The maximum number of headers per request
     public final int MAX_HEADER_COUNT = 256;
 }

@@ -44,7 +44,7 @@ public interface Request {
     String query();
 
     /**
-     * Runs a callback function across each header on the request.
+     * Runs a callback function on each header on the request.
      *
      * @param callback the callback function to run
      */

@@ -16,6 +16,7 @@
 package net.daporkchop.lib.http;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -23,9 +24,14 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.http.codec.ExceptionHandlerServerHTTP;
 import net.daporkchop.lib.http.codec.v1.RequestDecoderHTTP1;
 import net.daporkchop.lib.http.codec.v1.ResponseEncoderHTTP1;
+import net.daporkchop.lib.http.util.StatusCodes;
+import net.daporkchop.lib.http.util.exception.GenericHTTPException;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.Scanner;
 
 /**
@@ -38,24 +44,28 @@ public class HTTPServer {
         Channel ch = new ServerBootstrap()
                 .group(new NioEventLoopGroup())
                 .channelFactory(NioServerSocketChannel::new)
-                .childHandler(new ChannelInitializer()    {
+                .childHandler(new ChannelInitializer() {
                     @Override
                     protected void initChannel(Channel ch) throws Exception {
                         ch.pipeline()
                                 .addLast("http_decode", new RequestDecoderHTTP1())
                                 .addLast("http_encode", new ResponseEncoderHTTP1())
-                        .addLast("handle", new ChannelInboundHandlerAdapter()   {
-                            @Override
-                            public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-                                if (msg instanceof Request) {
-                                    Request request = (Request) msg;
-                                    System.out.printf("%s to \"%s\" from %s\n", request.type(), request.query(), ctx.channel().remoteAddress());
-                                    ctx.channel().writeAndFlush("Hello World!").addListener(f -> ctx.channel().close());
-                                } else {
-                                    System.out.printf("[ERROR] Received invalid message (type: \"%s\"): %s\n", PorkUtil.className(msg), msg);
-                                }
-                            }
-                        });
+                                .addLast("handle", new ChannelInboundHandlerAdapter() {
+                                    @Override
+                                    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+                                        if (msg instanceof Request) {
+                                            Request request = (Request) msg;
+                                            System.out.printf("%s to \"%s\" from %s\n", request.type(), request.query(), ctx.channel().remoteAddress());
+                                            if (!"/".equals(request.query()))   {
+                                                throw new GenericHTTPException(StatusCodes.Not_Found, request.query());
+                                            }
+                                            ctx.channel().writeAndFlush(new Response.Simple(StatusCodes.OK, Unpooled.wrappedBuffer("ok".getBytes(StandardCharsets.US_ASCII)), Collections.emptyMap())).channel().close();
+                                        } else {
+                                            System.out.printf("[ERROR] Received invalid message (type: \"%s\"): %s\n", PorkUtil.className(msg), msg);
+                                        }
+                                    }
+                                })
+                                .addLast("http_exception", new ExceptionHandlerServerHTTP());
                     }
                 })
                 .bind(8080).syncUninterruptibly().channel();

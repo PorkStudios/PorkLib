@@ -38,6 +38,7 @@ import java.util.Map;
 /**
  * @author DaPorkchop_
  */
+@Deprecated
 public class SimpleHTTP {
     private static final HttpTransport HTTP_TRANSPORT = new ApacheHttpTransport();
     private static final HttpRequestFactory REQUEST_FACTORY = HTTP_TRANSPORT.createRequestFactory();

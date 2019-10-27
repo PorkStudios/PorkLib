@@ -109,7 +109,7 @@ public enum StatusCodes implements StatusCode {
 
     StatusCodes(int code, String name)    {
         this.code = code;
-        if (name == null) name = this.name().replace('_', ' ');
+        name = (name == null ? this.name() : name.replace('_', ' ')).toUpperCase();
         PUnsafe.putObject(this, PUnsafe.pork_getOffset(Enum.class, "name"), name);
         this.encodedValue = String.format(" %d %s", code, name).getBytes(StandardCharsets.US_ASCII);
     }

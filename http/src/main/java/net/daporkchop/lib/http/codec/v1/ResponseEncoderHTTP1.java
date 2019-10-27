@@ -15,21 +15,46 @@
 
 package net.daporkchop.lib.http.codec.v1;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageEncoder;
+import lombok.NonNull;
+import net.daporkchop.lib.http.Response;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+
+import static net.daporkchop.lib.http.util.Constants.*;
 
 /**
  * Encodes HTTP/1.1 responses.
  *
  * @author DaPorkchop_
  */
-public final class ResponseEncoderHTTP1 extends MessageToMessageEncoder<String> {
+public final class ResponseEncoderHTTP1 extends MessageToMessageEncoder<Response> {
     @Override
-    protected void encode(ChannelHandlerContext ctx, String msg, List<Object> out) throws Exception {
-        out.add(Unpooled.wrappedBuffer(String.format("HTTP/1.1 200 OK\r\nContent-Length: %d\r\n\r\n%s", msg.length(), msg).getBytes(StandardCharsets.US_ASCII)));
+    protected void encode(ChannelHandlerContext ctx, Response response, List<Object> out) throws Exception {
+        out.add(Unpooled.wrappedBuffer(BYTES_HTTP1_1));
+        out.add(response.status().encodedValue());
+
+        //write headers
+        //TODO: optimize this a lot!
+        ByteBuf headers = ctx.alloc().ioBuffer();
+
+        //temporary: implicitly add Content-Length header to all responses
+        //TODO: remove this (or re-implement it in some better way)
+        headers.writeBytes(BYTES_CRLF).writeBytes("Content-Length".getBytes(StandardCharsets.US_ASCII))
+                .writeBytes(BYTES_HEADER_SEPARATOR)
+                .writeBytes(String.valueOf(response.body().readableBytes()).getBytes(StandardCharsets.US_ASCII));
+
+        response.forEachHeader((name, value) -> headers.writeBytes(BYTES_CRLF)
+                .writeBytes(name.getBytes(StandardCharsets.US_ASCII))
+                .writeBytes(BYTES_HEADER_SEPARATOR)
+                .writeBytes(value.getBytes(StandardCharsets.US_ASCII)));
+
+        out.add(headers.writeBytes(BYTES_2X_CRLF));
+
+        out.add(response.body());
     }
 }

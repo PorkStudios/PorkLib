@@ -13,18 +13,61 @@
  *
  */
 
-package net.daporkchop.lib.http.util.exception;
+package net.daporkchop.lib.http;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import io.netty.buffer.ByteBuf;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+
+import java.util.Map;
+import java.util.function.BiConsumer;
 
 /**
- * Thrown when a request is not correctly formatted.
+ * An HTTP response.
  *
  * @author DaPorkchop_
  */
-@Deprecated
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class InvalidRequestException extends RuntimeException {
-    public static final InvalidRequestException INSTANCE = new InvalidRequestException();
+public interface Response {
+    /**
+     * @return the status of the HTTP response
+     */
+    StatusCode status();
+
+    //TODO: replace this with something more stream-oriented (i can't always load an entire file into memory lol)
+
+    /**
+     * @return the body of the HTTP response
+     */
+    ByteBuf body();
+
+    /**
+     * Runs a callback function on each header on the response.
+     *
+     * @param callback the callback function to run
+     */
+    void forEachHeader(@NonNull BiConsumer<String, String> callback);
+
+    /**
+     * A simple implementation of {@link Response}.
+     *
+     * @author DaPorkchop_
+     */
+    @RequiredArgsConstructor
+    @Getter
+    @Accessors(fluent = true)
+    final class Simple implements Response {
+        @NonNull
+        protected final StatusCode          status;
+        @NonNull
+        protected final ByteBuf             body;
+        @NonNull
+        protected final Map<String, String> headers;
+
+        @Override
+        public void forEachHeader(@NonNull BiConsumer<String, String> callback) {
+            this.headers.forEach(callback);
+        }
+    }
 }

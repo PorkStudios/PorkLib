@@ -21,6 +21,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageEncoder;
 import lombok.NonNull;
 import net.daporkchop.lib.http.Response;
+import net.daporkchop.lib.http.util.ConnectionState;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -35,6 +36,7 @@ import static net.daporkchop.lib.http.util.Constants.*;
 public final class ResponseEncoderHTTP1 extends MessageToMessageEncoder<Response> {
     @Override
     protected void encode(ChannelHandlerContext ctx, Response response, List<Object> out) throws Exception {
+        ctx.channel().attr(KEY_STATE).set(ConnectionState.RESPONSE_HEADERS);
         out.add(Unpooled.wrappedBuffer(BYTES_HTTP1_1));
         out.add(response.status().encodedValue());
 
@@ -55,6 +57,7 @@ public final class ResponseEncoderHTTP1 extends MessageToMessageEncoder<Response
 
         out.add(headers.writeBytes(BYTES_2X_CRLF));
 
+        ctx.channel().attr(KEY_STATE).set(ConnectionState.RESPONSE_BODY);
         out.add(response.body());
     }
 }

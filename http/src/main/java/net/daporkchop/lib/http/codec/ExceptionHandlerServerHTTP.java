@@ -21,6 +21,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.http.Response;
 import net.daporkchop.lib.http.StatusCode;
+import net.daporkchop.lib.http.util.ConnectionState;
 import net.daporkchop.lib.http.util.StatusCodes;
 import net.daporkchop.lib.http.util.exception.HTTPException;
 
@@ -28,6 +29,8 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+
+import static net.daporkchop.lib.http.util.Constants.*;
 
 /**
  * Handles exceptions on an HTTP server.
@@ -46,44 +49,47 @@ public final class ExceptionHandlerServerHTTP extends ChannelInboundHandlerAdapt
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        //TODO: do something else if the connection has already started transmitting a response
-        for (Throwable next = cause; next != null; next = next.getCause())  {
-            if (next instanceof HTTPException)  {
-                cause = next;
-                break;
+        //don't send exception message if the session has already started sending data
+        if (ctx.channel().attr(KEY_STATE).get().ordinal() < ConnectionState.RESPONSE_BODY.ordinal()) {
+            //TODO: do something else if the connection has already started transmitting a response
+            for (Throwable next = cause; next != null; next = next.getCause()) {
+                if (next instanceof HTTPException) {
+                    cause = next;
+                    break;
+                }
             }
+            HTTPException http = cause instanceof HTTPException ? (HTTPException) cause : null;
+
+            StatusCode status = http != null ? http.status() : StatusCodes.Internal_Server_Error;
+
+            ByteBuf body = ctx.alloc().ioBuffer();
+
+            body.writeBytes(BYTES_HEADER_BEGIN);
+            body.writeCharSequence(Integer.toUnsignedString(status.code()), StandardCharsets.UTF_8);
+            body.writeByte((byte) ' ');
+            body.writeCharSequence(status.msg(), StandardCharsets.UTF_8);
+            body.writeBytes(BYTES_HEADER_END);
+            body.writeCharSequence(status.msg(), StandardCharsets.UTF_8);
+            body.writeBytes(BYTES_TITLE_END);
+
+            if (status.errorMessage() != null) {
+                body.writeBytes(BYTES_TEXT_BEGIN);
+                body.writeCharSequence(status.errorMessage(), StandardCharsets.UTF_8);
+                body.writeBytes(BYTES_TEXT_END);
+            }
+
+            body.writeBytes(BYTES_FOOTER_BEGIN);
+            {
+                InetSocketAddress address = (InetSocketAddress) ctx.channel().localAddress();
+                body.writeCharSequence(address.getHostString(), StandardCharsets.UTF_8);
+                body.writeBytes(BYTES_FOOTER_PORT);
+                body.writeCharSequence(Integer.toUnsignedString(address.getPort()), StandardCharsets.UTF_8);
+            }
+            body.writeBytes(BYTES_FOOTER_END);
+
+            Response response = new Response.Simple(status, body, Collections.singletonMap("Content-Type", "text/html; charset=utf-8"));
+            ctx.writeAndFlush(response);
         }
-        HTTPException http = cause instanceof HTTPException ? (HTTPException) cause : null;
-
-        StatusCode status = http != null ? http.status() : StatusCodes.Internal_Server_Error;
-
-        ByteBuf body = ctx.alloc().ioBuffer();
-
-        body.writeBytes(BYTES_HEADER_BEGIN);
-        body.writeCharSequence(Integer.toUnsignedString(status.code()), StandardCharsets.UTF_8);
-        body.writeByte((byte) ' ');
-        body.writeCharSequence(status.msg(), StandardCharsets.UTF_8);
-        body.writeBytes(BYTES_HEADER_END);
-        body.writeCharSequence(status.msg(), StandardCharsets.UTF_8);
-        body.writeBytes(BYTES_TITLE_END);
-
-        if (status.errorMessage() != null)  {
-            body.writeBytes(BYTES_TEXT_BEGIN);
-            body.writeCharSequence(status.errorMessage(), StandardCharsets.UTF_8);
-            body.writeBytes(BYTES_TEXT_END);
-        }
-
-        body.writeBytes(BYTES_FOOTER_BEGIN);
-        {
-            InetSocketAddress address = (InetSocketAddress) ctx.channel().localAddress();
-            body.writeCharSequence(address.getHostString(), StandardCharsets.UTF_8);
-            body.writeBytes(BYTES_FOOTER_PORT);
-            body.writeCharSequence(Integer.toUnsignedString(address.getPort()), StandardCharsets.UTF_8);
-        }
-        body.writeBytes(BYTES_FOOTER_END);
-
-        Response response = new Response.Simple(status, body, Collections.singletonMap("Content-Type", "text/html; charset=utf-8"));
-        ctx.writeAndFlush(response);
         ctx.close();
     }
 }

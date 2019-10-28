@@ -16,6 +16,7 @@
 package net.daporkchop.lib.http.util;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.util.AttributeKey;
 import io.netty.util.collection.IntObjectHashMap;
 import io.netty.util.collection.IntObjectMap;
 import lombok.NonNull;
@@ -50,6 +51,8 @@ public class Constants {
                         return map1;
                     }
             ));
+
+    public final AttributeKey<ConnectionState> KEY_STATE = AttributeKey.newInstance("porklib_http_key");
 
     public final Pattern PATTERN_REQUEST = Pattern.compile("^([A-Z]+) ([^ ]+) HTTP/1\\.1$");
     public final Pattern PATTERN_HEADER = Pattern.compile("([\\x20-\\x7E]+): ([\\x20-\\x7E]+)");

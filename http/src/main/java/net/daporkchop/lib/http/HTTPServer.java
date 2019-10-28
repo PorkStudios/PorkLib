@@ -27,12 +27,15 @@ import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.http.codec.ExceptionHandlerServerHTTP;
 import net.daporkchop.lib.http.codec.v1.RequestDecoderHTTP1;
 import net.daporkchop.lib.http.codec.v1.ResponseEncoderHTTP1;
+import net.daporkchop.lib.http.util.ConnectionState;
 import net.daporkchop.lib.http.util.StatusCodes;
 import net.daporkchop.lib.http.util.exception.GenericHTTPException;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Scanner;
+
+import static net.daporkchop.lib.http.util.Constants.*;
 
 /**
  * Test class for things, will probably be turned into an actual HTTP server helper at some point.
@@ -47,6 +50,7 @@ public class HTTPServer {
                 .childHandler(new ChannelInitializer() {
                     @Override
                     protected void initChannel(Channel ch) throws Exception {
+                        ch.attr(KEY_STATE).set(ConnectionState.INIT);
                         ch.pipeline()
                                 .addLast("http_decode", new RequestDecoderHTTP1())
                                 .addLast("http_encode", new ResponseEncoderHTTP1())

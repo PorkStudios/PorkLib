@@ -36,6 +36,7 @@ public final class GenericHTTPException extends HTTPException {
     public static final HTTPException Payload_Too_Large               = new GenericHTTPException(StatusCodes.Payload_Too_Large, false);
     public static final HTTPException URI_Too_Long               = new GenericHTTPException(StatusCodes.URI_Too_Long, false);
     public static final HTTPException Request_Header_Fields_Too_Large = new GenericHTTPException(StatusCodes.Request_Header_Fields_Too_Large, false);
+    public static final HTTPException Internal_Server_Error               = new GenericHTTPException(StatusCodes.Internal_Server_Error, false);
 
     @NonNull
     private final StatusCode status;

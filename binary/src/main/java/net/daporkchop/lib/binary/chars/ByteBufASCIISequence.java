@@ -20,8 +20,6 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.nio.charset.StandardCharsets;
 
@@ -33,7 +31,7 @@ import java.nio.charset.StandardCharsets;
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public final class ByteBufLatinSequence implements CharSequence {
+public final class ByteBufASCIISequence implements CharSequence {
     @NonNull
     private final ByteBuf buf;
 
@@ -49,7 +47,7 @@ public final class ByteBufLatinSequence implements CharSequence {
 
     @Override
     public CharSequence subSequence(int start, int end) {
-        return start == 0 && end == this.buf.writerIndex() ? this : new ByteBufLatinSequence(this.buf.slice(start, end - start));
+        return start == 0 && end == this.buf.writerIndex() ? this : new ByteBufASCIISequence(this.buf.slice(start, end - start));
     }
 
     @Override

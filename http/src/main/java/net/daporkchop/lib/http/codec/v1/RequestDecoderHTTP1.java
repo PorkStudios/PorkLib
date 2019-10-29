@@ -18,7 +18,7 @@ package net.daporkchop.lib.http.codec.v1;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
-import net.daporkchop.lib.binary.chars.ByteBufLatinSequence;
+import net.daporkchop.lib.binary.chars.ByteBufASCIISequence;
 import net.daporkchop.lib.http.Request;
 import net.daporkchop.lib.http.RequestType;
 import net.daporkchop.lib.http.util.exception.GenericHTTPException;
@@ -97,7 +97,7 @@ public final class RequestDecoderHTTP1 extends ByteToMessageDecoder {
                 if (len > MAX_QUERY_SIZE)   {
                     throw GenericHTTPException.URI_Too_Long;
                 }
-                Matcher matcher = PATTERN_REQUEST.matcher(new ByteBufLatinSequence(in.slice(in.readerIndex(), len)));
+                Matcher matcher = PATTERN_REQUEST.matcher(new ByteBufASCIISequence(in.slice(in.readerIndex(), len)));
                 if (!matcher.find()) {
                     throw GenericHTTPException.Bad_Request;
                 }
@@ -109,7 +109,7 @@ public final class RequestDecoderHTTP1 extends ByteToMessageDecoder {
                 if (len > MAX_HEADER_SIZE)  {
                     throw GenericHTTPException.Request_Header_Fields_Too_Large;
                 }
-                Matcher matcher = PATTERN_HEADER.matcher(new ByteBufLatinSequence(in.slice(i, len)));
+                Matcher matcher = PATTERN_HEADER.matcher(new ByteBufASCIISequence(in.slice(i, len)));
                 if (!matcher.find())    {
                     throw GenericHTTPException.Bad_Request;
                 }

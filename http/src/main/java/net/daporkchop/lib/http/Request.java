@@ -41,14 +41,14 @@ public interface Request {
      *
      * @return the query line of the request
      */
-    String query();
+    CharSequence query();
 
     /**
-     * Runs a callback function on each header on the request.
+     * Gets all headers associated with the request.
      *
-     * @param callback the callback function to run
+     * @return all headers associated with the request
      */
-    void forEachHeader(@NonNull BiConsumer<String, String> callback);
+    Map<String, CharSequence> headers();
 
     /**
      * A simple implementation of {@link Request}.
@@ -62,13 +62,8 @@ public interface Request {
         @NonNull
         protected final RequestType type;
         @NonNull
-        protected final String query;
+        protected final CharSequence query;
         @NonNull
-        protected final Map<String, String> headers;
-
-        @Override
-        public void forEachHeader(@NonNull BiConsumer<String, String> callback) {
-            this.headers.forEach(callback);
-        }
+        protected final Map<String, CharSequence> headers;
     }
 }

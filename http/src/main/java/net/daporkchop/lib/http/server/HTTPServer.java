@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.http;
+package net.daporkchop.lib.http.server;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.Unpooled;
@@ -24,6 +24,8 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.http.Request;
+import net.daporkchop.lib.http.Response;
 import net.daporkchop.lib.http.codec.ExceptionHandlerServerHTTP;
 import net.daporkchop.lib.http.codec.v1.RequestDecoderHTTP1;
 import net.daporkchop.lib.http.codec.v1.ResponseEncoderHTTP1;
@@ -60,8 +62,8 @@ public class HTTPServer {
                                         if (msg instanceof Request) {
                                             Request request = (Request) msg;
                                             System.out.printf("%s to \"%s\" from %s\n", request.type(), request.query(), ctx.channel().remoteAddress());
-                                            if (!"/".equals(request.query()))   {
-                                                throw new GenericHTTPException(StatusCodes.Not_Found, request.query());
+                                            if (!"/".equals(request.query().toString()))   {
+                                                throw new GenericHTTPException(StatusCodes.Not_Found, request.query().toString());
                                             }
                                             ctx.channel().writeAndFlush(new Response.Simple(StatusCodes.OK, Unpooled.wrappedBuffer("ok".getBytes(StandardCharsets.US_ASCII)), Collections.emptyMap())).channel().close();
                                         } else {

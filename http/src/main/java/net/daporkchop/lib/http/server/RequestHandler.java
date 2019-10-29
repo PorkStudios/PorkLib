@@ -13,43 +13,26 @@
  *
  */
 
-package net.daporkchop.lib.http.codec.v1;
+package net.daporkchop.lib.http.server;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.MessageToMessageEncoder;
+import io.netty.channel.Channel;
+import lombok.NonNull;
 import net.daporkchop.lib.http.Request;
-
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-
-import static net.daporkchop.lib.http.util.Constants.*;
+import net.daporkchop.lib.http.Response;
 
 /**
- * Encodes requests for HTTP/1.1.
+ * The most important part of the HTTP server, handles incoming requests and responds to them accordingly.
  *
  * @author DaPorkchop_
  */
-public final class RequestEncoderHTTP1 extends MessageToMessageEncoder<Request> {
-    @Override
-    protected void encode(ChannelHandlerContext ctx, Request request, List<Object> out) throws Exception {
-        ByteBuf buf = ctx.alloc().ioBuffer();
-
-        //request line
-        buf.writeBytes(request.type().asciiName());
-        buf.writeByte(' ');
-        buf.writeCharSequence(request.query(), StandardCharsets.US_ASCII);
-        buf.writeByte(' ');
-        buf.writeBytes(BYTES_HTTP1_1);
-
-        request.headers().forEach((name, value) -> {
-            buf.writeBytes(BYTES_CRLF);
-            buf.writeCharSequence(name, StandardCharsets.US_ASCII);
-            buf.writeBytes(BYTES_HEADER_SEPARATOR);
-            buf.writeCharSequence(value, StandardCharsets.US_ASCII);
-        });
-
-        buf.writeBytes(BYTES_2X_CRLF);
-        out.add(buf);
-    }
+@FunctionalInterface
+public interface RequestHandler {
+    /**
+     * Handles a request received on the given channel.
+     *
+     * @param request the request that was received
+     * @param channel the channel that the request was received on
+     * @return a response to send to the client. If {@code null}, the connection will be closed silently.
+     */
+    Response handle(@NonNull Request request, @NonNull Channel channel);
 }

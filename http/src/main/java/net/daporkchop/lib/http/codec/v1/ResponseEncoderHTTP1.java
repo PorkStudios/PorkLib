@@ -42,20 +42,23 @@ public final class ResponseEncoderHTTP1 extends MessageToMessageEncoder<Response
 
         //write headers
         //TODO: optimize this a lot!
-        ByteBuf headers = ctx.alloc().ioBuffer();
+        ByteBuf buf = ctx.alloc().ioBuffer();
 
         //temporary: implicitly add Content-Length header to all responses
         //TODO: remove this (or re-implement it in some better way)
-        headers.writeBytes(BYTES_CRLF).writeBytes("Content-Length".getBytes(StandardCharsets.US_ASCII))
-                .writeBytes(BYTES_HEADER_SEPARATOR)
-                .writeBytes(String.valueOf(response.body().readableBytes()).getBytes(StandardCharsets.US_ASCII));
+        buf.writeBytes(BYTES_CRLF);
+        buf.writeCharSequence("Content-Length", StandardCharsets.US_ASCII);
+        buf.writeBytes(BYTES_HEADER_SEPARATOR);
+        buf.writeCharSequence(String.valueOf(response.body().readableBytes()), StandardCharsets.US_ASCII);
 
-        response.forEachHeader((name, value) -> headers.writeBytes(BYTES_CRLF)
-                .writeBytes(name.getBytes(StandardCharsets.US_ASCII))
-                .writeBytes(BYTES_HEADER_SEPARATOR)
-                .writeBytes(value.getBytes(StandardCharsets.US_ASCII)));
+        response.headers().forEach((name, value) -> {
+            buf.writeBytes(BYTES_CRLF);
+            buf.writeCharSequence(name, StandardCharsets.US_ASCII);
+            buf.writeBytes(BYTES_HEADER_SEPARATOR);
+            buf.writeCharSequence(value, StandardCharsets.US_ASCII);
+        });
 
-        out.add(headers.writeBytes(BYTES_2X_CRLF));
+        out.add(buf.writeBytes(BYTES_2X_CRLF));
 
         ctx.channel().attr(KEY_STATE).set(ConnectionState.RESPONSE_BODY);
         out.add(response.body());

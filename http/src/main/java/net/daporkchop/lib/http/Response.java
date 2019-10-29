@@ -22,7 +22,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.util.Map;
-import java.util.function.BiConsumer;
 
 /**
  * An HTTP response.
@@ -43,11 +42,9 @@ public interface Response {
     ByteBuf body();
 
     /**
-     * Runs a callback function on each header on the response.
-     *
-     * @param callback the callback function to run
+     * @return the headers attached to the HTTP response
      */
-    void forEachHeader(@NonNull BiConsumer<String, String> callback);
+    Map<String, CharSequence> headers();
 
     /**
      * A simple implementation of {@link Response}.
@@ -59,15 +56,10 @@ public interface Response {
     @Accessors(fluent = true)
     final class Simple implements Response {
         @NonNull
-        protected final StatusCode          status;
+        protected final StatusCode status;
         @NonNull
-        protected final ByteBuf             body;
+        protected final ByteBuf body;
         @NonNull
-        protected final Map<String, String> headers;
-
-        @Override
-        public void forEachHeader(@NonNull BiConsumer<String, String> callback) {
-            this.headers.forEach(callback);
-        }
+        protected final Map<String, CharSequence> headers;
     }
 }

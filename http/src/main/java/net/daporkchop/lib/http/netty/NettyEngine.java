@@ -13,43 +13,36 @@
  *
  */
 
-package net.daporkchop.lib.http;
+package net.daporkchop.lib.http.netty;
 
 import io.netty.util.concurrent.Future;
+import net.daporkchop.lib.http.HttpEngine;
 import net.daporkchop.lib.http.client.HttpClient;
 import net.daporkchop.lib.http.server.HttpServer;
 
 /**
- * An engine for (implementation of) the HTTP protocol.
- * <p>
- * Provides methods for constructing instances of {@link HttpClient} and {@link HttpServer}.
- * <p>
- * Keeping the same instance of an engine around may provide additional benefits, such as being able to share
- * resources (potentially even between {@link HttpServer} and {@link HttpClient} instances).
+ * The official implementation of {@link HttpEngine}, built with the Netty library.
  *
  * @author DaPorkchop_
  */
-public interface HttpEngine {
-    /**
-     * Creates a new {@link HttpClient} instance backed by this engine.
-     */
-    Future<HttpClient> client();
+public final class NettyEngine implements HttpEngine {
+    @Override
+    public Future<HttpClient> client() {
+        return null;
+    }
 
-    /**
-     * Creates a new {@link HttpServer} instance backed by this engine.
-     */
-    Future<HttpServer> server();
+    @Override
+    public Future<HttpServer> server() {
+        return null;
+    }
 
-    /**
-     * Closes this engine.
-     * <p>
-     * Closing an engine will also result in all {@link HttpClient} and {@link HttpServer} instances created by
-     * this engine being closed.
-     */
-    Future<Void> close();
+    @Override
+    public Future<Void> close() {
+        return null;
+    }
 
-    /**
-     * @return a {@link Future} that will be notified when this {@link HttpEngine} is closed
-     */
-    Future<Void> closeFuture();
+    @Override
+    public Future<Void> closeFuture() {
+        return null;
+    }
 }

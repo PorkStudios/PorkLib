@@ -45,7 +45,7 @@ import java.util.concurrent.Executor;
  */
 @Getter
 @Accessors(fluent = true)
-public final class NettyEngine implements HttpEngine {
+public class NettyEngine implements HttpEngine {
     protected final EventLoopGroup group;
     protected final ChannelFactory<Channel> clientChannelFactory;
     protected final ChannelFactory<ServerChannel> serverChannelFactory;

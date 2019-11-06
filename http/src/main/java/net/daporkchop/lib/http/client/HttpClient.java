@@ -17,6 +17,7 @@ package net.daporkchop.lib.http.client;
 
 import io.netty.util.concurrent.Future;
 import net.daporkchop.lib.http.HttpEngine;
+import net.daporkchop.lib.http.util.HttpEndpoint;
 
 /**
  * A container around an instance of an HTTP client.
@@ -27,23 +28,6 @@ import net.daporkchop.lib.http.HttpEngine;
  *
  * @author DaPorkchop_
  */
-public interface HttpClient {
-    /**
-     * @return the {@link HttpEngine} that created this {@link HttpClient}
-     */
-    HttpEngine engine();
-
-    /**
-     * Closes this client instance.
-     * <p>
-     * This will release any resources allocated specifically by this client (however, any resources allocated
-     * by the parent {@link HttpEngine} will not be released unless specifically stated otherwise by the
-     * implementation).
-     */
-    Future<Void> close();
-
-    /**
-     * @return a {@link Future} that will be notified when this {@link HttpClient} is closed
-     */
-    Future<Void> closeFuture();
+//TODO: make this useful
+public interface HttpClient extends HttpEndpoint {
 }

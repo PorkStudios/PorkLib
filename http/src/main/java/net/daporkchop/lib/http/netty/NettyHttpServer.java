@@ -13,16 +13,21 @@
  *
  */
 
-package net.daporkchop.lib.http.server;
+package net.daporkchop.lib.http.netty;
 
+import io.netty.channel.ServerChannel;
 import io.netty.util.concurrent.Future;
+import lombok.NonNull;
 import net.daporkchop.lib.http.HttpEngine;
-import net.daporkchop.lib.http.util.HttpEndpoint;
+import net.daporkchop.lib.http.server.HttpServer;
 
 /**
- * The core of an HTTP server implementation.
+ * An implementation of {@link HttpServer} for {@link NettyEngine}.
  *
  * @author DaPorkchop_
  */
-public interface HttpServer extends HttpEndpoint {
+public class NettyHttpServer extends NettyHttpEndpoint<ServerChannel> implements HttpServer {
+    NettyHttpServer(@NonNull NettyEngine engine) {
+        super(engine);
+    }
 }

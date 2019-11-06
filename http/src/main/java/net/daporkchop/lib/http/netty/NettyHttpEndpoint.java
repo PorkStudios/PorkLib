@@ -13,16 +13,38 @@
  *
  */
 
-package net.daporkchop.lib.http.server;
+package net.daporkchop.lib.http.netty;
 
+import io.netty.channel.Channel;
+import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.concurrent.Future;
-import net.daporkchop.lib.http.HttpEngine;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.util.HttpEndpoint;
 
 /**
- * The core of an HTTP server implementation.
- *
  * @author DaPorkchop_
  */
-public interface HttpServer extends HttpEndpoint {
+@Accessors(fluent = true)
+abstract class NettyHttpEndpoint<C extends Channel> implements HttpEndpoint {
+    @Getter
+    protected final NettyEngine engine;
+    protected final ChannelGroup channels;
+
+    public NettyHttpEndpoint(@NonNull NettyEngine engine)    {
+        this.engine = engine;
+        this.channels = new DefaultChannelGroup(engine.group.next(), true);
+    }
+
+    @Override
+    public Future<Void> close() {
+        return null;
+    }
+
+    @Override
+    public Future<Void> closeFuture() {
+        return null;
+    }
 }

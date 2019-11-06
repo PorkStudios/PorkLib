@@ -17,34 +17,48 @@ package net.daporkchop.lib.http.netty;
 
 import io.netty.channel.Channel;
 import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.ChannelGroupFuture;
+import io.netty.channel.group.ChannelGroupFutureListener;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.concurrent.Future;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.util.HttpEndpoint;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 /**
  * @author DaPorkchop_
  */
 @Accessors(fluent = true)
 abstract class NettyHttpEndpoint<C extends Channel> implements HttpEndpoint {
+    protected static final long CLOSEFUTURE_OFFSET = PUnsafe.pork_getOffset(NettyHttpEndpoint.class, "closeFuture");
+
     @Getter
     protected final NettyEngine engine;
     protected final ChannelGroup channels;
+    private volatile ChannelGroupFuture closeFuture;
 
-    public NettyHttpEndpoint(@NonNull NettyEngine engine)    {
+    public NettyHttpEndpoint(@NonNull NettyEngine engine) {
         this.engine = engine;
+
         this.channels = new DefaultChannelGroup(engine.group.next(), true);
     }
 
     @Override
     public Future<Void> close() {
-        return null;
+        if (this.closeFuture != null) {
+            return this.closeFuture;
+        } else {
+            if (PUnsafe.compareAndSwapObject(this, CLOSEFUTURE_OFFSET, null, this.channels.close())) {
+                //notify engine after close operation is complete
+                this.closeFuture.addListener((ChannelGroupFutureListener) f -> this.engine.notifyEndpointClosed(this));
+            }
+            return this.closeFuture;
+        }
     }
 
-    @Override
-    public Future<Void> closeFuture() {
-        return null;
+    public void assertOpen() {
+        if (this.closeFuture != null) throw new IllegalStateException("closed");
     }
 }

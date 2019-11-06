@@ -41,9 +41,4 @@ public interface HttpEndpoint {
      * implementation).
      */
     Future<Void> close();
-
-    /**
-     * @return a {@link Future} that will be notified when this {@link HttpEndpoint} is closed
-     */
-    Future<Void> closeFuture();
 }

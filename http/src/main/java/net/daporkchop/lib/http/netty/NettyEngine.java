@@ -103,4 +103,12 @@ public class NettyEngine implements HttpEngine {
     public Future<Void> close() {
         return null;
     }
+
+    /**
+     * Inform the engine that an endpoint has been closed.
+     * @param endpoint the endpoint which was closed
+     */
+    void notifyEndpointClosed(@NonNull NettyHttpEndpoint<?> endpoint)   {
+        //TODO
+    }
 }

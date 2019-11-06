@@ -15,10 +15,9 @@
 
 package net.daporkchop.lib.encoding.compression;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.UtilityClass;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.apache.commons.compress.compressors.deflate.DeflateCompressorInputStream;
@@ -41,9 +40,12 @@ import java.io.OutputStream;
 import java.lang.reflect.Field;
 
 /**
+ * Contains static references to a number of standard compression algorithms.
+ *
  * @author DaPorkchop_
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+//TODO: strip some dependencies off of this
+@UtilityClass
 public class Compression {
     public static final CompressionHelper NONE = CompressionHelper.builder("Uncompressed")
             .setInputStreamWrapperSimple(in -> in)

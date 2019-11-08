@@ -13,15 +13,32 @@
  *
  */
 
-package net.daporkchop.lib.network.nettycommon;
+package net.daporkchop.lib.network.nettycommon.transport;
 
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFactory;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.ServerChannel;
+import net.daporkchop.lib.network.nettycommon.eventloopgroup.EventLoopGroupPool;
 
 /**
- * Container around a Netty transport protocol.
+ * Container around a network transport protocol.
  *
  * @author DaPorkchop_
  */
 public interface TransportManager {
-    EventLoopGroup eventLoop();
+    /**
+     * @return the {@link EventLoopGroupPool} used for this transport protocol
+     */
+    EventLoopGroupPool eventLoopGroupPool();
+
+    /**
+     * @return a {@link ChannelFactory} for use in a {@link io.netty.bootstrap.ServerBootstrap}
+     */
+    ChannelFactory<? extends ServerChannel> channelFactoryServer();
+
+    /**
+     * @return a {@link ChannelFactory} for use in a {@link io.netty.bootstrap.Bootstrap}
+     */
+    ChannelFactory<? extends Channel> channelFactory();
 }

@@ -22,6 +22,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.network.nettycommon.eventloopgroup.factory.EventLoopGroupFactory;
 
+import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadFactory;
 import java.util.function.Supplier;
 
@@ -33,7 +34,10 @@ import static java.lang.Integer.max;
 @RequiredArgsConstructor
 public final class DefaultEventLoopGroupPool implements EventLoopGroupPool {
     @NonNull
-    protected final Supplier<EventLoopGroup> factory;
+    protected final EventLoopGroupFactory factory;
+
+    protected final Executor executor;
+    protected final int threads;
 
     protected Future<Void> shutdownFuture;
     protected EventLoopGroup group;
@@ -43,7 +47,7 @@ public final class DefaultEventLoopGroupPool implements EventLoopGroupPool {
     public synchronized EventLoopGroup get() {
         if (this.group == null) {
             this.referenceCount = 1;
-            this.group = this.factory.get();
+            this.group = this.factory.create(this.threads, this.executor);
         }
         return this.group;
     }

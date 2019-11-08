@@ -28,9 +28,7 @@ import java.util.concurrent.Executor;
  */
 public final class EpollEventLoopGroupFactory implements EventLoopGroupFactory {
     public EpollEventLoopGroupFactory() {
-        if (!Epoll.isAvailable())   {
-            throw new UnsupportedOperationException("Epoll not available");
-        }
+        Epoll.ensureAvailability();
     }
 
     @Override

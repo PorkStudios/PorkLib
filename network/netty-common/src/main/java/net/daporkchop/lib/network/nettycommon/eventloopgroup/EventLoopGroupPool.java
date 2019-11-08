@@ -15,7 +15,10 @@
 
 package net.daporkchop.lib.network.nettycommon.eventloopgroup;
 
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFactory;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.ServerChannel;
 import io.netty.util.concurrent.Future;
 import lombok.NonNull;
 
@@ -24,7 +27,7 @@ import lombok.NonNull;
  *
  * @author DaPorkchop_
  */
-public interface EventLoopGroupPool {
+public interface EventLoopGroupPool extends AutoCloseable {
     /**
      * Gets the currently active {@link EventLoopGroup}, creating a new one if none is currently active.
      *
@@ -51,4 +54,9 @@ public interface EventLoopGroupPool {
      * @return a future that will be notified when the currently active {@link EventLoopGroup} is shut down. If no group is currently active, this will return a dummy noop future
      */
     Future<Void> shutdown();
+
+    @Override
+    default void close() throws Exception {
+        this.shutdown().sync();
+    }
 }

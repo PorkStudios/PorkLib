@@ -16,7 +16,6 @@
 package net.daporkchop.lib.http.util;
 
 import io.netty.util.concurrent.Future;
-import net.daporkchop.lib.http.HttpEngine;
 import net.daporkchop.lib.http.client.HttpClient;
 import net.daporkchop.lib.http.server.HttpServer;
 
@@ -29,16 +28,7 @@ import net.daporkchop.lib.http.server.HttpServer;
  */
 public interface HttpEndpoint {
     /**
-     * @return the {@link HttpEngine} that created this {@link HttpEndpoint}
-     */
-    HttpEngine engine();
-
-    /**
      * Closes this {@link HttpEndpoint} instance.
-     * <p>
-     * This will release any resources allocated specifically by this endpoint (however, any resources allocated
-     * by the parent {@link HttpEngine} will not be released unless specifically stated otherwise by the
-     * implementation).
      */
     Future<Void> close();
 }

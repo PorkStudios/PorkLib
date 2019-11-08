@@ -16,18 +16,17 @@
 package net.daporkchop.lib.http.netty;
 
 import io.netty.channel.ServerChannel;
-import io.netty.util.concurrent.Future;
 import lombok.NonNull;
-import net.daporkchop.lib.http.HttpEngine;
 import net.daporkchop.lib.http.server.HttpServer;
+import net.daporkchop.lib.network.nettycommon.transport.Transport;
 
 /**
- * An implementation of {@link HttpServer} for {@link NettyEngine}.
+ * An implementation of {@link HttpServer} using Netty.
  *
  * @author DaPorkchop_
  */
 public class NettyHttpServer extends NettyHttpEndpoint<ServerChannel> implements HttpServer {
-    NettyHttpServer(@NonNull NettyEngine engine) {
-        super(engine);
+    public NettyHttpServer(@NonNull Transport transport) {
+        super(transport);
     }
 }

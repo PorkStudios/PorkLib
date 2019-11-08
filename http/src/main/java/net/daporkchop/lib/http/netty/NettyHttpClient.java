@@ -18,14 +18,15 @@ package net.daporkchop.lib.http.netty;
 import io.netty.channel.Channel;
 import lombok.NonNull;
 import net.daporkchop.lib.http.client.HttpClient;
+import net.daporkchop.lib.network.nettycommon.transport.Transport;
 
 /**
- * An implementation of {@link HttpClient} for {@link NettyEngine}.
+ * An implementation of {@link HttpClient} using Netty.
  *
  * @author DaPorkchop_
  */
 public class NettyHttpClient extends NettyHttpEndpoint<Channel> implements HttpClient {
-    NettyHttpClient(@NonNull NettyEngine engine) {
-        super(engine);
+    public NettyHttpClient(@NonNull Transport transport) {
+        super(transport);
     }
 }

@@ -15,8 +15,6 @@
 
 package net.daporkchop.lib.http.client;
 
-import io.netty.util.concurrent.Future;
-import net.daporkchop.lib.http.HttpEngine;
 import net.daporkchop.lib.http.util.HttpEndpoint;
 
 /**

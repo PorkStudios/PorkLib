@@ -16,6 +16,7 @@
 package net.daporkchop.lib.http.netty;
 
 import io.netty.channel.Channel;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.ChannelGroupFuture;
 import io.netty.channel.group.ChannelGroupFutureListener;
@@ -25,6 +26,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.util.HttpEndpoint;
+import net.daporkchop.lib.network.nettycommon.transport.Transport;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 /**
@@ -34,15 +36,16 @@ import net.daporkchop.lib.unsafe.PUnsafe;
 abstract class NettyHttpEndpoint<C extends Channel> implements HttpEndpoint {
     protected static final long CLOSEFUTURE_OFFSET = PUnsafe.pork_getOffset(NettyHttpEndpoint.class, "closeFuture");
 
-    @Getter
-    protected final NettyEngine engine;
+    protected final Transport transport;
+    protected final EventLoopGroup group;
     protected final ChannelGroup channels;
     private volatile ChannelGroupFuture closeFuture;
 
-    public NettyHttpEndpoint(@NonNull NettyEngine engine) {
-        this.engine = engine;
+    public NettyHttpEndpoint(@NonNull Transport transport) {
+        this.transport = transport;
+        this.group = transport.eventLoopGroupPool().get();
 
-        this.channels = new DefaultChannelGroup(engine.group.next(), true);
+        this.channels = new DefaultChannelGroup(this.group.next(), true);
     }
 
     @Override
@@ -51,8 +54,7 @@ abstract class NettyHttpEndpoint<C extends Channel> implements HttpEndpoint {
             return this.closeFuture;
         } else {
             if (PUnsafe.compareAndSwapObject(this, CLOSEFUTURE_OFFSET, null, this.channels.close())) {
-                //notify engine after close operation is complete
-                this.closeFuture.addListener((ChannelGroupFutureListener) f -> this.engine.notifyEndpointClosed(this));
+                this.transport.eventLoopGroupPool().release(this.group);
             }
             return this.closeFuture;
         }

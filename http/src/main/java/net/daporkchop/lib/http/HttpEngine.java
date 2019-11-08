@@ -51,5 +51,5 @@ public interface HttpEngine {
     /**
      * @return a {@link Future} that will be notified when this {@link HttpEngine} is closed
      */
-    Future<Object> closeFuture();
+    Future<Void> closeFuture();
 }

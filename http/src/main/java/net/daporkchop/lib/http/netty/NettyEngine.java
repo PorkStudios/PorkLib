@@ -23,11 +23,14 @@ import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.epoll.EpollSocketChannel;
+import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.FutureListener;
+import io.netty.util.concurrent.Promise;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
@@ -35,8 +38,12 @@ import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.http.HttpEngine;
 import net.daporkchop.lib.http.client.HttpClient;
 import net.daporkchop.lib.http.server.HttpServer;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * The official implementation of {@link HttpEngine}, built with the Netty library.
@@ -49,7 +56,9 @@ public class NettyEngine implements HttpEngine {
     protected final EventLoopGroup group;
     protected final ChannelFactory<Channel> clientChannelFactory;
     protected final ChannelFactory<ServerChannel> serverChannelFactory;
-    protected final Future<NettyEngine> closeFuture;
+    protected final Promise<NettyEngine> closeFuture;
+    //protected final ChannelGroup allChannels;
+    protected Collection<NettyHttpEndpoint> users;
     protected final boolean autoClose;
 
     /**
@@ -87,28 +96,44 @@ public class NettyEngine implements HttpEngine {
         this.group = group;
         this.autoClose = autoClose;
         this.closeFuture = group.next().newPromise();
+        //this.allChannels = new DefaultChannelGroup(group.next(), true);
+        this.users = new HashSet<>();
     }
 
     @Override
-    public Future<HttpClient> client() {
+    public synchronized Future<HttpClient> client() {
         return null;
     }
 
     @Override
-    public Future<HttpServer> server() {
+    public synchronized Future<HttpServer> server() {
         return null;
     }
 
     @Override
-    public Future<Void> close() {
-        return null;
+    @SuppressWarnings("unchecked")
+    public synchronized Future<Void> close() {
+        if (this.users != null) {
+            this.users.forEach(endpoint -> endpoint.close().addListener(f -> {
+                synchronized (this) {
+                    if (this.users.remove(endpoint) && this.users.isEmpty())    {
+                        this.users = null;
+                        this.closeFuture.trySuccess(this);
+                    }
+                }
+            }));
+        }
+        return (Future<Void>) (Object) this.closeFuture;
     }
 
     /**
      * Inform the engine that an endpoint has been closed.
      * @param endpoint the endpoint which was closed
      */
-    void notifyEndpointClosed(@NonNull NettyHttpEndpoint<?> endpoint)   {
-        //TODO
+    synchronized void notifyEndpointClosed(@NonNull NettyHttpEndpoint<?> endpoint)   {
+        if (this.users == null) return;
+        if (this.users.remove(endpoint) && this.users.isEmpty())    {
+            this.close();
+        }
     }
 }

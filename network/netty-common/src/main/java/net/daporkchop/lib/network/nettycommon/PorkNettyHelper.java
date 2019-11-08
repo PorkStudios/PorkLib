@@ -17,10 +17,13 @@ package net.daporkchop.lib.network.nettycommon;
 
 import io.netty.channel.epoll.Epoll;
 import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.network.nettycommon.eventloopgroup.DefaultEventLoopGroupPool;
-import net.daporkchop.lib.network.nettycommon.eventloopgroup.EventLoopGroupPool;
+import net.daporkchop.lib.network.nettycommon.eventloopgroup.pool.DefaultEventLoopGroupPool;
+import net.daporkchop.lib.network.nettycommon.eventloopgroup.pool.EventLoopGroupPool;
 import net.daporkchop.lib.network.nettycommon.eventloopgroup.factory.EpollEventLoopGroupFactory;
 import net.daporkchop.lib.network.nettycommon.eventloopgroup.factory.NioEventLoopGroupFactory;
+import net.daporkchop.lib.network.nettycommon.transport.EpollTransport;
+import net.daporkchop.lib.network.nettycommon.transport.NioTransport;
+import net.daporkchop.lib.network.nettycommon.transport.Transport;
 
 /**
  * Helper class for dealing with Netty.
@@ -29,43 +32,59 @@ import net.daporkchop.lib.network.nettycommon.eventloopgroup.factory.NioEventLoo
  */
 @UtilityClass
 public class PorkNettyHelper {
-    private EventLoopGroupPool STANDARD_NIO_POOL;
     private EventLoopGroupPool STANDARD_EPOLL_POOL;
+    private EventLoopGroupPool STANDARD_NIO_POOL;
+
+    private Transport STANDARD_EPOLL_TRANSPORT;
+    private Transport STANDARD_NIO_TRANSPORT;
 
     /**
      * @return an {@link EventLoopGroupPool} usable for TCP
      */
-    public EventLoopGroupPool getPoolTCP()  {
+    public EventLoopGroupPool getPoolTCP() {
         return getPoolEpollIfAvailable();
     }
 
     /**
      * @return an {@link EventLoopGroupPool} usable for UDP
      */
-    public EventLoopGroupPool getPoolUDP()  {
+    public EventLoopGroupPool getPoolUDP() {
         return getPoolEpollIfAvailable();
     }
 
     /**
      * @return an {@link EventLoopGroupPool} usable for SCTP
      */
-    public EventLoopGroupPool getPoolSCTP()  {
-        return getPoolNIO();
+    public EventLoopGroupPool getPoolSCTP() {
+        return getPoolNio();
     }
 
     /**
      * @return an {@link EventLoopGroupPool} backed by Epoll if possible, falling back to Java NIO otherwise
      */
     public EventLoopGroupPool getPoolEpollIfAvailable() {
-        return Epoll.isAvailable() ? getPoolEpoll() : getPoolNIO();
+        return Epoll.isAvailable() ? getPoolEpoll() : getPoolNio();
+    }
+
+    /**
+     * @return an {@link EventLoopGroupPool} backed by Epoll
+     */
+    public EventLoopGroupPool getPoolEpoll() {
+        Epoll.ensureAvailability();
+        synchronized (PorkNettyHelper.class) {
+            if (STANDARD_EPOLL_POOL == null) {
+                STANDARD_EPOLL_POOL = new DefaultEventLoopGroupPool(new EpollEventLoopGroupFactory(), null, Runtime.getRuntime().availableProcessors());
+            }
+            return STANDARD_EPOLL_POOL;
+        }
     }
 
     /**
      * @return an {@link EventLoopGroupPool} backed by Java NIO
      */
-    public EventLoopGroupPool getPoolNIO()  {
-        synchronized (PorkNettyHelper.class)    {
-            if (STANDARD_NIO_POOL == null)  {
+    public EventLoopGroupPool getPoolNio() {
+        synchronized (PorkNettyHelper.class) {
+            if (STANDARD_NIO_POOL == null) {
                 STANDARD_NIO_POOL = new DefaultEventLoopGroupPool(new NioEventLoopGroupFactory(), null, Runtime.getRuntime().availableProcessors());
             }
             return STANDARD_NIO_POOL;
@@ -73,15 +92,55 @@ public class PorkNettyHelper {
     }
 
     /**
-     * @return an {@link EventLoopGroupPool} backed by Epoll
+     * @return a {@link Transport} usable for TCP
      */
-    public EventLoopGroupPool getPoolEpoll()  {
+    public Transport getTransportTCP() {
+        return getTransportEpollIfAvailable();
+    }
+
+    /**
+     * @return a {@link Transport} usable for UDP
+     */
+    public Transport getTransportUDP() {
+        return getTransportEpollIfAvailable();
+    }
+
+    /**
+     * @return a {@link Transport} usable for SCTP
+     */
+    public Transport getTransportSCTP() {
+        return getTransportNio();
+    }
+
+    /**
+     * @return a {@link Transport} backed by Epoll if possible, falling back to Java NIO otherwise
+     */
+    public Transport getTransportEpollIfAvailable() {
+        return Epoll.isAvailable() ? getTransportEpoll() : getTransportNio();
+    }
+
+    /**
+     * @return a {@link Transport} backed by Epoll
+     */
+    public Transport getTransportEpoll() {
         Epoll.ensureAvailability();
-        synchronized (PorkNettyHelper.class)    {
-            if (STANDARD_EPOLL_POOL == null)  {
-                STANDARD_EPOLL_POOL = new DefaultEventLoopGroupPool(new EpollEventLoopGroupFactory(), null, Runtime.getRuntime().availableProcessors());
+        synchronized (PorkNettyHelper.class) {
+            if (STANDARD_EPOLL_TRANSPORT == null) {
+                STANDARD_EPOLL_TRANSPORT = new EpollTransport(getPoolEpoll());
             }
-            return STANDARD_EPOLL_POOL;
+            return STANDARD_EPOLL_TRANSPORT;
+        }
+    }
+
+    /**
+     * @return a {@link Transport} backed by Java NIO
+     */
+    public Transport getTransportNio() {
+        synchronized (PorkNettyHelper.class) {
+            if (STANDARD_NIO_TRANSPORT == null) {
+                STANDARD_NIO_TRANSPORT = new NioTransport(getPoolNio());
+            }
+            return STANDARD_NIO_TRANSPORT;
         }
     }
 }

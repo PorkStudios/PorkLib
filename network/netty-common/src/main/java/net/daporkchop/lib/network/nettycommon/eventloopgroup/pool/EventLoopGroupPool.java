@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.network.nettycommon.eventloopgroup;
+package net.daporkchop.lib.network.nettycommon.eventloopgroup.pool;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFactory;

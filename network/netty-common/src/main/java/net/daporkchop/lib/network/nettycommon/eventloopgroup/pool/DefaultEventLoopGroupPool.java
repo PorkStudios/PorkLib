@@ -13,18 +13,15 @@
  *
  */
 
-package net.daporkchop.lib.network.nettycommon.eventloopgroup;
+package net.daporkchop.lib.network.nettycommon.eventloopgroup.pool;
 
 import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.SucceededFuture;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.network.nettycommon.eventloopgroup.factory.EventLoopGroupFactory;
 
 import java.util.concurrent.Executor;
-import java.util.concurrent.ThreadFactory;
-import java.util.function.Supplier;
 
 import static java.lang.Integer.max;
 

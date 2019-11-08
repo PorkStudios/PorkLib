@@ -13,14 +13,15 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":network:netty-common")
+package net.daporkchop.lib.network.nettycommon;
 
-    //TODO: remove this
-    compile "com.google.http-client:google-http-client:$googleHttpClientVersion"
+import io.netty.channel.EventLoopGroup;
 
-    compile "io.netty:netty-handler:$nettyVersion"
-
-    testCompile "com.google.code.gson:gson:$gsonVersion"
+/**
+ * Container around a Netty transport protocol.
+ *
+ * @author DaPorkchop_
+ */
+public interface TransportManager {
+    EventLoopGroup eventLoop();
 }

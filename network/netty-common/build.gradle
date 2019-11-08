@@ -14,13 +14,6 @@
  */
 
 dependencies {
-    compile project(":binary")
-    compile project(":network:netty-common")
-
-    //TODO: remove this
-    compile "com.google.http-client:google-http-client:$googleHttpClientVersion"
-
-    compile "io.netty:netty-handler:$nettyVersion"
-
-    testCompile "com.google.code.gson:gson:$gsonVersion"
+    compile "io.netty:netty-transport:$nettyVersion"
+    compile "io.netty:netty-transport-native-epoll:$nettyVersion:linux-x86_64"
 }

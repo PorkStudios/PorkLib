@@ -78,7 +78,8 @@ public final class RequestDecoderHTTP1 extends ByteToMessageDecoder {
                     //request line was not sent
                     throw GenericHTTPException.Bad_Request;
                 }
-                out.add(new Request.Simple(this.type, this.query, Collections.unmodifiableMap(this.headers)));
+                //TODO: have body actually be a Source which can read from the incoming data
+                out.add(new Request.Simple(this.type, this.query, Collections.unmodifiableMap(this.headers), null));
 
                 //TODO: replace self with next required pipeline member and forward any remaining data down the pipeline
                 in.skipBytes(in.readableBytes());

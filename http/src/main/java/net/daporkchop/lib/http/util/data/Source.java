@@ -16,10 +16,8 @@
 package net.daporkchop.lib.http.util.data;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.util.capability.Closeable;
-
-import java.io.IOException;
 
 /**
  * A source for reading binary data from.
@@ -29,7 +27,7 @@ import java.io.IOException;
  *
  * @author DaPorkchop_
  */
-public interface Source extends Closeable<IOException> {
+public interface Source {
     /**
      * The total size of the data (in bytes).
      * <p>
@@ -48,14 +46,26 @@ public interface Source extends Closeable<IOException> {
      * @return whether or not the size of the data is known
      */
     default boolean isSizeKnown() {
-        return this.size() != -1L;
+        return this.size() >= 0;
     }
 
     /**
-     * Reads as much data as possible into the given {@link ByteBuf}.
+     * Gets an arbitrary amount of data.
+     * <p>
+     * This may return {@link io.netty.buffer.Unpooled#EMPTY_BUFFER} (e.g. if still waiting for a response from a remote data source), however if
+     * the data most certainly cannot be read for any reason (e.g. underlying file handle has been closed), this should return {@code null}.
      *
-     * @param dst the buffer to write data to
-     * @return the number of bytes read
+     * @param pos   the number of bytes that have been read up to now
+     * @param alloc a {@link ByteBufAllocator} that may be used to allocate buffers
+     * @return a {@link ByteBuf} containing the read data
      */
-    int read(@NonNull ByteBuf dst);
+    ByteBuf read(long pos, @NonNull ByteBufAllocator alloc);
+
+    /**
+     * Called when this source's data no longer needs to be read.
+     * <p>
+     * The data will not necessarily have been read fully when this method is called.
+     */
+    default void done() {
+    }
 }

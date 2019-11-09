@@ -19,9 +19,9 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.http.util.data.Source;
 
 import java.util.Map;
-import java.util.function.BiConsumer;
 
 /**
  * An HTTP request.
@@ -51,6 +51,15 @@ public interface Request {
     Map<String, CharSequence> headers();
 
     /**
+     * Gets a {@link Source} from which the body of this request may be read.
+     * <p>
+     * Depending on the value of {@link #type()}, this field may be required, may not be required, or may be required to be absent.
+     *
+     * @return a {@link Source} from which the body of this request may be read
+     */
+    Source body();
+
+    /**
      * A simple implementation of {@link Request}.
      *
      * @author DaPorkchop_
@@ -60,10 +69,11 @@ public interface Request {
     @Accessors(fluent = true)
     final class Simple implements Request {
         @NonNull
-        protected final RequestType type;
+        protected final RequestType               type;
         @NonNull
-        protected final CharSequence query;
+        protected final CharSequence              query;
         @NonNull
         protected final Map<String, CharSequence> headers;
+        protected final Source                    body;
     }
 }

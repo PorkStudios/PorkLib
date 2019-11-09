@@ -13,16 +13,14 @@
  *
  */
 
-package net.daporkchop.lib.http.netty;
+package net.daporkchop.lib.http.impl.netty;
 
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.ChannelGroupFuture;
-import io.netty.channel.group.ChannelGroupFutureListener;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.concurrent.Future;
-import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.util.HttpEndpoint;

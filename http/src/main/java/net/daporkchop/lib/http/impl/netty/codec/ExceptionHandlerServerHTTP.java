@@ -13,12 +13,11 @@
  *
  */
 
-package net.daporkchop.lib.http.codec;
+package net.daporkchop.lib.http.impl.netty.codec;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.http.Response;
 import net.daporkchop.lib.http.StatusCode;
 import net.daporkchop.lib.http.util.ConnectionState;
@@ -26,7 +25,6 @@ import net.daporkchop.lib.http.util.StatusCodes;
 import net.daporkchop.lib.http.util.exception.HTTPException;
 
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 

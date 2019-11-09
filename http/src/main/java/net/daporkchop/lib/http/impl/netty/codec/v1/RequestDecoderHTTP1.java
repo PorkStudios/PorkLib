@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.http.codec.v1;
+package net.daporkchop.lib.http.impl.netty.codec.v1;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;

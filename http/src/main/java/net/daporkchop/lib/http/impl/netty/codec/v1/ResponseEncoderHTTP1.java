@@ -13,12 +13,14 @@
  *
  */
 
-package net.daporkchop.lib.http.codec.v1;
+package net.daporkchop.lib.http.impl.netty.codec.v1;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageEncoder;
-import net.daporkchop.lib.http.Request;
+import net.daporkchop.lib.http.Response;
+import net.daporkchop.lib.http.util.ConnectionState;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -26,30 +28,38 @@ import java.util.List;
 import static net.daporkchop.lib.http.util.Constants.*;
 
 /**
- * Encodes requests for HTTP/1.1.
+ * Encodes HTTP/1.1 responses.
  *
  * @author DaPorkchop_
  */
-public final class RequestEncoderHTTP1 extends MessageToMessageEncoder<Request> {
+public final class ResponseEncoderHTTP1 extends MessageToMessageEncoder<Response> {
     @Override
-    protected void encode(ChannelHandlerContext ctx, Request request, List<Object> out) throws Exception {
+    protected void encode(ChannelHandlerContext ctx, Response response, List<Object> out) throws Exception {
+        ctx.channel().attr(KEY_STATE).set(ConnectionState.RESPONSE_HEADERS);
+        out.add(Unpooled.wrappedBuffer(BYTES_HTTP1_1));
+        out.add(response.status().encodedValue());
+
+        //write headers
+        //TODO: optimize this a lot!
         ByteBuf buf = ctx.alloc().ioBuffer();
 
-        //request line
-        buf.writeBytes(request.type().asciiName());
-        buf.writeByte(' ');
-        buf.writeCharSequence(request.query(), StandardCharsets.US_ASCII);
-        buf.writeByte(' ');
-        buf.writeBytes(BYTES_HTTP1_1);
+        //temporary: implicitly add Content-Length header to all responses
+        //TODO: remove this (or re-implement it in some better way)
+        buf.writeBytes(BYTES_CRLF);
+        buf.writeCharSequence("Content-Length", StandardCharsets.US_ASCII);
+        buf.writeBytes(BYTES_HEADER_SEPARATOR);
+        buf.writeCharSequence(String.valueOf(response.body().readableBytes()), StandardCharsets.US_ASCII);
 
-        request.headers().forEach((name, value) -> {
+        response.headers().forEach((name, value) -> {
             buf.writeBytes(BYTES_CRLF);
             buf.writeCharSequence(name, StandardCharsets.US_ASCII);
             buf.writeBytes(BYTES_HEADER_SEPARATOR);
             buf.writeCharSequence(value, StandardCharsets.US_ASCII);
         });
 
-        buf.writeBytes(BYTES_2X_CRLF);
-        out.add(buf);
+        out.add(buf.writeBytes(BYTES_2X_CRLF));
+
+        ctx.channel().attr(KEY_STATE).set(ConnectionState.RESPONSE_BODY);
+        out.add(response.body());
     }
 }

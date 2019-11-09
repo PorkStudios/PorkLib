@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.http.netty;
+package net.daporkchop.lib.http.impl.netty;
 
 import io.netty.channel.Channel;
 import lombok.NonNull;

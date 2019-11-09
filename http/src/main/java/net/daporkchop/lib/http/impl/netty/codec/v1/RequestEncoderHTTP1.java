@@ -13,20 +13,43 @@
  *
  */
 
-package net.daporkchop.lib.http.netty;
+package net.daporkchop.lib.http.impl.netty.codec.v1;
 
-import io.netty.channel.ServerChannel;
-import lombok.NonNull;
-import net.daporkchop.lib.http.server.HttpServer;
-import net.daporkchop.lib.network.nettycommon.transport.Transport;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.MessageToMessageEncoder;
+import net.daporkchop.lib.http.Request;
+
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
+import static net.daporkchop.lib.http.util.Constants.*;
 
 /**
- * An implementation of {@link HttpServer} using Netty.
+ * Encodes requests for HTTP/1.1.
  *
  * @author DaPorkchop_
  */
-public class NettyHttpServer extends NettyHttpEndpoint<ServerChannel> implements HttpServer {
-    public NettyHttpServer(@NonNull Transport transport) {
-        super(transport);
+public final class RequestEncoderHTTP1 extends MessageToMessageEncoder<Request> {
+    @Override
+    protected void encode(ChannelHandlerContext ctx, Request request, List<Object> out) throws Exception {
+        ByteBuf buf = ctx.alloc().ioBuffer();
+
+        //request line
+        buf.writeBytes(request.type().asciiName());
+        buf.writeByte(' ');
+        buf.writeCharSequence(request.query(), StandardCharsets.US_ASCII);
+        buf.writeByte(' ');
+        buf.writeBytes(BYTES_HTTP1_1);
+
+        request.headers().forEach((name, value) -> {
+            buf.writeBytes(BYTES_CRLF);
+            buf.writeCharSequence(name, StandardCharsets.US_ASCII);
+            buf.writeBytes(BYTES_HEADER_SEPARATOR);
+            buf.writeCharSequence(value, StandardCharsets.US_ASCII);
+        });
+
+        buf.writeBytes(BYTES_2X_CRLF);
+        out.add(buf);
     }
 }

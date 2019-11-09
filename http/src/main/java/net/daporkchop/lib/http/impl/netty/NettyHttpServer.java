@@ -13,37 +13,20 @@
  *
  */
 
-package net.daporkchop.lib.http.codec;
+package net.daporkchop.lib.http.impl.netty;
 
-import io.netty.channel.ChannelDuplexHandler;
-import io.netty.channel.ChannelHandlerAdapter;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelPromise;
-import io.netty.util.Attribute;
-import net.daporkchop.lib.http.util.ConnectionState;
-import net.daporkchop.lib.http.util.exception.GenericHTTPException;
-
-import static net.daporkchop.lib.http.util.Constants.KEY_STATE;
+import io.netty.channel.ServerChannel;
+import lombok.NonNull;
+import net.daporkchop.lib.http.server.HttpServer;
+import net.daporkchop.lib.network.nettycommon.transport.Transport;
 
 /**
- * The last member of every HTTP connection pipeline.
+ * An implementation of {@link HttpServer} using Netty.
  *
  * @author DaPorkchop_
  */
-public abstract class PipelineTailHTTP extends ChannelDuplexHandler {
-    @Override
-    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-        if (msg.getClass() == ConnectionState.class)    {
-            ConnectionState state = (ConnectionState) msg;
-            Attribute<ConnectionState> attr = ctx.channel().attr(KEY_STATE);
-            if (state.ordinal() <= attr.get().ordinal())    {
-                //don't allow going back a state
-                throw GenericHTTPException.Internal_Server_Error;
-            } else {
-                attr.set(state);
-            }
-        } else {
-            ctx.write(msg, promise);
-        }
+public class NettyHttpServer extends NettyHttpEndpoint<ServerChannel> implements HttpServer {
+    public NettyHttpServer(@NonNull Transport transport) {
+        super(transport);
     }
 }

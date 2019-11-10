@@ -23,5 +23,4 @@ import java.net.SocketAddress;
  * @author DaPorkchop_
  */
 public interface ClientRequest<I extends ClientRequest<I>> {
-    SocketAddress remoteAddress();
 }

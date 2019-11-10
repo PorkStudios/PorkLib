@@ -15,52 +15,40 @@
 
 package net.daporkchop.lib.http.impl.java.client;
 
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GlobalEventExecutor;
+import io.netty.util.concurrent.Promise;
 import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.http.RequestMethod;
 import net.daporkchop.lib.http.client.HttpClient;
-import net.daporkchop.lib.http.client.builder.AbstractRequestBuilder;
-import net.daporkchop.lib.http.client.builder.RequestBuilder;
-import net.daporkchop.lib.http.impl.java.JavaHttpClient;
-
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.InetSocketAddress;
-import java.net.MalformedURLException;
-import java.net.SocketAddress;
-import java.net.URL;
-import java.net.URLConnection;
+import net.daporkchop.lib.http.client.builder.AsyncRequestBuilder;
+import net.daporkchop.lib.http.client.builder.BlockingRequestBuilder;
+import net.daporkchop.lib.http.impl.java.client.builder.BlockingJavaRequestBuilder;
 
 /**
- * Basic implementation of {@link RequestBuilder} for {@link JavaHttpClient}.
+ * A simple implementation of {@link HttpClient} using Java's built-in HTTP client features.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
+//TODO: proxy config
 @Accessors(fluent = true)
-public abstract class JavaRequestBuilder<I extends JavaRequestBuilder<I>> extends AbstractRequestBuilder<I> {
+public final class JavaHttpClient implements HttpClient {
     @Getter
-    @NonNull
-    protected final JavaHttpClient client;
+    protected final Promise<Void> closeFuture = GlobalEventExecutor.INSTANCE.newPromise();
 
-    protected synchronized URLConnection toUrl() throws IOException {
-        this.assertConfigured();
+    @Override
+    public AsyncRequestBuilder prepareAsync() {
+        throw new UnsupportedOperationException("async request");
+    }
 
-        URL url;
-        try {
-            if (this.address == null) {
-                url = new URL("http", this.host, this.port, this.path);
-            } else {
-                url = new URL("http", ((InetSocketAddress) this.address).getHostString(), ((InetSocketAddress) this.address).getPort(), this.path);
-            }
-        } catch (MalformedURLException e)   {
-            throw new RuntimeException(e);
-        }
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod(this.method.name());
-        //TODO: allow configuration of headers
-        return connection;
+    @Override
+    public BlockingRequestBuilder prepareBlocking() {
+        return new BlockingJavaRequestBuilder(this);
+    }
+
+    @Override
+    public Future<Void> close() {
+        this.closeFuture.trySuccess(null);
+        return this.closeFuture;
     }
 }

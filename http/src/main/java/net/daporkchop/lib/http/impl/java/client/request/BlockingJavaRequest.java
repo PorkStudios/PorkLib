@@ -13,23 +13,29 @@
  *
  */
 
-package net.daporkchop.lib.http.client.builder;
+package net.daporkchop.lib.http.impl.java.client.request;
 
+import lombok.NonNull;
 import net.daporkchop.lib.http.client.request.BlockingRequest;
+import net.daporkchop.lib.http.impl.java.client.JavaHttpClient;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.SocketAddress;
 
 /**
- * Implementation of {@link RequestBuilder} for {@link BlockingRequest}.
+ * Implementation of {@link BlockingRequest} for {@link JavaHttpClient}.
  *
  * @author DaPorkchop_
  */
-public interface BlockingRequestBuilder extends RequestBuilder<BlockingRequestBuilder> {
-    /**
-     * Sends the request out using the currently configured settings.
-     *
-     * @return a new {@link BlockingRequest} instance
-     * @throws IOException if an IO exception occurs while sending the request
-     */
-    BlockingRequest send() throws IOException;
+public final class BlockingJavaRequest implements BlockingRequest {
+    protected final JavaHttpClient    client;
+    protected final HttpURLConnection connection;
+
+    public BlockingJavaRequest(@NonNull JavaHttpClient client, @NonNull HttpURLConnection connection) throws IOException {
+        this.client = client;
+        this.connection = connection;
+
+        connection.connect();
+    }
 }

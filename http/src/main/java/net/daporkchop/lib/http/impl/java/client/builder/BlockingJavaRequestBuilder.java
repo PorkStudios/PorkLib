@@ -13,31 +13,29 @@
  *
  */
 
-package net.daporkchop.lib.http.impl.java;
+package net.daporkchop.lib.http.impl.java.client.builder;
 
-import io.netty.util.concurrent.Future;
-import net.daporkchop.lib.http.client.HttpClient;
-import net.daporkchop.lib.http.client.builder.AsyncRequestBuilder;
+import lombok.NonNull;
 import net.daporkchop.lib.http.client.builder.BlockingRequestBuilder;
+import net.daporkchop.lib.http.client.request.BlockingRequest;
+import net.daporkchop.lib.http.impl.java.client.JavaHttpClient;
+import net.daporkchop.lib.http.impl.java.client.request.BlockingJavaRequest;
+
+import java.io.IOException;
 
 /**
- * A simple implementation of {@link HttpClient} using Java's built-in HTTP client features.
+ * Implementation of {@link BlockingRequestBuilder} for {@link JavaHttpClient}.
  *
  * @author DaPorkchop_
  */
-public final class JavaHttpClient implements HttpClient {
-    @Override
-    public AsyncRequestBuilder prepareAsync() {
-        return null;
+public final class BlockingJavaRequestBuilder extends JavaRequestBuilder<BlockingRequestBuilder> implements BlockingRequestBuilder {
+    public BlockingJavaRequestBuilder(@NonNull JavaHttpClient client) {
+        super(client);
     }
 
     @Override
-    public BlockingRequestBuilder prepareBlocking() {
-        return null;
-    }
-
-    @Override
-    public Future<Void> close() {
-        return null;
+    public BlockingRequest send() throws IOException {
+        if (this.client.closeFuture().isDone()) throw new IllegalStateException("Client has been closed!");
+        return new BlockingJavaRequest(this.client, this.toConnection());
     }
 }

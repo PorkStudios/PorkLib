@@ -25,7 +25,7 @@ import java.net.SocketAddress;
  *
  * @author DaPorkchop_
  */
-public abstract class AbstractRequestBuilder<I extends AbstractRequestBuilder<I>> implements RequestBuilder<I> {
+public abstract class AbstractRequestBuilder<I extends RequestBuilder<I>> implements RequestBuilder<I> {
     protected String path;
     protected RequestMethod method = RequestMethod.GET;
     protected SocketAddress localAddress;

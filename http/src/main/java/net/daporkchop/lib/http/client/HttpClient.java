@@ -15,8 +15,10 @@
 
 package net.daporkchop.lib.http.client;
 
+import lombok.NonNull;
 import net.daporkchop.lib.http.client.builder.AsyncRequestBuilder;
 import net.daporkchop.lib.http.client.builder.BlockingRequestBuilder;
+import net.daporkchop.lib.http.util.Constants;
 import net.daporkchop.lib.http.util.HttpEndpoint;
 
 /**
@@ -43,4 +45,14 @@ public interface HttpClient extends HttpEndpoint {
      * @return a new {@link BlockingRequestBuilder}
      */
     BlockingRequestBuilder prepareBlocking();
+
+    /**
+     * Creates a new {@link BlockingRequestBuilder} for issuing blocking HTTP requests from this {@link HttpClient}.
+     *
+     * @param url the URL to initialize the builder with
+     * @return a new {@link BlockingRequestBuilder}
+     */
+    default BlockingRequestBuilder prepareBlocking(@NonNull String url) {
+        return this.prepareBlocking().configure(url);
+    }
 }

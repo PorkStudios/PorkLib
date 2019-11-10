@@ -18,10 +18,18 @@ package http;
 import com.google.gson.JsonParser;
 import net.daporkchop.lib.common.test.TestRandomData;
 import net.daporkchop.lib.encoding.basen.Base58;
+import net.daporkchop.lib.http.Request;
 import net.daporkchop.lib.http.SimpleHTTP;
+import net.daporkchop.lib.http.client.HttpClient;
+import net.daporkchop.lib.http.client.builder.BlockingRequestBuilder;
+import net.daporkchop.lib.http.client.request.BlockingRequest;
+import net.daporkchop.lib.http.impl.java.client.JavaHttpClient;
+import net.daporkchop.lib.http.util.StatusCodes;
 import org.junit.Test;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * @author DaPorkchop_
@@ -31,11 +39,46 @@ public class RandomDownloadTest {
 
     @Test
     public void test() throws IOException {
-        String data = SimpleHTTP.getString("https://raw.githubusercontent.com/DaMatrix/betterMapArt/master/src/main/resources/colors.json");
+        final String url = "http://raw.githubusercontent.com/DaMatrix/betterMapArt/master/src/main/resources/colors.json";
+        String data = SimpleHTTP.getString(url);
+        String data2;
+
+        {
+            HttpClient client = new JavaHttpClient();
+            String theUrl = url;
+            BlockingRequestBuilder requestBuilder = client.prepareBlocking();
+            BlockingRequest request = requestBuilder.configure(theUrl).send();
+            while (request.statusCode() == StatusCodes.Moved_Permanently || request.statusCode() == StatusCodes.Moved_Temporarily) {
+                request.close();
+                theUrl = request.headers().getValue("Location");
+                System.out.printf("Redirected to \"%s\"\n", theUrl);
+                request = requestBuilder.configure(theUrl).send();
+            }
+
+            System.out.println(request.statusCode());
+            System.out.println("Headers:");
+            request.headers().forEach(System.out::println);
+            System.out.print("\n\n");
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            try (InputStream in = request.input()) {
+                for (int b; (b = in.read()) != -1; ) {
+                    baos.write(b);
+                }
+            } finally {
+                request.close();
+                client.close();
+            }
+            data2 = new String(baos.toByteArray());
+        }
         if (DEBUG_PRINT) {
             System.out.println(data);
         }
         if (!data.trim().endsWith("}")) {
+            throw new IllegalStateException();
+        } else if (!data2.trim().endsWith("}")) {
+            throw new IllegalStateException();
+        } else if (!data2.equals(data)) {
             throw new IllegalStateException();
         }
     }

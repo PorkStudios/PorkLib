@@ -18,6 +18,7 @@ package net.daporkchop.lib.http.client.builder;
 import lombok.NonNull;
 import net.daporkchop.lib.http.RequestMethod;
 import net.daporkchop.lib.http.client.HttpClient;
+import net.daporkchop.lib.http.util.Constants;
 
 import java.net.SocketAddress;
 
@@ -115,4 +116,32 @@ public interface RequestBuilder<I extends RequestBuilder<I>> {
      * @return this {@link RequestBuilder} instance
      */
     I method(@NonNull RequestMethod method);
+
+    /**
+     * Sets whether or not the request will be an HTTPS request.
+     * <p>
+     * This value is set to {@code false} by default.
+     *
+     * @param https whether or not the request will be an HTTPS request
+     * @return this {@link RequestBuilder} instance
+     */
+    I https(boolean https);
+
+    /**
+     * Resets this {@link RequestBuilder} instance to its default settings.
+     * @return this {@link RequestBuilder} instance
+     */
+    I reset();
+
+    /**
+     * Configures this {@link RequestBuilder} instance to connect to the given URL.
+     *
+     * @param url the URL to connect to
+     * @return this {@link RequestBuilder} instance
+     */
+    default I configure(@NonNull CharSequence url)  {
+        I _this = this.reset();
+        Constants.prepareRequestBuilderForUrl(_this, url);
+        return _this;
+    }
 }

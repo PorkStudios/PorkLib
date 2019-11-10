@@ -49,8 +49,8 @@ public final class BlockingJavaRequest implements BlockingRequest, HeaderMap {
 
     protected final StatusCode statusCode;
 
-    protected final List<Header>        headerList;
-    protected final Map<String, Header> headerMap;
+    protected List<Header>        headerList;
+    protected Map<String, Header> headerMap;
 
     public BlockingJavaRequest(@NonNull JavaHttpClient client, @NonNull HttpURLConnection connection) throws IOException {
         this.client = client;
@@ -59,15 +59,11 @@ public final class BlockingJavaRequest implements BlockingRequest, HeaderMap {
         connection.connect();
 
         this.statusCode = StatusCode.of(connection.getResponseCode(), connection.getResponseMessage());
-
-        Map<String, List<String>> headers = connection.getHeaderFields();
-        this.headerList = new ArrayList<>(headers.size());
-        headers.forEach((key, value) -> this.headerList.add(value.size() == 1 ? new Header.Default(key, value.get(0)) : new Header.DefaultList(key, value)));
-        this.headerMap = this.headerList.stream().collect(Collectors.toMap(Header::key, PFunctions.identity()));
     }
 
     @Override
     public HeaderMap headers() {
+        //this class is an instance of HeaderMap itself to avoid having to make more classes for no reason
         return this;
     }
 
@@ -94,16 +90,44 @@ public final class BlockingJavaRequest implements BlockingRequest, HeaderMap {
 
     @Override
     public int count() {
+        this.computeHeaders();
         return this.headerList.size();
     }
 
     @Override
     public Header get(int index) {
+        this.computeHeaders();
         return this.headerList.get(index);
     }
 
     @Override
     public Header get(@NonNull String key) {
+        this.computeHeaders();
         return this.headerMap.get(key);
+    }
+
+    /**
+     * Converts the headers from this request into a format that will be efficiently usable by the {@link HeaderMap} methods.
+     * <p>
+     * This method's logic will only be executed once.
+     */
+    protected synchronized void computeHeaders() {
+        if (this.headerList != null && this.headerMap != null) return;
+
+        Map<String, List<String>> headers = this.connection.getHeaderFields();
+        this.headerList = new ArrayList<>(headers.size() - 1);
+        headers.forEach((key, value) -> {
+            if (key == null) {
+                //response line
+                return;
+            } else if (value.isEmpty()) {
+                throw new IllegalArgumentException("value is empty");
+            } else if (value.size() == 1) {
+                this.headerList.add(new Header.Default(key, value.get(0)));
+            } else {
+                this.headerList.add(new Header.DefaultList(key, value));
+            }
+        });
+        this.headerMap = this.headerList.stream().collect(Collectors.toMap(Header::key, PFunctions.identity()));
     }
 }

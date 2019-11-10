@@ -23,9 +23,11 @@ import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.http.StatusCode;
+import net.daporkchop.lib.http.client.builder.RequestBuilder;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.util.Arrays;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
@@ -89,6 +91,28 @@ public class Constants {
             remaining -= count;
             PUnsafe.copyMemory(src, PUnsafe.ARRAY_CHAR_BASE_OFFSET + i, buf, PUnsafe.ARRAY_BYTE_BASE_OFFSET + i, count);
             dst.writeBytes(buf, 0, count);
+        }
+    }
+
+    //TODO: neither of these patterns will work with ipv6 addresses
+    public final Pattern PATTERN_URL_WITH_PORT = Pattern.compile("^http(s{0,1}):\\/\\/([^:]+):([0-9]{1,4}|[0-5][0-9]{4}|6[0-5]{2}[0-3][0-5])(\\/.+)$");
+    public final Pattern PATTERN_URL_NO_PORT = Pattern.compile("^http(s{0,1}):\\/\\/([^\\/]+)(\\/.+)$");
+
+    public <I extends RequestBuilder<I>> void prepareRequestBuilderForUrl(@NonNull I builder, @NonNull CharSequence url)  {
+        Matcher matcher = PATTERN_URL_WITH_PORT.matcher(url);
+        if (matcher.find()) {
+            builder.host(matcher.group(2))
+                    .port(Integer.parseInt(matcher.group(3)))
+                    .path(matcher.group(4))
+                    .https(!matcher.group(1).isEmpty());
+        } else if ((matcher = PATTERN_URL_NO_PORT.matcher(url)).find()) {
+            boolean https = !matcher.group(1).isEmpty();
+            builder.host(matcher.group(2))
+                    .port(https ? 443 : 80)
+                    .path(matcher.group(3))
+                    .https(https);
+        } else {
+            throw new IllegalArgumentException(String.format("Not a valid http(s) URL: %s", url));
         }
     }
 }

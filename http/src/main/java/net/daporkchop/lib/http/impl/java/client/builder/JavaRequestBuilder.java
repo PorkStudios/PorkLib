@@ -47,10 +47,11 @@ public abstract class JavaRequestBuilder<I extends RequestBuilder<I>> extends Ab
 
         URL url;
         try {
+            String protocol = this.https ? "https" : "http";
             if (this.address == null) {
-                url = new URL("http", this.host, this.port, this.path);
+                url = new URL(protocol, this.host, this.port, this.path);
             } else {
-                url = new URL("http", ((InetSocketAddress) this.address).getHostString(), ((InetSocketAddress) this.address).getPort(), this.path);
+                url = new URL(protocol, ((InetSocketAddress) this.address).getHostString(), ((InetSocketAddress) this.address).getPort(), this.path);
             }
         } catch (MalformedURLException e)   {
             throw new RuntimeException(e);

@@ -34,6 +34,8 @@ public abstract class AbstractRequestBuilder<I extends RequestBuilder<I>> implem
     protected String        host;
     protected int           port;
 
+    protected boolean https;
+
     @Override
     @SuppressWarnings("unchecked")
     public synchronized I host(@NonNull String host) {
@@ -81,6 +83,27 @@ public abstract class AbstractRequestBuilder<I extends RequestBuilder<I>> implem
         if (!this.isSupported(method)) throw new IllegalArgumentException(String.format("Request method not supported: %s", method));
 
         this.method = method;
+        return (I) this;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public I https(boolean https) {
+        this.https = https;
+        return (I) this;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public I reset() {
+        this.path = null;
+        this.method = RequestMethod.GET;
+        this.localAddress = null;
+        this.address = null;
+        this.host = null;
+        this.port = 0;
+        this.https = false;
+
         return (I) this;
     }
 

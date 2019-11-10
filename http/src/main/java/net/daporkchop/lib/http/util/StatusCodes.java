@@ -129,6 +129,6 @@ public enum StatusCodes implements StatusCode {
 
     @Override
     public String toString() {
-        return String.format("StatusCode(%d %s)", this.code, this.name());
+        return String.format("StatusCode(%d %s)", this.code, this.msg);
     }
 }

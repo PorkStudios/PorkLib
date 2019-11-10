@@ -18,6 +18,7 @@ package net.daporkchop.lib.http;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.util.Constants;
@@ -35,12 +36,24 @@ public interface StatusCode {
     /**
      * Gets an HTTP status code by its numeric ID.
      *
-     * @param id the numeric ID of the HTTP status code.
+     * @param id the numeric ID of the HTTP status code
      * @return a non-null instance of {@link StatusCode} with the given numeric ID
      */
     static StatusCode of(int id) {
         StatusCode code = Constants.STATUS_CODES_BY_NUMERIC_ID.get(id);
         return code == null ? new UnknownNoName(id) : code;
+    }
+
+    /**
+     * Gets an HTTP status code by its numeric ID.
+     *
+     * @param id  the numeric ID of the HTTP status code
+     * @param msg the message of the HTTP status code
+     * @return a non-null instance of {@link StatusCode} with the given numeric ID
+     */
+    static StatusCode of(int id, @NonNull CharSequence msg) {
+        StatusCode code = Constants.STATUS_CODES_BY_NUMERIC_ID.get(id);
+        return code == null ? new UnknownNamed(msg, id) : code;
     }
 
     /**
@@ -72,7 +85,7 @@ public interface StatusCode {
     /**
      * @return an additional textual error message that will be displayed on error pages, or {@code null} if none should be displayed
      */
-    default CharSequence errorMessage()  {
+    default CharSequence errorMessage() {
         return null;
     }
 
@@ -105,6 +118,40 @@ public interface StatusCode {
         @Override
         public String toString() {
             return String.format("StatusCode(%d UNKNOWN)", this.code);
+        }
+    }
+
+    /**
+     * An unknown HTTP status code with a message.
+     *
+     * @author DaPorkchop_
+     */
+    @RequiredArgsConstructor
+    @Getter
+    @Accessors(fluent = true)
+    final class UnknownNamed implements StatusCode {
+        @NonNull
+        private final CharSequence msg;
+        private final int          code;
+
+        @Override
+        public CharSequence msg() {
+            return "UNKNOWN";
+        }
+
+        @Override
+        public int hashCode() {
+            return this.code;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return o == this || (o instanceof StatusCode && ((StatusCode) o).code() == this.code);
+        }
+
+        @Override
+        public String toString() {
+            return String.format("StatusCode(%d %s)", this.code, this.msg);
         }
     }
 }

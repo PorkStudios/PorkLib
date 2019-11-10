@@ -15,10 +15,45 @@
 
 package net.daporkchop.lib.http.client.request;
 
+import net.daporkchop.lib.http.StatusCode;
+import net.daporkchop.lib.http.util.header.HeaderMap;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
 /**
- * An HTTP request that uses blocking IO operations (
+ * An HTTP request that uses blocking IO operations.
  *
  * @author DaPorkchop_
  */
 public interface BlockingRequest extends ClientRequest<BlockingRequest> {
+    /**
+     * @return the status code that the server responded with
+     */
+    StatusCode statusCode();
+
+    /**
+     * @return the list of headers that the server responded with
+     */
+    HeaderMap headers();
+
+    /**
+     * @return an {@link OutputStream} to which data to to the remote server may be written
+     * @throws IOException if an IO exception occurs
+     */
+    OutputStream output() throws IOException;
+
+    /**
+     * @return an {@link InputStream} from which data from the remote server may be read
+     * @throws IOException if an IO exception occurs
+     */
+    InputStream input() throws IOException;
+
+    /**
+     * Closes this HTTP request.
+     *
+     * @throws IOException if an IO exception occurs while closing the connection
+     */
+    void close() throws IOException;
 }

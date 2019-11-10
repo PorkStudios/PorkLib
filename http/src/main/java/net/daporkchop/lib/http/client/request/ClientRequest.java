@@ -15,6 +15,8 @@
 
 package net.daporkchop.lib.http.client.request;
 
+import net.daporkchop.lib.http.client.HttpClient;
+
 import java.net.SocketAddress;
 
 /**
@@ -23,4 +25,8 @@ import java.net.SocketAddress;
  * @author DaPorkchop_
  */
 public interface ClientRequest<I extends ClientRequest<I>> {
+    /**
+     * @return the {@link HttpClient} instance that this request was issued from
+     */
+    HttpClient client();
 }

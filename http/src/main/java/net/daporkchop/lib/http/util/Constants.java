@@ -59,6 +59,10 @@ public class Constants {
     public final Pattern PATTERN_REQUEST = Pattern.compile("^([A-Z]+) ([^ ]+) HTTP/1\\.1$");
     public final Pattern PATTERN_HEADER = Pattern.compile("([\\x20-\\x7E]+): ([\\x20-\\x7E]+)");
 
+    //TODO: neither of these patterns will work with ipv6 addresses
+    public final Pattern PATTERN_URL_WITH_PORT = Pattern.compile("^http(s{0,1}):\\/\\/([^:]+):([0-9]{1,4}|[0-5][0-9]{4}|6[0-5]{2}[0-3][0-5])(\\/.+)$");
+    public final Pattern PATTERN_URL_NO_PORT = Pattern.compile("^http(s{0,1}):\\/\\/([^\\/]+)(\\/.+)$");
+
     public final byte[] BYTES_HTTP1_1 = {(byte) 'H', (byte) 'T', (byte) 'T', (byte) 'P', (byte) '/', (byte) '1', (byte) '.', (byte) '1'};
     public final byte[] BYTES_CRLF = {(byte) '\r', (byte) '\n'};
     public final byte[] BYTES_2X_CRLF = {(byte) '\r', (byte) '\n', (byte) '\r', (byte) '\n'};
@@ -93,10 +97,6 @@ public class Constants {
             dst.writeBytes(buf, 0, count);
         }
     }
-
-    //TODO: neither of these patterns will work with ipv6 addresses
-    public final Pattern PATTERN_URL_WITH_PORT = Pattern.compile("^http(s{0,1}):\\/\\/([^:]+):([0-9]{1,4}|[0-5][0-9]{4}|6[0-5]{2}[0-3][0-5])(\\/.+)$");
-    public final Pattern PATTERN_URL_NO_PORT = Pattern.compile("^http(s{0,1}):\\/\\/([^\\/]+)(\\/.+)$");
 
     public <I extends RequestBuilder<I>> void prepareRequestBuilderForUrl(@NonNull I builder, @NonNull CharSequence url)  {
         Matcher matcher = PATTERN_URL_WITH_PORT.matcher(url);

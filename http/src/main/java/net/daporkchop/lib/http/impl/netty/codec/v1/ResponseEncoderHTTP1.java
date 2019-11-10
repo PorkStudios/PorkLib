@@ -45,10 +45,11 @@ public final class ResponseEncoderHTTP1 extends MessageToMessageEncoder<Response
 
         //temporary: implicitly add Content-Length header to all responses
         //TODO: remove this (or re-implement it in some better way)
-        buf.writeBytes(BYTES_CRLF);
+        //TODO: make this work
+        /*buf.writeBytes(BYTES_CRLF);
         buf.writeCharSequence("Content-Length", StandardCharsets.US_ASCII);
         buf.writeBytes(BYTES_HEADER_SEPARATOR);
-        buf.writeCharSequence(String.valueOf(response.body().readableBytes()), StandardCharsets.US_ASCII);
+        buf.writeCharSequence(String.valueOf(response.body().readableBytes()), StandardCharsets.US_ASCII);*/
 
         response.headers().forEach((name, value) -> {
             buf.writeBytes(BYTES_CRLF);
@@ -60,6 +61,7 @@ public final class ResponseEncoderHTTP1 extends MessageToMessageEncoder<Response
         out.add(buf.writeBytes(BYTES_2X_CRLF));
 
         ctx.channel().attr(KEY_STATE).set(ConnectionState.RESPONSE_BODY);
-        out.add(response.body());
+        //TODO: make this work
+        //out.add(response.body());
     }
 }

@@ -18,7 +18,6 @@ package http;
 import com.google.gson.JsonParser;
 import net.daporkchop.lib.common.test.TestRandomData;
 import net.daporkchop.lib.encoding.basen.Base58;
-import net.daporkchop.lib.http.Request;
 import net.daporkchop.lib.http.SimpleHTTP;
 import net.daporkchop.lib.http.client.HttpClient;
 import net.daporkchop.lib.http.client.builder.BlockingRequestBuilder;
@@ -35,7 +34,7 @@ import java.io.InputStream;
  * @author DaPorkchop_
  */
 public class RandomDownloadTest {
-    public static final boolean DEBUG_PRINT = true;
+    public static final boolean DEBUG_PRINT = false;
 
     @Test
     public void test() throws IOException {
@@ -47,15 +46,14 @@ public class RandomDownloadTest {
             HttpClient client = new JavaHttpClient();
             String theUrl = url;
             BlockingRequestBuilder requestBuilder = client.prepareBlocking();
-            BlockingRequest request = requestBuilder.configure(theUrl).send();
-            while (request.statusCode() == StatusCodes.Moved_Permanently || request.statusCode() == StatusCodes.Moved_Temporarily) {
-                request.close();
-                theUrl = request.headers().getValue("Location");
-                System.out.printf("Redirected to \"%s\"\n", theUrl);
+            BlockingRequest request = null;
+            do {
+                if (request != null) request.close();
                 request = requestBuilder.configure(theUrl).send();
-            }
+                System.out.printf("Sending request to \"%s\"...\n", theUrl);
+            } while (request.isRedirect() && (theUrl = request.redirectUrl()) != null);
 
-            System.out.println(request.statusCode());
+            System.out.println(request.status());
             System.out.println("Headers:");
             request.headers().forEach(System.out::println);
             System.out.print("\n\n");

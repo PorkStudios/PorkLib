@@ -32,6 +32,7 @@ import net.daporkchop.lib.http.impl.netty.codec.v1.ResponseEncoderHTTP1;
 import net.daporkchop.lib.http.util.ConnectionState;
 import net.daporkchop.lib.http.util.StatusCodes;
 import net.daporkchop.lib.http.util.exception.GenericHTTPException;
+import net.daporkchop.lib.http.util.header.HeaderMap;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -65,7 +66,7 @@ public class ServerTest {
                                             if (!"/".equals(request.query().toString()))   {
                                                 throw new GenericHTTPException(StatusCodes.Not_Found, request.query().toString());
                                             }
-                                            ctx.channel().writeAndFlush(new Response.Simple(StatusCodes.OK, Unpooled.wrappedBuffer("ok".getBytes(StandardCharsets.US_ASCII)), Collections.emptyMap())).channel().close();
+                                            ctx.channel().writeAndFlush(new Response.Default(StatusCodes.OK/*, Unpooled.wrappedBuffer("ok".getBytes(StandardCharsets.US_ASCII))*/, HeaderMap.EMPTY)).channel().close();
                                         } else {
                                             System.out.printf("[ERROR] Received invalid message (type: \"%s\"): %s\n", PorkUtil.className(msg), msg);
                                         }

@@ -47,7 +47,7 @@ public final class BlockingJavaRequest implements BlockingRequest, HeaderMap {
     @Getter(AccessLevel.NONE)
     protected final HttpURLConnection connection;
 
-    protected final StatusCode statusCode;
+    protected final StatusCode status;
 
     protected List<Header>        headerList;
     protected Map<String, Header> headerMap;
@@ -58,7 +58,7 @@ public final class BlockingJavaRequest implements BlockingRequest, HeaderMap {
 
         connection.connect();
 
-        this.statusCode = StatusCode.of(connection.getResponseCode(), connection.getResponseMessage());
+        this.status = StatusCode.of(connection.getResponseCode(), connection.getResponseMessage());
     }
 
     @Override

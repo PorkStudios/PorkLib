@@ -13,48 +13,49 @@
  *
  */
 
-package net.daporkchop.lib.http.client.request;
+package net.daporkchop.lib.http.util.header;
 
-import net.daporkchop.lib.http.Response;
-import net.daporkchop.lib.http.StatusCode;
-import net.daporkchop.lib.http.util.header.HeaderMap;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.util.List;
 
 /**
- * An HTTP request that uses blocking IO operations.
+ * A {@link HeaderMap} with a single header pair.
  *
  * @author DaPorkchop_
  */
-public interface BlockingRequest extends ClientRequest<BlockingRequest>, Response {
-    /**
-     * @return the status code that the server responded with
-     */
-    StatusCode status();
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public final class SingletonHeaderMap implements HeaderMap {
+    @NonNull
+    protected final Header value;
 
-    /**
-     * @return the list of headers that the server responded with
-     */
-    HeaderMap headers();
+    public SingletonHeaderMap(@NonNull String key, @NonNull String value)   {
+        this(new Header.Default(key, value));
+    }
 
-    /**
-     * @return an {@link OutputStream} to which data to to the remote server may be written
-     * @throws IOException if an IO exception occurs
-     */
-    OutputStream output() throws IOException;
+    public SingletonHeaderMap(@NonNull String key, @NonNull List<String> values)   {
+        this(new Header.DefaultList(key, values));
+    }
 
-    /**
-     * @return an {@link InputStream} from which data from the remote server may be read
-     * @throws IOException if an IO exception occurs
-     */
-    InputStream input() throws IOException;
+    @Override
+    public int count() {
+        return 1;
+    }
 
-    /**
-     * Closes this HTTP request.
-     *
-     * @throws IOException if an IO exception occurs while closing the connection
-     */
-    void close() throws IOException;
+    @Override
+    public Header get(int index) {
+        if (index != 0) throw new IndexOutOfBoundsException(String.valueOf(index));
+
+        return this.value;
+    }
+
+    @Override
+    public Header get(@NonNull String key) {
+        return this.value.key().equals(key) ? this.value : null;
+    }
 }

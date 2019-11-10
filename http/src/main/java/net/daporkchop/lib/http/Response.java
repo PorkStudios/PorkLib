@@ -15,36 +15,64 @@
 
 package net.daporkchop.lib.http;
 
-import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-
-import java.util.Map;
+import net.daporkchop.lib.http.util.header.HeaderMap;
 
 /**
  * An HTTP response.
  *
  * @author DaPorkchop_
  */
+//TODO: where is the body?
 public interface Response {
     /**
      * @return the status of the HTTP response
      */
     StatusCode status();
 
-    //TODO: replace this with something more stream-oriented (i can't always load an entire file into memory lol)
-
-    /**
-     * @return the body of the HTTP response
-     */
-    ByteBuf body();
-
     /**
      * @return the headers attached to the HTTP response
      */
-    Map<String, CharSequence> headers();
+    HeaderMap headers();
+
+    /**
+     * Checks if this response is a redirect.
+     *
+     * @return whether or not this response is a redirect
+     */
+    default boolean isRedirect() {
+        int code = this.status().code();
+        //return code >= 300 && code < 400; // 3xx
+        return code == 301 || code == 302;
+    }
+
+    /**
+     * Gets the URL that the request is being redirected to.
+     * <p>
+     * If this response does not indicate a redirect (see {@link #isRedirect()}), this method will return {@code null}.
+     * <p>
+     * If this response does indicate a redirect, but no next URL is given, this method will throw {@link IllegalStateException}.
+     *
+     * @return the URL that the request is being redirected to
+     */
+    default String redirectUrl() {
+        switch (this.status().code()) {
+            case 301:
+            case 302: {
+                String location = this.headers().getValue("Location");
+                if (location == null) {
+                    throw new IllegalStateException("No location given!");
+                } else {
+                    return location;
+                }
+            }
+            default:
+                return null;
+        }
+    }
 
     /**
      * A simple implementation of {@link Response}.
@@ -54,12 +82,10 @@ public interface Response {
     @RequiredArgsConstructor
     @Getter
     @Accessors(fluent = true)
-    final class Simple implements Response {
+    final class Default implements Response {
         @NonNull
         protected final StatusCode status;
         @NonNull
-        protected final ByteBuf body;
-        @NonNull
-        protected final Map<String, CharSequence> headers;
+        protected final HeaderMap  headers;
     }
 }

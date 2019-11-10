@@ -129,6 +129,7 @@ public interface RequestBuilder<I extends RequestBuilder<I>> {
 
     /**
      * Resets this {@link RequestBuilder} instance to its default settings.
+     *
      * @return this {@link RequestBuilder} instance
      */
     I reset();
@@ -139,7 +140,7 @@ public interface RequestBuilder<I extends RequestBuilder<I>> {
      * @param url the URL to connect to
      * @return this {@link RequestBuilder} instance
      */
-    default I configure(@NonNull CharSequence url)  {
+    default I configure(@NonNull CharSequence url) {
         I _this = this.reset();
         Constants.prepareRequestBuilderForUrl(_this, url);
         return _this;

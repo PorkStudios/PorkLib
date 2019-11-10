@@ -13,48 +13,45 @@
  *
  */
 
-package net.daporkchop.lib.http.client.request;
+package net.daporkchop.lib.http.util.header;
 
-import net.daporkchop.lib.http.Response;
-import net.daporkchop.lib.http.StatusCode;
-import net.daporkchop.lib.http.util.header.HeaderMap;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
- * An HTTP request that uses blocking IO operations.
+ * A {@link HeaderMap} backed by a
  *
  * @author DaPorkchop_
  */
-public interface BlockingRequest extends ClientRequest<BlockingRequest>, Response {
-    /**
-     * @return the status code that the server responded with
-     */
-    StatusCode status();
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public class HeaderMapFromMap implements HeaderMap {
+    @NonNull
+    protected final Map<String, Header> delegate;
 
-    /**
-     * @return the list of headers that the server responded with
-     */
-    HeaderMap headers();
+    @Override
+    public int count() {
+        return this.delegate.size();
+    }
 
-    /**
-     * @return an {@link OutputStream} to which data to to the remote server may be written
-     * @throws IOException if an IO exception occurs
-     */
-    OutputStream output() throws IOException;
+    @Override
+    public Header get(int index) {
+        if (index < 0 || index > this.delegate.size()) throw new IndexOutOfBoundsException(String.valueOf(index));
 
-    /**
-     * @return an {@link InputStream} from which data from the remote server may be read
-     * @throws IOException if an IO exception occurs
-     */
-    InputStream input() throws IOException;
+        Iterator<Header> iter = this.delegate.values().iterator();
+        Header curr = iter.next();
+        while (index > 0) curr = iter.next();
+        return curr;
+    }
 
-    /**
-     * Closes this HTTP request.
-     *
-     * @throws IOException if an IO exception occurs while closing the connection
-     */
-    void close() throws IOException;
+    @Override
+    public Header get(@NonNull String key) {
+        return this.delegate.get(key);
+    }
 }

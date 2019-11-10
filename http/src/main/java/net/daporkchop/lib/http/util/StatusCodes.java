@@ -74,7 +74,7 @@ public enum StatusCodes implements StatusCode {
     Unsupported_Media_Type(415),
     Range_Not_Satisfiable(416),
     Expectation_Failed(417),
-    Im_A_Teapot(418, "I'm a teapot", "See <a href=\"https://tools.ietf.org/html/rfc2324\">https://tools.ietf.org/html/rfc2324</a>, section 2.3.2."),
+    Im_A_Teapot(418, "I'm a teapot", "See <a href=\"https://tools.ietf.org/html/rfc2324\">RFC2324</a>, section 2.3.2."),
     Misdirected_Request(421),
     Unprocessable_Entity(422),
     Locked(423),

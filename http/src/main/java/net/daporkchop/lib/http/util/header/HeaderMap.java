@@ -19,14 +19,34 @@ import lombok.NonNull;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.ObjIntConsumer;
 
 /**
  * A map for storing HTTP headers.
  *
  * @author DaPorkchop_
  */
+//TODO: mutable variant
 public interface HeaderMap {
+    /**
+     * An empty {@link HeaderMap}.
+     */
+    HeaderMap EMPTY = new HeaderMap() {
+        @Override
+        public int count() {
+            return 0;
+        }
+
+        @Override
+        public Header get(int index) {
+            throw new IndexOutOfBoundsException(String.valueOf(index));
+        }
+
+        @Override
+        public Header get(@NonNull String key) {
+            return null;
+        }
+    };
+
     /**
      * @return the number of headers in this map
      */
@@ -90,17 +110,6 @@ public interface HeaderMap {
     default void forEach(@NonNull Consumer<Header> callback) {
         for (int i = 0, c = this.count(); i < c; i++) {
             callback.accept(this.get(i));
-        }
-    }
-
-    /**
-     * Iterates over all the headers in this map and runs a given callback function on them.
-     *
-     * @param callback the callback function to run
-     */
-    default void forEach(@NonNull ObjIntConsumer<Header> callback) {
-        for (int i = 0, c = this.count(); i < c; i++) {
-            callback.accept(this.get(i), i);
         }
     }
 

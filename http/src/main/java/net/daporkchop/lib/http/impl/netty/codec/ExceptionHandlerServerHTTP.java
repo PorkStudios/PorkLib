@@ -23,6 +23,7 @@ import net.daporkchop.lib.http.StatusCode;
 import net.daporkchop.lib.http.util.ConnectionState;
 import net.daporkchop.lib.http.util.StatusCodes;
 import net.daporkchop.lib.http.util.exception.HTTPException;
+import net.daporkchop.lib.http.util.header.SingletonHeaderMap;
 
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
@@ -85,7 +86,8 @@ public final class ExceptionHandlerServerHTTP extends ChannelInboundHandlerAdapt
             }
             body.writeBytes(BYTES_FOOTER_END);
 
-            Response response = new Response.Simple(status, body, Collections.singletonMap("Content-Type", "text/html; charset=utf-8"));
+            //TODO: there is no body!
+            Response response = new Response.Default(status/*, body*/, new SingletonHeaderMap("Content-Type", "text/html; charset=utf-8"));
             ctx.writeAndFlush(response);
         }
         ctx.close();

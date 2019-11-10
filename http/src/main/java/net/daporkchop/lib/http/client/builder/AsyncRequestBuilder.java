@@ -13,31 +13,10 @@
  *
  */
 
-package net.daporkchop.lib.http.util.header;
-
-import io.netty.buffer.ByteBuf;
-import lombok.NonNull;
-
-import java.nio.charset.StandardCharsets;
+package net.daporkchop.lib.http.client.builder;
 
 /**
- * Enum containing a number of standard HTTP header keys with slightly optimized mechanics.
- *
  * @author DaPorkchop_
  */
-public enum StandardHeaders implements HeaderKey {
-    Content_Length,
-    Host;
-
-    protected final byte[] encoded;
-
-    StandardHeaders()   {
-        this.encoded = this.name().replace('_', '-').getBytes(StandardCharsets.US_ASCII);
-    }
-
-    @Override
-    public int encode(@NonNull ByteBuf dst) {
-        dst.writeBytes(this.encoded);
-        return this.encoded.length;
-    }
+public interface AsyncRequestBuilder extends RequestBuilder<AsyncRequestBuilder> {
 }

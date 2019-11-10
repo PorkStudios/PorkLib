@@ -13,34 +13,12 @@
  *
  */
 
-package net.daporkchop.lib.http;
-
-import lombok.Getter;
-import lombok.experimental.Accessors;
-
-import java.nio.charset.StandardCharsets;
+package net.daporkchop.lib.http.client.request;
 
 /**
- * The different HTTP request types.
+ * Base interface for an outgoing HTTP request from an {@link net.daporkchop.lib.http.client.HttpClient}.
  *
  * @author DaPorkchop_
  */
-@Getter
-@Accessors(fluent = true)
-public enum RequestType {
-    GET,
-    HEAD,
-    POST,
-    PUT,
-    DELETE,
-    CONNECT,
-    OPTIONS,
-    TRACE,
-    PATCH;
-
-    private final byte[] asciiName;
-
-    RequestType()   {
-        this.asciiName = this.name().getBytes(StandardCharsets.US_ASCII);
-    }
+public interface ClientRequest<I extends ClientRequest<I>> {
 }

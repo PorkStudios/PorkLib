@@ -13,16 +13,34 @@
  *
  */
 
-package net.daporkchop.lib.http.util.header;
+package net.daporkchop.lib.http;
 
-import java.util.Map;
+import lombok.Getter;
+import lombok.experimental.Accessors;
+
+import java.nio.charset.StandardCharsets;
 
 /**
- * A specialized map for HTTP headers.
+ * The different HTTP request types.
  *
  * @author DaPorkchop_
  */
-public class HeaderMap {
-    //stores any headers that don't have designated fields
-    protected Map<String, CharSequence> delegate;
+@Getter
+@Accessors(fluent = true)
+public enum RequestMethod {
+    GET,
+    HEAD,
+    POST,
+    PUT,
+    DELETE,
+    CONNECT,
+    OPTIONS,
+    TRACE,
+    PATCH;
+
+    private final byte[] asciiName;
+
+    RequestMethod()   {
+        this.asciiName = this.name().getBytes(StandardCharsets.US_ASCII);
+    }
 }

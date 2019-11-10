@@ -20,7 +20,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import net.daporkchop.lib.binary.chars.ByteBufASCIISequence;
 import net.daporkchop.lib.http.Request;
-import net.daporkchop.lib.http.RequestType;
+import net.daporkchop.lib.http.RequestMethod;
 import net.daporkchop.lib.http.util.exception.GenericHTTPException;
 
 import java.util.Collections;
@@ -37,8 +37,8 @@ import static net.daporkchop.lib.http.util.Constants.*;
  * @author DaPorkchop_
  */
 public final class RequestDecoderHTTP1 extends ByteToMessageDecoder {
-    private RequestType type;
-    private String query;
+    private RequestMethod type;
+    private String        query;
 
     private Map<String, String> headers;
 
@@ -102,7 +102,7 @@ public final class RequestDecoderHTTP1 extends ByteToMessageDecoder {
                 if (!matcher.find()) {
                     throw GenericHTTPException.Bad_Request;
                 }
-                this.type = RequestType.valueOf(matcher.group(1));
+                this.type = RequestMethod.valueOf(matcher.group(1));
                 this.query = matcher.group(2);
             } else {
                 int i = in.readerIndex() + 1;

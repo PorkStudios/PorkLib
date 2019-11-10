@@ -30,9 +30,9 @@ import java.util.Map;
  */
 public interface Request {
     /**
-     * @return the type of request.
+     * @return the method of request.
      */
-    RequestType type();
+    RequestMethod method();
 
     /**
      * Gets the query line of the request.
@@ -53,7 +53,7 @@ public interface Request {
     /**
      * Gets a {@link Source} from which the body of this request may be read.
      * <p>
-     * Depending on the value of {@link #type()}, this field may be required, may not be required, or may be required to be absent.
+     * Depending on the value of {@link #method()}, this field may be required, may not be required, or may be required to be absent.
      *
      * @return a {@link Source} from which the body of this request may be read
      */
@@ -69,7 +69,7 @@ public interface Request {
     @Accessors(fluent = true)
     final class Simple implements Request {
         @NonNull
-        protected final RequestType               type;
+        protected final RequestMethod             method;
         @NonNull
         protected final CharSequence              query;
         @NonNull

@@ -13,30 +13,12 @@
  *
  */
 
-package net.daporkchop.lib.http.util.header;
-
-import io.netty.buffer.ByteBuf;
-import lombok.NonNull;
-
-import java.nio.charset.StandardCharsets;
+package net.daporkchop.lib.http.client.request;
 
 /**
- * Represents the key part of an HTTP header.
+ * An HTTP request that uses blocking IO operations (
  *
  * @author DaPorkchop_
  */
-public interface HeaderKey {
-    /**
-     * @return the name of this key
-     */
-    String name();
-
-    /**
-     * Encodes this key (in the ASCII charset) and writes it to the given {@link ByteBuf}.
-     * @param dst the {@link ByteBuf} that the encoded key should be written to
-     * @return the number of bytes written
-     */
-    default int encode(@NonNull ByteBuf dst)    {
-        return dst.writeCharSequence(this.name(), StandardCharsets.US_ASCII);
-    }
+public interface BlockingRequest {
 }

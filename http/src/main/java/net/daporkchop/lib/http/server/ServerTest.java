@@ -61,7 +61,7 @@ public class ServerTest {
                                     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
                                         if (msg instanceof Request) {
                                             Request request = (Request) msg;
-                                            System.out.printf("%s to \"%s\" from %s\n", request.type(), request.query(), ctx.channel().remoteAddress());
+                                            System.out.printf("%s to \"%s\" from %s\n", request.method(), request.query(), ctx.channel().remoteAddress());
                                             if (!"/".equals(request.query().toString()))   {
                                                 throw new GenericHTTPException(StatusCodes.Not_Found, request.query().toString());
                                             }

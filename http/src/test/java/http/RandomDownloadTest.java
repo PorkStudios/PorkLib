@@ -13,7 +13,9 @@
  *
  */
 
-package http;import com.google.gson.JsonParser;
+package http;
+
+import com.google.gson.JsonParser;
 import net.daporkchop.lib.common.test.TestRandomData;
 import net.daporkchop.lib.encoding.basen.Base58;
 import net.daporkchop.lib.http.SimpleHTTP;
@@ -25,15 +27,16 @@ import java.io.IOException;
  * @author DaPorkchop_
  */
 public class RandomDownloadTest {
+    public static final boolean DEBUG_PRINT = true;
+
     @Test
     public void test() throws IOException {
         String data = SimpleHTTP.getString("https://raw.githubusercontent.com/DaMatrix/betterMapArt/master/src/main/resources/colors.json");
-        if (false) {
+        if (DEBUG_PRINT) {
             System.out.println(data);
-        } else {
-            if (!data.trim().endsWith("}")) {
-                throw new IllegalStateException();
-            }
+        }
+        if (!data.trim().endsWith("}")) {
+            throw new IllegalStateException();
         }
     }
 
@@ -43,7 +46,7 @@ public class RandomDownloadTest {
                 "https://www.daporkchop.net/contact",
                 "User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/70.0.3538.77 Chrome/70.0.3538.77 Safari/537.36"
         );
-        if (false) {
+        if (DEBUG_PRINT) {
             System.out.println(data);
         }
     }

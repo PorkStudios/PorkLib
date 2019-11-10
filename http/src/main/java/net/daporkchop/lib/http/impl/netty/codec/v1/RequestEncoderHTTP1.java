@@ -36,7 +36,7 @@ public final class RequestEncoderHTTP1 extends MessageToMessageEncoder<Request> 
         ByteBuf buf = ctx.alloc().ioBuffer();
 
         //request line
-        buf.writeBytes(request.type().asciiName());
+        buf.writeBytes(request.method().asciiName());
         buf.writeByte(' ');
         buf.writeCharSequence(request.query(), StandardCharsets.US_ASCII);
         buf.writeByte(' ');

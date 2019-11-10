@@ -22,7 +22,7 @@ import io.netty.util.Attribute;
 import net.daporkchop.lib.http.util.ConnectionState;
 import net.daporkchop.lib.http.util.exception.GenericHTTPException;
 
-import static net.daporkchop.lib.http.util.Constants.KEY_STATE;
+import static net.daporkchop.lib.http.util.Constants.*;
 
 /**
  * The last member of every HTTP connection pipeline.

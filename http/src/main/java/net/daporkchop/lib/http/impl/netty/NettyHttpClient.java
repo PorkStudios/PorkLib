@@ -18,6 +18,8 @@ package net.daporkchop.lib.http.impl.netty;
 import io.netty.channel.Channel;
 import lombok.NonNull;
 import net.daporkchop.lib.http.client.HttpClient;
+import net.daporkchop.lib.http.client.builder.AsyncRequestBuilder;
+import net.daporkchop.lib.http.client.builder.BlockingRequestBuilder;
 import net.daporkchop.lib.network.nettycommon.transport.Transport;
 
 /**
@@ -28,5 +30,15 @@ import net.daporkchop.lib.network.nettycommon.transport.Transport;
 public class NettyHttpClient extends NettyHttpEndpoint<Channel> implements HttpClient {
     public NettyHttpClient(@NonNull Transport transport) {
         super(transport);
+    }
+
+    @Override
+    public AsyncRequestBuilder prepareAsync() {
+        throw new UnsupportedOperationException("async request");
+    }
+
+    @Override
+    public BlockingRequestBuilder prepareBlocking() {
+        throw new UnsupportedOperationException("blocking request");
     }
 }

@@ -15,8 +15,21 @@
 
 package net.daporkchop.lib.http.client.builder;
 
+import io.netty.util.concurrent.Future;
+import net.daporkchop.lib.http.client.request.AsyncRequest;
+
 /**
+ * Implementation of {@link RequestBuilder} for {@link AsyncRequest}.
+ *
  * @author DaPorkchop_
  */
 public interface AsyncRequestBuilder extends RequestBuilder<AsyncRequestBuilder> {
+    //TODO: how do we send the body for POST
+
+    /**
+     * Sends the request out using the currently configured settings.
+     *
+     * @return a future that will be notified when the request has been created (when the connection is established, body sent and remote headers received), or if an exception occurs while doing so
+     */
+    Future<AsyncRequest> send();
 }

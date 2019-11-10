@@ -15,36 +15,19 @@
 
 package net.daporkchop.lib.http.client.request;
 
+import io.netty.util.concurrent.Future;
 import net.daporkchop.lib.http.Response;
-import net.daporkchop.lib.http.StatusCode;
-import net.daporkchop.lib.http.util.header.HeaderMap;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 /**
- * An HTTP request that uses blocking IO operations.
+ * An HTTP request that is executed asynchronously.
  *
  * @author DaPorkchop_
  */
-public interface BlockingRequest extends ClientRequest<BlockingRequest> {
+public interface AsyncRequest extends ClientRequest<AsyncRequest> {
     /**
-     * @return an {@link OutputStream} to which data to to the remote server may be written
-     * @throws IOException if an IO exception occurs
-     */
-    OutputStream output() throws IOException;
-
-    /**
-     * @return an {@link InputStream} from which data from the remote server may be read
-     * @throws IOException if an IO exception occurs
-     */
-    InputStream input() throws IOException;
-
-    /**
-     * Closes this HTTP request.
+     * Notifies the worker thread that it should initiate the process of closing this request, if it hasn't already.
      *
-     * @throws IOException if an IO exception occurs while closing the connection
+     * @return a {@link Future} that will be notified when the request has been closed
      */
-    void close() throws IOException;
+    Future<Void> close();
 }

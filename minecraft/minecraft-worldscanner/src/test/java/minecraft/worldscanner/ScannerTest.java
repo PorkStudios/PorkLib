@@ -21,7 +21,7 @@ import com.google.common.cache.RemovalNotification;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import net.daporkchop.lib.http.SimpleHTTP;
+import net.daporkchop.lib.http.Http;
 import net.daporkchop.lib.math.vector.i.Vec2i;
 import net.daporkchop.lib.minecraft.region.WorldScanner;
 import net.daporkchop.lib.minecraft.registry.Registry;
@@ -30,7 +30,6 @@ import net.daporkchop.lib.minecraft.tileentity.TileEntitySign;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.format.anvil.AnvilSaveFormat;
 import net.daporkchop.lib.minecraft.world.impl.SaveBuilder;
-import org.junit.Test;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -154,7 +153,7 @@ public class ScannerTest {
     public void makeSimpleMap() throws IOException {
         Map<ResourceLocation, Color[]> colorMap = new Hashtable<>();
         {
-            String colorData = SimpleHTTP.getString("https://raw.githubusercontent.com/DaMatrix/betterMapArt/master/src/main/resources/colors.json");
+            String colorData = Http.getString("https://raw.githubusercontent.com/DaMatrix/betterMapArt/master/src/main/resources/colors.json");
             JsonParser parser = new JsonParser();
             JsonObject object = parser.parse(colorData).getAsJsonObject();
             Color[] colors;

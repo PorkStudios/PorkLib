@@ -13,12 +13,31 @@
  *
  */
 
-package net.daporkchop.lib.http.client.request;
+package net.daporkchop.lib.http.impl.java;
+
+import io.netty.util.concurrent.Future;
+import net.daporkchop.lib.http.client.HttpClient;
+import net.daporkchop.lib.http.client.builder.AsyncRequestBuilder;
+import net.daporkchop.lib.http.client.builder.BlockingRequestBuilder;
 
 /**
- * An HTTP request that uses blocking IO operations (
+ * A simple implementation of {@link HttpClient} using Java's built-in HTTP client features.
  *
  * @author DaPorkchop_
  */
-public interface BlockingRequest extends ClientRequest<BlockingRequest> {
+public final class JavaHttpClient implements HttpClient {
+    @Override
+    public AsyncRequestBuilder prepareAsync() {
+        return null;
+    }
+
+    @Override
+    public BlockingRequestBuilder prepareBlocking() {
+        return null;
+    }
+
+    @Override
+    public Future<Void> close() {
+        return null;
+    }
 }

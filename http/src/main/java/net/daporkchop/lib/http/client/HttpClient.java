@@ -15,6 +15,8 @@
 
 package net.daporkchop.lib.http.client;
 
+import net.daporkchop.lib.http.client.builder.AsyncRequestBuilder;
+import net.daporkchop.lib.http.client.builder.BlockingRequestBuilder;
 import net.daporkchop.lib.http.util.HttpEndpoint;
 
 /**
@@ -28,4 +30,17 @@ import net.daporkchop.lib.http.util.HttpEndpoint;
  */
 //TODO: make this useful
 public interface HttpClient extends HttpEndpoint {
+    /**
+     * Creates a new {@link AsyncRequestBuilder} for issuing asynchronous HTTP requests from this {@link HttpClient}.
+     *
+     * @return a new {@link AsyncRequestBuilder}
+     */
+    AsyncRequestBuilder prepareAsync();
+
+    /**
+     * Creates a new {@link BlockingRequestBuilder} for issuing blocking HTTP requests from this {@link HttpClient}.
+     *
+     * @return a new {@link BlockingRequestBuilder}
+     */
+    BlockingRequestBuilder prepareBlocking();
 }

@@ -15,10 +15,13 @@
 
 package net.daporkchop.lib.http.client.request;
 
+import java.net.SocketAddress;
+
 /**
  * Base interface for an outgoing HTTP request from an {@link net.daporkchop.lib.http.client.HttpClient}.
  *
  * @author DaPorkchop_
  */
 public interface ClientRequest<I extends ClientRequest<I>> {
+    SocketAddress remoteAddress();
 }

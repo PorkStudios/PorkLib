@@ -37,7 +37,7 @@ import static net.daporkchop.lib.http.util.Constants.*;
  * @author DaPorkchop_
  */
 public final class RequestDecoderHTTP1 extends ByteToMessageDecoder {
-    private RequestMethod type;
+    private RequestMethod method;
     private String        query;
 
     private Map<String, String> headers;
@@ -58,7 +58,7 @@ public final class RequestDecoderHTTP1 extends ByteToMessageDecoder {
 
         //set everything to null
         //this allows a safe reset if this instance is re-used, or if not it can at least help the garbage collector a bit
-        this.type = null;
+        this.method = null;
         this.query = null;
         this.headers = null;
         this.lastIndex = 0;
@@ -74,12 +74,12 @@ public final class RequestDecoderHTTP1 extends ByteToMessageDecoder {
             if (next - 1 == in.readerIndex()) {
                 //two newlines immediately after each other, end of headers
                 //validate what we have so far
-                if (this.type == null) {
+                if (this.method == null) {
                     //request line was not sent
                     throw GenericHTTPException.Bad_Request;
                 }
                 //TODO: have body actually be a Source which can read from the incoming data
-                out.add(new Request.Simple(this.type, this.query, Collections.unmodifiableMap(this.headers), null));
+                out.add(new Request.Simple(this.method, this.query, Collections.unmodifiableMap(this.headers), null));
 
                 //TODO: replace self with next required pipeline member and forward any remaining data down the pipeline
                 in.skipBytes(in.readableBytes());
@@ -92,7 +92,7 @@ public final class RequestDecoderHTTP1 extends ByteToMessageDecoder {
                 throw GenericHTTPException.Request_Header_Fields_Too_Large;
             }
 
-            if (this.type == null) {
+            if (this.method == null) {
                 //attempt to read request line
                 int len = next - in.readerIndex();
                 if (len > MAX_QUERY_SIZE)   {
@@ -102,7 +102,7 @@ public final class RequestDecoderHTTP1 extends ByteToMessageDecoder {
                 if (!matcher.find()) {
                     throw GenericHTTPException.Bad_Request;
                 }
-                this.type = RequestMethod.valueOf(matcher.group(1));
+                this.method = RequestMethod.valueOf(matcher.group(1));
                 this.query = matcher.group(2);
             } else {
                 int i = in.readerIndex() + 1;
@@ -124,7 +124,7 @@ public final class RequestDecoderHTTP1 extends ByteToMessageDecoder {
             }
         }
 
-        if (this.type == null)  {
+        if (this.method == null)  {
             //request line has not been read completely
             if (in.readableBytes() >= MAX_QUERY_SIZE)   {
                 throw GenericHTTPException.URI_Too_Long;

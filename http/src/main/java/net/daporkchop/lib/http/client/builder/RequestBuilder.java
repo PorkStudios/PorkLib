@@ -83,6 +83,18 @@ public interface RequestBuilder<I extends RequestBuilder<I>> {
     I address(@NonNull SocketAddress address);
 
     /**
+     * Sets the local (source) address that the request will be sent from.
+     * <p>
+     * If {@code null} (default), then whatever the default address is will be used.
+     * <p>
+     * Not all implementations will respect this option.
+     *
+     * @param localAddress the new local address (use {@code null} to reset)
+     * @return this {@link RequestBuilder} instance
+     */
+    I localAddress(SocketAddress localAddress);
+
+    /**
      * Sets the path of the HTTP request.
      * <p>
      * For example, in the url {@code https://www.example.com:8080/files/data.zip}, this field would need to be set to {@code "/files/data.zip"}.
@@ -92,7 +104,7 @@ public interface RequestBuilder<I extends RequestBuilder<I>> {
      * @param path the new path
      * @return this {@link RequestBuilder} instance
      */
-    I path(@NonNull CharSequence path);
+    I path(@NonNull String path);
 
     /**
      * Sets the method of the HTTP request.

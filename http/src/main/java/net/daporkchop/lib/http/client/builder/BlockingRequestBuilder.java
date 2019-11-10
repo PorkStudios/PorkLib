@@ -15,8 +15,18 @@
 
 package net.daporkchop.lib.http.client.builder;
 
+import net.daporkchop.lib.http.client.request.BlockingRequest;
+
 /**
+ * Implementation of {@link RequestBuilder} for {@link BlockingRequest}.
+ *
  * @author DaPorkchop_
  */
 public interface BlockingRequestBuilder extends RequestBuilder<BlockingRequestBuilder> {
+    /**
+     * Sends the request out using the currently configured settings.
+     *
+     * @return a new {@link BlockingRequest} instance
+     */
+    BlockingRequest send();
 }

@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.http.util.data;
+package net.daporkchop.lib.http.common.source;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;

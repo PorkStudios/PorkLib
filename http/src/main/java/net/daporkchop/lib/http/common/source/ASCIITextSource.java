@@ -13,45 +13,38 @@
  *
  */
 
-package net.daporkchop.lib.http.util.header;
+package net.daporkchop.lib.http.common.source;
 
-import lombok.Getter;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
 
-import java.util.Iterator;
-import java.util.Map;
+import java.nio.charset.StandardCharsets;
 
 /**
- * A {@link HeaderMap} backed by a
+ * A simple {@link Source} that encodes text from a {@link CharSequence} using the US-ASCII charset.
+ *
+ * All code points with a value greater than {@code 127} will be silently corrupted (higher bits will be stripped).
  *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-public class HeaderMapFromMap implements HeaderMap {
+public final class ASCIITextSource implements Source {
     @NonNull
-    protected final Map<String, Header> delegate;
+    protected final CharSequence text;
 
     @Override
-    public int count() {
-        return this.delegate.size();
+    public long size() {
+        return this.text.length();
     }
 
     @Override
-    public Header get(int index) {
-        if (index < 0 || index > this.delegate.size()) throw new IndexOutOfBoundsException(String.valueOf(index));
+    public ByteBuf read(long pos, @NonNull ByteBufAllocator alloc) {
+        if (pos != 0L) throw new IndexOutOfBoundsException(String.valueOf(pos));
 
-        Iterator<Header> iter = this.delegate.values().iterator();
-        Header curr = iter.next();
-        while (index > 0) curr = iter.next();
-        return curr;
-    }
-
-    @Override
-    public Header get(@NonNull String key) {
-        return this.delegate.get(key);
+        ByteBuf buf = alloc.ioBuffer(this.text.length());
+        buf.writeCharSequence(this.text, StandardCharsets.US_ASCII);
+        return buf;
     }
 }

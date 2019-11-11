@@ -23,7 +23,7 @@ import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.http.StatusCode;
-import net.daporkchop.lib.http.client.builder.RequestBuilder;
+import net.daporkchop.lib.http.client.factory.RequestFactory;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.util.Arrays;
@@ -98,7 +98,7 @@ public class Constants {
         }
     }
 
-    public <I extends RequestBuilder<I>> void prepareRequestBuilderForUrl(@NonNull I builder, @NonNull CharSequence url)  {
+    public <I extends RequestFactory<I>> void prepareRequestBuilderForUrl(@NonNull I builder, @NonNull CharSequence url)  {
         Matcher matcher = PATTERN_URL_WITH_PORT.matcher(url);
         if (matcher.find()) {
             builder.host(matcher.group(2))

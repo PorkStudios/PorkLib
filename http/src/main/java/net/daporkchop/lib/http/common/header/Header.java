@@ -13,67 +13,85 @@
  *
  */
 
-package net.daporkchop.lib.http;
+package net.daporkchop.lib.http.common.header;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.http.util.data.Source;
 
-import java.util.Map;
+import java.util.Arrays;
+import java.util.List;
+import java.util.StringJoiner;
 
 /**
- * An HTTP request.
+ * An HTTP header.
  *
  * @author DaPorkchop_
  */
-public interface Request {
+public interface Header {
     /**
-     * @return the method of request.
+     * @return the key of this header
      */
-    RequestMethod method();
+    String key();
 
     /**
-     * Gets the query line of the request.
-     * <p>
-     * All characters must be valid ASCII glyphs, otherwise the behavior is undefined.
-     *
-     * @return the query line of the request
+     * @return the raw value of this header
      */
-    CharSequence query();
+    String value();
 
     /**
-     * Gets all headers associated with the request.
-     *
-     * @return all headers associated with the request
+     * @return a {@link List} containing all the values for this header
      */
-    Map<String, CharSequence> headers();
+    default List<String> valueList() {
+        return Arrays.asList(this.value().split(", "));
+    }
 
     /**
-     * Gets a {@link Source} from which the body of this request may be read.
-     * <p>
-     * Depending on the value of {@link #method()}, this field may be required, may not be required, or may be required to be absent.
-     *
-     * @return a {@link Source} from which the body of this request may be read
-     */
-    Source body();
-
-    /**
-     * A simple implementation of {@link Request}.
+     * A simple implementation of {@link Header}.
      *
      * @author DaPorkchop_
      */
     @RequiredArgsConstructor
     @Getter
+    @EqualsAndHashCode
     @Accessors(fluent = true)
-    final class Simple implements Request {
+    final class Default implements Header {
         @NonNull
-        protected final RequestMethod             method;
+        protected final String key;
         @NonNull
-        protected final CharSequence              query;
+        protected final String value;
+
+        @Override
+        public String toString() {
+            return String.format("%s: %s", this.key, this.value);
+        }
+    }
+
+    /**
+     * A simple implementation of {@link Header} backed by a list of values.
+     *
+     * @author DaPorkchop_
+     */
+    @RequiredArgsConstructor
+    @Getter
+    @EqualsAndHashCode
+    @Accessors(fluent = true)
+    final class DefaultList implements Header {
         @NonNull
-        protected final Map<String, CharSequence> headers;
-        protected final Source                    body;
+        protected final String key;
+        @NonNull
+        protected final List<String> valueList;
+
+        @Override
+        public String value() {
+            return this.valueList.stream().collect(() -> new StringJoiner(", "), StringJoiner::add, StringJoiner::merge).toString();
+        }
+
+        @Override
+        public String toString() {
+            return String.format("%s: %s", this.key, this.value());
+        }
     }
 }

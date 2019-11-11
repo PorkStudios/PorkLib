@@ -16,6 +16,7 @@
 package net.daporkchop.lib.http.client;
 
 import lombok.NonNull;
+import net.daporkchop.lib.http.common.request.Request;
 
 /**
  * Base interface for an outgoing HTTP request from an {@link net.daporkchop.lib.http.client.HttpClient}.
@@ -27,6 +28,11 @@ public interface ClientHttpSession {
      * @return the {@link HttpClient} instance that this request was issued from
      */
     HttpClient client();
+
+    /**
+     * @return an immutable representation of the request which was sent to the remote server
+     */
+    Request request();
 
     /**
      * @return the {@link ClientHttpHandler} instance currently processing this request

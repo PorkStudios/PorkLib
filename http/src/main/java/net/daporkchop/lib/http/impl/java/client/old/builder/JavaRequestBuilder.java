@@ -13,49 +13,51 @@
  *
  */
 
-package net.daporkchop.lib.http.util.header;
+package net.daporkchop.lib.http.impl.java.client.old.builder;
 
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.http.client.builder.AbstractRequestBuilder;
+import net.daporkchop.lib.http.client.builder.RequestBuilder;
+import net.daporkchop.lib.http.impl.java.client.JavaHttpClient;
 
-import java.util.List;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 /**
- * A {@link HeaderMap} with a single header pair.
+ * Basic implementation of {@link RequestBuilder} for {@link JavaHttpClient}.
  *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-@Getter
 @Accessors(fluent = true)
-public final class SingletonHeaderMap implements HeaderMap {
+public abstract class JavaRequestBuilder<I extends RequestBuilder<I>> extends AbstractRequestBuilder<I> {
+    @Getter
     @NonNull
-    protected final Header value;
+    protected final JavaHttpClient client;
 
-    public SingletonHeaderMap(@NonNull String key, @NonNull String value)   {
-        this(new Header.Default(key, value));
-    }
+    protected synchronized HttpURLConnection toConnection() throws IOException {
+        this.assertConfigured();
 
-    public SingletonHeaderMap(@NonNull String key, @NonNull List<String> values)   {
-        this(new Header.DefaultList(key, values));
-    }
-
-    @Override
-    public int count() {
-        return 1;
-    }
-
-    @Override
-    public Header get(int index) {
-        if (index != 0) throw new IndexOutOfBoundsException(String.valueOf(index));
-
-        return this.value;
-    }
-
-    @Override
-    public Header get(@NonNull String key) {
-        return this.value.key().equals(key) ? this.value : null;
+        URL url;
+        try {
+            String protocol = this.https ? "https" : "http";
+            if (this.address == null) {
+                url = new URL(protocol, this.host, this.port, this.path);
+            } else {
+                url = new URL(protocol, ((InetSocketAddress) this.address).getHostString(), ((InetSocketAddress) this.address).getPort(), this.path);
+            }
+        } catch (MalformedURLException e)   {
+            throw new RuntimeException(e);
+        }
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod(this.method.name());
+        //TODO: allow configuration of headers
+        return connection;
     }
 }

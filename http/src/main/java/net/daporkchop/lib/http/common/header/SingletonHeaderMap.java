@@ -13,35 +13,49 @@
  *
  */
 
-package net.daporkchop.lib.http.impl.java.client;
+package net.daporkchop.lib.http.common.header;
 
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GlobalEventExecutor;
-import io.netty.util.concurrent.Promise;
 import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.http.client.HttpClient;
-import net.daporkchop.lib.http.client.factory.RequestFactory;
+
+import java.util.List;
 
 /**
- * A simple implementation of {@link HttpClient} using Java's built-in HTTP client features.
+ * A {@link HeaderMap} with a single header pair.
  *
  * @author DaPorkchop_
  */
-//TODO: proxy config
+@RequiredArgsConstructor
+@Getter
 @Accessors(fluent = true)
-public final class JavaHttpClient implements HttpClient {
-    @Getter
-    protected final Promise<Void> closeFuture = GlobalEventExecutor.INSTANCE.newPromise();
+public final class SingletonHeaderMap implements HeaderMap {
+    @NonNull
+    protected final Header value;
 
-    @Override
-    public RequestFactory factory() {
-        return null;
+    public SingletonHeaderMap(@NonNull String key, @NonNull String value)   {
+        this(new Header.Default(key, value));
+    }
+
+    public SingletonHeaderMap(@NonNull String key, @NonNull List<String> values)   {
+        this(new Header.DefaultList(key, values));
     }
 
     @Override
-    public Future<Void> close() {
-        this.closeFuture.trySuccess(null);
-        return this.closeFuture;
+    public int count() {
+        return 1;
+    }
+
+    @Override
+    public Header get(int index) {
+        if (index != 0) throw new IndexOutOfBoundsException(String.valueOf(index));
+
+        return this.value;
+    }
+
+    @Override
+    public Header get(@NonNull String key) {
+        return this.value.key().equals(key) ? this.value : null;
     }
 }

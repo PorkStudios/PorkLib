@@ -13,39 +13,28 @@
  *
  */
 
-package net.daporkchop.lib.http.util.data;
+package net.daporkchop.lib.http.common.request;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.http.RequestMethod;
+import net.daporkchop.lib.http.common.header.HeaderMap;
 
 /**
- * A simple {@link Source} that encodes text from a {@link CharSequence} using the US-ASCII charset.
- *
- * All code points with a value greater than {@code 127} will be silently corrupted (higher bits will be stripped).
+ * A simple implementation of {@link Request}.
  *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-public final class ASCIITextSource implements Source {
+@Getter
+@Accessors(fluent = true)
+public final class ImmutableRequest implements Request {
     @NonNull
-    protected final CharSequence text;
-
-    @Override
-    public long size() {
-        return this.text.length();
-    }
-
-    @Override
-    public ByteBuf read(long pos, @NonNull ByteBufAllocator alloc) {
-        if (pos != 0L) throw new IndexOutOfBoundsException(String.valueOf(pos));
-
-        ByteBuf buf = alloc.ioBuffer(this.text.length());
-        buf.writeCharSequence(this.text, StandardCharsets.US_ASCII);
-        return buf;
-    }
+    protected final RequestMethod method;
+    @NonNull
+    protected final String path;
+    @NonNull
+    protected final HeaderMap headers;
 }

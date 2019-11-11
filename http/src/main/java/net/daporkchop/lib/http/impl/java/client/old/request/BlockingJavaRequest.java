@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.http.impl.java.client.request;
+package net.daporkchop.lib.http.impl.java.client.old.request;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -23,8 +23,8 @@ import net.daporkchop.lib.common.function.PFunctions;
 import net.daporkchop.lib.http.StatusCode;
 import net.daporkchop.lib.http.client.request.BlockingRequest;
 import net.daporkchop.lib.http.impl.java.client.JavaHttpClient;
-import net.daporkchop.lib.http.util.header.Header;
-import net.daporkchop.lib.http.util.header.HeaderMap;
+import net.daporkchop.lib.http.common.header.Header;
+import net.daporkchop.lib.http.common.header.HeaderMap;
 
 import java.io.IOException;
 import java.io.InputStream;

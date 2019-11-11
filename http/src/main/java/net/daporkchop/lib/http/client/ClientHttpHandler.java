@@ -15,9 +15,8 @@
 
 package net.daporkchop.lib.http.client;
 
+import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.http.StatusCode;
-import net.daporkchop.lib.http.util.header.HeaderMap;
 
 /**
  * Handles events that are fired while processing a {@link ClientHttpSession}.
@@ -43,11 +42,41 @@ public interface ClientHttpHandler {
     void removed(@NonNull ClientHttpSession session) throws Exception;
 
     /**
+     * Fired when the HTTP headers have been completely sent to the remote server.
+     *
+     * @param session the {@link ClientHttpSession} which is active
+     */
+    void headersWritten(@NonNull ClientHttpSession session) throws Exception;
+
+    /**
+     * Fired when the HTTP request's body has been completely sent to the remote server.
+     * <p>
+     * This handler will only be fired for HTTP methods that have a request body (such as POST).
+     *
+     * @param session the {@link ClientHttpSession} which is active
+     */
+    void bodyWritten(@NonNull ClientHttpSession session) throws Exception;
+
+    /**
      * Fired when the HTTP headers have been completely received from the remote server.
      *
      * @param session the {@link ClientHttpSession} which is active
-     * @param status  the {@link StatusCode} that the server responded with
-     * @param headers the HTTP headers that the server responded with
      */
-    void headers(@NonNull ClientHttpSession session, @NonNull StatusCode status, @NonNull HeaderMap headers) throws Exception;
+    void headersRead(@NonNull ClientHttpSession session) throws Exception;
+
+    /**
+     * Fired multiple times whenever data could be received from the remote server.
+     *
+     * @param session the {@link ClientHttpSession} which is active
+     * @param data    a {@link ByteBuf} containing the data received from the server. This is not guaranteed to be
+     *                any specific size, although it will never be empty.
+     */
+    void bodyRead(@NonNull ClientHttpSession session, @NonNull ByteBuf data) throws Exception;
+
+    /**
+     * Fired when the given {@link ClientHttpSession} has been closed.
+     *
+     * @param session the {@link ClientHttpSession} which was closed
+     */
+    void closed(@NonNull ClientHttpSession session) throws Exception;
 }

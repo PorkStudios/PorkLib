@@ -13,52 +13,45 @@
  *
  */
 
-package net.daporkchop.lib.http.impl.java.client.builder;
+package net.daporkchop.lib.http.common.header;
 
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.http.client.builder.AbstractRequestBuilder;
-import net.daporkchop.lib.http.client.builder.RequestBuilder;
-import net.daporkchop.lib.http.impl.java.client.JavaHttpClient;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.InetSocketAddress;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
- * Basic implementation of {@link RequestBuilder} for {@link JavaHttpClient}.
+ * A {@link HeaderMap} backed by a
  *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
+@Getter
 @Accessors(fluent = true)
-public abstract class JavaRequestBuilder<I extends RequestBuilder<I>> extends AbstractRequestBuilder<I> {
-    @Getter
+public class HeaderMapFromMap implements HeaderMap {
     @NonNull
-    protected final JavaHttpClient client;
+    protected final Map<String, Header> delegate;
 
-    protected synchronized HttpURLConnection toConnection() throws IOException {
-        this.assertConfigured();
+    @Override
+    public int count() {
+        return this.delegate.size();
+    }
 
-        URL url;
-        try {
-            String protocol = this.https ? "https" : "http";
-            if (this.address == null) {
-                url = new URL(protocol, this.host, this.port, this.path);
-            } else {
-                url = new URL(protocol, ((InetSocketAddress) this.address).getHostString(), ((InetSocketAddress) this.address).getPort(), this.path);
-            }
-        } catch (MalformedURLException e)   {
-            throw new RuntimeException(e);
-        }
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod(this.method.name());
-        //TODO: allow configuration of headers
-        return connection;
+    @Override
+    public Header get(int index) {
+        if (index < 0 || index > this.delegate.size()) throw new IndexOutOfBoundsException(String.valueOf(index));
+
+        Iterator<Header> iter = this.delegate.values().iterator();
+        Header curr = iter.next();
+        while (index > 0) curr = iter.next();
+        return curr;
+    }
+
+    @Override
+    public Header get(@NonNull String key) {
+        return this.delegate.get(key);
     }
 }

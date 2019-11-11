@@ -19,7 +19,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.http.util.header.HeaderMap;
+import net.daporkchop.lib.http.common.header.HeaderMap;
 
 /**
  * An HTTP response.

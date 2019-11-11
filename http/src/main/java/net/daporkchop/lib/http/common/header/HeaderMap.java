@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.http.util.header;
+package net.daporkchop.lib.http.common.header;
 
 import lombok.NonNull;
 

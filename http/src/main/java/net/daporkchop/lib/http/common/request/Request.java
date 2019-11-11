@@ -13,35 +13,39 @@
  *
  */
 
-package net.daporkchop.lib.http.impl.java.client;
+package net.daporkchop.lib.http.common.request;
 
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GlobalEventExecutor;
-import io.netty.util.concurrent.Promise;
 import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.http.client.HttpClient;
-import net.daporkchop.lib.http.client.factory.RequestFactory;
+import net.daporkchop.lib.http.RequestMethod;
+import net.daporkchop.lib.http.common.header.HeaderMap;
 
 /**
- * A simple implementation of {@link HttpClient} using Java's built-in HTTP client features.
+ * A simple representation of an HTTP request.
  *
  * @author DaPorkchop_
  */
-//TODO: proxy config
-@Accessors(fluent = true)
-public final class JavaHttpClient implements HttpClient {
-    @Getter
-    protected final Promise<Void> closeFuture = GlobalEventExecutor.INSTANCE.newPromise();
+public interface Request {
+    /**
+     * @return the method of request.
+     */
+    RequestMethod method();
 
-    @Override
-    public RequestFactory factory() {
-        return null;
-    }
+    /**
+     * Gets the path of the request.
+     * <p>
+     * All characters must be valid ASCII glyphs, otherwise the behavior is undefined.
+     *
+     * @return the query line of the request
+     */
+    String path();
 
-    @Override
-    public Future<Void> close() {
-        this.closeFuture.trySuccess(null);
-        return this.closeFuture;
-    }
+    /**
+     * Gets all headers associated with the request.
+     *
+     * @return all headers associated with the request
+     */
+    HeaderMap headers();
 }

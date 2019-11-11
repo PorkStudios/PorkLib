@@ -16,7 +16,7 @@
 package net.daporkchop.lib.http.client;
 
 import lombok.NonNull;
-import net.daporkchop.lib.http.client.builder.RequestBuilder;
+import net.daporkchop.lib.http.client.factory.RequestFactory;
 import net.daporkchop.lib.http.util.HttpEndpoint;
 
 /**
@@ -30,19 +30,19 @@ import net.daporkchop.lib.http.util.HttpEndpoint;
  */
 public interface HttpClient extends HttpEndpoint {
     /**
-     * Creates a new {@link RequestBuilder} for issuing HTTP requests from this {@link HttpClient}.
+     * Creates a new {@link RequestFactory} for issuing HTTP requests from this {@link HttpClient}.
      *
-     * @return a new {@link RequestBuilder}
+     * @return a new {@link RequestFactory}
      */
-    RequestBuilder prepare();
+    RequestFactory factory();
 
     /**
-     * Creates a new {@link RequestBuilder} for issuing HTTP requests from this {@link HttpClient}.
+     * Creates a new {@link RequestFactory} for issuing HTTP requests from this {@link HttpClient}.
      *
      * @param url the URL to initialize the builder with
-     * @return a new {@link RequestBuilder}
+     * @return a new {@link RequestFactory}
      */
-    default RequestBuilder prepare(@NonNull String url) {
-        return this.prepare().configure(url);
+    default RequestFactory factory(@NonNull String url) {
+        return this.factory().configure(url);
     }
 }

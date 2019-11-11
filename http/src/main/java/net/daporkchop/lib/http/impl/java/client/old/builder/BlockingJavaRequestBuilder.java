@@ -13,13 +13,13 @@
  *
  */
 
-package net.daporkchop.lib.http.impl.java.client.builder;
+package net.daporkchop.lib.http.impl.java.client.old.builder;
 
 import lombok.NonNull;
 import net.daporkchop.lib.http.client.builder.BlockingRequestBuilder;
 import net.daporkchop.lib.http.client.request.BlockingRequest;
 import net.daporkchop.lib.http.impl.java.client.JavaHttpClient;
-import net.daporkchop.lib.http.impl.java.client.request.BlockingJavaRequest;
+import net.daporkchop.lib.http.impl.java.client.old.request.BlockingJavaRequest;
 
 import java.io.IOException;
 

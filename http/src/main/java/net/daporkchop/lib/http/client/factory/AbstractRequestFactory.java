@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.http.client.builder;
+package net.daporkchop.lib.http.client.factory;
 
 import lombok.NonNull;
 import net.daporkchop.lib.http.RequestMethod;
@@ -21,11 +21,11 @@ import net.daporkchop.lib.http.RequestMethod;
 import java.net.SocketAddress;
 
 /**
- * Basic implementation of {@link RequestBuilder} which implements some of the most common methods.
+ * Basic implementation of {@link RequestFactory} which implements some of the most common methods.
  *
  * @author DaPorkchop_
  */
-public abstract class AbstractRequestBuilder<I extends RequestBuilder<I>> implements RequestBuilder<I> {
+public abstract class AbstractRequestFactory implements RequestFactory {
     protected String path;
     protected RequestMethod method = RequestMethod.GET;
     protected SocketAddress localAddress;
@@ -37,65 +37,57 @@ public abstract class AbstractRequestBuilder<I extends RequestBuilder<I>> implem
     protected boolean https;
 
     @Override
-    @SuppressWarnings("unchecked")
-    public synchronized I host(@NonNull String host) {
+    public synchronized RequestFactory host(@NonNull String host) {
         this.host = host;
         this.address = null;
-        return (I) this;
+        return this;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public synchronized I port(int port) {
+    public synchronized RequestFactory port(int port) {
         if (port <= 0 || port > 65535) throw new IllegalArgumentException(String.format("Port number out of bounds: %d", port));
 
         this.port = port;
         this.address = null;
-        return (I) this;
+        return this;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public synchronized I address(@NonNull SocketAddress address) {
+    public synchronized RequestFactory address(@NonNull SocketAddress address) {
         this.address = address;
         this.host = null;
         this.port = 0;
-        return (I) this;
+        return this;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public synchronized I localAddress(SocketAddress localAddress) {
+    public synchronized RequestFactory localAddress(SocketAddress localAddress) {
         this.localAddress = localAddress;
-        return (I) this;
+        return this;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public synchronized I path(@NonNull String path) {
+    public synchronized RequestFactory path(@NonNull String path) {
         this.path = path;
-        return (I) this;
+        return this;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public synchronized I method(@NonNull RequestMethod method) {
+    public synchronized RequestFactory method(@NonNull RequestMethod method) {
         if (!this.isSupported(method)) throw new IllegalArgumentException(String.format("Request method not supported: %s", method));
 
         this.method = method;
-        return (I) this;
+        return this;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public I https(boolean https) {
+    public RequestFactory https(boolean https) {
         this.https = https;
-        return (I) this;
+        return this;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public I reset() {
+    public RequestFactory reset() {
         this.path = null;
         this.method = RequestMethod.GET;
         this.localAddress = null;
@@ -104,7 +96,7 @@ public abstract class AbstractRequestBuilder<I extends RequestBuilder<I>> implem
         this.port = 0;
         this.https = false;
 
-        return (I) this;
+        return this;
     }
 
     protected boolean isSupported(@NonNull RequestMethod method) {

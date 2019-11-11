@@ -13,35 +13,25 @@
  *
  */
 
-package net.daporkchop.lib.http.impl.java.client;
+package net.daporkchop.lib.http.client.factory;
 
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GlobalEventExecutor;
-import io.netty.util.concurrent.Promise;
-import lombok.Getter;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.http.client.HttpClient;
-import net.daporkchop.lib.http.client.factory.RequestFactory;
+import net.daporkchop.lib.http.RequestMethod;
+
+import java.net.SocketAddress;
 
 /**
- * A simple implementation of {@link HttpClient} using Java's built-in HTTP client features.
+ * Storage class for the currently configured settings in a {@link RequestFactory} instance.
  *
  * @author DaPorkchop_
  */
-//TODO: proxy config
-@Accessors(fluent = true)
-public class JavaHttpClient implements HttpClient {
-    @Getter
-    protected final Promise<Void> closeFuture = GlobalEventExecutor.INSTANCE.newPromise();
+public class RequestSettings implements Cloneable {
+    protected String path;
+    protected RequestMethod method = RequestMethod.GET;
+    protected SocketAddress localAddress;
 
-    @Override
-    public RequestFactory factory() {
-        return new JavaRequestFactory(this);
-    }
+    protected SocketAddress address;
+    protected String        host;
+    protected int           port;
 
-    @Override
-    public Future<Void> close() {
-        this.closeFuture.trySuccess(null);
-        return this.closeFuture;
-    }
+    protected boolean https;
 }

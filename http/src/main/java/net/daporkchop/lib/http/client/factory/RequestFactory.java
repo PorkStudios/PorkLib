@@ -17,6 +17,7 @@ package net.daporkchop.lib.http.client.factory;
 
 import lombok.NonNull;
 import net.daporkchop.lib.http.RequestMethod;
+import net.daporkchop.lib.http.client.ClientHttpSession;
 import net.daporkchop.lib.http.client.HttpClient;
 import net.daporkchop.lib.http.util.Constants;
 
@@ -142,4 +143,11 @@ public interface RequestFactory {
         Constants.prepareRequestBuilderForUrl(this, url);
         return this;
     }
+
+    /**
+     * Creates a new HTTP session with the currently configured settings and issues it.
+     *
+     * @return the newly created HTTP session
+     */
+    ClientHttpSession send();
 }

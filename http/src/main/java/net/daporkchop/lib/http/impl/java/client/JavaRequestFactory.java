@@ -15,33 +15,27 @@
 
 package net.daporkchop.lib.http.impl.java.client;
 
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GlobalEventExecutor;
-import io.netty.util.concurrent.Promise;
 import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.http.client.HttpClient;
-import net.daporkchop.lib.http.client.factory.RequestFactory;
+import net.daporkchop.lib.http.client.ClientHttpSession;
+import net.daporkchop.lib.http.client.factory.AbstractRequestFactory;
 
 /**
- * A simple implementation of {@link HttpClient} using Java's built-in HTTP client features.
+ * Implementation of {@link net.daporkchop.lib.http.client.factory.RequestFactory} for {@link JavaHttpClient}.
  *
  * @author DaPorkchop_
  */
-//TODO: proxy config
+@RequiredArgsConstructor
+@Getter
 @Accessors(fluent = true)
-public class JavaHttpClient implements HttpClient {
-    @Getter
-    protected final Promise<Void> closeFuture = GlobalEventExecutor.INSTANCE.newPromise();
+public class JavaRequestFactory extends AbstractRequestFactory {
+    @NonNull
+    protected final JavaHttpClient client;
 
     @Override
-    public RequestFactory factory() {
-        return new JavaRequestFactory(this);
-    }
-
-    @Override
-    public Future<Void> close() {
-        this.closeFuture.trySuccess(null);
-        return this.closeFuture;
+    public ClientHttpSession send() {
+        return null;
     }
 }

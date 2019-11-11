@@ -25,7 +25,10 @@ import java.net.SocketAddress;
  *
  * @author DaPorkchop_
  */
-public abstract class AbstractRequestFactory implements RequestFactory {
+public abstract class AbstractRequestFactory<S extends RequestSettings> implements RequestFactory {
+    protected S settings = this.newSettings();
+
+    //TODO: remove all this
     protected String path;
     protected RequestMethod method = RequestMethod.GET;
     protected SocketAddress localAddress;
@@ -109,5 +112,10 @@ public abstract class AbstractRequestFactory implements RequestFactory {
             if (this.host == null) throw new IllegalStateException("Neither address nor host:port set!");
             else if (this.port == 0) throw new IllegalStateException("Remote port not set!");
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    protected S newSettings() {
+        return (S) new RequestSettings();
     }
 }

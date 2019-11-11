@@ -19,8 +19,10 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.http.RequestMethod;
 import net.daporkchop.lib.http.client.ClientHttpSession;
 import net.daporkchop.lib.http.client.factory.AbstractRequestFactory;
+import net.daporkchop.lib.http.client.factory.RequestSettings;
 
 /**
  * Implementation of {@link net.daporkchop.lib.http.client.factory.RequestFactory} for {@link JavaHttpClient}.
@@ -30,12 +32,27 @@ import net.daporkchop.lib.http.client.factory.AbstractRequestFactory;
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public class JavaRequestFactory extends AbstractRequestFactory {
+public class JavaRequestFactory extends AbstractRequestFactory<RequestSettings> {
     @NonNull
     protected final JavaHttpClient client;
 
     @Override
     public ClientHttpSession send() {
-        return null;
+        RequestSettings settings;
+        synchronized (this) {
+            settings = this.settings.clone();
+        }
+        settings.assertConfigured();
+        return new JavaHttpSession(this.client, settings);
+    }
+
+    @Override
+    protected RequestSettings newSettings() {
+        return new RequestSettings();
+    }
+
+    @Override
+    protected boolean isSupported(RequestMethod method) {
+        return method == RequestMethod.GET;
     }
 }

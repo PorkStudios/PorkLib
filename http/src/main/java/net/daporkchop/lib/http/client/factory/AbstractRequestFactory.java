@@ -28,21 +28,10 @@ import java.net.SocketAddress;
 public abstract class AbstractRequestFactory<S extends RequestSettings> implements RequestFactory {
     protected S settings = this.newSettings();
 
-    //TODO: remove all this
-    protected String path;
-    protected RequestMethod method = RequestMethod.GET;
-    protected SocketAddress localAddress;
-
-    protected SocketAddress address;
-    protected String        host;
-    protected int           port;
-
-    protected boolean https;
-
     @Override
     public synchronized RequestFactory host(@NonNull String host) {
-        this.host = host;
-        this.address = null;
+        this.settings.host = host;
+        this.settings.address = null;
         return this;
     }
 
@@ -50,28 +39,28 @@ public abstract class AbstractRequestFactory<S extends RequestSettings> implemen
     public synchronized RequestFactory port(int port) {
         if (port <= 0 || port > 65535) throw new IllegalArgumentException(String.format("Port number out of bounds: %d", port));
 
-        this.port = port;
-        this.address = null;
+        this.settings.port = port;
+        this.settings.address = null;
         return this;
     }
 
     @Override
     public synchronized RequestFactory address(@NonNull SocketAddress address) {
-        this.address = address;
-        this.host = null;
-        this.port = 0;
+        this.settings.address = address;
+        this.settings.host = null;
+        this.settings.port = 0;
         return this;
     }
 
     @Override
     public synchronized RequestFactory localAddress(SocketAddress localAddress) {
-        this.localAddress = localAddress;
+        this.settings.localAddress = localAddress;
         return this;
     }
 
     @Override
     public synchronized RequestFactory path(@NonNull String path) {
-        this.path = path;
+        this.settings.path = path;
         return this;
     }
 
@@ -79,25 +68,19 @@ public abstract class AbstractRequestFactory<S extends RequestSettings> implemen
     public synchronized RequestFactory method(@NonNull RequestMethod method) {
         if (!this.isSupported(method)) throw new IllegalArgumentException(String.format("Request method not supported: %s", method));
 
-        this.method = method;
+        this.settings.method = method;
         return this;
     }
 
     @Override
-    public RequestFactory https(boolean https) {
-        this.https = https;
+    public synchronized RequestFactory https(boolean https) {
+        this.settings.https = https;
         return this;
     }
 
     @Override
-    public RequestFactory reset() {
-        this.path = null;
-        this.method = RequestMethod.GET;
-        this.localAddress = null;
-        this.address = null;
-        this.host = null;
-        this.port = 0;
-        this.https = false;
+    public synchronized RequestFactory reset() {
+        this.settings = this.newSettings();
 
         return this;
     }
@@ -106,16 +89,5 @@ public abstract class AbstractRequestFactory<S extends RequestSettings> implemen
         return true;
     }
 
-    protected synchronized void assertConfigured() {
-        if (this.path == null) throw new IllegalStateException("Path not set!");
-        if (this.address == null)   {
-            if (this.host == null) throw new IllegalStateException("Neither address nor host:port set!");
-            else if (this.port == 0) throw new IllegalStateException("Remote port not set!");
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    protected S newSettings() {
-        return (S) new RequestSettings();
-    }
+    protected abstract S newSettings();
 }

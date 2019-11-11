@@ -20,20 +20,25 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.client.ClientHttpHandler;
 import net.daporkchop.lib.http.client.ClientHttpSession;
-import net.daporkchop.lib.http.client.HttpClient;
+import net.daporkchop.lib.http.client.factory.RequestSettings;
 import net.daporkchop.lib.http.common.request.Request;
 
 /**
- *
+ * Implementation of {@link ClientHttpSession} for {@link JavaHttpClient}.
  *
  * @author DaPorkchop_
  */
 @Accessors(fluent = true)
 public class JavaHttpSession implements ClientHttpSession {
     @Getter
-    protected final JavaHttpClient client;
+    protected final JavaHttpClient  client;
+    @Getter
+    protected final RequestSettings settings;
 
-    public JavaHttpSession(@NonNull JavaHttpClient client)
+    public JavaHttpSession(@NonNull JavaHttpClient client, @NonNull RequestSettings settings) {
+        this.client = client;
+        this.settings = settings;
+    }
 
     @Override
     public Request request() {

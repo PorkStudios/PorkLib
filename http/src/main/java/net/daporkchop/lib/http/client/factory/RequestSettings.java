@@ -15,6 +15,11 @@
 
 package net.daporkchop.lib.http.client.factory;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.RequestMethod;
 
 import java.net.SocketAddress;
@@ -24,6 +29,10 @@ import java.net.SocketAddress;
  *
  * @author DaPorkchop_
  */
+@NoArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+@Getter
+@Accessors(fluent = true)
 public class RequestSettings implements Cloneable {
     protected String path;
     protected RequestMethod method = RequestMethod.GET;
@@ -34,4 +43,24 @@ public class RequestSettings implements Cloneable {
     protected int           port;
 
     protected boolean https;
+
+    public synchronized void assertConfigured() {
+        if (this.path == null) throw new IllegalStateException("Path not set!");
+        if (this.address == null)   {
+            if (this.host == null) throw new IllegalStateException("Neither address nor host:port set!");
+            else if (this.port == 0) throw new IllegalStateException("Remote port not set!");
+        }
+    }
+
+    public synchronized RequestSettings clone() {
+        return new RequestSettings(
+                this.path,
+                this.method,
+                this.localAddress,
+                this.address,
+                this.host,
+                this.port,
+                this.https
+        );
+    }
 }

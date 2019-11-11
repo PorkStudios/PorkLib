@@ -29,10 +29,8 @@ import java.net.SocketAddress;
  * the {@link HttpClient} instance has been closed, the behavior of all methods is undefined.
  *
  * @author DaPorkchop_
- * @see AsyncRequestBuilder
- * @see BlockingRequestBuilder
  */
-public interface RequestBuilder<I extends RequestBuilder<I>> {
+public interface RequestBuilder {
     /**
      * @return the {@link HttpClient} instance that requests will be issued from
      */
@@ -51,7 +49,7 @@ public interface RequestBuilder<I extends RequestBuilder<I>> {
      * @param host the new host string
      * @return this {@link RequestBuilder} instance
      */
-    I host(@NonNull String host);
+    RequestBuilder host(@NonNull String host);
 
     /**
      * Sets the port number of the destination HTTP server.
@@ -66,7 +64,7 @@ public interface RequestBuilder<I extends RequestBuilder<I>> {
      * @param port the new port number
      * @return this {@link RequestBuilder} instance
      */
-    I port(int port);
+    RequestBuilder port(int port);
 
     /**
      * Sets the remote address of the destination HTTP server.
@@ -81,7 +79,7 @@ public interface RequestBuilder<I extends RequestBuilder<I>> {
      * @param address the new address
      * @return this {@link RequestBuilder} instance
      */
-    I address(@NonNull SocketAddress address);
+    RequestBuilder address(@NonNull SocketAddress address);
 
     /**
      * Sets the local (source) address that the request will be sent from.
@@ -93,7 +91,7 @@ public interface RequestBuilder<I extends RequestBuilder<I>> {
      * @param localAddress the new local address (use {@code null} to reset)
      * @return this {@link RequestBuilder} instance
      */
-    I localAddress(SocketAddress localAddress);
+    RequestBuilder localAddress(SocketAddress localAddress);
 
     /**
      * Sets the path of the HTTP request.
@@ -105,7 +103,7 @@ public interface RequestBuilder<I extends RequestBuilder<I>> {
      * @param path the new path
      * @return this {@link RequestBuilder} instance
      */
-    I path(@NonNull String path);
+    RequestBuilder path(@NonNull String path);
 
     /**
      * Sets the method of the HTTP request.
@@ -115,7 +113,7 @@ public interface RequestBuilder<I extends RequestBuilder<I>> {
      * @param method the new HTTP method
      * @return this {@link RequestBuilder} instance
      */
-    I method(@NonNull RequestMethod method);
+    RequestBuilder method(@NonNull RequestMethod method);
 
     /**
      * Sets whether or not the request will be an HTTPS request.
@@ -125,14 +123,14 @@ public interface RequestBuilder<I extends RequestBuilder<I>> {
      * @param https whether or not the request will be an HTTPS request
      * @return this {@link RequestBuilder} instance
      */
-    I https(boolean https);
+    RequestBuilder https(boolean https);
 
     /**
      * Resets this {@link RequestBuilder} instance to its default settings.
      *
      * @return this {@link RequestBuilder} instance
      */
-    I reset();
+    RequestBuilder reset();
 
     /**
      * Configures this {@link RequestBuilder} instance to connect to the given URL.
@@ -140,9 +138,8 @@ public interface RequestBuilder<I extends RequestBuilder<I>> {
      * @param url the URL to connect to
      * @return this {@link RequestBuilder} instance
      */
-    default I configure(@NonNull CharSequence url) {
-        I _this = this.reset();
-        Constants.prepareRequestBuilderForUrl(_this, url);
-        return _this;
+    default RequestBuilder configure(@NonNull CharSequence url) {
+        Constants.prepareRequestBuilderForUrl(this, url);
+        return this;
     }
 }

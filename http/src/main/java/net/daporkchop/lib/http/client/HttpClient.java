@@ -16,9 +16,7 @@
 package net.daporkchop.lib.http.client;
 
 import lombok.NonNull;
-import net.daporkchop.lib.http.client.builder.AsyncRequestBuilder;
-import net.daporkchop.lib.http.client.builder.BlockingRequestBuilder;
-import net.daporkchop.lib.http.util.Constants;
+import net.daporkchop.lib.http.client.builder.RequestBuilder;
 import net.daporkchop.lib.http.util.HttpEndpoint;
 
 /**
@@ -30,29 +28,21 @@ import net.daporkchop.lib.http.util.HttpEndpoint;
  *
  * @author DaPorkchop_
  */
-//TODO: make this useful
 public interface HttpClient extends HttpEndpoint {
     /**
-     * Creates a new {@link AsyncRequestBuilder} for issuing asynchronous HTTP requests from this {@link HttpClient}.
+     * Creates a new {@link RequestBuilder} for issuing HTTP requests from this {@link HttpClient}.
      *
-     * @return a new {@link AsyncRequestBuilder}
+     * @return a new {@link RequestBuilder}
      */
-    AsyncRequestBuilder prepareAsync();
+    RequestBuilder prepare();
 
     /**
-     * Creates a new {@link BlockingRequestBuilder} for issuing blocking HTTP requests from this {@link HttpClient}.
-     *
-     * @return a new {@link BlockingRequestBuilder}
-     */
-    BlockingRequestBuilder prepareBlocking();
-
-    /**
-     * Creates a new {@link BlockingRequestBuilder} for issuing blocking HTTP requests from this {@link HttpClient}.
+     * Creates a new {@link RequestBuilder} for issuing HTTP requests from this {@link HttpClient}.
      *
      * @param url the URL to initialize the builder with
-     * @return a new {@link BlockingRequestBuilder}
+     * @return a new {@link RequestBuilder}
      */
-    default BlockingRequestBuilder prepareBlocking(@NonNull String url) {
-        return this.prepareBlocking().configure(url);
+    default RequestBuilder prepare(@NonNull String url) {
+        return this.prepare().configure(url);
     }
 }

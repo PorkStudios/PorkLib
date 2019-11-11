@@ -13,38 +13,31 @@
  *
  */
 
-package net.daporkchop.lib.http.client.request;
+package net.daporkchop.lib.http.client;
 
-import net.daporkchop.lib.http.Response;
-import net.daporkchop.lib.http.StatusCode;
-import net.daporkchop.lib.http.util.header.HeaderMap;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import lombok.NonNull;
 
 /**
- * An HTTP request that uses blocking IO operations.
+ * Base interface for an outgoing HTTP request from an {@link net.daporkchop.lib.http.client.HttpClient}.
  *
  * @author DaPorkchop_
  */
-public interface BlockingRequest extends ClientRequest<BlockingRequest> {
+public interface ClientHttpSession {
     /**
-     * @return an {@link OutputStream} to which data to to the remote server may be written
-     * @throws IOException if an IO exception occurs
+     * @return the {@link HttpClient} instance that this request was issued from
      */
-    OutputStream output() throws IOException;
+    HttpClient client();
 
     /**
-     * @return an {@link InputStream} from which data from the remote server may be read
-     * @throws IOException if an IO exception occurs
+     * @return the {@link ClientHttpHandler} instance currently processing this request
      */
-    InputStream input() throws IOException;
+    ClientHttpHandler handler();
 
     /**
-     * Closes this HTTP request.
+     * Replaces the currently active {@link ClientHttpHandler} with the given one.
      *
-     * @throws IOException if an IO exception occurs while closing the connection
+     * @param handler the new {@link ClientHttpHandler} to use
+     * @return this {@link ClientHttpSession} instance
      */
-    void close() throws IOException;
+    ClientHttpSession handler(@NonNull ClientHttpHandler handler);
 }

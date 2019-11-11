@@ -19,15 +19,9 @@ import com.google.gson.JsonParser;
 import net.daporkchop.lib.common.test.TestRandomData;
 import net.daporkchop.lib.encoding.basen.Base58;
 import net.daporkchop.lib.http.Http;
-import net.daporkchop.lib.http.client.HttpClient;
-import net.daporkchop.lib.http.client.builder.BlockingRequestBuilder;
-import net.daporkchop.lib.http.client.request.BlockingRequest;
-import net.daporkchop.lib.http.impl.java.client.JavaHttpClient;
 import org.junit.Test;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * @author DaPorkchop_
@@ -39,43 +33,11 @@ public class HttpTest {
     public void test() throws IOException {
         final String url = "http://raw.githubusercontent.com/DaMatrix/betterMapArt/master/src/main/resources/colors.json";
         String data = Http.getString(url);
-        String data2;
 
-        {
-            HttpClient client = new JavaHttpClient();
-            String theUrl = url;
-            BlockingRequestBuilder requestBuilder = client.prepareBlocking();
-            BlockingRequest request = null;
-            do {
-                if (request != null) request.close();
-                request = requestBuilder.configure(theUrl).send();
-                System.out.printf("Sending request to \"%s\"...\n", theUrl);
-            } while (request.isRedirect() && (theUrl = request.redirectUrl()) != null);
-
-            System.out.println(request.status());
-            System.out.println("Headers:");
-            request.headers().forEach(System.out::println);
-            System.out.print("\n\n");
-
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            try (InputStream in = request.input()) {
-                for (int b; (b = in.read()) != -1; ) {
-                    baos.write(b);
-                }
-            } finally {
-                request.close();
-                client.close();
-            }
-            data2 = new String(baos.toByteArray());
-        }
         if (DEBUG_PRINT) {
             System.out.println(data);
         }
         if (!data.trim().endsWith("}")) {
-            throw new IllegalStateException();
-        } else if (!data2.trim().endsWith("}")) {
-            throw new IllegalStateException();
-        } else if (!data2.equals(data)) {
             throw new IllegalStateException();
         }
     }

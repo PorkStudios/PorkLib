@@ -13,23 +13,41 @@
  *
  */
 
-package net.daporkchop.lib.http.client.builder;
+package net.daporkchop.lib.http.client;
 
-import net.daporkchop.lib.http.client.request.BlockingRequest;
-
-import java.io.IOException;
+import lombok.NonNull;
+import net.daporkchop.lib.http.StatusCode;
+import net.daporkchop.lib.http.util.header.HeaderMap;
 
 /**
- * Implementation of {@link RequestBuilder} for {@link BlockingRequest}.
+ * Handles events that are fired while processing a {@link ClientHttpSession}.
+ * <p>
+ * If an exception is thrown by any method in a handler, the session will be closed regardless of connection
+ * state and marked as failed with the given exception.
  *
  * @author DaPorkchop_
  */
-public interface BlockingRequestBuilder extends RequestBuilder<BlockingRequestBuilder> {
+public interface ClientHttpHandler {
     /**
-     * Sends the request out using the currently configured settings.
+     * Fired when this handler is added to the given session.
      *
-     * @return a new {@link BlockingRequest} instance
-     * @throws IOException if an IO exception occurs while sending the request
+     * @param session the {@link ClientHttpSession} that this handler was added to
      */
-    BlockingRequest send() throws IOException;
+    void added(@NonNull ClientHttpSession session) throws Exception;
+
+    /**
+     * Fired when this handler is removed from the given session.
+     *
+     * @param session the {@link ClientHttpSession} that this handler was removed from
+     */
+    void removed(@NonNull ClientHttpSession session) throws Exception;
+
+    /**
+     * Fired when the HTTP headers have been completely received from the remote server.
+     *
+     * @param session the {@link ClientHttpSession} which is active
+     * @param status  the {@link StatusCode} that the server responded with
+     * @param headers the HTTP headers that the server responded with
+     */
+    void headers(@NonNull ClientHttpSession session, @NonNull StatusCode status, @NonNull HeaderMap headers) throws Exception;
 }

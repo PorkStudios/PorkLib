@@ -16,23 +16,20 @@
 package net.daporkchop.lib.http.util;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.util.AttributeKey;
 import io.netty.util.collection.IntObjectHashMap;
 import io.netty.util.collection.IntObjectMap;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.http.StatusCode;
-import net.daporkchop.lib.http.client.factory.RequestFactory;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.util.Arrays;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 
-import static net.daporkchop.lib.math.primitive.PMath.min;
+import static net.daporkchop.lib.math.primitive.PMath.*;
 
 /**
  * Contains various constant values used frequently throughout the library.
@@ -54,8 +51,6 @@ public class Constants {
                     }
             ));
 
-    public final AttributeKey<ConnectionState> KEY_STATE = AttributeKey.newInstance("porklib_http_key");
-
     public final Pattern PATTERN_REQUEST = Pattern.compile("^([A-Z]+) ([^ ]+) HTTP/1\\.1$");
     public final Pattern PATTERN_HEADER = Pattern.compile("([\\x20-\\x7E]+): ([\\x20-\\x7E]+)");
 
@@ -76,10 +71,10 @@ public class Constants {
     public final int MAX_HEADER_COUNT = 256;
 
     public void writeUTF16ToByteBuf(@NonNull ByteBuf dst, @NonNull CharSequence str) {
-        if (str instanceof String)  {
+        if (str instanceof String) {
             writeUTF16ToByteBuf(dst, (String) str);
         } else {
-            for (int i = 0, len = str.length(); i < len; i++)   {
+            for (int i = 0, len = str.length(); i < len; i++) {
                 dst.writeChar(str.charAt(i));
             }
         }
@@ -89,7 +84,7 @@ public class Constants {
         byte[] buf = CACHE_4KB_BUFFER.get();
         char[] src = PUnsafe.getObject(str, PorkUtil.OFFSET_STRING_VALUE);
         int remaining = src.length * PUnsafe.ARRAY_CHAR_INDEX_SCALE;
-        while (remaining > 0)   {
+        while (remaining > 0) {
             int count = min(remaining, buf.length);
             int i = remaining - count;
             remaining -= count;
@@ -98,7 +93,7 @@ public class Constants {
         }
     }
 
-    public <I extends RequestFactory<I>> void prepareRequestBuilderForUrl(@NonNull I builder, @NonNull CharSequence url)  {
+    /*public <I extends RequestFactory<I>> void prepareRequestBuilderForUrl(@NonNull I builder, @NonNull CharSequence url) {
         Matcher matcher = PATTERN_URL_WITH_PORT.matcher(url);
         if (matcher.find()) {
             builder.host(matcher.group(2))
@@ -114,5 +109,5 @@ public class Constants {
         } else {
             throw new IllegalArgumentException(String.format("Not a valid http(s) URL: %s", url));
         }
-    }
+    }*/
 }

@@ -13,35 +13,49 @@
  *
  */
 
-package net.daporkchop.lib.http;
+package net.daporkchop.lib.http.impl.java;
 
+import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.ThreadPerTaskExecutor;
+import lombok.NonNull;
+import net.daporkchop.lib.http.HttpClient;
 import net.daporkchop.lib.http.request.Request;
 import net.daporkchop.lib.http.request.RequestBuilder;
 
+import java.util.concurrent.ThreadFactory;
+
 /**
- * A representation of an HTTP client.
+ * A very simple implementation of {@link HttpClient}, using {@link java.net.URL}'s built-in support to act
+ * as an HTTP client.
+ * <p>
+ * Each request will be executed on a separate thread.
  *
  * @author DaPorkchop_
  */
-public interface HttpClient {
-    /**
-     * Creates a new, blank {@link RequestBuilder} instance to make a new HTTP request.
-     *
-     * @return a new {@link RequestBuilder} instance
-     */
-    RequestBuilder<Void, Request<Void>> request();
+public class JavaHttpClient implements HttpClient {
+    protected final EventExecutor executor;
 
-    /**
-     * Closes this {@link HttpClient}, disconnecting any active requests and releasing any resources allocated
-     * by it.
-     *
-     * @return a {@link Future} which will be notified when the close operation has been completed
-     */
-    Future<Void> close();
+    public JavaHttpClient() {
+        this(Thread::new);
+    }
 
-    /**
-     * @return a {@link Future} which will be notified when this {@link HttpClient} instance has been closed
-     */
-    Future<Void> closeFuture();
+    public JavaHttpClient(@NonNull ThreadFactory threadFactory) {
+        //TODO: this.executor = new ThreadPerTaskExecutor(threadFactory);
+    }
+
+    @Override
+    public RequestBuilder<Void, Request<Void>> request() {
+        return null;
+    }
+
+    @Override
+    public Future<Void> close() {
+        return null;
+    }
+
+    @Override
+    public Future<Void> closeFuture() {
+        return null;
+    }
 }

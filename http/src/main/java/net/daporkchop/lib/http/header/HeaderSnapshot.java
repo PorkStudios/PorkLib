@@ -16,6 +16,11 @@
 package net.daporkchop.lib.http.header;
 
 import lombok.NonNull;
+import net.daporkchop.lib.common.function.PFunctions;
+
+import java.util.Arrays;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * An immutable {@link HeaderMap}
@@ -24,13 +29,21 @@ import lombok.NonNull;
  */
 public final class HeaderSnapshot implements HeaderMap {
     protected final Header[] value;
+    protected final Map<String, Header> map;
 
     public HeaderSnapshot(@NonNull HeaderMap source)    {
+        this(source, true);
+    }
+
+    public HeaderSnapshot(@NonNull HeaderMap source, boolean map)    {
         int size = source.size();
         this.value = new Header[size];
         for (int i = 0; i < size; i++)  {
-            this.value[i] = new HeaderImpl(source.get(i));
+            Header old = source.get(i);
+            //don't create new instance if it's already immutable
+            this.value[i] = (old instanceof HeaderImpl) ? old : new HeaderImpl(old);
         }
+        this.map = map ? Arrays.stream(this.value).collect(Collectors.toMap(Header::key, PFunctions.identity())) : null;
     }
 
     @Override
@@ -45,12 +58,16 @@ public final class HeaderSnapshot implements HeaderMap {
 
     @Override
     public Header get(@NonNull String key) {
-        for (Header header : this.value)    {
-            if (key.equals(header.key()))   {
-                return header;
+        if (this.map == null) {
+            for (Header header : this.value) {
+                if (key.equals(header.key())) {
+                    return header;
+                }
             }
+            return null;
+        } else {
+            return this.map.get(key);
         }
-        return null;
     }
 
     @Override

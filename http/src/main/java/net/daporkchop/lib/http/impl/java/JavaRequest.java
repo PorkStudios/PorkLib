@@ -18,11 +18,14 @@ package net.daporkchop.lib.http.impl.java;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
 import lombok.NonNull;
+import net.daporkchop.lib.http.StatusCode;
 import net.daporkchop.lib.http.request.Request;
 import net.daporkchop.lib.http.response.Response;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Shared implementation of {@link Request} for {@link JavaHttpClient}.
@@ -44,12 +47,21 @@ public abstract class JavaRequest<V, R extends JavaRequest<V, R>> implements Req
         this.response = client.executor.newPromise();
         this.complete = client.executor.newPromise();
 
+        this.complete.addListener(f -> {
+            if (!this.response.isDone())    {
+                this.response.setFailure(f.isSuccess() ? new IllegalStateException("Complete future was successful, but response future was never set!") : f.cause());
+            }
+        });
+
         try {
+            //this doesn't actually initiate the connection, it only creates the instance
             this.connection = (HttpURLConnection) builder.url.openConnection();
         } catch (IOException e) {
             this.complete.tryFailure(e);
             throw e;
         }
+
+        this.thread.start();
     }
 
     @Override
@@ -66,5 +78,23 @@ public abstract class JavaRequest<V, R extends JavaRequest<V, R>> implements Req
     public Future<V> close() {
         this.connection.disconnect();
         return this.complete;
+    }
+
+    @Override
+    public void run() {
+        if (Thread.currentThread() != this.thread) throw new IllegalStateException("Invoked from illegal thread!");
+
+        try {
+            this.connection.connect();
+
+            {
+                StatusCode status = StatusCode.of(this.connection.getResponseCode(), this.connection.getResponseMessage());
+                Map<String, List<String>> internalHeadersMap = this.connection.getHeaderFields();
+
+            }
+            //TODO: parse headers and things
+        } catch (IOException e) {
+            this.complete.setFailure(e);
+        }
     }
 }

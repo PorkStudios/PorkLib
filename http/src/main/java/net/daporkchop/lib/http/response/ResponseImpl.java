@@ -13,31 +13,27 @@
  *
  */
 
-package net.daporkchop.lib.http.impl.java;
+package net.daporkchop.lib.http.response;
 
-import io.netty.util.concurrent.Future;
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.http.request.DataRequest;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.http.StatusCode;
+import net.daporkchop.lib.http.header.HeaderMap;
 
 /**
+ * A simple implementation of {@link Response}.
+ *
  * @author DaPorkchop_
  */
-public final class JavaDataRequest extends JavaRequest<Void, JavaDataRequest> implements DataRequest {
-    public JavaDataRequest(@NonNull JavaHttpClient client, @NonNull JavaRequestBuilder<Void, JavaDataRequest> builder) throws IOException {
-        super(client, builder);
-    }
+@Getter
+@Accessors(fluent = true)
+public final class ResponseImpl implements Response {
+    protected final StatusCode status;
+    protected final HeaderMap  headers;
 
-    @Override
-    public OutputStream output() throws UnsupportedOperationException, IllegalStateException {
-        return null;
-    }
-
-    @Override
-    public InputStream input() throws UnsupportedOperationException {
-        return null;
+    public ResponseImpl(@NonNull StatusCode status, @NonNull HeaderMap headers) {
+        this.status = status;
+        this.headers = headers.snapshot();
     }
 }

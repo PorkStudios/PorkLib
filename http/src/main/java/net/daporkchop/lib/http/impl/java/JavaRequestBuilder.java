@@ -13,39 +13,33 @@
  *
  */
 
-package net.daporkchop.lib.http.request;
+package net.daporkchop.lib.http.impl.java;
 
-import io.netty.util.concurrent.Future;
-import net.daporkchop.lib.http.response.Response;
+import lombok.NonNull;
+import net.daporkchop.lib.http.request.Request;
+import net.daporkchop.lib.http.request.RequestBuilder;
+
+import java.net.MalformedURLException;
+import java.net.URL;
 
 /**
- * An HTTP request.
- *
- * @param <V> the type of the return value of the request
  * @author DaPorkchop_
  */
-public interface Request<V> {
-    /**
-     * This future is updated once the remote server has responded with a status code and headers.
-     *
-     * @return a {@link Future} that will be notified when headers have been received
-     */
-    Future<Response> response();
+public class JavaRequestBuilder<V, R extends Request<V>> implements RequestBuilder<V, R> {
+    protected URL url;
 
-    /**
-     * This future is updated once the request has been completed with the final value obtained from the request, or marked as completed exceptionally if
-     * an exception occurred while processing the request.
-     *
-     * @return a {@link Future} that will be notified when the request is complete
-     */
-    Future<V> complete();
+    @Override
+    public RequestBuilder<V, R> configure(@NonNull String url) {
+        try {
+            this.url = new URL(url);
+        } catch (MalformedURLException e)   {
+            throw new IllegalArgumentException(e);
+        }
+        return this;
+    }
 
-    /**
-     * Attempts to close the HTTP request.
-     * <p>
-     * If the request has already been completed, this method does nothing.
-     *
-     * @return the same {@link Future} instance as {@link #complete()}
-     */
-    Future<V> close();
+    @Override
+    public R send() {
+        return null;
+    }
 }

@@ -13,39 +13,58 @@
  *
  */
 
-package net.daporkchop.lib.http.request;
+package net.daporkchop.lib.http.impl.java;
 
 import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.Promise;
+import lombok.NonNull;
+import net.daporkchop.lib.http.request.Request;
 import net.daporkchop.lib.http.response.Response;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+
 /**
- * An HTTP request.
+ * Shared implementation of {@link Request} for {@link JavaHttpClient}.
  *
- * @param <V> the type of the return value of the request
  * @author DaPorkchop_
  */
-public interface Request<V> {
-    /**
-     * This future is updated once the remote server has responded with a status code and headers.
-     *
-     * @return a {@link Future} that will be notified when headers have been received
-     */
-    Future<Response> response();
+public abstract class JavaRequest<V, R extends JavaRequest<V, R>> implements Request<V>, Runnable {
+    protected final JavaHttpClient client;
+    protected final Thread thread;
+    protected final HttpURLConnection connection;
 
-    /**
-     * This future is updated once the request has been completed with the final value obtained from the request, or marked as completed exceptionally if
-     * an exception occurred while processing the request.
-     *
-     * @return a {@link Future} that will be notified when the request is complete
-     */
-    Future<V> complete();
+    protected final Promise<Response> response;
+    protected final Promise<V>        complete;
 
-    /**
-     * Attempts to close the HTTP request.
-     * <p>
-     * If the request has already been completed, this method does nothing.
-     *
-     * @return the same {@link Future} instance as {@link #complete()}
-     */
-    Future<V> close();
+    public JavaRequest(@NonNull JavaHttpClient client, @NonNull JavaRequestBuilder<V, R> builder) throws IOException {
+        this.client = client;
+        this.thread = client.factory.newThread(this);
+
+        this.response = client.executor.newPromise();
+        this.complete = client.executor.newPromise();
+
+        try {
+            this.connection = (HttpURLConnection) builder.url.openConnection();
+        } catch (IOException e) {
+            this.complete.tryFailure(e);
+            throw e;
+        }
+    }
+
+    @Override
+    public Future<Response> response() {
+        return this.response;
+    }
+
+    @Override
+    public Future<V> complete() {
+        return this.complete;
+    }
+
+    @Override
+    public Future<V> close() {
+        this.connection.disconnect();
+        return this.complete;
+    }
 }

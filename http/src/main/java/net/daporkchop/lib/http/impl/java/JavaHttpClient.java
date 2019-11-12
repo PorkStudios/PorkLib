@@ -17,8 +17,13 @@ package net.daporkchop.lib.http.impl.java;
 
 import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GlobalEventExecutor;
+import io.netty.util.concurrent.Promise;
 import io.netty.util.concurrent.ThreadPerTaskExecutor;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.HttpClient;
 import net.daporkchop.lib.http.request.Request;
 import net.daporkchop.lib.http.request.RequestBuilder;
@@ -26,36 +31,46 @@ import net.daporkchop.lib.http.request.RequestBuilder;
 import java.util.concurrent.ThreadFactory;
 
 /**
- * A very simple implementation of {@link HttpClient}, using {@link java.net.URL}'s built-in support to act
- * as an HTTP client.
+ * A very simple implementation of {@link HttpClient}, using {@link java.net.URL}'s built-in support to act as a simple HTTP client.
  * <p>
- * Each request will be executed on a separate thread.
+ * Each request will be executed on a separate thread, and a shared {@link EventExecutor} is used for invoking callbacks.
  *
  * @author DaPorkchop_
  */
+@RequiredArgsConstructor
+@Accessors(fluent = true)
 public class JavaHttpClient implements HttpClient {
+    @NonNull
+    protected volatile ThreadFactory factory;
+    @NonNull
     protected final EventExecutor executor;
+    protected final Promise<Void> closeFuture = this.executor.newPromise();
 
-    public JavaHttpClient() {
-        this(Thread::new);
+    public JavaHttpClient(@NonNull EventExecutor executor) {
+        this(Thread::new, executor);
     }
 
-    public JavaHttpClient(@NonNull ThreadFactory threadFactory) {
-        //TODO: this.executor = new ThreadPerTaskExecutor(threadFactory);
+    public JavaHttpClient(@NonNull ThreadFactory factory) {
+        this(factory, GlobalEventExecutor.INSTANCE);
+    }
+
+    public JavaHttpClient() {
+        this(Thread::new, GlobalEventExecutor.INSTANCE);
     }
 
     @Override
     public RequestBuilder<Void, Request<Void>> request() {
+
         return null;
     }
 
     @Override
     public Future<Void> close() {
-        return null;
+        return this.closeFuture;
     }
 
     @Override
     public Future<Void> closeFuture() {
-        return null;
+        return this.closeFuture;
     }
 }

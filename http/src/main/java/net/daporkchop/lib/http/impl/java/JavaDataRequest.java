@@ -13,39 +13,22 @@
  *
  */
 
-package net.daporkchop.lib.http.request;
+package net.daporkchop.lib.http.impl.java;
 
 import io.netty.util.concurrent.Future;
-import net.daporkchop.lib.http.response.Response;
+import lombok.NonNull;
+
+import java.io.IOException;
 
 /**
- * An HTTP request.
- *
- * @param <V> the type of the return value of the request
  * @author DaPorkchop_
  */
-public interface Request<V> {
-    /**
-     * This future is updated once the remote server has responded with a status code and headers.
-     *
-     * @return a {@link Future} that will be notified when headers have been received
-     */
-    Future<Response> response();
+public final class JavaDataRequest extends JavaRequest<Void, JavaDataRequest> {
+    public JavaDataRequest(@NonNull JavaHttpClient client, @NonNull JavaRequestBuilder<Void, JavaDataRequest> builder) throws IOException {
+        super(client, builder);
+    }
 
-    /**
-     * This future is updated once the request has been completed with the final value obtained from the request, or marked as completed exceptionally if
-     * an exception occurred while processing the request.
-     *
-     * @return a {@link Future} that will be notified when the request is complete
-     */
-    Future<V> complete();
-
-    /**
-     * Attempts to close the HTTP request.
-     * <p>
-     * If the request has already been completed, this method does nothing.
-     *
-     * @return the same {@link Future} instance as {@link #complete()}
-     */
-    Future<V> close();
+    @Override
+    public void run() {
+    }
 }

@@ -13,35 +13,48 @@
  *
  */
 
-package net.daporkchop.lib.http.impl.java;
+package net.daporkchop.lib.http.header;
 
-import io.netty.util.concurrent.Future;
 import lombok.NonNull;
-import net.daporkchop.lib.http.request.DataRequest;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 /**
+ * An immutable {@link HeaderMap}
+ *
  * @author DaPorkchop_
  */
-public final class JavaDataRequest extends JavaRequest<Void, JavaDataRequest> implements DataRequest {
-    public JavaDataRequest(@NonNull JavaHttpClient client, @NonNull JavaRequestBuilder<Void, JavaDataRequest> builder) throws IOException {
-        super(client, builder);
+public final class HeaderSnapshot implements HeaderMap {
+    protected final Header[] value;
+
+    public HeaderSnapshot(@NonNull HeaderMap source)    {
+        int size = source.size();
+        this.value = new Header[size];
+        for (int i = 0; i < size; i++)  {
+            this.value[i] = new HeaderImpl(source.get(i));
+        }
     }
 
     @Override
-    public OutputStream output() throws UnsupportedOperationException, IllegalStateException {
+    public int size() {
+        return this.value.length;
+    }
+
+    @Override
+    public Header get(int index) throws IndexOutOfBoundsException {
+        return this.value[index];
+    }
+
+    @Override
+    public Header get(@NonNull String key) {
+        for (Header header : this.value)    {
+            if (key.equals(header.key()))   {
+                return header;
+            }
+        }
         return null;
     }
 
     @Override
-    public InputStream input() throws UnsupportedOperationException {
-        return null;
-    }
-
-    @Override
-    public void run() {
+    public HeaderMap snapshot() {
+        return this;
     }
 }

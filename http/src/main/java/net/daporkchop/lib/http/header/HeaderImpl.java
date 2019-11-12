@@ -13,35 +13,36 @@
  *
  */
 
-package net.daporkchop.lib.http.impl.java;
+package net.daporkchop.lib.http.header;
 
-import io.netty.util.concurrent.Future;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.http.request.DataRequest;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 
 /**
+ * A simple implementation of {@link Header}.
+ *
  * @author DaPorkchop_
  */
-public final class JavaDataRequest extends JavaRequest<Void, JavaDataRequest> implements DataRequest {
-    public JavaDataRequest(@NonNull JavaHttpClient client, @NonNull JavaRequestBuilder<Void, JavaDataRequest> builder) throws IOException {
-        super(client, builder);
+@RequiredArgsConstructor
+@Getter
+@EqualsAndHashCode
+@Accessors(fluent = true)
+public final class HeaderImpl implements Header {
+    @NonNull
+    protected final String key;
+
+    @NonNull
+    protected final String value;
+
+    public HeaderImpl(@NonNull Header source) {
+        this(source.key(), source.value());
     }
 
     @Override
-    public OutputStream output() throws UnsupportedOperationException, IllegalStateException {
-        return null;
-    }
-
-    @Override
-    public InputStream input() throws UnsupportedOperationException {
-        return null;
-    }
-
-    @Override
-    public void run() {
+    public String toString() {
+        return String.format("%s: %s", this.key, this.value);
     }
 }

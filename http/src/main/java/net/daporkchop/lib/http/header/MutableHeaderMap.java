@@ -13,35 +13,23 @@
  *
  */
 
-package net.daporkchop.lib.http.impl.java;
+package net.daporkchop.lib.http.header;
 
-import io.netty.util.concurrent.Future;
 import lombok.NonNull;
-import net.daporkchop.lib.http.request.DataRequest;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 /**
+ * A {@link HeaderMap} that is mutable.
+ *
  * @author DaPorkchop_
  */
-public final class JavaDataRequest extends JavaRequest<Void, JavaDataRequest> implements DataRequest {
-    public JavaDataRequest(@NonNull JavaHttpClient client, @NonNull JavaRequestBuilder<Void, JavaDataRequest> builder) throws IOException {
-        super(client, builder);
-    }
+public interface MutableHeaderMap extends HeaderMap {
+    boolean remove(@NonNull String key);
 
-    @Override
-    public OutputStream output() throws UnsupportedOperationException, IllegalStateException {
-        return null;
-    }
+    Header set(int index, @NonNull Header header) throws IndexOutOfBoundsException;
 
-    @Override
-    public InputStream input() throws UnsupportedOperationException {
-        return null;
-    }
+    String set(int index, @NonNull String value) throws IndexOutOfBoundsException;
 
-    @Override
-    public void run() {
-    }
+    String set(@NonNull String key, @NonNull String value);
+
+    String put(@NonNull String key, @NonNull String value);
 }

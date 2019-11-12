@@ -15,8 +15,141 @@
 
 package net.daporkchop.lib.http.header;
 
+import lombok.NonNull;
+
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+
 /**
+ * A specialized map for storing HTTP headers.
+ *
  * @author DaPorkchop_
  */
 public interface HeaderMap {
+    /**
+     * An empty {@link HeaderMap} instance.
+     */
+    HeaderMap EMPTY = new HeaderMap() {
+        @Override
+        public int size() {
+            return 0;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return true;
+        }
+
+        @Override
+        public Header get(int index) throws IndexOutOfBoundsException {
+            throw new IndexOutOfBoundsException(String.valueOf(index));
+        }
+
+        @Override
+        public Header get(String key) {
+            return null;
+        }
+    };
+
+    /**
+     * @return the number of headers in this map
+     */
+    int size();
+
+    /**
+     * @return whether or not this map is empty
+     */
+    default boolean isEmpty() {
+        return this.size() == 0;
+    }
+
+    /**
+     * Gets the {@link Header} at the given index.
+     *
+     * @param index the index of the header to get
+     * @return the header at the given index
+     * @throws IndexOutOfBoundsException if the given index is out of bounds
+     */
+    Header get(int index) throws IndexOutOfBoundsException;
+
+    /**
+     * Gets the key of the header at the given index.
+     *
+     * @param index the index of the header to get the key of
+     * @return the key of the header at the given index
+     * @throws IndexOutOfBoundsException if the given index is out of bounds
+     */
+    default String getKey(int index) throws IndexOutOfBoundsException {
+        return this.get(index).key();
+    }
+
+    /**
+     * Gets the value of the header at the given index.
+     *
+     * @param index the index of the header to get the value of
+     * @return the value of the header at the given index
+     * @throws IndexOutOfBoundsException if the given index is out of bounds
+     */
+    default String getValue(int index) throws IndexOutOfBoundsException {
+        return this.get(index).value();
+    }
+
+    /**
+     * Gets the {@link Header} with the given key.
+     *
+     * @param key the key of the header to get
+     * @return the header with the given key, or {@code null} if none was found
+     */
+    Header get(@NonNull String key);
+
+    /**
+     * Gets the value of the header with the given key.
+     *
+     * @param key the key of the header to get the value of
+     * @return the value of the header with the given key, or {@code null} if none was found
+     */
+    default String getValue(@NonNull String key) {
+        Header header = this.get(key);
+        return header == null ? null : header.value();
+    }
+
+    /**
+     * Checks if this map contains a header with the given key.
+     *
+     * @param key the key to check for the existence of
+     * @return whether or not a header with a matching key was found
+     */
+    default boolean hasKey(@NonNull String key) {
+        return this.get(key) != null;
+    }
+
+    /**
+     * @return an immutable copy of this {@link HeaderMap}
+     */
+    default HeaderMap snapshot() {
+        return new HeaderSnapshot(this);
+    }
+
+    /**
+     * Iterates over all headers in this map, passing each of them to the given callback function.
+     *
+     * @param callback the callback function to run
+     */
+    default void forEach(@NonNull Consumer<Header> callback) {
+        for (int i = 0, c = this.size(); i < c; i++) {
+            callback.accept(this.get(i));
+        }
+    }
+
+    /**
+     * Iterates over all headers in this map, passing each of them to the given callback function.
+     *
+     * @param callback the callback function to run
+     */
+    default void forEach(@NonNull BiConsumer<String, String> callback) {
+        for (int i = 0, c = this.size(); i < c; i++) {
+            Header header = this.get(i);
+            callback.accept(header.key(), header.value());
+        }
+    }
 }

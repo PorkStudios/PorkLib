@@ -13,35 +13,21 @@
  *
  */
 
-package net.daporkchop.lib.http.impl.java;
-
-import io.netty.util.concurrent.Future;
-import lombok.NonNull;
-import net.daporkchop.lib.http.request.DataRequest;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+package net.daporkchop.lib.http.header;
 
 /**
+ * A single HTTP header line.
+ *
  * @author DaPorkchop_
  */
-public final class JavaDataRequest extends JavaRequest<Void, JavaDataRequest> implements DataRequest {
-    public JavaDataRequest(@NonNull JavaHttpClient client, @NonNull JavaRequestBuilder<Void, JavaDataRequest> builder) throws IOException {
-        super(client, builder);
-    }
+public interface Header {
+    /**
+     * @return the key (name) of the HTTP header
+     */
+    String key();
 
-    @Override
-    public OutputStream output() throws UnsupportedOperationException, IllegalStateException {
-        return null;
-    }
-
-    @Override
-    public InputStream input() throws UnsupportedOperationException {
-        return null;
-    }
-
-    @Override
-    public void run() {
-    }
+    /**
+     * @return the raw value of the HTTP header
+     */
+    String value();
 }

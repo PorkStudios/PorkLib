@@ -152,4 +152,34 @@ public interface HeaderMap {
             callback.accept(header.key(), header.value());
         }
     }
+
+    /**
+     * Puts a new header into this map, or updates the value of an existing header if one with the given name already exists.
+     *
+     * @param key   the key of the header
+     * @param value the value of the header
+     * @return the previous value, or {@code null} if no previous value for the given key existed
+     */
+    default String put(@NonNull String key, @NonNull String value) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Puts all headers from the source map into this map.
+     *
+     * @param source the source to copy the headers from
+     */
+    default void putAll(@NonNull HeaderMap source) {
+        source.forEach(this::put);
+    }
+
+    /**
+     * Removes a header from this map.
+     *
+     * @param key the key of the header
+     * @return the removed value, or {@code null} if no header with the given key existed
+     */
+    default String remove(@NonNull String key) {
+        throw new UnsupportedOperationException();
+    }
 }

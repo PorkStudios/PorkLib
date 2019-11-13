@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * A simple, hashtable-based implementation of {@link HeaderMap}.
@@ -45,6 +46,11 @@ public class DefaultHeaderMap implements HeaderMap {
         this.putAll(source);
     }
 
+    public DefaultHeaderMap(@NonNull Stream<Header> source) {
+        this();
+        source.forEach(this::put);
+    }
+
     @Override
     public synchronized int size() {
         return this.list.size();
@@ -61,17 +67,20 @@ public class DefaultHeaderMap implements HeaderMap {
     }
 
     @Override
-    public synchronized String put(@NonNull String key, @NonNull String value) {
-        Header header = new HeaderImpl(key, value);
-        Header old = this.map.get(key);
+    public String put(@NonNull String key, @NonNull String value) {
+        return this.put(new HeaderImpl(key, value));
+    }
+
+    protected synchronized String put(@NonNull Header header) {
+        Header old = this.map.get(header.key());
         if (old == null) {
             //new header entry must be created
             this.list.add(header);
-            this.map.put(key, header);
+            this.map.put(header.key(), header);
             return null;
         } else {
             this.list.set(this.list.indexOf(old), header);
-            this.map.replace(key, old, header);
+            this.map.replace(header.key(), old, header);
             return old.value();
         }
     }

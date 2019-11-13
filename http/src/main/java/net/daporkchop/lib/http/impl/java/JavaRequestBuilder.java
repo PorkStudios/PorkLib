@@ -16,6 +16,7 @@
 package net.daporkchop.lib.http.impl.java;
 
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.http.request.Request;
 import net.daporkchop.lib.http.request.RequestBuilder;
 
@@ -25,7 +26,11 @@ import java.net.URL;
 /**
  * @author DaPorkchop_
  */
+@RequiredArgsConstructor
 public class JavaRequestBuilder<V, R extends Request<V>> implements RequestBuilder<V, R> {
+    @NonNull
+    protected final JavaHttpClient client;
+
     protected URL url;
 
     @Override

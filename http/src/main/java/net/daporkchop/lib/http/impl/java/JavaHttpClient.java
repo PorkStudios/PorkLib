@@ -60,8 +60,7 @@ public class JavaHttpClient implements HttpClient {
 
     @Override
     public RequestBuilder<Void, Request<Void>> request() {
-
-        return null;
+        return new JavaRequestBuilder<>(this);
     }
 
     @Override

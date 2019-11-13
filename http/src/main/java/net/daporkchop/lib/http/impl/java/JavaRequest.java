@@ -19,13 +19,18 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
 import lombok.NonNull;
 import net.daporkchop.lib.http.StatusCode;
+import net.daporkchop.lib.http.header.DefaultHeaderMap;
+import net.daporkchop.lib.http.header.HeaderImpl;
+import net.daporkchop.lib.http.header.HeaderMap;
 import net.daporkchop.lib.http.request.Request;
 import net.daporkchop.lib.http.response.Response;
+import net.daporkchop.lib.http.response.ResponseImpl;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 
 /**
  * Shared implementation of {@link Request} for {@link JavaHttpClient}.
@@ -38,7 +43,7 @@ public abstract class JavaRequest<V, R extends JavaRequest<V, R>> implements Req
     protected final HttpURLConnection connection;
 
     protected final Promise<Response> response;
-    protected final Promise<V>        complete;
+    protected final Promise<V> complete;
 
     public JavaRequest(@NonNull JavaHttpClient client, @NonNull JavaRequestBuilder<V, R> builder) throws IOException {
         this.client = client;
@@ -48,7 +53,7 @@ public abstract class JavaRequest<V, R extends JavaRequest<V, R>> implements Req
         this.complete = client.executor.newPromise();
 
         this.complete.addListener(f -> {
-            if (!this.response.isDone())    {
+            if (!this.response.isDone()) {
                 this.response.setFailure(f.isSuccess() ? new IllegalStateException("Complete future was successful, but response future was never set!") : f.cause());
             }
         });
@@ -90,9 +95,15 @@ public abstract class JavaRequest<V, R extends JavaRequest<V, R>> implements Req
             {
                 StatusCode status = StatusCode.of(this.connection.getResponseCode(), this.connection.getResponseMessage());
                 Map<String, List<String>> internalHeadersMap = this.connection.getHeaderFields();
-
+                HeaderMap headers = new DefaultHeaderMap(internalHeadersMap.entrySet().stream()
+                        .map(entry -> new HeaderImpl(
+                                entry.getKey(),
+                                entry.getValue().size() == 1
+                                        ? entry.getValue().get(0)
+                                        : entry.getValue().stream().collect(() -> new StringJoiner(","), StringJoiner::add, StringJoiner::merge).toString()
+                        )));
+                this.response.setSuccess(new ResponseImpl(status, headers));
             }
-            //TODO: parse headers and things
         } catch (IOException e) {
             this.complete.setFailure(e);
         }

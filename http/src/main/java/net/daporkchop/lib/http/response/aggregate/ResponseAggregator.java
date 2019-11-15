@@ -79,6 +79,6 @@ public interface ResponseAggregator<A, V> {
      * @param request the request that has been completed
      * @throws Exception if an exception occurs while de-initializing the temporary value
      */
-    default void deinit(@NonNull A temp, @NonNull Request request) throws Exception {
+    default void deinit(@NonNull A temp, @NonNull Request<V> request) throws Exception {
     }
 }

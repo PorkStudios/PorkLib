@@ -13,34 +13,26 @@
  *
  */
 
-package net.daporkchop.lib.http.response.aggregate;
+package net.daporkchop.lib.http.impl.java;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.http.request.Request;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
- * Aggregates received data into a simple {@code byte[]}.
+ * Actual implementation of {@link net.daporkchop.lib.http.request.Request} for {@link JavaHttpClient} which implements
+ * the the usage of a {@link net.daporkchop.lib.http.response.aggregate.ResponseAggregator}.
  *
  * @author DaPorkchop_
  */
-public final class ToByteArrayAggregator extends AbstractByteBufAggregator<byte[]> {
-    public ToByteArrayAggregator(@NonNull ByteBufAllocator alloc) {
-        super(alloc);
-    }
-
-    public ToByteArrayAggregator() {
-        super();
+public final class JavaAggregationRequest<V> extends JavaRequest<V, JavaAggregationRequest<V>> {
+    public JavaAggregationRequest(@NonNull JavaHttpClient client, @NonNull JavaRequestBuilder<V, JavaAggregationRequest<V>> builder) throws IOException {
+        super(client, builder);
     }
 
     @Override
-    public byte[] doFinal(@NonNull ByteBuf temp, @NonNull Request<byte[]> request) throws Exception {
-        byte[] b = new byte[temp.writerIndex()];
-        temp.readBytes(b);
-        return b;
+    protected void implRecvBody(@NonNull InputStream bodyIn) throws IOException {
+        //TODO: implement this
     }
 }

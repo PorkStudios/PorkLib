@@ -15,7 +15,14 @@
 
 package net.daporkchop.lib.http.request;
 
+import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
+import net.daporkchop.lib.http.response.aggregate.ResponseAggregator;
+import net.daporkchop.lib.http.response.aggregate.ToByteArrayAggregator;
+import net.daporkchop.lib.http.response.aggregate.ToByteBufAggregator;
+import net.daporkchop.lib.http.response.aggregate.ToStringAggregator;
+
+import java.nio.charset.StandardCharsets;
 
 /**
  * Used for configuring an HTTP request prior to sending.
@@ -32,6 +39,42 @@ public interface RequestBuilder<V, R extends Request<V>> {
      * @return this {@link RequestBuilder} instance
      */
     RequestBuilder<V, R> configure(@NonNull String url);
+
+    /**
+     * Configures this {@link RequestBuilder} to use the given {@link ResponseAggregator}.
+     *
+     * @param aggregator the new {@link ResponseAggregator} to use
+     * @param <V_NEW>    the new return value type
+     * @return this {@link RequestBuilder} instance
+     */
+    <V_NEW> RequestBuilder<V_NEW, Request<V_NEW>> aggregator(@NonNull ResponseAggregator<?, V_NEW> aggregator);
+
+    /**
+     * Configures this {@link RequestBuilder} to aggregate data into a {@link String}.
+     *
+     * @return this {@link RequestBuilder} instance
+     */
+    default RequestBuilder<String, Request<String>> aggregateToString() {
+        return this.aggregator(new ToStringAggregator(StandardCharsets.UTF_8));
+    }
+
+    /**
+     * Configures this {@link RequestBuilder} to aggregate data into a {@code byte[]}.
+     *
+     * @return this {@link RequestBuilder} instance
+     */
+    default RequestBuilder<byte[], Request<byte[]>> aggregateToByteArray() {
+        return this.aggregator(new ToByteArrayAggregator());
+    }
+
+    /**
+     * Configures this {@link RequestBuilder} to aggregate data into a {@link ByteBuf}.
+     *
+     * @return this {@link RequestBuilder} instance
+     */
+    default RequestBuilder<ByteBuf, Request<ByteBuf>> aggregateToByteBuf() {
+        return this.aggregator(new ToByteBufAggregator());
+    }
 
     /**
      * Initiates the HTTP request using the configured settings.

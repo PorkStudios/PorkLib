@@ -17,50 +17,39 @@ package net.daporkchop.lib.http.response.aggregate;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.PooledByteBufAllocator;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.request.Request;
-import net.daporkchop.lib.http.response.Response;
-import net.daporkchop.lib.http.response.aggregate.ResponseAggregator;
+
+import java.nio.charset.Charset;
 
 /**
- * Base implementation of a {@link ResponseAggregator} that uses a {@link ByteBuf} as a temporary value.
+ * Aggregates received data into a {@link String}.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
+//TODO: detect charset from response headers
+//TODO: that means i'll probably need to come up with some way of storing custom values on a request instance (attribute map)
 @Getter
 @Accessors(fluent = true)
-public abstract class AbstractByteBufAggregator<V> implements ResponseAggregator<ByteBuf, V> {
-    @NonNull
-    protected final ByteBufAllocator alloc;
+public final class ToStringAggregator extends AbstractByteBufAggregator<String> {
+    protected final Charset charset;
 
-    public AbstractByteBufAggregator() {
-        this(PooledByteBufAllocator.DEFAULT);
+    public ToStringAggregator(@NonNull ByteBufAllocator alloc, @NonNull Charset charset) {
+        super(alloc);
+
+        this.charset = charset;
+    }
+
+    public ToStringAggregator(@NonNull Charset charset) {
+        super();
+
+        this.charset = charset;
     }
 
     @Override
-    public ByteBuf init(@NonNull Response response, @NonNull Request<V> request) throws Exception {
-        long length = response.contentLength();
-        if (length < 0L)    {
-            return this.alloc.ioBuffer();
-        } else if (length > Integer.MAX_VALUE)  {
-            throw new IllegalArgumentException(String.format("Content-Length %d is too large!", length));
-        } else {
-            return this.alloc.ioBuffer((int) length, (int) length);
-        }
-    }
-
-    @Override
-    public ByteBuf add(@NonNull ByteBuf temp, @NonNull ByteBuf data, @NonNull Request<V> request) throws Exception {
-        return temp.writeBytes(data);
-    }
-
-    @Override
-    public void deinit(@NonNull ByteBuf temp, @NonNull Request<V> request) throws Exception {
-        temp.release();
+    public String doFinal(@NonNull ByteBuf temp, @NonNull Request<String> request) throws Exception {
+        return temp.toString();
     }
 }

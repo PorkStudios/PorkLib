@@ -27,6 +27,7 @@ import net.daporkchop.lib.http.response.Response;
 import net.daporkchop.lib.http.response.ResponseImpl;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.Map;
@@ -41,12 +42,14 @@ public abstract class JavaRequest<V, R extends JavaRequest<V, R>> implements Req
     protected final JavaHttpClient client;
     protected final Thread thread;
     protected final HttpURLConnection connection;
+    protected final JavaRequestBuilder<V, R> builder;
 
     protected final Promise<Response> response;
     protected final Promise<V> complete;
 
     public JavaRequest(@NonNull JavaHttpClient client, @NonNull JavaRequestBuilder<V, R> builder) throws IOException {
         this.client = client;
+        this.builder = builder;
         this.thread = client.factory.newThread(this);
 
         this.response = client.executor.newPromise();
@@ -104,8 +107,14 @@ public abstract class JavaRequest<V, R extends JavaRequest<V, R>> implements Req
                         )));
                 this.response.setSuccess(new ResponseImpl(status, headers));
             }
+
+            this.implRecvBody(this.connection.getInputStream());
+
+            this.connection.disconnect();
         } catch (IOException e) {
             this.complete.setFailure(e);
         }
     }
+
+    protected abstract void implRecvBody(@NonNull InputStream bodyIn) throws IOException;
 }

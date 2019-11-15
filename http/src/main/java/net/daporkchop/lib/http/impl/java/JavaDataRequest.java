@@ -15,7 +15,6 @@
 
 package net.daporkchop.lib.http.impl.java;
 
-import io.netty.util.concurrent.Future;
 import lombok.NonNull;
 import net.daporkchop.lib.http.request.DataRequest;
 
@@ -24,8 +23,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
+ * Implementation of {@link DataRequest} for {@link JavaHttpClient}.
+ *
  * @author DaPorkchop_
  */
+//TODO: implement everything in this class
 public final class JavaDataRequest extends JavaRequest<Void, JavaDataRequest> implements DataRequest {
     public JavaDataRequest(@NonNull JavaHttpClient client, @NonNull JavaRequestBuilder<Void, JavaDataRequest> builder) throws IOException {
         super(client, builder);
@@ -39,5 +41,9 @@ public final class JavaDataRequest extends JavaRequest<Void, JavaDataRequest> im
     @Override
     public InputStream input() throws UnsupportedOperationException {
         return null;
+    }
+
+    @Override
+    protected void implRecvBody(@NonNull InputStream bodyIn) throws IOException {
     }
 }

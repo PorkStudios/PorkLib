@@ -17,50 +17,26 @@ package net.daporkchop.lib.http.response.aggregate;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.PooledByteBufAllocator;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.request.Request;
-import net.daporkchop.lib.http.response.Response;
-import net.daporkchop.lib.http.response.aggregate.ResponseAggregator;
 
 /**
- * Base implementation of a {@link ResponseAggregator} that uses a {@link ByteBuf} as a temporary value.
+ * Aggregates received data into a {@link ByteBuf}.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-public abstract class AbstractByteBufAggregator<V> implements ResponseAggregator<ByteBuf, V> {
-    @NonNull
-    protected final ByteBufAllocator alloc;
+public final class ToByteBufAggregator extends AbstractByteBufAggregator<ByteBuf> {
+    public ToByteBufAggregator(@NonNull ByteBufAllocator alloc) {
+        super(alloc);
+    }
 
-    public AbstractByteBufAggregator() {
-        this(PooledByteBufAllocator.DEFAULT);
+    public ToByteBufAggregator() {
+        super();
     }
 
     @Override
-    public ByteBuf init(@NonNull Response response, @NonNull Request<V> request) throws Exception {
-        long length = response.contentLength();
-        if (length < 0L)    {
-            return this.alloc.ioBuffer();
-        } else if (length > Integer.MAX_VALUE)  {
-            throw new IllegalArgumentException(String.format("Content-Length %d is too large!", length));
-        } else {
-            return this.alloc.ioBuffer((int) length, (int) length);
-        }
-    }
-
-    @Override
-    public ByteBuf add(@NonNull ByteBuf temp, @NonNull ByteBuf data, @NonNull Request<V> request) throws Exception {
-        return temp.writeBytes(data);
-    }
-
-    @Override
-    public void deinit(@NonNull ByteBuf temp, @NonNull Request<V> request) throws Exception {
-        temp.release();
+    public ByteBuf doFinal(@NonNull ByteBuf temp, @NonNull Request<ByteBuf> request) throws Exception {
+        //retain so that the deinit method doesn't release data
+        return temp.retainedSlice();
     }
 }

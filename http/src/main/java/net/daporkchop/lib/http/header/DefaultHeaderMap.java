@@ -63,7 +63,7 @@ public class DefaultHeaderMap implements HeaderMap {
 
     @Override
     public synchronized Header get(@NonNull String key) {
-        return this.map.get(key);
+        return this.map.get(key.toLowerCase());
     }
 
     @Override
@@ -72,22 +72,23 @@ public class DefaultHeaderMap implements HeaderMap {
     }
 
     protected synchronized String put(@NonNull Header header) {
-        Header old = this.map.get(header.key());
+        String key = header.key().toLowerCase();
+        Header old = this.map.get(key);
         if (old == null) {
             //new header entry must be created
             this.list.add(header);
-            this.map.put(header.key(), header);
+            this.map.put(key, header);
             return null;
         } else {
             this.list.set(this.list.indexOf(old), header);
-            this.map.replace(header.key(), old, header);
+            this.map.replace(key, old, header);
             return old.value();
         }
     }
 
     @Override
     public synchronized String remove(@NonNull String key) {
-        Header old = this.map.remove(key);
+        Header old = this.map.remove(key.toLowerCase());
         return old != null && this.list.remove(old) ? old.value() : null;
     }
 }

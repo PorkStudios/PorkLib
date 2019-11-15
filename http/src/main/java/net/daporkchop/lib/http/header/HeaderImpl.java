@@ -28,12 +28,10 @@ import lombok.experimental.Accessors;
  */
 @RequiredArgsConstructor
 @Getter
-@EqualsAndHashCode
 @Accessors(fluent = true)
 public final class HeaderImpl implements Header {
     @NonNull
     protected final String key;
-
     @NonNull
     protected final String value;
 
@@ -44,5 +42,22 @@ public final class HeaderImpl implements Header {
     @Override
     public String toString() {
         return String.format("%s: %s", this.key, this.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return this.key.toLowerCase().hashCode() * 31 + this.value.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)    {
+            return true;
+        } else if (obj instanceof Header)   {
+            Header header = (Header) obj;
+            return this.key.equalsIgnoreCase(header.key()) && this.value.equals(header.value());
+        } else {
+            return false;
+        }
     }
 }

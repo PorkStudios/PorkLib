@@ -60,7 +60,7 @@ public final class HeaderSnapshot implements HeaderMap {
     public Header get(@NonNull String key) {
         if (this.map == null) {
             for (Header header : this.value) {
-                if (key.equals(header.key())) {
+                if (key.equalsIgnoreCase(header.key())) {
                     return header;
                 }
             }

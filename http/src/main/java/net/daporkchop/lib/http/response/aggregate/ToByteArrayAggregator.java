@@ -13,35 +13,42 @@
  *
  */
 
-package net.daporkchop.lib.http.response;
+package net.daporkchop.lib.http.response.aggregate;
 
-import net.daporkchop.lib.http.StatusCode;
-import net.daporkchop.lib.http.header.HeaderMap;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.http.request.Request;
 
 /**
- * The server's response to an HTTP request.
+ * Aggregates received data into a simple {@code byte[]}.
  *
  * @author DaPorkchop_
  */
-public interface Response {
-    /**
-     * @return the {@link StatusCode} that the server responded with
-     */
-    StatusCode status();
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public final class ToByteArrayAggregator extends AbstractByteBufAggregator<byte[]> {
+    @NonNull
+    protected final ByteBufAllocator alloc;
 
-    /**
-     * @return a {@link HeaderMap} containing the headers that the server responded with
-     */
-    HeaderMap headers();
+    @Override
+    public byte[] doFinal(@NonNull ByteBuf temp, @NonNull Request<byte[]> request) throws Exception {
+        byte[] b = new byte[temp.writerIndex()];
+        temp.readBytes(b);
+        return b;
+    }
 
-    /**
-     * Gets the length of the response's body's content (in bytes).
-     *
-     * If the body's length is not known (e.g. Transfer-Encoding is "chunked"), this will return {@code -1L}.
-     * @return the length of the response's body's content (in bytes)
-     */
-    default long contentLength() {
-        String length = this.headers().getValue("content-length");
-        return length == null ? -1L : Long.parseLong(length);
+    @Override
+    public ByteBuf add(@NonNull ByteBuf temp, @NonNull ByteBuf data, @NonNull Request<byte[]> request) throws Exception {
+        return temp.writeBytes(data);
+    }
+
+    @Override
+    public void deinit(@NonNull ByteBuf temp, @NonNull Request request) throws Exception {
+        temp.release();
     }
 }

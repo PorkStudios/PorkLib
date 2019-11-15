@@ -13,35 +13,44 @@
  *
  */
 
-package net.daporkchop.lib.http.response;
+package net.daporkchop.lib.http.response.aggregate;
 
-import net.daporkchop.lib.http.StatusCode;
-import net.daporkchop.lib.http.header.HeaderMap;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.PooledByteBufAllocator;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.http.request.Request;
+import net.daporkchop.lib.http.response.Response;
+import net.daporkchop.lib.http.response.aggregate.ResponseAggregator;
 
 /**
- * The server's response to an HTTP request.
+ * Base implementation of a {@link ResponseAggregator} that uses a {@link ByteBuf} as a temporary value.
  *
  * @author DaPorkchop_
  */
-public interface Response {
-    /**
-     * @return the {@link StatusCode} that the server responded with
-     */
-    StatusCode status();
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public abstract class AbstractByteBufAggregator<V> implements ResponseAggregator<ByteBuf, V> {
+    @NonNull
+    protected final ByteBufAllocator alloc;
 
-    /**
-     * @return a {@link HeaderMap} containing the headers that the server responded with
-     */
-    HeaderMap headers();
+    public AbstractByteBufAggregator() {
+        this(PooledByteBufAllocator.DEFAULT);
+    }
 
-    /**
-     * Gets the length of the response's body's content (in bytes).
-     *
-     * If the body's length is not known (e.g. Transfer-Encoding is "chunked"), this will return {@code -1L}.
-     * @return the length of the response's body's content (in bytes)
-     */
-    default long contentLength() {
-        String length = this.headers().getValue("content-length");
-        return length == null ? -1L : Long.parseLong(length);
+    @Override
+    public ByteBuf init(@NonNull Response response, @NonNull Request<V> request) throws Exception {
+        long length = response.contentLength();
+        if (length < 0L)    {
+            return this.alloc.ioBuffer();
+        } else if (length > Integer.MAX_VALUE)  {
+            throw new IllegalArgumentException(String.format("Content-Length %d is too large!", length));
+        } else {
+            return this.alloc.ioBuffer((int) length, (int) length);
+        }
     }
 }

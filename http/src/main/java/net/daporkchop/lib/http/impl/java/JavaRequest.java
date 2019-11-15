@@ -38,17 +38,17 @@ import java.util.StringJoiner;
  *
  * @author DaPorkchop_
  */
-public abstract class JavaRequest<V, R extends JavaRequest<V, R>> implements Request<V>, Runnable {
+public abstract class JavaRequest<V, R extends Request<V>> implements Request<V>, Runnable {
     protected final JavaHttpClient client;
     protected final Thread thread;
-    protected final HttpURLConnection connection;
     protected final JavaRequestBuilder<V, R> builder;
+    protected HttpURLConnection connection;
 
     protected final Promise<Response> response;
     protected final Promise<V> complete;
 
-    public JavaRequest(@NonNull JavaHttpClient client, @NonNull JavaRequestBuilder<V, R> builder) throws IOException {
-        this.client = client;
+    public JavaRequest(@NonNull JavaRequestBuilder<V, R> builder) {
+        this.client = builder.client;
         this.builder = builder;
         this.thread = client.factory.newThread(this);
 
@@ -66,7 +66,7 @@ public abstract class JavaRequest<V, R extends JavaRequest<V, R>> implements Req
             this.connection = (HttpURLConnection) builder.url.openConnection();
         } catch (IOException e) {
             this.complete.tryFailure(e);
-            throw e;
+            return;
         }
 
         this.thread.start();
@@ -99,6 +99,7 @@ public abstract class JavaRequest<V, R extends JavaRequest<V, R>> implements Req
                 StatusCode status = StatusCode.of(this.connection.getResponseCode(), this.connection.getResponseMessage());
                 Map<String, List<String>> internalHeadersMap = this.connection.getHeaderFields();
                 HeaderMap headers = new DefaultHeaderMap(internalHeadersMap.entrySet().stream()
+                        .filter(entry -> entry.getKey() != null)
                         .map(entry -> new HeaderImpl(
                                 entry.getKey(),
                                 entry.getValue().size() == 1
@@ -108,13 +109,13 @@ public abstract class JavaRequest<V, R extends JavaRequest<V, R>> implements Req
                 this.response.setSuccess(new ResponseImpl(status, headers));
             }
 
-            this.implRecvBody(this.connection.getInputStream());
-
-            this.connection.disconnect();
-        } catch (IOException e) {
+            this.complete.setSuccess(this.implReceiveBody(this.connection.getInputStream()));
+        } catch (Exception e) {
             this.complete.setFailure(e);
+        } finally {
+            this.connection.disconnect();
         }
     }
 
-    protected abstract void implRecvBody(@NonNull InputStream bodyIn) throws IOException;
+    protected abstract V implReceiveBody(@NonNull InputStream bodyIn) throws Exception;
 }

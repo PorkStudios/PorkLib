@@ -19,6 +19,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.http.request.Request;
 import net.daporkchop.lib.http.request.RequestBuilder;
+import net.daporkchop.lib.http.response.aggregate.ResponseAggregator;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -33,6 +34,8 @@ public class JavaRequestBuilder<V, R extends Request<V>> implements RequestBuild
 
     protected URL url;
 
+    protected ResponseAggregator<Object, V> aggregator;
+
     @Override
     public RequestBuilder<V, R> configure(@NonNull String url) {
         try {
@@ -44,7 +47,16 @@ public class JavaRequestBuilder<V, R extends Request<V>> implements RequestBuild
     }
 
     @Override
+    @SuppressWarnings("unchecked")
+    public <V_NEW> RequestBuilder<V_NEW, Request<V_NEW>> aggregator(@NonNull ResponseAggregator<?, V_NEW> aggregator) {
+        JavaRequestBuilder<V_NEW, Request<V_NEW>> _this = (JavaRequestBuilder<V_NEW, Request<V_NEW>>) this;
+        _this.aggregator = (ResponseAggregator<Object, V_NEW>) aggregator;
+        return _this;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
     public R send() {
-        return null;
+        return (R) new JavaAggregationRequest<>((JavaRequestBuilder<V, Request<V>>) this);
     }
 }

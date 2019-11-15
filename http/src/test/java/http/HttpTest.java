@@ -19,6 +19,7 @@ import com.google.gson.JsonParser;
 import net.daporkchop.lib.common.test.TestRandomData;
 import net.daporkchop.lib.encoding.basen.Base58;
 import net.daporkchop.lib.http.Http;
+import net.daporkchop.lib.http.impl.java.JavaHttpClient;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -31,13 +32,25 @@ public class HttpTest {
 
     @Test
     public void test() throws IOException {
-        final String url = "http://raw.githubusercontent.com/DaMatrix/betterMapArt/master/src/main/resources/colors.json";
+        final String url = "https://raw.githubusercontent.com/DaMatrix/betterMapArt/master/src/main/resources/colors.json";
         String data = Http.getString(url);
+        String data2;
+
+        JavaHttpClient client = new JavaHttpClient();
+        try {
+            data2 = client.request().configure(url).aggregateToString().send().complete().syncUninterruptibly().getNow();
+        } finally {
+            client.close().syncUninterruptibly();
+        }
 
         if (DEBUG_PRINT) {
             System.out.println(data);
         }
         if (!data.trim().endsWith("}")) {
+            throw new IllegalStateException();
+        } else if (!data2.trim().endsWith("}")) {
+            throw new IllegalStateException();
+        } else if (!data.equals(data2)) {
             throw new IllegalStateException();
         }
     }

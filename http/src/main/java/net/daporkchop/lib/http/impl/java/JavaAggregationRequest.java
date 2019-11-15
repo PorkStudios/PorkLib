@@ -15,7 +15,10 @@
 
 package net.daporkchop.lib.http.impl.java;
 
+import io.netty.buffer.Unpooled;
 import lombok.NonNull;
+import net.daporkchop.lib.http.request.Request;
+import net.daporkchop.lib.http.response.aggregate.ResponseAggregator;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,13 +29,23 @@ import java.io.InputStream;
  *
  * @author DaPorkchop_
  */
-public final class JavaAggregationRequest<V> extends JavaRequest<V, JavaAggregationRequest<V>> {
-    public JavaAggregationRequest(@NonNull JavaHttpClient client, @NonNull JavaRequestBuilder<V, JavaAggregationRequest<V>> builder) throws IOException {
-        super(client, builder);
+public final class JavaAggregationRequest<V> extends JavaRequest<V, Request<V>> {
+    public JavaAggregationRequest(@NonNull JavaRequestBuilder<V, Request<V>> builder) {
+        super(builder);
     }
 
     @Override
-    protected void implRecvBody(@NonNull InputStream bodyIn) throws IOException {
-        //TODO: implement this
+    protected V implReceiveBody(@NonNull InputStream bodyIn) throws Exception {
+        ResponseAggregator<Object, V> aggregator = this.builder.aggregator;
+        Object temp = aggregator.init(this.response.getNow(), this);
+        try {
+            byte[] buf = new byte[4096];
+            for (int i; (i = bodyIn.read(buf)) > 0;)    {
+                temp = aggregator.add(temp, Unpooled.wrappedBuffer(buf, 0, i), this);
+            }
+            return aggregator.doFinal(temp, this);
+        } finally {
+            aggregator.deinit(temp, this);
+        }
     }
 }

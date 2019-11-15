@@ -50,6 +50,6 @@ public final class ToStringAggregator extends AbstractByteBufAggregator<String> 
 
     @Override
     public String doFinal(@NonNull ByteBuf temp, @NonNull Request<String> request) throws Exception {
-        return temp.toString();
+        return temp.toString(this.charset);
     }
 }

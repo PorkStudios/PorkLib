@@ -19,10 +19,7 @@ import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import io.netty.util.concurrent.Promise;
-import io.netty.util.concurrent.ThreadPerTaskExecutor;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.HttpClient;
 import net.daporkchop.lib.http.request.Request;
@@ -37,14 +34,19 @@ import java.util.concurrent.ThreadFactory;
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
 @Accessors(fluent = true)
 public class JavaHttpClient implements HttpClient {
     @NonNull
     protected volatile ThreadFactory factory;
     @NonNull
-    protected final EventExecutor executor;
-    protected final Promise<Void> closeFuture = this.executor.newPromise();
+    protected final    EventExecutor executor;
+    protected final    Promise<Void> closeFuture;
+
+    public JavaHttpClient(@NonNull ThreadFactory factory, @NonNull EventExecutor executor) {
+        this.factory = factory;
+        this.executor = executor;
+        this.closeFuture = executor.newPromise();
+    }
 
     public JavaHttpClient(@NonNull EventExecutor executor) {
         this(Thread::new, executor);
@@ -65,6 +67,8 @@ public class JavaHttpClient implements HttpClient {
 
     @Override
     public Future<Void> close() {
+        //TODO: do this lol
+        this.closeFuture.setSuccess(null);
         return this.closeFuture;
     }
 

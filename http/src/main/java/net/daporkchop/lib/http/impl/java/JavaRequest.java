@@ -38,22 +38,22 @@ import java.util.StringJoiner;
  *
  * @author DaPorkchop_
  */
-public abstract class JavaRequest<V, R extends Request<V>> implements Request<V>, Runnable {
+public abstract class JavaRequest<V> implements Request<V>, Runnable {
     protected final JavaHttpClient client;
     protected final Thread thread;
-    protected final JavaRequestBuilder<V, R> builder;
+    protected final JavaRequestBuilder<V> builder;
     protected HttpURLConnection connection;
 
     protected final Promise<Response> response;
     protected final Promise<V> complete;
 
-    public JavaRequest(@NonNull JavaRequestBuilder<V, R> builder) {
+    public JavaRequest(@NonNull JavaRequestBuilder<V> builder) {
         this.client = builder.client;
         this.builder = builder;
-        this.thread = client.factory.newThread(this);
+        this.thread = this.client.factory.newThread(this);
 
-        this.response = client.executor.newPromise();
-        this.complete = client.executor.newPromise();
+        this.response = this.client.executor.newPromise();
+        this.complete = this.client.executor.newPromise();
 
         this.complete.addListener(f -> {
             if (!this.response.isDone()) {

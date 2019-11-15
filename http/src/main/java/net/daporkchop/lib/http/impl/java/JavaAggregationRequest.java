@@ -29,8 +29,8 @@ import java.io.InputStream;
  *
  * @author DaPorkchop_
  */
-public final class JavaAggregationRequest<V> extends JavaRequest<V, Request<V>> {
-    public JavaAggregationRequest(@NonNull JavaRequestBuilder<V, Request<V>> builder) {
+public final class JavaAggregationRequest<V> extends JavaRequest<V> {
+    public JavaAggregationRequest(@NonNull JavaRequestBuilder<V> builder) {
         super(builder);
     }
 

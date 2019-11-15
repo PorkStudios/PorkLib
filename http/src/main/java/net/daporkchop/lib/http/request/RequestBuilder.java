@@ -31,14 +31,14 @@ import java.nio.charset.StandardCharsets;
  *
  * @author DaPorkchop_
  */
-public interface RequestBuilder<V, R extends Request<V>> {
+public interface RequestBuilder<V> {
     /**
      * Configures this {@link RequestBuilder} to send the request to the given URL.
      *
      * @param url the URL that the request should be sent to
      * @return this {@link RequestBuilder} instance
      */
-    RequestBuilder<V, R> configure(@NonNull String url);
+    RequestBuilder<V> configure(@NonNull String url);
 
     /**
      * Configures this {@link RequestBuilder} to use the given {@link ResponseAggregator}.
@@ -47,14 +47,14 @@ public interface RequestBuilder<V, R extends Request<V>> {
      * @param <V_NEW>    the new return value type
      * @return this {@link RequestBuilder} instance
      */
-    <V_NEW> RequestBuilder<V_NEW, Request<V_NEW>> aggregator(@NonNull ResponseAggregator<?, V_NEW> aggregator);
+    <V_NEW> RequestBuilder<V_NEW> aggregator(@NonNull ResponseAggregator<?, V_NEW> aggregator);
 
     /**
      * Configures this {@link RequestBuilder} to aggregate data into a {@link String}.
      *
      * @return this {@link RequestBuilder} instance
      */
-    default RequestBuilder<String, Request<String>> aggregateToString() {
+    default RequestBuilder<String> aggregateToString() {
         return this.aggregator(new ToStringAggregator(StandardCharsets.UTF_8));
     }
 
@@ -63,7 +63,7 @@ public interface RequestBuilder<V, R extends Request<V>> {
      *
      * @return this {@link RequestBuilder} instance
      */
-    default RequestBuilder<byte[], Request<byte[]>> aggregateToByteArray() {
+    default RequestBuilder<byte[]> aggregateToByteArray() {
         return this.aggregator(new ToByteArrayAggregator());
     }
 
@@ -72,7 +72,7 @@ public interface RequestBuilder<V, R extends Request<V>> {
      *
      * @return this {@link RequestBuilder} instance
      */
-    default RequestBuilder<ByteBuf, Request<ByteBuf>> aggregateToByteBuf() {
+    default RequestBuilder<ByteBuf> aggregateToByteBuf() {
         return this.aggregator(new ToByteBufAggregator());
     }
 
@@ -84,5 +84,5 @@ public interface RequestBuilder<V, R extends Request<V>> {
      *
      * @return an {@link Request} constructed using the configured settings
      */
-    R send();
+    Request<V> send();
 }

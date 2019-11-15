@@ -30,7 +30,7 @@ public interface HttpClient {
      *
      * @return a new {@link RequestBuilder} instance
      */
-    RequestBuilder<Void, Request<Void>> request();
+    RequestBuilder<Void> request();
 
     /**
      * Closes this {@link HttpClient}, disconnecting any active requests and releasing any resources allocated

@@ -61,7 +61,7 @@ public class JavaHttpClient implements HttpClient {
     }
 
     @Override
-    public RequestBuilder<Void, Request<Void>> request() {
+    public RequestBuilder<Void> request() {
         return new JavaRequestBuilder<>(this);
     }
 

@@ -28,7 +28,7 @@ import java.net.URL;
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-public class JavaRequestBuilder<V, R extends Request<V>> implements RequestBuilder<V, R> {
+public class JavaRequestBuilder<V> implements RequestBuilder<V> {
     @NonNull
     protected final JavaHttpClient client;
 
@@ -37,7 +37,7 @@ public class JavaRequestBuilder<V, R extends Request<V>> implements RequestBuild
     protected ResponseAggregator<Object, V> aggregator;
 
     @Override
-    public RequestBuilder<V, R> configure(@NonNull String url) {
+    public RequestBuilder<V> configure(@NonNull String url) {
         try {
             this.url = new URL(url);
         } catch (MalformedURLException e)   {
@@ -48,15 +48,15 @@ public class JavaRequestBuilder<V, R extends Request<V>> implements RequestBuild
 
     @Override
     @SuppressWarnings("unchecked")
-    public <V_NEW> RequestBuilder<V_NEW, Request<V_NEW>> aggregator(@NonNull ResponseAggregator<?, V_NEW> aggregator) {
-        JavaRequestBuilder<V_NEW, Request<V_NEW>> _this = (JavaRequestBuilder<V_NEW, Request<V_NEW>>) this;
+    public <V_NEW> RequestBuilder<V_NEW> aggregator(@NonNull ResponseAggregator<?, V_NEW> aggregator) {
+        JavaRequestBuilder<V_NEW> _this = (JavaRequestBuilder<V_NEW>) this;
         _this.aggregator = (ResponseAggregator<Object, V_NEW>) aggregator;
         return _this;
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public R send() {
-        return (R) new JavaAggregationRequest<>((JavaRequestBuilder<V, Request<V>>) this);
+    public Request<V> send() {
+        return new JavaAggregationRequest<>(this);
     }
 }

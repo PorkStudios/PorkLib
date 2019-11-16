@@ -13,43 +13,36 @@
  *
  */
 
-package net.daporkchop.lib.http.header;
+package net.daporkchop.lib.http.header.map;
 
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.http.header.Header;
+import net.daporkchop.lib.http.header.HeaderImpl;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
- * A simple, hashtable-based implementation of {@link HeaderMap}.
+ * A simple implementation of {@link MutableHeaderMap}.
  *
  * @author DaPorkchop_
  */
-public class HeaderMapImpl implements HeaderMap {
-    @NonNull
+public final class MutableHeaderMapImpl implements MutableHeaderMap {
     protected final List<Header>        list;
-    @NonNull
     protected final Map<String, Header> map;
 
-    public HeaderMapImpl() {
+    public MutableHeaderMapImpl() {
         this.list = new ArrayList<>();
         this.map = new HashMap<>();
     }
 
-    public HeaderMapImpl(@NonNull HeaderMap source) {
+    public MutableHeaderMapImpl(@NonNull HeaderMap source) {
         this();
-        source.forEach((key, value) -> {
-            Header header = new HeaderImpl(key, value);
-            key = key.toLowerCase();
-            if (this.map.putIfAbsent(key, header) != null)  {
-                throw new IllegalArgumentException(String.format("Duplicate header key: \"%s\" (to add: \"%s\", in map: \"%s\")", key, header.key(), this.map.get(key).key()));
-            } else {
-                this.list.add(header);
-            }
-        });
+        this.putAll(source);
     }
 
     @Override
@@ -65,5 +58,47 @@ public class HeaderMapImpl implements HeaderMap {
     @Override
     public synchronized Header get(@NonNull String key) {
         return this.map.get(key.toLowerCase());
+    }
+
+    @Override
+    public synchronized String put(@NonNull String key, @NonNull String value) {
+        Header header = new HeaderImpl(key, value);
+        key = key.toLowerCase();
+        Header old = this.map.putIfAbsent(key, header);
+        if (old == null) {
+            //the header is new
+            this.list.add(header);
+            return null;
+        } else {
+            //the header already exists
+            this.map.replace(key, old, header);
+            this.list.set(this.list.indexOf(old), header);
+            return old.value();
+        }
+    }
+
+    @Override
+    public synchronized String remove(@NonNull String key) {
+        Header old = this.map.remove(key.toLowerCase());
+        return old != null && this.list.remove(old) ? old.value() : null;
+    }
+
+    @Override
+    public synchronized Header remove(int index) throws IndexOutOfBoundsException {
+        Header header = this.list.remove(index);
+        if (!this.map.remove(header.key().toLowerCase(), header))   {
+            throw new IllegalStateException(String.format("Couldn't remove header at index %d (key \"%s\" (internal: \"%s\") is not present in map!)", index, header.key(), header.key().toLowerCase()));
+        }
+        return header;
+    }
+
+    @Override
+    public synchronized void forEach(@NonNull Consumer<Header> callback) {
+        this.list.forEach(callback);
+    }
+
+    @Override
+    public synchronized void forEach(@NonNull BiConsumer<String, String> callback) {
+        this.list.forEach(header -> callback.accept(header.key(), header.value()));
     }
 }

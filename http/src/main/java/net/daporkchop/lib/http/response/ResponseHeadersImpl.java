@@ -19,7 +19,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.StatusCode;
-import net.daporkchop.lib.http.header.HeaderMap;
+import net.daporkchop.lib.http.header.map.HeaderMap;
 
 /**
  * A simple implementation of {@link ResponseHeaders}.

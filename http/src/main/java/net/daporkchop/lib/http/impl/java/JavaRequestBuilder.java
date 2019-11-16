@@ -19,6 +19,8 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.http.header.map.HeaderMap;
+import net.daporkchop.lib.http.header.map.HeaderMaps;
 import net.daporkchop.lib.http.request.Request;
 import net.daporkchop.lib.http.request.RequestBuilder;
 import net.daporkchop.lib.http.response.aggregate.ResponseAggregator;
@@ -38,6 +40,9 @@ public class JavaRequestBuilder<V> implements RequestBuilder<V> {
     protected URL url;
 
     protected ResponseAggregator<Object, V> aggregator;
+
+    @Setter
+    protected HeaderMap headers = HeaderMaps.empty();
 
     @Setter
     protected boolean silentlyFollowRedirects = false;

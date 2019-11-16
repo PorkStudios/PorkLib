@@ -17,6 +17,7 @@ package net.daporkchop.lib.http.request;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
+import net.daporkchop.lib.http.header.map.HeaderMap;
 import net.daporkchop.lib.http.response.aggregate.ResponseAggregator;
 import net.daporkchop.lib.http.response.aggregate.ToByteArrayAggregator;
 import net.daporkchop.lib.http.response.aggregate.ToByteBufAggregator;
@@ -83,6 +84,14 @@ public interface RequestBuilder<V> {
      * @return this {@link RequestBuilder} instance
      */
     RequestBuilder<V> silentlyFollowRedirects(boolean silentlyFollowRedirects);
+
+    /**
+     * Sets the headers to be sent with the request (default: empty)
+     *
+     * @param headers the headers to use
+     * @return this {@link RequestBuilder} instance
+     */
+    RequestBuilder<V> headers(@NonNull HeaderMap headers);
 
     /**
      * Initiates the HTTP request using the configured settings.

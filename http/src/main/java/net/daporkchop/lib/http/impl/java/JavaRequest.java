@@ -21,7 +21,7 @@ import io.netty.util.concurrent.Promise;
 import lombok.NonNull;
 import net.daporkchop.lib.http.StatusCode;
 import net.daporkchop.lib.http.header.HeaderImpl;
-import net.daporkchop.lib.http.header.HeaderSnapshot;
+import net.daporkchop.lib.http.header.map.HeaderSnapshot;
 import net.daporkchop.lib.http.request.Request;
 import net.daporkchop.lib.http.response.DelegatingResponseBodyImpl;
 import net.daporkchop.lib.http.response.ResponseBody;
@@ -89,7 +89,10 @@ public class JavaRequest<V> implements Request<V>, Runnable {
         try {
             URL url = this.builder.url;
             do {
-                (this.connection = (HttpURLConnection) url.openConnection()).connect();
+                this.connection = (HttpURLConnection) url.openConnection();
+                //set request headers
+                this.builder.headers.forEach(this.connection::setRequestProperty);
+                this.connection.connect();
 
                 ResponseHeadersImpl response = new ResponseHeadersImpl(
                         StatusCode.of(this.connection.getResponseCode(), this.connection.getResponseMessage()),

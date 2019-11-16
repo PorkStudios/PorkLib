@@ -13,15 +13,17 @@
  *
  */
 
-package net.daporkchop.lib.http.header;
+package net.daporkchop.lib.http.header.map;
 
 import lombok.NonNull;
+import net.daporkchop.lib.http.header.Header;
 
 /**
  * A {@link HeaderMap} that is mutable (i.e. headers may be added and removed as needed).
  *
  * @author DaPorkchop_
  */
+//TODO: more methods? such as replace or add
 public interface MutableHeaderMap extends HeaderMap {
     @Override
     default HeaderMap snapshot() {
@@ -35,9 +37,7 @@ public interface MutableHeaderMap extends HeaderMap {
      * @param value the value of the header
      * @return the previous value, or {@code null} if no previous value for the given key existed
      */
-    default String put(@NonNull String key, @NonNull String value) {
-        throw new UnsupportedOperationException();
-    }
+    String put(@NonNull String key, @NonNull String value);
 
     /**
      * Puts all headers from the source map into this map.
@@ -54,7 +54,14 @@ public interface MutableHeaderMap extends HeaderMap {
      * @param key the key of the header
      * @return the removed value, or {@code null} if no header with the given key existed
      */
-    default String remove(@NonNull String key) {
-        throw new UnsupportedOperationException();
-    }
+    String remove(@NonNull String key);
+
+    /**
+     * Removes the header at the given index from this map.
+     *
+     * @param index the index of the header to remove
+     * @return the removed header
+     * @throws IndexOutOfBoundsException if the given index is out of bounds
+     */
+    Header remove(int index) throws IndexOutOfBoundsException;
 }

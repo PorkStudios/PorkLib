@@ -13,9 +13,10 @@
  *
  */
 
-package net.daporkchop.lib.http.header;
+package net.daporkchop.lib.http.header.map;
 
 import lombok.NonNull;
+import net.daporkchop.lib.http.header.Header;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -32,31 +33,6 @@ import java.util.function.Consumer;
  * @author DaPorkchop_
  */
 public interface HeaderMap {
-    /**
-     * An empty {@link HeaderMap} instance.
-     */
-    HeaderMap EMPTY = new HeaderMap() {
-        @Override
-        public int size() {
-            return 0;
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return true;
-        }
-
-        @Override
-        public Header get(int index) throws IndexOutOfBoundsException {
-            throw new IndexOutOfBoundsException(String.valueOf(index));
-        }
-
-        @Override
-        public Header get(String key) {
-            return null;
-        }
-    };
-
     /**
      * @return the number of headers in this map
      */

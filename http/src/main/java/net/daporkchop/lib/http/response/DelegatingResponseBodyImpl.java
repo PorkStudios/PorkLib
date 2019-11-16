@@ -20,7 +20,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.StatusCode;
-import net.daporkchop.lib.http.header.HeaderMap;
+import net.daporkchop.lib.http.header.map.HeaderMap;
 
 /**
  * A simple implementation {@link ResponseBody} which stores only the value and delegates all methods from {@link ResponseHeaders} to a separate instance of

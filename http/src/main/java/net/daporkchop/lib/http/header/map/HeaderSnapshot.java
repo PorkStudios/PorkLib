@@ -13,10 +13,12 @@
  *
  */
 
-package net.daporkchop.lib.http.header;
+package net.daporkchop.lib.http.header.map;
 
 import lombok.NonNull;
 import net.daporkchop.lib.common.function.PFunctions;
+import net.daporkchop.lib.http.header.Header;
+import net.daporkchop.lib.http.header.HeaderImpl;
 import net.daporkchop.lib.http.util.exception.HTTPException;
 import net.daporkchop.lib.http.util.exception.MalformedResponseException;
 
@@ -28,7 +30,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * An immutable {@link HeaderMap}
+ * A simple implementation of an immutable {@link HeaderMap}.
  *
  * @author DaPorkchop_
  */
@@ -49,9 +51,7 @@ public final class HeaderSnapshot implements HeaderMap {
             this.value[i] = (old instanceof HeaderImpl) ? old : new HeaderImpl(old);
         }
         this.map = map
-                ? source instanceof HeaderMapImpl
-                ? new HashMap<>(((HeaderMapImpl) source).map)
-                : Arrays.stream(this.value).collect(Collectors.toMap(header -> header.key().toLowerCase(), PFunctions.identity()))
+                ? Arrays.stream(this.value).collect(Collectors.toMap(header -> header.key().toLowerCase(), PFunctions.identity()))
                 : null;
     }
 
@@ -95,10 +95,5 @@ public final class HeaderSnapshot implements HeaderMap {
         } else {
             return this.map.get(key.toLowerCase());
         }
-    }
-
-    @Override
-    public HeaderMap snapshot() {
-        return this;
     }
 }

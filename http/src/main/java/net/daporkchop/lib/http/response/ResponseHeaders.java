@@ -16,7 +16,7 @@
 package net.daporkchop.lib.http.response;
 
 import net.daporkchop.lib.http.StatusCode;
-import net.daporkchop.lib.http.header.HeaderMap;
+import net.daporkchop.lib.http.header.map.HeaderMap;
 
 /**
  * The server's response to an HTTP request.

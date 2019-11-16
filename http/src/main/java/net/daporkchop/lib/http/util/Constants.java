@@ -15,21 +15,16 @@
 
 package net.daporkchop.lib.http.util;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.util.collection.IntObjectHashMap;
 import io.netty.util.collection.IntObjectMap;
-import lombok.NonNull;
 import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.common.pool.Pool;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.http.StatusCode;
-import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.util.Arrays;
-import java.util.regex.Pattern;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
-
-import static net.daporkchop.lib.math.primitive.PMath.*;
 
 /**
  * Contains various constant values used frequently throughout the library.
@@ -49,7 +44,8 @@ public class Constants {
                     }
             ));
 
-    public final String USER_AGENT = "PorkLib/" + PorkUtil.PORKLIB_VERSION;
+    public final String       USER_AGENT              = "PorkLib/" + PorkUtil.PORKLIB_VERSION;
+    public final Pool<String> DEFAULT_USER_AGENT_POOL = Pool.singleton(USER_AGENT);
 
     /*public final ThreadLocal<byte[]> CACHE_4KB_BUFFER = ThreadLocal.withInitial(() -> new byte[4096]);
 

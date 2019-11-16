@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.http.impl.java;
 
+import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -38,24 +39,24 @@ import java.util.function.Consumer;
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
+@Setter
 @Accessors(fluent = true, chain = true)
 public class JavaRequestBuilder<V> implements RequestBuilder<V> {
     @NonNull
     protected final JavaHttpClient client;
 
+    @Setter(AccessLevel.NONE)
     protected URL url;
 
+    @Setter(AccessLevel.NONE)
     protected ResponseAggregator<Object, V> aggregator;
 
-    @Setter
     @NonNull
     protected HeaderMap headers = HeaderMaps.empty();
 
-    @Setter
     @NonNull
     protected Authentication authentication = Authentication.none();
 
-    @Setter
     protected boolean followRedirects = false;
 
     @Override
@@ -113,7 +114,7 @@ public class JavaRequestBuilder<V> implements RequestBuilder<V> {
         headers.forEach(addCallback);
 
         if (!headers.hasKey("user-agent"))  { //only add user-agent header if it's not already set
-            addCallback.accept("User-Agent", Constants.USER_AGENT);
+            addCallback.accept("User-Agent", this.client.userAgentPool.any());
         }
     }
 }

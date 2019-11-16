@@ -21,9 +21,11 @@ import io.netty.util.concurrent.GlobalEventExecutor;
 import io.netty.util.concurrent.Promise;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.pool.Pool;
 import net.daporkchop.lib.http.HttpClient;
 import net.daporkchop.lib.http.request.Request;
 import net.daporkchop.lib.http.request.RequestBuilder;
+import net.daporkchop.lib.http.util.Constants;
 
 import java.util.concurrent.ThreadFactory;
 
@@ -34,30 +36,44 @@ import java.util.concurrent.ThreadFactory;
  *
  * @author DaPorkchop_
  */
+//TODO: a builder class might be better suited here than all these constructors
 @Accessors(fluent = true)
 public class JavaHttpClient implements HttpClient {
-    @NonNull
     protected volatile ThreadFactory factory;
-    @NonNull
     protected final    EventExecutor executor;
     protected final    Promise<Void> closeFuture;
 
-    public JavaHttpClient(@NonNull ThreadFactory factory, @NonNull EventExecutor executor) {
+    protected final Pool<String> userAgentPool;
+
+    public JavaHttpClient(@NonNull ThreadFactory factory, @NonNull EventExecutor executor, @NonNull Pool<String> userAgentPool) {
         this.factory = factory;
         this.executor = executor;
         this.closeFuture = executor.newPromise();
+        this.userAgentPool = userAgentPool;
     }
 
     public JavaHttpClient(@NonNull EventExecutor executor) {
-        this(Thread::new, executor);
+        this(Thread::new, executor, Constants.DEFAULT_USER_AGENT_POOL);
     }
 
     public JavaHttpClient(@NonNull ThreadFactory factory) {
-        this(factory, GlobalEventExecutor.INSTANCE);
+        this(factory, GlobalEventExecutor.INSTANCE, Constants.DEFAULT_USER_AGENT_POOL);
+    }
+
+    public JavaHttpClient(@NonNull EventExecutor executor, @NonNull Pool<String> userAgentPool) {
+        this(Thread::new, executor, userAgentPool);
+    }
+
+    public JavaHttpClient(@NonNull ThreadFactory factory, @NonNull Pool<String> userAgentPool) {
+        this(factory, GlobalEventExecutor.INSTANCE, userAgentPool);
+    }
+
+    public JavaHttpClient(@NonNull Pool<String> userAgentPool) {
+        this(Thread::new, GlobalEventExecutor.INSTANCE, userAgentPool);
     }
 
     public JavaHttpClient() {
-        this(Thread::new, GlobalEventExecutor.INSTANCE);
+        this(Thread::new, GlobalEventExecutor.INSTANCE, Constants.DEFAULT_USER_AGENT_POOL);
     }
 
     @Override

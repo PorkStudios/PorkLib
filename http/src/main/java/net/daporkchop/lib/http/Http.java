@@ -26,6 +26,7 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.InputStreamContent;
 import com.google.api.client.http.apache.ApacheHttpTransport;
 import lombok.NonNull;
+import lombok.experimental.UtilityClass;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -36,12 +37,15 @@ import java.util.Arrays;
 import java.util.Map;
 
 /**
+ * Helper class for sending simple HTTP requests with a single method call.
+ *
  * @author DaPorkchop_
  */
-@Deprecated
+//TODO: clean this up to eliminate dependency on Google http-client
+@UtilityClass
 public class Http {
-    private static final HttpTransport HTTP_TRANSPORT = new ApacheHttpTransport();
-    private static final HttpRequestFactory REQUEST_FACTORY = HTTP_TRANSPORT.createRequestFactory();
+    private final HttpTransport      HTTP_TRANSPORT  = new ApacheHttpTransport();
+    private final HttpRequestFactory REQUEST_FACTORY = HTTP_TRANSPORT.createRequestFactory();
 
     static {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {

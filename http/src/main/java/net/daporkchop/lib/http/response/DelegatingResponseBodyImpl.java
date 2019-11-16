@@ -15,60 +15,34 @@
 
 package net.daporkchop.lib.http.response;
 
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.StatusCode;
 import net.daporkchop.lib.http.header.HeaderMap;
 
 /**
- * The server's response to an HTTP request.
+ * A simple implementation {@link ResponseBody} which stores only the value and delegates all methods from {@link ResponseHeaders} to a separate instance of
+ * {@link ResponseHeaders}.
  *
  * @author DaPorkchop_
  */
-public interface Response {
-    /**
-     * @return the {@link StatusCode} that the server responded with
-     */
-    StatusCode status();
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public final class DelegatingResponseBodyImpl<V> implements ResponseBody<V> {
+    @NonNull
+    protected final ResponseHeaders delegate;
+    protected final V               value;
 
-    /**
-     * @return a {@link HeaderMap} containing the headers that the server responded with
-     */
-    HeaderMap headers();
-
-    /**
-     * Gets the length of the response's body's content (in bytes).
-     * <p>
-     * If the body's length is not known (e.g. Transfer-Encoding is "chunked"), this will return {@code -1L}.
-     *
-     * @return the length of the response's body's content (in bytes)
-     */
-    default long contentLength() {
-        String length = this.headers().getValue("content-length");
-        return length == null ? -1L : Long.parseLong(length);
+    @Override
+    public StatusCode status() {
+        return this.delegate.status();
     }
 
-    /**
-     * @return whether or not the server's response is a redirect
-     */
-    default boolean isRedirect() {
-        int code = this.status().code();
-        return code == 301 || code == 302; //TODO: 3xx status codes, not just 301 and 302
-    }
-
-    /**
-     * Gets the location that this request is being redirected to.
-     * <p>
-     * If the server's response does not indicate a redirect, this method returns {@code null}.
-     *
-     * @return the location that this request is being redirected to
-     */
-    default String redirectLocation() {
-        int code = this.status().code();
-        switch (code) {
-            case 301:
-            case 302:
-                return this.headers().getValue("location");
-            default:
-                return null;
-        }
+    @Override
+    public HeaderMap headers() {
+        return this.delegate.headers();
     }
 }

@@ -16,7 +16,8 @@
 package net.daporkchop.lib.http.request;
 
 import io.netty.util.concurrent.Future;
-import net.daporkchop.lib.http.response.Response;
+import net.daporkchop.lib.http.response.ResponseBody;
+import net.daporkchop.lib.http.response.ResponseHeaders;
 
 /**
  * An HTTP request.
@@ -26,26 +27,144 @@ import net.daporkchop.lib.http.response.Response;
  */
 public interface Request<V> {
     /**
-     * This future is updated once the remote server has responded with a status code and headers.
+     * This future is completed once the remote server has responded with a status code and headers, or this request fails before the headers are received.
      *
      * @return a {@link Future} that will be notified when headers have been received
      */
-    Future<Response> response();
+    Future<ResponseHeaders> headersFuture();
 
     /**
-     * This future is updated once the request has been completed with the final value obtained from the request, or marked as completed exceptionally if
-     * an exception occurred while processing the request.
+     * Waits for {@link #headersFuture()} to be completed.
+     * <p>
+     * This will block until the server responds with a status code+headers, or this request fails before the headers are received.
+     *
+     * @return this {@link Request} instance
+     * @see #headersFuture()
+     * @see #syncHeadersInterruptably()
+     */
+    default Request<V> syncHeaders() {
+        this.headersFuture().syncUninterruptibly();
+        return this;
+    }
+
+    /**
+     * Waits for {@link #headersFuture()} to be completed.
+     * <p>
+     * This will block until the server responds with a status code+headers, or this request fails before the headers are received.
+     *
+     * @return this {@link Request} instance
+     * @throws InterruptedException if the current thread is interrupted
+     * @see #headersFuture()
+     * @see #syncHeaders()
+     */
+    default Request<V> syncHeadersInterruptably() throws InterruptedException {
+        this.headersFuture().sync();
+        return this;
+    }
+
+    /**
+     * Gets the {@link ResponseHeaders} from {@link #headersFuture()}, blocking if needed.
+     * <p>
+     * This will block until the server responds with a status code+headers, or this request fails before the headers are received.
+     *
+     * @return the status code+headers that the server responded with
+     * @see #headersFuture()
+     * @see #syncHeaders()
+     * @see #syncHeadersInterruptablyAndGet()
+     */
+    default ResponseHeaders syncHeadersAndGet() {
+        return this.headersFuture().syncUninterruptibly().getNow();
+    }
+
+    /**
+     * Gets the {@link ResponseHeaders} from {@link #headersFuture()}, blocking if needed.
+     * <p>
+     * This will block until the server responds with a status code+headers, or this request fails before the headers are received.
+     *
+     * @return the status code+headers that the server responded with
+     * @throws InterruptedException if the current thread is interrupted
+     * @see #headersFuture()
+     * @see #syncHeadersInterruptably()
+     * @see #syncHeadersAndGet()
+     */
+    default ResponseHeaders syncHeadersInterruptablyAndGet() throws InterruptedException {
+        return this.headersFuture().sync().getNow();
+    }
+
+    /**
+     * This future is completed once this request has been completed with the final, aggregated value, or this request fails before the body is received.
+     * <p>
+     * Note that it is possible for {@link #headersFuture()} to have succeeded, but this future to have failed (e.g. in case of network failure before
+     * the entire body could be read).
      *
      * @return a {@link Future} that will be notified when the request is complete
      */
-    Future<V> complete();
+    Future<ResponseBody<V>> bodyFuture();
+
+    /**
+     * Waits for {@link #bodyFuture()} to be completed.
+     * <p>
+     * This will block until the server responds with a complete body, or this request fails.
+     *
+     * @return this {@link Request} instance
+     * @see #bodyFuture()
+     * @see #syncBodyInterruptably()
+     */
+    default Request<V> syncBody() {
+        this.bodyFuture().syncUninterruptibly();
+        return this;
+    }
+
+    /**
+     * Waits for {@link #bodyFuture()} to be completed.
+     * <p>
+     * This will block until the server responds with a complete body, or this request fails.
+     *
+     * @return this {@link Request} instance
+     * @throws InterruptedException if the current thread is interrupted
+     * @see #bodyFuture()
+     * @see #syncBody()
+     */
+    default Request<V> syncBodyInterruptably() throws InterruptedException {
+        this.bodyFuture().sync();
+        return this;
+    }
+
+    /**
+     * Gets the {@link ResponseBody} from {@link #bodyFuture()}, blocking if needed.
+     * <p>
+     * This will block until the server responds with a complete body, or this request fails.
+     *
+     * @return the status code+headers that the server responded with
+     * @see #bodyFuture()
+     * @see #syncBody()
+     * @see #syncBodyInterruptablyAndGet()
+     */
+    default ResponseBody<V> syncBodyAndGet() {
+        return this.bodyFuture().syncUninterruptibly().getNow();
+    }
+
+    /**
+     * Gets the {@link ResponseBody} from {@link #bodyFuture()}, blocking if needed.
+     * <p>
+     * This will block until the server responds with a complete body, or this request fails.
+     *
+     * @return the status code+headers that the server responded with
+     * @throws InterruptedException if the current thread is interrupted
+     * @see #bodyFuture()
+     * @see #syncBodyInterruptably()
+     * @see #syncBodyAndGet()
+     */
+    default ResponseBody<V> syncBodyInterruptablyAndGet() throws InterruptedException {
+        return this.bodyFuture().sync().getNow();
+    }
 
     /**
      * Attempts to close the HTTP request.
      * <p>
      * If the request has already been completed, this method does nothing.
      *
-     * @return the same {@link Future} instance as {@link #complete()}
+     * @return the same {@link Future} instance as {@link #bodyFuture()}
      */
-    Future<V> close();
+    Future<ResponseBody<V>> close();
 }

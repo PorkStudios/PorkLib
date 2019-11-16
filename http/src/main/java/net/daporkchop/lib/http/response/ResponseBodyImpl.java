@@ -22,18 +22,20 @@ import net.daporkchop.lib.http.StatusCode;
 import net.daporkchop.lib.http.header.HeaderMap;
 
 /**
- * A simple implementation of {@link Response}.
+ * A simple implementation of {@link ResponseBody}.
  *
  * @author DaPorkchop_
  */
 @Getter
 @Accessors(fluent = true)
-public final class ResponseImpl implements Response {
+public final class ResponseBodyImpl<V> implements ResponseBody<V> {
     protected final StatusCode status;
     protected final HeaderMap  headers;
+    protected final V value;
 
-    public ResponseImpl(@NonNull StatusCode status, @NonNull HeaderMap headers) {
+    public ResponseBodyImpl(@NonNull StatusCode status, @NonNull HeaderMap headers, V value) {
         this.status = status;
         this.headers = headers.snapshot();
+        this.value = value;
     }
 }

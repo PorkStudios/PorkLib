@@ -13,53 +13,27 @@
  *
  */
 
-package net.daporkchop.lib.http.response.aggregate;
+package net.daporkchop.lib.http.response;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.PooledByteBufAllocator;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.http.request.Request;
-import net.daporkchop.lib.http.response.ResponseHeaders;
+import net.daporkchop.lib.http.StatusCode;
+import net.daporkchop.lib.http.header.HeaderMap;
 
 /**
- * Base implementation of a {@link ResponseAggregator} that uses a {@link ByteBuf} as a temporary value.
+ * A simple implementation of {@link ResponseHeaders}.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public abstract class AbstractByteBufAggregator<V> implements ResponseAggregator<ByteBuf, V> {
-    @NonNull
-    protected final ByteBufAllocator alloc;
+public final class ResponseHeadersImpl implements ResponseHeaders {
+    protected final StatusCode status;
+    protected final HeaderMap  headers;
 
-    public AbstractByteBufAggregator() {
-        this(PooledByteBufAllocator.DEFAULT);
-    }
-
-    @Override
-    public ByteBuf init(@NonNull ResponseHeaders response, @NonNull Request<V> request) throws Exception {
-        long length = response.contentLength();
-        if (length < 0L)    {
-            return this.alloc.ioBuffer();
-        } else if (length > Integer.MAX_VALUE)  {
-            throw new IllegalArgumentException(String.format("Content-Length %d is too large!", length));
-        } else {
-            return this.alloc.ioBuffer((int) length, (int) length);
-        }
-    }
-
-    @Override
-    public ByteBuf add(@NonNull ByteBuf temp, @NonNull ByteBuf data, @NonNull Request<V> request) throws Exception {
-        return temp.writeBytes(data);
-    }
-
-    @Override
-    public void deinit(@NonNull ByteBuf temp, @NonNull Request<V> request) throws Exception {
-        temp.release();
+    public ResponseHeadersImpl(@NonNull StatusCode status, @NonNull HeaderMap headers) {
+        this.status = status;
+        this.headers = headers.snapshot();
     }
 }

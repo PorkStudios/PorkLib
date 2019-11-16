@@ -23,8 +23,10 @@ import net.daporkchop.lib.http.StatusCode;
 import net.daporkchop.lib.http.header.HeaderImpl;
 import net.daporkchop.lib.http.header.HeaderSnapshot;
 import net.daporkchop.lib.http.request.Request;
-import net.daporkchop.lib.http.response.Response;
-import net.daporkchop.lib.http.response.ResponseImpl;
+import net.daporkchop.lib.http.response.DelegatingResponseBodyImpl;
+import net.daporkchop.lib.http.response.ResponseBody;
+import net.daporkchop.lib.http.response.ResponseHeaders;
+import net.daporkchop.lib.http.response.ResponseHeadersImpl;
 import net.daporkchop.lib.http.response.aggregate.ResponseAggregator;
 
 import java.io.InputStream;
@@ -44,20 +46,20 @@ public class JavaRequest<V> implements Request<V>, Runnable {
     protected final JavaRequestBuilder<V> builder;
     protected       HttpURLConnection     connection;
 
-    protected final Promise<Response> response;
-    protected final Promise<V>        complete;
+    protected final Promise<ResponseHeaders> headers;
+    protected final Promise<ResponseBody<V>> body;
 
     public JavaRequest(@NonNull JavaRequestBuilder<V> builder) {
         this.client = builder.client;
         this.builder = builder;
         this.thread = this.client.factory.newThread(this);
 
-        this.response = this.client.executor.newPromise();
-        this.complete = this.client.executor.newPromise();
+        this.headers = this.client.executor.newPromise();
+        this.body = this.client.executor.newPromise();
 
-        this.complete.addListener(f -> {
-            if (!this.response.isDone()) {
-                this.response.setFailure(f.isSuccess() ? new IllegalStateException("Complete future was successful, but response future was never set!") : f.cause());
+        this.body.addListener(f -> {
+            if (!this.headers.isDone()) {
+                this.headers.setFailure(f.isSuccess() ? new IllegalStateException("Complete future was successful, but response future was never set!") : f.cause());
             }
         });
 
@@ -65,19 +67,19 @@ public class JavaRequest<V> implements Request<V>, Runnable {
     }
 
     @Override
-    public Future<Response> response() {
-        return this.response;
+    public Future<ResponseHeaders> headersFuture() {
+        return this.headers;
     }
 
     @Override
-    public Future<V> complete() {
-        return this.complete;
+    public Future<ResponseBody<V>> bodyFuture() {
+        return this.body;
     }
 
     @Override
-    public Future<V> close() {
+    public Future<ResponseBody<V>> close() {
         this.connection.disconnect();
-        return this.complete;
+        return this.body;
     }
 
     @Override
@@ -89,32 +91,32 @@ public class JavaRequest<V> implements Request<V>, Runnable {
             do {
                 (this.connection = (HttpURLConnection) url.openConnection()).connect();
 
-                {
-                    StatusCode status = StatusCode.of(this.connection.getResponseCode(), this.connection.getResponseMessage());
-                    ResponseImpl theResponse = new ResponseImpl(status, new HeaderSnapshot(this.connection.getHeaderFields().entrySet().stream()
-                            .map(entry -> {
-                                String key = entry.getKey();
-                                List<String> value = entry.getValue();
-                                if (key == null || value.isEmpty()) {
-                                    return null;
-                                } else if (value.size() == 1) {
-                                    return new HeaderImpl(key, value.get(0));
-                                } else {
-                                    return new HeaderImpl(key, value.stream().collect(() -> new StringJoiner(","), StringJoiner::add, StringJoiner::merge).toString());
-                                }
-                            })));
-                    if (this.builder.silentlyFollowRedirects && theResponse.isRedirect()) {
-                        url = new URL(theResponse.redirectLocation());
-                        this.connection.disconnect();
-                        continue;
-                    }
-                    this.response.setSuccess(theResponse);
+                ResponseHeadersImpl response = new ResponseHeadersImpl(
+                        StatusCode.of(this.connection.getResponseCode(), this.connection.getResponseMessage()),
+                        new HeaderSnapshot(this.connection.getHeaderFields().entrySet().stream()
+                                .map(entry -> {
+                                    String key = entry.getKey();
+                                    List<String> value = entry.getValue();
+                                    if (key == null || value.isEmpty()) {
+                                        return null;
+                                    } else if (value.size() == 1) {
+                                        return new HeaderImpl(key, value.get(0));
+                                    } else {
+                                        return new HeaderImpl(key, value.stream().collect(() -> new StringJoiner(","), StringJoiner::add, StringJoiner::merge).toString());
+                                    }
+                                })));
+
+                if (this.builder.silentlyFollowRedirects && response.isRedirect()) {
+                    url = new URL(response.redirectLocation());
+                    this.connection.disconnect();
+                    continue;
                 }
 
-                this.complete.setSuccess(this.implReceiveBody(this.connection.getInputStream()));
-            } while (!this.complete.isDone());
+                this.headers.setSuccess(response);
+                this.body.setSuccess(new DelegatingResponseBodyImpl<>(response, this.implReceiveBody(this.connection.getInputStream())));
+            } while (!this.body.isDone());
         } catch (Exception e) {
-            this.complete.setFailure(e);
+            this.body.setFailure(e);
         } finally {
             this.connection.disconnect();
         }
@@ -122,7 +124,7 @@ public class JavaRequest<V> implements Request<V>, Runnable {
 
     protected V implReceiveBody(@NonNull InputStream bodyIn) throws Exception {
         ResponseAggregator<Object, V> aggregator = this.builder.aggregator;
-        Object temp = aggregator.init(this.response.getNow(), this);
+        Object temp = aggregator.init(this.headers.getNow(), this);
         try {
             byte[] buf = new byte[4096];
             for (int i; (i = bodyIn.read(buf)) > 0; ) {

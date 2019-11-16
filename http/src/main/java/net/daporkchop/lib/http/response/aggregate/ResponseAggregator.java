@@ -18,7 +18,7 @@ package net.daporkchop.lib.http.response.aggregate;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.http.request.Request;
-import net.daporkchop.lib.http.response.Response;
+import net.daporkchop.lib.http.response.ResponseHeaders;
 
 /**
  * Aggregates data received from an HTTP response into a final object.
@@ -36,7 +36,7 @@ public interface ResponseAggregator<A, V> {
      * @return a new temporary value
      * @throws Exception if an exception occurs while creating a new temporary value
      */
-    A init(@NonNull Response response, @NonNull Request<V> request) throws Exception;
+    A init(@NonNull ResponseHeaders response, @NonNull Request<V> request) throws Exception;
 
     /**
      * Fired every time new data is received from the remote server.

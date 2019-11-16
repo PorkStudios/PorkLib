@@ -41,7 +41,8 @@ public class HttpTest {
             data2 = client.request().url(url)
                     .silentlyFollowRedirects(true)
                     .aggregateToString()
-                    .send().complete().syncUninterruptibly().getNow();
+                    .send()
+                    .syncBodyAndGet().value();
         } finally {
             client.close().syncUninterruptibly();
         }

@@ -39,7 +39,7 @@ public class HttpTest {
         JavaHttpClient client = new JavaHttpClient();
         try {
             data2 = client.request().url(url)
-                    .silentlyFollowRedirects(true)
+                    .followRedirects(true)
                     .aggregateToString()
                     .send()
                     .syncBodyAndGet().value();

@@ -18,6 +18,8 @@ package net.daporkchop.lib.http.request;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.http.header.map.HeaderMap;
+import net.daporkchop.lib.http.header.map.HeaderMaps;
+import net.daporkchop.lib.http.request.auth.Authentication;
 import net.daporkchop.lib.http.response.aggregate.ResponseAggregator;
 import net.daporkchop.lib.http.response.aggregate.ToByteArrayAggregator;
 import net.daporkchop.lib.http.response.aggregate.ToByteBufAggregator;
@@ -83,15 +85,53 @@ public interface RequestBuilder<V> {
      * @param silentlyFollowRedirects whether or not this request will follow redirects silently
      * @return this {@link RequestBuilder} instance
      */
-    RequestBuilder<V> silentlyFollowRedirects(boolean silentlyFollowRedirects);
+    RequestBuilder<V> followRedirects(boolean silentlyFollowRedirects);
 
     /**
-     * Sets the headers to be sent with the request (default: empty)
+     * Sets the headers to be sent with the request.
+     * <p>
+     * Defaults to {@link HeaderMaps#empty()}.
      *
      * @param headers the headers to use
      * @return this {@link RequestBuilder} instance
      */
     RequestBuilder<V> headers(@NonNull HeaderMap headers);
+
+    /**
+     * Sets a specific header to be sent with the request.
+     * <p>
+     * If a header with the given key already exists, it will be silently replaced by the new value.
+     * <p>
+     * Be aware that this method may cause unnecessarily large numbers of heap allocations in some situations, and such high-performance applications are
+     * strongly advised to set {@link #headers(HeaderMap)} directly.
+     *
+     * @param key   the key of the header to set
+     * @param value the value of the header to set
+     * @return this {@link RequestBuilder} instance
+     */
+    RequestBuilder<V> header(@NonNull String key, @NonNull String value);
+
+    /**
+     * Sets the "User-Agent" header to be sent with the request.
+     *
+     * @param userAgent the new user agent
+     * @return this {@link RequestBuilder} instance
+     * @see #header(String, String) for why this method should be avoided in high-performance applications
+     */
+    default RequestBuilder<V> userAgent(@NonNull String userAgent) {
+        return this.header("User-Agent", userAgent);
+    }
+
+    /**
+     * Sets the HTTP authentication method to be used by the request.
+     * <p>
+     * Defaults to {@link Authentication#none()}.
+     *
+     * @param authentication the new HTTP authentication method to use
+     * @return this {@link RequestBuilder} instance
+     * @see Authentication#basic(String, String)
+     */
+    RequestBuilder<V> authentication(@NonNull Authentication authentication);
 
     /**
      * Initiates the HTTP request using the configured settings.

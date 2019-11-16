@@ -28,7 +28,7 @@ import java.util.function.Consumer;
  * methods in this interface, or may modify the capitalization in any way they desire. In other words: don't depend on the capitalization of keys to
  * be preserved!
  * <p>
- * All methods in all implementations of this interface are expected to be thread-safe at the least (not necessarily concurrent).
+ * Unless otherwise explicitly stated, implementations make no guarantees as to thread-safety or concurrency.
  *
  * @author DaPorkchop_
  */
@@ -115,6 +115,17 @@ public interface HeaderMap {
      */
     default HeaderMap snapshot() {
         return this;
+    }
+
+    /**
+     * Gets a mutable copy of this {@link HeaderMap}.
+     * <p>
+     * The returned map will be completely distinct from this map, and have exactly identical contents.
+     *
+     * @return a mutable copy of this {@link HeaderMap}
+     */
+    default MutableHeaderMap mutableCopy() {
+        return new MutableHeaderMapImpl(this);
     }
 
     /**

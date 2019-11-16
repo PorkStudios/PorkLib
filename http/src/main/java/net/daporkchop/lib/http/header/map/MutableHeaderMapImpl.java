@@ -31,7 +31,7 @@ import java.util.function.Consumer;
  *
  * @author DaPorkchop_
  */
-public final class MutableHeaderMapImpl implements MutableHeaderMap {
+public class MutableHeaderMapImpl implements MutableHeaderMap {
     protected final List<Header>        list;
     protected final Map<String, Header> map;
 
@@ -46,22 +46,22 @@ public final class MutableHeaderMapImpl implements MutableHeaderMap {
     }
 
     @Override
-    public synchronized int size() {
+    public int size() {
         return this.list.size();
     }
 
     @Override
-    public synchronized Header get(int index) throws IndexOutOfBoundsException {
+    public Header get(int index) throws IndexOutOfBoundsException {
         return this.list.get(index);
     }
 
     @Override
-    public synchronized Header get(@NonNull String key) {
+    public Header get(@NonNull String key) {
         return this.map.get(key.toLowerCase());
     }
 
     @Override
-    public synchronized String put(@NonNull String key, @NonNull String value) {
+    public String put(@NonNull String key, @NonNull String value) {
         Header header = new HeaderImpl(key, value);
         key = key.toLowerCase();
         Header old = this.map.putIfAbsent(key, header);
@@ -78,13 +78,13 @@ public final class MutableHeaderMapImpl implements MutableHeaderMap {
     }
 
     @Override
-    public synchronized String remove(@NonNull String key) {
+    public String remove(@NonNull String key) {
         Header old = this.map.remove(key.toLowerCase());
         return old != null && this.list.remove(old) ? old.value() : null;
     }
 
     @Override
-    public synchronized Header remove(int index) throws IndexOutOfBoundsException {
+    public Header remove(int index) throws IndexOutOfBoundsException {
         Header header = this.list.remove(index);
         if (!this.map.remove(header.key().toLowerCase(), header))   {
             throw new IllegalStateException(String.format("Couldn't remove header at index %d (key \"%s\" (internal: \"%s\") is not present in map!)", index, header.key(), header.key().toLowerCase()));
@@ -93,12 +93,12 @@ public final class MutableHeaderMapImpl implements MutableHeaderMap {
     }
 
     @Override
-    public synchronized void forEach(@NonNull Consumer<Header> callback) {
+    public void forEach(@NonNull Consumer<Header> callback) {
         this.list.forEach(callback);
     }
 
     @Override
-    public synchronized void forEach(@NonNull BiConsumer<String, String> callback) {
+    public void forEach(@NonNull BiConsumer<String, String> callback) {
         this.list.forEach(header -> callback.accept(header.key(), header.value()));
     }
 }

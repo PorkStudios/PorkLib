@@ -16,6 +16,7 @@
 package net.daporkchop.lib.common.util;
 
 import lombok.NonNull;
+import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.unsafe.PUnsafe;
 import sun.misc.Cleaner;
 import sun.misc.SoftCache;
@@ -47,19 +48,25 @@ import java.util.function.Function;
  * @author DaPorkchop_
  */
 //TODO: clean this up a bit
+@UtilityClass
 public class PorkUtil {
-    public static final ThreadLocal<byte[]> BUFFER_CACHE_SMALL  = ThreadLocal.withInitial(() -> new byte[256]);
-    public static final long                OFFSET_STRING_VALUE = PUnsafe.pork_getOffset(String.class, "value");
-    private static final Function<Throwable, StackTraceElement[]> GET_STACK_TRACE_WRAPPER;
-    private static final AtomicInteger DEFAULT_EXECUTOR_THREAD_COUNTER = new AtomicInteger(0);
-    public static final Executor DEFAULT_EXECUTOR = new ThreadPoolExecutor(
+    public final long OFFSET_STRING_VALUE = PUnsafe.pork_getOffset(String.class, "value");
+
+    private final Function<Throwable, StackTraceElement[]> GET_STACK_TRACE_WRAPPER;
+
+    public final ThreadLocal<byte[]> BUFFER_CACHE_SMALL = ThreadLocal.withInitial(() -> new byte[256]);
+
+    private final AtomicInteger DEFAULT_EXECUTOR_THREAD_COUNTER = new AtomicInteger(0);
+    public final  Executor      DEFAULT_EXECUTOR                = new ThreadPoolExecutor(
             0, Integer.MAX_VALUE,
             2, TimeUnit.SECONDS,
             new SynchronousQueue<>(),
             runnable -> new Thread(runnable, String.format("PorkLib executor #%d", DEFAULT_EXECUTOR_THREAD_COUNTER.getAndIncrement()))
     );
-    public static final DateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-    public static final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
+
+    public final DateFormat DATE_FORMAT     = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+    public final String     PORKLIB_VERSION = "0.4.0-SNAPSHOT";
+    public final int        CPU_COUNT       = Runtime.getRuntime().availableProcessors();
 
     static {
         {
@@ -90,17 +97,17 @@ public class PorkUtil {
      * @param chars the char array to copy
      * @return a new string
      */
-    public static String wrap(@NonNull char[] chars) {
+    public String wrap(@NonNull char[] chars) {
         String s = PUnsafe.allocateInstance(String.class);
         PUnsafe.putObject(s, OFFSET_STRING_VALUE, chars);
         return s;
     }
 
-    public static StackTraceElement[] getStackTrace(@NonNull Throwable t) {
+    public StackTraceElement[] getStackTrace(@NonNull Throwable t) {
         return GET_STACK_TRACE_WRAPPER.apply(t);
     }
 
-    public static void release(@NonNull ByteBuffer buffer) {
+    public void release(@NonNull ByteBuffer buffer) {
         Cleaner cleaner = ((sun.nio.ch.DirectBuffer) buffer).cleaner();
         if (cleaner != null) {
             cleaner.clean();
@@ -108,7 +115,7 @@ public class PorkUtil {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> Class<T> classForName(@NonNull String name) {
+    public <T> Class<T> classForName(@NonNull String name) {
         try {
             return (Class<T>) Class.forName(name);
         } catch (ClassNotFoundException e) {
@@ -116,7 +123,7 @@ public class PorkUtil {
         }
     }
 
-    public static boolean classExistsWithName(@NonNull String name) {
+    public boolean classExistsWithName(@NonNull String name) {
         try {
             Class.forName(name);
             return true;
@@ -125,7 +132,7 @@ public class PorkUtil {
         }
     }
 
-    public static Method getMethod(@NonNull Class<?> clazz, @NonNull String name, @NonNull Class<?>... params) {
+    public Method getMethod(@NonNull Class<?> clazz, @NonNull String name, @NonNull Class<?>... params) {
         try {
             return clazz.getDeclaredMethod(name, params);
         } catch (NoSuchMethodException e) {
@@ -148,15 +155,15 @@ public class PorkUtil {
      * @return a new {@link SoftCache}
      */
     @SuppressWarnings("unchecked")
-    public static <K, V> Map<K, V> newSoftCache() {
+    public <K, V> Map<K, V> newSoftCache() {
         return (Map<K, V>) new SoftCache();
     }
 
-    public static void simpleDisplayImage(@NonNull BufferedImage img) {
+    public void simpleDisplayImage(@NonNull BufferedImage img) {
         simpleDisplayImage(img, false);
     }
 
-    public static void simpleDisplayImage(@NonNull BufferedImage img, boolean wait) {
+    public void simpleDisplayImage(@NonNull BufferedImage img, boolean wait) {
         JFrame frame = new JFrame();
         frame.getContentPane().setLayout(new FlowLayout());
         frame.getContentPane().add(new JLabel(new ImageIcon(img)));
@@ -181,15 +188,15 @@ public class PorkUtil {
         }
     }
 
-    public static void sleep(long millis)   {
+    public void sleep(long millis) {
         try {
             Thread.sleep(millis);
-        } catch (InterruptedException e)    {
+        } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
     }
 
-    public static String className(Object obj)  {
+    public String className(Object obj) {
         return obj == null ? "null" : obj.getClass().getCanonicalName();
     }
 }

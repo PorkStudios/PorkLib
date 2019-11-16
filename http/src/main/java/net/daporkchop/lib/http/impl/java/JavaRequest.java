@@ -91,7 +91,7 @@ public class JavaRequest<V> implements Request<V>, Runnable {
             do {
                 this.connection = (HttpURLConnection) url.openConnection();
                 //set request headers
-                this.builder.headers.forEach(this.connection::setRequestProperty);
+                this.builder.prepareHeaders(this.connection::setRequestProperty);
                 this.connection.connect();
 
                 ResponseHeadersImpl response = new ResponseHeadersImpl(
@@ -109,7 +109,7 @@ public class JavaRequest<V> implements Request<V>, Runnable {
                                     }
                                 })));
 
-                if (this.builder.silentlyFollowRedirects && response.isRedirect()) {
+                if (this.builder.followRedirects && response.isRedirect()) {
                     url = new URL(response.redirectLocation());
                     this.connection.disconnect();
                     continue;

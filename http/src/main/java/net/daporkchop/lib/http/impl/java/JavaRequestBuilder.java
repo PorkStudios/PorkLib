@@ -21,12 +21,18 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.header.map.HeaderMap;
 import net.daporkchop.lib.http.header.map.HeaderMaps;
+import net.daporkchop.lib.http.header.map.MutableHeaderMap;
+import net.daporkchop.lib.http.header.map.MutableHeaderMapImpl;
 import net.daporkchop.lib.http.request.Request;
 import net.daporkchop.lib.http.request.RequestBuilder;
+import net.daporkchop.lib.http.request.auth.Authentication;
 import net.daporkchop.lib.http.response.aggregate.ResponseAggregator;
+import net.daporkchop.lib.http.util.Constants;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * @author DaPorkchop_
@@ -42,16 +48,21 @@ public class JavaRequestBuilder<V> implements RequestBuilder<V> {
     protected ResponseAggregator<Object, V> aggregator;
 
     @Setter
+    @NonNull
     protected HeaderMap headers = HeaderMaps.empty();
 
     @Setter
-    protected boolean silentlyFollowRedirects = false;
+    @NonNull
+    protected Authentication authentication = Authentication.none();
+
+    @Setter
+    protected boolean followRedirects = false;
 
     @Override
     public RequestBuilder<V> url(@NonNull String url) {
         try {
             this.url = new URL(url);
-        } catch (MalformedURLException e)   {
+        } catch (MalformedURLException e) {
             throw new IllegalArgumentException(e);
         }
         return this;
@@ -66,7 +77,43 @@ public class JavaRequestBuilder<V> implements RequestBuilder<V> {
     }
 
     @Override
+    public RequestBuilder<V> header(@NonNull String key, @NonNull String value) {
+        HeaderMap headers = this.headers;
+        MutableHeaderMap mutableHeaders;
+        if (headers instanceof MutableHeaderMap) {
+            mutableHeaders = (MutableHeaderMap) headers;
+        } else if (headers == HeaderMaps.empty()) {
+            mutableHeaders = new MutableHeaderMapImpl();
+        } else {
+            mutableHeaders = headers.mutableCopy();
+        }
+        mutableHeaders.put(key, value);
+        this.headers = mutableHeaders;
+        return this;
+    }
+
+    @Override
     public Request<V> send() {
         return new JavaRequest<>(this);
+    }
+
+    /**
+     * Internal method only: makes a copy of the locally stored {@link HeaderMap} and prepares it to be sent.
+     */
+    protected void prepareHeaders(@NonNull BiConsumer<String, String> addCallback) {
+        MutableHeaderMap headers = this.headers.mutableCopy();
+        headers.forEach((key, value) -> {
+            if (HeaderMaps.isReserved(key)) {
+                throw new IllegalArgumentException(String.format("Header key \"%s\" is reserved, but was manually set!", key));
+            }
+        });
+
+        this.authentication.rewrite(headers);
+
+        headers.forEach(addCallback);
+
+        if (!headers.hasKey("user-agent"))  { //only add user-agent header if it's not already set
+            addCallback.accept("User-Agent", Constants.USER_AGENT);
+        }
     }
 }

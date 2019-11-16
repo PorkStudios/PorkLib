@@ -38,8 +38,6 @@ import static net.daporkchop.lib.math.primitive.PMath.*;
  */
 @UtilityClass
 public class Constants {
-    public final ThreadLocal<byte[]> CACHE_4KB_BUFFER = ThreadLocal.withInitial(() -> new byte[4096]);
-
     public final IntObjectMap<StatusCode> STATUS_CODES_BY_NUMERIC_ID = Stream.<StatusCode[]>of(StatusCodes.values())
             .flatMap(Arrays::stream)
             .collect(Collector.<StatusCode, IntObjectMap<StatusCode>>of(
@@ -50,6 +48,10 @@ public class Constants {
                         return map1;
                     }
             ));
+
+    public final String USER_AGENT = "PorkLib/" + PorkUtil.PORKLIB_VERSION;
+
+    /*public final ThreadLocal<byte[]> CACHE_4KB_BUFFER = ThreadLocal.withInitial(() -> new byte[4096]);
 
     public final Pattern PATTERN_REQUEST = Pattern.compile("^([A-Z]+) ([^ ]+) HTTP/1\\.1$");
     public final Pattern PATTERN_HEADER = Pattern.compile("([\\x20-\\x7E]+): ([\\x20-\\x7E]+)");
@@ -91,7 +93,7 @@ public class Constants {
             PUnsafe.copyMemory(src, PUnsafe.ARRAY_CHAR_BASE_OFFSET + i, buf, PUnsafe.ARRAY_BYTE_BASE_OFFSET + i, count);
             dst.writeBytes(buf, 0, count);
         }
-    }
+    }*/
 
     /*public <I extends RequestFactory<I>> void prepareRequestBuilderForUrl(@NonNull I builder, @NonNull CharSequence url) {
         Matcher matcher = PATTERN_URL_WITH_PORT.matcher(url);

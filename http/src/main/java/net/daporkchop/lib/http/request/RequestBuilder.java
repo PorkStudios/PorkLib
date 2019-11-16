@@ -157,6 +157,15 @@ public interface RequestBuilder<V> {
     RequestBuilder<V> authentication(@NonNull Authentication authentication);
 
     /**
+     * Sets the maximum number of bytes the server may send as a body before aborting the request with an exception.
+     *
+     * Defaults to {@code -1L}.
+     * @param maxLength the maximum size of the body. If less than {@code 0L}, no limit will be enforced.
+     * @return this {@link RequestBuilder} instance
+     */
+    RequestBuilder<V> maxLength(long maxLength);
+
+    /**
      * Initiates the HTTP request using the configured settings.
      * <p>
      * Once this method has been called, this {@link RequestBuilder} instance should be discarded and any attempts

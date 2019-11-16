@@ -28,6 +28,7 @@ import net.daporkchop.lib.http.response.ResponseBody;
 import net.daporkchop.lib.http.response.ResponseHeaders;
 import net.daporkchop.lib.http.response.ResponseHeadersImpl;
 import net.daporkchop.lib.http.response.aggregate.ResponseAggregator;
+import net.daporkchop.lib.http.util.exception.ResponseTooLargeException;
 
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -40,7 +41,7 @@ import java.util.StringJoiner;
  *
  * @author DaPorkchop_
  */
-public class JavaRequest<V> implements Request<V>, Runnable {
+public final class JavaRequest<V> implements Request<V>, Runnable {
     protected final JavaHttpClient        client;
     protected final Thread                thread;
     protected final JavaRequestBuilder<V> builder;
@@ -94,7 +95,7 @@ public class JavaRequest<V> implements Request<V>, Runnable {
                 this.builder.prepareHeaders(this.connection::setRequestProperty);
                 this.connection.connect();
 
-                ResponseHeadersImpl response = new ResponseHeadersImpl(
+                ResponseHeadersImpl headers = new ResponseHeadersImpl(
                         StatusCode.of(this.connection.getResponseCode(), this.connection.getResponseMessage()),
                         new HeaderSnapshot(this.connection.getHeaderFields().entrySet().stream()
                                 .map(entry -> {
@@ -109,14 +110,14 @@ public class JavaRequest<V> implements Request<V>, Runnable {
                                     }
                                 })));
 
-                if (this.builder.followRedirects && response.isRedirect()) {
-                    url = new URL(response.redirectLocation());
+                if (this.builder.followRedirects() && headers.isRedirect()) {
+                    url = new URL(headers.redirectLocation());
                     this.connection.disconnect();
                     continue;
                 }
 
-                this.headers.setSuccess(response);
-                this.body.setSuccess(new DelegatingResponseBodyImpl<>(response, this.implReceiveBody(this.connection.getInputStream())));
+                this.headers.setSuccess(headers);
+                this.body.setSuccess(new DelegatingResponseBodyImpl<>(headers, this.implReceiveBody(this.connection.getInputStream(), headers)));
             } while (!this.body.isDone());
         } catch (Exception e) {
             this.body.setFailure(e);
@@ -125,12 +126,29 @@ public class JavaRequest<V> implements Request<V>, Runnable {
         }
     }
 
-    protected V implReceiveBody(@NonNull InputStream bodyIn) throws Exception {
-        ResponseAggregator<Object, V> aggregator = this.builder.aggregator;
+    protected V implReceiveBody(@NonNull InputStream bodyIn, @NonNull ResponseHeaders headers) throws Exception {
+        long maxLength = this.builder.maxLength();
+        long readBytes = headers.contentLength();
+        if (readBytes >= 0L) {
+            if (maxLength >= 0L && readBytes > maxLength) {
+                throw new ResponseTooLargeException(readBytes, maxLength);
+            } else {
+                //set max length to content-length, even if max length is not defined
+                //we don't want to read a request body larger than the content-length since that'd indicate a broken request
+                maxLength = readBytes;
+            }
+        }
+        readBytes = 0L;
+
+        ResponseAggregator<Object, V> aggregator = this.builder.aggregator();
         Object temp = aggregator.init(this.headers.getNow(), this);
         try {
             byte[] buf = new byte[4096];
             for (int i; (i = bodyIn.read(buf)) > 0; ) {
+                if (maxLength >= 0L && (readBytes += i) > maxLength) {
+                    //if max length is set and we've read more data than it, throw exception
+                    throw new ResponseTooLargeException(readBytes, maxLength);
+                }
                 temp = aggregator.add(temp, Unpooled.wrappedBuffer(buf, 0, i), this);
             }
             return aggregator.doFinal(temp, this);

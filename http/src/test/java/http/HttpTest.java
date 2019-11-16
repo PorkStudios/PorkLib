@@ -38,10 +38,10 @@ public class HttpTest {
 
         JavaHttpClient client = new JavaHttpClient();
         try {
-            if (false)   {
+            if (true)   {
                 client.request().url(url)
                         .followRedirects(true)
-                        .downloadToFile(new File("/home/daporkchop/Desktop/test/colors.json"))
+                        .downloadToFile(new File("/home/daporkchop/Desktop/test/colors.json"), true)
                         .send()
                         .syncBody();
                 return;

@@ -38,7 +38,7 @@ import java.util.concurrent.ThreadFactory;
  */
 //TODO: a builder class might be better suited here than all these constructors
 @Accessors(fluent = true)
-public class JavaHttpClient implements HttpClient {
+public final class JavaHttpClient implements HttpClient {
     protected volatile ThreadFactory factory;
     protected final    EventExecutor executor;
     protected final    Promise<Void> closeFuture;

@@ -13,45 +13,24 @@
  *
  */
 
-package net.daporkchop.lib.http;
+package net.daporkchop.lib.http.util.exception;
 
-import io.netty.util.concurrent.Future;
-import lombok.NonNull;
-import net.daporkchop.lib.http.request.RequestBuilder;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.http.StatusCode;
 
 /**
- * A representation of an HTTP client.
+ * Thrown by the client when the server sends response body that is too large.
  *
  * @author DaPorkchop_
  */
-public interface HttpClient {
-    /**
-     * Creates a new, blank {@link RequestBuilder} instance to make a new HTTP request.
-     *
-     * @return a new {@link RequestBuilder} instance
-     */
-    RequestBuilder<Void> request();
-
-    /**
-     * Creates a new {@link RequestBuilder} instance to make a new HTTP request, pre-configured with the given URL.
-     *
-     * @param url the URL that the request will be sent to
-     * @return a new {@link RequestBuilder} instance
-     */
-    default RequestBuilder<Void> request(@NonNull String url) {
-        return this.request().url(url);
+@RequiredArgsConstructor
+public class ResponseTooLargeException extends HTTPException {
+    public ResponseTooLargeException(long read, long max) {
+        super(String.format("Response data too large! (read=%d, max=%d)", read, max));
     }
 
-    /**
-     * Closes this {@link HttpClient}, disconnecting any active requests and releasing any resources allocated
-     * by it and preventing any new connections from being sent.
-     *
-     * @return a {@link Future} which will be notified when the close operation has been completed
-     */
-    Future<Void> close();
-
-    /**
-     * @return a {@link Future} which will be notified when this {@link HttpClient} instance has been closed
-     */
-    Future<Void> closeFuture();
+    @Override
+    public StatusCode status() {
+        return null;
+    }
 }

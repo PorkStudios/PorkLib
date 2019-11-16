@@ -15,50 +15,46 @@
 
 package net.daporkchop.lib.http.header;
 
+import lombok.NonNull;
+
 /**
- * A single HTTP header.
- * <p>
- * Implementations of this class are expected to have both {@link #hashCode()} and {@link #equals(Object)} only check for case-insensitive equality between
- * keys, not values. For comparing between values as well, {@link #deepHashCode()} and {@link #deepEquals(Object)} are provided.
+ * A {@link HeaderMap} that is mutable (i.e. headers may be added and removed as needed).
  *
  * @author DaPorkchop_
  */
-public interface Header {
-    /**
-     * @return the key (name) of the HTTP header
-     */
-    String key();
-
-    /**
-     * @return the raw value of the HTTP header
-     */
-    String value();
-
-    /**
-     * Computes the hash code of this header, using both the lower-cased representation of the key and the current value as inputs.
-     *
-     * @return this header's hash code
-     */
-    default int deepHashCode() {
-        return this.key().toLowerCase().hashCode() * 31 + this.value().hashCode();
+public interface MutableHeaderMap extends HeaderMap {
+    @Override
+    default HeaderMap snapshot() {
+        return new HeaderSnapshot(this);
     }
 
     /**
-     * Checks if this header is totally equal to a given object.
-     * <p>
-     * If the given object is also a header, both the keys (case-insensitive) and the values (case-sensitive) will be checked for equality.
+     * Puts a new header into this map, or updates the value of an existing header if one with the given name already exists.
      *
-     * @param obj the other object
-     * @return whether or not this header is totally equal to the given object
+     * @param key   the key of the header
+     * @param value the value of the header
+     * @return the previous value, or {@code null} if no previous value for the given key existed
      */
-    default boolean deepEquals(Object obj) {
-        if (obj == this) {
-            return true;
-        } else if (obj instanceof Header) {
-            Header other = (Header) obj;
-            return this.key().equalsIgnoreCase(other.key()) && this.value().equals(other.key());
-        } else {
-            return false;
-        }
+    default String put(@NonNull String key, @NonNull String value) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Puts all headers from the source map into this map.
+     *
+     * @param source the source to copy the headers from
+     */
+    default void putAll(@NonNull HeaderMap source) {
+        source.forEach(this::put);
+    }
+
+    /**
+     * Removes a header from this map.
+     *
+     * @param key the key of the header
+     * @return the removed value, or {@code null} if no header with the given key existed
+     */
+    default String remove(@NonNull String key) {
+        throw new UnsupportedOperationException();
     }
 }

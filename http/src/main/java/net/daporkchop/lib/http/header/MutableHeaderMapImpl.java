@@ -15,50 +15,41 @@
 
 package net.daporkchop.lib.http.header;
 
+import lombok.NonNull;
+
 /**
- * A single HTTP header.
- * <p>
- * Implementations of this class are expected to have both {@link #hashCode()} and {@link #equals(Object)} only check for case-insensitive equality between
- * keys, not values. For comparing between values as well, {@link #deepHashCode()} and {@link #deepEquals(Object)} are provided.
+ * A simple implementation of {@link MutableHeaderMap}.
  *
  * @author DaPorkchop_
  */
-public interface Header {
-    /**
-     * @return the key (name) of the HTTP header
-     */
-    String key();
-
-    /**
-     * @return the raw value of the HTTP header
-     */
-    String value();
-
-    /**
-     * Computes the hash code of this header, using both the lower-cased representation of the key and the current value as inputs.
-     *
-     * @return this header's hash code
-     */
-    default int deepHashCode() {
-        return this.key().toLowerCase().hashCode() * 31 + this.value().hashCode();
+public class MutableHeaderMapImpl extends HeaderMapImpl implements MutableHeaderMap {
+    public MutableHeaderMapImpl() {
     }
 
-    /**
-     * Checks if this header is totally equal to a given object.
-     * <p>
-     * If the given object is also a header, both the keys (case-insensitive) and the values (case-sensitive) will be checked for equality.
-     *
-     * @param obj the other object
-     * @return whether or not this header is totally equal to the given object
-     */
-    default boolean deepEquals(Object obj) {
-        if (obj == this) {
-            return true;
-        } else if (obj instanceof Header) {
-            Header other = (Header) obj;
-            return this.key().equalsIgnoreCase(other.key()) && this.value().equals(other.key());
+    public MutableHeaderMapImpl(@NonNull HeaderMap source) {
+        this.putAll(source);
+    }
+
+    @Override
+    public synchronized String put(@NonNull String key, @NonNull String value) {
+        Header header = new HeaderImpl(key, value);
+        key = key.toLowerCase();
+        Header old = this.map.putIfAbsent(key, header);
+        if (old == null) {
+            //the header is new
+            this.list.add(header);
+            return null;
         } else {
-            return false;
+            //the header already exists
+            this.map.replace(key, old, header);
+            this.list.set(this.list.indexOf(old), header);
+            return old.value();
         }
+    }
+
+    @Override
+    public synchronized String remove(@NonNull String key) {
+        Header old = this.map.remove(key.toLowerCase());
+        return old != null && this.list.remove(old) ? old.value() : null;
     }
 }

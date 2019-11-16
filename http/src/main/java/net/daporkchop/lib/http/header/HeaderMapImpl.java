@@ -22,33 +22,34 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 /**
  * A simple, hashtable-based implementation of {@link HeaderMap}.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-public class DefaultHeaderMap implements HeaderMap {
+public class HeaderMapImpl implements HeaderMap {
     @NonNull
     protected final List<Header>        list;
     @NonNull
     protected final Map<String, Header> map;
 
-    public DefaultHeaderMap() {
+    public HeaderMapImpl() {
         this.list = new ArrayList<>();
         this.map = new HashMap<>();
     }
 
-    public DefaultHeaderMap(@NonNull HeaderMap source) {
+    public HeaderMapImpl(@NonNull HeaderMap source) {
         this();
-        this.putAll(source);
-    }
-
-    public DefaultHeaderMap(@NonNull Stream<Header> source) {
-        this();
-        source.forEach(this::put);
+        source.forEach((key, value) -> {
+            Header header = new HeaderImpl(key, value);
+            key = key.toLowerCase();
+            if (this.map.putIfAbsent(key, header) != null)  {
+                throw new IllegalArgumentException(String.format("Duplicate header key: \"%s\" (to add: \"%s\", in map: \"%s\")", key, header.key(), this.map.get(key).key()));
+            } else {
+                this.list.add(header);
+            }
+        });
     }
 
     @Override
@@ -64,31 +65,5 @@ public class DefaultHeaderMap implements HeaderMap {
     @Override
     public synchronized Header get(@NonNull String key) {
         return this.map.get(key.toLowerCase());
-    }
-
-    @Override
-    public String put(@NonNull String key, @NonNull String value) {
-        return this.put(new HeaderImpl(key, value));
-    }
-
-    protected synchronized String put(@NonNull Header header) {
-        String key = header.key().toLowerCase();
-        Header old = this.map.get(key);
-        if (old == null) {
-            //new header entry must be created
-            this.list.add(header);
-            this.map.put(key, header);
-            return null;
-        } else {
-            this.list.set(this.list.indexOf(old), header);
-            this.map.replace(key, old, header);
-            return old.value();
-        }
-    }
-
-    @Override
-    public synchronized String remove(@NonNull String key) {
-        Header old = this.map.remove(key.toLowerCase());
-        return old != null && this.list.remove(old) ? old.value() : null;
     }
 }

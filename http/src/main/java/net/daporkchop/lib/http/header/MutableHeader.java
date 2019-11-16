@@ -15,49 +15,21 @@
 
 package net.daporkchop.lib.http.header;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
 
 /**
- * A simple implementation of {@link Header}.
+ * A {@link Header} that is mutable (i.e. the value may be changed as needed).
+ * <p>
+ * Mutable headers may only be compared by key, not by value.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-public final class HeaderImpl implements Header {
-    @NonNull
-    protected final String key;
-    @NonNull
-    protected final String value;
-
-    public HeaderImpl(@NonNull Header source) {
-        this(source.key(), source.value());
-    }
-
-    @Override
-    public String toString() {
-        return String.format("%s: %s", this.key, this.value);
-    }
-
-    @Override
-    public int hashCode() {
-        return this.key.toLowerCase().hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)    {
-            return true;
-        } else if (obj instanceof Header)   {
-            Header header = (Header) obj;
-            return this.key.equalsIgnoreCase(header.key());
-        } else {
-            return false;
-        }
-    }
+public interface MutableHeader extends Header {
+    /**
+     * Updates this header's value.
+     *
+     * @param newValue the new value of the header
+     * @return the old value of the header
+     */
+    String value(@NonNull String newValue);
 }

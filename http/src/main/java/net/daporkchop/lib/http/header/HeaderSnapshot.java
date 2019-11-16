@@ -49,8 +49,8 @@ public final class HeaderSnapshot implements HeaderMap {
             this.value[i] = (old instanceof HeaderImpl) ? old : new HeaderImpl(old);
         }
         this.map = map
-                ? source instanceof DefaultHeaderMap
-                ? new HashMap<>(((DefaultHeaderMap) source).map)
+                ? source instanceof HeaderMapImpl
+                ? new HashMap<>(((HeaderMapImpl) source).map)
                 : Arrays.stream(this.value).collect(Collectors.toMap(header -> header.key().toLowerCase(), PFunctions.identity()))
                 : null;
     }

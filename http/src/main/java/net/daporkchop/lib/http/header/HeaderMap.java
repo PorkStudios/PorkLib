@@ -22,6 +22,12 @@ import java.util.function.Consumer;
 
 /**
  * A specialized map for storing HTTP headers.
+ * <p>
+ * Note that as specified in RFC2616§4.2, keys are case-insensitive. Implementations may choose to remember the capitalization of keys passed to any
+ * methods in this interface, or may modify the capitalization in any way they desire. In other words: don't depend on the capitalization of keys to
+ * be preserved!
+ * <p>
+ * All methods in all implementations of this interface are expected to be thread-safe at the least (not necessarily concurrent).
  *
  * @author DaPorkchop_
  */
@@ -124,10 +130,15 @@ public interface HeaderMap {
     }
 
     /**
+     * Gets an immutable copy of this {@link HeaderMap}.
+     * <p>
+     * No restrictions are placed on implementations of this method beyond the fact that the returned {@link HeaderMap} must have exactly identical
+     * contents to this one at the time of invocation, and must be immutable.
+     *
      * @return an immutable copy of this {@link HeaderMap}
      */
     default HeaderMap snapshot() {
-        return new HeaderSnapshot(this);
+        return this;
     }
 
     /**
@@ -151,35 +162,5 @@ public interface HeaderMap {
             Header header = this.get(i);
             callback.accept(header.key(), header.value());
         }
-    }
-
-    /**
-     * Puts a new header into this map, or updates the value of an existing header if one with the given name already exists.
-     *
-     * @param key   the key of the header
-     * @param value the value of the header
-     * @return the previous value, or {@code null} if no previous value for the given key existed
-     */
-    default String put(@NonNull String key, @NonNull String value) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * Puts all headers from the source map into this map.
-     *
-     * @param source the source to copy the headers from
-     */
-    default void putAll(@NonNull HeaderMap source) {
-        source.forEach(this::put);
-    }
-
-    /**
-     * Removes a header from this map.
-     *
-     * @param key the key of the header
-     * @return the removed value, or {@code null} if no header with the given key existed
-     */
-    default String remove(@NonNull String key) {
-        throw new UnsupportedOperationException();
     }
 }

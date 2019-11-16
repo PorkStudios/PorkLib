@@ -32,13 +32,16 @@ public class HttpTest {
 
     @Test
     public void test() throws IOException {
-        final String url = "https://raw.githubusercontent.com/DaMatrix/betterMapArt/master/src/main/resources/colors.json";
+        final String url = "http://raw.githubusercontent.com/DaMatrix/betterMapArt/master/src/main/resources/colors.json";
         String data = Http.getString(url);
         String data2;
 
         JavaHttpClient client = new JavaHttpClient();
         try {
-            data2 = client.request().configure(url).aggregateToString().send().complete().syncUninterruptibly().getNow();
+            data2 = client.request().url(url)
+                    .silentlyFollowRedirects(true)
+                    .aggregateToString()
+                    .send().complete().syncUninterruptibly().getNow();
         } finally {
             client.close().syncUninterruptibly();
         }

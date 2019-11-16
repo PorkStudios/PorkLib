@@ -36,12 +36,39 @@ public interface Response {
 
     /**
      * Gets the length of the response's body's content (in bytes).
-     *
+     * <p>
      * If the body's length is not known (e.g. Transfer-Encoding is "chunked"), this will return {@code -1L}.
+     *
      * @return the length of the response's body's content (in bytes)
      */
     default long contentLength() {
         String length = this.headers().getValue("content-length");
         return length == null ? -1L : Long.parseLong(length);
+    }
+
+    /**
+     * @return whether or not the server's response is a redirect
+     */
+    default boolean isRedirect() {
+        int code = this.status().code();
+        return code == 301 || code == 302; //TODO: 3xx status codes, not just 301 and 302
+    }
+
+    /**
+     * Gets the location that this request is being redirected to.
+     * <p>
+     * If the server's response does not indicate a redirect, this method returns {@code null}.
+     *
+     * @return the location that this request is being redirected to
+     */
+    default String redirectLocation() {
+        int code = this.status().code();
+        switch (code) {
+            case 301:
+            case 302:
+                return this.headers().getValue("location");
+            default:
+                return null;
+        }
     }
 }

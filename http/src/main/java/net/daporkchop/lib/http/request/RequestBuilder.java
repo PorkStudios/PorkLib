@@ -38,7 +38,7 @@ public interface RequestBuilder<V> {
      * @param url the URL that the request should be sent to
      * @return this {@link RequestBuilder} instance
      */
-    RequestBuilder<V> configure(@NonNull String url);
+    RequestBuilder<V> url(@NonNull String url);
 
     /**
      * Configures this {@link RequestBuilder} to use the given {@link ResponseAggregator}.
@@ -75,6 +75,14 @@ public interface RequestBuilder<V> {
     default RequestBuilder<ByteBuf> aggregateToByteBuf() {
         return this.aggregator(new ToByteBufAggregator());
     }
+
+    /**
+     * Configures this {@link RequestBuilder} to follow redirects silently.
+     *
+     * @param silentlyFollowRedirects whether or not this request will follow redirects silently
+     * @return this {@link RequestBuilder} instance
+     */
+    RequestBuilder<V> silentlyFollowRedirects(boolean silentlyFollowRedirects);
 
     /**
      * Initiates the HTTP request using the configured settings.

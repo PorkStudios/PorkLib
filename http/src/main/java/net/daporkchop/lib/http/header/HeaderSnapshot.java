@@ -43,7 +43,7 @@ public final class HeaderSnapshot implements HeaderMap {
             //don't create new instance if it's already immutable
             this.value[i] = (old instanceof HeaderImpl) ? old : new HeaderImpl(old);
         }
-        this.map = map ? Arrays.stream(this.value).collect(Collectors.toMap(Header::key, PFunctions.identity())) : null;
+        this.map = map ? Arrays.stream(this.value).collect(Collectors.toMap(header -> header.key().toLowerCase(), PFunctions.identity())) : null;
     }
 
     @Override
@@ -66,7 +66,7 @@ public final class HeaderSnapshot implements HeaderMap {
             }
             return null;
         } else {
-            return this.map.get(key);
+            return this.map.get(key.toLowerCase());
         }
     }
 

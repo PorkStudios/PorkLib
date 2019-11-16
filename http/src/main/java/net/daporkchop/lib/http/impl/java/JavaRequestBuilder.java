@@ -17,6 +17,8 @@ package net.daporkchop.lib.http.impl.java;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.request.Request;
 import net.daporkchop.lib.http.request.RequestBuilder;
 import net.daporkchop.lib.http.response.aggregate.ResponseAggregator;
@@ -28,6 +30,7 @@ import java.net.URL;
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
+@Accessors(fluent = true, chain = true)
 public class JavaRequestBuilder<V> implements RequestBuilder<V> {
     @NonNull
     protected final JavaHttpClient client;
@@ -36,8 +39,11 @@ public class JavaRequestBuilder<V> implements RequestBuilder<V> {
 
     protected ResponseAggregator<Object, V> aggregator;
 
+    @Setter
+    protected boolean silentlyFollowRedirects = false;
+
     @Override
-    public RequestBuilder<V> configure(@NonNull String url) {
+    public RequestBuilder<V> url(@NonNull String url) {
         try {
             this.url = new URL(url);
         } catch (MalformedURLException e)   {
@@ -55,8 +61,7 @@ public class JavaRequestBuilder<V> implements RequestBuilder<V> {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Request<V> send() {
-        return new JavaAggregationRequest<>(this);
+        return new JavaRequest<>(this);
     }
 }

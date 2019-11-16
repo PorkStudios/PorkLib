@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.http.impl.java;
 
+import io.netty.buffer.Unpooled;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
 import lombok.NonNull;
@@ -25,10 +26,12 @@ import net.daporkchop.lib.http.header.HeaderMap;
 import net.daporkchop.lib.http.request.Request;
 import net.daporkchop.lib.http.response.Response;
 import net.daporkchop.lib.http.response.ResponseImpl;
+import net.daporkchop.lib.http.response.aggregate.ResponseAggregator;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
@@ -38,7 +41,7 @@ import java.util.StringJoiner;
  *
  * @author DaPorkchop_
  */
-public abstract class JavaRequest<V> implements Request<V>, Runnable {
+public class JavaRequest<V> implements Request<V>, Runnable {
     protected final JavaHttpClient client;
     protected final Thread thread;
     protected final JavaRequestBuilder<V> builder;
@@ -60,14 +63,6 @@ public abstract class JavaRequest<V> implements Request<V>, Runnable {
                 this.response.setFailure(f.isSuccess() ? new IllegalStateException("Complete future was successful, but response future was never set!") : f.cause());
             }
         });
-
-        try {
-            //this doesn't actually initiate the connection, it only creates the instance
-            this.connection = (HttpURLConnection) builder.url.openConnection();
-        } catch (IOException e) {
-            this.complete.tryFailure(e);
-            return;
-        }
 
         this.thread.start();
     }
@@ -93,23 +88,36 @@ public abstract class JavaRequest<V> implements Request<V>, Runnable {
         if (Thread.currentThread() != this.thread) throw new IllegalStateException("Invoked from illegal thread!");
 
         try {
-            this.connection.connect();
+            URL url = this.builder.url;
+            do {
+                (this.connection = (HttpURLConnection) url.openConnection()).connect();
 
-            {
-                StatusCode status = StatusCode.of(this.connection.getResponseCode(), this.connection.getResponseMessage());
-                Map<String, List<String>> internalHeadersMap = this.connection.getHeaderFields();
-                HeaderMap headers = new DefaultHeaderMap(internalHeadersMap.entrySet().stream()
-                        .filter(entry -> entry.getKey() != null)
-                        .map(entry -> new HeaderImpl(
-                                entry.getKey(),
-                                entry.getValue().size() == 1
-                                        ? entry.getValue().get(0)
-                                        : entry.getValue().stream().collect(() -> new StringJoiner(","), StringJoiner::add, StringJoiner::merge).toString()
-                        )));
-                this.response.setSuccess(new ResponseImpl(status, headers));
-            }
+                {
+                    StatusCode status = StatusCode.of(this.connection.getResponseCode(), this.connection.getResponseMessage());
+                    HeaderMap headers = new DefaultHeaderMap();
+                    this.connection.getHeaderFields().forEach((key, value) -> {
+                        if (key == null) {
+                            //response line
+                            return;
+                        } else if (value.isEmpty()) {
+                            throw new IllegalArgumentException("value is empty");
+                        } else if (value.size() == 1) {
+                            headers.put(key, value.get(0));
+                        } else {
+                            headers.put(key, value.stream().collect(() -> new StringJoiner(","), StringJoiner::add, StringJoiner::merge).toString());
+                        }
+                    });
+                    ResponseImpl theResponse = new ResponseImpl(status, headers);
+                    if (this.builder.silentlyFollowRedirects && theResponse.isRedirect())   {
+                        url = new URL(theResponse.redirectLocation());
+                        this.connection.disconnect();
+                        continue;
+                    }
+                    this.response.setSuccess(theResponse);
+                }
 
-            this.complete.setSuccess(this.implReceiveBody(this.connection.getInputStream()));
+                this.complete.setSuccess(this.implReceiveBody(this.connection.getInputStream()));
+            } while (!this.complete.isDone());
         } catch (Exception e) {
             this.complete.setFailure(e);
         } finally {
@@ -117,5 +125,17 @@ public abstract class JavaRequest<V> implements Request<V>, Runnable {
         }
     }
 
-    protected abstract V implReceiveBody(@NonNull InputStream bodyIn) throws Exception;
+    protected V implReceiveBody(@NonNull InputStream bodyIn) throws Exception   {
+        ResponseAggregator<Object, V> aggregator = this.builder.aggregator;
+        Object temp = aggregator.init(this.response.getNow(), this);
+        try {
+            byte[] buf = new byte[4096];
+            for (int i; (i = bodyIn.read(buf)) > 0;)    {
+                temp = aggregator.add(temp, Unpooled.wrappedBuffer(buf, 0, i), this);
+            }
+            return aggregator.doFinal(temp, this);
+        } finally {
+            aggregator.deinit(temp, this);
+        }
+    }
 }

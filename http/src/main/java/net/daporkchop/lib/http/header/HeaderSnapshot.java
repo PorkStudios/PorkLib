@@ -17,10 +17,15 @@ package net.daporkchop.lib.http.header;
 
 import lombok.NonNull;
 import net.daporkchop.lib.common.function.PFunctions;
+import net.daporkchop.lib.http.util.exception.HTTPException;
+import net.daporkchop.lib.http.util.exception.MalformedResponseException;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * An immutable {@link HeaderMap}
@@ -28,22 +33,44 @@ import java.util.stream.Collectors;
  * @author DaPorkchop_
  */
 public final class HeaderSnapshot implements HeaderMap {
-    protected final Header[] value;
+    protected final Header[]            value;
     protected final Map<String, Header> map;
 
-    public HeaderSnapshot(@NonNull HeaderMap source)    {
+    public HeaderSnapshot(@NonNull HeaderMap source) {
         this(source, true);
     }
 
-    public HeaderSnapshot(@NonNull HeaderMap source, boolean map)    {
+    public HeaderSnapshot(@NonNull HeaderMap source, boolean map) {
         int size = source.size();
         this.value = new Header[size];
-        for (int i = 0; i < size; i++)  {
+        for (int i = 0; i < size; i++) {
             Header old = source.get(i);
             //don't create new instance if it's already immutable
             this.value[i] = (old instanceof HeaderImpl) ? old : new HeaderImpl(old);
         }
-        this.map = map ? Arrays.stream(this.value).collect(Collectors.toMap(header -> header.key().toLowerCase(), PFunctions.identity())) : null;
+        this.map = map
+                ? source instanceof DefaultHeaderMap
+                ? new HashMap<>(((DefaultHeaderMap) source).map)
+                : Arrays.stream(this.value).collect(Collectors.toMap(header -> header.key().toLowerCase(), PFunctions.identity()))
+                : null;
+    }
+
+    public HeaderSnapshot(@NonNull Stream<Header> source) throws HTTPException {
+        this(source, true);
+    }
+
+    public HeaderSnapshot(@NonNull Stream<Header> source, boolean map) throws HTTPException {
+        this.value = source.filter(Objects::nonNull).toArray(Header[]::new);
+
+        //regardless of whether or not we're storing the map, use the map to assert all header keys are distinct
+        Map<String, Header> tempMap = new HashMap<>(this.value.length);
+        for (Header header : this.value) {
+            String key = header.key().toLowerCase();
+            if (tempMap.putIfAbsent(key, header) != null) {
+                throw new MalformedResponseException(String.format("Duplicate header key: \"%s\" (to add: \"%s\", in map: \"%s\")", key, header.key(), tempMap.get(key).key()));
+            }
+        }
+        this.map = map ? tempMap : null;
     }
 
     @Override

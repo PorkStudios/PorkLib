@@ -20,20 +20,17 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
 import lombok.NonNull;
 import net.daporkchop.lib.http.StatusCode;
-import net.daporkchop.lib.http.header.DefaultHeaderMap;
 import net.daporkchop.lib.http.header.HeaderImpl;
-import net.daporkchop.lib.http.header.HeaderMap;
+import net.daporkchop.lib.http.header.HeaderSnapshot;
 import net.daporkchop.lib.http.request.Request;
 import net.daporkchop.lib.http.response.Response;
 import net.daporkchop.lib.http.response.ResponseImpl;
 import net.daporkchop.lib.http.response.aggregate.ResponseAggregator;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
-import java.util.Map;
 import java.util.StringJoiner;
 
 /**
@@ -42,13 +39,13 @@ import java.util.StringJoiner;
  * @author DaPorkchop_
  */
 public class JavaRequest<V> implements Request<V>, Runnable {
-    protected final JavaHttpClient client;
-    protected final Thread thread;
+    protected final JavaHttpClient        client;
+    protected final Thread                thread;
     protected final JavaRequestBuilder<V> builder;
-    protected HttpURLConnection connection;
+    protected       HttpURLConnection     connection;
 
     protected final Promise<Response> response;
-    protected final Promise<V> complete;
+    protected final Promise<V>        complete;
 
     public JavaRequest(@NonNull JavaRequestBuilder<V> builder) {
         this.client = builder.client;
@@ -94,21 +91,19 @@ public class JavaRequest<V> implements Request<V>, Runnable {
 
                 {
                     StatusCode status = StatusCode.of(this.connection.getResponseCode(), this.connection.getResponseMessage());
-                    HeaderMap headers = new DefaultHeaderMap();
-                    this.connection.getHeaderFields().forEach((key, value) -> {
-                        if (key == null) {
-                            //response line
-                            return;
-                        } else if (value.isEmpty()) {
-                            throw new IllegalArgumentException("value is empty");
-                        } else if (value.size() == 1) {
-                            headers.put(key, value.get(0));
-                        } else {
-                            headers.put(key, value.stream().collect(() -> new StringJoiner(","), StringJoiner::add, StringJoiner::merge).toString());
-                        }
-                    });
-                    ResponseImpl theResponse = new ResponseImpl(status, headers);
-                    if (this.builder.silentlyFollowRedirects && theResponse.isRedirect())   {
+                    ResponseImpl theResponse = new ResponseImpl(status, new HeaderSnapshot(this.connection.getHeaderFields().entrySet().stream()
+                            .map(entry -> {
+                                String key = entry.getKey();
+                                List<String> value = entry.getValue();
+                                if (key == null || value.isEmpty()) {
+                                    return null;
+                                } else if (value.size() == 1) {
+                                    return new HeaderImpl(key, value.get(0));
+                                } else {
+                                    return new HeaderImpl(key, value.stream().collect(() -> new StringJoiner(","), StringJoiner::add, StringJoiner::merge).toString());
+                                }
+                            })));
+                    if (this.builder.silentlyFollowRedirects && theResponse.isRedirect()) {
                         url = new URL(theResponse.redirectLocation());
                         this.connection.disconnect();
                         continue;
@@ -125,12 +120,12 @@ public class JavaRequest<V> implements Request<V>, Runnable {
         }
     }
 
-    protected V implReceiveBody(@NonNull InputStream bodyIn) throws Exception   {
+    protected V implReceiveBody(@NonNull InputStream bodyIn) throws Exception {
         ResponseAggregator<Object, V> aggregator = this.builder.aggregator;
         Object temp = aggregator.init(this.response.getNow(), this);
         try {
             byte[] buf = new byte[4096];
-            for (int i; (i = bodyIn.read(buf)) > 0;)    {
+            for (int i; (i = bodyIn.read(buf)) > 0; ) {
                 temp = aggregator.add(temp, Unpooled.wrappedBuffer(buf, 0, i), this);
             }
             return aggregator.doFinal(temp, this);

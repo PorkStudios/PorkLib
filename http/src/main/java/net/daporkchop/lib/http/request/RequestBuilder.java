@@ -23,8 +23,10 @@ import net.daporkchop.lib.http.request.auth.Authentication;
 import net.daporkchop.lib.http.response.aggregate.ResponseAggregator;
 import net.daporkchop.lib.http.response.aggregate.ToByteArrayAggregator;
 import net.daporkchop.lib.http.response.aggregate.ToByteBufAggregator;
+import net.daporkchop.lib.http.response.aggregate.ToFileAggregator;
 import net.daporkchop.lib.http.response.aggregate.ToStringAggregator;
 
+import java.io.File;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -77,6 +79,27 @@ public interface RequestBuilder<V> {
      */
     default RequestBuilder<ByteBuf> aggregateToByteBuf() {
         return this.aggregator(new ToByteBufAggregator());
+    }
+
+    /**
+     * Configures this {@link RequestBuilder} to write received data to the given {@link File}.
+     *
+     * @param file the {@link File} to write received data to
+     * @return this {@link RequestBuilder} instance
+     */
+    default RequestBuilder<File> downloadToFile(@NonNull File file) {
+        return this.aggregator(new ToFileAggregator(file));
+    }
+
+    /**
+     * Configures this {@link RequestBuilder} to write received data to the given {@link File}.
+     *
+     * @param file           the {@link File} to write received data to
+     * @param allowOverwrite whether or not to overwrite existing data if the given file already exists
+     * @return this {@link RequestBuilder} instance
+     */
+    default RequestBuilder<File> downloadToFile(@NonNull File file, boolean allowOverwrite) {
+        return this.aggregator(new ToFileAggregator(file, allowOverwrite));
     }
 
     /**

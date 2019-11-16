@@ -46,7 +46,8 @@ public interface ResponseAggregator<A, V> {
      * Any data not read from the given {@link ByteBuf} instance will be silently discarded.
      *
      * @param temp    the temporary value
-     * @param data    a {@link ByteBuf} containing the received data
+     * @param data    a {@link ByteBuf} containing the received data. Even if retained manually, this value is not safe to keep past the termination of this
+     *                method. If the data must be stored for later use, write it to some intermediate location or make a clone of the buffer.
      * @param request the request that the data was received on
      * @return the temporary value. May be different from the one passed to this method, in which case it will be updated for all subsequent aggregator function calls
      * @throws Exception if an exception occurs while accepting the data

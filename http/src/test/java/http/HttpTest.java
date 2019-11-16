@@ -22,6 +22,7 @@ import net.daporkchop.lib.http.Http;
 import net.daporkchop.lib.http.impl.java.JavaHttpClient;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 
 /**
@@ -33,11 +34,19 @@ public class HttpTest {
     @Test
     public void test() throws IOException {
         final String url = "http://raw.githubusercontent.com/DaMatrix/betterMapArt/master/src/main/resources/colors.json";
-        String data = Http.getString(url);
         String data2;
 
         JavaHttpClient client = new JavaHttpClient();
         try {
+            if (false)   {
+                client.request().url(url)
+                        .followRedirects(true)
+                        .downloadToFile(new File("/home/daporkchop/Desktop/test/colors.json"))
+                        .send()
+                        .syncBody();
+                return;
+            }
+
             data2 = client.request().url(url)
                     .followRedirects(true)
                     .aggregateToString()
@@ -46,6 +55,8 @@ public class HttpTest {
         } finally {
             client.close().syncUninterruptibly();
         }
+
+        String data = Http.getString(url);
 
         if (DEBUG_PRINT) {
             System.out.println(data);

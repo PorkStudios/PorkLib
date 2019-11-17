@@ -17,6 +17,7 @@ package net.daporkchop.lib.http.entity.content.type;
 
 import lombok.NonNull;
 
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -66,6 +67,15 @@ public interface ContentType {
      * @return a {@link ContentType} which matches the given MIME type and charset
      */
     static ContentType of(@NonNull String mimeType, String charset) {
+        {
+            Map<String, StandardContentType> map1 = StandardContentType.TYPES_LOOKUP.get(mimeType);
+            if (map1 != null) {
+                StandardContentType type = map1.get(charset == null ? "" : charset);
+                if (type != null) {
+                    return type;
+                }
+            }
+        }
         return new UnknownContentType(mimeType, charset);
     }
 

@@ -20,7 +20,9 @@ import net.daporkchop.lib.common.test.TestRandomData;
 import net.daporkchop.lib.encoding.basen.Base58;
 import net.daporkchop.lib.http.Http;
 import net.daporkchop.lib.http.HttpMethod;
+import net.daporkchop.lib.http.entity.FileHttpEntity;
 import net.daporkchop.lib.http.entity.HttpEntity;
+import net.daporkchop.lib.http.entity.content.type.StandardContentType;
 import net.daporkchop.lib.http.impl.java.JavaHttpClient;
 import org.junit.Test;
 
@@ -114,7 +116,8 @@ public class HttpTest {
                 response = client.request("http://httpbin.org/post")
                         .followRedirects(true)
                         .method(HttpMethod.POST)
-                        .body(HttpEntity.of("application/json", text.getBytes(StandardCharsets.UTF_8)))
+                        .bodyJson(text)
+                        //.body(new FileHttpEntity(StandardContentType.APPLICATION_OCTET_STREAM, new File("/home/daporkchop/10.0.0.20/minecraft/2b2t/2b2t_100k_final.zip.torrent")))
                         .aggregateToString()
                         .send()
                         .syncBodyAndGet().value();

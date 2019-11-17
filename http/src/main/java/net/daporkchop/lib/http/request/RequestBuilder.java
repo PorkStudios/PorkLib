@@ -19,8 +19,10 @@ import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.http.HttpClient;
 import net.daporkchop.lib.http.HttpMethod;
+import net.daporkchop.lib.http.entity.FileHttpEntity;
 import net.daporkchop.lib.http.entity.HttpEntity;
 import net.daporkchop.lib.http.entity.content.type.ContentType;
+import net.daporkchop.lib.http.entity.content.type.StandardContentType;
 import net.daporkchop.lib.http.header.map.HeaderMap;
 import net.daporkchop.lib.http.header.map.HeaderMaps;
 import net.daporkchop.lib.http.request.auth.Authentication;
@@ -117,6 +119,63 @@ public interface RequestBuilder<V> {
     }
 
     /**
+     * Configures the {@link HttpEntity} that will be sent with the request to contain the given {@link String}.
+     * <p>
+     * The {@link String} will be UTF-8 encoded and sent with the content-type "text/plain".
+     *
+     * @param data the body of the request
+     * @return this {@link RequestBuilder} instance
+     * @throws IllegalStateException if the currently selected {@link HttpMethod} does not allow sending a request body
+     * @see #body(HttpEntity)
+     */
+    default RequestBuilder<V> bodyText(@NonNull String data) throws IllegalStateException {
+        return this.body(HttpEntity.of(StandardContentType.TEXT_PLAIN_UTF8, data.getBytes(StandardCharsets.UTF_8)));
+    }
+
+    /**
+     * Configures the {@link HttpEntity} that will be sent with the request to contain the given {@link String}.
+     * <p>
+     * The {@link String} will be UTF-8 encoded and sent with the content-type "application/json".
+     *
+     * @param data the body of the request
+     * @return this {@link RequestBuilder} instance
+     * @throws IllegalStateException if the currently selected {@link HttpMethod} does not allow sending a request body
+     * @see #body(HttpEntity)
+     */
+    default RequestBuilder<V> bodyJson(@NonNull String data) throws IllegalStateException {
+        return this.body(HttpEntity.of(StandardContentType.APPLICATION_JSON_UTF8, data.getBytes(StandardCharsets.UTF_8)));
+    }
+
+    /**
+     * Configures the {@link HttpEntity} that will be sent with the request to contain the contents of the given {@link File}.
+     * <p>
+     * The {@link File} will be sent with the content-type "application/octet-stream".
+     *
+     * @param file the {@link File} containing the body of the request
+     * @return this {@link RequestBuilder} instance
+     * @throws IllegalStateException if the currently selected {@link HttpMethod} does not allow sending a request body
+     * @see #body(HttpEntity)
+     */
+    default RequestBuilder<V> body(@NonNull File file) throws IllegalStateException {
+        return this.body(new FileHttpEntity(StandardContentType.APPLICATION_OCTET_STREAM, file));
+    }
+
+    /**
+     * Configures the {@link HttpEntity} that will be sent with the request to contain the contents of the given {@link File}.
+     * <p>
+     * The {@link File} will be sent with the given {@link ContentType}.
+     *
+     * @param contentType the {@link ContentType} of the data
+     * @param file the {@link File} containing the body of the request
+     * @return this {@link RequestBuilder} instance
+     * @throws IllegalStateException if the currently selected {@link HttpMethod} does not allow sending a request body
+     * @see #body(HttpEntity)
+     */
+    default RequestBuilder<V> body(@NonNull ContentType contentType, @NonNull File file) throws IllegalStateException {
+        return this.body(new FileHttpEntity(contentType, file));
+    }
+
+    /**
      * Configures this {@link RequestBuilder} to use the given {@link ResponseAggregator}.
      *
      * @param aggregator the new {@link ResponseAggregator} to use
@@ -131,7 +190,7 @@ public interface RequestBuilder<V> {
      * @return this {@link RequestBuilder} instance
      */
     default RequestBuilder<String> aggregateToString() {
-        return this.aggregator(new ToStringAggregator(StandardCharsets.UTF_8));
+        return this.aggregator(new ToStringAggregator());
     }
 
     /**

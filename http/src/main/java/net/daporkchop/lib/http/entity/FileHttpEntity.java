@@ -13,45 +13,46 @@
  *
  */
 
-package net.daporkchop.lib.http.response.aggregate;
+package net.daporkchop.lib.http.entity;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.entity.content.type.ContentType;
-import net.daporkchop.lib.http.header.map.HeaderMap;
-import net.daporkchop.lib.http.request.Request;
+import net.daporkchop.lib.http.entity.transfer.FileChannelTransferSession;
+import net.daporkchop.lib.http.entity.transfer.TransferSession;
 
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.nio.channels.FileChannel;
+import java.nio.file.StandardOpenOption;
 
 /**
- * Aggregates received data into a {@link String}.
+ * A simple implementation of {@link HttpEntity} that reads data from a {@code byte[]}.
  *
  * @author DaPorkchop_
  */
+@RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public final class ToStringAggregator extends AbstractByteBufAggregator<String> {
-    public ToStringAggregator(@NonNull ByteBufAllocator alloc) {
-        super(alloc);
-    }
+public final class FileHttpEntity implements HttpEntity {
+    @NonNull
+    protected final ContentType type;
+    @NonNull
+    protected final File file;
 
-    public ToStringAggregator() {
+    @Override
+    public long length() throws Exception {
+        if (this.file.exists()) {
+            return this.file.length();
+        } else {
+            throw new FileNotFoundException(this.file.getAbsolutePath());
+        }
     }
 
     @Override
-    public String doFinal(@NonNull ByteBuf temp, @NonNull Request<String> request) throws Exception {
-        HeaderMap headers = request.headersFuture().getNow().headers();
-        Charset charset = StandardCharsets.UTF_8;
-        if (headers.hasKey("content-type"))  {
-            ContentType type = ContentType.parse(headers.getValue("content-type"));
-            if (type.charset() != null) {
-                charset = Charset.forName(type.charset());
-            }
-        }
-        return temp.toString(charset);
+    public TransferSession newSession() throws Exception {
+        return new FileChannelTransferSession(FileChannel.open(this.file.toPath(), StandardOpenOption.READ));
     }
 }

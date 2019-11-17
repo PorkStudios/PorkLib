@@ -15,37 +15,39 @@
 
 package net.daporkchop.lib.http.entity.transfer;
 
+import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 
 /**
- * Handles the actual process of transferring the HTTP entity's data to a single remote peer.
- * <p>
- * Implementations of this interface are not expected to be thread-safe. Attempting to use an instance of {@link TransferSession} from a different
- * thread than it was originally created on will result in undefined behavior.
+ * A simple {@link TransferSession} that reads data from a {@link FileChannel}.
  *
  * @author DaPorkchop_
  */
-//TODO: add some other transfer methods here so as to make chunked transfer something useful
-//implementing this later on netty won't be too useful if TransferSession is hogging all the worker threads
-public interface TransferSession extends AutoCloseable {
-    /**
-     * Transfers the entire HTTP entity to the given {@link OutputStream} in a blocking fashion, simply waiting until all bytes are written.
-     *
-     * @param out the {@link OutputStream} to write data to
-     * @return the total number of bytes transferred
-     * @throws Exception if an exception occurs while transferring the data
-     */
-    long transferAllBlocking(@NonNull OutputStream out) throws Exception;
+@RequiredArgsConstructor
+public final class FileChannelTransferSession implements TransferSession {
+    @NonNull
+    protected final FileChannel channel;
 
-    /**
-     * Closes this {@link TransferSession} instance.
-     * <p>
-     * This will only be called once per instance to release any resources allocated by this instance (such as memory, file handles, etc.).
-     *
-     * @throws Exception if an exception occurs while closing this {@link TransferSession} instance
-     */
     @Override
-    void close() throws Exception;
+    public long transferAllBlocking(@NonNull OutputStream out) throws Exception {
+        ByteBuffer buf = ByteBuffer.allocate(32768);
+        long read = 0L;
+        int i;
+        while ((i = this.channel.read(buf)) >= 0)   {
+            read += i;
+            out.write(buf.array(), 0, i);
+            buf.clear();
+        }
+        return read;
+    }
+
+    @Override
+    public void close() throws Exception {
+        this.channel.close();
+    }
 }

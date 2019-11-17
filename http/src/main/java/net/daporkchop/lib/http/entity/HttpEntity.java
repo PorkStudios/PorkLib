@@ -19,6 +19,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.http.entity.content.encoding.ContentEncoding;
 import net.daporkchop.lib.http.entity.content.encoding.StandardContentEncoding;
 import net.daporkchop.lib.http.entity.content.type.ContentType;
+import net.daporkchop.lib.http.entity.content.type.StandardContentType;
 import net.daporkchop.lib.http.entity.transfer.TransferSession;
 import net.daporkchop.lib.http.entity.transfer.encoding.StandardTransferEncoding;
 import net.daporkchop.lib.http.entity.transfer.encoding.TransferEncoding;
@@ -30,13 +31,13 @@ import net.daporkchop.lib.http.entity.transfer.encoding.TransferEncoding;
  */
 public interface HttpEntity {
     /**
-     * Wraps the given {@code byte[]} into a {@link HttpEntity} instance with the MIME type of {@code "application/octet-stream"}.
+     * Wraps the given {@code byte[]} into a {@link HttpEntity} instance with the content type of {@link StandardContentType#APPLICATION_OCTET_STREAM}.
      *
      * @param data the data to wrap
      * @return a {@link HttpEntity} instance with the given data
      */
     static HttpEntity of(@NonNull byte[] data) {
-        return of(ContentType.parse("application/octet-stream"), data);
+        return of(StandardContentType.APPLICATION_OCTET_STREAM, data);
     }
 
     /**

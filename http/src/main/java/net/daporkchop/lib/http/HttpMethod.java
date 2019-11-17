@@ -59,6 +59,6 @@ public enum HttpMethod {
     ;
 
     private final byte[] asciiName = this.name().getBytes(StandardCharsets.US_ASCII);
-    private final boolean requestBody;
-    private final boolean responseBody;
+    private final boolean hasRequestBody;
+    private final boolean hasResponseBody;
 }

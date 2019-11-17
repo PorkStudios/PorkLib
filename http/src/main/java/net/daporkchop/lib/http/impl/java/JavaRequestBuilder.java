@@ -15,26 +15,17 @@
 
 package net.daporkchop.lib.http.impl.java;
 
-import lombok.AccessLevel;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.header.map.HeaderMap;
 import net.daporkchop.lib.http.header.map.HeaderMaps;
 import net.daporkchop.lib.http.header.map.MutableHeaderMap;
-import net.daporkchop.lib.http.header.map.MutableHeaderMapImpl;
 import net.daporkchop.lib.http.request.AbstractRequestBuilder;
 import net.daporkchop.lib.http.request.Request;
 import net.daporkchop.lib.http.request.RequestBuilder;
-import net.daporkchop.lib.http.request.auth.Authentication;
-import net.daporkchop.lib.http.response.aggregate.ResponseAggregator;
-import net.daporkchop.lib.http.util.Constants;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 /**
  * @author DaPorkchop_
@@ -66,7 +57,7 @@ public final class JavaRequestBuilder<V> extends AbstractRequestBuilder<V, JavaH
     protected void assertConfigured() {
         super.assertConfigured();
 
-        if (this.url == null)   {
+        if (this.url == null) {
             throw new IllegalStateException("url isn't set!");
         }
     }
@@ -87,8 +78,14 @@ public final class JavaRequestBuilder<V> extends AbstractRequestBuilder<V, JavaH
 
         headers.forEach(addCallback);
 
-        if (!headers.hasKey("user-agent"))  { //only add user-agent header if it's not already set
-            addCallback.accept("User-Agent", this.client.userAgentPool.any());
+        if (!headers.hasKey("user-agent")) { //only add user-agent header if it's not already set
+            addCallback.accept("user-agent", this.client.userAgentPool.any());
+        }
+
+        if (this.method.hasRequestBody()) {
+            addCallback.accept("content-encoding", this.body.compression().nameContentEncoding());
+            addCallback.accept("content-length", String.valueOf(this.body.data().length));
+            addCallback.accept("content-type", this.body.type());
         }
     }
 }

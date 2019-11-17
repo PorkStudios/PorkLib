@@ -78,6 +78,31 @@ public interface RequestBuilder<V> {
     RequestBuilder<V> body(@NonNull Content body) throws IllegalStateException;
 
     /**
+     * Configures the {@link Content} that will be sent with the request to contain the given {@code byte[]}.
+     *
+     * @param data the body of the request
+     * @return this {@link RequestBuilder} instance
+     * @throws IllegalStateException if the currently selected {@link HttpMethod} does not allow sending a request body
+     * @see #body(Content)
+     */
+    default RequestBuilder<V> body(@NonNull byte[] data) throws IllegalStateException {
+        return this.body(Content.of(data));
+    }
+
+    /**
+     * Configures the {@link Content} that will be sent with the request to contain the given {@code byte[]}.
+     *
+     * @param mimeType the MIME type of the data
+     * @param data     the body of the request
+     * @return this {@link RequestBuilder} instance
+     * @throws IllegalStateException if the currently selected {@link HttpMethod} does not allow sending a request body
+     * @see #body(Content)
+     */
+    default RequestBuilder<V> body(@NonNull String mimeType, @NonNull byte[] data) throws IllegalStateException {
+        return this.body(Content.of(mimeType, data));
+    }
+
+    /**
      * Configures this {@link RequestBuilder} to use the given {@link ResponseAggregator}.
      *
      * @param aggregator the new {@link ResponseAggregator} to use

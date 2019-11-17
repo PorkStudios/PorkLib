@@ -15,13 +15,36 @@
 
 package net.daporkchop.lib.http.content;
 
+import lombok.NonNull;
+
 /**
  * Represents some form of content that will be sent over an HTTP connection.
  *
  * @author DaPorkchop_
  */
-//TODO: some way of actually writing the data needs to be added
+//TODO: this is very primitive and needs to be made smarter somehow (what if we want to upload a really large file?)
 public interface Content {
+    /**
+     * Wraps the given {@code byte[]} into a {@link Content} instance with the MIME type of {@code "application/octet-stream"}.
+     *
+     * @param data the data to wrap
+     * @return a {@link Content} instance with the given data
+     */
+    static Content of(@NonNull byte[] data) {
+        return new ContentImpl("application/octet-stream", data);
+    }
+
+    /**
+     * Wraps the given {@code byte[]} into a {@link Content} instance with the given MIME type.
+     *
+     * @param mimeType the MIME type of the data
+     * @param data     the data to wrap
+     * @return a {@link Content} instance with the given data
+     */
+    static Content of(@NonNull String mimeType, @NonNull byte[] data) {
+        return new ContentImpl(mimeType, data);
+    }
+
     /**
      * @return the content's MIME type
      */
@@ -40,13 +63,7 @@ public interface Content {
     }
 
     /**
-     * Gets the length of the data (in bytes).
-     * <p>
-     * If {@link #compression()} is set, this method should return the compressed size of the data.
-     * <p>
-     * If the length of the data isn't known for any reason, this method should return {@code -1L}.
-     *
-     * @return the length of the data (in bytes), or {@code -1L} if it isn't known
+     * @return the content's raw data
      */
-    long size();
+    byte[] data();
 }

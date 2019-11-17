@@ -19,11 +19,16 @@ import com.google.gson.JsonParser;
 import net.daporkchop.lib.common.test.TestRandomData;
 import net.daporkchop.lib.encoding.basen.Base58;
 import net.daporkchop.lib.http.Http;
+import net.daporkchop.lib.http.HttpMethod;
+import net.daporkchop.lib.http.content.Content;
+import net.daporkchop.lib.http.content.ContentImpl;
 import net.daporkchop.lib.http.impl.java.JavaHttpClient;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.StandardOpenOption;
 
 /**
  * @author DaPorkchop_
@@ -96,6 +101,34 @@ public class HttpTest {
         String response = new JsonParser().parse(Http.postJsonAsString("http://httpbin.org/post", text)).getAsJsonObject().get("data").getAsString();
         if (!text.equals(response)) {
             throw new IllegalStateException(String.format("Data not identical! Sent=%s Received=%s", text, response));
+        }
+    }
+
+    @Test
+    public void testPOST2() throws IOException {
+        JavaHttpClient client = new JavaHttpClient();
+        try {
+            String text = String.format("{\"value\":\"%s\"}", Base58.encodeBase58(TestRandomData.getRandomBytes(64, 128)));
+
+            String response;
+            if (true) {
+                response = client.request("http://httpbin.org/post")
+                        .followRedirects(true)
+                        .method(HttpMethod.POST)
+                        .body(Content.of("application/json", text.getBytes(StandardCharsets.UTF_8)))
+                        .aggregateToString()
+                        .send()
+                        .syncBodyAndGet().value();
+            } else {
+                response = Http.postJsonAsString("http://httpbin.org/post", text);
+            }
+
+            response = new JsonParser().parse(response).getAsJsonObject().get("data").getAsString();
+            if (!text.equals(response)) {
+                throw new IllegalStateException(String.format("Data not identical! Sent=%s Received=%s", text, response));
+            }
+        } finally {
+            client.close();
         }
     }
 }

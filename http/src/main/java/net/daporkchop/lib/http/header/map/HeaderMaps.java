@@ -36,7 +36,9 @@ public class HeaderMaps {
     private final Set<String> RESERVED_KEYS = new HashSet<>(Arrays.asList(
             "accept-encoding",
             "authorization",
+            "content-encoding",
             "content-length",
+            "content-type",
             "transfer-encoding"
     ));
 

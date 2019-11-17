@@ -15,23 +15,23 @@
 
 package net.daporkchop.lib.http.content;
 
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 
 /**
- * The different compression methods supported by an HTTP connection.
+ * A simple implementation of {@link Content}.
  *
  * @author DaPorkchop_
- * @see <a href="https://tools.ietf.org/html/rfc2616#section-3.5">RFC2616§3.5</a>
  */
+@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Accessors(fluent = true)
-public enum HttpCompression {
-    IDENTITY,
-    GZIP,
-    DEFLATE,
-    @Deprecated
-    COMPRESS;
-
-    protected final String nameContentEncoding = this.name().toLowerCase();
+public final class ContentImpl implements Content {
+    @NonNull
+    protected final String type;
+    @NonNull
+    protected final byte[] data;
 }

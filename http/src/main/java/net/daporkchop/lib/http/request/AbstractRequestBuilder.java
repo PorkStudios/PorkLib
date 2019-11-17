@@ -24,6 +24,7 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.http.HttpClient;
 import net.daporkchop.lib.http.HttpMethod;
+import net.daporkchop.lib.http.content.Content;
 import net.daporkchop.lib.http.header.map.HeaderMap;
 import net.daporkchop.lib.http.header.map.HeaderMaps;
 import net.daporkchop.lib.http.header.map.MutableHeaderMap;
@@ -51,6 +52,9 @@ public abstract class AbstractRequestBuilder<V, C extends HttpClient> implements
     protected HttpMethod method = HttpMethod.GET;
 
     @Setter(AccessLevel.NONE)
+    protected Content body;
+
+    @Setter(AccessLevel.NONE)
     protected ResponseAggregator<Object, V> aggregator;
 
     @NonNull
@@ -66,9 +70,21 @@ public abstract class AbstractRequestBuilder<V, C extends HttpClient> implements
     public RequestBuilder<V> method(@NonNull HttpMethod method) throws IllegalArgumentException {
         if (!this.client.supportedMethods().contains(method))   {
             throw new IllegalArgumentException(String.format("HTTP method %s is not supported by \"%s\"!", method, PorkUtil.className(this.client)));
+        } else if (!method.hasRequestBody())  {
+            this.body = null;
         }
         this.method = method;
         return this;
+    }
+
+    @Override
+    public RequestBuilder<V> body(@NonNull Content body) throws IllegalStateException {
+        if (this.method.hasRequestBody())  {
+            this.body = body;
+            return this;
+        } else {
+            throw new IllegalStateException(String.format("HTTP method %s does not support a request body!", this.method));
+        }
     }
 
     @Override
@@ -98,6 +114,8 @@ public abstract class AbstractRequestBuilder<V, C extends HttpClient> implements
     protected void assertConfigured()   {
         if (this.aggregator == null)    {
             throw new IllegalStateException("aggregator isn't set!");
+        } else if (this.method.hasRequestBody() && this.body == null)  {
+            throw new IllegalStateException("body isn't set!");
         }
     }
 }

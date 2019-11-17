@@ -31,6 +31,7 @@ import net.daporkchop.lib.http.response.aggregate.ResponseAggregator;
 import net.daporkchop.lib.http.util.exception.ResponseTooLargeException;
 
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
@@ -51,7 +52,7 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
     protected final Promise<ResponseBody<V>> body;
 
     public JavaRequest(@NonNull JavaRequestBuilder<V> builder) {
-        this.client = builder.client;
+        this.client = builder.client();
         this.builder = builder;
         this.thread = this.client.factory.newThread(this);
 
@@ -91,9 +92,22 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
             URL url = this.builder.url;
             do {
                 this.connection = (HttpURLConnection) url.openConnection();
+
+                //set method
+                this.connection.setRequestMethod(this.builder.method().name());
+                this.connection.setDoOutput(this.builder.method().hasRequestBody());
+                this.connection.setDoInput(this.builder.method().hasResponseBody());
+
                 //set request headers
                 this.builder.prepareHeaders(this.connection::setRequestProperty);
                 this.connection.connect();
+
+                if (this.builder.method().hasRequestBody())    {
+                    //send body
+                    try (OutputStream out = this.connection.getOutputStream())  {
+                        out.write(this.builder.body().data());
+                    }
+                }
 
                 ResponseHeadersImpl headers = new ResponseHeadersImpl(
                         StatusCode.of(this.connection.getResponseCode(), this.connection.getResponseMessage()),

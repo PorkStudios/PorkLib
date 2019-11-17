@@ -13,9 +13,12 @@
  *
  */
 
-package net.daporkchop.lib.http.content;
+package net.daporkchop.lib.http.entity;
 
 import lombok.NonNull;
+import net.daporkchop.lib.http.entity.content.encoding.ContentEncoding;
+import net.daporkchop.lib.http.entity.content.encoding.StandardContentEncoding;
+import net.daporkchop.lib.http.entity.content.type.ContentType;
 
 /**
  * Represents some form of content that will be sent over an HTTP connection.
@@ -23,43 +26,43 @@ import lombok.NonNull;
  * @author DaPorkchop_
  */
 //TODO: this is very primitive and needs to be made smarter somehow (what if we want to upload a really large file?)
-public interface Content {
+public interface HttpEntity {
     /**
-     * Wraps the given {@code byte[]} into a {@link Content} instance with the MIME type of {@code "application/octet-stream"}.
+     * Wraps the given {@code byte[]} into a {@link HttpEntity} instance with the MIME type of {@code "application/octet-stream"}.
      *
      * @param data the data to wrap
-     * @return a {@link Content} instance with the given data
+     * @return a {@link HttpEntity} instance with the given data
      */
-    static Content of(@NonNull byte[] data) {
-        return new ContentImpl("application/octet-stream", data);
+    static HttpEntity of(@NonNull byte[] data) {
+        return new HttpEntityImpl("application/octet-stream", data);
     }
 
     /**
-     * Wraps the given {@code byte[]} into a {@link Content} instance with the given MIME type.
+     * Wraps the given {@code byte[]} into a {@link HttpEntity} instance with the given MIME type.
      *
      * @param mimeType the MIME type of the data
      * @param data     the data to wrap
-     * @return a {@link Content} instance with the given data
+     * @return a {@link HttpEntity} instance with the given data
      */
-    static Content of(@NonNull String mimeType, @NonNull byte[] data) {
-        return new ContentImpl(mimeType, data);
+    static HttpEntity of(@NonNull String mimeType, @NonNull byte[] data) {
+        return new HttpEntityImpl(mimeType, data);
     }
 
     /**
-     * @return the content's MIME type
+     * @return this entity's {@link ContentType}
      */
-    String type();
+    ContentType type();
 
     /**
-     * Gets the {@link HttpCompression} type used for encoding this content's data.
+     * Gets the {@link ContentEncoding} used for encoding this entity's data.
      * <p>
-     * This option is only intended for use by implementations that will do the compression themselves and write it directly to the destination output, as
-     * it will not be done automatically by the internal HTTP engine.
+     * The data returned by this {@link HttpEntity}'s various data methods must already be encoded using the {@link ContentEncoding} returned by this
+     * method, as the internal HTTP engine will NOT do the encoding automatically.
      *
-     * @return the content's compression type
+     * @return this entity's {@link ContentEncoding}
      */
-    default HttpCompression compression() {
-        return HttpCompression.IDENTITY;
+    default ContentEncoding encoding() {
+        return StandardContentEncoding.identity;
     }
 
     /**

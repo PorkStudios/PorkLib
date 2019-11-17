@@ -20,15 +20,13 @@ import net.daporkchop.lib.common.test.TestRandomData;
 import net.daporkchop.lib.encoding.basen.Base58;
 import net.daporkchop.lib.http.Http;
 import net.daporkchop.lib.http.HttpMethod;
-import net.daporkchop.lib.http.content.Content;
-import net.daporkchop.lib.http.content.ContentImpl;
+import net.daporkchop.lib.http.entity.HttpEntity;
 import net.daporkchop.lib.http.impl.java.JavaHttpClient;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.StandardOpenOption;
 
 /**
  * @author DaPorkchop_
@@ -115,7 +113,7 @@ public class HttpTest {
                 response = client.request("http://httpbin.org/post")
                         .followRedirects(true)
                         .method(HttpMethod.POST)
-                        .body(Content.of("application/json", text.getBytes(StandardCharsets.UTF_8)))
+                        .body(HttpEntity.of("application/json", text.getBytes(StandardCharsets.UTF_8)))
                         .aggregateToString()
                         .send()
                         .syncBodyAndGet().value();

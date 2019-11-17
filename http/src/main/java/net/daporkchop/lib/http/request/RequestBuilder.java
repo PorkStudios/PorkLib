@@ -19,7 +19,7 @@ import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.http.HttpClient;
 import net.daporkchop.lib.http.HttpMethod;
-import net.daporkchop.lib.http.content.Content;
+import net.daporkchop.lib.http.entity.HttpEntity;
 import net.daporkchop.lib.http.header.map.HeaderMap;
 import net.daporkchop.lib.http.header.map.HeaderMaps;
 import net.daporkchop.lib.http.request.auth.Authentication;
@@ -58,7 +58,7 @@ public interface RequestBuilder<V> {
      * <p>
      * Defaults to {@link HttpMethod#GET}.
      * <p>
-     * If the new {@link HttpMethod} does not allow sending a request body, the value of {@link #body(Content)} will be cleared.
+     * If the new {@link HttpMethod} does not allow sending a request body, the value of {@link #body(HttpEntity)} will be cleared.
      *
      * @param method the new {@link HttpMethod} to use
      * @return this {@link RequestBuilder} instance
@@ -67,7 +67,7 @@ public interface RequestBuilder<V> {
     RequestBuilder<V> method(@NonNull HttpMethod method) throws IllegalArgumentException;
 
     /**
-     * Configures the {@link Content} that will be sent with the request.
+     * Configures the {@link HttpEntity} that will be sent with the request.
      * <p>
      * For HTTP methods that require a body, this value must be set.
      *
@@ -75,31 +75,31 @@ public interface RequestBuilder<V> {
      * @return this {@link RequestBuilder} instance
      * @throws IllegalStateException if the currently selected {@link HttpMethod} does not allow sending a request body
      */
-    RequestBuilder<V> body(@NonNull Content body) throws IllegalStateException;
+    RequestBuilder<V> body(@NonNull HttpEntity body) throws IllegalStateException;
 
     /**
-     * Configures the {@link Content} that will be sent with the request to contain the given {@code byte[]}.
+     * Configures the {@link HttpEntity} that will be sent with the request to contain the given {@code byte[]}.
      *
      * @param data the body of the request
      * @return this {@link RequestBuilder} instance
      * @throws IllegalStateException if the currently selected {@link HttpMethod} does not allow sending a request body
-     * @see #body(Content)
+     * @see #body(HttpEntity)
      */
     default RequestBuilder<V> body(@NonNull byte[] data) throws IllegalStateException {
-        return this.body(Content.of(data));
+        return this.body(HttpEntity.of(data));
     }
 
     /**
-     * Configures the {@link Content} that will be sent with the request to contain the given {@code byte[]}.
+     * Configures the {@link HttpEntity} that will be sent with the request to contain the given {@code byte[]}.
      *
      * @param mimeType the MIME type of the data
      * @param data     the body of the request
      * @return this {@link RequestBuilder} instance
      * @throws IllegalStateException if the currently selected {@link HttpMethod} does not allow sending a request body
-     * @see #body(Content)
+     * @see #body(HttpEntity)
      */
     default RequestBuilder<V> body(@NonNull String mimeType, @NonNull byte[] data) throws IllegalStateException {
-        return this.body(Content.of(mimeType, data));
+        return this.body(HttpEntity.of(mimeType, data));
     }
 
     /**

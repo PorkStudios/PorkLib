@@ -24,7 +24,7 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.http.HttpClient;
 import net.daporkchop.lib.http.HttpMethod;
-import net.daporkchop.lib.http.content.Content;
+import net.daporkchop.lib.http.entity.HttpEntity;
 import net.daporkchop.lib.http.header.map.HeaderMap;
 import net.daporkchop.lib.http.header.map.HeaderMaps;
 import net.daporkchop.lib.http.header.map.MutableHeaderMap;
@@ -52,7 +52,7 @@ public abstract class AbstractRequestBuilder<V, C extends HttpClient> implements
     protected HttpMethod method = HttpMethod.GET;
 
     @Setter(AccessLevel.NONE)
-    protected Content body;
+    protected HttpEntity body;
 
     @Setter(AccessLevel.NONE)
     protected ResponseAggregator<Object, V> aggregator;
@@ -78,7 +78,7 @@ public abstract class AbstractRequestBuilder<V, C extends HttpClient> implements
     }
 
     @Override
-    public RequestBuilder<V> body(@NonNull Content body) throws IllegalStateException {
+    public RequestBuilder<V> body(@NonNull HttpEntity body) throws IllegalStateException {
         if (this.method.hasRequestBody())  {
             this.body = body;
             return this;

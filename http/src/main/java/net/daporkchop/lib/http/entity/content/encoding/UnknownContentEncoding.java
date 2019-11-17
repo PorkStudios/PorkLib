@@ -13,25 +13,22 @@
  *
  */
 
-package net.daporkchop.lib.http.content;
+package net.daporkchop.lib.http.entity.content.encoding;
 
 import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 
 /**
- * The different compression methods supported by an HTTP connection.
+ * Represents a {@link ContentEncoding} which is not known to PorkLib http.
  *
  * @author DaPorkchop_
- * @see <a href="https://tools.ietf.org/html/rfc2616#section-3.5">RFC2616§3.5</a>
  */
+@RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public enum HttpCompression {
-    IDENTITY,
-    GZIP,
-    DEFLATE,
-    @Deprecated
-    COMPRESS;
-
-    protected final String nameContentEncoding = this.name().toLowerCase();
+public final class UnknownContentEncoding implements ContentEncoding {
+    @NonNull
+    protected final String name;
 }

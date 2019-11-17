@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.http.content;
+package net.daporkchop.lib.http.entity;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -22,14 +22,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 
 /**
- * A simple implementation of {@link Content}.
+ * A simple implementation of {@link HttpEntity}.
  *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Accessors(fluent = true)
-public final class ContentImpl implements Content {
+public final class HttpEntityImpl implements HttpEntity {
     @NonNull
     protected final String type;
     @NonNull

@@ -14,11 +14,7 @@
  */
 
 dependencies {
-    compile project(":binary")
     compile project(":network:netty-common")
-
-    //TODO: remove this
-    compile "com.google.http-client:google-http-client:$googleHttpClientVersion"
 
     compile "io.netty:netty-handler:$nettyVersion"
 

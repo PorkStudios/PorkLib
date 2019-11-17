@@ -50,6 +50,27 @@ public interface HttpClient {
     }
 
     /**
+     * Creates a new {@link RequestBuilder} instance to make a new HTTP request, pre-configured with the given {@link HttpMethod}.
+     *
+     * @param method the {@link HttpMethod} that the request will be sent using
+     * @return a new {@link RequestBuilder} instance
+     */
+    default RequestBuilder<Void> request(@NonNull HttpMethod method) {
+        return this.request().method(method);
+    }
+
+    /**
+     * Creates a new {@link RequestBuilder} instance to make a new HTTP request, pre-configured with the given {@link HttpMethod} and URL.
+     *
+     * @param method the {@link HttpMethod} that the request will be sent using
+     * @param url the URL that the request will be sent to
+     * @return a new {@link RequestBuilder} instance
+     */
+    default RequestBuilder<Void> request(@NonNull HttpMethod method, @NonNull String url) {
+        return this.request().method(method).url(url);
+    }
+
+    /**
      * Closes this {@link HttpClient}, disconnecting any active requests and releasing any resources allocated
      * by it and preventing any new connections from being sent.
      *

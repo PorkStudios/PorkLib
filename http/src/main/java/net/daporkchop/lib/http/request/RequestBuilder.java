@@ -17,12 +17,15 @@ package net.daporkchop.lib.http.request;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
+import net.daporkchop.lib.common.function.PFunctions;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.http.HttpClient;
 import net.daporkchop.lib.http.HttpMethod;
 import net.daporkchop.lib.http.entity.FileHttpEntity;
 import net.daporkchop.lib.http.entity.HttpEntity;
 import net.daporkchop.lib.http.entity.content.type.ContentType;
 import net.daporkchop.lib.http.entity.content.type.StandardContentType;
+import net.daporkchop.lib.http.header.Header;
 import net.daporkchop.lib.http.header.map.HeaderMap;
 import net.daporkchop.lib.http.header.map.HeaderMaps;
 import net.daporkchop.lib.http.request.auth.Authentication;
@@ -34,6 +37,7 @@ import net.daporkchop.lib.http.response.aggregate.ToStringAggregator;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 /**
  * Used for configuring an HTTP request prior to sending.
@@ -259,17 +263,66 @@ public interface RequestBuilder<V> {
      * strongly advised to set {@link #headers(HeaderMap)} directly.
      *
      * @param key   the key of the header to set
-     * @param value the value of the header to set
+     * @param value the value of the header to set. May be either a {@link String} or a {@link java.util.List} of {@link String}.
+     * @return this {@link RequestBuilder} instance
+     * @see #header(Header)
+     */
+    @SuppressWarnings("unchecked")
+    default RequestBuilder<V> header(@NonNull String key, @NonNull Object value)    {
+        Header header;
+        if (value instanceof String)    {
+            header = Header.of(key, (String) value);
+        } else if (value instanceof List && ((List) value).stream().anyMatch(PFunctions.invert(o -> o instanceof String))) {
+            header = Header.of(key, (List<String>) value);
+        } else {
+            throw new IllegalArgumentException(value.toString());
+        }
+        return this.header(header);
+    }
+
+    /**
+     * Sets a specific header to be sent with the request.
+     * <p>
+     * If a header with the given key already exists, it will be silently replaced by the new value.
+     * <p>
+     * Be aware that this method may cause unnecessarily large numbers of heap allocations in some situations, and such high-performance applications are
+     * strongly advised to set {@link #headers(HeaderMap)} directly.
+     *
+     * @param header the header to set
      * @return this {@link RequestBuilder} instance
      */
-    RequestBuilder<V> header(@NonNull String key, @NonNull String value);
+    RequestBuilder<V> header(@NonNull Header header);
+
+    /**
+     * Sets a number of specific headers to be sent with the request.
+     * <p>
+     * If a header with the a given key already exists, it will be silently replaced by the new value.
+     * <p>
+     * Be aware that this method may cause unnecessarily large numbers of heap allocations in some situations, and such high-performance applications are
+     * strongly advised to set {@link #headers(HeaderMap)} directly.
+     *
+     * @param headers the headers to set
+     * @return this {@link RequestBuilder} instance
+     * @see #header(Header)
+     */
+    default RequestBuilder<V> headers(@NonNull Header... headers)   {
+        for (Header header : headers)   {
+            if (header == null) {
+                throw new NullPointerException("headers");
+            }
+        }
+        for (Header header : headers)   {
+            this.header(header);
+        }
+        return this;
+    }
 
     /**
      * Sets the "User-Agent" header to be sent with the request.
      *
      * @param userAgent the new user agent
      * @return this {@link RequestBuilder} instance
-     * @see #header(String, String) for why this method should be avoided in high-performance applications
+     * @see #header(String, Object) for why this method should be avoided in high-performance applications
      */
     default RequestBuilder<V> userAgent(@NonNull String userAgent) {
         return this.header("User-Agent", userAgent);

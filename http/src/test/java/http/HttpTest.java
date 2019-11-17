@@ -20,15 +20,12 @@ import net.daporkchop.lib.common.test.TestRandomData;
 import net.daporkchop.lib.encoding.basen.Base58;
 import net.daporkchop.lib.http.Http;
 import net.daporkchop.lib.http.HttpMethod;
-import net.daporkchop.lib.http.entity.FileHttpEntity;
-import net.daporkchop.lib.http.entity.HttpEntity;
-import net.daporkchop.lib.http.entity.content.type.StandardContentType;
+import net.daporkchop.lib.http.header.Header;
 import net.daporkchop.lib.http.impl.java.JavaHttpClient;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
 /**
  * @author DaPorkchop_
@@ -39,47 +36,19 @@ public class HttpTest {
     @Test
     public void test() throws IOException {
         final String url = "http://raw.githubusercontent.com/DaMatrix/betterMapArt/master/src/main/resources/colors.json";
-        String data2;
-
-        JavaHttpClient client = new JavaHttpClient();
-        try {
-            if (true)   {
-                client.request().url(url)
-                        .followRedirects(true)
-                        .downloadToFile(new File("/home/daporkchop/Desktop/test/colors.json"), true)
-                        .send()
-                        .syncBody();
-                return;
-            }
-
-            data2 = client.request().url(url)
-                    .followRedirects(true)
-                    .aggregateToString()
-                    .send()
-                    .syncBodyAndGet().value();
-        } finally {
-            client.close().syncUninterruptibly();
-        }
-
         String data = Http.getString(url);
 
         if (DEBUG_PRINT) {
             System.out.println(data);
         }
-        if (!data.trim().endsWith("}")) {
-            throw new IllegalStateException();
-        } else if (!data2.trim().endsWith("}")) {
-            throw new IllegalStateException();
-        } else if (!data.equals(data2)) {
-            throw new IllegalStateException();
-        }
+        new JsonParser().parse(data);
     }
 
     @Test
     public void test2() throws IOException {
         String data = Http.getString(
                 "https://www.daporkchop.net/contact",
-                "User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/70.0.3538.77 Chrome/70.0.3538.77 Safari/537.36"
+                Header.of("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/70.0.3538.77 Chrome/70.0.3538.77 Safari/537.36")
         );
         if (DEBUG_PRINT) {
             System.out.println(data);
@@ -98,39 +67,10 @@ public class HttpTest {
     @Test
     public void testPOST() throws IOException {
         String text = String.format("{\"value\":\"%s\"}", Base58.encodeBase58(TestRandomData.getRandomBytes(64, 128)));
-        String response = Http.postJsonAsString("http://httpbin.org/post", text);
+        String response = Http.postJsonString("http://httpbin.org/post", text);
         response = new JsonParser().parse(response).getAsJsonObject().get("data").getAsString();
         if (!text.equals(response)) {
             throw new IllegalStateException(String.format("Data not identical! Sent=%s Received=%s", text, response));
-        }
-    }
-
-    @Test
-    public void testPOST2() throws IOException {
-        JavaHttpClient client = new JavaHttpClient();
-        try {
-            String text = String.format("{\"value\":\"%s\"}", Base58.encodeBase58(TestRandomData.getRandomBytes(64, 128)));
-
-            String response;
-            if (true) {
-                response = client.request("http://httpbin.org/post")
-                        .followRedirects(true)
-                        .method(HttpMethod.POST)
-                        .bodyJson(text)
-                        //.body(new FileHttpEntity(StandardContentType.APPLICATION_OCTET_STREAM, new File("/home/daporkchop/10.0.0.20/minecraft/2b2t/2b2t_100k_final.zip.torrent")))
-                        .aggregateToString()
-                        .send()
-                        .syncBodyAndGet().value();
-            } else {
-                response = Http.postJsonAsString("http://httpbin.org/post", text);
-            }
-
-            response = new JsonParser().parse(response).getAsJsonObject().get("data").getAsString();
-            if (!text.equals(response)) {
-                throw new IllegalStateException(String.format("Data not identical! Sent=%s Received=%s", text, response));
-            }
-        } finally {
-            client.close();
         }
     }
 }

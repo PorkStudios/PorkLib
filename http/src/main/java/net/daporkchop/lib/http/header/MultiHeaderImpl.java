@@ -19,6 +19,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.StringJoiner;
@@ -40,7 +41,7 @@ public final class MultiHeaderImpl implements Header {
             throw new IllegalArgumentException("values list is empty!");
         } else {
             this.key = key;
-            this.values = Collections.unmodifiableList(values);
+            this.values = new ArrayList<>(values);
         }
     }
 

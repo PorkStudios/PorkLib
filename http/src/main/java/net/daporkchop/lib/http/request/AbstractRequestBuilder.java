@@ -25,6 +25,7 @@ import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.http.HttpClient;
 import net.daporkchop.lib.http.HttpMethod;
 import net.daporkchop.lib.http.entity.HttpEntity;
+import net.daporkchop.lib.http.header.Header;
 import net.daporkchop.lib.http.header.map.HeaderMap;
 import net.daporkchop.lib.http.header.map.HeaderMaps;
 import net.daporkchop.lib.http.header.map.MutableHeaderMap;
@@ -32,6 +33,8 @@ import net.daporkchop.lib.http.header.map.MutableHeaderMapImpl;
 import net.daporkchop.lib.http.impl.java.JavaHttpClient;
 import net.daporkchop.lib.http.request.auth.Authentication;
 import net.daporkchop.lib.http.response.aggregate.ResponseAggregator;
+
+import java.util.List;
 
 /**
  * Implementation of some of the most common methods of {@link RequestBuilder}.
@@ -96,7 +99,8 @@ public abstract class AbstractRequestBuilder<V, C extends HttpClient> implements
     }
 
     @Override
-    public RequestBuilder<V> header(@NonNull String key, @NonNull String value) {
+    @SuppressWarnings("unchecked")
+    public RequestBuilder<V> header(@NonNull Header header) {
         HeaderMap headers = this.headers;
         MutableHeaderMap mutableHeaders;
         if (headers instanceof MutableHeaderMap) {
@@ -106,7 +110,7 @@ public abstract class AbstractRequestBuilder<V, C extends HttpClient> implements
         } else {
             mutableHeaders = headers.mutableCopy();
         }
-        mutableHeaders.put(key, value);
+        mutableHeaders.put(header);
         this.headers = mutableHeaders;
         return this;
     }
@@ -133,16 +137,5 @@ public abstract class AbstractRequestBuilder<V, C extends HttpClient> implements
         this.authentication.rewrite(headers);
 
         return headers;
-
-        /*headers.forEach(addCallback);
-
-        if (this.method.hasRequestBody()) {
-            if (this.body.length() < 0L)    {
-                throw new IllegalStateException("Chunked transfer is not yet supported!");
-            }
-            addCallback.accept("content-encoding", this.body.transferEncoding().name());
-            addCallback.accept("content-length", String.valueOf(this.body.length()));
-            addCallback.accept("content-type", this.body.type().formatted());
-        }*/
     }
 }

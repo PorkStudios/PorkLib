@@ -17,7 +17,7 @@ package net.daporkchop.lib.http.impl.java;
 
 import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GlobalEventExecutor;
+import io.netty.util.concurrent.ImmediateEventExecutor;
 import io.netty.util.concurrent.Promise;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
@@ -35,7 +35,9 @@ import java.util.concurrent.ThreadFactory;
 /**
  * A very simple implementation of {@link HttpClient}, using {@link java.net.URL}'s built-in support to act as a simple HTTP client.
  * <p>
- * Each request will be executed on a separate thread, and a shared {@link EventExecutor} is used for invoking callbacks.
+ * Each request will be executed on a separate thread, and a shared {@link EventExecutor} is used for invoking callbacks. By default the
+ * {@link EventExecutor} is set to {@link ImmediateEventExecutor#INSTANCE}, meaning that the request is entirely executed on the connection-
+ * specific thread.
  *
  * @author DaPorkchop_
  */
@@ -65,7 +67,7 @@ public final class JavaHttpClient implements HttpClient {
     }
 
     public JavaHttpClient(@NonNull ThreadFactory factory) {
-        this(factory, GlobalEventExecutor.INSTANCE, Constants.DEFAULT_USER_AGENT_POOL);
+        this(factory, ImmediateEventExecutor.INSTANCE, Constants.DEFAULT_USER_AGENT_POOL);
     }
 
     public JavaHttpClient(@NonNull EventExecutor executor, @NonNull Pool<String> userAgentPool) {
@@ -73,15 +75,15 @@ public final class JavaHttpClient implements HttpClient {
     }
 
     public JavaHttpClient(@NonNull ThreadFactory factory, @NonNull Pool<String> userAgentPool) {
-        this(factory, GlobalEventExecutor.INSTANCE, userAgentPool);
+        this(factory, ImmediateEventExecutor.INSTANCE, userAgentPool);
     }
 
     public JavaHttpClient(@NonNull Pool<String> userAgentPool) {
-        this(Thread::new, GlobalEventExecutor.INSTANCE, userAgentPool);
+        this(Thread::new, ImmediateEventExecutor.INSTANCE, userAgentPool);
     }
 
     public JavaHttpClient() {
-        this(Thread::new, GlobalEventExecutor.INSTANCE, Constants.DEFAULT_USER_AGENT_POOL);
+        this(Thread::new, ImmediateEventExecutor.INSTANCE, Constants.DEFAULT_USER_AGENT_POOL);
     }
 
     @Override

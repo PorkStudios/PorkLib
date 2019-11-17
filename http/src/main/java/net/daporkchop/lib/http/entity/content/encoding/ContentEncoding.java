@@ -43,7 +43,7 @@ public interface ContentEncoding {
     }
 
     /**
-     * @return the textual name of this {@link ContentEncoding} type
+     * @return the textual name of this {@link ContentEncoding} method
      */
     String name();
 

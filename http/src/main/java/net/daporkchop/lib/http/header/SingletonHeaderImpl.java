@@ -48,6 +48,11 @@ public final class SingletonHeaderImpl implements Header {
     }
 
     @Override
+    public boolean singleton() {
+        return true;
+    }
+
+    @Override
     public String toString() {
         return String.format("%s: %s", this.key, this.value);
     }

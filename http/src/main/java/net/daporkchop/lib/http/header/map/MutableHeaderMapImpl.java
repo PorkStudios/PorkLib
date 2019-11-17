@@ -99,6 +99,14 @@ public class MutableHeaderMapImpl implements MutableHeaderMap {
 
     @Override
     public void forEach(@NonNull BiConsumer<String, String> callback) {
-        this.list.forEach(header -> callback.accept(header.key(), header.value()));
+        this.list.forEach(header -> {
+            if (header.singleton()) {
+                callback.accept(header.key(), header.value());
+            } else {
+                for (String value : header.values())    {
+                    callback.accept(header.key(), value);
+                }
+            }
+        });
     }
 }

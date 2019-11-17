@@ -20,9 +20,15 @@ import io.netty.buffer.Unpooled;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
 import lombok.NonNull;
+import net.daporkchop.lib.http.HttpMethod;
 import net.daporkchop.lib.http.StatusCode;
+import net.daporkchop.lib.http.entity.HttpEntity;
+import net.daporkchop.lib.http.entity.transfer.TransferSession;
+import net.daporkchop.lib.http.entity.transfer.encoding.StandardTransferEncoding;
+import net.daporkchop.lib.http.entity.transfer.encoding.TransferEncoding;
 import net.daporkchop.lib.http.header.Header;
 import net.daporkchop.lib.http.header.SingletonHeaderImpl;
+import net.daporkchop.lib.http.header.map.HeaderMap;
 import net.daporkchop.lib.http.header.map.HeaderSnapshot;
 import net.daporkchop.lib.http.request.Request;
 import net.daporkchop.lib.http.response.DelegatingResponseBodyImpl;
@@ -91,20 +97,53 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
         if (Thread.currentThread() != this.thread) throw new IllegalStateException("Invoked from illegal thread!");
 
         try {
+            final HttpMethod method = this.builder.method();
+
+            if (method.hasRequestBody() && entity == null)    {
+                throw new IllegalStateException("body is not set!");
+            }
+
             URL url = this.builder.url;
             do {
                 this.connection = (HttpURLConnection) url.openConnection();
 
                 //set method
-                this.connection.setRequestMethod(this.builder.method().name());
-                this.connection.setDoOutput(this.builder.method().hasRequestBody());
-                this.connection.setDoInput(this.builder.method().hasResponseBody());
+                this.connection.setRequestMethod(method.name());
+                this.connection.setDoOutput(method.hasRequestBody());
+                this.connection.setDoInput(method.hasResponseBody());
 
                 //set request headers
-                this.builder.prepareHeaders(this.connection::setRequestProperty);
-                this.connection.connect();
+                {
+                    HeaderMap headers = this.builder._prepareHeaders();
+                    //add all headers as properties (we don't need to use set since HeaderMap already guarantees distinct keys, so using setRequestProperty would only cause needless string comparisons)
+                    headers.forEach(header -> this.connection.addRequestProperty(header.key(), header.value())); //if it's a list all the values will be joined together
 
-                if (this.builder.method().hasRequestBody())    {
+                    if (!headers.hasKey("user-agent")) this.connection.setRequestProperty("user-agent", this.client.userAgentPool.any());
+                }
+
+                if (method.hasRequestBody())    {
+                    HttpEntity entity = this.builder.body();
+                    TransferSession session = entity.newSession();
+                    TransferEncoding encoding = session.encoding();
+                    long length = session.length();
+
+                    if (length < 0L)  {
+                        if (encoding != StandardTransferEncoding.chunked) {
+                            throw new IllegalStateException(String.format("Chunked transport required, but found \"%s\"!", encoding.name()));
+                        } else {
+                            //enable chunked transport
+                            this.connection.setChunkedStreamingMode(0);
+                        }
+                    } else {
+                        if (encoding == StandardTransferEncoding.chunked) {
+                            //user is requesting chunked transport anyway for some reason or another
+                            this.connection.setChunkedStreamingMode(0);
+                        } else {
+                            //set fixed length output
+                            this.connection.setFixedLengthStreamingMode(length);
+                        }
+                    }
+
                     //send body
                     //TODO: implement correctly
                     ByteBuf buf = this.builder.body().allData();
@@ -136,7 +175,9 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
         } catch (Exception e) {
             this.body.setFailure(e);
         } finally {
-            this.connection.disconnect();
+            if (this.connection != null)    {
+                this.connection.disconnect();
+            }
         }
     }
 

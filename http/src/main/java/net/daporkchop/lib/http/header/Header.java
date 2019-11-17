@@ -85,4 +85,11 @@ public interface Header {
      * @return a {@link List} containing all the values of the HTTP header
      */
     List<String> values();
+
+    /**
+     * @return whether or not this {@link Header} is a singleton (contains only one value)
+     */
+    default boolean singleton() {
+        return this.values().size() == 1;
+    }
 }

@@ -15,18 +15,17 @@
 
 package net.daporkchop.lib.http.entity;
 
-import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.http.entity.content.encoding.ContentEncoding;
 import net.daporkchop.lib.http.entity.content.encoding.StandardContentEncoding;
 import net.daporkchop.lib.http.entity.content.type.ContentType;
+import net.daporkchop.lib.http.entity.transfer.TransferSession;
 
 /**
  * Represents some form of content that will be sent over an HTTP connection.
  *
  * @author DaPorkchop_
  */
-//TODO: this is very primitive and needs to be made smarter somehow (what if we want to upload a really large file?)
 public interface HttpEntity {
     /**
      * Wraps the given {@code byte[]} into a {@link HttpEntity} instance with the MIME type of {@code "application/octet-stream"}.
@@ -52,12 +51,12 @@ public interface HttpEntity {
     /**
      * Wraps the given {@code byte[]} into a {@link HttpEntity} instance with the given {@link ContentType}.
      *
-     * @param type the {@link ContentType} of the data
+     * @param contentType the {@link ContentType} of the data
      * @param data     the data to wrap
      * @return a {@link HttpEntity} instance with the given data
      */
-    static HttpEntity of(@NonNull ContentType type, @NonNull byte[] data) {
-        return new HttpEntityImpl(type, data);
+    static HttpEntity of(@NonNull ContentType contentType, @NonNull byte[] data) {
+        return new HttpEntityImpl(contentType, data);
     }
 
     /**
@@ -77,25 +76,8 @@ public interface HttpEntity {
         return StandardContentEncoding.identity;
     }
 
-    //methods below are related to data transfer
-
     /**
-     * Gets the size (in bytes) of this entity's data.
-     * <p>
-     * If, for whatever reason, the data's size is not known in advance, this method should return {@code -1L}. This will result in the data being sent
-     * using the "chunked" Transfer-Encoding rather than simply setting "Content-Length".
-     *
-     * @return the size (in bytes) of this entity's data, or {@code -1L} if it is not known
+     * @return a new {@link TransferSession} instance for transferring this entity's data to a single remote peer
      */
-    long length();
-
-    /**
-     * Gathers all of this entity's data into a single {@link ByteBuf}.
-     *
-     * This method is permitted to block as long as needed
-     *
-     * If the data is too large to be stored within a single {@link ByteBuf},
-     * @return
-     */
-    ByteBuf allData();
+    TransferSession newSession();
 }

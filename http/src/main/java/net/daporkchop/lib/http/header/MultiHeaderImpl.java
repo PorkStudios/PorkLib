@@ -17,7 +17,6 @@ package net.daporkchop.lib.http.header;
 
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.util.Collections;
@@ -32,12 +31,12 @@ import java.util.StringJoiner;
 @Getter
 @Accessors(fluent = true)
 public final class MultiHeaderImpl implements Header {
-    protected final String key;
+    protected final String       key;
     protected final List<String> values;
-    protected int hash;
+    protected       int          hash;
 
-    public MultiHeaderImpl(@NonNull String key, @NonNull List<String> values)   {
-        if (values.isEmpty())   {
+    public MultiHeaderImpl(@NonNull String key, @NonNull List<String> values) {
+        if (values.isEmpty()) {
             throw new IllegalArgumentException("values list is empty!");
         } else {
             this.key = key;
@@ -51,7 +50,9 @@ public final class MultiHeaderImpl implements Header {
 
     @Override
     public String value() {
-        return this.values.stream().collect(() -> new StringJoiner(", "), StringJoiner::add, StringJoiner::merge).toString();
+        return this.singleton()
+                ? this.values.get(0)
+                : this.values.stream().collect(() -> new StringJoiner(", "), StringJoiner::add, StringJoiner::merge).toString();
     }
 
     @Override
@@ -62,9 +63,9 @@ public final class MultiHeaderImpl implements Header {
     @Override
     public int hashCode() {
         int hash = this.hash;
-        if (hash == 0)  {
+        if (hash == 0) {
             hash = this.key.toLowerCase().hashCode();
-            for (String value : this.values)   {
+            for (String value : this.values) {
                 hash = hash * 31 + value.hashCode();
             }
             this.hash = hash;
@@ -74,9 +75,9 @@ public final class MultiHeaderImpl implements Header {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)    {
+        if (this == obj) {
             return true;
-        } else if (obj instanceof Header)   {
+        } else if (obj instanceof Header) {
             Header header = (Header) obj;
             return this.key.equalsIgnoreCase(header.key()) && this.values.equals(header.values());
         } else {

@@ -118,4 +118,31 @@ public abstract class AbstractRequestBuilder<V, C extends HttpClient> implements
             throw new IllegalStateException("body isn't set!");
         }
     }
+
+    /**
+     * Internal method only: makes a copy of the locally stored {@link HeaderMap} and prepares it to be sent.
+     */
+    protected HeaderMap _prepareHeaders() {
+        MutableHeaderMap headers = this.headers.mutableCopy();
+        headers.forEach((key, value) -> {
+            if (HeaderMaps.isReserved(key)) {
+                throw new IllegalArgumentException(String.format("Header key \"%s\" is reserved, but was manually set!", key));
+            }
+        });
+
+        this.authentication.rewrite(headers);
+
+        return headers;
+
+        /*headers.forEach(addCallback);
+
+        if (this.method.hasRequestBody()) {
+            if (this.body.length() < 0L)    {
+                throw new IllegalStateException("Chunked transfer is not yet supported!");
+            }
+            addCallback.accept("content-encoding", this.body.encoding().name());
+            addCallback.accept("content-length", String.valueOf(this.body.length()));
+            addCallback.accept("content-type", this.body.type().formatted());
+        }*/
+    }
 }

@@ -13,56 +13,34 @@
  *
  */
 
-package net.daporkchop.lib.http.impl.java;
+package net.daporkchop.lib.http.entity.transfer.encoding;
 
 import lombok.NonNull;
-import net.daporkchop.lib.http.header.map.HeaderMap;
-import net.daporkchop.lib.http.request.AbstractRequestBuilder;
-import net.daporkchop.lib.http.request.Request;
-import net.daporkchop.lib.http.request.RequestBuilder;
-
-import java.net.MalformedURLException;
-import java.net.URL;
 
 /**
- * Implementation of {@link RequestBuilder} for {@link JavaHttpClient}.
+ * A value for the "Transfer-Encoding" HTTP header.
  *
  * @author DaPorkchop_
+ * @see <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Transfer-Encoding">Transfer-Encoding at Mozilla</a>
  */
-public final class JavaRequestBuilder<V> extends AbstractRequestBuilder<V, JavaHttpClient> {
-    protected URL url;
-
-    public JavaRequestBuilder(@NonNull JavaHttpClient client) {
-        super(client);
-    }
-
-    @Override
-    public RequestBuilder<V> url(@NonNull String url) {
+//TODO: i think this could probably do with a bit more things?
+public interface TransferEncoding {
+    /**
+     * Gets a {@link TransferEncoding} which matches the given name.
+     *
+     * @param name the name of the {@link TransferEncoding}
+     * @return a {@link TransferEncoding} which matches the given name
+     */
+    static TransferEncoding of(@NonNull String name) {
         try {
-            this.url = new URL(url);
-        } catch (MalformedURLException e) {
-            throw new IllegalArgumentException(e);
-        }
-        return this;
-    }
-
-    @Override
-    public Request<V> send() {
-        this.assertConfigured();
-        return new JavaRequest<>(this);
-    }
-
-    @Override
-    protected void assertConfigured() {
-        super.assertConfigured();
-
-        if (this.url == null) {
-            throw new IllegalStateException("url isn't set!");
+            return StandardTransferEncoding.valueOf(name);
+        } catch (IllegalArgumentException e) {
+            return new UnknownTransferEncoding(name);
         }
     }
 
-    @Override
-    protected HeaderMap _prepareHeaders() {
-        return super._prepareHeaders();
-    }
+    /**
+     * @return the textual name of this {@link TransferEncoding} method
+     */
+    String name();
 }

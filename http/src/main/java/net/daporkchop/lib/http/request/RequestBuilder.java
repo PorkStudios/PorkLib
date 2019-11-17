@@ -20,6 +20,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.http.HttpClient;
 import net.daporkchop.lib.http.HttpMethod;
 import net.daporkchop.lib.http.entity.HttpEntity;
+import net.daporkchop.lib.http.entity.content.type.ContentType;
 import net.daporkchop.lib.http.header.map.HeaderMap;
 import net.daporkchop.lib.http.header.map.HeaderMaps;
 import net.daporkchop.lib.http.request.auth.Authentication;
@@ -99,6 +100,19 @@ public interface RequestBuilder<V> {
      * @see #body(HttpEntity)
      */
     default RequestBuilder<V> body(@NonNull String contentType, @NonNull byte[] data) throws IllegalStateException {
+        return this.body(HttpEntity.of(contentType, data));
+    }
+
+    /**
+     * Configures the {@link HttpEntity} that will be sent with the request to contain the given {@code byte[]}.
+     *
+     * @param contentType the {@link ContentType} of the data
+     * @param data        the body of the request
+     * @return this {@link RequestBuilder} instance
+     * @throws IllegalStateException if the currently selected {@link HttpMethod} does not allow sending a request body
+     * @see #body(HttpEntity)
+     */
+    default RequestBuilder<V> body(@NonNull ContentType contentType, @NonNull byte[] data) throws IllegalStateException {
         return this.body(HttpEntity.of(contentType, data));
     }
 

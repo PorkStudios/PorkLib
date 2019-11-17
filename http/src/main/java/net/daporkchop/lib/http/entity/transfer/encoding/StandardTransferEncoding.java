@@ -13,66 +13,37 @@
  *
  */
 
-package net.daporkchop.lib.http.entity.content.encoding;
-
-import lombok.NonNull;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.zip.DeflaterOutputStream;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
-import java.util.zip.InflaterInputStream;
+package net.daporkchop.lib.http.entity.transfer.encoding;
 
 /**
- * Standard values for the {@link ContentEncoding} HTTP header.
+ * Standard values for the {@link TransferEncoding} HTTP header.
  *
  * @author DaPorkchop_
+ * @see <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Transfer-Encoding#Directives">Transfer-Encoding§Directives at Mozilla</a>
+ * @see net.daporkchop.lib.http.entity.content.encoding.StandardContentEncoding
  */
-public enum StandardContentEncoding implements ContentEncoding {
+public enum StandardTransferEncoding implements TransferEncoding {
     /**
      * The data is not encoded in any way, and is transmitted as-is over the connection.
      */
-    identity {
-        @Override
-        public OutputStream encodingStream(@NonNull OutputStream delegate) throws IOException, UnsupportedOperationException {
-            return delegate;
-        }
-
-        @Override
-        public InputStream decodingStream(@NonNull InputStream source) throws IOException, UnsupportedOperationException {
-            return source;
-        }
-    },
+    identity,
+    /**
+     * Rather than sending a "Content-Length" header, and sending the body by simply the HTTP entity's data directly across the TCP connection, data is
+     * sent in a series of length-prefixed chunks which, on the receiving end, are aggregated back into a single continuous data stream.
+     * <p>
+     * This is beneficial e.g. for applications where the entity's data is dynamically generated, and the performance impact of generating the entire
+     * body in order to know the length, and then writing all the buffered data outweighs the slightly larger transport overhead (due to length-prefixes
+     * for each chunk).
+     */
+    chunked,
     /**
      * The data is compressed using the DEFLATE algorithm.
      */
-    deflate {
-        @Override
-        public OutputStream encodingStream(@NonNull OutputStream delegate) throws IOException, UnsupportedOperationException {
-            return new DeflaterOutputStream(delegate);
-        }
-
-        @Override
-        public InputStream decodingStream(@NonNull InputStream source) throws IOException, UnsupportedOperationException {
-            return new InflaterInputStream(source);
-        }
-    },
+    deflate,
     /**
      * The data is compressed using the GZIP algorithm.
      */
-    gzip {
-        @Override
-        public OutputStream encodingStream(@NonNull OutputStream delegate) throws IOException, UnsupportedOperationException {
-            return new GZIPOutputStream(delegate);
-        }
-
-        @Override
-        public InputStream decodingStream(@NonNull InputStream source) throws IOException, UnsupportedOperationException {
-            return new GZIPInputStream(source);
-        }
-    },
+    gzip,
     /**
      * The data is compressed using the legacy UNIX {@code compress} program.
      * <p>

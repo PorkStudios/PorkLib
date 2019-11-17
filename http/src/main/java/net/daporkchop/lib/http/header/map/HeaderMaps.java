@@ -21,6 +21,7 @@ import net.daporkchop.lib.http.header.Header;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -91,6 +92,11 @@ public class HeaderMaps {
         }
 
         @Override
+        public List<String> getValues(int index) throws IndexOutOfBoundsException {
+            throw new IndexOutOfBoundsException(String.valueOf(index));
+        }
+
+        @Override
         public Header get(@NonNull String key) {
             return null;
         }
@@ -101,8 +107,18 @@ public class HeaderMaps {
         }
 
         @Override
+        public List<String> getValues(@NonNull String key) {
+            return null;
+        }
+
+        @Override
         public boolean hasKey(@NonNull String key) {
             return false;
+        }
+
+        @Override
+        public MutableHeaderMap mutableCopy() {
+            return new MutableHeaderMapImpl();
         }
 
         @Override

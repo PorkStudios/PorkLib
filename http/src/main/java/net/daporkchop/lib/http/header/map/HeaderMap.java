@@ -170,7 +170,13 @@ public interface HeaderMap {
     default void forEach(@NonNull BiConsumer<String, String> callback) {
         for (int i = 0, c = this.size(); i < c; i++) {
             Header header = this.get(i);
-            callback.accept(header.key(), header.value());
+            if (header.singleton()) {
+                callback.accept(header.key(), header.value());
+            } else {
+                for (String value : header.values())    {
+                    callback.accept(header.key(), value);
+                }
+            }
         }
     }
 }

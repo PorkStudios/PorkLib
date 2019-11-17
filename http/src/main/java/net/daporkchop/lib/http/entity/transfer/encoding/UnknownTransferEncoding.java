@@ -13,56 +13,23 @@
  *
  */
 
-package net.daporkchop.lib.http.impl.java;
+package net.daporkchop.lib.http.entity.transfer.encoding;
 
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.http.header.map.HeaderMap;
-import net.daporkchop.lib.http.request.AbstractRequestBuilder;
-import net.daporkchop.lib.http.request.Request;
-import net.daporkchop.lib.http.request.RequestBuilder;
-
-import java.net.MalformedURLException;
-import java.net.URL;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.http.entity.content.encoding.ContentEncoding;
 
 /**
- * Implementation of {@link RequestBuilder} for {@link JavaHttpClient}.
+ * Represents a {@link TransferEncoding} which is not known to PorkLib http.
  *
  * @author DaPorkchop_
  */
-public final class JavaRequestBuilder<V> extends AbstractRequestBuilder<V, JavaHttpClient> {
-    protected URL url;
-
-    public JavaRequestBuilder(@NonNull JavaHttpClient client) {
-        super(client);
-    }
-
-    @Override
-    public RequestBuilder<V> url(@NonNull String url) {
-        try {
-            this.url = new URL(url);
-        } catch (MalformedURLException e) {
-            throw new IllegalArgumentException(e);
-        }
-        return this;
-    }
-
-    @Override
-    public Request<V> send() {
-        this.assertConfigured();
-        return new JavaRequest<>(this);
-    }
-
-    @Override
-    protected void assertConfigured() {
-        super.assertConfigured();
-
-        if (this.url == null) {
-            throw new IllegalStateException("url isn't set!");
-        }
-    }
-
-    @Override
-    protected HeaderMap _prepareHeaders() {
-        return super._prepareHeaders();
-    }
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public final class UnknownTransferEncoding implements TransferEncoding {
+    @NonNull
+    protected final String name;
 }

@@ -17,7 +17,7 @@ package net.daporkchop.lib.http.header.map;
 
 import lombok.NonNull;
 import net.daporkchop.lib.http.header.Header;
-import net.daporkchop.lib.http.header.HeaderImpl;
+import net.daporkchop.lib.http.header.SingletonHeaderImpl;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -61,9 +61,9 @@ public class MutableHeaderMapImpl implements MutableHeaderMap {
     }
 
     @Override
-    public String put(@NonNull String key, @NonNull String value) {
-        Header header = new HeaderImpl(key, value);
-        key = key.toLowerCase();
+    public Header put(@NonNull Header header) {
+        header = Header.immutable(header);
+        String key = header.key().toLowerCase();
         Header old = this.map.putIfAbsent(key, header);
         if (old == null) {
             //the header is new
@@ -73,14 +73,14 @@ public class MutableHeaderMapImpl implements MutableHeaderMap {
             //the header already exists
             this.map.replace(key, old, header);
             this.list.set(this.list.indexOf(old), header);
-            return old.value();
+            return old;
         }
     }
 
     @Override
-    public String remove(@NonNull String key) {
+    public Header remove(@NonNull String key) {
         Header old = this.map.remove(key.toLowerCase());
-        return old != null && this.list.remove(old) ? old.value() : null;
+        return old != null && this.list.remove(old) ? old : null;
     }
 
     @Override

@@ -83,9 +83,12 @@ public final class JavaRequestBuilder<V> extends AbstractRequestBuilder<V, JavaH
         }
 
         if (this.method.hasRequestBody()) {
-            addCallback.accept("content-encoding", this.body.compression().nameContentEncoding());
-            addCallback.accept("content-length", String.valueOf(this.body.data().length));
-            addCallback.accept("content-type", this.body.type());
+            if (this.body.length() < 0L)    {
+                throw new IllegalStateException("Chunked transfer is not yet supported!");
+            }
+            addCallback.accept("content-encoding", this.body.encoding().name());
+            addCallback.accept("content-length", String.valueOf(this.body.length()));
+            addCallback.accept("content-type", this.body.type().formatted());
         }
     }
 }

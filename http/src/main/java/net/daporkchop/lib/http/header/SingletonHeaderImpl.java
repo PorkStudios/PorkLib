@@ -13,31 +13,59 @@
  *
  */
 
-package net.daporkchop.lib.http.request.auth;
+package net.daporkchop.lib.http.header;
 
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.http.header.Header;
-import net.daporkchop.lib.http.header.map.MutableHeaderMap;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
 
 /**
- * Implementation of HTTP basic authentication.
+ * An implementation of {@link Header} which has only a single value.
  *
  * @author DaPorkchop_
  */
-public final class HTTPBasicAuth implements Authentication {
-    private final String encoded;
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public final class SingletonHeaderImpl implements Header {
+    @NonNull
+    protected final String key;
+    @NonNull
+    protected final String value;
 
-    public HTTPBasicAuth(@NonNull String username, @NonNull String password) {
-        this.encoded = Base64.getUrlEncoder().encodeToString(String.format("%s:%s", username, password).getBytes(StandardCharsets.UTF_8));
+    public SingletonHeaderImpl(@NonNull Header source) {
+        this(source.key(), source.value());
     }
 
     @Override
-    public void rewrite(@NonNull MutableHeaderMap headers) {
-        if (headers.put("authorization", this.encoded) != null) {
-            throw new IllegalStateException("Authorization header has already been set!");
+    public List<String> values() {
+        return Collections.singletonList(this.value);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s: %s", this.key, this.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return this.key.toLowerCase().hashCode() * 31 + this.value.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)    {
+            return true;
+        } else if (obj instanceof Header)   {
+            Header header = (Header) obj;
+            return this.key.equalsIgnoreCase(header.key()) && this.values().equals(header.values());
+        } else {
+            return false;
         }
     }
 }

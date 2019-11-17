@@ -15,11 +15,14 @@
 
 package net.daporkchop.lib.http.entity;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.http.entity.content.type.ContentType;
 
 /**
  * A simple implementation of {@link HttpEntity}.
@@ -31,7 +34,17 @@ import lombok.experimental.Accessors;
 @Accessors(fluent = true)
 public final class HttpEntityImpl implements HttpEntity {
     @NonNull
-    protected final String type;
+    protected final ContentType type;
     @NonNull
-    protected final byte[] data;
+    protected final byte[]      data;
+
+    @Override
+    public long length() {
+        return this.data.length;
+    }
+
+    @Override
+    public ByteBuf allData() {
+        return Unpooled.wrappedBuffer(this.data);
+    }
 }

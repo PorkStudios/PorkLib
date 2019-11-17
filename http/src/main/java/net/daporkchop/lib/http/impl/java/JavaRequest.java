@@ -15,12 +15,14 @@
 
 package net.daporkchop.lib.http.impl.java;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
 import lombok.NonNull;
 import net.daporkchop.lib.http.StatusCode;
-import net.daporkchop.lib.http.header.HeaderImpl;
+import net.daporkchop.lib.http.header.Header;
+import net.daporkchop.lib.http.header.SingletonHeaderImpl;
 import net.daporkchop.lib.http.header.map.HeaderSnapshot;
 import net.daporkchop.lib.http.request.Request;
 import net.daporkchop.lib.http.response.DelegatingResponseBodyImpl;
@@ -104,8 +106,12 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
 
                 if (this.builder.method().hasRequestBody())    {
                     //send body
+                    //TODO: implement correctly
+                    ByteBuf buf = this.builder.body().allData();
                     try (OutputStream out = this.connection.getOutputStream())  {
-                        out.write(this.builder.body().data());
+                        buf.readBytes(out, buf.readableBytes());
+                    } finally {
+                        buf.release();
                     }
                 }
 
@@ -115,13 +121,7 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
                                 .map(entry -> {
                                     String key = entry.getKey();
                                     List<String> value = entry.getValue();
-                                    if (key == null || value.isEmpty()) {
-                                        return null;
-                                    } else if (value.size() == 1) {
-                                        return new HeaderImpl(key, value.get(0));
-                                    } else {
-                                        return new HeaderImpl(key, value.stream().collect(() -> new StringJoiner(","), StringJoiner::add, StringJoiner::merge).toString());
-                                    }
+                                    return (key == null || value.isEmpty()) ? null : Header.of(key, value);
                                 })));
 
                 if (this.builder.followRedirects() && headers.isRedirect()) {

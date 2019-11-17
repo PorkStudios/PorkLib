@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.http.entity;
 
+import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.http.entity.content.encoding.ContentEncoding;
 import net.daporkchop.lib.http.entity.content.encoding.StandardContentEncoding;
@@ -34,18 +35,29 @@ public interface HttpEntity {
      * @return a {@link HttpEntity} instance with the given data
      */
     static HttpEntity of(@NonNull byte[] data) {
-        return new HttpEntityImpl("application/octet-stream", data);
+        return of(ContentType.parse("application/octet-stream"), data);
     }
 
     /**
-     * Wraps the given {@code byte[]} into a {@link HttpEntity} instance with the given MIME type.
+     * Wraps the given {@code byte[]} into a {@link HttpEntity} instance with the given content type.
      *
-     * @param mimeType the MIME type of the data
+     * @param contentType the content type of the data
      * @param data     the data to wrap
      * @return a {@link HttpEntity} instance with the given data
      */
-    static HttpEntity of(@NonNull String mimeType, @NonNull byte[] data) {
-        return new HttpEntityImpl(mimeType, data);
+    static HttpEntity of(@NonNull String contentType, @NonNull byte[] data) {
+        return of(ContentType.parse(contentType), data);
+    }
+
+    /**
+     * Wraps the given {@code byte[]} into a {@link HttpEntity} instance with the given {@link ContentType}.
+     *
+     * @param type the {@link ContentType} of the data
+     * @param data     the data to wrap
+     * @return a {@link HttpEntity} instance with the given data
+     */
+    static HttpEntity of(@NonNull ContentType type, @NonNull byte[] data) {
+        return new HttpEntityImpl(type, data);
     }
 
     /**
@@ -65,8 +77,25 @@ public interface HttpEntity {
         return StandardContentEncoding.identity;
     }
 
+    //methods below are related to data transfer
+
     /**
-     * @return the content's raw data
+     * Gets the size (in bytes) of this entity's data.
+     * <p>
+     * If, for whatever reason, the data's size is not known in advance, this method should return {@code -1L}. This will result in the data being sent
+     * using the "chunked" Transfer-Encoding rather than simply setting "Content-Length".
+     *
+     * @return the size (in bytes) of this entity's data, or {@code -1L} if it is not known
      */
-    byte[] data();
+    long length();
+
+    /**
+     * Gathers all of this entity's data into a single {@link ByteBuf}.
+     *
+     * This method is permitted to block as long as needed
+     *
+     * If the data is too large to be stored within a single {@link ByteBuf},
+     * @return
+     */
+    ByteBuf allData();
 }

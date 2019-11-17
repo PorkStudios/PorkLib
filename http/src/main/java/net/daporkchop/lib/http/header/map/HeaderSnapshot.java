@@ -18,7 +18,7 @@ package net.daporkchop.lib.http.header.map;
 import lombok.NonNull;
 import net.daporkchop.lib.common.function.PFunctions;
 import net.daporkchop.lib.http.header.Header;
-import net.daporkchop.lib.http.header.HeaderImpl;
+import net.daporkchop.lib.http.header.SingletonHeaderImpl;
 import net.daporkchop.lib.http.util.exception.HTTPException;
 import net.daporkchop.lib.http.util.exception.MalformedResponseException;
 
@@ -46,9 +46,8 @@ public final class HeaderSnapshot implements HeaderMap {
         int size = source.size();
         this.value = new Header[size];
         for (int i = 0; i < size; i++) {
-            Header old = source.get(i);
             //don't create new instance if it's already immutable
-            this.value[i] = (old instanceof HeaderImpl) ? old : new HeaderImpl(old);
+            this.value[i] = Header.immutable(source.get(i));
         }
         this.map = map
                 ? Arrays.stream(this.value).collect(Collectors.toMap(header -> header.key().toLowerCase(), PFunctions.identity()))

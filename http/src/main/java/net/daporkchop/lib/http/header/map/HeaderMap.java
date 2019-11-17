@@ -18,6 +18,7 @@ package net.daporkchop.lib.http.header.map;
 import lombok.NonNull;
 import net.daporkchop.lib.http.header.Header;
 
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -77,6 +78,17 @@ public interface HeaderMap {
     }
 
     /**
+     * Gets the values of the header at the given index.
+     *
+     * @param index the index of the header to get the values of
+     * @return the values of the header at the given index
+     * @throws IndexOutOfBoundsException if the given index is out of bounds
+     */
+    default List<String> getValues(int index) throws IndexOutOfBoundsException {
+        return this.get(index).values();
+    }
+
+    /**
      * Gets the {@link Header} with the given key.
      *
      * @param key the key of the header to get
@@ -93,6 +105,17 @@ public interface HeaderMap {
     default String getValue(@NonNull String key) {
         Header header = this.get(key);
         return header == null ? null : header.value();
+    }
+
+    /**
+     * Gets the values of the header with the given key.
+     *
+     * @param key the key of the header to get the values of
+     * @return the values of the header with the given key, or {@code null} if none was found
+     */
+    default List<String> getValues(@NonNull String key) {
+        Header header = this.get(key);
+        return header == null ? null : header.values();
     }
 
     /**

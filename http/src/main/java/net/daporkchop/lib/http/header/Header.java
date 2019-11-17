@@ -15,15 +15,62 @@
 
 package net.daporkchop.lib.http.header;
 
+import lombok.NonNull;
+
+import java.util.List;
+
 /**
  * A single HTTP header.
  * <p>
- * Implementations of this class are expected to have both {@link #hashCode()} and {@link #equals(Object)} only check for case-insensitive equality between
- * keys, not values. For comparing between values as well, {@link #deepHashCode()} and {@link #deepEquals(Object)} are provided.
+ * Implementations of this class are expected to have both {@link #hashCode()} and {@link #equals(Object)} check for case-insensitive equality between
+ * both keys and values.
  *
  * @author DaPorkchop_
  */
 public interface Header {
+    /**
+     * Creates a new {@link Header} with the given key and value.
+     *
+     * @param key   the header's key
+     * @param value the header's value
+     * @return a new {@link Header} with the given key and value
+     */
+    static Header of(@NonNull String key, @NonNull String value) {
+        return new SingletonHeaderImpl(key, value);
+    }
+
+    /**
+     * Creates a new {@link Header} with the given key and values.
+     *
+     * @param key    the header's key
+     * @param values the header's values
+     * @return a new {@link Header} with the given key and values
+     */
+    static Header of(@NonNull String key, @NonNull List<String> values) {
+        switch (values.size()) {
+            case 0:
+                throw new IllegalArgumentException("values list is empty!");
+            case 1:
+                return of(key, values.get(0));
+            default:
+                return new MultiHeaderImpl(key, values);
+        }
+    }
+
+    /**
+     * Gets a {@link Header} instance with the same value which is guaranteed to be immutable.
+     *
+     * @param header the header to make immutable
+     * @return a {@link Header} instance with the same value which is guaranteed to be immutable
+     */
+    static Header immutable(@NonNull Header header) {
+        if (header instanceof SingletonHeaderImpl || header instanceof MultiHeaderImpl) {
+            return header;
+        } else {
+            return of(header.key(), header.values());
+        }
+    }
+
     /**
      * @return the key (name) of the HTTP header
      */
@@ -35,30 +82,7 @@ public interface Header {
     String value();
 
     /**
-     * Computes the hash code of this header, using both the lower-cased representation of the key and the current value as inputs.
-     *
-     * @return this header's hash code
+     * @return a {@link List} containing all the values of the HTTP header
      */
-    default int deepHashCode() {
-        return this.key().toLowerCase().hashCode() * 31 + this.value().hashCode();
-    }
-
-    /**
-     * Checks if this header is totally equal to a given object.
-     * <p>
-     * If the given object is also a header, both the keys (case-insensitive) and the values (case-sensitive) will be checked for equality.
-     *
-     * @param obj the other object
-     * @return whether or not this header is totally equal to the given object
-     */
-    default boolean deepEquals(Object obj) {
-        if (obj == this) {
-            return true;
-        } else if (obj instanceof Header) {
-            Header other = (Header) obj;
-            return this.key().equalsIgnoreCase(other.key()) && this.value().equals(other.key());
-        } else {
-            return false;
-        }
-    }
+    List<String> values();
 }

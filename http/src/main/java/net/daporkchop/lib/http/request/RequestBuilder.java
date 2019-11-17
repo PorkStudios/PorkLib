@@ -92,14 +92,14 @@ public interface RequestBuilder<V> {
     /**
      * Configures the {@link HttpEntity} that will be sent with the request to contain the given {@code byte[]}.
      *
-     * @param mimeType the MIME type of the data
-     * @param data     the body of the request
+     * @param contentType the content type of the data
+     * @param data        the body of the request
      * @return this {@link RequestBuilder} instance
      * @throws IllegalStateException if the currently selected {@link HttpMethod} does not allow sending a request body
      * @see #body(HttpEntity)
      */
-    default RequestBuilder<V> body(@NonNull String mimeType, @NonNull byte[] data) throws IllegalStateException {
-        return this.body(HttpEntity.of(mimeType, data));
+    default RequestBuilder<V> body(@NonNull String contentType, @NonNull byte[] data) throws IllegalStateException {
+        return this.body(HttpEntity.of(contentType, data));
     }
 
     /**

@@ -96,7 +96,8 @@ public class HttpTest {
     @Test
     public void testPOST() throws IOException {
         String text = String.format("{\"value\":\"%s\"}", Base58.encodeBase58(TestRandomData.getRandomBytes(64, 128)));
-        String response = new JsonParser().parse(Http.postJsonAsString("http://httpbin.org/post", text)).getAsJsonObject().get("data").getAsString();
+        String response = Http.postJsonAsString("http://httpbin.org/post", text);
+        response = new JsonParser().parse(response).getAsJsonObject().get("data").getAsString();
         if (!text.equals(response)) {
             throw new IllegalStateException(String.format("Data not identical! Sent=%s Received=%s", text, response));
         }

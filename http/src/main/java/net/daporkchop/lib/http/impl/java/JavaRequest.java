@@ -99,10 +99,6 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
         try {
             final HttpMethod method = this.builder.method();
 
-            if (method.hasRequestBody() && entity == null)    {
-                throw new IllegalStateException("body is not set!");
-            }
-
             URL url = this.builder.url;
             do {
                 this.connection = (HttpURLConnection) url.openConnection();
@@ -119,13 +115,23 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
                     headers.forEach(header -> this.connection.addRequestProperty(header.key(), header.value())); //if it's a list all the values will be joined together
 
                     if (!headers.hasKey("user-agent")) this.connection.setRequestProperty("user-agent", this.client.userAgentPool.any());
+
+                    if (method.hasRequestBody())    {
+                        HttpEntity entity = this.builder.body();
+
+                        this.connection.setRequestProperty("content-encoding", entity.encoding().name());
+                        this.connection.setRequestProperty("content-type", entity.type().formatted());
+
+                        if (entity.transferEncoding() != StandardTransferEncoding.chunked) {
+                            this.connection.setRequestProperty("content-length", String.valueOf(entity.length()));
+                        }
+                    }
                 }
 
                 if (method.hasRequestBody())    {
                     HttpEntity entity = this.builder.body();
-                    TransferSession session = entity.newSession();
-                    TransferEncoding encoding = session.encoding();
-                    long length = session.length();
+                    TransferEncoding encoding = entity.transferEncoding();
+                    long length = entity.length();
 
                     if (length < 0L)  {
                         if (encoding != StandardTransferEncoding.chunked) {
@@ -145,12 +151,14 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
                     }
 
                     //send body
-                    //TODO: implement correctly
-                    ByteBuf buf = this.builder.body().allData();
-                    try (OutputStream out = this.connection.getOutputStream())  {
-                        buf.readBytes(out, buf.readableBytes());
-                    } finally {
-                        buf.release();
+                    try (TransferSession session = entity.newSession();
+                         OutputStream out = this.connection.getOutputStream())  {
+                        long transferred = session.transferAllBlocking(out);
+                        if (transferred < 0L) {
+                            throw new IllegalStateException(String.format("Transferred %d bytes (negative?!?)", transferred));
+                        } else if (length >= 0L && transferred != length)  {
+                            throw new IllegalStateException(String.format("Transferred %d bytes (expected: %d)", transferred, length));
+                        }
                     }
                 }
 

@@ -23,28 +23,30 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.entity.content.type.ContentType;
+import net.daporkchop.lib.http.entity.transfer.ByteBufTransferSession;
+import net.daporkchop.lib.http.entity.transfer.TransferSession;
 
 /**
- * A simple implementation of {@link HttpEntity}.
+ * A simple implementation of {@link HttpEntity} that stores data in a {@code byte[]}.
  *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Accessors(fluent = true)
-public final class HttpEntityImpl implements HttpEntity {
+public final class ByteArrayHttpEntity implements HttpEntity {
     @NonNull
     protected final ContentType type;
     @NonNull
     protected final byte[]      data;
 
     @Override
-    public long length() {
+    public long length() throws Exception {
         return this.data.length;
     }
 
     @Override
-    public ByteBuf allData() {
-        return Unpooled.wrappedBuffer(this.data);
+    public TransferSession newSession() throws Exception {
+        return new ByteBufTransferSession(Unpooled.wrappedBuffer(this.data));
     }
 }

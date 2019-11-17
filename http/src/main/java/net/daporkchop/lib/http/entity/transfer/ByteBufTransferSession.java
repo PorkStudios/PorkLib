@@ -15,37 +15,32 @@
 
 package net.daporkchop.lib.http.entity.transfer;
 
+import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.http.entity.transfer.encoding.StandardTransferEncoding;
-import net.daporkchop.lib.http.entity.transfer.encoding.TransferEncoding;
+import lombok.RequiredArgsConstructor;
 
 import java.io.OutputStream;
 
 /**
- * Handles the actual process of transferring the HTTP entity's data to a single remote peer.
- * <p>
- * Implementations of this interface are not expected to be thread-safe. Attempting to use an instance of {@link TransferSession} from a different
- * thread than it was originally created on will result in undefined behavior.
+ * A simple {@link TransferSession} that simply returns data stored in a single {@link ByteBuf}.
  *
  * @author DaPorkchop_
  */
-public interface TransferSession extends AutoCloseable {
-    /**
-     * Transfers the entire HTTP entity to the given {@link OutputStream} in a blocking fashion, simply waiting until all bytes are written.
-     *
-     * @param out the {@link OutputStream} to write data to
-     * @return the total number of bytes transferred
-     * @throws Exception if an exception occurs while transferring the data
-     */
-    long transferAllBlocking(@NonNull OutputStream out) throws Exception;
+@RequiredArgsConstructor
+public final class ByteBufTransferSession implements TransferSession {
+    @NonNull
+    protected ByteBuf buf;
 
-    /**
-     * Closes this {@link TransferSession} instance.
-     * <p>
-     * This will only be called once per instance to release any resources allocated by this instance (such as memory, file handles, etc.).
-     *
-     * @throws Exception if an exception occurs while closing this {@link TransferSession} instance
-     */
     @Override
-    void close() throws Exception;
+    public long transferAllBlocking(@NonNull OutputStream out) throws Exception {
+        int readable = this.buf.readableBytes();
+        this.buf.readBytes(out, readable);
+        return readable;
+    }
+
+    @Override
+    public void close() throws Exception {
+        this.buf.release();
+        this.buf = null;
+    }
 }

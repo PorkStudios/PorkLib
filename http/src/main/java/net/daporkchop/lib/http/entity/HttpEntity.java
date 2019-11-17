@@ -20,6 +20,8 @@ import net.daporkchop.lib.http.entity.content.encoding.ContentEncoding;
 import net.daporkchop.lib.http.entity.content.encoding.StandardContentEncoding;
 import net.daporkchop.lib.http.entity.content.type.ContentType;
 import net.daporkchop.lib.http.entity.transfer.TransferSession;
+import net.daporkchop.lib.http.entity.transfer.encoding.StandardTransferEncoding;
+import net.daporkchop.lib.http.entity.transfer.encoding.TransferEncoding;
 
 /**
  * Represents some form of content that will be sent over an HTTP connection.
@@ -41,7 +43,7 @@ public interface HttpEntity {
      * Wraps the given {@code byte[]} into a {@link HttpEntity} instance with the given content type.
      *
      * @param contentType the content type of the data
-     * @param data     the data to wrap
+     * @param data        the data to wrap
      * @return a {@link HttpEntity} instance with the given data
      */
     static HttpEntity of(@NonNull String contentType, @NonNull byte[] data) {
@@ -52,11 +54,11 @@ public interface HttpEntity {
      * Wraps the given {@code byte[]} into a {@link HttpEntity} instance with the given {@link ContentType}.
      *
      * @param contentType the {@link ContentType} of the data
-     * @param data     the data to wrap
+     * @param data        the data to wrap
      * @return a {@link HttpEntity} instance with the given data
      */
     static HttpEntity of(@NonNull ContentType contentType, @NonNull byte[] data) {
-        return new HttpEntityImpl(contentType, data);
+        return new ByteArrayHttpEntity(contentType, data);
     }
 
     /**
@@ -77,7 +79,27 @@ public interface HttpEntity {
     }
 
     /**
-     * @return a new {@link TransferSession} instance for transferring this entity's data to a single remote peer
+     * Gets the size (in bytes) of this entity's data.
+     * <p>
+     * If, for whatever reason, the data's size is not known in advance, this method should return {@code -1L}. By default, this will result in the
+     * data being sent using the "chunked" Transfer-Encoding rather than simply setting "Content-Length".
+     *
+     * @return the size (in bytes) of this entity's data, or {@code -1L} if it is not known
+     * @throws Exception if an exception occurs
      */
-    TransferSession newSession();
+    long length() throws Exception;
+
+    /**
+     * @return the {@link TransferEncoding} that will be used for transferring data to the remote endpoint
+     * @throws Exception if an exception occurs
+     */
+    default TransferEncoding transferEncoding() throws Exception {
+        return this.length() < 0L ? StandardTransferEncoding.chunked : StandardTransferEncoding.identity;
+    }
+
+    /**
+     * @return a new {@link TransferSession} instance for transferring this entity's data to a single remote peer
+     * @throws Exception if an exception occurs while creating the session
+     */
+    TransferSession newSession() throws Exception;
 }

@@ -13,34 +13,40 @@
  *
  */
 
-package net.daporkchop.lib.http;
-
-import lombok.Getter;
-import lombok.experimental.Accessors;
-
-import java.nio.charset.StandardCharsets;
+package net.daporkchop.lib.http.content;
 
 /**
- * The different HTTP request types.
+ * Represents some form of content that will be sent over an HTTP connection.
  *
  * @author DaPorkchop_
  */
-@Getter
-@Accessors(fluent = true)
-public enum RequestMethod {
-    GET,
-    HEAD,
-    POST,
-    PUT,
-    DELETE,
-    CONNECT,
-    OPTIONS,
-    TRACE,
-    PATCH;
+//TODO: some way of actually writing the data needs to be added
+public interface Content {
+    /**
+     * @return the content's MIME type
+     */
+    String type();
 
-    private final byte[] asciiName;
-
-    RequestMethod()   {
-        this.asciiName = this.name().getBytes(StandardCharsets.US_ASCII);
+    /**
+     * Gets the {@link HttpCompression} type used for encoding this content's data.
+     * <p>
+     * This option is only intended for use by implementations that will do the compression themselves and write it directly to the destination output, as
+     * it will not be done automatically by the internal HTTP engine.
+     *
+     * @return the content's compression type
+     */
+    default HttpCompression compression() {
+        return HttpCompression.IDENTITY;
     }
+
+    /**
+     * Gets the length of the data (in bytes).
+     * <p>
+     * If {@link #compression()} is set, this method should return the compressed size of the data.
+     * <p>
+     * If the length of the data isn't known for any reason, this method should return {@code -1L}.
+     *
+     * @return the length of the data (in bytes), or {@code -1L} if it isn't known
+     */
+    long size();
 }

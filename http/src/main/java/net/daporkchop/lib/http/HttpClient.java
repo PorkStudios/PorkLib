@@ -19,12 +19,19 @@ import io.netty.util.concurrent.Future;
 import lombok.NonNull;
 import net.daporkchop.lib.http.request.RequestBuilder;
 
+import java.util.Set;
+
 /**
  * A representation of an HTTP client.
  *
  * @author DaPorkchop_
  */
 public interface HttpClient {
+    /**
+     * @return a {@link Set} containing all {@link HttpMethod}s supported by this client
+     */
+    Set<HttpMethod> supportedMethods();
+
     /**
      * Creates a new, blank {@link RequestBuilder} instance to make a new HTTP request.
      *

@@ -39,15 +39,12 @@ import java.util.function.Consumer;
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Setter
-@Accessors(fluent = true, chain = true)
-public final class JavaRequestBuilder<V> extends AbstractRequestBuilder<V> {
-    @NonNull
-    protected final JavaHttpClient client;
-
-    @Setter(AccessLevel.NONE)
+public final class JavaRequestBuilder<V> extends AbstractRequestBuilder<V, JavaHttpClient> {
     protected URL url;
+
+    public JavaRequestBuilder(@NonNull JavaHttpClient client) {
+        super(client);
+    }
 
     @Override
     public RequestBuilder<V> url(@NonNull String url) {
@@ -61,7 +58,17 @@ public final class JavaRequestBuilder<V> extends AbstractRequestBuilder<V> {
 
     @Override
     public Request<V> send() {
+        this.assertConfigured();
         return new JavaRequest<>(this);
+    }
+
+    @Override
+    protected void assertConfigured() {
+        super.assertConfigured();
+
+        if (this.url == null)   {
+            throw new IllegalStateException("url isn't set!");
+        }
     }
 
     /**

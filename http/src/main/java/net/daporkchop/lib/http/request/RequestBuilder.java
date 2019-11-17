@@ -17,6 +17,9 @@ package net.daporkchop.lib.http.request;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
+import net.daporkchop.lib.http.HttpClient;
+import net.daporkchop.lib.http.HttpMethod;
+import net.daporkchop.lib.http.content.Content;
 import net.daporkchop.lib.http.header.map.HeaderMap;
 import net.daporkchop.lib.http.header.map.HeaderMaps;
 import net.daporkchop.lib.http.request.auth.Authentication;
@@ -38,12 +41,41 @@ import java.nio.charset.StandardCharsets;
  */
 public interface RequestBuilder<V> {
     /**
+     * @return the {@link HttpClient} instance that will issue the request
+     */
+    HttpClient client();
+
+    /**
      * Configures this {@link RequestBuilder} to send the request to the given URL.
      *
      * @param url the URL that the request should be sent to
      * @return this {@link RequestBuilder} instance
      */
     RequestBuilder<V> url(@NonNull String url);
+
+    /**
+     * Configures the {@link HttpMethod} that the request will be sent using.
+     * <p>
+     * Defaults to {@link HttpMethod#GET}.
+     * <p>
+     * If the new {@link HttpMethod} does not allow sending a request body, the value of {@link #body(Content)} will be cleared.
+     *
+     * @param method the new {@link HttpMethod} to use
+     * @return this {@link RequestBuilder} instance
+     * @throws IllegalArgumentException if the {@link HttpClient} does not support the given {@link HttpMethod}
+     */
+    RequestBuilder<V> method(@NonNull HttpMethod method) throws IllegalArgumentException;
+
+    /**
+     * Configures the {@link Content} that will be sent with the request.
+     * <p>
+     * For HTTP methods that require a body, this value must be set.
+     *
+     * @param body the body of the request
+     * @return this {@link RequestBuilder} instance
+     * @throws IllegalStateException if the currently selected {@link HttpMethod} does not allow sending a request body
+     */
+    RequestBuilder<V> body(@NonNull Content body) throws IllegalStateException;
 
     /**
      * Configures this {@link RequestBuilder} to use the given {@link ResponseAggregator}.
@@ -158,8 +190,9 @@ public interface RequestBuilder<V> {
 
     /**
      * Sets the maximum number of bytes the server may send as a body before aborting the request with an exception.
-     *
+     * <p>
      * Defaults to {@code -1L}.
+     *
      * @param maxLength the maximum size of the body. If less than {@code 0L}, no limit will be enforced.
      * @return this {@link RequestBuilder} instance
      */

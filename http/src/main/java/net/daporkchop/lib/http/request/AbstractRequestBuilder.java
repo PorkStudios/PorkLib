@@ -18,12 +18,17 @@ package net.daporkchop.lib.http.request;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.http.HttpClient;
+import net.daporkchop.lib.http.HttpMethod;
 import net.daporkchop.lib.http.header.map.HeaderMap;
 import net.daporkchop.lib.http.header.map.HeaderMaps;
 import net.daporkchop.lib.http.header.map.MutableHeaderMap;
 import net.daporkchop.lib.http.header.map.MutableHeaderMapImpl;
+import net.daporkchop.lib.http.impl.java.JavaHttpClient;
 import net.daporkchop.lib.http.request.auth.Authentication;
 import net.daporkchop.lib.http.response.aggregate.ResponseAggregator;
 
@@ -32,11 +37,18 @@ import net.daporkchop.lib.http.response.aggregate.ResponseAggregator;
  *
  * @author DaPorkchop_
  */
+@RequiredArgsConstructor
 @Getter
 @Setter
 @Accessors(fluent = true, chain = true)
-public abstract class AbstractRequestBuilder<V> implements RequestBuilder<V> {
+public abstract class AbstractRequestBuilder<V, C extends HttpClient> implements RequestBuilder<V> {
     protected long maxLength = -1L;
+
+    @NonNull
+    protected final JavaHttpClient client;
+
+    @Setter(AccessLevel.NONE)
+    protected HttpMethod method = HttpMethod.GET;
 
     @Setter(AccessLevel.NONE)
     protected ResponseAggregator<Object, V> aggregator;
@@ -51,9 +63,18 @@ public abstract class AbstractRequestBuilder<V> implements RequestBuilder<V> {
     protected boolean        followRedirects = false;
 
     @Override
+    public RequestBuilder<V> method(@NonNull HttpMethod method) throws IllegalArgumentException {
+        if (!this.client.supportedMethods().contains(method))   {
+            throw new IllegalArgumentException(String.format("HTTP method %s is not supported by \"%s\"!", method, PorkUtil.className(this.client)));
+        }
+        this.method = method;
+        return this;
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public <V_NEW> RequestBuilder<V_NEW> aggregator(@NonNull ResponseAggregator<?, V_NEW> aggregator) {
-        AbstractRequestBuilder<V_NEW> _this = (AbstractRequestBuilder<V_NEW>) this;
+        AbstractRequestBuilder<V_NEW, C> _this = (AbstractRequestBuilder<V_NEW, C>) this;
         _this.aggregator = (ResponseAggregator<Object, V_NEW>) aggregator;
         return _this;
     }
@@ -72,5 +93,11 @@ public abstract class AbstractRequestBuilder<V> implements RequestBuilder<V> {
         mutableHeaders.put(key, value);
         this.headers = mutableHeaders;
         return this;
+    }
+
+    protected void assertConfigured()   {
+        if (this.aggregator == null)    {
+            throw new IllegalStateException("aggregator isn't set!");
+        }
     }
 }

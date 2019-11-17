@@ -23,10 +23,13 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.pool.Pool;
 import net.daporkchop.lib.http.HttpClient;
-import net.daporkchop.lib.http.request.Request;
+import net.daporkchop.lib.http.HttpMethod;
 import net.daporkchop.lib.http.request.RequestBuilder;
 import net.daporkchop.lib.http.util.Constants;
 
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Set;
 import java.util.concurrent.ThreadFactory;
 
 /**
@@ -39,6 +42,11 @@ import java.util.concurrent.ThreadFactory;
 //TODO: a builder class might be better suited here than all these constructors
 @Accessors(fluent = true)
 public final class JavaHttpClient implements HttpClient {
+    protected static final Set<HttpMethod> SUPPORTED_METHODS = Collections.unmodifiableSet(EnumSet.of(
+            HttpMethod.GET,
+            HttpMethod.POST
+    ));
+
     protected volatile ThreadFactory factory;
     protected final    EventExecutor executor;
     protected final    Promise<Void> closeFuture;
@@ -74,6 +82,11 @@ public final class JavaHttpClient implements HttpClient {
 
     public JavaHttpClient() {
         this(Thread::new, GlobalEventExecutor.INSTANCE, Constants.DEFAULT_USER_AGENT_POOL);
+    }
+
+    @Override
+    public Set<HttpMethod> supportedMethods() {
+        return SUPPORTED_METHODS;
     }
 
     @Override

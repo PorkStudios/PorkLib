@@ -33,10 +33,6 @@ import java.io.IOException;
 @Getter
 @Accessors(fluent = true)
 public abstract class NettyByteBufOut extends DataOut {
-    static {
-        NettyUtil.ensureNettyPresent();
-    }
-
     @NonNull
     protected ByteBuf buf;
 

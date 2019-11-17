@@ -17,38 +17,32 @@ buildscript {
     repositories {
         jcenter()
     }
-    dependencies {
-        classpath "com.github.jengelman.gradle.plugins:shadow:2.0.4"
-    }
 }
 
-plugins {
+/*plugins {
     id "java"
-    id "io.franzbecker.gradle-lombok" version "1.14" apply false
     id "maven-publish"
-    id "com.github.johnrengelman.shadow" version "2.0.4" apply false
-}
+}*/
 
 dependencies {
-    for (Project prj : project.allprojects) {
+    /*for (Project prj : project.allprojects) {
         if (!"PorkLib".equalsIgnoreCase(prj.name) && prj.parent.name.equalsIgnoreCase("PorkLib")) {
             compile project(":" + prj.name)
         }
-    }
+    }*/
+    //TODO
 }
 
 allprojects {
     apply plugin: "java"
-    apply plugin: "io.franzbecker.gradle-lombok"
     apply plugin: "maven-publish"
-    apply plugin: "com.github.johnrengelman.shadow"
-
-    group "net.daporkchop.lib"
-    version "0.4.0-SNAPSHOT"
-
-    sourceCompatibility = 1.8
 
     ext {
+        //general things
+        javaVersion = "1.8"
+        porklibVersion = "0.4.0-SNAPSHOT"
+
+        //dependency things
         apacheCommonsCompressVersion = "1.16.1"
         bouncycastleVersion = "1.59"
         googleHttpClientVersion = "1.23.0"
@@ -56,10 +50,22 @@ allprojects {
         guavaVersion = "27.0-jre"
         jnaVersion = "5.3.0"
         junitVersion = "4.12"
+        lombokVersion = "1.18.8"
         nettyVersion = "4.1.36.Final"
         raknetVersion = "1.4.0"
         sparseBitSetVersion = "1.1"
         xzVersion = "1.8"
+    }
+
+    group "net.daporkchop"
+    version "$porklibVersion"
+
+    compileJava {
+        sourceCompatibility = targetCompatibility = "$javaVersion"
+    }
+
+    tasks.withType(JavaCompile) {
+        options.encoding = "UTF-8"
     }
 
     repositories {
@@ -79,22 +85,12 @@ allprojects {
         mavenCentral()
     }
 
-    jar {
-        from project.sourceSets.main.output
-        from(project.sourceSets.main.allSource) {
-            include "**/*.xml"
-        }
-        baseName = archivesBaseName
-    }
-
-    configurations {
-        provided
-    }
+    /*configurations {
+        shade
+        compile.extendsFrom shade
+    }*/
 
     sourceSets {
-        main {
-            compileClasspath += configurations.provided
-        }
         example {
             java {
                 compileClasspath += main.output
@@ -114,6 +110,9 @@ allprojects {
         }
 
         testCompile "junit:junit:$junitVersion"
+
+        compileOnly "org.projectlombok:lombok:$lombokVersion"
+        annotationProcessor "org.projectlombok:lombok:$lombokVersion"
     }
 
     task sourceJar(type: Jar) {
@@ -131,9 +130,6 @@ allprojects {
 
                 artifact sourceJar {
                     classifier "sources"
-                }
-                artifact shadowJar {
-                    classifier "full"
                 }
             }
         }

@@ -32,6 +32,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author DaPorkchop_
  */
+//TODO: replace with features from netty-common module
+@Deprecated
 public class LoopPool {
     protected static EventLoopGroup DEFAULT_GROUP;
     protected static final Map<EventLoopGroup, AtomicInteger> GROUP_CACHE = new IdentityHashMap<>();

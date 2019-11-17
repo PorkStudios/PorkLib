@@ -27,14 +27,14 @@ import java.util.function.Supplier;
 
 /**
  * Some useful methods for dealing with (((functions))) i.e. in this case functional interfaces, which in
- * most cases will be lambda expressions
+ * most cases will be lambda expressions.
  *
  * @author DaPorkchop_
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public abstract class PFunctions {
     /**
-     * Creates a {@link Function} which will throw an exception when invoked
+     * Creates a {@link Function} which will throw an exception when invoked.
      *
      * @param clazz the class of the exception to throw. Must have a simple no-args constructor
      * @return a {@link Function} which will throw an exception when invoked
@@ -50,7 +50,7 @@ public abstract class PFunctions {
     }
 
     /**
-     * Creates a {@link Function} which will throw an exception when invoked
+     * Creates a {@link Function} which will throw an exception when invoked.
      *
      * @param supplier a {@link Supplier} which will supply instances of {@link Throwable} to be thrown
      * @return a {@link Function} which will throw an exception when invoked
@@ -62,12 +62,22 @@ public abstract class PFunctions {
     }
 
     /**
-     * Logically inverts a {@link Predicate}
+     * Logically inverts a {@link Predicate}.
      *
      * @param predicate the predicate to invert
      * @return a {@link Predicate} that will return the opposite value of whatever is returned by the original
      */
     public static <T> Predicate<T> invert(@NonNull Predicate<T> predicate) {
         return t -> !predicate.test(t);
+    }
+
+    /**
+     * Gets a {@link Function} which returns the identity of the given input value.
+     *
+     * @param <T> the type of value
+     * @return the identity function of the type
+     */
+    public static <T> Function<T, T> identity() {
+        return o -> o;
     }
 }

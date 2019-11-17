@@ -13,37 +13,44 @@
  *
  */
 
-package http;import com.google.gson.JsonParser;
+package http;
+
+import com.google.gson.JsonParser;
 import net.daporkchop.lib.common.test.TestRandomData;
 import net.daporkchop.lib.encoding.basen.Base58;
-import net.daporkchop.lib.http.SimpleHTTP;
+import net.daporkchop.lib.http.Http;
+import net.daporkchop.lib.http.HttpMethod;
+import net.daporkchop.lib.http.header.Header;
+import net.daporkchop.lib.http.impl.java.JavaHttpClient;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-public class RandomDownloadTest {
+public class HttpTest {
+    public static final boolean DEBUG_PRINT = false;
+
     @Test
     public void test() throws IOException {
-        String data = SimpleHTTP.getString("https://raw.githubusercontent.com/DaMatrix/betterMapArt/master/src/main/resources/colors.json");
-        if (false) {
+        final String url = "http://raw.githubusercontent.com/DaMatrix/betterMapArt/master/src/main/resources/colors.json";
+        String data = Http.getString(url);
+
+        if (DEBUG_PRINT) {
             System.out.println(data);
-        } else {
-            if (!data.trim().endsWith("}")) {
-                throw new IllegalStateException();
-            }
         }
+        new JsonParser().parse(data);
     }
 
     @Test
     public void test2() throws IOException {
-        String data = SimpleHTTP.getString(
+        String data = Http.getString(
                 "https://www.daporkchop.net/contact",
-                "User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/70.0.3538.77 Chrome/70.0.3538.77 Safari/537.36"
+                Header.of("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/70.0.3538.77 Chrome/70.0.3538.77 Safari/537.36")
         );
-        if (false) {
+        if (DEBUG_PRINT) {
             System.out.println(data);
         }
     }
@@ -51,7 +58,7 @@ public class RandomDownloadTest {
     @Test
     public void testGET() throws IOException {
         String text = Base58.encodeBase58(TestRandomData.getRandomBytes(64, 128));
-        String response = new JsonParser().parse(SimpleHTTP.getString(String.format("http://httpbin.org/get?data=%s", text))).getAsJsonObject().get("args").getAsJsonObject().get("data").getAsString();
+        String response = new JsonParser().parse(Http.getString(String.format("http://httpbin.org/get?data=%s", text))).getAsJsonObject().get("args").getAsJsonObject().get("data").getAsString();
         if (!text.equals(response)) {
             throw new IllegalStateException(String.format("Data not identical! Sent=%s Received=%s", text, response));
         }
@@ -60,7 +67,8 @@ public class RandomDownloadTest {
     @Test
     public void testPOST() throws IOException {
         String text = String.format("{\"value\":\"%s\"}", Base58.encodeBase58(TestRandomData.getRandomBytes(64, 128)));
-        String response = new JsonParser().parse(SimpleHTTP.postJsonAsString("http://httpbin.org/post", text)).getAsJsonObject().get("data").getAsString();
+        String response = Http.postJsonString("http://httpbin.org/post", text);
+        response = new JsonParser().parse(response).getAsJsonObject().get("data").getAsString();
         if (!text.equals(response)) {
             throw new IllegalStateException(String.format("Data not identical! Sent=%s Received=%s", text, response));
         }

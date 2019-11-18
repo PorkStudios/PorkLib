@@ -15,7 +15,6 @@
 
 dependencies {
     compile project(":math")
-    compile project(":encoding")
     compile project(":reflection")
 
     compile "io.netty:netty-buffer:$nettyVersion"

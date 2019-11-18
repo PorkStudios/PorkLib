@@ -15,25 +15,30 @@
 
 package net.daporkchop.lib.encoding;
 
+import lombok.NonNull;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.encoding.util.FastCharIntMap;
+import net.daporkchop.lib.unsafe.PUnsafe;
+
+import java.util.Arrays;
 
 /**
- * A really fast hexadecimal encoder
+ * A highly optimized hexadecimal encoder.
  *
  * @author DaPorkchop_
  */
 public class Hexadecimal {
-    private static final char[] ALPHABET = "0123456789abcdef".toCharArray();
-    private static final FastCharIntMap INDEX = new FastCharIntMap();
+    private static final char[] ALPHABET = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+    private static final byte[] INDEX = new byte['f' + 1];
 
     static {
+        Arrays.fill(INDEX, (byte) -1);
         for (byte i = 0; i < ALPHABET.length; i++) {
-            INDEX.put(ALPHABET[i], i);
+            INDEX[ALPHABET[i]] = i;
         }
     }
 
-    public static String encode(byte[] data) {
+    public static String encode(@NonNull byte[] data) {
         char[] newText = new char[data.length << 1];
         for (int i = 0; i < data.length; i++) {
             byte b = data[i];
@@ -44,23 +49,31 @@ public class Hexadecimal {
         return PorkUtil.wrap(newText);
     }
 
-    public static String encode(byte[] data, int from, int length) {
+    public static String encode(@NonNull byte[] data, int from, int length) {
         char[] newText = new char[length << 1];
         for (int i = 0; i < length; i++) {
             byte b = data[i + from];
             int a = i << 1;
+            newText[a] = ALPHABET[(b >>> 4) & 0xF];
             newText[a + 1] = ALPHABET[b & 0xF];
-            newText[a] = ALPHABET[(b >> 4) & 0xF];
         }
         return PorkUtil.wrap(newText);
     }
 
-    public static byte[] decode(String input) {
-        char[] chars = input.toCharArray();
-        byte[] data = new byte[chars.length >> 1];
-        for (int i = 0; i < chars.length; i += 2) {
-            char a = chars[i + 1], b = chars[i];
-            data[i >> 1] = (byte) ((INDEX.get(a) & 0xF) | (INDEX.get(b) << 4));
+    public static byte[] decode(@NonNull String input) {
+        final char[] chars = PorkUtil.unwrap(input);
+        final int length = chars.length;
+        if ((length & 1) != 0)    {
+            throw new IllegalArgumentException(String.format("Length not a multiple of 2: %d", length));
+        }
+
+        byte[] data = new byte[length >>> 1];
+        for (int i = 0; i < length;) {
+            byte b = INDEX[chars[i++]], a = INDEX[chars[i++]];
+            if (b < 0 || a < 0) {
+                throw new IllegalArgumentException("Illegal input text!");
+            }
+            data[i >> 1] = (byte) ((a & 0xF) | (b << 4));
         }
         return data;
     }

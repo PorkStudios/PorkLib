@@ -13,23 +13,28 @@
  *
  */
 
-package net.daporkchop.lib.encoding.basen;
+package net.daporkchop.lib.binary;
 
-import lombok.NonNull;
+import java.nio.ByteOrder;
 
 /**
- * Untested, you should probably use {@link java.util.Base64}
+ * Wrapper around {@link java.nio.ByteOrder} with some additional helper utilities.
  *
  * @author DaPorkchop_
  */
-public interface Base64 {
-    BaseN INSTANCE = BaseN.of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
+public enum Endianess {
+    BIG,
+    LITTLE;
 
-    static String encodeBase64(@NonNull byte[] data) {
-        return INSTANCE.encode(data);
-    }
+    /**
+     * The native byte order on this system.
+     */
+    public static final Endianess NATIVE = ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN ? BIG : LITTLE;
 
-    static byte[] decodeBase64(@NonNull String data) {
-        return INSTANCE.decode(data);
+    /**
+     * @return whether or not this is the system's native endianess
+     */
+    public boolean isNative()   {
+        return this == NATIVE;
     }
 }

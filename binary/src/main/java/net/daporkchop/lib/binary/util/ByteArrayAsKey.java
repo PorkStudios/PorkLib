@@ -17,7 +17,8 @@ package net.daporkchop.lib.binary.util;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.encoding.Hexadecimal;
+import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.util.Arrays;
 
@@ -58,6 +59,8 @@ public class ByteArrayAsKey {
 
     @Override
     public String toString() {
-        return Hexadecimal.encode(this.array);
+        char[] c = new char[this.array.length >> 1];
+        PUnsafe.copyMemory(this.array, PUnsafe.ARRAY_BYTE_BASE_OFFSET, c, PUnsafe.ARRAY_CHAR_BASE_OFFSET, this.array.length);
+        return PorkUtil.wrap(c);
     }
 }

@@ -92,15 +92,25 @@ public class PorkUtil {
     }
 
     /**
-     * Wraps a char array into a {@link String} without copying the array.
+     * Wraps a {@code char[]} into a {@link String} without copying the array.
      *
-     * @param chars the char array to copy
-     * @return a new string
+     * @param chars the {@code char[]} to wrap
+     * @return a new {@link String}
      */
     public String wrap(@NonNull char[] chars) {
         String s = PUnsafe.allocateInstance(String.class);
         PUnsafe.putObject(s, OFFSET_STRING_VALUE, chars);
         return s;
+    }
+
+    /**
+     * Unwraps a {@link String} into a {@code char[]} without copying the array.
+     *
+     * @param string the {@link String} to unwrap
+     * @return the value of the {@link String} as a {@code char[]}
+     */
+    public char[] unwrap(@NonNull String string) {
+        return PUnsafe.getObject(string, OFFSET_STRING_VALUE);
     }
 
     public StackTraceElement[] getStackTrace(@NonNull Throwable t) {

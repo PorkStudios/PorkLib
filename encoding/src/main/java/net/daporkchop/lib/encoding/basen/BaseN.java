@@ -16,13 +16,14 @@
 package net.daporkchop.lib.encoding.basen;
 
 import lombok.NonNull;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.encoding.util.FastCharIntMap;
 import net.daporkchop.lib.math.primitive.PMath;
 
 import java.util.Arrays;
 
 /**
- * Allows for defining a method to encode a byte[] to a string using a given alphabet
+ * Allows for defining a method to encode a {@code byte[]} to a {@link String} using a given alphabet.
  *
  * @author DaPorkchop_
  */
@@ -31,15 +32,16 @@ public class BaseN {
         return new BaseN(alphabet);
     }
 
-    public final char[] alphabet;
-    public final int length;
-    public final FastCharIntMap indexes = new FastCharIntMap();
-    public final char zero;
+    protected final char[] alphabet;
+    protected final FastCharIntMap indexes;
+    protected final int length;
+    protected final char zero;
 
-    protected BaseN(String alphabet) {
-        if (alphabet == null || alphabet.isEmpty())
+    protected BaseN(@NonNull String alphabet) {
+        if (alphabet.isEmpty()){
             throw new IllegalArgumentException("Alphabet cannot be null or empty!");
-        this.alphabet = alphabet.toCharArray();
+        }
+        this.alphabet = PorkUtil.unwrap(alphabet);
         this.length = alphabet.length();
 
         //check for duplicates
@@ -47,11 +49,13 @@ public class BaseN {
             char c = this.alphabet[i];
             for (int j = 0; j < this.length; j++) {
                 if (j == i) continue;
-                if (this.alphabet[j] == c)
-                    throw new IllegalArgumentException("Found duplicate characters in alphabet at indexes " + i + " and " + j + '!');
+                if (this.alphabet[j] == c){
+                    throw new IllegalArgumentException(String.format("Found duplicate character '%c' in alphabet at indexes %d and %d!", this.alphabet[i], i, j));
+                }
             }
         }
 
+        this.indexes = new FastCharIntMap();
         for (int i = 0; i < this.length; i++) {
             this.indexes.put(this.alphabet[i], i);
         }
@@ -60,7 +64,9 @@ public class BaseN {
     }
 
     public String encode(byte[] data) {
-        if (data.length == 0) return "";
+        if (data.length == 0)   {
+            return "";
+        }
         // Count leading zeros.
         int zeros = 0;
         while (zeros < data.length && data[zeros] == 0) {

@@ -22,7 +22,7 @@ import java.util.Arrays;
  *
  * @author DaPorkchop_
  */
-public class FastCharIntMap {
+public final class FastCharIntMap {
     private final int[][] backing = new int[256][];
 
     public void put(char key, int val) {

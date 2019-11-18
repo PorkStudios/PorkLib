@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.encoding;
 
+import java.nio.ByteOrder;
 import java.util.UUID;
 
 /**

@@ -19,10 +19,12 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import java.awt.Color;
+import java.awt.*;
 import java.util.Arrays;
 
 /**
+ * The different colors that can be displayed in a VGA console.
+ *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
@@ -44,18 +46,9 @@ public enum VGAColor {
     BRIGHT_MAGENTA(95, 105, new Color(255, 85, 255)),
     BRIGHT_CYAN(96, 106, new Color(85, 255, 255)),
     BRIGHT_WHITE(97, 107, new Color(255, 255, 255)),
-    DEFAULT(39, 49, -1),
-    ;
+    DEFAULT(39, 49, -1);
 
-    protected static final VGAColor[] DISTANCE_SEARCH_VALUES = Arrays.stream(values()).filter(c -> c != DEFAULT).toArray(VGAColor[]::new);
-
-    protected final int fg;
-    protected final int bg;
-    protected final int color;
-
-    VGAColor(int fg, int bg, @NonNull Color color)  {
-        this(fg, bg, color.getRGB() & 0xFFFFFF);
-    }
+    protected static final VGAColor[] DISTANCE_SEARCH_VALUES = Arrays.copyOf(values(), DEFAULT.ordinal());
 
     public static VGAColor closestTo(Color color) {
         return color == null ? DEFAULT : closestTo(color.getRGB());
@@ -68,16 +61,26 @@ public enum VGAColor {
 
         VGAColor closest = null;
         val = Integer.MAX_VALUE; //reuse old variable for speed and stuff lol
-        for (VGAColor color : DISTANCE_SEARCH_VALUES)    {
+        for (VGAColor color : DISTANCE_SEARCH_VALUES) {
             int vR = r - ((color.color >>> 16) & 0xFF);
             int vG = g - ((color.color >>> 8) & 0xFF);
             int vB = b - (color.color & 0xFF);
             int dist = vR * vR + vG * vG + vB * vB;
-            if (dist < val) {
+            if (dist == 0) {
+                return color;
+            } else if (dist < val) {
                 val = dist;
                 closest = color;
             }
         }
         return closest;
+    }
+
+    protected final int fg;
+    protected final int bg;
+    protected final int color;
+
+    VGAColor(int fg, int bg, @NonNull Color color) {
+        this(fg, bg, color.getRGB() & 0xFFFFFF);
     }
 }

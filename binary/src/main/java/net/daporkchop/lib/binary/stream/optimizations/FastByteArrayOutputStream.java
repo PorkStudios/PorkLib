@@ -15,7 +15,7 @@
 
 package net.daporkchop.lib.binary.stream.optimizations;
 
-import net.daporkchop.lib.encoding.Hexadecimal;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.ByteArrayOutputStream;
@@ -45,6 +45,8 @@ public class FastByteArrayOutputStream extends ByteArrayOutputStream {
 
     @Override
     public synchronized String toString() {
-        return Hexadecimal.encode(this.buf);
+        char[] c = new char[this.count >> 1];
+        PUnsafe.copyMemory(this.buf, PUnsafe.ARRAY_BYTE_BASE_OFFSET, c, PUnsafe.ARRAY_CHAR_BASE_OFFSET, this.count);
+        return PorkUtil.wrap(c);
     }
 }

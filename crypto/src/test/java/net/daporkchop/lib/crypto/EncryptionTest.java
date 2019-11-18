@@ -16,6 +16,7 @@
 package net.daporkchop.lib.crypto;
 
 import lombok.NonNull;
+import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.common.test.TestRandomData;
 import net.daporkchop.lib.crypto.cipher.Cipher;
 import net.daporkchop.lib.crypto.cipher.CipherInitSide;
@@ -59,85 +60,77 @@ public class EncryptionTest implements Logging {
 
     @Test
     public void testBlockCipher() {
-        byte[][] randomData = TestRandomData.randomBytes;
-        for (CipherType type : CipherType.values()) {
-            if (type == CipherType.NONE) {
-                continue;
-            }
-            CipherKey key = KeyGen.gen(type);
+        Arrays.stream(CipherType.values()).parallel()
+                .filter(type -> type != CipherType.NONE)
+                .forEach(type -> {
+                    CipherKey key = KeyGen.gen(type);
 
-            for (CipherMode mode : CipherMode.values()) {
-                for (CipherPadding padding : CipherPadding.values()) {
-                    try {
-                        Cipher cipher = Cipher.createBlock(type, mode, padding, key);
-                        for (byte[] b : randomData) {
-                            byte[] encrypted = cipher.encrypt(b);
-                            byte[] decrypted = cipher.decrypt(encrypted);
-                            decrypted = Arrays.copyOf(decrypted, b.length); //remove padding //TODO: do this automagically somehow
-                            if (!Arrays.equals(b, decrypted)) {
-                                throw new AssertionError(String.format("Decrypted data isn't the same! Cipher: (type=%s, mode=%s, padding= %s)", type.name, mode.name, padding.name));
-                            }
-                        }
-                    } catch (Exception e) {
-                        throw new RuntimeException(String.format("Error occurred while testing cipher (type=%s, mode=%s, padding= %s)", type.name, mode.name, padding.name), e);
-                    }
-                }
-            }
+                    Arrays.stream(CipherMode.values()).parallel()
+                            .forEach(mode -> Arrays.stream(CipherPadding.values()).parallel()
+                                    .forEach(padding -> {
+                                        try {
+                                            Cipher cipher = Cipher.createBlock(type, mode, padding, key);
+                                            for (byte[] b : TestRandomData.randomBytes) {
+                                                byte[] encrypted = cipher.encrypt(b);
+                                                byte[] decrypted = cipher.decrypt(encrypted);
+                                                decrypted = Arrays.copyOf(decrypted, b.length); //remove padding //TODO: do this automagically somehow
+                                                if (!Arrays.equals(b, decrypted)) {
+                                                    throw new AssertionError(String.format("Decrypted data isn't the same! Cipher: (type=%s, mode=%s, padding= %s)", type.name, mode.name, padding.name));
+                                                }
+                                            }
+                                        } catch (Exception e) {
+                                            throw new RuntimeException(String.format("Error occurred while testing cipher (type=%s, mode=%s, padding= %s)", type.name, mode.name, padding.name), e);
+                                        }
+                                    }));
 
-            System.out.printf("Completed test on %s successfully\n", type.name);
-        }
+                    System.out.printf("Completed test on %s successfully\n", type.name);
+                });
     }
 
     @Test
     public void testStreamCipher() {
-        byte[][] randomData = TestRandomData.randomBytes;
-        for (StreamCipherType type : StreamCipherType.values()) {
-            if (type == StreamCipherType.BLOCK_CIPHER) {
-                continue;
-            }
-            try {
-                CipherKey key = KeyGen.gen(type);
-                Cipher cipher = Cipher.createStream(type, key);
-                for (byte[] b : randomData) {
-                    byte[] encrypted = cipher.encrypt(b);
-                    byte[] decrypted = cipher.decrypt(encrypted);
-                    if (!Arrays.equals(b, decrypted)) {
-                        throw new AssertionError(String.format("Decrypted data isn't the same! Cipher: %s", type.name));
-                    }
-                }
-            } catch (Exception e) {
-                throw new RuntimeException(String.format("Error occurred while testing stream cipher (name=%s)", type.name), e);
-            }
-            System.out.printf("Successful test of stream cipher %s\n", type.name);
-        }
-    }
-
-    @Test
-    public void testPseudoStreamCipher() {
-        byte[][] randomData = TestRandomData.randomBytes;
-        for (CipherType type : CipherType.values()) {
-            if (type == CipherType.NONE) {
-                continue;
-            }
-            CipherKey key = KeyGen.gen(type);
-
-            for (CipherMode mode : CipherMode.streamableModes()) {
-                Cipher cipher = Cipher.createPseudoStream(type, mode, key);
-                try {
-                    for (byte[] b : randomData) {
+        Arrays.stream(StreamCipherType.values()).parallel()
+                .filter(type -> type != StreamCipherType.BLOCK_CIPHER)
+                .forEach(type -> {
+                    CipherKey key = KeyGen.gen(type);
+                    Cipher cipher = Cipher.createStream(type, key);
+                    for (byte[] b : TestRandomData.randomBytes) {
                         byte[] encrypted = cipher.encrypt(b);
                         byte[] decrypted = cipher.decrypt(encrypted);
-                        decrypted = Arrays.copyOf(decrypted, b.length); //remove padding //TODO: do this automagically somehow
                         if (!Arrays.equals(b, decrypted)) {
                             throw new AssertionError(String.format("Decrypted data isn't the same! Cipher: %s", type.name));
                         }
                     }
-                } catch (Exception e) {
-                    throw new RuntimeException(String.format("Error occurred while testing pseudo-stream (block) cipher (%s)", cipher.toString()), e);
-                }
-            }
-            System.out.printf("Successful test of pseudo-stream (block) cipher based on %s\n", type.name);
-        }
+                    System.out.printf("Successful test of stream cipher %s\n", type.name);
+                });
+    }
+
+    @Test
+    public void testPseudoStreamCipher() {
+        Arrays.stream(CipherType.values()).parallel()
+                .filter(type -> type != CipherType.NONE)
+                .forEach(type -> {
+                    CipherKey key = KeyGen.gen(type);
+
+                    Arrays.stream(CipherMode.streamableModes()).parallel()
+                            .forEach(mode -> {
+                                Cipher cipher = Cipher.createPseudoStream(type, mode, key);
+                                try {
+                                    for (byte[] b : TestRandomData.randomBytes) {
+                                        byte[] encrypted = cipher.encrypt(b);
+                                        byte[] decrypted = cipher.decrypt(encrypted);
+                                        decrypted = Arrays.copyOf(decrypted, b.length); //remove padding //TODO: do this automagically somehow
+                                        if (!Arrays.equals(b, decrypted)) {
+                                            throw new AssertionError(String.format("Decrypted data isn't the same! Cipher: %s", type.name));
+                                        }
+                                    }
+                                } catch (Exception e) {
+                                    throw new RuntimeException(String.format("Error occurred while testing pseudo-stream (block) cipher (%s)", cipher.toString()), e);
+                                }
+                            });
+
+                    System.out.printf("Successful test of pseudo-stream (block) cipher based on %s\n", type.name);
+                });
     }
 
     //@Test
@@ -167,49 +160,44 @@ public class EncryptionTest implements Logging {
     }
 
     @Test
-    public void testStreamCipherInputOutputStream() throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    public void testStreamCipherInputOutputStream() {
+        Arrays.stream(StreamCipherType.values()).parallel()
+                .filter(type -> type != StreamCipherType.BLOCK_CIPHER)
+                .forEach((IOConsumer<StreamCipherType>) type -> {
+                    CipherKey key1 = KeyGen.gen(type);
+                    CipherKey key2 = KeyGen.gen(type);
 
-        for (StreamCipherType type : StreamCipherType.values()) {
-            if (type == StreamCipherType.BLOCK_CIPHER) {
-                continue;
-            }
-            CipherKey key1 = KeyGen.gen(type);
-            CipherKey key2 = KeyGen.gen(type);
+                    Cipher cipher1 = Cipher.createStream(type, key1, CipherInitSide.SERVER);
+                    Cipher cipher2 = Cipher.createStream(type, key1, CipherInitSide.CLIENT);
+                    Cipher cipher3 = Cipher.createStream(type, key2, CipherInitSide.CLIENT);
+                    Cipher cipher4 = Cipher.createStream(type, key1, CipherInitSide.SERVER);
 
-            Cipher cipher1 = Cipher.createStream(type, key1, CipherInitSide.SERVER);
-            Cipher cipher2 = Cipher.createStream(type, key1, CipherInitSide.CLIENT);
-            Cipher cipher3 = Cipher.createStream(type, key2, CipherInitSide.CLIENT);
-            Cipher cipher4 = Cipher.createStream(type, key1, CipherInitSide.SERVER);
+                    this.runInputOutputStreamTests(cipher1, cipher2, cipher3, cipher4, new ByteArrayOutputStream(), cipher1.toString());
 
-            this.runInputOutputStreamTests(cipher1, cipher2, cipher3, cipher4, baos, cipher1.toString());
-
-            System.out.printf("Completed test on %s successfully\n", type.name);
-        }
+                    System.out.printf("Completed test on %s successfully\n", type.name);
+                });
     }
 
     @Test
-    public void testPseudoStreamCipherInputOutputStream() throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    public void testPseudoStreamCipherInputOutputStream() {
+        Arrays.stream(CipherType.values()).parallel()
+                .filter(type -> type != CipherType.NONE)
+                .forEach(type -> {
+                    CipherKey key1 = KeyGen.gen(type);
+                    CipherKey key2 = KeyGen.gen(type);
 
-        for (CipherType type : CipherType.values()) {
-            if (type == CipherType.NONE) {
-                continue;
-            }
-            CipherKey key1 = KeyGen.gen(type);
-            CipherKey key2 = KeyGen.gen(type);
+                    Arrays.stream(CipherMode.streamableModes()).parallel()
+                            .forEach((IOConsumer<CipherMode>) mode -> {
+                                Cipher cipher1 = Cipher.createPseudoStream(type, mode, key1, CipherInitSide.SERVER);
+                                Cipher cipher2 = Cipher.createPseudoStream(type, mode, key1, CipherInitSide.CLIENT);
+                                Cipher cipher3 = Cipher.createPseudoStream(type, mode, key2, CipherInitSide.CLIENT);
+                                Cipher cipher4 = Cipher.createPseudoStream(type, mode, key1, CipherInitSide.SERVER);
 
-            for (CipherMode mode : CipherMode.streamableModes()) {
-                Cipher cipher1 = Cipher.createPseudoStream(type, mode, key1, CipherInitSide.SERVER);
-                Cipher cipher2 = Cipher.createPseudoStream(type, mode, key1, CipherInitSide.CLIENT);
-                Cipher cipher3 = Cipher.createPseudoStream(type, mode, key2, CipherInitSide.CLIENT);
-                Cipher cipher4 = Cipher.createPseudoStream(type, mode, key1, CipherInitSide.SERVER);
+                                this.runInputOutputStreamTests(cipher1, cipher2, cipher3, cipher4, new ByteArrayOutputStream(), cipher1.toString());
+                            });
 
-                this.runInputOutputStreamTests(cipher1, cipher2, cipher3, cipher4, baos, cipher1.toString());
-            }
-
-            System.out.printf("Completed test on %s successfully\n", type.name);
-        }
+                    System.out.printf("Completed test on %s successfully\n", type.name);
+                });
     }
 
     private void runInputOutputStreamTests(@NonNull Cipher cipher1, @NonNull Cipher cipher2, @NonNull Cipher cipher3, @NonNull Cipher cipher4, @NonNull ByteArrayOutputStream baos, @NonNull String cipherName) throws IOException {
@@ -264,13 +252,14 @@ public class EncryptionTest implements Logging {
         logger.info("Testing seekable stream ciphers...");
         Arrays.stream(StreamCipherType.values())
                 .filter(t -> t != StreamCipherType.BLOCK_CIPHER)
-                .parallel().forEach(type -> {
-            logger.info("  Testing %s...", type);
-            this.testSeekable(
-                    seed -> KeyGen.gen(type, seed),
-                    (key, side) -> new SeekableStreamCipher(type::create, key, side)
-            );
-        });
+                .parallel()
+                .forEach(type -> {
+                    logger.info("  Testing %s...", type);
+                    this.testSeekable(
+                            seed -> KeyGen.gen(type, seed),
+                            (key, side) -> new SeekableStreamCipher(type::create, key, side)
+                    );
+                });
     }
 
     @Test
@@ -278,13 +267,14 @@ public class EncryptionTest implements Logging {
         logger.info("Testing seekable block ciphers...");
         Arrays.stream(CipherType.values())
                 .filter(t -> t != CipherType.NONE)
-                .parallel().forEach(type -> Arrays.stream(CipherPadding.values()).parallel().forEach(padding -> {
-            logger.info("  Testing %s with %s padding...", type, padding);
-            this.testSeekable(
-                    seed -> KeyGen.gen(type, seed),
-                    (key, side) -> new SeekableBlockCipher(type, padding, key, side)
-            );
-        }));
+                .parallel().forEach(type -> Arrays.stream(CipherPadding.values()).parallel()
+                .forEach(padding -> {
+                    logger.info("  Testing %s with %s padding...", type, padding);
+                    this.testSeekable(
+                            seed -> KeyGen.gen(type, seed),
+                            (key, side) -> new SeekableBlockCipher(type, padding, key, side)
+                    );
+                }));
     }
 
     private void testSeekable(@NonNull Function<byte[], CipherKey> keyGenerator, @NonNull BiFunction<CipherKey, CipherInitSide, SeekableCipher> cipherSupplier) {
@@ -293,7 +283,7 @@ public class EncryptionTest implements Logging {
         CipherKey key2 = keyGenerator.apply(seed);
         SeekableCipher cipher1 = cipherSupplier.apply(key1, CipherInitSide.SERVER);
         SeekableCipher cipher2 = cipherSupplier.apply(key2, CipherInitSide.CLIENT);
-        Arrays.stream(TestRandomData.randomBytes).parallel().forEachOrdered(b -> {
+        Arrays.stream(TestRandomData.randomBytes).forEachOrdered(b -> {
             long offset = ThreadLocalRandom.current().nextLong(0L, Long.MAX_VALUE >>> 1L);
             byte[] encrypted = cipher1.encrypt(b, offset);
             byte[] decrypted = cipher2.decrypt(encrypted, offset);
@@ -302,7 +292,7 @@ public class EncryptionTest implements Logging {
             }
         });
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        Arrays.stream(TestRandomData.randomBytes).parallel().forEachOrdered(b -> {
+        Arrays.stream(TestRandomData.randomBytes).forEachOrdered(b -> {
             baos.reset();
             try {
                 long offset = ThreadLocalRandom.current().nextLong(0L, Long.MAX_VALUE >>> 1L);

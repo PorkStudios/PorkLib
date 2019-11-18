@@ -56,8 +56,9 @@ public enum CipherType {
     DSTU_7624_128("DSTU 7624 (128-bit)", 16, () -> new DSTU7624Engine(128)),
     DSTU_7624_256("DSTU 7624 (256-bit)", 32, () -> new DSTU7624Engine(256)),
     DSTU_7624_512("DSTU 7624 (512-bit)", 64, () -> new DSTU7624Engine(512)),
-    GOST_3412_2015("GOST 3412_2015", GOST3412_2015Engine::new, 16, 32, 16),
-    GOST_28147("GOST 28147", GOST28147Engine::new, 8, 32, 8),
+    //my god these two are slow
+    //GOST_3412_2015("GOST 3412_2015", GOST3412_2015Engine::new, 16, 32, 16),
+    //GOST_28147("GOST 28147", GOST28147Engine::new, 8, 32, 8),
     IDEA("IDEA", 8, IDEAEngine::new),
     NOEKEON("Noekeon", 16, NoekeonEngine::new),
     RC2("RC2", 8, RC2Engine::new),

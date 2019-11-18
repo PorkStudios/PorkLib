@@ -322,8 +322,7 @@ public abstract class DataIn extends InputStream {
         byte read;
         do {
             read = this.readByte();
-            int value = (read & 0b01111111);
-            result |= (value << (7 * numRead));
+            result |= ((read & 0b01111111) << (7 * numRead));
 
             numRead++;
             if (numRead > 5) {
@@ -346,8 +345,7 @@ public abstract class DataIn extends InputStream {
         byte read;
         do {
             read = this.readByte();
-            int value = (read & 0b01111111);
-            result |= (value << (7 * numRead));
+            result |= ((read & 0b01111111L) << (7 * numRead));
 
             numRead++;
             if (numRead > 10) {
@@ -382,7 +380,7 @@ public abstract class DataIn extends InputStream {
      */
     public byte[] readFully(@NonNull byte[] b, int off, int len) throws IOException {
         int i = 0;
-        while (len >= 0 && (i = this.read(b, off + i, len)) != -1) {
+        while (len > 0 && (i = this.read(b, off + i, len)) != -1) {
             len -= i;
         }
         if (i == -1) {

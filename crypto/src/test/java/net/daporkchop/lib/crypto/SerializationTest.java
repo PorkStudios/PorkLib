@@ -17,6 +17,7 @@ package net.daporkchop.lib.crypto;
 
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.crypto.key.EllipticCurveKeyPair;
 import net.daporkchop.lib.crypto.key.KeySerialization;
 import net.daporkchop.lib.crypto.keygen.KeyGen;
@@ -26,20 +27,22 @@ import org.junit.Test;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 
 public class SerializationTest {
     @Test
-    public void testEC() throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        for (CurveType type : CurveType.values()) {
-            EllipticCurveKeyPair keyPair = KeyGen.gen(type);
-            KeySerialization.encodeEC(DataOut.wrap(baos), keyPair);
-            EllipticCurveKeyPair decoded = KeySerialization.decodeEC(DataIn.wrap(new ByteArrayInputStream(baos.toByteArray())));
-            baos.reset();
-            if (!keyPair.equals(decoded)) {
-                throw new IllegalStateException(String.format("Decoded key pair was different from original on curve type %s", type.name));
-            }
-            System.out.printf("Successful test of %s\n", type.name);
-        }
+    public void testEC() {
+        Arrays.stream(CurveType.values()).parallel()
+                .forEach((IOConsumer<CurveType>) type -> {
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    EllipticCurveKeyPair keyPair = KeyGen.gen(type);
+                    KeySerialization.encodeEC(DataOut.wrap(baos), keyPair);
+                    EllipticCurveKeyPair decoded = KeySerialization.decodeEC(DataIn.wrap(new ByteArrayInputStream(baos.toByteArray())));
+                    baos.reset();
+                    if (!keyPair.equals(decoded)) {
+                        throw new IllegalStateException(String.format("Decoded key pair was different from original on curve type %s", type.name));
+                    }
+                    System.out.printf("Successful test of %s\n", type.name);
+                });
     }
 }

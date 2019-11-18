@@ -50,7 +50,7 @@ allprojects {
         guavaVersion = "27.0-jre"
         jnaVersion = "5.3.0"
         junitVersion = "4.12"
-        lombokVersion = "1.18.8"
+        lombokVersion = "1.16.20"
         nettyVersion = "4.1.36.Final"
         raknetVersion = "1.4.0"
         sparseBitSetVersion = "1.1"
@@ -77,10 +77,6 @@ allprojects {
         maven {
             name = "Sonatype Snapshots"
             url = "https://oss.sonatype.org/content/repositories/snapshots/"
-        }
-        maven {
-            name = "NukkitX Snapshots"
-            url = "https://repo.nukkitx.com/maven-releases/"
         }
         mavenCentral()
     }
@@ -112,7 +108,9 @@ allprojects {
         testCompile "junit:junit:$junitVersion"
 
         compileOnly "org.projectlombok:lombok:$lombokVersion"
+        testCompileOnly "org.projectlombok:lombok:$lombokVersion"
         annotationProcessor "org.projectlombok:lombok:$lombokVersion"
+        testAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
     }
 
     task sourceJar(type: Jar) {

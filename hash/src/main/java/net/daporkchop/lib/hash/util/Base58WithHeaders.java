@@ -59,7 +59,7 @@ public class Base58WithHeaders {
 
         byte[] hash = Digest.SHA512.hash(Digest.SHA512.hash(new byte[]{version}, prefix.getBytes(StandardCharsets.UTF_8), content).getHash()).getHash();
         System.arraycopy(hash, 0, newData, (newData.length - 4), 4);
-        return Base58.INSTANCE.alphabet[prefix.length()] + prefix + Base58.encodeBase58(newData);
+        return Base58.INSTANCE.alphabet()[prefix.length()] + prefix + Base58.encodeBase58(newData);
     }
 
     /**
@@ -72,8 +72,8 @@ public class Base58WithHeaders {
         List<Character> chars = pork58.chars().mapToObj(e -> (char) e).collect(Collectors.toList());
         char prefixLengthChar = chars.remove(0);
         int prefixLength = -1;
-        for (int i = 0; i < Base58.INSTANCE.length; i++) {
-            if (Base58.INSTANCE.alphabet[i] == (int) prefixLengthChar) {
+        for (int i = 0; i < Base58.INSTANCE.alphabet().length; i++) {
+            if (Base58.INSTANCE.alphabet()[i] == (int) prefixLengthChar) {
                 prefixLength = i;
             }
         }

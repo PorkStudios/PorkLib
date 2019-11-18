@@ -15,7 +15,9 @@
 
 package net.daporkchop.lib.encoding.basen;
 
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.encoding.util.FastCharIntMap;
 import net.daporkchop.lib.math.primitive.PMath;
@@ -27,11 +29,13 @@ import java.util.Arrays;
  *
  * @author DaPorkchop_
  */
+@Accessors(fluent = true)
 public class BaseN {
     public static BaseN of(@NonNull String alphabet) {
         return new BaseN(alphabet);
     }
 
+    @Getter
     protected final char[] alphabet;
     protected final FastCharIntMap indexes;
     protected final int length;

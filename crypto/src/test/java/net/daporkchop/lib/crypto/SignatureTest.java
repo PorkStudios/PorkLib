@@ -23,20 +23,23 @@ import net.daporkchop.lib.crypto.sig.ec.impl.ECDSAHelper;
 import net.daporkchop.lib.hash.util.Digest;
 import org.junit.Test;
 
+import java.util.Arrays;
+
 
 public class SignatureTest {
     @Test
     public void testEC() {
         ECDSAHelper helper = new ECDSAHelper(Digest.SHA_256);
-        for (CurveType type : CurveType.values()) {
-            EllipticCurveKeyPair keyPair = KeyGen.gen(type);
-            for (byte[] b : TestRandomData.randomBytes) {
-                byte[] sig = helper.sign(b, keyPair);
-                if (!helper.verify(sig, b, keyPair)) {
-                    throw new IllegalStateException(String.format("Invalid signature on curve type %s", type.name));
-                }
-            }
-            System.out.printf("Successful test of %s\n", type.name);
-        }
+        Arrays.stream(CurveType.values()).parallel()
+                .forEach(type -> {
+                    EllipticCurveKeyPair keyPair = KeyGen.gen(type);
+                    for (byte[] b : TestRandomData.randomBytes) {
+                        byte[] sig = helper.sign(b, keyPair);
+                        if (!helper.verify(sig, b, keyPair)) {
+                            throw new IllegalStateException(String.format("Invalid signature on curve type %s", type.name));
+                        }
+                    }
+                    System.out.printf("Successful test of %s\n", type.name);
+                });
     }
 }

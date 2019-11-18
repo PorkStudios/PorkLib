@@ -18,5 +18,7 @@ dependencies {
 
     compile "io.netty:netty-handler:$nettyVersion"
 
+    testCompile project(":encoding")
+
     testCompile "com.google.code.gson:gson:$gsonVersion"
 }

@@ -15,64 +15,84 @@
 
 package net.daporkchop.lib.encoding;
 
-import java.nio.ByteOrder;
+import lombok.NonNull;
+import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.binary.Endianess;
+import net.daporkchop.lib.unsafe.PUnsafe;
+
 import java.util.UUID;
 
 /**
+ * Helper class containing various methods for converting primitive arrays into {@link byte[]}s and back.
+ *
  * @author DaPorkchop_
  */
+@UtilityClass
 public class ToBytes {
-    public static byte[] toBytes(short... in) {
+    public byte[] toBytes(@NonNull short... in) {
+        return toBytes(null, in);
+    }
+
+    public byte[] toBytes(Endianess endianess, @NonNull short... in) {
         if (in.length == 0) {
             return new byte[0];
         } else {
-            byte[] b = new byte[in.length << 1];
-            for (int j = 0; j < in.length; j++) {
-                short s = in[j];
-                b[j] = (byte) (s & 0xFF);
-                b[j + 1] = (byte) ((s >>> 8) & 0xFF);
+            int length = in.length;
+            byte[] b = new byte[length << 1];
+            if (endianess == null || endianess == Endianess.NATIVE) {
+                PUnsafe.copyMemory(in, PUnsafe.ARRAY_SHORT_BASE_OFFSET, b, PUnsafe.ARRAY_BYTE_BASE_OFFSET, length << 1);
+            } else {
+                for (int j = 0; j < length; j++) {
+                    PUnsafe.putShort(b, PUnsafe.ARRAY_BYTE_BASE_OFFSET + (j << 1), Short.reverseBytes(in[j]));
+                }
             }
             return b;
         }
     }
 
-    public static byte[] toBytes(int... in) {
+    public byte[] toBytes(@NonNull int... in) {
+        return toBytes(null, in);
+    }
+
+    public byte[] toBytes(Endianess endianess, @NonNull int... in) {
         if (in.length == 0) {
             return new byte[0];
         } else {
-            byte[] b = new byte[in.length << 2];
-            for (int j = 0; j < in.length; j++) {
-                int i = in[j];
-                b[j] = (byte) (i & 0xFF);
-                b[j + 1] = (byte) ((i >>> 8) & 0xFF);
-                b[j + 2] = (byte) ((i >>> 16) & 0xFF);
-                b[j + 3] = (byte) ((i >>> 24) & 0xFF);
+            int length = in.length;
+            byte[] b = new byte[length << 2];
+            if (endianess == null || endianess == Endianess.NATIVE) {
+                PUnsafe.copyMemory(in, PUnsafe.ARRAY_INT_BASE_OFFSET, b, PUnsafe.ARRAY_BYTE_BASE_OFFSET, length << 2);
+            } else {
+                for (int j = 0; j < length; j++) {
+                    PUnsafe.putInt(b, PUnsafe.ARRAY_BYTE_BASE_OFFSET + (j << 2), Integer.reverseBytes(in[j]));
+                }
             }
             return b;
         }
     }
 
-    public static byte[] toBytes(long... in) {
+    public byte[] toBytes(@NonNull long... in)  {
+        return toBytes(null, in);
+    }
+
+    public byte[] toBytes(Endianess endianess, @NonNull long... in) {
         if (in.length == 0) {
             return new byte[0];
         } else {
-            byte[] b = new byte[in.length << 3];
-            for (int j = 0; j < in.length; j++) {
-                long l = in[j];
-                b[j] = (byte) (l & 0xFFL);
-                b[j + 1] = (byte) ((l >>> 8L) & 0xFFL);
-                b[j + 2] = (byte) ((l >>> 16L) & 0xFFL);
-                b[j + 3] = (byte) ((l >>> 24L) & 0xFFL);
-                b[j + 4] = (byte) ((l >>> 32L) & 0xFFL);
-                b[j + 5] = (byte) ((l >>> 40L) & 0xFFL);
-                b[j + 6] = (byte) ((l >>> 48L) & 0xFFL);
-                b[j + 7] = (byte) ((l >>> 56L) & 0xFFL);
+            int length = in.length;
+            byte[] b = new byte[length << 3];
+            if (endianess == null || endianess == Endianess.NATIVE) {
+                PUnsafe.copyMemory(in, PUnsafe.ARRAY_LONG_BASE_OFFSET, b, PUnsafe.ARRAY_BYTE_BASE_OFFSET, length << 3);
+            } else {
+                for (int j = 0; j < length; j++) {
+                    PUnsafe.putLong(b, PUnsafe.ARRAY_BYTE_BASE_OFFSET + (j << 3), Long.reverseBytes(in[j]));
+                }
             }
             return b;
         }
     }
 
-    public static short[] toShorts(byte[] in) {
+    public short[] toShorts(@NonNull byte[] in) {
         if (in.length == 0) {
             return new short[0];
         } else {
@@ -86,7 +106,7 @@ public class ToBytes {
         }
     }
 
-    public static int[] toInts(byte[] in) {
+    public static int[] toInts(@NonNull byte[] in) {
         if (in.length == 0) {
             return new int[0];
         } else {
@@ -102,7 +122,7 @@ public class ToBytes {
         }
     }
 
-    public static long[] toLongs(byte[] in) {
+    public static long[] toLongs(@NonNull byte[] in) {
         if (in.length == 0) {
             return new long[0];
         } else {
@@ -122,11 +142,11 @@ public class ToBytes {
         }
     }
 
-    public static byte[] toBytes(UUID uuid) {
+    public byte[] toBytes(@NonNull UUID uuid) {
         return toBytes(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits());
     }
 
-    public static UUID fromBytes(byte[] bytes) {
+    public UUID fromBytes(@NonNull byte[] bytes) {
         if (bytes.length != 16) {
             throw new IllegalArgumentException("Data must be 16 bytes long!");
         }

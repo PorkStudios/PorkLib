@@ -21,6 +21,7 @@ import net.daporkchop.lib.binary.stream.DataOut;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 /**
  * An implementation of {@link DataOut} that can write to a {@link ByteBuffer}
@@ -50,31 +51,67 @@ public class BufferOut extends DataOut {
 
     @Override
     public DataOut writeShort(short s) throws IOException {
-        this.buffer.putShort(s);
+        this.buffer.order(ByteOrder.BIG_ENDIAN).putShort(s);
+        return this;
+    }
+
+    @Override
+    public DataOut writeShortLE(short s) throws IOException {
+        this.buffer.order(ByteOrder.LITTLE_ENDIAN).putShort(s);
+        return this;
+    }
+
+    @Override
+    public DataOut writeChar(char c) throws IOException {
+        this.buffer.order(ByteOrder.BIG_ENDIAN).putChar(c);
         return this;
     }
 
     @Override
     public DataOut writeInt(int i) throws IOException {
-        this.buffer.putInt(i);
+        this.buffer.order(ByteOrder.BIG_ENDIAN).putInt(i);
+        return this;
+    }
+
+    @Override
+    public DataOut writeIntLE(int i) throws IOException {
+        this.buffer.order(ByteOrder.LITTLE_ENDIAN).putInt(i);
         return this;
     }
 
     @Override
     public DataOut writeLong(long l) throws IOException {
-        this.buffer.putLong(l);
+        this.buffer.order(ByteOrder.BIG_ENDIAN).putLong(l);
+        return this;
+    }
+
+    @Override
+    public DataOut writeLongLE(long l) throws IOException {
+        this.buffer.order(ByteOrder.LITTLE_ENDIAN).putLong(l);
         return this;
     }
 
     @Override
     public DataOut writeFloat(float f) throws IOException {
-        this.buffer.putFloat(f);
+        this.buffer.order(ByteOrder.BIG_ENDIAN).putFloat(f);
+        return this;
+    }
+
+    @Override
+    public DataOut writeFloatLE(float f) throws IOException {
+        this.buffer.order(ByteOrder.LITTLE_ENDIAN).putFloat(f);
         return this;
     }
 
     @Override
     public DataOut writeDouble(double d) throws IOException {
-        this.buffer.putDouble(d);
+        this.buffer.order(ByteOrder.BIG_ENDIAN).putDouble(d);
+        return this;
+    }
+
+    @Override
+    public DataOut writeDoubleLE(double d) throws IOException {
+        this.buffer.order(ByteOrder.LITTLE_ENDIAN).putDouble(d);
         return this;
     }
 

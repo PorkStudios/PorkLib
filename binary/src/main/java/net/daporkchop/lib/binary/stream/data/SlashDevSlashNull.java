@@ -15,6 +15,8 @@
 
 package net.daporkchop.lib.binary.stream.data;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import net.daporkchop.lib.binary.stream.DataOut;
 
 import java.io.IOException;
@@ -26,13 +28,106 @@ import java.io.IOException;
  *
  * @author DaPorkchop_
  */
-public class SlashDevSlashNull extends DataOut {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class SlashDevSlashNull extends DataOut {
+    public static final SlashDevSlashNull INSTANCE = new SlashDevSlashNull();
+
     @Override
     public void close() throws IOException {
     }
 
     @Override
     public void write(int b) throws IOException {
+    }
+
+    @Override
+    public DataOut writeBoolean(boolean b) throws IOException {
+        return this;
+    }
+
+    @Override
+    public DataOut writeByte(byte b) throws IOException {
+        return this;
+    }
+
+    @Override
+    public DataOut writeUByte(int b) throws IOException {
+        return this;
+    }
+
+    @Override
+    public DataOut writeShort(short s) throws IOException {
+        return this;
+    }
+
+    @Override
+    public DataOut writeUShort(int s) throws IOException {
+        return this;
+    }
+
+    @Override
+    public DataOut writeShortLE(short s) throws IOException {
+        return this;
+    }
+
+    @Override
+    public DataOut writeUShortLE(int s) throws IOException {
+        return this;
+    }
+
+    @Override
+    public DataOut writeChar(char c) throws IOException {
+        return this;
+    }
+
+    @Override
+    public DataOut writeInt(int i) throws IOException {
+        return this;
+    }
+
+    @Override
+    public DataOut writeUInt(long i) throws IOException {
+        return this;
+    }
+
+    @Override
+    public DataOut writeIntLE(int i) throws IOException {
+        return this;
+    }
+
+    @Override
+    public DataOut writeUIntLE(long i) throws IOException {
+        return this;
+    }
+
+    @Override
+    public DataOut writeLong(long l) throws IOException {
+        return this;
+    }
+
+    @Override
+    public DataOut writeLongLE(long l) throws IOException {
+        return this;
+    }
+
+    @Override
+    public DataOut writeFloat(float f) throws IOException {
+        return this;
+    }
+
+    @Override
+    public DataOut writeFloatLE(float f) throws IOException {
+        return this;
+    }
+
+    @Override
+    public DataOut writeDouble(double d) throws IOException {
+        return this;
+    }
+
+    @Override
+    public DataOut writeDoubleLE(double d) throws IOException {
+        return this;
     }
 
     @Override

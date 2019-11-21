@@ -121,11 +121,11 @@ public abstract class DataOut extends OutputStream {
      * @see SlashDevSlashNull
      */
     public static DataOut slashDevSlashNull() {
-        return new SlashDevSlashNull();
+        return SlashDevSlashNull.INSTANCE;
     }
 
     /**
-     * Writes a boolean
+     * Writes a boolean.
      *
      * @param b the boolean to write
      */
@@ -135,7 +135,7 @@ public abstract class DataOut extends OutputStream {
     }
 
     /**
-     * Writes a byte (8-bit) value
+     * Writes a byte (8-bit) value.
      *
      * @param b the byte to write
      */
@@ -145,7 +145,7 @@ public abstract class DataOut extends OutputStream {
     }
 
     /**
-     * Writes a byte (8-bit) value
+     * Writes a byte (8-bit) value.
      *
      * @param b the byte to write
      */
@@ -155,7 +155,7 @@ public abstract class DataOut extends OutputStream {
     }
 
     /**
-     * Writes a short (16-bit) value
+     * Writes a big-endian short (16-bit) value.
      *
      * @param s the short to write
      */
@@ -166,7 +166,7 @@ public abstract class DataOut extends OutputStream {
     }
 
     /**
-     * Writes a short (16-bit) value
+     * Writes a big-endian short (16-bit) value.
      *
      * @param s the short to write
      */
@@ -175,7 +175,27 @@ public abstract class DataOut extends OutputStream {
     }
 
     /**
-     * Writes a char (16-bit) value
+     * Writes a little-endian short (16-bit) value.
+     *
+     * @param s the short to write
+     */
+    public DataOut writeShortLE(short s) throws IOException {
+        this.write(s & 0xFF);
+        this.write((s >>> 8) & 0xFF);
+        return this;
+    }
+
+    /**
+     * Writes a little-endian short (16-bit) value.
+     *
+     * @param s the short to write
+     */
+    public DataOut writeUShortLE(int s) throws IOException {
+        return this.writeShortLE((short) (s & 0xFFFF));
+    }
+
+    /**
+     * Writes a char (16-bit) value.
      *
      * @param c the char to write
      */
@@ -186,31 +206,7 @@ public abstract class DataOut extends OutputStream {
     }
 
     /**
-     * Writes an medium (24-bit) value
-     *
-     * @param m the medium to write
-     */
-    public DataOut writeMedium(int m) throws IOException {
-        if ((m & 0xFF000000) != 0)  {
-            m |= 0x800000;
-        }
-        return this.writeUMedium(m);
-    }
-
-    /**
-     * Writes an medium (24-bit) value
-     *
-     * @param m the medium to write
-     */
-    public DataOut writeUMedium(int m) throws IOException {
-        this.write((m >>> 16) & 0xFF);
-        this.write((m >>> 8) & 0xFF);
-        this.write(m & 0xFF);
-        return this;
-    }
-
-    /**
-     * Writes an int (32-bit) value
+     * Writes a big-endian int (32-bit) value.
      *
      * @param i the int to write
      */
@@ -223,7 +219,7 @@ public abstract class DataOut extends OutputStream {
     }
 
     /**
-     * Writes an int (32-bit) value
+     * Writes a big-endian int (32-bit) value.
      *
      * @param i the int to write
      */
@@ -232,7 +228,29 @@ public abstract class DataOut extends OutputStream {
     }
 
     /**
-     * Writes a long (64-bit) value
+     * Writes a little-endian int (32-bit) value.
+     *
+     * @param i the int to write
+     */
+    public DataOut writeIntLE(int i) throws IOException {
+        this.write(i & 0xFF);
+        this.write((i >>> 8) & 0xFF);
+        this.write((i >>> 16) & 0xFF);
+        this.write((i >>> 24) & 0xFF);
+        return this;
+    }
+
+    /**
+     * Writes a little-endian int (32-bit) value.
+     *
+     * @param i the int to write
+     */
+    public DataOut writeUIntLE(long i) throws IOException {
+        return this.writeIntLE((int) (i & 0xFFFFFFFFL));
+    }
+
+    /**
+     * Writes a big-endian long (64-bit) value.
      *
      * @param l the long to write
      */
@@ -249,7 +267,24 @@ public abstract class DataOut extends OutputStream {
     }
 
     /**
-     * Writes a float (32-bit floating point) value
+     * Writes a little-endian long (64-bit) value.
+     *
+     * @param l the long to write
+     */
+    public DataOut writeLongLE(long l) throws IOException {
+        this.write((int) l & 0xFF);
+        this.write((int) (l >>> 8L) & 0xFF);
+        this.write((int) (l >>> 16L) & 0xFF);
+        this.write((int) (l >>> 24L) & 0xFF);
+        this.write((int) (l >>> 32L) & 0xFF);
+        this.write((int) (l >>> 40L) & 0xFF);
+        this.write((int) (l >>> 48L) & 0xFF);
+        this.write((int) (l >>> 56L) & 0xFF);
+        return this;
+    }
+
+    /**
+     * Writes a big-endian float (32-bit floating point) value.
      *
      * @param f the float to write
      */
@@ -258,7 +293,16 @@ public abstract class DataOut extends OutputStream {
     }
 
     /**
-     * Writes a double (64-bit floating point) value
+     * Writes a little-endian float (32-bit floating point) value.
+     *
+     * @param f the float to write
+     */
+    public DataOut writeFloatLE(float f) throws IOException {
+        return this.writeIntLE(Float.floatToIntBits(f));
+    }
+
+    /**
+     * Writes a big-endian double (64-bit floating point) value.
      *
      * @param d the double to write
      */
@@ -267,7 +311,16 @@ public abstract class DataOut extends OutputStream {
     }
 
     /**
-     * Writes a UTF-8 encoded string, including a null header and the length in bytes encoded as a varInt
+     * Writes a little-endian double (64-bit floating point) value.
+     *
+     * @param d the double to write
+     */
+    public DataOut writeDoubleLE(double d) throws IOException {
+        return this.writeLongLE(Double.doubleToLongBits(d));
+    }
+
+    /**
+     * Writes a UTF-8 encoded string, including a null header and the length in bytes encoded as a varInt.
      *
      * @param s the string to write
      */
@@ -276,7 +329,7 @@ public abstract class DataOut extends OutputStream {
     }
 
     /**
-     * Writes a plain byte array with a length prefix encoded as a varInt
+     * Writes a plain byte array with a length prefix encoded as a varInt.
      *
      * @param b the bytes to write
      */
@@ -285,7 +338,7 @@ public abstract class DataOut extends OutputStream {
     }
 
     /**
-     * Writes an enum value
+     * Writes an enum value.
      *
      * @param e   the value to write
      * @param <E> the type of the enum

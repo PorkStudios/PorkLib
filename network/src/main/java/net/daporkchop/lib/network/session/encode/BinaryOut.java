@@ -74,8 +74,14 @@ class BinaryOut extends DataOut {
     }
 
     @Override
-    public DataOut writeMedium(int m) throws IOException {
-        this.checkRealloc().writeMedium(m);
+    public DataOut writeShortLE(short s) throws IOException {
+        this.checkRealloc().writeShortLE(s);
+        return this;
+    }
+
+    @Override
+    public DataOut writeUShortLE(int s) throws IOException {
+        this.checkRealloc().writeShortLE(s);
         return this;
     }
 
@@ -86,8 +92,44 @@ class BinaryOut extends DataOut {
     }
 
     @Override
+    public DataOut writeIntLE(int i) throws IOException {
+        this.checkRealloc().writeIntLE(i);
+        return this;
+    }
+
+    @Override
     public DataOut writeLong(long l) throws IOException {
         this.checkRealloc().writeLong(l);
+        return this;
+    }
+
+    @Override
+    public DataOut writeLongLE(long l) throws IOException {
+        this.checkRealloc().writeLongLE(l);
+        return this;
+    }
+
+    @Override
+    public DataOut writeFloat(float f) throws IOException {
+        this.checkRealloc().writeFloat(f);
+        return this;
+    }
+
+    @Override
+    public DataOut writeFloatLE(float f) throws IOException {
+        this.checkRealloc().writeFloatLE(f);
+        return this;
+    }
+
+    @Override
+    public DataOut writeDouble(double d) throws IOException {
+        this.checkRealloc().writeDouble(d);
+        return this;
+    }
+
+    @Override
+    public DataOut writeDoubleLE(double d) throws IOException {
+        this.checkRealloc().writeDoubleLE(d);
         return this;
     }
 

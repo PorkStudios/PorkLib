@@ -70,18 +70,6 @@ public abstract class NettyByteBufOut extends DataOut {
     }
 
     @Override
-    public DataOut writeMedium(int m) throws IOException {
-        this.ensureOpen();
-        this.buf.writeMedium(m & 0xFFFFFF);
-        return this;
-    }
-
-    @Override
-    public DataOut writeUMedium(int m) throws IOException {
-        return this.writeMedium(m & 0xFFFFFF);
-    }
-
-    @Override
     public DataOut writeInt(int i) throws IOException {
         this.ensureOpen();
         this.buf.writeInt(i);

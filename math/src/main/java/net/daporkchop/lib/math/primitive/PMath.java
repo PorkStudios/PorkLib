@@ -15,37 +15,40 @@
 
 package net.daporkchop.lib.math.primitive;
 
+import lombok.experimental.UtilityClass;
+
 /**
- * Math-related utilities
+ * A number of helper math functions.
  *
  * @author DaPorkchop_
  */
-public interface PMath {
-    static long clamp(long val, long min, long max) {
+@UtilityClass
+public class PMath {
+    public long clamp(long val, long min, long max) {
         return min(max(val, min), max);
     }
 
-    static int clamp(int val, int min, int max) {
+    public int clamp(int val, int min, int max) {
         return min(max(val, min), max);
     }
 
-    static short clamp(short val, short min, short max) {
+    public short clamp(short val, short min, short max) {
         return min(max(val, min), max);
     }
 
-    static byte clamp(byte val, byte min, byte max) {
+    public byte clamp(byte val, byte min, byte max) {
         return min(max(val, min), max);
     }
 
-    static float clamp(float val, float min, float max) {
+    public float clamp(float val, float min, float max) {
         return min(max(val, min), max);
     }
 
-    static double clamp(double val, double min, double max) {
+    public double clamp(double val, double min, double max) {
         return min(max(val, min), max);
     }
 
-    static byte divmod(byte[] number, int firstDigit, int base, int divisor) {
+    public byte divmod(byte[] number, int firstDigit, int base, int divisor) {
         // this is just long division which accounts for the base of the input digits
         int remainder = 0;
         for (int i = firstDigit; i < number.length; i++) {
@@ -57,111 +60,111 @@ public interface PMath {
         return (byte) remainder;
     }
 
-    static int floorI(double d) {
+    public int floorI(double d) {
         int i = (int) d;
         return d < i ? i - 1 : i;
     }
 
-    static long floorL(double d) {
+    public long floorL(double d) {
         long l = (long) d;
         return d < l ? l - 1L : l;
     }
 
-    static int floorI(float f) {
+    public int floorI(float f) {
         int i = (int) f;
         return f < i ? i - 1 : i;
     }
 
-    static long floorL(float f) {
+    public long floorL(float f) {
         long l = (long) f;
         return f < l ? l - 1L : l;
     }
 
-    static int ceilI(double d) {
+    public int ceilI(double d) {
         int i = (int) d;
         return d < i ? i : i + 1;
     }
 
-    static long ceilL(double d) {
+    public long ceilL(double d) {
         long l = (long) d;
         return d < l ? l : l + 1L;
     }
 
-    static int ceilI(float f) {
+    public int ceilI(float f) {
         int i = (int) f;
         return f < i ? i : i + 1;
     }
 
-    static long ceilL(float f) {
+    public long ceilL(float f) {
         long l = (long) f;
         return f < l ? l : l + 1L;
     }
 
-    static int roundI(double d) {
+    public int roundI(double d) {
         return (int) Math.round(d);
     }
 
-    static long roundL(double d) {
+    public long roundL(double d) {
         return Math.round(d);
     }
 
-    static int roundI(float f) {
+    public int roundI(float f) {
         return Math.round(f);
     }
 
-    static long roundL(float f) {
+    public long roundL(float f) {
         return Math.round(f);
     }
 
-    static long max(long a, long b) {
+    public long max(long a, long b) {
         return a > b ? a : b;
     }
 
-    static int max(int a, int b) {
+    public int max(int a, int b) {
         return a > b ? a : b;
     }
 
-    static short max(short a, short b) {
+    public short max(short a, short b) {
         return a > b ? a : b;
     }
 
-    static byte max(byte a, byte b) {
+    public byte max(byte a, byte b) {
         return a > b ? a : b;
     }
 
-    static float max(float a, float b) {
+    public float max(float a, float b) {
         return a > b ? a : b;
     }
 
-    static double max(double a, double b) {
+    public double max(double a, double b) {
         return a > b ? a : b;
     }
 
-    static long min(long a, long b) {
+    public long min(long a, long b) {
         return a > b ? b : a;
     }
 
-    static int min(int a, int b) {
+    public int min(int a, int b) {
         return a > b ? b : a;
     }
 
-    static short min(short a, short b) {
+    public short min(short a, short b) {
         return a > b ? b : a;
     }
 
-    static byte min(byte a, byte b) {
+    public byte min(byte a, byte b) {
         return a > b ? b : a;
     }
 
-    static float min(float a, float b) {
+    public float min(float a, float b) {
         return a > b ? b : a;
     }
 
-    static double min(double a, double b) {
+    public double min(double a, double b) {
         return a > b ? b : a;
     }
 
-    static long pow(long val, long exp) {
+    public long pow(long val, long exp) {
         if (val == 0 || exp == 0)   {
             return 0;
         } else {
@@ -173,7 +176,7 @@ public interface PMath {
         }
     }
 
-    static int pow(int val, int exp) {
+    public int pow(int val, int exp) {
         if (val == 0 || exp == 0)   {
             return 0;
         } else {
@@ -185,7 +188,7 @@ public interface PMath {
         }
     }
 
-    static short pow(short val, short exp) {
+    public short pow(short val, short exp) {
         if (val == 0 || exp == 0)   {
             return 0;
         } else {
@@ -197,7 +200,7 @@ public interface PMath {
         }
     }
 
-    static byte pow(byte val, byte exp) {
+    public byte pow(byte val, byte exp) {
         if (val == 0 || exp == 0)   {
             return 0;
         } else {
@@ -209,11 +212,11 @@ public interface PMath {
         }
     }
 
-    static float pow(float val, float exp) {
+    public float pow(float val, float exp) {
         return (float) powDouble(val, exp);
     }
 
-    static double powDouble(double val, double exp) {
+    public double powDouble(double val, double exp) {
         if (val == 0.0d || exp == 0.0d)   {
             return 0.0d;
         } else {
@@ -221,11 +224,11 @@ public interface PMath {
         }
     }
 
-    static int roundUp(int n, int to) {
+    public int roundUp(int n, int to) {
         return (n + to - 1) / to * to;
     }
 
-    static long roundUp(long n, long to) {
+    public long roundUp(long n, long to) {
         return (n + to - 1L) / to * to;
     }
 }

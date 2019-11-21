@@ -136,7 +136,7 @@ public abstract class DataIn extends InputStream {
     }
 
     /**
-     * Read a boolean
+     * Read a boolean.
      *
      * @return a boolean
      */
@@ -145,7 +145,7 @@ public abstract class DataIn extends InputStream {
     }
 
     /**
-     * Read a byte (8-bit) value
+     * Read a byte (8-bit) value.
      *
      * @return a byte
      */
@@ -154,7 +154,7 @@ public abstract class DataIn extends InputStream {
     }
 
     /**
-     * Read a byte (8-bit) value
+     * Read a byte (8-bit) value.
      *
      * @return a byte
      */
@@ -163,7 +163,7 @@ public abstract class DataIn extends InputStream {
     }
 
     /**
-     * Read a short (16-bit) value
+     * Read a big-endian short (16-bit) value.
      *
      * @return a short
      */
@@ -173,17 +173,35 @@ public abstract class DataIn extends InputStream {
     }
 
     /**
-     * Read a short (16-bit) value
+     * Read a big-endian short (16-bit) value.
      *
      * @return a short
      */
     public int readUShort() throws IOException {
-        return (((this.read() & 0xFF) << 8)
-                | (this.read() & 0xFF));
+        return this.readShort() & 0xFFFF;
     }
 
     /**
-     * Read a char (16-bit) value
+     * Read a little-endian short (16-bit) value.
+     *
+     * @return a short
+     */
+    public short readShortLE() throws IOException {
+        return (short) ((this.read() & 0xFF)
+                | ((this.read() & 0xFF) << 8));
+    }
+
+    /**
+     * Read a little-endian short (16-bit) value.
+     *
+     * @return a short
+     */
+    public int readUShortLE() throws IOException {
+        return this.readShortLE() & 0xFFFF;
+    }
+
+    /**
+     * Read a big-endian char (16-bit) value.
      *
      * @return a char
      */
@@ -193,31 +211,7 @@ public abstract class DataIn extends InputStream {
     }
 
     /**
-     * Reads a medium (24-bit) value
-     *
-     * @return a medium
-     */
-    public int readMedium() throws IOException {
-        int value = this.readUMedium();
-        if ((value & 0x800000) != 0) {
-            value |= 0xFF000000;
-        }
-        return value;
-    }
-
-    /**
-     * Reads a medium (24-bit) value
-     *
-     * @return a medium
-     */
-    public int readUMedium() throws IOException {
-        return ((this.read() & 0xFF) << 16)
-                | ((this.read() & 0xFF) << 8)
-                | (this.read() & 0xFF);
-    }
-
-    /**
-     * Read an int (32-bit) value
+     * Read a big-endian int (32-bit) value.
      *
      * @return an int
      */
@@ -229,19 +223,37 @@ public abstract class DataIn extends InputStream {
     }
 
     /**
-     * Read an int (32-bit) value
+     * Read a big-endian int (32-bit) value.
      *
      * @return an int
      */
     public long readUInt() throws IOException {
-        return (((long) this.read() & 0xFFL) << 24L)
-                | (((long) this.read() & 0xFFL) << 16L)
-                | (((long) this.read() & 0xFFL) << 8L)
-                | ((long) this.read() & 0xFFL);
+        return this.readInt() & 0xFFFFFFFFL;
     }
 
     /**
-     * Read a long (64-bit) value
+     * Read a little-endian int (32-bit) value.
+     *
+     * @return an int
+     */
+    public int readIntLE() throws IOException {
+        return (this.read() & 0xFF)
+                | ((this.read() & 0xFF) << 8)
+                | ((this.read() & 0xFF) << 16)
+                | ((this.read() & 0xFF) << 24);
+    }
+
+    /**
+     * Read a little-endian int (32-bit) value.
+     *
+     * @return an int
+     */
+    public long readUIntLE() throws IOException {
+        return this.readIntLE() & 0xFFFFFFFFL;
+    }
+
+    /**
+     * Read a big-endian long (64-bit) value.
      *
      * @return a long
      */
@@ -257,7 +269,23 @@ public abstract class DataIn extends InputStream {
     }
 
     /**
-     * Read a float (32-bit floating point) value
+     * Read a little-endian long (64-bit) value.
+     *
+     * @return a long
+     */
+    public long readLongLE() throws IOException {
+        return ((long) this.read() & 0xFF)
+                | (((long) this.read() & 0xFF) << 8L)
+                | (((long) this.read() & 0xFF) << 16L)
+                | (((long) this.read() & 0xFF) << 24L)
+                | (((long) this.read() & 0xFF) << 32L)
+                | (((long) this.read() & 0xFF) << 40L)
+                | (((long) this.read() & 0xFF) << 48L)
+                | (((long) this.read() & 0xFF) << 56L);
+    }
+
+    /**
+     * Read a big-endian float (32-bit floating point) value.
      *
      * @return a float
      */
@@ -266,7 +294,16 @@ public abstract class DataIn extends InputStream {
     }
 
     /**
-     * Read a double (64-bit floating point) value
+     * Read a little-endian float (32-bit floating point) value.
+     *
+     * @return a float
+     */
+    public float readFloatLE() throws IOException {
+        return Float.intBitsToFloat(this.readIntLE());
+    }
+
+    /**
+     * Read a big-endian double (64-bit floating point) value.
      *
      * @return a double
      */
@@ -275,7 +312,16 @@ public abstract class DataIn extends InputStream {
     }
 
     /**
-     * Read a UTF-8 encoded string
+     * Read a little-endian double (64-bit floating point) value.
+     *
+     * @return a double
+     */
+    public double readDoubleLE() throws IOException {
+        return Double.longBitsToDouble(this.readLongLE());
+    }
+
+    /**
+     * Read a UTF-8 encoded string.
      *
      * @return a string
      */
@@ -284,7 +330,7 @@ public abstract class DataIn extends InputStream {
     }
 
     /**
-     * Reads a plain byte array with a length prefix encoded as a varInt
+     * Reads a plain byte array with a length prefix encoded as a varInt.
      *
      * @return a byte array
      */
@@ -295,7 +341,7 @@ public abstract class DataIn extends InputStream {
     }
 
     /**
-     * Reads an enum value
+     * Reads an enum value.
      *
      * @param f   a function to calculate the enum value from the name (i.e. MyEnum::valueOf)
      * @param <E> the enum type
@@ -370,7 +416,7 @@ public abstract class DataIn extends InputStream {
     }
 
     /**
-     * Attempts to fill a given region of a byte array with data
+     * Attempts to fill a given region of a byte array with data.
      *
      * @param b   the byte array to read into
      * @param off the offset in the array to write data to

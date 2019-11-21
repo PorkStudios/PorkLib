@@ -21,6 +21,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.math.primitive.PMath;
 
 import java.io.IOException;
 
@@ -65,10 +66,7 @@ public class NettyByteBufIn extends DataIn {
 
     @Override
     public long skip(long n) throws IOException {
-        if (n > Integer.MAX_VALUE) {
-            n = Integer.MAX_VALUE;
-        }
-        n = Math.min(this.buf.readableBytes(), n);
+        n = PMath.clamp(n, 0L, this.buf.readableBytes());
         this.buf.skipBytes((int) n);
         return n;
     }
@@ -114,18 +112,18 @@ public class NettyByteBufIn extends DataIn {
     }
 
     @Override
+    public short readShortLE() throws IOException {
+        return this.buf.readShortLE();
+    }
+
+    @Override
+    public int readUShortLE() throws IOException {
+        return this.buf.readUnsignedShortLE();
+    }
+
+    @Override
     public char readChar() throws IOException {
         return this.buf.readChar();
-    }
-
-    @Override
-    public int readMedium() throws IOException {
-        return this.buf.readMedium();
-    }
-
-    @Override
-    public int readUMedium() throws IOException {
-        return this.buf.readUnsignedMedium();
     }
 
     @Override
@@ -139,8 +137,23 @@ public class NettyByteBufIn extends DataIn {
     }
 
     @Override
+    public int readIntLE() throws IOException {
+        return this.buf.readIntLE();
+    }
+
+    @Override
+    public long readUIntLE() throws IOException {
+        return this.buf.readUnsignedIntLE();
+    }
+
+    @Override
     public long readLong() throws IOException {
         return this.buf.readLong();
+    }
+
+    @Override
+    public long readLongLE() throws IOException {
+        return this.buf.readLongLE();
     }
 
     @Override
@@ -149,8 +162,18 @@ public class NettyByteBufIn extends DataIn {
     }
 
     @Override
+    public float readFloatLE() throws IOException {
+        return this.buf.readFloatLE();
+    }
+
+    @Override
     public double readDouble() throws IOException {
         return this.buf.readDouble();
+    }
+
+    @Override
+    public double readDoubleLE() throws IOException {
+        return this.buf.readDoubleLE();
     }
 
     @Override

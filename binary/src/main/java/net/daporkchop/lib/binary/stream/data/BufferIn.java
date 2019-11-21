@@ -17,17 +17,19 @@ package net.daporkchop.lib.binary.stream.data;
 
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.stream.DataIn;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 /**
  * An implementation of {@link DataIn} that can read from a {@link ByteBuffer}
  *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class BufferIn extends DataIn {
     @NonNull
     private final ByteBuffer buffer;
@@ -95,32 +97,57 @@ public class BufferIn extends DataIn {
 
     @Override
     public short readShort() throws IOException {
-        return this.buffer.getShort();
+        return this.buffer.order(ByteOrder.BIG_ENDIAN).getShort();
+    }
+
+    @Override
+    public short readShortLE() throws IOException {
+        return this.buffer.order(ByteOrder.LITTLE_ENDIAN).getShort();
     }
 
     @Override
     public char readChar() throws IOException {
-        return this.buffer.getChar();
+        return this.buffer.order(ByteOrder.BIG_ENDIAN).getChar();
     }
 
     @Override
     public int readInt() throws IOException {
-        return this.buffer.getInt();
+        return this.buffer.order(ByteOrder.BIG_ENDIAN).getInt();
+    }
+
+    @Override
+    public int readIntLE() throws IOException {
+        return this.buffer.order(ByteOrder.LITTLE_ENDIAN).getInt();
     }
 
     @Override
     public long readLong() throws IOException {
-        return this.buffer.getLong();
+        return this.buffer.order(ByteOrder.BIG_ENDIAN).getLong();
+    }
+
+    @Override
+    public long readLongLE() throws IOException {
+        return this.buffer.order(ByteOrder.LITTLE_ENDIAN).getLong();
     }
 
     @Override
     public float readFloat() throws IOException {
-        return this.buffer.getFloat();
+        return this.buffer.order(ByteOrder.BIG_ENDIAN).getFloat();
+    }
+
+    @Override
+    public float readFloatLE() throws IOException {
+        return this.buffer.order(ByteOrder.LITTLE_ENDIAN).getFloat();
     }
 
     @Override
     public double readDouble() throws IOException {
-        return this.buffer.getDouble();
+        return this.buffer.order(ByteOrder.BIG_ENDIAN).getDouble();
+    }
+
+    @Override
+    public double readDoubleLE() throws IOException {
+        return this.buffer.order(ByteOrder.LITTLE_ENDIAN).getDouble();
     }
 
     @Override

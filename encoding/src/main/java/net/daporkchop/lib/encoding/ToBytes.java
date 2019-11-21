@@ -39,7 +39,7 @@ public class ToBytes {
         } else {
             int length = in.length;
             byte[] b = new byte[length << 1];
-            if (endianess == null || endianess == Endianess.NATIVE) {
+            if (endianess == null || endianess.isNative()) {
                 PUnsafe.copyMemory(in, PUnsafe.ARRAY_SHORT_BASE_OFFSET, b, PUnsafe.ARRAY_BYTE_BASE_OFFSET, length << 1);
             } else {
                 for (int j = 0; j < length; j++) {
@@ -60,7 +60,7 @@ public class ToBytes {
         } else {
             int length = in.length;
             byte[] b = new byte[length << 2];
-            if (endianess == null || endianess == Endianess.NATIVE) {
+            if (endianess == null || endianess.isNative()) {
                 PUnsafe.copyMemory(in, PUnsafe.ARRAY_INT_BASE_OFFSET, b, PUnsafe.ARRAY_BYTE_BASE_OFFSET, length << 2);
             } else {
                 for (int j = 0; j < length; j++) {
@@ -71,7 +71,7 @@ public class ToBytes {
         }
     }
 
-    public byte[] toBytes(@NonNull long... in)  {
+    public byte[] toBytes(@NonNull long... in) {
         return toBytes(null, in);
     }
 
@@ -81,7 +81,7 @@ public class ToBytes {
         } else {
             int length = in.length;
             byte[] b = new byte[length << 3];
-            if (endianess == null || endianess == Endianess.NATIVE) {
+            if (endianess == null || endianess.isNative()) {
                 PUnsafe.copyMemory(in, PUnsafe.ARRAY_LONG_BASE_OFFSET, b, PUnsafe.ARRAY_BYTE_BASE_OFFSET, length << 3);
             } else {
                 for (int j = 0; j < length; j++) {
@@ -93,64 +93,101 @@ public class ToBytes {
     }
 
     public short[] toShorts(@NonNull byte[] in) {
+        return toShorts(null, in);
+    }
+
+    public short[] toShorts(Endianess endianess, @NonNull byte[] in) {
         if (in.length == 0) {
             return new short[0];
         } else {
-            short[] s = new short[in.length >>> 1];
-            for (int j = 0; j < s.length; j++) {
-                int k = j << 1;
-                s[j] = (short) ((in[k] & 0xFF) |
-                        ((in[k + 1] & 0xFF) << 8));
+            int length = in.length >>> 1;
+            short[] out = new short[length];
+            if (endianess == null || endianess.isNative()) {
+                PUnsafe.copyMemory(in, PUnsafe.ARRAY_BYTE_BASE_OFFSET, out, PUnsafe.ARRAY_SHORT_BASE_OFFSET, length << 1);
+            } else {
+                for (int j = 0; j < length; j++) {
+                    out[j] = Short.reverseBytes(PUnsafe.getShort(in, PUnsafe.ARRAY_BYTE_BASE_OFFSET + (j << 1)));
+                }
             }
-            return s;
+            return out;
         }
     }
 
     public static int[] toInts(@NonNull byte[] in) {
+        return toInts(null, in);
+    }
+
+    public static int[] toInts(Endianess endianess, @NonNull byte[] in) {
         if (in.length == 0) {
             return new int[0];
         } else {
-            int[] i = new int[in.length >>> 2];
-            for (int j = 0; j < i.length; j++) {
-                int k = j << 2;
-                i[j] = (in[k] & 0xFF) |
-                        ((in[k + 1] & 0xFF) << 8) |
-                        ((in[k + 2] & 0xFF) << 16) |
-                        ((in[k + 3] & 0xFF) << 24);
+            int length = in.length >>> 2;
+            int[] out = new int[length];
+            if (endianess == null || endianess.isNative()) {
+                PUnsafe.copyMemory(in, PUnsafe.ARRAY_BYTE_BASE_OFFSET, out, PUnsafe.ARRAY_INT_BASE_OFFSET, length << 2);
+            } else {
+                for (int j = 0; j < length; j++) {
+                    out[j] = Integer.reverseBytes(PUnsafe.getInt(in, PUnsafe.ARRAY_BYTE_BASE_OFFSET + (j << 2)));
+                }
             }
-            return i;
+            return out;
         }
     }
 
     public static long[] toLongs(@NonNull byte[] in) {
+        return toLongs(null, in);
+    }
+
+    public static long[] toLongs(Endianess endianess, @NonNull byte[] in) {
         if (in.length == 0) {
             return new long[0];
         } else {
-            long[] l = new long[in.length >>> 3];
-            for (int j = 0; j < l.length; j++) {
-                int k = j << 3;
-                l[j] = (in[k] & 0xFFL) |
-                        ((in[k + 1] & 0xFFL) << 8L) |
-                        ((in[k + 2] & 0xFFL) << 16L) |
-                        ((in[k + 3] & 0xFFL) << 24L) |
-                        ((in[k + 4] & 0xFFL) << 32L) |
-                        ((in[k + 5] & 0xFFL) << 40L) |
-                        ((in[k + 6] & 0xFFL) << 48L) |
-                        ((in[k + 7] & 0xFFL) << 56L);
+            int length = in.length >>> 3;
+            long[] out = new long[length];
+            if (endianess == null || endianess.isNative()) {
+                PUnsafe.copyMemory(in, PUnsafe.ARRAY_BYTE_BASE_OFFSET, out, PUnsafe.ARRAY_LONG_BASE_OFFSET, length << 3);
+            } else {
+                for (int j = 0; j < length; j++) {
+                    out[j] = Long.reverseBytes(PUnsafe.getLong(in, PUnsafe.ARRAY_BYTE_BASE_OFFSET + (j << 3)));
+                }
             }
-            return l;
+            return out;
         }
     }
 
     public byte[] toBytes(@NonNull UUID uuid) {
-        return toBytes(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits());
+        return toBytes(null, uuid);
     }
 
-    public UUID fromBytes(@NonNull byte[] bytes) {
-        if (bytes.length != 16) {
-            throw new IllegalArgumentException("Data must be 16 bytes long!");
+    public byte[] toBytes(Endianess endianess, @NonNull UUID uuid) {
+        byte[] out = new byte[16];
+        if (endianess == null || endianess.isNative()) {
+            PUnsafe.putLong(out, PUnsafe.ARRAY_BYTE_BASE_OFFSET, uuid.getMostSignificantBits());
+            PUnsafe.putLong(out, PUnsafe.ARRAY_BYTE_BASE_OFFSET + 8, uuid.getLeastSignificantBits());
+        } else {
+            PUnsafe.putLong(out, PUnsafe.ARRAY_BYTE_BASE_OFFSET, Long.reverseBytes(uuid.getMostSignificantBits()));
+            PUnsafe.putLong(out, PUnsafe.ARRAY_BYTE_BASE_OFFSET + 8, Long.reverseBytes(uuid.getLeastSignificantBits()));
         }
-        long[] longs = toLongs(bytes);
-        return new UUID(longs[0], longs[1]);
+        return out;
+    }
+
+    public UUID fromBytes(@NonNull byte[] in) {
+        return fromBytes(null, in);
+    }
+
+    public UUID fromBytes(Endianess endianess, @NonNull byte[] in) {
+        if (in.length != 16) {
+            throw new IllegalArgumentException(String.valueOf(in.length));
+        } else if (endianess == null || endianess.isNative()) {
+            return new UUID(
+                    PUnsafe.getLong(in, PUnsafe.ARRAY_BYTE_BASE_OFFSET),
+                    PUnsafe.getLong(in, PUnsafe.ARRAY_BYTE_BASE_OFFSET + 8)
+            );
+        } else {
+            return new UUID(
+                    Long.reverseBytes(PUnsafe.getLong(in, PUnsafe.ARRAY_BYTE_BASE_OFFSET)),
+                    Long.reverseBytes(PUnsafe.getLong(in, PUnsafe.ARRAY_BYTE_BASE_OFFSET + 8))
+            );
+        }
     }
 }

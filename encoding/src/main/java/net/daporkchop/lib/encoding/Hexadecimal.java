@@ -16,6 +16,7 @@
 package net.daporkchop.lib.encoding;
 
 import lombok.NonNull;
+import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.encoding.util.FastCharIntMap;
 import net.daporkchop.lib.unsafe.PUnsafe;
@@ -27,9 +28,10 @@ import java.util.Arrays;
  *
  * @author DaPorkchop_
  */
+@UtilityClass
 public class Hexadecimal {
-    private static final char[] ALPHABET = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
-    private static final byte[] INDEX = new byte['f' + 1];
+    private final char[] ALPHABET = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+    private final byte[] INDEX = new byte['f' + 1];
 
     static {
         Arrays.fill(INDEX, (byte) -1);
@@ -38,7 +40,7 @@ public class Hexadecimal {
         }
     }
 
-    public static String encode(@NonNull byte[] data) {
+    public String encode(@NonNull byte[] data) {
         char[] newText = new char[data.length << 1];
         for (int i = 0; i < data.length; i++) {
             byte b = data[i];
@@ -49,7 +51,7 @@ public class Hexadecimal {
         return PorkUtil.wrap(newText);
     }
 
-    public static String encode(@NonNull byte[] data, int from, int length) {
+    public String encode(@NonNull byte[] data, int from, int length) {
         char[] newText = new char[length << 1];
         for (int i = 0; i < length; i++) {
             byte b = data[i + from];
@@ -60,7 +62,7 @@ public class Hexadecimal {
         return PorkUtil.wrap(newText);
     }
 
-    public static byte[] decode(@NonNull String input) {
+    public byte[] decode(@NonNull String input) {
         final char[] chars = PorkUtil.unwrap(input);
         final int length = chars.length;
         if ((length & 1) != 0)    {

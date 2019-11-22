@@ -19,20 +19,6 @@ buildscript {
     }
 }
 
-/*plugins {
-    id "java"
-    id "maven-publish"
-}*/
-
-dependencies {
-    /*for (Project prj : project.allprojects) {
-        if (!"PorkLib".equalsIgnoreCase(prj.name) && prj.parent.name.equalsIgnoreCase("PorkLib")) {
-            compile project(":" + prj.name)
-        }
-    }*/
-    //TODO
-}
-
 allprojects {
     apply plugin: "java"
     apply plugin: "maven-publish"
@@ -40,7 +26,7 @@ allprojects {
     ext {
         //general things
         javaVersion = "1.8"
-        porklibVersion = "0.4.0-SNAPSHOT"
+        porklibVersion = "0.4.0"
 
         //dependency things
         apacheCommonsCompressVersion = "1.16.1"
@@ -143,6 +129,14 @@ allprojects {
             showExceptions = true
             showStackTraces = true
             showCauses = true
+        }
+    }
+}
+
+dependencies {
+    for (Project prj : project.allprojects) {
+        if (!"PorkLib".equalsIgnoreCase(prj.name) && prj.parent.name.equalsIgnoreCase("PorkLib")) {
+            compile project(":" + prj.name)
         }
     }
 }

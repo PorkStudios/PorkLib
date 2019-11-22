@@ -19,7 +19,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.math.grid.Grid3d;
 
-import static net.daporkchop.lib.math.primitive.PMath.floorI;
+import static net.daporkchop.lib.math.primitive.PMath.*;
 
 /**
  * @author DaPorkchop_

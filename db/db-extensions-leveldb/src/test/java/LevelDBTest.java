@@ -16,7 +16,7 @@
 import db.DBMapTest;
 import db.DBSetTest;
 import db.TestConstants;
-import net.daporkchop.lib.binary.serialization.Serialization;
+import net.daporkchop.lib.binary.serialization.SerializationRegistry;
 import net.daporkchop.lib.binary.serialization.impl.ByteArraySerializer;
 import net.daporkchop.lib.binary.serialization.impl.StringSerializer;
 import net.daporkchop.lib.dbextensions.leveldb.builder.LevelDBMapBuilder;
@@ -46,7 +46,7 @@ public class LevelDBTest implements TestConstants {
                 })
                 .valueSerializer(ByteArraySerializer.INSTANCE)
                 .path(new File(ROOT_DIR, "map"))
-                .serialization(Serialization.DEFAULT_REGISTRY)
+                .registry(SerializationRegistry.DEFAULT)
                 .build()
         ).test();
     }

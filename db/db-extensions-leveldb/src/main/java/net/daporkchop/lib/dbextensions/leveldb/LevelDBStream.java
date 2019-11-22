@@ -27,14 +27,11 @@ import net.daporkchop.lib.common.function.io.IORunnable;
 import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.db.DBStream;
 import net.daporkchop.lib.db.util.exception.DBNotOpenException;
-import net.daporkchop.lib.db.util.exception.DBReadException;
 import net.daporkchop.lib.dbextensions.leveldb.util.LevelDBCollection;
 import net.daporkchop.lib.dbextensions.leveldb.util.LevelDBConfiguration;
 import net.daporkchop.lib.unsafe.PCleaner;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.DBIterator;
-import org.iq80.leveldb.ReadOptions;
-import org.iq80.leveldb.Snapshot;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -44,7 +41,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntFunction;
@@ -69,8 +65,8 @@ public class LevelDBStream<V> extends LevelDBCollection implements DBStream<V> {
     public LevelDBStream(@NonNull LevelDBConfiguration configuration, @NonNull DB sourceDb, @NonNull Serializer<V> sourceSerializer) {
         super(configuration);
 
-        if (configuration.getSerialization() == null) {
-            throw new IllegalArgumentException("serialization must be set!");
+        if (configuration.getRegistry() == null) {
+            throw new IllegalArgumentException("registry must be set!");
         }
 
         this.sourceDb = sourceDb;
@@ -138,7 +134,7 @@ public class LevelDBStream<V> extends LevelDBCollection implements DBStream<V> {
         this.run(entry -> {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             try (DataOut out = DataOut.wrap(baos)) {
-                this.configuration.getSerialization().write(mappingFunction.apply(this.read(entry.getValue())), out);
+                this.configuration.getRegistry().write(mappingFunction.apply(this.read(entry.getValue())), out);
             }
             this.delegate.put(entry.getKey(), baos.toByteArray());
         });
@@ -221,7 +217,7 @@ public class LevelDBStream<V> extends LevelDBCollection implements DBStream<V> {
         if (this.sourceDb != null) {
             return this.sourceSerializer.read(in);
         } else {
-            return this.configuration.getSerialization().read(in);
+            return this.configuration.getRegistry().read(in);
         }
     }
 }

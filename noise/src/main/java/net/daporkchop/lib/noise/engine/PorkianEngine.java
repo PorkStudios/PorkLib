@@ -19,7 +19,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
-import static net.daporkchop.lib.math.primitive.PMath.floorI;
+import static net.daporkchop.lib.math.primitive.PMath.*;
 
 /**
  * @author DaPorkchop_

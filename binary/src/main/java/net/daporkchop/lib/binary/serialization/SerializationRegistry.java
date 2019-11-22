@@ -43,18 +43,18 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
- * Maps {@link Serializer}s to ids
+ * Maps {@link Serializer}s to ids.
  *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-public class Serialization {
+public class SerializationRegistry {
     /**
      * A default global serialization registry.
      * <p>
      * Uses varInts for ids.
      */
-    public static final Serialization DEFAULT_REGISTRY = new Serialization(true)
+    public static final SerializationRegistry DEFAULT = new SerializationRegistry(true)
             .register(String.class, StringSerializer.INSTANCE)
             .register(byte[].class, ByteArraySerializer.INSTANCE)
             .register(UUID.class, UUIDSerializer.INSTANCE)
@@ -80,9 +80,9 @@ public class Serialization {
      *
      * @param clazz the serializable class to register
      * @param <T>   the type
-     * @return this {@link Serialization} instance
+     * @return this {@link SerializationRegistry} instance
      */
-    public <T extends Serializable> Serialization register(@NonNull Class<T> clazz) {
+    public <T extends Serializable> SerializationRegistry register(@NonNull Class<T> clazz) {
         this.mapAccessLock.writeLock().lock();
         try {
             return this.register(clazz, this.ids.nextClearBit(0));
@@ -97,9 +97,9 @@ public class Serialization {
      * @param clazz the serializable class to register
      * @param id    the id to register it with
      * @param <T>   the type
-     * @return this {@link Serialization} instance
+     * @return this {@link SerializationRegistry} instance
      */
-    public <T extends Serializable> Serialization register(@NonNull Class<T> clazz, int id) {
+    public <T extends Serializable> SerializationRegistry register(@NonNull Class<T> clazz, int id) {
         this.mapAccessLock.writeLock().lock();
         try {
             return this.register(clazz, BasicSerializer.getInstance(), id);
@@ -114,9 +114,9 @@ public class Serialization {
      * @param clazz      the class to register
      * @param serializer the serializer to use for reading and writing values
      * @param <T>        the type
-     * @return this {@link Serialization} instance
+     * @return this {@link SerializationRegistry} instance
      */
-    public <T> Serialization register(@NonNull Class<T> clazz, @NonNull Serializer<T> serializer) {
+    public <T> SerializationRegistry register(@NonNull Class<T> clazz, @NonNull Serializer<T> serializer) {
         this.mapAccessLock.writeLock().lock();
         try {
             return this.register(clazz, serializer, this.ids.nextClearBit(0));
@@ -132,9 +132,9 @@ public class Serialization {
      * @param serializer the serializer to use for reading and writing values
      * @param id         the id to register it with
      * @param <T>        the type
-     * @return this {@link Serialization} instance
+     * @return this {@link SerializationRegistry} instance
      */
-    public <T> Serialization register(@NonNull Class<T> clazz, @NonNull Serializer<T> serializer, int id) {
+    public <T> SerializationRegistry register(@NonNull Class<T> clazz, @NonNull Serializer<T> serializer, int id) {
         this.mapAccessLock.writeLock().lock();
         try {
             if (this.ids.get(id)) {

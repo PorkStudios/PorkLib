@@ -22,7 +22,7 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
 import net.daporkchop.lib.math.grid.Grid2d;
 
-import static net.daporkchop.lib.math.primitive.PMath.clamp;
+import static net.daporkchop.lib.math.primitive.PMath.*;
 
 /**
  * @author DaPorkchop_

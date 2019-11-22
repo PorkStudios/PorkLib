@@ -15,7 +15,7 @@
 
 package net.daporkchop.lib.noise.engine;
 
-import static net.daporkchop.lib.math.primitive.PMath.floorI;
+import static net.daporkchop.lib.math.primitive.PMath.*;
 
 /**
  * Implements the Perlin noise algorithm

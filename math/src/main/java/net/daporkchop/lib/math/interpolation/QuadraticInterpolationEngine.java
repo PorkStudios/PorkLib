@@ -20,7 +20,7 @@ import net.daporkchop.lib.math.grid.Grid1d;
 import net.daporkchop.lib.math.grid.Grid2d;
 import net.daporkchop.lib.math.grid.Grid3d;
 
-import static net.daporkchop.lib.math.primitive.PMath.floorI;
+import static net.daporkchop.lib.math.primitive.PMath.*;
 
 /**
  * never actually worked but i'm keeping this around since i spent so much time on it

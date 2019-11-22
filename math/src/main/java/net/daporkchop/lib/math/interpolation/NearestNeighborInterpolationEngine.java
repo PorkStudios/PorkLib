@@ -20,8 +20,8 @@ import net.daporkchop.lib.math.grid.Grid1d;
 import net.daporkchop.lib.math.grid.Grid2d;
 import net.daporkchop.lib.math.grid.Grid3d;
 
-import static net.daporkchop.lib.math.primitive.PMath.floorI;
-import static net.daporkchop.lib.math.primitive.PMath.roundI;
+import static net.daporkchop.lib.math.primitive.PMath.*;
+import static net.daporkchop.lib.math.primitive.PMath.*;
 
 /**
  * @author DaPorkchop_

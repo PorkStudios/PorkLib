@@ -16,7 +16,7 @@
 package net.daporkchop.lib.noise.engine;
 
 import static java.lang.StrictMath.sqrt;
-import static net.daporkchop.lib.math.primitive.PMath.floorI;
+import static net.daporkchop.lib.math.primitive.PMath.*;
 
 /**
  * An implementation of Ken Perlin's Simplex noise algorithm

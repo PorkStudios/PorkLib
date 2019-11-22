@@ -17,7 +17,7 @@ package net.daporkchop.lib.dbextensions.leveldb.builder;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.binary.serialization.Serialization;
+import net.daporkchop.lib.binary.serialization.SerializationRegistry;
 import net.daporkchop.lib.db.builder.DBBuilder;
 import net.daporkchop.lib.dbextensions.leveldb.util.LevelDBConfiguration;
 import org.iq80.leveldb.DBFactory;
@@ -50,9 +50,9 @@ public abstract class LevelDBBuilder<Impl extends LevelDBBuilder<Impl, T>, T> im
     protected DBFactory factory;
 
     /**
-     * The serialization registry to use. If {@code null}, streams will not be available.
+     * The registry registry to use. If {@code null}, streams will not be available.
      */
-    protected Serialization serialization;
+    protected SerializationRegistry registry;
 
     @SuppressWarnings("unchecked")
     public Impl options(Options options) {
@@ -67,8 +67,8 @@ public abstract class LevelDBBuilder<Impl extends LevelDBBuilder<Impl, T>, T> im
     }
 
     @SuppressWarnings("unchecked")
-    public Impl serialization(Serialization serialization) {
-        this.serialization = serialization;
+    public Impl registry(SerializationRegistry registry) {
+        this.registry = registry;
         return (Impl) this;
     }
 
@@ -77,7 +77,7 @@ public abstract class LevelDBBuilder<Impl extends LevelDBBuilder<Impl, T>, T> im
                 this.options == null ? LevelDBConfiguration.defaultOptions() : this.options,
                 this.factory == null ? Iq80DBFactory.factory : this.factory,
                 this.path,
-                this.serialization
+                this.registry
         );
     }
 }

@@ -189,10 +189,7 @@ public class Generator implements Logging {
             Generator generator = new Generator(
                     new File(".", String.format("src/main/resources/%s/java/", s)),
                     new File(".", String.format("../src/%s/java/", s)),
-                    "test".equalsIgnoreCase(s) ? Arrays.asList(
-                            "org.junit.*"
-                    ) : Arrays.asList(
-                    )
+                    "test".equalsIgnoreCase(s) ? Collections.singletonList("org.junit.*") : Collections.emptyList()
             );
             generator.generate();
         }
@@ -219,15 +216,11 @@ public class Generator implements Logging {
 
     public void generate() {
         if (false && this.outRoot.exists()) {
-            this.rmDir(this.outRoot);
+            PFiles.rmContentsParallel(this.outRoot);
             //TODO: only delete files that no longer need to be created
         }
-        if (this.outRoot.exists()) {
-            this.addAllExisting(this.outRoot);
-        }
-        if (!this.outRoot.exists() && !this.outRoot.mkdirs()) {
-            throw new IllegalStateException();
-        }
+
+            this.addAllExisting(PFiles.ensureDirectoryExists(this.outRoot));
 
         this.getImports();
 
@@ -253,7 +246,7 @@ public class Generator implements Logging {
             System.out.printf("Existing: %d, generated: %d\n", this.existing.size(), this.generated.size());
             AtomicLong deletedFiles = new AtomicLong(0L);
             AtomicLong deletedSize = new AtomicLong(0L);
-            this.existing.parallelStream().forEach(s -> {
+            this.existing.stream().forEach(s -> {
                 File file = new File(this.outRoot, s.replaceAll("\\.", "/").replaceAll("/java", ".java"));
                 deletedSize.addAndGet(file.length());
                 if (!file.delete()) {
@@ -281,12 +274,8 @@ public class Generator implements Logging {
             if (!"java".equals(file.getName())) {
                 out = new File(out, file.getName());
             }
-            File[] files = file.listFiles();
-            if (files == null) {
-                throw new NullPointerException();
-            }
             File realOut = out;
-            Arrays.stream(files).parallel().forEach(f -> this.generate(f, realOut));
+            Arrays.stream(file.listFiles()).forEach(f -> this.generate(f, realOut));
         } else if (file.getName().endsWith(".template")) {
             String name = file.getName();
             String packageName = this.getPackageName(file);
@@ -312,13 +301,7 @@ public class Generator implements Logging {
             String[] methods = new String[0];
             File methodsDir = new File(file.getParentFile(), String.format("%s_methods", name.replaceAll(".template", "")));
             if (methodsDir.exists()) {
-                if (!methodsDir.isDirectory()) {
-                    throw new IllegalStateException();
-                }
-                File[] files = methodsDir.listFiles();
-                if (files == null) {
-                    throw new NullPointerException();
-                }
+                File[] files = PFiles.ensureDirectoryExists(methodsDir).listFiles();
                 methods = new String[files.length];
                 for (int i = 0; i < files.length; i++) {
                     File f = files[i];
@@ -474,19 +457,6 @@ public class Generator implements Logging {
         }
     }
 
-    private void rmDir(@NonNull File file) {
-        if (file.isDirectory()) {
-            File[] files = file.listFiles();
-            if (files == null) {
-                throw new NullPointerException();
-            }
-            Arrays.stream(files).parallel().forEach(this::rmDir);
-        }
-        if (!file.delete()) {
-            throw new IllegalStateException();
-        }
-    }
-
     private String getPackageName(@NonNull File file) {
         List<String> list = new ArrayList<>();
         if (!file.isDirectory()) {
@@ -530,15 +500,8 @@ public class Generator implements Logging {
     }
 
     private void getImportsRecursive(@NonNull File file) {
-        if (!file.isDirectory()) {
-            throw new IllegalArgumentException();
-        }
-        File[] files = file.listFiles();
-        if (files == null) {
-            throw new NullPointerException();
-        }
         boolean flag = true;
-        for (File f : files) {
+        for (File f : PFiles.ensureDirectoryExists(file).listFiles()) {
             if (f.isDirectory()) {
                 if (!f.getName().endsWith("_methods")) {
                     this.getImportsRecursive(f);
@@ -551,14 +514,7 @@ public class Generator implements Logging {
     }
 
     private void addAllExisting(@NonNull File file) {
-        if (!file.isDirectory()) {
-            throw new IllegalArgumentException();
-        }
-        File[] files = file.listFiles();
-        if (files == null) {
-            throw new NullPointerException();
-        }
-        for (File f : files) {
+        for (File f : PFiles.ensureDirectoryExists(file).listFiles()) {
             if (f.isDirectory()) {
                 this.addAllExisting(f);
             } else {

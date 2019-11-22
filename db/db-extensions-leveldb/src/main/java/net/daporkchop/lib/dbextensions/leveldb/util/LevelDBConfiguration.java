@@ -19,7 +19,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.serialization.Serialization;
+import net.daporkchop.lib.binary.serialization.SerializationRegistry;
 import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.db.util.exception.DBOpenException;
 import net.daporkchop.lib.logging.Logger;
@@ -52,7 +52,7 @@ public class LevelDBConfiguration {
     protected final DBFactory factory;
     @NonNull
     protected final File path;
-    protected Serialization serialization = Serialization.DEFAULT_REGISTRY;
+    protected SerializationRegistry registry = SerializationRegistry.DEFAULT;
 
     public LevelDBConfiguration(@NonNull File path) {
         this(defaultOptions(), Iq80DBFactory.factory, path);

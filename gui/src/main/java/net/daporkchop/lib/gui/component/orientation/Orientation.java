@@ -20,7 +20,7 @@ import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 
-import static net.daporkchop.lib.math.primitive.PMath.floorI;
+import static net.daporkchop.lib.math.primitive.PMath.*;
 
 /**
  * TODO: come up with a better name for this class

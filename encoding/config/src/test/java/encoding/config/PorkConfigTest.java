@@ -66,6 +66,7 @@ public class PorkConfigTest {
     @RequiredArgsConstructor
     @ToString
     private static class Root   {
+        //capitalization error is intentional
         public static Object INSTANCe = null;
 
         @Config.Implementation(Sub11.class)

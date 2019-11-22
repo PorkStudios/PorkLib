@@ -22,8 +22,8 @@ import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
 import net.daporkchop.lib.graphics.bitmap.image.PImage;
 import net.daporkchop.lib.math.interpolation.InterpolationEngine;
 
-import static net.daporkchop.lib.math.primitive.PMath.clamp;
-import static net.daporkchop.lib.math.primitive.PMath.floorI;
+import static net.daporkchop.lib.math.primitive.PMath.*;
+import static net.daporkchop.lib.math.primitive.PMath.*;
 
 /**
  * @author DaPorkchop_

@@ -24,7 +24,7 @@ import net.daporkchop.lib.gui.component.orientation.advanced.Axis;
 import net.daporkchop.lib.gui.component.orientation.advanced.Calculator;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 
-import static net.daporkchop.lib.math.primitive.PMath.floorI;
+import static net.daporkchop.lib.math.primitive.PMath.*;
 
 /**
  * @author DaPorkchop_

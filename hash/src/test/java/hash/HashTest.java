@@ -13,7 +13,9 @@
  *
  */
 
-package hash;import net.daporkchop.lib.hash.util.Digest;
+package hash;
+
+import net.daporkchop.lib.hash.util.Digest;
 import org.junit.Test;
 
 import java.util.HashMap;

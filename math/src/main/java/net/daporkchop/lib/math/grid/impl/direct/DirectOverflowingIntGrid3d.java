@@ -15,7 +15,7 @@
 
 package net.daporkchop.lib.math.grid.impl.direct;
 
-import static net.daporkchop.lib.math.primitive.PMath.clamp;
+import static net.daporkchop.lib.math.primitive.PMath.*;
 
 /**
  * @author DaPorkchop_

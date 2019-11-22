@@ -68,6 +68,12 @@ public class BufferOut extends DataOut {
     }
 
     @Override
+    public DataOut writeCharLE(char c) throws IOException {
+        this.buffer.order(ByteOrder.LITTLE_ENDIAN).putChar(c);
+        return this;
+    }
+
+    @Override
     public DataOut writeInt(int i) throws IOException {
         this.buffer.order(ByteOrder.BIG_ENDIAN).putInt(i);
         return this;

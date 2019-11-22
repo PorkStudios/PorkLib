@@ -127,6 +127,11 @@ public class NettyByteBufIn extends DataIn {
     }
 
     @Override
+    public char readCharLE() throws IOException {
+        return Character.reverseBytes(this.buf.readChar());
+    }
+
+    @Override
     public int readInt() throws IOException {
         return this.buf.readInt();
     }

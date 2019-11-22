@@ -195,13 +195,24 @@ public abstract class DataOut extends OutputStream {
     }
 
     /**
-     * Writes a char (16-bit) value.
+     * Writes a big-endian char (16-bit) value.
      *
      * @param c the char to write
      */
     public DataOut writeChar(char c) throws IOException {
         this.write((c >>> 8) & 0xFF);
         this.write(c & 0xFF);
+        return this;
+    }
+
+    /**
+     * Writes a big-endian char (16-bit) value.
+     *
+     * @param c the char to write
+     */
+    public DataOut writeCharLE(char c) throws IOException {
+        this.write(c & 0xFF);
+        this.write((c >>> 8) & 0xFF);
         return this;
     }
 

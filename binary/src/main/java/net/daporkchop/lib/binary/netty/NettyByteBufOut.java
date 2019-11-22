@@ -38,62 +38,107 @@ public abstract class NettyByteBufOut extends DataOut {
 
     @Override
     public void write(int b) throws IOException {
-        this.ensureOpen();
-        this.buf.writeByte(b);
+        this.ensureOpen().writeByte(b);
     }
 
     @Override
     public void write(@NonNull byte[] b, int off, int len) throws IOException {
-        this.ensureOpen();
-        this.buf.writeBytes(b, off, len);
+        this.ensureOpen().writeBytes(b, off, len);
     }
 
     @Override
     public DataOut writeBoolean(boolean b) throws IOException {
-        this.ensureOpen();
-        this.buf.writeBoolean(b);
+        this.ensureOpen().writeBoolean(b);
         return this;
     }
 
     @Override
     public DataOut writeByte(byte b) throws IOException {
-        this.ensureOpen();
-        this.buf.writeByte(b & 0xFF);
+        this.ensureOpen().writeByte(b & 0xFF);
         return this;
     }
 
     @Override
     public DataOut writeShort(short s) throws IOException {
-        this.ensureOpen();
-        this.buf.writeShort(s & 0xFFFF);
+        this.ensureOpen().writeShort(s & 0xFFFF);
+        return this;
+    }
+
+    @Override
+    public DataOut writeUShort(int s) throws IOException {
+        this.ensureOpen().writeShort(s);
+        return this;
+    }
+
+    @Override
+    public DataOut writeShortLE(short s) throws IOException {
+        this.ensureOpen().writeShortLE(s & 0xFFFF);
+        return this;
+    }
+
+    @Override
+    public DataOut writeUShortLE(int s) throws IOException {
+        this.ensureOpen().writeShortLE(s);
+        return this;
+    }
+
+    @Override
+    public DataOut writeChar(char c) throws IOException {
+        this.ensureOpen().writeChar(c);
+        return this;
+    }
+
+    @Override
+    public DataOut writeCharLE(char c) throws IOException {
+        this.ensureOpen().writeChar(Character.reverseBytes(c));
         return this;
     }
 
     @Override
     public DataOut writeInt(int i) throws IOException {
-        this.ensureOpen();
-        this.buf.writeInt(i);
+        this.ensureOpen().writeInt(i);
+        return this;
+    }
+
+    @Override
+    public DataOut writeIntLE(int i) throws IOException {
+        this.ensureOpen().writeIntLE(i);
         return this;
     }
 
     @Override
     public DataOut writeLong(long l) throws IOException {
-        this.ensureOpen();
-        this.buf.writeLong(l);
+        this.ensureOpen().writeLong(l);
+        return this;
+    }
+
+    @Override
+    public DataOut writeLongLE(long l) throws IOException {
+        this.ensureOpen().writeLongLE(l);
         return this;
     }
 
     @Override
     public DataOut writeFloat(float f) throws IOException {
-        this.ensureOpen();
-        this.buf.writeFloat(f);
+        this.ensureOpen().writeFloat(f);
+        return this;
+    }
+
+    @Override
+    public DataOut writeFloatLE(float f) throws IOException {
+        this.ensureOpen().writeFloatLE(f);
         return this;
     }
 
     @Override
     public DataOut writeDouble(double d) throws IOException {
-        this.ensureOpen();
-        this.buf.writeDouble(d);
+        this.ensureOpen().writeDouble(d);
+        return this;
+    }
+
+    @Override
+    public DataOut writeDoubleLE(double d) throws IOException {
+        this.ensureOpen().writeDoubleLE(d);
         return this;
     }
 
@@ -118,8 +163,11 @@ public abstract class NettyByteBufOut extends DataOut {
      */
     protected abstract boolean handleClose(@NonNull ByteBuf buf) throws IOException;
 
-    protected final void ensureOpen() {
-        if (this.buf == null) {
+    protected final ByteBuf ensureOpen() {
+        ByteBuf buf = this.buf;
+        if (buf != null) {
+            return buf;
+        } else {
             throw new IllegalStateException("Already closed!");
         }
     }

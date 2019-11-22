@@ -211,6 +211,16 @@ public abstract class DataIn extends InputStream {
     }
 
     /**
+     * Read a little-endian char (16-bit) value.
+     *
+     * @return a char
+     */
+    public char readCharLE() throws IOException {
+        return (char) ((this.read() & 0xFF)
+                | ((this.read() & 0xFF) << 8));
+    }
+
+    /**
      * Read a big-endian int (32-bit) value.
      *
      * @return an int

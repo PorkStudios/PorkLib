@@ -111,6 +111,11 @@ public class BufferIn extends DataIn {
     }
 
     @Override
+    public char readCharLE() throws IOException {
+        return this.buffer.order(ByteOrder.LITTLE_ENDIAN).getChar();
+    }
+
+    @Override
     public int readInt() throws IOException {
         return this.buffer.order(ByteOrder.BIG_ENDIAN).getInt();
     }

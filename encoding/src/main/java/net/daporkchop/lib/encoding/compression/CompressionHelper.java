@@ -72,7 +72,7 @@ public class CompressionHelper<ParamType> {
         } else {
             stream = stream.sorted(Comparator.comparing(Map.Entry::getKey, Comparator.naturalOrder()));
         }
-        stream.forEachOrdered(e -> consumer.accept(e.getKey(), e.getValue()));
+        stream.forEach(e -> consumer.accept(e.getKey(), e.getValue()));
     }
 
     public static <ParamType> Builder<ParamType> builder(@NonNull String name) {

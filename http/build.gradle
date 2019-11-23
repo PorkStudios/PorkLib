@@ -14,9 +14,11 @@
  */
 
 dependencies {
-    compile project(":network:netty-common")
+    //TODO: netty backend isn't implemented yet
+    //compile project(":network:netty-common")
 
-    compile "io.netty:netty-handler:$nettyVersion"
+    //compile "io.netty:netty-handler:$nettyVersion"
+    compile "io.netty:netty-buffer:$nettyVersion"
 
     testCompile project(":encoding")
 

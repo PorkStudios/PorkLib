@@ -78,6 +78,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
@@ -118,7 +119,17 @@ public class RegionFile {
                 lastModified = path.lastModified();
             }
 
-            file = new RandomAccessFile(path, "rw");
+            try {
+                file = new RandomAccessFile(path, "rw");
+            } catch (IOException e)   {
+                try {
+                    //try to open in read-only mode
+                    file = new RandomAccessFile(path, "r");
+                } catch (IOException e1) {
+                    //if that fails too, throw the original exception
+                    throw e;
+                }
+            }
 
             if (file.length() < SECTOR_BYTES) {
                 /* we need to write the chunk offset table */

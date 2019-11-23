@@ -18,8 +18,8 @@ package net.daporkchop.lib.nbt.tag.notch;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.nbt.NBTInputStream;
+import net.daporkchop.lib.nbt.NBTOutputStream;
 import net.daporkchop.lib.nbt.tag.Tag;
 import net.daporkchop.lib.nbt.tag.TagRegistry;
 
@@ -46,14 +46,14 @@ public class ByteArrayTag extends Tag {
     }
 
     @Override
-    public void read(@NonNull DataIn in, @NonNull TagRegistry registry) throws IOException {
+    public void read(@NonNull NBTInputStream in, @NonNull TagRegistry registry) throws IOException {
         int length = in.readInt();
         this.value = new byte[length];
         in.readFully(this.value, 0, length);
     }
 
     @Override
-    public void write(@NonNull DataOut out, @NonNull TagRegistry registry) throws IOException {
+    public void write(@NonNull NBTOutputStream out, @NonNull TagRegistry registry) throws IOException {
         out.writeInt(this.value.length);
         out.write(this.value);
     }

@@ -22,8 +22,7 @@ import net.daporkchop.lib.minecraft.util.BlockDataAccess;
  *
  * @author DaPorkchop_
  */
-//TODO: rename to Section
-public interface Chunk extends BlockDataAccess {
+public interface Section extends BlockDataAccess {
     Column getColumn();
 
     int getY();

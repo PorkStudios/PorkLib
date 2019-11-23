@@ -19,7 +19,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import net.daporkchop.lib.minecraft.util.NibbleArray;
-import net.daporkchop.lib.minecraft.world.Chunk;
+import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.minecraft.world.Column;
 
 /**
@@ -32,7 +32,7 @@ import net.daporkchop.lib.minecraft.world.Column;
 @Getter
 @Setter
 @RequiredArgsConstructor
-public class ChunkImpl implements Chunk {
+public class SectionImpl implements Section {
     private final int y;
 
     private final Column column;

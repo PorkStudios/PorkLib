@@ -23,7 +23,7 @@ import net.daporkchop.lib.math.vector.i.Vec2i;
 import net.daporkchop.lib.minecraft.tileentity.TileEntity;
 import net.daporkchop.lib.minecraft.tileentity.TileEntityBase;
 import net.daporkchop.lib.minecraft.tileentity.TileEntitySign;
-import net.daporkchop.lib.minecraft.world.Chunk;
+import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.minecraft.world.Column;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.World;
@@ -48,7 +48,7 @@ public class InitFunctions {
     private BiFunction<Vec2i, World, Column> columnCreator = ColumnImpl::new;
 
     @NonNull
-    private IntObjObjBiFunction<Column, Chunk> chunkCreator = ChunkImpl::new;
+    private IntObjObjBiFunction<Column, Section> chunkCreator = SectionImpl::new;
 
     @NonNull
     private BiFunction<World, CompoundTag, TileEntity> tileEntityCreator = (world, tag) -> {

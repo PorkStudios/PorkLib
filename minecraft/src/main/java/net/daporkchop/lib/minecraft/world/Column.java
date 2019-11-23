@@ -33,9 +33,9 @@ public interface Column extends BlockDataAccess, IntVector2.AddressableXZ, Close
 
     World getWorld();
 
-    Chunk getChunk(int y);
+    Section getChunk(int y);
 
-    void setChunk(int y, Chunk chunk);
+    void setChunk(int y, Section section);
 
     boolean exists();
 
@@ -69,93 +69,93 @@ public interface Column extends BlockDataAccess, IntVector2.AddressableXZ, Close
 
     @Override
     default int getBlockId(int x, int y, int z) {
-        Chunk chunk = this.getChunk(y >> 4);
-        if (chunk == null) {
+        Section section = this.getChunk(y >> 4);
+        if (section == null) {
             if (y == 0) {
                 return 0;
             }
             return 0;
         } else {
-            return chunk.getBlockId(x, y & 0xF, z);
+            return section.getBlockId(x, y & 0xF, z);
         }
     }
 
     @Override
     default int getBlockMeta(int x, int y, int z) {
-        Chunk chunk = this.getChunk(y >> 4);
-        if (chunk == null) {
+        Section section = this.getChunk(y >> 4);
+        if (section == null) {
             return 0;
         } else {
-            return chunk.getBlockMeta(x, y & 0xF, z);
+            return section.getBlockMeta(x, y & 0xF, z);
         }
     }
 
     @Override
     default int getBlockLight(int x, int y, int z) {
-        Chunk chunk = this.getChunk(y >> 4);
-        if (chunk == null) {
+        Section section = this.getChunk(y >> 4);
+        if (section == null) {
             return 0;
         } else {
-            return chunk.getBlockLight(x, y & 0xF, z);
+            return section.getBlockLight(x, y & 0xF, z);
         }
     }
 
     @Override
     default int getSkyLight(int x, int y, int z) {
-        Chunk chunk = this.getChunk(y >> 4);
-        if (chunk == null) {
+        Section section = this.getChunk(y >> 4);
+        if (section == null) {
             return 15;
         } else {
-            return chunk.getSkyLight(x, y & 0xF, z);
+            return section.getSkyLight(x, y & 0xF, z);
         }
     }
 
     @Override
     default void setBlockId(int x, int y, int z, int id) {
-        Chunk chunk = this.getChunk(y >> 4);
-        if (chunk == null) {
+        Section section = this.getChunk(y >> 4);
+        if (section == null) {
             if (id == 0) {
-                return; //don't create new chunk if setting default
+                return; //don't create new section if setting default
             }
-            this.setChunk(y >> 4, chunk = this.getWorld().getSave().getInitFunctions().getChunkCreator().apply(y >> 4, this));
+            this.setChunk(y >> 4, section = this.getWorld().getSave().getInitFunctions().getChunkCreator().apply(y >> 4, this));
         }
-        chunk.setBlockId(x, y & 0xF, z, id);
+        section.setBlockId(x, y & 0xF, z, id);
     }
 
     @Override
     default void setBlockMeta(int x, int y, int z, int meta) {
-        Chunk chunk = this.getChunk(y >> 4);
-        if (chunk == null) {
+        Section section = this.getChunk(y >> 4);
+        if (section == null) {
             if (meta == 0) {
-                return; //don't create new chunk if setting default
+                return; //don't create new section if setting default
             }
-            this.setChunk(y >> 4, chunk = this.getWorld().getSave().getInitFunctions().getChunkCreator().apply(y >> 4, this));
+            this.setChunk(y >> 4, section = this.getWorld().getSave().getInitFunctions().getChunkCreator().apply(y >> 4, this));
         }
-        chunk.setBlockMeta(x, y & 0xF, z, meta);
+        section.setBlockMeta(x, y & 0xF, z, meta);
     }
 
     @Override
     default void setBlockLight(int x, int y, int z, int level) {
-        Chunk chunk = this.getChunk(y >> 4);
-        if (chunk == null) {
+        Section section = this.getChunk(y >> 4);
+        if (section == null) {
             if (level == 0) {
-                return; //don't create new chunk if setting default
+                return; //don't create new section if setting default
             }
-            this.setChunk(y >> 4, chunk = this.getWorld().getSave().getInitFunctions().getChunkCreator().apply(y >> 4, this));
+            this.setChunk(y >> 4, section = this.getWorld().getSave().getInitFunctions().getChunkCreator().apply(y >> 4, this));
         }
-        chunk.setBlockLight(x, y & 0xF, z, level);
+        section.setBlockLight(x, y & 0xF, z, level);
     }
 
     @Override
     default void setSkyLight(int x, int y, int z, int level) {
-        Chunk chunk = this.getChunk(y >> 4);
-        if (chunk == null) {
+        Section section = this.getChunk(y >> 4);
+        if (section == null) {
             if (level == 15) {
-                return; //don't create new chunk if setting default
+                return; //don't create new section if setting default
             }
-            this.setChunk(y >> 4, chunk = this.getWorld().getSave().getInitFunctions().getChunkCreator().apply(y >> 4, this));
+            this.setChunk(y >> 4, section = this.getWorld().getSave().getInitFunctions().getChunkCreator().apply(y >> 4, this));
         }
-        chunk.setSkyLight(x, y & 0xF, z, level);
+        section.setSkyLight(x, y & 0xF, z, level);
     }
 
     default int getHighestBlock(int x, int z) {

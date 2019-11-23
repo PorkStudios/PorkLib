@@ -21,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import net.daporkchop.lib.math.vector.i.Vec2i;
 import net.daporkchop.lib.minecraft.tileentity.TileEntity;
-import net.daporkchop.lib.minecraft.world.Chunk;
+import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.minecraft.world.Column;
 import net.daporkchop.lib.minecraft.world.World;
 
@@ -44,20 +44,20 @@ public class ColumnImpl implements Column {
 
     @NonNull
     private final Collection<TileEntity> tileEntities = new ArrayDeque<>();
-    private final Chunk[] chunks = new Chunk[16];
+    private final Section[]              sections     = new Section[16];
     private volatile boolean dirty;
     private volatile boolean loaded;
     @Setter
     private byte[] heightMap;
 
     @Override
-    public Chunk getChunk(int y) {
-        return this.chunks[y];
+    public Section getChunk(int y) {
+        return this.sections[y];
     }
 
     @Override
-    public void setChunk(int y, Chunk chunk) {
-        this.chunks[y] = chunk;
+    public void setChunk(int y, Section section) {
+        this.sections[y] = section;
     }
 
     @Override
@@ -101,7 +101,7 @@ public class ColumnImpl implements Column {
             //this.world.getLoadedColumns().remove(this.pos);
             this.world.getLoadedTileEntities().values().removeAll(this.tileEntities);
             for (int y = 15; y >= 0; y--) {
-                this.chunks[y] = null;
+                this.sections[y] = null;
             }
             this.heightMap = null;
             //TODO

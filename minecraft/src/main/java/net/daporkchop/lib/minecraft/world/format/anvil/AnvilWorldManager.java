@@ -24,11 +24,11 @@ import lombok.NonNull;
 import lombok.Setter;
 import net.daporkchop.lib.math.vector.i.Vec2i;
 import net.daporkchop.lib.minecraft.util.NibbleArray;
-import net.daporkchop.lib.minecraft.world.Chunk;
+import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.minecraft.world.Column;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.format.WorldManager;
-import net.daporkchop.lib.minecraft.world.impl.ChunkImpl;
+import net.daporkchop.lib.minecraft.world.impl.SectionImpl;
 import net.daporkchop.lib.minecraft.world.impl.ColumnImpl;
 import net.daporkchop.lib.nbt.NBTInputStream;
 import net.daporkchop.lib.nbt.tag.notch.ByteArrayTag;
@@ -49,7 +49,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Getter
 public class AnvilWorldManager implements WorldManager {
-    private static final ThreadLocal<SoftReference<ChunkImpl>> chunkImplCache = ThreadLocal.withInitial(() -> new SoftReference<>(new ChunkImpl(-1, null)));
+    private static final ThreadLocal<SoftReference<SectionImpl>> chunkImplCache = ThreadLocal.withInitial(() -> new SoftReference<>(new SectionImpl(-1, null)));
 
     private final AnvilSaveFormat format;
     private final File root;
@@ -145,7 +145,7 @@ public class AnvilWorldManager implements WorldManager {
                 ListTag<CompoundTag> sectionsTag = rootTag.get("Sections");
                 //TODO: biomes, terrain populated flag etc.
                 for (int y = 15; y >= 0; y--) {
-                    Chunk chunk = column.getChunk(y);
+                    Section section = column.getChunk(y);
                     CompoundTag tag = null;
                     for (CompoundTag t : sectionsTag.getValue()) {
                         if (t.<ByteTag>get("Y").getValue() == y) {
@@ -156,25 +156,25 @@ public class AnvilWorldManager implements WorldManager {
                     if (tag == null) {
                         column.setChunk(y, null);
                     } else {
-                        if (chunk == null) {
-                            column.setChunk(y, chunk = this.format.getSave().getInitFunctions().getChunkCreator().apply(y, column));
+                        if (section == null) {
+                            column.setChunk(y, section = this.format.getSave().getInitFunctions().getChunkCreator().apply(y, column));
                         }
-                        if (chunk instanceof ChunkImpl) {
-                            this.loadChunkImpl((ChunkImpl) chunk, tag);
+                        if (section instanceof SectionImpl) {
+                            this.loadChunkImpl((SectionImpl) section, tag);
                         } else {
-                            SoftReference<ChunkImpl> ref = chunkImplCache.get();
-                            ChunkImpl impl = ref.get();
+                            SoftReference<SectionImpl> ref = chunkImplCache.get();
+                            SectionImpl impl = ref.get();
                             if (impl == null) {
-                                chunkImplCache.set(new SoftReference<>(impl = new ChunkImpl(-1, null)));
+                                chunkImplCache.set(new SoftReference<>(impl = new SectionImpl(-1, null)));
                             }
                             this.loadChunkImpl(impl, tag);
                             for (int x = 15; x >= 0; x--) {
                                 for (int yy = 15; yy >= 0; yy--) {
                                     for (int z = 15; z >= 0; z--) {
-                                        chunk.setBlockId(x, yy, z, impl.getBlockId(x, yy, z));
-                                        chunk.setBlockMeta(x, yy, z, impl.getBlockMeta(x, yy, z));
-                                        chunk.setBlockLight(x, yy, z, impl.getBlockLight(x, yy, z));
-                                        chunk.setSkyLight(x, yy, z, impl.getSkyLight(x, yy, z));
+                                        section.setBlockId(x, yy, z, impl.getBlockId(x, yy, z));
+                                        section.setBlockMeta(x, yy, z, impl.getBlockMeta(x, yy, z));
+                                        section.setBlockLight(x, yy, z, impl.getBlockLight(x, yy, z));
+                                        section.setSkyLight(x, yy, z, impl.getSkyLight(x, yy, z));
                                     }
                                 }
                             }
@@ -204,7 +204,7 @@ public class AnvilWorldManager implements WorldManager {
         }
     }
 
-    private void loadChunkImpl(@NonNull ChunkImpl impl, @NonNull CompoundTag tag) {
+    private void loadChunkImpl(@NonNull SectionImpl impl, @NonNull CompoundTag tag) {
         impl.setBlockIds(tag.<ByteArrayTag>get("Blocks").getValue());
         impl.setMeta(new NibbleArray(tag.<ByteArrayTag>get("Data").getValue()));
         impl.setBlockLight(new NibbleArray(tag.<ByteArrayTag>get("BlockLight").getValue()));

@@ -13,60 +13,57 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.world;
-
-import net.daporkchop.lib.minecraft.util.BlockDataAccess;
+package net.daporkchop.lib.minecraft.util;
 
 /**
- * A 16³ section of blocks.
+ * A type which allows accessing block information at specific coordinates.
  *
  * @author DaPorkchop_
  */
-//TODO: rename to Section
-public interface Chunk extends BlockDataAccess {
-    Column getColumn();
+public interface BlockDataAccess {
+    /**
+     * @return the minimum X coordinate (inclusive)
+     */
+    int minX();
 
-    int getY();
+    /**
+     * @return the minimum Y coordinate (inclusive)
+     */
+    int minY();
 
-    default void markDirty() {
-        this.getColumn().markDirty();
-    }
+    /**
+     * @return the minimum Z coordinate (inclusive)
+     */
+    int minZ();
 
-    default boolean isDirty() {
-        return this.getColumn().isDirty();
-    }
+    /**
+     * @return the maximum X coordinate (exclusive)
+     */
+    int maxX();
 
-    default void save() {
-        this.getColumn().save();
-    }
+    /**
+     * @return the maximum Y coordinate (exclusive)
+     */
+    int maxY();
 
-    @Override
-    default int minX() {
-        return 0;
-    }
+    /**
+     * @return the maximum Z coordinate (exclusive)
+     */
+    int maxZ();
 
-    @Override
-    default int minY() {
-        return 0;
-    }
+    int getBlockId(int x, int y, int z);
 
-    @Override
-    default int minZ() {
-        return 0;
-    }
+    int getBlockMeta(int x, int y, int z);
 
-    @Override
-    default int maxX() {
-        return 16;
-    }
+    int getBlockLight(int x, int y, int z);
 
-    @Override
-    default int maxY() {
-        return 16;
-    }
+    int getSkyLight(int x, int y, int z);
 
-    @Override
-    default int maxZ() {
-        return 16;
-    }
+    void setBlockId(int x, int y, int z, int id);
+
+    void setBlockMeta(int x, int y, int z, int meta);
+
+    void setBlockLight(int x, int y, int z, int level);
+
+    void setSkyLight(int x, int y, int z, int level);
 }

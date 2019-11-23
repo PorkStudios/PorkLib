@@ -18,6 +18,7 @@ package net.daporkchop.lib.minecraft.world;
 import net.daporkchop.lib.math.vector.i.IntVector2;
 import net.daporkchop.lib.math.vector.i.Vec2i;
 import net.daporkchop.lib.minecraft.tileentity.TileEntity;
+import net.daporkchop.lib.minecraft.util.BlockDataAccess;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -26,7 +27,8 @@ import java.util.Collection;
 /**
  * @author DaPorkchop_
  */
-public interface Column extends Closeable, IntVector2.AddressableXZ {
+//TODO: rename to Chunk
+public interface Column extends BlockDataAccess, IntVector2.AddressableXZ, Closeable {
     Vec2i getPos();
 
     World getWorld();
@@ -65,6 +67,7 @@ public interface Column extends Closeable, IntVector2.AddressableXZ {
         }
     }
 
+    @Override
     default int getBlockId(int x, int y, int z) {
         Chunk chunk = this.getChunk(y >> 4);
         if (chunk == null) {
@@ -77,6 +80,7 @@ public interface Column extends Closeable, IntVector2.AddressableXZ {
         }
     }
 
+    @Override
     default int getBlockMeta(int x, int y, int z) {
         Chunk chunk = this.getChunk(y >> 4);
         if (chunk == null) {
@@ -86,6 +90,7 @@ public interface Column extends Closeable, IntVector2.AddressableXZ {
         }
     }
 
+    @Override
     default int getBlockLight(int x, int y, int z) {
         Chunk chunk = this.getChunk(y >> 4);
         if (chunk == null) {
@@ -95,6 +100,7 @@ public interface Column extends Closeable, IntVector2.AddressableXZ {
         }
     }
 
+    @Override
     default int getSkyLight(int x, int y, int z) {
         Chunk chunk = this.getChunk(y >> 4);
         if (chunk == null) {
@@ -104,6 +110,7 @@ public interface Column extends Closeable, IntVector2.AddressableXZ {
         }
     }
 
+    @Override
     default void setBlockId(int x, int y, int z, int id) {
         Chunk chunk = this.getChunk(y >> 4);
         if (chunk == null) {
@@ -115,6 +122,7 @@ public interface Column extends Closeable, IntVector2.AddressableXZ {
         chunk.setBlockId(x, y & 0xF, z, id);
     }
 
+    @Override
     default void setBlockMeta(int x, int y, int z, int meta) {
         Chunk chunk = this.getChunk(y >> 4);
         if (chunk == null) {
@@ -126,6 +134,7 @@ public interface Column extends Closeable, IntVector2.AddressableXZ {
         chunk.setBlockMeta(x, y & 0xF, z, meta);
     }
 
+    @Override
     default void setBlockLight(int x, int y, int z, int level) {
         Chunk chunk = this.getChunk(y >> 4);
         if (chunk == null) {
@@ -137,6 +146,7 @@ public interface Column extends Closeable, IntVector2.AddressableXZ {
         chunk.setBlockLight(x, y & 0xF, z, level);
     }
 
+    @Override
     default void setSkyLight(int x, int y, int z, int level) {
         Chunk chunk = this.getChunk(y >> 4);
         if (chunk == null) {

@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.world.impl;
+package net.daporkchop.lib.minecraft.world.impl.vanilla;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -39,7 +39,7 @@ import java.util.concurrent.TimeUnit;
  * @author DaPorkchop_
  */
 @Getter
-public class WorldImpl implements World {
+public class VanillaWorldImpl implements World {
     private final int id;
     private final Map<Vec3i, TileEntity> loadedTileEntities = new ConcurrentHashMap<>();
     @NonNull
@@ -51,26 +51,20 @@ public class WorldImpl implements World {
             .maximumSize(34 * 34 * Runtime.getRuntime().availableProcessors())
             .expireAfterAccess(30L, TimeUnit.SECONDS) //TODO: configurable
             .removalListener((RemovalListener<Vec2i, Chunk>) n -> {
-                if (n.getCause() != RemovalCause.REPLACED) {
+                if (n.getCause() == RemovalCause.EXPIRED || n.getCause() == RemovalCause.SIZE) {
                     n.getValue().unload();
                 }
             })
             .build(new CacheLoader<Vec2i, Chunk>() {
                 @Override
                 public Chunk load(Vec2i key) throws Exception {
-                    Chunk chunk = WorldImpl.this.save.getInitFunctions().getChunkFactory().create(key, WorldImpl.this);
-                    //WorldImpl.this.manager.loadColumn(chunk);
+                    Chunk chunk = VanillaWorldImpl.this.save.getInitFunctions().getChunkFactory().create(key, VanillaWorldImpl.this);
+                    //VanillaWorldImpl.this.manager.loadColumn(chunk);
                     return chunk;
                 }
             });
-    /*private final Map<Vec2i, Chunk> loadedColumns = new LinkedHashMap<Vec2i, Chunk>()  {
-        @Override
-        protected boolean removeEldestEntry(Map.Entry eldest) {
-            return this.size() > 256;
-        }
-    };*/
 
-    public WorldImpl(int id, @NonNull WorldManager manager, @NonNull MinecraftSave save) {
+    public VanillaWorldImpl(int id, @NonNull WorldManager manager, @NonNull MinecraftSave save) {
         this.id = id;
         this.manager = manager;
         this.save = save;
@@ -114,5 +108,35 @@ public class WorldImpl implements World {
         //this.loadedColumns.values().forEach(Chunk::unload);
         this.loadedTileEntities.clear();
         //TODO
+    }
+
+    @Override
+    public int minX() {
+        return -30_000_000;
+    }
+
+    @Override
+    public int minY() {
+        return 0;
+    }
+
+    @Override
+    public int minZ() {
+        return -30_000_000;
+    }
+
+    @Override
+    public int maxX() {
+        return 30_000_000;
+    }
+
+    @Override
+    public int maxY() {
+        return 256;
+    }
+
+    @Override
+    public int maxZ() {
+        return 30_000_000;
     }
 }

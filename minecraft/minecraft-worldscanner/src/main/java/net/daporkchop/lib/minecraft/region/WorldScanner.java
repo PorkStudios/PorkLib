@@ -22,6 +22,8 @@ import lombok.Setter;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.math.vector.i.Vec2i;
 import net.daporkchop.lib.math.vector.i.Vec3i;
+import net.daporkchop.lib.minecraft.region.util.ChunkProcessor;
+import net.daporkchop.lib.minecraft.region.util.NeighboringChunkProcessor;
 import net.daporkchop.lib.minecraft.tileentity.TileEntity;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
@@ -32,6 +34,7 @@ import net.daporkchop.lib.minecraft.world.format.anvil.AnvilWorldManager;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
@@ -43,24 +46,24 @@ public class WorldScanner {
     @Getter
     private final World world;
 
-    private final Collection<ColumnProcessor> processors = new ArrayList<>();
-    private final Collection<ColumnProcessorNeighboring> processorsNeighboring = new ArrayList<>();
+    private final Collection<ChunkProcessor>            processors            = new ArrayList<>();
+    private final Collection<NeighboringChunkProcessor> processorsNeighboring = new ArrayList<>();
 
     public WorldScanner addProcessor(@NonNull Consumer<Chunk> processor) {
         this.processors.add((current, estimatedTotal, column) -> processor.accept(column));
         return this;
     }
 
-    public WorldScanner addProcessor(@NonNull ColumnProcessor processor) {
-        if (processor instanceof ColumnProcessorNeighboring) {
-            this.addProcessor((ColumnProcessorNeighboring) processor);
+    public WorldScanner addProcessor(@NonNull ChunkProcessor processor) {
+        if (processor instanceof NeighboringChunkProcessor) {
+            this.addProcessor((NeighboringChunkProcessor) processor);
         } else {
             this.processors.add(processor);
         }
         return this;
     }
 
-    public WorldScanner addProcessor(@NonNull ColumnProcessorNeighboring processor) {
+    public WorldScanner addProcessor(@NonNull NeighboringChunkProcessor processor) {
         this.processorsNeighboring.add(processor);
         return this;
     }
@@ -84,12 +87,14 @@ public class WorldScanner {
             estimatedTotal.set(regions.size() * 32L * 32L);
             Stream<Vec2i> stream = parallel ? regions.parallelStream() : regions.stream();
             if (!this.processorsNeighboring.isEmpty()) {
-                ThreadLocal<Chunk[]> columnThreadLocal = ThreadLocal.withInitial(() -> new Chunk[34 * 34]);
                 ThreadLocal<BorderingWorld> worldThreadLocal = ThreadLocal.withInitial(() -> new BorderingWorld(this.world.getId(), this.world.getSave(), this.world.getManager()));
                 stream.forEach(pos -> {
                     int xx = pos.getX() << 5;
                     int zz = pos.getY() << 5;
-                    Chunk[] chunks = columnThreadLocal.get();
+                    BorderingWorld world = worldThreadLocal.get();
+                    world.setOffsetX(xx);
+                    world.setOffsetZ(zz);
+                    Chunk[] chunks = world.chunks;
                     for (int x = -1; x <= 32; x++) {
                         for (int z = -1; z <= 32; z++) {
                             Chunk col = chunks[(x + 1) * 34 + z + 1] = this.world.getColumn(xx + x, zz + z);
@@ -98,10 +103,6 @@ public class WorldScanner {
                             }
                         }
                     }
-                    BorderingWorld world = worldThreadLocal.get();
-                    world.setChunks(chunks);
-                    world.setOffsetX(xx);
-                    world.setOffsetZ(zz);
                     for (int x = 31; x >= 0; x--) {
                         for (int z = 31; z >= 0; z--) {
                             Chunk chunk = chunks[(x + 1) * 34 + z + 1];
@@ -109,11 +110,11 @@ public class WorldScanner {
                                 continue;
                             }
                             long current = curr.getAndIncrement();
-                            for (ColumnProcessor processor : this.processors) {
+                            for (ChunkProcessor processor : this.processors) {
                                 processor.handle(current, estimatedTotal.get(), chunk);
                             }
-                            for (ColumnProcessorNeighboring processor : this.processorsNeighboring) {
-                                processor.handle(current, estimatedTotal.get(), world, (x + xx) << 4, (z + zz) << 4);
+                            for (NeighboringChunkProcessor processor : this.processorsNeighboring) {
+                                processor.handle(current, estimatedTotal.get(), chunk, world);
                             }
                         }
                     }
@@ -127,7 +128,7 @@ public class WorldScanner {
                             Chunk chunk = this.world.getColumn(xx + x, zz + z);
                             if (chunk.load(false)) {
                                 long current = curr.getAndIncrement();
-                                for (ColumnProcessor processor : this.processors) {
+                                for (ChunkProcessor processor : this.processors) {
                                     processor.handle(current, estimatedTotal.get(), chunk);
                                 }
                                 chunk.unload();
@@ -145,21 +146,6 @@ public class WorldScanner {
         return this;
     }
 
-    @FunctionalInterface
-    public interface ColumnProcessor {
-        void handle(long current, long estimatedTotal, @NonNull Chunk chunk);
-    }
-
-    @FunctionalInterface
-    public interface ColumnProcessorNeighboring extends ColumnProcessor {
-        @Override
-        default void handle(long current, long estimatedTotal, Chunk chunk) {
-            this.handle(current, estimatedTotal, chunk.getWorld(), chunk.getX() << 4, chunk.getZ() << 4);
-        }
-
-        void handle(long current, long estimatedTotal, @NonNull World world, int x, int z);
-    }
-
     @RequiredArgsConstructor
     @Getter
     @Setter
@@ -172,13 +158,13 @@ public class WorldScanner {
         @NonNull
         private final WorldManager manager;
 
-        private Chunk[] chunks;
+        private final Chunk[] chunks = new Chunk[34 * 34];
         private int     offsetX;
         private int     offsetZ;
 
         @Override
         public Map<Vec2i, Chunk> getLoadedColumns() {
-            return null;
+            return Collections.emptyMap();
         }
 
         @Override
@@ -193,7 +179,7 @@ public class WorldScanner {
 
         @Override
         public Map<Vec3i, TileEntity> getLoadedTileEntities() {
-            return null;
+            return Collections.emptyMap();
         }
 
         @Override
@@ -202,6 +188,36 @@ public class WorldScanner {
 
         @Override
         public void close() throws IOException {
+        }
+
+        @Override
+        public int minX() {
+            return (this.offsetX - 1) << 4;
+        }
+
+        @Override
+        public int minY() {
+            return 0;
+        }
+
+        @Override
+        public int minZ() {
+            return (this.offsetZ - 1) << 4;
+        }
+
+        @Override
+        public int maxX() {
+            return (this.offsetX + 33) << 4;
+        }
+
+        @Override
+        public int maxY() {
+            return 256;
+        }
+
+        @Override
+        public int maxZ() {
+            return (this.offsetZ + 33) << 4;
         }
     }
 }

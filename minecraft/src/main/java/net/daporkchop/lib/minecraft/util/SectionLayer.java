@@ -53,17 +53,11 @@ public final class SectionLayer {
     }
 
     public int get(int x, int y, int z) {
-        int index = (y << 7) | (z << 3) | (x >>> 1);
-        return (x & 1) == 0 ? this.data[index] & 15 : this.data[index] >> 4 & 15;
+        return getNibble(this.data, x, y, z);
     }
 
     public void set(int x, int y, int z, int val) {
-        int index = (y << 7) | (z << 3) | (x >>> 1);
-        if ((x & 1) == 0) {
-            this.data[index] = (byte) (this.data[index] & 240 | val & 15);
-        } else {
-            this.data[index] = (byte) (this.data[index] & 15 | (val & 15) << 4);
-        }
+        setNibble(this.data, x, y, z, val);
     }
 
     public void fill(int val) {

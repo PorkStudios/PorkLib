@@ -99,25 +99,27 @@ public class ScannerTest {
                             System.out.printf("Scanning region (%d,%d)\n", col.getX() >> 5, col.getZ() >> 5);
                         }
                     })
-                    .addProcessor((current, estimatedTotal, world, x, z) -> {
+                    .addProcessor((current, estimatedTotal, chunk, access) -> {
+                        int x = chunk.getX() << 4;
+                        int z = chunk.getZ() << 4;
                         for (int xx = 15; xx >= 0; xx--) {
-                            for (int zz = (xx & 1) == 0 ? 15 : 14; zz >= 0; zz -= 2) {
+                            for (int zz = 15 - (xx & 1); zz >= 0; zz -= 2) {
                                 for (int y = 255; y >= 0; y--) {
-                                    int id = world.getBlockId(x + xx, y, z + zz);
+                                    int id = access.getBlockId(x + xx, y, z + zz);
                                     if (id == chestId) {
                                         if (false) {
                                             System.out.printf("Found chest at (%d,%d,%d)\n", x + xx, y, z + zz);
                                         }
-                                        if (world.getBlockId(x + xx + 1, y, z + zz) == chestId
-                                                || world.getBlockId(x + xx, y, z + zz + 1) == chestId) {
+                                        if (access.getBlockId(x + xx + 1, y, z + zz) == chestId
+                                                || access.getBlockId(x + xx, y, z + zz + 1) == chestId) {
                                             System.out.printf("Found double chest at (%d,%d,%d)\n", x + xx, y, z + zz);
                                         }
                                     } else if (id == trappedChestId) {
                                         if (false) {
                                             System.out.printf("Found trapped chest at (%d,%d,%d)\n", x + xx, y, z + zz);
                                         }
-                                        if (world.getBlockId(x + xx + 1, y, z + zz) == trappedChestId
-                                                || world.getBlockId(x + xx, y, z + zz + 1) == trappedChestId) {
+                                        if (access.getBlockId(x + xx + 1, y, z + zz) == trappedChestId
+                                                || access.getBlockId(x + xx, y, z + zz + 1) == trappedChestId) {
                                             System.out.printf("Found double trapped chest at (%d,%d,%d)\n", x + xx, y, z + zz);
                                         }
                                     }

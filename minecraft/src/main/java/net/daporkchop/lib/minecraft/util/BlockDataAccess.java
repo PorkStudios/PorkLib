@@ -66,4 +66,6 @@ public interface BlockDataAccess {
     void setBlockLight(int x, int y, int z, int level);
 
     void setSkyLight(int x, int y, int z, int level);
+
+    int getHighestBlock(int x, int z);
 }

@@ -13,69 +13,39 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.world;
+package net.daporkchop.lib.minecraft.region.util;
 
+import lombok.NonNull;
 import net.daporkchop.lib.minecraft.util.BlockDataAccess;
+import net.daporkchop.lib.minecraft.world.BlockArea;
+import net.daporkchop.lib.minecraft.world.Chunk;
 
 /**
- * A 16³ section of blocks.
+ * A processor that handles a chunk, along with all neighboring chunks at a time.
  *
  * @author DaPorkchop_
  */
-public interface Section extends BlockDataAccess {
-    Chunk getChunk();
+@FunctionalInterface
+public interface NeighboringChunkProcessor {
+    /**
+     * Handles a chunk.
+     *
+     * @param current        the number of chunks that have been processed until now
+     * @param estimatedTotal the estimated total number of chunks
+     * @param chunk          the chunk to be processed
+     * @param access         an instance of {@link BlockDataAccess} which allows accessing the data of the chunk. It is guaranteed to contain at
+     *                       least the block
+     */
+    void handle(long current, long estimatedTotal, @NonNull Chunk chunk, @NonNull BlockDataAccess access);
 
-    int getY();
-
-    default void markDirty() {
-        this.getChunk().markDirty();
-    }
-
-    default boolean isDirty() {
-        return this.getChunk().isDirty();
-    }
-
-    default void save() {
-        this.getChunk().save();
-    }
-
-    @Override
-    default int minX() {
-        return 0;
-    }
-
-    @Override
-    default int minY() {
-        return 0;
-    }
-
-    @Override
-    default int minZ() {
-        return 0;
-    }
-
-    @Override
-    default int maxX() {
-        return 16;
-    }
-
-    @Override
-    default int maxY() {
-        return 16;
-    }
-
-    @Override
-    default int maxZ() {
-        return 16;
-    }
-
-    @Override
-    default int getHighestBlock(int x, int z) {
-        for (int y = 15; y >= 0; y--)   {
-            if (this.getBlockId(x, y, z) != 0)  {
-                return y;
-            }
-        }
-        return 0;
+    /**
+     * Gets a bitmask containing all layers that this chunk processor needs in order to run.
+     * <p>
+     * Defaults to all.
+     *
+     * @return a bitmask containing all layers that this chunk processor needs
+     */
+    default int requiredLayers() {
+        return BlockArea.ALL_LAYERS;
     }
 }

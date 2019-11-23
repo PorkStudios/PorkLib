@@ -27,8 +27,8 @@ import net.daporkchop.lib.minecraft.util.SectionFactory;
 import net.daporkchop.lib.minecraft.util.WorldFactory;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.impl.section.DirectSectionImpl;
-import net.daporkchop.lib.minecraft.world.impl.section.HeapSectionImpl;
 import net.daporkchop.lib.minecraft.world.impl.vanilla.VanillaChunkImpl;
+import net.daporkchop.lib.minecraft.world.impl.vanilla.VanillaWorldImpl;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 import net.daporkchop.lib.nbt.tag.notch.StringTag;
 
@@ -42,7 +42,7 @@ import java.util.function.BiFunction;
 @Accessors(chain = true)
 public class InitFunctions {
     @NonNull
-    private WorldFactory   worldFactory   = WorldImpl::new;
+    private WorldFactory   worldFactory   = VanillaWorldImpl::new;
     @NonNull
     private ChunkFactory   chunkFactory   = VanillaChunkImpl::new;
     @NonNull

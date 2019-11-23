@@ -13,29 +13,25 @@
  *
  */
 
-package net.daporkchop.lib.unsafe.capability;
+package net.daporkchop.lib.minecraft.util;
 
-import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
+import lombok.NonNull;
+import net.daporkchop.lib.minecraft.world.Chunk;
+import net.daporkchop.lib.minecraft.world.Section;
 
 /**
- * A type that contains resources that may be manually released.
+ * Creates instances of {@link Section}.
  *
  * @author DaPorkchop_
  */
-public interface Releasable extends AutoCloseable {
+@FunctionalInterface
+public interface SectionFactory {
     /**
-     * Releases all resources used by this instance.
-     * <p>
-     * After invoking this method, this instance should be treated as invalid and one should assume that
-     * using any fields/methods defined by superclasses will result in undefined behavior, unless the
-     * superclass implementations specifically state otherwise.
+     * Creates a new {@link Section}.
      *
-     * @throws AlreadyReleasedException if the resources used by this instance have already been released
+     * @param y     the section's Y coordinate in the chunk
+     * @param chunk the chunk that the section is in
+     * @return a new {@link Section} instance
      */
-    void release() throws AlreadyReleasedException;
-
-    @Override
-    default void close() {
-        this.release();
-    }
+    Section create(int y, @NonNull Chunk chunk);
 }

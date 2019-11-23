@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.minecraft.world;
 
+import lombok.NonNull;
 import net.daporkchop.lib.minecraft.util.BlockDataAccess;
 
 import java.io.IOException;
@@ -27,8 +28,10 @@ import java.io.IOException;
 public interface BlockArea extends BlockDataAccess, AutoCloseable {
     int LAYER_BLOCK       = 1 << 0;
     int LAYER_META        = 1 << 1;
-    int LAYER_SKY_LIGHT   = 1 << 2;
-    int LAYER_BLOCK_LIGHT = 1 << 3;
+    int LAYER_BLOCK_LIGHT = 1 << 2;
+    int LAYER_SKY_LIGHT   = 1 << 3;
+
+    int ALL_LAYERS = LAYER_BLOCK | LAYER_META | LAYER_BLOCK_LIGHT | LAYER_SKY_LIGHT;
 
     /**
      * Resizes the contents of this {@link BlockArea}.
@@ -59,6 +62,55 @@ public interface BlockArea extends BlockDataAccess, AutoCloseable {
      * This means that all values of all enabled layers will be reset to {@code 0}.
      */
     void clear();
+
+    default void load(@NonNull BlockDataAccess src, int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+        this.load(src, minX, minY, minZ, maxX, maxY, maxZ, ALL_LAYERS);
+    }
+
+    default void load(@NonNull BlockDataAccess src, int minX, int minY, int minZ, int maxX, int maxY, int maxZ, int layers) {
+        if (minX < maxX) throw new IllegalArgumentException("minX < maxX!");
+        if (minY < maxY) throw new IllegalArgumentException("minY < maxY!");
+        if (minZ < maxZ) throw new IllegalArgumentException("minZ < maxZ!");
+
+        this.resize(maxX - minX, maxY - minY, maxZ - minZ, layers);
+
+        if ((layers & LAYER_BLOCK) != 0)    {
+            for (int x = minX; x < maxX; x++)   {
+                for (int y = minY; y < maxY; y++)   {
+                    for (int z = minZ; z < maxZ; z++)   {
+                        this.setBlockId(x, y, z, src.getBlockId(x, y, z));
+                    }
+                }
+            }
+        }
+        if ((layers & LAYER_META) != 0) {
+            for (int x = minX; x < maxX; x++)   {
+                for (int y = minY; y < maxY; y++)   {
+                    for (int z = minZ; z < maxZ; z++)   {
+                        this.setBlockMeta(x, y, z, src.getBlockMeta(x, y, z));
+                    }
+                }
+            }
+        }
+        if ((layers & LAYER_BLOCK_LIGHT) != 0)  {
+            for (int x = minX; x < maxX; x++)   {
+                for (int y = minY; y < maxY; y++)   {
+                    for (int z = minZ; z < maxZ; z++)   {
+                        this.setBlockLight(x, y, z, src.getBlockLight(x, y, z));
+                    }
+                }
+            }
+        }
+        if ((layers & LAYER_SKY_LIGHT) != 0)    {
+            for (int x = minX; x < maxX; x++)   {
+                for (int y = minY; y < maxY; y++)   {
+                    for (int z = minZ; z < maxZ; z++)   {
+                        this.setSkyLight(x, y, z, src.getSkyLight(x, y, z));
+                    }
+                }
+            }
+        }
+    }
 
     /**
      * Releases the contents of this {@link BlockArea}.

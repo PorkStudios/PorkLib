@@ -13,48 +13,27 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.world.impl;
+package net.daporkchop.lib.minecraft.util;
 
-import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.registry.Registry;
-import net.daporkchop.lib.minecraft.registry.ResourceLocation;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.World;
-import net.daporkchop.lib.minecraft.world.format.SaveFormat;
-import net.daporkchop.lib.primitive.map.IntObjMap;
-import net.daporkchop.lib.primitive.map.hash.opennode.IntObjOpenNodeHashMap;
-
-import java.io.IOException;
-import java.util.Hashtable;
-import java.util.Map;
+import net.daporkchop.lib.minecraft.world.format.WorldManager;
 
 /**
+ * Creates instances of {@link World}.
+ *
  * @author DaPorkchop_
  */
-@Getter
-public class MinecraftSaveImpl implements MinecraftSave {
-    private final SaveFormat saveFormat;
-    private final Map<ResourceLocation, Registry> registries = new Hashtable<>();
-    private final IntObjMap<World> worlds = new IntObjOpenNodeHashMap<>();
-    private final InitFunctions initFunctions;
-
-    public MinecraftSaveImpl(@NonNull SaveBuilder builder) {
-        this.saveFormat = builder.getFormat();
-        this.initFunctions = builder.getInitFunctions();
-
-        try {
-            this.saveFormat.init(this);
-        } catch (IOException e) {
-            throw new RuntimeException("Unable to initialize save", e);
-        }
-        this.saveFormat.loadRegistries(this.registries::put);
-        this.saveFormat.loadWorlds((id, worldManager) -> this.worlds.put(id, this.initFunctions.getWorldFactory().create(id, worldManager, this)));
-    }
-
-    @Override
-    public void close() throws IOException {
-        this.worlds.forEachValue(this.saveFormat::closeWorld);
-        this.saveFormat.close();
-    }
+@FunctionalInterface
+public interface WorldFactory {
+    /**
+     * Creates a new {@link World} instance.
+     *
+     * @param id      the dimension ID of the world
+     * @param manager the {@link WorldManager} that the world will use
+     * @param save    the {@link MinecraftSave} that the world is in
+     * @return a new {@link World} instance
+     */
+    World create(int id, @NonNull WorldManager manager, @NonNull MinecraftSave save);
 }

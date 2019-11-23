@@ -13,76 +13,73 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.world.impl;
+package net.daporkchop.lib.minecraft.world.impl.section;
 
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import net.daporkchop.lib.minecraft.util.NibbleArray;
-import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.minecraft.world.Chunk;
+import net.daporkchop.lib.minecraft.world.Section;
+import net.daporkchop.lib.unsafe.PCleaner;
+import net.daporkchop.lib.unsafe.capability.Releasable;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 /**
- * A chunk as defined in Minecraft 1.12.
- * <p>
- * This will need a rework in 1.13 to work with the new local registry system
+ * An off-heap chunk section.
  *
  * @author DaPorkchop_
  */
 @Getter
-@Setter
-@RequiredArgsConstructor
-public class SectionImpl implements Section {
-    private final int y;
+public final class DirectSectionImpl implements Section, Releasable {
+    protected final long pos;
 
-    private final Chunk chunk;
+    protected final Chunk chunk;
+    protected final PCleaner cleaner;
 
-    private byte[] blockIds;
-    private NibbleArray add;
-    private NibbleArray meta;
-    private NibbleArray blockLight;
-    private NibbleArray skyLight;
+    protected final int y;
+
+
 
     @Override
     public int getBlockId(int x, int y, int z) {
-        return (this.blockIds[y << 8 | z << 4 | x] & 0xFF) | (this.add == null ? 0 : this.add.get(x, y, z) << 8);
+        return 0;
     }
 
     @Override
     public int getBlockMeta(int x, int y, int z) {
-        return this.meta.get(x, y, z);
+        return 0;
     }
 
     @Override
     public int getBlockLight(int x, int y, int z) {
-        return this.blockLight.get(x, y, z);
+        return 0;
     }
 
     @Override
     public int getSkyLight(int x, int y, int z) {
-        return this.skyLight.get(x, y, z);
+        return 0;
     }
 
     @Override
     public void setBlockId(int x, int y, int z, int id) {
-        this.blockIds[y << 8 | z << 4 | x] = (byte) (id & 0xFF);
-        if (this.add != null) {
-            this.add.set(x, y, z, (id >> 8) & 0xF);
-        }
     }
 
     @Override
     public void setBlockMeta(int x, int y, int z, int meta) {
-        this.meta.set(x, y, z, meta);
     }
 
     @Override
     public void setBlockLight(int x, int y, int z, int level) {
-        this.blockLight.set(x, y, z, level);
     }
 
     @Override
     public void setSkyLight(int x, int y, int z, int level) {
-        this.skyLight.set(x, y, z, level);
+    }
+
+    @Override
+    public void release() throws AlreadyReleasedException {
+        if (!this.cleaner.tryClean())   {
+            throw new AlreadyReleasedException();
+        }
     }
 }

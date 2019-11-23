@@ -1,3 +1,18 @@
+/*
+ * Adapted from the Wizardry License
+ *
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ *
+ * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
+ *
+ * The persons and/or organizations are also disallowed from sub-licensing and/or trademarking this software without explicit permission from DaPorkchop_.
+ *
+ * Any persons and/or organizations using this software must disclose their source code and have it publicly available, include this license, provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+
 package net.daporkchop.lib.unsafe;
 
 import lombok.Getter;
@@ -5,6 +20,10 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import sun.misc.Cleaner;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -18,10 +37,11 @@ import java.util.concurrent.atomic.AtomicLong;
 @RequiredArgsConstructor
 @Getter
 public final class PCleaner {
-    protected static final long CLEANER_NEXT_OFFSET = PUnsafe.pork_getOffset(Cleaner.class, "next");
-    protected static final long CLEANER_THUNK_OFFSET = PUnsafe.pork_getOffset(Cleaner.class, "thunk");
-    protected static final Runnable NULL_RUNNABLE = () -> {
-    };
+    protected static final long     CLEANER_NEXT_OFFSET  = PUnsafe.pork_getOffset(Cleaner.class, "next");
+    protected static final long     CLEANER_THUNK_OFFSET = PUnsafe.pork_getOffset(Cleaner.class, "thunk");
+    protected static final Runnable NOOP_RUNNABLE        = () -> {};
+
+    protected static Method CLEANER_REMOVE;
 
     /**
      * Makes a new cleaner targeting a given object. When that object is garbage collected, the given
@@ -82,8 +102,26 @@ public final class PCleaner {
         }));
     }
 
+    private static boolean remove(Cleaner cl) {
+        if (CLEANER_REMOVE == null) {
+            try {
+                CLEANER_REMOVE = Cleaner.class.getDeclaredMethod("remove", Cleaner.class);
+                CLEANER_REMOVE.setAccessible(true);
+            } catch (NoSuchMethodException e) {
+                PUnsafe.throwException(e);
+                throw new RuntimeException(e);
+            }
+        }
+        try {
+            return (Boolean) CLEANER_REMOVE.invoke(null, cl);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            PUnsafe.throwException(e);
+            throw new RuntimeException(e);
+        }
+    }
+
     @NonNull
-    protected final Cleaner delegate;
+    private final Cleaner delegate;
 
     /**
      * Runs this cleaner. If this cleaner has already been run, this function does nothing.
@@ -102,11 +140,36 @@ public final class PCleaner {
     }
 
     /**
+     * Attempts to run this cleaner.
+     *
+     * @return whether or not the cleaner was run
+     */
+    public boolean tryClean() {
+        if (!remove(this.delegate)) {
+            return false;
+        } else {
+            try {
+                PUnsafe.<Runnable>getObject(this.delegate, CLEANER_THUNK_OFFSET).run();
+                return true;
+            } catch (Throwable t) {
+                AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
+                    if (System.err != null) {
+                        new Error("Cleaner terminated abnormally", t).printStackTrace();
+                    }
+                    System.exit(1);
+                    return null;
+                });
+                return false;
+            }
+        }
+    }
+
+    /**
      * Sets the function that will be executed when this cleaner runs.
      *
      * @param runnable the cleaner function
      */
-    public synchronized void setCleanTask(@NonNull Runnable runnable) {
+    public void setCleanTask(@NonNull Runnable runnable) {
         PUnsafe.putObjectVolatile(this.delegate, CLEANER_THUNK_OFFSET, runnable);
     }
 
@@ -115,14 +178,14 @@ public final class PCleaner {
      *
      * @see #invalidate()
      */
-    public synchronized void disable() {
-        PUnsafe.putObjectVolatile(this.delegate, CLEANER_THUNK_OFFSET, NULL_RUNNABLE);
+    public void disable() {
+        PUnsafe.putObjectVolatile(this.delegate, CLEANER_THUNK_OFFSET, NOOP_RUNNABLE);
     }
 
     /**
      * Completely disables a cleaner by first disabling and then running it.
      */
-    public synchronized void invalidate() {
+    public void invalidate() {
         this.disable();
         this.clean();
     }

@@ -13,29 +13,26 @@
  *
  */
 
-package net.daporkchop.lib.unsafe.capability;
+package net.daporkchop.lib.minecraft.util;
 
-import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
+import lombok.NonNull;
+import net.daporkchop.lib.math.vector.i.Vec2i;
+import net.daporkchop.lib.minecraft.world.Chunk;
+import net.daporkchop.lib.minecraft.world.World;
 
 /**
- * A type that contains resources that may be manually released.
+ * Creates instances of {@link Chunk}.
  *
  * @author DaPorkchop_
  */
-public interface Releasable extends AutoCloseable {
+@FunctionalInterface
+public interface ChunkFactory {
     /**
-     * Releases all resources used by this instance.
-     * <p>
-     * After invoking this method, this instance should be treated as invalid and one should assume that
-     * using any fields/methods defined by superclasses will result in undefined behavior, unless the
-     * superclass implementations specifically state otherwise.
+     * Creates a new {@link Chunk} instance.
      *
-     * @throws AlreadyReleasedException if the resources used by this instance have already been released
+     * @param pos   the chunk's position in the world
+     * @param world the world that the chunk is in
+     * @return a new {@link Chunk} instance
      */
-    void release() throws AlreadyReleasedException;
-
-    @Override
-    default void close() {
-        this.release();
-    }
+    Chunk create(@NonNull Vec2i pos, @NonNull World world);
 }

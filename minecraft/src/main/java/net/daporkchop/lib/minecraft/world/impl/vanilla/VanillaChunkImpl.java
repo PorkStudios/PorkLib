@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.world.impl;
+package net.daporkchop.lib.minecraft.world.impl.vanilla;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -35,14 +35,13 @@ import java.util.Collection;
  */
 @RequiredArgsConstructor
 @Getter
-public class ChunkImpl implements Chunk {
+public class VanillaChunkImpl implements Chunk.Vanilla {
     @NonNull
     private final Vec2i pos;
 
     @NonNull
     private final World world;
 
-    @NonNull
     private final Collection<TileEntity> tileEntities = new ArrayDeque<>();
     private final Section[]              sections     = new Section[16];
     private volatile boolean dirty;
@@ -51,12 +50,12 @@ public class ChunkImpl implements Chunk {
     private byte[] heightMap;
 
     @Override
-    public Section getChunk(int y) {
+    public Section getSection(int y) {
         return this.sections[y];
     }
 
     @Override
-    public void setChunk(int y, Section section) {
+    public void setSection(int y, Section section) {
         this.sections[y] = section;
     }
 
@@ -109,16 +108,6 @@ public class ChunkImpl implements Chunk {
     }
 
     @Override
-    public int getX() {
-        return this.pos.getX();
-    }
-
-    @Override
-    public int getZ() {
-        return this.pos.getY();
-    }
-
-    @Override
     public int getHighestBlock(int x, int z) {
         return this.heightMap[z << 4 | x] & 0xFF;
         //TODO: update heightmap
@@ -131,18 +120,8 @@ public class ChunkImpl implements Chunk {
         for (int x = 15; x >= 0; x--) {
             for (int z = 15; z >= 0; z--) {
                 //call super since getHighestBlock implementation only reads from heightmap
-                this.heightMap[z << 4 | x] = (byte) Chunk.super.getHighestBlock(x, z);
+                this.heightMap[z << 4 | x] = (byte) Vanilla.super.getHighestBlock(x, z);
             }
         }
-    }
-
-    @Override
-    public int minY() {
-        return 0;
-    }
-
-    @Override
-    public int maxY() {
-        return 256;
     }
 }

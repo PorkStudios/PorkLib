@@ -52,11 +52,8 @@ public interface DirectMemoryHolder extends Releasable {
 
         @Override
         public void release() throws AlreadyReleasedException {
-            synchronized (this.cleaner) {
-                if (this.cleaner.isCleaned()) {
-                    throw new AlreadyReleasedException();
-                }
-                this.cleaner.clean();
+            if (!this.cleaner.tryClean())   {
+                throw new AlreadyReleasedException();
             }
         }
     }

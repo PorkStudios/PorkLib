@@ -19,36 +19,33 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.math.vector.i.Vec2i;
 import net.daporkchop.lib.minecraft.tileentity.TileEntity;
 import net.daporkchop.lib.minecraft.tileentity.TileEntityBase;
 import net.daporkchop.lib.minecraft.tileentity.TileEntitySign;
-import net.daporkchop.lib.minecraft.world.Section;
-import net.daporkchop.lib.minecraft.world.Chunk;
-import net.daporkchop.lib.minecraft.world.MinecraftSave;
+import net.daporkchop.lib.minecraft.util.ChunkFactory;
+import net.daporkchop.lib.minecraft.util.SectionFactory;
+import net.daporkchop.lib.minecraft.util.WorldFactory;
 import net.daporkchop.lib.minecraft.world.World;
-import net.daporkchop.lib.minecraft.world.format.WorldManager;
+import net.daporkchop.lib.minecraft.world.impl.section.HeapSectionImpl;
+import net.daporkchop.lib.minecraft.world.impl.vanilla.VanillaChunkImpl;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 import net.daporkchop.lib.nbt.tag.notch.StringTag;
-import net.daporkchop.lib.primitive.function.bifunction.IntObjObjBiFunction;
 
 import java.util.function.BiFunction;
 
 /**
  * @author DaPorkchop_
  */
-@Accessors(chain = true)
 @Setter
 @Getter
+@Accessors(chain = true)
 public class InitFunctions {
     @NonNull
-    private WorldCreator worldCreator = WorldImpl::new;
-
+    private WorldFactory   worldFactory   = WorldImpl::new;
     @NonNull
-    private BiFunction<Vec2i, World, Chunk> columnCreator = ChunkImpl::new;
-
+    private ChunkFactory   chunkFactory   = VanillaChunkImpl::new;
     @NonNull
-    private IntObjObjBiFunction<Chunk, Section> chunkCreator = SectionImpl::new;
+    private SectionFactory sectionFactory = HeapSectionImpl::new;
 
     @NonNull
     private BiFunction<World, CompoundTag, TileEntity> tileEntityCreator = (world, tag) -> {
@@ -59,10 +56,5 @@ public class InitFunctions {
             default:
                 return new TileEntityBase(world, tag);
         }
-    }; //TODO: cleaner
-
-    @FunctionalInterface
-    public interface WorldCreator {
-        World create(int id, WorldManager manager, MinecraftSave save);
-    }
+    }; //TODO: totally refactor this into a registry-based system
 }

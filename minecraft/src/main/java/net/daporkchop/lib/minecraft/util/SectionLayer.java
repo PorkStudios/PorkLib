@@ -23,15 +23,17 @@ import net.daporkchop.lib.encoding.Hexadecimal;
 import java.util.Arrays;
 
 /**
+ * A simple 16³ array of nibbles (unsigned 4-bit values).
+ *
  * @author DaPorkchop_
  */
 @Getter
 @RequiredArgsConstructor
-public class NibbleArray {
+public final class SectionLayer {
     @NonNull
     private final byte[] data;
 
-    public NibbleArray() {
+    public SectionLayer() {
         this(new byte[2048]);
     }
 
@@ -70,12 +72,12 @@ public class NibbleArray {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof NibbleArray)) {
+        if (!(o instanceof SectionLayer)) {
             return false;
         }
 
-        NibbleArray nibbleArray = (NibbleArray) o;
-        return Arrays.equals(this.data, nibbleArray.data);
+        SectionLayer sectionLayer = (SectionLayer) o;
+        return Arrays.equals(this.data, sectionLayer.data);
     }
 
     @Override
@@ -85,6 +87,6 @@ public class NibbleArray {
 
     @Override
     public String toString() {
-        return String.format("NibbleArray(%s)", Hexadecimal.encode(this.data));
+        return String.format("SectionLayer(%s)", Hexadecimal.encode(this.data));
     }
 }

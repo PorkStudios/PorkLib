@@ -23,13 +23,13 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import net.daporkchop.lib.math.vector.i.Vec2i;
-import net.daporkchop.lib.minecraft.util.NibbleArray;
+import net.daporkchop.lib.minecraft.util.SectionLayer;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.format.WorldManager;
-import net.daporkchop.lib.minecraft.world.impl.ChunkImpl;
-import net.daporkchop.lib.minecraft.world.impl.SectionImpl;
+import net.daporkchop.lib.minecraft.world.impl.vanilla.VanillaChunkImpl;
+import net.daporkchop.lib.minecraft.world.impl.section.HeapSectionImpl;
 import net.daporkchop.lib.nbt.NBTInputStream;
 import net.daporkchop.lib.nbt.tag.notch.ByteArrayTag;
 import net.daporkchop.lib.nbt.tag.notch.ByteTag;
@@ -49,7 +49,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Getter
 public class AnvilWorldManager implements WorldManager {
-    private static final ThreadLocal<SoftReference<SectionImpl>> chunkImplCache = ThreadLocal.withInitial(() -> new SoftReference<>(new SectionImpl(-1, null)));
+    private static final ThreadLocal<SoftReference<HeapSectionImpl>> chunkImplCache = ThreadLocal.withInitial(() -> new SoftReference<>(new HeapSectionImpl(-1, null)));
 
     private final AnvilSaveFormat format;
     private final File root;
@@ -134,7 +134,7 @@ public class AnvilWorldManager implements WorldManager {
             } catch (NullPointerException e) {
                 //this seems to happen for invalid/corrupt chunks
                 for (int y = 15; y >= 0; y--) {
-                    chunk.setChunk(y, null);
+                    chunk.setSection(y, null);
                 }
                 return;
             } catch (IOException e) {
@@ -145,7 +145,7 @@ public class AnvilWorldManager implements WorldManager {
                 ListTag<CompoundTag> sectionsTag = rootTag.get("Sections");
                 //TODO: biomes, terrain populated flag etc.
                 for (int y = 15; y >= 0; y--) {
-                    Section section = chunk.getChunk(y);
+                    Section section = chunk.getSection(y);
                     CompoundTag tag = null;
                     for (CompoundTag t : sectionsTag.getValue()) {
                         if (t.<ByteTag>get("Y").getValue() == y) {
@@ -154,18 +154,18 @@ public class AnvilWorldManager implements WorldManager {
                         }
                     }
                     if (tag == null) {
-                        chunk.setChunk(y, null);
+                        chunk.setSection(y, null);
                     } else {
                         if (section == null) {
-                            chunk.setChunk(y, section = this.format.getSave().getInitFunctions().getChunkCreator().apply(y, chunk));
+                            chunk.setSection(y, section = this.format.getSave().getInitFunctions().getSectionFactory().apply(y, chunk));
                         }
-                        if (section instanceof SectionImpl) {
-                            this.loadChunkImpl((SectionImpl) section, tag);
+                        if (section instanceof HeapSectionImpl) {
+                            this.loadChunkImpl((HeapSectionImpl) section, tag);
                         } else {
-                            SoftReference<SectionImpl> ref = chunkImplCache.get();
-                            SectionImpl impl = ref.get();
+                            SoftReference<HeapSectionImpl> ref = chunkImplCache.get();
+                            HeapSectionImpl impl = ref.get();
                             if (impl == null) {
-                                chunkImplCache.set(new SoftReference<>(impl = new SectionImpl(-1, null)));
+                                chunkImplCache.set(new SoftReference<>(impl = new HeapSectionImpl(-1, null)));
                             }
                             this.loadChunkImpl(impl, tag);
                             for (int x = 15; x >= 0; x--) {
@@ -182,13 +182,13 @@ public class AnvilWorldManager implements WorldManager {
                     }
                 }
             }
-            if (chunk instanceof ChunkImpl && rootTag.contains("HeightMap")) {
+            if (chunk instanceof VanillaChunkImpl && rootTag.contains("HeightMap")) {
                 int[] heightMapI = rootTag.<IntArrayTag>get("HeightMap").getValue();
                 byte[] heightMapB = new byte[16 * 16];
                 for (int i = heightMapI.length - 1; i >= 0; i--) {
                     heightMapB[i] = (byte) heightMapI[i];
                 }
-                ((ChunkImpl) chunk).setHeightMap(heightMapB);
+                ((VanillaChunkImpl) chunk).setHeightMap(heightMapB);
             }
             {
                 ListTag<CompoundTag> sectionsTag = rootTag.get("TileEntities");
@@ -204,13 +204,13 @@ public class AnvilWorldManager implements WorldManager {
         }
     }
 
-    private void loadChunkImpl(@NonNull SectionImpl impl, @NonNull CompoundTag tag) {
+    private void loadChunkImpl(@NonNull HeapSectionImpl impl, @NonNull CompoundTag tag) {
         impl.setBlockIds(tag.<ByteArrayTag>get("Blocks").getValue());
-        impl.setMeta(new NibbleArray(tag.<ByteArrayTag>get("Data").getValue()));
-        impl.setBlockLight(new NibbleArray(tag.<ByteArrayTag>get("BlockLight").getValue()));
-        impl.setSkyLight(new NibbleArray(tag.<ByteArrayTag>get("SkyLight").getValue()));
+        impl.setMeta(new SectionLayer(tag.<ByteArrayTag>get("Data").getValue()));
+        impl.setBlockLight(new SectionLayer(tag.<ByteArrayTag>get("BlockLight").getValue()));
+        impl.setSkyLight(new SectionLayer(tag.<ByteArrayTag>get("SkyLight").getValue()));
         if (tag.contains("Add")) {
-            impl.setAdd(new NibbleArray(tag.<ByteArrayTag>get("Add").getValue()));
+            impl.setAdd(new SectionLayer(tag.<ByteArrayTag>get("Add").getValue()));
         } else {
             impl.setAdd(null);
         }
@@ -224,17 +224,17 @@ public class AnvilWorldManager implements WorldManager {
         ListTag<CompoundTag> sectionsTag = new ListTag<>("Sections");
         levelTag.putList(sectionsTag);
         for (int y = 15; y >= 0; y--)   {
-            Chunk chunk = chunk.getChunk(y);
+            Chunk chunk = chunk.getSection(y);
             if (chunk != null)  {
-                ChunkImpl impl;
-                if (chunk instanceof ChunkImpl) {
-                    impl = (ChunkImpl) chunk;
+                VanillaChunkImpl impl;
+                if (chunk instanceof VanillaChunkImpl) {
+                    impl = (VanillaChunkImpl) chunk;
                 } else {
-                    SoftReference<ChunkImpl> ref = chunkImplCache.get();
+                    SoftReference<VanillaChunkImpl> ref = chunkImplCache.get();
                     impl = ref.get();
                     if (impl == null)   {
-                        chunkImplCache.set(new SoftReference<>(impl = new ChunkImpl(-1, null)));
-                        impl.setAdd(new NibbleArray());
+                        chunkImplCache.set(new SoftReference<>(impl = new VanillaChunkImpl(-1, null)));
+                        impl.setAdd(new SectionLayer());
                     }
                     for (int x = 15; x >= 0; x--)   {
                         for (int yy = 15; yy >= 0; yy--)   {

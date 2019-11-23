@@ -55,7 +55,7 @@ public class Registry {
     }
 
     public ResourceLocation getName(int id) {
-        return this.idToEntries.get(id);
+        return id >= this.idToEntries.size() ? null : this.idToEntries.get(id);
     }
 
     public int getId(@NonNull ResourceLocation name) {

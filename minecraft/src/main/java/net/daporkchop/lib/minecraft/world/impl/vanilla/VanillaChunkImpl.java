@@ -24,6 +24,7 @@ import net.daporkchop.lib.minecraft.tileentity.TileEntity;
 import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.World;
+import net.daporkchop.lib.unsafe.capability.Releasable;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
@@ -35,7 +36,7 @@ import java.util.Collection;
  */
 @RequiredArgsConstructor
 @Getter
-public class VanillaChunkImpl implements Chunk.Vanilla {
+public final class VanillaChunkImpl implements Chunk.Vanilla {
     @NonNull
     private final Vec2i pos;
 
@@ -100,7 +101,11 @@ public class VanillaChunkImpl implements Chunk.Vanilla {
             //this.world.getLoadedColumns().remove(this.pos);
             this.world.getLoadedTileEntities().values().removeAll(this.tileEntities);
             for (int y = 15; y >= 0; y--) {
+                Section section = this.sections[y];
                 this.sections[y] = null;
+                if (section instanceof Releasable)  {
+                    ((Releasable) section).release();
+                }
             }
             this.heightMap = null;
             //TODO

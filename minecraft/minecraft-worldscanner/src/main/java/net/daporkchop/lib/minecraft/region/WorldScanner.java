@@ -19,6 +19,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.math.vector.i.Vec2i;
 import net.daporkchop.lib.math.vector.i.Vec3i;
 import net.daporkchop.lib.minecraft.tileentity.TileEntity;
@@ -138,7 +139,7 @@ public class WorldScanner {
                 });
             }
         } else {
-            throw new UnsupportedOperationException(String.format("Iteration over %s", manager.getClass().getCanonicalName()));
+            throw new UnsupportedOperationException(String.format("Cannot iterate over chunks in a world loaded by \"%s\"!", PorkUtil.className(manager)));
         }
 
         return this;

@@ -17,7 +17,6 @@ package net.daporkchop.lib.minecraft.world.impl.section;
 
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import net.daporkchop.lib.minecraft.util.SectionLayer;
 import net.daporkchop.lib.minecraft.world.Chunk;
@@ -30,22 +29,25 @@ import net.daporkchop.lib.minecraft.world.Section;
  */
 @Getter
 @Setter
-@RequiredArgsConstructor
 public final class HeapSectionImpl implements Section {
-    @NonNull
-    private final Chunk chunk;
-
-    private byte[]       blockIds;
+    private byte[]       blocks;
     private SectionLayer add;
     private SectionLayer meta;
     private SectionLayer blockLight;
     private SectionLayer skyLight;
 
+    private final Chunk chunk;
+
     private final int y;
+
+    public HeapSectionImpl(int y, Chunk chunk) {
+        this.chunk = chunk;
+        this.y = y;
+    }
 
     @Override
     public int getBlockId(int x, int y, int z) {
-        return (this.blockIds[y << 8 | z << 4 | x] & 0xFF) | (this.add == null ? 0 : this.add.get(x, y, z) << 8);
+        return (this.blocks[y << 8 | z << 4 | x] & 0xFF) | (this.add == null ? 0 : this.add.get(x, y, z) << 8);
     }
 
     @Override
@@ -65,9 +67,9 @@ public final class HeapSectionImpl implements Section {
 
     @Override
     public void setBlockId(int x, int y, int z, int id) {
-        this.blockIds[y << 8 | z << 4 | x] = (byte) (id & 0xFF);
+        this.blocks[y << 8 | z << 4 | x] = (byte) (id & 0xFF);
         if (this.add != null) {
-            this.add.set(x, y, z, (id >> 8) & 0xF);
+            this.add.set(x, y, z, (id >>> 8) & 0xF);
         }
     }
 

@@ -22,37 +22,45 @@ import com.google.common.cache.RemovalListener;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import net.daporkchop.lib.common.cache.Cache;
+import net.daporkchop.lib.common.cache.SoftThreadCache;
 import net.daporkchop.lib.math.vector.i.Vec2i;
 import net.daporkchop.lib.minecraft.util.SectionLayer;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.format.WorldManager;
-import net.daporkchop.lib.minecraft.world.impl.vanilla.VanillaChunkImpl;
+import net.daporkchop.lib.minecraft.world.impl.section.DirectSectionImpl;
 import net.daporkchop.lib.minecraft.world.impl.section.HeapSectionImpl;
+import net.daporkchop.lib.minecraft.world.impl.vanilla.VanillaChunkImpl;
 import net.daporkchop.lib.nbt.NBTInputStream;
 import net.daporkchop.lib.nbt.tag.notch.ByteArrayTag;
 import net.daporkchop.lib.nbt.tag.notch.ByteTag;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 import net.daporkchop.lib.nbt.tag.notch.IntArrayTag;
 import net.daporkchop.lib.nbt.tag.notch.ListTag;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.ref.SoftReference;
-import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * @author DaPorkchop_
  */
 @Getter
 public class AnvilWorldManager implements WorldManager {
-    private static final ThreadLocal<SoftReference<HeapSectionImpl>> chunkImplCache = ThreadLocal.withInitial(() -> new SoftReference<>(new HeapSectionImpl(-1, null)));
+    private static final Cache<HeapSectionImpl> CHUNK_CACHE    = SoftThreadCache.of(() -> new HeapSectionImpl(-1, null));
+    private static final Pattern                REGION_PATTERN = Pattern.compile("^r\\.(-?[0-9]+)\\.(-?[0-9]+)\\.mca$");
 
     private final AnvilSaveFormat format;
-    private final File root;
+    private final File            root;
 
     @NonNull
     @Setter
@@ -157,27 +165,11 @@ public class AnvilWorldManager implements WorldManager {
                         chunk.setSection(y, null);
                     } else {
                         if (section == null) {
-                            chunk.setSection(y, section = this.format.getSave().getInitFunctions().getSectionFactory().apply(y, chunk));
+                            chunk.setSection(y, section = this.format.getSave().getInitFunctions().getSectionFactory().create(y, chunk));
                         }
+                        this.loadSection(section, tag);
                         if (section instanceof HeapSectionImpl) {
-                            this.loadChunkImpl((HeapSectionImpl) section, tag);
-                        } else {
-                            SoftReference<HeapSectionImpl> ref = chunkImplCache.get();
-                            HeapSectionImpl impl = ref.get();
-                            if (impl == null) {
-                                chunkImplCache.set(new SoftReference<>(impl = new HeapSectionImpl(-1, null)));
-                            }
-                            this.loadChunkImpl(impl, tag);
-                            for (int x = 15; x >= 0; x--) {
-                                for (int yy = 15; yy >= 0; yy--) {
-                                    for (int z = 15; z >= 0; z--) {
-                                        section.setBlockId(x, yy, z, impl.getBlockId(x, yy, z));
-                                        section.setBlockMeta(x, yy, z, impl.getBlockMeta(x, yy, z));
-                                        section.setBlockLight(x, yy, z, impl.getBlockLight(x, yy, z));
-                                        section.setSkyLight(x, yy, z, impl.getSkyLight(x, yy, z));
-                                    }
-                                }
-                            }
+                            this.loadSection((HeapSectionImpl) section, tag);
                         }
                     }
                 }
@@ -204,8 +196,29 @@ public class AnvilWorldManager implements WorldManager {
         }
     }
 
-    private void loadChunkImpl(@NonNull HeapSectionImpl impl, @NonNull CompoundTag tag) {
-        impl.setBlockIds(tag.<ByteArrayTag>get("Blocks").getValue());
+    private void loadSection(@NonNull Section section, @NonNull CompoundTag tag) {
+        if (section instanceof HeapSectionImpl) {
+            this.loadSection((HeapSectionImpl) section, tag);
+        } else if (section instanceof DirectSectionImpl) {
+            this.loadSection((DirectSectionImpl) section, tag);
+        } else {
+            HeapSectionImpl impl = CHUNK_CACHE.get();
+            this.loadSection(impl, tag);
+            for (int x = 15; x >= 0; x--) {
+                for (int y = 15; y >= 0; y--) {
+                    for (int z = 15; z >= 0; z--) {
+                        section.setBlockId(x, y, z, impl.getBlockId(x, y, z));
+                        section.setBlockMeta(x, y, z, impl.getBlockMeta(x, y, z));
+                        section.setBlockLight(x, y, z, impl.getBlockLight(x, y, z));
+                        section.setSkyLight(x, y, z, impl.getSkyLight(x, y, z));
+                    }
+                }
+            }
+        }
+    }
+
+    private void loadSection(@NonNull HeapSectionImpl impl, @NonNull CompoundTag tag) {
+        impl.setBlocks(tag.<ByteArrayTag>get("Blocks").getValue());
         impl.setMeta(new SectionLayer(tag.<ByteArrayTag>get("Data").getValue()));
         impl.setBlockLight(new SectionLayer(tag.<ByteArrayTag>get("BlockLight").getValue()));
         impl.setSkyLight(new SectionLayer(tag.<ByteArrayTag>get("SkyLight").getValue()));
@@ -213,6 +226,53 @@ public class AnvilWorldManager implements WorldManager {
             impl.setAdd(new SectionLayer(tag.<ByteArrayTag>get("Add").getValue()));
         } else {
             impl.setAdd(null);
+        }
+    }
+
+    private void loadSection(@NonNull DirectSectionImpl impl, @NonNull CompoundTag tag) {
+        final long addr = impl.memoryAddress();
+
+        PUnsafe.copyMemory(
+                tag.<ByteArrayTag>get("Data").getValue(),
+                PUnsafe.ARRAY_BYTE_BASE_OFFSET,
+                null,
+                addr + DirectSectionImpl.OFFSET_META,
+                DirectSectionImpl.SIZE_NIBBLE_LAYER
+        );
+        PUnsafe.copyMemory(
+                tag.<ByteArrayTag>get("BlockLight").getValue(),
+                PUnsafe.ARRAY_BYTE_BASE_OFFSET,
+                null,
+                addr + DirectSectionImpl.OFFSET_BLOCK_LIGHT,
+                DirectSectionImpl.SIZE_NIBBLE_LAYER
+        );
+        PUnsafe.copyMemory(
+                tag.<ByteArrayTag>get("SkyLight").getValue(),
+                PUnsafe.ARRAY_BYTE_BASE_OFFSET,
+                null,
+                addr + DirectSectionImpl.OFFSET_SKY_LIGHT,
+                DirectSectionImpl.SIZE_NIBBLE_LAYER
+        );
+
+        byte[] blocks = tag.<ByteArrayTag>get("Blocks").getValue();
+        if (tag.contains("Add")) {
+            byte[] add = tag.<ByteArrayTag>get("Add").getValue();
+            //this is very slow, but luckily it only has to run once
+            for (int x = 15; x >= 0; x--) {
+                for (int y = 15; y >= 0; y--) {
+                    for (int z = 15; z >= 0; z--) {
+                        impl.setBlockId(x, y, z, (blocks[(y << 8) | (z << 4) | x] & 0xFF) | (SectionLayer.getNibble(add, x, y, z) << 8));
+                    }
+                }
+            }
+        } else {
+            for (int i = 0; i < 4096; i += 4) {
+                //read 4 ids at a time and write them in one go to make sure things stay nice and fast
+                PUnsafe.putLong(
+                        addr + DirectSectionImpl.OFFSET_BLOCK + (i << 1),
+                        (blocks[i] & 0xFF) | ((blocks[i + 1] & 0xFF) << 16) | ((blocks[i + 2] & 0xFFL) << 32) | ((blocks[i + 3] & 0xFFL) << 48)
+                );
+            }
         }
     }
 
@@ -230,10 +290,10 @@ public class AnvilWorldManager implements WorldManager {
                 if (chunk instanceof VanillaChunkImpl) {
                     impl = (VanillaChunkImpl) chunk;
                 } else {
-                    SoftReference<VanillaChunkImpl> ref = chunkImplCache.get();
+                    SoftReference<VanillaChunkImpl> ref = CHUNK_CACHE.get();
                     impl = ref.get();
                     if (impl == null)   {
-                        chunkImplCache.set(new SoftReference<>(impl = new VanillaChunkImpl(-1, null)));
+                        CHUNK_CACHE.set(new SoftReference<>(impl = new VanillaChunkImpl(-1, null)));
                         impl.setAdd(new SectionLayer());
                     }
                     for (int x = 15; x >= 0; x--)   {
@@ -249,7 +309,7 @@ public class AnvilWorldManager implements WorldManager {
                 }
                 CompoundTag t = new CompoundTag();
                 t.putInt("Y", y);
-                t.putByteArray("Blocks", impl.getBlockIds());
+                t.putByteArray("Blocks", impl.getBlocks());
                 t.putByteArray("Data", impl.getMeta().getData());
                 t.putByteArray("BlockLight", impl.getBlockLight().getData());
                 t.putByteArray("SkyLight", impl.getBlockLight().getData());
@@ -269,16 +329,12 @@ public class AnvilWorldManager implements WorldManager {
     }
 
     public Collection<Vec2i> getRegions() {
-        Collection<Vec2i> positions = new ArrayDeque<>();
-        for (File f : this.root.listFiles()) {
-            String name = f.getName();
-            if (f.isFile() && name.endsWith(".mca")) {
-                String[] split = name.split("\\.");
-                int x = Integer.parseInt(split[1]);
-                int z = Integer.parseInt(split[2]);
-                positions.add(new Vec2i(x, z));
-            }
-        }
-        return positions;
+        return Arrays.stream(this.root.listFiles())
+                .map(file -> {
+                    Matcher matcher = REGION_PATTERN.matcher(file.getName());
+                    return matcher.find() ? new Vec2i(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2))) : null;
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 }

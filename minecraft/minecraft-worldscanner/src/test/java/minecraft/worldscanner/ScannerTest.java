@@ -21,6 +21,7 @@ import com.google.common.cache.RemovalNotification;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.http.Http;
 import net.daporkchop.lib.math.vector.i.Vec2i;
 import net.daporkchop.lib.minecraft.region.WorldScanner;
@@ -30,6 +31,7 @@ import net.daporkchop.lib.minecraft.tileentity.TileEntitySign;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.format.anvil.AnvilSaveFormat;
 import net.daporkchop.lib.minecraft.world.impl.SaveBuilder;
+import org.junit.Test;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -52,7 +54,7 @@ public class ScannerTest {
                 .build();
     }
 
-    //@Test
+    @Test
     public void findAverageHeight() throws IOException {
         try (MinecraftSave save = this.getTestWorld()) {
             AtomicLong h = new AtomicLong(0L);
@@ -85,7 +87,7 @@ public class ScannerTest {
         }
     }
 
-    //@Test
+    @Test
     public void findDoubleChests() throws IOException {
         try (MinecraftSave save = this.getTestWorld()) {
             Registry blocksRegistry = save.getRegistry(new ResourceLocation("minecraft:blocks"));
@@ -127,7 +129,7 @@ public class ScannerTest {
         }
     }
 
-    //@Test
+    @Test
     public void findTileEntities() throws IOException {
         try (MinecraftSave save = this.getTestWorld()) {
             new WorldScanner(save.getWorld(0))
@@ -149,7 +151,7 @@ public class ScannerTest {
         }
     }
 
-    //@Test
+    @Test
     public void makeSimpleMap() throws IOException {
         Map<ResourceLocation, Color[]> colorMap = new Hashtable<>();
         {
@@ -180,7 +182,7 @@ public class ScannerTest {
         try (MinecraftSave save = this.getTestWorld()) {
             Registry registry = save.getRegistry(new ResourceLocation("minecraft:blocks"));
             File out = new File(".", "run/out");
-            out.mkdirs();
+            PFiles.rmContents(PFiles.ensureDirectoryExists(out));
             LoadingCache<Vec2i, BufferedImage> outCache = CacheBuilder.newBuilder()
                     .concurrencyLevel(Runtime.getRuntime().availableProcessors())
                     .maximumSize(Runtime.getRuntime().availableProcessors() << 1)
@@ -225,7 +227,7 @@ public class ScannerTest {
                                     if ((id = col.getBlockId(x, y, z)) != 0) {
                                         int meta = col.getBlockMeta(x, y, z);
                                         ResourceLocation registryName = registry.getName(id);
-                                        Color[] colors = colorMap.get(registryName);
+                                        Color[] colors = registryName == null ? null : colorMap.get(registryName);
                                         if (colors == null || colors[meta] == null) {
                                             continue;
                                         }

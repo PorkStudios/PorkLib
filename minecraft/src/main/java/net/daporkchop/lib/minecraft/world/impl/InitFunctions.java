@@ -26,6 +26,7 @@ import net.daporkchop.lib.minecraft.util.ChunkFactory;
 import net.daporkchop.lib.minecraft.util.SectionFactory;
 import net.daporkchop.lib.minecraft.util.WorldFactory;
 import net.daporkchop.lib.minecraft.world.World;
+import net.daporkchop.lib.minecraft.world.impl.section.DirectSectionImpl;
 import net.daporkchop.lib.minecraft.world.impl.section.HeapSectionImpl;
 import net.daporkchop.lib.minecraft.world.impl.vanilla.VanillaChunkImpl;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
@@ -45,7 +46,7 @@ public class InitFunctions {
     @NonNull
     private ChunkFactory   chunkFactory   = VanillaChunkImpl::new;
     @NonNull
-    private SectionFactory sectionFactory = HeapSectionImpl::new;
+    private SectionFactory sectionFactory = DirectSectionImpl::new;
 
     @NonNull
     private BiFunction<World, CompoundTag, TileEntity> tileEntityCreator = (world, tag) -> {

@@ -91,7 +91,7 @@ public class WorldImpl implements World {
     @Override
     public Chunk getColumn(int x, int z) {
         return this.loadedColumns.getUnchecked(new Vec2i(x, z));
-        //return this.loadedColumns.computeIfAbsent(new Vec2i(x, z), pos -> this.save.getInitFunctions().getChunkFactory().apply(pos, this));
+        //return this.loadedColumns.computeIfAbsent(new Vec2i(x, z), pos -> this.save.getInitFunctions().getChunkFactory().apply(addr, this));
     }
 
     @Override

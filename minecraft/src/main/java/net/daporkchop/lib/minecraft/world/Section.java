@@ -23,20 +23,20 @@ import net.daporkchop.lib.minecraft.util.BlockDataAccess;
  * @author DaPorkchop_
  */
 public interface Section extends BlockDataAccess {
-    Column getColumn();
+    Chunk getChunk();
 
     int getY();
 
     default void markDirty() {
-        this.getColumn().markDirty();
+        this.getChunk().markDirty();
     }
 
     default boolean isDirty() {
-        return this.getColumn().isDirty();
+        return this.getChunk().isDirty();
     }
 
     default void save() {
-        this.getColumn().save();
+        this.getChunk().save();
     }
 
     @Override

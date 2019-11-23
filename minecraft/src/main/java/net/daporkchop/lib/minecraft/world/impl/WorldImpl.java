@@ -25,7 +25,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.math.vector.i.Vec2i;
 import net.daporkchop.lib.math.vector.i.Vec3i;
 import net.daporkchop.lib.minecraft.tileentity.TileEntity;
-import net.daporkchop.lib.minecraft.world.Column;
+import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.format.WorldManager;
@@ -46,24 +46,24 @@ public class WorldImpl implements World {
     private final WorldManager manager;
     @NonNull
     private final MinecraftSave save;
-    private final LoadingCache<Vec2i, Column> loadedColumns = CacheBuilder.newBuilder()
+    private final LoadingCache<Vec2i, Chunk> loadedColumns = CacheBuilder.newBuilder()
             .concurrencyLevel(1)
             .maximumSize(34 * 34 * Runtime.getRuntime().availableProcessors())
             .expireAfterAccess(30L, TimeUnit.SECONDS) //TODO: configurable
-            .removalListener((RemovalListener<Vec2i, Column>) n -> {
+            .removalListener((RemovalListener<Vec2i, Chunk>) n -> {
                 if (n.getCause() != RemovalCause.REPLACED) {
                     n.getValue().unload();
                 }
             })
-            .build(new CacheLoader<Vec2i, Column>() {
+            .build(new CacheLoader<Vec2i, Chunk>() {
                 @Override
-                public Column load(Vec2i key) throws Exception {
-                    Column column = WorldImpl.this.save.getInitFunctions().getColumnCreator().apply(key, WorldImpl.this);
-                    //WorldImpl.this.manager.loadColumn(column);
-                    return column;
+                public Chunk load(Vec2i key) throws Exception {
+                    Chunk chunk = WorldImpl.this.save.getInitFunctions().getColumnCreator().apply(key, WorldImpl.this);
+                    //WorldImpl.this.manager.loadColumn(chunk);
+                    return chunk;
                 }
             });
-    /*private final Map<Vec2i, Column> loadedColumns = new LinkedHashMap<Vec2i, Column>()  {
+    /*private final Map<Vec2i, Chunk> loadedColumns = new LinkedHashMap<Vec2i, Chunk>()  {
         @Override
         protected boolean removeEldestEntry(Map.Entry eldest) {
             return this.size() > 256;
@@ -79,7 +79,7 @@ public class WorldImpl implements World {
     }
 
     @Override
-    public Map<Vec2i, Column> getLoadedColumns() {
+    public Map<Vec2i, Chunk> getLoadedColumns() {
         return this.loadedColumns.asMap();
     }
 
@@ -89,21 +89,21 @@ public class WorldImpl implements World {
     }
 
     @Override
-    public Column getColumn(int x, int z) {
+    public Chunk getColumn(int x, int z) {
         return this.loadedColumns.getUnchecked(new Vec2i(x, z));
         //return this.loadedColumns.computeIfAbsent(new Vec2i(x, z), pos -> this.save.getInitFunctions().getColumnCreator().apply(pos, this));
     }
 
     @Override
-    public Column getColumnOrNull(int x, int z) {
+    public Chunk getColumnOrNull(int x, int z) {
         return this.loadedColumns.getIfPresent(new Vec2i(x, z));
         //return this.loadedColumns.get(new Vec2i(x, z));
     }
 
     @Override
     public void save() {
-        this.loadedColumns.asMap().values().forEach(Column::save);
-        //this.loadedColumns.values().forEach(Column::save);
+        this.loadedColumns.asMap().values().forEach(Chunk::save);
+        //this.loadedColumns.values().forEach(Chunk::save);
         //TODO
     }
 
@@ -111,7 +111,7 @@ public class WorldImpl implements World {
     public void close() throws IOException {
         this.save();
         this.loadedColumns.invalidateAll();
-        //this.loadedColumns.values().forEach(Column::unload);
+        //this.loadedColumns.values().forEach(Chunk::unload);
         this.loadedTileEntities.clear();
         //TODO
     }

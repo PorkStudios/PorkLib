@@ -24,7 +24,7 @@ import net.daporkchop.lib.minecraft.tileentity.TileEntity;
 import net.daporkchop.lib.minecraft.tileentity.TileEntityBase;
 import net.daporkchop.lib.minecraft.tileentity.TileEntitySign;
 import net.daporkchop.lib.minecraft.world.Section;
-import net.daporkchop.lib.minecraft.world.Column;
+import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.format.WorldManager;
@@ -45,10 +45,10 @@ public class InitFunctions {
     private WorldCreator worldCreator = WorldImpl::new;
 
     @NonNull
-    private BiFunction<Vec2i, World, Column> columnCreator = ColumnImpl::new;
+    private BiFunction<Vec2i, World, Chunk> columnCreator = ChunkImpl::new;
 
     @NonNull
-    private IntObjObjBiFunction<Column, Section> chunkCreator = SectionImpl::new;
+    private IntObjObjBiFunction<Chunk, Section> chunkCreator = SectionImpl::new;
 
     @NonNull
     private BiFunction<World, CompoundTag, TileEntity> tileEntityCreator = (world, tag) -> {

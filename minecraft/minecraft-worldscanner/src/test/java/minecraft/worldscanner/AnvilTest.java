@@ -15,7 +15,7 @@
 
 package minecraft.worldscanner;import net.daporkchop.lib.minecraft.registry.Registry;
 import net.daporkchop.lib.minecraft.registry.ResourceLocation;
-import net.daporkchop.lib.minecraft.world.Column;
+import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.format.anvil.AnvilSaveFormat;
 import net.daporkchop.lib.minecraft.world.impl.SaveBuilder;
@@ -39,12 +39,12 @@ public class AnvilTest {
 
         Registry blockRegistry = save.getRegistry(new ResourceLocation("minecraft:blocks"));
 
-        Column column = save.getWorld(0).getColumn(30, 6);
-        column.load();
+        Chunk chunk = save.getWorld(0).getColumn(30, 6);
+        chunk.load();
         int id;
         for (int y = 255; y >= 0; y--) {
-            if ((id = column.getBlockId(7, y, 7)) != 0) {
-                System.out.printf("Surface in column (%d,%d) is at y=%d\n", column.getX(), column.getZ(), y);
+            if ((id = chunk.getBlockId(7, y, 7)) != 0) {
+                System.out.printf("Surface in chunk (%d,%d) is at y=%d\n", chunk.getX(), chunk.getZ(), y);
                 System.out.printf("Surface block id id %d (registry name: %s)\n", id, blockRegistry.getName(id).toString());
                 break;
             }

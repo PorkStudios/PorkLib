@@ -20,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import net.daporkchop.lib.minecraft.util.NibbleArray;
 import net.daporkchop.lib.minecraft.world.Section;
-import net.daporkchop.lib.minecraft.world.Column;
+import net.daporkchop.lib.minecraft.world.Chunk;
 
 /**
  * A chunk as defined in Minecraft 1.12.
@@ -35,7 +35,7 @@ import net.daporkchop.lib.minecraft.world.Column;
 public class SectionImpl implements Section {
     private final int y;
 
-    private final Column column;
+    private final Chunk chunk;
 
     private byte[] blockIds;
     private NibbleArray add;

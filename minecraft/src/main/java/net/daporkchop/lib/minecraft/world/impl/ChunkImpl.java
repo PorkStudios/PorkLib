@@ -22,20 +22,20 @@ import lombok.Setter;
 import net.daporkchop.lib.math.vector.i.Vec2i;
 import net.daporkchop.lib.minecraft.tileentity.TileEntity;
 import net.daporkchop.lib.minecraft.world.Section;
-import net.daporkchop.lib.minecraft.world.Column;
+import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.World;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
 
 /**
- * An implementation of a Column for vanilla Minecraft
+ * An implementation of a Chunk for vanilla Minecraft.
  *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
 @Getter
-public class ColumnImpl implements Column {
+public class ChunkImpl implements Chunk {
     @NonNull
     private final Vec2i pos;
 
@@ -130,8 +130,19 @@ public class ColumnImpl implements Column {
         }
         for (int x = 15; x >= 0; x--) {
             for (int z = 15; z >= 0; z--) {
-                this.heightMap[z << 4 | x] = (byte) Column.super.getHighestBlock(x, z);
+                //call super since getHighestBlock implementation only reads from heightmap
+                this.heightMap[z << 4 | x] = (byte) Chunk.super.getHighestBlock(x, z);
             }
         }
+    }
+
+    @Override
+    public int minY() {
+        return 0;
+    }
+
+    @Override
+    public int maxY() {
+        return 256;
     }
 }

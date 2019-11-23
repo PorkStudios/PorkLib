@@ -24,12 +24,12 @@ import lombok.NonNull;
 import lombok.Setter;
 import net.daporkchop.lib.math.vector.i.Vec2i;
 import net.daporkchop.lib.minecraft.util.NibbleArray;
+import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Section;
-import net.daporkchop.lib.minecraft.world.Column;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.format.WorldManager;
+import net.daporkchop.lib.minecraft.world.impl.ChunkImpl;
 import net.daporkchop.lib.minecraft.world.impl.SectionImpl;
-import net.daporkchop.lib.minecraft.world.impl.ColumnImpl;
 import net.daporkchop.lib.nbt.NBTInputStream;
 import net.daporkchop.lib.nbt.tag.notch.ByteArrayTag;
 import net.daporkchop.lib.nbt.tag.notch.ByteTag;
@@ -124,17 +124,17 @@ public class AnvilWorldManager implements WorldManager {
 
     @Override
     @SuppressWarnings("unchecked")
-    public void loadColumn(Column column) {
+    public void loadColumn(Chunk chunk) {
         try {
-            RegionFile file = this.regionFileCache.get(new Vec2i(column.getX() >> 5, column.getZ() >> 5));
+            RegionFile file = this.regionFileCache.get(new Vec2i(chunk.getX() >> 5, chunk.getZ() >> 5));
             CompoundTag rootTag;
             //TODO: check if region contains chunk
-            try (NBTInputStream is = new NBTInputStream(file.getChunkDataInputStream(column.getX() & 0x1F, column.getZ() & 0x1F))) {
+            try (NBTInputStream is = new NBTInputStream(file.getChunkDataInputStream(chunk.getX() & 0x1F, chunk.getZ() & 0x1F))) {
                 rootTag = is.readTag().get("Level");
             } catch (NullPointerException e) {
                 //this seems to happen for invalid/corrupt chunks
                 for (int y = 15; y >= 0; y--) {
-                    column.setChunk(y, null);
+                    chunk.setChunk(y, null);
                 }
                 return;
             } catch (IOException e) {
@@ -145,7 +145,7 @@ public class AnvilWorldManager implements WorldManager {
                 ListTag<CompoundTag> sectionsTag = rootTag.get("Sections");
                 //TODO: biomes, terrain populated flag etc.
                 for (int y = 15; y >= 0; y--) {
-                    Section section = column.getChunk(y);
+                    Section section = chunk.getChunk(y);
                     CompoundTag tag = null;
                     for (CompoundTag t : sectionsTag.getValue()) {
                         if (t.<ByteTag>get("Y").getValue() == y) {
@@ -154,10 +154,10 @@ public class AnvilWorldManager implements WorldManager {
                         }
                     }
                     if (tag == null) {
-                        column.setChunk(y, null);
+                        chunk.setChunk(y, null);
                     } else {
                         if (section == null) {
-                            column.setChunk(y, section = this.format.getSave().getInitFunctions().getChunkCreator().apply(y, column));
+                            chunk.setChunk(y, section = this.format.getSave().getInitFunctions().getChunkCreator().apply(y, chunk));
                         }
                         if (section instanceof SectionImpl) {
                             this.loadChunkImpl((SectionImpl) section, tag);
@@ -182,25 +182,25 @@ public class AnvilWorldManager implements WorldManager {
                     }
                 }
             }
-            if (column instanceof ColumnImpl && rootTag.contains("HeightMap")) {
+            if (chunk instanceof ChunkImpl && rootTag.contains("HeightMap")) {
                 int[] heightMapI = rootTag.<IntArrayTag>get("HeightMap").getValue();
                 byte[] heightMapB = new byte[16 * 16];
                 for (int i = heightMapI.length - 1; i >= 0; i--) {
                     heightMapB[i] = (byte) heightMapI[i];
                 }
-                ((ColumnImpl) column).setHeightMap(heightMapB);
+                ((ChunkImpl) chunk).setHeightMap(heightMapB);
             }
             {
                 ListTag<CompoundTag> sectionsTag = rootTag.get("TileEntities");
                 sectionsTag.getValue().stream()
                         .map(tag -> this.world.getSave().getInitFunctions().getTileEntityCreator().apply(this.world, tag))
-                        .forEach(column.getTileEntities()::add);
-                column.getTileEntities().forEach(tileEntity -> this.world.getLoadedTileEntities().put(tileEntity.getPos(), tileEntity));
+                        .forEach(chunk.getTileEntities()::add);
+                chunk.getTileEntities().forEach(tileEntity -> this.world.getLoadedTileEntities().put(tileEntity.getPos(), tileEntity));
             }
-            this.world.getLoadedColumns().put(column.getPos(), column);
+            this.world.getLoadedColumns().put(chunk.getPos(), chunk);
         } catch (Exception e) {
             e.printStackTrace();
-            column.unload();
+            chunk.unload();
         }
     }
 
@@ -217,14 +217,14 @@ public class AnvilWorldManager implements WorldManager {
     }
 
     @Override
-    public void saveColumn(Column column) {
+    public void saveColumn(Chunk chunk) {
         /*CompoundTag tag1 = new CompoundTag();
         CompoundTag levelTag = new CompoundTag();
         tag1.putCompound("Level", levelTag);
         ListTag<CompoundTag> sectionsTag = new ListTag<>("Sections");
         levelTag.putList(sectionsTag);
         for (int y = 15; y >= 0; y--)   {
-            Chunk chunk = column.getChunk(y);
+            Chunk chunk = chunk.getChunk(y);
             if (chunk != null)  {
                 ChunkImpl impl;
                 if (chunk instanceof ChunkImpl) {
@@ -259,8 +259,8 @@ public class AnvilWorldManager implements WorldManager {
                 sectionsTag.getValue().add(t);
             }
         }
-        RegionFile file = RegionFileCache.getRegionFile(this.root, column.getX(), column.getZ());
-        try (OutputStream os = file.getChunkDataOutputStream(column.getX() & 0x1F, column.getZ() & 0x1F))   {
+        RegionFile file = RegionFileCache.getRegionFile(this.root, chunk.getX(), chunk.getZ());
+        try (OutputStream os = file.getChunkDataOutputStream(chunk.getX() & 0x1F, chunk.getZ() & 0x1F))   {
             NBTIO.write(tag1, os);
         } catch (IOException e) {
             throw new RuntimeException(e);

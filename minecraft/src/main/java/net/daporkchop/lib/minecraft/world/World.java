@@ -33,11 +33,11 @@ public interface World extends Closeable {
 
     WorldManager getManager();
 
-    Map<Vec2i, Column> getLoadedColumns();
+    Map<Vec2i, Chunk> getLoadedColumns();
 
-    Column getColumn(int x, int z);
+    Chunk getColumn(int x, int z);
 
-    Column getColumnOrNull(int x, int z);
+    Chunk getColumnOrNull(int x, int z);
 
     Map<Vec3i, TileEntity> getLoadedTileEntities();
 
@@ -48,7 +48,7 @@ public interface World extends Closeable {
     void save();
 
     default int getBlockId(int x, int y, int z) {
-        Column col = this.getColumnOrNull(x >> 4, z >> 4);
+        Chunk col = this.getColumnOrNull(x >> 4, z >> 4);
         if (col == null) {
             return 0;
         } else {
@@ -57,7 +57,7 @@ public interface World extends Closeable {
     }
 
     default int getBlockMeta(int x, int y, int z) {
-        Column col = this.getColumnOrNull(x >> 4, z >> 4);
+        Chunk col = this.getColumnOrNull(x >> 4, z >> 4);
         if (col == null) {
             return 0;
         } else {
@@ -66,7 +66,7 @@ public interface World extends Closeable {
     }
 
     default int getBlockLight(int x, int y, int z) {
-        Column col = this.getColumnOrNull(x >> 4, z >> 4);
+        Chunk col = this.getColumnOrNull(x >> 4, z >> 4);
         if (col == null) {
             return 0;
         } else {
@@ -75,7 +75,7 @@ public interface World extends Closeable {
     }
 
     default int getSkyLight(int x, int y, int z) {
-        Column col = this.getColumnOrNull(x >> 4, z >> 4);
+        Chunk col = this.getColumnOrNull(x >> 4, z >> 4);
         if (col == null) {
             return 0;
         } else {
@@ -84,7 +84,7 @@ public interface World extends Closeable {
     }
 
     default void setBlockId(int x, int y, int z, int id) {
-        Column col = this.getColumn(x >> 4, z >> 4);
+        Chunk col = this.getColumn(x >> 4, z >> 4);
         if (!col.isLoaded()) {
             col.load();
         }
@@ -92,7 +92,7 @@ public interface World extends Closeable {
     }
 
     default void setBlockMeta(int x, int y, int z, int meta) {
-        Column col = this.getColumn(x >> 4, z >> 4);
+        Chunk col = this.getColumn(x >> 4, z >> 4);
         if (!col.isLoaded()) {
             col.load();
         }
@@ -100,7 +100,7 @@ public interface World extends Closeable {
     }
 
     default void setBlockLight(int x, int y, int z, int level) {
-        Column col = this.getColumn(x >> 4, z >> 4);
+        Chunk col = this.getColumn(x >> 4, z >> 4);
         if (!col.isLoaded()) {
             col.load();
         }
@@ -108,7 +108,7 @@ public interface World extends Closeable {
     }
 
     default void setSkyLight(int x, int y, int z, int level) {
-        Column col = this.getColumn(x >> 4, z >> 4);
+        Chunk col = this.getColumn(x >> 4, z >> 4);
         if (!col.isLoaded()) {
             col.load();
         }
@@ -116,7 +116,7 @@ public interface World extends Closeable {
     }
 
     default int getHighestBlock(int x, int z) {
-        Column col = this.getColumnOrNull(x >> 4, z >> 4);
+        Chunk col = this.getColumnOrNull(x >> 4, z >> 4);
         if (col == null) {
             return -1;
         } else {

@@ -21,7 +21,7 @@ import net.daporkchop.lib.common.misc.Tuple;
 import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.minecraft.registry.Registry;
 import net.daporkchop.lib.minecraft.registry.ResourceLocation;
-import net.daporkchop.lib.minecraft.world.Column;
+import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.format.SaveFormat;
@@ -118,7 +118,7 @@ public class AnvilSaveFormat implements SaveFormat {
     }
 
     @Override
-    public Column createColumnInstance(int x, int z) {
+    public Chunk createColumnInstance(int x, int z) {
         return null;
     }
 }

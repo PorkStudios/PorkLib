@@ -16,8 +16,8 @@
 package net.daporkchop.lib.minecraft.world.format;
 
 import lombok.NonNull;
+import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Section;
-import net.daporkchop.lib.minecraft.world.Column;
 import net.daporkchop.lib.minecraft.world.World;
 
 /**
@@ -36,11 +36,11 @@ public interface WorldManager {
 
     boolean hasColumn(int x, int z);
 
-    void loadColumn(@NonNull Column column);
+    void loadColumn(@NonNull Chunk chunk);
 
-    void saveColumn(@NonNull Column column);
+    void saveColumn(@NonNull Chunk chunk);
 
-    default void loadChunk(@NonNull Column column, int y) {
+    default void loadChunk(@NonNull Chunk chunk, int y) {
         throw new UnsupportedOperationException();
     }
 

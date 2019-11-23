@@ -25,10 +25,13 @@ import java.io.IOException;
 import java.util.Collection;
 
 /**
+ * A vertical column of 16³ {@link Section}s.
+ * <p>
+ * In vanilla Minecraft, a chunk consists of 16 {@link Section}s indexed from 0-15.
+ *
  * @author DaPorkchop_
  */
-//TODO: rename to Chunk
-public interface Column extends BlockDataAccess, IntVector2.AddressableXZ, Closeable {
+public interface Chunk extends BlockDataAccess, IntVector2.AddressableXZ, Closeable {
     Vec2i getPos();
 
     World getWorld();
@@ -171,4 +174,24 @@ public interface Column extends BlockDataAccess, IntVector2.AddressableXZ, Close
     }
 
     Collection<TileEntity> getTileEntities();
+
+    @Override
+    default int minX() {
+        return this.getX() << 4;
+    }
+
+    @Override
+    default int minZ() {
+        return this.getZ() << 4;
+    }
+
+    @Override
+    default int maxX() {
+        return (this.getX() << 4) + 16;
+    }
+
+    @Override
+    default int maxZ() {
+        return (this.getZ() << 4) + 16;
+    }
 }

@@ -33,7 +33,7 @@ import java.io.IOException;
 @Getter
 @Setter
 public class IntTag extends Tag {
-    private int value;
+    protected int value;
 
     public IntTag(String name) {
         super(name);

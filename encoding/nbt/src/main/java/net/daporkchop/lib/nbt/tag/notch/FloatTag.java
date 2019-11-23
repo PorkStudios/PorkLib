@@ -33,7 +33,7 @@ import java.io.IOException;
 @Getter
 @Setter
 public class FloatTag extends Tag {
-    private float value;
+    protected float value;
 
     public FloatTag(String name) {
         super(name);

@@ -35,7 +35,7 @@ import java.nio.charset.StandardCharsets;
 @Setter
 public class StringTag extends Tag {
     @NonNull
-    private String value;
+    protected String value;
 
     public StringTag(String name) {
         super(name);

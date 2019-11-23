@@ -39,7 +39,7 @@ import java.util.function.Consumer;
 @Setter
 public class ListTag<T extends Tag> extends Tag {
     @NonNull
-    private List<T> value;
+    protected List<T> value;
 
     public ListTag(String name) {
         super(name);
@@ -57,7 +57,9 @@ public class ListTag<T extends Tag> extends Tag {
         int len = in.readInt();
         for (int i = 0; i < len; i++) {
             T tag = registry.create(type, null);
+            in.heirarchy().push(tag);
             tag.read(in, registry);
+            in.heirarchy().pop();
             this.value.add(tag);
         }
     }

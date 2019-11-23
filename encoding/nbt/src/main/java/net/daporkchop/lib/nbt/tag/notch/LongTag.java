@@ -33,7 +33,7 @@ import java.io.IOException;
 @Getter
 @Setter
 public class LongTag extends Tag {
-    private long value;
+    protected long value;
 
     public LongTag(String name) {
         super(name);

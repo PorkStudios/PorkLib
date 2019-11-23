@@ -33,7 +33,7 @@ import java.io.IOException;
 @Getter
 @Setter
 public class ByteTag extends Tag {
-    private byte value;
+    protected byte value;
 
     public ByteTag(String name) {
         super(name);

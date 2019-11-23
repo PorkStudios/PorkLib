@@ -31,7 +31,7 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
  *
  * @author DaPorkchop_
  */
-public final class DirectSectionImpl implements Section, AccessibleDirectMemoryHolder {
+public class DirectSectionImpl implements Section, AccessibleDirectMemoryHolder {
     public static final long SIZE_BLOCK        = (16 * 16 * 16) << 1;
     public static final long SIZE_NIBBLE_LAYER = (16 * 16 * 16) >>> 1;
     public static final long FULL_SIZE         = SIZE_BLOCK + SIZE_NIBBLE_LAYER * 3;

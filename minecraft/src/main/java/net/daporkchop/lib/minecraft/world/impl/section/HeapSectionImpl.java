@@ -21,6 +21,7 @@ import lombok.Setter;
 import net.daporkchop.lib.minecraft.util.SectionLayer;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Section;
+import net.daporkchop.lib.nbt.tag.notch.ByteArrayTag;
 
 /**
  * A chunk section stored on the heap.
@@ -28,8 +29,7 @@ import net.daporkchop.lib.minecraft.world.Section;
  * @author DaPorkchop_
  */
 @Getter
-@Setter
-public final class HeapSectionImpl implements Section {
+public class HeapSectionImpl implements Section {
     private byte[]       blocks;
     private SectionLayer add;
     private SectionLayer meta;
@@ -86,5 +86,26 @@ public final class HeapSectionImpl implements Section {
     @Override
     public void setSkyLight(int x, int y, int z, int level) {
         this.skyLight.set(x, y, z, level);
+    }
+
+    //setters
+    public void setBlocks(ByteArrayTag tag) {
+        this.blocks = tag == null ? null : tag.getValue();
+    }
+
+    public void setAdd(ByteArrayTag tag) {
+        this.add = tag == null ? null : new SectionLayer(tag.getValue());
+    }
+
+    public void setMeta(ByteArrayTag tag) {
+        this.meta = tag == null ? null : new SectionLayer(tag.getValue());
+    }
+
+    public void setBlockLight(ByteArrayTag tag) {
+        this.blockLight = tag == null ? null : new SectionLayer(tag.getValue());
+    }
+
+    public void setSkyLight(ByteArrayTag tag) {
+        this.skyLight = tag == null ? null : new SectionLayer(tag.getValue());
     }
 }

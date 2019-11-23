@@ -33,7 +33,7 @@ import java.io.IOException;
 @Getter
 @Setter
 public class DoubleTag extends Tag {
-    private double value;
+    protected double value;
 
     public DoubleTag(String name) {
         super(name);

@@ -37,7 +37,7 @@ import java.util.function.Consumer;
  */
 @Getter
 public class CompoundTag extends Tag {
-    private final Map<String, Tag> contents = new HashMap<>();
+    protected final Map<String, Tag> contents = new HashMap<>();
 
     public CompoundTag() {
         this("");
@@ -58,7 +58,9 @@ public class CompoundTag extends Tag {
                 name = new String(b, StandardCharsets.UTF_8);
             }
             Tag tag = registry.create(id, name);
+            in.heirarchy().push(tag);
             tag.read(in, registry);
+            in.heirarchy().pop();
             this.contents.put(name, tag);
         }
     }

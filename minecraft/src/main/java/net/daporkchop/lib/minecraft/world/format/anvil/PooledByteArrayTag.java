@@ -13,57 +13,35 @@
  *
  */
 
-package net.daporkchop.lib.nbt.tag.notch;
+package net.daporkchop.lib.minecraft.world.format.anvil;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.nbt.NBTInputStream;
-import net.daporkchop.lib.nbt.NBTOutputStream;
-import net.daporkchop.lib.nbt.tag.Tag;
 import net.daporkchop.lib.nbt.tag.TagRegistry;
+import net.daporkchop.lib.nbt.tag.notch.ByteArrayTag;
 
 import java.io.IOException;
 
 /**
- * A tag that contains a single int[]
- *
  * @author DaPorkchop_
  */
 @Getter
-@Setter
-public class IntArrayTag extends Tag {
-    @NonNull
-    protected int[] value;
+@Accessors(fluent = true)
+public class PooledByteArrayTag extends ByteArrayTag {
+    protected ByteBuf buf;
 
-    public IntArrayTag(String name) {
+    public PooledByteArrayTag(String name) {
         super(name);
     }
 
-    public IntArrayTag(String name, @NonNull int[] value) {
-        super(name);
-        this.value = value;
-    }
-
     @Override
-    public void read(NBTInputStream in, TagRegistry registry) throws IOException {
-        int len = in.readInt();
-        this.value = new int[len];
-        for (int i = 0; i < len; i++) {
-            this.value[i] = in.readInt();
-        }
-    }
-
-    @Override
-    public void write(NBTOutputStream out, TagRegistry registry) throws IOException {
-        out.writeInt(this.value.length);
-        for (int i = 0; i < this.value.length; i++) {
-            out.writeInt(this.value[i]);
-        }
-    }
-
-    @Override
-    public String toString() {
-        return String.format("IntArrayTag(\"%s\"): %d ints", this.getName(), this.value.length);
+    public void read(@NonNull NBTInputStream in, @NonNull TagRegistry registry) throws IOException {
+        int length = in.readInt();
+        this.buf = PooledByteBufAllocator.DEFAULT.heapBuffer(length, length);
+        in.readFully(this.value = this.buf.array(), 0, length);
     }
 }

@@ -15,25 +15,33 @@
 
 package net.daporkchop.lib.nbt;
 
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.encoding.compression.CompressionHelper;
+import net.daporkchop.lib.nbt.tag.Tag;
 import net.daporkchop.lib.nbt.tag.TagRegistry;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Stack;
 
 /**
  * Allows reading NBT tags from an input stream
  *
  * @author DaPorkchop_
  */
+@Accessors(fluent = true)
 public class NBTInputStream extends DataIn {
-    private final InputStream in;
-    private final TagRegistry defaultRegistry;
+    protected final InputStream in;
+    protected final TagRegistry defaultRegistry;
+
+    @Getter
+    protected final Stack<Tag> heirarchy = new Stack<>();
 
     public NBTInputStream(@NonNull InputStream in) throws IOException {
         this(in, Compression.NONE, TagRegistry.NOTCHIAN);
@@ -56,15 +64,19 @@ public class NBTInputStream extends DataIn {
         return this.readTag(this.defaultRegistry);
     }
 
-    public CompoundTag readTag(@NonNull TagRegistry registry) throws IOException {
+    public synchronized CompoundTag readTag(@NonNull TagRegistry registry) throws IOException {
         byte id = this.readByte();
         if (registry.getId(CompoundTag.class) != id) {
             throw new IllegalStateException("Invalid id for compound tag!");
         }
-        byte[] b = new byte[this.readShort() & 0xFFFF];
+        byte[] b = new byte[this.readUShort()];
         this.readFully(b, 0, b.length);
         CompoundTag tag = new CompoundTag(new String(b, StandardCharsets.UTF_8));
+        b = null;
+        this.heirarchy.clear();
+        this.heirarchy.push(tag);
         tag.read(this, registry);
+        this.heirarchy.clear();
         return tag;
     }
 

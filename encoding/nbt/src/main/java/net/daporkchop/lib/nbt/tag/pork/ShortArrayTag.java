@@ -34,7 +34,7 @@ import java.io.IOException;
 @Setter
 public class ShortArrayTag extends Tag {
     @NonNull
-    private short[] value;
+    protected short[] value;
 
     public ShortArrayTag(String name) {
         super(name);

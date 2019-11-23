@@ -33,7 +33,7 @@ import java.io.IOException;
 @Getter
 @Setter
 public class CharTag extends Tag {
-    private char value;
+    protected char value;
 
     public CharTag(String name) {
         super(name);

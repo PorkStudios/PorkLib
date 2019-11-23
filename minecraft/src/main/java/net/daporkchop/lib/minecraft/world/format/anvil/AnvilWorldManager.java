@@ -24,6 +24,7 @@ import lombok.NonNull;
 import lombok.Setter;
 import net.daporkchop.lib.common.cache.Cache;
 import net.daporkchop.lib.common.cache.SoftThreadCache;
+import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.math.vector.i.Vec2i;
 import net.daporkchop.lib.minecraft.util.SectionLayer;
 import net.daporkchop.lib.minecraft.world.Chunk;
@@ -34,6 +35,7 @@ import net.daporkchop.lib.minecraft.world.impl.section.DirectSectionImpl;
 import net.daporkchop.lib.minecraft.world.impl.section.HeapSectionImpl;
 import net.daporkchop.lib.minecraft.world.impl.vanilla.VanillaChunkImpl;
 import net.daporkchop.lib.nbt.NBTInputStream;
+import net.daporkchop.lib.nbt.tag.TagRegistry;
 import net.daporkchop.lib.nbt.tag.notch.ByteArrayTag;
 import net.daporkchop.lib.nbt.tag.notch.ByteTag;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
@@ -59,6 +61,10 @@ public class AnvilWorldManager implements WorldManager {
     private static final Cache<HeapSectionImpl> CHUNK_CACHE    = SoftThreadCache.of(() -> new HeapSectionImpl(-1, null));
     private static final Pattern                REGION_PATTERN = Pattern.compile("^r\\.(-?[0-9]+)\\.(-?[0-9]+)\\.mca$");
 
+    private static final TagRegistry POOLED_REGISTRY = new TagRegistry().registerAll(TagRegistry.NOTCHIAN)
+            .register(7, PooledByteArrayTag.class, PooledByteArrayTag::new)
+            .finish();
+
     private final AnvilSaveFormat format;
     private final File            root;
 
@@ -72,13 +78,7 @@ public class AnvilWorldManager implements WorldManager {
 
     public AnvilWorldManager(@NonNull AnvilSaveFormat format, @NonNull File root) {
         this.format = format;
-        this.root = root;
-
-        if (this.root.exists() && !this.root.isDirectory()) {
-            throw new IllegalArgumentException(String.format("%s isn't a directory!", this.root.getAbsolutePath()));
-        } else {
-            this.root.mkdirs();
-        }
+        this.root = PFiles.ensureDirectoryExists(root);
 
         this.regionFileCache = CacheBuilder.newBuilder()
                 .concurrencyLevel(1)
@@ -94,16 +94,8 @@ public class AnvilWorldManager implements WorldManager {
                 .build(new CacheLoader<Vec2i, RegionFile>() {
                     @Override
                     public RegionFile load(Vec2i key) throws Exception {
-                        File file = new File(AnvilWorldManager.this.root, String.format("r.%d.%d.mca", key.getX(), key.getY()));
-                        if (!file.exists()) {
-                            if (file.createNewFile()) {
-                                AnvilWorldManager.this.regionExists.put(key, true);
-                            } else {
-                                throw new IllegalStateException(String.format("Could not create %s", file.getAbsolutePath()));
-                            }
-                        } else {
-                            AnvilWorldManager.this.regionExists.put(key, true);
-                        }
+                        File file = PFiles.ensureFileExists(new File(AnvilWorldManager.this.root, String.format("r.%d.%d.mca", key.getX(), key.getY())));
+                        AnvilWorldManager.this.regionExists.put(key, true);
                         return new RegionFile(file);
                     }
                 });
@@ -137,7 +129,7 @@ public class AnvilWorldManager implements WorldManager {
             RegionFile file = this.regionFileCache.get(new Vec2i(chunk.getX() >> 5, chunk.getZ() >> 5));
             CompoundTag rootTag;
             //TODO: check if region contains chunk
-            try (NBTInputStream is = new NBTInputStream(file.getChunkDataInputStream(chunk.getX() & 0x1F, chunk.getZ() & 0x1F))) {
+            try (NBTInputStream is = new NBTInputStream(file.getChunkDataInputStream(chunk.getX() & 0x1F, chunk.getZ() & 0x1F), POOLED_REGISTRY)) {
                 rootTag = is.readTag().get("Level");
             } catch (NullPointerException e) {
                 //this seems to happen for invalid/corrupt chunks
@@ -218,15 +210,11 @@ public class AnvilWorldManager implements WorldManager {
     }
 
     private void loadSection(@NonNull HeapSectionImpl impl, @NonNull CompoundTag tag) {
-        impl.setBlocks(tag.<ByteArrayTag>get("Blocks").getValue());
-        impl.setMeta(new SectionLayer(tag.<ByteArrayTag>get("Data").getValue()));
-        impl.setBlockLight(new SectionLayer(tag.<ByteArrayTag>get("BlockLight").getValue()));
-        impl.setSkyLight(new SectionLayer(tag.<ByteArrayTag>get("SkyLight").getValue()));
-        if (tag.contains("Add")) {
-            impl.setAdd(new SectionLayer(tag.<ByteArrayTag>get("Add").getValue()));
-        } else {
-            impl.setAdd(null);
-        }
+        impl.setBlocks(tag.get("Blocks"));
+        impl.setMeta(tag.get("Data"));
+        impl.setBlockLight(tag.get("BlockLight"));
+        impl.setSkyLight(tag.get("SkyLight"));
+        impl.setAdd(tag.get("Add"));
     }
 
     private void loadSection(@NonNull DirectSectionImpl impl, @NonNull CompoundTag tag) {

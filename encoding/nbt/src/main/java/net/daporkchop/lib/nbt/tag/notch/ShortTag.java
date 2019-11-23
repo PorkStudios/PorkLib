@@ -33,7 +33,7 @@ import java.io.IOException;
 @Getter
 @Setter
 public class ShortTag extends Tag {
-    private short value;
+    protected short value;
 
     public ShortTag(String name) {
         super(name);

@@ -34,7 +34,7 @@ import java.io.IOException;
 @Setter
 public class DoubleArrayTag extends Tag {
     @NonNull
-    private double[] value;
+    protected double[] value;
 
     public DoubleArrayTag(String name) {
         super(name);

@@ -34,7 +34,7 @@ import java.io.IOException;
 @Setter
 public class FloatArrayTag extends Tag {
     @NonNull
-    private float[] value;
+    protected float[] value;
 
     public FloatArrayTag(String name) {
         super(name);

@@ -34,7 +34,7 @@ import java.io.IOException;
 @Setter
 public class LongArrayTag extends Tag {
     @NonNull
-    private long[] value;
+    protected long[] value;
 
     public LongArrayTag(String name) {
         super(name);

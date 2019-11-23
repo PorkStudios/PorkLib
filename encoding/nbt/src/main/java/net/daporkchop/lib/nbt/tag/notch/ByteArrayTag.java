@@ -34,7 +34,7 @@ import java.io.IOException;
 @Setter
 public class ByteArrayTag extends Tag {
     @NonNull
-    private byte[] value;
+    protected byte[] value;
 
     public ByteArrayTag(String name) {
         super(name);

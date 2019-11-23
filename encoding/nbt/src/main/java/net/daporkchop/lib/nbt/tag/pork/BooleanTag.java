@@ -33,7 +33,7 @@ import java.io.IOException;
 @Getter
 @Setter
 public class BooleanTag extends Tag {
-    private boolean value;
+    protected boolean value;
 
     public BooleanTag(String name) {
         super(name);

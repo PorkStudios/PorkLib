@@ -34,7 +34,7 @@ import java.io.IOException;
 @Setter
 public class CharArrayTag extends Tag {
     @NonNull
-    private char[] value;
+    protected char[] value;
 
     public CharArrayTag(String name) {
         super(name);

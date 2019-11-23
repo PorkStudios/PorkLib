@@ -35,13 +35,9 @@ import java.util.Stack;
  *
  * @author DaPorkchop_
  */
-@Accessors(fluent = true)
 public class NBTInputStream extends DataIn {
     protected final InputStream in;
     protected final TagRegistry defaultRegistry;
-
-    @Getter
-    protected final Stack<Tag> heirarchy = new Stack<>();
 
     public NBTInputStream(@NonNull InputStream in) throws IOException {
         this(in, Compression.NONE, TagRegistry.NOTCHIAN);
@@ -73,10 +69,7 @@ public class NBTInputStream extends DataIn {
         this.readFully(b, 0, b.length);
         CompoundTag tag = new CompoundTag(new String(b, StandardCharsets.UTF_8));
         b = null;
-        this.heirarchy.clear();
-        this.heirarchy.push(tag);
         tag.read(this, registry);
-        this.heirarchy.clear();
         return tag;
     }
 

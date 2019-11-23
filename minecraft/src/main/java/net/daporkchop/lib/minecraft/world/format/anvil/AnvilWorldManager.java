@@ -61,10 +61,6 @@ public class AnvilWorldManager implements WorldManager {
     private static final Cache<HeapSectionImpl> CHUNK_CACHE    = SoftThreadCache.of(() -> new HeapSectionImpl(-1, null));
     private static final Pattern                REGION_PATTERN = Pattern.compile("^r\\.(-?[0-9]+)\\.(-?[0-9]+)\\.mca$");
 
-    private static final TagRegistry POOLED_REGISTRY = new TagRegistry().registerAll(TagRegistry.NOTCHIAN)
-            .register(7, PooledByteArrayTag.class, PooledByteArrayTag::new)
-            .finish();
-
     private final AnvilSaveFormat format;
     private final File            root;
 
@@ -129,7 +125,7 @@ public class AnvilWorldManager implements WorldManager {
             RegionFile file = this.regionFileCache.get(new Vec2i(chunk.getX() >> 5, chunk.getZ() >> 5));
             CompoundTag rootTag;
             //TODO: check if region contains chunk
-            try (NBTInputStream is = new NBTInputStream(file.getChunkDataInputStream(chunk.getX() & 0x1F, chunk.getZ() & 0x1F), POOLED_REGISTRY)) {
+            try (NBTInputStream is = new NBTInputStream(file.getChunkDataInputStream(chunk.getX() & 0x1F, chunk.getZ() & 0x1F))) {
                 rootTag = is.readTag().get("Level");
             } catch (NullPointerException e) {
                 //this seems to happen for invalid/corrupt chunks

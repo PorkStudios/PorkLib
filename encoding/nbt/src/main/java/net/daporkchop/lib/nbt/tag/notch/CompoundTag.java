@@ -58,9 +58,7 @@ public class CompoundTag extends Tag {
                 name = new String(b, StandardCharsets.UTF_8);
             }
             Tag tag = registry.create(id, name);
-            in.heirarchy().push(tag);
             tag.read(in, registry);
-            in.heirarchy().pop();
             this.contents.put(name, tag);
         }
     }

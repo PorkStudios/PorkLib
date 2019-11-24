@@ -31,7 +31,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Stack;
 
 /**
- * Allows reading NBT tags from an input stream
+ * Allows reading NBT tags from an {@link InputStream}.
  *
  * @author DaPorkchop_
  */

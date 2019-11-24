@@ -19,9 +19,11 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
+import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import net.daporkchop.lib.binary.netty.NettyUtil;
 import net.daporkchop.lib.common.cache.Cache;
 import net.daporkchop.lib.common.cache.SoftThreadCache;
 import net.daporkchop.lib.common.misc.file.PFiles;
@@ -34,15 +36,13 @@ import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.format.WorldManager;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.OverclockedRegionFile;
+import net.daporkchop.lib.minecraft.world.format.anvil.region.RegionConstants;
 import net.daporkchop.lib.minecraft.world.impl.MinecraftSaveConfig;
 import net.daporkchop.lib.minecraft.world.impl.section.DirectSectionImpl;
 import net.daporkchop.lib.minecraft.world.impl.section.HeapSectionImpl;
 import net.daporkchop.lib.minecraft.world.impl.vanilla.VanillaChunkImpl;
 import net.daporkchop.lib.nbt.NBTInputStream;
-import net.daporkchop.lib.nbt.tag.notch.ByteArrayTag;
-import net.daporkchop.lib.nbt.tag.notch.ByteTag;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
-import net.daporkchop.lib.nbt.tag.notch.IntArrayTag;
 import net.daporkchop.lib.nbt.tag.notch.ListTag;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
@@ -55,25 +55,29 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.Inflater;
+import java.util.zip.InflaterInputStream;
 
 /**
  * @author DaPorkchop_
  */
 @Getter
 public class AnvilWorldManager implements WorldManager {
-    private static final Cache<HeapSectionImpl> CHUNK_CACHE    = SoftThreadCache.of(() -> new HeapSectionImpl(-1, null));
-    private static final Pattern                REGION_PATTERN = Pattern.compile("^r\\.(-?[0-9]+)\\.(-?[0-9]+)\\.mca$");
+    protected static final Cache<HeapSectionImpl> CHUNK_CACHE    = SoftThreadCache.of(() -> new HeapSectionImpl(-1, null));
+    protected static final Pattern                REGION_PATTERN = Pattern.compile("^r\\.(-?[0-9]+)\\.(-?[0-9]+)\\.mca$");
+    protected static final Cache<Inflater>        INFLATER_CACHE = SoftThreadCache.of(Inflater::new);
 
-    private final AnvilSaveFormat format;
-    private final File            root;
+    protected final AnvilSaveFormat format;
+    protected final File            root;
 
     @NonNull
     @Setter
-    private World world;
+    protected World world;
 
-    private LoadingCache<Vec2i, OverclockedRegionFile> regionFileCache;
+    protected LoadingCache<Vec2i, OverclockedRegionFile> regionFileCache;
 
-    private LoadingCache<Vec2i, Boolean> regionExists;
+    protected LoadingCache<Vec2i, Boolean> regionExists;
 
     public AnvilWorldManager(@NonNull AnvilSaveFormat format, @NonNull File root) {
         this.format = format;
@@ -126,19 +130,42 @@ public class AnvilWorldManager implements WorldManager {
     @SuppressWarnings("unchecked")
     public void loadColumn(Chunk chunk) {
         try {
-            OverclockedRegionFile file = this.regionFileCache.get(new Vec2i(chunk.getX() >> 5, chunk.getZ() >> 5));
             CompoundTag rootTag;
             //TODO: check if region contains chunk
-            try (NBTInputStream is = new NBTInputStream(file.read(chunk.getX() & 0x1F, chunk.getZ() & 0x1F))) {
-                rootTag = is.readTag().getCompound("Level");
-            } catch (NullPointerException e) {
-                //this seems to happen for invalid/corrupt chunks
-                for (int y = 15; y >= 0; y--) {
-                    chunk.section(y, null);
+            {
+                ByteBuf buf = this.regionFileCache.get(new Vec2i(chunk.getX() >> 5, chunk.getZ() >> 5)).readDirect(chunk.getX() & 0x1F, chunk.getZ() & 0x1F);
+                try {
+                    byte compressionId = buf.readByte();
+                    switch (compressionId) {
+                        case RegionConstants.ID_GZIP: //unlikely
+                            try (NBTInputStream in = new NBTInputStream(new GZIPInputStream(NettyUtil.wrapIn(buf)))) {
+                                rootTag = in.readTag().getCompound("Level");
+                            }
+                            break;
+                        case RegionConstants.ID_DEFLATE: {
+                            Inflater inflater = INFLATER_CACHE.get();
+                            //TODO: InflaterInputStream still allocates a buffer
+                            try (NBTInputStream in = new NBTInputStream(new InflaterInputStream(NettyUtil.wrapIn(buf), inflater))) {
+                                rootTag = in.readTag().getCompound("Level");
+                            } finally {
+                                inflater.reset();
+                            }
+                        }
+                        break;
+                        default:
+                            throw new IllegalStateException(String.format("Invalid compression type: %d", compressionId & 0xFF));
+                    }
+                } catch (NullPointerException e) {
+                    //this seems to happen for invalid/corrupt chunks
+                    for (int y = 15; y >= 0; y--) {
+                        chunk.section(y, null);
+                    }
+                    return;
+                } finally {
+                    if (buf != null) {
+                        buf.release();
+                    }
                 }
-                return;
-            } catch (IOException e) {
-                throw new RuntimeException(e);
             }
             //ListTag<CompoundTag> entitiesTag = rootTag.getTypedList("Entities"); //TODO
             {

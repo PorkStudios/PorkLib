@@ -16,7 +16,7 @@
 package net.daporkchop.lib.minecraft.region.util;
 
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.util.BlockDataAccess;
+import net.daporkchop.lib.minecraft.util.BlockAccess;
 import net.daporkchop.lib.minecraft.world.BlockArea;
 import net.daporkchop.lib.minecraft.world.Chunk;
 
@@ -33,10 +33,10 @@ public interface NeighboringChunkProcessor {
      * @param current        the number of chunks that have been processed until now
      * @param estimatedTotal the estimated total number of chunks
      * @param chunk          the chunk to be processed
-     * @param access         an instance of {@link BlockDataAccess} which allows accessing the data of the chunk. It is guaranteed to contain at
+     * @param access         an instance of {@link BlockAccess} which allows accessing the data of the chunk. It is guaranteed to contain at
      *                       least the block
      */
-    void handle(long current, long estimatedTotal, @NonNull Chunk chunk, @NonNull BlockDataAccess access);
+    void handle(long current, long estimatedTotal, @NonNull Chunk chunk, @NonNull BlockAccess access);
 
     /**
      * Gets a bitmask containing all layers that this chunk processor needs in order to run.

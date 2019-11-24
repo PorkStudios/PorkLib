@@ -140,7 +140,7 @@ public class ScannerTest {
                             System.out.printf("Scanning region (%d,%d)\n", col.getX() >> 5, col.getZ() >> 5);
                         }
                     })
-                    .addProcessor(col -> col.getTileEntities().forEach(tileEntity -> {
+                    .addProcessor(col -> col.tileEntities().forEach(tileEntity -> {
                         if (false) {
                             System.out.printf("Found TileEntity (id=%s, class=%s) at (%d,%d,%d)\n", tileEntity.id().toString(), tileEntity.getClass().getCanonicalName(), tileEntity.getX(), tileEntity.getY(), tileEntity.getZ());
                         }

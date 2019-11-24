@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.util;
+package net.daporkchop.lib.minecraft.util.world;
 
 /**
  * A persistent, mutable type that is marked as "dirty" (i.e. it needs to be saved) when modified.

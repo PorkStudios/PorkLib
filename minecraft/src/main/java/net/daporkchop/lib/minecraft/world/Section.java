@@ -15,28 +15,30 @@
 
 package net.daporkchop.lib.minecraft.world;
 
-import net.daporkchop.lib.minecraft.util.BlockDataAccess;
+import net.daporkchop.lib.minecraft.util.BlockAccess;
+import net.daporkchop.lib.minecraft.util.world.Dirtiable;
 
 /**
  * A 16³ section of blocks.
  *
  * @author DaPorkchop_
  */
-public interface Section extends BlockDataAccess {
-    Chunk getChunk();
+public interface Section extends BlockAccess, Dirtiable {
+    Chunk chunk();
 
     int getY();
 
-    default void markDirty() {
-        this.getChunk().markDirty();
+    @Override
+    default boolean dirty() {
+        return this.chunk().dirty();
     }
 
-    default boolean isDirty() {
-        return this.getChunk().isDirty();
+    default boolean markDirty() {
+        return this.chunk().markDirty();
     }
 
     default void save() {
-        this.getChunk().save();
+        this.chunk().save();
     }
 
     @Override

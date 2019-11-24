@@ -51,7 +51,7 @@ public class MinecraftSaveImpl implements MinecraftSave {
             throw new RuntimeException("Unable to initialize save", e);
         }
         this.saveFormat.loadRegistries(this.registries::put);
-        this.saveFormat.loadWorlds((id, worldManager) -> this.worlds.put(id, this.config.getWorldFactory().create(id, worldManager, this)));
+        this.saveFormat.loadWorlds((id, worldManager) -> this.worlds.put(id, this.config.worldFactory().create(id, worldManager, this)));
     }
 
     @Override

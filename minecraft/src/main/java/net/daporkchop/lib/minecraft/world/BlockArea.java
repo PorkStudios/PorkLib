@@ -16,7 +16,7 @@
 package net.daporkchop.lib.minecraft.world;
 
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.util.BlockDataAccess;
+import net.daporkchop.lib.minecraft.util.BlockAccess;
 
 import java.io.IOException;
 
@@ -25,7 +25,7 @@ import java.io.IOException;
  *
  * @author DaPorkchop_
  */
-public interface BlockArea extends BlockDataAccess, AutoCloseable {
+public interface BlockArea extends BlockAccess, AutoCloseable {
     int LAYER_BLOCK       = 1 << 0;
     int LAYER_META        = 1 << 1;
     int LAYER_BLOCK_LIGHT = 1 << 2;
@@ -63,11 +63,11 @@ public interface BlockArea extends BlockDataAccess, AutoCloseable {
      */
     void clear();
 
-    default void load(@NonNull BlockDataAccess src, int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+    default void load(@NonNull BlockAccess src, int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
         this.load(src, minX, minY, minZ, maxX, maxY, maxZ, ALL_LAYERS);
     }
 
-    default void load(@NonNull BlockDataAccess src, int minX, int minY, int minZ, int maxX, int maxY, int maxZ, int layers) {
+    default void load(@NonNull BlockAccess src, int minX, int minY, int minZ, int maxX, int maxY, int maxZ, int layers) {
         if (minX < maxX) throw new IllegalArgumentException("minX < maxX!");
         if (minY < maxY) throw new IllegalArgumentException("minY < maxY!");
         if (minZ < maxZ) throw new IllegalArgumentException("minZ < maxZ!");

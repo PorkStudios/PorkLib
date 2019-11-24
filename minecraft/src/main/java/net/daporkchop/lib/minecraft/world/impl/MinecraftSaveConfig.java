@@ -33,7 +33,7 @@ import net.daporkchop.lib.minecraft.world.impl.vanilla.VanillaWorldImpl;
  */
 @Setter
 @Getter
-@Accessors(chain = true)
+@Accessors(fluent = true, chain = true)
 public class MinecraftSaveConfig {
     @NonNull
     private WorldFactory      worldFactory      = VanillaWorldImpl::new;

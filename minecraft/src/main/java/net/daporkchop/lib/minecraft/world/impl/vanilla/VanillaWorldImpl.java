@@ -22,6 +22,7 @@ import com.google.common.cache.RemovalCause;
 import com.google.common.cache.RemovalListener;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.math.vector.i.Vec2i;
 import net.daporkchop.lib.math.vector.i.Vec3i;
 import net.daporkchop.lib.minecraft.tileentity.TileEntity;
@@ -39,12 +40,14 @@ import java.util.concurrent.TimeUnit;
  * @author DaPorkchop_
  */
 @Getter
+@Accessors(fluent = true)
 public class VanillaWorldImpl implements World {
-    private final int id;
+    private final int dimension;
     private final Map<Vec3i, TileEntity> loadedTileEntities = new ConcurrentHashMap<>();
     @NonNull
     private final WorldManager manager;
     @NonNull
+    @Accessors(fluent = false)
     private final MinecraftSave save;
     private final LoadingCache<Vec2i, Chunk> loadedColumns = CacheBuilder.newBuilder()
             .concurrencyLevel(1)
@@ -58,14 +61,14 @@ public class VanillaWorldImpl implements World {
             .build(new CacheLoader<Vec2i, Chunk>() {
                 @Override
                 public Chunk load(Vec2i key) throws Exception {
-                    Chunk chunk = VanillaWorldImpl.this.save.config().getChunkFactory().create(key, VanillaWorldImpl.this);
+                    Chunk chunk = VanillaWorldImpl.this.save.config().chunkFactory().create(key, VanillaWorldImpl.this);
                     //VanillaWorldImpl.this.manager.loadColumn(chunk);
                     return chunk;
                 }
             });
 
-    public VanillaWorldImpl(int id, @NonNull WorldManager manager, @NonNull MinecraftSave save) {
-        this.id = id;
+    public VanillaWorldImpl(int dimension, @NonNull WorldManager manager, @NonNull MinecraftSave save) {
+        this.dimension = dimension;
         this.manager = manager;
         this.save = save;
 
@@ -73,23 +76,23 @@ public class VanillaWorldImpl implements World {
     }
 
     @Override
-    public Map<Vec2i, Chunk> getLoadedColumns() {
+    public Map<Vec2i, Chunk> loadedColumns() {
         return this.loadedColumns.asMap();
     }
 
     @Override
-    public TileEntity getTileEntity(int x, int y, int z) {
+    public TileEntity tileEntity(int x, int y, int z) {
         return this.loadedTileEntities.get(new Vec3i(x, y, z));
     }
 
     @Override
-    public Chunk getColumn(int x, int z) {
+    public Chunk column(int x, int z) {
         return this.loadedColumns.getUnchecked(new Vec2i(x, z));
         //return this.loadedColumns.computeIfAbsent(new Vec2i(x, z), pos -> this.save.config().getChunkFactory().apply(addr, this));
     }
 
     @Override
-    public Chunk getColumnOrNull(int x, int z) {
+    public Chunk columnOrNull(int x, int z) {
         return this.loadedColumns.getIfPresent(new Vec2i(x, z));
         //return this.loadedColumns.get(new Vec2i(x, z));
     }

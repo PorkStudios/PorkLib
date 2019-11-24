@@ -13,59 +13,22 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.util;
+package net.daporkchop.lib.minecraft.util.world;
+
+import net.daporkchop.lib.minecraft.world.World;
 
 /**
- * A type which allows accessing block information at specific coordinates.
+ * A type that is part of a {@link World}.
  *
  * @author DaPorkchop_
  */
-public interface BlockDataAccess {
+public interface WorldMember extends Dirtiable {
     /**
-     * @return the minimum X coordinate (inclusive)
+     * Gets the {@link World} that this member is currently in.
+     * <p>
+     * May be {@code null} if this member is not currently initialized (e.g. unloaded or dead).
+     *
+     * @return the world that this member is in
      */
-    int minX();
-
-    /**
-     * @return the minimum Y coordinate (inclusive)
-     */
-    int minY();
-
-    /**
-     * @return the minimum Z coordinate (inclusive)
-     */
-    int minZ();
-
-    /**
-     * @return the maximum X coordinate (exclusive)
-     */
-    int maxX();
-
-    /**
-     * @return the maximum Y coordinate (exclusive)
-     */
-    int maxY();
-
-    /**
-     * @return the maximum Z coordinate (exclusive)
-     */
-    int maxZ();
-
-    int getBlockId(int x, int y, int z);
-
-    int getBlockMeta(int x, int y, int z);
-
-    int getBlockLight(int x, int y, int z);
-
-    int getSkyLight(int x, int y, int z);
-
-    void setBlockId(int x, int y, int z, int id);
-
-    void setBlockMeta(int x, int y, int z, int meta);
-
-    void setBlockLight(int x, int y, int z, int level);
-
-    void setSkyLight(int x, int y, int z, int level);
-
-    int getHighestBlock(int x, int z);
+    World world();
 }

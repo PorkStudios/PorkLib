@@ -131,7 +131,7 @@ public class AnvilWorldManager implements WorldManager {
             } catch (NullPointerException e) {
                 //this seems to happen for invalid/corrupt chunks
                 for (int y = 15; y >= 0; y--) {
-                    chunk.setSection(y, null);
+                    chunk.section(y, null);
                 }
                 return;
             } catch (IOException e) {
@@ -142,7 +142,7 @@ public class AnvilWorldManager implements WorldManager {
                 ListTag<CompoundTag> sectionsTag = rootTag.get("Sections");
                 //TODO: biomes, terrain populated flag etc.
                 for (int y = 15; y >= 0; y--) {
-                    Section section = chunk.getSection(y);
+                    Section section = chunk.section(y);
                     CompoundTag tag = null;
                     for (CompoundTag t : sectionsTag.getValue()) {
                         if (t.<ByteTag>get("Y").getValue() == y) {
@@ -151,10 +151,10 @@ public class AnvilWorldManager implements WorldManager {
                         }
                     }
                     if (tag == null) {
-                        chunk.setSection(y, null);
+                        chunk.section(y, null);
                     } else {
                         if (section == null) {
-                            chunk.setSection(y, section = this.format.getSave().config().getSectionFactory().create(y, chunk));
+                            chunk.section(y, section = this.format.getSave().config().sectionFactory().create(y, chunk));
                         }
                         this.loadSection(section, tag);
                         if (section instanceof HeapSectionImpl) {
@@ -169,20 +169,20 @@ public class AnvilWorldManager implements WorldManager {
                 for (int i = heightMapI.length - 1; i >= 0; i--) {
                     heightMapB[i] = (byte) heightMapI[i];
                 }
-                ((VanillaChunkImpl) chunk).setHeightMap(heightMapB);
+                ((VanillaChunkImpl) chunk).heightMap(heightMapB);
             }
             {
                 ListTag<CompoundTag> sectionsTag = rootTag.get("TileEntities");
                 sectionsTag.getValue().stream()
                         .map(tag -> {
-                            TileEntity tileEntity = this.world.getSave().config().getTileEntityFactory().create(new ResourceLocation(tag.getString("id")));
+                            TileEntity tileEntity = this.world.getSave().config().tileEntityFactory().create(new ResourceLocation(tag.getString("id")));
                             tileEntity.init(this.world, tag);
                             return tileEntity;
                         })
-                        .forEach(chunk.getTileEntities()::add);
-                chunk.getTileEntities().forEach(tileEntity -> this.world.getLoadedTileEntities().put(tileEntity.pos(), tileEntity));
+                        .forEach(chunk.tileEntities()::add);
+                chunk.tileEntities().forEach(tileEntity -> this.world.loadedTileEntities().put(tileEntity.pos(), tileEntity));
             }
-            this.world.getLoadedColumns().put(chunk.getPos(), chunk);
+            this.world.loadedColumns().put(chunk.pos(), chunk);
         } catch (Exception e) {
             e.printStackTrace();
             chunk.unload();
@@ -273,7 +273,7 @@ public class AnvilWorldManager implements WorldManager {
         ListTag<CompoundTag> sectionsTag = new ListTag<>("Sections");
         levelTag.putList(sectionsTag);
         for (int y = 15; y >= 0; y--)   {
-            Chunk chunk = chunk.getSection(y);
+            Chunk chunk = chunk.section(y);
             if (chunk != null)  {
                 VanillaChunkImpl impl;
                 if (chunk instanceof VanillaChunkImpl) {

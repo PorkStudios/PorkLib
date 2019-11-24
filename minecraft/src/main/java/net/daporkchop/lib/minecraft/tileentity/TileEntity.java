@@ -18,7 +18,7 @@ package net.daporkchop.lib.minecraft.tileentity;
 import net.daporkchop.lib.math.vector.i.IntVector3;
 import net.daporkchop.lib.math.vector.i.Vec3i;
 import net.daporkchop.lib.minecraft.registry.ResourceLocation;
-import net.daporkchop.lib.minecraft.util.WorldMemberPersistent;
+import net.daporkchop.lib.minecraft.util.world.WorldMemberPersistent;
 
 /**
  * A tile entity attaches an NBT {@link net.daporkchop.lib.nbt.tag.notch.CompoundTag} to a block position in the world.

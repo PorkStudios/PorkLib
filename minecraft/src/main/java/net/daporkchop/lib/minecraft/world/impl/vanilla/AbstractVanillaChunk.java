@@ -19,10 +19,9 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.minecraft.world.Chunk;
-import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.minecraft.world.World;
-import net.daporkchop.lib.unsafe.capability.Releasable;
 
 /**
  * Base implementation of {@link net.daporkchop.lib.minecraft.world.Chunk.Vanilla}.
@@ -31,6 +30,7 @@ import net.daporkchop.lib.unsafe.capability.Releasable;
  */
 @RequiredArgsConstructor
 @Getter
+@Accessors(fluent = true)
 public abstract class AbstractVanillaChunk implements Chunk.Vanilla {
     @NonNull
     protected final World world;
@@ -43,19 +43,21 @@ public abstract class AbstractVanillaChunk implements Chunk.Vanilla {
 
     @Override
     public boolean exists() {
-        return this.loaded || this.world.getManager().hasColumn(this.getX(), this.getZ());
+        return this.loaded || this.world.manager().hasColumn(this.getX(), this.getZ());
     }
 
     @Override
-    public void markDirty() {
+    public boolean markDirty() {
+        boolean old = this.dirty;
         this.dirty = true;
+        return old;
     }
 
     @Override
     public synchronized void load() {
         if (!this.loaded) {
             this.loaded = true;
-            this.world.getManager().loadColumn(this);
+            this.world.manager().loadColumn(this);
             if (this.heightMap == null) {
                 this.recalculateHeightMap();
             }
@@ -80,7 +82,7 @@ public abstract class AbstractVanillaChunk implements Chunk.Vanilla {
             this.loaded = false;
             this.save();
 
-            this.world.getLoadedColumns().remove(this.getPos());
+            this.world.loadedColumns().remove(this.pos());
             this.heightMap = null;
 
             this.doUnload();

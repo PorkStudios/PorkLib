@@ -17,6 +17,7 @@ package net.daporkchop.lib.minecraft.world.impl.vanilla;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.math.vector.i.Vec2i;
 import net.daporkchop.lib.math.vector.i.Vec3i;
 import net.daporkchop.lib.minecraft.tileentity.TileEntity;
@@ -34,6 +35,7 @@ import java.util.Map;
  * @author DaPorkchop_
  */
 @Getter
+@Accessors(fluent = true)
 public final class VanillaChunkImpl extends AbstractVanillaChunk {
     @NonNull
     private final Vec2i pos;
@@ -48,19 +50,19 @@ public final class VanillaChunkImpl extends AbstractVanillaChunk {
     }
 
     @Override
-    public Section getSection(int y) {
+    public Section section(int y) {
         return this.sections[y];
     }
 
     @Override
-    public void setSection(int y, Section section) {
+    public void section(int y, Section section) {
         this.sections[y] = section;
     }
 
     @Override
     protected void doUnload() {
         {
-            Map<Vec3i, TileEntity> tes = this.world.getLoadedTileEntities();
+            Map<Vec3i, TileEntity> tes = this.world.loadedTileEntities();
             this.tileEntities.forEach(te -> tes.remove(te.pos(), te));
         }
 

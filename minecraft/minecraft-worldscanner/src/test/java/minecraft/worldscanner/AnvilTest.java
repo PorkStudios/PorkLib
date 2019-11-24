@@ -39,7 +39,7 @@ public class AnvilTest {
 
         IDRegistry blockRegistry = save.registry(new ResourceLocation("minecraft:blocks"));
 
-        Chunk chunk = save.world(0).getColumn(30, 6);
+        Chunk chunk = save.world(0).column(30, 6);
         chunk.load();
         int id;
         for (int y = 255; y >= 0; y--) {

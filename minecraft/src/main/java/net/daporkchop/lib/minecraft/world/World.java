@@ -18,7 +18,7 @@ package net.daporkchop.lib.minecraft.world;
 import net.daporkchop.lib.math.vector.i.Vec2i;
 import net.daporkchop.lib.math.vector.i.Vec3i;
 import net.daporkchop.lib.minecraft.tileentity.TileEntity;
-import net.daporkchop.lib.minecraft.util.BlockDataAccess;
+import net.daporkchop.lib.minecraft.util.BlockAccess;
 import net.daporkchop.lib.minecraft.world.format.WorldManager;
 
 import java.io.Closeable;
@@ -27,30 +27,30 @@ import java.util.Map;
 /**
  * @author DaPorkchop_
  */
-public interface World extends BlockDataAccess, Closeable {
-    int getId();
+public interface World extends BlockAccess, Closeable {
+    int dimension();
 
     MinecraftSave getSave();
 
-    WorldManager getManager();
+    WorldManager manager();
 
-    Map<Vec2i, Chunk> getLoadedColumns();
+    Map<Vec2i, Chunk> loadedColumns();
 
-    Chunk getColumn(int x, int z);
+    Chunk column(int x, int z);
 
-    Chunk getColumnOrNull(int x, int z);
+    Chunk columnOrNull(int x, int z);
 
-    Map<Vec3i, TileEntity> getLoadedTileEntities();
+    Map<Vec3i, TileEntity> loadedTileEntities();
 
-    default TileEntity getTileEntity(int x, int y, int z) {
-        return this.getLoadedTileEntities().get(new Vec3i(x, y, z));
+    default TileEntity tileEntity(int x, int y, int z) {
+        return this.loadedTileEntities().get(new Vec3i(x, y, z));
     }
 
     void save();
 
     @Override
     default int getBlockId(int x, int y, int z) {
-        Chunk col = this.getColumnOrNull(x >> 4, z >> 4);
+        Chunk col = this.columnOrNull(x >> 4, z >> 4);
         if (col == null) {
             return 0;
         } else {
@@ -60,7 +60,7 @@ public interface World extends BlockDataAccess, Closeable {
 
     @Override
     default int getBlockMeta(int x, int y, int z) {
-        Chunk col = this.getColumnOrNull(x >> 4, z >> 4);
+        Chunk col = this.columnOrNull(x >> 4, z >> 4);
         if (col == null) {
             return 0;
         } else {
@@ -70,7 +70,7 @@ public interface World extends BlockDataAccess, Closeable {
 
     @Override
     default int getBlockLight(int x, int y, int z) {
-        Chunk col = this.getColumnOrNull(x >> 4, z >> 4);
+        Chunk col = this.columnOrNull(x >> 4, z >> 4);
         if (col == null) {
             return 0;
         } else {
@@ -80,7 +80,7 @@ public interface World extends BlockDataAccess, Closeable {
 
     @Override
     default int getSkyLight(int x, int y, int z) {
-        Chunk col = this.getColumnOrNull(x >> 4, z >> 4);
+        Chunk col = this.columnOrNull(x >> 4, z >> 4);
         if (col == null) {
             return 0;
         } else {
@@ -90,8 +90,8 @@ public interface World extends BlockDataAccess, Closeable {
 
     @Override
     default void setBlockId(int x, int y, int z, int id) {
-        Chunk col = this.getColumn(x >> 4, z >> 4);
-        if (!col.isLoaded()) {
+        Chunk col = this.column(x >> 4, z >> 4);
+        if (!col.loaded()) {
             col.load();
         }
         col.setBlockId(x & 0xF, y, z & 0xF, id);
@@ -99,8 +99,8 @@ public interface World extends BlockDataAccess, Closeable {
 
     @Override
     default void setBlockMeta(int x, int y, int z, int meta) {
-        Chunk col = this.getColumn(x >> 4, z >> 4);
-        if (!col.isLoaded()) {
+        Chunk col = this.column(x >> 4, z >> 4);
+        if (!col.loaded()) {
             col.load();
         }
         col.setBlockMeta(x & 0xF, y, z & 0xF, meta);
@@ -108,8 +108,8 @@ public interface World extends BlockDataAccess, Closeable {
 
     @Override
     default void setBlockLight(int x, int y, int z, int level) {
-        Chunk col = this.getColumn(x >> 4, z >> 4);
-        if (!col.isLoaded()) {
+        Chunk col = this.column(x >> 4, z >> 4);
+        if (!col.loaded()) {
             col.load();
         }
         col.setBlockLight(x & 0xF, y, z & 0xF, level);
@@ -117,8 +117,8 @@ public interface World extends BlockDataAccess, Closeable {
 
     @Override
     default void setSkyLight(int x, int y, int z, int level) {
-        Chunk col = this.getColumn(x >> 4, z >> 4);
-        if (!col.isLoaded()) {
+        Chunk col = this.column(x >> 4, z >> 4);
+        if (!col.loaded()) {
             col.load();
         }
         col.setSkyLight(x & 0xF, y, z & 0xF, level);
@@ -126,7 +126,7 @@ public interface World extends BlockDataAccess, Closeable {
 
     @Override
     default int getHighestBlock(int x, int z) {
-        Chunk col = this.getColumnOrNull(x >> 4, z >> 4);
+        Chunk col = this.columnOrNull(x >> 4, z >> 4);
         if (col == null) {
             return -1;
         } else {

@@ -18,6 +18,7 @@ package net.daporkchop.lib.minecraft.world.impl.section;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.minecraft.util.SectionLayer;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Section;
@@ -36,6 +37,7 @@ public class HeapSectionImpl implements Section {
     private SectionLayer blockLight;
     private SectionLayer skyLight;
 
+    @Accessors(fluent = true)
     private final Chunk chunk;
 
     private final int y;

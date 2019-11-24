@@ -17,6 +17,7 @@ package net.daporkchop.lib.minecraft.world.impl.section;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.unsafe.PCleaner;
@@ -58,6 +59,7 @@ public class DirectSectionImpl implements Section, AccessibleDirectMemoryHolder 
     protected final long addr;
 
     @Getter
+    @Accessors(fluent = true)
     protected final Chunk    chunk;
     protected final PCleaner cleaner;
 

@@ -46,7 +46,7 @@ public final class UnknownTileEntity extends TileEntityBase {
     }
 
     @Override
-    public synchronized CompoundTag save() {
+    public CompoundTag save() {
         return this.data;
     }
 

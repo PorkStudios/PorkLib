@@ -65,4 +65,52 @@ public final class TileEntitySign extends TileEntityBase {
     public ResourceLocation id() {
         return ID;
     }
+
+    public TileEntitySign line1(@NonNull String line)  {
+        this.line1 = line;
+        this.markDirty();
+        return this;
+    }
+
+    public TileEntitySign line2(@NonNull String line)  {
+        this.line2 = line;
+        this.markDirty();
+        return this;
+    }
+
+    public TileEntitySign line3(@NonNull String line)  {
+        this.line3 = line;
+        this.markDirty();
+        return this;
+    }
+
+    public TileEntitySign line4(@NonNull String line)  {
+        this.line4 = line;
+        this.markDirty();
+        return this;
+    }
+
+    public TileEntitySign lines(@NonNull String line1, @NonNull String line2, @NonNull String line3, @NonNull String line4) {
+        this.line1 = line1;
+        this.line2 = line2;
+        this.line3 = line3;
+        this.line4 = line4;
+        this.markDirty();
+        return this;
+    }
+
+    public TileEntitySign lines(@NonNull String[] lines) {
+        if (lines.length != 4)  {
+            throw new IllegalArgumentException(String.valueOf(lines.length));
+        }
+        if (lines[0] == null || lines[1] == null || lines[2] == null || lines[3] == null)   {
+            throw new NullPointerException("lines");
+        }
+        this.line1 = lines[0];
+        this.line2 = lines[1];
+        this.line3 = lines[2];
+        this.line4 = lines[3];
+        this.markDirty();
+        return this;
+    }
 }

@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.util;
+package net.daporkchop.lib.minecraft.util.world;
 
 import net.daporkchop.lib.unsafe.PUnsafe;
 

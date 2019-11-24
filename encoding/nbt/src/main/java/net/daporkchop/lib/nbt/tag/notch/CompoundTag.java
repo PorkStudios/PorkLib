@@ -464,12 +464,12 @@ public class CompoundTag extends Tag {
      * @param def  the default value to return if no tag could be found with the given name
      * @return the value that was found, or def if no tag could be found with the given name
      */
-    public <T extends Tag> List<T> getList(@NonNull String name, List<T> def) {
+    public <T extends Tag> ListTag<T> getList(@NonNull String name, ListTag<T> def) {
         ListTag<T> tag = this.get(name);
         if (tag == null) {
             return def;
         } else {
-            return tag.getValue();
+            return tag;
         }
     }
 
@@ -589,7 +589,7 @@ public class CompoundTag extends Tag {
      * @param name the name of the value
      * @return the value with the given name
      */
-    public <T extends Tag> List<T> getList(@NonNull String name) {
+    public <T extends Tag> ListTag<T> getList(@NonNull String name) {
         return this.getList(name, null);
     }
 }

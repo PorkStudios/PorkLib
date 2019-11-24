@@ -13,37 +13,21 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.world.impl;
+package net.daporkchop.lib.minecraft.world.format.anvil.region.ex;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.minecraft.tileentity.TileEntityRegistry;
-import net.daporkchop.lib.minecraft.util.factory.ChunkFactory;
-import net.daporkchop.lib.minecraft.util.factory.SectionFactory;
-import net.daporkchop.lib.minecraft.util.factory.TileEntityFactory;
-import net.daporkchop.lib.minecraft.util.factory.WorldFactory;
-import net.daporkchop.lib.minecraft.world.impl.section.HeapSectionImpl;
-import net.daporkchop.lib.minecraft.world.impl.vanilla.VanillaChunkImpl;
-import net.daporkchop.lib.minecraft.world.impl.vanilla.VanillaWorldImpl;
+import java.io.IOException;
 
 /**
+ * Thrown when a region file could not be opened.
+ *
  * @author DaPorkchop_
  */
-@Setter
-@Getter
-@Accessors(fluent = true, chain = true)
-public class MinecraftSaveConfig {
-    @NonNull
-    protected WorldFactory      worldFactory      = VanillaWorldImpl::new;
-    @NonNull
-    protected ChunkFactory      chunkFactory      = VanillaChunkImpl::new;
-    @NonNull
-    protected SectionFactory    sectionFactory    = HeapSectionImpl::new;
-    @NonNull
-    protected TileEntityFactory tileEntityFactory = TileEntityRegistry.defaultRegistry(); //TODO: make this be a lazy reference to avoid creating the default registry if it's never used
+public class CannotOpenRegionException extends IOException {
+    public CannotOpenRegionException(String message) {
+        super(message);
+    }
 
-    protected boolean readOnly      = false;
-    protected boolean writeRequired = false;
+    public CannotOpenRegionException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

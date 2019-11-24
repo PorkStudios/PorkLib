@@ -33,6 +33,8 @@ import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.format.WorldManager;
+import net.daporkchop.lib.minecraft.world.format.anvil.region.OverclockedRegionFile;
+import net.daporkchop.lib.minecraft.world.impl.MinecraftSaveConfig;
 import net.daporkchop.lib.minecraft.world.impl.section.DirectSectionImpl;
 import net.daporkchop.lib.minecraft.world.impl.section.HeapSectionImpl;
 import net.daporkchop.lib.minecraft.world.impl.vanilla.VanillaChunkImpl;
@@ -69,7 +71,7 @@ public class AnvilWorldManager implements WorldManager {
     @Setter
     private World world;
 
-    private LoadingCache<Vec2i, RegionFile> regionFileCache;
+    private LoadingCache<Vec2i, OverclockedRegionFile> regionFileCache;
 
     private LoadingCache<Vec2i, Boolean> regionExists;
 
@@ -81,19 +83,19 @@ public class AnvilWorldManager implements WorldManager {
                 .concurrencyLevel(1)
                 .maximumSize(256L)
                 .expireAfterAccess(5L, TimeUnit.MINUTES)
-                .removalListener((RemovalListener<Vec2i, RegionFile>) v -> {
+                .removalListener((RemovalListener<Vec2i, OverclockedRegionFile>) v -> {
                     try {
                         v.getValue().close();
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
                 })
-                .build(new CacheLoader<Vec2i, RegionFile>() {
+                .build(new CacheLoader<Vec2i, OverclockedRegionFile>() {
                     @Override
-                    public RegionFile load(Vec2i key) throws Exception {
-                        File file = PFiles.ensureFileExists(new File(AnvilWorldManager.this.root, String.format("r.%d.%d.mca", key.getX(), key.getY())));
-                        AnvilWorldManager.this.regionExists.put(key, true);
-                        return new RegionFile(file);
+                    public OverclockedRegionFile load(Vec2i key) throws Exception {
+                        File file = new File(AnvilWorldManager.this.root, String.format("r.%d.%d.mca", key.getX(), key.getY()));
+                        MinecraftSaveConfig config = AnvilWorldManager.this.format.getSave().config();
+                        return new OverclockedRegionFile(file, config.readOnly(), config.writeRequired());
                     }
                 });
 
@@ -104,7 +106,8 @@ public class AnvilWorldManager implements WorldManager {
                 .build(new CacheLoader<Vec2i, Boolean>() {
                     @Override
                     public Boolean load(Vec2i key) throws Exception {
-                        return new File(AnvilWorldManager.this.root, String.format("r.%d.%d.mca", key.getX(), key.getY())).exists();
+                        return AnvilWorldManager.this.regionFileCache.getIfPresent(key) != null
+                                || new File(AnvilWorldManager.this.root, String.format("r.%d.%d.mca", key.getX(), key.getY())).exists();
                     }
                 });
     }
@@ -115,7 +118,7 @@ public class AnvilWorldManager implements WorldManager {
         if (!this.regionExists.getUnchecked(pos)) {
             return false;
         }
-        RegionFile file = this.regionFileCache.getUnchecked(pos);
+        OverclockedRegionFile file = this.regionFileCache.getUnchecked(pos);
         return file.hasChunk(x & 0x1F, z & 0x1F);
     }
 
@@ -123,11 +126,11 @@ public class AnvilWorldManager implements WorldManager {
     @SuppressWarnings("unchecked")
     public void loadColumn(Chunk chunk) {
         try {
-            RegionFile file = this.regionFileCache.get(new Vec2i(chunk.getX() >> 5, chunk.getZ() >> 5));
+            OverclockedRegionFile file = this.regionFileCache.get(new Vec2i(chunk.getX() >> 5, chunk.getZ() >> 5));
             CompoundTag rootTag;
             //TODO: check if region contains chunk
-            try (NBTInputStream is = new NBTInputStream(file.getChunkDataInputStream(chunk.getX() & 0x1F, chunk.getZ() & 0x1F))) {
-                rootTag = is.readTag().get("Level");
+            try (NBTInputStream is = new NBTInputStream(file.read(chunk.getX() & 0x1F, chunk.getZ() & 0x1F))) {
+                rootTag = is.readTag().getCompound("Level");
             } catch (NullPointerException e) {
                 //this seems to happen for invalid/corrupt chunks
                 for (int y = 15; y >= 0; y--) {
@@ -139,13 +142,13 @@ public class AnvilWorldManager implements WorldManager {
             }
             //ListTag<CompoundTag> entitiesTag = rootTag.getTypedList("Entities"); //TODO
             {
-                ListTag<CompoundTag> sectionsTag = rootTag.get("Sections");
+                ListTag<CompoundTag> sectionsTag = rootTag.getList("Sections");
                 //TODO: biomes, terrain populated flag etc.
                 for (int y = 15; y >= 0; y--) {
                     Section section = chunk.section(y);
                     CompoundTag tag = null;
-                    for (CompoundTag t : sectionsTag.getValue()) {
-                        if (t.<ByteTag>get("Y").getValue() == y) {
+                    for (CompoundTag t : sectionsTag) {
+                        if (t.getByte("Y") == y) {
                             tag = t;
                             break;
                         }
@@ -164,7 +167,7 @@ public class AnvilWorldManager implements WorldManager {
                 }
             }
             if (chunk instanceof VanillaChunkImpl && rootTag.contains("HeightMap")) {
-                int[] heightMapI = rootTag.<IntArrayTag>get("HeightMap").getValue();
+                int[] heightMapI = rootTag.getIntArray("HeightMap");
                 byte[] heightMapB = new byte[16 * 16];
                 for (int i = heightMapI.length - 1; i >= 0; i--) {
                     heightMapB[i] = (byte) heightMapI[i];
@@ -222,30 +225,30 @@ public class AnvilWorldManager implements WorldManager {
         final long addr = impl.memoryAddress();
 
         PUnsafe.copyMemory(
-                tag.<ByteArrayTag>get("Data").getValue(),
+                tag.getByteArray("Data"),
                 PUnsafe.ARRAY_BYTE_BASE_OFFSET,
                 null,
                 addr + DirectSectionImpl.OFFSET_META,
                 DirectSectionImpl.SIZE_NIBBLE_LAYER
         );
         PUnsafe.copyMemory(
-                tag.<ByteArrayTag>get("BlockLight").getValue(),
+                tag.getByteArray("BlockLight"),
                 PUnsafe.ARRAY_BYTE_BASE_OFFSET,
                 null,
                 addr + DirectSectionImpl.OFFSET_BLOCK_LIGHT,
                 DirectSectionImpl.SIZE_NIBBLE_LAYER
         );
         PUnsafe.copyMemory(
-                tag.<ByteArrayTag>get("SkyLight").getValue(),
+                tag.getByteArray("SkyLight"),
                 PUnsafe.ARRAY_BYTE_BASE_OFFSET,
                 null,
                 addr + DirectSectionImpl.OFFSET_SKY_LIGHT,
                 DirectSectionImpl.SIZE_NIBBLE_LAYER
         );
 
-        byte[] blocks = tag.<ByteArrayTag>get("Blocks").getValue();
+        byte[] blocks = tag.getByteArray("Blocks");
         if (tag.contains("Add")) {
-            byte[] add = tag.<ByteArrayTag>get("Add").getValue();
+            byte[] add = tag.getByteArray("Add");
             //this is very slow, but luckily it only has to run once
             for (int x = 15; x >= 0; x--) {
                 for (int y = 15; y >= 0; y--) {
@@ -318,9 +321,10 @@ public class AnvilWorldManager implements WorldManager {
     }
 
     public Collection<Vec2i> getRegions() {
+        Matcher matcher = REGION_PATTERN.matcher("");
         return Arrays.stream(this.root.listFiles())
                 .map(file -> {
-                    Matcher matcher = REGION_PATTERN.matcher(file.getName());
+                    matcher.reset(file.getName());
                     return matcher.find() ? new Vec2i(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2))) : null;
                 })
                 .filter(Objects::nonNull)

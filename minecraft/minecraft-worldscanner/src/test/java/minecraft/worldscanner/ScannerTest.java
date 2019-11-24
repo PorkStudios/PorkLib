@@ -27,7 +27,7 @@ import net.daporkchop.lib.math.vector.i.Vec2i;
 import net.daporkchop.lib.minecraft.region.WorldScanner;
 import net.daporkchop.lib.minecraft.registry.IDRegistry;
 import net.daporkchop.lib.minecraft.registry.ResourceLocation;
-import net.daporkchop.lib.minecraft.tileentity.TileEntitySign;
+import net.daporkchop.lib.minecraft.tileentity.impl.TileEntitySign;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.format.anvil.AnvilSaveFormat;
 import net.daporkchop.lib.minecraft.world.impl.SaveBuilder;
@@ -60,7 +60,7 @@ public class ScannerTest {
             AtomicLong h = new AtomicLong(0L);
             AtomicLong c = new AtomicLong(0L);
 
-            new WorldScanner(save.getWorld(0))
+            new WorldScanner(save.world(0))
                     .addProcessor(col -> {
                         if ((col.getX() & 0x1F) == 31 && (col.getZ() & 0x1F) == 31) {
                             System.out.printf("Scanning region (%d,%d)\n", col.getX() >> 5, col.getZ() >> 5);
@@ -90,10 +90,10 @@ public class ScannerTest {
     @Test
     public void findDoubleChests() throws IOException {
         try (MinecraftSave save = this.getTestWorld()) {
-            IDRegistry blocksRegistry = save.getRegistry(new ResourceLocation("minecraft:blocks"));
+            IDRegistry blocksRegistry = save.registry(new ResourceLocation("minecraft:blocks"));
             int chestId = blocksRegistry.lookup(new ResourceLocation("minecraft:chest"));
             int trappedChestId = blocksRegistry.lookup(new ResourceLocation("minecraft:trapped_chest"));
-            new WorldScanner(save.getWorld(0))
+            new WorldScanner(save.world(0))
                     .addProcessor(col -> {
                         if ((col.getX() & 0x1F) == 31 && (col.getZ() & 0x1F) == 31) {
                             System.out.printf("Scanning region (%d,%d)\n", col.getX() >> 5, col.getZ() >> 5);
@@ -134,7 +134,7 @@ public class ScannerTest {
     @Test
     public void findTileEntities() throws IOException {
         try (MinecraftSave save = this.getTestWorld()) {
-            new WorldScanner(save.getWorld(0))
+            new WorldScanner(save.world(0))
                     .addProcessor(col -> {
                         if ((col.getX() & 0x1F) == 31 && (col.getZ() & 0x1F) == 31) {
                             System.out.printf("Scanning region (%d,%d)\n", col.getX() >> 5, col.getZ() >> 5);
@@ -146,7 +146,7 @@ public class ScannerTest {
                         }
                         if (tileEntity instanceof TileEntitySign) {
                             TileEntitySign sign = (TileEntitySign) tileEntity;
-                            System.out.printf("Found sign at (%d,%d,%d). Content: \n%s\n%s\n%s\n%s\n", tileEntity.getX(), tileEntity.getY(), tileEntity.getZ(), sign.getLine1(), sign.getLine2(), sign.getLine3(), sign.getLine4());
+                            System.out.printf("Found sign at (%d,%d,%d). Content: \n%s\n%s\n%s\n%s\n", tileEntity.getX(), tileEntity.getY(), tileEntity.getZ(), sign.line1(), sign.line2(), sign.line3(), sign.line4());
                         }
                     }))
                     .run(true);
@@ -182,7 +182,7 @@ public class ScannerTest {
             colorMap.put(new ResourceLocation("minecraft:snow_layer"), new Color[]{colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8]});
         }
         try (MinecraftSave save = this.getTestWorld()) {
-            IDRegistry registry = save.getRegistry(new ResourceLocation("minecraft:blocks"));
+            IDRegistry registry = save.registry(new ResourceLocation("minecraft:blocks"));
             File out = new File(".", "run/out");
             PFiles.rmContents(PFiles.ensureDirectoryExists(out));
             LoadingCache<Vec2i, BufferedImage> outCache = CacheBuilder.newBuilder()
@@ -214,7 +214,7 @@ public class ScannerTest {
                         }
                     });
 
-            new WorldScanner(save.getWorld(0))
+            new WorldScanner(save.world(0))
                     .addProcessor(col -> {
                         if ((col.getX() & 0x1F) == 31 && (col.getZ() & 0x1F) == 31) {
                             System.out.printf("Mapping region (%d,%d)\n", col.getX() >> 5, col.getZ() >> 5);

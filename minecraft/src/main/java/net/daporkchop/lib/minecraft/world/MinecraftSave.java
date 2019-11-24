@@ -19,7 +19,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.minecraft.registry.IDRegistry;
 import net.daporkchop.lib.minecraft.registry.ResourceLocation;
 import net.daporkchop.lib.minecraft.world.format.SaveFormat;
-import net.daporkchop.lib.minecraft.world.impl.InitFunctions;
+import net.daporkchop.lib.minecraft.world.impl.MinecraftSaveConfig;
 import net.daporkchop.lib.primitive.map.IntObjMap;
 
 import java.io.Closeable;
@@ -29,20 +29,19 @@ import java.util.Map;
  * @author DaPorkchop_
  */
 public interface MinecraftSave extends Closeable {
-    SaveFormat getSaveFormat();
+    SaveFormat saveFormat();
 
-    InitFunctions getInitFunctions();
+    MinecraftSaveConfig config();
 
-    Map<ResourceLocation, IDRegistry> getRegistries();
+    Map<ResourceLocation, IDRegistry> registries();
 
-    @SuppressWarnings("unchecked")
-    default IDRegistry getRegistry(@NonNull ResourceLocation name) {
-        return this.getRegistries().get(name);
+    default IDRegistry registry(@NonNull ResourceLocation name) {
+        return this.registries().get(name);
     }
 
-    IntObjMap<World> getWorlds();
+    IntObjMap<World> worlds();
 
-    default World getWorld(int id) {
-        return this.getWorlds().get(id);
+    default World world(int id) {
+        return this.worlds().get(id);
     }
 }

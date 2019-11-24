@@ -13,47 +13,34 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.tileentity;
+package net.daporkchop.lib.minecraft.world.impl;
 
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.minecraft.registry.ResourceLocation;
-import net.daporkchop.lib.minecraft.world.World;
-import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
-import net.daporkchop.lib.nbt.tag.notch.StringTag;
+import net.daporkchop.lib.minecraft.tileentity.TileEntityRegistry;
+import net.daporkchop.lib.minecraft.util.factory.ChunkFactory;
+import net.daporkchop.lib.minecraft.util.factory.SectionFactory;
+import net.daporkchop.lib.minecraft.util.factory.TileEntityFactory;
+import net.daporkchop.lib.minecraft.util.factory.WorldFactory;
+import net.daporkchop.lib.minecraft.world.impl.section.HeapSectionImpl;
+import net.daporkchop.lib.minecraft.world.impl.vanilla.VanillaChunkImpl;
+import net.daporkchop.lib.minecraft.world.impl.vanilla.VanillaWorldImpl;
 
 /**
- * Implementation of a {@code minecraft:sign} tile entity.
- *
  * @author DaPorkchop_
  */
+@Setter
 @Getter
-@Accessors(fluent = true)
-public final class TileEntitySign extends TileEntityBase {
-    public static final ResourceLocation ID = new ResourceLocation("minecraft:sign");
-
-    private String line1;
-    private String line2;
-    private String line3;
-    private String line4;
-
-    @Override
-    protected void doInit(@NonNull CompoundTag nbt) {
-        this.line1 = nbt.getString("Text1");
-        this.line2 = nbt.getString("Text2");
-        this.line3 = nbt.getString("Text3");
-        this.line4 = nbt.getString("Text4");
-    }
-
-    @Override
-    protected void doDeinit() {
-        this.line1 = this.line2 = this.line3 = this.line4 = null;
-    }
-
-    @Override
-    public ResourceLocation id() {
-        return ID;
-    }
+@Accessors(chain = true)
+public class MinecraftSaveConfig {
+    @NonNull
+    private WorldFactory      worldFactory      = VanillaWorldImpl::new;
+    @NonNull
+    private ChunkFactory      chunkFactory      = VanillaChunkImpl::new;
+    @NonNull
+    private SectionFactory    sectionFactory    = HeapSectionImpl::new;
+    @NonNull
+    private TileEntityFactory tileEntityFactory = TileEntityRegistry.defaultRegistry(); //TODO: make this be a lazy reference to avoid creating the default registry if it's never used
 }

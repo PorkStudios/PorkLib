@@ -151,7 +151,7 @@ public class CompoundTag extends Tag {
      * @param <T>      optional parameter, allows for automagical casting to the desired tag sublcass
      */
     @SuppressWarnings("unchecked")
-    public <T extends Tag> void forEach(@NonNull Consumer<T> consumer) {
+    public <T extends Tag> void forEachTag(@NonNull Consumer<T> consumer) {
         ((Map<String, T>) this.contents).values().forEach(consumer);
     }
 

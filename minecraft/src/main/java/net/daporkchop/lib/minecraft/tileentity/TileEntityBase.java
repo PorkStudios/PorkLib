@@ -20,9 +20,11 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.math.vector.i.Vec3i;
+import net.daporkchop.lib.minecraft.registry.ResourceLocation;
 import net.daporkchop.lib.minecraft.util.AbstractDirtiable;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 /**
  * Abstract, base implementation of {@link TileEntity}.
@@ -33,13 +35,19 @@ import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 @Getter
 @Accessors(fluent = true)
 public abstract class TileEntityBase extends AbstractDirtiable implements TileEntity {
+    protected static final long CACHEDTAG_OFFSET = PUnsafe.pork_getOffset(TileEntityBase.class, "cachedTag");
+
     protected World world;
     protected Vec3i pos;
+
+    protected volatile CompoundTag cachedTag;
 
     @Override
     public synchronized void init(@NonNull World world, @NonNull CompoundTag nbt) {
         if (this.world != null) {
             throw new IllegalStateException("Already initialized!");
+        } else if (!this.isValidId(nbt.getString("id"))) {
+            throw new IllegalArgumentException(String.format("Invalid NBT tag! This is a \"%s\", cannot load data for \"%s\"!", this.id(), nbt.getString("id")));
         }
 
         this.world = world;
@@ -54,9 +62,6 @@ public abstract class TileEntityBase extends AbstractDirtiable implements TileEn
      * @param nbt the NBT {@link CompoundTag} containing this tile entity's encoded state
      */
     protected void doInit(@NonNull CompoundTag nbt) {
-        if (!this.id().equals(nbt.getString("id"))) {
-            throw new IllegalArgumentException(String.format("Invalid NBT tag! This is a \"%s\", cannot load data for \"%s\"!", this.id(), nbt.getString("id")));
-        }
     }
 
     @Override
@@ -73,15 +78,36 @@ public abstract class TileEntityBase extends AbstractDirtiable implements TileEn
     }
 
     @Override
-    public CompoundTag save() {
-        CompoundTag nbt = new CompoundTag();
+    public synchronized CompoundTag save() {
+        CompoundTag nbt = this.cachedTag;
+        if (this.dirty() || nbt == null) {
+            synchronized (this) {
+                if (this.checkAndResetDirty()) {
+                    //if this tile entity was dirty, re-compute cached tag
+                    nbt = new CompoundTag();
 
-        nbt.putString("id", this.id().toString());
-        nbt.putInt("x", this.pos.getX());
-        nbt.putInt("y", this.pos.getY());
-        nbt.putInt("z", this.pos.getZ());
+                    nbt.putString("id", this.id().toString());
+                    nbt.putInt("x", this.pos.getX());
+                    nbt.putInt("y", this.pos.getY());
+                    nbt.putInt("z", this.pos.getZ());
 
+                    this.cachedTag = nbt;
+                } else if ((nbt = this.cachedTag) == null) {
+                    throw new IllegalStateException("Cached tag was still null, even after waiting for other thread to compute it!");
+                }
+            }
+        }
         return nbt;
+    }
+
+    @Override
+    public boolean markDirty() {
+        CompoundTag cachedTag = this.cachedTag;
+        boolean flag = super.markDirty();
+        if (flag)   {
+            PUnsafe.compareAndSwapObject(this, CACHEDTAG_OFFSET, cachedTag, null);
+        }
+        return flag;
     }
 
     /**
@@ -90,6 +116,16 @@ public abstract class TileEntityBase extends AbstractDirtiable implements TileEn
      * @param nbt the NBT {@link CompoundTag} to encode this tile entity's state into
      */
     protected void doSave(@NonNull CompoundTag nbt) {
+    }
+
+    /**
+     * Checks whether the given text-encoded {@link ResourceLocation} indicates NBT data that can be loaded by this {@link TileEntity} implementation.
+     *
+     * @param id a {@link ResourceLocation} in text representation
+     * @return whether the given resource location indicates valid NBT for this implementation
+     */
+    protected boolean isValidId(@NonNull String id) {
+        return this.id().equals(id);
     }
 
     @Override

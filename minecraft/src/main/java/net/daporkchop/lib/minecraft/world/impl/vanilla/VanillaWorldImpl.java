@@ -58,7 +58,7 @@ public class VanillaWorldImpl implements World {
             .build(new CacheLoader<Vec2i, Chunk>() {
                 @Override
                 public Chunk load(Vec2i key) throws Exception {
-                    Chunk chunk = VanillaWorldImpl.this.save.getInitFunctions().getChunkFactory().create(key, VanillaWorldImpl.this);
+                    Chunk chunk = VanillaWorldImpl.this.save.config().getChunkFactory().create(key, VanillaWorldImpl.this);
                     //VanillaWorldImpl.this.manager.loadColumn(chunk);
                     return chunk;
                 }
@@ -85,7 +85,7 @@ public class VanillaWorldImpl implements World {
     @Override
     public Chunk getColumn(int x, int z) {
         return this.loadedColumns.getUnchecked(new Vec2i(x, z));
-        //return this.loadedColumns.computeIfAbsent(new Vec2i(x, z), pos -> this.save.getInitFunctions().getChunkFactory().apply(addr, this));
+        //return this.loadedColumns.computeIfAbsent(new Vec2i(x, z), pos -> this.save.config().getChunkFactory().apply(addr, this));
     }
 
     @Override

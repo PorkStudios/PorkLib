@@ -15,4 +15,6 @@
 
 dependencies {
     compile project(":minecraft")
+
+    testCompile project(":http")
 }

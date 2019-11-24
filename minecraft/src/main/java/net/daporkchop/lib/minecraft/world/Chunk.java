@@ -120,7 +120,7 @@ public interface Chunk extends BlockDataAccess, IntVector2.AddressableXZ, Closea
             if (id == 0) {
                 return; //don't create new section if setting default
             }
-            this.setSection(y >> 4, section = this.getWorld().getSave().getInitFunctions().getSectionFactory().create(y >> 4, this));
+            this.setSection(y >> 4, section = this.getWorld().getSave().config().getSectionFactory().create(y >> 4, this));
         }
         section.setBlockId(x, y & 0xF, z, id);
     }
@@ -132,7 +132,7 @@ public interface Chunk extends BlockDataAccess, IntVector2.AddressableXZ, Closea
             if (meta == 0) {
                 return; //don't create new section if setting default
             }
-            this.setSection(y >> 4, section = this.getWorld().getSave().getInitFunctions().getSectionFactory().create(y >> 4, this));
+            this.setSection(y >> 4, section = this.getWorld().getSave().config().getSectionFactory().create(y >> 4, this));
         }
         section.setBlockMeta(x, y & 0xF, z, meta);
     }
@@ -144,7 +144,7 @@ public interface Chunk extends BlockDataAccess, IntVector2.AddressableXZ, Closea
             if (level == 0) {
                 return; //don't create new section if setting default
             }
-            this.setSection(y >> 4, section = this.getWorld().getSave().getInitFunctions().getSectionFactory().create(y >> 4, this));
+            this.setSection(y >> 4, section = this.getWorld().getSave().config().getSectionFactory().create(y >> 4, this));
         }
         section.setBlockLight(x, y & 0xF, z, level);
     }
@@ -156,7 +156,7 @@ public interface Chunk extends BlockDataAccess, IntVector2.AddressableXZ, Closea
             if (level == 15) {
                 return; //don't create new section if setting default
             }
-            this.setSection(y >> 4, section = this.getWorld().getSave().getInitFunctions().getSectionFactory().create(y >> 4, this));
+            this.setSection(y >> 4, section = this.getWorld().getSave().config().getSectionFactory().create(y >> 4, this));
         }
         section.setSkyLight(x, y & 0xF, z, level);
     }

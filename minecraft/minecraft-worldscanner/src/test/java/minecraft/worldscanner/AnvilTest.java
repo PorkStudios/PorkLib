@@ -34,18 +34,23 @@ public class AnvilTest {
                 .setFormat(new AnvilSaveFormat(new File(".", "run/testworld")))
                 .build();
 
-        System.out.printf("%d registries\n", save.getRegistries().size());
-        save.getRegistries().forEach((resourceLocation, registry) -> System.out.printf("  %s: %d entries\n", resourceLocation, registry.size()));
+        System.out.printf("%d registries\n", save.registries().size());
+        save.registries().forEach((resourceLocation, registry) -> System.out.printf("  %s: %d entries\n", resourceLocation, registry.size()));
 
-        IDRegistry blockRegistry = save.getRegistry(new ResourceLocation("minecraft:blocks"));
+        IDRegistry blockRegistry = save.registry(new ResourceLocation("minecraft:blocks"));
 
-        Chunk chunk = save.getWorld(0).getColumn(30, 6);
+        Chunk chunk = save.world(0).getColumn(30, 6);
         chunk.load();
         int id;
         for (int y = 255; y >= 0; y--) {
             if ((id = chunk.getBlockId(7, y, 7)) != 0) {
                 System.out.printf("Surface in chunk (%d,%d) is at y=%d\n", chunk.getX(), chunk.getZ(), y);
-                System.out.printf("Surface block id id %d (registry name: %s)\n", id, blockRegistry.lookup(id).toString());
+                ResourceLocation surfaceBlock = blockRegistry.lookup(id);
+                if (surfaceBlock.equals("tconstruct:blueslime"))    {
+                    System.out.printf("Surface block id id %d (registry name: %s)\n", id, surfaceBlock);
+                } else {
+                    throw new IllegalStateException(String.format("Expected block type \"tconstruct:blueslime\", but found \"%s\"!", surfaceBlock));
+                }
                 break;
             }
         }

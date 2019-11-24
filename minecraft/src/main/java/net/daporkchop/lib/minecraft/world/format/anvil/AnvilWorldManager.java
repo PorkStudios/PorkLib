@@ -26,6 +26,8 @@ import net.daporkchop.lib.common.cache.Cache;
 import net.daporkchop.lib.common.cache.SoftThreadCache;
 import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.math.vector.i.Vec2i;
+import net.daporkchop.lib.minecraft.registry.ResourceLocation;
+import net.daporkchop.lib.minecraft.tileentity.TileEntity;
 import net.daporkchop.lib.minecraft.util.SectionLayer;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Section;
@@ -152,7 +154,7 @@ public class AnvilWorldManager implements WorldManager {
                         chunk.setSection(y, null);
                     } else {
                         if (section == null) {
-                            chunk.setSection(y, section = this.format.getSave().getInitFunctions().getSectionFactory().create(y, chunk));
+                            chunk.setSection(y, section = this.format.getSave().config().getSectionFactory().create(y, chunk));
                         }
                         this.loadSection(section, tag);
                         if (section instanceof HeapSectionImpl) {
@@ -172,7 +174,11 @@ public class AnvilWorldManager implements WorldManager {
             {
                 ListTag<CompoundTag> sectionsTag = rootTag.get("TileEntities");
                 sectionsTag.getValue().stream()
-                        .map(tag -> this.world.getSave().getInitFunctions().getTileEntityCreator().apply(this.world, tag))
+                        .map(tag -> {
+                            TileEntity tileEntity = this.world.getSave().config().getTileEntityFactory().create(new ResourceLocation(tag.getString("id")));
+                            tileEntity.init(this.world, tag);
+                            return tileEntity;
+                        })
                         .forEach(chunk.getTileEntities()::add);
                 chunk.getTileEntities().forEach(tileEntity -> this.world.getLoadedTileEntities().put(tileEntity.pos(), tileEntity));
             }

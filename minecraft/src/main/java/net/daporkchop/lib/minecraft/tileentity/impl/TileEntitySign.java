@@ -13,49 +13,56 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.world.impl;
+package net.daporkchop.lib.minecraft.tileentity.impl;
 
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.minecraft.tileentity.TileEntity;
+import net.daporkchop.lib.minecraft.registry.ResourceLocation;
 import net.daporkchop.lib.minecraft.tileentity.TileEntityBase;
-import net.daporkchop.lib.minecraft.tileentity.TileEntitySign;
-import net.daporkchop.lib.minecraft.util.factory.ChunkFactory;
-import net.daporkchop.lib.minecraft.util.factory.SectionFactory;
-import net.daporkchop.lib.minecraft.util.factory.WorldFactory;
 import net.daporkchop.lib.minecraft.world.World;
-import net.daporkchop.lib.minecraft.world.impl.section.HeapSectionImpl;
-import net.daporkchop.lib.minecraft.world.impl.vanilla.VanillaChunkImpl;
-import net.daporkchop.lib.minecraft.world.impl.vanilla.VanillaWorldImpl;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 import net.daporkchop.lib.nbt.tag.notch.StringTag;
 
-import java.util.function.BiFunction;
-
 /**
+ * Implementation of a {@code minecraft:sign} tile entity.
+ *
  * @author DaPorkchop_
  */
-@Setter
 @Getter
-@Accessors(chain = true)
-public class InitFunctions {
-    @NonNull
-    private WorldFactory   worldFactory   = VanillaWorldImpl::new;
-    @NonNull
-    private ChunkFactory   chunkFactory   = VanillaChunkImpl::new;
-    @NonNull
-    private SectionFactory sectionFactory = HeapSectionImpl::new;
+@Accessors(fluent = true)
+public final class TileEntitySign extends TileEntityBase {
+    public static final ResourceLocation ID = new ResourceLocation("minecraft:sign");
 
-    @NonNull
-    private BiFunction<World, CompoundTag, TileEntity> tileEntityCreator = (world, tag) -> {
-        String id = tag.<StringTag>get("id").getValue();
-        switch (id) {
-            case "minecraft:sign":
-                return new TileEntitySign(world, tag);
-            default:
-                return new TileEntityBase(world, tag);
-        }
-    }; //TODO: totally refactor this into a registry-based system
+    private String line1;
+    private String line2;
+    private String line3;
+    private String line4;
+
+    @Override
+    protected void doInit(@NonNull CompoundTag nbt) {
+        this.line1 = nbt.getString("Text1");
+        this.line2 = nbt.getString("Text2");
+        this.line3 = nbt.getString("Text3");
+        this.line4 = nbt.getString("Text4");
+    }
+
+    @Override
+    protected void doDeinit() {
+        this.line1 = this.line2 = this.line3 = this.line4 = null;
+    }
+
+    @Override
+    protected void doSave(@NonNull CompoundTag nbt) {
+        nbt.putString("Text1", this.line1);
+        nbt.putString("Text2", this.line2);
+        nbt.putString("Text3", this.line3);
+        nbt.putString("Text4", this.line4);
+    }
+
+    @Override
+    public ResourceLocation id() {
+        return ID;
+    }
 }

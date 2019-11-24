@@ -16,9 +16,8 @@
 package net.daporkchop.lib.minecraft.util.factory;
 
 import lombok.NonNull;
+import net.daporkchop.lib.minecraft.registry.ResourceLocation;
 import net.daporkchop.lib.minecraft.tileentity.TileEntity;
-import net.daporkchop.lib.minecraft.world.World;
-import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 
 /**
  * Creates instances of {@link TileEntity}.
@@ -30,9 +29,8 @@ public interface TileEntityFactory {
     /**
      * Creates a new {@link TileEntity} instance.
      *
-     * @param world the world that the tile entity is in
-     * @param nbt   the tile entity's NBT data
+     * @param id the {@link TileEntity}'s ID
      * @return a new {@link TileEntity} instance
      */
-    TileEntity create(@NonNull World world, @NonNull CompoundTag nbt);
+    TileEntity create(@NonNull ResourceLocation id);
 }

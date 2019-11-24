@@ -13,50 +13,66 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.world.impl;
+package net.daporkchop.lib.minecraft.tileentity.impl;
 
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.minecraft.registry.IDRegistry;
 import net.daporkchop.lib.minecraft.registry.ResourceLocation;
-import net.daporkchop.lib.minecraft.world.MinecraftSave;
-import net.daporkchop.lib.minecraft.world.World;
-import net.daporkchop.lib.minecraft.world.format.SaveFormat;
-import net.daporkchop.lib.primitive.map.IntObjMap;
-import net.daporkchop.lib.primitive.map.hash.opennode.IntObjOpenNodeHashMap;
-
-import java.io.IOException;
-import java.util.Hashtable;
-import java.util.Map;
+import net.daporkchop.lib.minecraft.tileentity.TileEntityBase;
+import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 
 /**
+ * Represents an unknown (unregistered) tile entity.
+ *
  * @author DaPorkchop_
  */
 @Getter
 @Accessors(fluent = true)
-public class MinecraftSaveImpl implements MinecraftSave {
-    private final SaveFormat          saveFormat;
-    private final MinecraftSaveConfig config;
-    private final Map<ResourceLocation, IDRegistry> registries = new Hashtable<>();
-    private final IntObjMap<World>                  worlds     = new IntObjOpenNodeHashMap<>();
+public final class UnknownTileEntity extends TileEntityBase {
+    protected ResourceLocation id;
+    protected CompoundTag data;
 
-    public MinecraftSaveImpl(@NonNull SaveBuilder builder) {
-        this.saveFormat = builder.getFormat();
-        this.config = builder.getInitFunctions();
-
-        try {
-            this.saveFormat.init(this);
-        } catch (IOException e) {
-            throw new RuntimeException("Unable to initialize save", e);
-        }
-        this.saveFormat.loadRegistries(this.registries::put);
-        this.saveFormat.loadWorlds((id, worldManager) -> this.worlds.put(id, this.config.getWorldFactory().create(id, worldManager, this)));
+    @Override
+    protected void doInit(@NonNull CompoundTag nbt) {
+        this.data = nbt; //TODO: some way to make immutable tags? i should probably rewrite NBT lib to use interfaces for each tag type
+        this.id = new ResourceLocation(nbt.getString("id"));
     }
 
     @Override
-    public void close() throws IOException {
-        this.worlds.forEachValue(this.saveFormat::closeWorld);
-        this.saveFormat.close();
+    protected void doDeinit() {
+        this.id = null;
+        this.data = null;
+    }
+
+    @Override
+    public synchronized CompoundTag save() {
+        return this.data;
+    }
+
+    @Override
+    protected boolean isValidId(@NonNull String id) {
+        //accept everything, it really doesn't matter (as long as it's not null)
+        return true;
+    }
+
+    @Override
+    public boolean dirty() {
+        return false;
+    }
+
+    @Override
+    public boolean markDirty() {
+        throw new UnsupportedOperationException("markDirty");
+    }
+
+    @Override
+    protected void resetDirty() {
+        throw new UnsupportedOperationException("resetDirty");
+    }
+
+    @Override
+    protected boolean checkAndResetDirty() {
+        throw new UnsupportedOperationException("checkAndResetDirty");
     }
 }

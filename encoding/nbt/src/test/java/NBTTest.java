@@ -38,12 +38,12 @@ public class NBTTest {
     public static void printTagRecursive(@NonNull Tag tag, int depth) {
         if (depth == 0) {
             System.out.printf("CompoundTag \"%s\": %d children\n", tag.getName(), tag.getAsCompoundTag().getContents().size());
-            tag.getAsCompoundTag().forEach(subTag -> printTagRecursive(subTag, 2));
+            tag.getAsCompoundTag().forEachTag(subTag -> printTagRecursive(subTag, 2));
             return;
         }
         System.out.printf("%s%s\n", space(depth), tag);
         if (tag instanceof CompoundTag) {
-            tag.getAsCompoundTag().forEach(subTag -> printTagRecursive(subTag, depth + 2));
+            tag.getAsCompoundTag().forEachTag(subTag -> printTagRecursive(subTag, depth + 2));
         } else if (tag instanceof ListTag) {
             tag.<ListTag<? extends Tag>>getAs().forEach(subTag -> printTagRecursive(subTag, depth + 2));
         }

@@ -18,20 +18,28 @@ package net.daporkchop.lib.minecraft.tileentity;
 import net.daporkchop.lib.math.vector.i.IntVector3;
 import net.daporkchop.lib.math.vector.i.Vec3i;
 import net.daporkchop.lib.minecraft.registry.ResourceLocation;
-import net.daporkchop.lib.minecraft.world.World;
-import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
+import net.daporkchop.lib.minecraft.util.WorldMemberPersistent;
 
 /**
+ * A tile entity attaches an NBT {@link net.daporkchop.lib.nbt.tag.notch.CompoundTag} to a block position in the world.
+ *
+ * Technically, they've been officially renamed to "Block Entities" in recent versions of the game, but I prefer "Tile Entity" and am sticking
+ * with it as long as feasibly possible.
+ *
  * @author DaPorkchop_
  */
-public interface TileEntity extends IntVector3.AddressableXYZ {
-    World getWorld();
+public interface TileEntity extends WorldMemberPersistent, IntVector3.AddressableXYZ {
+    /**
+     * @return this tile entity's ID
+     */
+    ResourceLocation id();
 
-    ResourceLocation getId();
-
-    CompoundTag getData();
-
-    default Vec3i getPos() {
+    /**
+     * @return this tile entity's current position
+     * @deprecated once {@link Vec3i} is made into an interface, {@link TileEntity} will implement it making this method redundant
+     */
+    @Deprecated
+    default Vec3i pos() {
         return new Vec3i(this.getX(), this.getY(), this.getZ());
     }
 }

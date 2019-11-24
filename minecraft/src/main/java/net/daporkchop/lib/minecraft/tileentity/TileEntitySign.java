@@ -15,50 +15,45 @@
 
 package net.daporkchop.lib.minecraft.tileentity;
 
-import com.google.gson.JsonParseException;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.minecraft.registry.ResourceLocation;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 import net.daporkchop.lib.nbt.tag.notch.StringTag;
 
 /**
+ * Implementation of a {@code minecraft:sign} tile entity.
+ *
  * @author DaPorkchop_
  */
 @Getter
-@Setter
-public class TileEntitySign extends TileEntityBase {
-    @NonNull
+@Accessors(fluent = true)
+public final class TileEntitySign extends TileEntityBase {
+    public static final ResourceLocation ID = new ResourceLocation("minecraft:sign");
+
     private String line1;
-    @NonNull
     private String line2;
-    @NonNull
     private String line3;
-    @NonNull
     private String line4;
 
-    public TileEntitySign(World world, CompoundTag data) {
-        super(world, data);
+    @Override
+    protected void doInit(@NonNull CompoundTag nbt) {
+        this.line1 = nbt.getString("Text1");
+        this.line2 = nbt.getString("Text2");
+        this.line3 = nbt.getString("Text3");
+        this.line4 = nbt.getString("Text4");
     }
 
     @Override
-    protected void init() {
-        super.init();
-        try {
-            this.line1 = this.data.<StringTag>get("Text1").getValue();
-            this.line2 = this.data.<StringTag>get("Text2").getValue();
-            this.line3 = this.data.<StringTag>get("Text3").getValue();
-            this.line4 = this.data.<StringTag>get("Text4").getValue();
-        } catch (JsonParseException e) {
-            //invalid sign data, can happen sometimes so just ignore
-            this.line1 = this.line2 = this.line3 = this.line4 = "";
-        }
+    protected void doDeinit() {
+        this.line1 = this.line2 = this.line3 = this.line4 = null;
     }
 
     @Override
-    public void save() {
-        super.save();
-        //TODO
+    public ResourceLocation id() {
+        return ID;
     }
 }

@@ -21,8 +21,11 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.primitive.function.biconsumer.ObjIntBiConsumer;
 
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * Builder class for {@link IDRegistry}.
@@ -89,6 +92,60 @@ public class IDRegistryBuilder {
      */
     public synchronized IDRegistryBuilder registerAll(@NonNull IDRegistry registry) {
         registry.forEach(this::register);
+        return this;
+    }
+
+    /**
+     * Registers all {@link ResourceLocation}s in the given {@link IDRegistryBuilder} with their existing ID.
+     *
+     * @param builder the builder to copy from
+     * @return this {@link IDRegistryBuilder} instance
+     */
+    public synchronized IDRegistryBuilder registerAll(@NonNull IDRegistryBuilder builder) {
+        builder.forEach(this::register);
+        return this;
+    }
+
+    /**
+     * Registers all {@link ResourceLocation}s in the given {@link Map} with their existing ID.
+     *
+     * @param map the map to copy from
+     * @return this {@link IDRegistryBuilder} instance
+     */
+    public synchronized IDRegistryBuilder registerAll(@NonNull Map<ResourceLocation, Integer> map) {
+        map.forEach(this::register);
+        return this;
+    }
+
+    /**
+     * Runs the given callback function for every {@link ResourceLocation} in this builder.
+     *
+     * @param callback the callback function to run
+     * @return this {@link IDRegistryBuilder} instance
+     */
+    public synchronized IDRegistryBuilder forEach(@NonNull Consumer<ResourceLocation> callback) {
+        for (int i = 0, size = this.list.size(); i < size; i++) {
+            ResourceLocation location = this.list.get(i);
+            if (location != null) {
+                callback.accept(location);
+            }
+        }
+        return this;
+    }
+
+    /**
+     * Runs the given callback function for every {@link ResourceLocation} and ID in this builder.
+     *
+     * @param callback the callback function to run
+     * @return this {@link IDRegistryBuilder} instance
+     */
+    public synchronized IDRegistryBuilder forEach(@NonNull ObjIntBiConsumer<ResourceLocation> callback) {
+        for (int i = 0, size = this.list.size(); i < size; i++) {
+            ResourceLocation location = this.list.get(i);
+            if (location != null) {
+                callback.accept(location, i);
+            }
+        }
         return this;
     }
 

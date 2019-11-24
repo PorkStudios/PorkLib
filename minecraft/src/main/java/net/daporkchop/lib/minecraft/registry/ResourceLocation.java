@@ -85,6 +85,13 @@ public final class ResourceLocation {
         } else if (obj instanceof ResourceLocation) {
             ResourceLocation other = (ResourceLocation) obj;
             return this.modid.equals(other.modid) && this.name.equals(other.name);
+        } else if (obj instanceof String)   {
+            //check if the toString value is identical
+            String other = (String) obj;
+            return other.length() == this.modid.length() + this.name.length() + 1
+                    && other.startsWith(this.modid)
+                    && other.endsWith(this.name)
+                    && other.charAt(this.modid.length()) == ':';
         } else {
             return false;
         }

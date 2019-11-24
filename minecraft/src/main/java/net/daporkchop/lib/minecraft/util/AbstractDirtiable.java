@@ -13,12 +13,43 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile project(":minecraft:minecraft-text")
-    compile project(":primitive")
-    compile project(":encoding:nbt")
+package net.daporkchop.lib.minecraft.util;
 
-    compile "com.google.guava:guava:$guavaVersion"
+import net.daporkchop.lib.unsafe.PUnsafe;
+
+/**
+ * Abstract implementation of {@link Dirtiable}.
+ *
+ * @author DaPorkchop_
+ */
+public abstract class AbstractDirtiable implements Dirtiable {
+    protected static final long DIRTY_OFFSET = PUnsafe.pork_getOffset(AbstractDirtiable.class, "dirty");
+
+    private volatile int dirty = 0;
+
+    @Override
+    public boolean dirty() {
+        return this.dirty != 0;
+    }
+
+    @Override
+    public boolean markDirty() {
+        return PUnsafe.compareAndSwapInt(this, DIRTY_OFFSET, 0, 1);
+    }
+
+    /**
+     * Clears this instance's dirty flag.
+     */
+    protected void resetDirty() {
+        this.dirty = 0;
+    }
+
+    /**
+     * Clears this instance's dirty flag.
+     *
+     * @return whether this instance was dirty prior to this method invocation
+     */
+    protected boolean checkAndResetDirty() {
+        return PUnsafe.compareAndSwapInt(this, DIRTY_OFFSET, 1, 0);
+    }
 }

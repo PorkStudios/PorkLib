@@ -13,27 +13,12 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.util;
-
-import lombok.NonNull;
-import net.daporkchop.lib.minecraft.world.MinecraftSave;
-import net.daporkchop.lib.minecraft.world.World;
-import net.daporkchop.lib.minecraft.world.format.WorldManager;
+package net.daporkchop.lib.minecraft.tileentity;
 
 /**
- * Creates instances of {@link World}.
+ * A registry for tile entities.
  *
  * @author DaPorkchop_
  */
-@FunctionalInterface
-public interface WorldFactory {
-    /**
-     * Creates a new {@link World} instance.
-     *
-     * @param id      the dimension ID of the world
-     * @param manager the {@link WorldManager} that the world will use
-     * @param save    the {@link MinecraftSave} that the world is in
-     * @return a new {@link World} instance
-     */
-    World create(int id, @NonNull WorldManager manager, @NonNull MinecraftSave save);
+public class TileEntityRegistry {
 }

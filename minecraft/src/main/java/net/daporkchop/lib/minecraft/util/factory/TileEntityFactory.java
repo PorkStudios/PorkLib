@@ -13,49 +13,26 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.world.impl;
+package net.daporkchop.lib.minecraft.util.factory;
 
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 import net.daporkchop.lib.minecraft.tileentity.TileEntity;
-import net.daporkchop.lib.minecraft.tileentity.TileEntityBase;
-import net.daporkchop.lib.minecraft.tileentity.TileEntitySign;
-import net.daporkchop.lib.minecraft.util.factory.ChunkFactory;
-import net.daporkchop.lib.minecraft.util.factory.SectionFactory;
-import net.daporkchop.lib.minecraft.util.factory.WorldFactory;
 import net.daporkchop.lib.minecraft.world.World;
-import net.daporkchop.lib.minecraft.world.impl.section.HeapSectionImpl;
-import net.daporkchop.lib.minecraft.world.impl.vanilla.VanillaChunkImpl;
-import net.daporkchop.lib.minecraft.world.impl.vanilla.VanillaWorldImpl;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
-import net.daporkchop.lib.nbt.tag.notch.StringTag;
-
-import java.util.function.BiFunction;
 
 /**
+ * Creates instances of {@link TileEntity}.
+ *
  * @author DaPorkchop_
  */
-@Setter
-@Getter
-@Accessors(chain = true)
-public class InitFunctions {
-    @NonNull
-    private WorldFactory   worldFactory   = VanillaWorldImpl::new;
-    @NonNull
-    private ChunkFactory   chunkFactory   = VanillaChunkImpl::new;
-    @NonNull
-    private SectionFactory sectionFactory = HeapSectionImpl::new;
-
-    @NonNull
-    private BiFunction<World, CompoundTag, TileEntity> tileEntityCreator = (world, tag) -> {
-        String id = tag.<StringTag>get("id").getValue();
-        switch (id) {
-            case "minecraft:sign":
-                return new TileEntitySign(world, tag);
-            default:
-                return new TileEntityBase(world, tag);
-        }
-    }; //TODO: totally refactor this into a registry-based system
+@FunctionalInterface
+public interface TileEntityFactory {
+    /**
+     * Creates a new {@link TileEntity} instance.
+     *
+     * @param world the world that the tile entity is in
+     * @param nbt   the tile entity's NBT data
+     * @return a new {@link TileEntity} instance
+     */
+    TileEntity create(@NonNull World world, @NonNull CompoundTag nbt);
 }

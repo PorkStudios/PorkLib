@@ -56,6 +56,6 @@ public class IntTag extends Tag {
 
     @Override
     public String toString() {
-        return String.format("IntTag(\"%s\"): %d", this.getName(), this.value & 0xFFFFFFFFL);
+        return String.format("IntTag(\"%s\"): %d", this.getName(), Integer.toUnsignedLong(this.value));
     }
 }

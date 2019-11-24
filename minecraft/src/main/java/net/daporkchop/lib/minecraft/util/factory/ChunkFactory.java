@@ -13,25 +13,26 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.util;
+package net.daporkchop.lib.minecraft.util.factory;
 
 import lombok.NonNull;
+import net.daporkchop.lib.math.vector.i.Vec2i;
 import net.daporkchop.lib.minecraft.world.Chunk;
-import net.daporkchop.lib.minecraft.world.Section;
+import net.daporkchop.lib.minecraft.world.World;
 
 /**
- * Creates instances of {@link Section}.
+ * Creates instances of {@link Chunk}.
  *
  * @author DaPorkchop_
  */
 @FunctionalInterface
-public interface SectionFactory {
+public interface ChunkFactory {
     /**
-     * Creates a new {@link Section}.
+     * Creates a new {@link Chunk} instance.
      *
-     * @param y     the section's Y coordinate in the chunk
-     * @param chunk the chunk that the section is in
-     * @return a new {@link Section} instance
+     * @param pos   the chunk's position in the world
+     * @param world the world that the chunk is in
+     * @return a new {@link Chunk} instance
      */
-    Section create(int y, @NonNull Chunk chunk);
+    Chunk create(@NonNull Vec2i pos, @NonNull World world);
 }

@@ -13,26 +13,27 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.util;
+package net.daporkchop.lib.minecraft.util.factory;
 
 import lombok.NonNull;
-import net.daporkchop.lib.math.vector.i.Vec2i;
-import net.daporkchop.lib.minecraft.world.Chunk;
+import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.World;
+import net.daporkchop.lib.minecraft.world.format.WorldManager;
 
 /**
- * Creates instances of {@link Chunk}.
+ * Creates instances of {@link World}.
  *
  * @author DaPorkchop_
  */
 @FunctionalInterface
-public interface ChunkFactory {
+public interface WorldFactory {
     /**
-     * Creates a new {@link Chunk} instance.
+     * Creates a new {@link World} instance.
      *
-     * @param pos   the chunk's position in the world
-     * @param world the world that the chunk is in
-     * @return a new {@link Chunk} instance
+     * @param id      the dimension ID of the world
+     * @param manager the {@link WorldManager} that the world will use
+     * @param save    the {@link MinecraftSave} that the world is in
+     * @return a new {@link World} instance
      */
-    Chunk create(@NonNull Vec2i pos, @NonNull World world);
+    World create(int id, @NonNull WorldManager manager, @NonNull MinecraftSave save);
 }

@@ -35,7 +35,6 @@ import net.daporkchop.lib.minecraft.world.impl.section.DirectSectionImpl;
 import net.daporkchop.lib.minecraft.world.impl.section.HeapSectionImpl;
 import net.daporkchop.lib.minecraft.world.impl.vanilla.VanillaChunkImpl;
 import net.daporkchop.lib.nbt.NBTInputStream;
-import net.daporkchop.lib.nbt.tag.TagRegistry;
 import net.daporkchop.lib.nbt.tag.notch.ByteArrayTag;
 import net.daporkchop.lib.nbt.tag.notch.ByteTag;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
@@ -175,7 +174,7 @@ public class AnvilWorldManager implements WorldManager {
                 sectionsTag.getValue().stream()
                         .map(tag -> this.world.getSave().getInitFunctions().getTileEntityCreator().apply(this.world, tag))
                         .forEach(chunk.getTileEntities()::add);
-                chunk.getTileEntities().forEach(tileEntity -> this.world.getLoadedTileEntities().put(tileEntity.getPos(), tileEntity));
+                chunk.getTileEntities().forEach(tileEntity -> this.world.getLoadedTileEntities().put(tileEntity.pos(), tileEntity));
             }
             this.world.getLoadedColumns().put(chunk.getPos(), chunk);
         } catch (Exception e) {

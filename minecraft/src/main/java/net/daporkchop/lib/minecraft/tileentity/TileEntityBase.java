@@ -16,43 +16,94 @@
 package net.daporkchop.lib.minecraft.tileentity;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.registry.ResourceLocation;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.math.vector.i.Vec3i;
+import net.daporkchop.lib.minecraft.util.AbstractDirtiable;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
-import net.daporkchop.lib.nbt.tag.notch.IntTag;
-import net.daporkchop.lib.nbt.tag.notch.StringTag;
 
 /**
+ * Abstract, base implementation of {@link TileEntity}.
+ *
  * @author DaPorkchop_
  */
+@NoArgsConstructor
 @Getter
-public class TileEntityBase implements TileEntity {
-    @NonNull
-    protected final World world;
+@Accessors(fluent = true)
+public abstract class TileEntityBase extends AbstractDirtiable implements TileEntity {
+    protected World world;
+    protected Vec3i pos;
 
-    @NonNull
-    protected final CompoundTag data;
+    @Override
+    public synchronized void init(@NonNull World world, @NonNull CompoundTag nbt) {
+        if (this.world != null) {
+            throw new IllegalStateException("Already initialized!");
+        }
 
-    protected int x;
-    protected int y;
-    protected int z;
-
-    protected ResourceLocation id;
-
-    public TileEntityBase(@NonNull World world, @NonNull CompoundTag data) {
         this.world = world;
-        this.data = data;
-        this.init();
+        this.pos = new Vec3i(nbt.getInt("x"), nbt.getInt("y"), nbt.getInt("z"));
+
+        this.doInit(nbt);
     }
 
-    protected void init() {
-        this.id = new ResourceLocation(this.data.<StringTag>get("id").getValue());
-        this.x = this.data.<IntTag>get("x").getValue();
-        this.y = this.data.<IntTag>get("y").getValue();
-        this.z = this.data.<IntTag>get("z").getValue();
+    /**
+     * Method for implementations to define additional initialization logic in.
+     *
+     * @param nbt the NBT {@link CompoundTag} containing this tile entity's encoded state
+     */
+    protected void doInit(@NonNull CompoundTag nbt) {
+        if (!this.id().equals(nbt.getString("id"))) {
+            throw new IllegalArgumentException(String.format("Invalid NBT tag! This is a \"%s\", cannot load data for \"%s\"!", this.id(), nbt.getString("id")));
+        }
     }
 
-    public void save() {
+    @Override
+    public synchronized void deinit() {
+        if (this.world == null) {
+            throw new IllegalStateException("Not initialized!");
+        }
+    }
+
+    /**
+     * Method for implementations to define additional deinitialization logic in.
+     */
+    protected void doDeinit() {
+    }
+
+    @Override
+    public CompoundTag save() {
+        CompoundTag nbt = new CompoundTag();
+
+        nbt.putString("id", this.id().toString());
+        nbt.putInt("x", this.pos.getX());
+        nbt.putInt("y", this.pos.getY());
+        nbt.putInt("z", this.pos.getZ());
+
+        return nbt;
+    }
+
+    /**
+     * Method for implementations to define additional save logic in.
+     *
+     * @param nbt the NBT {@link CompoundTag} to encode this tile entity's state into
+     */
+    protected void doSave(@NonNull CompoundTag nbt) {
+    }
+
+    @Override
+    public int getX() {
+        return this.pos.getX();
+    }
+
+    @Override
+    public int getY() {
+        return this.pos.getY();
+    }
+
+    @Override
+    public int getZ() {
+        return this.pos.getZ();
     }
 }

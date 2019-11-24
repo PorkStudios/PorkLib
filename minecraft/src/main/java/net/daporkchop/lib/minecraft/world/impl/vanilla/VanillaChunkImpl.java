@@ -61,7 +61,7 @@ public final class VanillaChunkImpl extends AbstractVanillaChunk {
     protected void doUnload() {
         {
             Map<Vec3i, TileEntity> tes = this.world.getLoadedTileEntities();
-            this.tileEntities.forEach(te -> tes.remove(te.getPos(), te));
+            this.tileEntities.forEach(te -> tes.remove(te.pos(), te));
         }
 
         for (int y = 15; y >= 0; y--) {

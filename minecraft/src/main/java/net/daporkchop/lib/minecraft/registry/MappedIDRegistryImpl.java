@@ -24,7 +24,7 @@ import net.daporkchop.lib.primitive.map.hash.open.ObjIntOpenHashMap;
  *
  * @author DaPorkchop_
  */
-public final class MappedIDRegistryImpl extends IDRegistryImpl {
+public class MappedIDRegistryImpl extends IDRegistryImpl {
     protected final ObjIntMap<ResourceLocation> map = new ObjIntOpenHashMap<>();
 
     public MappedIDRegistryImpl(@NonNull ResourceLocation[] contents, ResourceLocation name) {

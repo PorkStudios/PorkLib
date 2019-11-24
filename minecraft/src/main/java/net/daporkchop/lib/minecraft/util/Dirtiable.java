@@ -13,12 +13,26 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile project(":minecraft:minecraft-text")
-    compile project(":primitive")
-    compile project(":encoding:nbt")
+package net.daporkchop.lib.minecraft.util;
 
-    compile "com.google.guava:guava:$guavaVersion"
+/**
+ * A persistent, mutable type that is marked as "dirty" (i.e. it needs to be saved) when modified.
+ * <p>
+ * The dirty flag is used to avoid needlessly saving unmodified values when they are unloaded.
+ *
+ * @author DaPorkchop_
+ */
+//TODO: a better name for this interface would be in order
+public interface Dirtiable {
+    /**
+     * @return whether or not this instance is dirty
+     */
+    boolean dirty();
+
+    /**
+     * Marks this instance as dirty.
+     *
+     * @return {@code true} if this instance was marked as dirty, {@code false} if it was already dirty and therefore was not changed
+     */
+    boolean markDirty();
 }

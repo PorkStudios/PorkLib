@@ -26,6 +26,7 @@ import lombok.RequiredArgsConstructor;
  */
 @RequiredArgsConstructor
 @Getter
+//TODO: this should be the interface, not the implementation
 public final class Vec3i implements IntVector3 {
     protected final int x;
     protected final int y;

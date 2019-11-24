@@ -91,8 +91,8 @@ public class ScannerTest {
     public void findDoubleChests() throws IOException {
         try (MinecraftSave save = this.getTestWorld()) {
             IDRegistry blocksRegistry = save.getRegistry(new ResourceLocation("minecraft:blocks"));
-            int chestId = blocksRegistry.getId(new ResourceLocation("minecraft:chest"));
-            int trappedChestId = blocksRegistry.getId(new ResourceLocation("minecraft:trapped_chest"));
+            int chestId = blocksRegistry.lookup(new ResourceLocation("minecraft:chest"));
+            int trappedChestId = blocksRegistry.lookup(new ResourceLocation("minecraft:trapped_chest"));
             new WorldScanner(save.getWorld(0))
                     .addProcessor(col -> {
                         if ((col.getX() & 0x1F) == 31 && (col.getZ() & 0x1F) == 31) {
@@ -142,7 +142,7 @@ public class ScannerTest {
                     })
                     .addProcessor(col -> col.getTileEntities().forEach(tileEntity -> {
                         if (false) {
-                            System.out.printf("Found TileEntity (id=%s, class=%s) at (%d,%d,%d)\n", tileEntity.getId().toString(), tileEntity.getClass().getCanonicalName(), tileEntity.getX(), tileEntity.getY(), tileEntity.getZ());
+                            System.out.printf("Found TileEntity (id=%s, class=%s) at (%d,%d,%d)\n", tileEntity.id().toString(), tileEntity.getClass().getCanonicalName(), tileEntity.getX(), tileEntity.getY(), tileEntity.getZ());
                         }
                         if (tileEntity instanceof TileEntitySign) {
                             TileEntitySign sign = (TileEntitySign) tileEntity;
@@ -228,7 +228,7 @@ public class ScannerTest {
                                 for (int y = 255; y >= 0; y--) {
                                     if ((id = col.getBlockId(x, y, z)) != 0) {
                                         int meta = col.getBlockMeta(x, y, z);
-                                        ResourceLocation registryName = registry.getName(id);
+                                        ResourceLocation registryName = registry.lookup(id);
                                         Color[] colors = registryName == null ? null : colorMap.get(registryName);
                                         if (colors == null || colors[meta] == null) {
                                             continue;

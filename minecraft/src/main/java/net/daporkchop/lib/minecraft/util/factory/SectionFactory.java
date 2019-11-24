@@ -13,12 +13,25 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile project(":minecraft:minecraft-text")
-    compile project(":primitive")
-    compile project(":encoding:nbt")
+package net.daporkchop.lib.minecraft.util.factory;
 
-    compile "com.google.guava:guava:$guavaVersion"
+import lombok.NonNull;
+import net.daporkchop.lib.minecraft.world.Chunk;
+import net.daporkchop.lib.minecraft.world.Section;
+
+/**
+ * Creates instances of {@link Section}.
+ *
+ * @author DaPorkchop_
+ */
+@FunctionalInterface
+public interface SectionFactory {
+    /**
+     * Creates a new {@link Section}.
+     *
+     * @param y     the section's Y coordinate in the chunk
+     * @param chunk the chunk that the section is in
+     * @return a new {@link Section} instance
+     */
+    Section create(int y, @NonNull Chunk chunk);
 }

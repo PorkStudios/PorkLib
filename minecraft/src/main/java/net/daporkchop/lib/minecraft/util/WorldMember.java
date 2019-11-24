@@ -13,12 +13,22 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile project(":minecraft:minecraft-text")
-    compile project(":primitive")
-    compile project(":encoding:nbt")
+package net.daporkchop.lib.minecraft.util;
 
-    compile "com.google.guava:guava:$guavaVersion"
+import net.daporkchop.lib.minecraft.world.World;
+
+/**
+ * A type that is part of a {@link World}.
+ *
+ * @author DaPorkchop_
+ */
+public interface WorldMember extends Dirtiable {
+    /**
+     * Gets the {@link World} that this member is currently in.
+     * <p>
+     * May be {@code null} if this member is not currently initialized (e.g. unloaded or dead).
+     *
+     * @return the world that this member is in
+     */
+    World world();
 }

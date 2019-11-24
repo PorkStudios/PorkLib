@@ -13,7 +13,7 @@
  *
  */
 
-package minecraft.worldscanner;import net.daporkchop.lib.minecraft.registry.Registry;
+package minecraft.worldscanner;import net.daporkchop.lib.minecraft.registry.IDRegistry;
 import net.daporkchop.lib.minecraft.registry.ResourceLocation;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
@@ -35,9 +35,9 @@ public class AnvilTest {
                 .build();
 
         System.out.printf("%d registries\n", save.getRegistries().size());
-        save.getRegistries().forEach((resourceLocation, registry) -> System.out.printf("  %s: %d entries\n", resourceLocation, registry.getSize()));
+        save.getRegistries().forEach((resourceLocation, registry) -> System.out.printf("  %s: %d entries\n", resourceLocation, registry.size()));
 
-        Registry blockRegistry = save.getRegistry(new ResourceLocation("minecraft:blocks"));
+        IDRegistry blockRegistry = save.getRegistry(new ResourceLocation("minecraft:blocks"));
 
         Chunk chunk = save.getWorld(0).getColumn(30, 6);
         chunk.load();
@@ -45,7 +45,7 @@ public class AnvilTest {
         for (int y = 255; y >= 0; y--) {
             if ((id = chunk.getBlockId(7, y, 7)) != 0) {
                 System.out.printf("Surface in chunk (%d,%d) is at y=%d\n", chunk.getX(), chunk.getZ(), y);
-                System.out.printf("Surface block id id %d (registry name: %s)\n", id, blockRegistry.getName(id).toString());
+                System.out.printf("Surface block id id %d (registry name: %s)\n", id, blockRegistry.lookup(id).toString());
                 break;
             }
         }

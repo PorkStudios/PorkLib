@@ -25,6 +25,7 @@ import net.daporkchop.lib.nbt.tag.TagRegistry;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -37,7 +38,7 @@ import java.util.function.Consumer;
  */
 @Getter
 @Setter
-public class ListTag<T extends Tag> extends Tag {
+public class ListTag<T extends Tag> extends Tag implements Iterable<T> {
     @NonNull
     protected List<T> value;
 
@@ -82,7 +83,13 @@ public class ListTag<T extends Tag> extends Tag {
         return String.format("ListTag(\"%s\"): %d tags", this.getName(), this.value.size());
     }
 
-    public void forEach(@NonNull Consumer<T> consumer) {
+    @Override
+    public void forEach(@NonNull Consumer<? super T> consumer) {
         this.value.forEach(consumer);
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        return this.value.iterator();
     }
 }

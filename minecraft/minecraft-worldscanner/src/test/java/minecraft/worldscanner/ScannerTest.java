@@ -25,7 +25,7 @@ import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.http.Http;
 import net.daporkchop.lib.math.vector.i.Vec2i;
 import net.daporkchop.lib.minecraft.region.WorldScanner;
-import net.daporkchop.lib.minecraft.registry.Registry;
+import net.daporkchop.lib.minecraft.registry.IDRegistry;
 import net.daporkchop.lib.minecraft.registry.ResourceLocation;
 import net.daporkchop.lib.minecraft.tileentity.TileEntitySign;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
@@ -90,7 +90,7 @@ public class ScannerTest {
     @Test
     public void findDoubleChests() throws IOException {
         try (MinecraftSave save = this.getTestWorld()) {
-            Registry blocksRegistry = save.getRegistry(new ResourceLocation("minecraft:blocks"));
+            IDRegistry blocksRegistry = save.getRegistry(new ResourceLocation("minecraft:blocks"));
             int chestId = blocksRegistry.getId(new ResourceLocation("minecraft:chest"));
             int trappedChestId = blocksRegistry.getId(new ResourceLocation("minecraft:trapped_chest"));
             new WorldScanner(save.getWorld(0))
@@ -182,7 +182,7 @@ public class ScannerTest {
             colorMap.put(new ResourceLocation("minecraft:snow_layer"), new Color[]{colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8]});
         }
         try (MinecraftSave save = this.getTestWorld()) {
-            Registry registry = save.getRegistry(new ResourceLocation("minecraft:blocks"));
+            IDRegistry registry = save.getRegistry(new ResourceLocation("minecraft:blocks"));
             File out = new File(".", "run/out");
             PFiles.rmContents(PFiles.ensureDirectoryExists(out));
             LoadingCache<Vec2i, BufferedImage> outCache = CacheBuilder.newBuilder()

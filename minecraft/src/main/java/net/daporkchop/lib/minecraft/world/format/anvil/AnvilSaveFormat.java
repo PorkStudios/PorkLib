@@ -19,7 +19,8 @@ import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.common.misc.Tuple;
 import net.daporkchop.lib.encoding.compression.Compression;
-import net.daporkchop.lib.minecraft.registry.Registry;
+import net.daporkchop.lib.minecraft.registry.IDRegistry;
+import net.daporkchop.lib.minecraft.registry.IDRegistryBuilder;
 import net.daporkchop.lib.minecraft.registry.ResourceLocation;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
@@ -85,8 +86,8 @@ public class AnvilSaveFormat implements SaveFormat {
     }
 
     @Override
-    public void loadWorlds(IntObjBiConsumer<WorldManager> addFunction) {
-        addFunction.accept(0, new AnvilWorldManager(this, new File(this.root, "region")));
+    public void loadWorlds(IntObjBiConsumer<WorldManager> callback) {
+        callback.accept(0, new AnvilWorldManager(this, new File(this.root, "region")));
         //TODO: other dimensions
     }
 
@@ -96,7 +97,7 @@ public class AnvilSaveFormat implements SaveFormat {
 
     @Override
     @SuppressWarnings("unchecked")
-    public void loadRegistries(BiConsumer<ResourceLocation, Registry> addFunction) {
+    public void loadRegistries(@NonNull BiConsumer<ResourceLocation, IDRegistry> callback) {
         CompoundTag fmlTag = this.levelDat.get("FML");
         if (fmlTag == null) {
             //TODO
@@ -106,14 +107,16 @@ public class AnvilSaveFormat implements SaveFormat {
             if (registriesTag == null) {
                 throw new NullPointerException("Registries");
             }
-            registriesTag.getContents().entrySet().stream()
-                    .map(entry -> new Tuple<>(new ResourceLocation(entry.getKey()), (CompoundTag) entry.getValue()))
-                    .forEach(tuple -> {
-                        ResourceLocation registryName = tuple.getA();
-                        Registry registry = new Registry(registryName);
-                        tuple.getB().<ListTag<CompoundTag>>get("ids").getValue().forEach(tag -> registry.registerEntry(new ResourceLocation(tag.<StringTag>get("K").getValue()), tag.<IntTag>get("V").getValue()));
-                        addFunction.accept(registryName, registry);
-                    });
+            IDRegistryBuilder builder = IDRegistry.builder();
+            registriesTag.getContents().forEach((key, nbt) -> {
+                ResourceLocation registryName = new ResourceLocation(key);
+                CompoundTag tag = nbt.getAsCompoundTag();
+                builder.clear().name(registryName);
+                for (CompoundTag subTag : tag.<ListTag<CompoundTag>>get("ids")) {
+                    builder.register(new ResourceLocation(subTag.getString("K")), subTag.getInt("V", -1));
+                }
+                callback.accept(registryName, builder.build());
+            });
         }
     }
 

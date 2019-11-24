@@ -15,52 +15,79 @@
 
 package net.daporkchop.lib.minecraft.registry;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
+import net.daporkchop.lib.common.cache.Cache;
+import net.daporkchop.lib.common.cache.SoftThreadCache;
+import net.daporkchop.lib.common.util.PorkUtil;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+/**
+ * A Minecraft-style resource location (also known as a registry name).
+ *
+ * @author DaPorkchop_
+ */
 @Getter
-public class ResourceLocation {
+public final class ResourceLocation {
+    protected static final Pattern        VALIDATION_PATTERN = Pattern.compile("^([^:]+):([^:]+)$");
+    protected static final Cache<Matcher> MATCHER_CACHE      = SoftThreadCache.of(() -> VALIDATION_PATTERN.matcher(""));
+
     @NonNull
     private final String modid;
 
     @NonNull
     private final String name;
 
-    public ResourceLocation(@NonNull String name) {
-        String[] split = name.split(":");
-        if (split.length != 2 || split[0].isEmpty() || split[1].isEmpty()/* || split[0].contains(" ") || split[1].contains(" ")*/) {
-            throw new IllegalArgumentException(String.format("Invalid resource location: %s", name));
-        }
-        this.modid = split[0];
-        this.name = split[1];
-    }
+    @Getter(AccessLevel.NONE)
+    private int hashCode = 0;
 
     public ResourceLocation(@NonNull String modid, @NonNull String name) {
-        if (modid.isEmpty()) {
-            throw new IllegalArgumentException("modid may not be empty!");
-        } else if (name.isEmpty()) {
-            throw new IllegalArgumentException("name may not be empty!");
-        } else if (modid.contains(":") || name.contains(":")) {
-            throw new IllegalArgumentException(String.format("Neither modid nor name may contain a colon! (given: modid=%s, msg=%s)", modid, name));
-        }/* else if (modid.contains(" ") || name.contains(" ")) {
-            throw new IllegalArgumentException(String.format("Neither modid nor name may contain a space! (given: modid=%s, msg=%s)", modid, msg));
-        }*/
-        this.modid = modid;
-        this.name = name;
+        this(String.format("%s:%s", modid, name));
+    }
+
+    public ResourceLocation(@NonNull String name) {
+        Matcher matcher = MATCHER_CACHE.get();
+        matcher.reset(name);
+        if (!matcher.find())    {
+            throw new IllegalArgumentException(String.format("Invalid resource location: \"%s\"!", name));
+        }
+        this.modid = matcher.group(1);
+        this.name = matcher.group(2);
     }
 
     @Override
     public int hashCode() {
-        return this.modid.hashCode() * 31 + this.name.hashCode();
+        int hashCode = this.hashCode;
+        if (hashCode == 0)  {
+            //compute hash
+            for (char c : PorkUtil.unwrap(this.modid))  {
+                hashCode = hashCode * 31 + c;
+            }
+            hashCode = hashCode * 31 + ':';
+            for (char c : PorkUtil.unwrap(this.name))  {
+                hashCode = hashCode * 31 + c;
+            }
+            if (hashCode == 0)  {
+                hashCode = 1;
+            }
+            this.hashCode = hashCode;
+        }
+        return hashCode;
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof ResourceLocation)) {
+        if (obj == this)    {
+            return true;
+        } else if (obj instanceof ResourceLocation) {
+            ResourceLocation other = (ResourceLocation) obj;
+            return this.modid.equals(other.modid) && this.name.equals(other.name);
+        } else {
             return false;
         }
-        ResourceLocation resourceLocation = (ResourceLocation) obj;
-        return this.modid.equals(resourceLocation.modid) && this.name.equals(resourceLocation.name);
     }
 
     @Override

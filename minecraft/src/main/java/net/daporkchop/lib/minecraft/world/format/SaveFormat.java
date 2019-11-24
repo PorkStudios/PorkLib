@@ -16,7 +16,7 @@
 package net.daporkchop.lib.minecraft.world.format;
 
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.registry.Registry;
+import net.daporkchop.lib.minecraft.registry.IDRegistry;
 import net.daporkchop.lib.minecraft.registry.ResourceLocation;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
@@ -33,11 +33,11 @@ import java.util.function.BiConsumer;
 public interface SaveFormat extends Closeable {
     void init(@NonNull MinecraftSave save) throws IOException;
 
-    void loadWorlds(@NonNull IntObjBiConsumer<WorldManager> addFunction);
+    void loadWorlds(@NonNull IntObjBiConsumer<WorldManager> callback);
 
     void closeWorld(@NonNull World world);
 
-    void loadRegistries(@NonNull BiConsumer<ResourceLocation, Registry> addFunction);
+    void loadRegistries(@NonNull BiConsumer<ResourceLocation, IDRegistry> callback);
 
     Chunk createColumnInstance(int x, int z);
 }

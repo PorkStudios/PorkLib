@@ -13,36 +13,28 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.world;
+package net.daporkchop.lib.minecraft.registry;
 
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.registry.IDRegistry;
-import net.daporkchop.lib.minecraft.registry.ResourceLocation;
-import net.daporkchop.lib.minecraft.world.format.SaveFormat;
-import net.daporkchop.lib.minecraft.world.impl.InitFunctions;
-import net.daporkchop.lib.primitive.map.IntObjMap;
-
-import java.io.Closeable;
-import java.util.Map;
+import net.daporkchop.lib.primitive.map.ObjIntMap;
+import net.daporkchop.lib.primitive.map.hash.open.ObjIntOpenHashMap;
 
 /**
+ * An extension of {@link IDRegistryImpl} that stores {@link ResourceLocation} to ID mappings in a map for fast reverse lookups.
+ *
  * @author DaPorkchop_
  */
-public interface MinecraftSave extends Closeable {
-    SaveFormat getSaveFormat();
+public final class MappedIDRegistryImpl extends IDRegistryImpl {
+    protected final ObjIntMap<ResourceLocation> map = new ObjIntOpenHashMap<>();
 
-    InitFunctions getInitFunctions();
+    public MappedIDRegistryImpl(@NonNull ResourceLocation[] contents, ResourceLocation name) {
+        super(contents, name);
 
-    Map<ResourceLocation, IDRegistry> getRegistries();
-
-    @SuppressWarnings("unchecked")
-    default IDRegistry getRegistry(@NonNull ResourceLocation name) {
-        return this.getRegistries().get(name);
+        this.forEach(this.map::put);
     }
 
-    IntObjMap<World> getWorlds();
-
-    default World getWorld(int id) {
-        return this.getWorlds().get(id);
+    @Override
+    public int lookup(@NonNull ResourceLocation name) {
+        return this.map.get(name);
     }
 }

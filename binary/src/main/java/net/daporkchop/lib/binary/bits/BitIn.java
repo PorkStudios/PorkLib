@@ -26,7 +26,7 @@ import java.io.InputStream;
  *
  * @author DaPorkchop_
  */
-public class BitIn extends InputStream {
+public final class BitIn extends InputStream {
     @Getter
     private final InputStream input;
     private int bitOffset;

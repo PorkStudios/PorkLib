@@ -20,11 +20,11 @@ import lombok.NonNull;
 import net.daporkchop.lib.math.primitive.PMath;
 
 /**
- * An array that stores integers using n bits per integer
+ * An array that stores integers using n bits per value.
  *
  * @author DaPorkchop_
  */
-public class NBitArray {
+public final class NBitArray {
     /**
      * The actual bit data
      */

@@ -27,7 +27,7 @@ import java.io.OutputStream;
  *
  * @author DaPorkchop_
  */
-public class BitOut extends OutputStream {
+public final class BitOut extends OutputStream {
     @Getter
     protected final OutputStream output;
     private int readBuf;

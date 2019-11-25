@@ -137,7 +137,7 @@ public class AnvilWorldManager implements WorldManager {
                 try {
                     byte compressionId = buf.readByte();
                     switch (compressionId) {
-                        case RegionConstants.ID_GZIP: //unlikely
+                        case RegionConstants.ID_GZIP: //unlikely, so not much is optimized here
                             try (NBTInputStream in = new NBTInputStream(new GZIPInputStream(NettyUtil.wrapIn(buf)))) {
                                 rootTag = in.readTag().getCompound("Level");
                             }

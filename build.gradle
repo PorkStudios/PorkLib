@@ -31,6 +31,7 @@ allprojects {
         //dependency things
         apacheCommonsCompressVersion = "1.16.1"
         bouncycastleVersion = "1.59"
+        bungeecordNativeVersion = "1.14-SNAPSHOT"
         googleHttpClientVersion = "1.23.0"
         gsonVersion = "2.8.5"
         guavaVersion = "27.0-jre"

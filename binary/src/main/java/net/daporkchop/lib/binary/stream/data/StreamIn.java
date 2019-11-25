@@ -32,12 +32,10 @@ import java.io.InputStream;
  */
 @AllArgsConstructor
 @Getter
-@Accessors(fluent = true, chain = true)
+@Accessors(fluent = true)
 public class StreamIn extends DataIn {
     @NonNull
     protected final InputStream in;
-    @Setter
-    protected boolean close;
 
     @Override
     public int read() throws IOException {
@@ -75,8 +73,26 @@ public class StreamIn extends DataIn {
     }
 
     @Override
+    public InputStream unwrap() {
+        return this.in;
+    }
+
+    @Override
     public void close() throws IOException {
-        if (this.close) {
+    }
+
+    /**
+     * An extension of {@link StreamIn} which forwards the {@link InputStream#close()} method to the delegate {@link InputStream}.
+     *
+     * @author DaPorkchop_
+     */
+    public static final class Closing extends StreamIn  {
+        public Closing(InputStream in) {
+            super(in);
+        }
+
+        @Override
+        public void close() throws IOException {
             this.in.close();
         }
     }

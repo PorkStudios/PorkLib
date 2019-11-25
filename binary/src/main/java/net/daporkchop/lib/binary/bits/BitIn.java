@@ -13,11 +13,10 @@
  *
  */
 
-package net.daporkchop.lib.binary.stream.bit;
+package net.daporkchop.lib.binary.bits;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.StreamUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,13 +26,13 @@ import java.io.InputStream;
  *
  * @author DaPorkchop_
  */
-public class BitInputStream extends InputStream {
+public class BitIn extends InputStream {
     @Getter
     private final InputStream input;
     private int bitOffset;
     private int readBuf;
 
-    public BitInputStream(@NonNull InputStream input) {
+    public BitIn(@NonNull InputStream input) {
         this.input = input;
     }
 
@@ -96,14 +95,5 @@ public class BitInputStream extends InputStream {
 
     public void padToNextByte() throws IOException {
         this.readBits(this.bitOffset);
-    }
-
-    public void readBytesFast(@NonNull byte[] b) throws IOException {
-        this.readBytesFast(b, 0, b.length);
-    }
-
-    public void readBytesFast(@NonNull byte[] b, int off, int len) throws IOException {
-        this.padToNextByte();
-        StreamUtil.read(this.input, b, off, len);
     }
 }

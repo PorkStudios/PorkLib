@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.binary.stream.bit;
+package net.daporkchop.lib.binary.bits;
 
 import lombok.NonNull;
 import net.daporkchop.lib.math.primitive.BinMath;
@@ -32,11 +32,13 @@ import java.util.concurrent.atomic.AtomicInteger;
  * An implementation of Huffman text compression in Java
  *
  * @author DaPorkchop_
+ * @deprecated this is not actually huffman compression
  */
+@Deprecated
 public class Huffman {
     public static void write(@NonNull OutputStream stream, @NonNull String text) {
         try {
-            BitOutputStream bitStream = new BitOutputStream(stream);
+            BitOut bitStream = new BitOut(stream);
             write(bitStream, text.toCharArray());
             bitStream.flush();
         } catch (IOException e) {
@@ -46,7 +48,7 @@ public class Huffman {
 
     public static void write(@NonNull OutputStream stream, @NonNull char[] text) {
         try {
-            BitOutputStream bitStream = new BitOutputStream(stream);
+            BitOut bitStream = new BitOut(stream);
             write(bitStream, text);
             bitStream.flush();
         } catch (IOException e) {
@@ -54,11 +56,11 @@ public class Huffman {
         }
     }
 
-    public static void write(@NonNull BitOutputStream stream, @NonNull String text) {
+    public static void write(@NonNull BitOut stream, @NonNull String text) {
         write(stream, text.toCharArray());
     }
 
-    public static void write(@NonNull BitOutputStream stream, @NonNull char[] text) {
+    public static void write(@NonNull BitOut stream, @NonNull char[] text) {
         try {
             //find all letters in text
             CharacterBooleanMap map = new CharacterBooleanHashMap();
@@ -93,21 +95,21 @@ public class Huffman {
     }
 
     public static String readToString(@NonNull InputStream stream) {
-        BitInputStream bitStream = new BitInputStream(stream);
+        BitIn bitStream = new BitIn(stream);
         char[] letters = read(bitStream);
         return new String(letters);
     }
 
     public static char[] read(@NonNull InputStream stream) {
-        BitInputStream bitStream = new BitInputStream(stream);
+        BitIn bitStream = new BitIn(stream);
         return read(bitStream);
     }
 
-    public static String readToString(@NonNull BitInputStream stream) {
+    public static String readToString(@NonNull BitIn stream) {
         return new String(read(stream));
     }
 
-    public static char[] read(@NonNull BitInputStream stream) {
+    public static char[] read(@NonNull BitIn stream) {
         try {
             char[] index;
             {

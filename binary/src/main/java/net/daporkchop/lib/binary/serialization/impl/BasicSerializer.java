@@ -34,7 +34,7 @@ import java.io.Serializable;
  * @author DaPorkchop_
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class BasicSerializer<T extends Serializable> implements Serializer<T> {
+public final class BasicSerializer<T extends Serializable> implements Serializer<T> {
     private static final BasicSerializer INSTANCE = new BasicSerializer();
 
     /**

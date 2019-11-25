@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.binary.stream.bit;
+package net.daporkchop.lib.binary.bits;
 
 import lombok.Getter;
 import lombok.NonNull;

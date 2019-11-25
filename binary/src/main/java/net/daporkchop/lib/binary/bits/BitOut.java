@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.binary.stream.bit;
+package net.daporkchop.lib.binary.bits;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -27,14 +27,14 @@ import java.io.OutputStream;
  *
  * @author DaPorkchop_
  */
-public class BitOutputStream extends OutputStream {
+public class BitOut extends OutputStream {
     @Getter
     protected final OutputStream output;
     private int readBuf;
     @Getter
     private int bufOffset;
 
-    public BitOutputStream(@NonNull OutputStream output) {
+    public BitOut(@NonNull OutputStream output) {
         this.output = output;
         this.initialize();
     }

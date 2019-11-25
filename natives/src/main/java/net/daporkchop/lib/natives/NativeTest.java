@@ -13,6 +13,8 @@
  *
  */
 
+package net.daporkchop.lib.natives;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -25,30 +27,25 @@ import java.util.UUID;
  */
 public class NativeTest {
     static {
-        if (false) {
-            try {
-                File file = File.createTempFile(UUID.randomUUID().toString(), "so");
-                file.deleteOnExit();
-                try (InputStream in = NativeTest.class.getResourceAsStream("/libdeflate.so");
-                     OutputStream out = new FileOutputStream(file)) {
-                    int b;
-                    while ((b = in.read()) != -1) {
-                        out.write(b);
-                    }
+        try {
+            File file = File.createTempFile(UUID.randomUUID().toString(), "so");
+            file.deleteOnExit();
+            try (InputStream in = NativeTest.class.getResourceAsStream("/libdeflate.so");
+                 OutputStream out = new FileOutputStream(file)) {
+                int b;
+                while ((b = in.read()) != -1) {
+                    out.write(b);
                 }
-                System.load(file.getAbsolutePath());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
             }
-        } else {
-            System.load("/media/daporkchop/TooMuchStuff/PortableIDE/PorkLib/natives/src/main/resources/libdeflate.so");
-            //System.loadLibrary("deflate");
+            System.load(file.getAbsolutePath());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    private native void print();
+    public static native void print();
 
     public static void main(String... args) {
-        new NativeTest().print();
+        print();
     }
 }

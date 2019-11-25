@@ -14,7 +14,7 @@
  */
 
 dependencies {
-    compile "net.java.dev.jna:jna:$jnaVersion"
+    //compile "net.java.dev.jna:jna:$jnaVersion"
 }
 
 task compileNatives(type: Exec) {

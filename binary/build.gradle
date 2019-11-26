@@ -14,10 +14,5 @@
  */
 
 dependencies {
-    compile project(":math")
-    compile project(":reflection")
-
     compile "io.netty:netty-buffer:$nettyVersion"
-
-    compile "com.zaxxer:SparseBitSet:$sparseBitSetVersion"
 }

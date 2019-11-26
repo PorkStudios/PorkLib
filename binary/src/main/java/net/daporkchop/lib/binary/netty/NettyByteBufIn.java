@@ -21,7 +21,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.math.primitive.PMath;
 
 import java.io.IOException;
 
@@ -66,7 +65,7 @@ public class NettyByteBufIn extends DataIn {
 
     @Override
     public long skip(long n) throws IOException {
-        n = PMath.clamp(n, 0L, this.buf.readableBytes());
+        n = Math.max(Math.min(n, this.buf.readableBytes()), 0L);
         this.buf.skipBytes((int) n);
         return n;
     }

@@ -15,7 +15,6 @@
 
 package net.daporkchop.lib.binary.serialization;
 
-import com.zaxxer.sparsebits.SparseBitSet;
 import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 import lombok.NonNull;
@@ -35,6 +34,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -69,7 +69,7 @@ public class SerializationRegistry {
     private final Map<Class<?>, Integer> classToId = new IdentityHashMap<>();
     private final Map<Class<?>, Serializer<?>> classToSerializer = new IdentityHashMap<>();
     private final Map<Integer, Serializer<?>> idToSerializer = new HashMap<>();
-    private final SparseBitSet ids = new SparseBitSet();
+    private final BitSet ids = new BitSet();
     private final ReadWriteLock mapAccessLock = new ReentrantReadWriteLock();
 
     @Getter

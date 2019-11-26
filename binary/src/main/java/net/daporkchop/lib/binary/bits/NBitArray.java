@@ -17,7 +17,6 @@ package net.daporkchop.lib.binary.bits;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.math.primitive.PMath;
 
 /**
  * An array that stores integers using n bits per value.
@@ -25,6 +24,10 @@ import net.daporkchop.lib.math.primitive.PMath;
  * @author DaPorkchop_
  */
 public final class NBitArray {
+    private static int roundUp(int n, int to) {
+        return (n + to - 1) / to * to;
+    }
+
     /**
      * The actual bit data
      */
@@ -39,7 +42,7 @@ public final class NBitArray {
     private final int bitsPer;
 
     public NBitArray(int size, int bitsPer) {
-        this(new long[PMath.roundUp(size * bitsPer, 64) >> 6], bitsPer);
+        this(new long[roundUp(size * bitsPer, 64) >> 6], bitsPer);
     }
 
     public NBitArray(@NonNull long[] data, int bitsPer) {

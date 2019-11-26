@@ -13,33 +13,29 @@
  *
  */
 
-package net.daporkchop.lib.unsafe.capability;
+package net.daporkchop.lib.graphics.image;
 
-import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
+import net.daporkchop.lib.graphics.color.ColorModel;
+import net.daporkchop.lib.graphics.util.exception.BitmapCoordinatesOutOfBoundsException;
 
 /**
- * A type that contains resources that may be manually released.
- * <p>
- * These resources are guaranteed to be released when the instance is garbage collected (for example by using a
- * {@link net.daporkchop.lib.unsafe.PCleaner}), however both CPU and memory usage can frequently benefit by releasing
- * such resources manually as soon as they are no longer needed.
+ * A mutable image.
  *
  * @author DaPorkchop_
  */
-public interface Releasable extends AutoCloseable {
+public interface PImage extends Bitmap {
     /**
-     * Releases all resources used by this instance.
-     * <p>
-     * After invoking this method, this instance should be treated as invalid and one should assume that
-     * using any fields/methods defined by superclasses will result in undefined behavior, unless the
-     * superclass implementations specifically state otherwise.
-     *
-     * @throws AlreadyReleasedException if the resources used by this instance have already been released
+     * @return this image's {@link ColorModel}
      */
-    void release() throws AlreadyReleasedException;
+    ColorModel model();
 
-    @Override
-    default void close() {
-        this.release();
-    }
+    /**
+     * Sets the ARGB color value at the given pixel coordinates.
+     *
+     * @param x    the X coordinate of the pixel to get
+     * @param y    the Y coordinate of the pixel to get
+     * @param argb the new ARGB color value to set
+     * @throws BitmapCoordinatesOutOfBoundsException if the given pixel coordinates are out of bounds
+     */
+    void setARGB(int x, int y, int argb) throws BitmapCoordinatesOutOfBoundsException;
 }

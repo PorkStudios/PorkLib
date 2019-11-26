@@ -13,33 +13,34 @@
  *
  */
 
-package net.daporkchop.lib.unsafe.capability;
+package net.daporkchop.lib.graphics.image;
 
-import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
+import net.daporkchop.lib.graphics.util.exception.BitmapCoordinatesOutOfBoundsException;
+import net.daporkchop.lib.unsafe.capability.Releasable;
 
 /**
- * A type that contains resources that may be manually released.
- * <p>
- * These resources are guaranteed to be released when the instance is garbage collected (for example by using a
- * {@link net.daporkchop.lib.unsafe.PCleaner}), however both CPU and memory usage can frequently benefit by releasing
- * such resources manually as soon as they are no longer needed.
+ * Base interface that represents a pixel bitmap.
  *
  * @author DaPorkchop_
  */
-public interface Releasable extends AutoCloseable {
+public interface Bitmap extends Releasable {
     /**
-     * Releases all resources used by this instance.
-     * <p>
-     * After invoking this method, this instance should be treated as invalid and one should assume that
-     * using any fields/methods defined by superclasses will result in undefined behavior, unless the
-     * superclass implementations specifically state otherwise.
-     *
-     * @throws AlreadyReleasedException if the resources used by this instance have already been released
+     * @return the width (in pixels) of this bitmap
      */
-    void release() throws AlreadyReleasedException;
+    int width();
 
-    @Override
-    default void close() {
-        this.release();
-    }
+    /**
+     * @return the height (in pixels) of this bitmap
+     */
+    int height();
+
+    /**
+     * Gets the ARGB color value at the given pixel coordinates.
+     *
+     * @param x the X coordinate of the pixel to get
+     * @param y the Y coordinate of the pixel to get
+     * @return the ARGB color value at the given pixel coordinates
+     * @throws BitmapCoordinatesOutOfBoundsException if the given pixel coordinates are out of bounds
+     */
+    int getARGB(int x, int y) throws BitmapCoordinatesOutOfBoundsException;
 }

@@ -13,33 +13,38 @@
  *
  */
 
-package net.daporkchop.lib.unsafe.capability;
-
-import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
+package net.daporkchop.lib.graphics.util.exception;
 
 /**
- * A type that contains resources that may be manually released.
- * <p>
- * These resources are guaranteed to be released when the instance is garbage collected (for example by using a
- * {@link net.daporkchop.lib.unsafe.PCleaner}), however both CPU and memory usage can frequently benefit by releasing
- * such resources manually as soon as they are no longer needed.
- *
  * @author DaPorkchop_
  */
-public interface Releasable extends AutoCloseable {
-    /**
-     * Releases all resources used by this instance.
-     * <p>
-     * After invoking this method, this instance should be treated as invalid and one should assume that
-     * using any fields/methods defined by superclasses will result in undefined behavior, unless the
-     * superclass implementations specifically state otherwise.
-     *
-     * @throws AlreadyReleasedException if the resources used by this instance have already been released
-     */
-    void release() throws AlreadyReleasedException;
+public final class BitmapCoordinatesOutOfBoundsException extends RuntimeException {
+    protected String message;
+
+    protected final int x;
+    protected final int y;
+
+    public BitmapCoordinatesOutOfBoundsException(int x, int y)  {
+        this.x = x;
+        this.y = y;
+    }
+
+    public BitmapCoordinatesOutOfBoundsException(int x, int y, Throwable cause)  {
+        super(cause);
+        this.x = x;
+        this.y = y;
+    }
 
     @Override
-    default void close() {
-        this.release();
+    public String getMessage() {
+        String message = this.message;
+        if (message == null)    {
+            synchronized (this) {
+                if ((message = this.message) == null)   {
+                    this.message = message = String.format("Coordinates (x=%d, y=%d)", this.x, this.y);
+                }
+            }
+        }
+        return message;
     }
 }

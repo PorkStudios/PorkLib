@@ -21,7 +21,12 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.system.Architecture;
 import net.daporkchop.lib.common.system.OperatingSystem;
 import net.daporkchop.lib.common.system.PlatformInfo;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.function.Supplier;
 
 /**
@@ -31,6 +36,21 @@ import java.util.function.Supplier;
  * @author DaPorkchop_
  */
 public final class NativeCode<T> implements Supplier<T> {
+    public static void loadNativeLibrary(@NonNull String name)  {
+        try {
+            File file = File.createTempFile(name + System.nanoTime(), ".so");
+            file.deleteOnExit();
+            try (InputStream is = NativeCode.class.getResourceAsStream(String.format("/lib%s.so", name));
+                 OutputStream os = new FileOutputStream(file))   {
+                byte[] arr = new byte[PUnsafe.pageSize()];
+                for (int b; (b = is.read(arr)) >= 0; os.write(arr, 0, b));
+            }
+            System.load(file.getAbsolutePath());
+        } catch (Exception e)    {
+            throw new RuntimeException(String.format("Unable to load library \"%s\"", name), e);
+        }
+    }
+
     private final Impl<T> implementation;
 
     @SafeVarargs

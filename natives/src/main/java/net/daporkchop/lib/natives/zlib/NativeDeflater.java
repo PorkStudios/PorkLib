@@ -15,29 +15,62 @@
 
 package net.daporkchop.lib.natives.zlib;
 
-import net.daporkchop.lib.natives.NativeCode;
+import lombok.Getter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.unsafe.PCleaner;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 /**
- * Native code implementation of {@link Zlib}.
+ * Implementation of {@link PDeflater} using native code.
  *
  * @author DaPorkchop_
  */
-public final class NativeZlib extends NativeCode.NativeImpl<Zlib> implements Zlib {
-    static {
-        if (NativeCode.NativeImpl.AVAILABLE)    {
-            NativeCode.loadNativeLibrary("zlib");
+public final class NativeDeflater implements PDeflater {
+    static native void load();
 
-            NativeDeflater.load();
+    private static native long init(int level, boolean nowrap);
+
+    private static native void end(long ctx);
+
+    private final long     ctx;
+    private final PCleaner cleaner;
+
+    NativeDeflater(int level, boolean nowrap) {
+        long ctx = this.ctx = init(level, nowrap);
+        this.cleaner = PCleaner.cleaner(this, () -> end(ctx));
+    }
+
+    @Override
+    public native void input(long addr, long size);
+
+    @Override
+    public native void output(long addr, long size);
+
+    @Override
+    public native void deflateFinish();
+
+    @Override
+    public native void deflate();
+
+    @Override
+    public native long readBytes();
+
+    @Override
+    public native long writtenBytes();
+
+    @Override
+    public native void finish();
+
+    @Override
+    public native boolean finished();
+
+    @Override
+    public native void reset();
+
+    @Override
+    public void release() throws AlreadyReleasedException {
+        if (!this.cleaner.tryClean())   {
+            throw new AlreadyReleasedException();
         }
-    }
-
-    @Override
-    protected Zlib _get() {
-        return this;
-    }
-
-    @Override
-    public PDeflater deflater(int level, boolean nowrap) {
-        return new NativeDeflater(level, nowrap);
     }
 }

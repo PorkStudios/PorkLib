@@ -15,11 +15,16 @@
 
 package net.daporkchop.lib.graphics.color;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 /**
  * An implementation of the simple ABW (8-bit greyscale with alpha) color model.
  *
  * @author DaPorkchop_
+ * @see ColorModel#ABW
  */
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
 public final class ColorModelABW implements ColorModel {
     @Override
     public int decode(long color) {

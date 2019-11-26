@@ -21,6 +21,11 @@ package net.daporkchop.lib.graphics.color;
  * @author DaPorkchop_
  */
 public interface ColorModel {
+    ColorModelRGB RGB = new ColorModelRGB();
+    ColorModelARGB ARGB = new ColorModelARGB();
+    ColorModelBW BW = new ColorModelBW();
+    ColorModelABW ABW = new ColorModelABW();
+
     /**
      * Decodes the given color into ARGB.
      * <p>

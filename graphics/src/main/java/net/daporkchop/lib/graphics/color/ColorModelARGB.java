@@ -15,11 +15,16 @@
 
 package net.daporkchop.lib.graphics.color;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 /**
  * An implementation of the ARGB color model.
  *
  * @author DaPorkchop_
+ * @see ColorModel#ARGB
  */
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
 public final class ColorModelARGB implements ColorModel {
     @Override
     public int decode(long color) {

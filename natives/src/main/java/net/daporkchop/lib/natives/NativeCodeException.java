@@ -15,37 +15,27 @@
 
 package net.daporkchop.lib.natives;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.UUID;
+import lombok.Getter;
+import lombok.experimental.Accessors;
 
 /**
+ * Thrown by native libraries when an exception occurs.
+ *
  * @author DaPorkchop_
  */
-public class NativeTest {
-    static {
-        try {
-            File file = File.createTempFile(UUID.randomUUID().toString(), "so");
-            file.deleteOnExit();
-            try (InputStream in = NativeTest.class.getResourceAsStream("/libdeflate.so");
-                 OutputStream out = new FileOutputStream(file)) {
-                int b;
-                while ((b = in.read()) != -1) {
-                    out.write(b);
-                }
-            }
-            System.load(file.getAbsolutePath());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+@Getter
+@Accessors(fluent = true)
+public final class NativeCodeException extends RuntimeException {
+    protected final int err;
+
+    public NativeCodeException(String message, int err) {
+        super(message);
+
+        this.err = err;
     }
 
-    public static native void print();
-
-    public static void main(String... args) {
-        print();
+    @Override
+    public String getMessage() {
+        return String.format("%d: %s", this.err, super.getMessage());
     }
 }

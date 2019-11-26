@@ -20,7 +20,7 @@ import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
 import net.daporkchop.lib.graphics.bitmap.image.PImage;
 import net.daporkchop.lib.graphics.interpolation.ImageInterpolator;
 import net.daporkchop.lib.graphics.util.Thumbnail;
-import net.daporkchop.lib.math.interpolation.CubicInterpolationEngine;
+import net.daporkchop.lib.math.interpolation.CubicInterpolation;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -64,7 +64,7 @@ public class TestingDisplayingOfImages {
                 throw new IllegalStateException("Didn't write image!");
             }
 
-            ImageInterpolator interpolator = new ImageInterpolator(new CubicInterpolationEngine());
+            ImageInterpolator interpolator = new ImageInterpolator(new CubicInterpolation());
             image = interpolator.interp(image, 32.0d);
 
             Thumbnail thumbnail = new Thumbnail(64, 32, 16, 8, image.getWidth()).submit(image).bake();

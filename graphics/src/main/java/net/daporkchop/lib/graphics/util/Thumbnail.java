@@ -19,8 +19,8 @@ import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
 import net.daporkchop.lib.graphics.interpolation.ImageInterpolator;
-import net.daporkchop.lib.math.interpolation.InterpolationEngine;
-import net.daporkchop.lib.math.interpolation.LinearInterpolationEngine;
+import net.daporkchop.lib.math.interpolation.Interpolation;
+import net.daporkchop.lib.math.interpolation.LinearInterpolation;
 
 import java.util.Arrays;
 
@@ -44,10 +44,10 @@ public class Thumbnail {
     }
 
     public Thumbnail bake() {
-        return this.bake(new ImageInterpolator(new LinearInterpolationEngine()));
+        return this.bake(new ImageInterpolator(new LinearInterpolation()));
     }
 
-    public Thumbnail bake(@NonNull InterpolationEngine engine) {
+    public Thumbnail bake(@NonNull Interpolation engine) {
         return this.bake(new ImageInterpolator(engine));
     }
 

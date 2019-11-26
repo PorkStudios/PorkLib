@@ -21,56 +21,31 @@ import net.daporkchop.lib.math.grid.Grid2d;
 import net.daporkchop.lib.math.grid.Grid3d;
 
 import static net.daporkchop.lib.math.primitive.PMath.*;
-import static net.daporkchop.lib.math.primitive.PMath.*;
 
 /**
+ * An interpolation algorithm.
+ *
  * @author DaPorkchop_
  */
-public class NearestNeighborInterpolationEngine implements InterpolationEngine {
-    @Override
-    public int requiredRadius() {
-        return 0;
+public interface Interpolation {
+    int requiredRadius();
+
+    //single values
+    double getInterpolated(double x, @NonNull Grid1d grid);
+
+    double getInterpolated(double x, double y, @NonNull Grid2d grid);
+
+    double getInterpolated(double x, double y, double z, @NonNull Grid3d grid);
+
+    default int getInterpolatedI(double x, @NonNull Grid1d grid)    {
+        return floorI(this.getInterpolated(x, grid));
     }
 
-    @Override
-    public double getInterpolated(double x, @NonNull Grid1d grid) {
-        this.ensureInRange(roundI(x), grid);
-
-        return grid.getD(roundI(x));
+    default int getInterpolatedI(double x, double y, @NonNull Grid2d grid)  {
+        return floorI(this.getInterpolated(x, y, grid));
     }
 
-    @Override
-    public double getInterpolated(double x, double y, @NonNull Grid2d grid) {
-        this.ensureInRange(roundI(x), roundI(y), grid);
-
-        return grid.getD(roundI(x), roundI(y));
-    }
-
-    @Override
-    public double getInterpolated(double x, double y, double z, @NonNull Grid3d grid) {
-        this.ensureInRange(roundI(x), roundI(y), roundI(z), grid);
-
-        return grid.getD(roundI(x), roundI(y), roundI(z));
-    }
-
-    @Override
-    public int getInterpolatedI(double x, Grid1d grid) {
-        this.ensureInRange(roundI(x), grid);
-
-        return grid.getI(roundI(x));
-    }
-
-    @Override
-    public int getInterpolatedI(double x, double y, Grid2d grid) {
-        this.ensureInRange(roundI(x), roundI(y), grid);
-
-        return grid.getI(roundI(x), roundI(y));
-    }
-
-    @Override
-    public int getInterpolatedI(double x, double y, double z, Grid3d grid) {
-        this.ensureInRange(roundI(x), roundI(y), roundI(z), grid);
-
-        return grid.getI(roundI(x), roundI(y), roundI(z));
+    default int getInterpolatedI(double x, double y, double z, @NonNull Grid3d grid)    {
+        return floorI(this.getInterpolated(x, y, z, grid));
     }
 }

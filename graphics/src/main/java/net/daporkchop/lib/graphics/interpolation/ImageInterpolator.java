@@ -20,9 +20,8 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
 import net.daporkchop.lib.graphics.bitmap.image.PImage;
-import net.daporkchop.lib.math.interpolation.InterpolationEngine;
+import net.daporkchop.lib.math.interpolation.Interpolation;
 
-import static net.daporkchop.lib.math.primitive.PMath.*;
 import static net.daporkchop.lib.math.primitive.PMath.*;
 
 /**
@@ -32,7 +31,7 @@ import static net.daporkchop.lib.math.primitive.PMath.*;
 @Getter
 public class ImageInterpolator {
     @NonNull
-    protected final InterpolationEngine engine;
+    protected final Interpolation engine;
 
     public PImage interp(@NonNull PIcon src, double mult) {
         PImage dst = src.getFormat().createImage(floorI(src.getWidth() * mult), floorI(src.getHeight() * mult));

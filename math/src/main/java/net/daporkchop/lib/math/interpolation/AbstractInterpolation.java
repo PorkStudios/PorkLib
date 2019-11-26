@@ -20,35 +20,13 @@ import net.daporkchop.lib.math.grid.Grid1d;
 import net.daporkchop.lib.math.grid.Grid2d;
 import net.daporkchop.lib.math.grid.Grid3d;
 
-import static net.daporkchop.lib.math.primitive.PMath.*;
-
 /**
+ * Base class for implementations of {@link Interpolation}.
+ *
  * @author DaPorkchop_
  */
-public interface InterpolationEngine {
-    int requiredRadius();
-
-    //single values
-    double getInterpolated(double x, @NonNull Grid1d grid);
-
-    double getInterpolated(double x, double y, @NonNull Grid2d grid);
-
-    double getInterpolated(double x, double y, double z, @NonNull Grid3d grid);
-
-    default int getInterpolatedI(double x, @NonNull Grid1d grid)    {
-        return floorI(this.getInterpolated(x, grid));
-    }
-
-    default int getInterpolatedI(double x, double y, @NonNull Grid2d grid)  {
-        return floorI(this.getInterpolated(x, y, grid));
-    }
-
-    default int getInterpolatedI(double x, double y, double z, @NonNull Grid3d grid)    {
-        return floorI(this.getInterpolated(x, y, z, grid));
-    }
-    
-    //validation
-    default boolean isInRange(int x, @NonNull Grid1d grid)    {
+public abstract class AbstractInterpolation implements Interpolation {
+    protected boolean isInRange(int x, @NonNull Grid1d grid)    {
         if (grid.isOverflowing())   {
             return true;
         } else {
@@ -62,7 +40,7 @@ public interface InterpolationEngine {
         }
     }
 
-    default boolean isInRange(int x, int y, @NonNull Grid2d grid)    {
+    protected boolean isInRange(int x, int y, @NonNull Grid2d grid)    {
         if (grid.isOverflowing())   {
             return true;
         } else {
@@ -77,7 +55,7 @@ public interface InterpolationEngine {
         }
     }
 
-    default boolean isInRange(int x, int y, int z, @NonNull Grid3d grid)    {
+    protected boolean isInRange(int x, int y, int z, @NonNull Grid3d grid)    {
         if (grid.isOverflowing())   {
             return true;
         } else {
@@ -93,19 +71,19 @@ public interface InterpolationEngine {
         }
     }
 
-    default void ensureInRange(int x, @NonNull Grid1d grid) {
+    protected void ensureInRange(int x, @NonNull Grid1d grid) {
         if (!this.isInRange(x, grid))   {
             throw new IndexOutOfBoundsException(String.format("Pos %d out of bounds required range %d-%d", x, grid.startX(), grid.endX()));
         }
     }
 
-    default void ensureInRange(int x, int y, @NonNull Grid2d grid)  {
+    protected void ensureInRange(int x, int y, @NonNull Grid2d grid)  {
         if (!this.isInRange(x, y, grid))    {
             throw new IndexOutOfBoundsException(String.format("Pos (%d,%d) out of bounds required range (%d,%d)-(%d,%d)", x, y, grid.startX(), grid.startY(), grid.endX(), grid.endY()));
         }
     }
 
-    default void ensureInRange(int x, int y, int z, @NonNull Grid3d grid)  {
+    protected void ensureInRange(int x, int y, int z, @NonNull Grid3d grid)  {
         if (!this.isInRange(x, y, z, grid))    {
             throw new IndexOutOfBoundsException(String.format("Pos (%d,%d,%d) out of bounds required range (%d,%d,%d)-(%d,%d,%d)", x, y, z, grid.startX(), grid.startY(), grid.startZ(), grid.endX(), grid.endY(), grid.endZ()));
         }

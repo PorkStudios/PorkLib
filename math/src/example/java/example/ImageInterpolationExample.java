@@ -17,10 +17,10 @@ package example;
 
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.math.grid.Grid2d;
-import net.daporkchop.lib.math.interpolation.InterpolationEngine;
-import net.daporkchop.lib.math.interpolation.NearestNeighborInterpolationEngine;
-import net.daporkchop.lib.math.interpolation.CubicInterpolationEngine;
-import net.daporkchop.lib.math.interpolation.LinearInterpolationEngine;
+import net.daporkchop.lib.math.interpolation.CubicInterpolation;
+import net.daporkchop.lib.math.interpolation.Interpolation;
+import net.daporkchop.lib.math.interpolation.NearestNeighborInterpolation;
+import net.daporkchop.lib.math.interpolation.LinearInterpolation;
 
 import java.awt.image.BufferedImage;
 import java.util.Objects;
@@ -34,12 +34,11 @@ import static net.daporkchop.lib.math.primitive.PMath.*;
  */
 public class ImageInterpolationExample {
     public static void main(String... args) {
-        for (InterpolationEngine engine : Stream.of(null
-                , new NearestNeighborInterpolationEngine()
-                , new LinearInterpolationEngine()
-                , new CubicInterpolationEngine()
-                //, new QuadraticInterpolationEngine()
-        ).filter(Objects::nonNull).toArray(InterpolationEngine[]::new)) {
+        for (Interpolation engine : Stream.of(null
+                , NearestNeighborInterpolation.instance()
+                , LinearInterpolation.instance()
+                , CubicInterpolation.instance()
+        ).filter(Objects::nonNull).toArray(Interpolation[]::new)) {
             System.out.println(engine.getClass().getCanonicalName());
 
             int radius = engine.requiredRadius();
@@ -63,7 +62,7 @@ public class ImageInterpolationExample {
                 }
                 for (int x = scaled - 1; x >= 0; x--) {
                     for (int y = scaled - 1; y >= 0; y--) {
-                        int newVal = engine.getInterpolatedI((double) x / (double) factor + radius - 0.5d, (double) y / (double) factor + radius - 0.5d, grid);
+                        int newVal = engine.getInterpolatedI((double) x / (double) factor + radius, (double) y / (double) factor + radius, grid);
                         img.setRGB(x, y, img.getRGB(x, y) | (clamp(newVal, 0, 255) << shift));
                     }
                 }

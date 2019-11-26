@@ -16,6 +16,7 @@
 package net.daporkchop.lib.math.interpolation;
 
 import lombok.NonNull;
+import net.daporkchop.lib.common.reference.InstancePool;
 import net.daporkchop.lib.math.grid.Grid1d;
 import net.daporkchop.lib.math.grid.Grid2d;
 import net.daporkchop.lib.math.grid.Grid3d;
@@ -23,9 +24,18 @@ import net.daporkchop.lib.math.grid.Grid3d;
 import static net.daporkchop.lib.math.primitive.PMath.*;
 
 /**
+ * Linear interpolation.
+ *
  * @author DaPorkchop_
  */
-public class LinearInterpolationEngine implements InterpolationEngine {
+public final class LinearInterpolation extends AbstractInterpolation {
+    /**
+     * @return an instance of {@link LinearInterpolation}
+     */
+    public static LinearInterpolation instance() {
+        return InstancePool.getInstance(LinearInterpolation.class);
+    }
+
     @Override
     public int requiredRadius() {
         return 1;

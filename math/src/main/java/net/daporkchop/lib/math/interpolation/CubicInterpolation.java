@@ -15,7 +15,10 @@
 
 package net.daporkchop.lib.math.interpolation;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import net.daporkchop.lib.common.reference.InstancePool;
 import net.daporkchop.lib.math.grid.Grid1d;
 import net.daporkchop.lib.math.grid.Grid2d;
 import net.daporkchop.lib.math.grid.Grid3d;
@@ -23,9 +26,19 @@ import net.daporkchop.lib.math.grid.Grid3d;
 import static net.daporkchop.lib.math.primitive.PMath.*;
 
 /**
+ * Simple cubic spline interpolation.
+ *
  * @author DaPorkchop_
  */
-public class CubicInterpolationEngine implements InterpolationEngine {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class CubicInterpolation extends AbstractInterpolation {
+    /**
+     * @return an instance of {@link CubicInterpolation}
+     */
+    public static CubicInterpolation instance() {
+        return InstancePool.getInstance(CubicInterpolation.class);
+    }
+
     @Override
     public int requiredRadius() {
         return 2;

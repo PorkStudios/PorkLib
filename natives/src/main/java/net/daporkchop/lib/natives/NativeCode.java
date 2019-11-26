@@ -18,6 +18,9 @@ package net.daporkchop.lib.natives;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.system.Architecture;
+import net.daporkchop.lib.common.system.OperatingSystem;
+import net.daporkchop.lib.common.system.PlatformInfo;
 
 import java.util.function.Supplier;
 
@@ -31,7 +34,7 @@ public final class NativeCode<T> implements Supplier<T> {
     private final Impl<T> implementation;
 
     @SafeVarargs
-    public NativeCode(@NonNull Supplier<Impl<T>>... implementationFactories)    {
+    public NativeCode(@NonNull Supplier<Impl<T>>... implementationFactories) {
         for (Supplier<Impl<T>> implementationFactory : implementationFactories) {
             Impl<T> implementation = implementationFactory.get();
             if (implementation.available()) {
@@ -52,6 +55,7 @@ public final class NativeCode<T> implements Supplier<T> {
      * An implementation for use by {@link NativeCode}.
      *
      * @param <T> the type of the feature to be implemented
+     * @author DaPorkchop_
      */
     @Getter
     @Accessors(fluent = true)
@@ -70,5 +74,26 @@ public final class NativeCode<T> implements Supplier<T> {
         protected abstract T _get();
 
         protected abstract boolean _available();
+    }
+
+    /**
+     * Extension of {@link Impl} for use by implementations that actually use native code.
+     * <p>
+     * Eliminates the boilerplate of checking if the current system is supported.
+     *
+     * @param <T> the type of the feature to be implemented
+     * @author DaPorkchop_
+     */
+    public static abstract class NativeImpl<T> extends Impl<T> {
+        /**
+         * Whether or not native libraries are available.
+         */
+        public static final boolean AVAILABLE =
+                ((PlatformInfo.ARCHITECTURE == Architecture.x86 || PlatformInfo.ARCHITECTURE == Architecture.x86_64) && PlatformInfo.OPERATING_SYSTEM == OperatingSystem.Linux);
+
+        @Override
+        protected boolean _available() {
+            return AVAILABLE;
+        }
     }
 }

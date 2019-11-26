@@ -13,37 +13,22 @@
  *
  */
 
-package net.daporkchop.lib.common.test;
-
-import lombok.experimental.UtilityClass;
-
-import java.util.concurrent.ThreadLocalRandom;
+package net.daporkchop.lib.common.system;
 
 /**
- * A bunch of random byte arrays for use in test classes.
- * <p>
- * Really shouldn't be used outside of unit tests.
+ * An enumeration of common CPU architectures.
  *
  * @author DaPorkchop_
  */
-@UtilityClass
-public class TestRandomData {
-    public static final byte[][] randomBytes = new byte[32][];
-
-    static {
-        ThreadLocalRandom r = ThreadLocalRandom.current();
-        for (int i = randomBytes.length - 1; i >= 0; i--) {
-            r.nextBytes(randomBytes[i] = new byte[r.nextInt(1024, 8192)]);
-        }
-    }
-
-    public static byte[] getRandomBytes(int minLen, int maxLen) {
-        return getRandomBytes(ThreadLocalRandom.current().nextInt(minLen, maxLen));
-    }
-
-    public static byte[] getRandomBytes(int len) {
-        byte[] b = new byte[len];
-        ThreadLocalRandom.current().nextBytes(b);
-        return b;
-    }
+public enum Architecture {
+    x86,
+    x86_64,
+    Itanium,
+    SPARC,
+    SPARC_64,
+    ARM,
+    AARCH64,
+    PowerPC,
+    PowerPC_64,
+    UNKNOWN;
 }

@@ -13,37 +13,23 @@
  *
  */
 
-package net.daporkchop.lib.common.test;
+package net.daporkchop.lib.natives.zlib;
 
-import lombok.experimental.UtilityClass;
-
-import java.util.concurrent.ThreadLocalRandom;
+import net.daporkchop.lib.unsafe.capability.Releasable;
 
 /**
- * A bunch of random byte arrays for use in test classes.
- * <p>
- * Really shouldn't be used outside of unit tests.
+ * Base representation of the Zlib algorithm.
  *
  * @author DaPorkchop_
  */
-@UtilityClass
-public class TestRandomData {
-    public static final byte[][] randomBytes = new byte[32][];
+public interface Zlib {
+    /**
+     * @return a new, uninitialized {@link PInflater} instance
+     */
+    PDeflater deflater();
 
-    static {
-        ThreadLocalRandom r = ThreadLocalRandom.current();
-        for (int i = randomBytes.length - 1; i >= 0; i--) {
-            r.nextBytes(randomBytes[i] = new byte[r.nextInt(1024, 8192)]);
-        }
-    }
-
-    public static byte[] getRandomBytes(int minLen, int maxLen) {
-        return getRandomBytes(ThreadLocalRandom.current().nextInt(minLen, maxLen));
-    }
-
-    public static byte[] getRandomBytes(int len) {
-        byte[] b = new byte[len];
-        ThreadLocalRandom.current().nextBytes(b);
-        return b;
-    }
+    /**
+     * @return a new, uninitialized {@link PDeflater} instance
+     */
+    PInflater inflater();
 }

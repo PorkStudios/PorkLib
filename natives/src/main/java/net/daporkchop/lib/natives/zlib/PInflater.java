@@ -18,7 +18,7 @@ package net.daporkchop.lib.natives.zlib;
 import net.daporkchop.lib.unsafe.capability.Releasable;
 
 /**
- * Used for inflating a ZLIB-compressed data stream.
+ * Used for inflating a Zlib-compressed data stream.
  *
  * @author DaPorkchop_
  */

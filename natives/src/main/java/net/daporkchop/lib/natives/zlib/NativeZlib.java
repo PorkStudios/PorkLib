@@ -29,12 +29,7 @@ public final class NativeZlib extends NativeCode.NativeImpl<Zlib> implements Zli
     }
 
     @Override
-    public PDeflater deflater() {
-        return null;
-    }
-
-    @Override
-    public PInflater inflater() {
+    public PDeflater deflater(int level, boolean nowrap) {
         return null;
     }
 }

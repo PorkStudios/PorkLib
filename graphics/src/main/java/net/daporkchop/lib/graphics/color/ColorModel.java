@@ -13,15 +13,42 @@
  *
  */
 
-package net.daporkchop.lib.graphics.render;
-
-import java.util.function.Consumer;
+package net.daporkchop.lib.graphics.color;
 
 /**
+ * A method of encoding colors.
+ *
  * @author DaPorkchop_
- * @deprecated I have no idea what this interface is, it's only used by a single class which is entirely commented out
  */
-@Deprecated
-@FunctionalInterface
-public interface RenderWorker extends Consumer<Renderer2d> {
+public interface ColorModel {
+    /**
+     * Decodes the given color into ARGB.
+     * <p>
+     * If this {@link ColorModel} doesn't contain an alpha channel, the alpha value should be set to {@code 0xFF} (fully opaque).
+     *
+     * @param color the color to decode
+     * @return the color as a standard ARGB color
+     */
+    int decode(long color);
+
+    /**
+     * Encodes the given ARGB color into this color model's format.
+     * <p>
+     * If this {@link ColorModel} doesn't contain an alpha channel, implementations are permitted to silently discard the input
+     * value's alpha level.
+     *
+     * @param argb the ARGB color to encode
+     * @return the encoded color
+     */
+    long encode(int argb);
+
+    /**
+     * @return the number of bits that are used by this color model
+     */
+    int encodedBits();
+
+    /**
+     * @return whether or not this {@link ColorModel} contains an alpha channel
+     */
+    boolean alpha();
 }

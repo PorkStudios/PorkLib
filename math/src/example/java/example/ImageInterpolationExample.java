@@ -68,7 +68,7 @@ public class ImageInterpolationExample {
                 }
             }
 
-            PorkUtil.simpleDisplayImage(img, true);
+            PorkUtil.simpleDisplayImage(true, img);
         }
     }
 }

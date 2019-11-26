@@ -15,6 +15,7 @@
 
 package example.graphics;
 
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.graphics.bitmap.ColorFormat;
 import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
 import net.daporkchop.lib.graphics.bitmap.image.PImage;
@@ -27,8 +28,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -64,31 +67,12 @@ public class TestingDisplayingOfImages {
                 throw new IllegalStateException("Didn't write image!");
             }
 
-            ImageInterpolator interpolator = new ImageInterpolator(new CubicInterpolation());
+            ImageInterpolator interpolator = new ImageInterpolator(CubicInterpolation.instance());
             image = interpolator.interp(image, 32.0d);
 
             Thumbnail thumbnail = new Thumbnail(64, 32, 16, 8, image.getWidth()).submit(image).bake();
 
-            JFrame frame = new JFrame();
-            frame.getContentPane().setLayout(new FlowLayout());
-            frame.getContentPane().add(new JLabel(format.name()));
-            for (PIcon icon : thumbnail.getIcons()) {
-                frame.getContentPane().add(new JLabel(icon.getAsSwingIcon()));
-            }
-            frame.pack();
-            frame.setVisible(true);
-            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-            frame.addWindowListener(new WindowAdapter() {
-                @Override
-                public void windowClosed(WindowEvent e) {
-                    synchronized (frame) {
-                        frame.notify();
-                    }
-                }
-            });
-            synchronized (frame) {
-                frame.wait();
-            }
+            PorkUtil.simpleDisplayImage(true, Arrays.stream(thumbnail.getIcons()).map(PIcon::getAsBufferedImage).toArray(BufferedImage[]::new));
         }
     }
 }

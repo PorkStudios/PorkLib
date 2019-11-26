@@ -13,15 +13,33 @@
  *
  */
 
-package net.daporkchop.lib.graphics.render;
-
-import java.util.function.Consumer;
+package net.daporkchop.lib.graphics.color;
 
 /**
+ * An implementation of the simple ABW (8-bit greyscale with alpha) color model.
+ *
  * @author DaPorkchop_
- * @deprecated I have no idea what this interface is, it's only used by a single class which is entirely commented out
  */
-@Deprecated
-@FunctionalInterface
-public interface RenderWorker extends Consumer<Renderer2d> {
+public final class ColorModelABW implements ColorModel {
+    @Override
+    public int decode(long color) {
+        int i = (int) color;
+        //the first shift also gets the alpha channel in place
+        return (i << 16) | ((i & 0xFF) << 8) | (i & 0xFF);
+    }
+
+    @Override
+    public long encode(int argb) {
+        return (argb >>> 16) | ((argb >>> 8) & 0xFF) | (argb & 0xFF);
+    }
+
+    @Override
+    public int encodedBits() {
+        return 16;
+    }
+
+    @Override
+    public boolean alpha() {
+        return true;
+    }
 }

@@ -13,15 +13,31 @@
  *
  */
 
-package net.daporkchop.lib.graphics.render;
-
-import java.util.function.Consumer;
+package net.daporkchop.lib.graphics.color;
 
 /**
+ * An implementation of the RGB color model.
+ *
  * @author DaPorkchop_
- * @deprecated I have no idea what this interface is, it's only used by a single class which is entirely commented out
  */
-@Deprecated
-@FunctionalInterface
-public interface RenderWorker extends Consumer<Renderer2d> {
+public final class ColorModelRGB implements ColorModel {
+    @Override
+    public int decode(long color) {
+        return ((int) color) | 0xFF000000;
+    }
+
+    @Override
+    public long encode(int argb) {
+        return (long) (argb & 0x00FFFFFF);
+    }
+
+    @Override
+    public int encodedBits() {
+        return 24;
+    }
+
+    @Override
+    public boolean alpha() {
+        return false;
+    }
 }

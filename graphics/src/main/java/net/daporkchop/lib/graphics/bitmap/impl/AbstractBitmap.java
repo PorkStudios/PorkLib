@@ -17,17 +17,17 @@ package net.daporkchop.lib.graphics.bitmap.impl;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.graphics.bitmap.Bitmap;
+import net.daporkchop.lib.graphics.bitmap.PBitmap;
 import net.daporkchop.lib.graphics.util.exception.BitmapCoordinatesOutOfBoundsException;
 
 /**
- * Base implementation of {@link Bitmap}.
+ * Base implementation of {@link PBitmap}.
  *
  * @author DaPorkchop_
  */
 @Getter
 @Accessors(fluent = true)
-public abstract class AbstractBitmap implements Bitmap {
+public abstract class AbstractBitmap implements PBitmap {
     //together these fields make a long, so field alignment is all good
     protected final int width;
     protected final int height;

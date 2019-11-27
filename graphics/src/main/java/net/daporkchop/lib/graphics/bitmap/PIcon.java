@@ -15,13 +15,28 @@
 
 package net.daporkchop.lib.graphics.bitmap;
 
+import net.daporkchop.lib.graphics.color.ColorModel;
+import net.daporkchop.lib.graphics.util.exception.BitmapCoordinatesOutOfBoundsException;
+
 /**
  * An immutable image.
  *
  * @author DaPorkchop_
  * @see PImage
  */
-public interface PIcon {
+public interface PIcon extends PBitmap {
+    @Override
+    int width();
+
+    @Override
+    int height();
+
+    @Override
+    ColorModel model();
+
+    @Override
+    int getARGB(int x, int y) throws BitmapCoordinatesOutOfBoundsException;
+
     /**
      * @return a mutable copy of this icon
      */

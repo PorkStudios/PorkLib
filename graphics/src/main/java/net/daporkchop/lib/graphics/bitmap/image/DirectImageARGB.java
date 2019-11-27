@@ -13,55 +13,49 @@
  *
  */
 
-package net.daporkchop.lib.graphics.bitmap.impl;
+package net.daporkchop.lib.graphics.bitmap.image;
 
-import net.daporkchop.lib.graphics.bitmap.PBitmap;
-import net.daporkchop.lib.unsafe.PCleaner;
+import net.daporkchop.lib.graphics.bitmap.PIcon;
+import net.daporkchop.lib.graphics.bitmap.PImage;
+import net.daporkchop.lib.graphics.bitmap.icon.DirectIconARGB;
+import net.daporkchop.lib.graphics.bitmap.impl.AbstractDirectBitmap;
+import net.daporkchop.lib.graphics.color.ColorModel;
+import net.daporkchop.lib.graphics.util.exception.BitmapCoordinatesOutOfBoundsException;
 import net.daporkchop.lib.unsafe.PUnsafe;
-import net.daporkchop.lib.unsafe.capability.AccessibleDirectMemoryHolder;
-import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 /**
- * Base implementation of {@link PBitmap} backed by direct memory.
+ * An implementation of {@link PImage} that uses the ARGB color model, backed by direct memory.
  *
  * @author DaPorkchop_
  */
-public abstract class AbstractDirectBitmap extends AbstractBitmap implements AccessibleDirectMemoryHolder {
-    protected final long ptr;
-
-    protected final PCleaner cleaner;
-
-    public AbstractDirectBitmap(int width, int height) {
+public final class DirectImageARGB extends AbstractDirectBitmap implements PImage {
+    public DirectImageARGB(int width, int height) {
         super(width, height);
-
-        this.cleaner = PCleaner.cleaner(this, this.ptr = PUnsafe.allocateMemory(this.memorySize()));
     }
 
-    public AbstractDirectBitmap(int width, int height, Object copySrcRef, long copySrcOff) {
-        this(width, height);
-
-        PUnsafe.copyMemory(copySrcRef, copySrcOff, null, this.ptr, this.memorySize());
+    public DirectImageARGB(int width, int height, Object copySrcRef, long copySrcOff) {
+        super(width, height, copySrcRef, copySrcOff);
     }
 
     @Override
-    public Object memoryRef() {
-        return null;
+    public ColorModel model() {
+        return ColorModel.ARGB;
     }
 
     @Override
-    public long memoryOff() {
-        return this.ptr;
+    public void setARGB(int x, int y, int argb) throws BitmapCoordinatesOutOfBoundsException {
+        super.assertInBounds(x, y);
+        PUnsafe.putInt(this.ptr + (y * this.width + x), argb);
     }
 
     @Override
-    public long memorySize() {
-        return (long) this.width * (long) this.height;
+    public int getARGB(int x, int y) throws BitmapCoordinatesOutOfBoundsException {
+        super.assertInBounds(x, y);
+        return PUnsafe.getInt(this.ptr + (y * this.width + x));
     }
 
     @Override
-    public final void release() throws AlreadyReleasedException {
-        if (!this.cleaner.tryClean()) {
-            throw new AlreadyReleasedException();
-        }
+    public PIcon immutableSnapshot() {
+        return new DirectIconARGB(this.width, this.height, null, this.ptr);
     }
 }

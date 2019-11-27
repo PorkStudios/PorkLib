@@ -26,7 +26,7 @@ import net.daporkchop.lib.unsafe.capability.Releasable;
  * @see PImage
  * @see PIcon
  */
-public interface Bitmap extends Releasable {
+public interface PBitmap extends Releasable {
     /**
      * @return the width (in pixels) of this bitmap
      */

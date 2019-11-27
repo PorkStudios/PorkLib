@@ -24,7 +24,19 @@ import net.daporkchop.lib.graphics.util.exception.BitmapCoordinatesOutOfBoundsEx
  * @author DaPorkchop_
  * @see PIcon
  */
-public interface PImage extends Bitmap {
+public interface PImage extends PBitmap {
+    @Override
+    int width();
+
+    @Override
+    int height();
+
+    @Override
+    ColorModel model();
+
+    @Override
+    int getARGB(int x, int y) throws BitmapCoordinatesOutOfBoundsException;
+
     /**
      * Sets the ARGB color value at the given pixel coordinates.
      *

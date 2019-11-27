@@ -298,7 +298,12 @@ public abstract class PUnsafe {
     }
 
     public static void setMemory(Object o, long pos, long length, byte val) {
-        UNSAFE.setMemory(o, pos, length, val);
+        if (o == null)  {
+            //get a speed boost by not using any objects as references when the memory is off-heap
+            UNSAFE.setMemory(pos, length, val);
+        } else {
+            UNSAFE.setMemory(o, pos, length, val);
+        }
     }
 
     public static void setMemory(long pos, long length, byte val) {
@@ -306,7 +311,12 @@ public abstract class PUnsafe {
     }
 
     public static void copyMemory(Object src, long srcOffset, Object dst, long dstOffset, long length) {
-        UNSAFE.copyMemory(src, srcOffset, dst, dstOffset, length);
+        if (src == null && dst == null) {
+            //get a speed boost by not using any objects as references when both src and dst are off-heap
+            UNSAFE.copyMemory(srcOffset, dstOffset, length);
+        } else {
+            UNSAFE.copyMemory(src, srcOffset, dst, dstOffset, length);
+        }
     }
 
     public static void copyMemory(long src, long dst, long length) {

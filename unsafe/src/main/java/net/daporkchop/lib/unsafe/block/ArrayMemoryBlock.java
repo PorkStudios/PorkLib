@@ -22,7 +22,7 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 /**
  * @author DaPorkchop_
  */
-public class ArrayMemoryBlock implements MemoryBlock {
+public final class ArrayMemoryBlock implements MemoryBlock {
     protected Object array;
     protected final long offset;
     protected final long size;
@@ -34,25 +34,25 @@ public class ArrayMemoryBlock implements MemoryBlock {
         }
         if (clazz == byte[].class) {
             this.offset = PUnsafe.ARRAY_BYTE_BASE_OFFSET;
-            this.size = ((byte[]) array).length;
+            this.size = ((byte[]) array).length * PUnsafe.ARRAY_BYTE_INDEX_SCALE;
         } else if (clazz == short[].class) {
             this.offset = PUnsafe.ARRAY_SHORT_BASE_OFFSET;
-            this.size = ((short[]) array).length;
+            this.size = ((short[]) array).length * PUnsafe.ARRAY_SHORT_INDEX_SCALE;
         } else if (clazz == int[].class) {
             this.offset = PUnsafe.ARRAY_INT_BASE_OFFSET;
-            this.size = ((int[]) array).length;
+            this.size = ((int[]) array).length * PUnsafe.ARRAY_INT_INDEX_SCALE;
         } else if (clazz == long[].class) {
             this.offset = PUnsafe.ARRAY_LONG_BASE_OFFSET;
-            this.size = ((long[]) array).length;
+            this.size = ((long[]) array).length * PUnsafe.ARRAY_LONG_INDEX_SCALE;
         } else if (clazz == float[].class) {
             this.offset = PUnsafe.ARRAY_FLOAT_BASE_OFFSET;
-            this.size = ((float[]) array).length;
+            this.size = ((float[]) array).length * PUnsafe.ARRAY_FLOAT_INDEX_SCALE;
         } else if (clazz == double[].class) {
             this.offset = PUnsafe.ARRAY_DOUBLE_BASE_OFFSET;
-            this.size = ((double[]) array).length;
+            this.size = ((double[]) array).length * PUnsafe.ARRAY_DOUBLE_INDEX_SCALE;
         } else if (clazz == char[].class) {
             this.offset = PUnsafe.ARRAY_CHAR_BASE_OFFSET;
-            this.size = ((char[]) array).length;
+            this.size = ((char[]) array).length * PUnsafe.ARRAY_CHAR_INDEX_SCALE;
         } else {
             throw new IllegalArgumentException(String.format("Not a primitive array: %s", clazz.getCanonicalName()));
         }
@@ -60,23 +60,18 @@ public class ArrayMemoryBlock implements MemoryBlock {
     }
 
     @Override
-    public long memoryAddress() {
+    public Object memoryRef() {
+        return this.array;
+    }
+
+    @Override
+    public long memoryOff() {
         return this.offset;
     }
 
     @Override
     public long memorySize() {
         return this.size;
-    }
-
-    @Override
-    public Object refObj() {
-        return this.array;
-    }
-
-    @Override
-    public boolean isAbsolute() {
-        return false;
     }
 
     @Override
@@ -423,5 +418,10 @@ public class ArrayMemoryBlock implements MemoryBlock {
         } else {
             PUnsafe.copyMemory(arr, PUnsafe.ARRAY_CHAR_BASE_OFFSET + (off << 1L), this.array, this.offset, len << 1L);
         }
+    }
+
+    @Override
+    public void clear() {
+        PUnsafe.setMemory(this.array, this.offset, this.size, (byte) 0);
     }
 }

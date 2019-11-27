@@ -16,8 +16,6 @@
 package net.daporkchop.lib.unsafe.block;
 
 import lombok.NonNull;
-import net.daporkchop.lib.unsafe.block.offset.Offsettable;
-import net.daporkchop.lib.unsafe.PUnsafe;
 import net.daporkchop.lib.unsafe.capability.AccessibleDirectMemoryHolder;
 
 /**
@@ -25,7 +23,7 @@ import net.daporkchop.lib.unsafe.capability.AccessibleDirectMemoryHolder;
  *
  * @author DaPorkchop_
  */
-public interface MemoryBlock extends AccessibleDirectMemoryHolder, Offsettable {
+public interface MemoryBlock extends AccessibleDirectMemoryHolder {
     /**
      * Gets a new direct (off-heap) memory block
      *
@@ -603,11 +601,5 @@ public interface MemoryBlock extends AccessibleDirectMemoryHolder, Offsettable {
     /**
      * Clears this block of memory, overwriting the entire contents with zeroes
      */
-    default void clear() {
-        if (this.isAbsolute()) {
-            PUnsafe.setMemory(this.memoryAddress(), this.memorySize(), (byte) 0);
-        } else {
-            PUnsafe.setMemory(this.refObj(), this.memoryAddress(), this.memorySize(), (byte) 0);
-        }
-    }
+    void clear();
 }

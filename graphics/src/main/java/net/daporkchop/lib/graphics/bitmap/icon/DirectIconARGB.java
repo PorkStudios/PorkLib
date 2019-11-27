@@ -17,18 +17,24 @@ package net.daporkchop.lib.graphics.bitmap.icon;
 
 import net.daporkchop.lib.graphics.bitmap.PIcon;
 import net.daporkchop.lib.graphics.bitmap.PImage;
+import net.daporkchop.lib.graphics.bitmap.image.DirectImageARGB;
 import net.daporkchop.lib.graphics.bitmap.impl.AbstractDirectBitmap;
 import net.daporkchop.lib.graphics.color.ColorModel;
 import net.daporkchop.lib.graphics.util.exception.BitmapCoordinatesOutOfBoundsException;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 /**
- *
+ * An implementation of {@link PIcon} that uses the ARGB color model, backed by direct memory.
  *
  * @author DaPorkchop_
  */
 public final class DirectIconARGB extends AbstractDirectBitmap implements PIcon {
     public DirectIconARGB(int width, int height) {
         super(width, height);
+    }
+
+    public DirectIconARGB(int width, int height, Object copySrcRef, long copySrcOff) {
+        super(width, height, copySrcRef, copySrcOff);
     }
 
     @Override
@@ -38,11 +44,12 @@ public final class DirectIconARGB extends AbstractDirectBitmap implements PIcon 
 
     @Override
     public int getARGB(int x, int y) throws BitmapCoordinatesOutOfBoundsException {
-        return 0;
+        super.assertInBounds(x, y);
+        return PUnsafe.getInt(this.ptr + (y * this.width + x));
     }
 
     @Override
     public PImage mutableCopy() {
-        return null;
+        return new DirectImageARGB(this.width, this.height, null, this.ptr);
     }
 }

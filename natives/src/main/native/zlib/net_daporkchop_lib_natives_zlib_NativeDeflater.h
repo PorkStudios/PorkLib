@@ -89,14 +89,6 @@ JNIEXPORT void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_finis
 
 /*
  * Class:     net_daporkchop_lib_natives_zlib_NativeDeflater
- * Method:    finished
- * Signature: ()Z
- */
-JNIEXPORT jboolean JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_finished
-  (JNIEnv *, jobject);
-
-/*
- * Class:     net_daporkchop_lib_natives_zlib_NativeDeflater
  * Method:    reset
  * Signature: ()V
  */

@@ -5,12 +5,12 @@ extern "C" {
 #endif
 
 jint throwException(JNIEnv* env, const char* msg, int err)  {
-    jclass clazz = env->FindClass("net/daporkchop/lib/natives/NativeCodeException");
+    jclass clazz = (*env)->FindClass(env, "net/daporkchop/lib/natives/NativeCodeException");
 
-    return env->Throw((jthrowable) env->NewObject(
+    return (*env)->Throw(env, (jthrowable) (*env)->NewObject(env,
         clazz,
-        env->GetMethodID(clazz, "<init>", "(Ljava/lang/String;I)V"),
-        env->NewStringUTF(msg),
+        (*env)->GetMethodID(env, clazz, "<init>", "(Ljava/lang/String;I)V"),
+        (*env)->NewStringUTF(env, msg),
         err
     ));
 }

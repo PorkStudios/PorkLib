@@ -25,6 +25,7 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
  *
  * @author DaPorkchop_
  */
+@Accessors(fluent = true)
 public final class NativeDeflater implements PDeflater {
     static native void load();
 
@@ -34,6 +35,9 @@ public final class NativeDeflater implements PDeflater {
 
     private final long     ctx;
     private final PCleaner cleaner;
+
+    @Getter
+    private boolean finished;
 
     NativeDeflater(int level, boolean nowrap) {
         long ctx = this.ctx = init(level, nowrap);
@@ -60,9 +64,6 @@ public final class NativeDeflater implements PDeflater {
 
     @Override
     public native void finish();
-
-    @Override
-    public native boolean finished();
 
     @Override
     public native void reset();

@@ -31,28 +31,32 @@ public class NativeTests {
     public static void main(String... args) throws IOException {
         PDeflater deflater = PNatives.ZLIB.get().deflater(8, false);
 
-        byte[] arr = new byte[4096];
+        byte[] arr = new byte[67108864];
         ThreadLocalRandom.current().nextBytes(arr);
         Arrays.fill(arr, 128, arr.length, (byte) 0);
         long src = PUnsafe.allocateMemory(arr.length);
         PUnsafe.copyMemory(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, null, src, arr.length);
         deflater.input(src, arr.length);
 
-        long dst = PUnsafe.allocateMemory(arr.length << 8);
-        deflater.output(dst, arr.length << 8);
+        long dst = PUnsafe.allocateMemory(arr.length);
+        deflater.output(dst, arr.length);
 
+        System.out.println(deflater.finished());
         deflater.deflateFinish();
-        PUnsafe.freeMemory(src);
 
         System.out.printf("Read: %d\nWritten: %d\n", deflater.readBytes(), deflater.writtenBytes());
+        System.out.println(deflater.finished());
 
-        byte[] arr2 = new byte[arr.length];
+        PUnsafe.freeMemory(src);
+
+        byte[] arr2 = new byte[(int) deflater.writtenBytes()];
         PUnsafe.copyMemory(null, dst, arr2, PUnsafe.ARRAY_BYTE_BASE_OFFSET, deflater.writtenBytes());
         PUnsafe.freeMemory(dst);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (InflaterOutputStream out = new InflaterOutputStream(baos))  {
             out.write(arr2);
         }
+        arr2 = null;
 
         if (!Arrays.equals(arr, baos.toByteArray()))    {
             throw new IllegalStateException();

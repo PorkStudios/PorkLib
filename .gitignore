@@ -32,3 +32,5 @@ test_out/
 
 #native libraries
 /natives/**/*.so
+/natives/tmp/
+/natives/src/main/native/*/lib-*/

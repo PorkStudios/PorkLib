@@ -20,7 +20,6 @@ import lombok.NonNull;
 import net.daporkchop.lib.binary.serialization.Serializer;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.binary.stream.optimizations.NonExpandingByteArrayOutputStream;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -172,32 +171,22 @@ public abstract class ConstantLengthSerializer<T> implements Serializer<T> {
     }
     @Getter
     private final int size;
-    private final ThreadLocal<byte[]> bufferCache;
 
     public ConstantLengthSerializer(int size) {
         if (size <= 0) {
             throw new IllegalArgumentException(String.format("Illegal size: %d (must be more than 0)", size));
         }
         this.size = size;
-        this.bufferCache = ThreadLocal.withInitial(() -> new byte[this.size]);
     }
 
     @Override
     public void write(@NonNull T val, @NonNull DataOut out) throws IOException {
-        NonExpandingByteArrayOutputStream baos = NonExpandingByteArrayOutputStream.wrap(this.bufferCache.get());
-        try (DataOut theOut = DataOut.wrap(baos)) {
-            this.doWrite(val, theOut);
-        }
-        out.write(baos.getBuf());
+        this.doWrite(val, out);
     }
 
     @Override
     public T read(@NonNull DataIn in) throws IOException {
-        byte[] buf = this.bufferCache.get();
-        in.readFully(buf, 0, this.size);
-        try (DataIn theIn = DataIn.wrap(ByteBuffer.wrap(buf))) {
-            return this.doRead(theIn);
-        }
+        return this.doRead(in);
     }
 
     protected abstract void doWrite(@NonNull T val, @NonNull DataOut out) throws IOException;

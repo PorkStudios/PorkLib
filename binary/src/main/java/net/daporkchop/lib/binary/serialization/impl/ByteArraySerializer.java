@@ -30,7 +30,7 @@ import java.io.IOException;
  * @author DaPorkchop_
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class ByteArraySerializer implements Serializer<byte[]> {
+public final class ByteArraySerializer implements Serializer<byte[]> {
     /**
      * A shared instance of {@link ByteArraySerializer}
      */

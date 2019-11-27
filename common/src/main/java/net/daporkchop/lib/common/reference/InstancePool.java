@@ -18,13 +18,15 @@ package net.daporkchop.lib.common.reference;
 import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.util.PConstants;
 import net.daporkchop.lib.common.util.PorkUtil;
-import sun.misc.SoftCache;
 
+import java.lang.ref.SoftReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -34,44 +36,44 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * <p>
  * Having these instances pooled is better than creating new instances all the time (because
  * heap usage) and is also better than having a single static instance (because the class can
- * never be unloaded in that scenario). This pool is backed by a {@link SoftCache}, meaning that
- * only one object instance has to be kept loaded statically.
+ * never be unloaded in that scenario). All references are soft, to allow the garbage collector to
+ * free up the memory if needed.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
-@SuppressWarnings("unchecked")
+@UtilityClass
 public class InstancePool {
-    protected static final Map<Class<?>, Object> MAP = PorkUtil.newSoftCache();
-    protected static final ReadWriteLock LOCK = new ReentrantReadWriteLock();
+    private final Map<Class<?>, SoftReference<?>> MAP = new ConcurrentHashMap<>();
 
     public static <T> T getInstance(@NonNull Class<T> clazz) {
+        @SuppressWarnings("unchecked")
+        SoftReference<T> ref = (SoftReference<T>) MAP.computeIfAbsent(clazz, c -> new SoftReference<>(createInstance(c)));
         T val;
-        LOCK.readLock().lock();
-        try {
-            val = (T) MAP.get(clazz);
-        } finally {
-            LOCK.readLock().unlock();
-        }
-        if (val == null) {
-            try {
-                Constructor<T> constructor = clazz.getDeclaredConstructor();
-                constructor.setAccessible(true);
-                val = constructor.newInstance();
-                LOCK.writeLock().lock();
-                try {
-                    MAP.putIfAbsent(clazz, val);
-                } finally {
-                    LOCK.writeLock().unlock();
+        while ((val = ref.get()) == null)   {
+            synchronized (clazz)    {
+                @SuppressWarnings("unchecked")
+                SoftReference<T> newRef = (SoftReference<T>) MAP.get(clazz);
+                if (newRef == ref)  {
+                    //reference in map has not been changed, create new reference
+                    MAP.replace(clazz, ref, newRef = new SoftReference<>(createInstance(clazz)));
                 }
-            } catch (NoSuchMethodException e) {
-                throw new IllegalStateException(String.format("Class %s doesn't have a no-args constructor!", clazz.getCanonicalName()), e);
-            } catch (IllegalAccessException e) {
-                throw PConstants.p_exception(e); //not possible
-            } catch (InstantiationException | InvocationTargetException e) {
-                throw new IllegalStateException(String.format("Exception while invoking no-args constructor on class %s!", clazz.getCanonicalName()), e);
+                ref = newRef;
             }
         }
         return val;
+    }
+
+    private static <T> T createInstance(@NonNull Class<T> clazz)    {
+        try {
+            Constructor<T> constructor = clazz.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            return constructor.newInstance();
+        } catch (NoSuchMethodException e) {
+            throw new IllegalArgumentException(clazz.getCanonicalName(), e);
+        } catch (IllegalAccessException e) {
+            throw new IllegalStateException(e); //not possible
+        } catch (InstantiationException | InvocationTargetException e) {
+            throw new RuntimeException(clazz.getCanonicalName(), e);
+        }
     }
 }

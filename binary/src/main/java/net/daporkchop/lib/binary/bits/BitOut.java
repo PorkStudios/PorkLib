@@ -13,11 +13,10 @@
  *
  */
 
-package net.daporkchop.lib.binary.stream.bit;
+package net.daporkchop.lib.binary.bits;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.math.primitive.BinMath;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -27,14 +26,23 @@ import java.io.OutputStream;
  *
  * @author DaPorkchop_
  */
-public class BitOutputStream extends OutputStream {
+public final class BitOut extends OutputStream {
+    private static int getNumBitsNeededFor(int value) {
+        int count = 0;
+        while (value > 0) {
+            count++;
+            value = value >> 1;
+        }
+        return count;
+    }
+
     @Getter
     protected final OutputStream output;
     private int readBuf;
     @Getter
     private int bufOffset;
 
-    public BitOutputStream(@NonNull OutputStream output) {
+    public BitOut(@NonNull OutputStream output) {
         this.output = output;
         this.initialize();
     }
@@ -87,7 +95,7 @@ public class BitOutputStream extends OutputStream {
     }
 
     public void writeLength(int length) throws IOException {
-        int bits = BinMath.getNumBitsNeededFor(length);
+        int bits = getNumBitsNeededFor(length);
         this.writeBits(5, bits);
         this.writeBits(bits, length);
     }

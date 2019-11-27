@@ -13,8 +13,8 @@
  *
  */
 
-package binary;import net.daporkchop.lib.binary.stream.bit.BitInputStream;
-import net.daporkchop.lib.binary.stream.bit.BitOutputStream;
+package binary;import net.daporkchop.lib.binary.bits.BitIn;
+import net.daporkchop.lib.binary.bits.BitOut;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import org.junit.Test;
@@ -67,7 +67,7 @@ public class TestMain {
     @Test
     public void a() throws IOException {
         ByteArrayInputStream bais = new ByteArrayInputStream(new byte[1024]);
-        BitInputStream bis = new BitInputStream(bais);
+        BitIn bis = new BitIn(bais);
         bis.read();
         bis.readBits(1);
         bis.readBits(2);
@@ -79,7 +79,7 @@ public class TestMain {
     @Test
     public void b() throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        BitOutputStream bos = new BitOutputStream(baos);
+        BitOut bos = new BitOut(baos);
         bos.writeBits(3, 0);
         bos.writeBits(1, 0);
         bos.write(0);

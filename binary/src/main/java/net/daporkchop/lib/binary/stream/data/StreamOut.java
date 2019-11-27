@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 /**
- * An implementation of {@link DataOut} that can write data to an {@link OutputStream}
+ * An implementation of {@link DataOut} that can write data to an {@link OutputStream}.
  *
  * @author DaPorkchop_
  */
@@ -36,8 +36,6 @@ import java.io.OutputStream;
 public class StreamOut extends DataOut {
     @NonNull
     protected final OutputStream out;
-    @Setter
-    protected boolean close;
 
     @Override
     public void write(int b) throws IOException {
@@ -55,8 +53,26 @@ public class StreamOut extends DataOut {
     }
 
     @Override
+    public OutputStream unwrap() {
+        return this.out;
+    }
+
+    @Override
     public void close() throws IOException {
-        if (this.close) {
+    }
+
+    /**
+     * An extension of {@link StreamOut} which forwards the {@link OutputStream#close()} method to the delegate {@link OutputStream}.
+     *
+     * @author DaPorkchop_
+     */
+    public static final class Closing extends StreamOut {
+        public Closing(OutputStream out) {
+            super(out);
+        }
+
+        @Override
+        public void close() throws IOException {
             this.out.close();
         }
     }

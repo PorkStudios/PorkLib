@@ -13,29 +13,17 @@
  *
  */
 
-package net.daporkchop.lib.graphics.image;
-
-import net.daporkchop.lib.graphics.color.ColorModel;
-import net.daporkchop.lib.graphics.util.exception.BitmapCoordinatesOutOfBoundsException;
+package net.daporkchop.lib.graphics.bitmap;
 
 /**
- * A mutable image.
+ * An immutable image.
  *
  * @author DaPorkchop_
+ * @see PImage
  */
-public interface PImage extends Bitmap {
+public interface PIcon {
     /**
-     * @return this image's {@link ColorModel}
+     * @return a mutable copy of this icon
      */
-    ColorModel model();
-
-    /**
-     * Sets the ARGB color value at the given pixel coordinates.
-     *
-     * @param x    the X coordinate of the pixel to get
-     * @param y    the Y coordinate of the pixel to get
-     * @param argb the new ARGB color value to set
-     * @throws BitmapCoordinatesOutOfBoundsException if the given pixel coordinates are out of bounds
-     */
-    void setARGB(int x, int y, int argb) throws BitmapCoordinatesOutOfBoundsException;
+    PImage mutableCopy();
 }

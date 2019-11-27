@@ -13,34 +13,36 @@
  *
  */
 
-package net.daporkchop.lib.graphics.image;
+package net.daporkchop.lib.graphics.bitmap.icon;
 
+import net.daporkchop.lib.graphics.bitmap.PIcon;
+import net.daporkchop.lib.graphics.bitmap.PImage;
+import net.daporkchop.lib.graphics.bitmap.impl.AbstractDirectBitmap;
+import net.daporkchop.lib.graphics.color.ColorModel;
 import net.daporkchop.lib.graphics.util.exception.BitmapCoordinatesOutOfBoundsException;
-import net.daporkchop.lib.unsafe.capability.Releasable;
 
 /**
- * Base interface that represents a pixel bitmap.
+ *
  *
  * @author DaPorkchop_
  */
-public interface Bitmap extends Releasable {
-    /**
-     * @return the width (in pixels) of this bitmap
-     */
-    int width();
+public final class DirectIconARGB extends AbstractDirectBitmap implements PIcon {
+    public DirectIconARGB(int width, int height) {
+        super(width, height);
+    }
 
-    /**
-     * @return the height (in pixels) of this bitmap
-     */
-    int height();
+    @Override
+    public ColorModel model() {
+        return ColorModel.ARGB;
+    }
 
-    /**
-     * Gets the ARGB color value at the given pixel coordinates.
-     *
-     * @param x the X coordinate of the pixel to get
-     * @param y the Y coordinate of the pixel to get
-     * @return the ARGB color value at the given pixel coordinates
-     * @throws BitmapCoordinatesOutOfBoundsException if the given pixel coordinates are out of bounds
-     */
-    int getARGB(int x, int y) throws BitmapCoordinatesOutOfBoundsException;
+    @Override
+    public int getARGB(int x, int y) throws BitmapCoordinatesOutOfBoundsException {
+        return 0;
+    }
+
+    @Override
+    public PImage mutableCopy() {
+        return null;
+    }
 }

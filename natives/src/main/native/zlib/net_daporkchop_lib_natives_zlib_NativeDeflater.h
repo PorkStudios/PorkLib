@@ -49,19 +49,11 @@ JNIEXPORT void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_outpu
 
 /*
  * Class:     net_daporkchop_lib_natives_zlib_NativeDeflater
- * Method:    deflateFinish
- * Signature: ()V
- */
-JNIEXPORT void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_deflateFinish
-  (JNIEnv *, jobject);
-
-/*
- * Class:     net_daporkchop_lib_natives_zlib_NativeDeflater
  * Method:    deflate
- * Signature: ()V
+ * Signature: (Z)V
  */
 JNIEXPORT void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_deflate
-  (JNIEnv *, jobject);
+  (JNIEnv *, jobject, jboolean);
 
 /*
  * Class:     net_daporkchop_lib_natives_zlib_NativeDeflater
@@ -77,14 +69,6 @@ JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_read
  * Signature: ()J
  */
 JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_writtenBytes
-  (JNIEnv *, jobject);
-
-/*
- * Class:     net_daporkchop_lib_natives_zlib_NativeDeflater
- * Method:    finish
- * Signature: ()V
- */
-JNIEXPORT void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_finish
   (JNIEnv *, jobject);
 
 /*

@@ -15,6 +15,8 @@
 
 package net.daporkchop.lib.natives.zlib;
 
+import io.netty.buffer.ByteBuf;
+import lombok.NonNull;
 import net.daporkchop.lib.unsafe.capability.Releasable;
 
 /**
@@ -23,6 +25,39 @@ import net.daporkchop.lib.unsafe.capability.Releasable;
  * @author DaPorkchop_
  */
 public interface PDeflater extends Releasable {
+    /**
+     * Does the entire compression process in one go.
+     * <p>
+     * This method ignores any values set by {@link #input(long, long)} or {@link #output(long, long)}.
+     * <p>
+     * Calling this method will update the values of {@link #readBytes()} and {@link #writtenBytes()}, however the values will (probably) be garbage.
+     * <p>
+     * Attempting to use this method in combination with any of the following methods between resets may result in undefined behavior:
+     * - {@link #deflate(boolean)}
+     * - {@link #finished()}
+     *
+     * @param input  a {@link ByteBuf} containing the input data to be compressed
+     * @param output a {@link ByteBuf} that the output data will be written to
+     */
+    default void deflate(@NonNull ByteBuf input, @NonNull ByteBuf output) {
+        input.memoryAddress();
+        output.memoryAddress();
+
+        do {
+            //System.out.printf("readable: %d, writable: %d\n", input.readableBytes(), output.writableBytes());
+
+            this.input(input.memoryAddress() + input.readerIndex(), input.readableBytes());
+            this.output(output.memoryAddress() + output.writerIndex(), output.writableBytes());
+
+            this.deflate(true);
+
+            input.readerIndex(input.readerIndex() + (int) this.readBytes());
+            output.writerIndex(output.writerIndex() + (int) this.writtenBytes());
+        } while (!this.finished() && output.ensureWritable(8192).isWritable());
+
+        //System.out.printf("Done! readable: %d, writable: %d\n", input.readableBytes(), output.writableBytes());
+    }
+
     /**
      * Sets the input (source) data to be compressed.
      *
@@ -40,47 +75,33 @@ public interface PDeflater extends Releasable {
     void output(long addr, long size);
 
     /**
-     * Does the entire compression process in one go.
+     * Does the actual data compression, blocking until either the input buffer is empty or the output buffer is full.
      * <p>
-     * Will fail if the output buffer is not large enough to fit the compressed data.
-     * <p>
-     * Calling this method will update the values of {@link #readBytes()} and {@link #writtenBytes()}.
-     * <p>
-     * May not be used in combination with {@link #deflate()}!
-     */
-    void deflateFinish();
-
-    /**
-     * Does the actual data compression, blocking until either the input or output buffers are full.
+     * This method requires {@link #input(long, long)} and {@link #output(long, long)} to be set.
      * <p>
      * Calling this method will update the values of {@link #readBytes()} and {@link #writtenBytes()}.
      * <p>
-     * May not be used in combination with {@link #deflateFinish()}!
+     * Attempting to use this method in combination with {@link #deflate(ByteBuf, ByteBuf)} between resets may result in undefined behavior.
+     *
+     * @param finish if {@code true}, this will attempt to read all bytes from the input buffer and then finish the compression process. Even if this
+     *               parameter is set, {@link #finished()} will not be set to {@code true} if the output buffer fills up.
      */
-    void deflate();
-
-    /**
-     * @return the number of bytes read from the input buffer during the last invocation of {@link #deflate()} or {@link #deflateFinish()}
-     */
-    long readBytes();
-
-    /**
-     * @return the number of bytes written to the output buffer during the last invocation of {@link #deflate()} or {@link #deflateFinish()}
-     */
-    long writtenBytes();
-
-    /**
-     * Informs this deflater that it should no longer read any data.
-     * <p>
-     * After this method has been called, {@link #deflate()} will no longer cause any data to be read from the input buffer. {@link #deflate()} should
-     * be called repeatedly until {@link #finished()} returns {@code true} (the output buffer should be expanded as needed).
-     */
-    void finish();
+    void deflate(boolean finish);
 
     /**
      * @return whether or not the current deflation process is complete
      */
     boolean finished();
+
+    /**
+     * @return the number of bytes read from the input buffer during the last invocation of {@link #deflate(boolean)} or {@link #deflate(ByteBuf, ByteBuf)}
+     */
+    long readBytes();
+
+    /**
+     * @return the number of bytes written to the output buffer during the last invocation of {@link #deflate(boolean)} or {@link #deflate(ByteBuf, ByteBuf)}
+     */
+    long writtenBytes();
 
     /**
      * Resets this {@link PDeflater} instance.

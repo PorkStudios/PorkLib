@@ -14,7 +14,7 @@
  */
 
 dependencies {
-    //compile "net.java.dev.jna:jna:$jnaVersion"
+    compile "io.netty:netty-buffer:$nettyVersion"
 }
 
 task compileNatives(type: Exec) {

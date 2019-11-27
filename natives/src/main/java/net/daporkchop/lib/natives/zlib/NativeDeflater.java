@@ -15,7 +15,9 @@
 
 package net.daporkchop.lib.natives.zlib;
 
+import io.netty.buffer.ByteBuf;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.unsafe.PCleaner;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
@@ -51,19 +53,13 @@ public final class NativeDeflater implements PDeflater {
     public native void output(long addr, long size);
 
     @Override
-    public native void deflateFinish();
-
-    @Override
-    public native void deflate();
+    public native void deflate(boolean finish);
 
     @Override
     public native long readBytes();
 
     @Override
     public native long writtenBytes();
-
-    @Override
-    public native void finish();
 
     @Override
     public native void reset();

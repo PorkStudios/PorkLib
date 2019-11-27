@@ -10,9 +10,9 @@
 
 typedef struct {
     z_stream stream;
-    jlong srcAddr;
+    //jlong srcAddr;
     jlong srcLen;
-    jlong dstAddr;
+    //jlong dstAddr;
     jlong dstLen;
     jlong readBytes;
     jlong writtenBytes;
@@ -52,18 +52,20 @@ void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_end(JNIEnv* env
 void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_input(JNIEnv* env, jobject obj, jlong srcAddr, jlong srcLen) {
     context_t* context = (context_t*) (*env)->GetLongField(env, obj, ctxID);
 
-    context->srcAddr = srcAddr;
+    //context->srcAddr = srcAddr;
+    context->stream.next_in = (unsigned char*) srcAddr;
     context->srcLen = srcLen;
 }
 
 void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_output(JNIEnv* env, jobject obj, jlong dstAddr, jlong dstLen)    {
     context_t* context = (context_t*) (*env)->GetLongField(env, obj, ctxID);
 
-    context->dstAddr = dstAddr;
+    //context->dstAddr = dstAddr;
+    context->stream.next_out = (unsigned char*) dstAddr;
     context->dstLen = dstLen;
 }
 
-void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_deflateFinish(JNIEnv* env, jobject obj)    {
+/*void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_deflateFinish(JNIEnv* env, jobject obj)    {
     context_t* context = (context_t*) (*env)->GetLongField(env, obj, ctxID);
 
     jlong srcLen       = context->srcLen;
@@ -110,9 +112,25 @@ void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_deflateFinish(J
     context->writtenBytes = writtenBytes;
 
     (*env)->SetBooleanField(env, obj, finishedID, (jboolean) 1);
-}
+}*/
 
-void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_deflate(JNIEnv* env, jobject obj);
+void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_deflate(JNIEnv* env, jobject obj, jboolean finish)  {
+    context_t* context = (context_t*) (*env)->GetLongField(env, obj, ctxID);
+
+    unsigned int avail_in  = context->stream.avail_in =  (unsigned int) min_l(context->srcLen, 0x0FFFFFFF);
+    unsigned int avail_out = context->stream.avail_out = (unsigned int) min_l(context->dstLen, 0x0FFFFFFF);
+
+    int ret = deflate(&context->stream, finish ? Z_FINISH : Z_NO_FLUSH);
+    if (ret == Z_STREAM_END)    {
+        (*env)->SetBooleanField(env, obj, finishedID, (jboolean) 1);
+    } else if (ret != Z_OK)    {
+        throwException(env, "Invalid return value from deflate content!", ret);
+        return;
+    }
+
+    context->readBytes    = (jlong) (avail_in - context->stream.avail_in);
+    context->writtenBytes = (jlong) (avail_out - context->stream.avail_out);
+}
 
 jlong JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_readBytes(JNIEnv* env, jobject obj) {
     context_t* context = (context_t*) (*env)->GetLongField(env, obj, ctxID);

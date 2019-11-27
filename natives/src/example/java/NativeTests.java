@@ -13,13 +13,13 @@
  *
  */
 
+import io.netty.buffer.Unpooled;
 import net.daporkchop.lib.natives.PNatives;
 import net.daporkchop.lib.natives.zlib.PDeflater;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.zip.InflaterOutputStream;
@@ -32,8 +32,9 @@ public class NativeTests {
         PDeflater deflater = PNatives.ZLIB.get().deflater(8, false);
 
         byte[] arr = new byte[67108864];
-        ThreadLocalRandom.current().nextBytes(arr);
-        Arrays.fill(arr, 128, arr.length, (byte) 0);
+        for (int i = 0; i < 128; i++)   {
+            arr[i] = (byte) ThreadLocalRandom.current().nextInt();
+        }
         long src = PUnsafe.allocateMemory(arr.length);
         PUnsafe.copyMemory(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, null, src, arr.length);
         deflater.input(src, arr.length);
@@ -42,7 +43,7 @@ public class NativeTests {
         deflater.output(dst, arr.length);
 
         System.out.println(deflater.finished());
-        deflater.deflateFinish();
+        deflater.deflate(Unpooled.wrappedBuffer(src, arr.length, false), Unpooled.wrappedBuffer(dst, arr.length, false).clear());
 
         System.out.printf("Read: %d\nWritten: %d\n", deflater.readBytes(), deflater.writtenBytes());
         System.out.println(deflater.finished());
@@ -57,8 +58,9 @@ public class NativeTests {
             out.write(arr2);
         }
         arr2 = null;
+        arr2 = baos.toByteArray();
 
-        if (!Arrays.equals(arr, baos.toByteArray()))    {
+        if (!Arrays.equals(arr, arr2))    {
             throw new IllegalStateException();
         }
     }

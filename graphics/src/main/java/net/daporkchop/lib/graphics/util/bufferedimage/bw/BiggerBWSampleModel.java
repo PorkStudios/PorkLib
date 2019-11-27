@@ -27,7 +27,7 @@ import java.awt.image.SinglePixelPackedSampleModel;
  */
 //TODO: reimplement samplemodel from scratch
 @Getter
-public class BiggerBWSampleModel extends SinglePixelPackedSampleModel {
+public final class BiggerBWSampleModel extends SinglePixelPackedSampleModel {
     protected final ImageBW image;
 
     public BiggerBWSampleModel(int dataType, int w, int h, int[] bitMasks, @NonNull ImageBW image) {

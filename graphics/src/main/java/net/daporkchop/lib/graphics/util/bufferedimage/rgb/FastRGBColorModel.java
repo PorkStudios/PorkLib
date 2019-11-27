@@ -24,9 +24,9 @@ import java.awt.image.SampleModel;
 /**
  * @author DaPorkchop_
  */
-public class FastRGBColorModel extends ColorModel {
-    protected static PField field_numComponents = PField.of(ColorModel.class, "numComponents");
-    protected static PField field_supportsAlpha = PField.of(ColorModel.class, "supportsAlpha");
+public final class FastRGBColorModel extends ColorModel {
+    protected static final PField field_numComponents = PField.of(ColorModel.class, "numComponents");
+    protected static final PField field_supportsAlpha = PField.of(ColorModel.class, "supportsAlpha");
 
     public FastRGBColorModel() {
         super(24);

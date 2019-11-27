@@ -26,15 +26,22 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 public final class ColorModelBW implements ColorModel {
+    public static int toARGB(int bw)    {
+        return 0xFF000000 | (bw << 16) | (bw << 8) | bw;
+    }
+
+    public static int fromARGB(int argb)    {
+        return ((argb >>> 16) | (argb >>> 8) | argb) & 0xFF;
+    }
+
     @Override
     public int decode(long color) {
-        int i = (int) color;
-        return 0xFF000000 | (i << 16) | (i << 8) | i;
+        return toARGB((int) color);
     }
 
     @Override
     public long encode(int argb) {
-        return ((argb >>> 16) | (argb >>> 8) | argb) & 0xFF;
+        return fromARGB(argb);
     }
 
     @Override

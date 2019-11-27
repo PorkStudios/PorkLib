@@ -17,7 +17,8 @@ package net.daporkchop.lib.graphics.util.bufferedimage.rgb;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.graphics.bitmap.image.ImageRGB;
+import net.daporkchop.lib.graphics.bitmap.PImage;
+import net.daporkchop.lib.graphics.color.ColorModelRGB;
 
 import java.awt.image.DataBuffer;
 
@@ -25,22 +26,22 @@ import java.awt.image.DataBuffer;
  * @author DaPorkchop_
  */
 @Getter
-public class ImageRGBDataBuffer extends DataBuffer {
-    protected final ImageRGB image;
+public final class ImageRGBDataBuffer extends DataBuffer {
+    protected final PImage image;
 
-    public ImageRGBDataBuffer(@NonNull ImageRGB image) {
-        super(DataBuffer.TYPE_INT, image.getHeight(), image.getWidth());
+    public ImageRGBDataBuffer(@NonNull PImage image) {
+        super(DataBuffer.TYPE_INT, image.height(), image.width());
 
         this.image = image;
     }
 
     @Override
     public int getElem(int bank, int i) {
-        return this.image.getRGB(bank, i);
+        return ColorModelRGB.fromARGB(this.image.getARGB(bank, i));
     }
 
     @Override
     public void setElem(int bank, int i, int val) {
-        this.image.setRGB(bank, i, val);
+        this.image.setARGB(bank, i, ColorModelRGB.toARGB(val));
     }
 }

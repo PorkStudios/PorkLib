@@ -17,7 +17,8 @@ package net.daporkchop.lib.graphics.util.bufferedimage.bw;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.graphics.bitmap.image.ImageBW;
+import net.daporkchop.lib.graphics.bitmap.PImage;
+import net.daporkchop.lib.graphics.color.ColorModelBW;
 
 import java.awt.image.DataBuffer;
 
@@ -25,22 +26,22 @@ import java.awt.image.DataBuffer;
  * @author DaPorkchop_
  */
 @Getter
-public class ImageBWDataBuffer extends DataBuffer {
-    protected final ImageBW image;
+public final class ImageBWDataBuffer extends DataBuffer {
+    protected final PImage image;
 
-    public ImageBWDataBuffer(@NonNull ImageBW image) {
-        super(DataBuffer.TYPE_INT, image.getHeight(), image.getWidth());
+    public ImageBWDataBuffer(@NonNull PImage image) {
+        super(DataBuffer.TYPE_INT, image.height(), image.width());
 
         this.image = image;
     }
 
     @Override
     public int getElem(int bank, int i) {
-        return this.image.getBW(bank, i);
+        return ColorModelBW.fromARGB(this.image.getARGB(bank, i));
     }
 
     @Override
     public void setElem(int bank, int i, int val) {
-        this.image.setBW(bank, i, val);
+        this.image.setARGB(bank, i, ColorModelBW.toARGB(val));
     }
 }

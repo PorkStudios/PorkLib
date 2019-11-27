@@ -27,7 +27,7 @@ import java.awt.image.WritableRaster;
  * @author DaPorkchop_
  */
 @Getter
-public class ImageBWRaster extends WritableRaster {
+public final class ImageBWRaster extends WritableRaster {
     protected final ImageBW image;
 
     public ImageBWRaster(@NonNull ImageBW image) {

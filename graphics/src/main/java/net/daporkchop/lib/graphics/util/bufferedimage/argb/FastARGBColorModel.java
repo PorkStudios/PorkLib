@@ -15,8 +15,6 @@
 
 package net.daporkchop.lib.graphics.util.bufferedimage.argb;
 
-import net.daporkchop.lib.graphics.bitmap.image.ImageARGB;
-import net.daporkchop.lib.graphics.bitmap.image.direct.DirectImageARGB;
 import net.daporkchop.lib.reflection.PField;
 
 import java.awt.image.ColorModel;
@@ -26,9 +24,9 @@ import java.awt.image.SampleModel;
 /**
  * @author DaPorkchop_
  */
-public class FastARGBColorModel extends ColorModel {
-    protected static PField field_numComponents = PField.of(ColorModel.class, "numComponents");
-    protected static PField field_supportsAlpha = PField.of(ColorModel.class, "supportsAlpha");
+public final class FastARGBColorModel extends ColorModel {
+    protected static final PField field_numComponents = PField.of(ColorModel.class, "numComponents");
+    protected static final PField field_supportsAlpha = PField.of(ColorModel.class, "supportsAlpha");
 
     public FastARGBColorModel() {
         super(32);

@@ -16,18 +16,15 @@
 package example.graphics;
 
 import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.graphics.bitmap.ColorFormat;
-import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
-import net.daporkchop.lib.graphics.bitmap.image.PImage;
+import net.daporkchop.lib.graphics.bitmap.PBitmap;
+import net.daporkchop.lib.graphics.bitmap.PImage;
+import net.daporkchop.lib.graphics.bitmap.image.DirectImageARGB;
+import net.daporkchop.lib.graphics.color.ColorFormat;
 import net.daporkchop.lib.graphics.interpolation.ImageInterpolator;
 import net.daporkchop.lib.graphics.util.Thumbnail;
 import net.daporkchop.lib.math.interpolation.CubicInterpolation;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -40,19 +37,20 @@ import java.util.concurrent.ThreadLocalRandom;
 public class TestingDisplayingOfImages {
     public static void main(String... args) throws InterruptedException, IOException {
         int size = 20;
-        for (ColorFormat format : ColorFormat.values()) {
-            PImage image = format.createImage(size, size);
+        for (ColorFormat format : new ColorFormat[] {
+                ColorFormat.ARGB,
+                ColorFormat.RGB,
+                ColorFormat.ABW,
+                ColorFormat.BW
+        }) {
+            PImage image = new DirectImageARGB(size, size);
             for (int x = size - 1; x >= 0; x--) {
                 for (int y = size - 1; y >= 0; y--) {
-                    if (format.isBw()) {
-                        image.setABW(x, y, (ThreadLocalRandom.current().nextInt() & 0xFF) | ((y & 1) == 0 ? 0xFF00 : 0x7700));
-                    } else {
-                        image.setARGB(x, y, (ThreadLocalRandom.current().nextInt() & 0xFFFFFF) | ((y & 1) == 0 ? 0xFF000000 : 0x77000000));
-                    }
+                    image.setRaw(x, y, ThreadLocalRandom.current().nextLong() & ((1 << format.encodedBits()) - 1));
                 }
             }
 
-            image.getRenderer().fillPolygon(
+            image.renderer().fillPolygon(
                     new int[] {
                             5, 10, 5, 0
                     },
@@ -63,16 +61,17 @@ public class TestingDisplayingOfImages {
                     0xFFFF0000
             );
 
-            if (!ImageIO.write(image.getAsBufferedImage(), "png", new File("./test_out/out.png"))) {
+            if (!ImageIO.write(image.asBufferedImage(), "png", new File(String.format("./test_out/%s.png", PorkUtil.className(format))))) {
                 throw new IllegalStateException("Didn't write image!");
             }
 
-            ImageInterpolator interpolator = new ImageInterpolator(CubicInterpolation.instance());
+            /*ImageInterpolator interpolator = new ImageInterpolator(CubicInterpolation.instance());
             image = interpolator.interp(image, 32.0d);
 
             Thumbnail thumbnail = new Thumbnail(64, 32, 16, 8, image.getWidth()).submit(image).bake();
 
-            PorkUtil.simpleDisplayImage(true, Arrays.stream(thumbnail.getIcons()).map(PIcon::getAsBufferedImage).toArray(BufferedImage[]::new));
+            PorkUtil.simpleDisplayImage(true, Arrays.stream(thumbnail.getIcons()).map(PBitmap::asBufferedImage).toArray(BufferedImage[]::new));
+            */
         }
     }
 }

@@ -15,45 +15,34 @@
 
 package net.daporkchop.lib.graphics.color;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 /**
- * A method of encoding colors.
+ * An implementation of the ARGB color model.
  *
  * @author DaPorkchop_
+ * @see ColorFormat#ARGB
  */
-public interface ColorModel {
-    ColorModelRGB RGB = new ColorModelRGB();
-    ColorModelARGB ARGB = new ColorModelARGB();
-    ColorModelBW BW = new ColorModelBW();
-    ColorModelABW ABW = new ColorModelABW();
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
+public final class ColorFormatARGB implements ColorFormat {
+    @Override
+    public int decode(long color) {
+        return (int) color;
+    }
 
-    /**
-     * Decodes the given color into ARGB.
-     * <p>
-     * If this {@link ColorModel} doesn't contain an alpha channel, the alpha value should be set to {@code 0xFF} (fully opaque).
-     *
-     * @param color the color to decode
-     * @return the color as a standard ARGB color
-     */
-    int decode(long color);
+    @Override
+    public long encode(int argb) {
+        return Integer.toUnsignedLong(argb);
+    }
 
-    /**
-     * Encodes the given ARGB color into this color model's format.
-     * <p>
-     * If this {@link ColorModel} doesn't contain an alpha channel, implementations are permitted to silently discard the input
-     * value's alpha level.
-     *
-     * @param argb the ARGB color to encode
-     * @return the encoded color
-     */
-    long encode(int argb);
+    @Override
+    public int encodedBits() {
+        return 32;
+    }
 
-    /**
-     * @return the number of bits that are used by this color model
-     */
-    int encodedBits();
-
-    /**
-     * @return whether or not this {@link ColorModel} contains an alpha channel
-     */
-    boolean alpha();
+    @Override
+    public boolean alpha() {
+        return true;
+    }
 }

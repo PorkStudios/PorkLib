@@ -13,25 +13,44 @@
  *
  */
 
-package net.daporkchop.lib.graphics.util.bufferedimage;
+package net.daporkchop.lib.graphics.color;
 
-import lombok.Getter;
-import lombok.NonNull;
-import net.daporkchop.lib.graphics.bitmap.PBitmap;
-
-import java.awt.*;
-import java.awt.image.WritableRaster;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 /**
+ * An implementation of the simple BW (8-bit greyscale) color model.
+ *
  * @author DaPorkchop_
+ * @see ColorFormat#BW
  */
-@Getter
-public abstract class ImageARGBRaster<P extends PBitmap> extends WritableRaster {
-    protected final P bitmap;
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
+public final class ColorFormatBW implements ColorFormat {
+    public static int toARGB(int bw)    {
+        return 0xFF000000 | (bw << 16) | (bw << 8) | bw;
+    }
 
-    public ImageARGBRaster(@NonNull P bitmap, @NonNull BiggerARGBSampleModel<P> sampleModel, @NonNull ImageARGBDataBuffer<P> buffer) {
-        super(sampleModel, buffer, new Point(0, 0));
+    public static int fromARGB(int argb)    {
+        return ((argb >>> 16) | (argb >>> 8) | argb) & 0xFF;
+    }
 
-        this.bitmap = bitmap;
+    @Override
+    public int decode(long color) {
+        return toARGB((int) color);
+    }
+
+    @Override
+    public long encode(int argb) {
+        return fromARGB(argb);
+    }
+
+    @Override
+    public int encodedBits() {
+        return 8;
+    }
+
+    @Override
+    public boolean alpha() {
+        return false;
     }
 }

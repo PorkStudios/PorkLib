@@ -15,8 +15,12 @@
 
 package net.daporkchop.lib.graphics.bitmap;
 
-import net.daporkchop.lib.graphics.color.ColorModel;
+import net.daporkchop.lib.graphics.color.ColorFormat;
+import net.daporkchop.lib.graphics.util.bufferedimage.FastColorModelARGB;
+import net.daporkchop.lib.graphics.util.bufferedimage.immutable.ImmutableRasterARGB;
 import net.daporkchop.lib.graphics.util.exception.BitmapCoordinatesOutOfBoundsException;
+
+import java.awt.image.BufferedImage;
 
 /**
  * An immutable image.
@@ -32,7 +36,7 @@ public interface PIcon extends PBitmap {
     int height();
 
     @Override
-    ColorModel model();
+    ColorFormat model();
 
     @Override
     int getARGB(int x, int y) throws BitmapCoordinatesOutOfBoundsException;
@@ -41,4 +45,9 @@ public interface PIcon extends PBitmap {
      * @return a mutable copy of this icon
      */
     PImage mutableCopy();
+
+    @Override
+    default BufferedImage asBufferedImage() {
+        return new BufferedImage(FastColorModelARGB.instance(), new ImmutableRasterARGB(this), false, null);
+    }
 }

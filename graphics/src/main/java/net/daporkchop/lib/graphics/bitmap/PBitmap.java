@@ -15,12 +15,16 @@
 
 package net.daporkchop.lib.graphics.bitmap;
 
-import net.daporkchop.lib.graphics.color.ColorModel;
-import net.daporkchop.lib.graphics.color.ColorModelABW;
-import net.daporkchop.lib.graphics.color.ColorModelBW;
-import net.daporkchop.lib.graphics.color.ColorModelRGB;
+import net.daporkchop.lib.graphics.color.ColorFormat;
+import net.daporkchop.lib.graphics.color.ColorFormatABW;
+import net.daporkchop.lib.graphics.color.ColorFormatBW;
+import net.daporkchop.lib.graphics.color.ColorFormatRGB;
 import net.daporkchop.lib.graphics.util.exception.BitmapCoordinatesOutOfBoundsException;
 import net.daporkchop.lib.unsafe.capability.Releasable;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 
 /**
  * Base interface that represents a pixel bitmap.
@@ -41,12 +45,13 @@ public interface PBitmap extends Releasable {
     int height();
 
     /**
-     * @return this bitmap's {@link ColorModel}
+     * @return this bitmap's {@link ColorFormat}
      */
-    ColorModel model();
+    ColorFormat model();
 
     /**
      * Gets the raw color value at the given pixel coordinates, according to this bitmap's {@link #model()}.
+     *
      * @param x the X coordinate of the pixel to get
      * @param y the Y coordinate of the pixel to get
      * @return the raw color value at the given pixel coordinates
@@ -56,13 +61,14 @@ public interface PBitmap extends Releasable {
 
     /**
      * Gets the RGB color value at the given pixel coordinates.
+     *
      * @param x the X coordinate of the pixel to get
      * @param y the Y coordinate of the pixel to get
      * @return the RGB color value at the given pixel coordinates
      * @throws BitmapCoordinatesOutOfBoundsException if the given pixel coordinates are out of bounds
      */
-    default int getRGB(int x, int y) throws BitmapCoordinatesOutOfBoundsException   {
-        return ColorModelRGB.fromARGB(this.model().decode(this.getRaw(x, y)));
+    default int getRGB(int x, int y) throws BitmapCoordinatesOutOfBoundsException {
+        return ColorFormatRGB.fromARGB(this.model().decode(this.getRaw(x, y)));
     }
 
     /**
@@ -73,29 +79,56 @@ public interface PBitmap extends Releasable {
      * @return the ARGB color value at the given pixel coordinates
      * @throws BitmapCoordinatesOutOfBoundsException if the given pixel coordinates are out of bounds
      */
-    default int getARGB(int x, int y) throws BitmapCoordinatesOutOfBoundsException  {
+    default int getARGB(int x, int y) throws BitmapCoordinatesOutOfBoundsException {
         return this.model().decode(this.getRaw(x, y));
     }
 
     /**
      * Gets the BW color value at the given pixel coordinates.
+     *
      * @param x the X coordinate of the pixel to get
      * @param y the Y coordinate of the pixel to get
      * @return the BW color value at the given pixel coordinates
      * @throws BitmapCoordinatesOutOfBoundsException if the given pixel coordinates are out of bounds
      */
-    default int getBW(int x, int y) throws BitmapCoordinatesOutOfBoundsException   {
-        return ColorModelBW.fromARGB(this.model().decode(this.getRaw(x, y)));
+    default int getBW(int x, int y) throws BitmapCoordinatesOutOfBoundsException {
+        return ColorFormatBW.fromARGB(this.model().decode(this.getRaw(x, y)));
     }
 
     /**
      * Gets the ABW color value at the given pixel coordinates.
+     *
      * @param x the X coordinate of the pixel to get
      * @param y the Y coordinate of the pixel to get
      * @return the ABW color value at the given pixel coordinates
      * @throws BitmapCoordinatesOutOfBoundsException if the given pixel coordinates are out of bounds
      */
-    default int getABW(int x, int y) throws BitmapCoordinatesOutOfBoundsException   {
-        return ColorModelABW.fromARGB(this.model().decode(this.getRaw(x, y)));
+    default int getABW(int x, int y) throws BitmapCoordinatesOutOfBoundsException {
+        return ColorFormatABW.fromARGB(this.model().decode(this.getRaw(x, y)));
+    }
+
+    //compat with AWT
+    /**
+     * Gets a {@link BufferedImage} instance with identical contents to this bitmap.
+     * <p>
+     * When this {@link PBitmap} is released, the behavior of all {@link BufferedImage}s returned by this method
+     * will be undefined.
+     *
+     * @return a {@link BufferedImage} instance with identical contents to this bitmap
+     */
+    BufferedImage asBufferedImage();
+
+    /**
+     * @return a {@link Image} instance with identical contents to this bitmap
+     */
+    default Image asImage() {
+        return this.asBufferedImage();
+    }
+
+    /**
+     * @return a {@link Icon} instance with identical contents to this bitmap
+     */
+    default Icon asSwingIcon() {
+        return new ImageIcon(this.asImage());
     }
 }

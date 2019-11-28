@@ -13,44 +13,32 @@
  *
  */
 
-package net.daporkchop.lib.graphics.color;
+package net.daporkchop.lib.graphics.util.bufferedimage;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.NonNull;
+import net.daporkchop.lib.graphics.bitmap.PBitmap;
+
+import java.awt.image.DataBuffer;
 
 /**
- * An implementation of the RGB color model.
- *
  * @author DaPorkchop_
- * @see ColorModel#RGB
  */
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
-public final class ColorModelRGB implements ColorModel {
-    public static int toARGB(int rgb)   {
-        return rgb | 0xFF000000;
-    }
+@Getter
+public abstract class AbstractDataBufferARGB<P extends PBitmap> extends DataBuffer {
+    protected final P bitmap;
 
-    public static int fromARGB(int argb)   {
-        return argb & 0x00FFFFFF;
-    }
+    public AbstractDataBufferARGB(@NonNull P bitmap) {
+        super(DataBuffer.TYPE_INT, bitmap.height(), bitmap.width());
 
-    @Override
-    public int decode(long color) {
-        return toARGB((int) color);
+        this.bitmap = bitmap;
     }
 
     @Override
-    public long encode(int argb) {
-        return (long) fromARGB(argb);
+    public int getElem(int x, int y) {
+        return this.bitmap.getARGB(x, y);
     }
 
     @Override
-    public int encodedBits() {
-        return 24;
-    }
-
-    @Override
-    public boolean alpha() {
-        return false;
-    }
+    public abstract void setElem(int x, int y, int val);
 }

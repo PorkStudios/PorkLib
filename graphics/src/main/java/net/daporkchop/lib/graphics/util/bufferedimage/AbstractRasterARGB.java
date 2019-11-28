@@ -13,46 +13,25 @@
  *
  */
 
-package net.daporkchop.lib.graphics.color;
+package net.daporkchop.lib.graphics.util.bufferedimage;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.NonNull;
+import net.daporkchop.lib.graphics.bitmap.PBitmap;
+
+import java.awt.*;
+import java.awt.image.WritableRaster;
 
 /**
- * An implementation of the simple ABW (8-bit greyscale with alpha) color model.
- *
  * @author DaPorkchop_
- * @see ColorModel#ABW
  */
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
-public final class ColorModelABW implements ColorModel {
-    public static int toARGB(int bw)    {
-        return (bw << 16) | (bw << 8) | bw;
-    }
+@Getter
+public abstract class AbstractRasterARGB<P extends PBitmap> extends WritableRaster {
+    protected final P bitmap;
 
-    public static int fromARGB(int argb)    {
-        return ((argb >>> 16) | (argb >>> 8) | argb) & 0xFFFF;
-    }
+    public AbstractRasterARGB(@NonNull P bitmap, @NonNull AbstractGiantSampleModelARGB<P> sampleModel, @NonNull AbstractDataBufferARGB<P> buffer) {
+        super(sampleModel, buffer, new Point(0, 0));
 
-    @Override
-    public int decode(long color) {
-        int i = (int) color;
-        //the first shift also gets the alpha channel in place
-        return (i << 16) | ((i & 0xFF) << 8) | (i & 0xFF);
-    }
-
-    @Override
-    public long encode(int argb) {
-        return (argb >>> 16) | ((argb >>> 8) & 0xFF) | (argb & 0xFF);
-    }
-
-    @Override
-    public int encodedBits() {
-        return 16;
-    }
-
-    @Override
-    public boolean alpha() {
-        return true;
+        this.bitmap = bitmap;
     }
 }

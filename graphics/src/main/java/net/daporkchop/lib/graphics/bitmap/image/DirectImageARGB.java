@@ -19,10 +19,10 @@ import net.daporkchop.lib.graphics.bitmap.PIcon;
 import net.daporkchop.lib.graphics.bitmap.PImage;
 import net.daporkchop.lib.graphics.bitmap.icon.DirectIconARGB;
 import net.daporkchop.lib.graphics.bitmap.impl.AbstractDirectBitmap;
-import net.daporkchop.lib.graphics.color.ColorModel;
-import net.daporkchop.lib.graphics.color.ColorModelABW;
-import net.daporkchop.lib.graphics.color.ColorModelBW;
-import net.daporkchop.lib.graphics.color.ColorModelRGB;
+import net.daporkchop.lib.graphics.color.ColorFormat;
+import net.daporkchop.lib.graphics.color.ColorFormatABW;
+import net.daporkchop.lib.graphics.color.ColorFormatBW;
+import net.daporkchop.lib.graphics.color.ColorFormatRGB;
 import net.daporkchop.lib.graphics.util.exception.BitmapCoordinatesOutOfBoundsException;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
@@ -41,8 +41,8 @@ public final class DirectImageARGB extends AbstractDirectBitmap implements PImag
     }
 
     @Override
-    public ColorModel model() {
-        return ColorModel.ARGB;
+    public ColorFormat model() {
+        return ColorFormat.ARGB;
     }
 
     @Override
@@ -53,7 +53,7 @@ public final class DirectImageARGB extends AbstractDirectBitmap implements PImag
 
     @Override
     public int getRGB(int x, int y) throws BitmapCoordinatesOutOfBoundsException {
-        return ColorModelRGB.fromARGB(this.getARGB(x, y));
+        return ColorFormatRGB.fromARGB(this.getARGB(x, y));
     }
 
     @Override
@@ -64,12 +64,12 @@ public final class DirectImageARGB extends AbstractDirectBitmap implements PImag
 
     @Override
     public int getBW(int x, int y) throws BitmapCoordinatesOutOfBoundsException {
-        return ColorModelBW.fromARGB(this.getARGB(x, y));
+        return ColorFormatBW.fromARGB(this.getARGB(x, y));
     }
 
     @Override
     public int getABW(int x, int y) throws BitmapCoordinatesOutOfBoundsException {
-        return ColorModelABW.fromARGB(this.getARGB(x, y));
+        return ColorFormatABW.fromARGB(this.getARGB(x, y));
     }
 
     @Override
@@ -80,7 +80,7 @@ public final class DirectImageARGB extends AbstractDirectBitmap implements PImag
 
     @Override
     public void setRGB(int x, int y, int rgb) throws BitmapCoordinatesOutOfBoundsException {
-        this.setARGB(x, y, ColorModelRGB.toARGB(rgb));
+        this.setARGB(x, y, ColorFormatRGB.toARGB(rgb));
     }
 
     @Override
@@ -91,12 +91,12 @@ public final class DirectImageARGB extends AbstractDirectBitmap implements PImag
 
     @Override
     public void setBW(int x, int y, int bw) throws BitmapCoordinatesOutOfBoundsException {
-        this.setARGB(x, y, ColorModelBW.toARGB(bw));
+        this.setARGB(x, y, ColorFormatBW.toARGB(bw));
     }
 
     @Override
     public void setABW(int x, int y, int abw) throws BitmapCoordinatesOutOfBoundsException {
-        this.setARGB(x, y, ColorModelABW.fromARGB(abw));
+        this.setARGB(x, y, ColorFormatABW.fromARGB(abw));
     }
 
     @Override

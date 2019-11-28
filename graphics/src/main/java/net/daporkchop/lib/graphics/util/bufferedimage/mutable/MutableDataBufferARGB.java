@@ -17,12 +17,12 @@ package net.daporkchop.lib.graphics.util.bufferedimage.mutable;
 
 import lombok.NonNull;
 import net.daporkchop.lib.graphics.bitmap.PImage;
-import net.daporkchop.lib.graphics.util.bufferedimage.ImageARGBDataBuffer;
+import net.daporkchop.lib.graphics.util.bufferedimage.AbstractDataBufferARGB;
 
 /**
  * @author DaPorkchop_
  */
-public final class MutableDataBufferARGB extends ImageARGBDataBuffer<PImage> {
+public final class MutableDataBufferARGB extends AbstractDataBufferARGB<PImage> {
     public MutableDataBufferARGB(@NonNull PImage bitmap) {
         super(bitmap);
     }

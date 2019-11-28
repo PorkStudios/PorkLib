@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.graphics.util.bufferedimage;
 
+import net.daporkchop.lib.common.reference.InstancePool;
 import net.daporkchop.lib.reflection.PField;
 
 import java.awt.image.ColorModel;
@@ -22,13 +23,22 @@ import java.awt.image.Raster;
 import java.awt.image.SampleModel;
 
 /**
+ * A highly optimized implementation of {@link ColorModel} for the ARGB color format.
+ *
  * @author DaPorkchop_
  */
-public final class FastARGBColorModel extends ColorModel {
-    protected static final PField field_numComponents = PField.of(ColorModel.class, "numComponents");
-    protected static final PField field_supportsAlpha = PField.of(ColorModel.class, "supportsAlpha");
+public final class FastColorModelARGB extends ColorModel {
+    private static final PField field_numComponents = PField.of(ColorModel.class, "numComponents");
+    private static final PField field_supportsAlpha = PField.of(ColorModel.class, "supportsAlpha");
 
-    public FastARGBColorModel() {
+    /**
+     * @return an instance of {@link FastColorModelARGB}
+     */
+    public static FastColorModelARGB instance() {
+        return InstancePool.getInstance(FastColorModelARGB.class);
+    }
+
+    private FastColorModelARGB() {
         super(32);
 
         field_numComponents.setInt(this, 4);
@@ -82,12 +92,12 @@ public final class FastARGBColorModel extends ColorModel {
 
     @Override
     public boolean isCompatibleRaster(Raster raster) {
-        return raster instanceof ImageARGBRaster;
+        return raster instanceof AbstractRasterARGB;
     }
 
     @Override
     public boolean isCompatibleSampleModel(SampleModel sm) {
-        return sm instanceof BiggerARGBSampleModel;
+        return sm instanceof AbstractGiantSampleModelARGB;
     }
 
     @Override

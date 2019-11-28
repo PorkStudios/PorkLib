@@ -17,13 +17,30 @@ package net.daporkchop.lib.graphics.util.bufferedimage.immutable;
 
 import lombok.NonNull;
 import net.daporkchop.lib.graphics.bitmap.PBitmap;
-import net.daporkchop.lib.graphics.util.bufferedimage.BiggerARGBSampleModel;
+import net.daporkchop.lib.graphics.util.bufferedimage.AbstractGiantSampleModelARGB;
+
+import java.awt.image.DataBuffer;
 
 /**
  * @author DaPorkchop_
  */
-public final class ImmutableSampleModelARGB extends BiggerARGBSampleModel<PBitmap> {
+public final class ImmutableSampleModelARGB extends AbstractGiantSampleModelARGB<PBitmap> {
     public ImmutableSampleModelARGB(@NonNull PBitmap bitmap) {
         super(bitmap);
+    }
+
+    @Override
+    public void setDataElements(int x, int y, Object obj, DataBuffer data) {
+        throw new UnsupportedOperationException("setDataElements");
+    }
+
+    @Override
+    public void setPixel(int x, int y, int[] iArray, DataBuffer data) {
+        throw new UnsupportedOperationException("setPixel");
+    }
+
+    @Override
+    public void setPixels(int x, int y, int w, int h, int[] iArray, DataBuffer data) {
+        throw new UnsupportedOperationException("setPixels");
     }
 }

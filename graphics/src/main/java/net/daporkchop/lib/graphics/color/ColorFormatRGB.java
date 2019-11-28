@@ -19,19 +19,19 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 /**
- * An implementation of the simple BW (8-bit greyscale) color model.
+ * An implementation of the RGB color model.
  *
  * @author DaPorkchop_
- * @see ColorModel#BW
+ * @see ColorFormat#RGB
  */
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
-public final class ColorModelBW implements ColorModel {
-    public static int toARGB(int bw)    {
-        return 0xFF000000 | (bw << 16) | (bw << 8) | bw;
+public final class ColorFormatRGB implements ColorFormat {
+    public static int toARGB(int rgb)   {
+        return rgb | 0xFF000000;
     }
 
-    public static int fromARGB(int argb)    {
-        return ((argb >>> 16) | (argb >>> 8) | argb) & 0xFF;
+    public static int fromARGB(int argb)   {
+        return argb & 0x00FFFFFF;
     }
 
     @Override
@@ -41,12 +41,12 @@ public final class ColorModelBW implements ColorModel {
 
     @Override
     public long encode(int argb) {
-        return fromARGB(argb);
+        return (long) fromARGB(argb);
     }
 
     @Override
     public int encodedBits() {
-        return 8;
+        return 24;
     }
 
     @Override

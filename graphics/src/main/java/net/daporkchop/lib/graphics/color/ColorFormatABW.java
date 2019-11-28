@@ -19,26 +19,36 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 /**
- * An implementation of the ARGB color model.
+ * An implementation of the simple ABW (8-bit greyscale with alpha) color model.
  *
  * @author DaPorkchop_
- * @see ColorModel#ARGB
+ * @see ColorFormat#ABW
  */
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
-public final class ColorModelARGB implements ColorModel {
+public final class ColorFormatABW implements ColorFormat {
+    public static int toARGB(int bw)    {
+        return (bw << 16) | (bw << 8) | bw;
+    }
+
+    public static int fromARGB(int argb)    {
+        return ((argb >>> 16) | (argb >>> 8) | argb) & 0xFFFF;
+    }
+
     @Override
     public int decode(long color) {
-        return (int) color;
+        int i = (int) color;
+        //the first shift also gets the alpha channel in place
+        return (i << 16) | ((i & 0xFF) << 8) | (i & 0xFF);
     }
 
     @Override
     public long encode(int argb) {
-        return Integer.toUnsignedLong(argb);
+        return (argb >>> 16) | ((argb >>> 8) & 0xFF) | (argb & 0xFF);
     }
 
     @Override
     public int encodedBits() {
-        return 32;
+        return 16;
     }
 
     @Override

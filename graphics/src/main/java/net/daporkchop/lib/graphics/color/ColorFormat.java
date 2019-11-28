@@ -13,32 +13,47 @@
  *
  */
 
-package net.daporkchop.lib.graphics.util.bufferedimage;
-
-import lombok.Getter;
-import lombok.NonNull;
-import net.daporkchop.lib.graphics.bitmap.PBitmap;
-
-import java.awt.image.DataBuffer;
+package net.daporkchop.lib.graphics.color;
 
 /**
+ * A format for encoding colors.
+ *
  * @author DaPorkchop_
  */
-@Getter
-public abstract class ImageARGBDataBuffer<P extends PBitmap> extends DataBuffer {
-    protected final P bitmap;
+public interface ColorFormat {
+    ColorFormatRGB RGB = new ColorFormatRGB();
+    ColorFormatARGB ARGB = new ColorFormatARGB();
+    ColorFormatBW BW = new ColorFormatBW();
+    ColorFormatABW ABW = new ColorFormatABW();
 
-    public ImageARGBDataBuffer(@NonNull P bitmap) {
-        super(DataBuffer.TYPE_INT, bitmap.height(), bitmap.width());
+    /**
+     * Decodes the given color into ARGB.
+     * <p>
+     * If this {@link ColorFormat} doesn't contain an alpha channel, the alpha value should be set to {@code 0xFF} (fully opaque).
+     *
+     * @param color the color to decode
+     * @return the color as a standard ARGB color
+     */
+    int decode(long color);
 
-        this.bitmap = bitmap;
-    }
+    /**
+     * Encodes the given ARGB color into this color model's format.
+     * <p>
+     * If this {@link ColorFormat} doesn't contain an alpha channel, implementations are permitted to silently discard the input
+     * value's alpha level.
+     *
+     * @param argb the ARGB color to encode
+     * @return the encoded color
+     */
+    long encode(int argb);
 
-    @Override
-    public int getElem(int x, int y) {
-        return this.bitmap.getARGB(x, y);
-    }
+    /**
+     * @return the number of bits that are used by this color model
+     */
+    int encodedBits();
 
-    @Override
-    public abstract void setElem(int x, int y, int val);
+    /**
+     * @return whether or not this {@link ColorFormat} contains an alpha channel
+     */
+    boolean alpha();
 }

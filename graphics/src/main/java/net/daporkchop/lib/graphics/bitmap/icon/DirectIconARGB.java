@@ -19,10 +19,10 @@ import net.daporkchop.lib.graphics.bitmap.PIcon;
 import net.daporkchop.lib.graphics.bitmap.PImage;
 import net.daporkchop.lib.graphics.bitmap.image.DirectImageARGB;
 import net.daporkchop.lib.graphics.bitmap.impl.AbstractDirectBitmap;
-import net.daporkchop.lib.graphics.color.ColorModel;
-import net.daporkchop.lib.graphics.color.ColorModelABW;
-import net.daporkchop.lib.graphics.color.ColorModelBW;
-import net.daporkchop.lib.graphics.color.ColorModelRGB;
+import net.daporkchop.lib.graphics.color.ColorFormat;
+import net.daporkchop.lib.graphics.color.ColorFormatABW;
+import net.daporkchop.lib.graphics.color.ColorFormatBW;
+import net.daporkchop.lib.graphics.color.ColorFormatRGB;
 import net.daporkchop.lib.graphics.util.exception.BitmapCoordinatesOutOfBoundsException;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
@@ -41,8 +41,8 @@ public final class DirectIconARGB extends AbstractDirectBitmap implements PIcon 
     }
 
     @Override
-    public ColorModel model() {
-        return ColorModel.ARGB;
+    public ColorFormat model() {
+        return ColorFormat.ARGB;
     }
 
     @Override
@@ -53,7 +53,7 @@ public final class DirectIconARGB extends AbstractDirectBitmap implements PIcon 
 
     @Override
     public int getRGB(int x, int y) throws BitmapCoordinatesOutOfBoundsException {
-        return ColorModelRGB.fromARGB(this.getARGB(x, y));
+        return ColorFormatRGB.fromARGB(this.getARGB(x, y));
     }
 
     @Override
@@ -64,12 +64,12 @@ public final class DirectIconARGB extends AbstractDirectBitmap implements PIcon 
 
     @Override
     public int getBW(int x, int y) throws BitmapCoordinatesOutOfBoundsException {
-        return ColorModelBW.fromARGB(this.getARGB(x, y));
+        return ColorFormatBW.fromARGB(this.getARGB(x, y));
     }
 
     @Override
     public int getABW(int x, int y) throws BitmapCoordinatesOutOfBoundsException {
-        return ColorModelABW.fromARGB(this.getARGB(x, y));
+        return ColorFormatABW.fromARGB(this.getARGB(x, y));
     }
 
     @Override

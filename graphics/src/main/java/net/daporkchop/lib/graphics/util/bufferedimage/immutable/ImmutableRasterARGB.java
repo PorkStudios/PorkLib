@@ -17,16 +17,12 @@ package net.daporkchop.lib.graphics.util.bufferedimage.immutable;
 
 import lombok.NonNull;
 import net.daporkchop.lib.graphics.bitmap.PBitmap;
-import net.daporkchop.lib.graphics.util.bufferedimage.BiggerARGBSampleModel;
-import net.daporkchop.lib.graphics.util.bufferedimage.ImageARGBDataBuffer;
-import net.daporkchop.lib.graphics.util.bufferedimage.ImageARGBRaster;
-
-import java.awt.image.DataBuffer;
+import net.daporkchop.lib.graphics.util.bufferedimage.AbstractRasterARGB;
 
 /**
  * @author DaPorkchop_
  */
-public final class ImmutableRasterARGB extends ImageARGBRaster<PBitmap> {
+public final class ImmutableRasterARGB extends AbstractRasterARGB<PBitmap> {
     public ImmutableRasterARGB(@NonNull PBitmap bitmap) {
         super(bitmap, new ImmutableSampleModelARGB(bitmap), new ImmutableDataBufferARGB(bitmap));
     }

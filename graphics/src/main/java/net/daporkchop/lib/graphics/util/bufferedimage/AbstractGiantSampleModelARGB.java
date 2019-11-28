@@ -23,14 +23,19 @@ import java.awt.image.DataBuffer;
 import java.awt.image.SinglePixelPackedSampleModel;
 
 /**
+ * This variant of a {@link java.awt.image.SampleModel} allows indexing images with a total pixel count greater than
+ * {@link Integer#MAX_VALUE}, by always using the x coordinate as the "bank" parameter and the y coordinate as
+ * the "index".
+ *
  * @author DaPorkchop_
  */
 //TODO: reimplement samplemodel from scratch
+//TODO: figure out why i put the above todo there
 @Getter
-public abstract class BiggerARGBSampleModel<P extends PBitmap> extends SinglePixelPackedSampleModel {
+public abstract class AbstractGiantSampleModelARGB<P extends PBitmap> extends SinglePixelPackedSampleModel {
     protected final P bitmap;
 
-    public BiggerARGBSampleModel(@NonNull P bitmap) {
+    public AbstractGiantSampleModelARGB(@NonNull P bitmap) {
         super(
                 DataBuffer.TYPE_INT,
                 bitmap.width(),
@@ -101,41 +106,11 @@ public abstract class BiggerARGBSampleModel<P extends PBitmap> extends SinglePix
     }
 
     @Override
-    public void setDataElements(int x, int y, Object obj, DataBuffer data) {
-        if ((x < 0) || (y < 0) || (x >= this.width) || (y >= this.height)) {
-            throw new ArrayIndexOutOfBoundsException("Coordinate out of bounds!");
-        }
-
-        if (obj instanceof int[]) {
-            data.setElem(x, y, ((int[]) obj)[0]);
-        } else {
-            throw new IllegalArgumentException(String.format("Invalid argument type: %s", obj == null ? "null" : obj.getClass().getCanonicalName()));
-        }
-    }
+    public abstract void setDataElements(int x, int y, Object obj, DataBuffer data);
 
     @Override
-    public void setPixel(int x, int y, int iArray[], DataBuffer data) {
-        if ((x < 0) || (y < 0) || (x >= this.width) || (y >= this.height)) {
-            throw new ArrayIndexOutOfBoundsException("Coordinate out of bounds!");
-        }
-
-        data.setElem(x, y, iArray[0]);
-    }
+    public abstract void setPixel(int x, int y, int iArray[], DataBuffer data);
 
     @Override
-    public void setPixels(int x, int y, int w, int h, int iArray[], DataBuffer data) {
-        int x1 = x + w;
-        int y1 = y + h;
-
-        if (x < 0 || x >= this.width || w > this.width || x1 < 0 || x1 > this.width || y < 0 || y >= this.height || h > this.height || y1 < 0 || y1 > this.height) {
-            throw new ArrayIndexOutOfBoundsException("Coordinate out of bounds!");
-        }
-
-        int srcOffset = 0;
-        for (int i = 0; i < h; i++) {
-            for (int j = 0; j < w; j++) {
-                data.setElem(x + j, y + i, iArray[srcOffset++]);
-            }
-        }
-    }
+    public abstract void setPixels(int x, int y, int w, int h, int iArray[], DataBuffer data);
 }

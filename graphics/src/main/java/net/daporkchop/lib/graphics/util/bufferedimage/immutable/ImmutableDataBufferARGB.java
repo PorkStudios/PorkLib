@@ -17,12 +17,12 @@ package net.daporkchop.lib.graphics.util.bufferedimage.immutable;
 
 import lombok.NonNull;
 import net.daporkchop.lib.graphics.bitmap.PBitmap;
-import net.daporkchop.lib.graphics.util.bufferedimage.ImageARGBDataBuffer;
+import net.daporkchop.lib.graphics.util.bufferedimage.AbstractDataBufferARGB;
 
 /**
  * @author DaPorkchop_
  */
-public final class ImmutableDataBufferARGB extends ImageARGBDataBuffer<PBitmap> {
+public final class ImmutableDataBufferARGB extends AbstractDataBufferARGB<PBitmap> {
     public ImmutableDataBufferARGB(@NonNull PBitmap bitmap) {
         super(bitmap);
     }

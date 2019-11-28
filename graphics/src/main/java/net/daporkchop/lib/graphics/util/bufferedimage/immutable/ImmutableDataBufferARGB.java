@@ -13,35 +13,22 @@
  *
  */
 
-package net.daporkchop.lib.graphics.util.bufferedimage.abw;
+package net.daporkchop.lib.graphics.util.bufferedimage.immutable;
 
-import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.graphics.bitmap.image.ImageABW;
-import net.daporkchop.lib.graphics.bitmap.image.ImageARGB;
-
-import java.awt.image.DataBuffer;
+import net.daporkchop.lib.graphics.bitmap.PBitmap;
+import net.daporkchop.lib.graphics.util.bufferedimage.ImageARGBDataBuffer;
 
 /**
  * @author DaPorkchop_
  */
-@Getter
-public class ImageABWDataBuffer extends DataBuffer {
-    protected final ImageABW image;
-
-    public ImageABWDataBuffer(@NonNull ImageABW image) {
-        super(DataBuffer.TYPE_INT, image.getHeight(), image.getWidth());
-
-        this.image = image;
+public final class ImmutableDataBufferARGB extends ImageARGBDataBuffer<PBitmap> {
+    public ImmutableDataBufferARGB(@NonNull PBitmap bitmap) {
+        super(bitmap);
     }
 
     @Override
-    public int getElem(int bank, int i) {
-        return this.image.getABW(bank, i);
-    }
-
-    @Override
-    public void setElem(int bank, int i, int val) {
-        this.image.setABW(bank, i, val);
+    public void setElem(int x, int y, int val) {
+        throw new UnsupportedOperationException("setElem");
     }
 }

@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.graphics.util.bufferedimage.rgb;
+package net.daporkchop.lib.graphics.util.bufferedimage;
 
 import net.daporkchop.lib.reflection.PField;
 
@@ -24,20 +24,20 @@ import java.awt.image.SampleModel;
 /**
  * @author DaPorkchop_
  */
-public final class FastRGBColorModel extends ColorModel {
+public final class FastARGBColorModel extends ColorModel {
     protected static final PField field_numComponents = PField.of(ColorModel.class, "numComponents");
     protected static final PField field_supportsAlpha = PField.of(ColorModel.class, "supportsAlpha");
 
-    public FastRGBColorModel() {
-        super(24);
+    public FastARGBColorModel() {
+        super(32);
 
-        field_numComponents.setInt(this, 3);
-        field_supportsAlpha.setBoolean(this, false);
+        field_numComponents.setInt(this, 4);
+        field_supportsAlpha.setBoolean(this, true);
     }
 
     @Override
     public int getAlpha(int pixel) {
-        return 0xFF;
+        return (pixel >>> 24) & 0xFF;
     }
 
     @Override
@@ -57,7 +57,7 @@ public final class FastRGBColorModel extends ColorModel {
 
     @Override
     public int getAlpha(Object inData) {
-        return 0xFF;
+        return this.getAlpha(this.getRGB(inData));
     }
 
     @Override
@@ -77,28 +77,28 @@ public final class FastRGBColorModel extends ColorModel {
 
     @Override
     public int getRGB(Object inData) {
-        return 0xFF000000 | ((int[]) inData)[0];
+        return ((int[]) inData)[0];
     }
 
     @Override
     public boolean isCompatibleRaster(Raster raster) {
-        return raster instanceof ImageRGBRaster;
+        return raster instanceof ImageARGBRaster;
     }
 
     @Override
     public boolean isCompatibleSampleModel(SampleModel sm) {
-        return sm instanceof BiggerRGBSampleModel;
+        return sm instanceof BiggerARGBSampleModel;
     }
 
     @Override
-    public Object getDataElements(int rgb, Object pixel) {
+    public Object getDataElements(int argb, Object pixel) {
         int[] i;
         if (pixel instanceof int[]) {
             i = (int[]) pixel;
         } else {
             i = new int[1];
         }
-        i[0] = rgb & 0xFFFFFF;
+        i[0] = argb;
         return i;
     }
 }

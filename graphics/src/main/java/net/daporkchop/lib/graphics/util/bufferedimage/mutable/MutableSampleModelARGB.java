@@ -13,34 +13,17 @@
  *
  */
 
-package net.daporkchop.lib.graphics.util.bufferedimage.argb;
+package net.daporkchop.lib.graphics.util.bufferedimage.mutable;
 
-import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.graphics.bitmap.image.ImageARGB;
-
-import java.awt.image.DataBuffer;
+import net.daporkchop.lib.graphics.bitmap.PImage;
+import net.daporkchop.lib.graphics.util.bufferedimage.BiggerARGBSampleModel;
 
 /**
  * @author DaPorkchop_
  */
-@Getter
-public class ImageARGBDataBuffer extends DataBuffer {
-    protected final ImageARGB image;
-
-    public ImageARGBDataBuffer(@NonNull ImageARGB image) {
-        super(DataBuffer.TYPE_INT, image.getHeight(), image.getWidth());
-
-        this.image = image;
-    }
-
-    @Override
-    public int getElem(int bank, int i) {
-        return this.image.getARGB(bank, i);
-    }
-
-    @Override
-    public void setElem(int bank, int i, int val) {
-        this.image.setARGB(bank, i, val);
+public final class MutableSampleModelARGB extends BiggerARGBSampleModel<PImage> {
+    public MutableSampleModelARGB(@NonNull PImage bitmap) {
+        super(bitmap);
     }
 }

@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.graphics.util.bufferedimage.rgb;
+package net.daporkchop.lib.graphics.util.bufferedimage;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -25,12 +25,18 @@ import java.awt.image.SinglePixelPackedSampleModel;
 /**
  * @author DaPorkchop_
  */
+//TODO: reimplement samplemodel from scratch
 @Getter
-public final class BiggerRGBSampleModel extends SinglePixelPackedSampleModel {
-    protected final PBitmap bitmap;
+public abstract class BiggerARGBSampleModel<P extends PBitmap> extends SinglePixelPackedSampleModel {
+    protected final P bitmap;
 
-    public BiggerRGBSampleModel(int dataType, int w, int h, int[] bitMasks, @NonNull PBitmap bitmap) {
-        super(dataType, w, h, bitMasks);
+    public BiggerARGBSampleModel(@NonNull P bitmap) {
+        super(
+                DataBuffer.TYPE_INT,
+                bitmap.width(),
+                bitmap.height(),
+                new int[]{0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000}
+        );
 
         this.bitmap = bitmap;
     }

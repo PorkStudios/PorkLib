@@ -13,51 +13,25 @@
  *
  */
 
-package net.daporkchop.lib.graphics.util.bufferedimage.rgb;
+package net.daporkchop.lib.graphics.util.bufferedimage;
 
 import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.graphics.bitmap.PBitmap;
-import net.daporkchop.lib.graphics.bitmap.PImage;
-import net.daporkchop.lib.graphics.color.ColorModelRGB;
 
-import java.awt.image.DataBuffer;
+import java.awt.*;
+import java.awt.image.WritableRaster;
 
 /**
  * @author DaPorkchop_
  */
 @Getter
-public class ImageRGBDataBuffer<P extends PBitmap> extends DataBuffer {
-    public static DataBuffer of(@NonNull PBitmap bitmap)    {
-        return bitmap instanceof PImage ? new Mutable((PImage) bitmap) : new ImageRGBDataBuffer<>(bitmap);
-    }
-
+public abstract class ImageARGBRaster<P extends PBitmap> extends WritableRaster {
     protected final P bitmap;
 
-    private ImageRGBDataBuffer(@NonNull P bitmap) {
-        super(DataBuffer.TYPE_INT, bitmap.height(), bitmap.width());
+    public ImageARGBRaster(@NonNull P bitmap, @NonNull BiggerARGBSampleModel<P> sampleModel, @NonNull ImageARGBDataBuffer<P> buffer) {
+        super(sampleModel, buffer, new Point(0, 0));
 
         this.bitmap = bitmap;
-    }
-
-    @Override
-    public int getElem(int bank, int i) {
-        return ColorModelRGB.fromARGB(this.bitmap.getARGB(bank, i));
-    }
-
-    @Override
-    public void setElem(int bank, int i, int val) {
-        throw new UnsupportedOperationException("setElem");
-    }
-
-    private static final class Mutable extends ImageRGBDataBuffer<PImage>    {
-        private Mutable(@NonNull PImage image) {
-            super(image);
-        }
-
-        @Override
-        public void setElem(int bank, int i, int val) {
-            this.bitmap.setARGB(bank, i, ColorModelRGB.toARGB(val));
-        }
     }
 }

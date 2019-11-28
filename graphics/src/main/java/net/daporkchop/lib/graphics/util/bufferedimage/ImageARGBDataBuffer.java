@@ -13,32 +13,32 @@
  *
  */
 
-package net.daporkchop.lib.graphics.util.bufferedimage.argb;
+package net.daporkchop.lib.graphics.util.bufferedimage;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.graphics.bitmap.image.ImageARGB;
+import net.daporkchop.lib.graphics.bitmap.PBitmap;
 
-import java.awt.*;
 import java.awt.image.DataBuffer;
-import java.awt.image.WritableRaster;
 
 /**
  * @author DaPorkchop_
  */
 @Getter
-public class ImageARGBRaster extends WritableRaster {
-    protected final ImageARGB image;
+public abstract class ImageARGBDataBuffer<P extends PBitmap> extends DataBuffer {
+    protected final P bitmap;
 
-    public ImageARGBRaster(@NonNull ImageARGB image) {
-        super(new BiggerARGBSampleModel(
-                DataBuffer.TYPE_INT,
-                image.getWidth(),
-                image.getHeight(),
-                new int[]{0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000},
-                image
-        ), new ImageARGBDataBuffer(image), new Point(0, 0));
+    public ImageARGBDataBuffer(@NonNull P bitmap) {
+        super(DataBuffer.TYPE_INT, bitmap.height(), bitmap.width());
 
-        this.image = image;
+        this.bitmap = bitmap;
     }
+
+    @Override
+    public int getElem(int x, int y) {
+        return this.bitmap.getARGB(x, y);
+    }
+
+    @Override
+    public abstract void setElem(int x, int y, int val);
 }

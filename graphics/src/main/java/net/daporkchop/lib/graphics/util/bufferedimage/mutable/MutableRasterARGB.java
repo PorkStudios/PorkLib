@@ -13,33 +13,21 @@
  *
  */
 
-package net.daporkchop.lib.graphics.util.bufferedimage.bw;
+package net.daporkchop.lib.graphics.util.bufferedimage.mutable;
 
-import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.graphics.bitmap.PBitmap;
-import net.daporkchop.lib.graphics.bitmap.image.ImageBW;
+import net.daporkchop.lib.graphics.bitmap.PImage;
+import net.daporkchop.lib.graphics.util.bufferedimage.BiggerARGBSampleModel;
+import net.daporkchop.lib.graphics.util.bufferedimage.ImageARGBDataBuffer;
+import net.daporkchop.lib.graphics.util.bufferedimage.ImageARGBRaster;
 
-import java.awt.*;
 import java.awt.image.DataBuffer;
-import java.awt.image.WritableRaster;
 
 /**
  * @author DaPorkchop_
  */
-@Getter
-public final class ImageBWRaster extends WritableRaster {
-    protected final PBitmap image;
-
-    public ImageBWRaster(@NonNull PBitmap image) {
-        super(new BiggerBWSampleModel(
-                DataBuffer.TYPE_INT,
-                image.width(),
-                image.height(),
-                new int[]{0xFF},
-                image
-        ), new ImageBWDataBuffer(image), new Point(0, 0));
-
-        this.image = image;
+public final class MutableRasterARGB extends ImageARGBRaster<PImage> {
+    public MutableRasterARGB(@NonNull PImage bitmap) {
+        super(bitmap, new MutableSampleModelARGB(bitmap), new MutableDataBufferARGB(bitmap));
     }
 }

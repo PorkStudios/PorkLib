@@ -15,34 +15,57 @@
 
 package net.daporkchop.lib.natives.zlib;
 
-import net.daporkchop.lib.natives.NativeCode;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.unsafe.PCleaner;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 /**
- * Native code implementation of {@link Zlib}.
+ * Implementation of {@link PInflater} using native code.
  *
  * @author DaPorkchop_
  */
-public final class NativeZlib extends NativeCode.NativeImpl<Zlib> implements Zlib {
-    static {
-        if (NativeCode.NativeImpl.AVAILABLE)    {
-            NativeCode.loadNativeLibrary("zlib");
+@Getter
+@Accessors(fluent = true)
+public final class NativeInflater implements PInflater {
+    static native void load();
 
-            NativeDeflater.load();
+    private static native long init(boolean nowrap);
+
+    private static native void end(long ctx);
+
+    @Getter(AccessLevel.NONE)
+    private final long ctx;
+    private long readBytes;
+    private long writtenBytes;
+
+    @Getter(AccessLevel.NONE)
+    private final PCleaner cleaner;
+
+    private boolean finished;
+
+    NativeInflater(boolean nowrap) {
+        long ctx = this.ctx = init(nowrap);
+        this.cleaner = PCleaner.cleaner(this, () -> end(ctx));
+    }
+
+    @Override
+    public native void input(long addr, long size);
+
+    @Override
+    public native void output(long addr, long size);
+
+    @Override
+    public native void inflate();
+
+    @Override
+    public native void reset();
+
+    @Override
+    public void release() throws AlreadyReleasedException {
+        if (!this.cleaner.tryClean()) {
+            throw new AlreadyReleasedException();
         }
-    }
-
-    @Override
-    protected Zlib _get() {
-        return this;
-    }
-
-    @Override
-    public PDeflater deflater(int level, boolean nowrap) {
-        return new NativeDeflater(level, nowrap);
-    }
-
-    @Override
-    public PInflater inflater(boolean nowrap) {
-        return new NativeInflater(nowrap);
     }
 }

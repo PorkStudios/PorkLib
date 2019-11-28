@@ -28,12 +28,15 @@ public interface Zlib {
      *
      * @param level  the DEFLATE compression level to use
      * @param nowrap if {@code true}, the Zlib header and checksum fields will not be used in order to support the compression format used in Gzip
-     * @return a new {@link PInflater} instance
+     * @return a new {@link PDeflater} instance
      */
     PDeflater deflater(int level, boolean nowrap);
 
     /**
-     * @return a new, uninitialized {@link PDeflater} instance
+     * Creates a new {@link PDeflater}.
+     *
+     * @param nowrap if {@code true}, the Zlib header and checksum fields will not be used in order to support the compression format used in Gzip
+     * @return a new {@link PInflater} instance
      */
-    //PInflater inflater();
+    PInflater inflater(boolean nowrap);
 }

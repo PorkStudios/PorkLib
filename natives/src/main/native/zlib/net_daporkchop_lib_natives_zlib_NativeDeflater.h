@@ -57,22 +57,6 @@ JNIEXPORT void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_defla
 
 /*
  * Class:     net_daporkchop_lib_natives_zlib_NativeDeflater
- * Method:    readBytes
- * Signature: ()J
- */
-JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_readBytes
-  (JNIEnv *, jobject);
-
-/*
- * Class:     net_daporkchop_lib_natives_zlib_NativeDeflater
- * Method:    writtenBytes
- * Signature: ()J
- */
-JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_writtenBytes
-  (JNIEnv *, jobject);
-
-/*
- * Class:     net_daporkchop_lib_natives_zlib_NativeDeflater
  * Method:    reset
  * Signature: ()V
  */

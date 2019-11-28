@@ -28,7 +28,7 @@ public interface PDeflater extends Releasable {
     /**
      * Does the entire compression process in one go.
      * <p>
-     * This method ignores any values set by {@link #input(long, long)} or {@link #output(long, long)}.
+     * This method ignores (and overwrites) any values set by {@link #input(long, long)} or {@link #output(long, long)}.
      * <p>
      * Calling this method will update the values of {@link #readBytes()} and {@link #writtenBytes()}, however the values will (probably) be garbage.
      * <p>

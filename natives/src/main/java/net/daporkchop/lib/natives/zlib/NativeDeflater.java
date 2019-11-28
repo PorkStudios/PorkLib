@@ -15,9 +15,8 @@
 
 package net.daporkchop.lib.natives.zlib;
 
-import io.netty.buffer.ByteBuf;
+import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.unsafe.PCleaner;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
@@ -27,6 +26,7 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
  *
  * @author DaPorkchop_
  */
+@Getter
 @Accessors(fluent = true)
 public final class NativeDeflater implements PDeflater {
     static native void load();
@@ -35,10 +35,14 @@ public final class NativeDeflater implements PDeflater {
 
     private static native void end(long ctx);
 
-    private final long     ctx;
+    @Getter(AccessLevel.NONE)
+    private final long ctx;
+    private long readBytes;
+    private long writtenBytes;
+
+    @Getter(AccessLevel.NONE)
     private final PCleaner cleaner;
 
-    @Getter
     private boolean finished;
 
     NativeDeflater(int level, boolean nowrap) {
@@ -56,17 +60,11 @@ public final class NativeDeflater implements PDeflater {
     public native void deflate(boolean finish);
 
     @Override
-    public native long readBytes();
-
-    @Override
-    public native long writtenBytes();
-
-    @Override
     public native void reset();
 
     @Override
     public void release() throws AlreadyReleasedException {
-        if (!this.cleaner.tryClean())   {
+        if (!this.cleaner.tryClean()) {
             throw new AlreadyReleasedException();
         }
     }

@@ -34,3 +34,4 @@ test_out/
 /natives/**/*.so
 /natives/tmp/
 /natives/src/main/native/*/lib-*/
+/natives/src/main/native/*/build/

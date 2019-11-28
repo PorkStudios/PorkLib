@@ -17,6 +17,7 @@ package net.daporkchop.lib.graphics.util.bufferedimage.bw;
 
 import lombok.Getter;
 import lombok.NonNull;
+import net.daporkchop.lib.graphics.bitmap.PBitmap;
 import net.daporkchop.lib.graphics.bitmap.image.ImageBW;
 
 import java.awt.*;
@@ -28,13 +29,13 @@ import java.awt.image.WritableRaster;
  */
 @Getter
 public final class ImageBWRaster extends WritableRaster {
-    protected final ImageBW image;
+    protected final PBitmap image;
 
-    public ImageBWRaster(@NonNull ImageBW image) {
+    public ImageBWRaster(@NonNull PBitmap image) {
         super(new BiggerBWSampleModel(
                 DataBuffer.TYPE_INT,
-                image.getWidth(),
-                image.getHeight(),
+                image.width(),
+                image.height(),
                 new int[]{0xFF},
                 image
         ), new ImageBWDataBuffer(image), new Point(0, 0));

@@ -16,6 +16,9 @@
 package net.daporkchop.lib.graphics.bitmap;
 
 import net.daporkchop.lib.graphics.color.ColorModel;
+import net.daporkchop.lib.graphics.color.ColorModelABW;
+import net.daporkchop.lib.graphics.color.ColorModelBW;
+import net.daporkchop.lib.graphics.color.ColorModelRGB;
 import net.daporkchop.lib.graphics.util.exception.BitmapCoordinatesOutOfBoundsException;
 import net.daporkchop.lib.unsafe.capability.Releasable;
 
@@ -43,6 +46,26 @@ public interface PBitmap extends Releasable {
     ColorModel model();
 
     /**
+     * Gets the raw color value at the given pixel coordinates, according to this bitmap's {@link #model()}.
+     * @param x the X coordinate of the pixel to get
+     * @param y the Y coordinate of the pixel to get
+     * @return the raw color value at the given pixel coordinates
+     * @throws BitmapCoordinatesOutOfBoundsException if the given pixel coordinates are out of bounds
+     */
+    long getRaw(int x, int y) throws BitmapCoordinatesOutOfBoundsException;
+
+    /**
+     * Gets the RGB color value at the given pixel coordinates.
+     * @param x the X coordinate of the pixel to get
+     * @param y the Y coordinate of the pixel to get
+     * @return the RGB color value at the given pixel coordinates
+     * @throws BitmapCoordinatesOutOfBoundsException if the given pixel coordinates are out of bounds
+     */
+    default int getRGB(int x, int y) throws BitmapCoordinatesOutOfBoundsException   {
+        return ColorModelRGB.fromARGB(this.model().decode(this.getRaw(x, y)));
+    }
+
+    /**
      * Gets the ARGB color value at the given pixel coordinates.
      *
      * @param x the X coordinate of the pixel to get
@@ -50,5 +73,29 @@ public interface PBitmap extends Releasable {
      * @return the ARGB color value at the given pixel coordinates
      * @throws BitmapCoordinatesOutOfBoundsException if the given pixel coordinates are out of bounds
      */
-    int getARGB(int x, int y) throws BitmapCoordinatesOutOfBoundsException;
+    default int getARGB(int x, int y) throws BitmapCoordinatesOutOfBoundsException  {
+        return this.model().decode(this.getRaw(x, y));
+    }
+
+    /**
+     * Gets the BW color value at the given pixel coordinates.
+     * @param x the X coordinate of the pixel to get
+     * @param y the Y coordinate of the pixel to get
+     * @return the BW color value at the given pixel coordinates
+     * @throws BitmapCoordinatesOutOfBoundsException if the given pixel coordinates are out of bounds
+     */
+    default int getBW(int x, int y) throws BitmapCoordinatesOutOfBoundsException   {
+        return ColorModelBW.fromARGB(this.model().decode(this.getRaw(x, y)));
+    }
+
+    /**
+     * Gets the ABW color value at the given pixel coordinates.
+     * @param x the X coordinate of the pixel to get
+     * @param y the Y coordinate of the pixel to get
+     * @return the ABW color value at the given pixel coordinates
+     * @throws BitmapCoordinatesOutOfBoundsException if the given pixel coordinates are out of bounds
+     */
+    default int getABW(int x, int y) throws BitmapCoordinatesOutOfBoundsException   {
+        return ColorModelABW.fromARGB(this.model().decode(this.getRaw(x, y)));
+    }
 }

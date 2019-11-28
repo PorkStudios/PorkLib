@@ -20,6 +20,9 @@ import net.daporkchop.lib.graphics.bitmap.PImage;
 import net.daporkchop.lib.graphics.bitmap.icon.DirectIconARGB;
 import net.daporkchop.lib.graphics.bitmap.impl.AbstractDirectBitmap;
 import net.daporkchop.lib.graphics.color.ColorModel;
+import net.daporkchop.lib.graphics.color.ColorModelABW;
+import net.daporkchop.lib.graphics.color.ColorModelBW;
+import net.daporkchop.lib.graphics.color.ColorModelRGB;
 import net.daporkchop.lib.graphics.util.exception.BitmapCoordinatesOutOfBoundsException;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
@@ -43,15 +46,57 @@ public final class DirectImageARGB extends AbstractDirectBitmap implements PImag
     }
 
     @Override
-    public void setARGB(int x, int y, int argb) throws BitmapCoordinatesOutOfBoundsException {
+    public long getRaw(int x, int y) throws BitmapCoordinatesOutOfBoundsException {
         super.assertInBounds(x, y);
-        PUnsafe.putInt(this.ptr + (y * this.width + x), argb);
+        return Integer.toUnsignedLong(PUnsafe.getInt(this.ptr + (y * this.width + x)));
+    }
+
+    @Override
+    public int getRGB(int x, int y) throws BitmapCoordinatesOutOfBoundsException {
+        return ColorModelRGB.fromARGB(this.getARGB(x, y));
     }
 
     @Override
     public int getARGB(int x, int y) throws BitmapCoordinatesOutOfBoundsException {
         super.assertInBounds(x, y);
         return PUnsafe.getInt(this.ptr + (y * this.width + x));
+    }
+
+    @Override
+    public int getBW(int x, int y) throws BitmapCoordinatesOutOfBoundsException {
+        return ColorModelBW.fromARGB(this.getARGB(x, y));
+    }
+
+    @Override
+    public int getABW(int x, int y) throws BitmapCoordinatesOutOfBoundsException {
+        return ColorModelABW.fromARGB(this.getARGB(x, y));
+    }
+
+    @Override
+    public void setRaw(int x, int y, long color) throws BitmapCoordinatesOutOfBoundsException {
+        super.assertInBounds(x, y);
+        PUnsafe.putInt(this.ptr + (y * this.width + x), (int) color);
+    }
+
+    @Override
+    public void setRGB(int x, int y, int rgb) throws BitmapCoordinatesOutOfBoundsException {
+        this.setARGB(x, y, ColorModelRGB.toARGB(rgb));
+    }
+
+    @Override
+    public void setARGB(int x, int y, int argb) throws BitmapCoordinatesOutOfBoundsException {
+        super.assertInBounds(x, y);
+        PUnsafe.putInt(this.ptr + (y * this.width + x), argb);
+    }
+
+    @Override
+    public void setBW(int x, int y, int bw) throws BitmapCoordinatesOutOfBoundsException {
+        this.setARGB(x, y, ColorModelBW.toARGB(bw));
+    }
+
+    @Override
+    public void setABW(int x, int y, int abw) throws BitmapCoordinatesOutOfBoundsException {
+        this.setARGB(x, y, ColorModelABW.fromARGB(abw));
     }
 
     @Override

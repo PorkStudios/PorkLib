@@ -17,6 +17,7 @@ package net.daporkchop.lib.graphics.util.bufferedimage.rgb;
 
 import lombok.Getter;
 import lombok.NonNull;
+import net.daporkchop.lib.graphics.bitmap.PBitmap;
 import net.daporkchop.lib.graphics.bitmap.PImage;
 import net.daporkchop.lib.graphics.color.ColorModelRGB;
 
@@ -26,22 +27,37 @@ import java.awt.image.DataBuffer;
  * @author DaPorkchop_
  */
 @Getter
-public final class ImageRGBDataBuffer extends DataBuffer {
-    protected final PImage image;
+public class ImageRGBDataBuffer<P extends PBitmap> extends DataBuffer {
+    public static DataBuffer of(@NonNull PBitmap bitmap)    {
+        return bitmap instanceof PImage ? new Mutable((PImage) bitmap) : new ImageRGBDataBuffer<>(bitmap);
+    }
 
-    public ImageRGBDataBuffer(@NonNull PImage image) {
-        super(DataBuffer.TYPE_INT, image.height(), image.width());
+    protected final P bitmap;
 
-        this.image = image;
+    private ImageRGBDataBuffer(@NonNull P bitmap) {
+        super(DataBuffer.TYPE_INT, bitmap.height(), bitmap.width());
+
+        this.bitmap = bitmap;
     }
 
     @Override
     public int getElem(int bank, int i) {
-        return ColorModelRGB.fromARGB(this.image.getARGB(bank, i));
+        return ColorModelRGB.fromARGB(this.bitmap.getARGB(bank, i));
     }
 
     @Override
     public void setElem(int bank, int i, int val) {
-        this.image.setARGB(bank, i, ColorModelRGB.toARGB(val));
+        throw new UnsupportedOperationException("setElem");
+    }
+
+    private static final class Mutable extends ImageRGBDataBuffer<PImage>    {
+        private Mutable(@NonNull PImage image) {
+            super(image);
+        }
+
+        @Override
+        public void setElem(int bank, int i, int val) {
+            this.bitmap.setARGB(bank, i, ColorModelRGB.toARGB(val));
+        }
     }
 }

@@ -16,6 +16,9 @@
 package net.daporkchop.lib.graphics.bitmap;
 
 import net.daporkchop.lib.graphics.color.ColorModel;
+import net.daporkchop.lib.graphics.color.ColorModelABW;
+import net.daporkchop.lib.graphics.color.ColorModelBW;
+import net.daporkchop.lib.graphics.color.ColorModelRGB;
 import net.daporkchop.lib.graphics.util.exception.BitmapCoordinatesOutOfBoundsException;
 
 /**
@@ -34,8 +37,27 @@ public interface PImage extends PBitmap {
     @Override
     ColorModel model();
 
-    @Override
-    int getARGB(int x, int y) throws BitmapCoordinatesOutOfBoundsException;
+    /**
+     * Sets the raw color value at the given pixel coordinates, according to this image's {@link #model()}.
+     *
+     * @param x    the X coordinate of the pixel to get
+     * @param y    the Y coordinate of the pixel to get
+     * @param color the new raw color value to set
+     * @throws BitmapCoordinatesOutOfBoundsException if the given pixel coordinates are out of bounds
+     */
+    void setRaw(int x, int y, long color) throws BitmapCoordinatesOutOfBoundsException;
+
+    /**
+     * Sets the RGB color value at the given pixel coordinates.
+     *
+     * @param x    the X coordinate of the pixel to get
+     * @param y    the Y coordinate of the pixel to get
+     * @param rgb the new RGB color value to set
+     * @throws BitmapCoordinatesOutOfBoundsException if the given pixel coordinates are out of bounds
+     */
+    default void setRGB(int x, int y, int rgb) throws BitmapCoordinatesOutOfBoundsException   {
+        this.setRaw(x, y, Integer.toUnsignedLong(ColorModelRGB.fromARGB(rgb)));
+    }
 
     /**
      * Sets the ARGB color value at the given pixel coordinates.
@@ -45,7 +67,33 @@ public interface PImage extends PBitmap {
      * @param argb the new ARGB color value to set
      * @throws BitmapCoordinatesOutOfBoundsException if the given pixel coordinates are out of bounds
      */
-    void setARGB(int x, int y, int argb) throws BitmapCoordinatesOutOfBoundsException;
+    default void setARGB(int x, int y, int argb) throws BitmapCoordinatesOutOfBoundsException   {
+        this.setRaw(x, y, Integer.toUnsignedLong(argb));
+    }
+
+    /**
+     * Sets the BW color value at the given pixel coordinates.
+     *
+     * @param x    the X coordinate of the pixel to get
+     * @param y    the Y coordinate of the pixel to get
+     * @param bw the new BW color value to set
+     * @throws BitmapCoordinatesOutOfBoundsException if the given pixel coordinates are out of bounds
+     */
+    default void setBW(int x, int y, int bw) throws BitmapCoordinatesOutOfBoundsException   {
+        this.setRaw(x, y, Integer.toUnsignedLong(ColorModelBW.fromARGB(bw)));
+    }
+
+    /**
+     * Sets the ABW color value at the given pixel coordinates.
+     *
+     * @param x    the X coordinate of the pixel to get
+     * @param y    the Y coordinate of the pixel to get
+     * @param abw the new ABW color value to set
+     * @throws BitmapCoordinatesOutOfBoundsException if the given pixel coordinates are out of bounds
+     */
+    default void setABW(int x, int y, int abw) throws BitmapCoordinatesOutOfBoundsException   {
+        this.setRaw(x, y, Integer.toUnsignedLong(ColorModelABW.fromARGB(abw)));
+    }
 
     /**
      * @return an immutable snapshot of this image

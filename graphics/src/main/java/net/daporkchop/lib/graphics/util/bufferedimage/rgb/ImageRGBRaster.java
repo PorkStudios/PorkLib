@@ -17,6 +17,7 @@ package net.daporkchop.lib.graphics.util.bufferedimage.rgb;
 
 import lombok.Getter;
 import lombok.NonNull;
+import net.daporkchop.lib.graphics.bitmap.PBitmap;
 import net.daporkchop.lib.graphics.bitmap.PImage;
 
 import java.awt.*;
@@ -28,17 +29,17 @@ import java.awt.image.WritableRaster;
  */
 @Getter
 public final class ImageRGBRaster extends WritableRaster {
-    protected final PImage image;
+    protected final PBitmap image;
 
-    public ImageRGBRaster(@NonNull PImage image) {
+    public ImageRGBRaster(@NonNull PBitmap bitmap) {
         super(new BiggerRGBSampleModel(
                 DataBuffer.TYPE_INT,
-                image.width(),
-                image.height(),
+                bitmap.width(),
+                bitmap.height(),
                 new int[]{0x00FF0000, 0x0000FF00, 0x000000FF},
-                image
-        ), new ImageRGBDataBuffer(image), new Point(0, 0));
+                bitmap
+        ), ImageRGBDataBuffer.of(bitmap), new Point(0, 0));
 
-        this.image = image;
+        this.image = bitmap;
     }
 }

@@ -41,10 +41,10 @@ public interface PImage extends PBitmap {
     int height();
 
     @Override
-    ColorFormat model();
+    ColorFormat format();
 
     /**
-     * Sets the raw color value at the given pixel coordinates, according to this image's {@link #model()}.
+     * Sets the raw color value at the given pixel coordinates, according to this image's {@link #format()}.
      *
      * @param x     the X coordinate of the pixel to get
      * @param y     the Y coordinate of the pixel to get

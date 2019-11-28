@@ -19,7 +19,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
+import net.daporkchop.lib.graphics.bitmap.PBitmap;
 import net.daporkchop.lib.math.grid.Grid2d;
 
 import static net.daporkchop.lib.math.primitive.PMath.*;
@@ -30,21 +30,21 @@ import static net.daporkchop.lib.math.primitive.PMath.*;
 @Getter
 @Setter
 @Accessors(chain = true)
-public class InterpolationHelperGrid implements Grid2d {
+public final class InterpolationHelperGrid implements Grid2d {
     @NonNull
-    protected final PIcon img;
+    protected final PBitmap bitmap;
     protected final int mode;
     protected int shift;
 
     protected final int w;
     protected final int h;
 
-    public InterpolationHelperGrid(@NonNull PIcon img, int mode)    {
-        this.img = img;
+    public InterpolationHelperGrid(@NonNull PBitmap bitmap, int mode)    {
+        this.bitmap = bitmap;
         this.mode = mode;
 
-        this.w = img.getWidth() - 1;
-        this.h = img.getHeight() - 1;
+        this.w = bitmap.width() - 1;
+        this.h = bitmap.height() - 1;
     }
 
     @Override
@@ -54,7 +54,7 @@ public class InterpolationHelperGrid implements Grid2d {
 
     @Override
     public int endX() {
-        return this.img.getWidth();
+        return this.bitmap.width();
     }
 
     @Override
@@ -64,7 +64,7 @@ public class InterpolationHelperGrid implements Grid2d {
 
     @Override
     public int endY() {
-        return this.img.getHeight();
+        return this.bitmap.height();
     }
 
     @Override
@@ -76,13 +76,13 @@ public class InterpolationHelperGrid implements Grid2d {
     public int getI(int x, int y) {
         switch (this.mode)  {
             case 0: //ARGB
-                return (this.img.getARGB(clamp(x, 0, this.w), clamp(y, 0, this.h)) >>> this.shift) & 0xFF;
+                return (this.bitmap.getARGB(clamp(x, 0, this.w), clamp(y, 0, this.h)) >>> this.shift) & 0xFF;
             case 1: //RGB
-                return (this.img.getRGB(clamp(x, 0, this.w), clamp(y, 0, this.h)) >>> this.shift) & 0xFF;
+                return (this.bitmap.getRGB(clamp(x, 0, this.w), clamp(y, 0, this.h)) >>> this.shift) & 0xFF;
             case 2: //ABW
-                return (this.img.getABW(clamp(x, 0, this.w), clamp(y, 0, this.h)) >>> this.shift) & 0xFF;
+                return (this.bitmap.getABW(clamp(x, 0, this.w), clamp(y, 0, this.h)) >>> this.shift) & 0xFF;
             case 3: //BW
-                return this.img.getBW(clamp(x, 0, this.w), clamp(y, 0, this.h));
+                return this.bitmap.getBW(clamp(x, 0, this.w), clamp(y, 0, this.h));
             default:
                 throw new IllegalStateException(String.format("Invalid mode: %d", this.mode));
         }

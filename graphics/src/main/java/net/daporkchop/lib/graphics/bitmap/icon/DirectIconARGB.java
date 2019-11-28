@@ -27,7 +27,7 @@ import net.daporkchop.lib.graphics.util.exception.BitmapCoordinatesOutOfBoundsEx
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 /**
- * An implementation of {@link PIcon} that uses the ARGB color model, backed by direct memory.
+ * An implementation of {@link PIcon} that uses the ARGB color format, backed by direct memory.
  *
  * @author DaPorkchop_
  */
@@ -41,7 +41,7 @@ public final class DirectIconARGB extends AbstractDirectBitmap implements PIcon 
     }
 
     @Override
-    public ColorFormat model() {
+    public ColorFormat format() {
         return ColorFormat.ARGB;
     }
 

@@ -15,6 +15,8 @@
 
 package net.daporkchop.lib.graphics.color;
 
+import net.daporkchop.lib.graphics.bitmap.PImage;
+
 /**
  * A format for encoding colors.
  *
@@ -37,7 +39,7 @@ public interface ColorFormat {
     int decode(long color);
 
     /**
-     * Encodes the given ARGB color into this color model's format.
+     * Encodes the given ARGB color into this color format's format.
      * <p>
      * If this {@link ColorFormat} doesn't contain an alpha channel, implementations are permitted to silently discard the input
      * value's alpha level.
@@ -48,7 +50,7 @@ public interface ColorFormat {
     long encode(int argb);
 
     /**
-     * @return the number of bits that are used by this color model
+     * @return the number of bits that are used by this color format
      */
     int encodedBits();
 
@@ -56,4 +58,13 @@ public interface ColorFormat {
      * @return whether or not this {@link ColorFormat} contains an alpha channel
      */
     boolean alpha();
+
+    /**
+     * Creates a new {@link PImage} with the given dimensions using this {@link ColorFormat}.
+     *
+     * @param width  the width of the image (in pixels)
+     * @param height the height of the image (in pixels)
+     * @return a new {@link PImage} with the given dimensions using this {@link ColorFormat}
+     */
+    PImage createImage(int width, int height);
 }

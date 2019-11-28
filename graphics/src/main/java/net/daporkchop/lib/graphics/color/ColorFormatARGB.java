@@ -17,9 +17,11 @@ package net.daporkchop.lib.graphics.color;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import net.daporkchop.lib.graphics.bitmap.PImage;
+import net.daporkchop.lib.graphics.bitmap.image.DirectImageARGB;
 
 /**
- * An implementation of the ARGB color model.
+ * An implementation of the ARGB color format.
  *
  * @author DaPorkchop_
  * @see ColorFormat#ARGB
@@ -44,5 +46,10 @@ public final class ColorFormatARGB implements ColorFormat {
     @Override
     public boolean alpha() {
         return true;
+    }
+
+    @Override
+    public PImage createImage(int width, int height) {
+        return new DirectImageARGB(width, height);
     }
 }

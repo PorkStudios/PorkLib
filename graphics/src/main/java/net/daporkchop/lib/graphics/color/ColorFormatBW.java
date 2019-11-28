@@ -19,7 +19,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 /**
- * An implementation of the simple BW (8-bit greyscale) color model.
+ * An implementation of the simple BW (8-bit greyscale) color format.
  *
  * @author DaPorkchop_
  * @see ColorFormat#BW

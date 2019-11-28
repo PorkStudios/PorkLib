@@ -19,7 +19,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 /**
- * An implementation of the RGB color model.
+ * An implementation of the RGB color format.
  *
  * @author DaPorkchop_
  * @see ColorFormat#RGB

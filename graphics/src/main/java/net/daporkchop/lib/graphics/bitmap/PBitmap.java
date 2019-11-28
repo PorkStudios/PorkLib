@@ -47,10 +47,10 @@ public interface PBitmap extends Releasable {
     /**
      * @return this bitmap's {@link ColorFormat}
      */
-    ColorFormat model();
+    ColorFormat format();
 
     /**
-     * Gets the raw color value at the given pixel coordinates, according to this bitmap's {@link #model()}.
+     * Gets the raw color value at the given pixel coordinates, according to this bitmap's {@link #format()}.
      *
      * @param x the X coordinate of the pixel to get
      * @param y the Y coordinate of the pixel to get
@@ -68,7 +68,7 @@ public interface PBitmap extends Releasable {
      * @throws BitmapCoordinatesOutOfBoundsException if the given pixel coordinates are out of bounds
      */
     default int getRGB(int x, int y) throws BitmapCoordinatesOutOfBoundsException {
-        return ColorFormatRGB.fromARGB(this.model().decode(this.getRaw(x, y)));
+        return ColorFormatRGB.fromARGB(this.format().decode(this.getRaw(x, y)));
     }
 
     /**
@@ -80,7 +80,7 @@ public interface PBitmap extends Releasable {
      * @throws BitmapCoordinatesOutOfBoundsException if the given pixel coordinates are out of bounds
      */
     default int getARGB(int x, int y) throws BitmapCoordinatesOutOfBoundsException {
-        return this.model().decode(this.getRaw(x, y));
+        return this.format().decode(this.getRaw(x, y));
     }
 
     /**
@@ -92,7 +92,7 @@ public interface PBitmap extends Releasable {
      * @throws BitmapCoordinatesOutOfBoundsException if the given pixel coordinates are out of bounds
      */
     default int getBW(int x, int y) throws BitmapCoordinatesOutOfBoundsException {
-        return ColorFormatBW.fromARGB(this.model().decode(this.getRaw(x, y)));
+        return ColorFormatBW.fromARGB(this.format().decode(this.getRaw(x, y)));
     }
 
     /**
@@ -104,7 +104,7 @@ public interface PBitmap extends Releasable {
      * @throws BitmapCoordinatesOutOfBoundsException if the given pixel coordinates are out of bounds
      */
     default int getABW(int x, int y) throws BitmapCoordinatesOutOfBoundsException {
-        return ColorFormatABW.fromARGB(this.model().decode(this.getRaw(x, y)));
+        return ColorFormatABW.fromARGB(this.format().decode(this.getRaw(x, y)));
     }
 
     //compat with AWT

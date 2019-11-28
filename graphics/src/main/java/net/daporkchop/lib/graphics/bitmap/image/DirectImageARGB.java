@@ -27,7 +27,7 @@ import net.daporkchop.lib.graphics.util.exception.BitmapCoordinatesOutOfBoundsEx
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 /**
- * An implementation of {@link PImage} that uses the ARGB color model, backed by direct memory.
+ * An implementation of {@link PImage} that uses the ARGB color format, backed by direct memory.
  *
  * @author DaPorkchop_
  */
@@ -41,7 +41,7 @@ public final class DirectImageARGB extends AbstractDirectBitmap implements PImag
     }
 
     @Override
-    public ColorFormat model() {
+    public ColorFormat format() {
         return ColorFormat.ARGB;
     }
 

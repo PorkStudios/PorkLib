@@ -19,7 +19,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 /**
- * An implementation of the simple ABW (8-bit greyscale with alpha) color model.
+ * An implementation of the simple ABW (8-bit greyscale with alpha) color format.
  *
  * @author DaPorkchop_
  * @see ColorFormat#ABW

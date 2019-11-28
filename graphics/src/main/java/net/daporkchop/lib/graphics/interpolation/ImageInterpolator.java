@@ -18,8 +18,8 @@ package net.daporkchop.lib.graphics.interpolation;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
-import net.daporkchop.lib.graphics.bitmap.image.PImage;
+import net.daporkchop.lib.graphics.bitmap.PIcon;
+import net.daporkchop.lib.graphics.bitmap.PImage;
 import net.daporkchop.lib.math.interpolation.Interpolation;
 
 import static net.daporkchop.lib.math.primitive.PMath.*;
@@ -34,23 +34,23 @@ public class ImageInterpolator {
     protected final Interpolation engine;
 
     public PImage interp(@NonNull PIcon src, double mult) {
-        PImage dst = src.getFormat().createImage(floorI(src.getWidth() * mult), floorI(src.getHeight() * mult));
+        PImage dst = src.format().createImage(floorI(src.width() * mult), floorI(src.height() * mult));
         this.interp(src, dst);
         return dst;
     }
 
     public PImage interp(@NonNull PIcon src, int w, int h) {
-        PImage dst = src.getFormat().createImage(w, h);
+        PImage dst = src.format().createImage(w, h);
         this.interp(src, dst);
         return dst;
     }
 
     //TODO: do this without an intermediary grid
     public void interp(@NonNull PIcon src, @NonNull PImage dst) {
-        InterpolationHelperGrid grid = new InterpolationHelperGrid(src, src.getFormat().ordinal());
+        InterpolationHelperGrid grid = new InterpolationHelperGrid(src, src.format());
 
-        double factX = (double) src.getWidth() / (double) dst.getWidth();
-        double factY = (double) src.getHeight() / (double) dst.getHeight();
+        double factX = (double) src.width() / (double) dst.width();
+        double factY = (double) src.height() / (double) dst.height();
         switch (src.getFormat()) {
             case ARGB:
                 dst.fillARGB(0);

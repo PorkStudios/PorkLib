@@ -36,7 +36,7 @@ public interface PIcon extends PBitmap {
     int height();
 
     @Override
-    ColorFormat model();
+    ColorFormat format();
 
     @Override
     int getARGB(int x, int y) throws BitmapCoordinatesOutOfBoundsException;

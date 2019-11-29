@@ -13,54 +13,29 @@
  *
  */
 
-package net.daporkchop.lib.graphics.color;
+package net.daporkchop.lib.graphics.bitmap.icon;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import net.daporkchop.lib.graphics.bitmap.PIcon;
 import net.daporkchop.lib.graphics.bitmap.PImage;
 import net.daporkchop.lib.graphics.bitmap.image.DirectImageABW;
-import net.daporkchop.lib.graphics.bitmap.image.DirectImageARGB;
+import net.daporkchop.lib.graphics.bitmap.impl.AbstractDirectBitmapABW;
 
 /**
- * An implementation of the simple ABW (8-bit greyscale with alpha) color format.
+ * An implementation of {@link PIcon} that uses the ABW color format, backed by direct memory.
  *
  * @author DaPorkchop_
- * @see ColorFormat#ABW
  */
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
-public final class ColorFormatABW implements ColorFormat {
-    public static int toARGB(int abw)    {
-        return (abw << 16) | (abw << 8) | abw;
+public final class DirectIconABW extends AbstractDirectBitmapABW implements PIcon {
+    public DirectIconABW(int width, int height) {
+        super(width, height);
     }
 
-    public static int fromARGB(int argb)    {
-        return ((argb >>> 16) | (argb >>> 8) | argb) & 0xFFFF;
-    }
-
-    @Override
-    public int decode(long color) {
-        int i = (int) color;
-        //the first shift also gets the alpha channel in place
-        return (i << 16) | ((i & 0xFF) << 8) | (i & 0xFF);
+    public DirectIconABW(int width, int height, Object copySrcRef, long copySrcOff) {
+        super(width, height, copySrcRef, copySrcOff);
     }
 
     @Override
-    public long encode(int argb) {
-        return (argb >>> 16) | ((argb >>> 8) & 0xFF) | (argb & 0xFF);
-    }
-
-    @Override
-    public int encodedBits() {
-        return 16;
-    }
-
-    @Override
-    public boolean alpha() {
-        return true;
-    }
-
-    @Override
-    public PImage createImage(int width, int height) {
-        return new DirectImageABW(width, height);
+    public PImage mutableCopy() {
+        return new DirectImageABW(this.width, this.height, null, this.ptr);
     }
 }

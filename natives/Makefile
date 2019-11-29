@@ -21,14 +21,14 @@ export ARCH_TASKS	:=	$(foreach arch,$(ARCHS),build.$(arch))
 
 export MODULES		:=	zlib
 
-.PHONY: build clean
+.PHONY: build clean .FORCE
 
 build: $(ARCH_TASKS) $(foreach arch,$(ARCHS),$(foreach mod,$(MODULES),$(OUTDIR)/$(arch)/lib$(mod).so))
 
-build.%: $(foreach mod,$(MODULES),$(OUTDIR)/%/lib$(mod).so)
+build.%: $(foreach mod,$(MODULES),$(OUTDIR)/%/lib$(mod).so) .FORCE
 	@echo Built libraries for $(shell echo '$@' | perl -n -e '/build\.(.+)/ && print $$1')!
 
-%.so:
+%.so: .FORCE
 	@$(MAKE) -C $(SRCDIR)/$(shell echo "$@" | perl -n -e '/\/lib([^.]+)\.so$$/ && print $$1') \
 		BUILD=$(shell echo "$@" | perl -n -e '/([^\/]*?)\/lib[^.]+\.so$$/ && print $$1') \
 		$(shell echo "$@" | perl -n -e '/([^\/]*?)\/lib[^.]+\.so$$/ && print $$1') \
@@ -40,3 +40,5 @@ clean: $(foreach mod,$(MODULES),clean.$(mod))
 
 clean.%:
 	@$(MAKE) -C $(SRCDIR)/$(subst clean.,,$@) clean
+
+.FORCE:

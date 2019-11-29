@@ -13,9 +13,11 @@
  *
  */
 
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import net.daporkchop.lib.natives.PNatives;
 import net.daporkchop.lib.natives.zlib.PDeflater;
+import net.daporkchop.lib.natives.zlib.PInflater;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.ByteArrayOutputStream;
@@ -28,40 +30,33 @@ import java.util.zip.InflaterOutputStream;
  * @author DaPorkchop_
  */
 public class NativeTests {
+    private static final int SIZE = 67108864; //64 MiB
+
     public static void main(String... args) throws IOException {
-        PDeflater deflater = PNatives.ZLIB.get().deflater(8, false);
-
-        byte[] arr = new byte[67108864];
+        ByteBuf orig = Unpooled.directBuffer(SIZE).clear();
         for (int i = 0; i < 128; i++)   {
-            arr[i] = (byte) ThreadLocalRandom.current().nextInt();
+            orig.setByte(i, ThreadLocalRandom.current().nextInt(8));
         }
-        long src = PUnsafe.allocateMemory(arr.length);
-        PUnsafe.copyMemory(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, null, src, arr.length);
-        deflater.input(src, arr.length);
+        ByteBuf compressed = Unpooled.directBuffer(SIZE >>> 3, SIZE).clear();
 
-        long dst = PUnsafe.allocateMemory(arr.length);
-        deflater.output(dst, arr.length);
-
-        System.out.println(deflater.finished());
-        deflater.deflate(Unpooled.wrappedBuffer(src, arr.length, false), Unpooled.wrappedBuffer(dst, arr.length, false).clear());
-
-        System.out.printf("Read: %d\nWritten: %d\n", deflater.readBytes(), deflater.writtenBytes());
-        System.out.println(deflater.finished());
-
-        PUnsafe.freeMemory(src);
-
-        byte[] arr2 = new byte[(int) deflater.writtenBytes()];
-        PUnsafe.copyMemory(null, dst, arr2, PUnsafe.ARRAY_BYTE_BASE_OFFSET, deflater.writtenBytes());
-        PUnsafe.freeMemory(dst);
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (InflaterOutputStream out = new InflaterOutputStream(baos))  {
-            out.write(arr2);
+        try (PDeflater deflater = PNatives.ZLIB.get().deflater(8, false)) {
+            System.out.printf("Deflating...\nFinished: %b\n", deflater.finished());
+            deflater.deflate(orig, compressed);
+            System.out.printf("Read: %d\nWritten: %d\nFinished: %b\n", deflater.readBytes(), deflater.writtenBytes(), deflater.finished());
         }
-        arr2 = null;
-        arr2 = baos.toByteArray();
 
-        if (!Arrays.equals(arr, arr2))    {
-            throw new IllegalStateException();
+        ByteBuf decompressed = Unpooled.directBuffer(SIZE, SIZE).clear();
+
+        try (PInflater inflater = PNatives.ZLIB.get().inflater(false))  {
+            System.out.printf("Inflating...\nFinished: %b\n", inflater.finished());
+            inflater.inflate(compressed, decompressed);
+            System.out.printf("Read: %d\nWritten: %d\nFinished: %b\n", inflater.readBytes(), inflater.writtenBytes(), inflater.finished());
+        }
+
+        for (int i = 0; i < SIZE; i++)  {
+            if (orig.getByte(i) != decompressed.getByte(i)) {
+                throw new IllegalStateException();
+            }
         }
     }
 }

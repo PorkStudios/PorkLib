@@ -6,8 +6,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <stdio.h>
-
 typedef struct {
     z_stream stream;
     jlong srcLen;

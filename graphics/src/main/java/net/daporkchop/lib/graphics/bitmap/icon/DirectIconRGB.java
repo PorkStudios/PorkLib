@@ -13,52 +13,29 @@
  *
  */
 
-package net.daporkchop.lib.graphics.color;
+package net.daporkchop.lib.graphics.bitmap.icon;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import net.daporkchop.lib.graphics.bitmap.PIcon;
 import net.daporkchop.lib.graphics.bitmap.PImage;
-import net.daporkchop.lib.graphics.bitmap.image.DirectImageARGB;
 import net.daporkchop.lib.graphics.bitmap.image.DirectImageRGB;
+import net.daporkchop.lib.graphics.bitmap.impl.AbstractDirectBitmapRGB;
 
 /**
- * An implementation of the RGB color format.
+ * An implementation of {@link PIcon} that uses the RGB color format, backed by direct memory.
  *
  * @author DaPorkchop_
- * @see ColorFormat#RGB
  */
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
-public final class ColorFormatRGB implements ColorFormat {
-    public static int toARGB(int rgb)   {
-        return 0xFF000000 | rgb;
+public final class DirectIconRGB extends AbstractDirectBitmapRGB implements PIcon {
+    public DirectIconRGB(int width, int height) {
+        super(width, height);
     }
 
-    public static int fromARGB(int argb)   {
-        return argb & 0x00FFFFFF;
-    }
-
-    @Override
-    public int decode(long color) {
-        return toARGB((int) color);
+    public DirectIconRGB(int width, int height, Object copySrcRef, long copySrcOff) {
+        super(width, height, copySrcRef, copySrcOff);
     }
 
     @Override
-    public long encode(int argb) {
-        return (long) fromARGB(argb);
-    }
-
-    @Override
-    public int encodedBits() {
-        return 24;
-    }
-
-    @Override
-    public boolean alpha() {
-        return false;
-    }
-
-    @Override
-    public PImage createImage(int width, int height) {
-        return new DirectImageRGB(width, height);
+    public PImage mutableCopy() {
+        return new DirectImageRGB(this.width, this.height, null, this.ptr);
     }
 }

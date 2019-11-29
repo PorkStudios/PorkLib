@@ -17,10 +17,8 @@ package net.daporkchop.lib.graphics.bitmap.image;
 
 import net.daporkchop.lib.graphics.bitmap.PIcon;
 import net.daporkchop.lib.graphics.bitmap.PImage;
-import net.daporkchop.lib.graphics.bitmap.icon.DirectIconARGB;
-import net.daporkchop.lib.graphics.bitmap.impl.AbstractDirectBitmap;
-import net.daporkchop.lib.graphics.bitmap.impl.AbstractDirectBitmapARGB;
-import net.daporkchop.lib.graphics.color.ColorFormat;
+import net.daporkchop.lib.graphics.bitmap.icon.DirectIconRGB;
+import net.daporkchop.lib.graphics.bitmap.impl.AbstractDirectBitmapRGB;
 import net.daporkchop.lib.graphics.color.ColorFormatABW;
 import net.daporkchop.lib.graphics.color.ColorFormatBW;
 import net.daporkchop.lib.graphics.color.ColorFormatRGB;
@@ -28,46 +26,46 @@ import net.daporkchop.lib.graphics.util.exception.BitmapCoordinatesOutOfBoundsEx
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 /**
- * An implementation of {@link PImage} that uses the ARGB color format, backed by direct memory.
+ * An implementation of {@link PImage} that uses the RGB color format, backed by direct memory.
  *
  * @author DaPorkchop_
  */
-public final class DirectImageARGB extends AbstractDirectBitmapARGB implements PImage {
-    public DirectImageARGB(int width, int height) {
+public final class DirectImageRGB extends AbstractDirectBitmapRGB implements PImage {
+    public DirectImageRGB(int width, int height) {
         super(width, height);
     }
 
-    public DirectImageARGB(int width, int height, Object copySrcRef, long copySrcOff) {
+    public DirectImageRGB(int width, int height, Object copySrcRef, long copySrcOff) {
         super(width, height, copySrcRef, copySrcOff);
     }
 
     @Override
     public void setRaw(int x, int y, long color) throws BitmapCoordinatesOutOfBoundsException {
-        PUnsafe.putInt(this.addr(x, y), (int) color);
+        PUnsafe.putInt(this.addr(x, y), ((int) color) & 0x00FFFFFF);
     }
 
     @Override
     public void setRGB(int x, int y, int rgb) throws BitmapCoordinatesOutOfBoundsException {
-        PUnsafe.putInt(this.addr(x, y), ColorFormatRGB.toARGB(rgb));
+        PUnsafe.putInt(this.addr(x, y), rgb);
     }
 
     @Override
     public void setARGB(int x, int y, int argb) throws BitmapCoordinatesOutOfBoundsException {
-        PUnsafe.putInt(this.addr(x, y), argb);
+        PUnsafe.putInt(this.addr(x, y), argb & 0x00FFFFFF);
     }
 
     @Override
     public void setBW(int x, int y, int bw) throws BitmapCoordinatesOutOfBoundsException {
-        PUnsafe.putInt(this.addr(x, y), ColorFormatBW.toARGB(bw));
+        PUnsafe.putInt(this.addr(x, y), ColorFormatRGB.fromARGB(ColorFormatBW.toARGB(bw)));
     }
 
     @Override
     public void setABW(int x, int y, int abw) throws BitmapCoordinatesOutOfBoundsException {
-        PUnsafe.putInt(this.addr(x, y), ColorFormatABW.toARGB(abw));
+        PUnsafe.putInt(this.addr(x, y), ColorFormatRGB.fromARGB(ColorFormatABW.toARGB(abw)));
     }
 
     @Override
     public PIcon immutableSnapshot() {
-        return new DirectIconARGB(this.width, this.height, null, this.ptr);
+        return new DirectIconRGB(this.width, this.height, null, this.ptr);
     }
 }

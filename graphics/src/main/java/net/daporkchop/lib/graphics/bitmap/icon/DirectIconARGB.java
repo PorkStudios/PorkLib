@@ -19,6 +19,7 @@ import net.daporkchop.lib.graphics.bitmap.PIcon;
 import net.daporkchop.lib.graphics.bitmap.PImage;
 import net.daporkchop.lib.graphics.bitmap.image.DirectImageARGB;
 import net.daporkchop.lib.graphics.bitmap.impl.AbstractDirectBitmap;
+import net.daporkchop.lib.graphics.bitmap.impl.AbstractDirectBitmapARGB;
 import net.daporkchop.lib.graphics.color.ColorFormat;
 import net.daporkchop.lib.graphics.color.ColorFormatABW;
 import net.daporkchop.lib.graphics.color.ColorFormatBW;
@@ -31,7 +32,7 @@ import net.daporkchop.lib.unsafe.PUnsafe;
  *
  * @author DaPorkchop_
  */
-public final class DirectIconARGB extends AbstractDirectBitmap implements PIcon {
+public final class DirectIconARGB extends AbstractDirectBitmapARGB implements PIcon {
     public DirectIconARGB(int width, int height) {
         super(width, height);
     }
@@ -41,49 +42,7 @@ public final class DirectIconARGB extends AbstractDirectBitmap implements PIcon 
     }
 
     @Override
-    public ColorFormat format() {
-        return ColorFormat.ARGB;
-    }
-
-    @Override
-    public long getRaw(int x, int y) throws BitmapCoordinatesOutOfBoundsException {
-        super.assertInBounds(x, y);
-        return Integer.toUnsignedLong(PUnsafe.getInt(this.addr(x, y)));
-    }
-
-    @Override
-    public int getRGB(int x, int y) throws BitmapCoordinatesOutOfBoundsException {
-        return ColorFormatRGB.fromARGB(this.getARGB(x, y));
-    }
-
-    @Override
-    public int getARGB(int x, int y) throws BitmapCoordinatesOutOfBoundsException {
-        super.assertInBounds(x, y);
-        return PUnsafe.getInt(this.addr(x, y));
-    }
-
-    @Override
-    public int getBW(int x, int y) throws BitmapCoordinatesOutOfBoundsException {
-        return ColorFormatBW.fromARGB(this.getARGB(x, y));
-    }
-
-    @Override
-    public int getABW(int x, int y) throws BitmapCoordinatesOutOfBoundsException {
-        return ColorFormatABW.fromARGB(this.getARGB(x, y));
-    }
-
-    @Override
     public PImage mutableCopy() {
         return new DirectImageARGB(this.width, this.height, null, this.ptr);
-    }
-
-    @Override
-    public long memorySize() {
-        return super.memorySize() << 2L;
-    }
-
-    @Override
-    protected long addr(int x, int y) {
-        return this.ptr + (super.addr(x, y) << 2L);
     }
 }

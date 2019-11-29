@@ -64,4 +64,9 @@ public abstract class AbstractDirectBitmap extends AbstractBitmap implements Acc
             throw new AlreadyReleasedException();
         }
     }
+
+    protected long addr(int x, int y) {
+        this.assertInBounds(x, y);
+        return (Integer.toUnsignedLong(y) * this.width + x);
+    }
 }

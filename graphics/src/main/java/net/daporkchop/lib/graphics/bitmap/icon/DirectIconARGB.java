@@ -48,7 +48,7 @@ public final class DirectIconARGB extends AbstractDirectBitmap implements PIcon 
     @Override
     public long getRaw(int x, int y) throws BitmapCoordinatesOutOfBoundsException {
         super.assertInBounds(x, y);
-        return Integer.toUnsignedLong(PUnsafe.getInt(this.ptr + (y * this.width + x)));
+        return Integer.toUnsignedLong(PUnsafe.getInt(this.addr(x, y)));
     }
 
     @Override
@@ -59,7 +59,7 @@ public final class DirectIconARGB extends AbstractDirectBitmap implements PIcon 
     @Override
     public int getARGB(int x, int y) throws BitmapCoordinatesOutOfBoundsException {
         super.assertInBounds(x, y);
-        return PUnsafe.getInt(this.ptr + (y * this.width + x));
+        return PUnsafe.getInt(this.addr(x, y));
     }
 
     @Override
@@ -75,5 +75,15 @@ public final class DirectIconARGB extends AbstractDirectBitmap implements PIcon 
     @Override
     public PImage mutableCopy() {
         return new DirectImageARGB(this.width, this.height, null, this.ptr);
+    }
+
+    @Override
+    public long memorySize() {
+        return super.memorySize() << 2L;
+    }
+
+    @Override
+    protected long addr(int x, int y) {
+        return this.ptr + (super.addr(x, y) << 2L);
     }
 }

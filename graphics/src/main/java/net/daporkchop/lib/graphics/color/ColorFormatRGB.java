@@ -29,7 +29,7 @@ import net.daporkchop.lib.graphics.bitmap.image.DirectImageARGB;
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 public final class ColorFormatRGB implements ColorFormat {
     public static int toARGB(int rgb)   {
-        return rgb | 0xFF000000;
+        return 0xFF000000 | rgb;
     }
 
     public static int fromARGB(int argb)   {

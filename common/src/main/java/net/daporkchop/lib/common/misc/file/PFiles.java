@@ -16,6 +16,7 @@
 package net.daporkchop.lib.common.misc.file;
 
 import lombok.NonNull;
+import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.common.util.exception.file.CannotCreateDirectoryException;
 import net.daporkchop.lib.common.util.exception.file.CannotCreateFileException;
@@ -34,7 +35,8 @@ import java.util.stream.StreamSupport;
  *
  * @author DaPorkchop_
  */
-public interface PFiles {
+@UtilityClass
+public class PFiles {
     /**
      * Ensures that a directory exists and is a directory, creating a new directory if it doesn't exist and throwing an exception in case
      * of failure.
@@ -44,7 +46,7 @@ public interface PFiles {
      * @throws CannotCreateDirectoryException if the directory could not be created
      * @throws NotADirectoryException         if the given path is not a directory
      */
-    static File ensureDirectoryExists(@NonNull File directory) throws CannotCreateDirectoryException, NotADirectoryException {
+    public static File ensureDirectoryExists(@NonNull File directory) throws CannotCreateDirectoryException, NotADirectoryException {
         if (!directory.exists() && !directory.mkdirs() && !directory.exists()) { //second check to make sure directory wasn't created by another thread
             throw new CannotCreateDirectoryException(directory);
         } else if (!directory.isDirectory()) {
@@ -52,6 +54,20 @@ public interface PFiles {
         } else {
             return directory;
         }
+    }
+
+    /**
+     * Ensures that the parent directory of the given file exists and is a directory, creating a new directory if it
+     * doesn't exist and throwing an exception in case of failure.
+     *
+     * @param file the file of which to ensure the existence of the parent directory
+     * @return the file
+     * @throws CannotCreateDirectoryException if the parent directory could not be created
+     * @throws NotADirectoryException         if the given file's parent is not a directory
+     */
+    public static File ensureParentDirectoryExists(@NonNull File file) throws CannotCreateDirectoryException, NotADirectoryException    {
+        ensureDirectoryExists(file.getAbsoluteFile().getParentFile());
+        return file;
     }
 
     /**
@@ -65,7 +81,7 @@ public interface PFiles {
      * @throws NotAFileException              if the given path is not a file
      * @throws NotADirectoryException         if the given path's parent file is not a directory
      */
-    static File ensureFileExists(@NonNull File file) throws CannotCreateFileException, CannotCreateDirectoryException, NotAFileException, NotADirectoryException {
+    public static File ensureFileExists(@NonNull File file) throws CannotCreateFileException, CannotCreateDirectoryException, NotAFileException, NotADirectoryException {
         if (!file.exists()) {
             ensureDirectoryExists(file.getParentFile()); //TODO: how will this work in a filesystem root? not that we should ever be creating files there...
             try {
@@ -87,7 +103,7 @@ public interface PFiles {
      * @param file the file to be deleted
      * @throws CannotDeleteFileException if the file cannot be deleted
      */
-    static void rm(@NonNull File file) throws CannotDeleteFileException {
+    public static void rm(@NonNull File file) throws CannotDeleteFileException {
         while (file.exists()) {
             if (file.isDirectory()) {
                 File[] files;
@@ -109,7 +125,7 @@ public interface PFiles {
      * @param file the file to be deleted
      * @throws CannotDeleteFileException if the file cannot be deleted
      */
-    static void rmParallel(@NonNull File file) throws CannotDeleteFileException {
+    public static void rmParallel(@NonNull File file) throws CannotDeleteFileException {
         try {
             if (false) {
                 //trick the compiler into letting us catch ExecutionException, which is thrown unsafely
@@ -142,7 +158,7 @@ public interface PFiles {
      * @throws NotADirectoryException    if the given file is not a directory
      * @throws CannotDeleteFileException if the file cannot be deleted
      */
-    static void rmContents(@NonNull File file) throws NotADirectoryException, CannotDeleteFileException {
+    public static void rmContents(@NonNull File file) throws NotADirectoryException, CannotDeleteFileException {
         if (!file.exists()) {
             return;
         } else if (!file.isDirectory()) {
@@ -164,7 +180,7 @@ public interface PFiles {
      * @throws NotADirectoryException    if the given file is not a directory
      * @throws CannotDeleteFileException if the file cannot be deleted
      */
-    static void rmContentsParallel(@NonNull File file) throws NotADirectoryException, CannotDeleteFileException {
+    public static void rmContentsParallel(@NonNull File file) throws NotADirectoryException, CannotDeleteFileException {
         if (!file.exists()) {
             return;
         } else if (!file.isDirectory()) {

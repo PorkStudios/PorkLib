@@ -28,8 +28,8 @@ import net.daporkchop.lib.graphics.bitmap.image.DirectImageARGB;
  */
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 public final class ColorFormatABW implements ColorFormat {
-    public static int toARGB(int bw)    {
-        return (bw << 16) | (bw << 8) | bw;
+    public static int toARGB(int abw)    {
+        return (abw << 16) | (abw << 8) | abw;
     }
 
     public static int fromARGB(int argb)    {

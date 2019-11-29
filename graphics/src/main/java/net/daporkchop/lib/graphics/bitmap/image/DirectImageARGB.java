@@ -47,8 +47,7 @@ public final class DirectImageARGB extends AbstractDirectBitmap implements PImag
 
     @Override
     public long getRaw(int x, int y) throws BitmapCoordinatesOutOfBoundsException {
-        super.assertInBounds(x, y);
-        return Integer.toUnsignedLong(PUnsafe.getInt(this.ptr + (y * this.width + x)));
+        return Integer.toUnsignedLong(PUnsafe.getInt(this.addr(x, y)));
     }
 
     @Override
@@ -58,8 +57,7 @@ public final class DirectImageARGB extends AbstractDirectBitmap implements PImag
 
     @Override
     public int getARGB(int x, int y) throws BitmapCoordinatesOutOfBoundsException {
-        super.assertInBounds(x, y);
-        return PUnsafe.getInt(this.ptr + (y * this.width + x));
+        return PUnsafe.getInt(this.addr(x, y));
     }
 
     @Override
@@ -74,8 +72,7 @@ public final class DirectImageARGB extends AbstractDirectBitmap implements PImag
 
     @Override
     public void setRaw(int x, int y, long color) throws BitmapCoordinatesOutOfBoundsException {
-        super.assertInBounds(x, y);
-        PUnsafe.putInt(this.ptr + (y * this.width + x), (int) color);
+        PUnsafe.putInt(this.addr(x, y), (int) color);
     }
 
     @Override
@@ -85,8 +82,7 @@ public final class DirectImageARGB extends AbstractDirectBitmap implements PImag
 
     @Override
     public void setARGB(int x, int y, int argb) throws BitmapCoordinatesOutOfBoundsException {
-        super.assertInBounds(x, y);
-        PUnsafe.putInt(this.ptr + (y * this.width + x), argb);
+        PUnsafe.putInt(this.addr(x, y), argb);
     }
 
     @Override
@@ -96,11 +92,21 @@ public final class DirectImageARGB extends AbstractDirectBitmap implements PImag
 
     @Override
     public void setABW(int x, int y, int abw) throws BitmapCoordinatesOutOfBoundsException {
-        this.setARGB(x, y, ColorFormatABW.fromARGB(abw));
+        this.setARGB(x, y, ColorFormatABW.toARGB(abw));
     }
 
     @Override
     public PIcon immutableSnapshot() {
         return new DirectIconARGB(this.width, this.height, null, this.ptr);
+    }
+
+    @Override
+    public long memorySize() {
+        return super.memorySize() << 2L;
+    }
+
+    @Override
+    protected long addr(int x, int y) {
+        return this.ptr + (super.addr(x, y) << 2L);
     }
 }

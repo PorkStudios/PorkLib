@@ -1,55 +1,45 @@
-BUILDDIR	:=	build-$(BUILD)
+BUILDDIR	:=	build/$(BUILD)
 
-CFLAGS		:=	$(CFLAGS) -D__LARGEFILE64__SOURCE=1 -DHAVE__HIDDEN -DPIC
-
-ifneq ($(BUILDDIR),$(notdir $(CURDIR)))
-
+ifneq ($(BUILD),$(notdir $(CURDIR)))
 .PHONY: $(BUILD) clean
 
 clean:
-	@rm -rf build-* tmp/
+	@rm -rf build/ tmp/
 
-$(BUILD): lib-zlib/zlib.h
+$(BUILD): $(CURDIR)/lib-zlib/zlib.h
 	@[ -d $(BUILDDIR) ] || mkdir -p $(BUILDDIR)
-	@$(MAKE) --no-print-directory -C $(BUILDDIR) -f $(CURDIR)/Makefile BUILD=$(BUILD)
+	@$(MAKE) --no-print-directory -C $(BUILDDIR) -f $(CURDIR)/Makefile BUILD=$(BUILD) zlib-$(BUILD)
 
-lib-zlib/zlib.h:
+$(CURDIR)/lib-zlib/zlib.h:
 	@echo "Downloading zlib sources..."
 	@wget --no-proxy -O - https://cloud.daporkchop.net/programs/source/zlib-1.2.11.tar.gz | tar zxf -
 	@mv zlib-1.2.11/ lib-zlib/
 
 else
+.PHONY: zlib-$(BUILD)
 
 SOURCES			:=	$(SOURCES) $(PROJDIR)/source $(PROJDIR)/lib-zlib
+
 CFILES			:=	$(foreach dir,$(SOURCES),$(shell find -L $(dir) -maxdepth 1 -type f -name '*.c'))
 CPPFILES		:=	$(foreach dir,$(SOURCES),$(shell find -L $(dir) -maxdepth 1 -type f -name '*.cpp'))
+OFILES			:=	$(addsuffix .o,$(subst /,__,$(CFILES)) $(subst /,__,$(CPPFILES)))
 
-CFILES_COMP		:=  $(subst /,__,$(CFILES))
-CPPFILES_COMP	:=  $(subst /,__,$(CPPFILES))
-OFILES			:=	$(CFILES_COMP:.c=.c.o) $(CPPFILES_COMP:.cpp=.cpp.o)
-#OFILES			:=	$(foreach f,$(CFILES:.c=.c.o),$(CURDIR)$(f)) $(foreach f,$(CPPFILES:.cpp=.cpp.o),$(CURDIR)$(f))
-OFILES			:=	$(addsuffix .$(BUILD).o,$(CFILES) $(CPPFILES))
-
+CFLAGS			:=	$(CFLAGS) -D__LARGEFILE64__SOURCE=1 -DHAVE__HIDDEN -DPIC
 INCLUDE			:=	$(foreach dir,$(INCLUDES),-I$(dir)) -I$(PROJDIR)/include
-CFLAGS			:=	$(CFLAGS) $(INCLUDE)
-CXXFLAGS		:=	$(CXXFLAGS) $(INCLUDE)
-LDFLAGS			:=	$(LDFLAGS) $(INCLUDE)
+
+zlib-$(BUILD): $(OUTDIR)/$(BUILD)/libzlib.so
 
 $(OUTDIR)/$(BUILD)/libzlib.so: $(CFILES) $(CPPFILES) $(OFILES)
 	@[ -d $(OUTDIR)/$(BUILD) ] || mkdir -p $(OUTDIR)/$(BUILD)
 	@echo "Linking $@..."
-	@$(LD) $(LDFLAGS) -o $@ $(OFILES)
+	@$(LD) $(LDFLAGS) $(INCLUDE) -o $@ $(OFILES)
 
-%.c.$(BUILD).o: %.c
-#	@echo "Building $(subst .c.o,.c,$(subst __,/,$@))..."
-#	@$(CC) $(CFLAGS) -c $(subst .c.o,.c,$(subst __,/,$@)) -o $@
-	@echo "Building $(subst .c.$(BUILD).o,.c,$@)..."
-	@$(CC) $(CFLAGS) -c $(subst .c.$(BUILD).o,.c,$@) -o $@
+%.c.o: $(CPPFILES)
+	@echo "Building $(subst .o,,$(subst __,/,$@))..."
+	@$(CC) $(CFLAGS) $(INCLUDE) -c $(subst .o,,$(subst __,/,$@)) -o $@
 
-%.cpp.$(BUILD).o: %.cpp
-#	@echo "Building $(subst .cpp.o,.cpp,$(subst __,/,$@))..."
-#	@$(CXX) $(CXXFLAGS) -c $(subst .cpp.o,.cpp,$(subst __,/,$@)) -o $@
-	@echo "Building $(subst .cpp.$(BUILD).o,.cpp,$@)..."
-	@$(CXX) $(CXXFLAGS) -c $(subst .cpp.$(BUILD).o,.cpp,$@) -o $@
+%.cpp.o: $(CFILES)
+	@echo "Building $(subst .o,,$(subst __,/,$@))..."
+	@$(CXX) $(CXXFLAGS) $(INCLUDE) -c $(subst .o,,$(subst __,/,$@)) -o $@
 
 endif

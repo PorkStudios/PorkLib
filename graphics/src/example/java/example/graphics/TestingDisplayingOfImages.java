@@ -20,6 +20,8 @@ import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.graphics.bitmap.PImage;
 import net.daporkchop.lib.graphics.bitmap.image.DirectImageARGB;
 import net.daporkchop.lib.graphics.color.ColorFormat;
+import net.daporkchop.lib.graphics.interpolation.ImageInterpolator;
+import net.daporkchop.lib.math.interpolation.CubicInterpolation;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -64,19 +66,19 @@ public class TestingDisplayingOfImages {
                 );
             }
 
-            BufferedImage buffered = image.asBufferedImage();
-            if (!ImageIO.write(buffered, "png", PFiles.ensureParentDirectoryExists(new File(String.format("./test_out/%s.png", PorkUtil.className(format)))))) {
+            if (!ImageIO.write(image.asBufferedImage(), "png", PFiles.ensureParentDirectoryExists(new File(String.format("./test_out/%s.png", PorkUtil.className(format)))))) {
                 throw new IllegalStateException("Didn't write image!");
             }
 
-            PorkUtil.simpleDisplayImage(true, buffered);
-            /*ImageInterpolator interpolator = new ImageInterpolator(CubicInterpolation.instance());
+            ImageInterpolator interpolator = new ImageInterpolator(CubicInterpolation.instance());
             image = interpolator.interp(image, 32.0d);
 
+            /*
             Thumbnail thumbnail = new Thumbnail(64, 32, 16, 8, image.getWidth()).submit(image).bake();
 
             PorkUtil.simpleDisplayImage(true, Arrays.stream(thumbnail.getIcons()).map(PBitmap::asBufferedImage).toArray(BufferedImage[]::new));
             */
+            PorkUtil.simpleDisplayImage(true, image.asBufferedImage());
         }
     }
 }

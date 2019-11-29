@@ -19,6 +19,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.graphics.bitmap.PBitmap;
 import net.daporkchop.lib.graphics.bitmap.PIcon;
 import net.daporkchop.lib.graphics.bitmap.PImage;
 import net.daporkchop.lib.graphics.color.ColorFormat;
@@ -36,20 +37,20 @@ public class ImageInterpolator {
     @NonNull
     protected final Interpolation engine;
 
-    public PImage interp(@NonNull PIcon src, double mult) {
+    public PImage interp(@NonNull PBitmap src, double mult) {
         PImage dst = src.format().createImage(floorI(src.width() * mult), floorI(src.height() * mult));
         this.interp(src, dst);
         return dst;
     }
 
-    public PImage interp(@NonNull PIcon src, int w, int h) {
+    public PImage interp(@NonNull PBitmap src, int w, int h) {
         PImage dst = src.format().createImage(w, h);
         this.interp(src, dst);
         return dst;
     }
 
     //TODO: do this without an intermediary grid
-    public void interp(@NonNull PIcon src, @NonNull PImage dst) {
+    public void interp(@NonNull PBitmap src, @NonNull PImage dst) {
         int dstWidth = dst.width();
         int dstHeight = dst.height();
 
@@ -71,6 +72,24 @@ public class ImageInterpolator {
                             );
                 }
             }
-        } else throw new IllegalArgumentException(PorkUtil.className(src.format()));
+        } else {
+            //default implementation for ARGB
+            Grid2d grid0 = new HelperGrid.Shift0(src);
+            Grid2d grid1 = new HelperGrid.Shift1(src);
+            Grid2d grid2 = new HelperGrid.Shift2(src);
+            Grid2d grid3 = new HelperGrid.Shift3(src);
+
+            for (int x = dstWidth - 1; x >= 0; x--) {
+                for (int y = dstHeight - 1; y >= 0; y--)    {
+                    dst.setARGB(
+                            x, y,
+                            (clamp(this.engine.getInterpolatedI(x * factX, y * factY, grid3), 0, 0xFF) << 24)
+                                    | (clamp(this.engine.getInterpolatedI(x * factX, y * factY, grid2), 0, 0xFF) << 16)
+                                    | (clamp(this.engine.getInterpolatedI(x * factX, y * factY, grid1), 0, 0xFF) << 8)
+                                    | clamp(this.engine.getInterpolatedI(x * factX, y * factY, grid0), 0, 0xFF)
+                    );
+                }
+            }
+        }
     }
 }

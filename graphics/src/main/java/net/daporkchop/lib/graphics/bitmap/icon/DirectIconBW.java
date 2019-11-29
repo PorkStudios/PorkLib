@@ -13,52 +13,29 @@
  *
  */
 
-package net.daporkchop.lib.graphics.color;
+package net.daporkchop.lib.graphics.bitmap.icon;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import net.daporkchop.lib.graphics.bitmap.PIcon;
 import net.daporkchop.lib.graphics.bitmap.PImage;
-import net.daporkchop.lib.graphics.bitmap.image.DirectImageARGB;
 import net.daporkchop.lib.graphics.bitmap.image.DirectImageBW;
+import net.daporkchop.lib.graphics.bitmap.impl.AbstractDirectBitmapBW;
 
 /**
- * An implementation of the simple BW (8-bit greyscale) color format.
+ * An implementation of {@link PIcon} that uses the BW color format, backed by direct memory.
  *
  * @author DaPorkchop_
- * @see ColorFormat#BW
  */
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
-public final class ColorFormatBW implements ColorFormat {
-    public static int toARGB(int bw)    {
-        return 0xFF000000 | (bw << 16) | (bw << 8) | bw;
+public final class DirectIconBW extends AbstractDirectBitmapBW implements PIcon {
+    public DirectIconBW(int width, int height) {
+        super(width, height);
     }
 
-    public static int fromARGB(int argb)    {
-        return ((argb >>> 16) | (argb >>> 8) | argb) & 0xFF;
-    }
-
-    @Override
-    public int decode(long color) {
-        return toARGB((int) color);
+    public DirectIconBW(int width, int height, Object copySrcRef, long copySrcOff) {
+        super(width, height, copySrcRef, copySrcOff);
     }
 
     @Override
-    public long encode(int argb) {
-        return fromARGB(argb);
-    }
-
-    @Override
-    public int encodedBits() {
-        return 8;
-    }
-
-    @Override
-    public boolean alpha() {
-        return false;
-    }
-
-    @Override
-    public PImage createImage(int width, int height) {
-        return new DirectImageBW(width, height);
+    public PImage mutableCopy() {
+        return new DirectImageBW(this.width, this.height, null, this.ptr);
     }
 }

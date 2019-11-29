@@ -19,7 +19,14 @@ dependencies {
 
 task compileNatives(type: Exec) {
     workingDir "$projectDir"
-    commandLine "sh", "./compile-natives.sh"
+    commandLine "make", String.format("-j%d", Runtime.getRuntime().availableProcessors())
 }
 
-jar.dependsOn(compileNatives)
+compileJava.dependsOn(compileNatives)
+
+task cleanNatives(type: Exec) {
+    workingDir "$projectDir"
+    commandLine "make", "clean"
+}
+
+clean.dependsOn(cleanNatives)

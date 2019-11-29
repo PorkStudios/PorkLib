@@ -16,7 +16,6 @@ export LD			:=	$(CXX)
 export SOURCES		:=	$(SRCDIR)/common/source
 export INCLUDES		:=	$(SRCDIR)/common/include $(JAVA_HOME)include $(JAVA_HOME)include/linux
 
-export DEFAULT_ARCH	:=	x86_64-pc-linux-gnu
 export ARCHS		:=	x86_64-pc-linux-gnu
 export ARCH_TASKS	:=	$(foreach arch,$(ARCHS),build.$(arch))
 
@@ -32,7 +31,8 @@ build.%: $(foreach mod,$(MODULES),$(OUTDIR)/%/lib$(mod).so)
 %.so:
 	@$(MAKE) -C $(SRCDIR)/$(shell echo "$@" | perl -n -e '/\/lib([^.]+)\.so$$/ && print $$1') \
 		BUILD=$(shell echo "$@" | perl -n -e '/([^\/]*?)\/lib[^.]+\.so$$/ && print $$1') \
-		$(shell echo "$@" | perl -n -e '/([^\/]*?)\/lib[^.]+\.so$$/ && print $$1')
+		$(shell echo "$@" | perl -n -e '/([^\/]*?)\/lib[^.]+\.so$$/ && print $$1') \
+		PROJDIR=$(SRCDIR)/$(shell echo "$@" | perl -n -e '/\/lib([^.]+)\.so$$/ && print $$1')
 	@echo Built $(shell echo "$@" | perl -n -e '/\/lib([^.]+)\.so$$/ && print $$1') for target $(shell echo "$@" | perl -n -e '/([^\/]*?)\/lib[^.]+\.so$$/ && print $$1')!
 
 clean: $(foreach mod,$(MODULES),clean.$(mod))

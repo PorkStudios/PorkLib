@@ -36,11 +36,38 @@ import java.util.function.Supplier;
  * @author DaPorkchop_
  */
 public final class NativeCode<T> implements Supplier<T> {
+    private static String LIB_ARCH;
+    private static String LIB_EXT;
+
     public static void loadNativeLibrary(@NonNull String name)  {
+        if (!NativeImpl.AVAILABLE)  {
+            throw new UnsupportedOperationException("native libraries are not available!");
+        } else if (LIB_ARCH == null)  {
+            synchronized (NativeCode.class) {
+                if (LIB_ARCH == null) {
+                    switch (PlatformInfo.OPERATING_SYSTEM)  {
+                        case Linux:
+                            LIB_EXT = "so";
+                            switch (PlatformInfo.ARCHITECTURE)  {
+                                case x86_64:
+                                    LIB_ARCH = "x86_64-pc-linux-gnu";
+                                    break;
+                                case x86:
+                                    LIB_ARCH = "x86_64-pc-linux-gnu";
+                                    break;
+                            }
+                            break;
+                    }
+                    if (LIB_ARCH == null || LIB_EXT == null)    {
+                        throw new IllegalStateException();
+                    }
+                }
+            }
+        }
         try {
             File file = File.createTempFile(name + System.nanoTime(), ".so");
             file.deleteOnExit();
-            try (InputStream is = NativeCode.class.getResourceAsStream(String.format("/lib%s.so", name));
+            try (InputStream is = NativeCode.class.getResourceAsStream(String.format("/%s/lib%s.%s", LIB_ARCH, name, LIB_EXT));
                  OutputStream os = new FileOutputStream(file))   {
                 byte[] arr = new byte[PUnsafe.pageSize()];
                 for (int b; (b = is.read(arr)) >= 0; os.write(arr, 0, b));

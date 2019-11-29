@@ -18,7 +18,7 @@ package net.daporkchop.lib.graphics.render;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
+import net.daporkchop.lib.graphics.bitmap.PBitmap;
 
 import java.awt.*;
 
@@ -156,38 +156,38 @@ public class GraphicsRenderer2d implements Renderer2d<GraphicsRenderer2d> {
     }
 
     @Override
-    public GraphicsRenderer2d image(@NonNull PIcon icon, int x, int y) {
-        this.delegate.drawImage(icon.getAsImage(), x, y, null);
+    public GraphicsRenderer2d image(@NonNull PBitmap icon, int x, int y) {
+        this.delegate.drawImage(icon.asImage(), x, y, null);
         return this;
     }
 
     @Override
-    public GraphicsRenderer2d image(@NonNull PIcon icon, int x, int y, int w, int h) {
-        this.delegate.drawImage(icon.getAsImage(), x, y, w, h, null);
+    public GraphicsRenderer2d image(@NonNull PBitmap icon, int x, int y, int w, int h) {
+        this.delegate.drawImage(icon.asImage(), x, y, w, h, null);
         return this;
     }
 
     @Override
-    public GraphicsRenderer2d image(@NonNull PIcon icon, int x, int y, int bgArgb) {
-        this.delegate.drawImage(icon.getAsImage(), x, y, new Color(bgArgb), null);
+    public GraphicsRenderer2d image(@NonNull PBitmap icon, int x, int y, int bgArgb) {
+        this.delegate.drawImage(icon.asImage(), x, y, new Color(bgArgb), null);
         return this;
     }
 
     @Override
-    public GraphicsRenderer2d image(@NonNull PIcon icon, int x, int y, int w, int h, int bgArgb) {
-        this.delegate.drawImage(icon.getAsImage(), x, y, w, h, new Color(bgArgb), null);
+    public GraphicsRenderer2d image(@NonNull PBitmap icon, int x, int y, int w, int h, int bgArgb) {
+        this.delegate.drawImage(icon.asImage(), x, y, w, h, new Color(bgArgb), null);
         return this;
     }
 
     @Override
-    public GraphicsRenderer2d image(@NonNull PIcon icon, int dx1, int dy1, int dx2, int dy2, int sx1, int sy1, int sx2, int sy2) {
-        this.delegate.drawImage(icon.getAsImage(), dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy1, null);
+    public GraphicsRenderer2d image(@NonNull PBitmap icon, int dx1, int dy1, int dx2, int dy2, int sx1, int sy1, int sx2, int sy2) {
+        this.delegate.drawImage(icon.asImage(), dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy1, null);
         return this;
     }
 
     @Override
-    public GraphicsRenderer2d image(@NonNull PIcon icon, int dx1, int dy1, int dx2, int dy2, int sx1, int sy1, int sx2, int sy2, int bgArgb) {
-        this.delegate.drawImage(icon.getAsImage(), dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy1, new Color(bgArgb), null);
+    public GraphicsRenderer2d image(@NonNull PBitmap icon, int dx1, int dy1, int dx2, int dy2, int sx1, int sy1, int sx2, int sy2, int bgArgb) {
+        this.delegate.drawImage(icon.asImage(), dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy1, new Color(bgArgb), null);
         return this;
     }
 

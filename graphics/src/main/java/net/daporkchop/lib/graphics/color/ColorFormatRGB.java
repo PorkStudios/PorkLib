@@ -17,6 +17,8 @@ package net.daporkchop.lib.graphics.color;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import net.daporkchop.lib.graphics.bitmap.PImage;
+import net.daporkchop.lib.graphics.bitmap.image.DirectImageARGB;
 
 /**
  * An implementation of the RGB color format.
@@ -52,5 +54,10 @@ public final class ColorFormatRGB implements ColorFormat {
     @Override
     public boolean alpha() {
         return false;
+    }
+
+    @Override
+    public PImage createImage(int width, int height) {
+        return new DirectImageARGB(width, height); //TODO
     }
 }

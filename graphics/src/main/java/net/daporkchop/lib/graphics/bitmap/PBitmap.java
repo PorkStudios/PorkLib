@@ -45,6 +45,13 @@ public interface PBitmap extends Releasable {
     int height();
 
     /**
+     * @return whether or not this bitmap is empty (i.e. has no contents)
+     */
+    default boolean empty() {
+        return this.width() == 0 || this.height() == 0;
+    }
+
+    /**
      * @return this bitmap's {@link ColorFormat}
      */
     ColorFormat format();

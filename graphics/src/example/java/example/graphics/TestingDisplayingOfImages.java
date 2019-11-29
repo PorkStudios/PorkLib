@@ -29,7 +29,9 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Stream;
 
 /**
  * @author DaPorkchop_
@@ -37,12 +39,13 @@ import java.util.concurrent.ThreadLocalRandom;
 public class TestingDisplayingOfImages {
     public static void main(String... args) throws InterruptedException, IOException {
         int size = 20;
-        for (ColorFormat format : new ColorFormat[] {
-                ColorFormat.ARGB,
-                ColorFormat.RGB,
-                ColorFormat.ABW,
-                ColorFormat.BW
-        }) {
+        for (ColorFormat format : Stream.of(
+                null
+                //, ColorFormat.ARGB
+                , ColorFormat.RGB
+                //, ColorFormat.ABW
+                //, ColorFormat.BW
+        ).filter(Objects::nonNull).toArray(ColorFormat[]::new)) {
             PImage image = new DirectImageARGB(size, size);
             for (int x = size - 1; x >= 0; x--) {
                 for (int y = size - 1; y >= 0; y--) {
@@ -61,7 +64,18 @@ public class TestingDisplayingOfImages {
                     0xFFFF0000
             );
 
-            if (!ImageIO.write(image.asBufferedImage(), "png", new File(String.format("./test_out/%s.png", PorkUtil.className(format))))) {
+            BufferedImage buffered;
+            if (false)  {
+                buffered = image.asBufferedImage();
+            } else {
+                buffered = new BufferedImage(image.width(), image.height(), BufferedImage.TYPE_INT_ARGB);
+                for (int x = 0; x < image.width(); x++) {
+                    for (int y = 0; y < image.height(); y++)    {
+                        buffered.setRGB(x, y, image.getARGB(x, y));
+                    }
+                }
+            }
+            if (!ImageIO.write(buffered, "png", new File(String.format("./test_out/%s.png", PorkUtil.className(format))))) {
                 throw new IllegalStateException("Didn't write image!");
             }
 

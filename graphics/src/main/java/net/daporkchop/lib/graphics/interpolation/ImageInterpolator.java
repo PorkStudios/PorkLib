@@ -18,8 +18,11 @@ package net.daporkchop.lib.graphics.interpolation;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.graphics.bitmap.PIcon;
 import net.daporkchop.lib.graphics.bitmap.PImage;
+import net.daporkchop.lib.graphics.color.ColorFormat;
+import net.daporkchop.lib.math.grid.Grid2d;
 import net.daporkchop.lib.math.interpolation.Interpolation;
 
 import static net.daporkchop.lib.math.primitive.PMath.*;
@@ -47,65 +50,27 @@ public class ImageInterpolator {
 
     //TODO: do this without an intermediary grid
     public void interp(@NonNull PIcon src, @NonNull PImage dst) {
-        InterpolationHelperGrid grid = new InterpolationHelperGrid(src, src.format());
+        int dstWidth = dst.width();
+        int dstHeight = dst.height();
 
-        double factX = (double) src.width() / (double) dst.width();
-        double factY = (double) src.height() / (double) dst.height();
-        switch (src.getFormat()) {
-            case ARGB:
-                dst.fillARGB(0);
-                for (int x = dst.getWidth() - 1; x >= 0; x--) {
-                    for (int y = dst.getHeight() - 1; y >= 0; y--) {
-                        dst.setARGB(
-                                x,
-                                y,
-                                (clamp(this.engine.getInterpolatedI(x * factX - 0.5d, y * factY - 0.5d, grid.setShift(24)), 0, 0xFF) << 24)
-                                        | (clamp(this.engine.getInterpolatedI(x * factX - 0.5d, y * factY - 0.5d, grid.setShift(16)), 0, 0xFF) << 16)
-                                        | (clamp(this.engine.getInterpolatedI(x * factX - 0.5d, y * factY - 0.5d, grid.setShift(8)), 0, 0xFF) << 8)
-                                        | clamp(this.engine.getInterpolatedI(x * factX - 0.5d, y * factY - 0.5d, grid.setShift(0)), 0, 0xFF)
-                        );
-                    }
+        double factX = (double) src.width() / (double) dstWidth;
+        double factY = (double) src.height() / (double) dstHeight;
+
+        if (src.format() == ColorFormat.RGB)    {
+            Grid2d grid0 = new HelperGrid.Shift0(src);
+            Grid2d grid1 = new HelperGrid.Shift1(src);
+            Grid2d grid2 = new HelperGrid.Shift2(src);
+
+            for (int x = dstWidth - 1; x >= 0; x--) {
+                for (int y = dstHeight - 1; y >= 0; y--)    {
+                    dst.setRGB(
+                            x, y,
+                            (clamp(this.engine.getInterpolatedI(x * factX, y * factY, grid2), 0, 0xFF) << 16)
+                                    | (clamp(this.engine.getInterpolatedI(x * factX, y * factY, grid1), 0, 0xFF) << 8)
+                                    | clamp(this.engine.getInterpolatedI(x * factX, y * factY, grid0), 0, 0xFF)
+                            );
                 }
-                break;
-            case RGB:
-                dst.fillRGB(0);
-                for (int x = dst.getWidth() - 1; x >= 0; x--) {
-                    for (int y = dst.getHeight() - 1; y >= 0; y--) {
-                        dst.setRGB(
-                                x,
-                                y,
-                                (clamp(this.engine.getInterpolatedI(x * factX - 0.5d, y * factY - 0.5d, grid.setShift(16)), 0, 0xFF) << 16)
-                                        | (clamp(this.engine.getInterpolatedI(x * factX - 0.5d, y * factY - 0.5d, grid.setShift(8)), 0, 0xFF) << 8)
-                                        | clamp(this.engine.getInterpolatedI(x * factX - 0.5d, y * factY - 0.5d, grid.setShift(0)), 0, 0xFF)
-                        );
-                    }
-                }
-                break;
-            case ABW:
-                for (int x = dst.getWidth() - 1; x >= 0; x--) {
-                    for (int y = dst.getHeight() - 1; y >= 0; y--) {
-                        dst.setABW(
-                                x,
-                                y,
-                                (clamp(this.engine.getInterpolatedI(x * factX - 0.5d, y * factY - 0.5d, grid.setShift(8)), 0, 0xFF) << 8)
-                                        | clamp(this.engine.getInterpolatedI(x * factX - 0.5d, y * factY - 0.5d, grid.setShift(0)), 0, 0xFF)
-                        );
-                    }
-                }
-                break;
-            case BW:
-                for (int x = dst.getWidth() - 1; x >= 0; x--) {
-                    for (int y = dst.getHeight() - 1; y >= 0; y--) {
-                        dst.setBW(
-                                x,
-                                y,
-                                clamp(this.engine.getInterpolatedI(x * factX - 0.5d, y * factY - 0.5d, grid), 0, 0xFF)
-                        );
-                    }
-                }
-                break;
-            default:
-                throw new IllegalArgumentException(String.format("Unknown format: %s", src.getFormat()));
-        }
+            }
+        } else throw new IllegalArgumentException(PorkUtil.className(src.format()));
     }
 }

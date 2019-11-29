@@ -17,6 +17,8 @@ package net.daporkchop.lib.graphics.color;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import net.daporkchop.lib.graphics.bitmap.PImage;
+import net.daporkchop.lib.graphics.bitmap.image.DirectImageARGB;
 
 /**
  * An implementation of the simple ABW (8-bit greyscale with alpha) color format.
@@ -54,5 +56,10 @@ public final class ColorFormatABW implements ColorFormat {
     @Override
     public boolean alpha() {
         return true;
+    }
+
+    @Override
+    public PImage createImage(int width, int height) {
+        return new DirectImageARGB(width, height); //TODO
     }
 }

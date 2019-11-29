@@ -17,7 +17,8 @@ package net.daporkchop.lib.graphics.util;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
+import net.daporkchop.lib.graphics.bitmap.PBitmap;
+import net.daporkchop.lib.graphics.bitmap.PIcon;
 import net.daporkchop.lib.graphics.interpolation.ImageInterpolator;
 import net.daporkchop.lib.math.interpolation.Interpolation;
 import net.daporkchop.lib.math.interpolation.LinearInterpolation;
@@ -65,7 +66,7 @@ public class Thumbnail {
             }
             for (int i = this.sizes.length - 1; i >= 0; i--) {
                 if (this.icons[i] == null) {
-                    this.icons[i] = interpolator.interp(highestRes, this.sizes[i], this.sizes[i]);
+                    this.icons[i] = interpolator.interp(highestRes, this.sizes[i], this.sizes[i]).immutableSnapshot();
                 }
             }
             this.baked = true;
@@ -74,18 +75,18 @@ public class Thumbnail {
     }
 
     public Thumbnail submit(@NonNull PIcon icon)    {
-        if (icon.isEmpty() || icon.getWidth() != icon.getHeight())  {
+        if (icon.empty() || icon.width() != icon.height())  {
             throw new IllegalArgumentException("Icon is not a square!");
         }
         if (!this.baked)    {
             for (int i = this.sizes.length - 1; i >= 0; i--)    {
-                if (this.sizes[i] == icon.getWidth())   {
+                if (this.sizes[i] == icon.width())   {
                     this.icons[i] = icon;
                     return this;
                 }
             }
 
-            throw new IllegalArgumentException(String.format("Icon with size %d doesn't match any of the thumbnail resolutions!", icon.getWidth()));
+            throw new IllegalArgumentException(String.format("Icon with size %d doesn't match any of the thumbnail resolutions!", icon.width()));
         }
         return this;
     }

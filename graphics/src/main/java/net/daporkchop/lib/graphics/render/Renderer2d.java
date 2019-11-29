@@ -16,7 +16,7 @@
 package net.daporkchop.lib.graphics.render;
 
 import lombok.NonNull;
-import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
+import net.daporkchop.lib.graphics.bitmap.PBitmap;
 
 import java.awt.*;
 
@@ -162,12 +162,12 @@ public interface Renderer2d<Impl extends Renderer2d> {
         return this.text(chars, x, y, 0, chars.length, argb);
     }
 
-    Impl image(@NonNull PIcon icon, int x, int y);
-    Impl image(@NonNull PIcon icon, int x, int y, int w, int h);
-    Impl image(@NonNull PIcon icon, int x, int y, int bgArgb);
-    Impl image(@NonNull PIcon icon, int x, int y, int w, int h, int bgArgb);
-    Impl image(@NonNull PIcon icon, int dx1, int dy1, int dx2, int dy2, int sx1, int sy1, int sx2, int sy2);
-    Impl image(@NonNull PIcon icon, int dx1, int dy1, int dx2, int dy2, int sx1, int sy1, int sx2, int sy2, int bgArgb);
+    Impl image(@NonNull PBitmap icon, int x, int y);
+    Impl image(@NonNull PBitmap icon, int x, int y, int w, int h);
+    Impl image(@NonNull PBitmap icon, int x, int y, int bgArgb);
+    Impl image(@NonNull PBitmap icon, int x, int y, int w, int h, int bgArgb);
+    Impl image(@NonNull PBitmap icon, int dx1, int dy1, int dx2, int dy2, int sx1, int sy1, int sx2, int sy2);
+    Impl image(@NonNull PBitmap icon, int dx1, int dy1, int dx2, int dy2, int sx1, int sy1, int sx2, int sy2, int bgArgb);
 
     Impl copy(int srcX, int srcY, int w, int h, int dstX, int dstY);
 

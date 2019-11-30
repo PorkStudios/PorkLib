@@ -13,19 +13,33 @@
  *
  */
 
-package net.daporkchop.lib.natives;
+package net.daporkchop.lib.natives.zlib;
 
-import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.natives.zlib.JavaZlib;
-import net.daporkchop.lib.natives.zlib.NativeZlib;
-import net.daporkchop.lib.natives.zlib.Zlib;
+import net.daporkchop.lib.natives.NativeCode;
 
 /**
- * Utility class, has static references to {@link NativeCode} for all implemented features.
+ * Pure java implementation of {@link Zlib}.
  *
  * @author DaPorkchop_
  */
-@UtilityClass
-public class PNatives {
-    public static final NativeCode<Zlib> ZLIB = new NativeCode<>(NativeZlib::new, JavaZlib::new);
+public final class JavaZlib extends NativeCode.Impl<Zlib> implements Zlib {
+    @Override
+    protected Zlib _get() {
+        return this;
+    }
+
+    @Override
+    protected boolean _available() {
+        return true;
+    }
+
+    @Override
+    public PDeflater deflater(int level, int mode) {
+        return new JavaDeflater(level, mode);
+    }
+
+    @Override
+    public PInflater inflater(int mode) {
+        return null;
+    }
 }

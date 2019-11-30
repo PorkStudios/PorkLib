@@ -16,6 +16,7 @@
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import net.daporkchop.lib.natives.PNatives;
+import net.daporkchop.lib.natives.zlib.JavaDeflater;
 import net.daporkchop.lib.natives.zlib.PDeflater;
 import net.daporkchop.lib.natives.zlib.PInflater;
 import net.daporkchop.lib.natives.zlib.Zlib;
@@ -44,7 +45,7 @@ public class NativeTests {
             }
             ByteBuf compressed = Unpooled.directBuffer(SIZE >>> 3, SIZE).clear();
 
-            try (PDeflater deflater = PNatives.ZLIB.get().deflater(Zlib.ZLIB_LEVEL_BEST)) {
+            try (PDeflater deflater = /*PNatives.ZLIB.get().deflater(Zlib.ZLIB_LEVEL_BEST)*/new JavaDeflater(Zlib.ZLIB_LEVEL_BEST, Zlib.ZLIB_MODE_ZLIB)) {
                 System.out.printf("Deflating...\nFinished: %b\n", deflater.finished());
                 deflater.deflate(orig, compressed);
                 System.out.printf("Read: %d\nWritten: %d\nFinished: %b\n", deflater.readBytes(), deflater.writtenBytes(), deflater.finished());

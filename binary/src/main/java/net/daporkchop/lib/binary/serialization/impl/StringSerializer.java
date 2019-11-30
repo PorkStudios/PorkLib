@@ -30,7 +30,7 @@ import java.io.IOException;
  * @author DaPorkchop_
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class StringSerializer implements Serializer<String> {
+public final class StringSerializer implements Serializer<String> {
     public static final StringSerializer INSTANCE = new StringSerializer();
 
     @Override

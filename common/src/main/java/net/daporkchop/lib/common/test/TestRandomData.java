@@ -15,14 +15,18 @@
 
 package net.daporkchop.lib.common.test;
 
+import lombok.experimental.UtilityClass;
+
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * A bunch of random byte arrays for use in test classes. Probably doesn't have any practical
- * use in normal applications, as none of this is constant.
+ * A bunch of random byte arrays for use in test classes.
+ * <p>
+ * Really shouldn't be used outside of unit tests.
  *
  * @author DaPorkchop_
  */
+@UtilityClass
 public class TestRandomData {
     public static final byte[][] randomBytes = new byte[32][];
 

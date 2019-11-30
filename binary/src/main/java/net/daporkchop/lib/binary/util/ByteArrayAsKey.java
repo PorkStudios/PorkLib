@@ -23,12 +23,12 @@ import net.daporkchop.lib.unsafe.PUnsafe;
 import java.util.Arrays;
 
 /**
- * A wrapper for a byte[] which allows using it as a key in a {@link java.util.Map}
+ * A wrapper for a {@code byte[]} which allows using it as a key in a {@link java.util.Map}.
  *
  * @author DaPorkchop_
  */
 @Getter
-public class ByteArrayAsKey {
+public final class ByteArrayAsKey {
     private final byte[] array;
 
     private ByteArrayAsKey(@NonNull byte[] array) {
@@ -50,10 +50,8 @@ public class ByteArrayAsKey {
             return true;
         } else if (obj instanceof byte[]) {
             return Arrays.equals(this.array, (byte[]) obj);
-        } else if (obj instanceof ByteArrayAsKey) {
-            return Arrays.equals(this.array, ((ByteArrayAsKey) obj).array);
         } else {
-            return false;
+            return obj instanceof ByteArrayAsKey && Arrays.equals(this.array, ((ByteArrayAsKey) obj).array);
         }
     }
 

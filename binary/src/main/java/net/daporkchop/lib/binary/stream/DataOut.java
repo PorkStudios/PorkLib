@@ -24,6 +24,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -36,13 +37,13 @@ import java.nio.charset.StandardCharsets;
  */
 public abstract class DataOut extends OutputStream {
     /**
-     * Wraps an {@link OutputStream} to make it a {@link DataOut}
+     * Wraps an {@link OutputStream} to make it a {@link DataOut}.
      *
      * @param out the {@link OutputStream} to wrap
      * @return the wrapped stream, or the original stream if it was already an instance of {@link DataOut}
      */
     public static DataOut wrap(@NonNull OutputStream out) {
-        return out instanceof DataOut ? (DataOut) out : new StreamOut(out, true);
+        return out instanceof DataOut ? (DataOut) out : new StreamOut.Closing(out);
     }
 
     /**
@@ -54,11 +55,13 @@ public abstract class DataOut extends OutputStream {
      * @return the wrapped stream, or the original stream if it was already an instance of {@link DataOut}
      */
     public static DataOut wrapNonClosing(@NonNull OutputStream out) {
-        return out instanceof StreamOut ? ((StreamOut) out).close(false) : new StreamOut(out, false);
+        return out instanceof StreamOut && !(out instanceof StreamOut.Closing)
+                ? (StreamOut) out
+                : new StreamOut(out instanceof DataOut ? ((DataOut) out).unwrap() : out);
     }
 
     /**
-     * Wraps a {@link ByteBuffer} to make it a {@link DataOut}
+     * Wraps a {@link ByteBuffer} to make it a {@link DataOut}.
      *
      * @param buffer the buffer to wrap
      * @return the wrapped buffer
@@ -403,6 +406,21 @@ public abstract class DataOut extends OutputStream {
 
     public DataOut writeBytes(@NonNull byte[] b, int off, int len) throws IOException {
         this.write(b, off, len);
+        return this;
+    }
+
+    /**
+     * Gets an {@link OutputStream} that may be used in place of this {@link DataOut} instance.
+     * <p>
+     * An implementation may choose to return itself.
+     * <p>
+     * This is intended for use where a {@link DataOut} instance must be passed to external code that only accepts a
+     * traditional Java {@link OutputStream}, and performance may benefit from not having all method calls be proxied
+     * by a wrapper {@link DataOut} instance.
+     *
+     * @return an {@link OutputStream} that may be used in place of this {@link DataOut} instance
+     */
+    public OutputStream unwrap() {
         return this;
     }
 

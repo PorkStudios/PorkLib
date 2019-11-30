@@ -37,13 +37,13 @@ import java.util.function.Function;
  */
 public abstract class DataIn extends InputStream {
     /**
-     * Wraps an {@link InputStream} to make it into a {@link DataIn}
+     * Wraps an {@link InputStream} to make it into a {@link DataIn}.
      *
      * @param in the stream to wrap
      * @return the wrapped stream, or the original stream if it was already a {@link DataIn}
      */
     public static DataIn wrap(@NonNull InputStream in) {
-        return in instanceof DataIn ? (DataIn) in : new StreamIn(in, true);
+        return in instanceof DataIn ? (DataIn) in : new StreamIn.Closing(in);
     }
 
     /**
@@ -55,7 +55,9 @@ public abstract class DataIn extends InputStream {
      * @return the wrapped stream, or the original stream if it was already a {@link StreamIn}
      */
     public static DataIn wrapNonClosing(@NonNull InputStream in) {
-        return in instanceof StreamIn ? ((StreamIn) in).close(false) : new StreamIn(in, false);
+        return in instanceof StreamIn && !(in instanceof StreamIn.Closing)
+                ? (StreamIn) in
+                : new StreamIn(in instanceof DataIn ? ((DataIn) in).unwrap() : in);
     }
 
     /**
@@ -65,11 +67,11 @@ public abstract class DataIn extends InputStream {
      * @return the wrapped buffer as a {@link DataIn}
      */
     public static DataIn wrap(@NonNull ByteBuffer buffer) {
-        if (buffer.hasArray()) {
-            return new StreamIn(new ByteArrayInputStream(buffer.array(), buffer.position(), buffer.remaining()), false);
-        } else {
+        /*if (buffer.hasArray()) {
+            return new StreamIn(new ByteArrayInputStream(buffer.array(), buffer.position(), buffer.remaining()));
+        } else {*/
             return new BufferIn(buffer);
-        }
+        //}
     }
 
     /**
@@ -454,6 +456,21 @@ public abstract class DataIn extends InputStream {
         byte[] b = new byte[this.available()];
         this.readFully(b);
         return b;
+    }
+
+    /**
+     * Gets an {@link InputStream} that may be used in place of this {@link DataIn} instance.
+     * <p>
+     * An implementation may choose to return itself.
+     * <p>
+     * This is intended for use where a {@link DataIn} instance must be passed to external code that only accepts a
+     * traditional Java {@link InputStream}, and performance may benefit from not having all method calls be proxied
+     * by a wrapper {@link DataIn} instance.
+     *
+     * @return an {@link InputStream} that may be used in place of this {@link DataIn} instance
+     */
+    public InputStream unwrap() {
+        return this;
     }
 
     @Override

@@ -31,7 +31,7 @@ import java.util.UUID;
  * @author DaPorkchop_
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class UUIDSerializer implements Serializer<UUID> {
+public final class UUIDSerializer implements Serializer<UUID> {
     public static final UUIDSerializer INSTANCE = new UUIDSerializer();
 
     @Override

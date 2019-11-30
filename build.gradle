@@ -35,7 +35,7 @@ allprojects {
         googleHttpClientVersion = "1.23.0"
         gsonVersion = "2.8.5"
         guavaVersion = "27.0-jre"
-        jnaVersion = "5.3.0"
+        jnaVersion = "5.5.0"
         junitVersion = "4.12"
         lombokVersion = "1.16.20"
         nettyVersion = "4.1.36.Final"

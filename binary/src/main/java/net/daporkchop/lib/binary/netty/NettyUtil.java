@@ -17,6 +17,7 @@ package net.daporkchop.lib.binary.netty;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
+import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.util.PorkUtil;
@@ -26,7 +27,8 @@ import net.daporkchop.lib.common.util.PorkUtil;
  *
  * @author DaPorkchop_
  */
-public interface NettyUtil {
+@UtilityClass
+public class NettyUtil {
     /**
      * Wraps a {@link ByteBuf} into a {@link DataIn} for reading.
      * <p>
@@ -35,7 +37,7 @@ public interface NettyUtil {
      * @param buf the {@link ByteBuf} to read from
      * @return a {@link DataIn} that can read data from the {@link ByteBuf}
      */
-    static DataIn wrapIn(@NonNull ByteBuf buf) {
+    public DataIn wrapIn(@NonNull ByteBuf buf) {
         return wrapIn(buf, false);
     }
 
@@ -49,7 +51,7 @@ public interface NettyUtil {
      * @param release whether or not to release the buffer when the {@link DataIn} is closed
      * @return a {@link DataIn} that can read data from the {@link ByteBuf}
      */
-    static DataIn wrapIn(@NonNull ByteBuf buf, boolean release) {
+    public DataIn wrapIn(@NonNull ByteBuf buf, boolean release) {
         return release ? new NettyByteBufIn.Releasing(buf) : new NettyByteBufIn(buf);
     }
 
@@ -61,7 +63,7 @@ public interface NettyUtil {
      * @param buf the {@link ByteBuf} to write to
      * @return a {@link DataOut} that can write data to the {@link ByteBuf}
      */
-    static DataOut wrapOut(@NonNull ByteBuf buf) {
+    public DataOut wrapOut(@NonNull ByteBuf buf) {
         return new NettyByteBufOut.Default(buf);
     }
 }

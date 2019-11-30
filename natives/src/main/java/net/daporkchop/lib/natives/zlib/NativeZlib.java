@@ -28,6 +28,7 @@ public final class NativeZlib extends NativeCode.NativeImpl<Zlib> implements Zli
             NativeCode.loadNativeLibrary("zlib");
 
             NativeDeflater.load();
+            NativeInflater.load();
         }
     }
 

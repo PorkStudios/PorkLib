@@ -34,11 +34,11 @@ $(OUTDIR)/$(BUILD)/libzlib.so: $(CFILES) $(CPPFILES) $(OFILES)
 	@echo "Linking $@..."
 	@$(LD) $(LDFLAGS) $(INCLUDE) -o $@ $(OFILES)
 
-%.c.o: $(CPPFILES)
+%.c.o: $(CFILES)
 	@echo "Building $(subst .o,,$(subst __,/,$@))..."
 	@$(CC) $(CFLAGS) $(INCLUDE) -c $(subst .o,,$(subst __,/,$@)) -o $@
 
-%.cpp.o: $(CFILES)
+%.cpp.o: $(CPPFILES)
 	@echo "Building $(subst .o,,$(subst __,/,$@))..."
 	@$(CXX) $(CXXFLAGS) $(INCLUDE) -c $(subst .o,,$(subst __,/,$@)) -o $@
 

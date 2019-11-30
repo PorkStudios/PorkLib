@@ -33,7 +33,7 @@ public class NativeTests {
     private static final int SIZE = 67108864; //64 MiB
 
     public static void main(String... args) throws IOException {
-        ByteBuf orig = Unpooled.directBuffer(SIZE).clear();
+        ByteBuf orig = Unpooled.directBuffer(SIZE).writerIndex(SIZE);
         for (int i = 0; i < 128; i++)   {
             orig.setByte(i, ThreadLocalRandom.current().nextInt(8));
         }

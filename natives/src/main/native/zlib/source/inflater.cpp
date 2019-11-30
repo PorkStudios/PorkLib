@@ -39,7 +39,7 @@ jlong JNICALL Java_net_daporkchop_lib_natives_zlib_NativeInflater_init(JNIEnv* e
 
 void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeInflater_end(JNIEnv* env, jclass cla, jlong ctx)  {
     context_t* context = (context_t*) ctx;
-    int ret = deflateEnd(&context->stream);
+    int ret = inflateEnd(&context->stream);
     free(context);
 
     if (ret != Z_OK)    {
@@ -69,7 +69,7 @@ void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeInflater_inflate(JNIEnv*
     unsigned int avail_in  = context->stream.avail_in =  (unsigned int) min_l(context->srcLen, (jlong) 0xFFFFFFFF);
     unsigned int avail_out = context->stream.avail_out = (unsigned int) min_l(context->dstLen, (jlong) 0xFFFFFFFF);
 
-    int ret = deflate(&context->stream, Z_SYNC_FLUSH);
+    int ret = inflate(&context->stream, Z_SYNC_FLUSH);
     if (ret == Z_STREAM_END)    {
         env->SetBooleanField(obj, finishedID, (jboolean) 1);
     } else if (ret != Z_OK)    {

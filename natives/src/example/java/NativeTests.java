@@ -16,20 +16,15 @@
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import net.daporkchop.lib.natives.PNatives;
-import net.daporkchop.lib.natives.zlib.JavaDeflater;
 import net.daporkchop.lib.natives.zlib.PDeflater;
 import net.daporkchop.lib.natives.zlib.PInflater;
 import net.daporkchop.lib.natives.zlib.Zlib;
-import net.daporkchop.lib.unsafe.PUnsafe;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.file.StandardOpenOption;
-import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.zip.InflaterOutputStream;
 
 /**
  * @author DaPorkchop_
@@ -40,12 +35,15 @@ public class NativeTests {
     public static void main(String... args) throws IOException {
         if (true) {
             ByteBuf orig = Unpooled.directBuffer(SIZE).writerIndex(SIZE);
-            for (int i = 0; i < 128; i++) {
+            for (int i = 0; i < SIZE; i++) {
                 orig.setByte(i, ThreadLocalRandom.current().nextInt(8));
             }
             ByteBuf compressed = Unpooled.directBuffer(SIZE >>> 3, SIZE).clear();
 
-            try (PDeflater deflater = /*PNatives.ZLIB.get().deflater(Zlib.ZLIB_LEVEL_BEST)*/new JavaDeflater(Zlib.ZLIB_LEVEL_BEST, Zlib.ZLIB_MODE_ZLIB)) {
+            try (PDeflater deflater =
+                         PNatives.ZLIB.get().deflater(Zlib.ZLIB_LEVEL_BEST)
+                 //new net.daporkchop.lib.natives.zlib.JavaDeflater(Zlib.ZLIB_LEVEL_BEST, Zlib.ZLIB_MODE_ZLIB)
+            ) {
                 System.out.printf("Deflating...\nFinished: %b\n", deflater.finished());
                 deflater.deflate(orig, compressed);
                 System.out.printf("Read: %d\nWritten: %d\nFinished: %b\n", deflater.readBytes(), deflater.writtenBytes(), deflater.finished());
@@ -53,7 +51,10 @@ public class NativeTests {
 
             ByteBuf decompressed = Unpooled.directBuffer(SIZE, SIZE).clear();
 
-            try (PInflater inflater = PNatives.ZLIB.get().inflater()) {
+            try (PInflater inflater =
+                         PNatives.ZLIB.get().inflater()
+                 //new net.daporkchop.lib.natives.zlib.JavaInflater(Zlib.ZLIB_MODE_ZLIB)
+            ) {
                 System.out.printf("Inflating...\nFinished: %b\n", inflater.finished());
                 inflater.inflate(compressed, decompressed);
                 System.out.printf("Read: %d\nWritten: %d\nFinished: %b\n", inflater.readBytes(), inflater.writtenBytes(), inflater.finished());
@@ -64,7 +65,7 @@ public class NativeTests {
                     throw new IllegalStateException();
                 }
             }
-        } else if (true)    {
+        } else if (true) {
             File srcFile = new File("/home/daporkchop/Desktop/java.tar.gz");
             File dstFile = new File("/home/daporkchop/Desktop/java.tar");
 
@@ -73,7 +74,7 @@ public class NativeTests {
                 int size = (int) channel.size();
                 src = Unpooled.directBuffer(size, size).clear();
                 src.writeBytes(channel, 0L, size);
-                if (src.isWritable())   {
+                if (src.isWritable()) {
                     throw new IllegalStateException(String.format("Only read %d bytes!", src.writerIndex()));
                 }
             }
@@ -81,15 +82,15 @@ public class NativeTests {
             System.out.printf("Original size: %d bytes\n", src.readableBytes());
 
             ByteBuf dst = Unpooled.directBuffer(src.readableBytes(), SIZE);
-            try (PInflater inflater = PNatives.ZLIB.get().inflater(Zlib.ZLIB_MODE_AUTO))   {
+            try (PInflater inflater = PNatives.ZLIB.get().inflater(Zlib.ZLIB_MODE_AUTO)) {
                 inflater.inflate(src, dst);
             }
 
             System.out.printf("Inflated size: %d bytes\n", dst.readableBytes());
 
-            try (FileChannel channel = FileChannel.open(dstFile.toPath(), StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING))    {
+            try (FileChannel channel = FileChannel.open(dstFile.toPath(), StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
                 dst.readBytes(channel, 0L, dst.readableBytes());
-                if (dst.isReadable())   {
+                if (dst.isReadable()) {
                     throw new IllegalStateException(String.format("Only wrote %d bytes!", src.readableBytes()));
                 }
             }

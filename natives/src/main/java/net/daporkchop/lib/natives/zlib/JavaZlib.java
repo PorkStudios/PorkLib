@@ -18,7 +18,7 @@ package net.daporkchop.lib.natives.zlib;
 import net.daporkchop.lib.natives.NativeCode;
 
 /**
- * Pure java implementation of {@link Zlib}.
+ * Pure Java implementation of {@link Zlib}.
  *
  * @author DaPorkchop_
  */
@@ -40,6 +40,6 @@ public final class JavaZlib extends NativeCode.Impl<Zlib> implements Zlib {
 
     @Override
     public PInflater inflater(int mode) {
-        return null;
+        return new JavaInflater(mode);
     }
 }

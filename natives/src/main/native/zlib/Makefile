@@ -44,6 +44,6 @@ $(OUTDIR)/$(BUILD)/libzlib.so: $(CFILES) $(CPPFILES) $(OFILES)
 
 %.cpp.o: $(CPPFILES)
 	@echo "Building $(subst .o,,$(subst __,/,$@))..."
-	$(CXX) $(CXXFLAGS) $(INCLUDE) -c $(subst .o,,$(subst __,/,$@)) -o $@
+	@$(CXX) $(CXXFLAGS) $(INCLUDE) -c $(subst .o,,$(subst __,/,$@)) -o $@
 
 endif

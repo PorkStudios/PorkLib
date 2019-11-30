@@ -95,8 +95,14 @@ void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeInflater_inflate(JNIEnv*
         return;
     }
 
-    env->SetLongField(obj, readBytesID,    (jlong) (avail_in - context->stream.avail_in));
-    env->SetLongField(obj, writtenBytesID, (jlong) (avail_out - context->stream.avail_out));
+    jlong read =    (jlong) (avail_in - context->stream.avail_in);
+    jlong written = (jlong) (avail_out - context->stream.avail_out);
+    context->stream.next_in  += read;
+    context->stream.next_out += written;
+    context->srcLen -= read;
+    context->dstLen -= written;
+    env->SetLongField(obj, readBytesID,    read);
+    env->SetLongField(obj, writtenBytesID, written);
 }
 
 void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeInflater_reset(JNIEnv* env, jobject obj)     {

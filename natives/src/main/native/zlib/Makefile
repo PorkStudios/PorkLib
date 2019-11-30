@@ -29,9 +29,9 @@ OFILES			:=	$(addsuffix .o,$(subst /,__,$(CFILES)) $(subst /,__,$(CPPFILES)))
 CFLAGS			:=	$(CFLAGS) -D__LARGEFILE64__SOURCE=1 -DHAVE__HIDDEN -DPIC
 INCLUDE			:=	$(foreach dir,$(INCLUDES),-I$(dir)) -I$(PROJDIR)/include
 
-zlib-$(BUILD): $(OUTDIR)/$(BUILD)/libzlib.so
+zlib-$(BUILD): $(OUTDIR)/$(BUILD)/libzlib.$(EXT)
 
-$(OUTDIR)/$(BUILD)/libzlib.so: $(CFILES) $(CPPFILES) $(OFILES)
+$(OUTDIR)/$(BUILD)/libzlib.$(EXT): $(CFILES) $(CPPFILES) $(OFILES)
 	@[ -d $(OUTDIR)/$(BUILD) ] || mkdir -p $(OUTDIR)/$(BUILD)
 	@echo "Linking $@..."
 	@$(LD) $(LDFLAGS) $(INCLUDE) -o $@ $(OFILES)

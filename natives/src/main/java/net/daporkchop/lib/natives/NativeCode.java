@@ -57,6 +57,12 @@ public final class NativeCode<T> implements Supplier<T> {
                                     break;
                             }
                             break;
+                        case Windows:
+                            if (PlatformInfo.ARCHITECTURE == Architecture.x86_64)   {
+                                LIB_EXT = "dll";
+                                LIB_ARCH = "x86_64-w64-mingw32";
+                            }
+                            break;
                     }
                     if (LIB_ARCH == null || LIB_EXT == null)    {
                         throw new IllegalStateException();
@@ -136,7 +142,8 @@ public final class NativeCode<T> implements Supplier<T> {
          * Whether or not native libraries are available.
          */
         public static final boolean AVAILABLE =
-                ((PlatformInfo.ARCHITECTURE == Architecture.x86 || PlatformInfo.ARCHITECTURE == Architecture.x86_64) && PlatformInfo.OPERATING_SYSTEM == OperatingSystem.Linux);
+                ((PlatformInfo.ARCHITECTURE == Architecture.x86 || PlatformInfo.ARCHITECTURE == Architecture.x86_64) && PlatformInfo.OPERATING_SYSTEM == OperatingSystem.Linux)
+                || (PlatformInfo.ARCHITECTURE == Architecture.x86_64 && PlatformInfo.OPERATING_SYSTEM == OperatingSystem.Windows);
 
         @Override
         protected boolean _available() {

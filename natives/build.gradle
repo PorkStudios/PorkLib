@@ -17,16 +17,20 @@ dependencies {
     compile "io.netty:netty-buffer:$nettyVersion"
 }
 
-task compileNatives(type: Exec) {
-    workingDir "$projectDir"
-    commandLine "make", String.format("-j%d", Runtime.getRuntime().availableProcessors())
+if (System.getProperty("os.name", "").toLowerCase().replaceAll("[^a-z0-9]+", "").startsWith("windows")) {
+    System.out.println("You are running Windows, which is bad and you should feel bad.")
+} else {
+    task compileNatives(type: Exec) {
+        workingDir "$projectDir"
+        commandLine "make", String.format("-j%d", Runtime.getRuntime().availableProcessors())
+    }
+
+    compileJava.dependsOn(compileNatives)
+
+    task cleanNatives(type: Exec) {
+        workingDir "$projectDir"
+        commandLine "make", "clean"
+    }
+
+    clean.dependsOn(cleanNatives)
 }
-
-compileJava.dependsOn(compileNatives)
-
-task cleanNatives(type: Exec) {
-    workingDir "$projectDir"
-    commandLine "make", "clean"
-}
-
-clean.dependsOn(cleanNatives)

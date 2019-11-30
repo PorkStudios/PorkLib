@@ -40,13 +40,10 @@ public interface PDeflater extends Releasable {
      * @param output a {@link ByteBuf} that the output data will be written to
      */
     default void deflate(@NonNull ByteBuf input, @NonNull ByteBuf output) {
-        input.memoryAddress();
-        output.memoryAddress();
+        this.input(input.memoryAddress() + input.readerIndex(), input.readableBytes()); //we don't need to set this in a loop
 
         do {
             //System.out.printf("readable: %d, writable: %d\n", input.readableBytes(), output.writableBytes());
-
-            this.input(input.memoryAddress() + input.readerIndex(), input.readableBytes());
             this.output(output.memoryAddress() + output.writerIndex(), output.writableBytes());
 
             this.deflate(true);

@@ -23,11 +23,10 @@ repositories {
 dependencies {
     compile project(":binary")
     compile project(":encoding")
-    compile project(":minecraft:minecraft-text")
-    compile project(":primitive")
     compile project(":encoding:nbt")
-
-    compile "net.md-5:bungeecord-native:$bungeecordNativeVersion"
+    compile project(":minecraft:minecraft-text")
+    compile project(":natives")
+    compile project(":primitive")
 
     compile "com.google.guava:guava:$guavaVersion"
 }

@@ -100,8 +100,6 @@ void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_deflate(JNIEnv*
 
     jlong read =    (jlong) (avail_in - context->stream.avail_in);
     jlong written = (jlong) (avail_out - context->stream.avail_out);
-    context->stream.next_in  += read;
-    context->stream.next_out += written;
     context->srcLen -= read;
     context->dstLen -= written;
     env->SetLongField(obj, readBytesID,    read);

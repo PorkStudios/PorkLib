@@ -14,8 +14,6 @@
  */
 
 package net.daporkchop.lib.minecraft.world.format.anvil.region;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.encoding.compression.CompressionHelper;
@@ -50,13 +48,13 @@ public class RegionConstants {
      */
     public static final byte PORKIAN_ID_MASK = (byte) 0x80;
 
-    public static final byte ID_GZIP    = 1; //official, no longer used by vanilla
-    public static final byte ID_DEFLATE = 2; //official
-    public static final byte ID_NONE    = PORKIAN_ID_MASK | 0;
-    public static final byte ID_BZIP2   = PORKIAN_ID_MASK | 1;
-    public static final byte ID_LZ4     = PORKIAN_ID_MASK | 2;
-    public static final byte ID_LZMA    = PORKIAN_ID_MASK | 3;
-    public static final byte ID_XZ      = PORKIAN_ID_MASK | 4;
+    public static final byte ID_GZIP  = 1; //official, no longer used by vanilla
+    public static final byte ID_ZLIB  = 2; //official
+    public static final byte ID_NONE  = PORKIAN_ID_MASK | 0;
+    public static final byte ID_BZIP2 = PORKIAN_ID_MASK | 1;
+    public static final byte ID_LZ4   = PORKIAN_ID_MASK | 2;
+    public static final byte ID_LZMA  = PORKIAN_ID_MASK | 3;
+    public static final byte ID_XZ    = PORKIAN_ID_MASK | 4;
 
     public static final ByteObjMap<CompressionHelper> COMPRESSION_IDS         = new ByteObjOpenHashMap<>();
     public static final ObjByteMap<CompressionHelper> REVERSE_COMPRESSION_IDS = new ObjByteOpenHashMap<>();
@@ -67,7 +65,7 @@ public class RegionConstants {
         //id => compression algo
         COMPRESSION_IDS.put(ID_NONE, Compression.NONE);
         COMPRESSION_IDS.put(ID_GZIP, Compression.GZIP_NORMAL);
-        COMPRESSION_IDS.put(ID_DEFLATE, Compression.DEFLATE_NORMAL);
+        COMPRESSION_IDS.put(ID_ZLIB, Compression.DEFLATE_NORMAL);
         COMPRESSION_IDS.put(ID_BZIP2, Compression.BZIP2_NORMAL);
         COMPRESSION_IDS.put(ID_LZ4, Compression.LZ4_BLOCK);
         COMPRESSION_IDS.put(ID_LZMA, Compression.LZMA_NORMAL);
@@ -78,9 +76,9 @@ public class RegionConstants {
         REVERSE_COMPRESSION_IDS.put(Compression.GZIP_LOW, ID_GZIP);
         REVERSE_COMPRESSION_IDS.put(Compression.GZIP_NORMAL, ID_GZIP);
         REVERSE_COMPRESSION_IDS.put(Compression.GZIP_HIGH, ID_GZIP);
-        REVERSE_COMPRESSION_IDS.put(Compression.DEFLATE_LOW, ID_DEFLATE);
-        REVERSE_COMPRESSION_IDS.put(Compression.DEFLATE_NORMAL, ID_DEFLATE);
-        REVERSE_COMPRESSION_IDS.put(Compression.DEFLATE_HIGH, ID_DEFLATE);
+        REVERSE_COMPRESSION_IDS.put(Compression.DEFLATE_LOW, ID_ZLIB);
+        REVERSE_COMPRESSION_IDS.put(Compression.DEFLATE_NORMAL, ID_ZLIB);
+        REVERSE_COMPRESSION_IDS.put(Compression.DEFLATE_HIGH, ID_ZLIB);
         REVERSE_COMPRESSION_IDS.put(Compression.BZIP2_LOW, ID_BZIP2);
         REVERSE_COMPRESSION_IDS.put(Compression.BZIP2_NORMAL, ID_BZIP2);
         REVERSE_COMPRESSION_IDS.put(Compression.BZIP2_HIGH, ID_BZIP2);

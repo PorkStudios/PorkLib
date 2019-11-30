@@ -20,6 +20,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -41,6 +42,10 @@ import net.daporkchop.lib.minecraft.world.impl.MinecraftSaveConfig;
 import net.daporkchop.lib.minecraft.world.impl.section.DirectSectionImpl;
 import net.daporkchop.lib.minecraft.world.impl.section.HeapSectionImpl;
 import net.daporkchop.lib.minecraft.world.impl.vanilla.VanillaChunkImpl;
+import net.daporkchop.lib.natives.PNatives;
+import net.daporkchop.lib.natives.zlib.JavaZlib;
+import net.daporkchop.lib.natives.zlib.PInflater;
+import net.daporkchop.lib.natives.zlib.Zlib;
 import net.daporkchop.lib.nbt.NBTInputStream;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 import net.daporkchop.lib.nbt.tag.notch.ListTag;
@@ -66,7 +71,7 @@ import java.util.zip.InflaterInputStream;
 public class AnvilWorldManager implements WorldManager {
     protected static final Cache<HeapSectionImpl> CHUNK_CACHE    = SoftThreadCache.of(() -> new HeapSectionImpl(-1, null));
     protected static final Pattern                REGION_PATTERN = Pattern.compile("^r\\.(-?[0-9]+)\\.(-?[0-9]+)\\.mca$");
-    protected static final Cache<Inflater>        INFLATER_CACHE = SoftThreadCache.of(Inflater::new);
+    protected static final Cache<PInflater>       INFLATER_CACHE = SoftThreadCache.of(() -> PNatives.ZLIB.get().inflater(Zlib.ZLIB_MODE_AUTO));
 
     protected final AnvilSaveFormat format;
     protected final File            root;
@@ -133,22 +138,23 @@ public class AnvilWorldManager implements WorldManager {
             CompoundTag rootTag;
             //TODO: check if region contains chunk
             {
-                ByteBuf buf = this.regionFileCache.get(new Vec2i(chunk.getX() >> 5, chunk.getZ() >> 5)).readDirect(chunk.getX() & 0x1F, chunk.getZ() & 0x1F);
+                ByteBuf compressed = this.regionFileCache.get(new Vec2i(chunk.getX() >> 5, chunk.getZ() >> 5)).readDirect(chunk.getX() & 0x1F, chunk.getZ() & 0x1F);
                 try {
-                    byte compressionId = buf.readByte();
+                    byte compressionId = compressed.readByte();
                     switch (compressionId) {
-                        case RegionConstants.ID_GZIP: //unlikely, so not much is optimized here
-                            try (NBTInputStream in = new NBTInputStream(new GZIPInputStream(NettyUtil.wrapIn(buf)))) {
-                                rootTag = in.readTag().getCompound("Level");
-                            }
-                            break;
-                        case RegionConstants.ID_DEFLATE: {
-                            Inflater inflater = INFLATER_CACHE.get();
-                            //TODO: InflaterInputStream still allocates a buffer
-                            try (NBTInputStream in = new NBTInputStream(new InflaterInputStream(NettyUtil.wrapIn(buf), inflater))) {
-                                rootTag = in.readTag().getCompound("Level");
+                        case RegionConstants.ID_GZIP: //i can use the same instance for both compression types since it's using ZLIB_MODE_AUTO
+                        case RegionConstants.ID_ZLIB: {
+                            PInflater inflater = INFLATER_CACHE.get();
+                            inflater.reset();
+                            ByteBuf uncompressed = PooledByteBufAllocator.DEFAULT.directBuffer();
+                            try {
+                                inflater.inflate(compressed, uncompressed);
+                                compressed.release();
+                                try (NBTInputStream in = new NBTInputStream(NettyUtil.wrapIn(uncompressed))) {
+                                    rootTag = in.readTag().getCompound("Level");
+                                }
                             } finally {
-                                inflater.reset();
+                                uncompressed.release();
                             }
                         }
                         break;
@@ -162,8 +168,8 @@ public class AnvilWorldManager implements WorldManager {
                     }
                     return;
                 } finally {
-                    if (buf != null) {
-                        buf.release();
+                    if (compressed != null && compressed.refCnt() > 0) {
+                        compressed.release();
                     }
                 }
             }

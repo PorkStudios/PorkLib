@@ -40,11 +40,8 @@ public interface PInflater extends Releasable {
      * @param output a {@link ByteBuf} that the output data will be written to
      */
     default void inflate(@NonNull ByteBuf input, @NonNull ByteBuf output) {
-        input.memoryAddress();
-        output.memoryAddress();
-
         do {
-            this.input(input.memoryAddress() + input.readerIndex(), input.readableBytes());
+            this.input(input.memoryAddress() + input.readerIndex(), input.readableBytes()); //we don't need to set this in a loop
             this.output(output.memoryAddress() + output.writerIndex(), output.writableBytes());
 
             this.inflate();

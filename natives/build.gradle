@@ -13,37 +13,24 @@
  *
  */
 
-package net.daporkchop.lib.common.test;
+dependencies {
+    compile "io.netty:netty-buffer:$nettyVersion"
+}
 
-import lombok.experimental.UtilityClass;
-
-import java.util.concurrent.ThreadLocalRandom;
-
-/**
- * A bunch of random byte arrays for use in test classes.
- * <p>
- * Really shouldn't be used outside of unit tests.
- *
- * @author DaPorkchop_
- */
-@UtilityClass
-public class TestRandomData {
-    public static final byte[][] randomBytes = new byte[32][];
-
-    static {
-        ThreadLocalRandom r = ThreadLocalRandom.current();
-        for (int i = randomBytes.length - 1; i >= 0; i--) {
-            r.nextBytes(randomBytes[i] = new byte[r.nextInt(1024, 8192)]);
-        }
+if (System.getProperty("os.name", "").toLowerCase().replaceAll("[^a-z0-9]+", "").startsWith("windows")) {
+    System.out.println("You are running Windows, which is bad and you should feel bad.")
+} else {
+    task compileNatives(type: Exec) {
+        workingDir "$projectDir"
+        commandLine "make", String.format("-j%d", Runtime.getRuntime().availableProcessors())
     }
 
-    public static byte[] getRandomBytes(int minLen, int maxLen) {
-        return getRandomBytes(ThreadLocalRandom.current().nextInt(minLen, maxLen));
+    compileJava.dependsOn(compileNatives)
+
+    task cleanNatives(type: Exec) {
+        workingDir "$projectDir"
+        commandLine "make", "clean"
     }
 
-    public static byte[] getRandomBytes(int len) {
-        byte[] b = new byte[len];
-        ThreadLocalRandom.current().nextBytes(b);
-        return b;
-    }
+    clean.dependsOn(cleanNatives)
 }

@@ -13,37 +13,29 @@
  *
  */
 
-package net.daporkchop.lib.common.test;
+package net.daporkchop.lib.natives;
 
-import lombok.experimental.UtilityClass;
-
-import java.util.concurrent.ThreadLocalRandom;
+import lombok.Getter;
+import lombok.experimental.Accessors;
 
 /**
- * A bunch of random byte arrays for use in test classes.
- * <p>
- * Really shouldn't be used outside of unit tests.
+ * Thrown by native libraries when an exception occurs.
  *
  * @author DaPorkchop_
  */
-@UtilityClass
-public class TestRandomData {
-    public static final byte[][] randomBytes = new byte[32][];
+@Getter
+@Accessors(fluent = true)
+public final class NativeCodeException extends RuntimeException {
+    protected final int err;
 
-    static {
-        ThreadLocalRandom r = ThreadLocalRandom.current();
-        for (int i = randomBytes.length - 1; i >= 0; i--) {
-            r.nextBytes(randomBytes[i] = new byte[r.nextInt(1024, 8192)]);
-        }
+    public NativeCodeException(String message, int err) {
+        super(message);
+
+        this.err = err;
     }
 
-    public static byte[] getRandomBytes(int minLen, int maxLen) {
-        return getRandomBytes(ThreadLocalRandom.current().nextInt(minLen, maxLen));
-    }
-
-    public static byte[] getRandomBytes(int len) {
-        byte[] b = new byte[len];
-        ThreadLocalRandom.current().nextBytes(b);
-        return b;
+    @Override
+    public String getMessage() {
+        return String.format("%d: %s", this.err, super.getMessage());
     }
 }

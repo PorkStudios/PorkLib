@@ -13,37 +13,59 @@
  *
  */
 
-package net.daporkchop.lib.common.test;
+package net.daporkchop.lib.natives.zlib;
 
-import lombok.experimental.UtilityClass;
-
-import java.util.concurrent.ThreadLocalRandom;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.unsafe.PCleaner;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 /**
- * A bunch of random byte arrays for use in test classes.
- * <p>
- * Really shouldn't be used outside of unit tests.
+ * Implementation of {@link PDeflater} using native code.
  *
  * @author DaPorkchop_
  */
-@UtilityClass
-public class TestRandomData {
-    public static final byte[][] randomBytes = new byte[32][];
+@Getter
+@Accessors(fluent = true)
+public final class NativeDeflater implements PDeflater {
+    static native void load();
 
-    static {
-        ThreadLocalRandom r = ThreadLocalRandom.current();
-        for (int i = randomBytes.length - 1; i >= 0; i--) {
-            r.nextBytes(randomBytes[i] = new byte[r.nextInt(1024, 8192)]);
+    private static native long init(int level, int mode);
+
+    private static native void end(long ctx);
+
+    @Getter(AccessLevel.NONE)
+    private final long ctx;
+    private long readBytes;
+    private long writtenBytes;
+
+    @Getter(AccessLevel.NONE)
+    private final PCleaner cleaner;
+
+    private boolean finished;
+
+    NativeDeflater(int level, int mode) {
+        long ctx = this.ctx = init(level, mode);
+        this.cleaner = PCleaner.cleaner(this, () -> end(ctx));
+    }
+
+    @Override
+    public native void input(long addr, long size);
+
+    @Override
+    public native void output(long addr, long size);
+
+    @Override
+    public native void deflate(boolean finish);
+
+    @Override
+    public native void reset();
+
+    @Override
+    public void release() throws AlreadyReleasedException {
+        if (!this.cleaner.tryClean()) {
+            throw new AlreadyReleasedException();
         }
-    }
-
-    public static byte[] getRandomBytes(int minLen, int maxLen) {
-        return getRandomBytes(ThreadLocalRandom.current().nextInt(minLen, maxLen));
-    }
-
-    public static byte[] getRandomBytes(int len) {
-        byte[] b = new byte[len];
-        ThreadLocalRandom.current().nextBytes(b);
-        return b;
     }
 }

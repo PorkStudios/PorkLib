@@ -1,0 +1,12 @@
+#windows gets no LTO because it's shit
+#why do people use it
+#seriously
+export CFLAGS		:=	$(CFLAGS)
+export CXXFLAGS		:=	$(CXXFLAGS)
+export LDFLAGS		:=	$(LDFLAGS)
+
+export CC	:=	x86_64-w64-mingw32-gcc
+export CXX	:=	x86_64-w64-mingw32-g++
+export LD	:=	x86_64-w64-mingw32-g++
+
+export EXT	:=	dll

@@ -50,10 +50,10 @@ public final class NativeCode<T> implements Supplier<T> {
                             LIB_EXT = "so";
                             switch (PlatformInfo.ARCHITECTURE)  {
                                 case x86_64:
-                                    LIB_ARCH = "x86_64-pc-linux-gnu";
+                                    LIB_ARCH = "x86_64-linux-gnu";
                                     break;
                                 case x86:
-                                    LIB_ARCH = "x86_64-pc-linux-gnu";
+                                    LIB_ARCH = "x86-linux-gnu";
                                     break;
                             }
                             break;

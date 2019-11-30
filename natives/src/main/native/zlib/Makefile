@@ -12,11 +12,13 @@ $(BUILD): $(CURDIR)/lib-zlib/zlib.h
 
 $(CURDIR)/lib-zlib/zlib.h:
 	@echo "Downloading zlib sources..."
-	@wget --no-proxy -O - https://cloud.daporkchop.net/programs/source/zlib-1.2.11.tar.gz | tar zxf -
+	@curl -o - https://cloud.daporkchop.net/programs/source/zlib-1.2.11.tar.gz | tar zxf -
 	@mv zlib-1.2.11/ lib-zlib/
 
 else
 .PHONY: zlib-$(BUILD)
+
+include $(TOPDIR)/toolchain/$(BUILD)
 
 SOURCES			:=	$(SOURCES) $(PROJDIR)/source $(PROJDIR)/lib-zlib
 
@@ -33,6 +35,8 @@ $(OUTDIR)/$(BUILD)/libzlib.so: $(CFILES) $(CPPFILES) $(OFILES)
 	@[ -d $(OUTDIR)/$(BUILD) ] || mkdir -p $(OUTDIR)/$(BUILD)
 	@echo "Linking $@..."
 	@$(LD) $(LDFLAGS) $(INCLUDE) -o $@ $(OFILES)
+	@echo "Stripping $@..."
+	@strip $@
 
 %.c.o: $(CFILES)
 	@echo "Building $(subst .o,,$(subst __,/,$@))..."
@@ -40,6 +44,6 @@ $(OUTDIR)/$(BUILD)/libzlib.so: $(CFILES) $(CPPFILES) $(OFILES)
 
 %.cpp.o: $(CPPFILES)
 	@echo "Building $(subst .o,,$(subst __,/,$@))..."
-	@$(CXX) $(CXXFLAGS) $(INCLUDE) -c $(subst .o,,$(subst __,/,$@)) -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDE) -c $(subst .o,,$(subst __,/,$@)) -o $@
 
 endif

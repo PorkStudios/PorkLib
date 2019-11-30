@@ -1,6 +1,5 @@
-# this godawful excuse for a makefile is hacked together using the one i made for libdsi, but at least it works
-
 export SHELL		:=	/bin/bash
+export GCC_VERSION	:=	8.1.0
 
 export TARGET		:=	$(shell basename $(CURDIR))
 export TOPDIR		:=	$(CURDIR)
@@ -8,17 +7,15 @@ export SRCDIR		:=	$(TOPDIR)/src/main/native
 export OUTDIR		:=	$(TOPDIR)/src/main/resources
 
 export CFLAGS		:=	-shared -Ofast -ffast-math -fPIC -flto=auto -fno-fat-lto-objects
-export CXXFLAGS		=	$(CFLAGS)
-export LDFLAGS		=	$(CFLAGS)
-
-export CXX			:=	g++
-export CC			:=	gcc
-export LD			:=	$(CXX)
+export CXXFLAGS		:=	$(CFLAGS)
+export LDFLAGS		:=	$(CFLAGS)
 
 export SOURCES		:=	$(SRCDIR)/common/source
 export INCLUDES		:=	$(SRCDIR)/common/include $(JAVA_HOME)include $(JAVA_HOME)include/linux
 
-export ARCHS		:=	x86_64-pc-linux-gnu
+export ARCHS		:=	x86_64-linux-gnu x86-linux-gnu
+#export ARCHS		:=	$(foreach arch,$(ARCHS),$(if $(shell which $(arch)-gcc),$(arch)))
+#export ARCHS		:=	$(foreach arch,$(ARCHS),$(if $(shell which $(arch)-g++),$(arch)))
 export ARCH_TASKS	:=	$(foreach arch,$(ARCHS),build.$(arch))
 
 export MODULES		:=	zlib

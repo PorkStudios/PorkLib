@@ -1,0 +1,7 @@
+export CFLAGS		:=	$(CFLAGS)
+export CXXFLAGS		:=	$(CXXFLAGS)
+export LDFLAGS		:=	$(LDFLAGS)
+
+export CC  := x86_64-linux-gnu-gcc
+export CXX := x86_64-linux-gnu-g++
+export LD  := x86_64-linux-gnu-g++

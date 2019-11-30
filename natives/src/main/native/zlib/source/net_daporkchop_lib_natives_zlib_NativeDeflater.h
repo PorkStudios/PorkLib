@@ -18,10 +18,10 @@ JNIEXPORT void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_load
 /*
  * Class:     net_daporkchop_lib_natives_zlib_NativeDeflater
  * Method:    init
- * Signature: (IZ)J
+ * Signature: (II)J
  */
 JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_init
-  (JNIEnv *, jclass, jint, jboolean);
+  (JNIEnv *, jclass, jint, jint);
 
 /*
  * Class:     net_daporkchop_lib_natives_zlib_NativeDeflater

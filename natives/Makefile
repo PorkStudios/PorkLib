@@ -1,5 +1,7 @@
 # this godawful excuse for a makefile is hacked together using the one i made for libdsi, but at least it works
 
+export SHELL		:=	/bin/bash
+
 export TARGET		:=	$(shell basename $(CURDIR))
 export TOPDIR		:=	$(CURDIR)
 export SRCDIR		:=	$(TOPDIR)/src/main/native
@@ -29,11 +31,10 @@ build.%: $(foreach mod,$(MODULES),$(OUTDIR)/%/lib$(mod).so) .FORCE
 	@echo Built libraries for $(shell echo '$@' | perl -n -e '/build\.(.+)/ && print $$1')!
 
 %.so: .FORCE
-	@$(MAKE) -C $(SRCDIR)/$(shell echo "$@" | perl -n -e '/\/lib([^.]+)\.so$$/ && print $$1') \
-		BUILD=$(shell echo "$@" | perl -n -e '/([^\/]*?)\/lib[^.]+\.so$$/ && print $$1') \
-		$(shell echo "$@" | perl -n -e '/([^\/]*?)\/lib[^.]+\.so$$/ && print $$1') \
-		PROJDIR=$(SRCDIR)/$(shell echo "$@" | perl -n -e '/\/lib([^.]+)\.so$$/ && print $$1')
-	@echo Built $(shell echo "$@" | perl -n -e '/\/lib([^.]+)\.so$$/ && print $$1') for target $(shell echo "$@" | perl -n -e '/([^\/]*?)\/lib[^.]+\.so$$/ && print $$1')!
+	@_PRJ_NAME=$(shell echo "$@" | perl -n -e '/\/lib([^.]+)\.so$$/ && print $$1') && \
+		_ARCH=$(shell echo "$@" | perl -n -e '/([^\/]*?)\/lib[^.]+\.so$$/ && print $$1') && \
+		$(MAKE) -C $(SRCDIR)/$$_PRJ_NAME BUILD=$$_ARCH PROJDIR=$(SRCDIR)/$$_PRJ_NAME $$_ARCH && \
+		echo Built $$_PRJ_NAME for target $$_ARCH!
 
 clean: $(foreach mod,$(MODULES),clean.$(mod))
 	@rm -rf $(OUTDIR)/*/

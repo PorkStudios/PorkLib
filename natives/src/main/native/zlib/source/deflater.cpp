@@ -26,7 +26,7 @@ void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_load(JNIEnv* en
     finishedID     = env->GetFieldID(cla, "finished", "Z");
 }
 
-jlong JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_init(JNIEnv* env, jclass cla, jint level, jboolean nowrap)   {
+jlong JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_init(JNIEnv* env, jclass cla, jint level, jint mode)   {
     context_t* context = (context_t*) malloc(sizeof(context_t));
     memset(context, 0, sizeof(context_t));
     int ret = deflateInit(&context->stream, level);
@@ -71,7 +71,8 @@ void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_deflate(JNIEnv*
     unsigned int avail_in  = context->stream.avail_in =  (unsigned int) min_l(context->srcLen, (jlong) 0xFFFFFFFF);
     unsigned int avail_out = context->stream.avail_out = (unsigned int) min_l(context->dstLen, (jlong) 0xFFFFFFFF);
 
-    int ret = deflate(&context->stream, finish ? Z_FINISH : Z_NO_FLUSH);
+    //even if finish is set to true, don't actually run deflate with the finish flag if the entire data isn't going to be able to be read this invocation
+    int ret = deflate(&context->stream, (finish && avail_in == context->srcLen) ? Z_FINISH : Z_NO_FLUSH);
     if (ret == Z_STREAM_END)    {
         env->SetBooleanField(obj, finishedID, (jboolean) 1);
     } else if (ret != Z_OK)    {

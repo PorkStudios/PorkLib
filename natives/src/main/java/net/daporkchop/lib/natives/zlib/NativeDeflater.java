@@ -31,7 +31,7 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 public final class NativeDeflater implements PDeflater {
     static native void load();
 
-    private static native long init(int level, boolean nowrap);
+    private static native long init(int level, int mode);
 
     private static native void end(long ctx);
 
@@ -45,8 +45,8 @@ public final class NativeDeflater implements PDeflater {
 
     private boolean finished;
 
-    NativeDeflater(int level, boolean nowrap) {
-        long ctx = this.ctx = init(level, nowrap);
+    NativeDeflater(int level, int mode) {
+        long ctx = this.ctx = init(level, mode);
         this.cleaner = PCleaner.cleaner(this, () -> end(ctx));
     }
 

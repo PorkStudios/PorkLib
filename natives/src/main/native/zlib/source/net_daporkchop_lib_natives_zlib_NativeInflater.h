@@ -18,10 +18,10 @@ JNIEXPORT void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeInflater_load
 /*
  * Class:     net_daporkchop_lib_natives_zlib_NativeInflater
  * Method:    init
- * Signature: (Z)J
+ * Signature: (I)J
  */
 JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_natives_zlib_NativeInflater_init
-  (JNIEnv *, jclass, jboolean);
+  (JNIEnv *, jclass, jint);
 
 /*
  * Class:     net_daporkchop_lib_natives_zlib_NativeInflater

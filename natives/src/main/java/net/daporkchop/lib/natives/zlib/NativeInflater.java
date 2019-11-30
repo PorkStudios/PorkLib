@@ -31,7 +31,7 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 public final class NativeInflater implements PInflater {
     static native void load();
 
-    private static native long init(boolean nowrap);
+    private static native long init(int mode);
 
     private static native void end(long ctx);
 
@@ -45,8 +45,8 @@ public final class NativeInflater implements PInflater {
 
     private boolean finished;
 
-    NativeInflater(boolean nowrap) {
-        long ctx = this.ctx = init(nowrap);
+    NativeInflater(int mode) {
+        long ctx = this.ctx = init(mode);
         this.cleaner = PCleaner.cleaner(this, () -> end(ctx));
     }
 

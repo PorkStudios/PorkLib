@@ -37,13 +37,18 @@ import net.daporkchop.lib.primitive.function.biconsumer.IntObjBiConsumer;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.function.BiConsumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author DaPorkchop_
  */
 @Getter
 public class AnvilSaveFormat implements SaveFormat {
+    protected static final Pattern DIM_PATTERN = Pattern.compile("^DIM(-?[0-9]+)$");
+
     private final File root;
 
     private CompoundTag levelDat;
@@ -88,7 +93,19 @@ public class AnvilSaveFormat implements SaveFormat {
     @Override
     public void loadWorlds(IntObjBiConsumer<WorldManager> callback) {
         callback.accept(0, new AnvilWorldManager(this, new File(this.root, "region")));
-        //TODO: other dimensions
+
+        //load other dimensions
+        Matcher matcher = null;
+        for (File file : this.root.listFiles()) {
+            if (matcher == null)    {
+                matcher = DIM_PATTERN.matcher(file.getName());
+            } else {
+                matcher.reset(file.getName());
+            }
+            if (matcher.find()) {
+                callback.accept(Integer.parseInt(matcher.group(1)), new AnvilWorldManager(this, file));
+            }
+        }
     }
 
     @Override

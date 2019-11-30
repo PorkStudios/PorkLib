@@ -27,7 +27,23 @@ void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeInflater_load(JNIEnv* en
 jlong JNICALL Java_net_daporkchop_lib_natives_zlib_NativeInflater_init(JNIEnv* env, jclass cla, jint mode)   {
     context_t* context = (context_t*) malloc(sizeof(context_t));
     memset(context, 0, sizeof(context_t));
-    int ret = inflateInit(&context->stream);
+
+    int windowBits;
+    if (mode == 0)  { //zlib
+        windowBits = 0;
+    } else if (mode == 1) { //gzip
+        windowBits = 16;
+    } else if (mode == 2) { //auto-detect zlib or gzip
+        windowBits = 32;
+    } else if (mode == 3) { //raw deflate
+        windowBits = -15;
+    } else {
+        free(context);
+        throwException(env, "Invalid inflater mode!", mode);
+        return 0;
+    }
+
+    int ret = inflateInit2(&context->stream, windowBits);
 
     if (ret != Z_OK)    {
         free(context);

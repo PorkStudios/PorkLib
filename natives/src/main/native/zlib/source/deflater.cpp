@@ -27,9 +27,27 @@ void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_load(JNIEnv* en
 }
 
 jlong JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_init(JNIEnv* env, jclass cla, jint level, jint mode)   {
+    if (level < 0 || level > 9) {
+        throwException(env, "Invalid level!", level);
+        return 0;
+    }
+
+    int windowBits;
+    if (mode == 0)  { //zlib
+        windowBits = 15;
+    } else if (mode == 1) { //gzip
+        windowBits = 15 + 16;
+    } else if (mode == 3) { //raw deflate
+        windowBits = -15;
+    } else {
+        throwException(env, "Invalid deflater mode!", mode);
+        return 0;
+    }
+
     context_t* context = (context_t*) malloc(sizeof(context_t));
     memset(context, 0, sizeof(context_t));
-    int ret = deflateInit(&context->stream, level);
+
+    int ret = deflateInit2(&context->stream, level, Z_DEFLATED, windowBits, 8, Z_DEFAULT_STRATEGY);
 
     if (ret != Z_OK)    {
         free(context);

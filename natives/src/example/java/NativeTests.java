@@ -44,7 +44,7 @@ public class NativeTests {
             }
             ByteBuf compressed = Unpooled.directBuffer(SIZE >>> 3, SIZE).clear();
 
-            try (PDeflater deflater = PNatives.ZLIB.get().deflater(8)) {
+            try (PDeflater deflater = PNatives.ZLIB.get().deflater(Zlib.ZLIB_LEVEL_BEST)) {
                 System.out.printf("Deflating...\nFinished: %b\n", deflater.finished());
                 deflater.deflate(orig, compressed);
                 System.out.printf("Read: %d\nWritten: %d\nFinished: %b\n", deflater.readBytes(), deflater.writtenBytes(), deflater.finished());
@@ -80,7 +80,7 @@ public class NativeTests {
             System.out.printf("Original size: %d bytes\n", src.readableBytes());
 
             ByteBuf dst = Unpooled.directBuffer(src.readableBytes(), SIZE);
-            try (PInflater inflater = PNatives.ZLIB.get().inflater(Zlib.ZLIB_MODE_GZIP))   {
+            try (PInflater inflater = PNatives.ZLIB.get().inflater(Zlib.ZLIB_MODE_AUTO))   {
                 inflater.inflate(src, dst);
             }
 

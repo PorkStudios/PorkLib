@@ -7,7 +7,7 @@ export TOPDIR		:=	$(CURDIR)
 export SRCDIR		:=	$(TOPDIR)/src/main/native
 export OUTDIR		:=	$(TOPDIR)/src/main/resources
 
-export CFLAGS		:=	-shared -Ofast -ffast-math -fPIC -flto
+export CFLAGS		:=	-shared -Ofast -ffast-math -fPIC -flto=auto -fno-fat-lto-objects
 export CXXFLAGS		=	$(CFLAGS)
 export LDFLAGS		=	$(CFLAGS)
 

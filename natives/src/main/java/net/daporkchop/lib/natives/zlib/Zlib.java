@@ -49,14 +49,21 @@ public interface Zlib {
     int ZLIB_MODE_ZLIB = 0;
 
     /**
-     * "Raw" Deflate mode, no wrapping is applied to the compressed data.
-     */
-    int ZLIB_MODE_RAW = 1;
-
-    /**
      * Gzip wrapping mode, uses an (at least) 18-byte header with a CRC32 checksum.
      */
-    int ZLIB_MODE_GZIP = 2;
+    int ZLIB_MODE_GZIP = 1;
+
+    /**
+     * Only for use by {@link PInflater}, automatically detects whether the input data is in the Zlib or Gzip format.
+     * <p>
+     * Note that this doesn't work for data encoded in the {@link #ZLIB_MODE_RAW} format.
+     */
+    int ZLIB_MODE_AUTO = 2;
+
+    /**
+     * "Raw" Deflate mode, no wrapping is applied to the compressed data.
+     */
+    int ZLIB_MODE_RAW = 3;
 
     /**
      * Creates a new {@link PDeflater}.
@@ -95,7 +102,7 @@ public interface Zlib {
     /**
      * Creates a new {@link PDeflater}.
      *
-     * @param mode the zlib wrapping mode to use. Must be one of {@link #ZLIB_MODE_ZLIB}, {@link #ZLIB_MODE_RAW} or {@link #ZLIB_MODE_GZIP}
+     * @param mode the zlib wrapping mode to use. Must be one of {@link #ZLIB_MODE_ZLIB}, {@link #ZLIB_MODE_GZIP}, {@link #ZLIB_MODE_AUTO} or {@link #ZLIB_MODE_RAW}
      * @return a new {@link PInflater} instance
      */
     PInflater inflater(int mode);

@@ -34,18 +34,18 @@ JNIEXPORT void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeInflater_end
 /*
  * Class:     net_daporkchop_lib_natives_zlib_NativeInflater
  * Method:    input
- * Signature: (JJ)V
+ * Signature: (JI)V
  */
 JNIEXPORT void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeInflater_input
-  (JNIEnv *, jobject, jlong, jlong);
+  (JNIEnv *, jobject, jlong, jint);
 
 /*
  * Class:     net_daporkchop_lib_natives_zlib_NativeInflater
  * Method:    output
- * Signature: (JJ)V
+ * Signature: (JI)V
  */
 JNIEXPORT void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeInflater_output
-  (JNIEnv *, jobject, jlong, jlong);
+  (JNIEnv *, jobject, jlong, jint);
 
 /*
  * Class:     net_daporkchop_lib_natives_zlib_NativeInflater

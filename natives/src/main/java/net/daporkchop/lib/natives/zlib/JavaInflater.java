@@ -30,19 +30,21 @@ import java.util.zip.Inflater;
  */
 @Accessors(fluent = true)
 public final class JavaInflater implements PInflater {
-    @Getter
-    private long readBytes;
-    @Getter
-    private long writtenBytes;
 
     private long inputAddr;
-    private long inputSize;
     private long outputAddr;
-    private long outputSize;
 
     private final Inflater inflater;
     private byte[] inputBuffer = new byte[8192];
     private byte[] outputBuffer = new byte[8192];
+
+    @Getter
+    private int readBytes;
+    @Getter
+    private int writtenBytes;
+
+    private int inputSize;
+    private int outputSize;
 
     public JavaInflater(int mode)   {
         switch (mode)   {
@@ -61,13 +63,13 @@ public final class JavaInflater implements PInflater {
     }
 
     @Override
-    public void input(long addr, long size) {
+    public void input(long addr, int size) {
         this.inputAddr = addr;
         this.inputSize = size;
     }
 
     @Override
-    public void output(long addr, long size) {
+    public void output(long addr, int size) {
         this.outputAddr = addr;
         this.outputSize = size;
     }
@@ -75,17 +77,17 @@ public final class JavaInflater implements PInflater {
     @Override
     public void inflate() {
         long prevBytesRead = this.inflater.getBytesRead();
-        int inputCount = (int) Math.min(this.inputSize, this.inputBuffer.length);
+        int inputCount = Math.min(this.inputSize, this.inputBuffer.length);
         if (inputCount > 0) {
             PUnsafe.copyMemory(null, this.inputAddr, this.inputBuffer, PUnsafe.ARRAY_BYTE_BASE_OFFSET, inputCount);
         }
         this.inflater.setInput(this.inputBuffer, 0, inputCount);
         try {
-            int written = this.inflater.inflate(this.outputBuffer, 0, (int) Math.min(this.outputSize, this.outputBuffer.length));
+            int written = this.inflater.inflate(this.outputBuffer, 0, Math.min(this.outputSize, this.outputBuffer.length));
             if (written > 0) {
                 PUnsafe.copyMemory(this.outputBuffer, PUnsafe.ARRAY_BYTE_BASE_OFFSET, null, this.outputAddr, written);
             }
-            this.readBytes = this.inflater.getBytesRead() - prevBytesRead;
+            this.readBytes = (int) (this.inflater.getBytesRead() - prevBytesRead);
             this.writtenBytes = written;
 
             this.inputAddr += this.readBytes;

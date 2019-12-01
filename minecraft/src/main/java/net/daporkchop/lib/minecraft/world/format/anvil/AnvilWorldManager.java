@@ -66,7 +66,7 @@ import java.util.stream.Collectors;
 public class AnvilWorldManager implements WorldManager {
     protected static final Cache<HeapSectionImpl> CHUNK_CACHE    = SoftThreadCache.of(() -> new HeapSectionImpl(-1, null));
     protected static final Pattern                REGION_PATTERN = Pattern.compile("^r\\.(-?[0-9]+)\\.(-?[0-9]+)\\.mca$");
-    protected static final Cache<PInflater>       INFLATER_CACHE = SoftThreadCache.of(() -> PNatives.ZLIB.get().inflater(Zlib.ZLIB_MODE_ZLIB));
+    protected static final Cache<PInflater>       INFLATER_CACHE = SoftThreadCache.of(() -> PNatives.ZLIB.get().inflater(Zlib.ZLIB_MODE_AUTO));
 
     protected final AnvilSaveFormat format;
     protected final File            root;

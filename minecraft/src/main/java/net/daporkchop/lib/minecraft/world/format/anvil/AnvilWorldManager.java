@@ -136,17 +136,16 @@ public class AnvilWorldManager implements WorldManager {
                     switch (compressionId) {
                         case RegionConstants.ID_GZIP: //i can use the same instance for both compression types since it's using ZLIB_MODE_AUTO
                         case RegionConstants.ID_ZLIB: {
-                            PInflater inflater = INFLATER_CACHE.get();
-                            inflater.reset();
+                            //PInflater inflater = INFLATER_CACHE.get();
                             ByteBuf uncompressed = PooledByteBufAllocator.DEFAULT.directBuffer();
-                            try {
+                            try (PInflater inflater = PNatives.ZLIB.get().inflater(Zlib.ZLIB_MODE_AUTO)) {
                                 inflater.inflate(compressed, uncompressed);
-                                compressed.release();
                                 try (NBTInputStream in = new NBTInputStream(NettyUtil.wrapIn(uncompressed))) {
                                     rootTag = in.readTag().getCompound("Level");
                                 }
                             } finally {
                                 uncompressed.release();
+                                //inflater.reset();
                             }
                         }
                         break;
@@ -160,9 +159,7 @@ public class AnvilWorldManager implements WorldManager {
                     }
                     return;
                 } finally {
-                    if (compressed != null && compressed.refCnt() > 0) {
-                        compressed.release();
-                    }
+                    compressed.release();
                 }
             }
             //ListTag<CompoundTag> entitiesTag = rootTag.getTypedList("Entities"); //TODO

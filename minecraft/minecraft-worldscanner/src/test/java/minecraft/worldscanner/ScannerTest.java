@@ -58,7 +58,7 @@ public class ScannerTest {
                 //.setFormat(new AnvilSaveFormat(new File("/media/daporkchop/TooMuchStuff/Misc/2b2t_org")))
                 //.setFormat(new AnvilSaveFormat(new File("E:\\Misc\\2b2t_org")))
                 .setInitFunctions(new MinecraftSaveConfig()
-                        .openOptions(new RegionOpenOptions().access(RegionFile.Access.READ_ONLY).mode(RegionFile.Mode.MMAP_FULL)))
+                        .openOptions(new RegionOpenOptions().access(RegionFile.Access.READ_ONLY).mode(RegionFile.Mode.BUFFER_FULL)))
                 .build();
     }
 

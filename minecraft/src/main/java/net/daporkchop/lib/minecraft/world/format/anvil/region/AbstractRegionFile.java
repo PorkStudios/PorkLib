@@ -203,6 +203,7 @@ public abstract class AbstractRegionFile implements RegionFile {
             this.assertOpen();
 
             this.doClose();
+            this.channel.close();
         } finally {
             this.writeLock.unlock();
         }

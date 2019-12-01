@@ -28,6 +28,7 @@ import net.daporkchop.lib.encoding.ToBytes;
 import net.daporkchop.lib.encoding.compression.CompressionHelper;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.ex.CorruptedRegionException;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.ex.ReadOnlyRegionException;
+import net.daporkchop.lib.minecraft.world.format.anvil.region.impl.BufferedRegionFile;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.impl.MemoryMappedRegionFile;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.impl.OverclockedRegionFile;
 
@@ -54,6 +55,8 @@ public interface RegionFile extends AutoCloseable {
      */
     static RegionFile open(@NonNull File file, @NonNull RegionOpenOptions options) throws CorruptedRegionException, IOException {
         switch (options.mode)   {
+            case BUFFER_FULL:
+                return new BufferedRegionFile(file, options);
             case MMAP_FULL:
                 return new MemoryMappedRegionFile(file, options);
         }

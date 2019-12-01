@@ -39,8 +39,9 @@ jlong JNICALL Java_net_daporkchop_lib_natives_zlib_NativeInflater_init(JNIEnv* e
     int ret = inflateInit2(stream, windowBits);
 
     if (ret != Z_OK)    {
+        char* msg = stream->msg;
         free(stream);
-        throwException(env, "Couldn't init inflater!", ret);
+        throwException(env, msg == nullptr ? "Couldn't init inflater!" : msg, ret);
     }
 
     return (jlong) stream;
@@ -48,11 +49,20 @@ jlong JNICALL Java_net_daporkchop_lib_natives_zlib_NativeInflater_init(JNIEnv* e
 
 void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeInflater_end(JNIEnv* env, jclass cla, jlong ctx)  {
     z_stream* stream = (z_stream*) ctx;
-    int ret = inflateEnd(stream);
+    int ret = inflateReset(stream);
+    if (ret != Z_OK)    {
+        char* msg = stream->msg;
+        free(stream);
+        throwException(env, msg == nullptr ? "Couldn't reset inflater!" : msg, ret);
+        return;
+    }
+
+    ret = inflateEnd(stream);
+    char* msg = stream->msg;
     free(stream);
 
     if (ret != Z_OK)    {
-        throwException(env, "Couldn't end inflater!", ret);
+        throwException(env, msg == nullptr ? "Couldn't end inflater!" : msg, ret);
     }
 }
 
@@ -82,7 +92,7 @@ void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeInflater_inflate(JNIEnv*
     if (ret == Z_STREAM_END)    {
         env->SetBooleanField(obj, finishedID, (jboolean) 1);
     } else if (ret != Z_OK)    {
-        throwException(env, "Invalid return value from inflate()!", ret);
+        throwException(env, stream->msg == nullptr ? "Invalid return value from inflate()!" : stream->msg, ret);
         return;
     }
 
@@ -96,7 +106,7 @@ void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeInflater_reset(JNIEnv* e
     int ret = inflateReset(stream);
     
     if (ret != Z_OK)    {
-        throwException(env, "Couldn't reset inflater!", ret);
+        throwException(env, stream->msg == nullptr ? "Couldn't reset inflater!" : stream->msg, ret);
     }
 
     env->SetIntField(obj, readBytesID, 0);

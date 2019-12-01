@@ -30,7 +30,6 @@ import java.util.zip.Inflater;
  */
 @Accessors(fluent = true)
 public final class JavaInflater implements PInflater {
-
     private long inputAddr;
     private long outputAddr;
 
@@ -107,6 +106,9 @@ public final class JavaInflater implements PInflater {
     @Override
     public void reset() {
         this.inflater.reset();
+        this.inputAddr = this.outputAddr = 0L;
+        this.inputSize = this.outputSize = 0;
+        this.readBytes = this.writtenBytes = 0;
     }
 
     @Override

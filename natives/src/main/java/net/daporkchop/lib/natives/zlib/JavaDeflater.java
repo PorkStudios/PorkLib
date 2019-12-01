@@ -29,19 +29,20 @@ import java.util.zip.Deflater;
  */
 @Accessors(fluent = true)
 public final class JavaDeflater implements PDeflater {
-    @Getter
-    private long readBytes;
-    @Getter
-    private long writtenBytes;
-
     private long inputAddr;
-    private long inputSize;
     private long outputAddr;
-    private long outputSize;
 
     private final Deflater deflater;
     private byte[] inputBuffer = new byte[8192];
     private byte[] outputBuffer = new byte[8192];
+
+    @Getter
+    private int readBytes;
+    @Getter
+    private int writtenBytes;
+
+    private int inputSize;
+    private int outputSize;
 
     public JavaDeflater(int level, int mode)   {
         switch (mode)   {
@@ -60,13 +61,13 @@ public final class JavaDeflater implements PDeflater {
     }
 
     @Override
-    public void input(long addr, long size) {
+    public void input(long addr, int size) {
         this.inputAddr = addr;
         this.inputSize = size;
     }
 
     @Override
-    public void output(long addr, long size) {
+    public void output(long addr, int size) {
         this.outputAddr = addr;
         this.outputSize = size;
     }
@@ -78,16 +79,16 @@ public final class JavaDeflater implements PDeflater {
         }
 
         long prevBytesRead = this.deflater.getBytesRead();
-        int inputCount = (int) Math.min(this.inputSize, this.inputBuffer.length);
+        int inputCount = Math.min(this.inputSize, this.inputBuffer.length);
         if (inputCount > 0) {
             PUnsafe.copyMemory(null, this.inputAddr, this.inputBuffer, PUnsafe.ARRAY_BYTE_BASE_OFFSET, inputCount);
         }
         this.deflater.setInput(this.inputBuffer, 0, inputCount);
-        int written = this.deflater.deflate(this.outputBuffer, 0, (int) Math.min(this.outputSize, this.outputBuffer.length));
+        int written = this.deflater.deflate(this.outputBuffer, 0, Math.min(this.outputSize, this.outputBuffer.length));
         if (written > 0)    {
             PUnsafe.copyMemory(this.outputBuffer, PUnsafe.ARRAY_BYTE_BASE_OFFSET, null, this.outputAddr, written);
         }
-        this.readBytes = this.deflater.getBytesRead() - prevBytesRead;
+        this.readBytes = (int) (this.deflater.getBytesRead() - prevBytesRead);
         this.writtenBytes = written;
 
         this.inputAddr += this.readBytes;
@@ -104,6 +105,9 @@ public final class JavaDeflater implements PDeflater {
     @Override
     public void reset() {
         this.deflater.reset();
+        this.inputAddr = this.outputAddr = 0L;
+        this.inputSize = this.outputSize = 0;
+        this.readBytes = this.writtenBytes = 0;
     }
 
     @Override

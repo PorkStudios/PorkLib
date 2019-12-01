@@ -37,11 +37,12 @@ public final class NativeDeflater implements PDeflater {
 
     @Getter(AccessLevel.NONE)
     private final long ctx;
-    private long readBytes;
-    private long writtenBytes;
 
     @Getter(AccessLevel.NONE)
     private final PCleaner cleaner;
+
+    private int readBytes;
+    private int writtenBytes;
 
     private boolean finished;
 
@@ -51,10 +52,10 @@ public final class NativeDeflater implements PDeflater {
     }
 
     @Override
-    public native void input(long addr, long size);
+    public native void input(long addr, int size);
 
     @Override
-    public native void output(long addr, long size);
+    public native void output(long addr, int size);
 
     @Override
     public native void deflate(boolean finish);

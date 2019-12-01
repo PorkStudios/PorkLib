@@ -34,18 +34,18 @@ JNIEXPORT void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_end
 /*
  * Class:     net_daporkchop_lib_natives_zlib_NativeDeflater
  * Method:    input
- * Signature: (JJ)V
+ * Signature: (JI)V
  */
 JNIEXPORT void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_input
-  (JNIEnv *, jobject, jlong, jlong);
+  (JNIEnv *, jobject, jlong, jint);
 
 /*
  * Class:     net_daporkchop_lib_natives_zlib_NativeDeflater
  * Method:    output
- * Signature: (JJ)V
+ * Signature: (JI)V
  */
 JNIEXPORT void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_output
-  (JNIEnv *, jobject, jlong, jlong);
+  (JNIEnv *, jobject, jlong, jint);
 
 /*
  * Class:     net_daporkchop_lib_natives_zlib_NativeDeflater

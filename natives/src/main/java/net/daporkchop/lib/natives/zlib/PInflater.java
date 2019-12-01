@@ -40,13 +40,12 @@ public interface PInflater extends Releasable {
      * @param output a {@link ByteBuf} that the output data will be written to
      */
     default void inflate(@NonNull ByteBuf input, @NonNull ByteBuf output) {
+        if (!input.isReadable())    {
+            throw new IllegalStateException("Input not readable!");
+        }
         this.input(input.memoryAddress() + input.readerIndex(), input.readableBytes()); //we don't need to set this in a loop
 
         do {
-            if (!input.isReadable())    {
-                throw new IllegalStateException("Input not readable!");
-            }
-
             this.output(output.memoryAddress() + output.writerIndex(), output.writableBytes());
 
             this.inflate();

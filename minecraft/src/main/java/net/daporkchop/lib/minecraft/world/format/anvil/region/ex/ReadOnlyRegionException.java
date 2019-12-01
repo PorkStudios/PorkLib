@@ -16,7 +16,7 @@
 package net.daporkchop.lib.minecraft.world.format.anvil.region.ex;
 
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.world.format.anvil.region.OverclockedRegionFile;
+import net.daporkchop.lib.minecraft.world.format.anvil.region.RegionFile;
 
 import java.io.IOException;
 
@@ -33,14 +33,14 @@ public class ReadOnlyRegionException extends IOException {
         super(message);
     }
 
-    public ReadOnlyRegionException(OverclockedRegionFile region) {
+    public ReadOnlyRegionException(RegionFile region) {
         this(region, null);
     }
 
-    public ReadOnlyRegionException(@NonNull OverclockedRegionFile region, String message) {
+    public ReadOnlyRegionException(@NonNull RegionFile region, String message) {
         super(String.format(
                 "Region \"%s\" is read-only%s%s",
-                region.absolutePath(),
+                region.file().getAbsolutePath(),
                 message == null || message.isEmpty() ? "!" : ": ",
                 message == null || message.isEmpty() ? "" : message
         ));

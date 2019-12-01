@@ -36,14 +36,12 @@ import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.format.WorldManager;
-import net.daporkchop.lib.minecraft.world.format.anvil.region.OverclockedRegionFile;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.RegionConstants;
-import net.daporkchop.lib.minecraft.world.impl.MinecraftSaveConfig;
+import net.daporkchop.lib.minecraft.world.format.anvil.region.RegionFile;
 import net.daporkchop.lib.minecraft.world.impl.section.DirectSectionImpl;
 import net.daporkchop.lib.minecraft.world.impl.section.HeapSectionImpl;
 import net.daporkchop.lib.minecraft.world.impl.vanilla.VanillaChunkImpl;
 import net.daporkchop.lib.natives.PNatives;
-import net.daporkchop.lib.natives.zlib.JavaZlib;
 import net.daporkchop.lib.natives.zlib.PInflater;
 import net.daporkchop.lib.natives.zlib.Zlib;
 import net.daporkchop.lib.nbt.NBTInputStream;
@@ -60,9 +58,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.Inflater;
-import java.util.zip.InflaterInputStream;
 
 /**
  * @author DaPorkchop_
@@ -80,8 +75,7 @@ public class AnvilWorldManager implements WorldManager {
     @Setter
     protected World world;
 
-    protected LoadingCache<Vec2i, OverclockedRegionFile> regionFileCache;
-
+    protected LoadingCache<Vec2i, RegionFile> regionFileCache;
     protected LoadingCache<Vec2i, Boolean> regionExists;
 
     public AnvilWorldManager(@NonNull AnvilSaveFormat format, @NonNull File root) {
@@ -92,19 +86,18 @@ public class AnvilWorldManager implements WorldManager {
                 .concurrencyLevel(1)
                 .maximumSize(256L)
                 .expireAfterAccess(5L, TimeUnit.MINUTES)
-                .removalListener((RemovalListener<Vec2i, OverclockedRegionFile>) v -> {
+                .removalListener((RemovalListener<Vec2i, RegionFile>) v -> {
                     try {
                         v.getValue().close();
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
                 })
-                .build(new CacheLoader<Vec2i, OverclockedRegionFile>() {
+                .build(new CacheLoader<Vec2i, RegionFile>() {
                     @Override
-                    public OverclockedRegionFile load(Vec2i key) throws Exception {
+                    public RegionFile load(Vec2i key) throws Exception {
                         File file = new File(AnvilWorldManager.this.root, String.format("r.%d.%d.mca", key.getX(), key.getY()));
-                        MinecraftSaveConfig config = AnvilWorldManager.this.format.getSave().config();
-                        return new OverclockedRegionFile(file, config.readOnly(), config.writeRequired());
+                        return RegionFile.open(file, AnvilWorldManager.this.format.getSave().config().openOptions());
                     }
                 });
 
@@ -127,8 +120,7 @@ public class AnvilWorldManager implements WorldManager {
         if (!this.regionExists.getUnchecked(pos)) {
             return false;
         }
-        OverclockedRegionFile file = this.regionFileCache.getUnchecked(pos);
-        return file.hasChunk(x & 0x1F, z & 0x1F);
+        return this.regionFileCache.getUnchecked(pos).hasChunk(x & 0x1F, z & 0x1F);
     }
 
     @Override

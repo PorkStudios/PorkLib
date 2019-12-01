@@ -50,11 +50,11 @@ public class RegionConstants {
 
     public static final byte ID_GZIP  = 1; //official, no longer used by vanilla
     public static final byte ID_ZLIB  = 2; //official
-    public static final byte ID_NONE  = PORKIAN_ID_MASK | 0;
-    public static final byte ID_BZIP2 = PORKIAN_ID_MASK | 1;
-    public static final byte ID_LZ4   = PORKIAN_ID_MASK | 2;
-    public static final byte ID_LZMA  = PORKIAN_ID_MASK | 3;
-    public static final byte ID_XZ    = PORKIAN_ID_MASK | 4;
+    public static final byte ID_NONE  = PORKIAN_ID_MASK | 1;
+    public static final byte ID_BZIP2 = PORKIAN_ID_MASK | 2;
+    public static final byte ID_LZ4   = PORKIAN_ID_MASK | 3;
+    public static final byte ID_LZMA  = PORKIAN_ID_MASK | 4;
+    public static final byte ID_XZ    = PORKIAN_ID_MASK | 5;
 
     public static final ByteObjMap<CompressionHelper> COMPRESSION_IDS         = new ByteObjOpenHashMap<>();
     public static final ObjByteMap<CompressionHelper> REVERSE_COMPRESSION_IDS = new ObjByteOpenHashMap<>();

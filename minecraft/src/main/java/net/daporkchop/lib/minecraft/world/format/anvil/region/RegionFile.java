@@ -16,18 +16,26 @@
 package net.daporkchop.lib.minecraft.world.format.anvil.region;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.Unpooled;
 import lombok.NonNull;
+import net.daporkchop.lib.binary.Endianess;
+import net.daporkchop.lib.binary.netty.NettyByteBufOut;
 import net.daporkchop.lib.binary.netty.NettyUtil;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.data.StreamOut;
+import net.daporkchop.lib.encoding.ToBytes;
 import net.daporkchop.lib.encoding.compression.CompressionHelper;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.ex.CorruptedRegionException;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.ex.ReadOnlyRegionException;
+import net.daporkchop.lib.minecraft.world.format.anvil.region.impl.MemoryMappedRegionFile;
+import net.daporkchop.lib.minecraft.world.format.anvil.region.impl.OverclockedRegionFile;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
-import static net.daporkchop.lib.minecraft.world.format.anvil.region.RegionConstants.*;
 
 /**
  * A 32² collection of chunks, a key part of the Anvil storage format.
@@ -45,14 +53,9 @@ public interface RegionFile extends AutoCloseable {
      * @throws IOException              if an IO exception occurs while opening the region
      */
     static RegionFile open(@NonNull File file, @NonNull RegionOpenOptions options) throws CorruptedRegionException, IOException {
-        //TODO
-        switch (options.access) {
-            case WRITE_REQUIRED:
-                return new OverclockedRegionFile(file, false, true);
-            case WRITE_OPTIONAL:
-                return new OverclockedRegionFile(file, false, false);
-            case READ_ONLY:
-                return new OverclockedRegionFile(file, true, false);
+        switch (options.mode)   {
+            case MMAP_FULL:
+                return new MemoryMappedRegionFile(file, options);
         }
         throw new IllegalArgumentException(options.toString());
     }
@@ -72,7 +75,7 @@ public interface RegionFile extends AutoCloseable {
         } else {
             InputStream in = NettyUtil.wrapIn(buf, true);
             byte compressionId = buf.readByte();
-            return compressionId == ID_NONE ? in : COMPRESSION_IDS.get(compressionId).inflate(in);
+            return compressionId == RegionConstants.ID_NONE ? in : RegionConstants.COMPRESSION_IDS.get(compressionId).inflate(in);
         }
     }
 
@@ -99,7 +102,14 @@ public interface RegionFile extends AutoCloseable {
      * @throws ReadOnlyRegionException if the region is opened in read-only mode
      * @throws IOException             if an IO exception occurs you dummy
      */
-    DataOut write(int x, int z, @NonNull CompressionHelper compression) throws ReadOnlyRegionException, IOException;
+    default DataOut write(int x, int z, @NonNull CompressionHelper compression) throws ReadOnlyRegionException, IOException {
+        byte compressionId = RegionConstants.REVERSE_COMPRESSION_IDS.get(compression);
+        if (compressionId == -1) {
+            throw new IllegalArgumentException(String.format("Unregistered compression format: %s", compression));
+        } else {
+            return this.write(x, z, compression, compressionId);
+        }
+    }
 
     /**
      * Gets a {@link DataOut} that will compress data written to it using the given compression type. The compressed data will be written to disk at the specified
@@ -113,7 +123,34 @@ public interface RegionFile extends AutoCloseable {
      * @throws ReadOnlyRegionException if the region is opened in read-only mode
      * @throws IOException             if an IO exception occurs you dummy
      */
-    DataOut write(int x, int z, @NonNull CompressionHelper compression, byte compressionId) throws ReadOnlyRegionException, IOException;
+    default DataOut write(int x, int z, @NonNull CompressionHelper compression, byte compressionId) throws ReadOnlyRegionException, IOException {
+        RegionConstants.assertInBounds(x, z);
+        this.assertWritable();
+
+        ByteBuf buf = PooledByteBufAllocator.DEFAULT.ioBuffer(RegionConstants.SECTOR_BYTES << 2).writeInt(-1).writeByte(compressionId);
+
+        OutputStream out = NettyUtil.wrapOut(buf);
+        OutputStream compressedOut = compression.deflate(out);
+
+        if (out == compressedOut)   {
+            //no compression will be applied, wrap buffer directly
+            return new NettyByteBufOut(buf) {
+                @Override
+                protected boolean handleClose(@NonNull ByteBuf buf) throws IOException {
+                    RegionFile.this.writeDirect(x, z, this.buf.setInt(0, this.buf.readableBytes() - RegionConstants.LENGTH_HEADER_SIZE));
+                    return false;
+                }
+            };
+        } else {
+            return new StreamOut(compressedOut) {
+                @Override
+                public void close() throws IOException {
+                    this.out.close();
+                    RegionFile.this.writeDirect(x, z, buf.setInt(0, buf.readableBytes() - RegionConstants.LENGTH_HEADER_SIZE));
+                }
+            };
+        }
+    }
 
     /**
      * Writes raw chunk data to the region at the given region-local coordinates.
@@ -126,7 +163,9 @@ public interface RegionFile extends AutoCloseable {
      * @throws ReadOnlyRegionException if the region is opened in read-only mode
      * @throws IOException             if an IO exception occurs you dummy
      */
-    void writeDirect(int x, int z, @NonNull byte[] b) throws ReadOnlyRegionException, IOException;
+    default void writeDirect(int x, int z, @NonNull byte[] b) throws ReadOnlyRegionException, IOException {
+        this.writeDirect(x, z, Unpooled.wrappedBuffer(ToBytes.toBytes(Endianess.BIG, b.length), b));
+    }
 
     /**
      * Writes raw chunk data to the region at the given region-local coordinates.
@@ -166,9 +205,54 @@ public interface RegionFile extends AutoCloseable {
     boolean delete(int x, int z, boolean erase) throws ReadOnlyRegionException, IOException;
 
     /**
+     * Checks whether or not the chunk at the given region-local coordinates is present in the region.
+     *
+     * @param x the chunk's X coordinate
+     * @param z the chunk's Z coordinate
+     * @return whether or not the chunk is present
+     */
+    default boolean hasChunk(int x, int z) {
+        return this.getOffset(x, z) != 0;
+    }
+
+    /**
+     * Gets the encoded offset value for the chunk at the given region-local coordinates.
+     *
+     * @param x the chunk's X coordinate
+     * @param z the chunk's Z coordinate
+     * @return the chunk's offset value
+     */
+    int getOffset(int x, int z);
+
+    /**
+     * Gets the last modified timestamp for the chunk at the given region-local coordinates.
+     *
+     * @param x the chunk's X coordinate
+     * @param z the chunk's Z coordinate
+     * @return the chunk's last modified timestamp
+     */
+    int getTimestamp(int x, int z);
+
+    /**
+     * @return the underlying {@link File} that this region is stored in
+     */
+    File file();
+
+    /**
      * @return whether this region is opened in read-only mode
      */
     boolean readOnly();
+
+    /**
+     * Ensures that this region is writable.
+     *
+     * @throws ReadOnlyRegionException if this region is not writable
+     */
+    default void assertWritable() throws ReadOnlyRegionException {
+        if (this.readOnly()) {
+            throw new ReadOnlyRegionException(this);
+        }
+    }
 
     /**
      * Forces any pending write operations to be written to disk.
@@ -229,6 +313,8 @@ public interface RegionFile extends AutoCloseable {
         BUFFER_FULL,
         /**
          * Memory-maps the contents of the entire region file.
+         * <p>
+         * Only compatible with {@link Access#READ_ONLY}.
          */
         MMAP_FULL;
     }

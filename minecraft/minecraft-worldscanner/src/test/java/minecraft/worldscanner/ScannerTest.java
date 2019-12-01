@@ -13,7 +13,9 @@
  *
  */
 
-package minecraft.worldscanner;import com.google.common.cache.CacheBuilder;
+package minecraft.worldscanner;
+
+import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
@@ -30,11 +32,14 @@ import net.daporkchop.lib.minecraft.registry.ResourceLocation;
 import net.daporkchop.lib.minecraft.tileentity.impl.TileEntitySign;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.format.anvil.AnvilSaveFormat;
+import net.daporkchop.lib.minecraft.world.format.anvil.region.RegionFile;
+import net.daporkchop.lib.minecraft.world.format.anvil.region.RegionOpenOptions;
+import net.daporkchop.lib.minecraft.world.impl.MinecraftSaveConfig;
 import net.daporkchop.lib.minecraft.world.impl.SaveBuilder;
 import org.junit.Test;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -51,6 +56,8 @@ public class ScannerTest {
                 .setFormat(new AnvilSaveFormat(new File(".", "run/testworld")))
                 //.setFormat(new AnvilSaveFormat(new File("/media/daporkchop/TooMuchStuff/Misc/2b2t_org")))
                 //.setFormat(new AnvilSaveFormat(new File("E:\\Misc\\2b2t_org")))
+                .setInitFunctions(new MinecraftSaveConfig()
+                        .openOptions(new RegionOpenOptions().access(RegionFile.Access.READ_ONLY).mode(RegionFile.Mode.MMAP_FULL)))
                 .build();
     }
 

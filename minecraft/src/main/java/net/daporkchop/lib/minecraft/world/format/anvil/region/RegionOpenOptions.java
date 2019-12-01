@@ -41,6 +41,14 @@ public final class RegionOpenOptions {
     @NonNull
     protected RegionFile.Mode mode = RegionFile.Mode.STANDARD;
 
+    /**
+     * Whether an attempt should be made to create a new file for regions that don't yet exist.
+     * <p>
+     * Only has an effect if {@link #access()} is set to {@link net.daporkchop.lib.minecraft.world.format.anvil.region.RegionFile.Access#WRITE_REQUIRED} or
+     * {@link net.daporkchop.lib.minecraft.world.format.anvil.region.RegionFile.Access#WRITE_OPTIONAL}.
+     */
+    protected boolean createNewFiles = false;
+
     @Override
     public String toString() {
         return String.format("RegionOpenOptions(access=%s,mode=%s)", this.access, this.mode);

@@ -41,9 +41,10 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 @RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
 public class WorldScanner {
     @NonNull
-    @Getter
     private final World world;
 
     private final Collection<ChunkProcessor>            processors            = new ArrayList<>();

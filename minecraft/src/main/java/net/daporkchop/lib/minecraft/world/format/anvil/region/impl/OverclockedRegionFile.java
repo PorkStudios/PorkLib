@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.world.format.anvil.region;
+package net.daporkchop.lib.minecraft.world.format.anvil.region.impl;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -28,6 +28,7 @@ import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.encoding.ToBytes;
 import net.daporkchop.lib.encoding.compression.CompressionHelper;
+import net.daporkchop.lib.minecraft.world.format.anvil.region.RegionFile;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.ex.CorruptedRegionException;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.ex.ReadOnlyRegionException;
 
@@ -62,7 +63,7 @@ public final class OverclockedRegionFile implements RegionFile {
     protected static final OpenOption[] RW_OPEN_OPTIONS = {StandardOpenOption.CREATE, StandardOpenOption.READ, StandardOpenOption.WRITE};
 
     @Getter
-    protected final String           absolutePath;
+    protected final File             file;
     protected final FileChannel      channel;
     protected final MappedByteBuffer index;
     protected final BitSet        occupiedSectors = new BitSet();
@@ -130,7 +131,7 @@ public final class OverclockedRegionFile implements RegionFile {
         } catch (IndexOutOfBoundsException e) {
             throw new CorruptedRegionException(String.format("Corrupt region headers in \"%s\"", file.getAbsolutePath()));
         }
-        this.absolutePath = file.getAbsolutePath();
+        this.file = file;
 
         if (DEBUG_SECTORS) {
             System.out.println(this.occupiedSectors);
@@ -163,53 +164,7 @@ public final class OverclockedRegionFile implements RegionFile {
     }
 
     @Override
-    public DataOut write(int x, int z, @NonNull CompressionHelper compression) throws ReadOnlyRegionException, IOException {
-        byte compressionId = REVERSE_COMPRESSION_IDS.get(compression);
-        if (compressionId == -1) {
-            throw new IllegalArgumentException(String.format("Unregistered compression format: %s", compression));
-        } else {
-            return this.write(x, z, compression, compressionId);
-        }
-    }
-
-    @Override
-    public DataOut write(int x, int z, @NonNull CompressionHelper compression, byte compressionId) throws ReadOnlyRegionException, IOException {
-        assertInBounds(x, z);
-        this.assertWritable();
-        return new DataOut() {
-            private final ByteBuf buf = PooledByteBufAllocator.DEFAULT.ioBuffer(SECTOR_BYTES << 2).writeInt(-1).writeByte(compressionId);
-            private final OutputStream delegate = compression.deflate(NettyUtil.wrapOut(this.buf));
-
-            @Override
-            public void write(int b) throws IOException {
-                this.delegate.write(b);
-            }
-
-            @Override
-            public void write(byte[] b, int off, int len) throws IOException {
-                this.delegate.write(b, off, len);
-            }
-
-            @Override
-            public void close() throws IOException {
-                this.delegate.close();
-
-                OverclockedRegionFile.this.doWrite(x, z, this.buf.setInt(0, this.buf.readableBytes() - LENGTH_HEADER_SIZE), true);
-            }
-        };
-    }
-
-    @Override
-    public void writeDirect(int x, int z, @NonNull byte[] b) throws ReadOnlyRegionException, IOException {
-        this.doWrite(x, z, Unpooled.wrappedBuffer(ToBytes.toBytes(Endianess.BIG, b.length), b), false);
-    }
-
-    @Override
     public void writeDirect(int x, int z, @NonNull ByteBuf buf) throws ReadOnlyRegionException, IOException {
-        this.doWrite(x, z, buf, true);
-    }
-
-    private void doWrite(int x, int z, @NonNull ByteBuf buf, boolean release) throws ReadOnlyRegionException, IOException {
         assertInBounds(x, z);
         this.assertWritable();
         this.lock.writeLock().lock();
@@ -257,7 +212,7 @@ public final class OverclockedRegionFile implements RegionFile {
             this.internal_updateTimestamp(x, z);
         } finally {
             this.lock.writeLock().unlock();
-            if (release) {
+            if (buf.refCnt() > 0)   {
                 buf.release();
             }
         }
@@ -297,24 +252,7 @@ public final class OverclockedRegionFile implements RegionFile {
         }
     }
 
-    /**
-     * Checks whether or not the chunk at the given region-local coordinates is present in the region.
-     *
-     * @param x the chunk's X coordinate
-     * @param z the chunk's Z coordinate
-     * @return whether or not the chunk is present
-     */
-    public boolean hasChunk(int x, int z) {
-        return this.getOffset(x, z) != 0;
-    }
-
-    /**
-     * Gets the encoded offset value for the chunk at the given region-local coordinates.
-     *
-     * @param x the chunk's X coordinate
-     * @param z the chunk's Z coordinate
-     * @return the chunk's offset value
-     */
+    @Override
     public int getOffset(int x, int z) {
         assertInBounds(x, z);
         this.lock.readLock().lock();
@@ -330,13 +268,7 @@ public final class OverclockedRegionFile implements RegionFile {
         this.index.putInt(getOffsetIndex(x, z), offset);
     }
 
-    /**
-     * Gets the last modified timestamp for the chunk at the given region-local coordinates.
-     *
-     * @param x the chunk's X coordinate
-     * @param z the chunk's Z coordinate
-     * @return the chunk's last modified timestamp
-     */
+    @Override
     public int getTimestamp(int x, int z) {
         assertInBounds(x, z);
         this.lock.readLock().lock();
@@ -374,12 +306,6 @@ public final class OverclockedRegionFile implements RegionFile {
     private void assertOpen() {
         if (!this.open.get()) {
             throw new IllegalStateException("Closed!");
-        }
-    }
-
-    private void assertWritable() throws ReadOnlyRegionException {
-        if (this.readOnly) {
-            throw new ReadOnlyRegionException(this);
         }
     }
 

@@ -22,6 +22,7 @@ import net.daporkchop.lib.minecraft.world.format.anvil.region.AbstractRegionFile
 import net.daporkchop.lib.minecraft.world.format.anvil.region.RegionConstants;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.RegionOpenOptions;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.ex.CorruptedRegionException;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,7 +41,8 @@ public final class BufferedRegionFile extends AbstractRegionFile {
     public BufferedRegionFile(@NonNull File file, @NonNull RegionOpenOptions options) throws IOException {
         super(file, options);
 
-        this.buf = Unpooled.directBuffer((int) this.channel.size()).writerIndex((int) this.channel.size());
+        int size = (int) this.channel.size();
+        this.buf = Unpooled.wrappedBuffer(PUnsafe.allocateMemory(size), size, true).writerIndex(size);
         if (this.buf.setBytes(0, this.channel, 0L, this.buf.readableBytes()) != this.buf.readableBytes())   {
             this.buf.release();
             this.channel.close();
@@ -84,6 +86,7 @@ public final class BufferedRegionFile extends AbstractRegionFile {
 
     @Override
     protected void doClose() throws IOException {
-        this.buf.release();
+        PUnsafe.freeMemory(this.buf.memoryAddress());
+        //this.buf.release(this.buf.refCnt());
     }
 }

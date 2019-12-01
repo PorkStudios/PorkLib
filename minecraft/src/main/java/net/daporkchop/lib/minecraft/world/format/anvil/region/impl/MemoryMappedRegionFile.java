@@ -44,7 +44,8 @@ public final class MemoryMappedRegionFile extends AbstractRegionFile {
         super(file, options);
 
         this.map = this.channel.map(FileChannel.MapMode.READ_ONLY, 0L, this.channel.size());
-        this.nettyBuf = Unpooled.wrappedBuffer(((DirectBuffer) this.map).address(), RegionConstants.HEADER_BYTES, false);
+        this.nettyBuf = Unpooled.wrappedBuffer(this.map);
+        this.map.load();
     }
 
     @Override
@@ -66,7 +67,7 @@ public final class MemoryMappedRegionFile extends AbstractRegionFile {
         if (length < 0 || length > maxLength) {
             throw new CorruptedRegionException(String.format("Length at sector %d (offset %d) is %d! (should be max. %d)", offset >>> 8, pos, length, maxLength));
         }
-        return this.nettyBuf.slice(pos + RegionConstants.LENGTH_HEADER_SIZE, length);
+        return this.nettyBuf.retainedSlice(pos + RegionConstants.LENGTH_HEADER_SIZE, length);
     }
 
     @Override

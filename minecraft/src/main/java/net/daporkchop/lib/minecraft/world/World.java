@@ -22,12 +22,13 @@ import net.daporkchop.lib.minecraft.util.BlockAccess;
 import net.daporkchop.lib.minecraft.world.format.WorldManager;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.util.Map;
 
 /**
  * @author DaPorkchop_
  */
-public interface World extends BlockAccess, Closeable {
+public interface World extends BlockAccess, AutoCloseable {
     int dimension();
 
     MinecraftSave getSave();
@@ -47,6 +48,9 @@ public interface World extends BlockAccess, Closeable {
     }
 
     void save();
+
+    @Override
+    void close() throws IOException;
 
     @Override
     default int getBlockId(int x, int y, int z) {

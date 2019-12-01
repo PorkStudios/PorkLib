@@ -30,14 +30,17 @@ import java.util.function.BiConsumer;
 /**
  * @author DaPorkchop_
  */
-public interface SaveFormat extends Closeable {
+public interface SaveFormat extends AutoCloseable {
     void init(@NonNull MinecraftSave save) throws IOException;
 
     void loadWorlds(@NonNull IntObjBiConsumer<WorldManager> callback);
 
-    void closeWorld(@NonNull World world);
+    void closeWorld(@NonNull World world) throws IOException;
 
     void loadRegistries(@NonNull BiConsumer<ResourceLocation, IDRegistry> callback);
 
     Chunk createColumnInstance(int x, int z);
+
+    @Override
+    void close() throws IOException;
 }

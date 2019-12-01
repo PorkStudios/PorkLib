@@ -20,10 +20,12 @@ import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.minecraft.world.World;
 
+import java.io.IOException;
+
 /**
  * @author DaPorkchop_
  */
-public interface WorldManager {
+public interface WorldManager extends AutoCloseable {
     default int getMinChunkY() {
         return 0;
     }
@@ -49,4 +51,7 @@ public interface WorldManager {
     }
 
     void setWorld(@NonNull World world);
+
+    @Override
+    void close() throws IOException;
 }

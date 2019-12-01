@@ -109,7 +109,8 @@ public class AnvilSaveFormat implements SaveFormat {
     }
 
     @Override
-    public void closeWorld(World world) {
+    public void closeWorld(@NonNull World world) throws IOException {
+        world.close();
     }
 
     @Override

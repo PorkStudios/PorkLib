@@ -18,6 +18,7 @@ package net.daporkchop.lib.minecraft.world.impl;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.minecraft.registry.IDRegistry;
 import net.daporkchop.lib.minecraft.registry.ResourceLocation;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
@@ -25,6 +26,7 @@ import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.format.SaveFormat;
 import net.daporkchop.lib.primitive.map.IntObjMap;
 import net.daporkchop.lib.primitive.map.hash.opennode.IntObjOpenNodeHashMap;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
 import java.util.Hashtable;
@@ -56,7 +58,13 @@ public class MinecraftSaveImpl implements MinecraftSave {
 
     @Override
     public void close() throws IOException {
-        this.worlds.forEachValue(this.saveFormat::closeWorld);
+        this.worlds.forEachValue(world -> {
+            try {
+                this.saveFormat.closeWorld(world);
+            } catch (IOException e) {
+                PUnsafe.throwException(e);
+            }
+        });
         this.saveFormat.close();
     }
 }

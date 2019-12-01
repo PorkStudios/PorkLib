@@ -110,7 +110,7 @@ public class VanillaWorldImpl implements World {
         this.loadedColumns.invalidateAll();
         //this.loadedColumns.values().forEach(Chunk::unload);
         this.loadedTileEntities.clear();
-        //TODO
+        this.manager.close();
     }
 
     @Override

@@ -209,4 +209,13 @@ public class PorkUtil {
     public String className(Object obj) {
         return obj == null ? "null" : obj.getClass().getCanonicalName();
     }
+
+    public void unsafe_forceGC()   {
+        Object obj = new Object();
+        long oldMem = Runtime.getRuntime().freeMemory();
+        obj = null;
+        do {
+            System.gc();
+        } while (Runtime.getRuntime().freeMemory() <= oldMem);
+    }
 }

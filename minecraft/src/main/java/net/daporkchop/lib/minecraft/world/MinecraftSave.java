@@ -23,12 +23,13 @@ import net.daporkchop.lib.minecraft.world.impl.MinecraftSaveConfig;
 import net.daporkchop.lib.primitive.map.IntObjMap;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.util.Map;
 
 /**
  * @author DaPorkchop_
  */
-public interface MinecraftSave extends Closeable {
+public interface MinecraftSave extends AutoCloseable {
     SaveFormat saveFormat();
 
     MinecraftSaveConfig config();
@@ -44,4 +45,7 @@ public interface MinecraftSave extends Closeable {
     default World world(int id) {
         return this.worlds().get(id);
     }
+
+    @Override
+    void close() throws IOException;
 }

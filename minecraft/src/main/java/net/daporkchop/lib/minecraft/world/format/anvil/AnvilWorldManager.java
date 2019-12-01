@@ -220,7 +220,7 @@ public class AnvilWorldManager implements WorldManager {
             }
             this.world.loadedColumns().put(chunk.pos(), chunk);
         } catch (Exception e) {
-            e.printStackTrace();
+            new RuntimeException(String.format("Unable to parse chunk (%d,%d) in region (%d,%d)", chunk.getX(), chunk.getZ(), chunk.getX() >> 5, chunk.getZ() >> 5), e).printStackTrace();
             chunk.unload();
         }
     }

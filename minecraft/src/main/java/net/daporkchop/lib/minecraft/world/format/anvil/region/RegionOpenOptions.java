@@ -13,21 +13,36 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.world.format.anvil.region.ex;
+package net.daporkchop.lib.minecraft.world.format.anvil.region;
 
-import java.io.IOException;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
 /**
- * Thrown when a region file could not be opened.
+ * Additional options used when opening a {@link RegionFile}.
  *
  * @author DaPorkchop_
  */
-public class CannotOpenRegionException extends IOException {
-    public CannotOpenRegionException(String message) {
-        super(message);
-    }
+@Getter
+@Setter
+@Accessors(fluent = true, chain = true)
+public final class RegionOpenOptions {
+    /**
+     * The access level that the region will be opened with.
+     */
+    @NonNull
+    protected RegionFile.Access access = RegionFile.Access.WRITE_OPTIONAL;
 
-    public CannotOpenRegionException(String message, Throwable cause) {
-        super(message, cause);
+    /**
+     * The mode that the region will be opened in.
+     */
+    @NonNull
+    protected RegionFile.Mode mode = RegionFile.Mode.STANDARD;
+
+    @Override
+    public String toString() {
+        return String.format("RegionOpenOptions(access=%s,mode=%s)", this.access, this.mode);
     }
 }

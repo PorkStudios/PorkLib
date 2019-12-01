@@ -105,6 +105,13 @@ public final class NativeCode<T> implements Supplier<T> {
     }
 
     /**
+     * @return whether or not the currently used implementation is based on native code
+     */
+    public boolean isNative()   {
+        return this.implementation instanceof NativeImpl;
+    }
+
+    /**
      * An implementation for use by {@link NativeCode}.
      *
      * @param <T> the type of the feature to be implemented

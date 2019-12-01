@@ -24,6 +24,7 @@ import net.daporkchop.lib.minecraft.util.factory.ChunkFactory;
 import net.daporkchop.lib.minecraft.util.factory.SectionFactory;
 import net.daporkchop.lib.minecraft.util.factory.TileEntityFactory;
 import net.daporkchop.lib.minecraft.util.factory.WorldFactory;
+import net.daporkchop.lib.minecraft.world.format.anvil.region.RegionOpenOptions;
 import net.daporkchop.lib.minecraft.world.impl.section.HeapSectionImpl;
 import net.daporkchop.lib.minecraft.world.impl.vanilla.VanillaChunkImpl;
 import net.daporkchop.lib.minecraft.world.impl.vanilla.VanillaWorldImpl;
@@ -43,7 +44,6 @@ public class MinecraftSaveConfig {
     protected SectionFactory    sectionFactory    = HeapSectionImpl::new;
     @NonNull
     protected TileEntityFactory tileEntityFactory = TileEntityRegistry.defaultRegistry(); //TODO: make this be a lazy reference to avoid creating the default registry if it's never used
-
-    protected boolean readOnly      = false;
-    protected boolean writeRequired = false;
+    @NonNull
+    protected RegionOpenOptions openOptions       = new RegionOpenOptions(); //TODO: this is specific to anvil, so move it out of here
 }

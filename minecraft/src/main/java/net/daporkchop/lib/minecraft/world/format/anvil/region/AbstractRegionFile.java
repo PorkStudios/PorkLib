@@ -117,17 +117,19 @@ public abstract class AbstractRegionFile implements RegionFile {
 
     @Override
     public void writeDirect(int x, int z, @NonNull ByteBuf buf) throws ReadOnlyRegionException, IOException {
-        throw new UnsupportedOperationException("write"); //TODO
-
-        /*this.assertWritable();
+        int index = RegionConstants.getOffsetIndex(x, z);
+        this.assertWritable();
         this.writeLock.lock();
         try {
             this.assertOpen();
 
+            this.doWrite(x, z, index, buf, (buf.readableBytes() - 1 >> 12) + 1);
         } finally {
             this.writeLock.unlock();
-        }*/
+        }
     }
+
+    protected abstract void doWrite(int x, int z, int offsetIndex, @NonNull ByteBuf chunk, int requiredSectors) throws IOException;
 
     @Override
     public boolean delete(int x, int z, boolean erase) throws ReadOnlyRegionException, IOException {
@@ -140,7 +142,7 @@ public abstract class AbstractRegionFile implements RegionFile {
             ByteBuf headers = this.headersBuf();
             int offset = headers.getInt(index);
             if (offset != 0)    {
-                this.handleDelete(x, z, offset >>> 8, offset & 0xFF);
+                this.doDelete(x, z, offset >>> 8, offset & 0xFF);
                 headers.setInt(index, 0);
                 return true;
             } else {
@@ -151,7 +153,7 @@ public abstract class AbstractRegionFile implements RegionFile {
         }
     }
 
-    protected abstract void handleDelete(int x, int z, int startIndex, int length);
+    protected abstract void doDelete(int x, int z, int startIndex, int length) throws IOException;
 
     @Override
     public int getOffset(int x, int z) {

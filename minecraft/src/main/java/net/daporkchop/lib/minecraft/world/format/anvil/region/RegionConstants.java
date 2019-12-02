@@ -14,6 +14,7 @@
  */
 
 package net.daporkchop.lib.minecraft.world.format.anvil.region;
+
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.encoding.compression.CompressionHelper;
@@ -29,13 +30,12 @@ import net.daporkchop.lib.primitive.map.hash.open.ObjByteOpenHashMap;
  */
 @UtilityClass
 public class RegionConstants {
-    public static final int     SECTOR_BYTES     = 4096;
-    public static final int     SECTOR_INTS      = SECTOR_BYTES >>> 2;
-    public static final byte[]  EMPTY_SECTOR     = new byte[SECTOR_BYTES];
+    public static final int    SECTOR_BYTES = 4096;
+    public static final int    SECTOR_INTS  = SECTOR_BYTES >>> 2;
+    public static final byte[] EMPTY_SECTOR = new byte[SECTOR_BYTES];
 
     public static final int HEADER_SECTORS = 2;
-    public static final int HEADER_BYTES = SECTOR_BYTES * HEADER_SECTORS;
-    public static final byte[] EMPTY_HEADERS = new byte[HEADER_BYTES];
+    public static final int HEADER_BYTES   = SECTOR_BYTES * HEADER_SECTORS;
 
     public static final int LENGTH_HEADER_SIZE  = 4;
     public static final int VERSION_HEADER_SIZE = 1;
@@ -101,12 +101,12 @@ public class RegionConstants {
         }
     }
 
-    public static int getOffsetIndex(int x, int z)  {
+    public static int getOffsetIndex(int x, int z) {
         assertInBounds(x, z);
         return (x << 2) | (z << 7);
     }
 
-    public static int getTimestampIndex(int x, int z)  {
+    public static int getTimestampIndex(int x, int z) {
         assertInBounds(x, z);
         return ((x << 2) | (z << 7)) + SECTOR_BYTES;
     }

@@ -55,6 +55,8 @@ public interface RegionFile extends AutoCloseable {
      */
     static RegionFile open(@NonNull File file, @NonNull RegionOpenOptions options) throws CorruptedRegionException, IOException {
         switch (options.mode)   {
+            case STANDARD:
+                return new OverclockedRegionFile(file, options);
             case BUFFER_FULL:
                 return new BufferedRegionFile(file, options);
             case MMAP_FULL:

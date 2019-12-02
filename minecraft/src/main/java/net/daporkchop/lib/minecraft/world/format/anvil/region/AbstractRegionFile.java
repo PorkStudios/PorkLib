@@ -126,6 +126,7 @@ public abstract class AbstractRegionFile implements RegionFile {
             this.doWrite(x, z, index, buf, (buf.readableBytes() - 1 >> 12) + 1);
         } finally {
             this.writeLock.unlock();
+            buf.release();
         }
     }
 
@@ -142,8 +143,7 @@ public abstract class AbstractRegionFile implements RegionFile {
             ByteBuf headers = this.headersBuf();
             int offset = headers.getInt(index);
             if (offset != 0)    {
-                this.doDelete(x, z, offset >>> 8, offset & 0xFF);
-                headers.setInt(index, 0);
+                this.doDelete(x, z, offset >>> 8, offset & 0xFF, erase);
                 return true;
             } else {
                 return false;
@@ -153,7 +153,7 @@ public abstract class AbstractRegionFile implements RegionFile {
         }
     }
 
-    protected abstract void doDelete(int x, int z, int startIndex, int length) throws IOException;
+    protected abstract void doDelete(int x, int z, int startIndex, int length, boolean erase) throws IOException;
 
     @Override
     public int getOffset(int x, int z) {

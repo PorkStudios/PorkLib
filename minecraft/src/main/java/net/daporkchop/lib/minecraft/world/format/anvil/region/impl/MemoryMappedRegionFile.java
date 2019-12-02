@@ -77,7 +77,7 @@ public final class MemoryMappedRegionFile extends AbstractRegionFile {
     }
 
     @Override
-    protected void doDelete(int x, int z, int startIndex, int length) {
+    protected void doDelete(int x, int z, int startIndex, int length, boolean erase) throws IOException {
         //shouldn't ever be called
         throw new UnsupportedOperationException();
     }

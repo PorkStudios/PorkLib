@@ -42,13 +42,20 @@ public final class BufferedRegionFile extends AbstractRegionFile {
         super(file, options);
 
         int size = (int) this.channel.size();
-        (this.buf = Unpooled.directBuffer(PMath.roundUp(size, RegionConstants.SECTOR_BYTES)).clear()).writeBytes(this.channel, 0L, size);
-        if (size != this.buf.readableBytes())   {
-            this.buf.release();
-            this.channel.close();
-            throw new IllegalStateException(String.format("Only read %d bytes!", this.buf.readableBytes()));
+        if (size < RegionConstants.HEADER_BYTES)    {
+            this.buf = Unpooled.directBuffer(RegionConstants.HEADER_BYTES);
+            //initialize with empty headers
+            this.buf.writeBytes(RegionConstants.EMPTY_SECTOR).writeBytes(RegionConstants.EMPTY_SECTOR);
+            this.dirty = true;
+        } else {
+            (this.buf = Unpooled.directBuffer(PMath.roundUp(size, RegionConstants.SECTOR_BYTES)).clear()).writeBytes(this.channel, 0L, size);
+            if (size != this.buf.readableBytes())   {
+                this.buf.release();
+                this.channel.close();
+                throw new IllegalStateException(String.format("Only read %d bytes!", this.buf.readableBytes()));
+            }
+            this.buf.writeBytes(RegionConstants.EMPTY_SECTOR, 0, this.buf.writableBytes()); //pad to 4KiB boundary
         }
-        this.buf.writeBytes(RegionConstants.EMPTY_SECTOR, 0, this.buf.writableBytes()); //pad to 4KiB boundary
     }
 
     @Override
@@ -75,10 +82,8 @@ public final class BufferedRegionFile extends AbstractRegionFile {
     }
 
     @Override
-    protected void doWrite(int x, int z, int offsetIndex, @NonNull ByteBuf chunk, int requiredSectors) throws IOException {
-        int oldOffset = this.buf.getInt(offsetIndex);
-        int oldSize = oldOffset & 0xFF;
-        oldOffset >>>= 8;
+    protected void doWrite(int x, int z, int offsetIndex, ByteBuf chunk, int requiredSectors) throws IOException {
+        int oldSize = this.buf.getInt(offsetIndex) & 0xFF;
 
         //allocate new buffer which will contain the region data
         ByteBuf next = Unpooled.directBuffer(this.buf.capacity() - oldSize * RegionConstants.SECTOR_BYTES + requiredSectors * RegionConstants.SECTOR_BYTES);
@@ -91,10 +96,17 @@ public final class BufferedRegionFile extends AbstractRegionFile {
             int timestamp;
             if (index != offsetIndex)   {
                 int chunkOffset = this.buf.getInt(index);
+                if (chunkOffset == 0)   {
+                    //don't copy this chunk if it doesn't exist
+                    continue;
+                }
                 buf = this.buf.slice((chunkOffset >>> 8) * RegionConstants.SECTOR_BYTES, (chunkOffset & 0xFF) * RegionConstants.SECTOR_BYTES);
                 timestamp = this.buf.getInt(index + RegionConstants.SECTOR_BYTES); //copy old timestamp
+            } else if (chunk == null) {
+                //if the chunk is null then it's being deleted, so we can safely do nothing
+                continue;
             } else {
-                //if the current header index is the index of the chunk, use the actual chunk
+                //if the current header index is the headers of the chunk, use the actual chunk
                 buf = chunk;
                 timestamp = (int) (System.currentTimeMillis() / 1000L); //compute new timestamp
             }
@@ -116,8 +128,8 @@ public final class BufferedRegionFile extends AbstractRegionFile {
     }
 
     @Override
-    protected void doDelete(int x, int z, int startIndex, int length) {
-        this.dirty = true;
+    protected void doDelete(int x, int z, int startIndex, int length, boolean erase) throws IOException {
+        this.doWrite(x, z, RegionConstants.getOffsetIndex(x, z), null, 0);
     }
 
     @Override
@@ -131,6 +143,11 @@ public final class BufferedRegionFile extends AbstractRegionFile {
 
     @Override
     protected void doClose() throws IOException {
+        if (!this.readOnly) {
+            //save if needed
+            this.doFlush();
+        }
         this.buf.release();
+        this.buf = null;
     }
 }

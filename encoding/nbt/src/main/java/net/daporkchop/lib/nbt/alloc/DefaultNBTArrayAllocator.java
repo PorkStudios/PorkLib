@@ -13,18 +13,54 @@
  *
  */
 
-package net.daporkchop.lib.nbt.util;
+package net.daporkchop.lib.nbt.alloc;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 
 /**
- * Defines an object that can be loaded and saved to/from an NBT tag
+ * A standard implementation of {@link NBTArrayAllocator} which simply allocates a new array for every request.
  *
  * @author DaPorkchop_
  */
-public interface NBTSerializable {
-    void write(@NonNull CompoundTag tag);
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class DefaultNBTArrayAllocator implements NBTArrayAllocator {
+    public static final DefaultNBTArrayAllocator INSTANCE = new DefaultNBTArrayAllocator();
 
-    void read(@NonNull CompoundTag tag);
+    @Override
+    public NBTArrayHandle<byte[]> byteArray(int size) {
+        return new Handle<>(new byte[size]);
+    }
+
+    @Override
+    public NBTArrayHandle<int[]> intArray(int size) {
+        return new Handle<>(new int[size]);
+    }
+
+    /**
+     * Implementation of {@link NBTArrayHandle} for {@link DefaultNBTArrayAllocator}.
+     * @param <T> the type of data referenced by this handle
+     *           @author DaPorkchop_
+     */
+    @RequiredArgsConstructor
+    @Getter
+    @Accessors(fluent = true)
+    private final class Handle<T> implements NBTArrayHandle<T>   {
+        @NonNull
+        protected final T value;
+
+        @Override
+        public void release() {
+            //noop
+        }
+
+        @Override
+        public NBTArrayAllocator alloc() {
+            return DefaultNBTArrayAllocator.this;
+        }
+    }
 }

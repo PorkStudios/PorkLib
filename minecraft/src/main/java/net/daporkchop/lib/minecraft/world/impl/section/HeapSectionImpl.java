@@ -22,7 +22,9 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.minecraft.util.SectionLayer;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Section;
+import net.daporkchop.lib.nbt.alloc.NBTArrayHandle;
 import net.daporkchop.lib.nbt.tag.notch.ByteArrayTag;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 /**
  * A chunk section stored on the heap.
@@ -30,16 +32,23 @@ import net.daporkchop.lib.nbt.tag.notch.ByteArrayTag;
  * @author DaPorkchop_
  */
 @Getter
-public class HeapSectionImpl implements Section {
+@Accessors(fluent = true)
+public final class HeapSectionImpl implements Section {
     private byte[]       blocks;
     private SectionLayer add;
     private SectionLayer meta;
     private SectionLayer blockLight;
     private SectionLayer skyLight;
 
-    @Accessors(fluent = true)
+    private NBTArrayHandle<byte[]> blocksHandle;
+    private NBTArrayHandle<byte[]> addHandle;
+    private NBTArrayHandle<byte[]> metaHandle;
+    private NBTArrayHandle<byte[]> blockLightHandle;
+    private NBTArrayHandle<byte[]> skyLightHandle;
+
     private final Chunk chunk;
 
+    @Accessors(fluent = false)
     private final int y;
 
     public HeapSectionImpl(int y, Chunk chunk) {
@@ -90,24 +99,68 @@ public class HeapSectionImpl implements Section {
         this.skyLight.set(x, y, z, level);
     }
 
+    @Override
+    public void release() throws AlreadyReleasedException {
+        if (this.blocks != null)    {
+            this.blocks = null;
+            if (this.blocksHandle != null)  {
+                this.blocksHandle.release();
+                this.blocksHandle = null;
+            }
+        }
+        if (this.add != null)    {
+            this.add = null;
+            if (this.addHandle != null)  {
+                this.addHandle.release();
+                this.addHandle = null;
+            }
+        }
+        if (this.meta != null)    {
+            this.meta = null;
+            if (this.metaHandle != null)  {
+                this.metaHandle.release();
+                this.metaHandle = null;
+            }
+        }
+        if (this.blockLight != null)    {
+            this.blockLight = null;
+            if (this.blockLightHandle != null)  {
+                this.blockLightHandle.release();
+                this.blockLightHandle = null;
+            }
+        }
+        if (this.skyLight != null)    {
+            this.skyLight = null;
+            if (this.skyLightHandle != null)  {
+                this.skyLightHandle.release();
+                this.skyLightHandle = null;
+            }
+        }
+    }
+
     //setters
     public void setBlocks(ByteArrayTag tag) {
-        this.blocks = tag == null ? null : tag.getValue();
+        this.blocks = tag == null ? null : tag.value();
+        this.blocksHandle = tag == null ? null : tag.handle();
     }
 
     public void setAdd(ByteArrayTag tag) {
-        this.add = tag == null ? null : new SectionLayer(tag.getValue());
+        this.add = tag == null ? null : new SectionLayer(tag.value());
+        this.addHandle = tag == null ? null : tag.handle();
     }
 
     public void setMeta(ByteArrayTag tag) {
-        this.meta = tag == null ? null : new SectionLayer(tag.getValue());
+        this.meta = tag == null ? null : new SectionLayer(tag.value());
+        this.metaHandle = tag == null ? null : tag.handle();
     }
 
     public void setBlockLight(ByteArrayTag tag) {
-        this.blockLight = tag == null ? null : new SectionLayer(tag.getValue());
+        this.blockLight = tag == null ? null : new SectionLayer(tag.value());
+        this.blockLightHandle = tag == null ? null : tag.handle();
     }
 
     public void setSkyLight(ByteArrayTag tag) {
-        this.skyLight = tag == null ? null : new SectionLayer(tag.getValue());
+        this.skyLight = tag == null ? null : new SectionLayer(tag.value());
+        this.skyLightHandle = tag == null ? null : tag.handle();
     }
 }

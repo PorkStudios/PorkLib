@@ -13,37 +13,27 @@
  *
  */
 
-package net.daporkchop.lib.nbt.util;
-
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.serialization.Serializer;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.nbt.NBTIO;
-import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
-
-import java.io.IOException;
-import java.util.function.Supplier;
+package net.daporkchop.lib.nbt.alloc;
 
 /**
+ * Allocates array instances for decode methods in various {@link net.daporkchop.lib.nbt.tag.Tag} implementations.
+ *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-public class IndirectNBTSerializer<V extends NBTSerializable> implements Serializer<V> {
-    @NonNull
-    private final Supplier<V> blankInstanceSupplier;
+public interface NBTArrayAllocator {
+    /**
+     * Allocates a {@code byte[]} with the given size.
+     *
+     * @param size the required size of the {@code byte[]}
+     * @return a handle for the allocated {@code byte[]}
+     */
+    NBTArrayHandle<byte[]> byteArray(int size);
 
-    @Override
-    public void write(@NonNull V val, @NonNull DataOut out) throws IOException {
-        CompoundTag tag = new CompoundTag("");
-        NBTIO.write(out, tag);
-    }
-
-    @Override
-    public V read(@NonNull DataIn in) throws IOException {
-        V val = this.blankInstanceSupplier.get();
-        val.read(NBTIO.read(in));
-        return val;
-    }
+    /**
+     * Allocates an {@code int[]} with the given size.
+     *
+     * @param size the required size of the {@code int[]}
+     * @return a handle for the allocated {@code int[]}
+     */
+    NBTArrayHandle<int[]> intArray(int size);
 }

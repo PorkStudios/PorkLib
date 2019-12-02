@@ -17,13 +17,14 @@ package net.daporkchop.lib.minecraft.world;
 
 import net.daporkchop.lib.minecraft.util.BlockAccess;
 import net.daporkchop.lib.minecraft.util.world.Dirtiable;
+import net.daporkchop.lib.unsafe.capability.Releasable;
 
 /**
  * A 16³ section of blocks.
  *
  * @author DaPorkchop_
  */
-public interface Section extends BlockAccess, Dirtiable {
+public interface Section extends BlockAccess, Dirtiable, Releasable {
     Chunk chunk();
 
     int getY();

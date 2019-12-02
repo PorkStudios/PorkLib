@@ -13,37 +13,30 @@
  *
  */
 
-package net.daporkchop.lib.nbt.util;
-
-import lombok.NonNull;
-import net.daporkchop.lib.binary.serialization.Serializer;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.nbt.NBTIO;
-import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
-
-import java.io.IOException;
+package net.daporkchop.lib.nbt.alloc;
 
 /**
- * Defines a class that can load and save objects of type <V> to/from an NBT tag.
+ * Used by an implementation of {@link NBTArrayAllocator} to provide a method to release the value.
  *
+ * @param <T> the type of data referenced by this handle
  * @author DaPorkchop_
  */
-public interface NBTSerializer<V> extends Serializer<V> {
-    @Override
-    default void write(@NonNull V val, @NonNull DataOut out) throws IOException {
-        CompoundTag tag = new CompoundTag("");
-        this.write(val, tag);
-        NBTIO.write(out, tag);
-    }
+public interface NBTArrayHandle<T> {
+    /**
+     * @return the value
+     */
+    T value();
 
-    @Override
-    default V read(@NonNull DataIn in) throws IOException {
-        CompoundTag tag = NBTIO.read(in);
-        return this.read(tag);
-    }
+    /**
+     * Tells the allocator that this handle's value is no longer needed.
+     * <p>
+     * If this method is not called, the allocator will not be able to re-allocate the value (assuming re-allocation is supported), but the value will still
+     * be able to be garbage-collected as usual.
+     */
+    void release();
 
-    void write(@NonNull V val, @NonNull CompoundTag tag);
-
-    V read(@NonNull CompoundTag tag);
+    /**
+     * @return the {@link NBTArrayAllocator} that this handle (and it's corresponding value) belong to
+     */
+    NBTArrayAllocator alloc();
 }

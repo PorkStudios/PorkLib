@@ -22,10 +22,12 @@ import net.daporkchop.lib.nbt.NBTInputStream;
 import net.daporkchop.lib.nbt.NBTOutputStream;
 import net.daporkchop.lib.nbt.tag.Tag;
 import net.daporkchop.lib.nbt.tag.TagRegistry;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -82,6 +84,16 @@ public class ListTag<T extends Tag> extends Tag implements List<T> {
             for (T tag : this.value) {
                 tag.write(out, registry);
             }
+        }
+    }
+
+    @Override
+    public synchronized void release() throws AlreadyReleasedException {
+        if (this.value != Collections.<T>emptyList()) {
+            this.value.forEach(Tag::release);
+            this.value = Collections.emptyList();
+        } else {
+            throw new AlreadyReleasedException();
         }
     }
 

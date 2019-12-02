@@ -71,7 +71,7 @@ public final class NativeCode<T> implements Supplier<T> {
             }
         }
         try {
-            File file = File.createTempFile(name + System.nanoTime(), ".so");
+            File file = File.createTempFile(String.format("%s-%s-", name, LIB_ARCH), String.format(".%s", LIB_EXT));
             file.deleteOnExit();
             try (InputStream is = NativeCode.class.getResourceAsStream(String.format("/%s/lib%s.%s", LIB_ARCH, name, LIB_EXT));
                  OutputStream os = new FileOutputStream(file))   {

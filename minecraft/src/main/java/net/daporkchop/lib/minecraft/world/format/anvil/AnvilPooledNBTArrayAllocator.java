@@ -66,46 +66,40 @@ final class AnvilPooledNBTArrayAllocator extends DefaultNBTArrayAllocator {
      */
     private final class ThreadLocalData {
         @SuppressWarnings("unchecked")
-        protected final SoftReference<PooledHandle>[] handles2kb = (SoftReference<PooledHandle>[]) new SoftReference[AnvilPooledNBTArrayAllocator.this.max2kbCount];
+        protected final PooledHandle[] handles2kb = new PooledHandle[AnvilPooledNBTArrayAllocator.this.max2kbCount];
         @SuppressWarnings("unchecked")
-        protected final SoftReference<PooledHandle>[] handles4kb = (SoftReference<PooledHandle>[]) new SoftReference[AnvilPooledNBTArrayAllocator.this.max4kbCount];
+        protected final PooledHandle[] handles4kb = new PooledHandle[AnvilPooledNBTArrayAllocator.this.max4kbCount];
 
         protected int index2kb = 0;
         protected int index4kb = 0;
 
         protected synchronized PooledHandle get2kb() {
-            while (this.index2kb > 0)   {
-                PooledHandle handle = this.handles2kb[--this.index2kb].get();
+            if (this.index2kb > 0)   {
+                PooledHandle handle = this.handles2kb[--this.index2kb];
                 this.handles2kb[this.index2kb] = null;
-                if (handle != null) {
-                    return handle;
-                }
+                return handle.allocate();
             }
-            System.out.println("Allocating 2KiB buffer");
             return new PooledHandle(new byte[2048]);
         }
 
         protected synchronized void put2kb(@NonNull PooledHandle handle)  {
             if (this.index2kb < this.handles2kb.length) {
-                this.handles2kb[this.index2kb++] = new SoftReference<>(handle);
+                this.handles2kb[this.index2kb++] = handle;
             }
         }
 
         protected synchronized PooledHandle get4kb() {
-            while (this.index4kb > 0)   {
-                PooledHandle handle = this.handles4kb[--this.index4kb].get();
+            if (this.index4kb > 0)   {
+                PooledHandle handle = this.handles4kb[--this.index4kb];
                 this.handles4kb[this.index4kb] = null;
-                if (handle != null) {
-                    return handle;
-                }
+                return handle.allocate();
             }
-            System.out.println("Allocating 4KiB buffer");
             return new PooledHandle(new byte[4096]);
         }
 
         protected synchronized void put4kb(@NonNull PooledHandle handle)  {
             if (this.index4kb < this.handles4kb.length) {
-                this.handles4kb[this.index4kb++] = new SoftReference<>(handle);
+                this.handles4kb[this.index4kb++] = handle;
             }
         }
 

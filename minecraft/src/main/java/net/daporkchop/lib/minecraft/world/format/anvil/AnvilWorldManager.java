@@ -24,7 +24,7 @@ import io.netty.buffer.PooledByteBufAllocator;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import net.daporkchop.lib.binary.netty.NettyUtil;
+import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.common.cache.Cache;
 import net.daporkchop.lib.common.cache.SoftThreadCache;
 import net.daporkchop.lib.common.misc.file.PFiles;
@@ -145,7 +145,7 @@ public class AnvilWorldManager implements WorldManager {
                             ByteBuf uncompressed = PooledByteBufAllocator.DEFAULT.directBuffer();
                             try {
                                 inflater.inflate(compressed, uncompressed);
-                                try (NBTInputStream in = new NBTInputStream(NettyUtil.wrapIn(uncompressed), this.arrayAllocator)) {
+                                try (NBTInputStream in = new NBTInputStream(DataIn.wrap(uncompressed), this.arrayAllocator)) {
                                     rootTag = in.readTag().getCompound("Level");
                                 }
                             } finally {

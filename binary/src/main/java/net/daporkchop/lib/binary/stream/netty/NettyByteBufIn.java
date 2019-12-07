@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.binary.netty;
+package net.daporkchop.lib.binary.stream.netty;
 
 import io.netty.buffer.ByteBuf;
 import lombok.Getter;

@@ -19,7 +19,6 @@ import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.netty.NettyUtil;
 import net.daporkchop.lib.binary.serialization.impl.BasicSerializer;
 import net.daporkchop.lib.binary.serialization.impl.ByteArraySerializer;
 import net.daporkchop.lib.binary.serialization.impl.ConstantLengthSerializer;
@@ -200,7 +199,7 @@ public class SerializationRegistry {
      */
     public <T> T readNetty(@NonNull ByteBuf in) {
         try {
-            return this.read(NettyUtil.wrapIn(in));
+            return this.read(DataIn.wrap(in));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -286,7 +285,7 @@ public class SerializationRegistry {
      */
     public void writeNetty(@NonNull Object value, @NonNull ByteBuf out) {
         try {
-            this.write(value, NettyUtil.wrapOut(out));
+            this.write(value, DataOut.wrap(out));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -13,115 +13,154 @@
  *
  */
 
-package net.daporkchop.lib.binary.stream.data;
+package net.daporkchop.lib.binary.stream.misc;
 
-import lombok.AllArgsConstructor;
-import lombok.NonNull;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import net.daporkchop.lib.binary.stream.DataOut;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 /**
- * An implementation of {@link DataOut} that can write to a {@link ByteBuffer}
+ * /dev/null
+ * <p>
+ * A {@link DataOut} implementation that simply discards all data written to it.
  *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-public class BufferOut extends DataOut {
-    @NonNull
-    private final ByteBuffer buffer;
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class SlashDevSlashNull extends DataOut {
+    public static final SlashDevSlashNull INSTANCE = new SlashDevSlashNull();
 
     @Override
-    public void write(int b) throws IOException {
-        this.buffer.put((byte) b);
+    public void close() throws IOException {
     }
 
     @Override
-    public void write(@NonNull byte[] b, int off, int len) throws IOException {
-        this.buffer.put(b, off, len);
+    public void write(int b) throws IOException {
+    }
+
+    @Override
+    public DataOut writeBoolean(boolean b) throws IOException {
+        return this;
     }
 
     @Override
     public DataOut writeByte(byte b) throws IOException {
-        this.buffer.put(b);
+        return this;
+    }
+
+    @Override
+    public DataOut writeUByte(int b) throws IOException {
         return this;
     }
 
     @Override
     public DataOut writeShort(short s) throws IOException {
-        this.buffer.order(ByteOrder.BIG_ENDIAN).putShort(s);
+        return this;
+    }
+
+    @Override
+    public DataOut writeUShort(int s) throws IOException {
         return this;
     }
 
     @Override
     public DataOut writeShortLE(short s) throws IOException {
-        this.buffer.order(ByteOrder.LITTLE_ENDIAN).putShort(s);
+        return this;
+    }
+
+    @Override
+    public DataOut writeUShortLE(int s) throws IOException {
         return this;
     }
 
     @Override
     public DataOut writeChar(char c) throws IOException {
-        this.buffer.order(ByteOrder.BIG_ENDIAN).putChar(c);
-        return this;
-    }
-
-    @Override
-    public DataOut writeCharLE(char c) throws IOException {
-        this.buffer.order(ByteOrder.LITTLE_ENDIAN).putChar(c);
         return this;
     }
 
     @Override
     public DataOut writeInt(int i) throws IOException {
-        this.buffer.order(ByteOrder.BIG_ENDIAN).putInt(i);
+        return this;
+    }
+
+    @Override
+    public DataOut writeUInt(long i) throws IOException {
         return this;
     }
 
     @Override
     public DataOut writeIntLE(int i) throws IOException {
-        this.buffer.order(ByteOrder.LITTLE_ENDIAN).putInt(i);
+        return this;
+    }
+
+    @Override
+    public DataOut writeUIntLE(long i) throws IOException {
         return this;
     }
 
     @Override
     public DataOut writeLong(long l) throws IOException {
-        this.buffer.order(ByteOrder.BIG_ENDIAN).putLong(l);
         return this;
     }
 
     @Override
     public DataOut writeLongLE(long l) throws IOException {
-        this.buffer.order(ByteOrder.LITTLE_ENDIAN).putLong(l);
         return this;
     }
 
     @Override
     public DataOut writeFloat(float f) throws IOException {
-        this.buffer.order(ByteOrder.BIG_ENDIAN).putFloat(f);
         return this;
     }
 
     @Override
     public DataOut writeFloatLE(float f) throws IOException {
-        this.buffer.order(ByteOrder.LITTLE_ENDIAN).putFloat(f);
         return this;
     }
 
     @Override
     public DataOut writeDouble(double d) throws IOException {
-        this.buffer.order(ByteOrder.BIG_ENDIAN).putDouble(d);
         return this;
     }
 
     @Override
     public DataOut writeDoubleLE(double d) throws IOException {
-        this.buffer.order(ByteOrder.LITTLE_ENDIAN).putDouble(d);
         return this;
     }
 
     @Override
-    public void close() throws IOException {
+    public DataOut writeUTF(String s) throws IOException {
+        return this;
+    }
+
+    @Override
+    public DataOut writeByteArray(byte[] b) throws IOException {
+        return this;
+    }
+
+    @Override
+    public DataOut writeVarInt(int value) throws IOException {
+        return this;
+    }
+
+    @Override
+    public DataOut writeVarLong(long value) throws IOException {
+        return this;
+    }
+
+    @Override
+    public DataOut writeBytes(byte[] b) throws IOException {
+        return this;
+    }
+
+    @Override
+    public DataOut writeBytes(byte[] b, int off, int len) throws IOException {
+        return this;
+    }
+
+    @Override
+    public void write(byte[] b, int off, int len) throws IOException {
     }
 }

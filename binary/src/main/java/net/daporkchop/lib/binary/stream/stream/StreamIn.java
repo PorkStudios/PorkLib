@@ -13,48 +13,67 @@
  *
  */
 
-package net.daporkchop.lib.binary.stream.data;
+package net.daporkchop.lib.binary.stream.stream;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.DataIn;
 
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.InputStream;
 
 /**
- * An implementation of {@link DataOut} that can write data to an {@link OutputStream}.
+ * An implementation of {@link DataIn} that can read data from an {@link InputStream}
  *
  * @author DaPorkchop_
  */
 @AllArgsConstructor
 @Getter
-@Accessors(fluent = true, chain = true)
-public class StreamOut extends DataOut {
+@Accessors(fluent = true)
+public class StreamIn extends DataIn {
     @NonNull
-    protected final OutputStream out;
+    protected final InputStream in;
 
     @Override
-    public void write(int b) throws IOException {
-        this.out.write(b);
+    public int read() throws IOException {
+        return this.in.read();
     }
 
     @Override
-    public void write(byte[] b, int off, int len) throws IOException {
-        this.out.write(b, off, len);
+    public int read(byte[] b, int off, int len) throws IOException {
+        return this.in.read(b, off, len);
     }
 
     @Override
-    public void flush() throws IOException {
-        this.out.flush();
+    public int available() throws IOException {
+        return this.in.available();
     }
 
     @Override
-    public OutputStream unwrap() {
-        return this.out;
+    public long skip(long n) throws IOException {
+        return this.in.skip(n);
+    }
+
+    @Override
+    public void mark(int readlimit) {
+        this.in.mark(readlimit);
+    }
+
+    @Override
+    public void reset() throws IOException {
+        this.in.reset();
+    }
+
+    @Override
+    public boolean markSupported() {
+        return this.in.markSupported();
+    }
+
+    @Override
+    public InputStream unwrap() {
+        return this.in;
     }
 
     @Override
@@ -62,18 +81,18 @@ public class StreamOut extends DataOut {
     }
 
     /**
-     * An extension of {@link StreamOut} which forwards the {@link OutputStream#close()} method to the delegate {@link OutputStream}.
+     * An extension of {@link StreamIn} which forwards the {@link InputStream#close()} method to the delegate {@link InputStream}.
      *
      * @author DaPorkchop_
      */
-    public static final class Closing extends StreamOut {
-        public Closing(OutputStream out) {
-            super(out);
+    public static final class Closing extends StreamIn  {
+        public Closing(InputStream in) {
+            super(in);
         }
 
         @Override
         public void close() throws IOException {
-            this.out.close();
+            this.in.close();
         }
     }
 }

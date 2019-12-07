@@ -13,176 +13,115 @@
  *
  */
 
-package net.daporkchop.lib.binary.netty;
+package net.daporkchop.lib.binary.stream.nio;
 
-import io.netty.buffer.ByteBuf;
-import lombok.Getter;
+import lombok.AllArgsConstructor;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataOut;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 /**
- * An implementation of {@link DataOut} that can write to a {@link ByteBuf}
+ * An implementation of {@link DataOut} that can write to a {@link ByteBuffer}
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-public abstract class NettyByteBufOut extends DataOut {
+@AllArgsConstructor
+public class BufferOut extends DataOut {
     @NonNull
-    protected ByteBuf buf;
+    private final ByteBuffer buffer;
 
     @Override
     public void write(int b) throws IOException {
-        this.ensureOpen().writeByte(b);
+        this.buffer.put((byte) b);
     }
 
     @Override
     public void write(@NonNull byte[] b, int off, int len) throws IOException {
-        this.ensureOpen().writeBytes(b, off, len);
-    }
-
-    @Override
-    public DataOut writeBoolean(boolean b) throws IOException {
-        this.ensureOpen().writeBoolean(b);
-        return this;
+        this.buffer.put(b, off, len);
     }
 
     @Override
     public DataOut writeByte(byte b) throws IOException {
-        this.ensureOpen().writeByte(b & 0xFF);
+        this.buffer.put(b);
         return this;
     }
 
     @Override
     public DataOut writeShort(short s) throws IOException {
-        this.ensureOpen().writeShort(s & 0xFFFF);
-        return this;
-    }
-
-    @Override
-    public DataOut writeUShort(int s) throws IOException {
-        this.ensureOpen().writeShort(s);
+        this.buffer.order(ByteOrder.BIG_ENDIAN).putShort(s);
         return this;
     }
 
     @Override
     public DataOut writeShortLE(short s) throws IOException {
-        this.ensureOpen().writeShortLE(s & 0xFFFF);
-        return this;
-    }
-
-    @Override
-    public DataOut writeUShortLE(int s) throws IOException {
-        this.ensureOpen().writeShortLE(s);
+        this.buffer.order(ByteOrder.LITTLE_ENDIAN).putShort(s);
         return this;
     }
 
     @Override
     public DataOut writeChar(char c) throws IOException {
-        this.ensureOpen().writeChar(c);
+        this.buffer.order(ByteOrder.BIG_ENDIAN).putChar(c);
         return this;
     }
 
     @Override
     public DataOut writeCharLE(char c) throws IOException {
-        this.ensureOpen().writeChar(Character.reverseBytes(c));
+        this.buffer.order(ByteOrder.LITTLE_ENDIAN).putChar(c);
         return this;
     }
 
     @Override
     public DataOut writeInt(int i) throws IOException {
-        this.ensureOpen().writeInt(i);
+        this.buffer.order(ByteOrder.BIG_ENDIAN).putInt(i);
         return this;
     }
 
     @Override
     public DataOut writeIntLE(int i) throws IOException {
-        this.ensureOpen().writeIntLE(i);
+        this.buffer.order(ByteOrder.LITTLE_ENDIAN).putInt(i);
         return this;
     }
 
     @Override
     public DataOut writeLong(long l) throws IOException {
-        this.ensureOpen().writeLong(l);
+        this.buffer.order(ByteOrder.BIG_ENDIAN).putLong(l);
         return this;
     }
 
     @Override
     public DataOut writeLongLE(long l) throws IOException {
-        this.ensureOpen().writeLongLE(l);
+        this.buffer.order(ByteOrder.LITTLE_ENDIAN).putLong(l);
         return this;
     }
 
     @Override
     public DataOut writeFloat(float f) throws IOException {
-        this.ensureOpen().writeFloat(f);
+        this.buffer.order(ByteOrder.BIG_ENDIAN).putFloat(f);
         return this;
     }
 
     @Override
     public DataOut writeFloatLE(float f) throws IOException {
-        this.ensureOpen().writeFloatLE(f);
+        this.buffer.order(ByteOrder.LITTLE_ENDIAN).putFloat(f);
         return this;
     }
 
     @Override
     public DataOut writeDouble(double d) throws IOException {
-        this.ensureOpen().writeDouble(d);
+        this.buffer.order(ByteOrder.BIG_ENDIAN).putDouble(d);
         return this;
     }
 
     @Override
     public DataOut writeDoubleLE(double d) throws IOException {
-        this.ensureOpen().writeDoubleLE(d);
+        this.buffer.order(ByteOrder.LITTLE_ENDIAN).putDouble(d);
         return this;
     }
 
     @Override
-    public final void close() throws IOException {
-        try {
-            this.ensureOpen();
-            if (this.handleClose(this.buf)) {
-                this.buf.release();
-            }
-        } finally {
-            this.buf = null;
-        }
-    }
-
-    /**
-     * Called when this stream is closed.
-     *
-     * @param buf the buffer that this stream was writing to
-     * @return whether or not the buffer should be released
-     * @throws IOException if an IO exception occurs you dummy
-     */
-    protected abstract boolean handleClose(@NonNull ByteBuf buf) throws IOException;
-
-    protected final ByteBuf ensureOpen() {
-        ByteBuf buf = this.buf;
-        if (buf != null) {
-            return buf;
-        } else {
-            throw new IllegalStateException("Already closed!");
-        }
-    }
-
-    /**
-     * A basic implementation of {@link NettyByteBufOut} that simply does nothing when closed.
-     */
-    static class Default extends NettyByteBufOut {
-        public Default(ByteBuf buf) {
-            super(buf);
-        }
-
-        @Override
-        protected boolean handleClose(@NonNull ByteBuf buf) throws IOException {
-            return false;
-        }
+    public void close() throws IOException {
     }
 }

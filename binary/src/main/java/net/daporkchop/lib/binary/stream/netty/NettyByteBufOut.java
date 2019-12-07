@@ -13,154 +13,176 @@
  *
  */
 
-package net.daporkchop.lib.binary.stream.data;
+package net.daporkchop.lib.binary.stream.netty;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import io.netty.buffer.ByteBuf;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataOut;
 
 import java.io.IOException;
 
 /**
- * /dev/null
- * <p>
- * A {@link DataOut} implementation that simply discards all data written to it.
+ * An implementation of {@link DataOut} that can write to a {@link ByteBuf}
  *
  * @author DaPorkchop_
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class SlashDevSlashNull extends DataOut {
-    public static final SlashDevSlashNull INSTANCE = new SlashDevSlashNull();
-
-    @Override
-    public void close() throws IOException {
-    }
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public abstract class NettyByteBufOut extends DataOut {
+    @NonNull
+    protected ByteBuf buf;
 
     @Override
     public void write(int b) throws IOException {
+        this.ensureOpen().writeByte(b);
+    }
+
+    @Override
+    public void write(@NonNull byte[] b, int off, int len) throws IOException {
+        this.ensureOpen().writeBytes(b, off, len);
     }
 
     @Override
     public DataOut writeBoolean(boolean b) throws IOException {
+        this.ensureOpen().writeBoolean(b);
         return this;
     }
 
     @Override
     public DataOut writeByte(byte b) throws IOException {
-        return this;
-    }
-
-    @Override
-    public DataOut writeUByte(int b) throws IOException {
+        this.ensureOpen().writeByte(b & 0xFF);
         return this;
     }
 
     @Override
     public DataOut writeShort(short s) throws IOException {
+        this.ensureOpen().writeShort(s & 0xFFFF);
         return this;
     }
 
     @Override
     public DataOut writeUShort(int s) throws IOException {
+        this.ensureOpen().writeShort(s);
         return this;
     }
 
     @Override
     public DataOut writeShortLE(short s) throws IOException {
+        this.ensureOpen().writeShortLE(s & 0xFFFF);
         return this;
     }
 
     @Override
     public DataOut writeUShortLE(int s) throws IOException {
+        this.ensureOpen().writeShortLE(s);
         return this;
     }
 
     @Override
     public DataOut writeChar(char c) throws IOException {
+        this.ensureOpen().writeChar(c);
+        return this;
+    }
+
+    @Override
+    public DataOut writeCharLE(char c) throws IOException {
+        this.ensureOpen().writeChar(Character.reverseBytes(c));
         return this;
     }
 
     @Override
     public DataOut writeInt(int i) throws IOException {
-        return this;
-    }
-
-    @Override
-    public DataOut writeUInt(long i) throws IOException {
+        this.ensureOpen().writeInt(i);
         return this;
     }
 
     @Override
     public DataOut writeIntLE(int i) throws IOException {
-        return this;
-    }
-
-    @Override
-    public DataOut writeUIntLE(long i) throws IOException {
+        this.ensureOpen().writeIntLE(i);
         return this;
     }
 
     @Override
     public DataOut writeLong(long l) throws IOException {
+        this.ensureOpen().writeLong(l);
         return this;
     }
 
     @Override
     public DataOut writeLongLE(long l) throws IOException {
+        this.ensureOpen().writeLongLE(l);
         return this;
     }
 
     @Override
     public DataOut writeFloat(float f) throws IOException {
+        this.ensureOpen().writeFloat(f);
         return this;
     }
 
     @Override
     public DataOut writeFloatLE(float f) throws IOException {
+        this.ensureOpen().writeFloatLE(f);
         return this;
     }
 
     @Override
     public DataOut writeDouble(double d) throws IOException {
+        this.ensureOpen().writeDouble(d);
         return this;
     }
 
     @Override
     public DataOut writeDoubleLE(double d) throws IOException {
+        this.ensureOpen().writeDoubleLE(d);
         return this;
     }
 
     @Override
-    public DataOut writeUTF(String s) throws IOException {
-        return this;
+    public final void close() throws IOException {
+        try {
+            this.ensureOpen();
+            if (this.handleClose(this.buf)) {
+                this.buf.release();
+            }
+        } finally {
+            this.buf = null;
+        }
     }
 
-    @Override
-    public DataOut writeByteArray(byte[] b) throws IOException {
-        return this;
+    /**
+     * Called when this stream is closed.
+     *
+     * @param buf the buffer that this stream was writing to
+     * @return whether or not the buffer should be released
+     * @throws IOException if an IO exception occurs you dummy
+     */
+    protected abstract boolean handleClose(@NonNull ByteBuf buf) throws IOException;
+
+    protected final ByteBuf ensureOpen() {
+        ByteBuf buf = this.buf;
+        if (buf != null) {
+            return buf;
+        } else {
+            throw new IllegalStateException("Already closed!");
+        }
     }
 
-    @Override
-    public DataOut writeVarInt(int value) throws IOException {
-        return this;
-    }
+    /**
+     * A basic implementation of {@link NettyByteBufOut} that simply does nothing when closed.
+     */
+    public static class Default extends NettyByteBufOut {
+        public Default(ByteBuf buf) {
+            super(buf);
+        }
 
-    @Override
-    public DataOut writeVarLong(long value) throws IOException {
-        return this;
-    }
-
-    @Override
-    public DataOut writeBytes(byte[] b) throws IOException {
-        return this;
-    }
-
-    @Override
-    public DataOut writeBytes(byte[] b, int off, int len) throws IOException {
-        return this;
-    }
-
-    @Override
-    public void write(byte[] b, int off, int len) throws IOException {
+        @Override
+        protected boolean handleClose(@NonNull ByteBuf buf) throws IOException {
+            return false;
+        }
     }
 }

@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.binary.stream.data;
+package net.daporkchop.lib.binary.stream.nio;
 
 import lombok.AllArgsConstructor;
 import lombok.NonNull;

@@ -15,9 +15,11 @@
 
 package net.daporkchop.lib.binary.stream;
 
+import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.data.BufferIn;
-import net.daporkchop.lib.binary.stream.data.StreamIn;
+import net.daporkchop.lib.binary.stream.netty.NettyByteBufIn;
+import net.daporkchop.lib.binary.stream.nio.BufferIn;
+import net.daporkchop.lib.binary.stream.stream.StreamIn;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -135,6 +137,31 @@ public abstract class DataIn extends InputStream {
      */
     public static DataIn wrapNonBuffered(@NonNull File file) throws IOException {
         return wrap(new FileInputStream(file));
+    }
+    /**
+     * Wraps a {@link ByteBuf} into a {@link DataIn} for reading.
+     * <p>
+     * When the {@link DataIn} is closed (using {@link DataIn#close()}), the {@link ByteBuf} will not be released.
+     *
+     * @param buf the {@link ByteBuf} to read from
+     * @return a {@link DataIn} that can read data from the {@link ByteBuf}
+     */
+    public static DataIn wrap(@NonNull ByteBuf buf) {
+        return wrap(buf, false);
+    }
+
+    /**
+     * Wraps a {@link ByteBuf} into a {@link DataIn} for reading.
+     * <p>
+     * When the {@link DataIn} is closed (using {@link DataIn#close()}), the {@link ByteBuf} may or may not be released, depending on the value of the
+     * {@code release} parameter.
+     *
+     * @param buf     the {@link ByteBuf} to read from
+     * @param release whether or not to release the buffer when the {@link DataIn} is closed
+     * @return a {@link DataIn} that can read data from the {@link ByteBuf}
+     */
+    public static DataIn wrap(@NonNull ByteBuf buf, boolean release) {
+        return release ? new NettyByteBufIn.Releasing(buf) : new NettyByteBufIn(buf);
     }
 
     /**

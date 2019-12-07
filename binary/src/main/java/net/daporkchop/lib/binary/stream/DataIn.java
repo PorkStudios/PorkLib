@@ -28,6 +28,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 
@@ -438,6 +439,23 @@ public abstract class DataIn extends InputStream {
             }
         } while ((read & 0b10000000) != 0);
         return result;
+    }
+
+    /**
+     * Reads a {@link CharSequence} using the given {@link Charset}.
+     * <p>
+     * Depending on the {@link Charset} used, certain optimizations may be applied. It is therefore recommended to use values from {@link StandardCharsets}
+     * if possible.
+     *
+     * @param size    the length of the encoded {@link CharSequence} in bytes
+     * @param charset the {@link Charset} to encode the text using
+     * @return the read {@link CharSequence}
+     */
+    public CharSequence readText(long size, @NonNull Charset charset) throws IOException  {
+        if (size > Integer.MAX_VALUE)   {
+            throw new IllegalArgumentException("size parameter too large!");
+        }
+        return new String(this.readFully(new byte[(int) size]), charset);
     }
 
     /**

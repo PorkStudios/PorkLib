@@ -23,6 +23,7 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 
 /**
  * An implementation of {@link DataIn} that can read from a {@link ByteBuf}.
@@ -50,12 +51,6 @@ public class NettyByteBufIn extends DataIn {
         } else {
             return -1;
         }
-    }
-
-    @Override
-    public byte[] readFully(@NonNull byte[] b, int off, int len) throws IOException {
-        this.buf.readBytes(b, off, len);
-        return b;
     }
 
     @Override
@@ -178,6 +173,26 @@ public class NettyByteBufIn extends DataIn {
     @Override
     public double readDoubleLE() throws IOException {
         return this.buf.readDoubleLE();
+    }
+
+    @Override
+    public CharSequence readText(long size, @NonNull Charset charset) throws IOException {
+        if (size > Integer.MAX_VALUE)   {
+            throw new IllegalArgumentException("size parameter too large!");
+        }
+        return this.buf.readCharSequence((int) size, charset);
+    }
+
+    @Override
+    public byte[] readFully(@NonNull byte[] b) throws IOException {
+        this.buf.readBytes(b);
+        return b;
+    }
+
+    @Override
+    public byte[] readFully(@NonNull byte[] b, int off, int len) throws IOException {
+        this.buf.readBytes(b, off, len);
+        return b;
     }
 
     @Override

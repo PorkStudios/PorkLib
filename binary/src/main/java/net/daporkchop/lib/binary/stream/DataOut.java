@@ -17,10 +17,12 @@ package net.daporkchop.lib.binary.stream;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.misc.SlashDevSlashNull;
 import net.daporkchop.lib.binary.stream.netty.NettyByteBufOut;
 import net.daporkchop.lib.binary.stream.nio.BufferOut;
-import net.daporkchop.lib.binary.stream.misc.SlashDevSlashNull;
 import net.daporkchop.lib.binary.stream.stream.StreamOut;
+import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.util.PorkUtil;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -415,16 +417,20 @@ public abstract class DataOut extends OutputStream {
 
     /**
      * Writes the given {@link CharSequence} using the given {@link Charset}.
-     *
+     * <p>
      * It will not be length-prefixed, meaning that it will not be able to be read directly using the corresponding method in {@link DataIn}.
+     * <p>
+     * Depending on the {@link Charset} used, certain optimizations may be applied. It is therefore recommended to use values from {@link StandardCharsets}
+     * if possible.
      *
-     * Depending on the {@link Charset} used, certain optimizations may be applied. It is recommended to use v
-     * @param text the {@link CharSequence} to write
+     * @param text    the {@link CharSequence} to write
      * @param charset the {@link Charset} to encode the text using
      * @return the number of bytes written
      */
     public long writeText(@NonNull CharSequence text, @NonNull Charset charset) throws IOException {
-        
+        byte[] b = text.toString().getBytes(charset);
+        this.write(b);
+        return b.length;
     }
 
     public DataOut writeBytes(@NonNull byte[] b) throws IOException {

@@ -17,9 +17,12 @@ package net.daporkchop.lib.binary.stream.misc;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataOut;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.Charset;
 
 /**
  * /dev/null
@@ -77,6 +80,11 @@ public final class SlashDevSlashNull extends DataOut {
 
     @Override
     public DataOut writeChar(char c) throws IOException {
+        return this;
+    }
+
+    @Override
+    public DataOut writeCharLE(char c) throws IOException {
         return this;
     }
 
@@ -141,6 +149,11 @@ public final class SlashDevSlashNull extends DataOut {
     }
 
     @Override
+    public <E extends Enum<E>> DataOut writeEnum(@NonNull E e) throws IOException {
+        return this;
+    }
+
+    @Override
     public DataOut writeVarInt(int value) throws IOException {
         return this;
     }
@@ -148,6 +161,11 @@ public final class SlashDevSlashNull extends DataOut {
     @Override
     public DataOut writeVarLong(long value) throws IOException {
         return this;
+    }
+
+    @Override
+    public long writeText(@NonNull CharSequence text, @NonNull Charset charset) throws IOException {
+        return 0L;
     }
 
     @Override

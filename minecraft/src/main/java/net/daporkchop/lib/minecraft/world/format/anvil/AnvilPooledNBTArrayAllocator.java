@@ -20,6 +20,8 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.binary.util.OptionallyFastThreadLocal;
+import net.daporkchop.lib.common.cache.ThreadCache;
 import net.daporkchop.lib.nbt.alloc.DefaultNBTArrayAllocator;
 import net.daporkchop.lib.nbt.alloc.NBTArrayAllocator;
 import net.daporkchop.lib.nbt.alloc.NBTArrayHandle;
@@ -39,10 +41,8 @@ import java.lang.ref.SoftReference;
 @Getter
 @Accessors(fluent = true)
 final class AnvilPooledNBTArrayAllocator extends DefaultNBTArrayAllocator {
-    protected static final long ALLOCATED_OFFSET = PUnsafe.pork_getOffset(ThreadLocalData.PooledHandle.class, "allocated");
-
     @Getter(AccessLevel.NONE)
-    protected final ThreadLocal<ThreadLocalData> threadLocal = ThreadLocal.withInitial(ThreadLocalData::new);
+    protected final ThreadCache<ThreadLocalData> threadLocal = new OptionallyFastThreadLocal<>(ThreadLocalData::new);
 
     protected final int max2kbCount;
     protected final int max4kbCount;
@@ -79,7 +79,7 @@ final class AnvilPooledNBTArrayAllocator extends DefaultNBTArrayAllocator {
                 this.handles2kb[this.index2kb] = null;
                 return handle.allocate();
             }
-            return new PooledHandle(new byte[2048]);
+            return new PooledHandle(AnvilPooledNBTArrayAllocator.this, this, new byte[2048]);
         }
 
         protected synchronized void put2kb(@NonNull PooledHandle handle)  {
@@ -94,7 +94,7 @@ final class AnvilPooledNBTArrayAllocator extends DefaultNBTArrayAllocator {
                 this.handles4kb[this.index4kb] = null;
                 return handle.allocate();
             }
-            return new PooledHandle(new byte[4096]);
+            return new PooledHandle(AnvilPooledNBTArrayAllocator.this, this, new byte[4096]);
         }
 
         protected synchronized void put4kb(@NonNull PooledHandle handle)  {
@@ -102,44 +102,49 @@ final class AnvilPooledNBTArrayAllocator extends DefaultNBTArrayAllocator {
                 this.handles4kb[this.index4kb++] = handle;
             }
         }
+    }
 
-        /**
-         * A {@link NBTArrayHandle} which contains a pooled {@code byte[]} for an {@link AnvilPooledNBTArrayAllocator}.
-         *
-         * @author DaPorkchop_
-         */
-        @RequiredArgsConstructor
-        @Accessors(fluent = true)
-        private final class PooledHandle implements NBTArrayHandle<byte[]> {
-            @Getter
-            protected final byte[] value;
+    /**
+     * A {@link NBTArrayHandle} which contains a pooled {@code byte[]} for an {@link AnvilPooledNBTArrayAllocator}.
+     *
+     * @author DaPorkchop_
+     */
+    @RequiredArgsConstructor
+    @Getter
+    @Accessors(fluent = true)
+    private static final class PooledHandle implements NBTArrayHandle<byte[]> {
+        protected static final long ALLOCATED_OFFSET = PUnsafe.pork_getOffset(PooledHandle.class, "allocated");
 
-            protected volatile int allocated = 1;
+        @NonNull
+        protected final AnvilPooledNBTArrayAllocator alloc;
+        @NonNull
+        protected final ThreadLocalData parent;
+        protected final byte[] value;
 
-            @Override
-            public void release() {
-                if (PUnsafe.compareAndSwapInt(this, ALLOCATED_OFFSET, 1, 0))    {
-                    if (this.value.length == 2048)  {
-                        ThreadLocalData.this.put2kb(this);
-                    } else if (this.value.length == 4096)   {
-                        ThreadLocalData.this.put4kb(this);
-                    } else {
+        @Getter(AccessLevel.NONE)
+        protected volatile int allocated = 1;
+
+        @Override
+        public void release() {
+            if (PUnsafe.compareAndSwapInt(this, ALLOCATED_OFFSET, 1, 0))    {
+                switch (this.value.length)  {
+                    case 2048:
+                        this.parent.put2kb(this);
+                        break;
+                    case 4096:
+                        this.parent.put4kb(this);
+                        break;
+                    default:
                         throw new IllegalStateException(String.valueOf(this.value.length));
-                    }
                 }
             }
+        }
 
-            @Override
-            public NBTArrayAllocator alloc() {
-                return AnvilPooledNBTArrayAllocator.this;
+        protected PooledHandle allocate()   {
+            if (!PUnsafe.compareAndSwapInt(this, ALLOCATED_OFFSET, 0, 1))   {
+                throw new IllegalStateException("Handle already allocated!");
             }
-
-            protected PooledHandle allocate()   {
-                if (!PUnsafe.compareAndSwapInt(this, ALLOCATED_OFFSET, 0, 1))   {
-                    throw new IllegalStateException("Handle already allocated!");
-                }
-                return this;
-            }
+            return this;
         }
     }
 }

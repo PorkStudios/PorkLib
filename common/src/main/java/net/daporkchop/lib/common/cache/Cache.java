@@ -24,7 +24,7 @@ import java.util.function.Supplier;
  *
  * @author DaPorkchop_
  */
-public interface Cache<T> {
+public interface Cache<T> extends Supplier<T> {
     /**
      * Gets a simple cache that won't hold a reference to the object until requested
      *

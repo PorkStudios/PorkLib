@@ -18,7 +18,6 @@ package net.daporkchop.lib.http.request;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.common.function.PFunctions;
-import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.http.HttpClient;
 import net.daporkchop.lib.http.HttpMethod;
 import net.daporkchop.lib.http.entity.FileHttpEntity;
@@ -272,7 +271,7 @@ public interface RequestBuilder<V> {
         Header header;
         if (value instanceof String)    {
             header = Header.of(key, (String) value);
-        } else if (value instanceof List && ((List) value).stream().anyMatch(PFunctions.invert(o -> o instanceof String))) {
+        } else if (value instanceof List && ((List) value).stream().anyMatch(PFunctions.not(o -> o instanceof String))) {
             header = Header.of(key, (List<String>) value);
         } else {
             throw new IllegalArgumentException(value.toString());

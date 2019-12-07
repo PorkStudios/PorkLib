@@ -61,8 +61,8 @@ public class FormObject implements FormValue {
 
         Arrays.stream(clazz.getDeclaredFields())
                 .map(PField::of)
-                .filter(PFunctions.invert(PField::isStatic))
-                .filter(PFunctions.invert(field -> field.hasAnnotation(FormType.Ignored.class)))
+                .filter(PFunctions.not(PField::isStatic))
+                .filter(PFunctions.not(field -> field.hasAnnotation(FormType.Ignored.class)))
                 .map(FormValue::of)
                 .forEach(this.fields::add);
     }

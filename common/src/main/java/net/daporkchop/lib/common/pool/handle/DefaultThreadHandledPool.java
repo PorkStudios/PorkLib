@@ -43,7 +43,7 @@ public final class DefaultThreadHandledPool<V> implements HandledPool<V> {
 
     @Override
     public Handle<V> get() {
-        return null;
+        return this.arenas.get().get();
     }
 
     private static final class Arena<V> {

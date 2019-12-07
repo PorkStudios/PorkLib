@@ -37,7 +37,7 @@ public abstract class AbstractFormValue<A extends Annotation> implements FormVal
     protected static String[] parseTooltip(@NonNull String[] source) {
         return Arrays.stream(source)
                 .filter(Objects::nonNull)
-                .filter(PFunctions.invert(String::isEmpty))
+                .filter(PFunctions.not(String::isEmpty))
                 .flatMap(s -> s.indexOf('\n') == -1 ? Arrays.stream(s.split("\n")) : Stream.of(s))
                 .toArray(String[]::new);
     }

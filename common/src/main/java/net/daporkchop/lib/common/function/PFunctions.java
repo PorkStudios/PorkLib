@@ -67,7 +67,7 @@ public abstract class PFunctions {
      * @param predicate the predicate to invert
      * @return a {@link Predicate} that will return the opposite value of whatever is returned by the original
      */
-    public static <T> Predicate<T> invert(@NonNull Predicate<T> predicate) {
+    public static <T> Predicate<T> not(@NonNull Predicate<T> predicate) {
         return t -> !predicate.test(t);
     }
 

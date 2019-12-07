@@ -13,60 +13,42 @@
  *
  */
 
-package net.daporkchop.lib.common.reference;
+package net.daporkchop.lib.common.misc;
 
-import lombok.NonNull;
+import lombok.experimental.UtilityClass;
 
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
+ * A bunch of random byte arrays for use in test classes.
+ * <p>
+ * Really shouldn't be used outside of unit tests.
+ *
  * @author DaPorkchop_
  */
-public interface Reference<T> {
-    T get();
+@UtilityClass
+public class TestRandomData {
+    public static final byte[][] randomBytes = new byte[32][];
 
-    T set(T val);
-
-    default T swap(T val) {
-        T old = this.get();
-        this.set(val);
-        return old;
+    static {
+        try {
+            Class.forName("org.junit.Test");
+        } catch (ClassNotFoundException e)   {
+            throw new RuntimeException("JUnit not found! Is this a unit testing environment?", e);
+        }
+        ThreadLocalRandom r = ThreadLocalRandom.current();
+        for (int i = randomBytes.length - 1; i >= 0; i--) {
+            r.nextBytes(randomBytes[i] = new byte[r.nextInt(1024, 8192)]);
+        }
     }
 
-    default boolean missing() {
-        return this.get() == null;
+    public static byte[] getRandomBytes(int minLen, int maxLen) {
+        return getRandomBytes(ThreadLocalRandom.current().nextInt(minLen, maxLen));
     }
 
-    default boolean has() {
-        return this.get() != null;
-    }
-
-    default T getOrDefault(T def) {
-        return this.missing() ? def : this.get();
-    }
-
-    default T getOrSet(T def) {
-        return this.missing() ? this.set(def) : this.get();
-    }
-
-    default T compute(@NonNull Supplier<T> supplier) {
-        return this.set(supplier.get());
-    }
-
-    default T computeIfAbsent(@NonNull Supplier<T> supplier) {
-        return this.missing() ? this.set(supplier.get()) : this.get();
-    }
-
-    default T computeIfPresent(@NonNull Supplier<T> supplier) {
-        return this.has() ? this.set(supplier.get()) : null;
-    }
-
-    default T map(@NonNull Function<T, T> function) {
-        return this.set(function.apply(this.get()));
-    }
-
-    default T mapIfPresent(@NonNull Function<T, T> function) {
-        return this.has() ? this.set(function.apply(this.get())) : null;
+    public static byte[] getRandomBytes(int len) {
+        byte[] b = new byte[len];
+        ThreadLocalRandom.current().nextBytes(b);
+        return b;
     }
 }

@@ -13,32 +13,37 @@
  *
  */
 
-package net.daporkchop.lib.common.reference;
+package net.daporkchop.lib.common.pool.selection;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.ToString;
+import lombok.RequiredArgsConstructor;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Predicate;
 
 /**
+ * An implementation of {@link SelectionPool} with a single value.
+ *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-@NoArgsConstructor
-@ToString
-@EqualsAndHashCode
-public class LateReference<T> implements Reference<T> {
+@RequiredArgsConstructor
+public final class SingletonSelectionPool<V> implements SelectionPool<V> {
     @NonNull
-    protected T val;
+    protected final V value;
 
     @Override
-    public T get() {
-        return this.val;
+    public V any() {
+        return this.value;
     }
 
     @Override
-    public T set(T val) {
-        return this.val = val;
+    public List<V> matching(@NonNull Predicate<V> condition) {
+        return condition.test(this.value) ? Collections.singletonList(this.value) : Collections.emptyList();
+    }
+
+    @Override
+    public V anyMatching(@NonNull Predicate<V> condition) {
+        return condition.test(this.value) ? this.value : null;
     }
 }

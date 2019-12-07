@@ -28,7 +28,7 @@ import java.util.function.Supplier;
  *
  * @author DaPorkchop_
  */
-public class SoftThreadCache<T> implements ThreadCache<T> {
+public final class SoftThreadCache<T> implements ThreadCache<T> {
     public static <T> SoftThreadCache<T> of(@NonNull Supplier<T> supplier) {
         return new SoftThreadCache<>(supplier);
     }

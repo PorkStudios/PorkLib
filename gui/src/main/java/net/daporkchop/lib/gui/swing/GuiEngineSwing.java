@@ -16,7 +16,7 @@
 package net.daporkchop.lib.gui.swing;
 
 import lombok.NonNull;
-import net.daporkchop.lib.common.reference.InstancePool;
+import net.daporkchop.lib.common.misc.InstancePool;
 import net.daporkchop.lib.gui.GuiEngine;
 import net.daporkchop.lib.gui.component.capability.BlankComponentAdder;
 import net.daporkchop.lib.gui.component.type.Window;

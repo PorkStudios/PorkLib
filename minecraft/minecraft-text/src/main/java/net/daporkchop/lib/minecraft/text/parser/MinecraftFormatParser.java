@@ -23,7 +23,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.ToString;
-import net.daporkchop.lib.common.reference.InstancePool;
+import net.daporkchop.lib.common.misc.InstancePool;
 import net.daporkchop.lib.logging.format.FormatParser;
 import net.daporkchop.lib.minecraft.text.MCTextType;
 import net.daporkchop.lib.minecraft.text.component.MCTextRoot;

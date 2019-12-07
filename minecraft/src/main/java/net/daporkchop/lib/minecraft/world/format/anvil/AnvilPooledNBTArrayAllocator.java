@@ -20,14 +20,11 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.binary.util.OptionallyFastThreadLocal;
+import net.daporkchop.lib.common.cache.FastThreadCache;
 import net.daporkchop.lib.common.cache.ThreadCache;
 import net.daporkchop.lib.nbt.alloc.DefaultNBTArrayAllocator;
-import net.daporkchop.lib.nbt.alloc.NBTArrayAllocator;
 import net.daporkchop.lib.nbt.alloc.NBTArrayHandle;
 import net.daporkchop.lib.unsafe.PUnsafe;
-
-import java.lang.ref.SoftReference;
 
 /**
  * Implementation of {@link net.daporkchop.lib.nbt.alloc.NBTArrayAllocator} which allocates 2KiB and 4KiB {@code byte[]}s using a simple soft referencing
@@ -42,7 +39,7 @@ import java.lang.ref.SoftReference;
 @Accessors(fluent = true)
 final class AnvilPooledNBTArrayAllocator extends DefaultNBTArrayAllocator {
     @Getter(AccessLevel.NONE)
-    protected final ThreadCache<ThreadLocalData> threadLocal = new OptionallyFastThreadLocal<>(ThreadLocalData::new);
+    protected final ThreadCache<ThreadLocalData> threadLocal = new FastThreadCache<>(ThreadLocalData::new);
 
     protected final int max2kbCount;
     protected final int max4kbCount;

@@ -17,6 +17,9 @@ package net.daporkchop.lib.common.util;
 
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.common.pool.handle.DefaultThreadHandledPool;
+import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.pool.handle.HandledPool;
 import net.daporkchop.lib.unsafe.PUnsafe;
 import sun.misc.Cleaner;
 import sun.misc.SoftCache;
@@ -54,7 +57,7 @@ public class PorkUtil {
 
     private final Function<Throwable, StackTraceElement[]> GET_STACK_TRACE_WRAPPER;
 
-    public final ThreadLocal<byte[]> BUFFER_CACHE_SMALL = ThreadLocal.withInitial(() -> new byte[256]);
+    public final HandledPool<byte[]> BUFFER_POOL = new DefaultThreadHandledPool<>(() -> new byte[PUnsafe.PAGE_SIZE], 4);
 
     private final AtomicInteger DEFAULT_EXECUTOR_THREAD_COUNTER = new AtomicInteger(0);
     public final  Executor      DEFAULT_EXECUTOR                = new ThreadPoolExecutor(

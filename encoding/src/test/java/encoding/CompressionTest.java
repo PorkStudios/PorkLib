@@ -15,7 +15,7 @@
 
 package encoding;
 
-import net.daporkchop.lib.common.test.TestRandomData;
+import net.daporkchop.lib.common.misc.TestRandomData;
 import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.encoding.compression.CompressionHelper;
 import org.junit.Test;

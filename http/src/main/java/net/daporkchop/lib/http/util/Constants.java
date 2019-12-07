@@ -18,7 +18,7 @@ package net.daporkchop.lib.http.util;
 import io.netty.util.collection.IntObjectHashMap;
 import io.netty.util.collection.IntObjectMap;
 import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.common.pool.Pool;
+import net.daporkchop.lib.common.pool.selection.SelectionPool;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.http.StatusCode;
 
@@ -44,8 +44,8 @@ public class Constants {
                     }
             ));
 
-    public final String       USER_AGENT              = "PorkLib/" + PorkUtil.PORKLIB_VERSION;
-    public final Pool<String> DEFAULT_USER_AGENT_POOL = Pool.singleton(USER_AGENT);
+    public final String                USER_AGENT                        = "PorkLib/" + PorkUtil.PORKLIB_VERSION;
+    public final SelectionPool<String> DEFAULT_USER_AGENT_SELECTION_POOL = SelectionPool.singleton(USER_AGENT);
 
     /*public final ThreadLocal<byte[]> CACHE_4KB_BUFFER = ThreadLocal.withInitial(() -> new byte[4096]);
 

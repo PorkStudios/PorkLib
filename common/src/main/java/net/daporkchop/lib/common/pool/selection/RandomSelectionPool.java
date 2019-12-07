@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.common.pool;
+package net.daporkchop.lib.common.pool.selection;
 
 import lombok.NonNull;
 
@@ -27,11 +27,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * An implementation of {@link Pool} which selects randomly from a fixed number of values given at construction time.
+ * An implementation of {@link SelectionPool} which selects randomly from a fixed number of values given at construction time.
  *
  * @author DaPorkchop_
  */
-public final class RandomSelectionPool<V> implements Pool<V> {
+public final class RandomSelectionPool<V> implements SelectionPool<V> {
     protected final Object[] values;
     protected final Random   random;
 

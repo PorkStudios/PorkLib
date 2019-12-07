@@ -22,7 +22,7 @@ import com.google.gson.JsonSyntaxException;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.common.reference.InstancePool;
+import net.daporkchop.lib.common.misc.InstancePool;
 import net.daporkchop.lib.logging.console.TextFormat;
 import net.daporkchop.lib.logging.format.TextStyle;
 import net.daporkchop.lib.logging.format.component.TextComponentString;

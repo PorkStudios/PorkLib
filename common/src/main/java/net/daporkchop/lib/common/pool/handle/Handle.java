@@ -13,37 +13,35 @@
  *
  */
 
-package net.daporkchop.lib.common.pool;
-
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.function.Predicate;
+package net.daporkchop.lib.common.pool.handle;
 
 /**
- * An implementation of {@link Pool} with a single value.
+ * A handle for {@link HandledPool}.
+ * <p>
+ * Wraps a value and returns the value to the pool when closed.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-public final class SingletonPool<V> implements Pool<V> {
-    @NonNull
-    protected final V value;
+public interface Handle<V> extends AutoCloseable {
+    /**
+     * @return the value that this handle belongs to
+     */
+    V value();
 
+    /**
+     * Closes this handle, returning the value to the pool.
+     * <p>
+     * Note that handle instances may be re-used as well, so calling this method more than once may produce unexpected results instead of throwing an
+     * exception.
+     * <p>
+     * If this method is never called, this handle and the associated value will never be returned to the pool, and will simply be garbage-collected
+     * as normal.
+     */
     @Override
-    public V any() {
-        return this.value;
-    }
+    void close();
 
-    @Override
-    public List<V> matching(@NonNull Predicate<V> condition) {
-        return condition.test(this.value) ? Collections.singletonList(this.value) : Collections.emptyList();
-    }
-
-    @Override
-    public V anyMatching(@NonNull Predicate<V> condition) {
-        return condition.test(this.value) ? this.value : null;
-    }
+    /**
+     * @return the {@link HandledPool} that this handle belongs to
+     */
+    HandledPool<V> pool();
 }

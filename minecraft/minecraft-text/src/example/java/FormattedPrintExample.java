@@ -13,7 +13,7 @@
  *
  */
 
-import net.daporkchop.lib.common.reference.InstancePool;
+import net.daporkchop.lib.common.misc.InstancePool;
 import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.minecraft.text.parser.MinecraftFormatParser;
 

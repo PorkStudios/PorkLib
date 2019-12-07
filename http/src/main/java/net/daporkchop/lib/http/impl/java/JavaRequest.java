@@ -15,11 +15,12 @@
 
 package net.daporkchop.lib.http.impl.java;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
 import lombok.NonNull;
+import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.http.HttpMethod;
 import net.daporkchop.lib.http.StatusCode;
 import net.daporkchop.lib.http.entity.HttpEntity;
@@ -27,7 +28,6 @@ import net.daporkchop.lib.http.entity.transfer.TransferSession;
 import net.daporkchop.lib.http.entity.transfer.encoding.StandardTransferEncoding;
 import net.daporkchop.lib.http.entity.transfer.encoding.TransferEncoding;
 import net.daporkchop.lib.http.header.Header;
-import net.daporkchop.lib.http.header.SingletonHeaderImpl;
 import net.daporkchop.lib.http.header.map.HeaderMap;
 import net.daporkchop.lib.http.header.map.HeaderSnapshot;
 import net.daporkchop.lib.http.request.Request;
@@ -43,7 +43,6 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
-import java.util.StringJoiner;
 
 /**
  * Shared implementation of {@link Request} for {@link JavaHttpClient}.
@@ -114,7 +113,7 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
                     //add all headers as properties (we don't need to use set since HeaderMap already guarantees distinct keys, so using setRequestProperty would only cause needless string comparisons)
                     headers.forEach(header -> this.connection.addRequestProperty(header.key(), header.value())); //if it's a list all the values will be joined together
 
-                    if (!headers.hasKey("user-agent")) this.connection.setRequestProperty("user-agent", this.client.userAgentPool.any());
+                    if (!headers.hasKey("user-agent")) this.connection.setRequestProperty("user-agent", this.client.userAgentSelectionPool.any());
 
                     if (method.hasRequestBody())    {
                         HttpEntity entity = this.builder.body();
@@ -205,8 +204,8 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
 
         ResponseAggregator<Object, V> aggregator = this.builder.aggregator();
         Object temp = aggregator.init(this.headers.getNow(), this);
-        try {
-            byte[] buf = new byte[4096];
+        try (Handle<byte[]> handle = PorkUtil.BUFFER_POOL.get()) {
+            byte[] buf = handle.value();
             for (int i; (i = bodyIn.read(buf)) > 0; ) {
                 if (maxLength >= 0L && (readBytes += i) > maxLength) {
                     //if max length is set and we've read more data than it, throw exception

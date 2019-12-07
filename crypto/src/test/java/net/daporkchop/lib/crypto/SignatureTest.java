@@ -15,7 +15,7 @@
 
 package net.daporkchop.lib.crypto;
 
-import net.daporkchop.lib.common.test.TestRandomData;
+import net.daporkchop.lib.common.misc.TestRandomData;
 import net.daporkchop.lib.crypto.key.EllipticCurveKeyPair;
 import net.daporkchop.lib.crypto.keygen.KeyGen;
 import net.daporkchop.lib.crypto.sig.ec.CurveType;

@@ -22,7 +22,7 @@ import com.google.gson.JsonParser;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.misc.file.PFiles;
-import net.daporkchop.lib.common.reference.InstancePool;
+import net.daporkchop.lib.common.misc.InstancePool;
 import net.daporkchop.lib.logging.Logging;
 import sun.misc.IOUtils;
 

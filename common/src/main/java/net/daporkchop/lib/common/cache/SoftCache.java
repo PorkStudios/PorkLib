@@ -22,10 +22,12 @@ import java.lang.ref.SoftReference;
 import java.util.function.Supplier;
 
 /**
+ * Implementation of {@link Cache} that uses a {@link SoftReference} to store it's value.
+ *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-public class SoftCache<T> implements Cache<T> {
+public final class SoftCache<T> implements Cache<T> {
     @NonNull
     protected final Supplier<T> supplier;
 

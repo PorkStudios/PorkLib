@@ -22,7 +22,7 @@ import net.daporkchop.lib.collections.PCollection;
 import net.daporkchop.lib.collections.PSet;
 import net.daporkchop.lib.collections.impl.ordered.BigLinkedCollection;
 import net.daporkchop.lib.collections.impl.set.JavaSetWrapper;
-import net.daporkchop.lib.common.test.TestRandomData;
+import net.daporkchop.lib.common.misc.TestRandomData;
 import net.daporkchop.lib.db.DBSet;
 import net.daporkchop.lib.encoding.basen.Base58;
 

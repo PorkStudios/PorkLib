@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.common.reference;
+package net.daporkchop.lib.common.misc;
 
 import lombok.AccessLevel;
 import lombok.NonNull;

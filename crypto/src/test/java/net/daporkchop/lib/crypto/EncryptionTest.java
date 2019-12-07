@@ -17,7 +17,7 @@ package net.daporkchop.lib.crypto;
 
 import lombok.NonNull;
 import net.daporkchop.lib.common.function.io.IOConsumer;
-import net.daporkchop.lib.common.test.TestRandomData;
+import net.daporkchop.lib.common.misc.TestRandomData;
 import net.daporkchop.lib.crypto.cipher.Cipher;
 import net.daporkchop.lib.crypto.cipher.CipherInitSide;
 import net.daporkchop.lib.crypto.cipher.block.CipherMode;

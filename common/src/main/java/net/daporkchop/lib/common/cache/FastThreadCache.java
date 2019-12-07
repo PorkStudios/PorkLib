@@ -13,15 +13,11 @@
  *
  */
 
-package net.daporkchop.lib.binary.util;
+package net.daporkchop.lib.common.cache;
 
 import io.netty.util.concurrent.FastThreadLocal;
 import io.netty.util.concurrent.FastThreadLocalThread;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.cache.ThreadCache;
 
 import java.util.function.Supplier;
 
@@ -32,35 +28,56 @@ import java.util.function.Supplier;
  * @param <T> the type of value
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-public final class OptionallyFastThreadLocal<T> implements ThreadCache<T> {
-    protected final FastThreadLocal<T> fast = new FastThreadLocal<>();
-    protected final ThreadLocal<T>     java = new ThreadLocal<>();
-
-    @NonNull
+public final class FastThreadCache<T> implements ThreadCache<T> {
     protected final Supplier<T> factory;
+    protected final Object      obj;
+    protected final boolean     netty;
+
+    public FastThreadCache(@NonNull Supplier<T> factory) {
+        this.factory = factory;
+
+        Object obj;
+        boolean netty;
+        try {
+            Class.forName("io.netty.util.concurrent.FastThreadLocal"); //make sure class exists
+
+            obj = new FastThreadLocal<T>();
+            netty = true;
+        } catch (ClassNotFoundException e) {
+            obj = new ThreadLocal<T>();
+            netty = false;
+        }
+        this.obj = obj;
+        this.netty = netty;
+    }
 
     @Override
     public T get() {
-        T val;
-        if (Thread.currentThread() instanceof FastThreadLocalThread) {
-            if ((val = this.fast.get()) == null) {
-                if ((val = this.factory.get()) == null) {
-                    throw new IllegalStateException();
-                } else {
-                    this.fast.set(val);
-                }
+        return this.netty ? this.getNetty() : this.getJava();
+    }
+
+    private T getNetty() {
+        @SuppressWarnings("unchecked")
+        FastThreadLocal<T> tl = (FastThreadLocal<T>) this.obj;
+        T val = tl.getIfExists();
+        if (val == null) {
+            if ((val = this.factory.get()) == null) {
+                throw new IllegalStateException();
             }
-        } else {
-            if ((val = this.java.get()) == null) {
-                if ((val = this.factory.get()) == null) {
-                    throw new IllegalStateException();
-                } else {
-                    this.java.set(val);
-                }
+            tl.set(val);
+        }
+        return val;
+    }
+
+    private T getJava() {
+        @SuppressWarnings("unchecked")
+        ThreadLocal<T> tl = (ThreadLocal<T>) this.obj;
+        T val = tl.get();
+        if (val == null) {
+            if ((val = this.factory.get()) == null) {
+                throw new IllegalStateException();
             }
+            tl.set(val);
         }
         return val;
     }

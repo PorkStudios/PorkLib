@@ -13,37 +13,19 @@
  *
  */
 
-package net.daporkchop.lib.common.test;
-
-import lombok.experimental.UtilityClass;
-
-import java.util.concurrent.ThreadLocalRandom;
+package net.daporkchop.lib.common.pool.handle;
 
 /**
- * A bunch of random byte arrays for use in test classes.
- * <p>
- * Really shouldn't be used outside of unit tests.
+ * A simple form of resource pooling, using {@link Handle}s to manage references to pooled objects.
  *
+ * @param <V> the type of value to pool
  * @author DaPorkchop_
  */
-@UtilityClass
-public class TestRandomData {
-    public static final byte[][] randomBytes = new byte[32][];
-
-    static {
-        ThreadLocalRandom r = ThreadLocalRandom.current();
-        for (int i = randomBytes.length - 1; i >= 0; i--) {
-            r.nextBytes(randomBytes[i] = new byte[r.nextInt(1024, 8192)]);
-        }
-    }
-
-    public static byte[] getRandomBytes(int minLen, int maxLen) {
-        return getRandomBytes(ThreadLocalRandom.current().nextInt(minLen, maxLen));
-    }
-
-    public static byte[] getRandomBytes(int len) {
-        byte[] b = new byte[len];
-        ThreadLocalRandom.current().nextBytes(b);
-        return b;
-    }
+public interface HandledPool<V> {
+    /**
+     * Gets a value from this pool.
+     *
+     * @return a {@link Handle} for accessing a value from this pool
+     */
+    Handle<V> get();
 }

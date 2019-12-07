@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.common.pool;
+package net.daporkchop.lib.common.pool.selection;
 
 import lombok.NonNull;
 
@@ -25,7 +25,7 @@ import java.util.function.Predicate;
  *
  * @author DaPorkchop_
  */
-public interface Pool<V> {
+public interface SelectionPool<V> {
     /**
      * Constructs a new singleton pool with the given value.
      *
@@ -33,8 +33,8 @@ public interface Pool<V> {
      * @param <V>   the type of the value
      * @return a new singleton pool with the given value
      */
-    static <V> Pool<V> singleton(@NonNull V value) {
-        return new SingletonPool<>(value);
+    static <V> SelectionPool<V> singleton(@NonNull V value) {
+        return new SingletonSelectionPool<>(value);
     }
 
     /**

@@ -60,6 +60,8 @@ public final class VanillaChunkImpl extends AbstractVanillaChunk {
 
     @Override
     protected void doUnload() {
+        super.doUnload();
+
         {
             Map<Vec3i, TileEntity> tes = this.world.loadedTileEntities();
             this.tileEntities.forEach(te -> tes.remove(te.pos(), te));

@@ -47,6 +47,7 @@ import net.daporkchop.lib.natives.zlib.Zlib;
 import net.daporkchop.lib.nbt.NBTInputStream;
 import net.daporkchop.lib.nbt.alloc.NBTArrayAllocator;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
+import net.daporkchop.lib.nbt.tag.notch.IntArrayTag;
 import net.daporkchop.lib.nbt.tag.notch.ListTag;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
@@ -194,12 +195,7 @@ public class AnvilWorldManager implements WorldManager {
                 }
             }
             if (chunk instanceof VanillaChunkImpl && rootTag.contains("HeightMap")) {
-                int[] heightMapI = rootTag.getIntArray("HeightMap");
-                byte[] heightMapB = new byte[16 * 16];
-                for (int i = heightMapI.length - 1; i >= 0; i--) {
-                    heightMapB[i] = (byte) heightMapI[i];
-                }
-                ((VanillaChunkImpl) chunk).heightMap(heightMapB);
+                ((VanillaChunkImpl) chunk).heightMap(rootTag.<IntArrayTag>get("HeightMap").handle());
             }
             {
                 ListTag<CompoundTag> sectionsTag = rootTag.get("TileEntities");

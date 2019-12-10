@@ -14,9 +14,8 @@
  */
 
 dependencies {
-    compile "io.netty:netty-buffer:$nettyVersion"
+    compile project(":http")
+    compile project(":network:netty-common")
 
-    testCompile project(":encoding")
-
-    testCompile "com.google.code.gson:gson:$gsonVersion"
+    compile "io.netty:netty-handler:$nettyVersion"
 }

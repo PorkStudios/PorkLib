@@ -37,7 +37,7 @@ import net.daporkchop.lib.unsafe.PUnsafe;
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-final class AnvilPooledNBTArrayAllocator extends DefaultNBTArrayAllocator {
+public final class AnvilPooledNBTArrayAllocator extends DefaultNBTArrayAllocator {
     @Getter(AccessLevel.NONE)
     protected final ThreadCache<ThreadLocalData> threadLocal = new FastThreadCache<>(ThreadLocalData::new);
 

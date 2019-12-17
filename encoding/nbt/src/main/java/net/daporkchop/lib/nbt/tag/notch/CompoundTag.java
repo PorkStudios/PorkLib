@@ -70,9 +70,11 @@ public class CompoundTag extends Tag {
         for (Map.Entry<String, Tag> entry : this.contents.entrySet()) {
             byte id = registry.getId(entry.getValue().getClass());
             out.writeByte(id);
-            byte[] name = entry.getKey().getBytes(StandardCharsets.UTF_8);
-            out.writeShort((short) name.length);
-            out.write(name);
+            {
+                byte[] name = entry.getKey().getBytes(StandardCharsets.UTF_8);
+                out.writeShort((short) name.length);
+                out.write(name);
+            }
             entry.getValue().write(out, registry);
         }
         out.writeByte((byte) 0);

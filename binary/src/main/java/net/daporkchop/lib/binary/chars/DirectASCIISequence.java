@@ -93,7 +93,7 @@ public final class DirectASCIISequence implements CharSequence {
         final int len = this.length;
         char[] arr = new char[len];
         for (int i = 0; i < len; i++) {
-            arr[i] = (char) (PUnsafe.getByte(addr + i * PUnsafe.ARRAY_CHAR_INDEX_SCALE) & 0xFF);
+            arr[i] = (char) (PUnsafe.getByte(addr + i) & 0xFF);
         }
         return PorkUtil.wrap(arr);
     }

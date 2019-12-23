@@ -69,8 +69,7 @@ public final class BufferedRegionFile extends AbstractRegionFile {
     }
 
     @Override
-    protected ByteBuf doRead(int x, int z, int offsetIndex) throws IOException {
-        int offset = this.buf.getInt(offsetIndex);
+    protected ByteBuf doRead(int x, int z, int offsetIndex, int offset) throws IOException {
         int pos = (offset >>> 8) * RegionConstants.SECTOR_BYTES;
         int length = this.buf.getInt(pos);
         int maxLength = ((offset & 0xFF) * RegionConstants.SECTOR_BYTES) - RegionConstants.LENGTH_HEADER_SIZE;

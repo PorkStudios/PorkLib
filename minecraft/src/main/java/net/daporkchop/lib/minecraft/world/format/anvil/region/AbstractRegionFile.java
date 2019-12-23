@@ -107,13 +107,18 @@ public abstract class AbstractRegionFile implements RegionFile {
         try {
             this.assertOpen();
 
-            return this.doRead(x, z, index);
+            int offset = this.headersBuf().getInt(index);
+            if (offset != 0) {
+                return this.doRead(x, z, index, offset);
+            } else {
+                return null;
+            }
         } finally {
             this.readLock.unlock();
         }
     }
 
-    protected abstract ByteBuf doRead(int x, int z, int offsetIndex) throws IOException;
+    protected abstract ByteBuf doRead(int x, int z, int offsetIndex, int offset) throws IOException;
 
     @Override
     public void writeDirect(int x, int z, @NonNull ByteBuf buf) throws ReadOnlyRegionException, IOException {

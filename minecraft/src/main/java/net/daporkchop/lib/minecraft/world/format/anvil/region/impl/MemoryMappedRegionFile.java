@@ -18,6 +18,7 @@ package net.daporkchop.lib.minecraft.world.format.anvil.region.impl;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import lombok.NonNull;
+import net.daporkchop.lib.binary.netty.PUnpooled;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.AbstractRegionFile;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.RegionConstants;
@@ -36,15 +37,13 @@ import java.nio.channels.FileChannel;
  * @author DaPorkchop_
  */
 public final class MemoryMappedRegionFile extends AbstractRegionFile {
-    protected final MappedByteBuffer map;
     protected final ByteBuf          buf;
 
     public MemoryMappedRegionFile(@NonNull File file, @NonNull RegionOpenOptions options) throws IOException {
         super(file, options);
 
-        this.map = this.channel.map(FileChannel.MapMode.READ_ONLY, 0L, this.channel.size());
-        this.buf = Unpooled.wrappedBuffer(this.map);
-        this.map.load();
+        MappedByteBuffer map = this.channel.map(FileChannel.MapMode.READ_ONLY, 0L, this.channel.size());
+        this.buf = PUnpooled.wrap(map.load(), true);
     }
 
     @Override
@@ -58,16 +57,14 @@ public final class MemoryMappedRegionFile extends AbstractRegionFile {
     }
 
     @Override
-    protected ByteBuf doRead(int x, int z, int offsetIndex) throws IOException {
-        int offset = this.buf.getInt(offsetIndex);
+    protected ByteBuf doRead(int x, int z, int offsetIndex, int offset) throws IOException {
         int pos = (offset >>> 8) * RegionConstants.SECTOR_BYTES;
-        int length = this.map.getInt(pos);
+        int length = this.buf.getInt(pos);
         int maxLength = ((offset & 0xFF) * RegionConstants.SECTOR_BYTES) - RegionConstants.LENGTH_HEADER_SIZE;
         if (length < 0 || length > maxLength) {
             throw new CorruptedRegionException(String.format("Length at sector %d (offset %d) is %d! (should be max. %d)", offset >>> 8, pos, length, maxLength));
         }
-        return Unpooled.wrappedBuffer(this.buf.memoryAddress() + pos + RegionConstants.LENGTH_HEADER_SIZE, length, false);
-        //return this.buf.retainedSlice(pos + RegionConstants.LENGTH_HEADER_SIZE, length);
+        return this.buf.retainedSlice(pos + RegionConstants.LENGTH_HEADER_SIZE, length).asReadOnly();
     }
 
     @Override
@@ -90,7 +87,7 @@ public final class MemoryMappedRegionFile extends AbstractRegionFile {
 
     @Override
     protected void doClose() throws IOException {
-        PorkUtil.release(this.map);
+        this.buf.release();
     }
 
     @Override

@@ -94,12 +94,7 @@ public final class OverclockedRegionFile extends AbstractRegionFile {
     }
 
     @Override
-    protected ByteBuf doRead(int x, int z, int offsetIndex) throws IOException {
-        int offset = this.headers.getInt(offsetIndex);
-        if (offset == 0) {
-            return null;
-        }
-
+    protected ByteBuf doRead(int x, int z, int offsetIndex, int offset) throws IOException {
         int bytesToRead = (offset & 0xFF) * RegionConstants.SECTOR_BYTES;
         ByteBuf buf = PooledByteBufAllocator.DEFAULT.ioBuffer(bytesToRead);
         int read = buf.writeBytes(this.channel, (offset >>> 8) * RegionConstants.SECTOR_BYTES, bytesToRead);

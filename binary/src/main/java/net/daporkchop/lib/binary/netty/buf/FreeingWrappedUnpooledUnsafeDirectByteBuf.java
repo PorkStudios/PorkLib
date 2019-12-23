@@ -17,6 +17,7 @@ package net.daporkchop.lib.binary.netty.buf;
 
 import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.buffer.UnpooledUnsafeDirectByteBuf;
+import lombok.NonNull;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
@@ -32,12 +33,12 @@ public final class FreeingWrappedUnpooledUnsafeDirectByteBuf extends UnpooledUns
 
     protected final ByteBuffer theActualBuffer;
 
-    public FreeingWrappedUnpooledUnsafeDirectByteBuf(ByteBuffer buffer, int size) {
+    public FreeingWrappedUnpooledUnsafeDirectByteBuf(@NonNull ByteBuffer theActualBuffer, ByteBuffer buffer, int size) {
         super(UnpooledByteBufAllocator.DEFAULT, buffer, size);
 
         PUnsafe.putBoolean(this, DONOTFREE_OFFSET, false);
 
-        this.theActualBuffer = buffer;
+        this.theActualBuffer = theActualBuffer;
     }
 
     @Override

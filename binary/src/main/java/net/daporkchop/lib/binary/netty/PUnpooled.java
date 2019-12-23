@@ -17,10 +17,12 @@ package net.daporkchop.lib.binary.netty;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.util.internal.PlatformDependent;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.binary.netty.buf.FreeingWrappedUnpooledUnsafeDirectByteBuf;
 import net.daporkchop.lib.binary.netty.buf.NotFreeingWrappedUnpooledUnsafeDirectByteBuf;
+import sun.nio.ch.DirectBuffer;
 
 import java.nio.ByteBuffer;
 
@@ -53,9 +55,17 @@ public class PUnpooled {
      */
     public ByteBuf wrap(@NonNull ByteBuffer buffer, int size, boolean free) {
         if (buffer.isDirect()) {
-            return free
-                    ? new FreeingWrappedUnpooledUnsafeDirectByteBuf(buffer, size)
-                    : new NotFreeingWrappedUnpooledUnsafeDirectByteBuf(buffer, size);
+            if (buffer.isReadOnly())    {
+                //we have to do some hackery to make it be a read-only buffer
+                ByteBuffer notReadOnly = PlatformDependent.directBuffer(((DirectBuffer) buffer).address() + buffer.position(), size);
+                return free
+                        ? new FreeingWrappedUnpooledUnsafeDirectByteBuf(buffer, notReadOnly, size).asReadOnly()
+                        : new NotFreeingWrappedUnpooledUnsafeDirectByteBuf(notReadOnly, size).asReadOnly();
+            } else {
+                return free
+                        ? new FreeingWrappedUnpooledUnsafeDirectByteBuf(buffer, buffer, size)
+                        : new NotFreeingWrappedUnpooledUnsafeDirectByteBuf(buffer, size);
+            }
         } else {
             return Unpooled.wrappedBuffer(buffer);
         }

@@ -36,6 +36,7 @@ import net.daporkchop.lib.http.response.aggregate.ToStringAggregator;
 import net.daporkchop.lib.http.util.ProgressHandler;
 
 import java.io.File;
+import java.net.Proxy;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -243,6 +244,14 @@ public interface RequestBuilder<V> {
      * @return this {@link RequestBuilder} instance
      */
     RequestBuilder<V> progressHandler(ProgressHandler handler);
+
+    /**
+     * Configures this {@link RequestBuilder} to use the given {@link Proxy}.
+     *
+     * @param proxy the {@link Proxy} to use. If {@code null} (default), none will be used.
+     * @return this {@link RequestBuilder} instance
+     */
+    RequestBuilder<V> proxy(Proxy proxy);
 
     /**
      * Configures this {@link RequestBuilder} to follow redirects silently.

@@ -102,7 +102,7 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
 
             URL url = this.builder.url;
             do {
-                this.connection = (HttpURLConnection) url.openConnection();
+                this.connection = (HttpURLConnection) (this.builder.proxy() == null ? url.openConnection() : url.openConnection(this.builder.proxy()));
 
                 //set method
                 this.connection.setRequestMethod(method.name());

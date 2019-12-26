@@ -16,6 +16,8 @@
 package net.daporkchop.lib.http.request;
 
 import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
+import lombok.NonNull;
 import net.daporkchop.lib.http.response.ResponseBody;
 import net.daporkchop.lib.http.response.ResponseHeaders;
 
@@ -32,6 +34,20 @@ public interface Request<V> {
      * @return a {@link Future} that will be notified when headers have been received
      */
     Future<ResponseHeaders> headersFuture();
+
+    /**
+     * Adds a listener to {@link #headersFuture()}.
+     * <p>
+     * Simply a convenience method, since {@link Future#addListener(GenericFutureListener)} has some annoying generic parameters that make it a pain
+     * to use.
+     *
+     * @param listener the listener to add
+     * @return this {@link Request} instance
+     */
+    default Request<V> addHeadersListener(@NonNull GenericFutureListener<Future<ResponseHeaders>> listener) {
+        this.headersFuture().addListener(listener);
+        return this;
+    }
 
     /**
      * Waits for {@link #headersFuture()} to be completed.
@@ -100,6 +116,20 @@ public interface Request<V> {
      * @return a {@link Future} that will be notified when the request is complete
      */
     Future<ResponseBody<V>> bodyFuture();
+
+    /**
+     * Adds a listener to {@link #bodyFuture()}.
+     * <p>
+     * Simply a convenience method, since {@link Future#addListener(GenericFutureListener)} has some annoying generic parameters that make it a pain
+     * to use.
+     *
+     * @param listener the listener to add
+     * @return this {@link Request} instance
+     */
+    default Request<V> addBodyListener(@NonNull GenericFutureListener<Future<ResponseBody<V>>> listener) {
+        this.bodyFuture().addListener(listener);
+        return this;
+    }
 
     /**
      * Waits for {@link #bodyFuture()} to be completed.

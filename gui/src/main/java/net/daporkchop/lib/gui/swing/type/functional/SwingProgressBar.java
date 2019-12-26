@@ -62,6 +62,18 @@ public class SwingProgressBar extends SwingComponent<ProgressBar, JProgressBar, 
     }
 
     @Override
+    public ProgressBar step() {
+        this.swing.setValue(this.swing.getValue() + 1);
+        return this;
+    }
+
+    @Override
+    public ProgressBar step(int step) {
+        this.swing.setValue(this.swing.getValue() + step);
+        return this;
+    }
+
+    @Override
     public boolean isInfinite() {
         return this.swing.isIndeterminate();
     }

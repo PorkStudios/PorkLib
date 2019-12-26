@@ -26,6 +26,8 @@ import net.daporkchop.lib.gui.component.state.functional.TableState;
 import net.daporkchop.lib.gui.component.type.functional.Table;
 import net.daporkchop.lib.gui.swing.common.SwingMouseListener;
 import net.daporkchop.lib.gui.swing.impl.SwingComponent;
+import net.daporkchop.lib.gui.swing.type.container.SwingScrollPane;
+import net.daporkchop.lib.gui.util.ScrollCondition;
 
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
@@ -40,6 +42,9 @@ import java.util.List;
  * @author DaPorkchop_
  */
 public class SwingTable extends SwingComponent<Table, JScrollPane, TableState> implements Table {
+    @Getter
+    protected final SwingScrollPane scrollPane;
+
     protected final JTable table;
     protected final JTableHeader header;
     protected final TableHeaderUI headerUI;
@@ -51,12 +56,17 @@ public class SwingTable extends SwingComponent<Table, JScrollPane, TableState> i
     protected boolean headersShown = true;
 
     public SwingTable(String name) {
-        super(name, new JScrollPane(new JTable()));
+        this(name, new SwingScrollPane(name));
+    }
 
-        this.swing.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        this.swing.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+    protected SwingTable(String name, SwingScrollPane scrollPane) {
+        super(name, scrollPane.getSwing());
+
+        this.scrollPane = scrollPane;
+        this.scrollPane.setScrolling(ScrollCondition.NEVER);
         
-        this.table = (JTable) ((JViewport) this.swing.getComponent(0)).getComponent(0);
+        this.table = new JTable();
+        this.swing.setViewportView(this.table);
         this.header = this.table.getTableHeader();
         this.headerUI = this.header.getUI();
         this.model = (DefaultTableModel) this.table.getModel();
@@ -217,6 +227,7 @@ public class SwingTable extends SwingComponent<Table, JScrollPane, TableState> i
         public <T> Column<T> setValueType(@NonNull Class<T> clazz, @NonNull Renderer<T, ? extends Component> renderer) {
             FakeColumn<T> this_ = (FakeColumn<T>) this;
             this.delegate.setCellRenderer((table, value, isSelected, hasFocus, row, column1) -> {
+                value = SwingTable.this.model.getValueAt(row, column1);
                 Component component = renderer.update(SwingTable.this.engine(), (T) value, null);
                 return ((SwingComponent) component).getSwing();
             });

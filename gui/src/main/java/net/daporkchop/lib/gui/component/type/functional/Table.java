@@ -21,6 +21,7 @@ import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.NestedContainer;
 import net.daporkchop.lib.gui.component.state.functional.TableState;
+import net.daporkchop.lib.gui.component.type.container.ScrollPane;
 
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -62,6 +63,8 @@ public interface Table extends Component<Table, TableState> {
                         : this.isHovered() ? TableState.DISABLED_HOVERED : TableState.DISABLED
                 : TableState.HIDDEN;
     }
+
+    ScrollPane getScrollPane();
 
     int getColumns();
     int getRows();

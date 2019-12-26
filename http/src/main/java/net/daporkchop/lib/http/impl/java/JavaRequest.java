@@ -35,7 +35,9 @@ import net.daporkchop.lib.http.response.DelegatingResponseBodyImpl;
 import net.daporkchop.lib.http.response.ResponseBody;
 import net.daporkchop.lib.http.response.ResponseHeaders;
 import net.daporkchop.lib.http.response.ResponseHeadersImpl;
+import net.daporkchop.lib.http.response.aggregate.NotifyingAggregator;
 import net.daporkchop.lib.http.response.aggregate.ResponseAggregator;
+import net.daporkchop.lib.http.util.ProgressHandler;
 import net.daporkchop.lib.http.util.exception.ResponseTooLargeException;
 
 import java.io.InputStream;
@@ -200,9 +202,15 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
                 maxLength = readBytes;
             }
         }
+        if (maxLength < 0L) {
+            maxLength = -1L;
+        }
         readBytes = 0L;
 
         ResponseAggregator<Object, V> aggregator = this.builder.aggregator();
+        if (this.builder.progressHandler() != null) {
+            aggregator = new NotifyingAggregator<>(aggregator, this.builder.progressHandler());
+        }
         Object temp = aggregator.init(this.headers.getNow(), this);
         try (Handle<byte[]> handle = PorkUtil.BUFFER_POOL.get()) {
             byte[] buf = handle.value();

@@ -33,6 +33,7 @@ import net.daporkchop.lib.http.header.map.MutableHeaderMapImpl;
 import net.daporkchop.lib.http.impl.java.JavaHttpClient;
 import net.daporkchop.lib.http.request.auth.Authentication;
 import net.daporkchop.lib.http.response.aggregate.ResponseAggregator;
+import net.daporkchop.lib.http.util.ProgressHandler;
 
 import java.util.List;
 
@@ -59,6 +60,9 @@ public abstract class AbstractRequestBuilder<V, C extends HttpClient> implements
 
     @Setter(AccessLevel.NONE)
     protected ResponseAggregator<Object, V> aggregator;
+
+    @Setter(AccessLevel.NONE)
+    protected ProgressHandler progressHandler;
 
     @NonNull
     @Getter(AccessLevel.NONE)
@@ -96,6 +100,12 @@ public abstract class AbstractRequestBuilder<V, C extends HttpClient> implements
         AbstractRequestBuilder<V_NEW, C> _this = (AbstractRequestBuilder<V_NEW, C>) this;
         _this.aggregator = (ResponseAggregator<Object, V_NEW>) aggregator;
         return _this;
+    }
+
+    @Override
+    public RequestBuilder<V> progressHandler(ProgressHandler handler) {
+        this.progressHandler = handler;
+        return this;
     }
 
     @Override

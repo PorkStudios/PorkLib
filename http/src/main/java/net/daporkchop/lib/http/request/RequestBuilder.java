@@ -33,6 +33,7 @@ import net.daporkchop.lib.http.response.aggregate.ToByteArrayAggregator;
 import net.daporkchop.lib.http.response.aggregate.ToByteBufAggregator;
 import net.daporkchop.lib.http.response.aggregate.ToFileAggregator;
 import net.daporkchop.lib.http.response.aggregate.ToStringAggregator;
+import net.daporkchop.lib.http.util.ProgressHandler;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -169,7 +170,7 @@ public interface RequestBuilder<V> {
      * The {@link File} will be sent with the given {@link ContentType}.
      *
      * @param contentType the {@link ContentType} of the data
-     * @param file the {@link File} containing the body of the request
+     * @param file        the {@link File} containing the body of the request
      * @return this {@link RequestBuilder} instance
      * @throws IllegalStateException if the currently selected {@link HttpMethod} does not allow sending a request body
      * @see #body(HttpEntity)
@@ -236,6 +237,14 @@ public interface RequestBuilder<V> {
     }
 
     /**
+     * Configures this {@link RequestBuilder} to use the given {@link ProgressHandler}.
+     *
+     * @param handler the {@link ProgressHandler} to use. If {@code null} (default), none will be used.
+     * @return this {@link RequestBuilder} instance
+     */
+    RequestBuilder<V> progressHandler(ProgressHandler handler);
+
+    /**
      * Configures this {@link RequestBuilder} to follow redirects silently.
      *
      * @param silentlyFollowRedirects whether or not this request will follow redirects silently
@@ -267,9 +276,9 @@ public interface RequestBuilder<V> {
      * @see #header(Header)
      */
     @SuppressWarnings("unchecked")
-    default RequestBuilder<V> header(@NonNull String key, @NonNull Object value)    {
+    default RequestBuilder<V> header(@NonNull String key, @NonNull Object value) {
         Header header;
-        if (value instanceof String)    {
+        if (value instanceof String) {
             header = Header.of(key, (String) value);
         } else if (value instanceof List && ((List) value).stream().anyMatch(PFunctions.not(o -> o instanceof String))) {
             header = Header.of(key, (List<String>) value);
@@ -304,13 +313,13 @@ public interface RequestBuilder<V> {
      * @return this {@link RequestBuilder} instance
      * @see #header(Header)
      */
-    default RequestBuilder<V> headers(@NonNull Header... headers)   {
-        for (Header header : headers)   {
+    default RequestBuilder<V> headers(@NonNull Header... headers) {
+        for (Header header : headers) {
             if (header == null) {
                 throw new NullPointerException("headers");
             }
         }
-        for (Header header : headers)   {
+        for (Header header : headers) {
             this.header(header);
         }
         return this;

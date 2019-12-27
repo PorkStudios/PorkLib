@@ -57,50 +57,66 @@ public interface FormValue {
         }
     }
 
+    String getComponentName();
+
+    String getDisplayName();
+
     String buildDefault(String prev, @NonNull Container container);
 
     void configure(@NonNull Container container);
 
     void loadInto(@NonNull Object o, @NonNull Container container);
+
     default void configureDefaultDimensions(FormDefaultDimensions dimensions, boolean container, String prev, @NonNull Component<?, ?> component) {
         this.configureDefaultDimensions(dimensions, container, prev, component, true);
     }
 
     default void configureDefaultDimensions(FormDefaultDimensions dimensions, boolean container, String prev, @NonNull Component<?, ?> component, boolean setMinDimensionsAreValueSize) {
+        final int pad = dimensions == null || dimensions.pad() < 0 ? 2 : dimensions.pad();
+        final int childInset = 16;
+
         if (true || setMinDimensionsAreValueSize)   {
-            component.minDimensionsAreValueSize().pad(2);
-        } else {
-            component.pad(2);
+            component.minDimensionsAreValueSize();
         }
+
+        component.pad(pad);
+        if (container)  {
+            component.padLeft(childInset);
+        }
+
         if (dimensions == null) {
-            if (prev == null) {
-                component.orientRelative(2, 2, 0.0d, 0.0d);
-            } else {
-                component.orientAdvanced(adv -> adv.belowAndCopyX(prev));
-            }
+            component.orientAdvanced(adv -> {
+                adv.x(container ? childInset : 0);
+                if (prev == null)   {
+                    adv.y(pad);
+                } else if (container) {
+                    adv.below(prev);
+                } else {
+                    adv.rightAndCopyY(prev);
+                }
+                adv.width(0).height(0);
+            });
         } else {
-            if (prev == null) {
-                component.orientRelative(
-                        2,
-                        2,
-                        dimensions.dWidth() == Double.NaN ? dimensions.iWidth() == -1 ? container ? 1.0d : (Integer) 0 : dimensions.iWidth() : dimensions.dWidth(),
-                        dimensions.dHeight() == Double.NaN ? dimensions.iHeight() == -1 ? container ? 1.0d : (Integer) 0 : dimensions.iHeight() : dimensions.dHeight()
-                        );
-            } else {
-                component.orientAdvanced(adv -> {
-                    adv.belowAndCopyX(prev);
-                    if (dimensions.dWidth() == Double.NaN)  {
-                        adv.width(dimensions.iWidth() == -1 ? 0 : dimensions.iWidth());
-                    } else {
-                        adv.width(dimensions.dWidth());
-                    }
-                    if (dimensions.dHeight() == Double.NaN)  {
-                        adv.height(dimensions.iHeight() == -1 ? 0 : dimensions.iHeight());
-                    } else {
-                        adv.height(dimensions.dHeight());
-                    }
-                });
-            }
+            component.orientAdvanced(adv -> {
+                adv.x(container ? childInset : 0);
+                if (prev == null)   {
+                    adv.y(pad);
+                } else if (container) {
+                    adv.below(prev);
+                } else {
+                    adv.rightAndCopyY(prev);
+                }
+                if (dimensions.dWidth() == Double.NaN)  {
+                    adv.width(dimensions.iWidth() == -1 ? 0 : dimensions.iWidth());
+                } else {
+                    adv.width(dimensions.dWidth());
+                }
+                if (dimensions.dHeight() == Double.NaN)  {
+                    adv.height(dimensions.iHeight() == -1 ? 0 : dimensions.iHeight());
+                } else {
+                    adv.height(dimensions.dHeight());
+                }
+            });
         }
     }
 }

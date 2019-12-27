@@ -21,6 +21,7 @@ import net.daporkchop.lib.common.function.PFunctions;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.form.annotation.FormComponentName;
+import net.daporkchop.lib.gui.form.annotation.FormDisplayName;
 import net.daporkchop.lib.gui.form.annotation.FormTooltip;
 import net.daporkchop.lib.reflection.PField;
 
@@ -44,6 +45,7 @@ public abstract class AbstractFormValue<A extends Annotation> implements FormVal
 
     protected final PField field;
     protected final String componentName;
+    protected final String displayName;
     protected final String[] tooltip;
     protected final A annotation;
 
@@ -60,6 +62,14 @@ public abstract class AbstractFormValue<A extends Annotation> implements FormVal
                 this.componentName = field.getName();
             } else {
                 this.componentName = annotation.value();
+            }
+        }
+        {
+            FormDisplayName annotation = field.getAnnotation(FormDisplayName.class);
+            if (annotation == null) {
+                this.displayName = field.getName() + ": ";
+            } else {
+                this.displayName = annotation.value() + ": ";
             }
         }
         {

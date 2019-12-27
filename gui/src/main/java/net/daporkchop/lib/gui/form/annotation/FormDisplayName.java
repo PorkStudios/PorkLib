@@ -25,14 +25,6 @@ import java.lang.annotation.Target;
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface FormDefaultDimensions {
-    double dWidth() default Double.NaN;
-
-    double dHeight() default Double.NaN;
-
-    int iWidth() default -1;
-
-    int iHeight() default -1;
-
-    int pad() default -1;
+public @interface FormDisplayName {
+    String value();
 }

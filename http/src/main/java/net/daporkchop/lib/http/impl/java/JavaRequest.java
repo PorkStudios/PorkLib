@@ -37,7 +37,6 @@ import net.daporkchop.lib.http.response.ResponseHeaders;
 import net.daporkchop.lib.http.response.ResponseHeadersImpl;
 import net.daporkchop.lib.http.response.aggregate.NotifyingAggregator;
 import net.daporkchop.lib.http.response.aggregate.ResponseAggregator;
-import net.daporkchop.lib.http.util.ProgressHandler;
 import net.daporkchop.lib.http.util.exception.ResponseTooLargeException;
 
 import java.io.InputStream;
@@ -97,6 +96,11 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
     public void run() {
         if (Thread.currentThread() != this.thread) throw new IllegalStateException("Invoked from illegal thread!");
 
+        if (!this.client.addRequest(this)) {
+            //return immediately if client is closed (addRequest will cancel the futures for us)
+            return;
+        }
+
         try {
             final HttpMethod method = this.builder.method();
 
@@ -117,7 +121,7 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
 
                     if (!headers.hasKey("user-agent")) this.connection.setRequestProperty("user-agent", this.client.userAgentSelectionPool.any());
 
-                    if (method.hasRequestBody())    {
+                    if (method.hasRequestBody()) {
                         HttpEntity entity = this.builder.body();
 
                         this.connection.setRequestProperty("content-encoding", entity.encoding().name());
@@ -129,12 +133,12 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
                     }
                 }
 
-                if (method.hasRequestBody())    {
+                if (method.hasRequestBody()) {
                     HttpEntity entity = this.builder.body();
                     TransferEncoding encoding = entity.transferEncoding();
                     long length = entity.length();
 
-                    if (length < 0L)  {
+                    if (length < 0L) {
                         if (encoding != StandardTransferEncoding.chunked) {
                             throw new IllegalStateException(String.format("Chunked transport required, but found \"%s\"!", encoding.name()));
                         } else {
@@ -153,11 +157,11 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
 
                     //send body
                     try (TransferSession session = entity.newSession();
-                         OutputStream out = this.connection.getOutputStream())  {
+                         OutputStream out = this.connection.getOutputStream()) {
                         long transferred = session.transferAllBlocking(out);
                         if (transferred < 0L) {
                             throw new IllegalStateException(String.format("Transferred %d bytes (negative?!?)", transferred));
-                        } else if (length >= 0L && transferred != length)  {
+                        } else if (length >= 0L && transferred != length) {
                             throw new IllegalStateException(String.format("Transferred %d bytes (expected: %d)", transferred, length));
                         }
                     }
@@ -178,13 +182,28 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
                     continue;
                 }
 
-                this.headers.setSuccess(headers);
-                this.body.setSuccess(new DelegatingResponseBodyImpl<>(headers, this.implReceiveBody(this.connection.getInputStream(), headers)));
+                if (!this.headers.trySuccess(headers)) {
+                    if (this.headers.isCancelled()) {
+                        //client has been closed, exit silently
+                        return;
+                    } else {
+                        //what?
+                        throw new IllegalStateException("Unable to mark headers as received!");
+                    }
+                }
+
+                V bodyValue = this.implReceiveBody(this.connection.getInputStream(), headers);
+                if (!this.body.trySuccess(new DelegatingResponseBodyImpl<>(headers, bodyValue)) && !this.body.isCancelled()) {
+                    //what?
+                    throw new IllegalStateException("Unable to mark body as received!");
+                }
+                //if body is cancelled this will simply exit the loop normally
             } while (!this.body.isDone());
         } catch (Exception e) {
             this.body.setFailure(e);
         } finally {
-            if (this.connection != null)    {
+            this.client.removeRequest(this);
+            if (this.connection != null) {
                 this.connection.disconnect();
             }
         }
@@ -214,14 +233,14 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
         Object temp = aggregator.init(this.headers.getNow(), this);
         try (Handle<byte[]> handle = PorkUtil.BUFFER_POOL.get()) {
             byte[] buf = handle.value();
-            for (int i; (i = bodyIn.read(buf)) > 0; ) {
+            for (int i; !this.body.isDone() && (i = bodyIn.read(buf)) > 0; ) {
                 if (maxLength >= 0L && (readBytes += i) > maxLength) {
                     //if max length is set and we've read more data than it, throw exception
                     throw new ResponseTooLargeException(readBytes, maxLength);
                 }
                 temp = aggregator.add(temp, Unpooled.wrappedBuffer(buf, 0, i), this);
             }
-            return aggregator.doFinal(temp, this);
+            return this.body.isDone() ? null : aggregator.doFinal(temp, this); //don't call doFinal if the request is cancelled
         } finally {
             aggregator.deinit(temp, this);
         }

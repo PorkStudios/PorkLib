@@ -29,8 +29,12 @@ import net.daporkchop.lib.http.util.Constants;
 
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * A very simple implementation of {@link HttpClient}, using {@link java.net.URL}'s built-in support to act as a simple HTTP client.
@@ -54,6 +58,9 @@ public final class JavaHttpClient implements HttpClient {
     protected final    Promise<Void> closeFuture;
 
     protected final SelectionPool<String> userAgentSelectionPool;
+
+    protected final Map<JavaRequest, Object> activeRequests = new ConcurrentHashMap<>();
+    protected final ReadWriteLock requestsLock = new ReentrantReadWriteLock();
 
     public JavaHttpClient(@NonNull ThreadFactory factory, @NonNull EventExecutor executor, @NonNull SelectionPool<String> userAgentSelectionPool) {
         this.factory = factory;
@@ -98,13 +105,50 @@ public final class JavaHttpClient implements HttpClient {
 
     @Override
     public Future<Void> close() {
-        //TODO: do this lol
-        this.closeFuture.setSuccess(null);
+        this.requestsLock.writeLock().lock();
+        try {
+            this.closeFuture.setSuccess(null);
+            this.activeRequests.forEach((request, _val) -> {
+                //cancel futures
+                request.headers.cancel(true);
+                request.body.cancel(true);
+            });
+        } finally {
+            this.requestsLock.writeLock().unlock();
+        }
         return this.closeFuture;
     }
 
     @Override
     public Future<Void> closeFuture() {
         return this.closeFuture;
+    }
+
+    boolean addRequest(@NonNull JavaRequest request)   {
+        this.requestsLock.readLock().lock();
+        try {
+            if (this.closeFuture.isDone())  {
+                request.headers.cancel(true);
+                request.body.cancel(true);
+                return false;
+            } else if (this.activeRequests.putIfAbsent(request, this) != null) {
+                throw new IllegalStateException("Request already added!?!");
+            } else {
+                return true;
+            }
+        } finally {
+            this.requestsLock.readLock().unlock();
+        }
+    }
+
+    void removeRequest(@NonNull JavaRequest request)    {
+        this.requestsLock.readLock().lock();
+        try {
+            if (!this.activeRequests.remove(request, this)) {
+                throw new IllegalStateException("Request already removed!?!");
+            }
+        } finally {
+            this.requestsLock.readLock().unlock();
+        }
     }
 }

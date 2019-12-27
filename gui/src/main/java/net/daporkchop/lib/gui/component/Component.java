@@ -70,28 +70,40 @@ public interface Component<Impl extends Component, State extends ElementState<? 
     //padding stuff
     Impl setPadding(@NonNull Side side, int padding);
     int getPadding(@NonNull Side side);
+
     default Impl setPadding(int padding)    {
         return this.setPadding(Side.ALL, padding);
     }
+
     default Impl pad(int padding)    {
         return this.setPadding(Side.ALL, padding);
     }
+
     default Impl padTop(int padding)    {
         return this.setPadding(Side.TOP, padding);
     }
+
     default Impl padBottom(int padding)    {
         return this.setPadding(Side.BOTTOM, padding);
     }
+
     default Impl padLeft(int padding)    {
         return this.setPadding(Side.LEFT, padding);
     }
+
     default Impl padRight(int padding)    {
         return this.setPadding(Side.RIGHT, padding);
     }
-    default Impl padTopBottom(int padding)    {
+
+    default Impl padVertical(int padding)    {
         return this.setPadding(Side.TOP_BOTTOM, padding);
     }
-    default Impl padLeftRight(int padding)    {
+
+    default Impl padHorizontal(int padding)    {
+        return this.setPadding(Side.LEFT_RIGHT, padding);
+    }
+
+    default Impl padSides(int padding)    {
         return this.setPadding(Side.LEFT_RIGHT, padding);
     }
 

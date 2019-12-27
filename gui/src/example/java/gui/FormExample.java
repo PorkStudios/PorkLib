@@ -22,6 +22,7 @@ import net.daporkchop.lib.gui.form.annotation.FormComponentName;
 import net.daporkchop.lib.gui.form.annotation.FormDefaultDimensions;
 import net.daporkchop.lib.gui.form.annotation.FormTooltip;
 import net.daporkchop.lib.gui.form.annotation.FormType;
+import net.daporkchop.lib.gui.util.ScrollCondition;
 import net.daporkchop.lib.logging.Logging;
 
 /**
@@ -83,10 +84,13 @@ public class FormExample implements Logging {
         } else {
             parentWindow.popup(128, 128, 512, 300)
                     .setTitle("Form test")
-                    .form(FormData.class, form -> form
-                            .buildDefault()
-                            .addListener((status, value) -> logger.info("Form completed with status: %s", status))
-                            .addSuccessListener(value -> logger.info("%s", value)))
+                    .scrollPane("scrollpane", scrollPane -> scrollPane
+                            .setScrolling(ScrollCondition.AUTO)
+                            .orientRelative(0, 0, 1.0d, 1.0d)
+                            .form(FormData.class, form -> form
+                                    .buildDefault()
+                                    .addListener((status, value) -> logger.info("Form completed with status: %s", status))
+                                    .addSuccessListener(value -> logger.info("%s", value))))
                     .show();
         }
     }

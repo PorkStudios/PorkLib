@@ -20,6 +20,7 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.gui.component.state.functional.TextBoxState;
 import net.daporkchop.lib.gui.component.type.functional.TextBox;
+import net.daporkchop.lib.gui.swing.GuiEngineSwing;
 import net.daporkchop.lib.gui.swing.common.SwingMouseListener;
 import net.daporkchop.lib.gui.swing.impl.SwingComponent;
 
@@ -63,8 +64,12 @@ public class SwingTextBox extends SwingComponent<TextBox, JTextField, TextBoxSta
 
     @Override
     public TextBox setText(@NonNull String text) {
-        if (!this.text.equals(text)) {
-            this.swing.setText(this.text = text);
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            if (!this.text.equals(text)) {
+                this.swing.setText(this.text = text);
+            }
+        } else {
+            SwingUtilities.invokeLater(() -> this.setText(text));
         }
         return this;
     }
@@ -76,7 +81,11 @@ public class SwingTextBox extends SwingComponent<TextBox, JTextField, TextBoxSta
 
     @Override
     public TextBox setHint(@NonNull String hint) {
-        ((SwingTextBoxImpl) this.swing).setHint(hint);
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            ((SwingTextBoxImpl) this.swing).setHint(hint);
+        } else {
+            SwingUtilities.invokeLater(() -> this.setHint(hint));
+        }
         return this;
     }
 
@@ -92,7 +101,11 @@ public class SwingTextBox extends SwingComponent<TextBox, JTextField, TextBoxSta
 
     @Override
     public TextBox setHintColor(@NonNull Color color) {
-        ((SwingTextBoxImpl) this.swing).setHintColor(color);
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            ((SwingTextBoxImpl) this.swing).setHintColor(color);
+        } else {
+            SwingUtilities.invokeLater(() -> this.setHintColor(color));
+        }
         return this;
     }
 

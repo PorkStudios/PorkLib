@@ -40,8 +40,8 @@ import java.util.function.Consumer;
 public class PForm<T> {
     protected static final Map<Class<?>, FormObject> OBJECT_CACHE = PorkUtil.newSoftCache();
 
-    protected final Class<T> clazz;
-    protected final FormObject base;
+    protected final Class<T>        clazz;
+    protected final FormObject      base;
     protected final Container<?, ?> container;
 
     protected final Collection<FormCompletionListener<T>> listeners = new ArrayList<>();
@@ -64,9 +64,10 @@ public class PForm<T> {
             this.container.button("complete", button -> button
                     .orientAdvanced(adv -> adv
                             .belowAndCopyX(last)
-                            .width(1.0d))
+                            .width(0.75d))
                     .setText("Submit")
-                    .minDimensionsAreValueSize().pad(2));
+                    .minDimensionsAreValueSize()
+                    .padTop(2));
         }
         return this.submitButton("complete");
     }

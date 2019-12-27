@@ -69,8 +69,13 @@ public interface Table extends Component<Table, TableState> {
     int getColumns();
     int getRows();
 
+    @Deprecated
     Table removeColumn(int col);
+    @Deprecated
     Table removeRow(int row);
+
+    Table removeColumn(@NonNull Column column);
+    Table removeRow(@NonNull Row row);
 
     <V> Column<V> addAndGetColumn(String name, @NonNull Class<V> clazz);
     Row addAndGetRow();

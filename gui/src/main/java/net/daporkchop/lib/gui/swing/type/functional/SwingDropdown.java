@@ -23,6 +23,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.gui.component.state.functional.DropdownState;
 import net.daporkchop.lib.gui.component.type.functional.Dropdown;
+import net.daporkchop.lib.gui.swing.GuiEngineSwing;
 import net.daporkchop.lib.gui.swing.common.SwingMouseListener;
 import net.daporkchop.lib.gui.swing.impl.SwingComponent;
 
@@ -58,7 +59,11 @@ public class SwingDropdown<V> extends SwingComponent<Dropdown<V>, JComboBox<V>, 
 
     @Override
     public Dropdown<V> clearValues() {
-        this.swing.removeAllItems();
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            this.swing.removeAllItems();
+        } else {
+            SwingUtilities.invokeLater(this::clearValues);
+        }
         return this;
     }
 
@@ -70,19 +75,31 @@ public class SwingDropdown<V> extends SwingComponent<Dropdown<V>, JComboBox<V>, 
 
     @Override
     public Dropdown<V> setSelectedValue(V value) {
-        this.swing.setSelectedItem(value);
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            this.swing.setSelectedItem(value);
+        } else {
+            SwingUtilities.invokeLater(() -> this.setSelectedValue(value));
+        }
         return this;
     }
 
     @Override
     public Dropdown<V> addValue(@NonNull V value) {
-        this.swing.addItem(value);
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            this.swing.addItem(value);
+        } else {
+            SwingUtilities.invokeLater(() -> this.addValue(value));
+        }
         return this;
     }
 
     @Override
     public Dropdown<V> removeValue(@NonNull V value) {
-        this.swing.removeItem(value);
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            this.swing.removeItem(value);
+        } else {
+            SwingUtilities.invokeLater(() -> this.removeValue(value));
+        }
         return this;
     }
 

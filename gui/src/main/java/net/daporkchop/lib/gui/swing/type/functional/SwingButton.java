@@ -22,6 +22,7 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
 import net.daporkchop.lib.gui.component.state.functional.ButtonState;
 import net.daporkchop.lib.gui.component.type.functional.Button;
+import net.daporkchop.lib.gui.swing.GuiEngineSwing;
 import net.daporkchop.lib.gui.swing.common.SwingMouseListener;
 import net.daporkchop.lib.gui.util.handler.ClickHandler;
 
@@ -81,21 +82,25 @@ public class SwingButton extends AbstractSwingButton<Button, JButton, ButtonStat
 
     @Override
     protected Button doSetIcon(@NonNull ButtonState state, Icon newIcon) {
-        switch (state) {
-            case ENABLED:
-                this.swing.setIcon(newIcon);
-                break;
-            case ENABLED_HOVERED:
-                this.swing.setRolloverIcon(newIcon);
-                break;
-            case ENABLED_CLICKED:
-                this.swing.setPressedIcon(newIcon);
-                break;
-            case DISABLED:
-                this.swing.setDisabledIcon(newIcon);
-                break;
-            default:
-                throw new IllegalStateException(state.name());
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            switch (state) {
+                case ENABLED:
+                    this.swing.setIcon(newIcon);
+                    break;
+                case ENABLED_HOVERED:
+                    this.swing.setRolloverIcon(newIcon);
+                    break;
+                case ENABLED_CLICKED:
+                    this.swing.setPressedIcon(newIcon);
+                    break;
+                case DISABLED:
+                    this.swing.setDisabledIcon(newIcon);
+                    break;
+                default:
+                    throw new IllegalStateException(state.name());
+            }
+        } else {
+            SwingUtilities.invokeLater(() -> this.doSetIcon(state, newIcon));
         }
         return this;
     }

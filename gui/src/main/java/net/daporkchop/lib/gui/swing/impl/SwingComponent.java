@@ -25,6 +25,7 @@ import net.daporkchop.lib.gui.component.Element;
 import net.daporkchop.lib.gui.component.orientation.Orientation;
 import net.daporkchop.lib.gui.component.state.ElementState;
 import net.daporkchop.lib.gui.component.type.functional.Label;
+import net.daporkchop.lib.gui.swing.GuiEngineSwing;
 import net.daporkchop.lib.gui.swing.type.window.AbstractSwingWindow;
 import net.daporkchop.lib.gui.util.Side;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
@@ -80,10 +81,14 @@ public abstract class SwingComponent<Impl extends Component, Swing extends JComp
 
     @Override
     public Impl update() {
-        if (this.swing != null) {
-            super.update();
-            this.bounds = this.calculateBounds();
-            this.swing.setBounds(this.bounds.getX(), this.bounds.getY(), this.bounds.getWidth(), this.bounds.getHeight());
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD)  {
+            if (this.swing != null) {
+                super.update();
+                this.bounds = this.calculateBounds();
+                this.swing.setBounds(this.bounds.getX(), this.bounds.getY(), this.bounds.getWidth(), this.bounds.getHeight());
+            }
+        } else {
+            SwingUtilities.invokeLater(this::update);
         }
         return (Impl) this;
     }
@@ -116,8 +121,12 @@ public abstract class SwingComponent<Impl extends Component, Swing extends JComp
 
     @Override
     public Impl setTooltip(String tooltip) {
-        if (this.swing != null && (this.getTooltip() == null || !this.getTooltip().equals(tooltip))) {
-            this.swing.setToolTipText(tooltip);
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            if (this.swing != null && (this.getTooltip() == null || !this.getTooltip().equals(tooltip))) {
+                this.swing.setToolTipText(tooltip);
+            }
+        } else {
+            SwingUtilities.invokeLater(() -> this.setTooltip(tooltip));
         }
         return (Impl) this;
     }
@@ -148,8 +157,12 @@ public abstract class SwingComponent<Impl extends Component, Swing extends JComp
 
     @Override
     public Impl setEnable(boolean enabled) {
-        this.swing.setEnabled(enabled);
-        this.fireStateChange();
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            this.swing.setEnabled(enabled);
+            this.fireStateChange();
+        } else {
+            SwingUtilities.invokeLater(() -> this.setEnable(enabled));
+        }
         return (Impl) this;
     }
 

@@ -18,6 +18,7 @@ package net.daporkchop.lib.gui.swing.type.window;
 import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.gui.component.type.Window;
+import net.daporkchop.lib.gui.swing.GuiEngineSwing;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 
 import javax.swing.*;
@@ -51,8 +52,12 @@ public class SwingDialog extends AbstractSwingWindow<SwingDialog, JDialog> {
 
     @Override
     public AbstractSwingWindow setTitle(@NonNull String title) {
-        if (!title.equals(this.getTitle())) {
-            this.swing.setTitle(title);
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            if (!title.equals(this.getTitle())) {
+                this.swing.setTitle(title);
+            }
+        } else {
+            SwingUtilities.invokeLater(() -> this.setTitle(title));
         }
         return this;
     }
@@ -64,8 +69,12 @@ public class SwingDialog extends AbstractSwingWindow<SwingDialog, JDialog> {
 
     @Override
     public AbstractSwingWindow setResizable(boolean resizable) {
-        if (this.isResizable() != resizable)    {
-            this.swing.setResizable(resizable);
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            if (this.isResizable() != resizable) {
+                this.swing.setResizable(resizable);
+            }
+        } else {
+            SwingUtilities.invokeLater(() -> this.setResizable(resizable));
         }
         return this;
     }

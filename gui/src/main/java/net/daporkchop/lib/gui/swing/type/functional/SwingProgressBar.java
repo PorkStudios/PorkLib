@@ -17,6 +17,7 @@ package net.daporkchop.lib.gui.swing.type.functional;
 
 import net.daporkchop.lib.gui.component.state.functional.ProgressBarState;
 import net.daporkchop.lib.gui.component.type.functional.ProgressBar;
+import net.daporkchop.lib.gui.swing.GuiEngineSwing;
 import net.daporkchop.lib.gui.swing.common.SwingMouseListener;
 import net.daporkchop.lib.gui.swing.impl.SwingComponent;
 import net.daporkchop.lib.gui.swing.impl.SwingContainer;
@@ -42,8 +43,12 @@ public class SwingProgressBar extends SwingComponent<ProgressBar, JProgressBar, 
 
     @Override
     public ProgressBar setProgress(int progress) {
-        if (progress != this.swing.getValue())  {
-            this.swing.setValue(progress);
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            if (progress != this.swing.getValue()) {
+                this.swing.setValue(progress);
+            }
+        } else {
+            SwingUtilities.invokeLater(() -> this.setProgress(progress));
         }
         return this;
     }
@@ -55,21 +60,33 @@ public class SwingProgressBar extends SwingComponent<ProgressBar, JProgressBar, 
 
     @Override
     public ProgressBar setEnd(int end) {
-        if (end != this.swing.getMaximum()) {
-            this.swing.setMaximum(end);
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            if (end != this.swing.getMaximum()) {
+                this.swing.setMaximum(end);
+            }
+        } else {
+            SwingUtilities.invokeLater(() -> this.setEnd(end));
         }
         return this;
     }
 
     @Override
     public ProgressBar step() {
-        this.swing.setValue(this.swing.getValue() + 1);
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            this.swing.setValue(this.swing.getValue() + 1);
+        } else {
+            SwingUtilities.invokeLater(this::step);
+        }
         return this;
     }
 
     @Override
     public ProgressBar step(int step) {
-        this.swing.setValue(this.swing.getValue() + step);
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            this.swing.setValue(this.swing.getValue() + step);
+        } else {
+            SwingUtilities.invokeLater(() -> this.step(step));
+        }
         return this;
     }
 
@@ -80,8 +97,12 @@ public class SwingProgressBar extends SwingComponent<ProgressBar, JProgressBar, 
 
     @Override
     public ProgressBar setInfinite(boolean infinite) {
-        if (infinite != this.isInfinite())  {
-            this.swing.setIndeterminate(infinite);
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            if (infinite != this.isInfinite()) {
+                this.swing.setIndeterminate(infinite);
+            }
+        } else {
+            SwingUtilities.invokeLater(() -> this.setInfinite(infinite));
         }
         return this;
     }

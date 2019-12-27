@@ -127,6 +127,30 @@ public class FormString extends AbstractFormValue<FormType.Text> {
     }
 
     @Override
+    protected void doLoadFrom(@NonNull Object o, @NonNull Component component) {
+        switch (this.annotation.type()) {
+            case TEXT_BOX: {
+                if (component instanceof TextBox) {
+                    ((TextBox) component).setText((String) this.field.get(o));
+                } else {
+                    throw new IllegalStateException(String.format("Component \"%s\" is not a text box: %s!", this.componentName, component.getClass().getCanonicalName()));
+                }
+            }
+            break;
+            case PASSWORD: {
+                if (component instanceof TextBox && ((TextBox) component).isPassword()) {
+                    ((TextBox) component).setText((String) this.field.get(o));
+                } else {
+                    throw new IllegalStateException(String.format("Component \"%s\" is not a password field: %s!", this.componentName, component.getClass().getCanonicalName()));
+                }
+            }
+            break;
+            default:
+                throw new IllegalStateException();
+        }
+    }
+
+    @Override
     public String buildDefault(String prev, @NonNull Container container) {
         Component component;
         switch (this.annotation.type()) {

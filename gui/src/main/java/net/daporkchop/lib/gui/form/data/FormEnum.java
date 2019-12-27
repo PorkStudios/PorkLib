@@ -237,6 +237,28 @@ public class FormEnum<E extends Enum> extends AbstractFormValue<FormType.Enum> {
 
     @Override
     @SuppressWarnings("unchecked")
+    protected void doLoadFrom(@NonNull Object o, @NonNull Component component) {
+        switch (this.annotation.type()) {
+            case DROPDOWN: {
+                if (component instanceof Dropdown) {
+                    ((Dropdown<E>) component).setSelectedValue((E) this.field.get(o));
+                } else {
+                    throw new IllegalStateException(String.format("Component \"%s\" is not a text box: %s!", this.componentName, component.getClass().getCanonicalName()));
+                }
+            }
+            break;
+            case RADIO_BUTTON: {
+                //TODO
+                throw new UnsupportedOperationException("Radio button");
+            }
+            //break;
+            default:
+                throw new IllegalStateException();
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
     public String buildDefault(String prev, @NonNull Container container) {
         Component component;
         switch (this.annotation.type()) {

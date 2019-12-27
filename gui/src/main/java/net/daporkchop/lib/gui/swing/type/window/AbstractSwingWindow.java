@@ -69,6 +69,10 @@ public abstract class AbstractSwingWindow<Impl extends AbstractSwingWindow<Impl,
     public WindowState getState() {
         if (!this.built) {
             return WindowState.CONSTRUCTION;
+        } else if (this.closed) {
+            return WindowState.CLOSED;
+        } else if (this.closing) {
+            return WindowState.CLOSING;
         } else if (this.isVisible()) {
             if (this.minimized) {
                 return WindowState.VISIBLE_MINIMIZED;
@@ -77,10 +81,6 @@ public abstract class AbstractSwingWindow<Impl extends AbstractSwingWindow<Impl,
             } else {
                 return WindowState.VISIBLE_INACTIVE;
             }
-        } else if (this.closed) {
-            return WindowState.CLOSED;
-        } else if (this.closing) {
-            return WindowState.CLOSING;
         } else {
             return WindowState.HIDDEN;
         }
@@ -254,10 +254,12 @@ public abstract class AbstractSwingWindow<Impl extends AbstractSwingWindow<Impl,
 
         @Override
         public void componentShown(ComponentEvent e) {
+            AbstractSwingWindow.this.fireStateChange();
         }
 
         @Override
         public void componentHidden(ComponentEvent e) {
+            AbstractSwingWindow.this.fireStateChange();
         }
     }
 }

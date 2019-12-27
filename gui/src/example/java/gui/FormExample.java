@@ -36,10 +36,9 @@ public class FormExample implements Logging {
                 .scrollPane("scrollpane", scrollPane -> scrollPane
                         .setScrolling(ScrollCondition.AUTO)
                         .orientRelative(0, 0, 1.0d, 1.0d)
-                        .form(FormData.class, form -> form
-                                .buildDefault()
-                                .addListener((status, value) -> logger.info("Form completed with status: %s", status))
-                                .addSuccessListener(value -> logger.info("%s", value))))
+                        .form(FormData.class)
+                        .addListener((status, value) -> logger.info("Form completed with status: %s", status))
+                        .addSuccessListener(value -> logger.info("%s", value)))
                 .show();
     }
 
@@ -66,7 +65,6 @@ public class FormExample implements Logging {
         public int slider;
 
         @FormType.Object(type = FormType.Object.Type.PANEL)
-        @FormDefaultDimensions(dWidth = 1.0d, dHeight = 0.1d)
         public SubData sub; //TODO: we really, really need a way to have containers scale to their contents
         //TODO-amendment: ScrollPane seems to be able to do this correctly automatically, let's see how it does it (and do it correctly)
 

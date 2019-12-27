@@ -105,8 +105,18 @@ public abstract class AbstractFormValue<A extends Annotation> implements FormVal
         this.doLoadInto(o, component);
     }
 
+    @Override
+    public void loadFrom(@NonNull Object o, @NonNull Container container) {
+        Component component = container.getChild(this.componentName);
+        if (component == null) {
+            throw new IllegalStateException(String.format("No component found with name: \"%s\"!", this.componentName));
+        }
+        this.doLoadFrom(o, component);
+    }
+
     protected abstract void assertCorrectType(@NonNull PField field);
     protected abstract A defaultAnnotationInstance();
     protected abstract void doConfigure(@NonNull Component component);
     protected abstract void doLoadInto(@NonNull Object o, @NonNull Component component);
+    protected abstract void doLoadFrom(@NonNull Object o, @NonNull Component component);
 }

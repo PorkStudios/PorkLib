@@ -67,6 +67,8 @@ public interface FormValue {
 
     void loadInto(@NonNull Object o, @NonNull Container container);
 
+    void loadFrom(@NonNull Object o, @NonNull Container container);
+
     default void configureDefaultDimensions(FormDefaultDimensions dimensions, boolean container, String prev, @NonNull Component<?, ?> component) {
         this.configureDefaultDimensions(dimensions, container, prev, component, true);
     }

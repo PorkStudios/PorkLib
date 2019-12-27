@@ -124,6 +124,21 @@ public class FormObject implements FormValue {
     }
 
     @Override
+    public void loadFrom(@NonNull Object o, @NonNull Container container) {
+        if (this.field != null) {
+            Object us = this.field.get(o);
+            Element element = container.getChild(this.componentName);
+            if (element instanceof Container) {
+                this.fields.forEach(value -> value.loadFrom(us, (Container) element));
+            } else {
+                throw new IllegalStateException(String.format("Not a container: %s (%s)", this.componentName, element == null ? "null" : element.getClass().getCanonicalName()));
+            }
+        } else {
+            this.fields.forEach(value -> value.loadFrom(o, container));
+        }
+    }
+
+    @Override
     public String buildDefault(String prev, @NonNull Container container) {
         if (this.field != null) {
             Objects.requireNonNull(prev);

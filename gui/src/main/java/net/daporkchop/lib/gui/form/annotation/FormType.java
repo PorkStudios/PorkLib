@@ -117,6 +117,8 @@ public class FormType {
 
         boolean clearDropdownValues() default true;
 
+        String[] externNames() default {};
+
         enum Type {
             DROPDOWN,
             RADIO_BUTTON,

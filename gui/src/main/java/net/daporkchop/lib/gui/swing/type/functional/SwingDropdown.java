@@ -21,6 +21,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
 import net.daporkchop.lib.gui.component.state.functional.DropdownState;
 import net.daporkchop.lib.gui.component.type.functional.Dropdown;
 import net.daporkchop.lib.gui.swing.GuiEngineSwing;
@@ -30,27 +31,39 @@ import net.daporkchop.lib.gui.swing.impl.SwingComponent;
 import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
+import javax.swing.plaf.basic.BasicComboBoxRenderer;
+import javax.swing.plaf.basic.BasicComboBoxUI;
+import java.awt.Component;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * @author DaPorkchop_
  */
 @Accessors(chain = true)
 public class SwingDropdown<V> extends SwingComponent<Dropdown<V>, JComboBox<V>, DropdownState> implements Dropdown<V> {
+    protected final Map<String, Consumer<V>> valueChangeListeners = Collections.synchronizedMap(new LinkedHashMap<>());
+
+    protected Function<V, String> textRenderer = Objects::toString;
+    protected Function<V, PIcon> iconRenderer;
+    protected boolean shouldRenderAsText = true;
+
     @Getter
     @Setter(AccessLevel.PROTECTED)
     protected boolean down;
 
-    protected final Map<String, Consumer<V>> valueChangeListeners = Collections.synchronizedMap(new LinkedHashMap<>());
-
+    @SuppressWarnings("unchecked")
     public SwingDropdown(String name) {
         super(name, new JComboBox<>());
+
+        this.swing.setRenderer(new SwingDropdownRenderer());
 
         this.swing.addMouseListener(new SwingMouseListener<>(this));
         this.swing.addPopupMenuListener(new SwingDropdownPopupListener<>(this));
@@ -115,6 +128,22 @@ public class SwingDropdown<V> extends SwingComponent<Dropdown<V>, JComboBox<V>, 
         return this;
     }
 
+    @Override
+    public Dropdown<V> setRendererText(@NonNull Function<V, String> renderer) {
+        this.textRenderer = renderer;
+        this.shouldRenderAsText = true;
+        this.iconRenderer = null;
+        return this;
+    }
+
+    @Override
+    public Dropdown<V> setRendererIcon(@NonNull Function<V, PIcon> renderer) {
+        this.iconRenderer = renderer;
+        this.shouldRenderAsText = false;
+        this.textRenderer = null;
+        return this;
+    }
+
     @RequiredArgsConstructor
     @Getter
     protected static class SwingDropdownPopupListener<V> implements PopupMenuListener   {
@@ -152,6 +181,36 @@ public class SwingDropdown<V> extends SwingComponent<Dropdown<V>, JComboBox<V>, 
                 this.previouslySelected = value;
                 this.delegate.valueChangeListeners.forEach((name, listener) -> listener.accept(value));
             }
+        }
+    }
+
+    protected class SwingDropdownRenderer extends BasicComboBoxRenderer.UIResource  {
+        @Override
+        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+            if (isSelected) {
+                this.setBackground(list.getSelectionBackground());
+                this.setForeground(list.getSelectionForeground());
+            } else {
+                this.setBackground(list.getBackground());
+                this.setForeground(list.getForeground());
+            }
+            this.setFont(list.getFont());
+
+            @SuppressWarnings("unchecked")
+            V val = (V) value;
+
+            if (SwingDropdown.this.shouldRenderAsText)  {
+                if (this.getIcon() != null) {
+                    this.setIcon(null);
+                }
+                this.setText(SwingDropdown.this.textRenderer.apply(val));
+            } else {
+                if (this.getText() != null) {
+                    this.setText(null);
+                }
+                this.setIcon(SwingDropdown.this.iconRenderer.apply(val).getAsSwingIcon());
+            }
+            return this;
         }
     }
 }

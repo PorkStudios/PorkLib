@@ -73,12 +73,11 @@ public class FormObject implements FormValue {
                 }
             }
             {
-                FormDisplayName annotation = field.getAnnotation(FormDisplayName.class);
-                if (annotation == null) {
-                    this.displayName = field.getName() + ": ";
-                } else {
-                    this.displayName = annotation.value() + ": ";
-                }
+                FormDisplayName annotation = this.field.getAnnotation(FormDisplayName.class);
+                this.displayName = String.format(
+                        "<html><strong>%s:</strong></html>",
+                        annotation == null ? this.field.getName() : annotation.value()
+                );
             }
         } else {
             this.componentName = null;
@@ -147,9 +146,7 @@ public class FormObject implements FormValue {
         String _prev = null;
         for (FormValue value : this.fields) {
             String nameName = String.format("__name_%s__", value.getComponentName());
-            Label nameLabel = container.label(nameName)
-                    .minDimensionsAreValueSize()
-                    .setText(value.getDisplayName());
+            Label nameLabel = container.label(nameName, value.getDisplayName()).minDimensionsAreValueSize();
             if (_prev == null)  {
                 nameLabel.orientRelative(0, 2, 0, 0);
             } else {

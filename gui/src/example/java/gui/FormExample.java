@@ -31,16 +31,16 @@ import net.daporkchop.lib.logging.Logging;
  */
 public class FormExample implements Logging {
     public static void displayForm(@NonNull Window parentWindow) {
-            parentWindow.popup(128, 128, 512, 300)
-                    .setTitle("Form test")
-                    .scrollPane("scrollpane", scrollPane -> scrollPane
-                            .setScrolling(ScrollCondition.AUTO)
-                            .orientRelative(0, 0, 1.0d, 1.0d)
-                            .form(FormData.class, form -> form
-                                    .buildDefault()
-                                    .addListener((status, value) -> logger.info("Form completed with status: %s", status))
-                                    .addSuccessListener(value -> logger.info("%s", value))))
-                    .show();
+        parentWindow.popup(128, 128, 512, 300)
+                .setTitle("Form test")
+                .scrollPane("scrollpane", scrollPane -> scrollPane
+                        .setScrolling(ScrollCondition.AUTO)
+                        .orientRelative(0, 0, 1.0d, 1.0d)
+                        .form(FormData.class, form -> form
+                                .buildDefault()
+                                .addListener((status, value) -> logger.info("Form completed with status: %s", status))
+                                .addSuccessListener(value -> logger.info("%s", value))))
+                .show();
     }
 
     @ToString
@@ -89,10 +89,15 @@ public class FormExample implements Logging {
         public boolean flag;
 
         @FormDisplayName("Dropdown Menu")
+        @FormType.Enum(externNames = {
+                "",
+                "Type 2 (name set externally!)"
+        })
         public EnumValues dropdown;
 
-        @FormType.Enum(value = 3/*, type = FormType.Enum.Type.RADIO_BUTTON*/)
-        public EnumValues radio;
+        //TODO
+        /*@FormType.Enum(value = 3, type = FormType.Enum.Type.RADIO_BUTTON)
+        public EnumValues radio;*/
 
         enum EnumValues {
             TYPE_1,

@@ -55,6 +55,7 @@ import net.daporkchop.lib.gui.util.math.BoundingBox;
 
 import javax.swing.*;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 
 /**
  * @author DaPorkchop_
@@ -214,6 +215,22 @@ public interface IBasicSwingContainer<Impl extends Container, Swing extends java
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    @Override
+    default Impl clear() {
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD)  {
+            for (String name : new ArrayList<>(this.getChildren().keySet())) {
+                this.removeChild(name, false);
+            }
+            if (!this.getChildren().isEmpty())   {
+                throw new IllegalStateException(String.valueOf(this.getChildren().size()));
+            }
+            this.update();
+        } else {
+            SwingUtilities.invokeLater(this::clear);
+        }
+        return (Impl) this;
     }
 
     //other

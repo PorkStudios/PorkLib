@@ -20,6 +20,8 @@ import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.util.exception.file.CannotCreateDirectoryException;
 import net.daporkchop.lib.common.util.exception.file.CannotCreateFileException;
 import net.daporkchop.lib.common.util.exception.file.CannotDeleteFileException;
+import net.daporkchop.lib.common.util.exception.file.NoSuchDirectoryException;
+import net.daporkchop.lib.common.util.exception.file.NoSuchFileException;
 import net.daporkchop.lib.common.util.exception.file.NotADirectoryException;
 import net.daporkchop.lib.common.util.exception.file.NotAFileException;
 
@@ -128,6 +130,46 @@ public class PFiles {
             }
         } else {
             return false;
+        }
+    }
+
+    /**
+     * Asserts that the given directory exists.
+     *
+     * @param directory the directory to assert the existence of
+     * @return the directory
+     * @throws NoSuchDirectoryException if the directory does not exist
+     * @throws NotADirectoryException   if the given path exists, but is not a directory
+     */
+    public File assertDirectoryExists(@NonNull File directory) throws NoSuchDirectoryException, NotADirectoryException {
+        if (directory.exists()) {
+            if (directory.isDirectory()) {
+                return directory;
+            } else {
+                throw new NotADirectoryException(directory);
+            }
+        } else {
+            throw new NoSuchDirectoryException(directory);
+        }
+    }
+
+    /**
+     * Asserts that the given file exists.
+     *
+     * @param file the file to assert the existence of
+     * @return the file
+     * @throws NoSuchFileException if the file does not exist
+     * @throws NotAFileException   if the given path exists, but is not a file
+     */
+    public File assertFileExists(@NonNull File file) throws NoSuchFileException, NotAFileException {
+        if (file.exists()) {
+            if (file.isFile()) {
+                return file;
+            } else {
+                throw new NotAFileException(file);
+            }
+        } else {
+            throw new NoSuchFileException(file);
         }
     }
 

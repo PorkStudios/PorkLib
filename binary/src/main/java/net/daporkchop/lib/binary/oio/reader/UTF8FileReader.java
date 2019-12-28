@@ -13,45 +13,46 @@
  *
  */
 
-package net.daporkchop.lib.gui.component;
+package net.daporkchop.lib.binary.oio.reader;
 
 import lombok.NonNull;
-import net.daporkchop.lib.gui.component.capability.ComponentAdder;
-import net.daporkchop.lib.gui.component.state.ElementState;
+import net.daporkchop.lib.common.misc.file.PFiles;
+import net.daporkchop.lib.common.util.exception.file.NoSuchFileException;
+import net.daporkchop.lib.common.util.exception.file.NotAFileException;
 
-import java.util.Map;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
- * An element that can store multiple {@link Component}s as children.
- * <p>
- * Note: if you want to make your own implementation of {@link Container}, you should probably implement
- * {@link NestedContainer} instead unless you know what you're doing.
+ * Equivalent to {@link java.io.FileReader}, but uses the UTF-8 charset instead of the system default.
+ *
+ * Uses a {@link sun.nio.cs.StreamDecoder#DEFAULT_BYTE_BUFFER_SIZE}-byte buffer.
  *
  * @author DaPorkchop_
  */
-public interface Container<Impl extends Container, State extends ElementState<? extends Element, State>> extends Element<Impl, State>, ComponentAdder<Impl> {
-    Map<String, Component> getChildren();
-
-    default Impl addChild(@NonNull Component child) {
-        return this.addChild(child, true);
+public final class UTF8FileReader extends InputStreamReader {
+    private static FileInputStream wrap(@NonNull File file) throws NoSuchFileException, NotAFileException  {
+        try {
+            return new FileInputStream(PFiles.assertFileExists(file));
+        } catch (FileNotFoundException e)   {
+            throw new NoSuchFileException(file);
+        }
     }
 
-    Impl addChild(@NonNull Component child, boolean update);
-
-    @SuppressWarnings("unchecked")
-    default <T extends Component> T getChild(@NonNull String name) {
-        return (T) this.getChildren().get(name);
+    public UTF8FileReader(String path) throws NoSuchFileException, NotAFileException {
+        this(wrap(new File(path)));
     }
 
-    default int countChildren() {
-        return this.getChildren().size();
+    public UTF8FileReader(File file) throws NoSuchFileException, NotAFileException {
+        this(wrap(file));
     }
 
-    default Impl removeChild(@NonNull String name) {
-        return this.removeChild(name, true);
+    public UTF8FileReader(InputStream in) {
+        super(in, StandardCharsets.UTF_8);
     }
-
-    Impl removeChild(@NonNull String name, boolean update);
-
-    Impl clear();
 }

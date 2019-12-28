@@ -13,45 +13,19 @@
  *
  */
 
-package net.daporkchop.lib.gui.component;
+package net.daporkchop.lib.common.util.exception.file;
 
-import lombok.NonNull;
-import net.daporkchop.lib.gui.component.capability.ComponentAdder;
-import net.daporkchop.lib.gui.component.state.ElementState;
-
-import java.util.Map;
+import java.io.File;
 
 /**
- * An element that can store multiple {@link Component}s as children.
- * <p>
- * Note: if you want to make your own implementation of {@link Container}, you should probably implement
- * {@link NestedContainer} instead unless you know what you're doing.
- *
  * @author DaPorkchop_
  */
-public interface Container<Impl extends Container, State extends ElementState<? extends Element, State>> extends Element<Impl, State>, ComponentAdder<Impl> {
-    Map<String, Component> getChildren();
-
-    default Impl addChild(@NonNull Component child) {
-        return this.addChild(child, true);
+public class NoSuchDirectoryException extends FileException {
+    public NoSuchDirectoryException(File file) {
+        super(file);
     }
 
-    Impl addChild(@NonNull Component child, boolean update);
-
-    @SuppressWarnings("unchecked")
-    default <T extends Component> T getChild(@NonNull String name) {
-        return (T) this.getChildren().get(name);
+    public NoSuchDirectoryException(File file, Throwable t) {
+        super(file, t);
     }
-
-    default int countChildren() {
-        return this.getChildren().size();
-    }
-
-    default Impl removeChild(@NonNull String name) {
-        return this.removeChild(name, true);
-    }
-
-    Impl removeChild(@NonNull String name, boolean update);
-
-    Impl clear();
 }

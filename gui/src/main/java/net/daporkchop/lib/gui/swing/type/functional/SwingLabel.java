@@ -37,9 +37,20 @@ import java.awt.*;
 public class SwingLabel extends SwingComponent<Label, JLabel, LabelState> implements Label {
     protected PIcon enabledIcon;
     protected PIcon disabledIcon;
+    protected final boolean originallyOpaque;
 
     public SwingLabel(String name) {
         super(name, new JLabel());
+
+        this.originallyOpaque = this.swing.isOpaque();
+
+        this.swing.addMouseListener(new SwingMouseListener<>(this));
+    }
+
+    protected SwingLabel(String name, JLabel label) {
+        super(name, label);
+
+        this.originallyOpaque = this.swing.isOpaque();
 
         this.swing.addMouseListener(new SwingMouseListener<>(this));
     }
@@ -119,29 +130,54 @@ public class SwingLabel extends SwingComponent<Label, JLabel, LabelState> implem
     }
 
     @Override
-    public Label setColor(int argb) {
+    public Label setColor(Color color) {
         if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
-            if (!this.swing.isBackgroundSet() || this.swing.getBackground().getRGB() != argb) {
-                this.swing.setBackground(new Color(argb));
-                if (!this.swing.isOpaque()) {
-                    this.swing.setOpaque(true);
+            if (color == null)  {
+                if (this.swing.isBackgroundSet())   {
+                    this.swing.setBackground(null);
+                    if (this.swing.isOpaque() != this.originallyOpaque)  {
+                        this.swing.setOpaque(this.originallyOpaque);
+                    }
+                }
+            } else {
+                if (!this.swing.isBackgroundSet() || this.swing.getBackground().getRGB() != color.getRGB()) {
+                    this.swing.setBackground(color);
+                    if (!this.swing.isOpaque()) {
+                        this.swing.setOpaque(true);
+                    }
                 }
             }
         } else {
-            SwingUtilities.invokeLater(() -> this.setColor(argb));
+            SwingUtilities.invokeLater(() -> this.setColor(color));
+        }
+        return this;
+    }
+
+    @Override
+    public Label setColor(int argb) {
+        return this.setColor(argb == 0 ? null : new Color(argb));
+    }
+
+    @Override
+    public Label setTextColor(Color color) {
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            if (color == null)  {
+                if (this.swing.isForegroundSet())   {
+                    this.swing.setForeground(null);
+                }
+            } else {
+                if (!this.swing.isForegroundSet() || this.swing.getForeground().getRGB() != color.getRGB()) {
+                    this.swing.setForeground(color);
+                }
+            }
+        } else {
+            SwingUtilities.invokeLater(() -> this.setTextColor(color));
         }
         return this;
     }
 
     @Override
     public Label setTextColor(int argb) {
-        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
-            if (!this.swing.isForegroundSet() || this.swing.getForeground().getRGB() != argb) {
-                this.swing.setForeground(new Color(argb));
-            }
-        } else {
-            SwingUtilities.invokeLater(() -> this.setTextColor(argb));
-        }
-        return this;
+        return this.setTextColor(argb == 0 ? null : new Color(argb));
     }
 }

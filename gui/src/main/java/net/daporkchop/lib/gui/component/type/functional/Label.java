@@ -22,6 +22,7 @@ import net.daporkchop.lib.gui.component.capability.IconHolder;
 import net.daporkchop.lib.gui.component.capability.TextHolder;
 import net.daporkchop.lib.gui.component.state.functional.LabelState;
 
+import java.awt.Color;
 import java.util.function.DoubleConsumer;
 import java.util.function.DoubleFunction;
 import java.util.function.IntConsumer;
@@ -42,6 +43,7 @@ public interface Label extends Component<Label, LabelState>, IconHolder<Label, L
                 : LabelState.HIDDEN;
     }
 
+    Label setColor(Color color);
     Label setColor(int argb);
     default Label setColor(int color, @NonNull ColorFormat format)  {
         return this.setColor(format.toArgb(color));

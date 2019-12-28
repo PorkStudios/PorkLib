@@ -124,14 +124,26 @@ public abstract class AbstractSwingButton<Impl extends Component<Impl, State> & 
 
     @Override
     @SuppressWarnings("unchecked")
-    public Impl setTextColor(int argb) {
+    public Impl setTextColor(Color color) {
         if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
-            if (!this.swing.isForegroundSet() || this.swing.getForeground().getRGB() != argb) {
-                this.swing.setForeground(new Color(argb));
+            if (color == null)  {
+                if (this.swing.isForegroundSet())   {
+                    this.swing.setForeground(null);
+                }
+            } else {
+                if (!this.swing.isForegroundSet() || this.swing.getForeground().getRGB() != color.getRGB()) {
+                    this.swing.setForeground(color);
+                }
             }
         } else {
-            SwingUtilities.invokeLater(() -> this.setTextColor(argb));
+            SwingUtilities.invokeLater(() -> this.setTextColor(color));
         }
         return (Impl) this;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public Impl setTextColor(int argb) {
+        return this.setTextColor(argb == 0 ? null : new Color(argb));
     }
 }

@@ -18,15 +18,12 @@ package net.daporkchop.lib.gui.component.type.functional;
 import lombok.NonNull;
 import net.daporkchop.lib.gui.GuiEngine;
 import net.daporkchop.lib.gui.component.Component;
-import net.daporkchop.lib.gui.component.Container;
-import net.daporkchop.lib.gui.component.NestedContainer;
 import net.daporkchop.lib.gui.component.state.functional.TableState;
 import net.daporkchop.lib.gui.component.type.container.ScrollPane;
 
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * A 2-dimensional grid of values, arranged into rows and columns. Each column may only have one value type,
@@ -35,24 +32,8 @@ import java.util.function.Supplier;
  * @author DaPorkchop_
  */
 public interface Table extends Component<Table, TableState> {
-    static Renderer<Object, Label> defaultTextRenderer()  {
-        return (engine, value, oldComponent) -> {
-            if (oldComponent == null)   {
-                oldComponent = engine.label();
-            }
-            oldComponent.setText(Objects.toString(value));
-            return oldComponent;
-        };
-    }
-
-    static <V, C extends Component> Renderer<V, C> updateRenderer(@NonNull Function<GuiEngine, C> componentCreator, @NonNull BiConsumer<V, C> updater)  {
-        return (engine, value, oldComponent) -> {
-            if (oldComponent == null)   {
-                oldComponent = componentCreator.apply(engine);
-            }
-            updater.accept(value, oldComponent);
-            return oldComponent;
-        };
+    static <V> CellRenderer<V> defaultTextRenderer()  {
+        return (value, label) -> label.setText(Objects.toString(value));
     }
 
     @Override
@@ -78,6 +59,7 @@ public interface Table extends Component<Table, TableState> {
     Table removeRow(@NonNull Row row);
 
     <V> Column<V> addAndGetColumn(String name, @NonNull Class<V> clazz);
+    <V> Column<V> addAndGetColumn(String name, @NonNull Class<V> clazz, @NonNull CellRenderer<V> renderer);
     Row addAndGetRow();
     Row insertAndGetRow(int index);
     default Table addColumn(String name, @NonNull Class<?> clazz)    {
@@ -132,7 +114,7 @@ public interface Table extends Component<Table, TableState> {
         Column<V> swap(int dst);
 
         Class<V> getValueClass();
-        <T> Column<T> setValueType(@NonNull Class<T> clazz, @NonNull Renderer<T, ? extends Component> renderer);
+        <T> Column<T> setValueType(@NonNull Class<T> clazz, @NonNull CellRenderer<T> renderer);
     }
 
     interface Row   {
@@ -150,7 +132,8 @@ public interface Table extends Component<Table, TableState> {
         }
     }
 
-    interface Renderer<V, C extends Component>  {
-        C update(@NonNull GuiEngine engine, @NonNull V value, C oldComponent);
+    @FunctionalInterface
+    interface CellRenderer<V>  {
+        void render(V value, @NonNull Label label);
     }
 }

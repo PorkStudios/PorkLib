@@ -22,19 +22,23 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.gui.component.Component;
+import net.daporkchop.lib.gui.component.state.functional.LabelState;
 import net.daporkchop.lib.gui.component.state.functional.TableState;
+import net.daporkchop.lib.gui.component.type.functional.Label;
 import net.daporkchop.lib.gui.component.type.functional.Table;
 import net.daporkchop.lib.gui.swing.GuiEngineSwing;
 import net.daporkchop.lib.gui.swing.common.SwingMouseListener;
 import net.daporkchop.lib.gui.swing.impl.SwingComponent;
 import net.daporkchop.lib.gui.swing.type.container.SwingScrollPane;
 import net.daporkchop.lib.gui.util.ScrollCondition;
+import net.daporkchop.lib.gui.util.handler.StateListener;
 
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import javax.swing.event.TableModelEvent;
 import javax.swing.plaf.TableHeaderUI;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
@@ -147,6 +151,11 @@ public class SwingTable extends SwingComponent<Table, JScrollPane, TableState> i
     @Override
     @SuppressWarnings("unchecked")
     public <V> Column<V> addAndGetColumn(String name, @NonNull Class<V> clazz) {
+        return this.addAndGetColumn(name, clazz, Table.defaultTextRenderer());
+    }
+
+    @Override
+    public <V> Column<V> addAndGetColumn(String name, @NonNull Class<V> clazz, @NonNull CellRenderer<V> renderer) {
         if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
             this.model.addColumn(name);
             TableColumn column = this.table.getColumnModel().getColumn(this.table.getColumnModel().getColumnCount() - 1);
@@ -154,11 +163,12 @@ public class SwingTable extends SwingComponent<Table, JScrollPane, TableState> i
             FakeColumn<V> fake = new FakeColumn<>(column);
             column.setIdentifier(fake);
             this.columnCache.add(fake);
+            column.setCellRenderer(new SwingTableCellRenderer<>(renderer));
             return fake;
         } else {
             AtomicReference<Column<V>> ref = new AtomicReference<>();
             try {
-                SwingUtilities.invokeAndWait(() -> ref.set(this.addAndGetColumn(name, clazz)));
+                SwingUtilities.invokeAndWait(() -> ref.set(this.addAndGetColumn(name, clazz, renderer)));
             } catch (InvocationTargetException e) {
                 throw e.getCause() instanceof RuntimeException ? (RuntimeException) e.getCause() : new RuntimeException(e.getCause());
             } catch (InterruptedException e) {
@@ -311,14 +321,15 @@ public class SwingTable extends SwingComponent<Table, JScrollPane, TableState> i
 
         @Override
         @SuppressWarnings("unchecked")
-        public <T> Column<T> setValueType(@NonNull Class<T> clazz, @NonNull Renderer<T, ? extends Component> renderer) {
+        public <T> Column<T> setValueType(@NonNull Class<T> clazz, @NonNull CellRenderer<T> renderer) {
             FakeColumn<T> this_ = (FakeColumn<T>) this;
             if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
-                this.delegate.setCellRenderer((_table, value, isSelected, hasFocus, row, column1) -> {
+                /*this.delegate.setCellRenderer((_table, value, isSelected, hasFocus, row, column1) -> {
                     value = _table.getModel().getValueAt(row, column1);
                     Component component = renderer.update(SwingTable.this.engine(), (T) value, null);
                     return ((SwingComponent) component).getSwing();
-                });
+                });*/
+                this.delegate.setCellRenderer(new SwingTableCellRenderer<>(renderer));
                 this_.valueClass = clazz;
             } else {
                 SwingUtilities.invokeLater(() -> this.setValueType(clazz, renderer));
@@ -327,10 +338,50 @@ public class SwingTable extends SwingComponent<Table, JScrollPane, TableState> i
         }
     }
 
-    @AllArgsConstructor
+    @RequiredArgsConstructor
+    protected class SwingTableCellRenderer<V> extends DefaultTableCellRenderer {
+        @NonNull
+        protected final CellRenderer<V> renderer;
+
+        protected final SwingLabel label = new SwingLabel("", this) {
+            @Override
+            public Label addStateListener(@NonNull String name, @NonNull StateListener<Label, LabelState> listener) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public Label removeStateListener(@NonNull String name) {
+                throw new UnsupportedOperationException();
+            }
+        };
+
+        protected int row;
+        protected int col;
+
+        @Override
+        public java.awt.Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            this.row = row;
+            this.col = column;
+
+            return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        protected void setValue(Object value) {
+            this.renderer.render((V) SwingTable.this.model.getValueAt(this.row, this.col), this.label);
+        }
+    }
+
+    //@AllArgsConstructor
     @Getter
     protected class FakeRow extends FakeTableClass implements Row {
-        protected int index;
+        //TODO: figure out what this was for
+        //protected int index;
+
+        public FakeRow(int index) {
+            super(index);
+        }
 
         @Override
         public Table getParent() {

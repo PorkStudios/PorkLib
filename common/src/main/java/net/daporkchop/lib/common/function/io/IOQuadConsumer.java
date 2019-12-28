@@ -15,7 +15,8 @@
 
 package net.daporkchop.lib.common.function.io;
 
-import net.daporkchop.lib.common.util.PConstants;
+import net.daporkchop.lib.common.function.plain.QuadConsumer;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
 
@@ -23,12 +24,14 @@ import java.io.IOException;
  * @author DaPorkchop_
  */
 @FunctionalInterface
-public interface IOQuadConsumer<T, U, V, W> extends PConstants {
+public interface IOQuadConsumer<T, U, V, W> extends QuadConsumer<T, U, V, W> {
+    @Override
     default void accept(T t, U u, V v, W w) {
         try {
             this.acceptThrowing(t, u, v, w);
         } catch (IOException e) {
-            throw this.exception(e);
+            PUnsafe.throwException(e);
+            throw new RuntimeException(e);
         }
     }
 

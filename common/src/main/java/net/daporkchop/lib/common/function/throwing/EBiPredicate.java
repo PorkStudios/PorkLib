@@ -15,7 +15,7 @@
 
 package net.daporkchop.lib.common.function.throwing;
 
-import net.daporkchop.lib.common.util.PConstants;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
 import java.util.function.BiPredicate;
@@ -24,13 +24,14 @@ import java.util.function.BiPredicate;
  * @author DaPorkchop_
  */
 @FunctionalInterface
-public interface EBiPredicate<T, U> extends BiPredicate<T, U>, PConstants {
+public interface EBiPredicate<T, U> extends BiPredicate<T, U> {
     @Override
     default boolean test(T t, U u) {
         try {
             return this.testThrowing(t, u);
         } catch (Exception e) {
-            throw this.exception(e);
+            PUnsafe.throwException(e);
+            throw new RuntimeException(e);
         }
     }
 

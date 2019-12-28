@@ -16,6 +16,7 @@
 package net.daporkchop.lib.common.util;
 
 import lombok.NonNull;
+import lombok.experimental.UtilityClass;
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
@@ -31,12 +32,13 @@ import java.util.function.Supplier;
  *
  * @author DaPorkchop_
  */
-public interface PArrays {
-    static void shuffle(@NonNull byte[] arr) {
+@UtilityClass
+public class PArrays {
+    public void shuffle(@NonNull byte[] arr) {
         shuffle(arr, ThreadLocalRandom.current());
     }
 
-    static void shuffle(@NonNull byte[] arr, @NonNull Random random) {
+    public void shuffle(@NonNull byte[] arr, @NonNull Random random) {
         for (int i = arr.length - 1; i >= 0; i--) {
             int j = random.nextInt(arr.length);
             byte curr = arr[i];
@@ -45,11 +47,11 @@ public interface PArrays {
         }
     }
 
-    static void shuffle(@NonNull short[] arr) {
+    public void shuffle(@NonNull short[] arr) {
         shuffle(arr, ThreadLocalRandom.current());
     }
 
-    static void shuffle(@NonNull short[] arr, @NonNull Random random) {
+    public void shuffle(@NonNull short[] arr, @NonNull Random random) {
         for (int i = arr.length - 1; i >= 0; i--) {
             int j = random.nextInt(arr.length);
             short curr = arr[i];
@@ -58,11 +60,11 @@ public interface PArrays {
         }
     }
 
-    static void shuffle(@NonNull char[] arr) {
+    public void shuffle(@NonNull char[] arr) {
         shuffle(arr, ThreadLocalRandom.current());
     }
 
-    static void shuffle(@NonNull char[] arr, @NonNull Random random) {
+    public void shuffle(@NonNull char[] arr, @NonNull Random random) {
         for (int i = arr.length - 1; i >= 0; i--) {
             int j = random.nextInt(arr.length);
             char curr = arr[i];
@@ -71,11 +73,11 @@ public interface PArrays {
         }
     }
 
-    static void shuffle(@NonNull int[] arr) {
+    public void shuffle(@NonNull int[] arr) {
         shuffle(arr, ThreadLocalRandom.current());
     }
 
-    static void shuffle(@NonNull int[] arr, @NonNull Random random) {
+    public void shuffle(@NonNull int[] arr, @NonNull Random random) {
         for (int i = arr.length - 1; i >= 0; i--) {
             int j = random.nextInt(arr.length);
             int curr = arr[i];
@@ -84,11 +86,11 @@ public interface PArrays {
         }
     }
 
-    static void shuffle(@NonNull long[] arr) {
+    public void shuffle(@NonNull long[] arr) {
         shuffle(arr, ThreadLocalRandom.current());
     }
 
-    static void shuffle(@NonNull long[] arr, @NonNull Random random) {
+    public void shuffle(@NonNull long[] arr, @NonNull Random random) {
         for (int i = arr.length - 1; i >= 0; i--) {
             int j = random.nextInt(arr.length);
             long curr = arr[i];
@@ -97,11 +99,11 @@ public interface PArrays {
         }
     }
 
-    static void shuffle(@NonNull float[] arr) {
+    public void shuffle(@NonNull float[] arr) {
         shuffle(arr, ThreadLocalRandom.current());
     }
 
-    static void shuffle(@NonNull float[] arr, @NonNull Random random) {
+    public void shuffle(@NonNull float[] arr, @NonNull Random random) {
         for (int i = arr.length - 1; i >= 0; i--) {
             int j = random.nextInt(arr.length);
             float curr = arr[i];
@@ -110,11 +112,11 @@ public interface PArrays {
         }
     }
 
-    static void shuffle(@NonNull double[] arr) {
+    public void shuffle(@NonNull double[] arr) {
         shuffle(arr, ThreadLocalRandom.current());
     }
 
-    static void shuffle(@NonNull double[] arr, @NonNull Random random) {
+    public void shuffle(@NonNull double[] arr, @NonNull Random random) {
         for (int i = arr.length - 1; i >= 0; i--) {
             int j = random.nextInt(arr.length);
             double curr = arr[i];
@@ -123,11 +125,11 @@ public interface PArrays {
         }
     }
 
-    static void shuffle(@NonNull Object[] arr) {
+    public void shuffle(@NonNull Object[] arr) {
         shuffle(arr, ThreadLocalRandom.current());
     }
 
-    static void shuffle(@NonNull Object[] arr, @NonNull Random random) {
+    public void shuffle(@NonNull Object[] arr, @NonNull Random random) {
         for (int i = arr.length - 1; i >= 0; i--) {
             int j = random.nextInt(arr.length);
             Object curr = arr[i];
@@ -136,7 +138,7 @@ public interface PArrays {
         }
     }
 
-    static int[] filled(int size, @NonNull IntSupplier supplier)   {
+    public int[] filled(int size, @NonNull IntSupplier supplier)   {
         int[] arr = new int[size];
         for (int i = arr.length - 1; i >= 0; i--)   {
             arr[i] = supplier.getAsInt();
@@ -144,7 +146,7 @@ public interface PArrays {
         return arr;
     }
 
-    static int[] filled(int size, @NonNull IntUnaryOperator supplier)   {
+    public int[] filled(int size, @NonNull IntUnaryOperator supplier)   {
         int[] arr = new int[size];
         for (int i = arr.length - 1; i >= 0; i--)   {
             arr[i] = supplier.applyAsInt(i);
@@ -152,7 +154,7 @@ public interface PArrays {
         return arr;
     }
 
-    static long[] filled(int size, @NonNull LongSupplier supplier)   {
+    public long[] filled(int size, @NonNull LongSupplier supplier)   {
         long[] arr = new long[size];
         for (int i = arr.length - 1; i >= 0; i--)   {
             arr[i] = supplier.getAsLong();
@@ -160,7 +162,7 @@ public interface PArrays {
         return arr;
     }
 
-    static long[] filled(int size, @NonNull LongUnaryOperator supplier)   {
+    public long[] filled(int size, @NonNull LongUnaryOperator supplier)   {
         long[] arr = new long[size];
         for (int i = arr.length - 1; i >= 0; i--)   {
             arr[i] = supplier.applyAsLong(i);
@@ -168,7 +170,7 @@ public interface PArrays {
         return arr;
     }
 
-    static <T> T[] filled(int size, @NonNull IntFunction<T[]> arrayCreator, @NonNull Supplier<T> supplier)   {
+    public <T> T[] filled(int size, @NonNull IntFunction<T[]> arrayCreator, @NonNull Supplier<T> supplier)   {
         T[] arr = arrayCreator.apply(size);
         for (int i = arr.length - 1; i >= 0; i--)   {
             arr[i] = supplier.get();
@@ -176,7 +178,7 @@ public interface PArrays {
         return arr;
     }
 
-    static <T> T[] filled(int size, @NonNull IntFunction<T[]> arrayCreator, @NonNull IntFunction<T> supplier)   {
+    public <T> T[] filled(int size, @NonNull IntFunction<T[]> arrayCreator, @NonNull IntFunction<T> supplier)   {
         T[] arr = arrayCreator.apply(size);
         for (int i = arr.length - 1; i >= 0; i--)   {
             arr[i] = supplier.apply(i);
@@ -184,19 +186,19 @@ public interface PArrays {
         return arr;
     }
 
-    static <T> void fill(@NonNull T[] arr, @NonNull Supplier<T> supplier)   {
+    public <T> void fill(@NonNull T[] arr, @NonNull Supplier<T> supplier)   {
         for (int i = arr.length - 1; i >= 0; i--)   {
             arr[i] = supplier.get();
         }
     }
 
-    static <T> void fill(@NonNull T[] arr, @NonNull T value)   {
+    public <T> void fill(@NonNull T[] arr, @NonNull T value)   {
         for (int i = arr.length - 1; i >= 0; i--)   {
             arr[i] = value;
         }
     }
 
-    static <T> Object[] toObjects(@NonNull T[] src) {
+    public <T> Object[] toObjects(@NonNull T[] src) {
         if (src.getClass() == Object[].class)    {
             return src;
         }
@@ -205,7 +207,7 @@ public interface PArrays {
         return dst;
     }
 
-    static int indexOf(@NonNull byte[] arr, byte val)    {
+    public int indexOf(@NonNull byte[] arr, byte val)    {
         for (int i = arr.length - 1; i >= 0; i--)   {
             if (arr[i] == val)  {
                 return i;
@@ -214,7 +216,7 @@ public interface PArrays {
         return -1;
     }
 
-    static int indexOf(@NonNull short[] arr, short val)    {
+    public int indexOf(@NonNull short[] arr, short val)    {
         for (int i = arr.length - 1; i >= 0; i--)   {
             if (arr[i] == val)  {
                 return i;
@@ -223,7 +225,7 @@ public interface PArrays {
         return -1;
     }
 
-    static int indexOf(@NonNull char[] arr, char val)    {
+    public int indexOf(@NonNull char[] arr, char val)    {
         for (int i = arr.length - 1; i >= 0; i--)   {
             if (arr[i] == val)  {
                 return i;
@@ -232,7 +234,7 @@ public interface PArrays {
         return -1;
     }
 
-    static int indexOf(@NonNull int[] arr, int val)    {
+    public int indexOf(@NonNull int[] arr, int val)    {
         for (int i = arr.length - 1; i >= 0; i--)   {
             if (arr[i] == val)  {
                 return i;
@@ -241,7 +243,7 @@ public interface PArrays {
         return -1;
     }
 
-    static int indexOf(@NonNull long[] arr, long val)    {
+    public int indexOf(@NonNull long[] arr, long val)    {
         for (int i = arr.length - 1; i >= 0; i--)   {
             if (arr[i] == val)  {
                 return i;
@@ -250,7 +252,7 @@ public interface PArrays {
         return -1;
     }
 
-    static int indexOf(@NonNull float[] arr, float val)    {
+    public int indexOf(@NonNull float[] arr, float val)    {
         for (int i = arr.length - 1; i >= 0; i--)   {
             if (arr[i] == val)  {
                 return i;
@@ -259,7 +261,7 @@ public interface PArrays {
         return -1;
     }
 
-    static int indexOf(@NonNull double[] arr, double val)    {
+    public int indexOf(@NonNull double[] arr, double val)    {
         for (int i = arr.length - 1; i >= 0; i--)   {
             if (arr[i] == val)  {
                 return i;
@@ -268,12 +270,194 @@ public interface PArrays {
         return -1;
     }
 
-    static <T> int indexOf(@NonNull T[] arr, @NonNull T val)    {
+    public <T> int indexOf(@NonNull T[] arr, @NonNull T val)    {
         for (int i = arr.length - 1; i >= 0; i--)   {
             if (arr[i] == val)  {
                 return i;
             }
         }
         return -1;
+    }
+
+    public byte max(@NonNull byte[] arr)    {
+        if (arr.length == 0)    {
+            throw new IllegalArgumentException("Array may not be empty!");
+        }
+        byte val = Byte.MIN_VALUE;
+        for (int i = arr.length - 1; i >= 0; i--)   {
+            if (arr[i] > val)   {
+                val = arr[i];
+            }
+        }
+        return val;
+    }
+
+    public short max(@NonNull short[] arr)    {
+        if (arr.length == 0)    {
+            throw new IllegalArgumentException("Array may not be empty!");
+        }
+        short val = Short.MIN_VALUE;
+        for (int i = arr.length - 1; i >= 0; i--)   {
+            if (arr[i] > val)   {
+                val = arr[i];
+            }
+        }
+        return val;
+    }
+
+    public char max(@NonNull char[] arr)    {
+        if (arr.length == 0)    {
+            throw new IllegalArgumentException("Array may not be empty!");
+        }
+        char val = Character.MIN_VALUE;
+        for (int i = arr.length - 1; i >= 0; i--)   {
+            if (arr[i] > val)   {
+                val = arr[i];
+            }
+        }
+        return val;
+    }
+
+    public int max(@NonNull int[] arr)    {
+        if (arr.length == 0)    {
+            throw new IllegalArgumentException("Array may not be empty!");
+        }
+        int val = Integer.MIN_VALUE;
+        for (int i = arr.length - 1; i >= 0; i--)   {
+            if (arr[i] > val)   {
+                val = arr[i];
+            }
+        }
+        return val;
+    }
+
+    public long max(@NonNull long[] arr)    {
+        if (arr.length == 0)    {
+            throw new IllegalArgumentException("Array may not be empty!");
+        }
+        long val = Long.MIN_VALUE;
+        for (int i = arr.length - 1; i >= 0; i--)   {
+            if (arr[i] > val)   {
+                val = arr[i];
+            }
+        }
+        return val;
+    }
+
+    public float max(@NonNull float[] arr)    {
+        if (arr.length == 0)    {
+            throw new IllegalArgumentException("Array may not be empty!");
+        }
+        float val = Float.MIN_VALUE;
+        for (int i = arr.length - 1; i >= 0; i--)   {
+            if (arr[i] > val)   {
+                val = arr[i];
+            }
+        }
+        return val;
+    }
+
+    public double max(@NonNull double[] arr)    {
+        if (arr.length == 0)    {
+            throw new IllegalArgumentException("Array may not be empty!");
+        }
+        double val = Double.MIN_VALUE;
+        for (int i = arr.length - 1; i >= 0; i--)   {
+            if (arr[i] > val)   {
+                val = arr[i];
+            }
+        }
+        return val;
+    }
+
+    public byte min(@NonNull byte[] arr)    {
+        if (arr.length == 0)    {
+            throw new IllegalArgumentException("Array may not be empty!");
+        }
+        byte val = Byte.MAX_VALUE;
+        for (int i = arr.length - 1; i >= 0; i--)   {
+            if (arr[i] < val)   {
+                val = arr[i];
+            }
+        }
+        return val;
+    }
+
+    public short min(@NonNull short[] arr)    {
+        if (arr.length == 0)    {
+            throw new IllegalArgumentException("Array may not be empty!");
+        }
+        short val = Short.MAX_VALUE;
+        for (int i = arr.length - 1; i >= 0; i--)   {
+            if (arr[i] < val)   {
+                val = arr[i];
+            }
+        }
+        return val;
+    }
+
+    public char min(@NonNull char[] arr)    {
+        if (arr.length == 0)    {
+            throw new IllegalArgumentException("Array may not be empty!");
+        }
+        char val = Character.MAX_VALUE;
+        for (int i = arr.length - 1; i >= 0; i--)   {
+            if (arr[i] < val)   {
+                val = arr[i];
+            }
+        }
+        return val;
+    }
+
+    public int min(@NonNull int[] arr)    {
+        if (arr.length == 0)    {
+            throw new IllegalArgumentException("Array may not be empty!");
+        }
+        int val = Integer.MAX_VALUE;
+        for (int i = arr.length - 1; i >= 0; i--)   {
+            if (arr[i] < val)   {
+                val = arr[i];
+            }
+        }
+        return val;
+    }
+
+    public long min(@NonNull long[] arr)    {
+        if (arr.length == 0)    {
+            throw new IllegalArgumentException("Array may not be empty!");
+        }
+        long val = Long.MAX_VALUE;
+        for (int i = arr.length - 1; i >= 0; i--)   {
+            if (arr[i] < val)   {
+                val = arr[i];
+            }
+        }
+        return val;
+    }
+
+    public float min(@NonNull float[] arr)    {
+        if (arr.length == 0)    {
+            throw new IllegalArgumentException("Array may not be empty!");
+        }
+        float val = Float.MAX_VALUE;
+        for (int i = arr.length - 1; i >= 0; i--)   {
+            if (arr[i] < val)   {
+                val = arr[i];
+            }
+        }
+        return val;
+    }
+
+    public double min(@NonNull double[] arr)    {
+        if (arr.length == 0)    {
+            throw new IllegalArgumentException("Array may not be empty!");
+        }
+        double val = Double.MAX_VALUE;
+        for (int i = arr.length - 1; i >= 0; i--)   {
+            if (arr[i] < val)   {
+                val = arr[i];
+            }
+        }
+        return val;
     }
 }

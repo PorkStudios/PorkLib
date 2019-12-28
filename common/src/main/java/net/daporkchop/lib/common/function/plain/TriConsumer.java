@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.common.function;
+package net.daporkchop.lib.common.function.plain;
 
 /**
  * @author DaPorkchop_

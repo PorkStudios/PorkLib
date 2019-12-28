@@ -15,7 +15,7 @@
 
 package net.daporkchop.lib.common.function.io;
 
-import net.daporkchop.lib.common.util.PConstants;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
 import java.util.function.BinaryOperator;
@@ -24,13 +24,14 @@ import java.util.function.BinaryOperator;
  * @author DaPorkchop_
  */
 @FunctionalInterface
-public interface IOBinaryOperator<T> extends BinaryOperator<T>, PConstants {
+public interface IOBinaryOperator<T> extends BinaryOperator<T> {
     @Override
     default T apply(T t, T t2) {
         try {
             return this.applyThrowing(t, t2);
         } catch (IOException e) {
-            throw this.exception(e);
+            PUnsafe.throwException(e);
+            throw new RuntimeException(e);
         }
     }
 

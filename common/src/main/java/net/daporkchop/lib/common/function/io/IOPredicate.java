@@ -15,7 +15,7 @@
 
 package net.daporkchop.lib.common.function.io;
 
-import net.daporkchop.lib.common.util.PConstants;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
 import java.util.function.Predicate;
@@ -24,13 +24,14 @@ import java.util.function.Predicate;
  * @author DaPorkchop_
  */
 @FunctionalInterface
-public interface IOPredicate<T> extends Predicate<T>, PConstants {
+public interface IOPredicate<T> extends Predicate<T> {
     @Override
     default boolean test(T t) {
         try {
             return this.testThrowing(t);
         } catch (IOException e) {
-            throw this.exception(e);
+            PUnsafe.throwException(e);
+            throw new RuntimeException(e);
         }
     }
 

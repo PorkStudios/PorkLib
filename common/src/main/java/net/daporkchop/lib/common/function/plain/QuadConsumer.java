@@ -13,15 +13,12 @@
  *
  */
 
-package net.daporkchop.lib.common.function;
+package net.daporkchop.lib.common.function.plain;
 
 /**
- * Deprecated in favor of {@link VoidFunction}
- *
  * @author DaPorkchop_
  */
-@Deprecated
 @FunctionalInterface
-public interface Void {
-    void run();
+public interface QuadConsumer<T, U, V, W> {
+    void accept(T t, U u, V v, W w);
 }

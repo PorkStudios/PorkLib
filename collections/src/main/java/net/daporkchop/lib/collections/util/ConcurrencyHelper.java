@@ -27,7 +27,6 @@ import net.daporkchop.lib.collections.POrderedCollection;
 import net.daporkchop.lib.collections.util.exception.ConcurrentException;
 import net.daporkchop.lib.collections.util.exception.IterationCompleteException;
 import net.daporkchop.lib.common.util.PArrays;
-import net.daporkchop.lib.common.util.PConstants;
 import net.daporkchop.lib.common.util.PorkUtil;
 
 import java.util.Iterator;
@@ -190,7 +189,7 @@ public abstract class ConcurrencyHelper {
                                 if (t instanceof Exception) {
                                     throw new ConcurrentException(String.format("Exception in worker thread #%d", i), t);
                                 } else {
-                                    throw PConstants.p_exception(t);
+                                    throw new RuntimeException(t);
                                 }
                             }
                             synchronized (worker) {
@@ -272,7 +271,7 @@ public abstract class ConcurrencyHelper {
                         if (t instanceof Exception) {
                             throw new ConcurrentException(String.format("Exception in worker thread #%d", i), t);
                         } else {
-                            throw PConstants.p_exception(t);
+                            throw new RuntimeException(t);
                         }
                     }
                 }

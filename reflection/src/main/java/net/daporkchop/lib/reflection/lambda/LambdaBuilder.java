@@ -23,7 +23,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.function.throwing.EFunction;
-import net.daporkchop.lib.common.util.PConstants;
 import net.daporkchop.lib.unsafe.PUnsafe;
 import net.daporkchop.lib.common.util.PorkUtil;
 
@@ -45,6 +44,7 @@ import java.util.function.Supplier;
  *
  * @author DaPorkchop_
  */
+//TODO: this needs to be reworked quite a bit
 @RequiredArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -59,7 +59,7 @@ public class LambdaBuilder<T> {
             constructor.setAccessible(true);
             LOOKUP_CREATOR = (EFunction<Class<?>, MethodHandles.Lookup>) clazz -> constructor.newInstance(clazz, -1);
         } catch (NoSuchMethodException e) {
-            throw PConstants.p_exception(e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -235,7 +235,7 @@ public class LambdaBuilder<T> {
                 targetMethod = this.methodHolder.getDeclaredMethod(this.methodName, targetParams);
                 interfaceMethod = this.interfaceClass.getDeclaredMethod(this.interfaceName == null ? this.methodName : this.interfaceName, interfaceParams);
             } catch (NoSuchMethodException e) {
-                throw PConstants.p_exception(e);
+                throw new RuntimeException(e);
             }
 
             //unreflect methods into handles
@@ -247,7 +247,7 @@ public class LambdaBuilder<T> {
                 targetHandle = lookup.unreflect(targetMethod);
                 interfaceType = MethodType.methodType(this.returnType.isInterfaceGeneric() ? Object.class : this.returnType.getType(), interfaceParams);
             } catch (IllegalAccessException e) {
-                throw PConstants.p_exception(e);
+                throw new RuntimeException(e);
             }
 
             //actually create lambda
@@ -264,11 +264,11 @@ public class LambdaBuilder<T> {
                 MethodHandle target = site.getTarget();
                 return (T) target.invoke();
             } catch (Throwable t) {
-                throw PConstants.p_exception(t);
+                throw new RuntimeException(t);
             }
         } catch (Throwable t) {
             if (this.fallback == null) {
-                throw PConstants.p_exception(t);
+                throw new RuntimeException(t);
             } else {
                 return this.fallback.get();
             }

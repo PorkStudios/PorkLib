@@ -35,9 +35,9 @@ import net.daporkchop.lib.unsafe.PUnsafe;
 @AllArgsConstructor
 @Getter
 @Setter
-@Accessors(chain = true)
 @ToString
 @EqualsAndHashCode
+@Accessors(chain = true)
 public final class Tuple<A, B> {
     protected static final long A_OFFSET = PUnsafe.pork_getOffset(Tuple.class, "a");
     protected static final long B_OFFSET = PUnsafe.pork_getOffset(Tuple.class, "b");

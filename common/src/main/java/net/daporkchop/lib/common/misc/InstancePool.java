@@ -15,20 +15,14 @@
 
 package net.daporkchop.lib.common.misc;
 
-import lombok.AccessLevel;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.common.util.PConstants;
-import net.daporkchop.lib.common.util.PorkUtil;
 
 import java.lang.ref.SoftReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * A pool for sharing instances of classes that only really need one instance to be around

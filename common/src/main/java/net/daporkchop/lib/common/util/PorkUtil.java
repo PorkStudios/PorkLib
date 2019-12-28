@@ -132,7 +132,7 @@ public class PorkUtil {
         try {
             return (Class<T>) Class.forName(name);
         } catch (ClassNotFoundException e) {
-            throw PConstants.p_exception(e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -152,7 +152,7 @@ public class PorkUtil {
             try {
                 return clazz.getMethod(name, params);
             } catch (NoSuchMethodException e1) {
-                throw PConstants.p_exception(e);
+                throw new RuntimeException(e);
             }
         }
     }
@@ -220,5 +220,9 @@ public class PorkUtil {
         do {
             System.gc();
         } while (Runtime.getRuntime().freeMemory() <= oldMem);
+    }
+
+    public Object getNull() {
+        return null;
     }
 }

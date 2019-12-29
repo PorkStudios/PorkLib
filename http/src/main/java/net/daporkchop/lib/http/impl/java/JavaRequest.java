@@ -121,7 +121,7 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
                     //add all headers as properties (we don't need to use set since HeaderMap already guarantees distinct keys, so using setRequestProperty would only cause needless string comparisons)
                     headers.forEach(header -> this.connection.addRequestProperty(header.key(), header.value())); //if it's a list all the values will be joined together
 
-                    if (!headers.hasKey("user-agent")) this.connection.setRequestProperty("user-agent", this.client.userAgentSelectionPool.any());
+                    if (!headers.hasKey("user-agent")) this.connection.setRequestProperty("user-agent", this.client.userAgents.any());
 
                     if (method.hasRequestBody()) {
                         HttpEntity entity = this.builder.body();

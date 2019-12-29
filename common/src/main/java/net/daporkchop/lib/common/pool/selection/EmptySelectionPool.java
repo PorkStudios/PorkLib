@@ -16,49 +16,40 @@
 package net.daporkchop.lib.common.pool.selection;
 
 import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.common.misc.InstancePool;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 /**
- * An implementation of {@link SelectionPool} which selects randomly from a fixed number of values given at construction time.
+ * An implementation of {@link SelectionPool} with no values.
  * <p>
- * Should not be created directly, instead use the helper methods in {@link SelectionPool}.
+ * This will always return {@code null}.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
-public final class RandomSelectionPool<V> implements SelectionPool<V> {
-    @NonNull
-    protected final Object[] values;
-    protected final Random   random;
-    protected final int      valueCount;
-
-    @Override
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class EmptySelectionPool<V> implements SelectionPool<V> {
     @SuppressWarnings("unchecked")
-    public V any() {
-        return (V) this.values[this.random().nextInt(this.values.length)];
+    public static <V> EmptySelectionPool<V> getInstance() {
+        return (EmptySelectionPool<V>) InstancePool.getInstance(EmptySelectionPool.class);
     }
 
     @Override
-    @SuppressWarnings("unchecked")
+    public V any() {
+        return null;
+    }
+
+    @Override
     public List<V> matching(@NonNull Predicate<V> condition) {
-        return Arrays.stream((V[]) this.values).filter(condition).collect(Collectors.toList());
+        return Collections.emptyList();
     }
 
     @Override
     public V anyMatching(@NonNull Predicate<V> condition) {
-        List<V> list = this.matching(condition);
-        return list.isEmpty() ? null : list.get(this.random().nextInt(list.size()));
-    }
-
-    protected Random random() {
-        return this.random == null ? ThreadLocalRandom.current() : this.random;
+        return null;
     }
 }

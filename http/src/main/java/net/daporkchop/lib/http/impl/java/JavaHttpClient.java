@@ -16,6 +16,7 @@
 package net.daporkchop.lib.http.impl.java;
 
 import io.netty.util.concurrent.EventExecutor;
+import io.netty.util.concurrent.EventExecutorGroup;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.ImmediateEventExecutor;
 import io.netty.util.concurrent.Promise;
@@ -39,9 +40,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 /**
  * A very simple implementation of {@link HttpClient}, using {@link java.net.URL}'s built-in support to act as a simple HTTP client.
  * <p>
- * Each request will be executed on a separate thread, and a shared {@link EventExecutor} is used for invoking callbacks. By default the
- * {@link EventExecutor} is set to {@link ImmediateEventExecutor#INSTANCE}, meaning that the request is entirely executed on the connection-
- * specific thread.
+ * Each request will be executed on a separate thread, and a shared {@link EventExecutorGroup} is used for invoking callbacks. By default the
+ * {@link EventExecutorGroup} is set to {@link ImmediateEventExecutor#INSTANCE}, meaning that the request is entirely executed on the connection's
+ * thread.
  *
  * @author DaPorkchop_
  */
@@ -53,32 +54,32 @@ public final class JavaHttpClient implements HttpClient {
             HttpMethod.POST
     ));
 
-    protected volatile ThreadFactory factory;
-    protected final    EventExecutor executor;
-    protected final    Promise<Void> closeFuture;
+    protected volatile ThreadFactory      factory;
+    protected final    EventExecutorGroup group;
+    protected final    Promise<Void>      closeFuture;
 
     protected final SelectionPool<String> userAgentSelectionPool;
 
     protected final Map<JavaRequest, Object> activeRequests = new ConcurrentHashMap<>();
     protected final ReadWriteLock requestsLock = new ReentrantReadWriteLock();
 
-    public JavaHttpClient(@NonNull ThreadFactory factory, @NonNull EventExecutor executor, @NonNull SelectionPool<String> userAgentSelectionPool) {
+    public JavaHttpClient(@NonNull ThreadFactory factory, @NonNull EventExecutorGroup group, @NonNull SelectionPool<String> userAgentSelectionPool) {
         this.factory = factory;
-        this.executor = executor;
-        this.closeFuture = executor.newPromise();
+        this.group = group;
+        this.closeFuture = group.next().newPromise();
         this.userAgentSelectionPool = userAgentSelectionPool;
     }
 
-    public JavaHttpClient(@NonNull EventExecutor executor) {
-        this(Thread::new, executor, Constants.DEFAULT_USER_AGENT_SELECTION_POOL);
+    public JavaHttpClient(@NonNull EventExecutor group) {
+        this(Thread::new, group, Constants.DEFAULT_USER_AGENT_SELECTION_POOL);
     }
 
     public JavaHttpClient(@NonNull ThreadFactory factory) {
         this(factory, ImmediateEventExecutor.INSTANCE, Constants.DEFAULT_USER_AGENT_SELECTION_POOL);
     }
 
-    public JavaHttpClient(@NonNull EventExecutor executor, @NonNull SelectionPool<String> userAgentSelectionPool) {
-        this(Thread::new, executor, userAgentSelectionPool);
+    public JavaHttpClient(@NonNull EventExecutor group, @NonNull SelectionPool<String> userAgentSelectionPool) {
+        this(Thread::new, group, userAgentSelectionPool);
     }
 
     public JavaHttpClient(@NonNull ThreadFactory factory, @NonNull SelectionPool<String> userAgentSelectionPool) {

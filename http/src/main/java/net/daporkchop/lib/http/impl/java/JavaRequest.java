@@ -16,6 +16,7 @@
 package net.daporkchop.lib.http.impl.java;
 
 import io.netty.buffer.Unpooled;
+import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
 import lombok.NonNull;
@@ -64,8 +65,9 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
         this.builder = builder;
         this.thread = this.client.factory.newThread(this);
 
-        this.headers = this.client.executor.newPromise();
-        this.body = this.client.executor.newPromise();
+        EventExecutor executor = this.client.group.next();
+        this.headers = executor.newPromise();
+        this.body = executor.newPromise();
 
         this.body.addListener(f -> {
             if (!this.headers.isDone()) {

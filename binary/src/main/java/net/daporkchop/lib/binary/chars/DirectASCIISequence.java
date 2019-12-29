@@ -15,11 +15,18 @@
 
 package net.daporkchop.lib.binary.chars;
 
+import io.netty.util.internal.PlatformDependent;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
+import net.daporkchop.lib.unsafe.capability.Releasable;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
+import sun.nio.ch.DirectBuffer;
+
+import java.nio.MappedByteBuffer;
 
 /**
  * A wrapper around a direct memory address to allow it to be used as a {@link CharSequence} of 1-byte characters (aka. Latin, Extended ASCII or
@@ -30,7 +37,7 @@ import net.daporkchop.lib.unsafe.PUnsafe;
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public final class DirectASCIISequence implements CharSequence {
+public class DirectASCIISequence implements CharSequence {
     private final long addr;
     private final int  length;
 
@@ -96,5 +103,32 @@ public final class DirectASCIISequence implements CharSequence {
             arr[i] = (char) (PUnsafe.getByte(addr + i) & 0xFF);
         }
         return PorkUtil.wrap(arr);
+    }
+
+    /**
+     * A {@link DirectASCIISequence} wrapping a {@link MappedByteBuffer}.
+     *
+     * @author DaPorkchop_
+     */
+    @Getter
+    @Accessors(fluent = true)
+    public static final class Mapped extends DirectASCIISequence implements Releasable {
+        private MappedByteBuffer buffer;
+
+        public Mapped(@NonNull MappedByteBuffer buffer) {
+            super(PlatformDependent.directBufferAddress(buffer) + buffer.position(), buffer.remaining());
+
+            this.buffer = buffer;
+        }
+
+        @Override
+        public synchronized void release() throws AlreadyReleasedException {
+            if (this.buffer != null)    {
+                PorkUtil.release(this.buffer);
+                this.buffer = null;
+            } else {
+                throw new AlreadyReleasedException();
+            }
+        }
     }
 }

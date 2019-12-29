@@ -36,9 +36,7 @@ import java.awt.event.MouseEvent;
 @Setter
 @Accessors(chain = true)
 public class SwingButton extends AbstractSwingButton<Button, JButton, ButtonState> implements Button {
-    @NonNull
-    protected ClickHandler clickHandler = (button, x, y) -> {
-    };
+    protected ClickHandler clickHandler = null;
 
     public SwingButton(String name) {
         super(name, new JButton(), ButtonState.class);
@@ -53,9 +51,10 @@ public class SwingButton extends AbstractSwingButton<Button, JButton, ButtonStat
 
         @Override
         public void mouseClicked(MouseEvent e) {
-            if (this.delegate.isEnabled()) {
+            if (this.delegate.isEnabled() && this.delegate.clickHandler != null) {
                 this.delegate.clickHandler.onClick(e.getButton(), e.getX(), e.getY());
             }
+
             super.mouseClicked(e);
         }
     }

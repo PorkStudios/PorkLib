@@ -13,35 +13,15 @@
  *
  */
 
-package net.daporkchop.lib.gui.component.type.functional;
+package net.daporkchop.lib.gui.util.handler;
 
 import lombok.NonNull;
-import net.daporkchop.lib.gui.component.Component;
-import net.daporkchop.lib.gui.component.capability.IconHolder;
-import net.daporkchop.lib.gui.component.capability.TextHolder;
-import net.daporkchop.lib.gui.component.state.functional.ButtonState;
-import net.daporkchop.lib.gui.util.handler.ClickHandler;
+import net.daporkchop.lib.gui.component.type.functional.Table;
 
 /**
- * A button can display text or an icon, and has a single click handler that is invoked when the
- * button is clicked.
- *
  * @author DaPorkchop_
  */
-public interface Button extends Component<Button, ButtonState>, IconHolder<Button, ButtonState>, TextHolder<Button> {
-    ClickHandler getClickHandler();
-
-    Button setClickHandler(ClickHandler handler);
-
-    @Override
-    default ButtonState getState() {
-        return this.isVisible() ?
-                this.isEnabled() ?
-                        this.isHovered() ?
-                                this.isMouseDown() ?
-                                        ButtonState.ENABLED_CLICKED : ButtonState.ENABLED_HOVERED
-                                : ButtonState.ENABLED
-                        : this.isHovered() ? ButtonState.DISABLED_HOVERED : ButtonState.DISABLED
-                : ButtonState.HIDDEN;
-    }
+@FunctionalInterface
+public interface TableClickHandler<V> {
+    void onClick(int mouseButton, @NonNull Table.Row row, @NonNull V value);
 }

@@ -237,8 +237,7 @@ public class GuiExample implements Logging {
                 .table("table1", table -> {
                     table.orientRelative(0, 0, 1.0d, 0.7d);
                     for (int c = 0; c < 3; c++) {
-                        table.addAndGetColumn(String.format("col-%d", c), Integer.class)
-                                .setValueType(Integer.class, (engine, value, oldComponent) -> engine.label().setText(String.valueOf(value)));
+                        table.addAndGetColumn(String.format("col-%d", c), Integer.class, (value, label) -> label.setText(String.valueOf(value)));
                     }
                     for (int r = 0; r < 5; r++) {
                         Table.Row row = table.addAndGetRow();

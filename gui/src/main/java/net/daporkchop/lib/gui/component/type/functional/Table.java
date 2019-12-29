@@ -20,6 +20,7 @@ import net.daporkchop.lib.gui.GuiEngine;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.state.functional.TableState;
 import net.daporkchop.lib.gui.component.type.container.ScrollPane;
+import net.daporkchop.lib.gui.util.handler.TableClickHandler;
 
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -86,13 +87,13 @@ public interface Table extends Component<Table, TableState> {
         return this;
     }
 
-    default <V> V getValue(int row, int col)    {
-        return this.getRow(row).getValue(col);
-    }
-    default Table setValue(int row, int col, @NonNull Object val)   {
-        this.getRow(row).setValue(col, val);
-        return this;
-    }
+    @Deprecated
+    <V> V getValue(int row, int col);
+    @Deprecated
+    Table setValue(int row, int col, Object val);
+
+    <V> V getValue(@NonNull Row row, @NonNull Column<V> col);
+    <V> Table setValue(@NonNull Row row, @NonNull Column<V> col, V val);
 
     boolean areHeadersShown();
     Table setHeadersShown(boolean headersShown);
@@ -114,7 +115,9 @@ public interface Table extends Component<Table, TableState> {
         Column<V> swap(int dst);
 
         Class<V> getValueClass();
-        <T> Column<T> setValueType(@NonNull Class<T> clazz, @NonNull CellRenderer<T> renderer);
+
+        TableClickHandler<V> getClickHandler();
+        Column<V> setClickHandler(TableClickHandler<V> handler);
     }
 
     interface Row   {
@@ -124,12 +127,13 @@ public interface Table extends Component<Table, TableState> {
         Row setIndex(int dst);
         Row swap(int dst);
 
+        @Deprecated
         <V> V getValue(int col);
-        Row setValue(int col, @NonNull Object val);
+        @Deprecated
+        Row setValue(int col, Object val);
 
-        default Column getColumn(int index) {
-            return this.getParent().getColumn(index);
-        }
+        <V> V getValue(@NonNull Column<V> col);
+        <V> Row setValue(@NonNull Column<V> col, V val);
     }
 
     @FunctionalInterface

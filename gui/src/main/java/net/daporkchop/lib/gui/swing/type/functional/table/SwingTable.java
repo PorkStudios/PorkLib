@@ -83,6 +83,7 @@ public class SwingTable extends SwingComponent<Table, JScrollPane, TableState> i
 
         this.table = new JTable();
         this.table.setAutoCreateColumnsFromModel(false);
+        this.table.setRowSelectionAllowed(false);
         this.table.setEnabled(true);
 
         PUnsafe.<Hashtable>getObject(this.table, DEFAULTEDITORSBYCOLUMNCLASS_OFFSET).clear();
@@ -303,6 +304,23 @@ public class SwingTable extends SwingComponent<Table, JScrollPane, TableState> i
         return this;
     }
 
+    @Override
+    public boolean areRowsSelectable() {
+        return this.table.getRowSelectionAllowed();
+    }
+
+    @Override
+    public Table setRowsSelectable(boolean rowsSelectable) {
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            if (this.table.getRowSelectionAllowed() != rowsSelectable) {
+                this.table.setRowSelectionAllowed(rowsSelectable);
+            }
+        } else {
+            SwingUtilities.invokeLater(() -> this.setRowsSelectable(rowsSelectable));
+        }
+        return this;
+    }
+
     protected static class SwingTableMouseListener extends SwingMouseListener<SwingTable> {
         public SwingTableMouseListener(SwingTable delegate) {
             super(delegate);
@@ -316,9 +334,10 @@ public class SwingTable extends SwingComponent<Table, JScrollPane, TableState> i
                 int columnNumber = this.delegate.table.columnAtPoint(e.getPoint());
 
                 if (rowNumber >= 0 && columnNumber >= 0)   {
-                    TableClickHandler handler = this.delegate.columnCache.get(columnNumber).clickHandler;
+                    SwingTableColumn column =this.delegate.columnCache.get(columnNumber);
+                    TableClickHandler handler = column.clickHandler;
                     if (handler != null) {
-                        handler.onClick(e.getButton(), this.delegate.rowCache.get(columnNumber), this.delegate.model.getValueAt(rowNumber, columnNumber));
+                        handler.onClick(this.delegate.model.getValueAt(rowNumber, columnNumber), this.delegate.rowCache.get(columnNumber), column, e.getButton());
                     }
                 }
             }

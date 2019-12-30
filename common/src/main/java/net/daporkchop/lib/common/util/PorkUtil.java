@@ -18,7 +18,6 @@ package net.daporkchop.lib.common.util;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.pool.handle.DefaultThreadHandledPool;
-import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.pool.handle.HandledPool;
 import net.daporkchop.lib.unsafe.PUnsafe;
 import sun.misc.Cleaner;
@@ -44,6 +43,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.regex.Matcher;
 
 /**
  * Some helper methods and values that I use all over the place
@@ -53,7 +53,9 @@ import java.util.function.Function;
 //TODO: clean this up a bit
 @UtilityClass
 public class PorkUtil {
-    public final long OFFSET_STRING_VALUE = PUnsafe.pork_getOffset(String.class, "value");
+    public final long STRING_VALUE_OFFSET = PUnsafe.pork_getOffset(String.class, "value");
+    public final long MATCHER_GROUPS_OFFSET = PUnsafe.pork_getOffset(Matcher.class, "groups");
+    public final long MATCHER_TEXT_OFFSET = PUnsafe.pork_getOffset(Matcher.class, "text");
 
     private final Function<Throwable, StackTraceElement[]> GET_STACK_TRACE_WRAPPER;
 
@@ -102,7 +104,7 @@ public class PorkUtil {
      */
     public String wrap(@NonNull char[] chars) {
         String s = PUnsafe.allocateInstance(String.class);
-        PUnsafe.putObject(s, OFFSET_STRING_VALUE, chars);
+        PUnsafe.putObject(s, STRING_VALUE_OFFSET, chars);
         return s;
     }
 
@@ -113,7 +115,7 @@ public class PorkUtil {
      * @return the value of the {@link String} as a {@code char[]}
      */
     public char[] unwrap(@NonNull String string) {
-        return PUnsafe.getObject(string, OFFSET_STRING_VALUE);
+        return PUnsafe.getObject(string, STRING_VALUE_OFFSET);
     }
 
     public StackTraceElement[] getStackTrace(@NonNull Throwable t) {
@@ -224,5 +226,19 @@ public class PorkUtil {
 
     public Object getNull() {
         return null;
+    }
+
+    public CharSequence fastGroup(@NonNull Matcher matcher, int group)  {
+        matcher.start(); //this does a < 0 check internally
+        if (group < 0 || group > matcher.groupCount())  {
+            throw new IndexOutOfBoundsException("No group " + group);
+        }
+        int[] groups = PUnsafe.getObject(matcher, MATCHER_GROUPS_OFFSET);
+        int start = groups[group << 1];
+        int end = groups[(group << 1) + 1];
+        if (start == -1 || end == -1)   {
+            return null;
+        }
+        return PUnsafe.<CharSequence>getObject(matcher, MATCHER_TEXT_OFFSET).subSequence(start, end);
     }
 }

@@ -58,7 +58,8 @@ public abstract class AbstractSwingButton<Impl extends Component<Impl, State> & 
     @SuppressWarnings("unchecked")
     public Impl setText(String text) {
         if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
-            if (!this.getText().equals(text)) {
+            String currentText = this.getText();
+            if (currentText != text && (currentText == null || !currentText.equals(text))) {
                 this.swing.setText(text);
             }
         } else {

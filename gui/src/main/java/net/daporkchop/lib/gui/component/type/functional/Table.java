@@ -34,7 +34,7 @@ import java.util.function.Function;
  */
 public interface Table extends Component<Table, TableState> {
     static <V> CellRenderer<V> defaultTextRenderer()  {
-        return (value, label) -> label.setText(Objects.toString(value));
+        return (value, label, row, col) -> label.setText(Objects.toString(value));
     }
 
     @Override
@@ -104,6 +104,15 @@ public interface Table extends Component<Table, TableState> {
         return this.setHeadersShown(false);
     }
 
+    boolean areRowsSelectable();
+    Table setRowsSelectable(boolean rowsSelectable);
+    default Table enableRowSelection() {
+        return this.setRowsSelectable(true);
+    }
+    default Table disableRowSelection() {
+        return this.setRowsSelectable(false);
+    }
+
     interface Column<V>    {
         Table getParent();
 
@@ -138,6 +147,6 @@ public interface Table extends Component<Table, TableState> {
 
     @FunctionalInterface
     interface CellRenderer<V>  {
-        void render(V value, @NonNull Label label);
+        void render(V value, @NonNull Label label, @NonNull Row row, @NonNull Column<V> col);
     }
 }

@@ -22,9 +22,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
 import net.daporkchop.lib.gui.GuiEngine;
-import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.Element;
-import net.daporkchop.lib.gui.component.orientation.advanced.Axis;
 import net.daporkchop.lib.gui.component.state.WindowState;
 import net.daporkchop.lib.gui.component.type.Window;
 import net.daporkchop.lib.gui.swing.GuiEngineSwing;
@@ -70,9 +68,9 @@ public abstract class AbstractSwingWindow<Impl extends AbstractSwingWindow<Impl,
         if (!this.built) {
             return WindowState.CONSTRUCTION;
         } else if (this.closed) {
-            return WindowState.CLOSED;
+            return WindowState.RELEASED;
         } else if (this.closing) {
-            return WindowState.CLOSING;
+            return WindowState.CLOSED;
         } else if (this.isVisible()) {
             if (this.minimized) {
                 return WindowState.VISIBLE_MINIMIZED;

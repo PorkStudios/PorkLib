@@ -23,5 +23,5 @@ import net.daporkchop.lib.gui.component.type.functional.Table;
  */
 @FunctionalInterface
 public interface TableClickHandler<V> {
-    void onClick(int mouseButton, @NonNull Table.Row row, @NonNull V value);
+    void onClick(V value, @NonNull Table.Row row, @NonNull Table.Column<V> col, int mouseButton);
 }

@@ -237,7 +237,7 @@ public class GuiExample implements Logging {
                 .table("table1", table -> {
                     table.orientRelative(0, 0, 1.0d, 0.7d);
                     for (int c = 0; c < 3; c++) {
-                        table.addAndGetColumn(String.format("col-%d", c), Integer.class, (value, label) -> label.setText(String.valueOf(value)));
+                        table.addAndGetColumn(String.format("col-%d", c), Integer.class, (value, label, row, col) -> label.setText(String.valueOf(value)));
                     }
                     for (int r = 0; r < 5; r++) {
                         Table.Row row = table.addAndGetRow();
@@ -246,7 +246,7 @@ public class GuiExample implements Logging {
                         }
                     }
                     table.<Integer>getColumn(2)
-                            .setClickHandler((mouseButton, row, value) -> logger.info("Clicked value %d in row %d!", value, row.index()));
+                            .setClickHandler((value, row, col, mouseButton) -> logger.info("Clicked value %d in row %d!", value, row.index()));
                 })
                 .checkBox("toggleHeader", checkBox -> checkBox
                         .orientRelative(0, 0.9d, 0.25d, 0.1d)

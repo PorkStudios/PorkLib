@@ -122,8 +122,11 @@ public abstract class SwingComponent<Impl extends Component, Swing extends JComp
     @Override
     public Impl setTooltip(String tooltip) {
         if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
-            if (this.swing != null && (this.getTooltip() == null || !this.getTooltip().equals(tooltip))) {
-                this.swing.setToolTipText(tooltip);
+            if (this.swing != null) {
+                String currentTooltip = this.getTooltip();
+                if (currentTooltip != tooltip && (currentTooltip == null || !currentTooltip.equals(tooltip))) {
+                    this.swing.setToolTipText(tooltip);
+                }
             }
         } else {
             SwingUtilities.invokeLater(() -> this.setTooltip(tooltip));

@@ -80,7 +80,7 @@ public class Constants {
 
     public void writeUTF16ToByteBuf(@NonNull ByteBuf dst, @NonNull String str) {
         byte[] buf = CACHE_4KB_BUFFER.get();
-        char[] src = PUnsafe.getObject(str, PorkUtil.OFFSET_STRING_VALUE);
+        char[] src = PUnsafe.getObject(str, PorkUtil.STRING_VALUE_OFFSET);
         int remaining = src.length * PUnsafe.ARRAY_CHAR_INDEX_SCALE;
         while (remaining > 0) {
             int count = min(remaining, buf.length);

@@ -38,8 +38,8 @@ import java.nio.MappedByteBuffer;
 @Getter
 @Accessors(fluent = true)
 public class DirectASCIISequence implements CharSequence {
-    private final long addr;
-    private final int  length;
+    protected final long addr;
+    protected final int  length;
 
     @Override
     public char charAt(int index) {
@@ -61,7 +61,11 @@ public class DirectASCIISequence implements CharSequence {
         if (subLen < 0) {
             throw new StringIndexOutOfBoundsException(subLen);
         }
-        return start == 0 && end == this.length ? this : new DirectASCIISequence(this.addr + start, subLen);
+        return start == 0 && end == this.length ? this : this.slice(start, subLen);
+    }
+
+    protected CharSequence slice(int start, int len)    {
+        return new DirectASCIISequence(this.addr + start, len);
     }
 
     @Override
@@ -116,9 +120,30 @@ public class DirectASCIISequence implements CharSequence {
         private MappedByteBuffer buffer;
 
         public Mapped(@NonNull MappedByteBuffer buffer) {
-            super(PlatformDependent.directBufferAddress(buffer) + buffer.position(), buffer.remaining());
+            this(buffer, PlatformDependent.directBufferAddress(buffer) + buffer.position(), buffer.remaining(), false);
+        }
+
+        public Mapped(@NonNull MappedByteBuffer buffer, boolean load) {
+            this(buffer, PlatformDependent.directBufferAddress(buffer) + buffer.position(), buffer.remaining(), load);
+        }
+
+        public Mapped(@NonNull MappedByteBuffer buffer, long address, int size) {
+            this(buffer, address, size, false);
+        }
+
+        public Mapped(@NonNull MappedByteBuffer buffer, long address, int size, boolean load) {
+            super(address, size);
 
             this.buffer = buffer;
+
+            if (load)   {
+                buffer.load();
+            }
+        }
+
+        @Override
+        protected CharSequence slice(int start, int len) {
+            return new Mapped(this.buffer, this.addr + start, len);
         }
 
         @Override

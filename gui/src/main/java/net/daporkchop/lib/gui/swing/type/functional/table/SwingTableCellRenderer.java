@@ -53,7 +53,15 @@ public class SwingTableCellRenderer<V> extends DefaultTableCellRenderer {
     @Override
     @SuppressWarnings("unchecked")
     protected void setValue(Object value) {
-        this.renderer.render((V) this.parent.model.getValueAt(this.row, this.col), this.label);
+        this.setToolTipText(null);
+        this.setText(null);
+
+        this.renderer.render(
+                (V) this.parent.model.getValueAt(this.row, this.col),
+                this.label,
+                this.parent.rowCache.get(this.row),
+                (SwingTableColumn<V>) this.parent.columnCache.get(this.col)
+        );
     }
 
     protected static class RendererLabel extends SwingLabel {

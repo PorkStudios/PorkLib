@@ -34,6 +34,7 @@ import net.daporkchop.lib.gui.swing.type.container.SwingScrollPane;
 import net.daporkchop.lib.gui.util.ScrollCondition;
 import net.daporkchop.lib.gui.util.handler.StateListener;
 import net.daporkchop.lib.gui.util.handler.TableClickHandler;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -47,6 +48,7 @@ import javax.swing.table.TableColumn;
 import java.awt.event.MouseEvent;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -54,6 +56,8 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author DaPorkchop_
  */
 public class SwingTable extends SwingComponent<Table, JScrollPane, TableState> implements Table {
+    protected static final long DEFAULTEDITORSBYCOLUMNCLASS_OFFSET = PUnsafe.pork_getOffset(JTable.class, "defaultEditorsByColumnClass");
+
     @Getter
     protected final SwingScrollPane scrollPane;
 
@@ -78,6 +82,11 @@ public class SwingTable extends SwingComponent<Table, JScrollPane, TableState> i
         this.scrollPane.setScrolling(ScrollCondition.NEVER);
 
         this.table = new JTable();
+        this.table.setAutoCreateColumnsFromModel(false);
+        this.table.setEnabled(true);
+
+        PUnsafe.<Hashtable>getObject(this.table, DEFAULTEDITORSBYCOLUMNCLASS_OFFSET).clear();
+
         this.swing.setViewportView(this.table);
         this.header = this.table.getTableHeader();
         this.headerUI = this.header.getUI();
@@ -96,7 +105,7 @@ public class SwingTable extends SwingComponent<Table, JScrollPane, TableState> i
             }
         });
 
-        this.swing.addMouseListener(new SwingTableMouseListener(this));
+        this.table.addMouseListener(new SwingTableMouseListener(this));
     }
 
     @Override
@@ -112,7 +121,7 @@ public class SwingTable extends SwingComponent<Table, JScrollPane, TableState> i
     @Override
     public Table removeColumn(int col) {
         if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
-            this.table.getColumnModel().removeColumn(this.columnCache.remove(col).delegate);
+            this.table.removeColumn(this.columnCache.remove(col).delegate);
         } else {
             SwingUtilities.invokeLater(() -> this.removeColumn(col));
         }
@@ -161,11 +170,12 @@ public class SwingTable extends SwingComponent<Table, JScrollPane, TableState> i
     public <V> Column<V> addAndGetColumn(String name, @NonNull Class<V> clazz, @NonNull CellRenderer<V> renderer) {
         if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
             this.model.addColumn(name);
-            TableColumn column = this.table.getColumnModel().getColumn(this.table.getColumnModel().getColumnCount() - 1);
+            TableColumn column = new TableColumn(this.table.getColumnModel().getColumnCount());
             column.setHeaderValue(name);
+            column.setCellRenderer(new SwingTableCellRenderer<>(renderer));
+            this.table.addColumn(column);
             FakeColumn<V> fake = new FakeColumn<>(column, clazz);
             this.columnCache.add(fake);
-            column.setCellRenderer(new SwingTableCellRenderer<>(renderer));
             return fake;
         } else {
             AtomicReference<Column<V>> ref = new AtomicReference<>();
@@ -303,6 +313,7 @@ public class SwingTable extends SwingComponent<Table, JScrollPane, TableState> i
 
     @RequiredArgsConstructor
     @Getter
+    @Setter
     @Accessors(chain = true)
     protected class FakeColumn<V> extends FakeTableClass implements Column<V> {
         @NonNull
@@ -310,7 +321,6 @@ public class SwingTable extends SwingComponent<Table, JScrollPane, TableState> i
         @NonNull
         protected final Class<V> valueClass;
 
-        @Setter
         protected TableClickHandler<V> clickHandler;
 
         @Override
@@ -475,7 +485,7 @@ public class SwingTable extends SwingComponent<Table, JScrollPane, TableState> i
         @Override
         @SuppressWarnings("unchecked")
         public void mouseClicked(MouseEvent e) {
-            if (this.delegate.isEnabled()) {
+            if (true || this.delegate.isEnabled()) {
                 int rowNumber = this.delegate.table.rowAtPoint(e.getPoint());
                 int columnNumber = this.delegate.table.columnAtPoint(e.getPoint());
 

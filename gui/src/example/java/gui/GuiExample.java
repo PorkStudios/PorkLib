@@ -245,6 +245,8 @@ public class GuiExample implements Logging {
                             row.setValue(c, ThreadLocalRandom.current().nextInt(1000));
                         }
                     }
+                    table.<Integer>getColumn(2)
+                            .setClickHandler((mouseButton, row, value) -> logger.info("Clicked value %d in row %d!", value, row.index()));
                 })
                 .checkBox("toggleHeader", checkBox -> checkBox
                         .orientRelative(0, 0.9d, 0.25d, 0.1d)

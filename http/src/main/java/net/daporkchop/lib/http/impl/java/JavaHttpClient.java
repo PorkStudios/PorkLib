@@ -23,6 +23,7 @@ import io.netty.util.concurrent.Promise;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.misc.threadfactory.ThreadFactoryBuilder;
 import net.daporkchop.lib.common.pool.selection.SelectionPool;
 import net.daporkchop.lib.http.HttpClient;
 import net.daporkchop.lib.http.HttpMethod;
@@ -74,16 +75,20 @@ public final class JavaHttpClient implements HttpClient {
         this.userAgents = userAgents;
     }
 
-    public JavaHttpClient(@NonNull EventExecutor group) {
-        this(Thread::new, group, Constants.DEFAULT_USER_AGENT_SELECTION_POOL);
+    public JavaHttpClient(@NonNull ThreadFactory factory, @NonNull EventExecutorGroup group) {
+        this(factory, group, Constants.DEFAULT_USER_AGENT_SELECTION_POOL);
+    }
+
+    public JavaHttpClient(@NonNull EventExecutorGroup group) {
+        this(ThreadFactoryBuilder.defaultThreadFactory(), group, Constants.DEFAULT_USER_AGENT_SELECTION_POOL);
     }
 
     public JavaHttpClient(@NonNull ThreadFactory factory) {
         this(factory, ImmediateEventExecutor.INSTANCE, Constants.DEFAULT_USER_AGENT_SELECTION_POOL);
     }
 
-    public JavaHttpClient(@NonNull EventExecutor group, @NonNull SelectionPool<String> userAgents) {
-        this(Thread::new, group, userAgents);
+    public JavaHttpClient(@NonNull EventExecutorGroup group, @NonNull SelectionPool<String> userAgents) {
+        this(ThreadFactoryBuilder.defaultThreadFactory(), group, userAgents);
     }
 
     public JavaHttpClient(@NonNull ThreadFactory factory, @NonNull SelectionPool<String> userAgents) {
@@ -91,11 +96,11 @@ public final class JavaHttpClient implements HttpClient {
     }
 
     public JavaHttpClient(@NonNull SelectionPool<String> userAgents) {
-        this(Thread::new, ImmediateEventExecutor.INSTANCE, userAgents);
+        this(ThreadFactoryBuilder.defaultThreadFactory(), ImmediateEventExecutor.INSTANCE, userAgents);
     }
 
     public JavaHttpClient() {
-        this(Thread::new, ImmediateEventExecutor.INSTANCE, Constants.DEFAULT_USER_AGENT_SELECTION_POOL);
+        this(ThreadFactoryBuilder.defaultThreadFactory(), ImmediateEventExecutor.INSTANCE, Constants.DEFAULT_USER_AGENT_SELECTION_POOL);
     }
 
     @Override

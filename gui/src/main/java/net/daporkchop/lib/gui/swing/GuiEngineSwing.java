@@ -45,7 +45,7 @@ import net.daporkchop.lib.gui.swing.type.functional.SwingProgressBar;
 import net.daporkchop.lib.gui.swing.type.functional.SwingRadioButton;
 import net.daporkchop.lib.gui.swing.type.functional.SwingSlider;
 import net.daporkchop.lib.gui.swing.type.functional.SwingSpinner;
-import net.daporkchop.lib.gui.swing.type.functional.SwingTable;
+import net.daporkchop.lib.gui.swing.type.functional.table.SwingTable;
 import net.daporkchop.lib.gui.swing.type.misc.SwingRadioButtonGroup;
 import net.daporkchop.lib.gui.swing.type.window.SwingFrame;
 import net.daporkchop.lib.gui.util.math.BoundingBox;

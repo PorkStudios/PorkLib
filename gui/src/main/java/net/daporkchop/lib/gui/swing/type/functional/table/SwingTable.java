@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.gui.swing.type.functional;
+package net.daporkchop.lib.gui.swing.type.functional.table;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -22,7 +22,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.state.functional.LabelState;
 import net.daporkchop.lib.gui.component.state.functional.TableState;
 import net.daporkchop.lib.gui.component.type.functional.Label;
@@ -31,6 +30,7 @@ import net.daporkchop.lib.gui.swing.GuiEngineSwing;
 import net.daporkchop.lib.gui.swing.common.SwingMouseListener;
 import net.daporkchop.lib.gui.swing.impl.SwingComponent;
 import net.daporkchop.lib.gui.swing.type.container.SwingScrollPane;
+import net.daporkchop.lib.gui.swing.type.functional.SwingLabel;
 import net.daporkchop.lib.gui.util.ScrollCondition;
 import net.daporkchop.lib.gui.util.handler.StateListener;
 import net.daporkchop.lib.gui.util.handler.TableClickHandler;
@@ -66,8 +66,8 @@ public class SwingTable extends SwingComponent<Table, JScrollPane, TableState> i
     protected final TableHeaderUI     headerUI;
     protected final DefaultTableModel model;
 
-    protected final List<FakeRow>    rowCache    = new ArrayList<>();
-    protected final List<FakeColumn> columnCache = new ArrayList<>();
+    protected final List<SwingTableRow> rowCache    = new ArrayList<>();
+    protected final List<SwingTableColumn>    columnCache = new ArrayList<>();
 
     protected boolean headersShown = true;
 
@@ -172,9 +172,9 @@ public class SwingTable extends SwingComponent<Table, JScrollPane, TableState> i
             this.model.addColumn(name);
             TableColumn column = new TableColumn(this.table.getColumnModel().getColumnCount());
             column.setHeaderValue(name);
-            column.setCellRenderer(new SwingTableCellRenderer<>(renderer));
+            column.setCellRenderer(new SwingTableCellRenderer<>(this, renderer));
             this.table.addColumn(column);
-            FakeColumn<V> fake = new FakeColumn<>(column, clazz);
+            SwingTableColumn<V> fake = new SwingTableColumn<>(this, column, clazz);
             this.columnCache.add(fake);
             return fake;
         } else {
@@ -194,7 +194,7 @@ public class SwingTable extends SwingComponent<Table, JScrollPane, TableState> i
     public Row addAndGetRow() {
         if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
             this.model.addRow(new Object[this.model.getColumnCount()]);
-            FakeRow fake = new FakeRow(this.model.getRowCount() - 1);
+            SwingTableRow fake = new SwingTableRow(this, this.model.getRowCount() - 1);
             this.rowCache.add(fake);
             return fake;
         } else {
@@ -214,7 +214,7 @@ public class SwingTable extends SwingComponent<Table, JScrollPane, TableState> i
     public Row insertAndGetRow(int index) {
         if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
             this.model.insertRow(index, new Object[this.model.getColumnCount()]);
-            FakeRow fake = new FakeRow(index);
+            SwingTableRow fake = new SwingTableRow(this, index);
             this.rowCache.add(fake);
             return fake;
         } else {
@@ -233,7 +233,7 @@ public class SwingTable extends SwingComponent<Table, JScrollPane, TableState> i
     @Override
     @SuppressWarnings("unchecked")
     public <V> Column<V> getColumn(int index) {
-        return (FakeColumn<V>) this.columnCache.get(index);
+        return (SwingTableColumn<V>) this.columnCache.get(index);
     }
 
     @Override
@@ -303,180 +303,6 @@ public class SwingTable extends SwingComponent<Table, JScrollPane, TableState> i
         return this;
     }
 
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Getter
-    @Accessors(fluent = true)
-    protected abstract class FakeTableClass {
-        protected int index;
-    }
-
-    @RequiredArgsConstructor
-    @Getter
-    @Setter
-    @Accessors(chain = true)
-    protected class FakeColumn<V> extends FakeTableClass implements Column<V> {
-        @NonNull
-        protected final TableColumn delegate;
-        @NonNull
-        protected final Class<V> valueClass;
-
-        protected TableClickHandler<V> clickHandler;
-
-        @Override
-        public Table getParent() {
-            return SwingTable.this;
-        }
-
-        @Override
-        public String getName() {
-            return (String) this.delegate.getHeaderValue();
-        }
-
-        @Override
-        public Column<V> setName(String name) {
-            if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
-                this.delegate.setHeaderValue(name);
-            } else {
-                SwingUtilities.invokeLater(() -> this.setName(name));
-            }
-            return this;
-        }
-
-        @Override
-        public Column<V> setIndex(int dst) {
-            if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
-                SwingTable.this.columnCache.remove(this);
-                SwingTable.this.columnCache.add(dst, this);
-                SwingTable.this.table.getColumnModel().moveColumn(this.index, dst);
-            } else {
-                SwingUtilities.invokeLater(() -> this.setIndex(dst));
-            }
-            return this;
-        }
-
-        @Override
-        public Column<V> swap(int dst) {
-            if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
-                SwingTable.this.table.getColumnModel().moveColumn(dst, this.index);
-                SwingTable.this.table.getColumnModel().moveColumn(this.index, dst); //this should work because this.index will be updated
-            } else {
-                SwingUtilities.invokeLater(() -> this.swap(dst));
-            }
-            return this;
-        }
-
-        @Override
-        @SuppressWarnings("unchecked")
-        public Class<V> getValueClass() {
-            return (Class<V>) SwingTable.this.table.getColumnClass(this.index);
-        }
-    }
-
-    @RequiredArgsConstructor
-    protected class SwingTableCellRenderer<V> extends DefaultTableCellRenderer {
-        @NonNull
-        protected final CellRenderer<V> renderer;
-
-        protected final SwingLabel label = new SwingLabel("", this) {
-            @Override
-            public Label addStateListener(@NonNull String name, @NonNull StateListener<Label, LabelState> listener) {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public Label removeStateListener(@NonNull String name) {
-                throw new UnsupportedOperationException();
-            }
-        };
-
-        protected int row;
-        protected int col;
-
-        @Override
-        public java.awt.Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-            this.row = row;
-            this.col = column;
-
-            return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-        }
-
-        @Override
-        @SuppressWarnings("unchecked")
-        protected void setValue(Object value) {
-            this.renderer.render((V) SwingTable.this.model.getValueAt(this.row, this.col), this.label);
-        }
-    }
-
-    //@AllArgsConstructor
-    @Getter
-    protected class FakeRow extends FakeTableClass implements Row {
-        //TODO: figure out what this was for
-        //protected int index;
-
-        public FakeRow(int index) {
-            super(index);
-        }
-
-        @Override
-        public Table getParent() {
-            return SwingTable.this;
-        }
-
-        @Override
-        public Row setIndex(int dst) {
-            if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
-                SwingTable.this.model.moveRow(this.index, this.index, dst);
-            } else {
-                SwingUtilities.invokeLater(() -> this.setIndex(dst));
-            }
-            return this;
-        }
-
-        @Override
-        public Row swap(int dst) {
-            if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
-                SwingTable.this.model.moveRow(dst, dst, this.index);
-                SwingTable.this.model.moveRow(this.index, this.index, dst);
-            } else {
-                SwingUtilities.invokeLater(() -> this.swap(dst));
-            }
-            return this;
-        }
-
-        @Override
-        @SuppressWarnings("unchecked")
-        public <V> V getValue(int col) {
-            return (V) SwingTable.this.model.getValueAt(this.index, col);
-        }
-
-        @Override
-        public Row setValue(int col, Object val) {
-            if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
-                SwingTable.this.model.setValueAt(val, this.index, col);
-            } else {
-                SwingUtilities.invokeLater(() -> this.setValue(col, val));
-            }
-            return this;
-        }
-
-        @Override
-        @SuppressWarnings("unchecked")
-        public <V> V getValue(@NonNull Column<V> col) {
-            return (V) SwingTable.this.model.getValueAt(this.index, col.index());
-        }
-
-        @Override
-        public <V> Row setValue(@NonNull Column<V> col, V val) {
-            if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
-                SwingTable.this.model.setValueAt(val, this.index, col.index());
-            } else {
-                SwingUtilities.invokeLater(() -> this.setValue(col, val));
-            }
-            return this;
-        }
-    }
-
     protected static class SwingTableMouseListener extends SwingMouseListener<SwingTable> {
         public SwingTableMouseListener(SwingTable delegate) {
             super(delegate);
@@ -485,7 +311,7 @@ public class SwingTable extends SwingComponent<Table, JScrollPane, TableState> i
         @Override
         @SuppressWarnings("unchecked")
         public void mouseClicked(MouseEvent e) {
-            if (true || this.delegate.isEnabled()) {
+            if (this.delegate.isEnabled()) {
                 int rowNumber = this.delegate.table.rowAtPoint(e.getPoint());
                 int columnNumber = this.delegate.table.columnAtPoint(e.getPoint());
 

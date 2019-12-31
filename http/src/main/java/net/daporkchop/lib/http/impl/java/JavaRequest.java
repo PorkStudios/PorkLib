@@ -63,7 +63,7 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
     protected final JavaRequestBuilder<V> builder;
     protected       HttpURLConnection     connection;
 
-    protected final Promise<ResponseHeaders> headers;
+    protected final Promise<ResponseHeaders<V>> headers;
     protected final Promise<ResponseBody<V>> body;
 
     public JavaRequest(@NonNull JavaRequestBuilder<V> builder) {
@@ -85,7 +85,7 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
     }
 
     @Override
-    public Future<ResponseHeaders> headersFuture() {
+    public Future<ResponseHeaders<V>> headersFuture() {
         return this.headers;
     }
 
@@ -176,7 +176,8 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
                 }
 
                 //TODO: this no work correct
-                ResponseHeadersImpl headers = new ResponseHeadersImpl(
+                ResponseHeadersImpl<V> headers = new ResponseHeadersImpl<>(
+                        this,
                         StatusCode.of(this.connection.getResponseCode(), this.connection.getResponseMessage()),
                         new HeaderSnapshot(this.connection.getHeaderFields().entrySet().stream()
                                 .map(entry -> {
@@ -191,14 +192,12 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
                     continue;
                 }
 
-                if (!this.headers.trySuccess(headers)) {
-                    if (this.headers.isCancelled()) {
-                        //client has been closed, exit silently
-                        return;
-                    } else {
-                        //what?
-                        throw new IllegalStateException("Unable to mark headers as received!");
-                    }
+                if (!this.headers.trySuccess(headers) && !this.headers.isCancelled()) {
+                    //what?
+                    throw new IllegalStateException("Unable to mark headers as received!");
+                } else if (this.headers.isCancelled() || this.body.isCancelled()) {
+                    //client has been closed, exit silently
+                    return;
                 }
 
                 V bodyValue = this.implReceiveBody(this.connection.getInputStream(), headers);
@@ -214,6 +213,21 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
             this.client.removeRequest(this);
             if (this.connection != null) {
                 this.connection.disconnect();
+            }
+            if (!this.body.isDone())    {
+                if (this.headers.isDone())  {
+                    if (this.headers.isCancelled()) {
+                        this.body.cancel(true);
+                    } else if (!this.headers.isSuccess())   {
+                        this.body.setFailure(this.headers.cause());
+                    } else {
+                        this.body.setFailure(new IllegalStateException("Body was never marked as complete?!?"));
+                    }
+                } else {
+                    IllegalStateException e = new IllegalStateException("Exited with no headers being completed?!?");
+                    this.body.setFailure(e);
+                    throw e;
+                }
             }
         }
     }

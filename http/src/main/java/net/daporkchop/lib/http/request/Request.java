@@ -33,7 +33,7 @@ public interface Request<V> {
      *
      * @return a {@link Future} that will be notified when headers have been received
      */
-    Future<ResponseHeaders> headersFuture();
+    Future<ResponseHeaders<V>> headersFuture();
 
     /**
      * Adds a listener to {@link #headersFuture()}.
@@ -44,7 +44,7 @@ public interface Request<V> {
      * @param listener the listener to add
      * @return this {@link Request} instance
      */
-    default Request<V> addHeadersListener(@NonNull GenericFutureListener<Future<ResponseHeaders>> listener) {
+    default Request<V> addHeadersListener(@NonNull GenericFutureListener<Future<ResponseHeaders<V>>> listener) {
         this.headersFuture().addListener(listener);
         return this;
     }
@@ -88,7 +88,7 @@ public interface Request<V> {
      * @see #syncHeaders()
      * @see #syncHeadersInterruptablyAndGet()
      */
-    default ResponseHeaders syncHeadersAndGet() {
+    default ResponseHeaders<V> syncHeadersAndGet() {
         return this.headersFuture().syncUninterruptibly().getNow();
     }
 
@@ -103,7 +103,7 @@ public interface Request<V> {
      * @see #syncHeadersInterruptably()
      * @see #syncHeadersAndGet()
      */
-    default ResponseHeaders syncHeadersInterruptablyAndGet() throws InterruptedException {
+    default ResponseHeaders<V> syncHeadersInterruptablyAndGet() throws InterruptedException {
         return this.headersFuture().sync().getNow();
     }
 

@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.StatusCode;
 import net.daporkchop.lib.http.header.map.HeaderMap;
+import net.daporkchop.lib.http.request.Request;
 
 /**
  * A simple implementation {@link ResponseBody} which stores only the value and delegates all methods from {@link ResponseHeaders} to a separate instance of
@@ -33,8 +34,13 @@ import net.daporkchop.lib.http.header.map.HeaderMap;
 @Accessors(fluent = true)
 public final class DelegatingResponseBodyImpl<V> implements ResponseBody<V> {
     @NonNull
-    protected final ResponseHeaders delegate;
-    protected final V               value;
+    protected final ResponseHeaders<V> delegate;
+    protected final V                  value;
+
+    @Override
+    public Request<V> request() {
+        return this.delegate.request();
+    }
 
     @Override
     public StatusCode status() {

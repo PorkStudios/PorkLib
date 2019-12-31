@@ -17,13 +17,19 @@ package net.daporkchop.lib.http.response;
 
 import net.daporkchop.lib.http.StatusCode;
 import net.daporkchop.lib.http.header.map.HeaderMap;
+import net.daporkchop.lib.http.request.Request;
 
 /**
  * The server's response to an HTTP request.
  *
  * @author DaPorkchop_
  */
-public interface ResponseHeaders {
+public interface ResponseHeaders<V> {
+    /**
+     * @return the {@link Request} that these headers are a response to
+     */
+    Request<V> request();
+
     /**
      * @return the {@link StatusCode} that the server responded with
      */

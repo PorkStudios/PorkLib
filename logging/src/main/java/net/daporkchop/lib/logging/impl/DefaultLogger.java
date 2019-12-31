@@ -18,6 +18,8 @@ package net.daporkchop.lib.logging.impl;
 import lombok.NonNull;
 import net.daporkchop.lib.common.misc.Tuple;
 import net.daporkchop.lib.common.misc.file.PFiles;
+import net.daporkchop.lib.common.system.OperatingSystem;
+import net.daporkchop.lib.common.system.PlatformInfo;
 import net.daporkchop.lib.logging.LogAmount;
 import net.daporkchop.lib.logging.LogLevel;
 import net.daporkchop.lib.logging.Logger;
@@ -72,6 +74,7 @@ public class DefaultLogger extends SimpleLogger {
         if (!hasRedirectedStdOut.getAndSet(true)) {
             try {
                 Logger fakeLogger = this.channel("stdout");
+                //TODO: optimize
                 System.setOut(new PrintStream(new OutputStream() {
                     public ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
@@ -109,7 +112,9 @@ public class DefaultLogger extends SimpleLogger {
      * Enables ANSI text formatting on this logger.
      */
     public DefaultLogger enableANSI() {
-        this.delegates.computeIfAbsent("console", s -> new Tuple<>(this.logLevels, null)).atomicSetB(new ANSIMessagePrinter());
+        if (PlatformInfo.OPERATING_SYSTEM != OperatingSystem.Windows)   {
+            this.delegates.computeIfAbsent("console", s -> new Tuple<>(this.logLevels, null)).atomicSetB(new ANSIMessagePrinter());
+        }
         return this;
     }
 

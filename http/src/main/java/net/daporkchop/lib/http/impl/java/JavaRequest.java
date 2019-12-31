@@ -39,6 +39,8 @@ import net.daporkchop.lib.http.response.ResponseHeadersImpl;
 import net.daporkchop.lib.http.response.aggregate.NotifyingAggregator;
 import net.daporkchop.lib.http.response.aggregate.ResponseAggregator;
 import net.daporkchop.lib.http.util.exception.ResponseTooLargeException;
+import net.daporkchop.lib.unsafe.PUnsafe;
+import sun.net.www.http.HttpClient;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -52,6 +54,10 @@ import java.util.List;
  * @author DaPorkchop_
  */
 public final class JavaRequest<V> implements Request<V>, Runnable {
+    static {
+        PUnsafe.pork_getStaticField(HttpClient.class, "keepAliveProp").setBoolean(false);
+    }
+
     protected final JavaHttpClient        client;
     protected final Thread                thread;
     protected final JavaRequestBuilder<V> builder;
@@ -169,6 +175,7 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
                     }
                 }
 
+                //TODO: this no work correct
                 ResponseHeadersImpl headers = new ResponseHeadersImpl(
                         StatusCode.of(this.connection.getResponseCode(), this.connection.getResponseMessage()),
                         new HeaderSnapshot(this.connection.getHeaderFields().entrySet().stream()

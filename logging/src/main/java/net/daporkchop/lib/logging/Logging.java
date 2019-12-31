@@ -22,6 +22,7 @@ import net.daporkchop.lib.logging.impl.DefaultLogger;
 /**
  * @author DaPorkchop_
  */
+//TODO: make into utility class
 public interface Logging {
     DefaultLogger logger = new DefaultLogger();
     Console console = new ANSIConsole();

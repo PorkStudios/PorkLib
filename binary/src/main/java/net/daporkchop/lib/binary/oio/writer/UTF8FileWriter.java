@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -15,18 +15,27 @@
 
 package net.daporkchop.lib.binary.oio.writer;
 
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.binary.oio.PAppendable;
 import net.daporkchop.lib.common.misc.file.PFiles;
+import net.daporkchop.lib.common.system.PlatformInfo;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.common.util.exception.file.NoSuchFileException;
 import net.daporkchop.lib.common.util.exception.file.NotAFileException;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.lang.ref.SoftReference;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Formatter;
 
 /**
  * Equivalent to {@link java.io.FileWriter}, but uses the UTF-8 charset instead of the system default.
@@ -35,8 +44,10 @@ import java.nio.charset.StandardCharsets;
  *
  * @author DaPorkchop_
  */
-public final class UTF8FileWriter extends OutputStreamWriter {
-    private static FileOutputStream wrap(@NonNull File file, boolean append) throws NoSuchFileException, NotAFileException {
+@Getter
+@Accessors(fluent = true)
+public final class UTF8FileWriter extends OutputStreamWriter implements PAppendable {
+    private static OutputStream wrap(@NonNull File file, boolean append) throws NoSuchFileException, NotAFileException {
         try {
             return new FileOutputStream(PFiles.assertFileExists(file), append);
         } catch (FileNotFoundException e)   {
@@ -44,12 +55,16 @@ public final class UTF8FileWriter extends OutputStreamWriter {
         }
     }
 
+    private final String lineEnding;
+    private volatile SoftReference<Formatter> formatterRef;
+    private final boolean autoFlush;
+
     public UTF8FileWriter(String path) throws NoSuchFileException, NotAFileException {
         this(path, false);
     }
 
     public UTF8FileWriter(String path, boolean append) throws NoSuchFileException, NotAFileException {
-        this(wrap(new File(path), append));
+        this(wrap(new File(path), append), PlatformInfo.OPERATING_SYSTEM.lineEnding(), false);
     }
 
     public UTF8FileWriter(File file) throws NoSuchFileException, NotAFileException {
@@ -57,10 +72,131 @@ public final class UTF8FileWriter extends OutputStreamWriter {
     }
 
     public UTF8FileWriter(File file, boolean append) throws NoSuchFileException, NotAFileException {
-        this(wrap(file, append));
+        this(wrap(file, append), PlatformInfo.OPERATING_SYSTEM.lineEnding(), false);
     }
 
-    public UTF8FileWriter(OutputStream out) {
+    public UTF8FileWriter(String path, @NonNull String lineEnding, boolean autoFlush) throws NoSuchFileException, NotAFileException {
+        this(path, false, lineEnding, autoFlush);
+    }
+
+    public UTF8FileWriter(String path, boolean append, @NonNull String lineEnding, boolean autoFlush) throws NoSuchFileException, NotAFileException {
+        this(wrap(new File(path), append), lineEnding, autoFlush);
+    }
+
+    public UTF8FileWriter(File file, @NonNull String lineEnding, boolean autoFlush) throws NoSuchFileException, NotAFileException {
+        this(file, false, lineEnding, autoFlush);
+    }
+
+    public UTF8FileWriter(File file, boolean append, @NonNull String lineEnding, boolean autoFlush) throws NoSuchFileException, NotAFileException {
+        this(wrap(file, append), lineEnding, autoFlush);
+    }
+
+    public UTF8FileWriter(OutputStream out, @NonNull String lineEnding, boolean autoFlush) {
         super(out, StandardCharsets.UTF_8);
+
+        this.lineEnding = lineEnding;
+        this.autoFlush = autoFlush;
+    }
+
+    //optimizations to OutputStreamWriter
+    //these are actually really beneficial
+
+    //note that a lot of synchronization is already done internally by StreamEncoder, using this as a mutex
+
+    @Override
+    public void write(@NonNull String str) throws IOException {
+        super.write(PorkUtil.unwrap(str));
+    }
+
+    @Override
+    public void write(@NonNull String str, int off, int len) throws IOException {
+        super.write(PorkUtil.unwrap(str), off, len);
+    }
+
+    @Override
+    public Writer append(CharSequence csq) throws IOException {
+        if (csq == null)    {
+            this.write("null");
+        } else if (csq instanceof String) {
+            this.write((String) csq);
+        } else {
+            synchronized (this) {
+                for (int i = 0, size = csq.length(); i < size; i++) {
+                    super.write(csq.charAt(i));
+                }
+            }
+        }
+        return this;
+    }
+
+    @Override
+    public Writer append(CharSequence csq, int start, int end) throws IOException {
+        if (csq == null)    {
+            this.write("null", start, end);
+        } else if (csq instanceof String)   {
+            this.write((String) csq, start, end);
+        } else {
+            PorkUtil.assertInRange(csq.length(), start, end);
+            synchronized (this) {
+                for (int i = start; i < end; i++) {
+                    super.write(csq.charAt(i));
+                }
+            }
+        }
+        return this;
+    }
+
+    @Override
+    public synchronized PAppendable appendLn(CharSequence seq) throws IOException {
+        this.append(seq);
+        return this.ln();
+    }
+
+    @Override
+    public synchronized PAppendable appendLn(CharSequence seq1, CharSequence seq2) throws IOException {
+        this.append(seq1);
+        this.append(seq2);
+        return this.ln();
+    }
+
+    @Override
+    public synchronized PAppendable appendLn(CharSequence seq1, CharSequence seq2, CharSequence seq3) throws IOException {
+        this.append(seq1);
+        this.append(seq2);
+        this.append(seq3);
+        return this.ln();
+    }
+
+    @Override
+    public synchronized PAppendable appendLn(CharSequence... sequences) throws IOException {
+        for (CharSequence seq : sequences)  {
+            this.append(seq);
+        }
+        return this.ln();
+    }
+
+    @Override
+    public synchronized PAppendable appendLn(CharSequence seq, int start, int end) throws IOException, IndexOutOfBoundsException {
+        this.append(seq, start, end);
+        return this.ln();
+    }
+
+    @Override
+    public synchronized PAppendable appendFmt(String format, Object... args) throws IOException {
+        SoftReference<Formatter> ref = this.formatterRef;
+        Formatter formatter;
+        if (ref == null || (formatter = ref.get()) == null) {
+            this.formatterRef = new SoftReference<>(formatter = new Formatter(this));
+        }
+        formatter.format(format, args);
+        return this.ln();
+    }
+
+    private UTF8FileWriter ln() throws IOException   {
+        this.write(this.lineEnding);
+        if (this.autoFlush) {
+            this.flush();
+        }
+        return this;
     }
 }

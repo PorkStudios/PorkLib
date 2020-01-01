@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -16,6 +16,8 @@
 package net.daporkchop.lib.logging.impl;
 
 import lombok.NonNull;
+import net.daporkchop.lib.binary.oio.PAppendable;
+import net.daporkchop.lib.binary.oio.writer.UTF8FileWriter;
 import net.daporkchop.lib.common.misc.Tuple;
 import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.common.system.OperatingSystem;
@@ -29,6 +31,7 @@ import net.daporkchop.lib.logging.format.MessageFormatter;
 import net.daporkchop.lib.logging.format.MessagePrinter;
 import net.daporkchop.lib.logging.format.SelfClosingMessagePrinter;
 import net.daporkchop.lib.logging.format.component.TextComponent;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -52,8 +55,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author DaPorkchop_
  */
 public class DefaultLogger extends SimpleLogger {
+    protected static final long REDIRECTEDSTDOUT_OFFSET = PUnsafe.pork_getOffset(DefaultLogger.class, "redirectStdOut");
+
     public static final PrintStream stdOut = System.out;
-    protected static final AtomicBoolean hasRedirectedStdOut = new AtomicBoolean(false);
+    protected volatile int redirectedStdOut = 0;
 
     protected final Map<String, Tuple<Set<LogLevel>, MessagePrinter>> delegates = new ConcurrentHashMap<>();
 
@@ -71,7 +76,7 @@ public class DefaultLogger extends SimpleLogger {
      * Be aware that this method may only be invoked once, and cannot be undone.
      */
     public DefaultLogger redirectStdOut() {
-        if (!hasRedirectedStdOut.getAndSet(true)) {
+        if (PUnsafe.compareAndSwapInt(this, REDIRECTEDSTDOUT_OFFSET, 0, 1)) {
             try {
                 Logger fakeLogger = this.channel("stdout");
                 //TODO: optimize
@@ -171,16 +176,14 @@ public class DefaultLogger extends SimpleLogger {
 
     public DefaultLogger addFile(@NonNull String name, @NonNull File path, boolean overwrite, Set<LogLevel> levels)    {
         PFiles.ensureFileExists(path);
-        PrintStream printStream;
-        try {
-            printStream = overwrite ? new PrintStream(path) : new PrintStream(new FileOutputStream(path, true));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return this.setDelegate(name, levels, new SelfClosingMessagePrinter<PrintStream>(printStream) {
+        return this.setDelegate(name, levels, new SelfClosingMessagePrinter<UTF8FileWriter>(new UTF8FileWriter(path, !overwrite, PlatformInfo.OPERATING_SYSTEM.lineEnding(), true)) {
             @Override
             public void accept(@NonNull TextComponent component) {
-                this.resource.println(component.toRawString());
+                try {
+                    this.resource.appendLn(component.toRawString());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
         });
     }

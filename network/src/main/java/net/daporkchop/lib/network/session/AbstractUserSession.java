@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -19,7 +19,6 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.session.encode.SelfMessageEncoder;
 import net.daporkchop.lib.network.session.encode.SendCallback;
 import net.daporkchop.lib.network.session.handle.SelfSessionHandler;
@@ -27,6 +26,8 @@ import net.daporkchop.lib.network.transport.NetSession;
 import net.daporkchop.lib.network.util.PacketMetadata;
 
 import java.io.IOException;
+
+import static net.daporkchop.lib.logging.Logging.*;
 
 /**
  * @author DaPorkchop_
@@ -46,7 +47,7 @@ public abstract class AbstractUserSession<S extends AbstractUserSession<S>> impl
 
     @Override
     public void onException(@NonNull Exception e) {
-        Logging.logger.alert(new RuntimeException(e));
+        logger.alert(new RuntimeException(e));
         this.closeAsync();
     }
 

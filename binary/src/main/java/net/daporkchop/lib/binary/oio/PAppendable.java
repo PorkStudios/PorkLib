@@ -22,7 +22,7 @@ import java.io.IOException;
  *
  * @author DaPorkchop_
  */
-public interface PAppendable extends Appendable {
+public interface PAppendable extends Appendable, AutoCloseable {
     /**
      * Appends the given {@link CharSequence}, followed by a platform-dependent newline sequence.
      *
@@ -88,4 +88,7 @@ public interface PAppendable extends Appendable {
      * @throws IOException if an IO exception occurs you dummy
      */
     PAppendable appendFmt(String format, Object... args) throws IOException;
+
+    @Override
+    void close() throws IOException;
 }

@@ -24,6 +24,7 @@ import net.daporkchop.lib.common.system.PlatformInfo;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.common.util.exception.file.NoSuchFileException;
 import net.daporkchop.lib.common.util.exception.file.NotAFileException;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -114,15 +115,21 @@ public final class UTF8FileWriter extends OutputStreamWriter implements PAppenda
     }
 
     @Override
-    public Writer append(CharSequence csq) throws IOException {
-        if (csq == null)    {
+    public Writer append(CharSequence seq) throws IOException {
+        if (seq == null)    {
             this.write("null");
-        } else if (csq instanceof String) {
-            this.write((String) csq);
+        } else if (seq instanceof String) {
+            this.write((String) seq);
         } else {
-            synchronized (this) {
-                for (int i = 0, size = csq.length(); i < size; i++) {
-                    super.write(csq.charAt(i));
+            if (seq instanceof StringBuilder)   {
+                this.write(PorkUtil.unwrap((StringBuilder) seq), 0, seq.length());
+            } else if (seq instanceof StringBuffer)   {
+                this.write(PorkUtil.unwrap((StringBuffer) seq), 0, seq.length());
+            } else {
+                synchronized (this) {
+                    for (int i = 0, size = seq.length(); i < size; i++) {
+                        super.write(seq.charAt(i));
+                    }
                 }
             }
         }
@@ -130,16 +137,22 @@ public final class UTF8FileWriter extends OutputStreamWriter implements PAppenda
     }
 
     @Override
-    public Writer append(CharSequence csq, int start, int end) throws IOException {
-        if (csq == null)    {
+    public Writer append(CharSequence seq, int start, int end) throws IOException {
+        if (seq == null)    {
             this.write("null", start, end);
-        } else if (csq instanceof String)   {
-            this.write((String) csq, start, end);
+        } else if (seq instanceof String)   {
+            this.write((String) seq, start, end);
         } else {
-            PorkUtil.assertInRange(csq.length(), start, end);
-            synchronized (this) {
-                for (int i = start; i < end; i++) {
-                    super.write(csq.charAt(i));
+            PorkUtil.assertInRange(seq.length(), start, end);
+            if (seq instanceof StringBuilder)   {
+                this.write(PorkUtil.unwrap((StringBuilder) seq), start, end);
+            } else if (seq instanceof StringBuffer)   {
+                this.write(PorkUtil.unwrap((StringBuffer) seq), start, end);
+            } else {
+                synchronized (this) {
+                    for (int i = start; i < end; i++) {
+                        super.write(seq.charAt(i));
+                    }
                 }
             }
         }

@@ -57,6 +57,10 @@ public class PorkUtil {
     public final long MATCHER_GROUPS_OFFSET = PUnsafe.pork_getOffset(Matcher.class, "groups");
     public final long MATCHER_TEXT_OFFSET = PUnsafe.pork_getOffset(Matcher.class, "text");
 
+    public final Class<?> ABSTRACTSTRINGBUILDER_CLASS = classForName("java.lang.AbstractStringBuilder");
+    public final long ABSTRACTSTRINGBUILDER_VALUE_OFFSET = PUnsafe.pork_getOffset(ABSTRACTSTRINGBUILDER_CLASS, "value");
+    public final long ABSTRACTSTRINGBUILDER_COUNT_OFFSET = PUnsafe.pork_getOffset(ABSTRACTSTRINGBUILDER_CLASS, "count");
+
     private final Function<Throwable, StackTraceElement[]> GET_STACK_TRACE_WRAPPER;
 
     public final HandledPool<byte[]> BUFFER_POOL = new DefaultThreadHandledPool<>(() -> new byte[PUnsafe.PAGE_SIZE], 4);
@@ -116,6 +120,26 @@ public class PorkUtil {
      */
     public char[] unwrap(@NonNull String string) {
         return PUnsafe.getObject(string, STRING_VALUE_OFFSET);
+    }
+
+    /**
+     * Unwraps a {@link StringBuilder} into a {@code char[]} without copying the array.
+     *
+     * @param builder the {@link StringBuilder} to unwrap
+     * @return the value of the {@link StringBuilder} as a {@code char[]}
+     */
+    public char[] unwrap(@NonNull StringBuilder builder)  {
+        return PUnsafe.getObject(builder, ABSTRACTSTRINGBUILDER_VALUE_OFFSET);
+    }
+
+    /**
+     * Unwraps a {@link StringBuffer} into a {@code char[]} without copying the array.
+     *
+     * @param buffer the {@link StringBuffer} to unwrap
+     * @return the value of the {@link StringBuffer} as a {@code char[]}
+     */
+    public char[] unwrap(@NonNull StringBuffer buffer)  {
+        return PUnsafe.getObject(buffer, ABSTRACTSTRINGBUILDER_VALUE_OFFSET);
     }
 
     public StackTraceElement[] getStackTrace(@NonNull Throwable t) {

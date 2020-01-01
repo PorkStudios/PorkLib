@@ -55,7 +55,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author DaPorkchop_
  */
 public class DefaultLogger extends SimpleLogger {
-    protected static final long REDIRECTEDSTDOUT_OFFSET = PUnsafe.pork_getOffset(DefaultLogger.class, "redirectStdOut");
+    protected static final long REDIRECTEDSTDOUT_OFFSET = PUnsafe.pork_getOffset(DefaultLogger.class, "redirectedStdOut");
 
     public static final PrintStream stdOut = System.out;
     protected volatile int redirectedStdOut = 0;

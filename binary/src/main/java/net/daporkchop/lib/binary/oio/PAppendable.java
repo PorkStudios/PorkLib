@@ -24,6 +24,14 @@ import java.io.IOException;
  */
 public interface PAppendable extends Appendable, AutoCloseable {
     /**
+     * Appends a platform-dependent newline sequence.
+     *
+     * @return this {@link PAppendable} instance
+     * @throws IOException if an IO exception occurs you dummy
+     */
+    PAppendable appendLn() throws IOException;
+
+    /**
      * Appends the given {@link CharSequence}, followed by a platform-dependent newline sequence.
      *
      * @param seq the {@link CharSequence} to append. If {@code null}, then {@code "null"} will be appended.

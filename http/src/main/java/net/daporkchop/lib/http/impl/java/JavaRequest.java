@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -22,6 +22,7 @@ import io.netty.util.concurrent.Promise;
 import lombok.NonNull;
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.http.Http;
 import net.daporkchop.lib.http.HttpMethod;
 import net.daporkchop.lib.http.StatusCode;
 import net.daporkchop.lib.http.entity.HttpEntity;
@@ -38,6 +39,7 @@ import net.daporkchop.lib.http.response.ResponseHeaders;
 import net.daporkchop.lib.http.response.ResponseHeadersImpl;
 import net.daporkchop.lib.http.response.aggregate.NotifyingAggregator;
 import net.daporkchop.lib.http.response.aggregate.ResponseAggregator;
+import net.daporkchop.lib.http.util.Constants;
 import net.daporkchop.lib.http.util.exception.ResponseTooLargeException;
 import net.daporkchop.lib.unsafe.PUnsafe;
 import sun.net.www.http.HttpClient;
@@ -46,6 +48,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.List;
 
 /**
@@ -55,6 +58,7 @@ import java.util.List;
  */
 public final class JavaRequest<V> implements Request<V>, Runnable {
     static {
+        PUnsafe.ensureClassInitialized(HttpClient.class);
         PUnsafe.pork_getStaticField(HttpClient.class, "keepAliveProp").setBoolean(false);
     }
 
@@ -125,18 +129,18 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
                 {
                     HeaderMap headers = this.builder._prepareHeaders();
                     //add all headers as properties (we don't need to use set since HeaderMap already guarantees distinct keys, so using setRequestProperty would only cause needless string comparisons)
-                    headers.forEach(header -> this.connection.addRequestProperty(header.key(), header.value())); //if it's a list all the values will be joined together
+                    headers.forEach(header -> this.connection.setRequestProperty(header.key(), header.value())); //if it's a list all the values will be joined together
 
-                    if (!headers.hasKey("user-agent")) this.connection.setRequestProperty("user-agent", this.client.userAgents.any());
+                    if (!headers.hasKey("user-agent")) this.connection.setRequestProperty("User-Agent", this.client.userAgents.any());
 
                     if (method.hasRequestBody()) {
                         HttpEntity entity = this.builder.body();
 
-                        this.connection.setRequestProperty("content-encoding", entity.encoding().name());
-                        this.connection.setRequestProperty("content-type", entity.type().formatted());
+                        this.connection.setRequestProperty("Content-Encoding", entity.encoding().name());
+                        this.connection.setRequestProperty("Content-Type", entity.type().formatted());
 
                         if (entity.transferEncoding() != StandardTransferEncoding.chunked) {
-                            this.connection.setRequestProperty("content-length", String.valueOf(entity.length()));
+                            this.connection.setRequestProperty("Content-Length", String.valueOf(entity.length()));
                         }
                     }
                 }
@@ -187,7 +191,7 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
                                 })));
 
                 if (this.builder.followRedirects() && headers.isRedirect()) {
-                    url = new URL(headers.redirectLocation());
+                    url = Constants.encodeUrl(headers.redirectLocation());
                     this.connection.disconnect();
                     continue;
                 }

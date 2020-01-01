@@ -160,6 +160,11 @@ public final class UTF8FileWriter extends OutputStreamWriter implements PAppenda
     }
 
     @Override
+    public synchronized PAppendable appendLn() throws IOException {
+        return this.ln();
+    }
+
+    @Override
     public synchronized PAppendable appendLn(CharSequence seq) throws IOException {
         this.append(seq);
         return this.ln();

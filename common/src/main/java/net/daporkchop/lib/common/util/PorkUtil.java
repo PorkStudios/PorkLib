@@ -32,6 +32,7 @@ import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Map;
@@ -53,13 +54,13 @@ import java.util.regex.Matcher;
 //TODO: clean this up a bit
 @UtilityClass
 public class PorkUtil {
-    public final long STRING_VALUE_OFFSET = PUnsafe.pork_getOffset(String.class, "value");
+    public final long STRING_VALUE_OFFSET   = PUnsafe.pork_getOffset(String.class, "value");
     public final long MATCHER_GROUPS_OFFSET = PUnsafe.pork_getOffset(Matcher.class, "groups");
-    public final long MATCHER_TEXT_OFFSET = PUnsafe.pork_getOffset(Matcher.class, "text");
+    public final long MATCHER_TEXT_OFFSET   = PUnsafe.pork_getOffset(Matcher.class, "text");
 
-    public final Class<?> ABSTRACTSTRINGBUILDER_CLASS = classForName("java.lang.AbstractStringBuilder");
-    public final long ABSTRACTSTRINGBUILDER_VALUE_OFFSET = PUnsafe.pork_getOffset(ABSTRACTSTRINGBUILDER_CLASS, "value");
-    public final long ABSTRACTSTRINGBUILDER_COUNT_OFFSET = PUnsafe.pork_getOffset(ABSTRACTSTRINGBUILDER_CLASS, "count");
+    public final Class<?> ABSTRACTSTRINGBUILDER_CLASS        = classForName("java.lang.AbstractStringBuilder");
+    public final long     ABSTRACTSTRINGBUILDER_VALUE_OFFSET = PUnsafe.pork_getOffset(ABSTRACTSTRINGBUILDER_CLASS, "value");
+    public final long     ABSTRACTSTRINGBUILDER_COUNT_OFFSET = PUnsafe.pork_getOffset(ABSTRACTSTRINGBUILDER_CLASS, "count");
 
     private final Function<Throwable, StackTraceElement[]> GET_STACK_TRACE_WRAPPER;
 
@@ -128,7 +129,7 @@ public class PorkUtil {
      * @param builder the {@link StringBuilder} to unwrap
      * @return the value of the {@link StringBuilder} as a {@code char[]}
      */
-    public char[] unwrap(@NonNull StringBuilder builder)  {
+    public char[] unwrap(@NonNull StringBuilder builder) {
         return PUnsafe.getObject(builder, ABSTRACTSTRINGBUILDER_VALUE_OFFSET);
     }
 
@@ -138,8 +139,30 @@ public class PorkUtil {
      * @param buffer the {@link StringBuffer} to unwrap
      * @return the value of the {@link StringBuffer} as a {@code char[]}
      */
-    public char[] unwrap(@NonNull StringBuffer buffer)  {
+    public char[] unwrap(@NonNull StringBuffer buffer) {
         return PUnsafe.getObject(buffer, ABSTRACTSTRINGBUILDER_VALUE_OFFSET);
+    }
+
+    /**
+     * An alternative to {@link CharSequence#subSequence(int, int)} that can be faster for certain {@link CharSequence} implementations.
+     *
+     * @param seq   the {@link CharSequence} to get a subsequence of
+     * @param start the first index, inclusive
+     * @param end   the last index, exclusive
+     * @return a subsequence of the given range of the given {@link CharSequence}
+     * @see CharSequence#subSequence(int, int)
+     */
+    public CharSequence subSequence(@NonNull CharSequence seq, int start, int end) {
+        if (start == 0 && end == seq.length()) {
+            return seq;
+        }
+        char[] arr = null;
+        if (seq instanceof String) {
+            arr = PUnsafe.getObject(seq, STRING_VALUE_OFFSET);
+        } else if (seq instanceof StringBuilder || seq instanceof StringBuffer) {
+            arr = PUnsafe.getObject(seq, ABSTRACTSTRINGBUILDER_VALUE_OFFSET);
+        }
+        return arr != null ? CharBuffer.wrap(arr, start, end - start) : seq.subSequence(start, end);
     }
 
     public StackTraceElement[] getStackTrace(@NonNull Throwable t) {
@@ -239,7 +262,7 @@ public class PorkUtil {
         return obj == null ? "null" : obj.getClass().getCanonicalName();
     }
 
-    public void unsafe_forceGC()   {
+    public void unsafe_forceGC() {
         Object obj = new Object();
         long oldMem = Runtime.getRuntime().freeMemory();
         obj = null;
@@ -252,15 +275,15 @@ public class PorkUtil {
         return null;
     }
 
-    public CharSequence fastGroup(@NonNull Matcher matcher, int group)  {
+    public CharSequence fastGroup(@NonNull Matcher matcher, int group) {
         matcher.start(); //this does a < 0 check internally
-        if (group < 0 || group > matcher.groupCount())  {
+        if (group < 0 || group > matcher.groupCount()) {
             throw new IndexOutOfBoundsException("No group " + group);
         }
         int[] groups = PUnsafe.getObject(matcher, MATCHER_GROUPS_OFFSET);
         int start = groups[group << 1];
         int end = groups[(group << 1) + 1];
-        if (start == -1 || end == -1)   {
+        if (start == -1 || end == -1) {
             return null;
         }
         return PUnsafe.<CharSequence>getObject(matcher, MATCHER_TEXT_OFFSET).subSequence(start, end);

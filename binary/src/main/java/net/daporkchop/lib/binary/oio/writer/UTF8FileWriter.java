@@ -18,13 +18,12 @@ package net.daporkchop.lib.binary.oio.writer;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.binary.oio.PAppendable;
+import net.daporkchop.lib.binary.oio.appendable.PAppendable;
 import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.common.system.PlatformInfo;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.common.util.exception.file.NoSuchFileException;
 import net.daporkchop.lib.common.util.exception.file.NotAFileException;
-import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -34,13 +33,12 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.lang.ref.SoftReference;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Formatter;
 
 /**
  * Equivalent to {@link java.io.FileWriter}, but uses the UTF-8 charset instead of the system default.
- *
+ * <p>
  * Uses a {@link sun.nio.cs.StreamDecoder#DEFAULT_BYTE_BUFFER_SIZE}-byte buffer.
  *
  * @author DaPorkchop_
@@ -51,14 +49,14 @@ public final class UTF8FileWriter extends OutputStreamWriter implements PAppenda
     private static OutputStream wrap(@NonNull File file, boolean append) throws NoSuchFileException, NotAFileException {
         try {
             return new FileOutputStream(PFiles.assertFileExists(file), append);
-        } catch (FileNotFoundException e)   {
+        } catch (FileNotFoundException e) {
             throw new NoSuchFileException(file);
         }
     }
 
-    private final String lineEnding;
+    private final    String                   lineEnding;
     private volatile SoftReference<Formatter> formatterRef;
-    private final boolean autoFlush;
+    private final    boolean                  autoFlush;
 
     public UTF8FileWriter(String path) throws NoSuchFileException, NotAFileException {
         this(path, false);
@@ -115,15 +113,15 @@ public final class UTF8FileWriter extends OutputStreamWriter implements PAppenda
     }
 
     @Override
-    public Writer append(CharSequence seq) throws IOException {
-        if (seq == null)    {
+    public UTF8FileWriter append(CharSequence seq) throws IOException {
+        if (seq == null) {
             this.write("null");
         } else if (seq instanceof String) {
             this.write((String) seq);
         } else {
-            if (seq instanceof StringBuilder)   {
+            if (seq instanceof StringBuilder) {
                 this.write(PorkUtil.unwrap((StringBuilder) seq), 0, seq.length());
-            } else if (seq instanceof StringBuffer)   {
+            } else if (seq instanceof StringBuffer) {
                 this.write(PorkUtil.unwrap((StringBuffer) seq), 0, seq.length());
             } else {
                 synchronized (this) {
@@ -137,16 +135,16 @@ public final class UTF8FileWriter extends OutputStreamWriter implements PAppenda
     }
 
     @Override
-    public Writer append(CharSequence seq, int start, int end) throws IOException {
-        if (seq == null)    {
+    public UTF8FileWriter append(CharSequence seq, int start, int end) throws IOException {
+        if (seq == null) {
             this.write("null", start, end);
-        } else if (seq instanceof String)   {
+        } else if (seq instanceof String) {
             this.write((String) seq, start, end);
         } else {
             PorkUtil.assertInRange(seq.length(), start, end);
-            if (seq instanceof StringBuilder)   {
+            if (seq instanceof StringBuilder) {
                 this.write(PorkUtil.unwrap((StringBuilder) seq), start, end);
-            } else if (seq instanceof StringBuffer)   {
+            } else if (seq instanceof StringBuffer) {
                 this.write(PorkUtil.unwrap((StringBuffer) seq), start, end);
             } else {
                 synchronized (this) {
@@ -160,42 +158,13 @@ public final class UTF8FileWriter extends OutputStreamWriter implements PAppenda
     }
 
     @Override
+    public UTF8FileWriter append(char c) throws IOException {
+        this.write(c);
+        return this;
+    }
+
+    @Override
     public synchronized PAppendable appendLn() throws IOException {
-        return this.ln();
-    }
-
-    @Override
-    public synchronized PAppendable appendLn(CharSequence seq) throws IOException {
-        this.append(seq);
-        return this.ln();
-    }
-
-    @Override
-    public synchronized PAppendable appendLn(CharSequence seq1, CharSequence seq2) throws IOException {
-        this.append(seq1);
-        this.append(seq2);
-        return this.ln();
-    }
-
-    @Override
-    public synchronized PAppendable appendLn(CharSequence seq1, CharSequence seq2, CharSequence seq3) throws IOException {
-        this.append(seq1);
-        this.append(seq2);
-        this.append(seq3);
-        return this.ln();
-    }
-
-    @Override
-    public synchronized PAppendable appendLn(CharSequence... sequences) throws IOException {
-        for (CharSequence seq : sequences)  {
-            this.append(seq);
-        }
-        return this.ln();
-    }
-
-    @Override
-    public synchronized PAppendable appendLn(CharSequence seq, int start, int end) throws IOException, IndexOutOfBoundsException {
-        this.append(seq, start, end);
         return this.ln();
     }
 
@@ -210,7 +179,7 @@ public final class UTF8FileWriter extends OutputStreamWriter implements PAppenda
         return this.ln();
     }
 
-    private UTF8FileWriter ln() throws IOException   {
+    private UTF8FileWriter ln() throws IOException {
         this.write(this.lineEnding);
         if (this.autoFlush) {
             this.flush();

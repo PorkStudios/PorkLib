@@ -16,7 +16,6 @@
 package net.daporkchop.lib.logging.impl;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.oio.PAppendable;
 import net.daporkchop.lib.binary.oio.writer.UTF8FileWriter;
 import net.daporkchop.lib.common.misc.Tuple;
 import net.daporkchop.lib.common.misc.file.PFiles;
@@ -35,7 +34,6 @@ import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -44,7 +42,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The default, global logger instance, accessible via {@link net.daporkchop.lib.logging.Logging#logger}.

@@ -13,9 +13,10 @@
  *
  */
 
-package net.daporkchop.lib.binary.oio;
+package net.daporkchop.lib.binary.oio.appendable;
 
 import java.io.IOException;
+import java.util.Formatter;
 
 /**
  * An extension of {@link Appendable} that's better.
@@ -23,6 +24,15 @@ import java.io.IOException;
  * @author DaPorkchop_
  */
 public interface PAppendable extends Appendable, AutoCloseable {
+    @Override
+    PAppendable append(CharSequence seq) throws IOException;
+
+    @Override
+    PAppendable append(CharSequence seq, int start, int end) throws IOException;
+
+    @Override
+    PAppendable append(char c) throws IOException;
+
     /**
      * Appends a platform-dependent newline sequence.
      *
@@ -39,7 +49,12 @@ public interface PAppendable extends Appendable, AutoCloseable {
      * @throws IOException if an IO exception occurs you dummy
      * @see #append(CharSequence)
      */
-    PAppendable appendLn(CharSequence seq) throws IOException;
+    default PAppendable appendLn(CharSequence seq) throws IOException   {
+        synchronized (this) {
+            this.append(seq);
+            return this.appendLn();
+        }
+    }
 
     /**
      * Appends the given {@link CharSequence}s, followed by a platform-dependent newline sequence.
@@ -50,7 +65,13 @@ public interface PAppendable extends Appendable, AutoCloseable {
      * @throws IOException if an IO exception occurs you dummy
      * @see #appendLn(CharSequence)
      */
-    PAppendable appendLn(CharSequence seq1, CharSequence seq2) throws IOException;
+    default PAppendable appendLn(CharSequence seq1, CharSequence seq2) throws IOException {
+        synchronized (this) {
+            this.append(seq1);
+            this.append(seq2);
+            return this.appendLn();
+        }
+    }
 
     /**
      * Appends the given {@link CharSequence}s, followed by a platform-dependent newline sequence.
@@ -62,7 +83,14 @@ public interface PAppendable extends Appendable, AutoCloseable {
      * @throws IOException if an IO exception occurs you dummy
      * @see #appendLn(CharSequence)
      */
-    PAppendable appendLn(CharSequence seq1, CharSequence seq2, CharSequence seq3) throws IOException;
+    default PAppendable appendLn(CharSequence seq1, CharSequence seq2, CharSequence seq3) throws IOException {
+        synchronized (this) {
+            this.append(seq1);
+            this.append(seq2);
+            this.append(seq3);
+            return this.appendLn();
+        }
+    }
 
     /**
      * Appends the given {@link CharSequence}s, followed by a platform-dependent newline sequence.
@@ -72,7 +100,14 @@ public interface PAppendable extends Appendable, AutoCloseable {
      * @throws IOException if an IO exception occurs you dummy
      * @see #appendLn(CharSequence)
      */
-    PAppendable appendLn(CharSequence... sequences) throws IOException;
+    default PAppendable appendLn(CharSequence... sequences) throws IOException {
+        synchronized (this) {
+            for (CharSequence seq : sequences)  {
+                this.append(seq);
+            }
+            return this.appendLn();
+        }
+    }
 
     /**
      * Appends a range the given {@link CharSequence}, followed by a platform-dependent newline sequence.
@@ -85,7 +120,12 @@ public interface PAppendable extends Appendable, AutoCloseable {
      * @throws IndexOutOfBoundsException if the given start or end indices are out of bounds of the given {@link CharSequence}
      * @see #append(CharSequence, int, int)
      */
-    PAppendable appendLn(CharSequence seq, int start, int end) throws IOException, IndexOutOfBoundsException;
+    default PAppendable appendLn(CharSequence seq, int start, int end) throws IOException, IndexOutOfBoundsException {
+        synchronized (this) {
+            this.append(seq, start, end);
+            return this.appendLn();
+        }
+    }
 
     /**
      * Appends text formatted as if by {@link String#format(String, Object...)}.
@@ -95,7 +135,13 @@ public interface PAppendable extends Appendable, AutoCloseable {
      * @return this {@link PAppendable} instance
      * @throws IOException if an IO exception occurs you dummy
      */
-    PAppendable appendFmt(String format, Object... args) throws IOException;
+    default PAppendable appendFmt(String format, Object... args) throws IOException {
+        Formatter formatter = new Formatter(this);
+        synchronized (this) {
+            formatter.format(format, args);
+            return this.appendLn();
+        }
+    }
 
     @Override
     void close() throws IOException;

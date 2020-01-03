@@ -22,6 +22,9 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.World;
+import net.daporkchop.lib.nbt.alloc.NBTArrayHandle;
+
+import java.util.Arrays;
 
 /**
  * Base implementation of {@link net.daporkchop.lib.minecraft.world.Chunk.Vanilla}.
@@ -35,8 +38,8 @@ public abstract class AbstractVanillaChunk implements Chunk.Vanilla {
     @NonNull
     protected final World world;
 
-    @Setter
-    protected byte[] heightMap;
+    protected int[] heightMap;
+    protected NBTArrayHandle<int[]> heightMapHandle;
 
     protected volatile boolean dirty;
     protected volatile boolean loaded;
@@ -90,23 +93,51 @@ public abstract class AbstractVanillaChunk implements Chunk.Vanilla {
     }
 
     protected void doUnload()   {
+        this.heightMap = null;
+        if (this.heightMapHandle != null)   {
+            this.heightMapHandle.release();
+            this.heightMapHandle = null;
+        }
     }
 
     @Override
     public int getHighestBlock(int x, int z) {
-        return this.heightMap[z << 4 | x] & 0xFF;
+        return this.heightMap[z << 4 | x];
         //TODO: update heightmap
     }
 
     public void recalculateHeightMap() {
         if (this.heightMap == null) {
-            this.heightMap = new byte[16 * 16];
+            this.heightMap(new int[16 * 16]);
+            Arrays.fill(this.heightMap, -1);
         }
         for (int x = 15; x >= 0; x--) {
             for (int z = 15; z >= 0; z--) {
                 //call super since getHighestBlock implementation only reads from heightmap
                 this.heightMap[z << 4 | x] = (byte) Chunk.Vanilla.super.getHighestBlock(x, z);
             }
+        }
+    }
+
+    public void heightMap(int[] heightMap)  {
+        this.heightMap = heightMap;
+
+        if (this.heightMapHandle != null)   {
+            this.heightMapHandle.release();
+            this.heightMapHandle = null;
+        }
+    }
+
+    public void heightMap(NBTArrayHandle<int[]> handle)  {
+        this.heightMap = null;
+        if (this.heightMapHandle != null)   {
+            this.heightMapHandle.release();
+            this.heightMapHandle = null;
+        }
+
+        if (handle != null) {
+            this.heightMap = handle.value();
+            this.heightMapHandle = handle;
         }
     }
 }

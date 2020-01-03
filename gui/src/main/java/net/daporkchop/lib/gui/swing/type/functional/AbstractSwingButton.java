@@ -24,6 +24,7 @@ import net.daporkchop.lib.gui.component.capability.TextHolder;
 import net.daporkchop.lib.gui.component.state.ElementState;
 import net.daporkchop.lib.gui.component.state.functional.ButtonState;
 import net.daporkchop.lib.gui.component.type.functional.Button;
+import net.daporkchop.lib.gui.swing.GuiEngineSwing;
 import net.daporkchop.lib.gui.swing.SwingTextAlignment;
 import net.daporkchop.lib.gui.swing.impl.SwingComponent;
 import net.daporkchop.lib.gui.swing.type.window.AbstractSwingWindow;
@@ -56,8 +57,13 @@ public abstract class AbstractSwingButton<Impl extends Component<Impl, State> & 
     @Override
     @SuppressWarnings("unchecked")
     public Impl setText(String text) {
-        if (!this.getText().equals(text)) {
-            this.swing.setText(text);
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            String currentText = this.getText();
+            if (currentText != text && (currentText == null || !currentText.equals(text))) {
+                this.swing.setText(text);
+            }
+        } else {
+            SwingUtilities.invokeLater(() -> this.setText(text));
         }
         return (Impl) this;
     }
@@ -70,7 +76,11 @@ public abstract class AbstractSwingButton<Impl extends Component<Impl, State> & 
     @Override
     @SuppressWarnings("unchecked")
     public Impl setTextVAlignment(@NonNull VerticalAlignment alignment) {
-        this.swing.setVerticalAlignment(SwingTextAlignment.toSwingVertical(alignment));
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            this.swing.setVerticalAlignment(SwingTextAlignment.toSwingVertical(alignment));
+        } else {
+            SwingUtilities.invokeLater(() -> this.setTextVAlignment(alignment));
+        }
         return (Impl) this;
     }
 
@@ -82,7 +92,11 @@ public abstract class AbstractSwingButton<Impl extends Component<Impl, State> & 
     @Override
     @SuppressWarnings("unchecked")
     public Impl setTextHAlignment(@NonNull HorizontalAlignment alignment) {
-        this.swing.setHorizontalAlignment(SwingTextAlignment.toSwingHorizontal(alignment));
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            this.swing.setHorizontalAlignment(SwingTextAlignment.toSwingHorizontal(alignment));
+        } else {
+            SwingUtilities.invokeLater(() -> this.setTextHAlignment(alignment));
+        }
         return (Impl) this;
     }
 
@@ -111,10 +125,26 @@ public abstract class AbstractSwingButton<Impl extends Component<Impl, State> & 
 
     @Override
     @SuppressWarnings("unchecked")
-    public Impl setTextColor(int argb) {
-        if (!this.swing.isForegroundSet() || this.swing.getForeground().getRGB() != argb)   {
-            this.swing.setForeground(new Color(argb));
+    public Impl setTextColor(Color color) {
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            if (color == null)  {
+                if (this.swing.isForegroundSet())   {
+                    this.swing.setForeground(null);
+                }
+            } else {
+                if (!this.swing.isForegroundSet() || this.swing.getForeground().getRGB() != color.getRGB()) {
+                    this.swing.setForeground(color);
+                }
+            }
+        } else {
+            SwingUtilities.invokeLater(() -> this.setTextColor(color));
         }
         return (Impl) this;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public Impl setTextColor(int argb) {
+        return this.setTextColor(argb == 0 ? null : new Color(argb));
     }
 }

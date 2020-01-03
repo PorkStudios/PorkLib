@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -36,10 +36,12 @@ import net.daporkchop.lib.logging.Logging;
 
 import java.util.concurrent.ThreadLocalRandom;
 
+import static net.daporkchop.lib.logging.Logging.*;
+
 /**
  * @author DaPorkchop_
  */
-public class GuiExample implements Logging {
+public class GuiExample {
     public static final String LOREM_IPSUM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.";
     public static final GuiEngine ENGINE = GuiEngine.swing();
 
@@ -237,8 +239,7 @@ public class GuiExample implements Logging {
                 .table("table1", table -> {
                     table.orientRelative(0, 0, 1.0d, 0.7d);
                     for (int c = 0; c < 3; c++) {
-                        table.addAndGetColumn(String.format("col-%d", c), Integer.class)
-                                .setValueType(Integer.class, (engine, value, oldComponent) -> engine.label().setText(String.valueOf(value)));
+                        table.addAndGetColumn(String.format("col-%d", c), Integer.class, (value, label, row, col) -> label.setText(String.valueOf(value)));
                     }
                     for (int r = 0; r < 5; r++) {
                         Table.Row row = table.addAndGetRow();
@@ -246,6 +247,8 @@ public class GuiExample implements Logging {
                             row.setValue(c, ThreadLocalRandom.current().nextInt(1000));
                         }
                     }
+                    table.<Integer>getColumn(2)
+                            .setClickHandler((value, row, col, mouseButton) -> logger.info("Clicked value %d in row %d!", value, row.index()));
                 })
                 .checkBox("toggleHeader", checkBox -> checkBox
                         .orientRelative(0, 0.9d, 0.25d, 0.1d)

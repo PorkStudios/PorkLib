@@ -20,6 +20,7 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.StatusCode;
 import net.daporkchop.lib.http.header.map.HeaderMap;
+import net.daporkchop.lib.http.request.Request;
 
 /**
  * A simple implementation of {@link ResponseBody}.
@@ -29,11 +30,13 @@ import net.daporkchop.lib.http.header.map.HeaderMap;
 @Getter
 @Accessors(fluent = true)
 public final class ResponseBodyImpl<V> implements ResponseBody<V> {
+    protected final Request<V> request;
     protected final StatusCode status;
     protected final HeaderMap  headers;
-    protected final V value;
+    protected final V          value;
 
-    public ResponseBodyImpl(@NonNull StatusCode status, @NonNull HeaderMap headers, V value) {
+    public ResponseBodyImpl(@NonNull Request<V> request, @NonNull StatusCode status, @NonNull HeaderMap headers, V value) {
+        this.request = request;
         this.status = status;
         this.headers = headers.snapshot();
         this.value = value;

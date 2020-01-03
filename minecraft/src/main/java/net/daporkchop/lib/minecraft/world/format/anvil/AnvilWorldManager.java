@@ -24,7 +24,7 @@ import io.netty.buffer.PooledByteBufAllocator;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import net.daporkchop.lib.binary.netty.NettyUtil;
+import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.common.cache.Cache;
 import net.daporkchop.lib.common.cache.SoftThreadCache;
 import net.daporkchop.lib.common.misc.file.PFiles;
@@ -45,7 +45,9 @@ import net.daporkchop.lib.natives.PNatives;
 import net.daporkchop.lib.natives.zlib.PInflater;
 import net.daporkchop.lib.natives.zlib.Zlib;
 import net.daporkchop.lib.nbt.NBTInputStream;
+import net.daporkchop.lib.nbt.alloc.NBTArrayAllocator;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
+import net.daporkchop.lib.nbt.tag.notch.IntArrayTag;
 import net.daporkchop.lib.nbt.tag.notch.ListTag;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
@@ -76,7 +78,11 @@ public class AnvilWorldManager implements WorldManager {
     protected World world;
 
     protected LoadingCache<Vec2i, RegionFile> regionFileCache;
-    protected LoadingCache<Vec2i, Boolean> regionExists;
+    protected LoadingCache<Vec2i, Boolean>    regionExists;
+
+    //TODO: make this configurable
+    protected final NBTArrayAllocator arrayAllocator = new AnvilPooledNBTArrayAllocator(34 * 34 * 8 * 3, 34 * 34 * 8); //these sizes are suitable for WorldScanner with neighboring chunks
+
 
     public AnvilWorldManager(@NonNull AnvilSaveFormat format, @NonNull File root) {
         this.format = format;
@@ -140,7 +146,7 @@ public class AnvilWorldManager implements WorldManager {
                             ByteBuf uncompressed = PooledByteBufAllocator.DEFAULT.directBuffer();
                             try {
                                 inflater.inflate(compressed, uncompressed);
-                                try (NBTInputStream in = new NBTInputStream(NettyUtil.wrapIn(uncompressed))) {
+                                try (NBTInputStream in = new NBTInputStream(DataIn.wrap(uncompressed), this.arrayAllocator)) {
                                     rootTag = in.readTag().getCompound("Level");
                                 }
                             } finally {
@@ -189,12 +195,7 @@ public class AnvilWorldManager implements WorldManager {
                 }
             }
             if (chunk instanceof VanillaChunkImpl && rootTag.contains("HeightMap")) {
-                int[] heightMapI = rootTag.getIntArray("HeightMap");
-                byte[] heightMapB = new byte[16 * 16];
-                for (int i = heightMapI.length - 1; i >= 0; i--) {
-                    heightMapB[i] = (byte) heightMapI[i];
-                }
-                ((VanillaChunkImpl) chunk).heightMap(heightMapB);
+                ((VanillaChunkImpl) chunk).heightMap(rootTag.<IntArrayTag>get("HeightMap").handle());
             }
             {
                 ListTag<CompoundTag> sectionsTag = rootTag.get("TileEntities");

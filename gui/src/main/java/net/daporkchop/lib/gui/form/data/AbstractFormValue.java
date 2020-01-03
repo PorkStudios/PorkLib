@@ -21,6 +21,7 @@ import net.daporkchop.lib.common.function.PFunctions;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.form.annotation.FormComponentName;
+import net.daporkchop.lib.gui.form.annotation.FormDisplayName;
 import net.daporkchop.lib.gui.form.annotation.FormTooltip;
 import net.daporkchop.lib.reflection.PField;
 
@@ -37,13 +38,14 @@ public abstract class AbstractFormValue<A extends Annotation> implements FormVal
     protected static String[] parseTooltip(@NonNull String[] source) {
         return Arrays.stream(source)
                 .filter(Objects::nonNull)
-                .filter(PFunctions.invert(String::isEmpty))
+                .filter(PFunctions.not(String::isEmpty))
                 .flatMap(s -> s.indexOf('\n') == -1 ? Arrays.stream(s.split("\n")) : Stream.of(s))
                 .toArray(String[]::new);
     }
 
     protected final PField field;
     protected final String componentName;
+    protected final String displayName;
     protected final String[] tooltip;
     protected final A annotation;
 
@@ -60,6 +62,14 @@ public abstract class AbstractFormValue<A extends Annotation> implements FormVal
                 this.componentName = field.getName();
             } else {
                 this.componentName = annotation.value();
+            }
+        }
+        {
+            FormDisplayName annotation = field.getAnnotation(FormDisplayName.class);
+            if (annotation == null) {
+                this.displayName = field.getName() + ": ";
+            } else {
+                this.displayName = annotation.value() + ": ";
             }
         }
         {
@@ -95,8 +105,18 @@ public abstract class AbstractFormValue<A extends Annotation> implements FormVal
         this.doLoadInto(o, component);
     }
 
+    @Override
+    public void loadFrom(@NonNull Object o, @NonNull Container container) {
+        Component component = container.getChild(this.componentName);
+        if (component == null) {
+            throw new IllegalStateException(String.format("No component found with name: \"%s\"!", this.componentName));
+        }
+        this.doLoadFrom(o, component);
+    }
+
     protected abstract void assertCorrectType(@NonNull PField field);
     protected abstract A defaultAnnotationInstance();
     protected abstract void doConfigure(@NonNull Component component);
     protected abstract void doLoadInto(@NonNull Object o, @NonNull Component component);
+    protected abstract void doLoadFrom(@NonNull Object o, @NonNull Component component);
 }

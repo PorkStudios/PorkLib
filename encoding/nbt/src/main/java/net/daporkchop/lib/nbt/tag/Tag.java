@@ -18,12 +18,12 @@ package net.daporkchop.lib.nbt.tag;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.nbt.NBTInputStream;
 import net.daporkchop.lib.nbt.NBTOutputStream;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 import net.daporkchop.lib.nbt.tag.notch.ListTag;
+import net.daporkchop.lib.unsafe.capability.Releasable;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
 
@@ -34,7 +34,7 @@ import java.io.IOException;
  */
 @RequiredArgsConstructor
 @Getter
-public abstract class Tag {
+public abstract class Tag implements Releasable {
     /**
      * The name of this tag.
      * <p>
@@ -92,4 +92,17 @@ public abstract class Tag {
 
     @Override
     public abstract String toString();
+
+    /**
+     * Releases this {@link Tag}, along with any children it may have.
+     * <p>
+     * This method is not required to be called, and tags should be able to be left for the garbage collector without any concern, however releasing
+     * them manually may be beneficial for performance.
+     *
+     * @throws AlreadyReleasedException if this {@link Tag} was already released and the implementation of {@link #release()} is not no-op
+     */
+    @Override
+    public void release() throws AlreadyReleasedException {
+        //no-op
+    }
 }

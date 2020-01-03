@@ -33,7 +33,9 @@ import net.daporkchop.lib.http.header.map.MutableHeaderMapImpl;
 import net.daporkchop.lib.http.impl.java.JavaHttpClient;
 import net.daporkchop.lib.http.request.auth.Authentication;
 import net.daporkchop.lib.http.response.aggregate.ResponseAggregator;
+import net.daporkchop.lib.http.util.ProgressHandler;
 
+import java.net.Proxy;
 import java.util.List;
 
 /**
@@ -59,6 +61,10 @@ public abstract class AbstractRequestBuilder<V, C extends HttpClient> implements
 
     @Setter(AccessLevel.NONE)
     protected ResponseAggregator<Object, V> aggregator;
+
+    protected ProgressHandler progressHandler;
+
+    protected Proxy proxy;
 
     @NonNull
     @Getter(AccessLevel.NONE)

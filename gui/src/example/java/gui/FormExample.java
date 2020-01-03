@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -20,75 +20,28 @@ import lombok.ToString;
 import net.daporkchop.lib.gui.component.type.Window;
 import net.daporkchop.lib.gui.form.annotation.FormComponentName;
 import net.daporkchop.lib.gui.form.annotation.FormDefaultDimensions;
+import net.daporkchop.lib.gui.form.annotation.FormDisplayName;
 import net.daporkchop.lib.gui.form.annotation.FormTooltip;
 import net.daporkchop.lib.gui.form.annotation.FormType;
+import net.daporkchop.lib.gui.util.ScrollCondition;
 import net.daporkchop.lib.logging.Logging;
+
+import static net.daporkchop.lib.logging.Logging.*;
 
 /**
  * @author DaPorkchop_
  */
-public class FormExample implements Logging {
+public class FormExample {
     public static void displayForm(@NonNull Window parentWindow) {
-        if (false) {
-            parentWindow.popup(128, 128, 512, 300)
-                    .setTitle("Form test")
-                    .spinner("spinner", spinner -> spinner
-                            .orientRelative(2, 2, 0.0d, 0.0d)
-                            .minDimensionsAreValueSize().pad(2))
-                    .spinner("spinner2", spinner -> spinner
-                            .orientAdvanced(adv -> adv.belowAndCopyX("spinner"))
-                            .minDimensionsAreValueSize().pad(2))
-                    .slider("slider", slider -> slider
-                            .orientAdvanced(adv -> adv.belowAndCopyX("spinner2"))
-                            .minDimensionsAreValueSize().pad(2))
-                    .scrollPane("sub", scrollPane -> scrollPane
-                            .orientAdvanced(adv -> adv
-                                    .belowAndCopyX("slider")
-                                    .width(0.5d).height(0.25d))
-                            .pad(2)
-                            .checkBox("checkbox", checkBox -> checkBox
-                                    .orientRelative(2, 2, 0.0d, 0.0d)
-                                    .minDimensionsAreValueSize().pad(2))
-                            .dropdown("dropdown", dropdown -> dropdown
-                                    .orientAdvanced(adv -> adv.belowAndCopyX("checkbox"))
-                                    .minDimensionsAreValueSize().pad(2))
-                            .radioGroupFast("radio")
-                            .radioButton("TYPE_1", "radio", button -> button
-                                    .orientAdvanced(adv -> adv.belowAndCopyX("dropdown"))
-                                    .minDimensionsAreValueSize().pad(2))
-                            .radioButton("TYPE_2", "radio", button -> button
-                                    .orientAdvanced(adv -> adv.belowAndCopyX("TYPE_1"))
-                                    .minDimensionsAreValueSize().pad(2))
-                            .radioButton("TYPE_3", "radio", button -> button
-                                    .orientAdvanced(adv -> adv.belowAndCopyX("TYPE_2"))
-                                    .minDimensionsAreValueSize().pad(2))
-                            .radioButton("JEFF", "radio", button -> button
-                                    .orientAdvanced(adv -> adv.belowAndCopyX("TYPE_3"))
-                                    .minDimensionsAreValueSize().pad(2)))
-                    .textBox("username", textBox -> textBox
-                            .orientAdvanced(adv -> adv.belowAndCopyX("sub").width(0.25d))
-                            .minDimensionsAreValueSize().pad(2))
-                    .passwordBox("password", textBox -> textBox
-                            .orientAdvanced(adv -> adv.belowAndCopyXAndWidth("username"))
-                            .minDimensionsAreValueSize().pad(2))
-                    .button("complete", button -> button
-                            .orientAdvanced(adv -> adv.belowAndCopyX("password"))
-                            .minDimensionsAreValueSize().pad(2)
-                            .setText("Submit"))
-                    .form(FormData.class, form -> form
-                            .submitButton("complete")
-                            .addListener((status, value) -> logger.info("Form completed with status: %s", status))
-                            .addSuccessListener(value -> logger.info("%s", value)))
-                    .show();
-        } else {
-            parentWindow.popup(128, 128, 512, 300)
-                    .setTitle("Form test")
-                    .form(FormData.class, form -> form
-                            .buildDefault()
-                            .addListener((status, value) -> logger.info("Form completed with status: %s", status))
-                            .addSuccessListener(value -> logger.info("%s", value)))
-                    .show();
-        }
+        parentWindow.popup(128, 128, 512, 300)
+                .setTitle("Form test")
+                .scrollPane("scrollpane", scrollPane -> scrollPane
+                        .setScrolling(ScrollCondition.AUTO)
+                        .orientRelative(0, 0, 1.0d, 1.0d)
+                        .form(FormData.class)
+                        .addListener((status, value) -> logger.info("Form completed with status: %s", status))
+                        .addSuccessListener(value -> logger.info("%s", value)))
+                .show();
     }
 
     @ToString
@@ -114,13 +67,13 @@ public class FormExample implements Logging {
         public int slider;
 
         @FormType.Object(type = FormType.Object.Type.PANEL)
-        @FormDefaultDimensions(dWidth = 1.0d, dHeight = 0.1d)
         public SubData sub; //TODO: we really, really need a way to have containers scale to their contents
         //TODO-amendment: ScrollPane seems to be able to do this correctly automatically, let's see how it does it (and do it correctly)
 
         @FormType.Text(hint = "user@example.com")
         @FormDefaultDimensions(dWidth = 0.25d)
         @FormTooltip("Your username to this amazing non-existent site!")
+        @FormDisplayName("Username")
         public String username;
 
         @FormType.Text(type = FormType.Text.Type.PASSWORD)
@@ -135,10 +88,16 @@ public class FormExample implements Logging {
         @FormComponentName("checkbox")
         public boolean flag;
 
+        @FormDisplayName("Dropdown Menu")
+        @FormType.Enum(externNames = {
+                "",
+                "Type 2 (name set externally!)"
+        })
         public EnumValues dropdown;
 
-        @FormType.Enum(value = 3/*, type = FormType.Enum.Type.RADIO_BUTTON*/)
-        public EnumValues radio;
+        //TODO
+        /*@FormType.Enum(value = 3, type = FormType.Enum.Type.RADIO_BUTTON)
+        public EnumValues radio;*/
 
         enum EnumValues {
             TYPE_1,

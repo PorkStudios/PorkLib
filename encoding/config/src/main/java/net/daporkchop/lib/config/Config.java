@@ -116,6 +116,6 @@ public @interface Config {
         /**
          * The full name of a no-args static function that will return the default value for this field
          */
-        String objectValue() default "net.daporkchop.lib.common.util.PConstants#getNull";
+        String objectValue() default "net.daporkchop.lib.common.util.PorkUtil#getNull";
     }
 }

@@ -15,9 +15,11 @@
 
 package net.daporkchop.lib.binary.stream;
 
+import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.data.BufferIn;
-import net.daporkchop.lib.binary.stream.data.StreamIn;
+import net.daporkchop.lib.binary.stream.netty.NettyByteBufIn;
+import net.daporkchop.lib.binary.stream.nio.BufferIn;
+import net.daporkchop.lib.binary.stream.stream.StreamIn;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -26,6 +28,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 
@@ -135,6 +138,31 @@ public abstract class DataIn extends InputStream {
      */
     public static DataIn wrapNonBuffered(@NonNull File file) throws IOException {
         return wrap(new FileInputStream(file));
+    }
+    /**
+     * Wraps a {@link ByteBuf} into a {@link DataIn} for reading.
+     * <p>
+     * When the {@link DataIn} is closed (using {@link DataIn#close()}), the {@link ByteBuf} will not be released.
+     *
+     * @param buf the {@link ByteBuf} to read from
+     * @return a {@link DataIn} that can read data from the {@link ByteBuf}
+     */
+    public static DataIn wrap(@NonNull ByteBuf buf) {
+        return wrap(buf, false);
+    }
+
+    /**
+     * Wraps a {@link ByteBuf} into a {@link DataIn} for reading.
+     * <p>
+     * When the {@link DataIn} is closed (using {@link DataIn#close()}), the {@link ByteBuf} may or may not be released, depending on the value of the
+     * {@code release} parameter.
+     *
+     * @param buf     the {@link ByteBuf} to read from
+     * @param release whether or not to release the buffer when the {@link DataIn} is closed
+     * @return a {@link DataIn} that can read data from the {@link ByteBuf}
+     */
+    public static DataIn wrap(@NonNull ByteBuf buf, boolean release) {
+        return release ? new NettyByteBufIn.Releasing(buf) : new NettyByteBufIn(buf);
     }
 
     /**
@@ -411,6 +439,23 @@ public abstract class DataIn extends InputStream {
             }
         } while ((read & 0b10000000) != 0);
         return result;
+    }
+
+    /**
+     * Reads a {@link CharSequence} using the given {@link Charset}.
+     * <p>
+     * Depending on the {@link Charset} used, certain optimizations may be applied. It is therefore recommended to use values from {@link StandardCharsets}
+     * if possible.
+     *
+     * @param size    the length of the encoded {@link CharSequence} in bytes
+     * @param charset the {@link Charset} to encode the text using
+     * @return the read {@link CharSequence}
+     */
+    public CharSequence readText(long size, @NonNull Charset charset) throws IOException  {
+        if (size > Integer.MAX_VALUE)   {
+            throw new IllegalArgumentException("size parameter too large!");
+        }
+        return new String(this.readFully(new byte[(int) size]), charset);
     }
 
     /**

@@ -31,7 +31,7 @@ import net.daporkchop.lib.gui.util.handler.ClickHandler;
 public interface Button extends Component<Button, ButtonState>, IconHolder<Button, ButtonState>, TextHolder<Button> {
     ClickHandler getClickHandler();
 
-    Button setClickHandler(@NonNull ClickHandler handler);
+    Button setClickHandler(ClickHandler handler);
 
     @Override
     default ButtonState getState() {

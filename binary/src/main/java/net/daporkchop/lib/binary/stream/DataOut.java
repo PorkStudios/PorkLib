@@ -15,18 +15,22 @@
 
 package net.daporkchop.lib.binary.stream;
 
+import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.data.BufferOut;
-import net.daporkchop.lib.binary.stream.data.SlashDevSlashNull;
-import net.daporkchop.lib.binary.stream.data.StreamOut;
+import net.daporkchop.lib.binary.stream.misc.SlashDevSlashNull;
+import net.daporkchop.lib.binary.stream.netty.NettyByteBufOut;
+import net.daporkchop.lib.binary.stream.nio.BufferOut;
+import net.daporkchop.lib.binary.stream.stream.StreamOut;
+import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.util.PorkUtil;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -115,6 +119,18 @@ public abstract class DataOut extends OutputStream {
      */
     public static DataOut wrapNonBuffered(@NonNull File file) throws IOException {
         return wrap(new FileOutputStream(file));
+    }
+
+    /**
+     * Wraps a {@link ByteBuf} into a {@link DataOut} for writing.
+     * <p>
+     * When the {@link DataOut} is closed (using {@link DataOut#close()}), the {@link ByteBuf} will not be released.
+     *
+     * @param buf the {@link ByteBuf} to write to
+     * @return a {@link DataOut} that can write data to the {@link ByteBuf}
+     */
+    public static DataOut wrap(@NonNull ByteBuf buf) {
+        return new NettyByteBufOut.Default(buf);
     }
 
     /**
@@ -397,6 +413,24 @@ public abstract class DataOut extends OutputStream {
             this.write(temp);
         } while (value != 0L);
         return this;
+    }
+
+    /**
+     * Writes the given {@link CharSequence} using the given {@link Charset}.
+     * <p>
+     * It will not be length-prefixed, meaning that it will not be able to be read directly using the corresponding method in {@link DataIn}.
+     * <p>
+     * Depending on the {@link Charset} used, certain optimizations may be applied. It is therefore recommended to use values from {@link StandardCharsets}
+     * if possible.
+     *
+     * @param text    the {@link CharSequence} to write
+     * @param charset the {@link Charset} to encode the text using
+     * @return the number of bytes written
+     */
+    public long writeText(@NonNull CharSequence text, @NonNull Charset charset) throws IOException {
+        byte[] b = text.toString().getBytes(charset);
+        this.write(b);
+        return b.length;
     }
 
     public DataOut writeBytes(@NonNull byte[] b) throws IOException {

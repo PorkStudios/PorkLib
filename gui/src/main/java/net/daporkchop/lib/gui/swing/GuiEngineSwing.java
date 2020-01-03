@@ -16,7 +16,8 @@
 package net.daporkchop.lib.gui.swing;
 
 import lombok.NonNull;
-import net.daporkchop.lib.common.reference.InstancePool;
+import net.daporkchop.lib.common.misc.InstancePool;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.gui.GuiEngine;
 import net.daporkchop.lib.gui.component.capability.BlankComponentAdder;
 import net.daporkchop.lib.gui.component.type.Window;
@@ -44,16 +45,24 @@ import net.daporkchop.lib.gui.swing.type.functional.SwingProgressBar;
 import net.daporkchop.lib.gui.swing.type.functional.SwingRadioButton;
 import net.daporkchop.lib.gui.swing.type.functional.SwingSlider;
 import net.daporkchop.lib.gui.swing.type.functional.SwingSpinner;
-import net.daporkchop.lib.gui.swing.type.functional.SwingTable;
+import net.daporkchop.lib.gui.swing.type.functional.table.SwingTable;
 import net.daporkchop.lib.gui.swing.type.misc.SwingRadioButtonGroup;
 import net.daporkchop.lib.gui.swing.type.window.SwingFrame;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 
-import javax.swing.*;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 
 /**
+ * An implementation of {@link GuiEngine} backed by Java Swing.
+ * <p>
+ * Be aware that due to limitations of Swing itself, many methods that affect the state of the GUI will be queued to be executed asynchronously
+ * rather than immediately, meaning that the changes will not be immediately visible to accessors. This can cause bugs that are very difficult
+ * to track down, and should therefore only be used for simple GUIs. Use at your own risk.
+ *
  * @author DaPorkchop_
  */
+//TODO: make a custom GUI engine from scratch i guess
 public class GuiEngineSwing implements GuiEngine {
     static {
         try {
@@ -65,6 +74,8 @@ public class GuiEngineSwing implements GuiEngine {
             e.printStackTrace();
         }
     }
+
+    public static final Class<?> EVENT_DISPATCH_THREAD = PorkUtil.classForName("java.awt.EventDispatchThread");
 
     public static GuiEngineSwing getInstance() {
         return InstancePool.getInstance(GuiEngineSwing.class);
@@ -87,7 +98,7 @@ public class GuiEngineSwing implements GuiEngine {
         return this.blankComponents;
     }
 
-    protected static class SwingBlankComponentAdder implements BlankComponentAdder<SwingBlankComponentAdder>    {
+    protected static class SwingBlankComponentAdder implements BlankComponentAdder<SwingBlankComponentAdder> {
         @Override
         public Panel panel() {
             return new SwingPanel("");

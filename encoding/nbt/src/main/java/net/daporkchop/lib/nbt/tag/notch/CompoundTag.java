@@ -21,9 +21,11 @@ import net.daporkchop.lib.nbt.NBTInputStream;
 import net.daporkchop.lib.nbt.NBTOutputStream;
 import net.daporkchop.lib.nbt.tag.Tag;
 import net.daporkchop.lib.nbt.tag.TagRegistry;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +39,7 @@ import java.util.function.Consumer;
  */
 @Getter
 public class CompoundTag extends Tag {
-    protected final Map<String, Tag> contents = new HashMap<>();
+    protected Map<String, Tag> contents = new HashMap<>();
 
     public CompoundTag() {
         this("");
@@ -68,12 +70,24 @@ public class CompoundTag extends Tag {
         for (Map.Entry<String, Tag> entry : this.contents.entrySet()) {
             byte id = registry.getId(entry.getValue().getClass());
             out.writeByte(id);
-            byte[] name = entry.getKey().getBytes(StandardCharsets.UTF_8);
-            out.writeShort((short) name.length);
-            out.write(name);
+            {
+                byte[] name = entry.getKey().getBytes(StandardCharsets.UTF_8);
+                out.writeShort((short) name.length);
+                out.write(name);
+            }
             entry.getValue().write(out, registry);
         }
         out.writeByte((byte) 0);
+    }
+
+    @Override
+    public synchronized void release() throws AlreadyReleasedException {
+        if (this.contents != Collections.<String, Tag>emptyMap())    {
+            this.contents.forEach((key, tag) -> tag.release());
+            this.contents = Collections.emptyMap();
+        } else {
+            throw new AlreadyReleasedException();
+        }
     }
 
     @Override
@@ -389,7 +403,7 @@ public class CompoundTag extends Tag {
         if (tag == null) {
             return def;
         } else {
-            return tag.getValue();
+            return tag.value();
         }
     }
 
@@ -405,7 +419,7 @@ public class CompoundTag extends Tag {
         if (tag == null) {
             return def;
         } else {
-            return tag.getValue();
+            return tag.value();
         }
     }
 

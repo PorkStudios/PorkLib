@@ -18,6 +18,8 @@ package net.daporkchop.lib.gui.form.data;
 import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.common.function.PFunctions;
+import net.daporkchop.lib.gui.component.type.functional.Label;
+import net.daporkchop.lib.gui.form.annotation.FormDisplayName;
 import net.daporkchop.lib.unsafe.PUnsafe;
 import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.Element;
@@ -39,8 +41,21 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 @Getter
 public class FormObject implements FormValue {
+    protected static final FormType.Object FALLBACK_OBJECT_ANNOTATION = new FormType.Object()   {
+        @Override
+        public Type type() {
+            return Type.PANEL;
+        }
+
+        @Override
+        public Class<? extends Annotation> annotationType() {
+            return FormType.Object.class;
+        }
+    };
+
     protected final Class<?> clazz;
     protected final String componentName;
+    protected final String displayName;
     protected final PField field;
     protected final Collection<FormValue> fields = new ArrayList<>();
 
@@ -49,20 +64,30 @@ public class FormObject implements FormValue {
         this.field = aField;
 
         if (aField != null) {
-            FormComponentName annotation = aField.getAnnotation(FormComponentName.class);
-            if (annotation == null) {
-                this.componentName = aField.getName();
-            } else {
-                this.componentName = annotation.value();
+            {
+                FormComponentName annotation = aField.getAnnotation(FormComponentName.class);
+                if (annotation == null) {
+                    this.componentName = aField.getName();
+                } else {
+                    this.componentName = annotation.value();
+                }
+            }
+            {
+                FormDisplayName annotation = this.field.getAnnotation(FormDisplayName.class);
+                this.displayName = String.format(
+                        "<html><strong>%s:</strong></html>",
+                        annotation == null ? this.field.getName() : annotation.value()
+                );
             }
         } else {
             this.componentName = null;
+            this.displayName = null;
         }
 
         Arrays.stream(clazz.getDeclaredFields())
                 .map(PField::of)
-                .filter(PFunctions.invert(PField::isStatic))
-                .filter(PFunctions.invert(field -> field.hasAnnotation(FormType.Ignored.class)))
+                .filter(PFunctions.not(PField::isStatic))
+                .filter(PFunctions.not(field -> field.hasAnnotation(FormType.Ignored.class)))
                 .map(FormValue::of)
                 .forEach(this.fields::add);
     }
@@ -99,22 +124,27 @@ public class FormObject implements FormValue {
     }
 
     @Override
+    public void loadFrom(@NonNull Object o, @NonNull Container container) {
+        if (this.field != null) {
+            Object us = this.field.get(o);
+            Element element = container.getChild(this.componentName);
+            if (element instanceof Container) {
+                this.fields.forEach(value -> value.loadFrom(us, (Container) element));
+            } else {
+                throw new IllegalStateException(String.format("Not a container: %s (%s)", this.componentName, element == null ? "null" : element.getClass().getCanonicalName()));
+            }
+        } else {
+            this.fields.forEach(value -> value.loadFrom(o, container));
+        }
+    }
+
+    @Override
     public String buildDefault(String prev, @NonNull Container container) {
         if (this.field != null) {
             Objects.requireNonNull(prev);
             FormType.Object annotation = this.field.getAnnotation(FormType.Object.class);
             if (annotation == null) {
-                annotation = new FormType.Object() {
-                    @Override
-                    public Type type() {
-                        return Type.SCROLL_PANE;
-                    }
-
-                    @Override
-                    public Class<? extends Annotation> annotationType() {
-                        return FormType.Object.class;
-                    }
-                };
+                annotation = FALLBACK_OBJECT_ANNOTATION;
             }
             switch (annotation.type()) {
                 case PANEL:
@@ -124,13 +154,22 @@ public class FormObject implements FormValue {
                     container = container.scrollPane(this.field.getName());
                     break;
                 default:
-                    throw new IllegalStateException();
+                    throw new IllegalStateException(Objects.toString(annotation.type()));
             }
             this.configureDefaultDimensions(this.field.getAnnotation(FormDefaultDimensions.class), true, prev, (NestedContainer<?, ?>) container, annotation.type() != FormType.Object.Type.SCROLL_PANE);
         }
-        AtomicReference<String> ref = new AtomicReference<>(null);
-        Container theContainer = container;
-        this.fields.forEach(value -> ref.set(value.buildDefault(ref.get(), theContainer)));
-        return this.field == null ? ref.get() : this.componentName;
+        String _prev = null;
+        for (FormValue value : this.fields) {
+            String nameName = String.format("__name_%s__", value.getComponentName());
+            Label nameLabel = container.label(nameName, value.getDisplayName()).minDimensionsAreValueSize();
+            if (_prev == null)  {
+                nameLabel.orientRelative(0, 2, 0, 0);
+            } else {
+                String __prev = _prev;
+                nameLabel.orientAdvanced(adv -> adv.x(0).width(0).height(0).below(__prev));
+            }
+            _prev = value.buildDefault(nameName, container);
+        }
+        return this.field == null ? _prev : this.componentName;
     }
 }

@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -17,12 +17,21 @@ package net.daporkchop.lib.http.util;
 
 import io.netty.util.collection.IntObjectHashMap;
 import io.netty.util.collection.IntObjectMap;
+import lombok.NonNull;
 import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.common.pool.Pool;
+import net.daporkchop.lib.common.pool.selection.SelectionPool;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.http.StatusCode;
 
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 
@@ -44,8 +53,8 @@ public class Constants {
                     }
             ));
 
-    public final String       USER_AGENT              = "PorkLib/" + PorkUtil.PORKLIB_VERSION;
-    public final Pool<String> DEFAULT_USER_AGENT_POOL = Pool.singleton(USER_AGENT);
+    public final String                USER_AGENT                        = "PorkLib/" + PorkUtil.PORKLIB_VERSION;
+    public final SelectionPool<String> DEFAULT_USER_AGENT_SELECTION_POOL = SelectionPool.singleton(USER_AGENT);
 
     /*public final ThreadLocal<byte[]> CACHE_4KB_BUFFER = ThreadLocal.withInitial(() -> new byte[4096]);
 
@@ -80,7 +89,7 @@ public class Constants {
 
     public void writeUTF16ToByteBuf(@NonNull ByteBuf dst, @NonNull String str) {
         byte[] buf = CACHE_4KB_BUFFER.get();
-        char[] src = PUnsafe.getObject(str, PorkUtil.OFFSET_STRING_VALUE);
+        char[] src = PUnsafe.getObject(str, PorkUtil.STRING_VALUE_OFFSET);
         int remaining = src.length * PUnsafe.ARRAY_CHAR_INDEX_SCALE;
         while (remaining > 0) {
             int count = min(remaining, buf.length);
@@ -108,4 +117,35 @@ public class Constants {
             throw new IllegalArgumentException(String.format("Not a valid http(s) URL: %s", url));
         }
     }*/
+
+    //protected static final Pattern URL_PATTERN = Pattern.compile("^(https?):\\/\\/([^.]+\\...*?)(:?([0-9]{1,5}))?(\\/.*)?$");
+
+    public static URL encodeUrl(@NonNull String url) throws MalformedURLException, UnsupportedEncodingException {
+        try {
+            URL theURl = new URL(url);
+            URI uri = new URI(theURl.getProtocol(), theURl.getUserInfo(), theURl.getHost(), theURl.getPort(), theURl.getPath(), theURl.getQuery(), theURl.getRef());
+            return new URL(uri.toASCIIString());
+        } catch (URISyntaxException e)  {
+            throw new IllegalArgumentException(url, e);
+        }
+        /*Matcher matcher = URL_PATTERN.matcher(url);
+        if (!matcher.find()) {
+            throw new MalformedURLException(url);
+        }
+
+        String protocol = matcher.group(1);
+
+        String portTxt = matcher.group(4);
+        int port;
+        if (portTxt != null)    {
+            port = Integer.parseUnsignedInt(portTxt);
+        } else if (protocol.length() == 4) {
+            port = 80;
+        } else {
+            port = 443;
+        }
+
+        String path = matcher.group(5);
+        return new URL(protocol, matcher.group(2), port, path == null ? "" : URLEncoder.encode(path, "UTF-8"));*/
+    }
 }

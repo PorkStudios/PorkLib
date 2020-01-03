@@ -18,8 +18,6 @@ package net.daporkchop.lib.gui.component.state;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.gui.component.type.Window;
 
 /**
@@ -29,14 +27,34 @@ import net.daporkchop.lib.gui.component.type.Window;
 @NoArgsConstructor
 @Getter
 public enum WindowState implements ElementState<Window, WindowState> {
+    /**
+     * The window is still in it's construction phase (it has not yet been made visible for the first time).
+     */
     CONSTRUCTION(false, false),
+    /**
+     * The window is visible, and is the currently active window.
+     */
     VISIBLE(true, true),
+    /**
+     * The window is visible, but minimized.
+     */
     VISIBLE_MINIMIZED(true, true),
+    /**
+     * The window is visible, but is not the currently active window.
+     */
     VISIBLE_INACTIVE(true, true),
+    /**
+     * The window has been hidden programmatically.
+     */
     HIDDEN(false, true),
-    CLOSING(false, false),
+    /**
+     * The window has been closed by the user.
+     */
     CLOSED(false, false),
-    ;
+    /**
+     * The window has been released (by calling {@link Window#release()}), and is no longer usable.
+     */
+    RELEASED(false, false),;
 
     protected boolean visible = false;
     protected boolean enabled = true;

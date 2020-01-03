@@ -15,15 +15,25 @@
 
 package net.daporkchop.lib.minecraft.world;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.minecraft.util.BlockAccess;
 import net.daporkchop.lib.minecraft.util.world.Dirtiable;
+import net.daporkchop.lib.unsafe.capability.Releasable;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 /**
  * A 16³ section of blocks.
  *
  * @author DaPorkchop_
  */
-public interface Section extends BlockAccess, Dirtiable {
+public interface Section extends BlockAccess, Dirtiable, Releasable {
+    Section EMPTY_SECTION = new Empty();
+
     Chunk chunk();
 
     int getY();
@@ -79,5 +89,66 @@ public interface Section extends BlockAccess, Dirtiable {
             }
         }
         return 0;
+    }
+
+    /**
+     * An immutable, empty section.
+     *
+     * @author DaPorkchop_
+     */
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    final class Empty implements Section {
+        @NonNull
+        @Accessors(fluent = true)
+        private Chunk chunk;
+
+        private int y;
+
+        @Override
+        public int getBlockId(int x, int y, int z) {
+            return 0;
+        }
+
+        @Override
+        public int getBlockMeta(int x, int y, int z) {
+            return 0;
+        }
+
+        @Override
+        public int getBlockLight(int x, int y, int z) {
+            return 0;
+        }
+
+        @Override
+        public int getSkyLight(int x, int y, int z) {
+            return 15;
+        }
+
+        @Override
+        public void setBlockId(int x, int y, int z, int id) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void setBlockMeta(int x, int y, int z, int meta) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void setBlockLight(int x, int y, int z, int level) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void setSkyLight(int x, int y, int z, int level) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void release() throws AlreadyReleasedException {
+            //no-op
+        }
     }
 }

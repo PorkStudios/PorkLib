@@ -102,6 +102,22 @@ public class FormBoolean extends AbstractFormValue<FormType.Boolean> {
     }
 
     @Override
+    protected void doLoadFrom(@NonNull Object o, @NonNull Component component) {
+        switch (this.annotation.type()) {
+            case CHECK_BOX: {
+                if (component instanceof CheckBox) {
+                    ((CheckBox) component).setSelected(this.field.getBoolean(o));
+                } else {
+                    throw new IllegalStateException(String.format("Component \"%s\" is not a check box: %s!", this.componentName, component.getClass().getCanonicalName()));
+                }
+            }
+            break;
+            default:
+                throw new IllegalStateException();
+        }
+    }
+
+    @Override
     public String buildDefault(String prev, @NonNull Container container) {
         Component component;
         switch (this.annotation.type()) {

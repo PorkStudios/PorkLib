@@ -35,6 +35,8 @@ import net.daporkchop.lib.reflection.util.Type;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -62,8 +64,8 @@ public class FormEnum<E extends Enum> extends AbstractFormValue<FormType.Enum> {
     }
 
     @SuppressWarnings("unchecked")
-    protected static <E extends Enum> Map<E, String> getNames(@NonNull Class<E> clazz) {
-        return (Map<E, String>) nameCache.computeIfAbsent(clazz, c -> Arrays.stream(c.getDeclaredFields())
+    protected static <E extends Enum> Map<E, String> getNames(@NonNull Class<E> clazz, @NonNull FormType.Enum annotation) {
+        Map<E, String> names = (Map<E, String>) nameCache.computeIfAbsent(clazz, c -> Arrays.stream(c.getDeclaredFields())
                 .filter(Field::isEnumConstant)
                 .map(field -> new Tuple<>(field, PReflection.getAnnotation(field, FormType.EnumMemberName.class)))
                 .filter(Tuple::isBNonNull)
@@ -74,6 +76,19 @@ public class FormEnum<E extends Enum> extends AbstractFormValue<FormType.Enum> {
                         },
                         t -> t.getB().value()
                 )));
+
+        String[] externNames = annotation.externNames();
+        if (externNames.length != 0)    {
+            names = new HashMap<>(names);
+            E[] values = clazz.getEnumConstants();
+            for (int i = 0; i < externNames.length && i < values.length; i++)    {
+                if (!externNames[i].isEmpty())  {
+                    names.putIfAbsent(values[i], externNames[i]);
+                }
+            }
+        }
+
+        return names;
     }
 
     protected final Map<E, String[]> tooltips;
@@ -83,22 +98,20 @@ public class FormEnum<E extends Enum> extends AbstractFormValue<FormType.Enum> {
         super(field, FormType.Enum.class);
         if (this.annotation.type() == FormType.Enum.Type.RADIO_BUTTON) {
             this.tooltips = getTooltips(field.getClassType());
-            this.names = getNames(field.getClassType());
         } else {
-            this.tooltips = null;
-            this.names = null;
+            this.tooltips = Collections.emptyMap();
         }
+        this.names = getNames(field.getClassType(), this.annotation);
     }
 
     public FormEnum(@NonNull PField<E> field, FormType.Enum annotation) {
         super(field, annotation);
         if (this.annotation.type() == FormType.Enum.Type.RADIO_BUTTON) {
             this.tooltips = getTooltips(field.getClassType());
-            this.names = getNames(field.getClassType());
         } else {
-            this.tooltips = null;
-            this.names = null;
+            this.tooltips = Collections.emptyMap();
         }
+        this.names = getNames(field.getClassType(), this.annotation);
     }
 
     @Override
@@ -124,6 +137,11 @@ public class FormEnum<E extends Enum> extends AbstractFormValue<FormType.Enum> {
             @Override
             public boolean clearDropdownValues() {
                 return true;
+            }
+
+            @Override
+            public String[] externNames() {
+                return new String[0];
             }
 
             @Override
@@ -218,11 +236,35 @@ public class FormEnum<E extends Enum> extends AbstractFormValue<FormType.Enum> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
+    protected void doLoadFrom(@NonNull Object o, @NonNull Component component) {
+        switch (this.annotation.type()) {
+            case DROPDOWN: {
+                if (component instanceof Dropdown) {
+                    ((Dropdown<E>) component).setSelectedValue((E) this.field.get(o));
+                } else {
+                    throw new IllegalStateException(String.format("Component \"%s\" is not a text box: %s!", this.componentName, component.getClass().getCanonicalName()));
+                }
+            }
+            break;
+            case RADIO_BUTTON: {
+                //TODO
+                throw new UnsupportedOperationException("Radio button");
+            }
+            //break;
+            default:
+                throw new IllegalStateException();
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
     public String buildDefault(String prev, @NonNull Container container) {
         Component component;
         switch (this.annotation.type()) {
             case DROPDOWN: {
                 this.doConfigure(component = container.<E>dropdown(this.componentName));
+                ((Dropdown<E>) component).setRendererText(val -> this.names.getOrDefault(val, val.toString()));
             }
             break;
             case RADIO_BUTTON: {

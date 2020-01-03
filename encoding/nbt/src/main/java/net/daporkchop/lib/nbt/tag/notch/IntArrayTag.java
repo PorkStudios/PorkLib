@@ -18,23 +18,27 @@ package net.daporkchop.lib.nbt.tag.notch;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.nbt.NBTInputStream;
 import net.daporkchop.lib.nbt.NBTOutputStream;
+import net.daporkchop.lib.nbt.alloc.NBTArrayHandle;
 import net.daporkchop.lib.nbt.tag.Tag;
 import net.daporkchop.lib.nbt.tag.TagRegistry;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
 
 /**
- * A tag that contains a single int[]
+ * A tag that contains a single {@code int[]}.
  *
  * @author DaPorkchop_
  */
 @Getter
-@Setter
+@Accessors(fluent = true)
 public class IntArrayTag extends Tag {
-    @NonNull
     protected int[] value;
+
+    protected NBTArrayHandle<int[]> handle;
 
     public IntArrayTag(String name) {
         super(name);
@@ -46,10 +50,10 @@ public class IntArrayTag extends Tag {
     }
 
     @Override
-    public void read(NBTInputStream in, TagRegistry registry) throws IOException {
-        int len = in.readInt();
-        this.value = new int[len];
-        for (int i = 0; i < len; i++) {
+    public synchronized void read(NBTInputStream in, TagRegistry registry) throws IOException {
+        int length = in.readInt();
+        this.value(in.alloc().intArray(length));
+        for (int i = 0; i < length; i++) {
             this.value[i] = in.readInt();
         }
     }
@@ -63,7 +67,30 @@ public class IntArrayTag extends Tag {
     }
 
     @Override
+    public synchronized void release() throws AlreadyReleasedException {
+        if (this.value != null) {
+            if (this.handle != null) {
+                this.handle.release();
+                this.handle = null;
+            }
+            this.value = null;
+        } else {
+            throw new AlreadyReleasedException();
+        }
+    }
+
+    @Override
     public String toString() {
         return String.format("IntArrayTag(\"%s\"): %d ints", this.getName(), this.value.length);
+    }
+
+    public synchronized void value(@NonNull int[] value)    {
+        this.value = value;
+        this.handle = null;
+    }
+
+    public synchronized void value(@NonNull NBTArrayHandle<int[]> handle)   {
+        this.value = handle.value();
+        this.handle = handle;
     }
 }

@@ -16,7 +16,7 @@
 package example.crypto;
 
 import lombok.NonNull;
-import net.daporkchop.lib.common.function.Void;
+import net.daporkchop.lib.common.function.VoidFunction;
 import net.daporkchop.lib.crypto.keygen.EntropyPool;
 import net.daporkchop.lib.encoding.Hexadecimal;
 
@@ -110,7 +110,7 @@ public class EntropyGatherer {
             constraints.gridy = 4;
             frame.add(label, constraints);
         }
-        Void resetInput;
+        VoidFunction resetInput;
         Supplier<String> inputGetter;
         {
             TextArea textArea = new TextArea();

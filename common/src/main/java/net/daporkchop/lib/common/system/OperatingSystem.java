@@ -15,17 +15,28 @@
 
 package net.daporkchop.lib.common.system;
 
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+
 /**
  * An enumeration of common operating systems.
  *
  * @author DaPorkchop_
  */
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
 public enum OperatingSystem {
-    Linux,
-    FreeBSD,
-    OpenBSD,
-    NetBSD,
-    Solaris,
-    Windows, //listed reluctantly due to popularity
-    UNKNOWN; //i refuse to acknowledge the existence of osx
+    Linux("\n"),
+    FreeBSD("\n"),
+    OpenBSD("\n"),
+    NetBSD("\n"),
+    Solaris("\n"),
+    Windows("\r\n"), //listed reluctantly due to popularity
+    UNKNOWN("\n"); //i refuse to acknowledge the existence of osx
+
+    @NonNull
+    private final String lineEnding;
 }

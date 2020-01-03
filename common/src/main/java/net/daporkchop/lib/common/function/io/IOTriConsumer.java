@@ -15,21 +15,23 @@
 
 package net.daporkchop.lib.common.function.io;
 
-import net.daporkchop.lib.common.util.PConstants;
+import net.daporkchop.lib.common.function.plain.TriConsumer;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
-import java.util.function.BiConsumer;
 
 /**
  * @author DaPorkchop_
  */
 @FunctionalInterface
-public interface IOTriConsumer<T, U, V> extends PConstants {
+public interface IOTriConsumer<T, U, V> extends TriConsumer<T, U, V> {
+    @Override
     default void accept(T t, U u, V v) {
         try {
             this.acceptThrowing(t, u, v);
         } catch (IOException e) {
-            throw this.exception(e);
+            PUnsafe.throwException(e);
+            throw new RuntimeException(e);
         }
     }
 

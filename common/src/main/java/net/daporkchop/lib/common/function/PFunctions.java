@@ -15,10 +15,9 @@
 
 package net.daporkchop.lib.common.function;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.common.util.PConstants;
+import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.lang.reflect.Constructor;
 import java.util.function.Function;
@@ -26,26 +25,25 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
- * Some useful methods for dealing with (((functions))) i.e. in this case functional interfaces, which in
- * most cases will be lambda expressions.
+ * Some useful methods for dealing with (((functions))) i.e. in this case functional interfaces, which in most cases will be lambda expressions.
  *
  * @author DaPorkchop_
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public abstract class PFunctions {
+@UtilityClass
+public class PFunctions {
     /**
      * Creates a {@link Function} which will throw an exception when invoked.
      *
      * @param clazz the class of the exception to throw. Must have a simple no-args constructor
      * @return a {@link Function} which will throw an exception when invoked
      */
-    public static <T, R> Function<T, R> throwing(@NonNull Class<? extends Throwable> clazz) {
+    public <T, R> Function<T, R> throwing(@NonNull Class<? extends Throwable> clazz) {
         try {
             Constructor<? extends Throwable> constructor = clazz.getDeclaredConstructor();
             constructor.setAccessible(true);
             return throwing((ThrowingSupplier<Throwable>) constructor::newInstance);
         } catch (NoSuchMethodException e) {
-            throw PConstants.p_exception(e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -55,9 +53,9 @@ public abstract class PFunctions {
      * @param supplier a {@link Supplier} which will supply instances of {@link Throwable} to be thrown
      * @return a {@link Function} which will throw an exception when invoked
      */
-    public static <T, R> Function<T, R> throwing(@NonNull Supplier<Throwable> supplier) {
+    public <T, R> Function<T, R> throwing(@NonNull Supplier<Throwable> supplier) {
         return t -> {
-            throw PConstants.p_exception(supplier.get());
+            throw new RuntimeException(supplier.get());
         };
     }
 
@@ -67,7 +65,7 @@ public abstract class PFunctions {
      * @param predicate the predicate to invert
      * @return a {@link Predicate} that will return the opposite value of whatever is returned by the original
      */
-    public static <T> Predicate<T> invert(@NonNull Predicate<T> predicate) {
+    public <T> Predicate<T> not(@NonNull Predicate<T> predicate) {
         return t -> !predicate.test(t);
     }
 
@@ -77,7 +75,7 @@ public abstract class PFunctions {
      * @param <T> the type of value
      * @return the identity function of the type
      */
-    public static <T> Function<T, T> identity() {
+    public <T> Function<T, T> identity() {
         return o -> o;
     }
 }

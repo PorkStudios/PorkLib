@@ -15,6 +15,9 @@
 
 package net.daporkchop.lib.minecraft.world.format.anvil.region.ex;
 
+import lombok.NonNull;
+import net.daporkchop.lib.minecraft.world.format.anvil.region.RegionFile;
+
 import java.io.IOException;
 
 /**
@@ -23,11 +26,23 @@ import java.io.IOException;
  * @author DaPorkchop_
  */
 public class CorruptedRegionException extends IOException {
+    public CorruptedRegionException() {
+    }
+
     public CorruptedRegionException(String message) {
         super(message);
     }
 
-    public CorruptedRegionException(String message, Throwable cause) {
-        super(message, cause);
+    public CorruptedRegionException(RegionFile region) {
+        this(region, null);
+    }
+
+    public CorruptedRegionException(@NonNull RegionFile region, String message) {
+        super(String.format(
+                "Region \"%s\" is corrupt%s%s",
+                region.file().getAbsolutePath(),
+                message == null || message.isEmpty() ? "!" : ": ",
+                message == null || message.isEmpty() ? "" : message
+        ));
     }
 }

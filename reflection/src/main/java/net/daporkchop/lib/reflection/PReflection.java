@@ -16,7 +16,6 @@
 package net.daporkchop.lib.reflection;
 
 import lombok.NonNull;
-import net.daporkchop.lib.common.util.PConstants;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;

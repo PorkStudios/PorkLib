@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -22,7 +22,7 @@ import com.google.gson.JsonParser;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.misc.file.PFiles;
-import net.daporkchop.lib.common.reference.InstancePool;
+import net.daporkchop.lib.common.misc.InstancePool;
 import net.daporkchop.lib.logging.Logging;
 import sun.misc.IOUtils;
 
@@ -57,11 +57,13 @@ import java.util.stream.StreamSupport;
 import static java.lang.Math.max;
 import static net.daporkchop.lib.primitive.generator.Primitive.*;
 
+import static net.daporkchop.lib.logging.Logging.*;
+
 /**
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-public class Generator implements Logging {
+public class Generator {
     public static final AtomicLong FILES = new AtomicLong(0L);
     public static final AtomicLong SIZE = new AtomicLong(0L);
     private static final Collection<String> TREE_ROOTS = Stream.of(

@@ -22,7 +22,7 @@ package net.daporkchop.lib.http.response;
  *
  * @author DaPorkchop_
  */
-public interface ResponseBody<V> extends ResponseHeaders {
+public interface ResponseBody<V> extends ResponseHeaders<V> {
     /**
      * Gets the final, aggregated value of the response.
      * <p>

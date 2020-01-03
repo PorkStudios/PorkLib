@@ -18,12 +18,12 @@ package net.daporkchop.lib.minecraft.world.format.anvil.region.impl;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import lombok.NonNull;
+import net.daporkchop.lib.binary.netty.PUnpooled;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.AbstractRegionFile;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.RegionConstants;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.RegionOpenOptions;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.ex.CorruptedRegionException;
-import sun.nio.ch.DirectBuffer;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,15 +37,13 @@ import java.nio.channels.FileChannel;
  * @author DaPorkchop_
  */
 public final class MemoryMappedRegionFile extends AbstractRegionFile {
-    protected final MappedByteBuffer map;
-    protected final ByteBuf nettyBuf;
+    protected final ByteBuf          buf;
 
     public MemoryMappedRegionFile(@NonNull File file, @NonNull RegionOpenOptions options) throws IOException {
         super(file, options);
 
-        this.map = this.channel.map(FileChannel.MapMode.READ_ONLY, 0L, this.channel.size());
-        this.nettyBuf = Unpooled.wrappedBuffer(this.map);
-        this.map.load();
+        MappedByteBuffer map = this.channel.map(FileChannel.MapMode.READ_ONLY, 0L, this.channel.size());
+        this.buf = PUnpooled.wrap(map.load(), true);
     }
 
     @Override
@@ -55,23 +53,28 @@ public final class MemoryMappedRegionFile extends AbstractRegionFile {
 
     @Override
     protected ByteBuf headersBuf() {
-        return this.nettyBuf;
+        return this.buf;
     }
 
     @Override
-    protected ByteBuf doRead(int x, int z, int offsetIndex) throws IOException {
-        int offset = this.nettyBuf.getInt(offsetIndex);
+    protected ByteBuf doRead(int x, int z, int offsetIndex, int offset) throws IOException {
         int pos = (offset >>> 8) * RegionConstants.SECTOR_BYTES;
-        int length = this.map.getInt(pos);
+        int length = this.buf.getInt(pos);
         int maxLength = ((offset & 0xFF) * RegionConstants.SECTOR_BYTES) - RegionConstants.LENGTH_HEADER_SIZE;
         if (length < 0 || length > maxLength) {
             throw new CorruptedRegionException(String.format("Length at sector %d (offset %d) is %d! (should be max. %d)", offset >>> 8, pos, length, maxLength));
         }
-        return this.nettyBuf.retainedSlice(pos + RegionConstants.LENGTH_HEADER_SIZE, length);
+        return this.buf.retainedSlice(pos + RegionConstants.LENGTH_HEADER_SIZE, length).asReadOnly();
     }
 
     @Override
-    protected void handleDelete(int x, int z, int startIndex, int length) {
+    protected void doWrite(int x, int z, int offsetIndex, ByteBuf chunk, int requiredSectors) throws IOException {
+        //shouldn't ever be called
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    protected void doDelete(int x, int z, int startIndex, int length, boolean erase) throws IOException {
         //shouldn't ever be called
         throw new UnsupportedOperationException();
     }
@@ -84,8 +87,7 @@ public final class MemoryMappedRegionFile extends AbstractRegionFile {
 
     @Override
     protected void doClose() throws IOException {
-        //for whatever reason this refuses to actually free the memory, i don't want to waste any more time on this now so there you go
-        PorkUtil.release(this.map);
+        this.buf.release();
     }
 
     @Override

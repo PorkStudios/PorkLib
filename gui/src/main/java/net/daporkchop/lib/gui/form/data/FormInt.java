@@ -137,6 +137,30 @@ public class FormInt extends AbstractFormValue<FormType.Int> {
     }
 
     @Override
+    protected void doLoadFrom(@NonNull Object o, @NonNull Component component) {
+        switch (this.annotation.type())    {
+            case SPINNER: {
+                if (component instanceof Spinner) {
+                    ((Spinner) component).setValue(this.field.getInt(o));
+                } else {
+                    throw new IllegalStateException(String.format("Component \"%s\" is not a spinner: %s!", this.componentName, component.getClass().getCanonicalName()));
+                }
+            }
+            break;
+            case SLIDER: {
+                if (component instanceof Slider) {
+                    ((Slider) component).setValue(this.field.getInt(o));
+                } else {
+                    throw new IllegalStateException(String.format("Component \"%s\" is not a slider: %s!", this.componentName, component.getClass().getCanonicalName()));
+                }
+            }
+            break;
+            default:
+                throw new IllegalStateException();
+        }
+    }
+
+    @Override
     public String buildDefault(String prev, @NonNull Container container) {
         Component component;
         switch (this.annotation.type()) {

@@ -23,7 +23,6 @@ import net.daporkchop.lib.math.vector.i.Vec3i;
 import net.daporkchop.lib.minecraft.tileentity.TileEntity;
 import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.minecraft.world.World;
-import net.daporkchop.lib.unsafe.capability.Releasable;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
@@ -61,16 +60,17 @@ public final class VanillaChunkImpl extends AbstractVanillaChunk {
 
     @Override
     protected void doUnload() {
+        super.doUnload();
+
         {
             Map<Vec3i, TileEntity> tes = this.world.loadedTileEntities();
             this.tileEntities.forEach(te -> tes.remove(te.pos(), te));
         }
 
         for (int y = 15; y >= 0; y--) {
-            Section section = this.sections[y];
-            this.sections[y] = null;
-            if (section instanceof Releasable) {
-                ((Releasable) section).release();
+            if (this.sections[y] != null) {
+                this.sections[y].release();
+                this.sections[y] = null;
             }
         }
     }

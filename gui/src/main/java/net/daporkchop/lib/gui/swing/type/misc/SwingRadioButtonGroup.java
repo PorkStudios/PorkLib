@@ -19,6 +19,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.gui.component.state.misc.RadioButtonGroupState;
 import net.daporkchop.lib.gui.component.type.functional.RadioButton;
 import net.daporkchop.lib.gui.component.type.misc.RadioButtonGroup;
+import net.daporkchop.lib.gui.swing.GuiEngineSwing;
 import net.daporkchop.lib.gui.swing.impl.SwingComponent;
 import net.daporkchop.lib.gui.swing.type.functional.SwingRadioButton;
 
@@ -56,19 +57,27 @@ public class SwingRadioButtonGroup extends SwingComponent<RadioButtonGroup, JCom
 
     @Override
     public SwingRadioButtonGroup add(@NonNull RadioButton button) {
-        SwingRadioButton old = this.buttons.put(button.getQualifiedName(), (SwingRadioButton) button);
-        if (old != null)   {
-            this.group.remove(old.getSwing());
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            SwingRadioButton old = this.buttons.put(button.getQualifiedName(), (SwingRadioButton) button);
+            if (old != null) {
+                this.group.remove(old.getSwing());
+            }
+            this.group.add(((SwingRadioButton) button).getSwing());
+        } else {
+            SwingUtilities.invokeLater(() -> this.add(button));
         }
-        this.group.add(((SwingRadioButton) button).getSwing());
         return this;
     }
 
     @Override
     public SwingRadioButtonGroup remove(@NonNull String qualifiedName) {
-        SwingRadioButton old = this.buttons.remove(qualifiedName);
-        if (old != null)    {
-            this.group.remove(old.getSwing());
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            SwingRadioButton old = this.buttons.remove(qualifiedName);
+            if (old != null) {
+                this.group.remove(old.getSwing());
+            }
+        } else {
+            SwingUtilities.invokeLater(() -> this.remove(qualifiedName));
         }
         return this;
     }

@@ -20,6 +20,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.gui.component.Element;
 import net.daporkchop.lib.gui.component.impl.AbstractElement;
 import net.daporkchop.lib.gui.component.state.ElementState;
+import net.daporkchop.lib.gui.swing.GuiEngineSwing;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 import net.daporkchop.lib.gui.util.math.Size;
 
@@ -40,9 +41,13 @@ public abstract class SwingElement<Impl extends Element, Swing extends java.awt.
     @Override
     @SuppressWarnings("unchecked")
     public Impl setVisible(boolean state) {
-        if (state != this.swing.isVisible())  {
-            this.swing.setVisible(state);
-            this.fireStateChange();
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            if (state != this.swing.isVisible()) {
+                this.swing.setVisible(state);
+                this.fireStateChange();
+            }
+        } else {
+            SwingUtilities.invokeLater(() -> this.setVisible(state));
         }
         return (Impl) this;
     }

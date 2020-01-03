@@ -15,7 +15,8 @@
 
 package net.daporkchop.lib.common.function.io;
 
-import net.daporkchop.lib.common.util.PConstants;
+import net.daporkchop.lib.common.function.plain.TriFunction;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
 import java.util.function.BiFunction;
@@ -27,12 +28,14 @@ import java.util.function.Function;
  * @author DaPorkchop_
  */
 @FunctionalInterface
-public interface IOTriFunction<T, U, V, R> extends PConstants {
+public interface IOTriFunction<T, U, V, R> extends TriFunction<T, U, V, R> {
+    @Override
     default R apply(T t, U u, V v) {
         try {
             return this.applyThrowing(t, u, v);
         } catch (IOException e) {
-            throw this.exception(e);
+            PUnsafe.throwException(e);
+            throw new RuntimeException(e);
         }
     }
 

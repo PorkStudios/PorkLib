@@ -18,6 +18,7 @@ package net.daporkchop.lib.gui.swing.type.functional;
 import lombok.NonNull;
 import net.daporkchop.lib.gui.component.state.functional.SpinnerState;
 import net.daporkchop.lib.gui.component.type.functional.Spinner;
+import net.daporkchop.lib.gui.swing.GuiEngineSwing;
 import net.daporkchop.lib.gui.swing.common.SwingMouseListener;
 import net.daporkchop.lib.gui.swing.impl.SwingComponent;
 
@@ -58,8 +59,12 @@ public class SwingSpinner extends SwingComponent<Spinner, JSpinner, SpinnerState
 
     @Override
     public Spinner setValueD(double val) {
-        if (val != this.getValueD())    {
-            this.swing.setValue(this.value = val);
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            if (val != this.getValueD()) {
+                this.swing.setValue(this.value = val);
+            }
+        } else {
+            SwingUtilities.invokeLater(() -> this.setValueD(val));
         }
         return this;
     }
@@ -71,9 +76,13 @@ public class SwingSpinner extends SwingComponent<Spinner, JSpinner, SpinnerState
 
     @Override
     public Spinner setMaxValueD(double val) {
-        if (this.max != val)    {
-            this.max = val;
-            this.updateModel();
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            if (this.max != val) {
+                this.max = val;
+                this.updateModel();
+            }
+        } else {
+            SwingUtilities.invokeLater(() -> this.setMaxValueD(val));
         }
         return this;
     }
@@ -85,9 +94,13 @@ public class SwingSpinner extends SwingComponent<Spinner, JSpinner, SpinnerState
 
     @Override
     public Spinner setMinValueD(double val) {
-        if (this.min != val)    {
-            this.min = val;
-            this.updateModel();
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            if (this.min != val) {
+                this.min = val;
+                this.updateModel();
+            }
+        } else {
+            SwingUtilities.invokeLater(() -> this.setMinValueD(val));
         }
         return this;
     }
@@ -99,30 +112,42 @@ public class SwingSpinner extends SwingComponent<Spinner, JSpinner, SpinnerState
 
     @Override
     public Spinner setStepD(double step) {
-        if (this.step != step)    {
-            this.step = step;
-            this.updateModel();
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            if (this.step != step) {
+                this.step = step;
+                this.updateModel();
+            }
+        } else {
+            SwingUtilities.invokeLater(() -> this.setStepD(step));
         }
         return this;
     }
 
     @Override
     public Spinner setLimitsD(double min, double max) {
-        if (this.min != min || this.max != max) {
-            this.min = min;
-            this.max = max;
-            this.updateModel();
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            if (this.min != min || this.max != max) {
+                this.min = min;
+                this.max = max;
+                this.updateModel();
+            }
+        } else {
+            SwingUtilities.invokeLater(() -> this.setLimitsD(min, max));
         }
         return this;
     }
 
     @Override
     public Spinner setValAndLimitsD(double val, double min, double max) {
-        if (this.value != this.getValueD() || this.min != min || this.max != max) {
-            this.value = val;
-            this.min = min;
-            this.max = max;
-            this.updateModel();
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            if (this.value != this.getValueD() || this.min != min || this.max != max) {
+                this.value = val;
+                this.min = min;
+                this.max = max;
+                this.updateModel();
+            }
+        } else {
+            SwingUtilities.invokeLater(() -> this.setValAndLimitsD(val, min, max));
         }
         return this;
     }

@@ -20,10 +20,10 @@ import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.Endianess;
-import net.daporkchop.lib.binary.netty.NettyByteBufOut;
-import net.daporkchop.lib.binary.netty.NettyUtil;
+import net.daporkchop.lib.binary.stream.netty.NettyByteBufOut;
+import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.binary.stream.data.StreamOut;
+import net.daporkchop.lib.binary.stream.stream.StreamOut;
 import net.daporkchop.lib.encoding.ToBytes;
 import net.daporkchop.lib.encoding.compression.CompressionHelper;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.ex.CorruptedRegionException;
@@ -55,6 +55,8 @@ public interface RegionFile extends AutoCloseable {
      */
     static RegionFile open(@NonNull File file, @NonNull RegionOpenOptions options) throws CorruptedRegionException, IOException {
         switch (options.mode)   {
+            case STANDARD:
+                return new OverclockedRegionFile(file, options);
             case BUFFER_FULL:
                 return new BufferedRegionFile(file, options);
             case MMAP_FULL:
@@ -76,7 +78,7 @@ public interface RegionFile extends AutoCloseable {
         if (buf == null) {
             return null;
         } else {
-            InputStream in = NettyUtil.wrapIn(buf, true);
+            DataIn in = DataIn.wrap(buf, true);
             byte compressionId = buf.readByte();
             return compressionId == RegionConstants.ID_NONE ? in : RegionConstants.COMPRESSION_IDS.get(compressionId).inflate(in);
         }
@@ -132,7 +134,7 @@ public interface RegionFile extends AutoCloseable {
 
         ByteBuf buf = PooledByteBufAllocator.DEFAULT.ioBuffer(RegionConstants.SECTOR_BYTES << 2).writeInt(-1).writeByte(compressionId);
 
-        OutputStream out = NettyUtil.wrapOut(buf);
+        OutputStream out = DataOut.wrap(buf);
         OutputStream compressedOut = compression.deflate(out);
 
         if (out == compressedOut)   {

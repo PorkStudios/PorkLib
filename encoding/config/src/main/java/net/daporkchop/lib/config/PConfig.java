@@ -20,7 +20,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.common.util.PConstants;
 import net.daporkchop.lib.config.attribute.Comment;
 import net.daporkchop.lib.config.decoder.ConfigDecoder;
 import net.daporkchop.lib.config.util.Element;
@@ -130,7 +129,7 @@ public class PConfig {
                                 | NoSuchMethodException
                                 | IllegalAccessException
                                 | InvocationTargetException e)  {
-                            throw PConstants.p_exception(e);
+                            throw new RuntimeException(e);
                         }
                     } else {
                         switch (entry.getValue().getType()) {

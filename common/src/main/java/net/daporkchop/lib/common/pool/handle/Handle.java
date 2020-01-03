@@ -1,0 +1,47 @@
+/*
+ * Adapted from the Wizardry License
+ *
+ * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ *
+ * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
+ *
+ * The persons and/or organizations are also disallowed from sub-licensing and/or trademarking this software without explicit permission from DaPorkchop_.
+ *
+ * Any persons and/or organizations using this software must disclose their source code and have it publicly available, include this license, provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+
+package net.daporkchop.lib.common.pool.handle;
+
+/**
+ * A handle for {@link HandledPool}.
+ * <p>
+ * Wraps a value and returns the value to the pool when closed.
+ *
+ * @author DaPorkchop_
+ */
+public interface Handle<V> extends AutoCloseable {
+    /**
+     * @return the value that this handle belongs to
+     */
+    V value();
+
+    /**
+     * Closes this handle, returning the value to the pool.
+     * <p>
+     * Note that handle instances may be re-used as well, so calling this method more than once may produce unexpected results instead of throwing an
+     * exception.
+     * <p>
+     * If this method is never called, this handle and the associated value will never be returned to the pool, and will simply be garbage-collected
+     * as normal.
+     */
+    @Override
+    void close();
+
+    /**
+     * @return the {@link HandledPool} that this handle belongs to
+     */
+    HandledPool<V> pool();
+}

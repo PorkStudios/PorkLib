@@ -21,6 +21,8 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.encoding.compression.CompressionHelper;
+import net.daporkchop.lib.nbt.alloc.DefaultNBTArrayAllocator;
+import net.daporkchop.lib.nbt.alloc.NBTArrayAllocator;
 import net.daporkchop.lib.nbt.tag.Tag;
 import net.daporkchop.lib.nbt.tag.TagRegistry;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
@@ -36,25 +38,46 @@ import java.util.function.Function;
  *
  * @author DaPorkchop_
  */
+@Accessors(fluent = true)
 public final class NBTInputStream extends DataIn {
     protected final DataIn in;
     protected final TagRegistry defaultRegistry;
 
+    @Getter
+    protected final NBTArrayAllocator alloc;
+
     public NBTInputStream(@NonNull InputStream in) throws IOException {
-        this(in, Compression.NONE, TagRegistry.NOTCHIAN);
+        this(in, Compression.NONE, TagRegistry.NOTCHIAN, DefaultNBTArrayAllocator.INSTANCE);
     }
 
     public NBTInputStream(@NonNull InputStream in, @NonNull CompressionHelper compression) throws IOException {
-        this(in, compression, TagRegistry.NOTCHIAN);
+        this(in, compression, TagRegistry.NOTCHIAN, DefaultNBTArrayAllocator.INSTANCE);
     }
 
     public NBTInputStream(@NonNull InputStream in, @NonNull TagRegistry registry) throws IOException {
-        this(in, Compression.NONE, registry);
+        this(in, Compression.NONE, registry, DefaultNBTArrayAllocator.INSTANCE);
     }
 
     public NBTInputStream(@NonNull InputStream in, @NonNull CompressionHelper compression, @NonNull TagRegistry registry) throws IOException {
+        this(in, compression, registry, DefaultNBTArrayAllocator.INSTANCE);
+    }
+
+    public NBTInputStream(@NonNull InputStream in, @NonNull NBTArrayAllocator alloc) throws IOException {
+        this(in, Compression.NONE, TagRegistry.NOTCHIAN, alloc);
+    }
+
+    public NBTInputStream(@NonNull InputStream in, @NonNull CompressionHelper compression, @NonNull NBTArrayAllocator alloc) throws IOException {
+        this(in, compression, TagRegistry.NOTCHIAN, alloc);
+    }
+
+    public NBTInputStream(@NonNull InputStream in, @NonNull TagRegistry registry, @NonNull NBTArrayAllocator alloc) throws IOException {
+        this(in, Compression.NONE, registry, alloc);
+    }
+
+    public NBTInputStream(@NonNull InputStream in, @NonNull CompressionHelper compression, @NonNull TagRegistry registry, @NonNull NBTArrayAllocator alloc) throws IOException {
         this.in = DataIn.wrap(compression.inflate(in));
         this.defaultRegistry = registry;
+        this.alloc = alloc;
     }
 
     public CompoundTag readTag() throws IOException {

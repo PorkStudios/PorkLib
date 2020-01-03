@@ -36,6 +36,9 @@ public interface ProgressBar extends Component<ProgressBar, ProgressBarState> {
     int getEnd();
     ProgressBar setEnd(int end);
 
+    default ProgressBar step() { return this.setProgress(this.getProgress() + 1); }
+    default ProgressBar step(int step) { return this.setProgress(this.getProgress() + step); }
+
     boolean isInfinite();
     ProgressBar setInfinite(boolean infinite);
 }

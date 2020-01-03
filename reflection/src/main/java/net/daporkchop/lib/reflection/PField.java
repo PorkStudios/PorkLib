@@ -30,7 +30,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.Map;
 
-import static net.daporkchop.lib.common.util.PConstants.p_exception;
 import static net.daporkchop.lib.unsafe.PUnsafe.*;
 
 /**
@@ -57,7 +56,7 @@ public class PField<V> implements Accessible, AnnotationHolder {
         try {
             return of(clazz.getDeclaredField(name));
         } catch (NoSuchFieldException e) {
-            throw p_exception(e);
+            throw new RuntimeException(e);
         }
     }
 

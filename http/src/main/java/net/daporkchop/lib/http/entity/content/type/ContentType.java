@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -28,8 +28,7 @@ import java.util.regex.Pattern;
  * @see <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type">Content-Type at Mozilla</a>
  */
 public interface ContentType {
-    Pattern _PATTERN_SIMPLE_CONTENT_TYPE  = Pattern.compile("^([a-z0-9-]+\\/[a-z0-9-]+)$");
-    Pattern _PATTERN_CHARSET_CONTENT_TYPE = Pattern.compile("^([a-z0-9-]+\\/[a-z0-9-]+); ?charset=([a-zA-Z0-9-]+)$");
+    Pattern _PATTERN_SIMPLE_CONTENT_TYPE  = Pattern.compile("^([a-z0-9-]+\\/[a-z0-9-]+)(; ?charset=([a-zA-Z0-9-]+))?$");
 
     /**
      * Parses a {@link ContentType} from the formatted value (as would be found in an HTTP header).
@@ -39,11 +38,9 @@ public interface ContentType {
      * @throws IllegalArgumentException if the given value could not be parsed as a valid {@link ContentType}
      */
     static ContentType parse(@NonNull CharSequence contentType) throws IllegalArgumentException {
-        Matcher matcher;
-        if ((matcher = _PATTERN_SIMPLE_CONTENT_TYPE.matcher(contentType)).matches()) {
-            return of(contentType.toString());
-        } else if ((matcher = _PATTERN_CHARSET_CONTENT_TYPE.matcher(contentType)).matches()) {
-            return of(matcher.group(1), matcher.group(2));
+        Matcher matcher = _PATTERN_SIMPLE_CONTENT_TYPE.matcher(contentType);
+        if (matcher.matches()) {
+            return of(matcher.group(1), matcher.group(3)); //group 3 will be null if not found
         } else {
             throw new IllegalArgumentException(String.format("Invalid content type: \"%s\"!", contentType));
         }

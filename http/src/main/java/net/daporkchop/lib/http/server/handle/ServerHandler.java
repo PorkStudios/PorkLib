@@ -13,43 +13,44 @@
  *
  */
 
-package net.daporkchop.lib.http.entity;
+package net.daporkchop.lib.http.server.handle;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.http.entity.content.type.ContentType;
-import net.daporkchop.lib.http.entity.transfer.ByteBufTransferSession;
-import net.daporkchop.lib.http.entity.transfer.ByteBufferTransferSession;
-import net.daporkchop.lib.http.entity.transfer.TransferSession;
-
-import java.nio.ByteBuffer;
+import net.daporkchop.lib.http.HttpMethod;
+import net.daporkchop.lib.http.header.map.HeaderMap;
+import net.daporkchop.lib.http.server.HttpServer;
+import net.daporkchop.lib.http.server.ResponseBuilder;
 
 /**
- * A simple implementation of {@link HttpEntity} that stores data in a {@code byte[]}.
+ * Handles events on a HTTP server.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-public final class ByteArrayHttpEntity implements HttpEntity {
-    @NonNull
-    protected final ContentType type;
-    @NonNull
-    protected final byte[]      data;
-
-    @Override
-    public long length() throws Exception {
-        return this.data.length;
+public interface ServerHandler {
+    /**
+     * Fired when this handler is set as the handler for a {@link HttpServer}.
+     *
+     * @param server the {@link HttpServer} that this handler is now the handler of
+     */
+    default void added(@NonNull HttpServer server) {
     }
 
-    @Override
-    public TransferSession newSession() throws Exception {
-        return new ByteBufferTransferSession(ByteBuffer.wrap(this.data));
+    /**
+     * Fired when this handler is no longer the handler for a {@link HttpServer}.
+     *
+     * @param server the {@link HttpServer} that this handler was removed from
+     */
+    default void removed(@NonNull HttpServer server) {
     }
+
+    /**
+     * Handles an incoming request.
+     *
+     * @param method   the {@link HttpMethod} that the request was sent by
+     * @param url      the url that the client is requesting
+     * @param headers  the headers sent with the request
+     * @param response a {@link ResponseBuilder} for sending a response
+     * @throws Exception if an exception occurs while handling the request
+     */
+    void handle(@NonNull HttpMethod method, @NonNull String url, @NonNull HeaderMap headers, @NonNull ResponseBuilder response) throws Exception;
 }

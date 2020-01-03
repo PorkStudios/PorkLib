@@ -15,58 +15,46 @@
 
 package net.daporkchop.lib.http.entity.transfer;
 
-import lombok.AllArgsConstructor;
+import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.common.util.PorkUtil;
 
-import java.io.IOException;
-import java.nio.channels.FileChannel;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 
 /**
- * A simple {@link TransferSession} that reads data from a {@link FileChannel}.
+ * A simple {@link TransferSession} that simply returns data stored in a single {@link ByteBuf}.
  *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-public final class FileChannelTransferSession implements TransferSession {
-    protected final long size;
-    protected       long position;
-
+@RequiredArgsConstructor
+public final class ByteBufferTransferSession implements TransferSession {
     @NonNull
-    protected final FileChannel channel;
-
-    public FileChannelTransferSession(@NonNull FileChannel channel) throws IOException {
-        this(channel.size(), 0L, channel);
-    }
+    protected ByteBuffer buffer;
 
     @Override
     public long transfer(@NonNull WritableByteChannel out) throws Exception {
-        long position = this.position;
-        long transferred = this.channel.transferTo(position, this.channel.size() - position, out);
-        if (transferred > 0L) {
-            this.position = position + transferred;
-        }
-        return transferred;
+        return out.write(this.buffer);
     }
 
     @Override
     public long transferAllBlocking(@NonNull WritableByteChannel out) throws Exception {
-        long size = this.channel.size();
-        long position = this.position;
-        while (position < size) {
-            long transferred = this.channel.transferTo(position, size - position, out);
-            position += transferred;
-        }
-        return this.position = size;
+        int readable = this.buffer.remaining();
+        do {
+            out.write(this.buffer);
+        } while (this.buffer.hasRemaining());
+        return readable;
     }
 
     @Override
     public boolean complete() {
-        return this.position >= this.size;
+        return !this.buffer.hasRemaining();
     }
 
     @Override
     public void close() throws Exception {
-        this.channel.close();
+        this.buffer = null;
     }
 }

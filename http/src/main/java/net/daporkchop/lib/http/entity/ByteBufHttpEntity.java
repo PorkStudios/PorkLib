@@ -24,10 +24,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.entity.content.type.ContentType;
 import net.daporkchop.lib.http.entity.transfer.ByteBufTransferSession;
-import net.daporkchop.lib.http.entity.transfer.ByteBufferTransferSession;
 import net.daporkchop.lib.http.entity.transfer.TransferSession;
-
-import java.nio.ByteBuffer;
 
 /**
  * A simple implementation of {@link HttpEntity} that stores data in a {@code byte[]}.
@@ -37,19 +34,19 @@ import java.nio.ByteBuffer;
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public final class ByteArrayHttpEntity implements HttpEntity {
+public final class ByteBufHttpEntity implements HttpEntity {
     @NonNull
     protected final ContentType type;
     @NonNull
-    protected final byte[]      data;
+    protected final ByteBuf     data;
 
     @Override
     public long length() throws Exception {
-        return this.data.length;
+        return this.data.readableBytes();
     }
 
     @Override
     public TransferSession newSession() throws Exception {
-        return new ByteBufferTransferSession(ByteBuffer.wrap(this.data));
+        return new ByteBufTransferSession(Unpooled.wrappedBuffer(this.data));
     }
 }

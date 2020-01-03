@@ -13,43 +13,23 @@
  *
  */
 
-package net.daporkchop.lib.http.entity;
+package net.daporkchop.lib.http.server;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.http.entity.content.type.ContentType;
-import net.daporkchop.lib.http.entity.transfer.ByteBufTransferSession;
-import net.daporkchop.lib.http.entity.transfer.ByteBufferTransferSession;
-import net.daporkchop.lib.http.entity.transfer.TransferSession;
-
-import java.nio.ByteBuffer;
+import java.net.InetSocketAddress;
 
 /**
- * A simple implementation of {@link HttpEntity} that stores data in a {@code byte[]}.
+ * A binding of an {@link HttpServer} to an {@link InetSocketAddress}.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-public final class ByteArrayHttpEntity implements HttpEntity {
-    @NonNull
-    protected final ContentType type;
-    @NonNull
-    protected final byte[]      data;
+public interface HttpServerBinding {
+    /**
+     * @return the {@link HttpServer} that this binding belongs to
+     */
+    HttpServer server();
 
-    @Override
-    public long length() throws Exception {
-        return this.data.length;
-    }
-
-    @Override
-    public TransferSession newSession() throws Exception {
-        return new ByteBufferTransferSession(ByteBuffer.wrap(this.data));
-    }
+    /**
+     * @return the {@link InetSocketAddress} that this binding is bound to
+     */
+    InetSocketAddress localAddress();
 }

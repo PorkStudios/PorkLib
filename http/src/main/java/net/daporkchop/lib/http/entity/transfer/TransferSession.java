@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -18,6 +18,8 @@ package net.daporkchop.lib.http.entity.transfer;
 import lombok.NonNull;
 
 import java.io.OutputStream;
+import java.nio.channels.GatheringByteChannel;
+import java.nio.channels.WritableByteChannel;
 
 /**
  * Handles the actual process of transferring the HTTP entity's data to a single remote peer.
@@ -27,17 +29,30 @@ import java.io.OutputStream;
  *
  * @author DaPorkchop_
  */
-//TODO: add some other transfer methods here so as to make chunked transfer something useful
 //implementing this later on netty won't be too useful if TransferSession is hogging all the worker threads
 public interface TransferSession extends AutoCloseable {
     /**
-     * Transfers the entire HTTP entity to the given {@link OutputStream} in a blocking fashion, simply waiting until all bytes are written.
+     * Transfers a number of bytes to the given {@link WritableByteChannel}.
      *
-     * @param out the {@link OutputStream} to write data to
+     * @param out the {@link WritableByteChannel} to write data to
+     * @return the number of bytes transferred
+     * @throws Exception if an exception occurs while transferring the data
+     */
+    long transfer(@NonNull WritableByteChannel out) throws Exception;
+
+    /**
+     * Transfers the entire HTTP entity to the given {@link WritableByteChannel} in a blocking fashion, simply waiting until all bytes are written.
+     *
+     * @param out the {@link WritableByteChannel} to write data to
      * @return the total number of bytes transferred
      * @throws Exception if an exception occurs while transferring the data
      */
-    long transferAllBlocking(@NonNull OutputStream out) throws Exception;
+    long transferAllBlocking(@NonNull WritableByteChannel out) throws Exception;
+
+    /**
+     * @return whether or not this transfer is complete
+     */
+    boolean complete();
 
     /**
      * Closes this {@link TransferSession} instance.

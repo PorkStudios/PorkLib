@@ -13,43 +13,50 @@
  *
  */
 
-package net.daporkchop.lib.http.entity;
+package net.daporkchop.lib.http.server;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import lombok.AccessLevel;
-import lombok.Getter;
+import io.netty.util.concurrent.Future;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.http.entity.content.type.ContentType;
-import net.daporkchop.lib.http.entity.transfer.ByteBufTransferSession;
-import net.daporkchop.lib.http.entity.transfer.ByteBufferTransferSession;
-import net.daporkchop.lib.http.entity.transfer.TransferSession;
+import net.daporkchop.lib.http.server.handle.ServerHandler;
 
-import java.nio.ByteBuffer;
+import java.net.InetSocketAddress;
 
 /**
- * A simple implementation of {@link HttpEntity} that stores data in a {@code byte[]}.
+ * A representation of an HTTP server.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-public final class ByteArrayHttpEntity implements HttpEntity {
-    @NonNull
-    protected final ContentType type;
-    @NonNull
-    protected final byte[]      data;
+public interface HttpServer {
+    /**
+     * @return the {@link ServerHandler} currently in use
+     */
+    ServerHandler handler();
 
-    @Override
-    public long length() throws Exception {
-        return this.data.length;
-    }
+    /**
+     * Sets the {@link ServerHandler} used by this server.
+     *
+     * @param handler the new {@link ServerHandler} to use
+     * @return this {@link HttpServer} instance
+     */
+    HttpServer handler(@NonNull ServerHandler handler);
 
-    @Override
-    public TransferSession newSession() throws Exception {
-        return new ByteBufferTransferSession(ByteBuffer.wrap(this.data));
-    }
+    /**
+     * Binds this {@link HttpServer} to a local address to accept incoming connections.
+     *
+     * @param address the local address to bind to
+     * @return a {@link Future} that will be notified once the bind operation is complete
+     */
+    Future<HttpServerBinding> bind(@NonNull InetSocketAddress address);
+
+    /**
+     * Closes this {@link HttpServer}, disconnecting all connections, releasing any allocated resources and preventing further requests from being accepted.
+     *
+     * @return a {@link Future} which will be notified when the close operation has been completed
+     */
+    Future<Void> close();
+
+    /**
+     * @return a {@link Future} which will be notified when this {@link HttpServer} instance has been closed
+     */
+    Future<Void> closeFuture();
 }

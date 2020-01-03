@@ -49,6 +49,8 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.channels.Channels;
+import java.nio.channels.WritableByteChannel;
 import java.util.List;
 
 /**
@@ -169,7 +171,7 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
 
                     //send body
                     try (TransferSession session = entity.newSession();
-                         OutputStream out = this.connection.getOutputStream()) {
+                         WritableByteChannel out = Channels.newChannel(this.connection.getOutputStream())) {
                         long transferred = session.transferAllBlocking(out);
                         if (transferred < 0L) {
                             throw new IllegalStateException(String.format("Transferred %d bytes (negative?!?)", transferred));

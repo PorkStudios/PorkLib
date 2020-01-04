@@ -19,12 +19,16 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import net.daporkchop.lib.http.header.map.ArrayHeaderMap;
+import net.daporkchop.lib.http.request.query.Query;
+import net.daporkchop.lib.http.util.StatusCodes;
+import net.daporkchop.lib.http.util.exception.GenericHttpException;
 
 /**
  * @author DaPorkchop_
  */
 public final class RequestHeaderDecoder extends ChannelInboundHandlerAdapter {
     protected ByteBuf buf;
+    protected Query query;
     protected ArrayHeaderMap headers;
 
     @Override
@@ -44,6 +48,8 @@ public final class RequestHeaderDecoder extends ChannelInboundHandlerAdapter {
                 ((ByteBuf) msg).release();
             }
         }
+
+        throw new GenericHttpException(StatusCodes.Im_A_Teapot);
     }
 
     @Override

@@ -33,6 +33,7 @@ import net.daporkchop.lib.http.server.HttpServer;
 import net.daporkchop.lib.http.server.HttpServerBinding;
 import net.daporkchop.lib.http.server.handle.NoopServerHandler;
 import net.daporkchop.lib.http.server.handle.ServerHandler;
+import net.daporkchop.lib.network.nettycommon.PorkNettyHelper;
 import net.daporkchop.lib.network.nettycommon.eventloopgroup.pool.EventLoopGroupPool;
 
 import java.net.InetSocketAddress;
@@ -67,6 +68,10 @@ public final class NettyHttpServer implements HttpServer {
     protected final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     protected volatile boolean closed = false;
+
+    public NettyHttpServer()    {
+        this(PorkNettyHelper.getPoolTCP());
+    }
 
     public NettyHttpServer(@NonNull EventLoopGroupPool loopPool) {
         this.loopPool = loopPool;

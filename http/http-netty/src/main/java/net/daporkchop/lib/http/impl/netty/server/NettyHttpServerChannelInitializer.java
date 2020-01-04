@@ -19,6 +19,8 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.http.impl.netty.server.codec.HttpServerExceptionHandler;
+import net.daporkchop.lib.http.impl.netty.server.codec.RequestHeaderDecoder;
 
 /**
  * @author DaPorkchop_
@@ -31,5 +33,9 @@ public final class NettyHttpServerChannelInitializer extends ChannelInitializer<
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
         this.server.channels.add(ch);
+
+        ch.pipeline()
+                .addLast("decode", new RequestHeaderDecoder())
+                .addLast("exception", new HttpServerExceptionHandler());
     }
 }

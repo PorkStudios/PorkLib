@@ -23,7 +23,7 @@ import net.daporkchop.lib.http.StatusCode;
 import net.daporkchop.lib.http.util.StatusCodes;
 
 /**
- * An {@link HTTPException} containing a user-defined {@link StatusCode} (to avoid having to define implementations of {@link HTTPException} for every HTTP
+ * An {@link HttpException} containing a user-defined {@link StatusCode} (to avoid having to define implementations of {@link HttpException} for every HTTP
  * status code).
  *
  * @author DaPorkchop_
@@ -31,38 +31,44 @@ import net.daporkchop.lib.http.util.StatusCodes;
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public final class GenericHTTPException extends HTTPException {
-    public static final HTTPException Bad_Request                     = new GenericHTTPException(StatusCodes.Bad_Request, false);
-    public static final HTTPException Payload_Too_Large               = new GenericHTTPException(StatusCodes.Payload_Too_Large, false);
-    public static final HTTPException URI_Too_Long                    = new GenericHTTPException(StatusCodes.URI_Too_Long, false);
-    public static final HTTPException Request_Header_Fields_Too_Large = new GenericHTTPException(StatusCodes.Request_Header_Fields_Too_Large, false);
-    public static final HTTPException Internal_Server_Error           = new GenericHTTPException(StatusCodes.Internal_Server_Error, false);
+public final class GenericHttpException extends HttpException {
+    public static final HttpException Bad_Request                     = new GenericHttpException(StatusCodes.Bad_Request, false);
+    public static final HttpException Payload_Too_Large               = new GenericHttpException(StatusCodes.Payload_Too_Large, false);
+    public static final HttpException URI_Too_Long                    = new GenericHttpException(StatusCodes.URI_Too_Long, false);
+    public static final HttpException Request_Header_Fields_Too_Large = new GenericHttpException(StatusCodes.Request_Header_Fields_Too_Large, false);
+    public static final HttpException Internal_Server_Error           = new GenericHttpException(StatusCodes.Internal_Server_Error, false);
 
     @NonNull
     private final StatusCode status;
 
-    public GenericHTTPException(@NonNull StatusCode status, boolean fillInStackTrace) {
+    public GenericHttpException(@NonNull StatusCode status, boolean fillInStackTrace) {
         super(null, null, true, fillInStackTrace);
         this.status = status;
     }
 
-    public GenericHTTPException(@NonNull StatusCode status, String s) {
+    public GenericHttpException(@NonNull StatusCode status, String s) {
         super(s);
         this.status = status;
     }
 
-    public GenericHTTPException(@NonNull StatusCode status, String s, Throwable throwable) {
+    public GenericHttpException(@NonNull StatusCode status, String s, Throwable throwable) {
         super(s, throwable);
         this.status = status;
     }
 
-    public GenericHTTPException(@NonNull StatusCode status, Throwable throwable) {
+    public GenericHttpException(@NonNull StatusCode status, Throwable throwable) {
         super(throwable);
         this.status = status;
     }
 
-    protected GenericHTTPException(@NonNull StatusCode status, String s, Throwable throwable, boolean noSuppress, boolean fillInStackTrace) {
+    protected GenericHttpException(@NonNull StatusCode status, String s, Throwable throwable, boolean noSuppress, boolean fillInStackTrace) {
         super(s, throwable, noSuppress, fillInStackTrace);
         this.status = status;
+    }
+
+    @Override
+    public String getMessage() {
+        String message = super.getMessage();
+        return message == null ? String.format("%d %s", this.status.code(), this.status.msg()) : message;
     }
 }

@@ -22,6 +22,7 @@ import net.daporkchop.lib.http.header.Header;
 import net.daporkchop.lib.http.header.MultiHeaderImpl;
 import net.daporkchop.lib.http.header.SingletonHeaderImpl;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 
@@ -56,7 +57,7 @@ public final class ArrayHeaderMap implements HeaderMap {
 
     @Override
     public Header get(@NonNull String key) {
-        int index = this.findIndex(key);
+        int index = this.findIndex(key.toLowerCase());
         return index < 0 ? null : this.headerAt(index);
     }
 
@@ -77,20 +78,35 @@ public final class ArrayHeaderMap implements HeaderMap {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public void append(@NonNull String key, @NonNull String value) {
-        int index = this.size++;
-        if (index == (this.data.length >> 1)) {
-            //expand array
-            Object[] newArray = new Object[this.data.length << 1];
-            System.arraycopy(this.data, 0, newArray, 0, this.data.length);
-            this.data = newArray;
+        int index = this.findIndex(key.toLowerCase());
+        if (index < 0)  {
+            //no header with a matching key exists
+            index = this.size++;
+            if (index == (this.data.length >> 1)) {
+                //expand array
+                Object[] newArray = new Object[this.data.length << 1];
+                System.arraycopy(this.data, 0, newArray, 0, this.data.length);
+                this.data = newArray;
+            }
+            this.data[index <<= 1] = key;
+            this.data[index + 1] = value;
+        } else {
+            //header with the given key already exists
+            Object existingValue = this.data[(index << 1) + 1];
+            List<String> list;
+            if (existingValue instanceof String)    {
+                this.data[(index << 1) + 1] = list = new ArrayList<>(4);
+                list.add((String) existingValue);
+            } else {
+                list = (List<String>) existingValue;
+            }
+            list.add(value);
         }
-        this.data[index <<= 1] = key;
-        this.data[index + 1] = value;
     }
 
     protected int findIndex(@NonNull String key) {
-        key = key.toLowerCase();
         for (int i = 0, size = this.size; i < size; i++) {
             if (key.equals(this.data[i << 1])) {
                 return i;

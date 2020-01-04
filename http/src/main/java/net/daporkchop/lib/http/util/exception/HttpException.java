@@ -13,22 +13,41 @@
  *
  */
 
-package net.daporkchop.lib.http.server.handle;
+package net.daporkchop.lib.http.util.exception;
 
-import lombok.NonNull;
-import net.daporkchop.lib.http.header.map.HeaderMap;
-import net.daporkchop.lib.http.request.query.Query;
-import net.daporkchop.lib.http.server.ResponseBuilder;
-import net.daporkchop.lib.http.util.StatusCodes;
+import net.daporkchop.lib.http.StatusCode;
 
 /**
- * An implementation of {@link ServerHandler} that simply replies with {@link StatusCodes#OK}.
+ * An exception generated in the HTTP codec pipeline.
  *
  * @author DaPorkchop_
  */
-public final class NoopServerHandler implements ServerHandler {
-    @Override
-    public void handle(@NonNull Query query, @NonNull HeaderMap headers, @NonNull ResponseBuilder response) throws Exception {
-        response.status(StatusCodes.OK);
+public abstract class HttpException extends Exception {
+    public HttpException() {
+        super();
     }
+
+    public HttpException(String s) {
+        super(s);
+    }
+
+    public HttpException(String s, Throwable throwable) {
+        super(s, throwable);
+    }
+
+    public HttpException(Throwable throwable) {
+        super(throwable);
+    }
+
+    protected HttpException(String s, Throwable throwable, boolean noSuppress, boolean fillInStackTrace) {
+        super(s, throwable, noSuppress, fillInStackTrace);
+    }
+
+    /**
+     * Gets a (possibly {@code null}) {@link StatusCode} associated with this exception.
+     *
+     * This may be used by other pipeline members to help describe the issue better.
+     * @return a (possibly {@code null}) {@link StatusCode} associated with this exception
+     */
+    public abstract StatusCode status();
 }

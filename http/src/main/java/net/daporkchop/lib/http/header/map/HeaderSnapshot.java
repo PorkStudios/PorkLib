@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -19,7 +19,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.common.function.PFunctions;
 import net.daporkchop.lib.http.header.Header;
 import net.daporkchop.lib.http.header.SingletonHeaderImpl;
-import net.daporkchop.lib.http.util.exception.HTTPException;
+import net.daporkchop.lib.http.util.exception.HttpException;
 import net.daporkchop.lib.http.util.exception.MalformedResponseException;
 
 import java.util.Arrays;
@@ -54,11 +54,11 @@ public final class HeaderSnapshot implements HeaderMap {
                 : null;
     }
 
-    public HeaderSnapshot(@NonNull Stream<Header> source) throws HTTPException {
+    public HeaderSnapshot(@NonNull Stream<Header> source) throws HttpException {
         this(source, true);
     }
 
-    public HeaderSnapshot(@NonNull Stream<Header> source, boolean map) throws HTTPException {
+    public HeaderSnapshot(@NonNull Stream<Header> source, boolean map) throws HttpException {
         this.value = source.filter(Objects::nonNull).toArray(Header[]::new);
 
         //regardless of whether or not we're storing the map, use the map to assert all header keys are distinct

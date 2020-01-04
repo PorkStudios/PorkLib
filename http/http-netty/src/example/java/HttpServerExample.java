@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -13,41 +13,34 @@
  *
  */
 
-package net.daporkchop.lib.http.util.exception;
+import net.daporkchop.lib.http.impl.netty.server.NettyHttpServer;
+import net.daporkchop.lib.http.server.HttpServer;
 
-import net.daporkchop.lib.http.StatusCode;
+import java.net.InetSocketAddress;
+import java.util.Scanner;
 
 /**
- * An exception generated in the HTTP codec pipeline.
- *
  * @author DaPorkchop_
  */
-public abstract class HTTPException extends Exception {
-    public HTTPException() {
-        super();
-    }
+public class HttpServerExample {
+    public static void main(String... args) {
+        HttpServer server = new NettyHttpServer();
 
-    public HTTPException(String s) {
-        super(s);
-    }
+        server.handler((query, headers, response) -> {
+            System.out.println(query);
+            throw new UnsupportedOperationException();
+        });
 
-    public HTTPException(String s, Throwable throwable) {
-        super(s, throwable);
-    }
+        System.out.println("Binding to port 8080...");
+        server.bind(new InetSocketAddress(8080)).syncUninterruptibly();
+        System.out.println("Bound to port!");
 
-    public HTTPException(Throwable throwable) {
-        super(throwable);
-    }
+        try (Scanner scanner = new Scanner(System.in))  {
+            scanner.nextLine();
+        }
 
-    protected HTTPException(String s, Throwable throwable, boolean noSuppress, boolean fillInStackTrace) {
-        super(s, throwable, noSuppress, fillInStackTrace);
+        System.out.println("Closing...");
+        server.close().syncUninterruptibly();
+        System.out.println("Closed!");
     }
-
-    /**
-     * Gets a (possibly {@code null}) {@link StatusCode} associated with this exception.
-     *
-     * This may be used by other pipeline members to help describe the issue better.
-     * @return a (possibly {@code null}) {@link StatusCode} associated with this exception
-     */
-    public abstract StatusCode status();
 }

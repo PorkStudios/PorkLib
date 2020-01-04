@@ -75,7 +75,7 @@ public class PorkUtil {
     );
 
     public final DateFormat DATE_FORMAT     = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-    public final String     PORKLIB_VERSION = "0.4.0-SNAPSHOT";
+    public final String     PORKLIB_VERSION = "0.5.0-SNAPSHOT";
     public final int        CPU_COUNT       = Runtime.getRuntime().availableProcessors();
 
     static {
@@ -289,7 +289,7 @@ public class PorkUtil {
         return PUnsafe.<CharSequence>getObject(matcher, MATCHER_TEXT_OFFSET).subSequence(start, end);
     }
 
-    public void assertInRange(int size, int start, int end) {
+    public void assertInRange(int size, int start, int end) throws IndexOutOfBoundsException {
         if (start < 0) {
             throw new IndexOutOfBoundsException(String.format("start (%d) < 0", start));
         } else if (end > size) {
@@ -299,7 +299,7 @@ public class PorkUtil {
         }
     }
 
-    public void assertInRangeLen(int size, int start, int len) {
+    public void assertInRangeLen(int size, int start, int len) throws IndexOutOfBoundsException {
         assertInRange(size, start, start + len);
     }
 }

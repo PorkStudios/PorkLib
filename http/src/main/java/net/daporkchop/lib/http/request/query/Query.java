@@ -13,43 +13,62 @@
  *
  */
 
-package net.daporkchop.lib.http.server.handle;
+package net.daporkchop.lib.http.request.query;
 
 import lombok.NonNull;
-import net.daporkchop.lib.http.header.map.HeaderMap;
-import net.daporkchop.lib.http.request.query.Query;
-import net.daporkchop.lib.http.server.HttpServer;
-import net.daporkchop.lib.http.server.ResponseBuilder;
+import net.daporkchop.lib.http.HttpMethod;
+
+import java.util.Map;
 
 /**
- * Handles events on a HTTP server.
+ * Representation of an HTTP query.
  *
  * @author DaPorkchop_
  */
-public interface ServerHandler {
+public interface Query {
     /**
-     * Fired when this handler is set as the handler for a {@link HttpServer}.
-     *
-     * @param server the {@link HttpServer} that this handler is now the handler of
+     * @return the {@link HttpMethod} of the query
      */
-    default void added(@NonNull HttpServer server) {
+    HttpMethod method();
+
+    /**
+     * @return the path of the query
+     */
+    String path();
+
+    /**
+     * @return the fragment of the query
+     */
+    String fragment();
+
+    /**
+     * Gets the value of a URL parameter with the given name.
+     *
+     * @param name the name of the URL parameter
+     * @return the value of a URL parameter with the given name, or {@code null} if none was found
+     */
+    default String param(@NonNull String name) {
+        return this.params().get(name);
     }
 
     /**
-     * Fired when this handler is no longer the handler for a {@link HttpServer}.
+     * Gets the value of a URL parameter with the given name.
      *
-     * @param server the {@link HttpServer} that this handler was removed from
+     * @param name     the name of the URL parameter
+     * @param fallback the value to return in case no parameter with the given name could be found
+     * @return the value of a URL parameter with the given name, or the given fallback value if none was found
      */
-    default void removed(@NonNull HttpServer server) {
+    default String param(@NonNull String name, String fallback) {
+        return this.params().getOrDefault(name, fallback);
     }
 
     /**
-     * Handles an incoming request.
-     *
-     * @param query    the client's query
-     * @param headers  the headers sent with the request
-     * @param response a {@link ResponseBuilder} for sending a response
-     * @throws Exception if an exception occurs while handling the request
+     * @return a {@link Map} containing the additional URL parameters
      */
-    void handle(@NonNull Query query, @NonNull HeaderMap headers, @NonNull ResponseBuilder response) throws Exception;
+    Map<String, String> params();
+
+    /**
+     * @return the full query path, including encoded URL parameters
+     */
+    String fullPath();
 }

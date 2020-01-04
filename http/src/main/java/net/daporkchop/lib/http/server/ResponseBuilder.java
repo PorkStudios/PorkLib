@@ -22,6 +22,10 @@ import net.daporkchop.lib.http.entity.ByteBufHttpEntity;
 import net.daporkchop.lib.http.entity.HttpEntity;
 import net.daporkchop.lib.http.entity.content.type.ContentType;
 import net.daporkchop.lib.http.entity.content.type.StandardContentType;
+import net.daporkchop.lib.http.header.Header;
+import net.daporkchop.lib.http.header.map.HeaderMap;
+
+import java.util.List;
 
 /**
  * Used for building a response to an incoming HTTP request.
@@ -36,6 +40,29 @@ public interface ResponseBuilder {
      * @return this {@link ResponseBuilder} instance
      */
     ResponseBuilder status(@NonNull StatusCode status);
+
+    /**
+     * @return a {@link HeaderMap} containing the headers that will be sent with the request
+     */
+    HeaderMap headers();
+
+    /**
+     * @see net.daporkchop.lib.http.header.map.MutableHeaderMap#put(String, String)
+     * @return this {@link ResponseBuilder} instance
+     */
+    ResponseBuilder header(@NonNull String key, @NonNull String value);
+
+    /**
+     * @see net.daporkchop.lib.http.header.map.MutableHeaderMap#put(String, List)
+     * @return this {@link ResponseBuilder} instance
+     */
+    ResponseBuilder header(@NonNull String key, @NonNull List<String> value);
+
+    /**
+     * @see net.daporkchop.lib.http.header.map.MutableHeaderMap#put(Header)
+     * @return this {@link ResponseBuilder} instance
+     */
+    ResponseBuilder header(@NonNull Header header);
 
     /**
      * Sets the body of the response.

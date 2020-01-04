@@ -13,50 +13,25 @@
  *
  */
 
-package net.daporkchop.lib.http.server;
+package net.daporkchop.lib.http.impl.netty.server;
 
-import io.netty.util.concurrent.Future;
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.http.server.handle.ServerHandler;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.http.server.HttpServerBinding;
 
 import java.net.InetSocketAddress;
 
 /**
- * A representation of an HTTP server.
- *
  * @author DaPorkchop_
  */
-public interface HttpServer {
-    /**
-     * @return the {@link ServerHandler} currently in use
-     */
-    ServerHandler handler();
-
-    /**
-     * Sets the {@link ServerHandler} used by this server.
-     *
-     * @param handler the new {@link ServerHandler} to use
-     * @return this {@link HttpServer} instance
-     */
-    HttpServer handler(@NonNull ServerHandler handler);
-
-    /**
-     * Binds this {@link HttpServer} to a local address to accept incoming connections.
-     *
-     * @param address the local address to bind to
-     * @return a {@link Future} that will be notified once the bind operation is complete
-     */
-    Future<?> bind(@NonNull InetSocketAddress address);
-
-    /**
-     * Closes this {@link HttpServer}, disconnecting all connections, releasing any allocated resources and preventing further requests from being accepted.
-     *
-     * @return a {@link Future} which will be notified when the close operation has been completed
-     */
-    Future<Void> close();
-
-    /**
-     * @return a {@link Future} which will be notified when this {@link HttpServer} instance has been closed
-     */
-    Future<Void> closeFuture();
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public final class NettyHttpServerBinding implements HttpServerBinding {
+    @NonNull
+    protected final NettyHttpServer server;
+    @NonNull
+    protected final InetSocketAddress localAddress;
 }

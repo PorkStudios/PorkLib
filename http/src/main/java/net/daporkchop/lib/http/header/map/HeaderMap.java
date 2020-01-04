@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -168,8 +168,7 @@ public interface HeaderMap {
      * @param callback the callback function to run
      */
     default void forEach(@NonNull BiConsumer<String, String> callback) {
-        for (int i = 0, c = this.size(); i < c; i++) {
-            Header header = this.get(i);
+        this.forEach(header -> {
             if (header.singleton()) {
                 callback.accept(header.key(), header.value());
             } else {
@@ -177,6 +176,6 @@ public interface HeaderMap {
                     callback.accept(header.key(), value);
                 }
             }
-        }
+        });
     }
 }

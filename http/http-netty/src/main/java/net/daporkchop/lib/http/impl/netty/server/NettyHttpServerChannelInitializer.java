@@ -13,50 +13,23 @@
  *
  */
 
-package net.daporkchop.lib.http.server;
+package net.daporkchop.lib.http.impl.netty.server;
 
-import io.netty.util.concurrent.Future;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.socket.SocketChannel;
 import lombok.NonNull;
-import net.daporkchop.lib.http.server.handle.ServerHandler;
-
-import java.net.InetSocketAddress;
+import lombok.RequiredArgsConstructor;
 
 /**
- * A representation of an HTTP server.
- *
  * @author DaPorkchop_
  */
-public interface HttpServer {
-    /**
-     * @return the {@link ServerHandler} currently in use
-     */
-    ServerHandler handler();
+@RequiredArgsConstructor
+public final class NettyHttpServerChannelInitializer extends ChannelInitializer<SocketChannel> {
+    @NonNull
+    protected final NettyHttpServer server;
 
-    /**
-     * Sets the {@link ServerHandler} used by this server.
-     *
-     * @param handler the new {@link ServerHandler} to use
-     * @return this {@link HttpServer} instance
-     */
-    HttpServer handler(@NonNull ServerHandler handler);
-
-    /**
-     * Binds this {@link HttpServer} to a local address to accept incoming connections.
-     *
-     * @param address the local address to bind to
-     * @return a {@link Future} that will be notified once the bind operation is complete
-     */
-    Future<?> bind(@NonNull InetSocketAddress address);
-
-    /**
-     * Closes this {@link HttpServer}, disconnecting all connections, releasing any allocated resources and preventing further requests from being accepted.
-     *
-     * @return a {@link Future} which will be notified when the close operation has been completed
-     */
-    Future<Void> close();
-
-    /**
-     * @return a {@link Future} which will be notified when this {@link HttpServer} instance has been closed
-     */
-    Future<Void> closeFuture();
+    @Override
+    protected void initChannel(SocketChannel ch) throws Exception {
+        this.server.channels.add(ch);
+    }
 }

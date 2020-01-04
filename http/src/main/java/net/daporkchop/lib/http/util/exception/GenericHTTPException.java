@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -34,9 +34,9 @@ import net.daporkchop.lib.http.util.StatusCodes;
 public final class GenericHTTPException extends HTTPException {
     public static final HTTPException Bad_Request                     = new GenericHTTPException(StatusCodes.Bad_Request, false);
     public static final HTTPException Payload_Too_Large               = new GenericHTTPException(StatusCodes.Payload_Too_Large, false);
-    public static final HTTPException URI_Too_Long               = new GenericHTTPException(StatusCodes.URI_Too_Long, false);
+    public static final HTTPException URI_Too_Long                    = new GenericHTTPException(StatusCodes.URI_Too_Long, false);
     public static final HTTPException Request_Header_Fields_Too_Large = new GenericHTTPException(StatusCodes.Request_Header_Fields_Too_Large, false);
-    public static final HTTPException Internal_Server_Error               = new GenericHTTPException(StatusCodes.Internal_Server_Error, false);
+    public static final HTTPException Internal_Server_Error           = new GenericHTTPException(StatusCodes.Internal_Server_Error, false);
 
     @NonNull
     private final StatusCode status;

@@ -13,50 +13,46 @@
  *
  */
 
-package net.daporkchop.lib.http.server;
+package net.daporkchop.lib.http.impl.netty.server.codec;
 
-import io.netty.util.concurrent.Future;
-import lombok.NonNull;
-import net.daporkchop.lib.http.server.handle.ServerHandler;
-
-import java.net.InetSocketAddress;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import net.daporkchop.lib.http.header.map.ArrayHeaderMap;
 
 /**
- * A representation of an HTTP server.
- *
  * @author DaPorkchop_
  */
-public interface HttpServer {
-    /**
-     * @return the {@link ServerHandler} currently in use
-     */
-    ServerHandler handler();
+public final class RequestHeaderDecoder extends ChannelInboundHandlerAdapter {
+    protected ByteBuf buf;
+    protected ArrayHeaderMap headers;
 
-    /**
-     * Sets the {@link ServerHandler} used by this server.
-     *
-     * @param handler the new {@link ServerHandler} to use
-     * @return this {@link HttpServer} instance
-     */
-    HttpServer handler(@NonNull ServerHandler handler);
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        if (!(msg instanceof ByteBuf)) {
+            super.channelRead(ctx, msg);
+            return;
+        }
 
-    /**
-     * Binds this {@link HttpServer} to a local address to accept incoming connections.
-     *
-     * @param address the local address to bind to
-     * @return a {@link Future} that will be notified once the bind operation is complete
-     */
-    Future<?> bind(@NonNull InetSocketAddress address);
+        ByteBuf buf = this.buf;
+        if (buf == null) {
+            this.buf = buf = (ByteBuf) msg;
+        } else {
+            try {
+                buf.writeBytes((ByteBuf) msg);
+            } finally {
+                ((ByteBuf) msg).release();
+            }
+        }
+    }
 
-    /**
-     * Closes this {@link HttpServer}, disconnecting all connections, releasing any allocated resources and preventing further requests from being accepted.
-     *
-     * @return a {@link Future} which will be notified when the close operation has been completed
-     */
-    Future<Void> close();
+    @Override
+    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+        if (this.buf != null) {
+            this.buf.release();
+            this.buf = null;
+        }
 
-    /**
-     * @return a {@link Future} which will be notified when this {@link HttpServer} instance has been closed
-     */
-    Future<Void> closeFuture();
+        super.handlerRemoved(ctx);
+    }
 }

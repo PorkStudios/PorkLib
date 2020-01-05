@@ -13,38 +13,28 @@
  *
  */
 
-package net.daporkchop.lib.http.impl.netty.server;
+package net.daporkchop.lib.http.impl.netty.util;
 
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.socket.SocketChannel;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.common.misc.InstancePool;
-import net.daporkchop.lib.http.impl.netty.server.codec.HttpServerEventHandler;
-import net.daporkchop.lib.http.impl.netty.server.codec.HttpServerExceptionHandler;
-import net.daporkchop.lib.http.impl.netty.server.codec.RequestHeaderDecoder;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.http.header.map.HeaderMap;
+import net.daporkchop.lib.http.request.query.Query;
 
 /**
+ * Represents an incoming HTTP request that has been successfully parsed.
+ * <p>
+ * This class serves as a container to be passed up the Netty pipeline.
+ *
  * @author DaPorkchop_
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-@ChannelHandler.Sharable
-public final class NettyHttpServerChannelInitializer extends ChannelInitializer<SocketChannel> {
-    public static final NettyHttpServerChannelInitializer INSTANCE = new NettyHttpServerChannelInitializer();
-
-    @Override
-    protected void initChannel(SocketChannel ch) throws Exception {
-        NettyHttpServer server = ch.attr(NettyHttpServer.ATTR_SERVER).get();
-        server.channels.add(ch);
-
-        ch.pipeline()
-                .addLast("decode", new RequestHeaderDecoder())
-                .addLast("handle", HttpServerEventHandler.INSTANCE)
-                .addLast("exception", HttpServerExceptionHandler.INSTANCE);
-
-        server.logger.debug("Incoming connection from %s", ch.remoteAddress());
-    }
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public final class ParsedIncomingHttpRequest {
+    @NonNull
+    protected final Query query;
+    @NonNull
+    protected final HeaderMap headers;
 }

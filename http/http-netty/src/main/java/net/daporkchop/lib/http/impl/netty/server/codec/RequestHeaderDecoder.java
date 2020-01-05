@@ -15,11 +15,17 @@
 
 package net.daporkchop.lib.http.impl.netty.server.codec;
 
+import com.florianingerl.util.regex.Matcher;
+import com.florianingerl.util.regex.Pattern;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
+import net.daporkchop.lib.binary.chars.DirectASCIISequence;
+import net.daporkchop.lib.http.HttpMethod;
 import net.daporkchop.lib.http.header.map.ArrayHeaderMap;
+import net.daporkchop.lib.http.impl.netty.util.NettyHttpUtil;
+import net.daporkchop.lib.http.impl.netty.util.ParsedIncomingHttpRequest;
 import net.daporkchop.lib.http.request.query.Query;
 import net.daporkchop.lib.http.util.StatusCodes;
 import net.daporkchop.lib.http.util.exception.GenericHttpException;
@@ -30,6 +36,9 @@ import static net.daporkchop.lib.http.util.Constants.*;
  * @author DaPorkchop_
  */
 public final class RequestHeaderDecoder extends ChannelInboundHandlerAdapter {
+    protected static final Pattern REQUEST_LINE_PATTERN = Pattern.compile("^([A-Z]+) (.*?) HTTP/1\\.[01]\r\n");
+    protected static final Pattern HEADER_PATTERN       = Pattern.compile("^\\s*([\\x20-\\x7E]*?)\\s*:\\s*([\\x20-\\x7E]*?)\\s*$", Pattern.MULTILINE);
+
     protected ByteBuf        buf;
     protected Query          query;
     protected ArrayHeaderMap headers;
@@ -50,7 +59,49 @@ public final class RequestHeaderDecoder extends ChannelInboundHandlerAdapter {
             ReferenceCountUtil.release(msg);
         }
 
-        throw new GenericHttpException(StatusCodes.Im_A_Teapot);
+        while (buf.readableBytes() >= 4) {
+            if (buf.readByte() == '\r') {
+                //carriage return
+                if (buf.readByte() != '\n') {
+                    //if not a newline then something is broken
+                    throw GenericHttpException.Bad_Request;
+                }
+                if (buf.readByte() == '\r') {
+                    //second carriage return
+                    if (buf.readByte() != '\n') {
+                        //if not a newline then something is broken
+                        throw GenericHttpException.Bad_Request;
+                    }
+
+                    //double CRLF, we've reached the end of the request headers
+                    this.parseHeaders(ctx, new DirectASCIISequence(buf.memoryAddress(), buf.readerIndex()));
+                    ctx.fireChannelRead(new ParsedIncomingHttpRequest(this.query, this.headers));
+
+                    //TODO: handle request body
+
+                    ctx.pipeline().remove(this);
+                    return;
+                }
+            }
+        }
+    }
+
+    private void parseHeaders(ChannelHandlerContext ctx, DirectASCIISequence request) throws Exception {
+        Matcher matcher = REQUEST_LINE_PATTERN.matcher(request);
+        if (!matcher.find()) {
+            throw GenericHttpException.Bad_Request;
+        }
+        HttpMethod method = HttpMethod.LOOKUP.get(matcher.group(1));
+        if (method == null) {
+            throw GenericHttpException.Method_Not_Allowed;
+        }
+        this.query = NettyHttpUtil.parseQuery(method, NettyHttpUtil.fastGroup(matcher, 2));
+
+        this.headers = new ArrayHeaderMap();
+        matcher = HEADER_PATTERN.matcher(request);
+        while (matcher.find()) {
+            this.headers.add(matcher.group(1), matcher.group(2));
+        }
     }
 
     @Override
@@ -59,7 +110,7 @@ public final class RequestHeaderDecoder extends ChannelInboundHandlerAdapter {
             throw new IllegalStateException("buffer already set?!?");
         }
 
-        this.buf = ctx.alloc().ioBuffer(MAX_REQUEST_SIZE, MAX_REQUEST_SIZE);
+        this.buf = ctx.alloc().directBuffer(MAX_REQUEST_SIZE, MAX_REQUEST_SIZE);
 
         super.handlerAdded(ctx);
     }

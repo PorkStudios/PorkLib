@@ -67,7 +67,7 @@ public class HttpServerExample {
 
         server.handler((query, headers, response) -> {
             logger.info("%s", query);
-            throw new UnsupportedOperationException();
+            headers.forEach((key, value) -> logger.info("  %s: %s", key, value));
         });
 
         server.bind(new InetSocketAddress(8080)).syncUninterruptibly();

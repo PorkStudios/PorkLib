@@ -18,8 +18,14 @@ package net.daporkchop.lib.http;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.function.PFunctions;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * The different HTTP request types.
@@ -57,6 +63,8 @@ public enum HttpMethod {
     //TRACE,
     //PATCH
     ;
+
+    public static final Map<String, HttpMethod> LOOKUP = Collections.unmodifiableMap(Arrays.stream(values()).collect(Collectors.toMap(HttpMethod::name, PFunctions.identity())));
 
     private final byte[] asciiName = this.name().getBytes(StandardCharsets.US_ASCII);
     private final boolean hasRequestBody;

@@ -25,6 +25,7 @@ import net.daporkchop.lib.http.header.SingletonHeaderImpl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * An implementation of {@link HeaderMap} that allows appending headers quickly, but doesn't use a hash table for lookups. Should cause less
@@ -59,6 +60,13 @@ public final class ArrayHeaderMap implements MutableHeaderMap {
     public Header get(@NonNull String key) {
         int index = this.findIndex(key.toLowerCase());
         return index < 0 ? null : this.headerAt(index);
+    }
+
+    @Override
+    public void forEach(@NonNull Consumer<Header> callback) {
+        for (int i = 0, size = this.size; i < size; i++) {
+            callback.accept(this.headerAt(i));
+        }
     }
 
     @Override

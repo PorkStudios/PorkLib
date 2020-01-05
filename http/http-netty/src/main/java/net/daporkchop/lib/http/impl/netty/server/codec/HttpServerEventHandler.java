@@ -13,38 +13,47 @@
  *
  */
 
-package net.daporkchop.lib.http.impl.netty.server;
+package net.daporkchop.lib.http.impl.netty.server.codec;
 
+import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.ChannelHandlerContext;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.common.misc.InstancePool;
-import net.daporkchop.lib.http.impl.netty.server.codec.HttpServerEventHandler;
-import net.daporkchop.lib.http.impl.netty.server.codec.HttpServerExceptionHandler;
-import net.daporkchop.lib.http.impl.netty.server.codec.RequestHeaderDecoder;
+import net.daporkchop.lib.http.impl.netty.server.NettyHttpServer;
+import net.daporkchop.lib.http.impl.netty.server.NettyResponseBuilder;
+import net.daporkchop.lib.http.impl.netty.util.ParsedIncomingHttpRequest;
+import net.daporkchop.lib.http.util.exception.GenericHttpException;
 
 /**
  * @author DaPorkchop_
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @ChannelHandler.Sharable
-public final class NettyHttpServerChannelInitializer extends ChannelInitializer<SocketChannel> {
-    public static final NettyHttpServerChannelInitializer INSTANCE = new NettyHttpServerChannelInitializer();
+public final class HttpServerEventHandler extends ChannelDuplexHandler {
+    public static final HttpServerEventHandler INSTANCE = new HttpServerEventHandler();
 
     @Override
-    protected void initChannel(SocketChannel ch) throws Exception {
-        NettyHttpServer server = ch.attr(NettyHttpServer.ATTR_SERVER).get();
-        server.channels.add(ch);
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        if (!(msg instanceof ParsedIncomingHttpRequest)) {
+            super.channelRead(ctx, msg);
+        }
 
-        ch.pipeline()
-                .addLast("decode", new RequestHeaderDecoder())
-                .addLast("handle", HttpServerEventHandler.INSTANCE)
-                .addLast("exception", HttpServerExceptionHandler.INSTANCE);
+        ParsedIncomingHttpRequest request = (ParsedIncomingHttpRequest) msg;
+        NettyHttpServer server = ctx.channel().attr(NettyHttpServer.ATTR_SERVER).get();
+        NettyResponseBuilder responseBuilder = new NettyResponseBuilder();
 
-        server.logger.debug("Incoming connection from %s", ch.remoteAddress());
+        server.handler().handle(request.query(), request.headers(), responseBuilder);
+
+        //TODO: something
+        throw GenericHttpException.Internal_Server_Error;
+    }
+
+    @Override
+    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
+        NettyHttpServer server = ctx.channel().attr(NettyHttpServer.ATTR_SERVER).get();
+        server.logger().debug("Connection from %s closed", ctx.channel().remoteAddress());
+
+        super.channelUnregistered(ctx);
     }
 }

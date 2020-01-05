@@ -27,13 +27,13 @@ import java.util.List;
 import java.util.function.BiConsumer;
 
 /**
- * An implementation of {@link HeaderMap} that allows appending headers quickly, but doesn't use a hash table for lookups. Should cause minimal
+ * An implementation of {@link HeaderMap} that allows appending headers quickly, but doesn't use a hash table for lookups. Should cause less
  * memory overhead, but may cause slower lookups in some cases.
  *
  * @author DaPorkchop_
  */
 @Accessors(fluent = true)
-public final class ArrayHeaderMap implements HeaderMap {
+public final class ArrayHeaderMap implements MutableHeaderMap {
     protected Object[] data;
 
     @Getter
@@ -78,9 +78,49 @@ public final class ArrayHeaderMap implements HeaderMap {
         }
     }
 
+    @Override
+    public Header put(@NonNull Header header) {
+        String key = header.key().toLowerCase();
+        int index = this.findIndex(key);
+        if (index < 0)  {
+            //no header with a matching key exists
+            index = this.size++;
+            if (index == (this.data.length >> 1)) {
+                //expand array
+                Object[] newArray = new Object[this.data.length << 1];
+                System.arraycopy(this.data, 0, newArray, 0, this.data.length);
+                this.data = newArray;
+            }
+            this.data[index <<= 1] = key;
+            this.data[index + 1] = header.singleton() ? header.value() : header.values();
+            return null;
+        } else {
+            //header with the given key already exists
+            Header oldHeader = this.headerAt(index);
+            this.data[(index << 1) + 1] = header.singleton() ? header.value() : header.values();
+            return oldHeader;
+        }
+    }
+
+    @Override
+    public void add(@NonNull String key, @NonNull String value) {
+        this.append(key, value);
+    }
+
+    @Override
+    public void add(@NonNull String key, @NonNull List<String> values) {
+        this.append(key, values);
+    }
+
+    @Override
+    public void add(@NonNull Header header) {
+        this.append(header.key(), header.singleton() ? header.value() : header.values());
+    }
+
     @SuppressWarnings("unchecked")
-    public void append(@NonNull String key, @NonNull String value) {
-        int index = this.findIndex(key.toLowerCase());
+    protected void append(@NonNull String key, @NonNull Object value) {
+        key = key.toLowerCase();
+        int index = this.findIndex(key);
         if (index < 0)  {
             //no header with a matching key exists
             index = this.size++;
@@ -102,8 +142,30 @@ public final class ArrayHeaderMap implements HeaderMap {
             } else {
                 list = (List<String>) existingValue;
             }
-            list.add(value);
+            if (value instanceof String)    {
+                list.add((String) value);
+            } else {
+                list.addAll((List<String>) value);
+            }
         }
+    }
+
+    @Override
+    public Header remove(@NonNull String key) {
+        int index = this.findIndex(key.toLowerCase());
+        return index < 0 ? null : this.remove(index);
+    }
+
+    @Override
+    public Header remove(int index) throws IndexOutOfBoundsException {
+        if (index < 0 || index >= this.size) {
+            throw new IndexOutOfBoundsException(String.valueOf(index));
+        }
+        Header oldHeader = this.headerAt(index);
+        System.arraycopy(this.data, (index + 1) << 1, this.data, index << 1, (--this.size - index) << 1);
+        this.data[this.size << 1] = null;
+        this.data[(this.size << 1) + 1] = null;
+        return oldHeader;
     }
 
     protected int findIndex(@NonNull String key) {

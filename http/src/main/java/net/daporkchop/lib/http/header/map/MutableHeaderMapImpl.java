@@ -17,6 +17,7 @@ package net.daporkchop.lib.http.header.map;
 
 import lombok.NonNull;
 import net.daporkchop.lib.http.header.Header;
+import net.daporkchop.lib.http.header.MultiHeaderImpl;
 import net.daporkchop.lib.http.header.SingletonHeaderImpl;
 
 import java.util.ArrayList;
@@ -74,6 +75,33 @@ public class MutableHeaderMapImpl implements MutableHeaderMap {
             this.map.replace(key, old, header);
             this.list.set(this.list.indexOf(old), header);
             return old;
+        }
+    }
+
+    @Override
+    public void add(@NonNull Header header) {
+        header = Header.immutable(header);
+        String key = header.key().toLowerCase();
+        Header old = this.map.putIfAbsent(key, header);
+        if (old == null) {
+            //the header is new
+            this.list.add(header);
+        } else {
+            //the header already exists
+            List<String> list = new ArrayList<>();
+            if (old.singleton())    {
+                list.add(old.value());
+            } else {
+                list.addAll(old.values());
+            }
+            if (header.singleton()) {
+                list.add(header.value());
+            } else {
+                list.addAll(header.values());
+            }
+            header = new MultiHeaderImpl(key, list, true);
+            this.map.replace(key, old, header);
+            this.list.set(this.list.indexOf(old), header);
         }
     }
 

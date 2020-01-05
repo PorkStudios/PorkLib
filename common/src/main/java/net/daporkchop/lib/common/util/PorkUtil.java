@@ -114,6 +114,25 @@ public class PorkUtil {
     }
 
     /**
+     * Unwraps a {@link CharSequence} into a {@code char[]} without copying the array, if possible.
+     * <p>
+     * Be aware that the returned {@code char[]} may be larger than the actual size of the {@link CharSequence}. It is therefore strongly advised to use
+     * {@link CharSequence#length()} instead of {@code char[]#length}.
+     *
+     * @param seq the {@link CharSequence} to unwrap
+     * @return the value of the {@link CharSequence} as a {@code char[]}, or {@code null} if the given {@link CharSequence} cannot be unwrapped
+     */
+    public char[] tryUnwrap(@NonNull CharSequence seq) {
+        if (seq instanceof String) {
+            return PUnsafe.getObject(seq, STRING_VALUE_OFFSET);
+        } else if (seq instanceof StringBuilder || seq instanceof StringBuffer) {
+            return PUnsafe.getObject(seq, ABSTRACTSTRINGBUILDER_VALUE_OFFSET);
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * Unwraps a {@link String} into a {@code char[]} without copying the array.
      *
      * @param string the {@link String} to unwrap
@@ -125,6 +144,9 @@ public class PorkUtil {
 
     /**
      * Unwraps a {@link StringBuilder} into a {@code char[]} without copying the array.
+     * <p>
+     * Be aware that the returned {@code char[]} may be larger than the actual size of the {@link StringBuilder}. It is therefore strongly advised to use
+     * {@link StringBuilder#length()} instead of {@code char[]#length}.
      *
      * @param builder the {@link StringBuilder} to unwrap
      * @return the value of the {@link StringBuilder} as a {@code char[]}
@@ -135,6 +157,9 @@ public class PorkUtil {
 
     /**
      * Unwraps a {@link StringBuffer} into a {@code char[]} without copying the array.
+     * <p>
+     * Be aware that the returned {@code char[]} may be larger than the actual size of the {@link StringBuffer}. It is therefore strongly advised to use
+     * {@link StringBuffer#length()} instead of {@code char[]#length}.
      *
      * @param buffer the {@link StringBuffer} to unwrap
      * @return the value of the {@link StringBuffer} as a {@code char[]}

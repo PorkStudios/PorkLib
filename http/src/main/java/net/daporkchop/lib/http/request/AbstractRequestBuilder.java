@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -26,6 +26,7 @@ import net.daporkchop.lib.http.HttpClient;
 import net.daporkchop.lib.http.HttpMethod;
 import net.daporkchop.lib.http.entity.HttpEntity;
 import net.daporkchop.lib.http.header.Header;
+import net.daporkchop.lib.http.header.map.ArrayHeaderMap;
 import net.daporkchop.lib.http.header.map.HeaderMap;
 import net.daporkchop.lib.http.header.map.HeaderMaps;
 import net.daporkchop.lib.http.header.map.MutableHeaderMap;
@@ -112,7 +113,7 @@ public abstract class AbstractRequestBuilder<V, C extends HttpClient> implements
         if (headers instanceof MutableHeaderMap) {
             mutableHeaders = (MutableHeaderMap) headers;
         } else if (headers == HeaderMaps.empty()) {
-            mutableHeaders = new MutableHeaderMapImpl();
+            mutableHeaders = new ArrayHeaderMap();
         } else {
             mutableHeaders = headers.mutableCopy();
         }

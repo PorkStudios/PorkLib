@@ -50,19 +50,37 @@ public interface ResponseBuilder {
      * @see net.daporkchop.lib.http.header.map.MutableHeaderMap#put(String, String)
      * @return this {@link ResponseBuilder} instance
      */
-    ResponseBuilder header(@NonNull String key, @NonNull String value);
+    ResponseBuilder putHeader(@NonNull String key, @NonNull String value);
 
     /**
      * @see net.daporkchop.lib.http.header.map.MutableHeaderMap#put(String, List)
      * @return this {@link ResponseBuilder} instance
      */
-    ResponseBuilder header(@NonNull String key, @NonNull List<String> value);
+    ResponseBuilder putHeader(@NonNull String key, @NonNull List<String> values);
 
     /**
      * @see net.daporkchop.lib.http.header.map.MutableHeaderMap#put(Header)
      * @return this {@link ResponseBuilder} instance
      */
-    ResponseBuilder header(@NonNull Header header);
+    ResponseBuilder putHeader(@NonNull Header header);
+
+    /**
+     * @see net.daporkchop.lib.http.header.map.MutableHeaderMap#add(String, String)
+     * @return this {@link ResponseBuilder} instance
+     */
+    ResponseBuilder addHeader(@NonNull String key, @NonNull String value);
+
+    /**
+     * @see net.daporkchop.lib.http.header.map.MutableHeaderMap#add(String, List)
+     * @return this {@link ResponseBuilder} instance
+     */
+    ResponseBuilder addHeader(@NonNull String key, @NonNull List<String> values);
+
+    /**
+     * @see net.daporkchop.lib.http.header.map.MutableHeaderMap#add(Header)
+     * @return this {@link ResponseBuilder} instance
+     */
+    ResponseBuilder addHeader(@NonNull Header header);
 
     /**
      * Sets the body of the response.

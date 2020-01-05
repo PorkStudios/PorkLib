@@ -19,4 +19,6 @@ dependencies {
     compile project(":network:netty-common")
 
     compile "io.netty:netty-handler:$nettyVersion"
+
+    compile "com.github.florianingerl.util:regex:$florianingerlRegexVersion"
 }

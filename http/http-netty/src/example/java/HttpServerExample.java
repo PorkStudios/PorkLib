@@ -14,6 +14,8 @@
  */
 
 import net.daporkchop.lib.http.impl.netty.server.NettyHttpServer;
+import net.daporkchop.lib.http.impl.netty.util.NettyHttpUtil;
+import net.daporkchop.lib.http.request.query.Query;
 import net.daporkchop.lib.http.server.HttpServer;
 
 import java.net.InetSocketAddress;
@@ -24,6 +26,35 @@ import java.util.Scanner;
  */
 public class HttpServerExample {
     public static void main(String... args) {
+        if (true)   {
+            String[] arr = {
+                    "/",
+                    "/lol/",
+                    "/lol",
+                    "/lol?jeff",
+                    "/lol/?jeff&lol&ok",
+                    "/lol/?jeff=ok",
+                    "/lol/?jeff&nyef=jef",
+                    "/lol?jeff=ok&nyef=jef&lol&my=name",
+                    "/lol/?jeff=ok&nyef=j%EF%20%1f03",
+                    "/lol/?jeff=ok&nyef=jef&lol&my=name",
+                    "/lol/#section",
+                    "/lol/?jeff=ok&nyef=jef&lol&my=name#section",
+                    "/lol?jeff#section",
+                    "/lol/?jeff#section",
+                    "/lol?jeff=ok#section",
+                    "/lol/?jeff=ok#section",
+                    "/lol?jeff&nyef#section",
+                    "/lol/?jeff&nyef#section",
+                    "/lol?jeff=ok&nyef#section",
+                    "/lol/?jeff=ok&nyef#section"
+            };
+            for (String line : arr) {
+                NettyHttpUtil.parseQuery(line);
+            }
+            return;
+        }
+
         HttpServer server = new NettyHttpServer();
 
         server.handler((query, headers, response) -> {

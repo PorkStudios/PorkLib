@@ -19,6 +19,8 @@ import lombok.NonNull;
 import net.daporkchop.lib.http.HttpMethod;
 
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Representation of an HTTP query.

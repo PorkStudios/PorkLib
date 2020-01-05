@@ -43,16 +43,19 @@ public class URLEncoding {
         OK_CHARS.set('_');
     }
 
-    public String encode(@NonNull String text) {
+    public CharSequence encode(@NonNull CharSequence text) {
         StringBuilder builder = new StringBuilder();
         encode(builder, text);
-        return builder.toString();
+        return builder;
     }
 
-    public void encode(@NonNull StringBuilder to, @NonNull String text) {
-        char[] arr = PorkUtil.unwrap(text);
-        for (int i = 0, length = arr.length; i < length; i++) {
-            char c = arr[i];
+    public void encode(@NonNull StringBuilder to, @NonNull CharSequence text) {
+        //all the ternary operators should be optimized away by the JIT compiler
+        // (i'd assume that it makes two copies of the method: one for arr == null and one for arr != null)
+
+        final char[] arr = PorkUtil.tryUnwrap(text);
+        for (int i = 0, length = arr != null ? arr.length : text.length(); i < length; i++) {
+            char c = arr != null ? arr[i] : text.charAt(i);
             if (OK_CHARS.get(c)) {
                 to.append(c);
             } else if (c == ' ') {
@@ -66,7 +69,7 @@ public class URLEncoding {
                     Hexadecimal.encode(to, (byte) (0x80 | (c & 0x3F)));
                 } else if (StringUtil.isSurrogate(c)) {
                     if (Character.isHighSurrogate(c) && ++i < length) {
-                        char c2 = arr[i];
+                        char c2 = arr != null ? arr[i] : text.charAt(i);
                         if (Character.isLowSurrogate(c2)) {
                             int codePoint = Character.toCodePoint(c, c2);
                             Hexadecimal.encode(to, (byte) (0xF0 | (codePoint >> 18)));
@@ -85,26 +88,29 @@ public class URLEncoding {
         }
     }
 
-    public String decode(@NonNull String text) throws HttpException {
+    public CharSequence decode(@NonNull CharSequence text) throws HttpException {
         StringBuilder builder = new StringBuilder();
         decode(builder, text);
-        return builder.toString();
+        return builder;
     }
 
-    public void decode(@NonNull StringBuilder to, @NonNull String text) throws HttpException {
-        char[] arr = PorkUtil.unwrap(text);
-        for (int i = 0, length = arr.length; i < length; i++) {
-            char c = arr[i];
+    public void decode(@NonNull StringBuilder to, @NonNull CharSequence text) throws HttpException {
+        //all the ternary operators should be optimized away by the JIT compiler
+        // (i'd assume that it makes two copies of the method: one for arr == null and one for arr != null)
+
+        final char[] arr = PorkUtil.tryUnwrap(text);
+        for (int i = 0, length = arr != null ? arr.length : text.length(); i < length; i++) {
+            char c = arr != null ? arr[i] : text.charAt(i);
             if (c == '%') {
                 i += 2;
                 int b;
-                if (i >= length || (b = Hexadecimal.decodeUnsigned(arr[i - 1], arr[i])) < 0) {
+                if (i >= length || (b = Hexadecimal.decodeUnsigned(arr != null ? arr[i - 1] : text.charAt(i - 1), arr != null ? arr[i] : text.charAt(i))) < 0) {
                     throw GenericHttpException.Bad_Request;
                 }
                 if ((b & 0xE0) == 0xC0) {
                     i += 2;
                     int b2;
-                    if (i >= length || (b2 = Hexadecimal.decodeUnsigned(arr[i - 1], arr[i])) < 0) {
+                    if (i >= length || (b2 = Hexadecimal.decodeUnsigned(arr != null ? arr[i - 1] : text.charAt(i - 1), arr != null ? arr[i] : text.charAt(i))) < 0) {
                         throw GenericHttpException.Bad_Request;
                     }
                     to.append((char) (((b & 0x1F) << 6) | (b2 & 0x3F)));
@@ -112,9 +118,9 @@ public class URLEncoding {
                     i += 6;
                     int b2, b3, b4;
                     if (i >= length
-                            || (b2 = Hexadecimal.decodeUnsigned(arr[i - 5], arr[i - 4])) < 0
-                            || (b3 = Hexadecimal.decodeUnsigned(arr[i - 3], arr[i - 2])) < 0
-                            || (b4 = Hexadecimal.decodeUnsigned(arr[i - 1], arr[i])) < 0)   {
+                            || (b2 = Hexadecimal.decodeUnsigned(arr != null ? arr[i - 5] : text.charAt(i - 5), arr != null ? arr[i - 4] : text.charAt(i - 4))) < 0
+                            || (b3 = Hexadecimal.decodeUnsigned(arr != null ? arr[i - 3] : text.charAt(i - 3), arr != null ? arr[i - 2] : text.charAt(i - 2))) < 0
+                            || (b4 = Hexadecimal.decodeUnsigned(arr != null ? arr[i - 1] : text.charAt(i - 1), arr != null ? arr[i] : text.charAt(i))) < 0)   {
                         throw GenericHttpException.Bad_Request;
                     }
                     to.appendCodePoint(((b & 0xF) << 18) | ((b2 & 0x3F) << 12) | ((b3 & 0x3F) << 6) | (b4 & 0x3F));

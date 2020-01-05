@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 /**
  * An implementation of {@link Header} which has multiple values.
@@ -55,9 +56,7 @@ public final class MultiHeaderImpl implements Header {
 
     @Override
     public String value() {
-        return this.singleton()
-                ? this.values.get(0)
-                : this.values.stream().collect(() -> new StringJoiner(", "), StringJoiner::add, StringJoiner::merge).toString();
+        return this.singleton() ? this.values.get(0) : this.values.stream().collect(Collectors.joining(", "));
     }
 
     @Override

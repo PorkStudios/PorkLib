@@ -19,16 +19,21 @@ import net.daporkchop.lib.http.impl.netty.util.NettyHttpUtil;
 import net.daporkchop.lib.http.request.query.Query;
 import net.daporkchop.lib.http.server.HttpServer;
 import net.daporkchop.lib.http.util.exception.HttpException;
+import net.daporkchop.lib.logging.LogAmount;
 
 import java.net.InetSocketAddress;
 import java.util.Scanner;
+
+import static net.daporkchop.lib.logging.Logging.*;
 
 /**
  * @author DaPorkchop_
  */
 public class HttpServerExample {
     public static void main(String... args) throws HttpException {
-        if (true)   {
+        logger.enableANSI().setLogAmount(LogAmount.DEBUG);
+
+        if (false)   {
             String[] arr = {
                     "/",
                     "/lol/",
@@ -61,20 +66,16 @@ public class HttpServerExample {
         HttpServer server = new NettyHttpServer();
 
         server.handler((query, headers, response) -> {
-            System.out.println(query);
+            logger.info("%s", query);
             throw new UnsupportedOperationException();
         });
 
-        System.out.println("Binding to port 8080...");
         server.bind(new InetSocketAddress(8080)).syncUninterruptibly();
-        System.out.println("Bound to port!");
 
         try (Scanner scanner = new Scanner(System.in))  {
             scanner.nextLine();
         }
 
-        System.out.println("Closing...");
         server.close().syncUninterruptibly();
-        System.out.println("Closed!");
     }
 }

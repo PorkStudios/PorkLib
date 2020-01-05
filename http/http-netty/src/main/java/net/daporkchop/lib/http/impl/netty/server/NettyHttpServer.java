@@ -16,9 +16,7 @@
 package net.daporkchop.lib.http.impl.netty.server;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
@@ -30,9 +28,10 @@ import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.server.HttpServer;
-import net.daporkchop.lib.http.server.HttpServerBinding;
 import net.daporkchop.lib.http.server.handle.NoopServerHandler;
 import net.daporkchop.lib.http.server.handle.ServerHandler;
+import net.daporkchop.lib.logging.Logger;
+import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.nettycommon.PorkNettyHelper;
 import net.daporkchop.lib.network.nettycommon.eventloopgroup.pool.EventLoopGroupPool;
 
@@ -48,6 +47,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 @Accessors(fluent = true, chain = true)
 public final class NettyHttpServer implements HttpServer {
+    public static final AttributeKey<NettyHttpServer>        ATTR_SERVER  = AttributeKey.newInstance("porklib-http-server");
     public static final AttributeKey<NettyHttpServerBinding> ATTR_BINDING = AttributeKey.newInstance("porklib-http-server-binding");
 
     @Getter
@@ -67,15 +67,28 @@ public final class NettyHttpServer implements HttpServer {
 
     protected final ReadWriteLock lock = new ReentrantReadWriteLock();
 
+    @Getter
+    protected final Logger logger;
+
     protected volatile boolean closed = false;
 
-    public NettyHttpServer()    {
-        this(PorkNettyHelper.getPoolTCP());
+    public NettyHttpServer() {
+        this(null, null);
     }
 
     public NettyHttpServer(@NonNull EventLoopGroupPool loopPool) {
-        this.loopPool = loopPool;
-        this.loop = loopPool.get();
+        this(loopPool, null);
+    }
+
+    public NettyHttpServer(@NonNull Logger logger) {
+        this(null, logger);
+    }
+
+    public NettyHttpServer(EventLoopGroupPool loopPool, Logger logger) {
+        this.logger = logger == null ? Logging.logger : logger;
+
+        this.loopPool = loopPool == null ? PorkNettyHelper.getPoolTCP() : loopPool;
+        this.loop = this.loopPool.get();
         this.channels = new DefaultChannelGroup(this.loop.next(), true);
 
         this.closeFuture = this.loop.next().newPromise();
@@ -83,7 +96,8 @@ public final class NettyHttpServer implements HttpServer {
         this.bootstrap = new ServerBootstrap()
                 .group(this.loop, this.loop)
                 .channelFactory(this.loopPool.transport().channelFactorySocketServer())
-                .childHandler(new NettyHttpServerChannelInitializer(this));
+                .childHandler(NettyHttpServerChannelInitializer.INSTANCE)
+                .childAttr(ATTR_SERVER, this);
     }
 
     @Override
@@ -93,10 +107,18 @@ public final class NettyHttpServer implements HttpServer {
         try {
             this.assertOpen();
 
+            this.logger.debug("Binding to %s...", address);
             return this.bootstrap.clone()
                     .childAttr(ATTR_BINDING, new NettyHttpServerBinding(this, address))
                     .bind(address)
-                    .addListener((ChannelFutureListener) future -> this.channels.add(future.channel()));
+                    .addListener((ChannelFutureListener) future -> {
+                        if (future.isSuccess()) {
+                            this.logger.success("Successfully bound to %s!", address);
+                            this.channels.add(future.channel());
+                        } else {
+                            this.logger.alert("Failed to bind to %s!", future.cause(), address);
+                        }
+                    });
         } finally {
             lock.unlock();
         }
@@ -109,6 +131,8 @@ public final class NettyHttpServer implements HttpServer {
         try {
             if (!this.closed) {
                 this.closed = true;
+
+                this.logger.debug("Closing...");
                 this.channels.close().addListener(future -> {
                     try {
                         this.handler.removed(this);
@@ -124,8 +148,12 @@ public final class NettyHttpServer implements HttpServer {
                         if (!this.closeFuture.trySuccess(null)) {
                             throw new IllegalStateException();
                         }
-                    } else if (!this.closeFuture.tryFailure(future.cause())) {
-                        throw new IllegalStateException();
+                        this.logger.success("Closed!");
+                    } else {
+                        this.logger.alert("Failed to close HTTP server!", future.cause());
+                        if (!this.closeFuture.tryFailure(future.cause())) {
+                            throw new IllegalStateException();
+                        }
                     }
                 });
             }

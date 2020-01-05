@@ -15,27 +15,34 @@
 
 package net.daporkchop.lib.http.impl.netty.server;
 
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.common.misc.InstancePool;
 import net.daporkchop.lib.http.impl.netty.server.codec.HttpServerExceptionHandler;
 import net.daporkchop.lib.http.impl.netty.server.codec.RequestHeaderDecoder;
 
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@ChannelHandler.Sharable
 public final class NettyHttpServerChannelInitializer extends ChannelInitializer<SocketChannel> {
-    @NonNull
-    protected final NettyHttpServer server;
+    public static final NettyHttpServerChannelInitializer INSTANCE = new NettyHttpServerChannelInitializer();
 
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
-        this.server.channels.add(ch);
+        NettyHttpServer server = ch.attr(NettyHttpServer.ATTR_SERVER).get();
+        server.channels.add(ch);
 
         ch.pipeline()
                 .addLast("decode", new RequestHeaderDecoder())
-                .addLast("exception", new HttpServerExceptionHandler());
+                .addLast("exception", HttpServerExceptionHandler.INSTANCE);
+
+        server.logger.debug("Incoming connection from %s", ch.remoteAddress());
     }
 }

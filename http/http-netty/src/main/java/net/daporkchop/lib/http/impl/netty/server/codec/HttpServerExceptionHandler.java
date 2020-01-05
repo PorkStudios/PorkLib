@@ -19,16 +19,21 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import net.daporkchop.lib.binary.oio.appendable.PAppendable;
 import net.daporkchop.lib.binary.oio.appendable.UTF8ByteBufAppendable;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.function.io.IOConsumer;
+import net.daporkchop.lib.common.misc.InstancePool;
 import net.daporkchop.lib.common.system.PlatformInfo;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.http.StatusCode;
+import net.daporkchop.lib.http.impl.netty.server.NettyHttpServer;
 import net.daporkchop.lib.http.util.StatusCodes;
 import net.daporkchop.lib.http.util.exception.HttpException;
 import net.daporkchop.lib.logging.Logger;
+import net.daporkchop.lib.network.nettycommon.PorkNettyHelper;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -39,10 +44,15 @@ import java.util.Objects;
 /**
  * @author DaPorkchop_
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 @ChannelHandler.Sharable
 public final class HttpServerExceptionHandler extends ChannelInboundHandlerAdapter {
+    public static final HttpServerExceptionHandler INSTANCE = new HttpServerExceptionHandler();
+
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        NettyHttpServer server = ctx.channel().attr(NettyHttpServer.ATTR_SERVER).get();
+
         ByteBuf bodyBuf = ctx.alloc().ioBuffer();
         PAppendable out = new UTF8ByteBufAppendable(bodyBuf, "\n");
         Formatter fmt = new Formatter(out);
@@ -50,6 +60,8 @@ public final class HttpServerExceptionHandler extends ChannelInboundHandlerAdapt
         StatusCode status = StatusCodes.Internal_Server_Error;
         if (cause instanceof HttpException && ((HttpException) cause).status() != null) {
             status = ((HttpException) cause).status();
+        } else {
+            server.logger().alert("Unknown exception occurred while handling request from %s!", cause, ctx.channel().remoteAddress());
         }
 
         Object[] args = {
@@ -59,19 +71,22 @@ public final class HttpServerExceptionHandler extends ChannelInboundHandlerAdapt
                 -1,
                 PorkUtil.PORKLIB_VERSION,
                 PlatformInfo.OPERATING_SYSTEM,
+                PlatformInfo.ARCHITECTURE,
+                PlatformInfo.JAVA_VERSION,
+                PorkNettyHelper.getNettyVersion(),
                 ((InetSocketAddress) ctx.channel().localAddress()).getHostString(),
                 ((InetSocketAddress) ctx.channel().localAddress()).getPort()
         };
-        fmt.format("<html><head><title>%1$d %2$s</title></head><body><h1>%1$d %2$s</h1>", args);
+        fmt.format("<html><head><title>%1$d %2$s</title></head><body><h1>HTTP Error %1$d: %2$s</h1>", args);
         if (args[2] != null)    {
-            fmt.format("<p>%3$s</p>", args);
+            fmt.format("<p><i>%3$s</i></p>", args);
         }
         if (cause != null)  {
-            out.append("<code><pre>");
+            out.append("<hr><p>Stack trace:</p><code><pre>");
             Logger.getStackTrace(cause, (IOConsumer<String>) out::appendLn);
             out.append("</pre></code>");
         }
-        fmt.format("<hr><address>PorkLib/%5$s (%6$s) Server at %7$s port %8$d</body></html>", args);
+        fmt.format("<hr><address>PorkLib/%5$s (Netty %9$s, Java %8$d) (%6$s %7$s) Server at %10$s port %11$d</body></html>", args);
 
         ByteBuf headersBuf = ctx.alloc().ioBuffer();
         fmt = new Formatter(new UTF8ByteBufAppendable(headersBuf));

@@ -13,77 +13,68 @@
  *
  */
 
-package net.daporkchop.lib.binary.chars;
+package net.daporkchop.lib.binary.oio.appendable;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.util.AsciiString;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.binary.chars.SingleCharSequence;
+import net.daporkchop.lib.common.system.PlatformInfo;
+import net.daporkchop.lib.common.util.PorkUtil;
 
 import java.nio.charset.StandardCharsets;
 
 /**
- * A wrapper around a {@link ByteBuf} to allow it to be used as a {@link CharSequence} of ASCII-encoded characters.
+ * Implementation of {@link PAppendable} that appends ASCII-encoded text to a {@link ByteBuf}.
+ * <p>
+ * This implementation is not thread-safe.
  *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public final class ByteBufASCIISequence implements CharSequence {
+public final class ASCIIByteBufAppendable implements PAppendable {
     @NonNull
-    private final ByteBuf buf;
+    protected final ByteBuf   buf;
+    @NonNull
+    protected final String    lineEnding;
+    @Getter(AccessLevel.NONE)
+    protected final SingleCharSequence singleCharSequence = new SingleCharSequence();
 
-    @Override
-    public int length() {
-        return this.buf.writerIndex();
+    public ASCIIByteBufAppendable(@NonNull ByteBuf buf) {
+        this(buf, PlatformInfo.OPERATING_SYSTEM.lineEnding());
     }
 
     @Override
-    public char charAt(int index) {
-        return (char) (this.buf.getByte(index) & 0xFF);
+    public ASCIIByteBufAppendable append(CharSequence seq) {
+        this.buf.writeCharSequence(seq == null ? "null" : seq, StandardCharsets.US_ASCII);
+        return this;
     }
 
     @Override
-    public CharSequence subSequence(int start, int end) {
-        return start == 0 && end == this.buf.writerIndex() ? this : new ByteBufASCIISequence(this.buf.slice(start, end - start));
+    public ASCIIByteBufAppendable append(CharSequence seq, int start, int end) {
+        this.buf.writeCharSequence(PorkUtil.subSequence(seq == null ? "null" : seq, start, end), StandardCharsets.US_ASCII);
+        return this;
     }
 
     @Override
-    public int hashCode() {
-        final ByteBuf buf = this.buf;
-        final int len = buf.writerIndex();
-        int i = 0;
-        for (int j = 0; j < len; j++) {
-            i = i * 31 + (buf.getByte(j) & 0xFF);
-        }
-        return i;
+    public ASCIIByteBufAppendable append(char c) {
+        this.buf.writeByte(AsciiString.c2b(c));
+        return this;
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        } else if (obj instanceof CharSequence) {
-            CharSequence seq = (CharSequence) obj;
-            final ByteBuf buf = this.buf;
-           final int len = buf.writerIndex();
-            if (seq.length() != len) {
-                return false;
-            }
-            int i = 0;
-            while (i < len && (char) (buf.getByte(i) & 0xFF) == seq.charAt(i)) {
-                i++;
-            }
-            return i == len;
-        } else {
-            return false;
-        }
+    public ASCIIByteBufAppendable appendLn() {
+        return this.append(this.lineEnding);
     }
 
     @Override
-    public String toString() {
-        return this.buf.toString(StandardCharsets.US_ASCII);
+    public void close() {
+        //no-op
     }
 }

@@ -18,17 +18,20 @@ package net.daporkchop.lib.http.impl.netty.server.codec;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.util.ReferenceCountUtil;
 import net.daporkchop.lib.http.header.map.ArrayHeaderMap;
 import net.daporkchop.lib.http.request.query.Query;
 import net.daporkchop.lib.http.util.StatusCodes;
 import net.daporkchop.lib.http.util.exception.GenericHttpException;
 
+import static net.daporkchop.lib.http.util.Constants.*;
+
 /**
  * @author DaPorkchop_
  */
 public final class RequestHeaderDecoder extends ChannelInboundHandlerAdapter {
-    protected ByteBuf buf;
-    protected Query query;
+    protected ByteBuf        buf;
+    protected Query          query;
     protected ArrayHeaderMap headers;
 
     @Override
@@ -38,26 +41,37 @@ public final class RequestHeaderDecoder extends ChannelInboundHandlerAdapter {
             return;
         }
 
-        ByteBuf buf = this.buf;
-        if (buf == null) {
-            this.buf = buf = (ByteBuf) msg;
-        } else {
-            try {
-                buf.writeBytes((ByteBuf) msg);
-            } finally {
-                ((ByteBuf) msg).release();
-            }
+        final ByteBuf buf = this.buf;
+        try {
+            buf.writeBytes((ByteBuf) msg);
+        } catch (IndexOutOfBoundsException e) {
+            throw GenericHttpException.Bad_Request;
+        } finally {
+            ReferenceCountUtil.release(msg);
         }
 
         throw new GenericHttpException(StatusCodes.Im_A_Teapot);
     }
 
     @Override
-    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+    public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
         if (this.buf != null) {
-            this.buf.release();
-            this.buf = null;
+            throw new IllegalStateException("buffer already set?!?");
         }
+
+        this.buf = ctx.alloc().ioBuffer(MAX_REQUEST_SIZE, MAX_REQUEST_SIZE);
+
+        super.handlerAdded(ctx);
+    }
+
+    @Override
+    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+        if (this.buf == null) {
+            throw new IllegalStateException("buffer already released?!?");
+        }
+
+        this.buf.release();
+        this.buf = null;
 
         super.handlerRemoved(ctx);
     }

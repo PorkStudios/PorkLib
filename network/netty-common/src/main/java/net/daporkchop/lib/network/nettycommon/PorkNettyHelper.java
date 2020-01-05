@@ -16,12 +16,13 @@
 package net.daporkchop.lib.network.nettycommon;
 
 import io.netty.channel.epoll.Epoll;
+import io.netty.util.Version;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.network.nettycommon.eventloopgroup.pool.DefaultEventLoopGroupPool;
-import net.daporkchop.lib.network.nettycommon.eventloopgroup.pool.EventLoopGroupPool;
 import net.daporkchop.lib.network.nettycommon.eventloopgroup.factory.EpollEventLoopGroupFactory;
 import net.daporkchop.lib.network.nettycommon.eventloopgroup.factory.NioEventLoopGroupFactory;
+import net.daporkchop.lib.network.nettycommon.eventloopgroup.pool.DefaultEventLoopGroupPool;
+import net.daporkchop.lib.network.nettycommon.eventloopgroup.pool.EventLoopGroupPool;
 import net.daporkchop.lib.network.nettycommon.transport.EpollTransport;
 import net.daporkchop.lib.network.nettycommon.transport.NioTransport;
 import net.daporkchop.lib.network.nettycommon.transport.Transport;
@@ -38,6 +39,15 @@ public class PorkNettyHelper {
 
     private Transport STANDARD_EPOLL_TRANSPORT;
     private Transport STANDARD_NIO_TRANSPORT;
+
+    private final ThreadLocal<String> NETTY_VERSION = ThreadLocal.withInitial(() -> Version.identify().get("netty-common").artifactVersion());
+
+    /**
+     * @return the current version of netty-common
+     */
+    public String getNettyVersion() {
+        return NETTY_VERSION.get();
+    }
 
     /**
      * @return an {@link EventLoopGroupPool} usable for TCP

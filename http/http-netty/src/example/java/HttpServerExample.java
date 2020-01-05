@@ -18,6 +18,8 @@ import net.daporkchop.lib.http.impl.netty.server.NettyHttpServer;
 import net.daporkchop.lib.http.impl.netty.util.NettyHttpUtil;
 import net.daporkchop.lib.http.request.query.Query;
 import net.daporkchop.lib.http.server.HttpServer;
+import net.daporkchop.lib.http.util.StatusCodes;
+import net.daporkchop.lib.http.util.exception.GenericHttpException;
 import net.daporkchop.lib.http.util.exception.HttpException;
 import net.daporkchop.lib.logging.LogAmount;
 
@@ -68,6 +70,8 @@ public class HttpServerExample {
         server.handler((query, headers, response) -> {
             logger.info("%s", query);
             headers.forEach((key, value) -> logger.info("  %s: %s", key, value));
+
+            throw new GenericHttpException(StatusCodes.Im_A_Teapot);
         });
 
         server.bind(new InetSocketAddress(8080)).syncUninterruptibly();

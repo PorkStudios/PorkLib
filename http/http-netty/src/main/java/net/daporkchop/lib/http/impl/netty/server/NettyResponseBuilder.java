@@ -20,6 +20,7 @@ import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.StatusCode;
+import net.daporkchop.lib.http.entity.EmptyHttpEntity;
 import net.daporkchop.lib.http.entity.HttpEntity;
 import net.daporkchop.lib.http.header.Header;
 import net.daporkchop.lib.http.header.map.ArrayHeaderMap;
@@ -41,7 +42,7 @@ public final class NettyResponseBuilder implements ResponseBuilder {
     protected StatusCode status;
 
     @NonNull
-    protected HttpEntity body;
+    protected HttpEntity body = EmptyHttpEntity.INSTANCE;
 
     protected final MutableHeaderMap headers = new ArrayHeaderMap();
 

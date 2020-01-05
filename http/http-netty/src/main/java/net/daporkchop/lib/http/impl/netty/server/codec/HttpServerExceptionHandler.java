@@ -21,6 +21,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import net.daporkchop.lib.binary.oio.appendable.ASCIIByteBufAppendable;
 import net.daporkchop.lib.binary.oio.appendable.PAppendable;
 import net.daporkchop.lib.binary.oio.appendable.UTF8ByteBufAppendable;
 import net.daporkchop.lib.binary.stream.DataOut;
@@ -34,6 +35,7 @@ import net.daporkchop.lib.http.util.StatusCodes;
 import net.daporkchop.lib.http.util.exception.HttpException;
 import net.daporkchop.lib.logging.Logger;
 import net.daporkchop.lib.network.nettycommon.PorkNettyHelper;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -47,54 +49,67 @@ import java.util.Objects;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @ChannelHandler.Sharable
 public final class HttpServerExceptionHandler extends ChannelInboundHandlerAdapter {
+    protected static final long THROWABLE_STACKTRACE_OFFSET = PUnsafe.pork_getOffset(Throwable.class, "stackTrace");
+
     public static final HttpServerExceptionHandler INSTANCE = new HttpServerExceptionHandler();
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        NettyHttpServer server = ctx.channel().attr(NettyHttpServer.ATTR_SERVER).get();
+        ByteBuf buf = ctx.alloc().ioBuffer(2048).writerIndex(1024);
+        ByteBuf headersBuf = buf.readRetainedSlice(1024).clear();
+        try {
+            NettyHttpServer server = ctx.channel().attr(NettyHttpServer.ATTR_SERVER).get();
 
-        ByteBuf bodyBuf = ctx.alloc().ioBuffer();
-        PAppendable out = new UTF8ByteBufAppendable(bodyBuf, "\n");
-        Formatter fmt = new Formatter(out);
+            PAppendable out = new UTF8ByteBufAppendable(buf, "\n");
+            Formatter fmt = new Formatter(out);
 
-        StatusCode status = StatusCodes.Internal_Server_Error;
-        if (cause instanceof HttpException && ((HttpException) cause).status() != null) {
-            status = ((HttpException) cause).status();
-        } else {
-            server.logger().alert("Unknown exception occurred while handling request from %s!", cause, ctx.channel().remoteAddress());
+            StatusCode status = StatusCodes.Internal_Server_Error;
+            if (cause instanceof HttpException && ((HttpException) cause).status() != null) {
+                status = ((HttpException) cause).status();
+            } else {
+                server.logger().alert("Unknown exception occurred while handling request from %s!", cause, ctx.channel().remoteAddress());
+            }
+
+            Object[] args = {
+                    status.code(),
+                    status.msg(),
+                    status.errorMessage(),
+                    -1,
+                    PorkUtil.PORKLIB_VERSION,
+                    PlatformInfo.OPERATING_SYSTEM,
+                    PlatformInfo.ARCHITECTURE,
+                    PlatformInfo.JAVA_VERSION,
+                    PorkNettyHelper.getNettyVersion(),
+                    ((InetSocketAddress) ctx.channel().localAddress()).getHostString(),
+                    ((InetSocketAddress) ctx.channel().localAddress()).getPort()
+            };
+            fmt.format("<html><head><title>%1$d %2$s</title></head><body><h1>HTTP Error %1$d: %2$s</h1>", args);
+            if (args[2] != null) {
+                fmt.format("<p><i>%3$s</i></p>", args);
+            }
+            if (cause != null) {
+                StackTraceElement[] stackTrace = PUnsafe.getObject(cause, THROWABLE_STACKTRACE_OFFSET);
+                if (stackTrace != null && stackTrace.length > 0) {
+                    //only print stack trace if there's actually a stack trace to print
+
+                    out.append("<hr><p>Stack trace:</p><code><pre>");
+                    Logger.getStackTrace(cause, (IOConsumer<String>) out::appendLn);
+                    out.append("</pre></code>");
+                }
+            }
+            fmt.format("<hr><address>PorkLib/%5$s (Netty %9$s, Java %8$d) (%6$s %7$s) Server at %10$s port %11$d</body></html>", args);
+
+            fmt = new Formatter(new ASCIIByteBufAppendable(headersBuf));
+            args[3] = buf.readableBytes();
+            fmt.format("HTTP/1.1 %1$d %2$s\r\nContent-length: %4$d\r\nContent-type: text/html; charset=UTF-8\r\n\r\n", args);
+
+            ctx.channel().write(headersBuf.retain());
+            ctx.channel().writeAndFlush(buf.retain());
+        } finally {
+            ctx.channel().close();
+
+            headersBuf.release();
+            buf.release();
         }
-
-        Object[] args = {
-                status.code(),
-                status.msg(),
-                status.errorMessage(),
-                -1,
-                PorkUtil.PORKLIB_VERSION,
-                PlatformInfo.OPERATING_SYSTEM,
-                PlatformInfo.ARCHITECTURE,
-                PlatformInfo.JAVA_VERSION,
-                PorkNettyHelper.getNettyVersion(),
-                ((InetSocketAddress) ctx.channel().localAddress()).getHostString(),
-                ((InetSocketAddress) ctx.channel().localAddress()).getPort()
-        };
-        fmt.format("<html><head><title>%1$d %2$s</title></head><body><h1>HTTP Error %1$d: %2$s</h1>", args);
-        if (args[2] != null)    {
-            fmt.format("<p><i>%3$s</i></p>", args);
-        }
-        if (cause != null)  {
-            out.append("<hr><p>Stack trace:</p><code><pre>");
-            Logger.getStackTrace(cause, (IOConsumer<String>) out::appendLn);
-            out.append("</pre></code>");
-        }
-        fmt.format("<hr><address>PorkLib/%5$s (Netty %9$s, Java %8$d) (%6$s %7$s) Server at %10$s port %11$d</body></html>", args);
-
-        ByteBuf headersBuf = ctx.alloc().ioBuffer();
-        fmt = new Formatter(new UTF8ByteBufAppendable(headersBuf));
-        args[3] = bodyBuf.readableBytes();
-        fmt.format("HTTP/1.1 %1$d %2$s\r\nContent-length: %4$d\r\nContent-type: text/html; charset=UTF-8\r\n\r\n", args);
-
-        ctx.channel().write(headersBuf);
-        ctx.channel().writeAndFlush(bodyBuf);
-        ctx.channel().close();
     }
 }

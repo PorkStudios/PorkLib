@@ -22,8 +22,15 @@ import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.http.HttpMethod;
 import net.daporkchop.lib.http.request.query.Query;
+import net.daporkchop.lib.http.request.query.QueryImpl;
+import net.daporkchop.lib.http.request.query.URLEncoding;
+import net.daporkchop.lib.http.util.StatusCodes;
+import net.daporkchop.lib.http.util.exception.GenericHttpException;
+import net.daporkchop.lib.http.util.exception.HttpException;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -34,7 +41,7 @@ public class NettyHttpUtil {
     protected final long MATCHER_FIRST_OFFSET         = PUnsafe.pork_getOffset(Matcher.class, "first");
     protected final long MATCHER_GROUPS_OFFSET        = PUnsafe.pork_getOffset(Matcher.class, "groups");
     protected final long MATCHER_PARENTPATTERN_OFFSET = PUnsafe.pork_getOffset(Matcher.class, "parentPattern");
-    protected final long MATCHER_TEXT_OFFSET = PUnsafe.pork_getOffset(Matcher.class, "text");
+    protected final long MATCHER_TEXT_OFFSET          = PUnsafe.pork_getOffset(Matcher.class, "text");
     protected final long PATTERN_GROUPINDICES_OFFSET  = PUnsafe.pork_getOffset(Pattern.class, "groupIndices");
 
     //protected final Pattern _BASE_URL_PATTERN       = Pattern.compile("^([\\/A-Za-z+*\\-._%]+)(?:\\?(?:[A-Za-z+*\\-._%]+(?:=[A-Za-z+*\\-._%]+)?&)*(?:[A-Za-z+*\\-._%]+(?:=[A-Za-z+*\\-._%]+)?))?(?:#[A-Za-z+*\\-._%]*)?$");
@@ -43,19 +50,20 @@ public class NettyHttpUtil {
     //protected final Pattern _BASE_URL_PATTERN = Pattern.compile("^((?:[\\/A-Za-z+*\\-._]|%(?:[a-zA-Z0-9]{2})+)+)(\\?(?:(?1)(?:=(?1)+)?&)*(?:(?1)+(?:=(?1)+)?))?(?:#((?1)*))?$");
 
     //formatting for regex101:
-    //^(?<url>((?:[\/A-Za-z+*\-._]|%(?:[a-zA-Z0-9]{2})+)+))(?>\?(?<params>(?>(?2)(?>=(?2))?)(?>&(?&params))?)?)?(?>#(?<fragment>(?2)*))?$
-    protected final Pattern _BASE_URL_PATTERN = Pattern.compile("^(?<url>((?:[\\/A-Za-z+*\\-._]|%(?:[a-zA-Z0-9]{2})+)+))(?>\\?(?<params>(?>(?2)(?>=(?2))?)(?>&(?'params'))?)?)?(?>#(?<fragment>(?2)*))?$");
+    //^(?<path>((?:[\/A-Za-z0-9+*\-._]|%(?:[a-fA-F0-9]{2})+)+))(?>\?(?<params>(?>(?2)(?>=(?2))?)(?>&(?&params))?)?)?(?>#(?<fragment>(?2)*))?$
+    protected final Pattern _URL_PATTERN = Pattern.compile("^(?<path>((?:[\\/A-Za-z0-9+*\\-._]|%(?:[a-fA-F0-9]{2})+)+))(?>\\?(?<params>(?>(?2)(?>=(?2))?)(?>&(?'params'))?)?)?(?>#(?<fragment>(?2)*))?$");
 
-    public Query parseQuery(@NonNull HttpMethod method, @NonNull CharSequence query) {
-        Matcher urlMatcher = _BASE_URL_PATTERN.matcher(query);
+    protected final Pattern _PARAMS_PATTERN = Pattern.compile("(?>^|&)(?<key>((?>[\\/A-Za-z0-9+*\\-._]|%(?:[a-fA-F0-9]{2})+)+))(?>=(?<value>(?2)))?");
+
+    public Query parseQuery(@NonNull HttpMethod method, @NonNull CharSequence query) throws HttpException {
+        Matcher urlMatcher = _URL_PATTERN.matcher(query);
         if (!urlMatcher.find()) {
-            System.out.println("URL not found!");
-            return null;
+            throw GenericHttpException.Bad_Request;
         }
 
         if (false) {
-            System.out.print("url=");
-            System.out.print(urlMatcher.group("url"));
+            System.out.print("path=");
+            System.out.print(urlMatcher.group("path"));
             if (urlMatcher.group("params") != null) {
                 System.out.print(", params=");
                 System.out.print(urlMatcher.group("params"));
@@ -68,13 +76,36 @@ public class NettyHttpUtil {
             return null;
         }
 
+        Map<String, String> params = Collections.emptyMap();
+        CharSequence rawParams = fastGroup(urlMatcher, "params");
+        if (rawParams != null) {
+            Matcher paramsMatcher = _PARAMS_PATTERN.matcher(rawParams);
+            if (paramsMatcher.find()) {
+                params = new HashMap<>();
+                do {
+                    String key = URLEncoding.decode(fastGroup(paramsMatcher, "key"));
+                    CharSequence rawValue = fastGroup(paramsMatcher, "value");
+                    if (params.putIfAbsent(key, rawValue == null ? "" : URLEncoding.decode(rawValue)) != null) {
+                        throw new GenericHttpException(StatusCodes.Bad_Request, "Duplicate parameter: " + key);
+                    }
+                } while (paramsMatcher.find());
+            }
+        }
 
+        CharSequence fragment = fastGroup(urlMatcher, "fragment");
+
+        return new QueryImpl(
+                method,
+                URLEncoding.decode(fastGroup(urlMatcher, "path")),
+                fragment == null ? null : URLEncoding.decode(fragment),
+                params
+        );
     }
 
-    public CharSequence fastGroup(@NonNull Matcher matcher, int group)   {
-        if (PUnsafe.getInt(matcher, MATCHER_FIRST_OFFSET) < 0)  {
+    public CharSequence fastGroup(@NonNull Matcher matcher, int group) {
+        if (PUnsafe.getInt(matcher, MATCHER_FIRST_OFFSET) < 0) {
             throw new IllegalStateException("No match found");
-        } else if (group < 0 || group > matcher.groupCount()){
+        } else if (group < 0 || group > matcher.groupCount()) {
             throw new IndexOutOfBoundsException("No group " + group);
         }
         int[] groups = PUnsafe.getObject(matcher, MATCHER_GROUPS_OFFSET);
@@ -87,13 +118,13 @@ public class NettyHttpUtil {
         }
     }
 
-    public CharSequence fastGroup(@NonNull Matcher matcher, @NonNull String name)   {
-        if (PUnsafe.getInt(matcher, MATCHER_FIRST_OFFSET) < 0)  {
+    public CharSequence fastGroup(@NonNull Matcher matcher, @NonNull String name) {
+        if (PUnsafe.getInt(matcher, MATCHER_FIRST_OFFSET) < 0) {
             throw new IllegalStateException("No match found");
         }
         Map<String, Integer> groupIndices = PUnsafe.getObject(PUnsafe.getObject(matcher, MATCHER_PARENTPATTERN_OFFSET), PATTERN_GROUPINDICES_OFFSET);
         Integer indexObj;
-        if (groupIndices == null || (indexObj = groupIndices.get(name)) == null)   {
+        if (groupIndices == null || (indexObj = groupIndices.get(name)) == null) {
             throw new IllegalArgumentException("No group with name <" + name + '>');
         }
         int group = indexObj;

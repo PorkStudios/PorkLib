@@ -21,6 +21,7 @@ import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.encoding.util.FastCharIntMap;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 /**
@@ -78,6 +79,22 @@ public class Hexadecimal {
 
     public void encode(@NonNull StringBuilder to, byte b)   {
         to.append(ALPHABET[(b >>> 4) & 0xF]).append(ALPHABET[b & 0xF]);
+    }
+
+    public void encode(@NonNull Appendable dst, @NonNull byte[] data) throws IOException {
+        encode(dst, data, 0, data.length);
+    }
+
+    public void encode(@NonNull Appendable dst, @NonNull byte[] data, int from, int length) throws IOException, IndexOutOfBoundsException {
+        PorkUtil.assertInRangeLen(data.length, from, length);
+        for (int i = 0; i < length; i++)    {
+            byte b = data[i + from];
+            dst.append(ALPHABET[(b >>> 4) & 0xF]).append(ALPHABET[b & 0xF]);
+        }
+    }
+
+    public void encode(@NonNull Appendable dst, byte b) throws IOException  {
+        dst.append(ALPHABET[(b >>> 4) & 0xF]).append(ALPHABET[b & 0xF]);
     }
 
     public byte[] decode(@NonNull String input) {

@@ -19,9 +19,11 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.HttpMethod;
 
+import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -31,42 +33,67 @@ import java.util.Map;
  */
 @RequiredArgsConstructor
 @AllArgsConstructor
+@ToString
 @Getter
 @Accessors(fluent = true)
 public final class QueryImpl implements Query {
     @NonNull
     protected final HttpMethod          method;
-    protected       String              fullPath;
     @NonNull
     protected final String              path;
     protected final String              fragment;
     @NonNull
     protected final Map<String, String> params;
 
+    @Accessors(fluent = false)
+    protected       String              encoded;
+
     @Override
-    public String fullPath() {
-        String fullPath = this.fullPath;
-        if (fullPath == null) {
-            if (this.params.isEmpty()) {
-                fullPath = this.path;
-            } else {
-                StringBuilder builder = new StringBuilder();
-                builder.append(this.path);
-                int count = 0;
-                for (Map.Entry<String, String> entry : this.params.entrySet()) {
-                    URLEncoding.encode(builder.append(count++ == 0 ? '?' : '&'), entry.getKey());
-                    String value = entry.getValue();
-                    if (!value.isEmpty()) {
-                        URLEncoding.encode(builder.append('='), value);
-                    }
-                }
-                if (this.fragment != null)  {
-                    URLEncoding.encode(builder.append('#'), this.fragment);
-                }
-                fullPath = builder.toString();
+    public CharSequence encoded() {
+        return this.encoded;
+    }
+
+    private String getEncoded() {
+        return this.encoded(true).toString();
+    }
+
+    @Override
+    public CharSequence encoded(boolean computeIfAbsent) {
+        String encoded = this.encoded;
+        if (encoded == null && computeIfAbsent) {
+            StringBuilder builder = new StringBuilder();
+            try {
+                this.encode(builder);
+            } catch (IOException e) {
+                //can't happen
             }
-            this.fullPath = fullPath;
+            this.encoded = encoded = builder.toString();
         }
-        return fullPath;
+        return encoded;
+    }
+
+    @Override
+    public void appendEncoded(@NonNull Appendable dst) throws IOException {
+        String encoded = this.encoded;
+        if (encoded == null)    {
+            this.encode(dst);
+        } else {
+            dst.append(encoded);
+        }
+    }
+
+    protected void encode(@NonNull Appendable dst) throws IOException   {
+        URLEncoding.encode(dst, this.path, true);
+        int count = 0;
+        for (Map.Entry<String, String> entry : this.params.entrySet()) {
+            URLEncoding.encode(dst.append(count++ == 0 ? '?' : '&'), entry.getKey());
+            String value = entry.getValue();
+            if (!value.isEmpty()) {
+                URLEncoding.encode(dst.append('='), value);
+            }
+        }
+        if (this.fragment != null)  {
+            URLEncoding.encode(dst.append('#'), this.fragment, true);
+        }
     }
 }

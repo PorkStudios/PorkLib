@@ -64,7 +64,8 @@ public class PorkUtil {
 
     private final Function<Throwable, StackTraceElement[]> GET_STACK_TRACE_WRAPPER;
 
-    public final HandledPool<byte[]> BUFFER_POOL = new DefaultThreadHandledPool<>(() -> new byte[PUnsafe.PAGE_SIZE], 4);
+    public final HandledPool<byte[]>        BUFFER_POOL        = new DefaultThreadHandledPool<>(() -> new byte[PUnsafe.PAGE_SIZE], 4);
+    public final HandledPool<StringBuilder> STRINGBUILDER_POOL = new DefaultThreadHandledPool<>(StringBuilder::new, 4); //TODO: make this soft
 
     private final AtomicInteger DEFAULT_EXECUTOR_THREAD_COUNTER = new AtomicInteger(0);
     public final  Executor      DEFAULT_EXECUTOR                = new ThreadPoolExecutor(

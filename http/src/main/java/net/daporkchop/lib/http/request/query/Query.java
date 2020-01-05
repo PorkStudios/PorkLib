@@ -18,9 +18,8 @@ package net.daporkchop.lib.http.request.query;
 import lombok.NonNull;
 import net.daporkchop.lib.http.HttpMethod;
 
+import java.io.IOException;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Representation of an HTTP query.
@@ -70,7 +69,28 @@ public interface Query {
     Map<String, String> params();
 
     /**
-     * @return the full query path, including encoded URL parameters
+     * Identical to {@code encoded(true);}.
+     *
+     * @see #encoded(boolean)
      */
-    String fullPath();
+    default CharSequence encoded() {
+        return this.encoded(true);
+    }
+
+    /**
+     * @param computeIfAbsent whether or not to compute (and cache) the encoded path if not already cached
+     * @return the encoded path, including URL parameters and fragment ID (if present), or {@code null} if computeIfAbsent is {@code false} and the encoded path is not cached
+     */
+    CharSequence encoded(boolean computeIfAbsent);
+
+    /**
+     * Appends the encoded path, including URL parameters and fragment ID (if present) to the given {@link Appendable}.
+     * <p>
+     * If the encoded path is cached, then it will be appended directly from the cache. Otherwise, this method will NOT cache it (it will be encoded directly
+     * to the given {@link Appendable}).
+     *
+     * @param dst the {@link Appendable} to append the encoded path to
+     * @throws IOException if an IO exception occurs you dummy
+     */
+    void appendEncoded(@NonNull Appendable dst) throws IOException;
 }

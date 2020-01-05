@@ -18,11 +18,13 @@ package net.daporkchop.lib.http.request.query;
 import io.netty.util.internal.StringUtil;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.encoding.Hexadecimal;
 import net.daporkchop.lib.http.util.exception.GenericHttpException;
 import net.daporkchop.lib.http.util.exception.HttpException;
 
+import java.io.IOException;
 import java.util.BitSet;
 
 /**
@@ -37,58 +39,97 @@ public class URLEncoding {
     static {
         OK_CHARS.set('a', 'z' + 1);
         OK_CHARS.set('A', 'Z' + 1);
+        OK_CHARS.set('0', '9' + 1);
         OK_CHARS.set('*');
         OK_CHARS.set('-');
         OK_CHARS.set('.');
         OK_CHARS.set('_');
     }
 
-    public CharSequence encode(@NonNull CharSequence text) {
-        StringBuilder builder = new StringBuilder();
-        encode(builder, text);
-        return builder;
+    public String encode(@NonNull CharSequence text) {
+        return encode(text, false);
     }
 
-    public void encode(@NonNull StringBuilder to, @NonNull CharSequence text) {
+    public String encode(@NonNull CharSequence text, boolean preserveSlash) {
+        try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get())  {
+            StringBuilder builder = handle.value();
+            builder.setLength(0);
+            encode(builder, text, preserveSlash);
+            return builder.toString();
+        } catch (IOException e) {
+            //can't happen
+            throw new IllegalStateException(e);
+        }
+    }
+
+    public CharSequence encodeToCharSequence(@NonNull CharSequence text) {
+        return encode(text, false);
+    }
+
+    public CharSequence encodeToCharSequence(@NonNull CharSequence text, boolean preserveSlash) {
+        try {
+            StringBuilder builder = new StringBuilder(text.length());
+            encode(builder, text, preserveSlash);
+            return builder;
+        } catch (IOException e) {
+            //can't happen
+            throw new IllegalStateException(e);
+        }
+    }
+
+    public void encode(@NonNull Appendable dst, @NonNull CharSequence text) throws IOException {
+        encode(dst, text, false);
+    }
+
+    public void encode(@NonNull Appendable dst, @NonNull CharSequence text, boolean preserveSlash) throws IOException {
         //all the ternary operators should be optimized away by the JIT compiler
         // (i'd assume that it makes two copies of the method: one for arr == null and one for arr != null)
 
         final char[] arr = PorkUtil.tryUnwrap(text);
         for (int i = 0, length = arr != null ? arr.length : text.length(); i < length; i++) {
             char c = arr != null ? arr[i] : text.charAt(i);
-            if (OK_CHARS.get(c)) {
-                to.append(c);
+            if (OK_CHARS.get(c) || (preserveSlash && c == '/')) {
+                dst.append(c);
             } else if (c == ' ') {
-                to.append('+');
+                dst.append('+');
             } else {
-                to.append('%');
+                dst.append('%');
                 if (c < 0x80) {
-                    Hexadecimal.encode(to, (byte) c);
+                    Hexadecimal.encode(dst, (byte) c);
                 } else if (c < 0x800) {
-                    Hexadecimal.encode(to, (byte) (0xC0 | (c >> 6)));
-                    Hexadecimal.encode(to, (byte) (0x80 | (c & 0x3F)));
+                    Hexadecimal.encode(dst, (byte) (0xC0 | (c >> 6)));
+                    Hexadecimal.encode(dst, (byte) (0x80 | (c & 0x3F)));
                 } else if (StringUtil.isSurrogate(c)) {
                     if (Character.isHighSurrogate(c) && ++i < length) {
                         char c2 = arr != null ? arr[i] : text.charAt(i);
                         if (Character.isLowSurrogate(c2)) {
                             int codePoint = Character.toCodePoint(c, c2);
-                            Hexadecimal.encode(to, (byte) (0xF0 | (codePoint >> 18)));
-                            Hexadecimal.encode(to, (byte) (0x80 | ((codePoint >> 12) & 0x3F)));
-                            Hexadecimal.encode(to, (byte) (0x80 | ((codePoint >> 6) & 0x3F)));
-                            Hexadecimal.encode(to, (byte) (0x80 | (codePoint & 0x3F)));
+                            Hexadecimal.encode(dst, (byte) (0xF0 | (codePoint >> 18)));
+                            Hexadecimal.encode(dst, (byte) (0x80 | ((codePoint >> 12) & 0x3F)));
+                            Hexadecimal.encode(dst, (byte) (0x80 | ((codePoint >> 6) & 0x3F)));
+                            Hexadecimal.encode(dst, (byte) (0x80 | (codePoint & 0x3F)));
                         } else {
-                            Hexadecimal.encode(to, (byte) '?');
+                            Hexadecimal.encode(dst, (byte) '?');
                             i--;
                         }
                     } else {
-                        Hexadecimal.encode(to, (byte) '?');
+                        Hexadecimal.encode(dst, (byte) '?');
                     }
                 }
             }
         }
     }
 
-    public CharSequence decode(@NonNull CharSequence text) throws HttpException {
+    public String decode(@NonNull CharSequence text) throws HttpException {
+        try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get())  {
+            StringBuilder builder = handle.value();
+            builder.setLength(0);
+            decode(builder, text);
+            return builder.toString();
+        }
+    }
+
+    public CharSequence decodeToCharSequence(@NonNull CharSequence text) throws HttpException {
         StringBuilder builder = new StringBuilder();
         decode(builder, text);
         return builder;
@@ -114,13 +155,13 @@ public class URLEncoding {
                         throw GenericHttpException.Bad_Request;
                     }
                     to.append((char) (((b & 0x1F) << 6) | (b2 & 0x3F)));
-                } else if ((b & 0xF0) == 0xF0)  {
+                } else if ((b & 0xF0) == 0xF0) {
                     i += 6;
                     int b2, b3, b4;
                     if (i >= length
                             || (b2 = Hexadecimal.decodeUnsigned(arr != null ? arr[i - 5] : text.charAt(i - 5), arr != null ? arr[i - 4] : text.charAt(i - 4))) < 0
                             || (b3 = Hexadecimal.decodeUnsigned(arr != null ? arr[i - 3] : text.charAt(i - 3), arr != null ? arr[i - 2] : text.charAt(i - 2))) < 0
-                            || (b4 = Hexadecimal.decodeUnsigned(arr != null ? arr[i - 1] : text.charAt(i - 1), arr != null ? arr[i] : text.charAt(i))) < 0)   {
+                            || (b4 = Hexadecimal.decodeUnsigned(arr != null ? arr[i - 1] : text.charAt(i - 1), arr != null ? arr[i] : text.charAt(i))) < 0) {
                         throw GenericHttpException.Bad_Request;
                     }
                     to.appendCodePoint(((b & 0xF) << 18) | ((b2 & 0x3F) << 12) | ((b3 & 0x3F) << 6) | (b4 & 0x3F));

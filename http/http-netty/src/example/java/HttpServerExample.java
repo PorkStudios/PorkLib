@@ -13,10 +13,12 @@
  *
  */
 
+import net.daporkchop.lib.http.HttpMethod;
 import net.daporkchop.lib.http.impl.netty.server.NettyHttpServer;
 import net.daporkchop.lib.http.impl.netty.util.NettyHttpUtil;
 import net.daporkchop.lib.http.request.query.Query;
 import net.daporkchop.lib.http.server.HttpServer;
+import net.daporkchop.lib.http.util.exception.HttpException;
 
 import java.net.InetSocketAddress;
 import java.util.Scanner;
@@ -25,7 +27,7 @@ import java.util.Scanner;
  * @author DaPorkchop_
  */
 public class HttpServerExample {
-    public static void main(String... args) {
+    public static void main(String... args) throws HttpException {
         if (true)   {
             String[] arr = {
                     "/",
@@ -36,7 +38,7 @@ public class HttpServerExample {
                     "/lol/?jeff=ok",
                     "/lol/?jeff&nyef=jef",
                     "/lol?jeff=ok&nyef=jef&lol&my=name",
-                    "/lol/?jeff=ok&nyef=j%EF%20%1f03",
+                    "/lol/?jeff=ok&nyef=j%20%20%c2a7",
                     "/lol/?jeff=ok&nyef=jef&lol&my=name",
                     "/lol/#section",
                     "/lol/?jeff=ok&nyef=jef&lol&my=name#section",
@@ -47,10 +49,11 @@ public class HttpServerExample {
                     "/lol?jeff&nyef#section",
                     "/lol/?jeff&nyef#section",
                     "/lol?jeff=ok&nyef#section",
-                    "/lol/?jeff=ok&nyef#section"
+                    "/lol/?jeff=ok&nyef#section",
+                    "/Avatar%20%5b2009%5d.mp4"
             };
             for (String line : arr) {
-                NettyHttpUtil.parseQuery(line);
+                System.out.println(NettyHttpUtil.parseQuery(HttpMethod.GET, line));
             }
             return;
         }

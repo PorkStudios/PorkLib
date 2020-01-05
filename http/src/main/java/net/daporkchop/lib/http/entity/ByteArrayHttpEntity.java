@@ -44,11 +44,6 @@ public final class ByteArrayHttpEntity implements HttpEntity {
     protected final byte[]      data;
 
     @Override
-    public long length() throws Exception {
-        return this.data.length;
-    }
-
-    @Override
     public TransferSession newSession() throws Exception {
         return new ByteBufferTransferSession(ByteBuffer.wrap(this.data));
     }

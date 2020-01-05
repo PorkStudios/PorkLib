@@ -80,25 +80,6 @@ public interface HttpEntity {
     }
 
     /**
-     * Gets the size (in bytes) of this entity's data.
-     * <p>
-     * If, for whatever reason, the data's size is not known in advance, this method should return {@code -1L}. By default, this will result in the
-     * data being sent using the "chunked" Transfer-Encoding rather than simply setting "Content-Length".
-     *
-     * @return the size (in bytes) of this entity's data, or {@code -1L} if it is not known
-     * @throws Exception if an exception occurs
-     */
-    long length() throws Exception;
-
-    /**
-     * @return the {@link TransferEncoding} that will be used for transferring data to the remote endpoint
-     * @throws Exception if an exception occurs
-     */
-    default TransferEncoding transferEncoding() throws Exception {
-        return this.length() < 0L ? StandardTransferEncoding.chunked : StandardTransferEncoding.identity;
-    }
-
-    /**
      * @return a new {@link TransferSession} instance for transferring this entity's data to a single remote peer
      * @throws Exception if an exception occurs while creating the session
      */

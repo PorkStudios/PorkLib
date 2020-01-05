@@ -15,10 +15,12 @@
 
 package net.daporkchop.lib.http.entity.transfer;
 
+import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
+import net.daporkchop.lib.http.entity.transfer.encoding.StandardTransferEncoding;
+import net.daporkchop.lib.http.entity.transfer.encoding.TransferEncoding;
 
-import java.io.OutputStream;
-import java.nio.channels.GatheringByteChannel;
+import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 
 /**
@@ -32,32 +34,94 @@ import java.nio.channels.WritableByteChannel;
 //implementing this later on netty won't be too useful if TransferSession is hogging all the worker threads
 public interface TransferSession extends AutoCloseable {
     /**
+     * @return the starting position of the transfer
+     * @throws Exception if an exception occurs
+     */
+    long position() throws Exception;
+
+    /**
+     * Gets the size (in bytes) of this entity's data.
+     * <p>
+     * If, for whatever reason, the data's size is not known in advance, this method should return {@code -1L}. By default, this will result in the
+     * data being sent using the "chunked" Transfer-Encoding rather than simply setting "Content-Length".
+     *
+     * @return the size (in bytes) of this entity's data, or {@code -1L} if it is not known
+     * @throws Exception if an exception occurs
+     */
+    long length() throws Exception;
+
+    /**
+     * @return the {@link TransferEncoding} that will be used for transferring data to the remote endpoint
+     * @throws Exception if an exception occurs
+     */
+    default TransferEncoding transferEncoding() throws Exception {
+        return this.length() < 0L ? StandardTransferEncoding.chunked : StandardTransferEncoding.identity;
+    }
+
+    /**
      * Transfers a number of bytes to the given {@link WritableByteChannel}.
      *
-     * @param out the {@link WritableByteChannel} to write data to
+     * @param position the position to start the transfer at
+     * @param out      the {@link WritableByteChannel} to write data to
      * @return the number of bytes transferred
      * @throws Exception if an exception occurs while transferring the data
      */
-    long transfer(@NonNull WritableByteChannel out) throws Exception;
+    long transfer(long position, @NonNull WritableByteChannel out) throws Exception;
 
     /**
      * Transfers the entire HTTP entity to the given {@link WritableByteChannel} in a blocking fashion, simply waiting until all bytes are written.
      *
-     * @param out the {@link WritableByteChannel} to write data to
+     * @param position the position to start the transfer at
+     * @param out      the {@link WritableByteChannel} to write data to
      * @return the total number of bytes transferred
      * @throws Exception if an exception occurs while transferring the data
      */
-    long transferAllBlocking(@NonNull WritableByteChannel out) throws Exception;
+    long transferAllBlocking(long position, @NonNull WritableByteChannel out) throws Exception;
 
     /**
-     * @return whether or not this transfer is complete
+     * @return whether or not this {@link TransferSession}'s data is available as a {@link ByteBuf}
      */
-    boolean complete();
+    default boolean hasByteBuf() {
+        return false;
+    }
+
+    /**
+     * Gets the contents of this {@link TransferSession} as a {@link ByteBuf}.
+     * <p>
+     * The returned {@link ByteBuf} will be a retained slice of the original (must be released manually).
+     *
+     * @return the contents of this {@link TransferSession} as a {@link ByteBuf}
+     * @throws UnsupportedOperationException if this {@link TransferSession} does not support accessing it's data as a {@link ByteBuf} ({@link #hasByteBuf()} is {@code false})
+     * @throws Exception                     if an exception occurs
+     */
+    default ByteBuf getByteBuf() throws Exception {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * @return whether or not this {@link TransferSession}'s data is available as a {@link ByteBuffer}
+     */
+    default boolean hasNioBuffer() {
+        return false;
+    }
+
+    /**
+     * Gets the contents of this {@link TransferSession} as a {@link ByteBuffer}.
+     * <p>
+     * The returned {@link ByteBuffer} will be a slice of the original.
+     *
+     * @return the contents of this {@link TransferSession} as a {@link ByteBuffer}
+     * @throws UnsupportedOperationException if this {@link TransferSession} does not support accessing it's data as a {@link ByteBuffer} ({@link #hasNioBuffer()} is {@code false})
+     * @throws Exception                     if an exception occurs
+     */
+    default ByteBuffer getNioBuffer() throws Exception {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Closes this {@link TransferSession} instance.
      * <p>
-     * This will only be called once per instance to release any resources allocated by this instance (such as memory, file handles, etc.).
+     * This will only be called once once the transfer is completed release any resources allocated by this instance (such as memory, file handles, etc.).
      *
      * @throws Exception if an exception occurs while closing this {@link TransferSession} instance
      */

@@ -37,18 +37,29 @@ public final class EmptyHttpEntity implements HttpEntity {
 
     private final TransferSession newSession = new TransferSession() {
         @Override
-        public long transfer(@NonNull WritableByteChannel out) throws Exception {
+        public long position() throws Exception {
             return 0L;
         }
 
         @Override
-        public long transferAllBlocking(@NonNull WritableByteChannel out) throws Exception {
+        public long length() throws Exception {
             return 0L;
         }
 
         @Override
-        public boolean complete() {
-            return true;
+        public long transfer(long position, @NonNull WritableByteChannel out) throws Exception {
+            if (position != 0L) {
+                throw new IndexOutOfBoundsException(String.valueOf(position));
+            }
+            return 0L;
+        }
+
+        @Override
+        public long transferAllBlocking(long position, @NonNull WritableByteChannel out) throws Exception {
+            if (position != 0L) {
+                throw new IndexOutOfBoundsException(String.valueOf(position));
+            }
+            return 0L;
         }
 
         @Override
@@ -60,10 +71,5 @@ public final class EmptyHttpEntity implements HttpEntity {
     @Override
     public ContentType type() {
         return StandardContentType.TEXT_PLAIN;
-    }
-
-    @Override
-    public long length() throws Exception {
-        return 0;
     }
 }

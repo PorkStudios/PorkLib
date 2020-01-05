@@ -35,22 +35,38 @@ public final class ByteBufferTransferSession implements TransferSession {
     protected ByteBuffer buffer;
 
     @Override
-    public long transfer(@NonNull WritableByteChannel out) throws Exception {
-        return out.write(this.buffer);
+    public long position() throws Exception {
+        return this.buffer.position();
     }
 
     @Override
-    public long transferAllBlocking(@NonNull WritableByteChannel out) throws Exception {
-        int readable = this.buffer.remaining();
-        do {
-            out.write(this.buffer);
-        } while (this.buffer.hasRemaining());
-        return readable;
+    public long length() throws Exception {
+        return this.buffer.remaining();
     }
 
     @Override
-    public boolean complete() {
-        return !this.buffer.hasRemaining();
+    public long transfer(long position, @NonNull WritableByteChannel out) throws Exception {
+        long base = this.position();
+        long length = this.length();
+        if (position >= base + length || position < base) {
+            throw new IndexOutOfBoundsException(String.format("position=%d, length=%d, requested=%d", base, length, position));
+        }
+        return out.write((ByteBuffer) this.buffer.duplicate().position((int) position));
+    }
+
+    @Override
+    public long transferAllBlocking(long position, @NonNull WritableByteChannel out) throws Exception {
+        long base = this.position();
+        long length = this.length();
+        if (position >= base + length || position < base) {
+            throw new IndexOutOfBoundsException(String.format("position=%d, length=%d, requested=%d", base, length, position));
+        }
+        ByteBuffer buffer = (ByteBuffer) this.buffer.duplicate().position((int) position);
+        long written = 0L;
+        while (buffer.hasRemaining())   {
+            written += out.write(buffer);
+        }
+        return written;
     }
 
     @Override

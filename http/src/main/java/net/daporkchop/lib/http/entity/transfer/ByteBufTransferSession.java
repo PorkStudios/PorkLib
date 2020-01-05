@@ -17,6 +17,7 @@ package net.daporkchop.lib.http.entity.transfer;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -27,72 +28,48 @@ import java.nio.channels.WritableByteChannel;
  *
  * @author DaPorkchop_
  */
+@RequiredArgsConstructor
 public final class ByteBufTransferSession implements TransferSession {
-    protected final ByteBuffer   nioBuffer;
-    protected final ByteBuffer[] nioBuffers;
+    @NonNull
+    protected final ByteBuf buf;
 
-    protected ByteBuf buf;
-
-    public ByteBufTransferSession(@NonNull ByteBuf buf) {
-        this.buf = buf;
-        switch (buf.nioBufferCount())   {
-            case -1:
-                throw new IllegalArgumentException("Buffer does not have any NIO buffers!");
-            case 1:
-                this.nioBuffer = buf.nioBuffer();
-                this.nioBuffers = null;
-                break;
-            default:
-                this.nioBuffer = null;
-                this.nioBuffers = buf.nioBuffers();
-                break;
-        }
+    @Override
+    public long position() throws Exception {
+        return this.buf.readerIndex();
     }
 
     @Override
-    public long transfer(@NonNull WritableByteChannel out) throws Exception {
-        if (this.nioBuffer != null) {
-            return out.write(this.nioBuffer);
-        } else {
-            long count = 0L;
-            for (ByteBuffer buf : this.nioBuffers)  {
-                if (buf.hasRemaining()) {
-                    int read = out.write(buf);
-                    count += read;
-                    if (read == 0)  {
-                        break;
-                    }
-                }
-            }
-            return count;
-        }
+    public long length() throws Exception {
+        return this.buf.readableBytes();
     }
 
     @Override
-    public long transferAllBlocking(@NonNull WritableByteChannel out) throws Exception {
-        long count = 0L;
-        if (this.nioBuffer != null) {
-            do {
-                count += out.write(this.nioBuffer);
-            } while (this.nioBuffer.hasRemaining());
-        } else {
-            for (ByteBuffer buf : this.nioBuffers)  {
-                do {
-                    count += out.write(buf);
-                } while (buf.hasRemaining());
-            }
+    public long transfer(long position, @NonNull WritableByteChannel out) throws Exception {
+        long base = this.position();
+        long length = this.length();
+        if (position >= base + length || position < base) {
+            throw new IndexOutOfBoundsException(String.format("position=%d, length=%d, requested=%d", base, length, position));
         }
-        return count;
+        return out.write(this.buf.nioBuffer((int) position, (int) (length - (base - position))));
     }
 
     @Override
-    public boolean complete() {
-        return !this.buf.isReadable();
+    public long transferAllBlocking(long position, @NonNull WritableByteChannel out) throws Exception {
+        long base = this.position();
+        long length = this.length();
+        if (position >= base + length || position < base) {
+            throw new IndexOutOfBoundsException(String.format("position=%d, length=%d, requested=%d", base, length, position));
+        }
+        long remaining = length - (base - position);
+        ByteBuffer buffer = this.buf.nioBuffer((int) position, (int) remaining);
+        while (buffer.hasRemaining())   {
+            out.write(buffer);
+        }
+        return remaining;
     }
 
     @Override
     public void close() throws Exception {
         this.buf.release();
-        this.buf = null;
     }
 }

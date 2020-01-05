@@ -15,8 +15,11 @@
 
 package net.daporkchop.lib.http.entity.transfer;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.experimental.Accessors;
 
 import java.io.IOException;
 import java.nio.channels.FileChannel;
@@ -28,41 +31,38 @@ import java.nio.channels.WritableByteChannel;
  * @author DaPorkchop_
  */
 @AllArgsConstructor
+@Getter
+@Accessors(fluent = true)
 public final class FileChannelTransferSession implements TransferSession {
-    protected final long size;
-    protected       long position;
+    protected final long position;
+    protected final long length;
 
+    @Getter(AccessLevel.NONE)
     @NonNull
     protected final FileChannel channel;
 
     public FileChannelTransferSession(@NonNull FileChannel channel) throws IOException {
-        this(channel.size(), 0L, channel);
+        this(0L, channel.size(), channel);
     }
 
     @Override
-    public long transfer(@NonNull WritableByteChannel out) throws Exception {
-        long position = this.position;
-        long transferred = this.channel.transferTo(position, this.channel.size() - position, out);
-        if (transferred > 0L) {
-            this.position = position + transferred;
+    public long transfer(long position, @NonNull WritableByteChannel out) throws Exception {
+        if (position >= this.position + this.length || position < this.position)    {
+            throw new IndexOutOfBoundsException(String.format("position=%d, length=%d, requested=%d", this.position, this.length, position));
         }
-        return transferred;
+        return this.channel.transferTo(position, this.length - (position - this.position), out);
     }
 
     @Override
-    public long transferAllBlocking(@NonNull WritableByteChannel out) throws Exception {
-        long size = this.channel.size();
-        long position = this.position;
-        while (position < size) {
-            long transferred = this.channel.transferTo(position, size - position, out);
-            position += transferred;
+    public long transferAllBlocking(long position, @NonNull WritableByteChannel out) throws Exception {
+        if (position >= this.position + this.length || position < this.position)    {
+            throw new IndexOutOfBoundsException(String.format("position=%d, length=%d, requested=%d", this.position, this.length, position));
         }
-        return this.position = size;
-    }
-
-    @Override
-    public boolean complete() {
-        return this.position >= this.size;
+        long required = this.length - (position - this.position);
+        for (long transferred = 0L; transferred < required; )   {
+            this.channel.transferTo(position + transferred, required - transferred, out);
+        }
+        return required;
     }
 
     @Override

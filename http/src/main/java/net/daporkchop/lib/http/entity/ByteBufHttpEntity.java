@@ -41,12 +41,7 @@ public final class ByteBufHttpEntity implements HttpEntity {
     protected final ByteBuf     data;
 
     @Override
-    public long length() throws Exception {
-        return this.data.readableBytes();
-    }
-
-    @Override
     public TransferSession newSession() throws Exception {
-        return new ByteBufTransferSession(Unpooled.wrappedBuffer(this.data));
+        return new ByteBufTransferSession(this.data);
     }
 }

@@ -16,15 +16,22 @@
 package net.daporkchop.lib.http.server;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
 import lombok.NonNull;
 import net.daporkchop.lib.http.StatusCode;
+import net.daporkchop.lib.http.entity.ByteArrayHttpEntity;
 import net.daporkchop.lib.http.entity.ByteBufHttpEntity;
+import net.daporkchop.lib.http.entity.FileHttpEntity;
 import net.daporkchop.lib.http.entity.HttpEntity;
 import net.daporkchop.lib.http.entity.content.type.ContentType;
 import net.daporkchop.lib.http.entity.content.type.StandardContentType;
 import net.daporkchop.lib.http.header.Header;
 import net.daporkchop.lib.http.header.map.HeaderMap;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
+import java.io.File;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
@@ -47,38 +54,38 @@ public interface ResponseBuilder {
     HeaderMap headers();
 
     /**
-     * @see net.daporkchop.lib.http.header.map.MutableHeaderMap#put(String, String)
      * @return this {@link ResponseBuilder} instance
+     * @see net.daporkchop.lib.http.header.map.MutableHeaderMap#put(String, String)
      */
     ResponseBuilder putHeader(@NonNull String key, @NonNull String value);
 
     /**
-     * @see net.daporkchop.lib.http.header.map.MutableHeaderMap#put(String, List)
      * @return this {@link ResponseBuilder} instance
+     * @see net.daporkchop.lib.http.header.map.MutableHeaderMap#put(String, List)
      */
     ResponseBuilder putHeader(@NonNull String key, @NonNull List<String> values);
 
     /**
-     * @see net.daporkchop.lib.http.header.map.MutableHeaderMap#put(Header)
      * @return this {@link ResponseBuilder} instance
+     * @see net.daporkchop.lib.http.header.map.MutableHeaderMap#put(Header)
      */
     ResponseBuilder putHeader(@NonNull Header header);
 
     /**
-     * @see net.daporkchop.lib.http.header.map.MutableHeaderMap#add(String, String)
      * @return this {@link ResponseBuilder} instance
+     * @see net.daporkchop.lib.http.header.map.MutableHeaderMap#add(String, String)
      */
     ResponseBuilder addHeader(@NonNull String key, @NonNull String value);
 
     /**
-     * @see net.daporkchop.lib.http.header.map.MutableHeaderMap#add(String, List)
      * @return this {@link ResponseBuilder} instance
+     * @see net.daporkchop.lib.http.header.map.MutableHeaderMap#add(String, List)
      */
     ResponseBuilder addHeader(@NonNull String key, @NonNull List<String> values);
 
     /**
-     * @see net.daporkchop.lib.http.header.map.MutableHeaderMap#add(Header)
      * @return this {@link ResponseBuilder} instance
+     * @see net.daporkchop.lib.http.header.map.MutableHeaderMap#add(Header)
      */
     ResponseBuilder addHeader(@NonNull Header header);
 
@@ -92,8 +99,6 @@ public interface ResponseBuilder {
 
     /**
      * Sets the body of the response.
-     * <p>
-     * The response will consist only of the data in the given {@link ByteBuf} (Content-Length will be set to {@link ByteBuf#readableBytes()}).
      *
      * @param buf the {@link ByteBuf} containing the response body
      * @return this {@link ResponseBuilder} instance
@@ -104,8 +109,6 @@ public interface ResponseBuilder {
 
     /**
      * Sets the body of the response.
-     * <p>
-     * The response will consist only of the data in the given {@link ByteBuf} (Content-Length will be set to {@link ByteBuf#readableBytes()}).
      *
      * @param type the {@link ContentType} of the response data
      * @param buf  the {@link ByteBuf} containing the response body
@@ -113,5 +116,126 @@ public interface ResponseBuilder {
      */
     default ResponseBuilder body(@NonNull ContentType type, @NonNull ByteBuf buf) {
         return this.body(new ByteBufHttpEntity(type, buf));
+    }
+
+    /**
+     * Sets the body of the response.
+     *
+     * @param arr the {@code byte[]} containing the response body
+     * @return this {@link ResponseBuilder} instance
+     */
+    default ResponseBuilder body(@NonNull byte[] arr) {
+        return this.body(new ByteArrayHttpEntity(StandardContentType.APPLICATION_OCTET_STREAM, arr));
+    }
+
+    /**
+     * Sets the body of the response.
+     *
+     * @param type the {@link ContentType} of the response data
+     * @param arr  the {@code byte[]} containing the response body
+     * @return this {@link ResponseBuilder} instance
+     */
+    default ResponseBuilder body(@NonNull ContentType type, @NonNull byte[] arr) {
+        return this.body(new ByteArrayHttpEntity(type, arr));
+    }
+
+    /**
+     * @see #bodyTextUTF8(CharSequence)
+     */
+    default ResponseBuilder body(@NonNull CharSequence text) {
+        return this.body(text, StandardCharsets.UTF_8, "text/plain");
+    }
+
+    /**
+     * Sets the body of the response.
+     * <p>
+     * The body will be encoded using the {@link StandardCharsets#UTF_8} charset, and sent with a content-type of {@code text/plain}.
+     *
+     * @param text the {@link CharSequence} containing the response body
+     * @return this {@link ResponseBuilder} instance
+     */
+    default ResponseBuilder bodyTextUTF8(@NonNull CharSequence text) {
+        return this.body(text, StandardCharsets.UTF_8, "text/plain");
+    }
+
+    /**
+     * Sets the body of the response.
+     * <p>
+     * The body will be encoded using the {@link StandardCharsets#UTF_8} charset, and sent with a content-type of {@code text/html}.
+     *
+     * @param text the {@link CharSequence} containing the response body
+     * @return this {@link ResponseBuilder} instance
+     */
+    default ResponseBuilder bodyHtmlUTF8(@NonNull CharSequence text) {
+        return this.body(text, StandardCharsets.UTF_8, "text/html");
+    }
+
+    /**
+     * Sets the body of the response.
+     * <p>
+     * The body will be encoded using the {@link StandardCharsets#US_ASCII} charset, and sent with a content-type of {@code text/plain}.
+     *
+     * @param text the {@link CharSequence} containing the response body
+     * @return this {@link ResponseBuilder} instance
+     */
+    default ResponseBuilder bodyTextASCII(@NonNull CharSequence text) {
+        return this.body(text, StandardCharsets.US_ASCII, "text/plain");
+    }
+
+    /**
+     * Sets the body of the response.
+     * <p>
+     * The body will be encoded using the {@link StandardCharsets#US_ASCII} charset, and sent with a content-type of {@code text/html}.
+     *
+     * @param text the {@link CharSequence} containing the response body
+     * @return this {@link ResponseBuilder} instance
+     */
+    default ResponseBuilder bodyHtmlASCII(@NonNull CharSequence text) {
+        return this.body(text, StandardCharsets.US_ASCII, "text/html");
+    }
+
+    /**
+     * Sets the body of the response.
+     *
+     * @param text     the {@link CharSequence} containing the response body
+     * @param charset  the {@link Charset} to encode the response body in
+     * @param mimeType the MIME type of the body
+     * @return this {@link ResponseBuilder} instance
+     */
+    default ResponseBuilder body(@NonNull CharSequence text, @NonNull Charset charset, @NonNull String mimeType) {
+        ByteBuf buf = PooledByteBufAllocator.DEFAULT.ioBuffer(text.length());
+        try {
+            buf.writeCharSequence(text, charset);
+            return this.body(ContentType.of(mimeType, charset.name()), buf);
+        } catch (Exception e) {
+            try {
+                buf.release();
+            } catch (Exception e1) {
+                e1.printStackTrace();
+            }
+            PUnsafe.throwException(e);
+            throw new IllegalStateException();
+        }
+    }
+
+    /**
+     * Sets the body of the response.
+     *
+     * @param file the {@link File} whose content should be sent
+     * @return this {@link ResponseBuilder} instance
+     */
+    default ResponseBuilder body(@NonNull File file) {
+        return this.body(new FileHttpEntity(StandardContentType.APPLICATION_OCTET_STREAM, file));
+    }
+
+    /**
+     * Sets the body of the response.
+     *
+     * @param type the {@link ContentType} of the response data
+     * @param file the {@link File} whose content should be sent
+     * @return this {@link ResponseBuilder} instance
+     */
+    default ResponseBuilder body(@NonNull ContentType type, @NonNull File file) {
+        return this.body(new FileHttpEntity(type, file));
     }
 }

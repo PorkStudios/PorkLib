@@ -43,7 +43,7 @@ public final class FileChannelTransferSession implements TransferSession {
     @NonNull
     protected final FileChannel channel;
 
-    protected int refCount = 0;
+    protected int refCount = 1;
 
     public FileChannelTransferSession(@NonNull FileChannel channel) throws IOException {
         this(0L, channel.size(), channel);

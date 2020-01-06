@@ -26,16 +26,18 @@ import net.daporkchop.lib.http.entity.transfer.TransferSession;
 /**
  * A simple implementation of {@link HttpEntity} that stores data in a {@link ByteBuf}.
  * <p>
- * An instance of {@link ByteBufHttpEntity} may only be used once, attempting to reuse it will cause undefined behavior.
+ * Unlike {@link ByteArrayHttpEntity}, a single instance of this may safely be reused as the body of multiple requests/responses. However, the {@link ByteBuf}
+ * must be manually released once the instance is no longer to be used.
  *
  * @author DaPorkchop_
+ * @see ByteBufHttpEntity
  */
 @Getter
 @Accessors(fluent = true)
-public final class ByteBufHttpEntity extends ByteBufTransferSession implements HttpEntity {
+public final class ReusableByteBufHttpEntity extends ByteBufTransferSession implements HttpEntity {
     protected final ContentType type;
 
-    public ByteBufHttpEntity(@NonNull ContentType type, @NonNull ByteBuf buf) {
+    public ReusableByteBufHttpEntity(@NonNull ContentType type, @NonNull ByteBuf buf) {
         super(buf);
 
         this.type = type;
@@ -43,6 +45,7 @@ public final class ByteBufHttpEntity extends ByteBufTransferSession implements H
 
     @Override
     public TransferSession newSession() throws Exception {
+        this.buf.retain();
         return this;
     }
 }

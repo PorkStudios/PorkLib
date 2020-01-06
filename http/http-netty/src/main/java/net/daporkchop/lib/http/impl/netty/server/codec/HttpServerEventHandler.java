@@ -111,6 +111,8 @@ public final class HttpServerEventHandler extends ChannelDuplexHandler {
                 response.putHeader("content-encoding", contentEncoding.name());
             }
 
+            response.putHeader("connection", "close");
+
             ByteBuf buf = ctx.alloc().heapBuffer();
             ASCIIByteBufAppendable out = new ASCIIByteBufAppendable(buf);
             Formatter fmt = new Formatter(out);

@@ -13,7 +13,6 @@
  *
  */
 
-import io.netty.buffer.Unpooled;
 import lombok.NonNull;
 import net.daporkchop.lib.http.entity.content.type.StandardContentType;
 import net.daporkchop.lib.http.header.map.HeaderMap;
@@ -21,6 +20,8 @@ import net.daporkchop.lib.http.request.query.Query;
 import net.daporkchop.lib.http.server.ResponseBuilder;
 import net.daporkchop.lib.http.server.handle.ServerHandler;
 import net.daporkchop.lib.http.util.StatusCodes;
+
+import java.io.File;
 
 import static net.daporkchop.lib.logging.Logging.*;
 
@@ -33,8 +34,11 @@ public class ExampleServerHandler implements ServerHandler {
         logger.info("%s", query);
         //headers.forEach((key, value) -> logger.info("  %s: %s", key, value));
 
-        //throw new GenericHttpException(StatusCodes.Im_A_Teapot);
         response.status(StatusCodes.OK)
-                .body(StandardContentType.TEXT_PLAIN, Unpooled.wrappedBuffer("name jeff lol".getBytes()));
+                //.body("name jeff lol")
+                //.bodyTextUTF8("name jeff lol")
+                .body(StandardContentType.TEXT_PLAIN, new File("/home/daporkchop/Desktop/betterdiscord.css"));
+
+        //throw new GenericHttpException(StatusCodes.Im_A_Teapot);
     }
 }

@@ -15,6 +15,8 @@
 
 package net.daporkchop.lib.http.entity;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,6 +25,8 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.entity.content.type.ContentType;
 import net.daporkchop.lib.http.entity.content.type.StandardContentType;
 import net.daporkchop.lib.http.entity.transfer.TransferSession;
+import net.daporkchop.lib.http.entity.transfer.encoding.StandardTransferEncoding;
+import net.daporkchop.lib.http.entity.transfer.encoding.TransferEncoding;
 
 import java.nio.channels.WritableByteChannel;
 
@@ -47,6 +51,11 @@ public final class EmptyHttpEntity implements HttpEntity {
         }
 
         @Override
+        public TransferEncoding transferEncoding() throws Exception {
+            return StandardTransferEncoding.identity;
+        }
+
+        @Override
         public long transfer(long position, @NonNull WritableByteChannel out) throws Exception {
             if (position != 0L) {
                 throw new IndexOutOfBoundsException(String.valueOf(position));
@@ -60,6 +69,16 @@ public final class EmptyHttpEntity implements HttpEntity {
                 throw new IndexOutOfBoundsException(String.valueOf(position));
             }
             return 0L;
+        }
+
+        @Override
+        public boolean hasByteBuf() {
+            return true;
+        }
+
+        @Override
+        public ByteBuf getByteBuf() throws Exception {
+            return Unpooled.EMPTY_BUFFER;
         }
 
         @Override

@@ -25,12 +25,10 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import net.daporkchop.lib.binary.oio.appendable.ASCIIByteBufAppendable;
 import net.daporkchop.lib.http.StatusCode;
-import net.daporkchop.lib.http.entity.EmptyHttpEntity;
 import net.daporkchop.lib.http.entity.HttpEntity;
 import net.daporkchop.lib.http.entity.content.encoding.ContentEncoding;
 import net.daporkchop.lib.http.entity.content.encoding.StandardContentEncoding;
 import net.daporkchop.lib.http.entity.content.type.ContentType;
-import net.daporkchop.lib.http.entity.content.type.StandardContentType;
 import net.daporkchop.lib.http.entity.transfer.TransferSession;
 import net.daporkchop.lib.http.entity.transfer.encoding.StandardTransferEncoding;
 import net.daporkchop.lib.http.entity.transfer.encoding.TransferEncoding;
@@ -38,7 +36,6 @@ import net.daporkchop.lib.http.impl.netty.server.NettyHttpServer;
 import net.daporkchop.lib.http.impl.netty.server.NettyResponseBuilder;
 import net.daporkchop.lib.http.impl.netty.util.ParsedIncomingHttpRequest;
 import net.daporkchop.lib.http.impl.netty.util.TransferSessionAsFileRegion;
-import net.daporkchop.lib.http.server.ResponseBuilder;
 import net.daporkchop.lib.http.util.exception.GenericHttpException;
 
 import java.util.Formatter;
@@ -63,7 +60,7 @@ public final class HttpServerEventHandler extends ChannelDuplexHandler {
         NettyResponseBuilder responseBuilder = new NettyResponseBuilder();
 
         server.handler().handle(request.query(), request.headers(), responseBuilder);
-        ctx.write(responseBuilder);
+        ctx.channel().write(responseBuilder);
     }
 
     @Override
@@ -86,27 +83,25 @@ public final class HttpServerEventHandler extends ChannelDuplexHandler {
         TransferSession session = body.newSession();
         try {
             long contentLength = session.length();
-            if (contentLength != 0L) {
-                TransferEncoding transferEncoding = session.transferEncoding();
-                if (transferEncoding == StandardTransferEncoding.identity) {
-                    if (contentLength < 0L) {
-                        server.logger().debug("Using \"transfer-encoding: identity\" for response with unknown content length!");
-                        throw GenericHttpException.Internal_Server_Error;
-                    }
-                    response.putHeader("content-length", String.valueOf(contentLength));
-                } else if (false && transferEncoding == StandardTransferEncoding.chunked) {
-                    if (contentLength >= 0L) {
-                        server.logger().debug("Using \"transfer-encoding: chunked\" for response with known content length!");
-                        throw GenericHttpException.Internal_Server_Error;
-                    }
-                } else {
-                    server.logger().debug("Using unsupported \"transfer-encoding: %s\" for response with content length %d!", transferEncoding.name(), contentLength);
+            TransferEncoding transferEncoding = session.transferEncoding();
+            if (transferEncoding == StandardTransferEncoding.identity) {
+                if (contentLength < 0L) {
+                    server.logger().debug("Using \"transfer-encoding: identity\" for response with unknown content length!");
                     throw GenericHttpException.Internal_Server_Error;
                 }
-
-                if (transferEncoding != StandardTransferEncoding.identity) {
-                    response.putHeader("transfer-encoding", transferEncoding.name());
+                response.putHeader("content-length", String.valueOf(contentLength));
+            } else if (false && transferEncoding == StandardTransferEncoding.chunked) {
+                if (contentLength >= 0L) {
+                    server.logger().debug("Using \"transfer-encoding: chunked\" for response with known content length!");
+                    throw GenericHttpException.Internal_Server_Error;
                 }
+            } else {
+                server.logger().debug("Using unsupported \"transfer-encoding: %s\" for response with content length %d!", transferEncoding.name(), contentLength);
+                throw GenericHttpException.Internal_Server_Error;
+            }
+
+            if (transferEncoding != StandardTransferEncoding.identity) {
+                response.putHeader("transfer-encoding", transferEncoding.name());
             }
 
             ContentType contentType = body.type();
@@ -117,14 +112,14 @@ public final class HttpServerEventHandler extends ChannelDuplexHandler {
                 response.putHeader("content-encoding", contentEncoding.name());
             }
 
-            ByteBuf buf = ctx.alloc().ioBuffer();
+            ByteBuf buf = ctx.alloc().heapBuffer();
             ASCIIByteBufAppendable out = new ASCIIByteBufAppendable(buf);
             Formatter fmt = new Formatter(out);
             Object[] args = new Object[2];
 
             args[0] = status.code();
             args[1] = status.msg();
-            fmt.format("HTTP/1.1 %d %s\r\n", args);
+            fmt.format("HTTP/1.1 %1$d %2$s\r\n", args);
 
             server.logger().debug("Response headers:");
             response.headers().forEach((key, value) -> {
@@ -138,12 +133,12 @@ public final class HttpServerEventHandler extends ChannelDuplexHandler {
             ctx.write(buf);
 
             SEND_CONTENT:
-            if (contentLength != 0L)    {
+            if (contentLength != 0L) {
                 if (contentLength > 0L) {
                     if (session.hasByteBuf()) {
                         ctx.write(session.getByteBuf());
                         break SEND_CONTENT;
-                    } else if (session.hasNioBuffer())  {
+                    } else if (session.hasNioBuffer()) {
                         ctx.write(Unpooled.wrappedBuffer(session.getNioBuffer()));
                         break SEND_CONTENT;
                     }
@@ -152,7 +147,7 @@ public final class HttpServerEventHandler extends ChannelDuplexHandler {
             }
             ctx.flush();
             ctx.close();
-        } catch (Exception e)   {
+        } catch (Exception e) {
             session.close();
             throw e;
         }

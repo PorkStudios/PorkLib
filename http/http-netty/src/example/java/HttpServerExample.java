@@ -67,12 +67,7 @@ public class HttpServerExample {
 
         HttpServer server = new NettyHttpServer();
 
-        server.handler((query, headers, response) -> {
-            logger.info("%s", query);
-            headers.forEach((key, value) -> logger.info("  %s: %s", key, value));
-
-            throw new GenericHttpException(StatusCodes.Im_A_Teapot);
-        });
+        server.handler(new ExampleServerHandler());
 
         server.bind(new InetSocketAddress(8080)).syncUninterruptibly();
 

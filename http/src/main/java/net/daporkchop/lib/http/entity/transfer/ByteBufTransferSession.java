@@ -69,6 +69,26 @@ public final class ByteBufTransferSession implements TransferSession {
     }
 
     @Override
+    public boolean hasByteBuf() {
+        return true;
+    }
+
+    @Override
+    public ByteBuf getByteBuf() throws Exception {
+        return this.buf.retainedSlice();
+    }
+
+    @Override
+    public boolean hasNioBuffer() {
+        return true;
+    }
+
+    @Override
+    public ByteBuffer getNioBuffer() throws Exception {
+        return this.buf.nioBuffer();
+    }
+
+    @Override
     public void close() throws Exception {
         this.buf.release();
     }

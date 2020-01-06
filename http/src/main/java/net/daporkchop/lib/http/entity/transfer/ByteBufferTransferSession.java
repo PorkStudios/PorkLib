@@ -16,6 +16,7 @@
 package net.daporkchop.lib.http.entity.transfer;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.util.PorkUtil;
@@ -67,6 +68,26 @@ public final class ByteBufferTransferSession implements TransferSession {
             written += out.write(buffer);
         }
         return written;
+    }
+
+    @Override
+    public boolean hasByteBuf() {
+        return true;
+    }
+
+    @Override
+    public ByteBuf getByteBuf() throws Exception {
+        return Unpooled.wrappedBuffer(this.buffer);
+    }
+
+    @Override
+    public boolean hasNioBuffer() {
+        return true;
+    }
+
+    @Override
+    public ByteBuffer getNioBuffer() throws Exception {
+        return this.buffer.slice();
     }
 
     @Override

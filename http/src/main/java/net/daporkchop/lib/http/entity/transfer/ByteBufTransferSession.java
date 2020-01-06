@@ -29,7 +29,7 @@ import java.nio.channels.WritableByteChannel;
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-public final class ByteBufTransferSession implements TransferSession {
+public class ByteBufTransferSession implements TransferSession {
     @NonNull
     protected final ByteBuf buf;
 
@@ -79,17 +79,17 @@ public final class ByteBufTransferSession implements TransferSession {
     }
 
     @Override
-    public boolean hasNioBuffer() {
+    public boolean reusable() {
         return true;
     }
 
     @Override
-    public ByteBuffer getNioBuffer() throws Exception {
-        return this.buf.nioBuffer();
+    public void retain() {
+        this.buf.retain();
     }
 
     @Override
-    public void close() throws Exception {
-        this.buf.release();
+    public boolean release() {
+        return this.buf.release();
     }
 }

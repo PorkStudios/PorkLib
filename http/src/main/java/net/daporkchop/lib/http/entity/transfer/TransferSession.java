@@ -20,7 +20,6 @@ import lombok.NonNull;
 import net.daporkchop.lib.http.entity.transfer.encoding.StandardTransferEncoding;
 import net.daporkchop.lib.http.entity.transfer.encoding.TransferEncoding;
 
-import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 
 /**
@@ -32,7 +31,7 @@ import java.nio.channels.WritableByteChannel;
  * @author DaPorkchop_
  */
 //implementing this later on netty won't be too useful if TransferSession is hogging all the worker threads
-public interface TransferSession extends AutoCloseable {
+public interface TransferSession {
     /**
      * @return the starting position of the transfer
      * @throws Exception if an exception occurs
@@ -88,7 +87,7 @@ public interface TransferSession extends AutoCloseable {
     /**
      * Gets the contents of this {@link TransferSession} as a {@link ByteBuf}.
      * <p>
-     * The returned {@link ByteBuf} will be a retained slice of the original (must be released manually).
+     * The returned {@link ByteBuf}'s reader/writer indices may be modified by the HTTP engine, it's recommended to return a slice if this is a problem.
      *
      * @return the contents of this {@link TransferSession} as a {@link ByteBuf}
      * @throws UnsupportedOperationException if this {@link TransferSession} does not support accessing it's data as a {@link ByteBuf} ({@link #hasByteBuf()} is {@code false})
@@ -99,32 +98,32 @@ public interface TransferSession extends AutoCloseable {
     }
 
     /**
-     * @return whether or not this {@link TransferSession}'s data is available as a {@link ByteBuffer}
+     * @return checks whether or not this {@link TransferSession} is reusable
      */
-    default boolean hasNioBuffer() {
+    default boolean reusable() {
         return false;
     }
 
     /**
-     * Gets the contents of this {@link TransferSession} as a {@link ByteBuffer}.
+     * Retains this {@link TransferSession} by incrementing its reference count.
      * <p>
-     * The returned {@link ByteBuffer} will be a slice of the original.
-     *
-     * @return the contents of this {@link TransferSession} as a {@link ByteBuffer}
-     * @throws UnsupportedOperationException if this {@link TransferSession} does not support accessing it's data as a {@link ByteBuffer} ({@link #hasNioBuffer()} is {@code false})
-     * @throws Exception                     if an exception occurs
+     * If this {@link TransferSession} is not reusable, this method will do nothing.
      */
-    default ByteBuffer getNioBuffer() throws Exception {
-        throw new UnsupportedOperationException();
+    default void retain() {
+        //no-op
     }
 
     /**
-     * Closes this {@link TransferSession} instance.
+     * Releases this {@link TransferSession} by decrementing its reference count.
      * <p>
-     * This will only be called once once the transfer is completed release any resources allocated by this instance (such as memory, file handles, etc.).
-     *
-     * @throws Exception if an exception occurs while closing this {@link TransferSession} instance
+     * If the reference count reaches 0, it will be released.
+     * <p>
+     * If this {@link TransferSession} is not reusable, this method will do nothing.
+     * <p>
+     * Even if this results in this {@link TransferSession} being released, any {@link ByteBuf}s returned by {@link #getByteBuf()} (if available) must remain
+     * valid until they themselves are released.
      */
-    @Override
-    void close() throws Exception;
+    default boolean release() {
+        return false;
+    }
 }

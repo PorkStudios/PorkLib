@@ -16,7 +16,6 @@
 package net.daporkchop.lib.http.impl.netty.server.codec;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -121,35 +120,28 @@ public final class HttpServerEventHandler extends ChannelDuplexHandler {
             args[1] = status.msg();
             fmt.format("HTTP/1.1 %1$d %2$s\r\n", args);
 
-            server.logger().debug("Response headers:");
+            //server.logger().debug("Response headers:");
             response.headers().forEach((key, value) -> {
                 args[0] = key;
                 args[1] = value;
                 fmt.format("%s: %s\r\n", args);
-                server.logger().debug("  %s: %s", args);
+                //server.logger().debug("  %s: %s", args);
             });
             out.append("\r\n");
 
             ctx.write(buf);
 
-            SEND_CONTENT:
             if (contentLength != 0L) {
-                if (contentLength > 0L) {
-                    if (session.hasByteBuf()) {
-                        ctx.write(session.getByteBuf());
-                        break SEND_CONTENT;
-                    } else if (session.hasNioBuffer()) {
-                        ctx.write(Unpooled.wrappedBuffer(session.getNioBuffer()));
-                        break SEND_CONTENT;
-                    }
+                if (session.hasByteBuf()) {
+                    ctx.write(session.getByteBuf());
+                } else {
+                    ctx.write(new TransferSessionAsFileRegion(session));
                 }
-                ctx.write(new TransferSessionAsFileRegion(session));
             }
             ctx.flush();
             ctx.close();
-        } catch (Exception e) {
-            session.close();
-            throw e;
+        } finally {
+            session.release();
         }
     }
 

@@ -16,10 +16,11 @@
 package net.daporkchop.lib.http.entity.transfer;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
 import java.nio.channels.FileChannel;
@@ -30,7 +31,8 @@ import java.nio.channels.WritableByteChannel;
  *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
+//TODO: make this reusable (i'll need to make some kind of reference-counted FileChannel)
+@RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
 public final class FileChannelTransferSession implements TransferSession {
@@ -41,13 +43,15 @@ public final class FileChannelTransferSession implements TransferSession {
     @NonNull
     protected final FileChannel channel;
 
+    protected int refCount = 0;
+
     public FileChannelTransferSession(@NonNull FileChannel channel) throws IOException {
         this(0L, channel.size(), channel);
     }
 
     @Override
     public long transfer(long position, @NonNull WritableByteChannel out) throws Exception {
-        if (position >= this.position + this.length || position < this.position)    {
+        if (position >= this.position + this.length || position < this.position) {
             throw new IndexOutOfBoundsException(String.format("position=%d, length=%d, requested=%d", this.position, this.length, position));
         }
         return this.channel.transferTo(position, this.length - (position - this.position), out);
@@ -55,18 +59,43 @@ public final class FileChannelTransferSession implements TransferSession {
 
     @Override
     public long transferAllBlocking(long position, @NonNull WritableByteChannel out) throws Exception {
-        if (position >= this.position + this.length || position < this.position)    {
+        if (position >= this.position + this.length || position < this.position) {
             throw new IndexOutOfBoundsException(String.format("position=%d, length=%d, requested=%d", this.position, this.length, position));
         }
         long required = this.length - (position - this.position);
-        for (long transferred = 0L; transferred < required; )   {
+        for (long transferred = 0L; transferred < required; ) {
             this.channel.transferTo(position + transferred, required - transferred, out);
         }
         return required;
     }
 
     @Override
-    public void close() throws Exception {
-        this.channel.close();
+    public boolean reusable() {
+        return true;
+    }
+
+    @Override
+    public synchronized void retain() {
+        if (this.refCount == 0) {
+            throw new AlreadyReleasedException();
+        } else {
+            this.refCount++;
+        }
+    }
+
+    @Override
+    public synchronized boolean release() {
+        if (this.refCount == 0) {
+            throw new AlreadyReleasedException();
+        } else if (--this.refCount == 0) {
+            try {
+                this.channel.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            return true;
+        } else {
+            return false;
+        }
     }
 }

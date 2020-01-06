@@ -21,6 +21,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.entity.content.type.ContentType;
 import net.daporkchop.lib.http.entity.content.type.StandardContentType;
@@ -33,62 +34,63 @@ import java.nio.channels.WritableByteChannel;
 /**
  * @author DaPorkchop_
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public final class EmptyHttpEntity implements HttpEntity {
-    public static final EmptyHttpEntity INSTANCE = new EmptyHttpEntity();
+public final class EmptyHttpEntity implements TransferSession, HttpEntity {
+    public static final EmptyHttpEntity INSTANCE = new EmptyHttpEntity(StandardContentType.TEXT_PLAIN);
 
-    private final TransferSession newSession = new TransferSession() {
-        @Override
-        public long position() throws Exception {
-            return 0L;
-        }
-
-        @Override
-        public long length() throws Exception {
-            return 0L;
-        }
-
-        @Override
-        public TransferEncoding transferEncoding() throws Exception {
-            return StandardTransferEncoding.identity;
-        }
-
-        @Override
-        public long transfer(long position, @NonNull WritableByteChannel out) throws Exception {
-            if (position != 0L) {
-                throw new IndexOutOfBoundsException(String.valueOf(position));
-            }
-            return 0L;
-        }
-
-        @Override
-        public long transferAllBlocking(long position, @NonNull WritableByteChannel out) throws Exception {
-            if (position != 0L) {
-                throw new IndexOutOfBoundsException(String.valueOf(position));
-            }
-            return 0L;
-        }
-
-        @Override
-        public boolean hasByteBuf() {
-            return true;
-        }
-
-        @Override
-        public ByteBuf getByteBuf() throws Exception {
-            return Unpooled.EMPTY_BUFFER;
-        }
-
-        @Override
-        public void close() throws Exception {
-            //no-op
-        }
-    };
+    @NonNull
+    protected final ContentType type;
 
     @Override
-    public ContentType type() {
-        return StandardContentType.TEXT_PLAIN;
+    public TransferSession newSession() throws Exception {
+        return this;
+    }
+
+    @Override
+    public long position() throws Exception {
+        return 0L;
+    }
+
+    @Override
+    public long length() throws Exception {
+        return 0L;
+    }
+
+    @Override
+    public TransferEncoding transferEncoding() throws Exception {
+        return StandardTransferEncoding.identity;
+    }
+
+    @Override
+    public long transfer(long position, @NonNull WritableByteChannel out) throws Exception {
+        if (position != 0L) {
+            throw new IndexOutOfBoundsException(String.valueOf(position));
+        }
+        return 0L;
+    }
+
+    @Override
+    public long transferAllBlocking(long position, @NonNull WritableByteChannel out) throws Exception {
+        if (position != 0L) {
+            throw new IndexOutOfBoundsException(String.valueOf(position));
+        }
+        return 0L;
+    }
+
+    @Override
+    public boolean hasByteBuf() {
+        return true;
+    }
+
+    @Override
+    public ByteBuf getByteBuf() throws Exception {
+        return Unpooled.EMPTY_BUFFER;
+    }
+
+    @Override
+    public boolean reusable() {
+        return true;
     }
 }

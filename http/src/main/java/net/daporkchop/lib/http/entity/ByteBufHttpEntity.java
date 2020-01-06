@@ -16,32 +16,32 @@
 package net.daporkchop.lib.http.entity;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.entity.content.type.ContentType;
 import net.daporkchop.lib.http.entity.transfer.ByteBufTransferSession;
 import net.daporkchop.lib.http.entity.transfer.TransferSession;
 
 /**
- * A simple implementation of {@link HttpEntity} that stores data in a {@code byte[]}.
+ * A simple implementation of {@link HttpEntity} that stores data in a {@link ByteBuf}.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public final class ByteBufHttpEntity implements HttpEntity {
-    @NonNull
+public final class ByteBufHttpEntity extends ByteBufTransferSession implements HttpEntity {
     protected final ContentType type;
-    @NonNull
-    protected final ByteBuf     data;
+
+    public ByteBufHttpEntity(@NonNull ContentType type, @NonNull ByteBuf buf) {
+        super(buf);
+
+        this.type = type;
+    }
 
     @Override
     public TransferSession newSession() throws Exception {
-        return new ByteBufTransferSession(this.data);
+        this.buf.retain(); //TODO: what if we don't want to retain the buffer?
+        return this;
     }
 }

@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.http.impl.java;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
@@ -138,7 +139,8 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
 
                 if (method.hasRequestBody()) {
                     HttpEntity entity = this.builder.body();
-                    try (TransferSession session = entity.newSession()) {
+                    TransferSession session = entity.newSession();
+                    try {
                         TransferEncoding encoding = session.transferEncoding();
                         long length = session.length();
 
@@ -167,14 +169,25 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
                         }
 
                         //send body
-                        try (WritableByteChannel out = Channels.newChannel(this.connection.getOutputStream())) {
-                            long transferred = session.transferAllBlocking(session.position(), out);
-                            if (transferred < 0L) {
-                                throw new IllegalStateException(String.format("Transferred %d bytes (negative?!?)", transferred));
-                            } else if (length >= 0L && transferred != length) {
-                                throw new IllegalStateException(String.format("Transferred %d bytes (expected: %d)", transferred, length));
+                        if (session.hasByteBuf()) {
+                            ByteBuf buf = session.getByteBuf();
+                            try {
+                                buf.readBytes(this.connection.getOutputStream(), buf.readableBytes());
+                            } finally {
+                                buf.release();
+                            }
+                        } else {
+                            try (WritableByteChannel out = Channels.newChannel(this.connection.getOutputStream())) {
+                                long transferred = session.transferAllBlocking(session.position(), out);
+                                if (transferred < 0L) {
+                                    throw new IllegalStateException(String.format("Transferred %d bytes (negative?!?)", transferred));
+                                } else if (length >= 0L && transferred != length) {
+                                    throw new IllegalStateException(String.format("Transferred %d bytes (expected: %d)", transferred, length));
+                                }
                             }
                         }
+                    } finally {
+                        session.release();
                     }
                 }
 

@@ -17,14 +17,12 @@ package net.daporkchop.lib.http.entity;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.entity.content.type.ContentType;
 import net.daporkchop.lib.http.entity.transfer.ByteBufTransferSession;
-import net.daporkchop.lib.http.entity.transfer.ByteBufferTransferSession;
 import net.daporkchop.lib.http.entity.transfer.TransferSession;
 
 import java.nio.ByteBuffer;
@@ -34,17 +32,37 @@ import java.nio.ByteBuffer;
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public final class ByteArrayHttpEntity implements HttpEntity {
-    @NonNull
+public final class ByteArrayHttpEntity extends ByteBufTransferSession implements HttpEntity {
     protected final ContentType type;
-    @NonNull
     protected final byte[]      data;
+
+    public ByteArrayHttpEntity(@NonNull ContentType type, @NonNull byte[] data) {
+        super(Unpooled.wrappedBuffer(data));
+
+        this.type = type;
+        this.data = data;
+    }
 
     @Override
     public TransferSession newSession() throws Exception {
-        return new ByteBufferTransferSession(ByteBuffer.wrap(this.data));
+        return this;
+    }
+
+    @Override
+    public ByteBuf getByteBuf() throws Exception {
+        return this.buf.slice(); //no need to retain, see comment below
+    }
+
+    @Override
+    public void retain() {
+        //no need to retain, see comment below
+    }
+
+    @Override
+    public boolean release() {
+        //no-op, unpooled heap bytebuf doesn't provide any benefit from being released manually
+        return false;
     }
 }

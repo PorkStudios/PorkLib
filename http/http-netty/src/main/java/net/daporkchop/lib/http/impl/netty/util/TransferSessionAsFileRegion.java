@@ -17,13 +17,13 @@ package net.daporkchop.lib.http.impl.netty.util;
 
 import io.netty.channel.FileRegion;
 import io.netty.util.AbstractReferenceCounted;
-import io.netty.util.ReferenceCounted;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.entity.transfer.TransferSession;
 import net.daporkchop.lib.unsafe.PUnsafe;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
@@ -34,13 +34,13 @@ import java.nio.channels.WritableByteChannel;
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public final class TransferSessionAsFileRegion extends AbstractReferenceCounted implements FileRegion {
+public final class TransferSessionAsFileRegion implements FileRegion {
     protected static final long TRANSFERRED_OFFSET = PUnsafe.pork_getOffset(TransferSessionAsFileRegion.class, "transferred");
-    protected static final long REFCNT_OFFSET = PUnsafe.pork_getOffset(TransferSessionAsFileRegion.class, "refCnt");
+    protected static final long REFCNT_OFFSET      = PUnsafe.pork_getOffset(TransferSessionAsFileRegion.class, "refCnt");
 
-    protected volatile long transferred;
+    protected volatile long            transferred;
     @NonNull
-    protected final TransferSession session;
+    protected final    TransferSession session;
     protected volatile int refCnt = 0;
 
     @Override
@@ -83,19 +83,20 @@ public final class TransferSessionAsFileRegion extends AbstractReferenceCounted 
 
     @Override
     public FileRegion retain() {
-        super.retain();
+        this.session.retain();
         return this;
     }
 
     @Override
     public FileRegion retain(int increment) {
-        super.retain(increment);
+        for (int i = 0; i < increment; i++) {
+            this.session.retain();
+        }
         return this;
     }
 
     @Override
     public FileRegion touch() {
-        super.touch();
         return this;
     }
 
@@ -105,11 +106,19 @@ public final class TransferSessionAsFileRegion extends AbstractReferenceCounted 
     }
 
     @Override
-    protected void deallocate() {
-        try {
-            this.session.close();
-        } catch (Exception e)   {
-            throw new RuntimeException(e);
+    public boolean release() {
+        return this.session.release();
+    }
+
+    @Override
+    public boolean release(int decrement) {
+        boolean last = false;
+        for (int i = 0; i < decrement; i++) {
+            if (last)   {
+                throw new AlreadyReleasedException();
+            }
+            last = this.session.release();
         }
+        return last;
     }
 }

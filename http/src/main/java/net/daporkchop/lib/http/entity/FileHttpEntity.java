@@ -29,7 +29,7 @@ import java.nio.channels.FileChannel;
 import java.nio.file.StandardOpenOption;
 
 /**
- * A simple implementation of {@link HttpEntity} that reads data from a {@code byte[]}.
+ * A simple implementation of {@link HttpEntity} that reads data from a {@link File}.
  *
  * @author DaPorkchop_
  */

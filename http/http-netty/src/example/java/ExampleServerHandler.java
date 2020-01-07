@@ -30,8 +30,12 @@ import static net.daporkchop.lib.logging.Logging.*;
  */
 public class ExampleServerHandler implements ServerHandler {
     @Override
-    public void handle(@NonNull Query query, @NonNull HeaderMap headers, @NonNull ResponseBuilder response) throws Exception {
+    public void handle(@NonNull Query query) throws Exception {
         logger.info("%s", query);
+    }
+
+    @Override
+    public void handle(@NonNull Query query, @NonNull HeaderMap headers, @NonNull ResponseBuilder response) throws Exception {
         //headers.forEach((key, value) -> logger.info("  %s: %s", key, value));
 
         response.status(StatusCodes.OK)

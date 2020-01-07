@@ -23,6 +23,7 @@ import io.netty.channel.ChannelPromise;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import net.daporkchop.lib.binary.oio.appendable.ASCIIByteBufAppendable;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.http.StatusCode;
 import net.daporkchop.lib.http.entity.HttpEntity;
 import net.daporkchop.lib.http.entity.content.encoding.ContentEncoding;
@@ -36,6 +37,7 @@ import net.daporkchop.lib.http.impl.netty.server.NettyHttpServer;
 import net.daporkchop.lib.http.impl.netty.server.NettyResponseBuilder;
 import net.daporkchop.lib.http.impl.netty.util.ParsedIncomingHttpRequest;
 import net.daporkchop.lib.http.impl.netty.util.TransferSessionAsFileRegion;
+import net.daporkchop.lib.http.request.query.Query;
 import net.daporkchop.lib.http.util.exception.GenericHttpException;
 
 import java.util.Formatter;
@@ -50,17 +52,18 @@ public final class HttpServerEventHandler extends ChannelDuplexHandler {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        if (!(msg instanceof ParsedIncomingHttpRequest)) {
-            super.channelRead(ctx, msg);
-            return;
-        }
-
-        ParsedIncomingHttpRequest request = (ParsedIncomingHttpRequest) msg;
         NettyHttpServer server = ctx.channel().attr(NettyHttpServer.ATTR_SERVER).get();
-        NettyResponseBuilder responseBuilder = new NettyResponseBuilder();
 
-        server.handler().handle(request.query(), request.headers(), responseBuilder);
-        ctx.channel().write(responseBuilder, ctx.voidPromise());
+        if (msg instanceof Query)   {
+            server.handler().handle((Query) msg);
+        } else if (msg instanceof ParsedIncomingHttpRequest) {
+            ParsedIncomingHttpRequest request = (ParsedIncomingHttpRequest) msg;
+            NettyResponseBuilder responseBuilder = new NettyResponseBuilder();
+            server.handler().handle(request.query(), request.headers(), responseBuilder);
+            ctx.channel().write(responseBuilder, ctx.voidPromise());
+        } else {
+            throw new IllegalArgumentException("Cannot handle type: " + PorkUtil.className(msg));
+        }
     }
 
     @Override

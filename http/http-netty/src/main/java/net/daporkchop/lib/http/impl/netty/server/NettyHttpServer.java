@@ -53,7 +53,7 @@ public final class NettyHttpServer implements HttpServer {
     @Getter
     @Setter
     @NonNull
-    protected ServerHandler handler = new NoopServerHandler();
+    protected ServerHandler handler = NoopServerHandler.INSTANCE;
 
     protected final EventLoopGroupPool loopPool;
     protected final EventLoopGroup     loop;

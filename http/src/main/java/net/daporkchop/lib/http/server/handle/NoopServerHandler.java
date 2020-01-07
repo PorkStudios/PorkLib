@@ -15,18 +15,32 @@
 
 package net.daporkchop.lib.http.server.handle;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import net.daporkchop.lib.http.HttpMethod;
 import net.daporkchop.lib.http.header.map.HeaderMap;
 import net.daporkchop.lib.http.request.query.Query;
 import net.daporkchop.lib.http.server.ResponseBuilder;
 import net.daporkchop.lib.http.util.StatusCodes;
+import net.daporkchop.lib.http.util.exception.GenericHttpException;
 
 /**
  * An implementation of {@link ServerHandler} that simply replies with {@link StatusCodes#OK}.
  *
  * @author DaPorkchop_
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class NoopServerHandler implements ServerHandler {
+    public static final NoopServerHandler INSTANCE = new NoopServerHandler();
+
+    @Override
+    public void handle(@NonNull Query query) throws Exception {
+        if (query.method() != HttpMethod.GET)   {
+            throw GenericHttpException.Method_Not_Allowed;
+        }
+    }
+
     @Override
     public void handle(@NonNull Query query, @NonNull HeaderMap headers, @NonNull ResponseBuilder response) throws Exception {
         response.status(StatusCodes.OK);

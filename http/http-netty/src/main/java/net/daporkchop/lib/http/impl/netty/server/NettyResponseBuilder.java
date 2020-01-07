@@ -27,7 +27,9 @@ import net.daporkchop.lib.http.header.map.ArrayHeaderMap;
 import net.daporkchop.lib.http.header.map.MutableHeaderMap;
 import net.daporkchop.lib.http.server.ResponseBuilder;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Implementation of {@link ResponseBuilder} for {@link NettyHttpServer}.
@@ -38,6 +40,29 @@ import java.util.List;
 @Setter
 @Accessors(fluent = true, chain = true)
 public final class NettyResponseBuilder implements ResponseBuilder {
+    protected static final String[] RESERVED_HEADERS = {
+            "connection",
+            "content-encoding",
+            "content-type",
+            "transfer-encoding"
+    };
+    protected static final Set<String> RESERVED_HEADER_SET;
+
+    static {
+        RESERVED_HEADER_SET = new HashSet<>();
+
+        for (int i = 0, length = RESERVED_HEADERS.length; i < length; i++)  {
+            RESERVED_HEADER_SET.add(RESERVED_HEADERS[i]);
+        }
+    }
+
+    protected static String validateKey(@NonNull String key) {
+        if (RESERVED_HEADER_SET.contains(key.toLowerCase()))  {
+            throw new IllegalArgumentException("Reserved header key: " + key);
+        }
+        return key;
+    }
+
     @NonNull
     protected StatusCode status;
 
@@ -48,36 +73,38 @@ public final class NettyResponseBuilder implements ResponseBuilder {
 
     @Override
     public ResponseBuilder putHeader(@NonNull String key, @NonNull String value) {
-        this.headers.put(key, value);
+        this.headers.put(validateKey(key), value);
         return this;
     }
 
     @Override
     public ResponseBuilder putHeader(@NonNull String key, @NonNull List<String> values) {
-        this.headers.put(key, values);
+        this.headers.put(validateKey(key), values);
         return this;
     }
 
     @Override
     public ResponseBuilder putHeader(@NonNull Header header) {
+        validateKey(header.key());
         this.headers.put(header);
         return this;
     }
 
     @Override
     public ResponseBuilder addHeader(@NonNull String key, @NonNull String value) {
-        this.headers.add(key, value);
+        this.headers.add(validateKey(key), value);
         return this;
     }
 
     @Override
     public ResponseBuilder addHeader(@NonNull String key, @NonNull List<String> values) {
-        this.headers.add(key, values);
+        this.headers.add(validateKey(key), values);
         return this;
     }
 
     @Override
     public ResponseBuilder addHeader(@NonNull Header header) {
+        validateKey(header.key());
         this.headers.add(header);
         return this;
     }

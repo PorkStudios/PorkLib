@@ -79,7 +79,7 @@ public interface MutableHeaderMap extends HeaderMap {
      * @param value the value to add to the header
      */
     default void add(@NonNull String key, @NonNull String value)  {
-        this.put(Header.of(key, value));
+        this.add(Header.of(key, value));
     }
 
     /**
@@ -89,7 +89,7 @@ public interface MutableHeaderMap extends HeaderMap {
      * @param values the values to add to the header
      */
     default void add(@NonNull String key, @NonNull List<String> values)  {
-        this.put(Header.of(key, values));
+        this.add(Header.of(key, values));
     }
 
     /**

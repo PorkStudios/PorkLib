@@ -35,9 +35,9 @@ public class ExampleServerHandler implements ServerHandler {
         //headers.forEach((key, value) -> logger.info("  %s: %s", key, value));
 
         response.status(StatusCodes.OK)
-                //.body("name jeff lol")
-                //.bodyTextUTF8("name jeff lol")
-                .body(StandardContentType.TEXT_PLAIN, new File("/home/daporkchop/Desktop/betterdiscord.css"));
+                //.body("name jeff lol");
+                .bodyTextUTF8("name jeff lol");
+                //.body(StandardContentType.TEXT_PLAIN, new File("/home/daporkchop/Desktop/betterdiscord.css"));
 
         //throw new GenericHttpException(StatusCodes.Im_A_Teapot);
     }

@@ -31,6 +31,7 @@ import net.daporkchop.lib.http.entity.content.type.ContentType;
 import net.daporkchop.lib.http.entity.transfer.TransferSession;
 import net.daporkchop.lib.http.entity.transfer.encoding.StandardTransferEncoding;
 import net.daporkchop.lib.http.entity.transfer.encoding.TransferEncoding;
+import net.daporkchop.lib.http.header.map.MutableHeaderMap;
 import net.daporkchop.lib.http.impl.netty.server.NettyHttpServer;
 import net.daporkchop.lib.http.impl.netty.server.NettyResponseBuilder;
 import net.daporkchop.lib.http.impl.netty.util.ParsedIncomingHttpRequest;
@@ -59,7 +60,7 @@ public final class HttpServerEventHandler extends ChannelDuplexHandler {
         NettyResponseBuilder responseBuilder = new NettyResponseBuilder();
 
         server.handler().handle(request.query(), request.headers(), responseBuilder);
-        ctx.channel().write(responseBuilder);
+        ctx.channel().write(responseBuilder, ctx.voidPromise());
     }
 
     @Override
@@ -79,6 +80,7 @@ public final class HttpServerEventHandler extends ChannelDuplexHandler {
         }
 
         HttpEntity body = response.body();
+        MutableHeaderMap headers = response.headers();
         TransferSession session = body.newSession();
         try {
             long contentLength = session.length();
@@ -88,7 +90,7 @@ public final class HttpServerEventHandler extends ChannelDuplexHandler {
                     server.logger().debug("Using \"transfer-encoding: identity\" for response with unknown content length!");
                     throw GenericHttpException.Internal_Server_Error;
                 }
-                response.putHeader("content-length", String.valueOf(contentLength));
+                headers.put("content-length", String.valueOf(contentLength));
             } else if (false && transferEncoding == StandardTransferEncoding.chunked) {
                 if (contentLength >= 0L) {
                     server.logger().debug("Using \"transfer-encoding: chunked\" for response with known content length!");
@@ -100,18 +102,18 @@ public final class HttpServerEventHandler extends ChannelDuplexHandler {
             }
 
             if (transferEncoding != StandardTransferEncoding.identity) {
-                response.putHeader("transfer-encoding", transferEncoding.name());
+                headers.put("transfer-encoding", transferEncoding.name());
             }
 
             ContentType contentType = body.type();
-            response.putHeader("content-type", contentType.formatted());
+            headers.put("content-type", contentType.formatted());
 
             ContentEncoding contentEncoding = body.encoding();
             if (contentEncoding != StandardContentEncoding.identity) {
-                response.putHeader("content-encoding", contentEncoding.name());
+                headers.put("content-encoding", contentEncoding.name());
             }
 
-            response.putHeader("connection", "close");
+            headers.put("connection", "close");
 
             ByteBuf buf = ctx.alloc().heapBuffer();
             ASCIIByteBufAppendable out = new ASCIIByteBufAppendable(buf);
@@ -131,17 +133,16 @@ public final class HttpServerEventHandler extends ChannelDuplexHandler {
             });
             out.append("\r\n");
 
-            ctx.write(buf);
+            ctx.write(buf, ctx.voidPromise());
 
             if (contentLength != 0L) {
                 if (session.hasByteBuf()) {
-                    ctx.write(session.getByteBuf());
+                    ctx.write(session.getByteBuf(), ctx.voidPromise());
                 } else {
-                    ctx.write(new TransferSessionAsFileRegion(session));
+                    ctx.write(new TransferSessionAsFileRegion(session), ctx.voidPromise());
                 }
             }
-            ctx.flush();
-            ctx.close();
+            ctx.close(ctx.voidPromise());
         } finally {
             session.release();
         }

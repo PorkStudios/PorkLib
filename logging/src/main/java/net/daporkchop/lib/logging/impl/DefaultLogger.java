@@ -114,7 +114,9 @@ public class DefaultLogger extends SimpleLogger {
      * Enables ANSI text formatting on this logger.
      */
     public DefaultLogger enableANSI() {
-        if (PlatformInfo.OPERATING_SYSTEM != OperatingSystem.Windows)   {
+        if (PlatformInfo.OPERATING_SYSTEM == OperatingSystem.Windows)   {
+            this.warn("Windows detected, not enabling ANSI formatting!");
+        } else {
             this.delegates.computeIfAbsent("console", s -> new Tuple<>(this.logLevels, null)).atomicSetB(new ANSIMessagePrinter());
         }
         return this;

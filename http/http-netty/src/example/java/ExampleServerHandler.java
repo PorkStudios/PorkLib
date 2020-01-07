@@ -14,14 +14,13 @@
  */
 
 import lombok.NonNull;
-import net.daporkchop.lib.http.entity.content.type.StandardContentType;
 import net.daporkchop.lib.http.header.map.HeaderMap;
+import net.daporkchop.lib.http.message.Message;
 import net.daporkchop.lib.http.request.query.Query;
 import net.daporkchop.lib.http.server.ResponseBuilder;
 import net.daporkchop.lib.http.server.handle.ServerHandler;
 import net.daporkchop.lib.http.util.StatusCodes;
-
-import java.io.File;
+import net.daporkchop.lib.http.util.exception.GenericHttpException;
 
 import static net.daporkchop.lib.logging.Logging.*;
 
@@ -30,19 +29,28 @@ import static net.daporkchop.lib.logging.Logging.*;
  */
 public class ExampleServerHandler implements ServerHandler {
     @Override
+    public int maxBodySize() {
+        return 1 << 20;
+    }
+
+    @Override
     public void handleQuery(@NonNull Query query) throws Exception {
         logger.info("%s", query);
     }
 
     @Override
-    public void handleHeaders(@NonNull Query query, @NonNull HeaderMap headers, @NonNull ResponseBuilder response) throws Exception {
-        //headers.forEach((key, value) -> logger.info("  %s: %s", key, value));
+    public void handleHeaders(@NonNull Query query, @NonNull HeaderMap headers) throws Exception {
+        //headers.forEach((key, value) -> logger.info("  %s: %s", key, body));
+    }
 
+    @Override
+    public void handle(@NonNull Query query, @NonNull Message message, @NonNull ResponseBuilder response) throws Exception {
         response.status(StatusCodes.OK)
-                //.body("name jeff lol");
-                //.bodyTextUTF8("name jeff lol");
-                .body(StandardContentType.TEXT_PLAIN, new File("/home/daporkchop/Desktop/betterdiscord.css"));
+                //.body("name jeff lol")
+                //.bodyTextUTF8("name jeff lol")
+                //.body(StandardContentType.TEXT_PLAIN, new File("/home/daporkchop/Desktop/betterdiscord.css"))
+                .addHeader("my-name", "jeff");
 
-        //throw new GenericHttpException(StatusCodes.Im_A_Teapot);
+        throw new GenericHttpException(StatusCodes.Im_A_Teapot);
     }
 }

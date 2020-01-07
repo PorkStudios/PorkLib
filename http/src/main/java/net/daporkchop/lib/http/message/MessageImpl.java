@@ -13,26 +13,24 @@
  *
  */
 
-package net.daporkchop.lib.http.response;
+package net.daporkchop.lib.http.message;
 
-import net.daporkchop.lib.http.message.Message;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.http.header.map.HeaderMap;
 
 /**
- * A sub-type of {@link ResponseHeaders} which additionally contains a value.
- * <p>
- * Intended to be the final result of a {@link net.daporkchop.lib.http.request.Request}.
+ * Basic implementation of {@link Message}.
  *
  * @author DaPorkchop_
  */
-public interface ResponseBody<V> extends ResponseHeaders<V>, Message {
-    /**
-     * Gets the final, aggregated value of the response.
-     * <p>
-     * The contents of this field are entirely dependent on the {@link net.daporkchop.lib.http.response.aggregate.ResponseAggregator} that was used with the
-     * request.
-     *
-     * @return the final, aggregated value of the response
-     */
-    @Override
-    V body();
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public final class MessageImpl implements Message {
+    @NonNull
+    protected final HeaderMap headers;
+    protected final Object    body;
 }

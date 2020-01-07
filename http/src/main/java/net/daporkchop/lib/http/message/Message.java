@@ -13,26 +13,25 @@
  *
  */
 
-package net.daporkchop.lib.http.response;
+package net.daporkchop.lib.http.message;
 
-import net.daporkchop.lib.http.message.Message;
+import net.daporkchop.lib.http.header.map.HeaderMap;
 
 /**
- * A sub-type of {@link ResponseHeaders} which additionally contains a value.
+ * Represents an HTTP message.
  * <p>
- * Intended to be the final result of a {@link net.daporkchop.lib.http.request.Request}.
+ * An HTTP message consists of zero or more headers, followed by an optional message body.
  *
  * @author DaPorkchop_
  */
-public interface ResponseBody<V> extends ResponseHeaders<V>, Message {
+public interface Message {
     /**
-     * Gets the final, aggregated value of the response.
-     * <p>
-     * The contents of this field are entirely dependent on the {@link net.daporkchop.lib.http.response.aggregate.ResponseAggregator} that was used with the
-     * request.
-     *
-     * @return the final, aggregated value of the response
+     * @return the message's headers
      */
-    @Override
-    V body();
+    HeaderMap headers();
+
+    /**
+     * @return the message's body, or {@code null} if none is set
+     */
+    Object body();
 }

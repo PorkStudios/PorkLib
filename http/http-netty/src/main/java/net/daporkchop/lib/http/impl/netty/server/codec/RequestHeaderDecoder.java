@@ -25,7 +25,9 @@ import net.daporkchop.lib.binary.chars.DirectASCIISequence;
 import net.daporkchop.lib.http.HttpMethod;
 import net.daporkchop.lib.http.header.map.ArrayHeaderMap;
 import net.daporkchop.lib.http.impl.netty.util.NettyHttpUtil;
+import net.daporkchop.lib.http.message.MessageImpl;
 import net.daporkchop.lib.http.request.query.Query;
+import net.daporkchop.lib.http.util.StatusCodes;
 import net.daporkchop.lib.http.util.exception.GenericHttpException;
 
 import static net.daporkchop.lib.http.util.Constants.*;
@@ -71,7 +73,7 @@ public final class RequestHeaderDecoder extends ChannelInboundHandlerAdapter {
                     //query has not been set, we need to try and parse it
 
                     this.parseQuery(ctx, new DirectASCIISequence(buf.memoryAddress(), this.queryEnd = buf.readerIndex()));
-                    ctx.fireChannelRead(this);
+                    ctx.fireChannelRead(this.query);
                 } else if (buf.readByte() == '\r') {
                     //second carriage return
                     if (buf.readByte() != '\n') {
@@ -85,16 +87,22 @@ public final class RequestHeaderDecoder extends ChannelInboundHandlerAdapter {
                     this.parseHeaders(ctx, new DirectASCIISequence(buf.memoryAddress() + queryEnd, buf.readerIndex() - queryEnd));
                     ctx.fireChannelRead(this);
 
-                    //TODO: handle request body
+                    if (this.query.method().hasRequestBody()) {
+                        //TODO: something
+                        throw new GenericHttpException(StatusCodes.Method_Not_Allowed, this.query.method().name());
+                    } else {
+                        //there is no body to be read, fire message event immediately
 
-                    ctx.pipeline().remove(this);
+                        ctx.pipeline().remove(this);
+                        ctx.fireChannelRead(new MessageImpl(this.headers, null));
+                    }
                     return;
                 }
             }
         }
     }
 
-    private void parseQuery(ChannelHandlerContext ctx, DirectASCIISequence request) throws Exception    {
+    private void parseQuery(ChannelHandlerContext ctx, DirectASCIISequence request) throws Exception {
         Matcher matcher = REQUEST_LINE_PATTERN.matcher(request);
         if (!matcher.find()) {
             throw GenericHttpException.Bad_Request;

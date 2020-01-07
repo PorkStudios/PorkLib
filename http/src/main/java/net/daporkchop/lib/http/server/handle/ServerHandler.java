@@ -17,6 +17,7 @@ package net.daporkchop.lib.http.server.handle;
 
 import lombok.NonNull;
 import net.daporkchop.lib.http.header.map.HeaderMap;
+import net.daporkchop.lib.http.message.Message;
 import net.daporkchop.lib.http.request.query.Query;
 import net.daporkchop.lib.http.server.HttpServer;
 import net.daporkchop.lib.http.server.ResponseBuilder;
@@ -44,6 +45,11 @@ public interface ServerHandler {
     }
 
     /**
+     * @return the maximum allowed size (in bytes) of a request body before the request will be rejected
+     */
+    int maxBodySize();
+
+    /**
      * Handles an incoming request's query.
      * <p>
      * This is the first event that is fired when handling a request. It will be notified as soon as the request's query line
@@ -52,15 +58,26 @@ public interface ServerHandler {
      * @param query the request's query line
      * @throws Exception if an exception occurs while handling the request
      */
-    void handleQuery(@NonNull Query query) throws Exception;
+    default void handleQuery(@NonNull Query query) throws Exception {
+    }
 
     /**
      * Handles an incoming request's headers.
      *
+     * @param query   the client's query
+     * @param headers the headers sent with the request
+     * @throws Exception if an exception occurs while handling the request
+     */
+    default void handleHeaders(@NonNull Query query, @NonNull HeaderMap headers) throws Exception {
+    }
+
+    /**
+     * Handles an incoming request.
+     *
      * @param query    the client's query
-     * @param headers  the headers sent with the request
+     * @param message  a {@link Message} containing the request's headers and body
      * @param response a {@link ResponseBuilder} for sending a response
      * @throws Exception if an exception occurs while handling the request
      */
-    void handleHeaders(@NonNull Query query, @NonNull HeaderMap headers, @NonNull ResponseBuilder response) throws Exception;
+    void handle(@NonNull Query query, @NonNull Message message, @NonNull ResponseBuilder response) throws Exception;
 }

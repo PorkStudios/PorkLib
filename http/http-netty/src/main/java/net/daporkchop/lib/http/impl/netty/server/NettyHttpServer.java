@@ -27,6 +27,8 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.http.request.query.Query;
+import net.daporkchop.lib.http.request.query.UnsetQuery;
 import net.daporkchop.lib.http.server.HttpServer;
 import net.daporkchop.lib.http.server.handle.NoopServerHandler;
 import net.daporkchop.lib.http.server.handle.ServerHandler;
@@ -47,8 +49,10 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 @Accessors(fluent = true, chain = true)
 public final class NettyHttpServer implements HttpServer {
-    public static final AttributeKey<NettyHttpServer>        ATTR_SERVER  = AttributeKey.newInstance("porklib-http-server");
-    public static final AttributeKey<NettyHttpServerBinding> ATTR_BINDING = AttributeKey.newInstance("porklib-http-server-binding");
+    public static final AttributeKey<NettyHttpServer>        ATTR_SERVER    = AttributeKey.newInstance("porklib-http-server");
+    public static final AttributeKey<NettyHttpServerBinding> ATTR_BINDING   = AttributeKey.newInstance("porklib-http-server-binding");
+    public static final AttributeKey<Boolean>                ATTR_RESPONDED = AttributeKey.newInstance("porklib-http-server-response");
+    public static final AttributeKey<Query>                  ATTR_QUERY     = AttributeKey.newInstance("porklib-http-server-query");
 
     @Getter
     @Setter
@@ -97,7 +101,9 @@ public final class NettyHttpServer implements HttpServer {
                 .group(this.loop, this.loop)
                 .channelFactory(this.loopPool.transport().channelFactorySocketServer())
                 .childHandler(NettyHttpServerChannelInitializer.INSTANCE)
-                .childAttr(ATTR_SERVER, this);
+                .childAttr(ATTR_SERVER, this)
+                .childAttr(ATTR_RESPONDED, Boolean.FALSE)
+                .childAttr(ATTR_QUERY, UnsetQuery.INSTANCE);
     }
 
     @Override

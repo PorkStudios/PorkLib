@@ -36,6 +36,9 @@ import net.daporkchop.lib.http.header.map.MutableHeaderMap;
 import net.daporkchop.lib.http.impl.netty.server.NettyHttpServer;
 import net.daporkchop.lib.http.impl.netty.server.NettyResponseBuilder;
 import net.daporkchop.lib.http.impl.netty.util.TransferSessionAsFileRegion;
+import net.daporkchop.lib.http.message.Message;
+import net.daporkchop.lib.http.request.query.Query;
+import net.daporkchop.lib.http.request.query.UnsetQuery;
 import net.daporkchop.lib.http.util.exception.GenericHttpException;
 
 import java.util.Formatter;
@@ -52,16 +55,19 @@ public final class HttpServerEventHandler extends ChannelDuplexHandler {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         NettyHttpServer server = ctx.channel().attr(NettyHttpServer.ATTR_SERVER).get();
 
-        if (msg instanceof RequestHeaderDecoder) {
+        if (msg instanceof Query) {
+            if (!ctx.channel().attr(NettyHttpServer.ATTR_QUERY).compareAndSet(UnsetQuery.INSTANCE, (Query) msg)) {
+                throw new IllegalStateException("Query was already set!");
+            }
+            server.handler().handleQuery((Query) msg);
+        } else if (msg instanceof RequestHeaderDecoder) {
             RequestHeaderDecoder decoder = (RequestHeaderDecoder) msg;
 
-            if (decoder.headers == null) {
-                server.handler().handleQuery(decoder.query);
-            } else {
-                NettyResponseBuilder responseBuilder = new NettyResponseBuilder();
-                server.handler().handleHeaders(decoder.query, decoder.headers, responseBuilder);
-                ctx.channel().write(responseBuilder, ctx.voidPromise());
-            }
+            server.handler().handleHeaders(decoder.query, decoder.headers);
+        } else if (msg instanceof Message) {
+            NettyResponseBuilder responseBuilder = new NettyResponseBuilder();
+            server.handler().handle(ctx.channel().attr(NettyHttpServer.ATTR_QUERY).get(), (Message) msg, responseBuilder);
+            ctx.channel().write(responseBuilder, ctx.voidPromise());
         } else {
             throw new IllegalArgumentException("Cannot handle type: " + PorkUtil.className(msg));
         }
@@ -69,13 +75,21 @@ public final class HttpServerEventHandler extends ChannelDuplexHandler {
 
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-        if (!(msg instanceof NettyResponseBuilder)) {
-            super.write(ctx, msg, promise);
+        NettyHttpServer server = ctx.channel().attr(NettyHttpServer.ATTR_SERVER).get();
+
+        if (!ctx.channel().attr(NettyHttpServer.ATTR_RESPONDED).compareAndSet(Boolean.FALSE, Boolean.TRUE)) {
+            if (msg instanceof ByteBuf) {
+                //continue to forward bytebufs along even afterwards
+
+                ctx.write(msg, promise);
+            } else {
+                server.logger().error("Already sent response to request from %s!", ctx.channel().remoteAddress());
+                ctx.close();
+            }
             return;
         }
 
         NettyResponseBuilder response = (NettyResponseBuilder) msg;
-        NettyHttpServer server = ctx.channel().attr(NettyHttpServer.ATTR_SERVER).get();
 
         StatusCode status = response.status();
         if (status == null) {

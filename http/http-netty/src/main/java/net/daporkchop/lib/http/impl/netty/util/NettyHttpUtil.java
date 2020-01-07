@@ -23,7 +23,7 @@ import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.http.HttpMethod;
 import net.daporkchop.lib.http.request.query.Query;
 import net.daporkchop.lib.http.request.query.QueryImpl;
-import net.daporkchop.lib.http.request.query.URLEncoding;
+import net.daporkchop.lib.http.util.URLEncoding;
 import net.daporkchop.lib.http.util.StatusCodes;
 import net.daporkchop.lib.http.util.exception.GenericHttpException;
 import net.daporkchop.lib.http.util.exception.HttpException;

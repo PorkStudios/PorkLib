@@ -38,7 +38,7 @@ public interface MutableHeaderMap extends HeaderMap {
      *
      * @param key   the key of the header
      * @param value the value of the header
-     * @return the previous value, or {@code null} if no previous value for the given key existed
+     * @return the previous value, or {@code null} if no previous body for the given key existed
      */
     default Header put(@NonNull String key, @NonNull String value)  {
         return this.put(Header.of(key, value));
@@ -49,7 +49,7 @@ public interface MutableHeaderMap extends HeaderMap {
      *
      * @param key   the key of the header
      * @param values the values of the header
-     * @return the previous value, or {@code null} if no previous value for the given key existed
+     * @return the previous value, or {@code null} if no previous body for the given key existed
      */
     default Header put(@NonNull String key, @NonNull List<String> values)  {
         return this.put(Header.of(key, values));

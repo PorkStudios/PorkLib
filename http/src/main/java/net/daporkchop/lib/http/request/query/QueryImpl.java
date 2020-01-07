@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.HttpMethod;
+import net.daporkchop.lib.http.util.URLEncoding;
 
 import java.io.IOException;
 import java.util.Map;

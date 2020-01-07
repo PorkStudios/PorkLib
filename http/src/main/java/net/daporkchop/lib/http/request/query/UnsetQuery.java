@@ -13,42 +13,67 @@
  *
  */
 
-package net.daporkchop.lib.http.response;
+package net.daporkchop.lib.http.request.query;
 
-import lombok.Getter;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.http.StatusCode;
-import net.daporkchop.lib.http.header.map.HeaderMap;
-import net.daporkchop.lib.http.request.Request;
+import net.daporkchop.lib.http.HttpMethod;
+
+import java.io.IOException;
+import java.util.Map;
 
 /**
- * A simple implementation {@link ResponseBody} which stores only the value and delegates all methods from {@link ResponseHeaders} to a separate instance of
- * {@link ResponseHeaders}.
+ * An implementation of {@link Query} that simply throws an {@link UnsupportedOperationException} from every method.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-public final class DelegatingResponseBodyImpl<V> implements ResponseBody<V> {
-    @NonNull
-    protected final ResponseHeaders<V> delegate;
-    protected final V                  body;
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class UnsetQuery implements Query {
+    public static final UnsetQuery INSTANCE = new UnsetQuery();
 
     @Override
-    public Request<V> request() {
-        return this.delegate.request();
+    public HttpMethod method() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public StatusCode status() {
-        return this.delegate.status();
+    public String path() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public HeaderMap headers() {
-        return this.delegate.headers();
+    public String fragment() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String param(@NonNull String name) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String param(@NonNull String name, String fallback) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Map<String, String> params() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public CharSequence encoded() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public CharSequence encoded(boolean computeIfAbsent) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void appendEncoded(@NonNull Appendable dst) throws IOException {
+        throw new UnsupportedOperationException();
     }
 }

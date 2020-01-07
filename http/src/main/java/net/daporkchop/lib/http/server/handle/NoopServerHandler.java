@@ -15,11 +15,13 @@
 
 package net.daporkchop.lib.http.server.handle;
 
+import io.netty.buffer.ByteBuf;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.http.HttpMethod;
 import net.daporkchop.lib.http.header.map.HeaderMap;
+import net.daporkchop.lib.http.message.Message;
 import net.daporkchop.lib.http.request.query.Query;
 import net.daporkchop.lib.http.server.ResponseBuilder;
 import net.daporkchop.lib.http.util.StatusCodes;
@@ -35,6 +37,11 @@ public final class NoopServerHandler implements ServerHandler {
     public static final NoopServerHandler INSTANCE = new NoopServerHandler();
 
     @Override
+    public int maxBodySize() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void handleQuery(@NonNull Query query) throws Exception {
         if (query.method() != HttpMethod.GET)   {
             throw GenericHttpException.Method_Not_Allowed;
@@ -42,7 +49,7 @@ public final class NoopServerHandler implements ServerHandler {
     }
 
     @Override
-    public void handleHeaders(@NonNull Query query, @NonNull HeaderMap headers, @NonNull ResponseBuilder response) throws Exception {
+    public void handle(@NonNull Query query, @NonNull Message message, @NonNull ResponseBuilder response) throws Exception {
         response.status(StatusCodes.OK);
     }
 }

@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.http.request.query;
+package net.daporkchop.lib.http.util;
 
 import io.netty.util.internal.StringUtil;
 import lombok.NonNull;

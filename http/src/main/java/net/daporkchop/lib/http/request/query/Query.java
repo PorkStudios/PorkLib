@@ -57,7 +57,7 @@ public interface Query {
      *
      * @param name     the name of the URL parameter
      * @param fallback the value to return in case no parameter with the given name could be found
-     * @return the value of a URL parameter with the given name, or the given fallback value if none was found
+     * @return the value of a URL parameter with the given name, or the given fallback body if none was found
      */
     default String param(@NonNull String name, String fallback) {
         return this.params().getOrDefault(name, fallback);

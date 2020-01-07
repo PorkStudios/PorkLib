@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -39,7 +39,7 @@ public class Http {
                 .headers(headers)
                 .aggregateToString()
                 .send()
-                .syncBodyAndGet().value();
+                .syncBodyAndGet().body();
     }
 
     public byte[] get(@NonNull String url, Header... headers) {
@@ -48,7 +48,7 @@ public class Http {
                 .headers(headers)
                 .aggregateToByteArray()
                 .send()
-                .syncBodyAndGet().value();
+                .syncBodyAndGet().body();
     }
 
     public String postUrlEncodedString(@NonNull String url, @NonNull String content, Header... headers) {
@@ -58,7 +58,7 @@ public class Http {
                 .body(ContentType.parse("application/x-www-form-urlencoded; charset=UTF-8"), content.getBytes(StandardCharsets.UTF_8))
                 .aggregateToString()
                 .send()
-                .syncBodyAndGet().value();
+                .syncBodyAndGet().body();
     }
 
     public String postJsonString(@NonNull String url, @NonNull String json, Header... headers) {
@@ -68,7 +68,7 @@ public class Http {
                 .bodyJson(json)
                 .aggregateToString()
                 .send()
-                .syncBodyAndGet().value();
+                .syncBodyAndGet().body();
     }
 
     public String postString(@NonNull String url, @NonNull byte[] content, @NonNull String contentType, Header... headers) {
@@ -78,7 +78,7 @@ public class Http {
                 .body(contentType, content)
                 .aggregateToString()
                 .send()
-                .syncBodyAndGet().value();
+                .syncBodyAndGet().body();
     }
 
     public byte[] postUrlEncoded(@NonNull String url, @NonNull String content, Header... headers) {
@@ -88,7 +88,7 @@ public class Http {
                 .body(ContentType.parse("application/x-www-form-urlencoded; charset=UTF-8"), content.getBytes(StandardCharsets.UTF_8))
                 .aggregateToByteArray()
                 .send()
-                .syncBodyAndGet().value();
+                .syncBodyAndGet().body();
     }
 
     public byte[] postJson(@NonNull String url, @NonNull String json, Header... headers) {
@@ -98,7 +98,7 @@ public class Http {
                 .bodyJson(json)
                 .aggregateToByteArray()
                 .send()
-                .syncBodyAndGet().value();
+                .syncBodyAndGet().body();
     }
 
     public byte[] post(@NonNull String url, @NonNull byte[] content, @NonNull String contentType, Header... headers) {
@@ -108,6 +108,6 @@ public class Http {
                 .body(contentType, content)
                 .aggregateToByteArray()
                 .send()
-                .syncBodyAndGet().value();
+                .syncBodyAndGet().body();
     }
 }

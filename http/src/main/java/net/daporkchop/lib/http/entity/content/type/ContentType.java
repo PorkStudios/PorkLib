@@ -97,7 +97,7 @@ public interface ContentType {
     /**
      * Gets the the formatted value of this {@link ContentType}.
      * <p>
-     * This will return a value that may be used as the value of a "Content-Type" HTTP header.
+     * This will return a value that may be used as the body of a "Content-Type" HTTP header.
      *
      * @return the the formatted value of this {@link ContentType}
      */

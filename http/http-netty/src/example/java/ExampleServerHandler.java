@@ -13,6 +13,7 @@
  *
  */
 
+import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.http.header.map.HeaderMap;
 import net.daporkchop.lib.http.message.Message;
@@ -21,6 +22,8 @@ import net.daporkchop.lib.http.server.ResponseBuilder;
 import net.daporkchop.lib.http.server.handle.ServerHandler;
 import net.daporkchop.lib.http.util.StatusCodes;
 import net.daporkchop.lib.http.util.exception.GenericHttpException;
+
+import java.nio.charset.StandardCharsets;
 
 import static net.daporkchop.lib.logging.Logging.*;
 
@@ -45,6 +48,18 @@ public class ExampleServerHandler implements ServerHandler {
 
     @Override
     public void handle(@NonNull Query query, @NonNull Message message, @NonNull ResponseBuilder response) throws Exception {
+        if (!query.method().hasRequestBody() && message.body() != null)    {
+            throw new IllegalStateException("May not send a body for " + query.method());
+        }
+
+        if (message.body() != null) {
+            if (message.body() instanceof ByteBuf)  {
+                logger.info("Body: %s", ((ByteBuf) message.body()).toString(StandardCharsets.UTF_8));
+            } else {
+                logger.info("Body: %s", message.body());
+            }
+        }
+
         response.status(StatusCodes.OK)
                 //.body("name jeff lol")
                 //.bodyTextUTF8("name jeff lol")

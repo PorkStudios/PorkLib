@@ -88,8 +88,21 @@ public final class RequestHeaderDecoder extends ChannelInboundHandlerAdapter {
                     ctx.fireChannelRead(this);
 
                     if (this.query.method().hasRequestBody()) {
-                        //TODO: something
-                        throw new GenericHttpException(StatusCodes.Method_Not_Allowed, this.query.method().name());
+                        String contentLengthText = this.headers.getValue("content-length");
+                        if (contentLengthText == null)  {
+                            throw GenericHttpException.Length_Required;
+                        }
+
+                        //retain buf so that it isn't released by handlerRemoved
+                        buf.retain();
+                        try {
+                            ctx.pipeline().replace(this, "body", new RequestBodyHandler(this.headers, Integer.parseUnsignedInt(contentLengthText)));
+
+                            //pass remaining buffered bytes along to request body handler
+                            ctx.pipeline().fireChannelRead(buf.retain());
+                        } finally {
+                            buf.release();
+                        }
                     } else {
                         //there is no body to be read, fire message event immediately
 

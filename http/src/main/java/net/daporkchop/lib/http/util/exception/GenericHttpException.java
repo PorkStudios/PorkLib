@@ -34,6 +34,7 @@ import net.daporkchop.lib.http.util.StatusCodes;
 public final class GenericHttpException extends HttpException {
     public static final HttpException Bad_Request                     = new GenericHttpException(StatusCodes.Bad_Request, false);
     public static final HttpException Method_Not_Allowed              = new GenericHttpException(StatusCodes.Method_Not_Allowed, false);
+    public static final HttpException Length_Required                 = new GenericHttpException(StatusCodes.Length_Required, false);
     public static final HttpException Payload_Too_Large               = new GenericHttpException(StatusCodes.Payload_Too_Large, false);
     public static final HttpException URI_Too_Long                    = new GenericHttpException(StatusCodes.URI_Too_Long, false);
     public static final HttpException Request_Header_Fields_Too_Large = new GenericHttpException(StatusCodes.Request_Header_Fields_Too_Large, false);

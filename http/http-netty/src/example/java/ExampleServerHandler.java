@@ -30,18 +30,18 @@ import static net.daporkchop.lib.logging.Logging.*;
  */
 public class ExampleServerHandler implements ServerHandler {
     @Override
-    public void handle(@NonNull Query query) throws Exception {
+    public void handleQuery(@NonNull Query query) throws Exception {
         logger.info("%s", query);
     }
 
     @Override
-    public void handle(@NonNull Query query, @NonNull HeaderMap headers, @NonNull ResponseBuilder response) throws Exception {
+    public void handleHeaders(@NonNull Query query, @NonNull HeaderMap headers, @NonNull ResponseBuilder response) throws Exception {
         //headers.forEach((key, value) -> logger.info("  %s: %s", key, value));
 
         response.status(StatusCodes.OK)
                 //.body("name jeff lol");
-                .bodyTextUTF8("name jeff lol");
-                //.body(StandardContentType.TEXT_PLAIN, new File("/home/daporkchop/Desktop/betterdiscord.css"));
+                //.bodyTextUTF8("name jeff lol");
+                .body(StandardContentType.TEXT_PLAIN, new File("/home/daporkchop/Desktop/betterdiscord.css"));
 
         //throw new GenericHttpException(StatusCodes.Im_A_Teapot);
     }

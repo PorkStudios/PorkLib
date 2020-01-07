@@ -44,7 +44,7 @@ public interface ServerHandler {
     }
 
     /**
-     * Handles an incoming request.
+     * Handles an incoming request's query.
      * <p>
      * This is the first event that is fired when handling a request. It will be notified as soon as the request's query line
      * (containing HTTP method, version and path) is available.
@@ -52,15 +52,15 @@ public interface ServerHandler {
      * @param query the request's query line
      * @throws Exception if an exception occurs while handling the request
      */
-    void handle(@NonNull Query query) throws Exception;
+    void handleQuery(@NonNull Query query) throws Exception;
 
     /**
-     * Handles an incoming request.
+     * Handles an incoming request's headers.
      *
      * @param query    the client's query
      * @param headers  the headers sent with the request
      * @param response a {@link ResponseBuilder} for sending a response
      * @throws Exception if an exception occurs while handling the request
      */
-    void handle(@NonNull Query query, @NonNull HeaderMap headers, @NonNull ResponseBuilder response) throws Exception;
+    void handleHeaders(@NonNull Query query, @NonNull HeaderMap headers, @NonNull ResponseBuilder response) throws Exception;
 }

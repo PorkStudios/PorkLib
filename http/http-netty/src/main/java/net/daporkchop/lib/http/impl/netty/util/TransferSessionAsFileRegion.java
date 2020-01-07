@@ -16,7 +16,6 @@
 package net.daporkchop.lib.http.impl.netty.util;
 
 import io.netty.channel.FileRegion;
-import io.netty.util.AbstractReferenceCounted;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;

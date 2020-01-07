@@ -25,9 +25,7 @@ import net.daporkchop.lib.binary.chars.DirectASCIISequence;
 import net.daporkchop.lib.http.HttpMethod;
 import net.daporkchop.lib.http.header.map.ArrayHeaderMap;
 import net.daporkchop.lib.http.impl.netty.util.NettyHttpUtil;
-import net.daporkchop.lib.http.impl.netty.util.ParsedIncomingHttpRequest;
 import net.daporkchop.lib.http.request.query.Query;
-import net.daporkchop.lib.http.util.StatusCodes;
 import net.daporkchop.lib.http.util.exception.GenericHttpException;
 
 import static net.daporkchop.lib.http.util.Constants.*;
@@ -73,7 +71,7 @@ public final class RequestHeaderDecoder extends ChannelInboundHandlerAdapter {
                     //query has not been set, we need to try and parse it
 
                     this.parseQuery(ctx, new DirectASCIISequence(buf.memoryAddress(), this.queryEnd = buf.readerIndex()));
-                    ctx.fireChannelRead(this.query);
+                    ctx.fireChannelRead(this);
                 } else if (buf.readByte() == '\r') {
                     //second carriage return
                     if (buf.readByte() != '\n') {
@@ -85,7 +83,7 @@ public final class RequestHeaderDecoder extends ChannelInboundHandlerAdapter {
 
                     int queryEnd = this.queryEnd;
                     this.parseHeaders(ctx, new DirectASCIISequence(buf.memoryAddress() + queryEnd, buf.readerIndex() - queryEnd));
-                    ctx.fireChannelRead(new ParsedIncomingHttpRequest(this.query, this.headers));
+                    ctx.fireChannelRead(this);
 
                     //TODO: handle request body
 

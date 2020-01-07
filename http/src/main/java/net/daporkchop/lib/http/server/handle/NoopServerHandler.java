@@ -35,14 +35,14 @@ public final class NoopServerHandler implements ServerHandler {
     public static final NoopServerHandler INSTANCE = new NoopServerHandler();
 
     @Override
-    public void handle(@NonNull Query query) throws Exception {
+    public void handleQuery(@NonNull Query query) throws Exception {
         if (query.method() != HttpMethod.GET)   {
             throw GenericHttpException.Method_Not_Allowed;
         }
     }
 
     @Override
-    public void handle(@NonNull Query query, @NonNull HeaderMap headers, @NonNull ResponseBuilder response) throws Exception {
+    public void handleHeaders(@NonNull Query query, @NonNull HeaderMap headers, @NonNull ResponseBuilder response) throws Exception {
         response.status(StatusCodes.OK);
     }
 }

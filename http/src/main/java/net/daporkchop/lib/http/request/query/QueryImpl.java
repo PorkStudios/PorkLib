@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.http.request.query;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
@@ -47,7 +48,10 @@ public final class QueryImpl implements Query {
     protected final Map<String, String> params;
 
     @Accessors(fluent = false)
-    protected       String              encoded;
+    protected String encoded;
+
+    @Getter(AccessLevel.NONE)
+    protected transient int hash;
 
     @Override
     public CharSequence encoded() {
@@ -76,14 +80,14 @@ public final class QueryImpl implements Query {
     @Override
     public void appendEncoded(@NonNull Appendable dst) throws IOException {
         String encoded = this.encoded;
-        if (encoded == null)    {
+        if (encoded == null) {
             this.encode(dst);
         } else {
             dst.append(encoded);
         }
     }
 
-    protected void encode(@NonNull Appendable dst) throws IOException   {
+    protected void encode(@NonNull Appendable dst) throws IOException {
         URLEncoding.encode(dst, this.path, true);
         int count = 0;
         for (Map.Entry<String, String> entry : this.params.entrySet()) {
@@ -93,8 +97,44 @@ public final class QueryImpl implements Query {
                 URLEncoding.encode(dst.append('='), value);
             }
         }
-        if (this.fragment != null)  {
+        if (this.fragment != null) {
             URLEncoding.encode(dst.append('#'), this.fragment, true);
         }
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = this.hash;
+        if (hash == 0) {
+            hash = this.method.hashCode();
+            hash = hash * 31 + this.path.hashCode();
+            hash = hash * 31 + this.path.hashCode();
+            hash = hash * 31 + (this.fragment == null ? 0 : this.fragment.hashCode());
+            for (Map.Entry<String, String> entry : this.params.entrySet())    {
+                hash = (hash * 31 + entry.getKey().hashCode()) * 31 + entry.getValue().hashCode();
+            }
+            if (hash == 0) {
+                hash = 1;
+            }
+            this.hash = hash;
+        }
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this)    {
+            return true;
+        } else if (obj instanceof Query)    {
+            if (obj == UnsetQuery.INSTANCE) {
+                return false;
+            }
+            Query other = (Query) obj;
+            return this.method == other.method()
+                    && this.path.equals(other.path())
+                    && (this.fragment == null ? other.fragment() == null : this.fragment.equals(other.fragment()))
+                    && this.params.equals(other.params());
+        }
+        return super.equals(obj);
     }
 }

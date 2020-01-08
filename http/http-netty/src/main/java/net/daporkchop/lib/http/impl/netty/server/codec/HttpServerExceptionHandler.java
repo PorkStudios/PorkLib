@@ -57,12 +57,6 @@ public final class HttpServerExceptionHandler extends ChannelInboundHandlerAdapt
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         NettyHttpServer server = ctx.channel().attr(NettyHttpServer.ATTR_SERVER).get();
 
-        if (!ctx.channel().attr(NettyHttpServer.ATTR_RESPONDED).compareAndSet(Boolean.FALSE, Boolean.TRUE))   {
-            server.logger().error("Exception occurred after sending response in request from %s!", cause, ctx.channel().remoteAddress());
-            ctx.close();
-            return;
-        }
-
         ByteBuf buf = ctx.alloc().ioBuffer(2048).writerIndex(1024);
         ByteBuf headersBuf = buf.readRetainedSlice(1024).clear();
         try {
@@ -108,6 +102,12 @@ public final class HttpServerExceptionHandler extends ChannelInboundHandlerAdapt
             fmt = new Formatter(new ASCIIByteBufAppendable(headersBuf));
             args[3] = buf.readableBytes();
             fmt.format("HTTP/1.1 %1$d %2$s\r\nContent-length: %4$d\r\nContent-type: text/html; charset=UTF-8\r\n\r\n", args);
+
+            if (!ctx.channel().attr(NettyHttpServer.ATTR_RESPONDED).compareAndSet(Boolean.FALSE, Boolean.TRUE))   {
+                server.logger().error("Exception occurred after sending response in request from %s!", cause, ctx.channel().remoteAddress());
+                ctx.close();
+                return;
+            }
 
             ctx.write(headersBuf.retain());
             ctx.writeAndFlush(buf.retain());

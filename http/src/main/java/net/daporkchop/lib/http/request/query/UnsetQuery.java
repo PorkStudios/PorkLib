@@ -76,4 +76,14 @@ public final class UnsetQuery implements Query {
     public void appendEncoded(@NonNull Appendable dst) throws IOException {
         throw new UnsupportedOperationException();
     }
+
+    @Override
+    public int hashCode() {
+        return 0;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj == this;
+    }
 }

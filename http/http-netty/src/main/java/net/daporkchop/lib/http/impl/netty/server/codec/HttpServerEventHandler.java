@@ -75,25 +75,19 @@ public final class HttpServerEventHandler extends ChannelDuplexHandler {
 
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-        NettyHttpServer server = ctx.channel().attr(NettyHttpServer.ATTR_SERVER).get();
+        if (msg instanceof ByteBuf) {
+            //always forward bytebufs down the pipeline
 
-        if (!ctx.channel().attr(NettyHttpServer.ATTR_RESPONDED).compareAndSet(Boolean.FALSE, Boolean.TRUE)) {
-            if (msg instanceof ByteBuf) {
-                //continue to forward bytebufs along even afterwards
-
-                ctx.write(msg, promise);
-            } else {
-                server.logger().error("Already sent response to request from %s!", ctx.channel().remoteAddress());
-                ctx.close();
-            }
+            ctx.write(msg, promise);
             return;
         }
 
+        NettyHttpServer server = ctx.channel().attr(NettyHttpServer.ATTR_SERVER).get();
         NettyResponseBuilder response = (NettyResponseBuilder) msg;
 
         StatusCode status = response.status();
         if (status == null) {
-            server.logger().debug("Response to %s has no status code!", ctx.channel().remoteAddress());
+            server.logger().error("Response to %s has no status code!", ctx.channel().remoteAddress());
             throw GenericHttpException.Internal_Server_Error;
         }
 
@@ -150,6 +144,12 @@ public final class HttpServerEventHandler extends ChannelDuplexHandler {
                 //server.logger().debug("  %s: %s", args);
             });
             out.append("\r\n");
+
+            if (!ctx.channel().attr(NettyHttpServer.ATTR_RESPONDED).compareAndSet(Boolean.FALSE, Boolean.TRUE)) {
+                server.logger().error("Already sent response to request from %s!", ctx.channel().remoteAddress());
+                ctx.close();
+                return;
+            }
 
             ctx.write(buf, ctx.voidPromise());
 

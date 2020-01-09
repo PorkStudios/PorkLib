@@ -27,6 +27,8 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.http.header.map.HeaderMap;
+import net.daporkchop.lib.http.header.map.HeaderMaps;
 import net.daporkchop.lib.http.request.query.Query;
 import net.daporkchop.lib.http.request.query.UnsetQuery;
 import net.daporkchop.lib.http.server.HttpServer;
@@ -53,6 +55,7 @@ public final class NettyHttpServer implements HttpServer {
     public static final AttributeKey<NettyHttpServerBinding> ATTR_BINDING   = AttributeKey.newInstance("porklib-http-server-binding");
     public static final AttributeKey<Boolean>                ATTR_RESPONDED = AttributeKey.newInstance("porklib-http-server-response");
     public static final AttributeKey<Query>                  ATTR_QUERY     = AttributeKey.newInstance("porklib-http-server-query");
+    public static final AttributeKey<HeaderMap>              ATTR_HEADERS   = AttributeKey.newInstance("porklib-http-server-headers");
 
     @Getter
     @Setter
@@ -103,7 +106,8 @@ public final class NettyHttpServer implements HttpServer {
                 .childHandler(NettyHttpServerChannelInitializer.INSTANCE)
                 .childAttr(ATTR_SERVER, this)
                 .childAttr(ATTR_RESPONDED, Boolean.FALSE)
-                .childAttr(ATTR_QUERY, UnsetQuery.INSTANCE);
+                .childAttr(ATTR_QUERY, UnsetQuery.INSTANCE)
+                .childAttr(ATTR_HEADERS, HeaderMaps.empty());
     }
 
     @Override

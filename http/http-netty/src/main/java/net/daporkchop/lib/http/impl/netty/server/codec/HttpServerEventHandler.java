@@ -32,6 +32,7 @@ import net.daporkchop.lib.http.entity.content.type.ContentType;
 import net.daporkchop.lib.http.entity.transfer.TransferSession;
 import net.daporkchop.lib.http.entity.transfer.encoding.StandardTransferEncoding;
 import net.daporkchop.lib.http.entity.transfer.encoding.TransferEncoding;
+import net.daporkchop.lib.http.header.map.HeaderMaps;
 import net.daporkchop.lib.http.header.map.MutableHeaderMap;
 import net.daporkchop.lib.http.impl.netty.server.NettyHttpServer;
 import net.daporkchop.lib.http.impl.netty.server.NettyResponseBuilder;
@@ -62,6 +63,10 @@ public final class HttpServerEventHandler extends ChannelDuplexHandler {
             server.handler().handleQuery((Query) msg);
         } else if (msg instanceof RequestHeaderDecoder) {
             RequestHeaderDecoder decoder = (RequestHeaderDecoder) msg;
+
+            if (!ctx.channel().attr(NettyHttpServer.ATTR_HEADERS).compareAndSet(HeaderMaps.empty(), decoder.headers))   {
+                throw new IllegalStateException("Headers were already set!");
+            }
 
             server.handler().handleHeaders(decoder.query, decoder.headers);
         } else if (msg instanceof Message) {

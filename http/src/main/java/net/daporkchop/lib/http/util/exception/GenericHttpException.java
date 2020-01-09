@@ -33,6 +33,9 @@ import net.daporkchop.lib.http.util.StatusCodes;
 @Accessors(fluent = true)
 public final class GenericHttpException extends HttpException {
     public static final HttpException Bad_Request                     = new GenericHttpException(StatusCodes.Bad_Request, false);
+    public static final HttpException Unauthorized                    = new GenericHttpException(StatusCodes.Unauthorized, false);
+    public static final HttpException Forbidden                       = new GenericHttpException(StatusCodes.Forbidden, false);
+    public static final HttpException Not_Found                       = new GenericHttpException(StatusCodes.Not_Found, false);
     public static final HttpException Method_Not_Allowed              = new GenericHttpException(StatusCodes.Method_Not_Allowed, false);
     public static final HttpException Length_Required                 = new GenericHttpException(StatusCodes.Length_Required, false);
     public static final HttpException Payload_Too_Large               = new GenericHttpException(StatusCodes.Payload_Too_Large, false);

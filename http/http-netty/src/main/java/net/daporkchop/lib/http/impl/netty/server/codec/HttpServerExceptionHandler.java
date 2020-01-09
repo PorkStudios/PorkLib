@@ -30,6 +30,7 @@ import net.daporkchop.lib.common.misc.InstancePool;
 import net.daporkchop.lib.common.system.PlatformInfo;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.http.StatusCode;
+import net.daporkchop.lib.http.header.map.HeaderMap;
 import net.daporkchop.lib.http.impl.netty.server.NettyHttpServer;
 import net.daporkchop.lib.http.util.StatusCodes;
 import net.daporkchop.lib.http.util.exception.HttpException;
@@ -70,6 +71,8 @@ public final class HttpServerExceptionHandler extends ChannelInboundHandlerAdapt
                 server.logger().alert("Unknown exception occurred while handling request from %s!", cause, ctx.channel().remoteAddress());
             }
 
+            HeaderMap requestHeaders = ctx.channel().attr(NettyHttpServer.ATTR_HEADERS).get();
+
             Object[] args = {
                     status.code(),
                     status.msg(),
@@ -80,7 +83,7 @@ public final class HttpServerExceptionHandler extends ChannelInboundHandlerAdapt
                     PlatformInfo.ARCHITECTURE,
                     PlatformInfo.JAVA_VERSION,
                     PorkNettyHelper.getNettyVersion(),
-                    ((InetSocketAddress) ctx.channel().localAddress()).getHostString(),
+                    requestHeaders.hasKey("host") ? requestHeaders.getValue("host") : ((InetSocketAddress) ctx.channel().localAddress()).getHostString(),
                     ((InetSocketAddress) ctx.channel().localAddress()).getPort()
             };
             fmt.format("<html><head><title>%1$d %2$s</title></head><body><h1>HTTP Error %1$d: %2$s</h1>", args);

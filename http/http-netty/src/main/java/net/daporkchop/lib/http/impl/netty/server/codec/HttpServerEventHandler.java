@@ -40,6 +40,7 @@ import net.daporkchop.lib.http.impl.netty.util.TransferSessionAsFileRegion;
 import net.daporkchop.lib.http.message.Message;
 import net.daporkchop.lib.http.request.query.Query;
 import net.daporkchop.lib.http.request.query.UnsetQuery;
+import net.daporkchop.lib.http.util.StatusCodes;
 import net.daporkchop.lib.http.util.exception.GenericHttpException;
 
 import java.util.Formatter;
@@ -93,7 +94,7 @@ public final class HttpServerEventHandler extends ChannelDuplexHandler {
         StatusCode status = response.status();
         if (status == null) {
             server.logger().error("Response to %s has no status code!", ctx.channel().remoteAddress());
-            throw GenericHttpException.Internal_Server_Error;
+            throw StatusCodes.Internal_Server_Error.exception();
         }
 
         HttpEntity body = response.body();
@@ -105,17 +106,17 @@ public final class HttpServerEventHandler extends ChannelDuplexHandler {
             if (transferEncoding == StandardTransferEncoding.identity) {
                 if (contentLength < 0L) {
                     server.logger().debug("Using \"transfer-encoding: identity\" for response with unknown content length!");
-                    throw GenericHttpException.Internal_Server_Error;
+                    throw StatusCodes.Internal_Server_Error.exception();
                 }
                 headers.put("content-length", String.valueOf(contentLength));
             } else if (false && transferEncoding == StandardTransferEncoding.chunked) {
                 if (contentLength >= 0L) {
                     server.logger().debug("Using \"transfer-encoding: chunked\" for response with known content length!");
-                    throw GenericHttpException.Internal_Server_Error;
+                    throw StatusCodes.Internal_Server_Error.exception();
                 }
             } else {
                 server.logger().debug("Using unsupported \"transfer-encoding: %s\" for response with content length %d!", transferEncoding.name(), contentLength);
-                throw GenericHttpException.Internal_Server_Error;
+                throw StatusCodes.Internal_Server_Error.exception();
             }
 
             if (transferEncoding != StandardTransferEncoding.identity) {

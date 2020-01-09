@@ -146,13 +146,13 @@ public class URLEncoding {
                 i += 2;
                 int b;
                 if (i >= length || (b = Hexadecimal.decodeUnsigned(arr != null ? arr[i - 1] : text.charAt(i - 1), arr != null ? arr[i] : text.charAt(i))) < 0) {
-                    throw GenericHttpException.Bad_Request;
+                    throw StatusCodes.Bad_Request.exception();
                 }
                 if ((b & 0xE0) == 0xC0) {
                     i += 2;
                     int b2;
                     if (i >= length || (b2 = Hexadecimal.decodeUnsigned(arr != null ? arr[i - 1] : text.charAt(i - 1), arr != null ? arr[i] : text.charAt(i))) < 0) {
-                        throw GenericHttpException.Bad_Request;
+                        throw StatusCodes.Bad_Request.exception();
                     }
                     to.append((char) (((b & 0x1F) << 6) | (b2 & 0x3F)));
                 } else if ((b & 0xF0) == 0xF0) {
@@ -162,7 +162,7 @@ public class URLEncoding {
                             || (b2 = Hexadecimal.decodeUnsigned(arr != null ? arr[i - 5] : text.charAt(i - 5), arr != null ? arr[i - 4] : text.charAt(i - 4))) < 0
                             || (b3 = Hexadecimal.decodeUnsigned(arr != null ? arr[i - 3] : text.charAt(i - 3), arr != null ? arr[i - 2] : text.charAt(i - 2))) < 0
                             || (b4 = Hexadecimal.decodeUnsigned(arr != null ? arr[i - 1] : text.charAt(i - 1), arr != null ? arr[i] : text.charAt(i))) < 0) {
-                        throw GenericHttpException.Bad_Request;
+                        throw StatusCodes.Bad_Request.exception();
                     }
                     to.appendCodePoint(((b & 0xF) << 18) | ((b2 & 0x3F) << 12) | ((b3 & 0x3F) << 6) | (b4 & 0x3F));
                 } else {

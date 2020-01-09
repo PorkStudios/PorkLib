@@ -20,6 +20,7 @@ import io.netty.buffer.Unpooled;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.StatusCode;
+import net.daporkchop.lib.http.util.exception.GenericHttpException;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.nio.charset.StandardCharsets;
@@ -29,6 +30,7 @@ import java.nio.charset.StandardCharsets;
  *
  * @author DaPorkchop_
  */
+@Getter
 @Accessors(fluent = true)
 public enum StatusCodes implements StatusCode {
     // 1xx
@@ -99,11 +101,9 @@ public enum StatusCodes implements StatusCode {
     Network_Authentication_Required(511)
     ;
 
-    @Getter
     private final String msg;
-    @Getter
     private final String errorMessage;
-    @Getter
+    private final GenericHttpException exception;
     private final int code;
 
     StatusCodes(int code)    {
@@ -118,6 +118,8 @@ public enum StatusCodes implements StatusCode {
         this.code = code;
         this.errorMessage = errorMessage;
         this.msg = name = (name == null ? this.name().replace('_', ' ') : name);
+
+        this.exception = new GenericHttpException(this, false);
     }
 
     @Override

@@ -58,7 +58,7 @@ public class NettyHttpUtil {
     public Query parseQuery(@NonNull HttpMethod method, @NonNull CharSequence query) throws HttpException {
         Matcher urlMatcher = _URL_PATTERN.matcher(query);
         if (!urlMatcher.find()) {
-            throw GenericHttpException.Bad_Request;
+            throw StatusCodes.Bad_Request.exception();
         }
 
         if (false) {

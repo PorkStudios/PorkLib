@@ -44,7 +44,7 @@ public final class NoopServerHandler implements ServerHandler {
     @Override
     public void handleQuery(@NonNull Query query) throws Exception {
         if (query.method() != HttpMethod.GET)   {
-            throw GenericHttpException.Method_Not_Allowed;
+            throw StatusCodes.Method_Not_Allowed.exception();
         }
     }
 

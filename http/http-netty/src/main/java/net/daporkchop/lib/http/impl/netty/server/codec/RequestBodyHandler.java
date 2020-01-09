@@ -23,6 +23,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.http.header.map.HeaderMap;
 import net.daporkchop.lib.http.message.MessageImpl;
+import net.daporkchop.lib.http.util.StatusCodes;
 import net.daporkchop.lib.http.util.exception.GenericHttpException;
 
 /**
@@ -46,7 +47,7 @@ public final class RequestBodyHandler extends ChannelInboundHandlerAdapter {
         try {
             ByteBuf tmp = (ByteBuf) msg;
             if (tmp.readableBytes() > buf.writableBytes())  {
-                throw GenericHttpException.Payload_Too_Large;
+                throw StatusCodes.Payload_Too_Large.exception();
             }
             buf.writeBytes((ByteBuf) msg);
         } finally {

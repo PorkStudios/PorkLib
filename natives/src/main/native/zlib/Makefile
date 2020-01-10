@@ -31,18 +31,18 @@ INCLUDE			:=	$(foreach dir,$(INCLUDES),-I$(dir)) -I$(PROJDIR)/include
 
 zlib-$(BUILD): $(OUTDIR)/$(BUILD)/libzlib.$(EXT)
 
-$(OUTDIR)/$(BUILD)/libzlib.$(EXT): $(CFILES) $(CPPFILES) $(OFILES)
+$(OUTDIR)/$(BUILD)/libzlib.$(EXT): $(CFILES) $(CPPFILES) $(OFILES) $(TOPDIR)/Makefile $(TOPDIR)/src/main/native/zlib/Makefile
 	@[ -d $(OUTDIR)/$(BUILD) ] || mkdir -p $(OUTDIR)/$(BUILD)
 	@echo "Linking $@..."
 	@$(LD) $(LDFLAGS) $(INCLUDE) -o $@ $(OFILES)
 	@echo "Stripping $@..."
 	@strip $@
 
-%.c.o: $(CFILES)
+%.c.o: $(CFILES) $(TOPDIR)/Makefile $(TOPDIR)/src/main/native/zlib/Makefile
 	@echo "Building $(subst .o,,$(subst __,/,$@))..."
 	@$(CC) $(CFLAGS) $(INCLUDE) -c $(subst .o,,$(subst __,/,$@)) -o $@
 
-%.cpp.o: $(CPPFILES)
+%.cpp.o: $(CPPFILES) $(TOPDIR)/Makefile $(TOPDIR)/src/main/native/zlib/Makefile
 	@echo "Building $(subst .o,,$(subst __,/,$@))..."
 	@$(CXX) $(CXXFLAGS) $(INCLUDE) -c $(subst .o,,$(subst __,/,$@)) -o $@
 

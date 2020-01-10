@@ -6,9 +6,9 @@ export TOPDIR		:=	$(CURDIR)
 export SRCDIR		:=	$(TOPDIR)/src/main/native
 export OUTDIR		:=	$(TOPDIR)/src/main/resources
 
-export CFLAGS		:=	-shared -Ofast -ffast-math -fPIC
+export CFLAGS		:=	-shared -Ofast -ffast-math -fPIC -ffunction-sections -fdata-sections -fvisibility=hidden -flto
 export CXXFLAGS		:=	$(CFLAGS)
-export LDFLAGS		:=	$(CFLAGS)
+export LDFLAGS		:=	$(CFLAGS) -Wl,--gc-sections
 
 export SOURCES		:=	$(SRCDIR)/common/source
 export INCLUDES		:=	$(SRCDIR)/common/include $(JAVA_HOME)include $(JAVA_HOME)include/linux

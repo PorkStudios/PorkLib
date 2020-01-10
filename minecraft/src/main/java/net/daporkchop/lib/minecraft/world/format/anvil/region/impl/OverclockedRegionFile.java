@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -20,6 +20,7 @@ import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.binary.netty.PUnpooled;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.AbstractRegionFile;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.RegionConstants;
@@ -45,7 +46,8 @@ import java.util.BitSet;
  */
 @Accessors(fluent = true)
 public final class OverclockedRegionFile extends AbstractRegionFile {
-    protected final ByteBuf headers;
+    protected final MappedByteBuffer headers;
+    protected final ByteBuf nettyHeadersBuf;
     protected final BitSet occupiedSectors = new BitSet();
 
     public OverclockedRegionFile(@NonNull File file, @NonNull RegionOpenOptions options) throws IOException {
@@ -67,7 +69,8 @@ public final class OverclockedRegionFile extends AbstractRegionFile {
             this.channel.write(ByteBuffer.wrap(RegionConstants.EMPTY_SECTOR, 0, (int) (fileSize & 0xFFFL)), fileSize);
         }
 
-        this.headers = Unpooled.wrappedBuffer(this.channel.map(this.readOnly ? FileChannel.MapMode.READ_ONLY : FileChannel.MapMode.READ_WRITE, 0, RegionConstants.HEADER_BYTES));
+        this.headers = this.channel.map(this.readOnly ? FileChannel.MapMode.READ_ONLY : FileChannel.MapMode.READ_WRITE, 0, RegionConstants.HEADER_BYTES);
+        this.nettyHeadersBuf = Unpooled.wrappedBuffer(this.headers);
 
         this.occupiedSectors.set(0, 2);
         //init occupied sectors bitset
@@ -90,7 +93,7 @@ public final class OverclockedRegionFile extends AbstractRegionFile {
 
     @Override
     protected ByteBuf headersBuf() {
-        return this.headers;
+        return this.nettyHeadersBuf;
     }
 
     @Override
@@ -147,8 +150,8 @@ public final class OverclockedRegionFile extends AbstractRegionFile {
             throw new IllegalStateException("Unable to write all bytes to disk!");
         }
         this.occupiedSectors.set(offset, offset + requiredSectors);
-        this.headers.setInt(offsetIndex, (offset << 8) | requiredSectors);
-        this.headers.setInt(offsetIndex + RegionConstants.SECTOR_BYTES, (int) (System.currentTimeMillis() / 1000L));
+        this.headers.putInt(offsetIndex, (offset << 8) | requiredSectors);
+        this.headers.putInt(offsetIndex + RegionConstants.SECTOR_BYTES, (int) (System.currentTimeMillis() / 1000L));
     }
 
     @Override
@@ -169,7 +172,7 @@ public final class OverclockedRegionFile extends AbstractRegionFile {
 
     @Override
     protected void doFlush() throws IOException {
-        ((MappedByteBuffer) this.headers.nioBuffer()).force();
+        this.headers.force();
     }
 
     @Override
@@ -177,6 +180,6 @@ public final class OverclockedRegionFile extends AbstractRegionFile {
         if (!this.readOnly())   {
             this.doFlush();
         }
-        PorkUtil.release(this.headers.nioBuffer());
+        PorkUtil.release(this.headers);
     }
 }

@@ -45,6 +45,6 @@ public final class NettyHttpServerChannelInitializer extends ChannelInitializer<
                 .addLast("handle", HttpServerEventHandler.INSTANCE)
                 .addLast("exception", HttpServerExceptionHandler.INSTANCE);
 
-        server.logger.debug("Incoming connection from %s", ch.remoteAddress());
+        //server.logger.debug("Incoming connection from %s", ch.remoteAddress());
     }
 }

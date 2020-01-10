@@ -175,8 +175,8 @@ public final class HttpServerEventHandler extends ChannelDuplexHandler {
 
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-        NettyHttpServer server = ctx.channel().attr(NettyHttpServer.ATTR_SERVER).get();
-        server.logger().debug("Connection from %s closed", ctx.channel().remoteAddress());
+        //NettyHttpServer server = ctx.channel().attr(NettyHttpServer.ATTR_SERVER).get();
+        //server.logger().debug("Connection from %s closed", ctx.channel().remoteAddress());
 
         super.channelUnregistered(ctx);
     }

@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -15,7 +15,6 @@
 
 package net.daporkchop.lib.http.impl.java;
 
-import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.EventExecutorGroup;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.ImmediateEventExecutor;
@@ -23,12 +22,10 @@ import io.netty.util.concurrent.Promise;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.misc.threadfactory.ThreadFactoryBuilder;
 import net.daporkchop.lib.common.pool.selection.SelectionPool;
 import net.daporkchop.lib.http.HttpClient;
 import net.daporkchop.lib.http.HttpMethod;
 import net.daporkchop.lib.http.request.RequestBuilder;
-import net.daporkchop.lib.http.util.Constants;
 
 import java.util.Collections;
 import java.util.EnumSet;
@@ -48,59 +45,29 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  *
  * @author DaPorkchop_
  */
-//TODO: a builder class might be better suited here than all these constructors
 @Setter
-@Accessors(fluent = true, chain = true)
-public final class JavaHttpClient implements HttpClient {
+@Accessors(fluent = true)
+public class JavaHttpClient implements HttpClient {
     protected static final Set<HttpMethod> SUPPORTED_METHODS = Collections.unmodifiableSet(EnumSet.of(
             HttpMethod.GET,
             HttpMethod.POST
     ));
 
-    @NonNull
-    protected volatile ThreadFactory      factory;
-    protected final    EventExecutorGroup group;
-    protected final    Promise<Void>      closeFuture;
+    protected final ThreadFactory      threadFactory;
+    protected final EventExecutorGroup group;
+    protected final Promise<Void>      closeFuture;
 
     @NonNull
     protected volatile SelectionPool<String> userAgents;
 
     protected final Map<JavaRequest, Object> activeRequests = new ConcurrentHashMap<>();
-    protected final ReadWriteLock requestsLock = new ReentrantReadWriteLock();
+    protected final ReadWriteLock            requestsLock   = new ReentrantReadWriteLock();
 
-    public JavaHttpClient(@NonNull ThreadFactory factory, @NonNull EventExecutorGroup group, @NonNull SelectionPool<String> userAgents) {
-        this.factory = factory;
-        this.group = group;
-        this.closeFuture = group.next().newPromise();
-        this.userAgents = userAgents;
-    }
-
-    public JavaHttpClient(@NonNull ThreadFactory factory, @NonNull EventExecutorGroup group) {
-        this(factory, group, Constants.DEFAULT_USER_AGENT_SELECTION_POOL);
-    }
-
-    public JavaHttpClient(@NonNull EventExecutorGroup group) {
-        this(ThreadFactoryBuilder.defaultThreadFactory(), group, Constants.DEFAULT_USER_AGENT_SELECTION_POOL);
-    }
-
-    public JavaHttpClient(@NonNull ThreadFactory factory) {
-        this(factory, ImmediateEventExecutor.INSTANCE, Constants.DEFAULT_USER_AGENT_SELECTION_POOL);
-    }
-
-    public JavaHttpClient(@NonNull EventExecutorGroup group, @NonNull SelectionPool<String> userAgents) {
-        this(ThreadFactoryBuilder.defaultThreadFactory(), group, userAgents);
-    }
-
-    public JavaHttpClient(@NonNull ThreadFactory factory, @NonNull SelectionPool<String> userAgents) {
-        this(factory, ImmediateEventExecutor.INSTANCE, userAgents);
-    }
-
-    public JavaHttpClient(@NonNull SelectionPool<String> userAgents) {
-        this(ThreadFactoryBuilder.defaultThreadFactory(), ImmediateEventExecutor.INSTANCE, userAgents);
-    }
-
-    public JavaHttpClient() {
-        this(ThreadFactoryBuilder.defaultThreadFactory(), ImmediateEventExecutor.INSTANCE, Constants.DEFAULT_USER_AGENT_SELECTION_POOL);
+    public JavaHttpClient(@NonNull JavaHttpClientBuilder builder) {
+        this.threadFactory = builder.threadFactory;
+        this.group = builder.group;
+        this.closeFuture = this.group.next().newPromise();
+        this.userAgents = builder.userAgents;
     }
 
     @Override
@@ -134,10 +101,10 @@ public final class JavaHttpClient implements HttpClient {
         return this.closeFuture;
     }
 
-    boolean addRequest(@NonNull JavaRequest request)   {
+    protected boolean addRequest(@NonNull JavaRequest request) {
         this.requestsLock.readLock().lock();
         try {
-            if (this.closeFuture.isDone())  {
+            if (this.closeFuture.isDone()) {
                 request.headers.cancel(true);
                 request.body.cancel(true);
                 return false;
@@ -151,7 +118,7 @@ public final class JavaHttpClient implements HttpClient {
         }
     }
 
-    void removeRequest(@NonNull JavaRequest request)    {
+    protected void removeRequest(@NonNull JavaRequest request) {
         this.requestsLock.readLock().lock();
         try {
             if (!this.activeRequests.remove(request, this)) {
@@ -160,5 +127,9 @@ public final class JavaHttpClient implements HttpClient {
         } finally {
             this.requestsLock.readLock().unlock();
         }
+    }
+
+    protected <V> JavaRequest<V> buildRequest(@NonNull JavaRequestBuilder<V> builder) {
+        return new DefaultJavaRequest<>(builder);
     }
 }

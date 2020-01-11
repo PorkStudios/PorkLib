@@ -52,28 +52,27 @@ import java.nio.channels.WritableByteChannel;
 import java.util.List;
 
 /**
- * Shared implementation of {@link Request} for {@link JavaHttpClient}.
+ * Base implementation of {@link Request} for {@link JavaHttpClient}.
  *
  * @author DaPorkchop_
  */
-public final class JavaRequest<V> implements Request<V>, Runnable {
+public abstract class JavaRequest<V> implements Request<V>, Runnable {
     static {
         PUnsafe.ensureClassInitialized(HttpClient.class);
         PUnsafe.pork_getStaticField(HttpClient.class, "keepAliveProp").setBoolean(false);
     }
 
-    protected final JavaHttpClient client;
-    protected final Thread thread;
+    protected final JavaHttpClient        client;
     protected final JavaRequestBuilder<V> builder;
-    protected HttpURLConnection connection;
+    protected       Thread                thread;
+    protected       HttpURLConnection     connection;
 
     protected final Promise<ResponseHeaders<V>> headers;
-    protected final Promise<ResponseBody<V>> body;
+    protected final Promise<ResponseBody<V>>    body;
 
     public JavaRequest(@NonNull JavaRequestBuilder<V> builder) {
         this.client = builder.client();
         this.builder = builder;
-        this.thread = this.client.factory.newThread(this);
 
         EventExecutor executor = this.client.group.next();
         this.headers = executor.newPromise();
@@ -84,8 +83,6 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
                 this.headers.setFailure(f.isSuccess() ? new IllegalStateException("Complete future was successful, but response future was never set!") : f.cause());
             }
         });
-
-        this.thread.start();
     }
 
     @Override
@@ -106,7 +103,11 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
 
     @Override
     public void run() {
-        if (Thread.currentThread() != this.thread) throw new IllegalStateException("Invoked from illegal thread!");
+        if (this.thread == null) {
+            throw new IllegalStateException("Thread is not set?!?");
+        } else if (Thread.currentThread() != this.thread) {
+            throw new IllegalStateException(String.format("Invoked from illegal thread \"%s\", expected: \"%s\"", Thread.currentThread().getName(), this.thread.getName()));
+        }
 
         if (!this.client.addRequest(this)) {
             //return immediately if client is closed (addRequest will cancel the futures for us)
@@ -130,11 +131,8 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
                 //add all headers as properties (we don't need to use set since HeaderMap already guarantees distinct keys, so using setRequestProperty would only cause needless string comparisons)
                 headers.forEach(header -> this.connection.setRequestProperty(header.key(), header.value())); //if it's a list all the values will be joined together
 
-                if (!headers.hasKey("user-agent"))
+                if (!headers.hasKey("user-agent")) {
                     this.connection.setRequestProperty("User-Agent", this.client.userAgents.any());
-
-                if (method.hasRequestBody()) {
-                    HttpEntity entity = this.builder.body();
                 }
 
                 if (method.hasRequestBody()) {

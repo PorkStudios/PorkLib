@@ -17,9 +17,11 @@ package net.daporkchop.lib.http;
 
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.common.misc.threadfactory.ThreadFactoryBuilder;
 import net.daporkchop.lib.http.entity.content.type.ContentType;
 import net.daporkchop.lib.http.header.Header;
 import net.daporkchop.lib.http.impl.java.JavaHttpClient;
+import net.daporkchop.lib.http.impl.java.JavaHttpClientBuilder;
 
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ThreadLocalRandom;
@@ -31,7 +33,9 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 @UtilityClass
 public class Http {
-    public final HttpClient CLIENT = new JavaHttpClient(runnable -> new Thread(runnable, String.format("http-client-worker-%x", System.nanoTime() * ThreadLocalRandom.current().nextLong())));
+    public final HttpClient CLIENT = new JavaHttpClientBuilder()
+            .threadFactory(new ThreadFactoryBuilder().name("PorkLib HTTP Worker Thread #%d").formatId().collapsingId().build())
+            .build();
 
     public String getString(@NonNull String url, Header... headers) {
         return CLIENT.request(url)

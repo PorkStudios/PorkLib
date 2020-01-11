@@ -60,7 +60,6 @@ public class PorkUtil {
 
     public final Class<?> ABSTRACTSTRINGBUILDER_CLASS        = classForName("java.lang.AbstractStringBuilder");
     public final long     ABSTRACTSTRINGBUILDER_VALUE_OFFSET = PUnsafe.pork_getOffset(ABSTRACTSTRINGBUILDER_CLASS, "value");
-    public final long     ABSTRACTSTRINGBUILDER_COUNT_OFFSET = PUnsafe.pork_getOffset(ABSTRACTSTRINGBUILDER_CLASS, "count");
 
     private final Function<Throwable, StackTraceElement[]> GET_STACK_TRACE_WRAPPER;
 

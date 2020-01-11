@@ -16,59 +16,19 @@
 package net.daporkchop.lib.http.impl.java;
 
 import lombok.NonNull;
-import net.daporkchop.lib.http.header.map.HeaderMap;
-import net.daporkchop.lib.http.request.AbstractRequestBuilder;
-import net.daporkchop.lib.http.request.Request;
 import net.daporkchop.lib.http.request.RequestBuilder;
-import net.daporkchop.lib.http.util.Constants;
-
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
- * Implementation of {@link RequestBuilder} for {@link JavaHttpClient}.
+ * Alternate implementation of {@link JavaRequest} which runs the request on the thread that {@link RequestBuilder#send()} was called from, meaning that
+ * {@link RequestBuilder#send()} becomes a blocking operation but overall, there's less overhead.
  *
  * @author DaPorkchop_
  */
-public final class JavaRequestBuilder<V> extends AbstractRequestBuilder<V, JavaHttpClient> {
-    protected URL url;
+final class BlockingJavaRequest<V> extends JavaRequest<V> {
+    public BlockingJavaRequest(@NonNull JavaRequestBuilder<V> builder) {
+        super(builder);
 
-    public JavaRequestBuilder(@NonNull JavaHttpClient client) {
-        super(client);
-    }
-
-    @Override
-    public RequestBuilder<V> url(@NonNull String url) {
-        try {
-            this.url = Constants.encodeUrl(url);
-        } catch (MalformedURLException | UnsupportedEncodingException e) {
-            throw new IllegalArgumentException(e);
-        }
-        return this;
-    }
-
-    @Override
-    public Request<V> send() {
-        this.assertConfigured();
-        return this.client.buildRequest(this);
-    }
-
-    @Override
-    protected void assertConfigured() {
-        super.assertConfigured();
-
-        if (this.url == null) {
-            throw new IllegalStateException("url isn't set!");
-        }
-    }
-
-    @Override
-    protected HeaderMap _prepareHeaders() {
-        return super._prepareHeaders();
+        this.thread = Thread.currentThread();
+        this.run();
     }
 }

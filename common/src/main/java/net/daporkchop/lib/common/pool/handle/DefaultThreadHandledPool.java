@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -19,7 +19,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.cache.FastThreadCache;
+import net.daporkchop.lib.common.cache.ThreadCache;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.util.function.Supplier;
@@ -30,14 +30,14 @@ import java.util.function.Supplier;
  * @author DaPorkchop_
  */
 public final class DefaultThreadHandledPool<V> implements HandledPool<V> {
-    protected final FastThreadCache<Arena<V>> arenas;
+    protected final ThreadCache<Arena<V>> arenas;
     protected final Supplier<V>               factory;
 
     public DefaultThreadHandledPool(@NonNull Supplier<V> factory, int maxSize) {
         if (maxSize <= 0)   {
             throw new IllegalArgumentException("maxSize must be at least 1!");
         }
-        this.arenas = new FastThreadCache<>(() -> new Arena<>(this, maxSize));
+        this.arenas = ThreadCache.late(() -> new Arena<>(this, maxSize));
         this.factory = factory;
     }
 

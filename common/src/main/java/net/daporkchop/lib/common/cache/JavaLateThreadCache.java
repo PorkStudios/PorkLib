@@ -15,34 +15,28 @@
 
 package net.daporkchop.lib.common.cache;
 
-import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import java.lang.ref.SoftReference;
 import java.util.function.Supplier;
 
 /**
- * Implementation of {@link Cache} that uses a {@link SoftReference} to store its value.
+ * Implementation of {@link ThreadCache} that is backed by a Java {@link ThreadLocal}.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
-public final class SoftCache<T> implements Cache<T> {
+@RequiredArgsConstructor
+public final class JavaLateThreadCache<T> extends ThreadLocal<T> implements ThreadCache<T> {
     @NonNull
     protected final Supplier<T> factory;
 
-    protected SoftReference<T> ref;
+    @Override
+    public T getUncached() {
+        return this.factory.get();
+    }
 
     @Override
-    public synchronized T get() {
-        T val;
-        if (this.ref == null || (val = this.ref.get()) == null) {
-            this.ref = new SoftReference<>(val = this.factory.get());
-        }
-        if (val == null) {
-            throw new NullPointerException();
-        }
-        return val;
+    protected T initialValue() {
+        return this.factory.get();
     }
 }

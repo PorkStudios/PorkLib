@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -26,7 +26,7 @@ import lombok.NonNull;
 import lombok.Setter;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.common.cache.Cache;
-import net.daporkchop.lib.common.cache.SoftThreadCache;
+import net.daporkchop.lib.common.cache.ThreadCache;
 import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.math.vector.i.Vec2i;
 import net.daporkchop.lib.minecraft.registry.ResourceLocation;
@@ -66,9 +66,9 @@ import java.util.stream.Collectors;
  */
 @Getter
 public class AnvilWorldManager implements WorldManager {
-    protected static final Cache<HeapSectionImpl> CHUNK_CACHE    = SoftThreadCache.of(() -> new HeapSectionImpl(-1, null));
+    protected static final Cache<HeapSectionImpl> CHUNK_CACHE    = ThreadCache.soft(() -> new HeapSectionImpl(-1, null));
     protected static final Pattern                REGION_PATTERN = Pattern.compile("^r\\.(-?[0-9]+)\\.(-?[0-9]+)\\.mca$");
-    protected static final Cache<PInflater>       INFLATER_CACHE = SoftThreadCache.of(() -> PNatives.ZLIB.get().inflater(Zlib.ZLIB_MODE_AUTO));
+    protected static final Cache<PInflater>       INFLATER_CACHE = ThreadCache.soft(() -> PNatives.ZLIB.get().inflater(Zlib.ZLIB_MODE_AUTO));
 
     protected final AnvilSaveFormat format;
     protected final File            root;

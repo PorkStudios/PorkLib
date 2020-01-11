@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -15,46 +15,32 @@
 
 package net.daporkchop.lib.common.cache;
 
+import io.netty.util.concurrent.FastThreadLocal;
+import io.netty.util.concurrent.FastThreadLocalThread;
+import lombok.AccessLevel;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
-import java.lang.ref.SoftReference;
 import java.util.function.Supplier;
 
 /**
- * A {@link ThreadCache} that keeps only a soft reference to objects.
- * <p>
- * Soft references will only be garbage collected when the JVM is running low on memory, and as such a soft cache should not
- * be more cpu-intensive than a plain thread-local cache unless the heap is mostly full (or just too small).
+ * Implementation of {@link ThreadCache} that is backed by a Netty {@link FastThreadLocal}.
  *
+ * @param <T> the type of value
  * @author DaPorkchop_
  */
-public final class SoftThreadCache<T> implements ThreadCache<T> {
-    public static <T> SoftThreadCache<T> of(@NonNull Supplier<T> supplier) {
-        return new SoftThreadCache<>(supplier);
-    }
-    private final Supplier<T> supplier;
-    private final ThreadLocal<SoftReference<T>> threadLocal;
-
-    protected SoftThreadCache(@NonNull Supplier<T> supplier) {
-        this.supplier = supplier;
-        this.threadLocal = ThreadLocal.withInitial(() -> null);
-    }
-
-    @Override
-    public T get() {
-        SoftReference<T> ref = this.threadLocal.get();
-        T val;
-        if (ref == null || (val = ref.get()) == null) {
-            this.threadLocal.set(new SoftReference<>(val = this.supplier.get()));
-        }
-        if (val == null) {
-            throw new NullPointerException();
-        }
-        return val;
-    }
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+public final class FastLateThreadCache<T> extends FastThreadLocal<T> implements ThreadCache<T> {
+    @NonNull
+    protected final Supplier<T> factory;
 
     @Override
     public T getUncached() {
-        return this.supplier.get();
+        return this.factory.get();
+    }
+
+    @Override
+    protected T initialValue() throws Exception {
+        return this.factory.get();
     }
 }

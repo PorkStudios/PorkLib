@@ -18,10 +18,11 @@ package net.daporkchop.lib.http.server;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import lombok.NonNull;
+import net.daporkchop.lib.binary.util.ReferenceCountedFileChannel;
 import net.daporkchop.lib.http.StatusCode;
 import net.daporkchop.lib.http.entity.ByteArrayHttpEntity;
 import net.daporkchop.lib.http.entity.ByteBufHttpEntity;
-import net.daporkchop.lib.http.entity.FileHttpEntity;
+import net.daporkchop.lib.http.entity.FileRegionHttpEntity;
 import net.daporkchop.lib.http.entity.HttpEntity;
 import net.daporkchop.lib.http.entity.content.type.ContentType;
 import net.daporkchop.lib.http.entity.content.type.StandardContentType;
@@ -30,6 +31,7 @@ import net.daporkchop.lib.http.header.map.HeaderMap;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -225,7 +227,7 @@ public interface ResponseBuilder {
      * @return this {@link ResponseBuilder} instance
      */
     default ResponseBuilder body(@NonNull File file) {
-        return this.body(new FileHttpEntity(StandardContentType.APPLICATION_OCTET_STREAM, file));
+        return this.body(StandardContentType.APPLICATION_OCTET_STREAM, file);
     }
 
     /**
@@ -236,6 +238,109 @@ public interface ResponseBuilder {
      * @return this {@link ResponseBuilder} instance
      */
     default ResponseBuilder body(@NonNull ContentType type, @NonNull File file) {
-        return this.body(new FileHttpEntity(type, file));
+        try {
+            FileRegionHttpEntity entity = new FileRegionHttpEntity(type, file);
+            if (entity.release())   {
+                throw new IllegalStateException();
+            }
+            return this.body(entity);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Sets the body of the response.
+     *
+     * @param file the {@link File} whose content should be sent
+     * @param position the start position (inclusive) in the file to start reading from
+     * @param length   the size (in bytes) of the region to read from the file
+     * @return this {@link ResponseBuilder} instance
+     */
+    default ResponseBuilder body(@NonNull File file, long position, long length) {
+        return this.body(StandardContentType.APPLICATION_OCTET_STREAM, file, position, length);
+    }
+
+    /**
+     * Sets the body of the response.
+     *
+     * @param type the {@link ContentType} of the response data
+     * @param file the {@link File} whose content should be sent
+     * @param position the start position (inclusive) in the file to start reading from
+     * @param length   the size (in bytes) of the region to read from the file
+     * @return this {@link ResponseBuilder} instance
+     */
+    default ResponseBuilder body(@NonNull ContentType type, @NonNull File file, long position, long length) {
+        try {
+            FileRegionHttpEntity entity = new FileRegionHttpEntity(type, file, position, length);
+            if (entity.release())   {
+                throw new IllegalStateException();
+            }
+            return this.body(entity);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Sets the body of the response.
+     *
+     * @param channel the {@link ReferenceCountedFileChannel} whose content should be sent
+     * @return this {@link ResponseBuilder} instance
+     */
+    default ResponseBuilder body(@NonNull ReferenceCountedFileChannel channel) {
+        return this.body(StandardContentType.APPLICATION_OCTET_STREAM, channel);
+    }
+
+    /**
+     * Sets the body of the response.
+     *
+     * @param type     the {@link ContentType} of the response data
+     * @param channel  the {@link ReferenceCountedFileChannel} whose content should be sent
+     * @return this {@link ResponseBuilder} instance
+     */
+    default ResponseBuilder body(@NonNull ContentType type, @NonNull ReferenceCountedFileChannel channel) {
+        try {
+            FileRegionHttpEntity entity = new FileRegionHttpEntity(type, channel, true);
+            if (entity.release())   {
+                throw new IllegalStateException();
+            }
+            return this.body(entity);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Sets the body of the response.
+     *
+     * @param channel the {@link ReferenceCountedFileChannel} whose content should be sent
+     * @param position the start position (inclusive) in the file to start reading from
+     * @param length   the size (in bytes) of the region to read from the file
+     * @return this {@link ResponseBuilder} instance
+     */
+    default ResponseBuilder body(@NonNull ReferenceCountedFileChannel channel, long position, long length) {
+        return this.body(StandardContentType.APPLICATION_OCTET_STREAM, channel, position, length);
+    }
+
+    /**
+     * Sets the body of the response.
+     *
+     * @param type     the {@link ContentType} of the response data
+     * @param channel  the {@link ReferenceCountedFileChannel} whose content should be sent
+     * @param position the start position (inclusive) in the file to start reading from
+     * @param length   the size (in bytes) of the region to read from the file
+     * @return this {@link ResponseBuilder} instance
+     */
+    default ResponseBuilder body(@NonNull ContentType type, @NonNull ReferenceCountedFileChannel channel, long position, long length) {
+        try {
+            FileRegionHttpEntity entity = new FileRegionHttpEntity(type, channel, position, length, true);
+            if (entity.release())   {
+                throw new IllegalStateException();
+            }
+            return this.body(entity);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

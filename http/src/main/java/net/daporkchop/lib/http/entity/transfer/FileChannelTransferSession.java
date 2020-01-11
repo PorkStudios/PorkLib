@@ -31,7 +31,6 @@ import java.nio.channels.WritableByteChannel;
  *
  * @author DaPorkchop_
  */
-//TODO: make this reusable (i'll need to make some kind of reference-counted FileChannel)
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)

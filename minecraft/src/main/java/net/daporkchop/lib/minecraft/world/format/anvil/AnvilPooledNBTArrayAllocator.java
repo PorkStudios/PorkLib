@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -20,7 +20,6 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.cache.FastThreadCache;
 import net.daporkchop.lib.common.cache.ThreadCache;
 import net.daporkchop.lib.nbt.alloc.DefaultNBTArrayAllocator;
 import net.daporkchop.lib.nbt.alloc.NBTArrayHandle;
@@ -39,7 +38,7 @@ import net.daporkchop.lib.unsafe.PUnsafe;
 @Accessors(fluent = true)
 public final class AnvilPooledNBTArrayAllocator extends DefaultNBTArrayAllocator {
     @Getter(AccessLevel.NONE)
-    protected final ThreadCache<ThreadLocalData> threadLocal = new FastThreadCache<>(ThreadLocalData::new);
+    protected final ThreadCache<ThreadLocalData> threadLocal = ThreadCache.late(ThreadLocalData::new);
 
     protected final int max2kbCount;
     protected final int max4kbCount;

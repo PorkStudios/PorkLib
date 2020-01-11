@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -19,7 +19,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.common.cache.Cache;
-import net.daporkchop.lib.common.cache.SoftThreadCache;
+import net.daporkchop.lib.common.cache.ThreadCache;
 import net.daporkchop.lib.common.util.PorkUtil;
 
 import java.util.regex.Matcher;
@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
 @Getter
 public final class ResourceLocation {
     protected static final Pattern        VALIDATION_PATTERN = Pattern.compile("^([^:]+):([^:]+)$");
-    protected static final Cache<Matcher> MATCHER_CACHE      = SoftThreadCache.of(() -> VALIDATION_PATTERN.matcher(""));
+    protected static final Cache<Matcher> MATCHER_CACHE      = ThreadCache.soft(() -> VALIDATION_PATTERN.matcher(""));
 
     @NonNull
     private final String modid;

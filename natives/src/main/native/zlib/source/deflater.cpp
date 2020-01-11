@@ -13,14 +13,14 @@ static jfieldID readBytesID;
 static jfieldID writtenBytesID;
 static jfieldID finishedID;
 
-void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_load(JNIEnv* env, jclass cla)  {
+__attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_load(JNIEnv* env, jclass cla)  {
     ctxID          = env->GetFieldID(cla, "ctx", "J");
     readBytesID    = env->GetFieldID(cla, "readBytes", "I");
     writtenBytesID = env->GetFieldID(cla, "writtenBytes", "I");
     finishedID     = env->GetFieldID(cla, "finished", "Z");
 }
 
-jlong JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_init(JNIEnv* env, jclass cla, jint level, jint mode)   {
+__attribute__((visibility("default"))) jlong JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_init(JNIEnv* env, jclass cla, jint level, jint mode)   {
     if (level < 0 || level > 9) {
         throwException(env, "Invalid level!", level);
         return 0;
@@ -52,7 +52,7 @@ jlong JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_init(JNIEnv* e
     return (jlong) stream;
 }
 
-void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_end(JNIEnv* env, jclass cla, jlong ctx)  {
+__attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_end(JNIEnv* env, jclass cla, jlong ctx)  {
     z_stream* stream = (z_stream*) ctx;
     int ret = deflateReset(stream);
     if (ret != Z_OK)    {
@@ -69,21 +69,21 @@ void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_end(JNIEnv* env
     }
 }
 
-void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_input(JNIEnv* env, jobject obj, jlong srcAddr, jint srcLen) {
+__attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_input(JNIEnv* env, jobject obj, jlong srcAddr, jint srcLen) {
     z_stream* stream = (z_stream*) env->GetLongField(obj, ctxID);
 
     stream->next_in = (unsigned char*) srcAddr;
     stream->avail_in = srcLen;
 }
 
-void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_output(JNIEnv* env, jobject obj, jlong dstAddr, jint dstLen)    {
+__attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_output(JNIEnv* env, jobject obj, jlong dstAddr, jint dstLen)    {
     z_stream* stream = (z_stream*) env->GetLongField(obj, ctxID);
 
     stream->next_out = (unsigned char*) dstAddr;
     stream->avail_out = dstLen;
 }
 
-void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_deflate(JNIEnv* env, jobject obj, jboolean finish)  {
+__attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_deflate(JNIEnv* env, jobject obj, jboolean finish)  {
     z_stream* stream = (z_stream*) env->GetLongField(obj, ctxID);
 
     jint avail_in  = stream->avail_in;
@@ -102,7 +102,7 @@ void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_deflate(JNIEnv*
     env->SetIntField(obj, writtenBytesID, (avail_out - stream->avail_out));
 }
 
-void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_reset(JNIEnv* env, jobject obj)     {
+__attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeDeflater_reset(JNIEnv* env, jobject obj)     {
     z_stream* stream = (z_stream*) env->GetLongField(obj, ctxID);
     int ret = deflateReset(stream);
 

@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -26,27 +26,38 @@ import java.util.function.Supplier;
  */
 public interface ThreadCache<T> extends Cache<T> {
     /**
-     * Creates a new {@link ThreadCache} using a given supplier
+     * Gets a simple {@link ThreadCache} will compute the value using the given {@link Supplier} once per thread when first requested.
      *
-     * @param theSupplier the supplier to use
-     * @param <T>         the type to be cached
-     * @return a {@link ThreadCache} for the given type using the given supplier
+     * @param supplier the {@link Supplier} for the value
+     * @param <T>      the value type
+     * @return a {@link ThreadCache}
      */
-    static <T> ThreadCache<T> of(@NonNull Supplier<T> theSupplier) {
-        return new ThreadCache<T>() {
-            private final Supplier<T> supplier = theSupplier;
-            private final ThreadLocal<T> threadLocal = ThreadLocal.withInitial(this.supplier);
+    static <T> ThreadCache<T> late(@NonNull Supplier<T> supplier) {
+        try {
+            Class.forName("io.netty.util.concurrent.FastThreadLocal"); //make sure class exists
 
-            @Override
-            public T get() {
-                return this.threadLocal.get();
-            }
+            return new FastLateThreadCache<>(supplier);
+        } catch (ClassNotFoundException e) {
+            return new JavaLateThreadCache<>(supplier);
+        }
+    }
+    /**
+     * Gets a simple {@link ThreadCache} will compute the value using the given {@link Supplier} once per thread when first requested, and store it in a
+     * soft reference, allowing it to be garbage-collected later on if the garbage-collector deems it necessary. If garbage-collected, it will be
+     * re-computed using the {@link Supplier} and cached again.
+     *
+     * @param supplier the {@link Supplier} for the value
+     * @param <T>      the value type
+     * @return a {@link ThreadCache}
+     */
+    static <T> ThreadCache<T> soft(@NonNull Supplier<T> supplier) {
+        try {
+            Class.forName("io.netty.util.concurrent.FastThreadLocal"); //make sure class exists
 
-            @Override
-            public T getUncached() {
-                return this.supplier.get();
-            }
-        };
+            return new FastSoftThreadCache<>(supplier);
+        } catch (ClassNotFoundException e) {
+            return new JavaSoftThreadCache<>(supplier);
+        }
     }
 
     @Override

@@ -35,7 +35,7 @@ import java.util.Map;
  */
 @RequiredArgsConstructor
 @AllArgsConstructor
-@ToString
+@ToString(exclude = {"hash"})
 @Getter
 @Accessors(fluent = true)
 public final class QueryImpl implements Query {

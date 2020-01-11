@@ -17,6 +17,7 @@ package net.daporkchop.lib.http.entity.content.type;
 
 import lombok.NonNull;
 
+import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,7 +29,7 @@ import java.util.regex.Pattern;
  * @see <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type">Content-Type at Mozilla</a>
  */
 public interface ContentType {
-    Pattern _PATTERN_SIMPLE_CONTENT_TYPE  = Pattern.compile("^([a-z0-9-]+\\/[a-z0-9-]+)(; ?charset=([a-zA-Z0-9-]+))?$");
+    Pattern _PATTERN_SIMPLE_CONTENT_TYPE = Pattern.compile("^([a-z0-9-]+\\/[a-z0-9-]+)(; ?charset=([a-zA-Z0-9-]+))?$");
 
     /**
      * Parses a {@link ContentType} from the formatted value (as would be found in an HTTP header).
@@ -92,7 +93,17 @@ public interface ContentType {
      *
      * @return the content's charset
      */
-    String charset();
+    String charsetName();
+
+    /**
+     * Gets the content's charset.
+     * <p>
+     * This value may be {@code null} (as it's an optional component of the "Content-Type" header), or if the charset denoted by {@link #charsetName()}
+     * is not known, or for some other reason.
+     *
+     * @return the content's charset
+     */
+    Charset charset();
 
     /**
      * Gets the the formatted value of this {@link ContentType}.
@@ -102,6 +113,6 @@ public interface ContentType {
      * @return the the formatted value of this {@link ContentType}
      */
     default String formatted() {
-        return this.charset() == null ? this.mimeType() : String.format("%s; charset=%s", this.mimeType(), this.charset());
+        return this.charsetName() == null ? this.mimeType() : String.format("%s; charset=%s", this.mimeType(), this.charsetName());
     }
 }

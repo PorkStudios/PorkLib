@@ -20,11 +20,9 @@ import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.misc.threadfactory.ThreadFactoryBuilder;
 import net.daporkchop.lib.http.entity.content.type.ContentType;
 import net.daporkchop.lib.http.header.Header;
-import net.daporkchop.lib.http.impl.java.JavaHttpClient;
 import net.daporkchop.lib.http.impl.java.JavaHttpClientBuilder;
 
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Helper class for sending simple HTTP requests with a single method call.
@@ -40,7 +38,7 @@ public class Http {
     public String getString(@NonNull String url, Header... headers) {
         return CLIENT.request(url)
                 .followRedirects(true)
-                .headers(headers)
+                .putHeaders(headers)
                 .aggregateToString()
                 .send()
                 .syncBodyAndGet().body();
@@ -49,7 +47,7 @@ public class Http {
     public byte[] get(@NonNull String url, Header... headers) {
         return CLIENT.request(url)
                 .followRedirects(true)
-                .headers(headers)
+                .putHeaders(headers)
                 .aggregateToByteArray()
                 .send()
                 .syncBodyAndGet().body();
@@ -58,7 +56,7 @@ public class Http {
     public String postUrlEncodedString(@NonNull String url, @NonNull String content, Header... headers) {
         return CLIENT.request(HttpMethod.POST, url)
                 .followRedirects(true)
-                .headers(headers)
+                .putHeaders(headers)
                 .body(ContentType.parse("application/x-www-form-urlencoded; charset=UTF-8"), content.getBytes(StandardCharsets.UTF_8))
                 .aggregateToString()
                 .send()
@@ -68,7 +66,7 @@ public class Http {
     public String postJsonString(@NonNull String url, @NonNull String json, Header... headers) {
         return CLIENT.request(HttpMethod.POST, url)
                 .followRedirects(true)
-                .headers(headers)
+                .putHeaders(headers)
                 .bodyJson(json)
                 .aggregateToString()
                 .send()
@@ -78,7 +76,7 @@ public class Http {
     public String postString(@NonNull String url, @NonNull byte[] content, @NonNull String contentType, Header... headers) {
         return CLIENT.request(HttpMethod.POST, url)
                 .followRedirects(true)
-                .headers(headers)
+                .putHeaders(headers)
                 .body(contentType, content)
                 .aggregateToString()
                 .send()
@@ -88,7 +86,7 @@ public class Http {
     public byte[] postUrlEncoded(@NonNull String url, @NonNull String content, Header... headers) {
         return CLIENT.request(HttpMethod.POST, url)
                 .followRedirects(true)
-                .headers(headers)
+                .putHeaders(headers)
                 .body(ContentType.parse("application/x-www-form-urlencoded; charset=UTF-8"), content.getBytes(StandardCharsets.UTF_8))
                 .aggregateToByteArray()
                 .send()
@@ -98,7 +96,7 @@ public class Http {
     public byte[] postJson(@NonNull String url, @NonNull String json, Header... headers) {
         return CLIENT.request(HttpMethod.POST, url)
                 .followRedirects(true)
-                .headers(headers)
+                .putHeaders(headers)
                 .bodyJson(json)
                 .aggregateToByteArray()
                 .send()
@@ -108,7 +106,7 @@ public class Http {
     public byte[] post(@NonNull String url, @NonNull byte[] content, @NonNull String contentType, Header... headers) {
         return CLIENT.request(HttpMethod.POST, url)
                 .followRedirects(true)
-                .headers(headers)
+                .putHeaders(headers)
                 .body(contentType, content)
                 .aggregateToByteArray()
                 .send()

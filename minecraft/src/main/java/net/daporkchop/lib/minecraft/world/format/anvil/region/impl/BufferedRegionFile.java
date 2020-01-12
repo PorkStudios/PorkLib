@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -81,7 +81,7 @@ public final class BufferedRegionFile extends AbstractRegionFile {
     }
 
     @Override
-    protected void doWrite(int x, int z, int offsetIndex, ByteBuf chunk, int requiredSectors) throws IOException {
+    protected void doWrite(int x, int z, long time, int offsetIndex, ByteBuf chunk, int requiredSectors) throws IOException {
         int oldSize = this.buf.getInt(offsetIndex) & 0xFF;
 
         //allocate new buffer which will contain the region data
@@ -107,7 +107,7 @@ public final class BufferedRegionFile extends AbstractRegionFile {
             } else {
                 //if the current header index is the headers of the chunk, use the actual chunk
                 buf = chunk;
-                timestamp = (int) (System.currentTimeMillis() / 1000L); //compute new timestamp
+                timestamp = (int) (time / 1000L); //compute new timestamp
             }
             next.writeBytes(buf);
 
@@ -128,7 +128,7 @@ public final class BufferedRegionFile extends AbstractRegionFile {
 
     @Override
     protected void doDelete(int x, int z, int startIndex, int length, boolean erase) throws IOException {
-        this.doWrite(x, z, RegionConstants.getOffsetIndex(x, z), null, 0);
+        this.doWrite(x, z, System.currentTimeMillis(), RegionConstants.getOffsetIndex(x, z), null, 0);
     }
 
     @Override

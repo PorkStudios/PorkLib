@@ -108,7 +108,7 @@ public final class OverclockedRegionFile extends AbstractRegionFile {
     }
 
     @Override
-    protected void doWrite(int x, int z, int offsetIndex, @NonNull ByteBuf chunk, int requiredSectors) throws IOException {
+    protected void doWrite(int x, int z, long time, int offsetIndex, @NonNull ByteBuf chunk, int requiredSectors) throws IOException {
         int size = chunk.readableBytes();
         if (size < RegionConstants.CHUNK_HEADER_SIZE || chunk.readableBytes() > (1 << 20)) {
             throw new IllegalArgumentException("Invalid input length!");
@@ -151,7 +151,7 @@ public final class OverclockedRegionFile extends AbstractRegionFile {
         }
         this.occupiedSectors.set(offset, offset + requiredSectors);
         this.headers.putInt(offsetIndex, (offset << 8) | requiredSectors);
-        this.headers.putInt(offsetIndex + RegionConstants.SECTOR_BYTES, (int) (System.currentTimeMillis() / 1000L));
+        this.headers.putInt(offsetIndex + RegionConstants.SECTOR_BYTES, (int) (time / 1000L));
     }
 
     @Override

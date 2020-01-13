@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -121,21 +121,27 @@ public abstract class AbstractRegionFile implements RegionFile {
     protected abstract ByteBuf doRead(int x, int z, int offsetIndex, int offset) throws IOException;
 
     @Override
-    public void writeDirect(int x, int z, @NonNull ByteBuf buf) throws ReadOnlyRegionException, IOException {
+    public boolean writeDirect(int x, int z, @NonNull ByteBuf buf, long time, boolean forceOverwrite) throws ReadOnlyRegionException, IOException {
         int index = RegionConstants.getOffsetIndex(x, z);
         this.assertWritable();
         this.writeLock.lock();
         try {
             this.assertOpen();
 
-            this.doWrite(x, z, index, buf, (buf.readableBytes() - 1 >> 12) + 1);
+            ByteBuf headers = this.headersBuf();
+            if (headers.getInt(index) == 0 || (headers.getInt(index + RegionConstants.SECTOR_BYTES) < time / 1000L)) {
+                this.doWrite(x, z, time, index, buf, (buf.readableBytes() - 1 >> 12) + 1);
+                return true;
+            } else {
+                return false;
+            }
         } finally {
             this.writeLock.unlock();
             buf.release();
         }
     }
 
-    protected abstract void doWrite(int x, int z, int offsetIndex, @NonNull ByteBuf chunk, int requiredSectors) throws IOException;
+    protected abstract void doWrite(int x, int z, long time, int offsetIndex, @NonNull ByteBuf chunk, int requiredSectors) throws IOException;
 
     @Override
     public boolean delete(int x, int z, boolean erase) throws ReadOnlyRegionException, IOException {
@@ -147,7 +153,7 @@ public abstract class AbstractRegionFile implements RegionFile {
 
             ByteBuf headers = this.headersBuf();
             int offset = headers.getInt(index);
-            if (offset != 0)    {
+            if (offset != 0) {
                 this.doDelete(x, z, offset >>> 8, offset & 0xFF, erase);
                 return true;
             } else {
@@ -175,12 +181,12 @@ public abstract class AbstractRegionFile implements RegionFile {
     }
 
     @Override
-    public int getTimestamp(int x, int z) {
+    public long getTimestamp(int x, int z) {
         this.readLock.lock();
         try {
             this.assertOpen();
 
-            return this.headersBuf().getInt(RegionConstants.getTimestampIndex(x, z));
+            return Integer.toUnsignedLong(this.headersBuf().getInt(RegionConstants.getTimestampIndex(x, z))) * 1000L;
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
@@ -218,7 +224,7 @@ public abstract class AbstractRegionFile implements RegionFile {
 
     protected abstract void doClose() throws IOException;
 
-    protected void assertOpen() throws IOException   {
+    protected void assertOpen() throws IOException {
         if (!this.channel.isOpen()) {
             throw new IOException("Region closed!");
         }

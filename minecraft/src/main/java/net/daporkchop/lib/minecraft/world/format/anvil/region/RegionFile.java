@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -17,14 +17,11 @@ package net.daporkchop.lib.minecraft.world.format.anvil.region;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.buffer.Unpooled;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.Endianess;
-import net.daporkchop.lib.binary.stream.netty.NettyByteBufOut;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.netty.NettyByteBufOut;
 import net.daporkchop.lib.binary.stream.stream.StreamOut;
-import net.daporkchop.lib.encoding.ToBytes;
 import net.daporkchop.lib.encoding.compression.CompressionHelper;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.ex.CorruptedRegionException;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.ex.ReadOnlyRegionException;
@@ -54,7 +51,7 @@ public interface RegionFile extends AutoCloseable {
      * @throws IOException              if an IO exception occurs while opening the region
      */
     static RegionFile open(@NonNull File file, @NonNull RegionOpenOptions options) throws CorruptedRegionException, IOException {
-        switch (options.mode)   {
+        switch (options.mode) {
             case STANDARD:
                 return new OverclockedRegionFile(file, options);
             case BUFFER_FULL:
@@ -137,7 +134,7 @@ public interface RegionFile extends AutoCloseable {
         OutputStream out = DataOut.wrap(buf);
         OutputStream compressedOut = compression.deflate(out);
 
-        if (out == compressedOut)   {
+        if (out == compressedOut) {
             //no compression will be applied, wrap buffer directly
             return new NettyByteBufOut(buf) {
                 @Override
@@ -159,21 +156,6 @@ public interface RegionFile extends AutoCloseable {
 
     /**
      * Writes raw chunk data to the region at the given region-local coordinates.
-     * <p>
-     * The length header will be added automatically.
-     *
-     * @param x the chunk's X coordinate
-     * @param z the chunk's Z coordinate
-     * @param b a {@code byte[]} containing the raw chunk data. Must be prefixed with the compression version
-     * @throws ReadOnlyRegionException if the region is opened in read-only mode
-     * @throws IOException             if an IO exception occurs you dummy
-     */
-    default void writeDirect(int x, int z, @NonNull byte[] b) throws ReadOnlyRegionException, IOException {
-        this.writeDirect(x, z, Unpooled.wrappedBuffer(ToBytes.toBytes(Endianess.BIG, b.length), b));
-    }
-
-    /**
-     * Writes raw chunk data to the region at the given region-local coordinates.
      *
      * @param x   the chunk's X coordinate
      * @param z   the chunk's Z coordinate
@@ -182,7 +164,40 @@ public interface RegionFile extends AutoCloseable {
      * @throws ReadOnlyRegionException if the region is opened in read-only mode
      * @throws IOException             if an IO exception occurs you dummy
      */
-    void writeDirect(int x, int z, @NonNull ByteBuf buf) throws ReadOnlyRegionException, IOException;
+    default void writeDirect(int x, int z, @NonNull ByteBuf buf) throws ReadOnlyRegionException, IOException {
+        this.writeDirect(x, z, buf, System.currentTimeMillis(), true);
+    }
+
+    /**
+     * Writes raw chunk data to the region at the given region-local coordinates.
+     *
+     * @param x    the chunk's X coordinate
+     * @param z    the chunk's Z coordinate
+     * @param buf  a {@link ByteBuf} containing the raw chunk data. Must be prefixed with the compression version and length. This will be released after
+     *             invoking this method
+     * @param time the UNIX timestamp to set as the "last modified" time for the chunk
+     * @throws ReadOnlyRegionException if the region is opened in read-only mode
+     * @throws IOException             if an IO exception occurs you dummy
+     */
+    default void writeDirect(int x, int z, @NonNull ByteBuf buf, long time) throws ReadOnlyRegionException, IOException {
+        this.writeDirect(x, z, buf, time, true);
+    }
+
+    /**
+     * Writes raw chunk data to the region at the given region-local coordinates.
+     *
+     * @param x              the chunk's X coordinate
+     * @param z              the chunk's Z coordinate
+     * @param buf            a {@link ByteBuf} containing the raw chunk data. Must be prefixed with the compression version and length. This will be released after
+     *                       invoking this method
+     * @param time           the UNIX timestamp to set as the "last modified" time for the chunk
+     * @param forceOverwrite if {@code true}, existing chunks will be forcibly overwritten. If {@code false}, existing chunk will only be overwritten if
+     *                       the given timestamp is newer than the existing one
+     * @return whether or not the chunk was written (will only be {@code false} if forceOverwrite is {@code false} and the given timestamp is older than the existing one)
+     * @throws ReadOnlyRegionException if the region is opened in read-only mode
+     * @throws IOException             if an IO exception occurs you dummy
+     */
+    boolean writeDirect(int x, int z, @NonNull ByteBuf buf, long time, boolean forceOverwrite) throws ReadOnlyRegionException, IOException;
 
     /**
      * Deletes the chunk from the region at the given region-local coordinates, overwriting sectors previously occupied by the chunk with zeroes.
@@ -236,7 +251,7 @@ public interface RegionFile extends AutoCloseable {
      * @param z the chunk's Z coordinate
      * @return the chunk's last modified timestamp
      */
-    int getTimestamp(int x, int z);
+    long getTimestamp(int x, int z);
 
     /**
      * @return the underlying {@link File} that this region is stored in

@@ -17,14 +17,11 @@ package net.daporkchop.lib.minecraft.world.format.anvil.region;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.buffer.Unpooled;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.Endianess;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.binary.stream.netty.NettyByteBufOut;
 import net.daporkchop.lib.binary.stream.stream.StreamOut;
-import net.daporkchop.lib.encoding.ToBytes;
 import net.daporkchop.lib.encoding.compression.CompressionHelper;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.ex.CorruptedRegionException;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.ex.ReadOnlyRegionException;
@@ -159,37 +156,6 @@ public interface RegionFile extends AutoCloseable {
 
     /**
      * Writes raw chunk data to the region at the given region-local coordinates.
-     * <p>
-     * The length header will be added automatically.
-     *
-     * @param x the chunk's X coordinate
-     * @param z the chunk's Z coordinate
-     * @param b a {@code byte[]} containing the raw chunk data. Must be prefixed with the compression version
-     * @throws ReadOnlyRegionException if the region is opened in read-only mode
-     * @throws IOException             if an IO exception occurs you dummy
-     */
-    default void writeDirect(int x, int z, @NonNull byte[] b) throws ReadOnlyRegionException, IOException {
-        this.writeDirect(x, z, Unpooled.wrappedBuffer(ToBytes.toBytes(Endianess.BIG, b.length), b), System.currentTimeMillis());
-    }
-
-    /**
-     * Writes raw chunk data to the region at the given region-local coordinates.
-     * <p>
-     * The length header will be added automatically.
-     *
-     * @param x    the chunk's X coordinate
-     * @param z    the chunk's Z coordinate
-     * @param b    a {@code byte[]} containing the raw chunk data. Must be prefixed with the compression version
-     * @param time the UNIX timestamp to set as the "last modified" time for the chunk
-     * @throws ReadOnlyRegionException if the region is opened in read-only mode
-     * @throws IOException             if an IO exception occurs you dummy
-     */
-    default void writeDirect(int x, int z, @NonNull byte[] b, long time) throws ReadOnlyRegionException, IOException {
-        this.writeDirect(x, z, Unpooled.wrappedBuffer(ToBytes.toBytes(Endianess.BIG, b.length), b), time);
-    }
-
-    /**
-     * Writes raw chunk data to the region at the given region-local coordinates.
      *
      * @param x   the chunk's X coordinate
      * @param z   the chunk's Z coordinate
@@ -199,7 +165,7 @@ public interface RegionFile extends AutoCloseable {
      * @throws IOException             if an IO exception occurs you dummy
      */
     default void writeDirect(int x, int z, @NonNull ByteBuf buf) throws ReadOnlyRegionException, IOException {
-        this.writeDirect(x, z, buf, System.currentTimeMillis());
+        this.writeDirect(x, z, buf, System.currentTimeMillis(), true);
     }
 
     /**
@@ -213,7 +179,25 @@ public interface RegionFile extends AutoCloseable {
      * @throws ReadOnlyRegionException if the region is opened in read-only mode
      * @throws IOException             if an IO exception occurs you dummy
      */
-    void writeDirect(int x, int z, @NonNull ByteBuf buf, long time) throws ReadOnlyRegionException, IOException;
+    default void writeDirect(int x, int z, @NonNull ByteBuf buf, long time) throws ReadOnlyRegionException, IOException {
+        this.writeDirect(x, z, buf, time, true);
+    }
+
+    /**
+     * Writes raw chunk data to the region at the given region-local coordinates.
+     *
+     * @param x              the chunk's X coordinate
+     * @param z              the chunk's Z coordinate
+     * @param buf            a {@link ByteBuf} containing the raw chunk data. Must be prefixed with the compression version and length. This will be released after
+     *                       invoking this method
+     * @param time           the UNIX timestamp to set as the "last modified" time for the chunk
+     * @param forceOverwrite if {@code true}, existing chunks will be forcibly overwritten. If {@code false}, existing chunk will only be overwritten if
+     *                       the given timestamp is newer than the existing one
+     * @return whether or not the chunk was written (will only be {@code false} if forceOverwrite is {@code false} and the given timestamp is older than the existing one)
+     * @throws ReadOnlyRegionException if the region is opened in read-only mode
+     * @throws IOException             if an IO exception occurs you dummy
+     */
+    boolean writeDirect(int x, int z, @NonNull ByteBuf buf, long time, boolean forceOverwrite) throws ReadOnlyRegionException, IOException;
 
     /**
      * Deletes the chunk from the region at the given region-local coordinates, overwriting sectors previously occupied by the chunk with zeroes.

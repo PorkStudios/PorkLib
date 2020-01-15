@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -34,22 +34,22 @@ public interface MutableHeaderMap extends HeaderMap {
     }
 
     /**
-     * Puts a new header into this map, or updates the value of an existing header if one with the given key already exists.
+     * Puts a new header into this map, or replaces an existing header if one with the given key already exists.
      *
      * @param key   the key of the header
      * @param value the value of the header
-     * @return the previous value, or {@code null} if no previous value for the given key existed
+     * @return the previous value, or {@code null} if no previous body for the given key existed
      */
     default Header put(@NonNull String key, @NonNull String value)  {
         return this.put(Header.of(key, value));
     }
 
     /**
-     * Puts a new header into this map, or updates the value of an existing header if one with the given key already exists.
+     * Puts a new header into this map, or replaces an existing header if one with the given key already exists.
      *
      * @param key   the key of the header
      * @param values the values of the header
-     * @return the previous value, or {@code null} if no previous value for the given key existed
+     * @return the previous value, or {@code null} if no previous body for the given key existed
      */
     default Header put(@NonNull String key, @NonNull List<String> values)  {
         return this.put(Header.of(key, values));
@@ -71,6 +71,33 @@ public interface MutableHeaderMap extends HeaderMap {
     default void putAll(@NonNull HeaderMap source) {
         source.forEach((Consumer<Header>) this::put);
     }
+
+    /**
+     * Adds a new header to this map, or adds the value to an existing header if one with the given key already exists.
+     *
+     * @param key   the key of the header
+     * @param value the value to add to the header
+     */
+    default void add(@NonNull String key, @NonNull String value)  {
+        this.add(Header.of(key, value));
+    }
+
+    /**
+     * Puts a new header into this map, or adds the value to an existing header if one with the given key already exists.
+     *
+     * @param key   the key of the header
+     * @param values the values to add to the header
+     */
+    default void add(@NonNull String key, @NonNull List<String> values)  {
+        this.add(Header.of(key, values));
+    }
+
+    /**
+     * Puts a new header into this map, or adds the value to an existing header if one with the given key already exists.
+     *
+     * @param header the header whose values to add
+     */
+    void add(@NonNull Header header);
 
     /**
      * Removes a header from this map.

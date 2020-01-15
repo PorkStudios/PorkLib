@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -20,6 +20,7 @@ import io.netty.buffer.Unpooled;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.StatusCode;
+import net.daporkchop.lib.http.util.exception.GenericHttpException;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.nio.charset.StandardCharsets;
@@ -29,6 +30,7 @@ import java.nio.charset.StandardCharsets;
  *
  * @author DaPorkchop_
  */
+@Getter
 @Accessors(fluent = true)
 public enum StatusCodes implements StatusCode {
     // 1xx
@@ -74,7 +76,7 @@ public enum StatusCodes implements StatusCode {
     Unsupported_Media_Type(415),
     Range_Not_Satisfiable(416),
     Expectation_Failed(417),
-    Im_A_Teapot(418, "I'm a teapot", "See <a href=\"https://tools.ietf.org/html/rfc2324\">RFC2324</a>, section 2.3.2."),
+    Im_A_Teapot(418, "I'm a teapot", "See <a href=\"https://tools.ietf.org/html/rfc2324#section-2.3.2\">RFC2324, section 2.3.2</a>."),
     Misdirected_Request(421),
     Unprocessable_Entity(422),
     Locked(423),
@@ -99,12 +101,9 @@ public enum StatusCodes implements StatusCode {
     Network_Authentication_Required(511)
     ;
 
-    @Getter
     private final String msg;
-    @Getter
     private final String errorMessage;
-    private final byte[] encodedValue;
-    @Getter
+    private final GenericHttpException exception;
     private final int code;
 
     StatusCodes(int code)    {
@@ -119,12 +118,8 @@ public enum StatusCodes implements StatusCode {
         this.code = code;
         this.errorMessage = errorMessage;
         this.msg = name = (name == null ? this.name().replace('_', ' ') : name);
-        this.encodedValue = String.format(" %d %s", code, name).getBytes(StandardCharsets.US_ASCII);
-    }
 
-    @Override
-    public ByteBuf encodedValue() {
-        return Unpooled.wrappedBuffer(this.encodedValue);
+        this.exception = new GenericHttpException(this, false);
     }
 
     @Override

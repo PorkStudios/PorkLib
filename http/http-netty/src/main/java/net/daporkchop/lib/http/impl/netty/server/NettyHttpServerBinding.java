@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -13,41 +13,25 @@
  *
  */
 
-package net.daporkchop.lib.http.util.exception;
+package net.daporkchop.lib.http.impl.netty.server;
 
-import net.daporkchop.lib.http.StatusCode;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.http.server.HttpServerBinding;
+
+import java.net.InetSocketAddress;
 
 /**
- * An exception generated in the HTTP codec pipeline.
- *
  * @author DaPorkchop_
  */
-public abstract class HTTPException extends Exception {
-    public HTTPException() {
-        super();
-    }
-
-    public HTTPException(String s) {
-        super(s);
-    }
-
-    public HTTPException(String s, Throwable throwable) {
-        super(s, throwable);
-    }
-
-    public HTTPException(Throwable throwable) {
-        super(throwable);
-    }
-
-    protected HTTPException(String s, Throwable throwable, boolean noSuppress, boolean fillInStackTrace) {
-        super(s, throwable, noSuppress, fillInStackTrace);
-    }
-
-    /**
-     * Gets a (possibly {@code null}) {@link StatusCode} associated with this exception.
-     *
-     * This may be used by other pipeline members to help describe the issue better.
-     * @return a (possibly {@code null}) {@link StatusCode} associated with this exception
-     */
-    public abstract StatusCode status();
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public final class NettyHttpServerBinding implements HttpServerBinding {
+    @NonNull
+    protected final NettyHttpServer server;
+    @NonNull
+    protected final InetSocketAddress localAddress;
 }

@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -70,32 +70,13 @@ public interface HttpEntity {
     /**
      * Gets the {@link ContentEncoding} used for encoding this entity's data.
      * <p>
-     * The data returned by this {@link HttpEntity}'s various data methods must already be encoded using the {@link ContentEncoding} returned by this
+     * The data returned by this {@link HttpEntity}'s various keys methods must already be encoded using the {@link ContentEncoding} returned by this
      * method, as the internal HTTP engine will NOT do the encoding automatically.
      *
      * @return this entity's {@link ContentEncoding}
      */
     default ContentEncoding encoding() {
         return StandardContentEncoding.identity;
-    }
-
-    /**
-     * Gets the size (in bytes) of this entity's data.
-     * <p>
-     * If, for whatever reason, the data's size is not known in advance, this method should return {@code -1L}. By default, this will result in the
-     * data being sent using the "chunked" Transfer-Encoding rather than simply setting "Content-Length".
-     *
-     * @return the size (in bytes) of this entity's data, or {@code -1L} if it is not known
-     * @throws Exception if an exception occurs
-     */
-    long length() throws Exception;
-
-    /**
-     * @return the {@link TransferEncoding} that will be used for transferring data to the remote endpoint
-     * @throws Exception if an exception occurs
-     */
-    default TransferEncoding transferEncoding() throws Exception {
-        return this.length() < 0L ? StandardTransferEncoding.chunked : StandardTransferEncoding.identity;
     }
 
     /**

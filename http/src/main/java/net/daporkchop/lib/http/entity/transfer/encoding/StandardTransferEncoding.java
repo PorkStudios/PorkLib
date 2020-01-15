@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -28,7 +28,7 @@ public enum StandardTransferEncoding implements TransferEncoding {
      */
     identity,
     /**
-     * Rather than sending a "Content-Length" header, and sending the body by simply the HTTP entity's data directly across the TCP connection, data is
+     * Rather than sending a "Content-Length" header, and sending the body by simply the HTTP entity's data directly across the TCP connection, keys is
      * sent in a series of length-prefixed chunks which, on the receiving end, are aggregated back into a single continuous data stream.
      * <p>
      * This is beneficial e.g. for applications where the entity's data is dynamically generated, and the performance impact of generating the entire

@@ -1,7 +1,7 @@
 <!--
   ~ Adapted from the Wizardry License
   ~
-  ~ Copyright (c) 2018-2019 DaPorkchop_ and contributors
+  ~ Copyright (c) 2018-2020 DaPorkchop_ and contributors
   ~
   ~ Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
   ~
@@ -16,20 +16,27 @@
 <code_scheme name="PorkLib" version="173">
   <JavaCodeStyleSettings>
     <option name="CLASS_COUNT_TO_USE_IMPORT_ON_DEMAND" value="99999" />
+    <option name="NAMES_COUNT_TO_USE_IMPORT_ON_DEMAND" value="1" />
     <option name="PACKAGES_TO_USE_IMPORT_ON_DEMAND">
       <value />
     </option>
+    <REPEAT_ANNOTATIONS>
+      <ANNO name="lombok.NonNull" />
+    </REPEAT_ANNOTATIONS>
   </JavaCodeStyleSettings>
   <codeStyleSettings language="JAVA">
     <option name="RIGHT_MARGIN" value="999" />
     <option name="KEEP_FIRST_COLUMN_COMMENT" value="false" />
-    <option name="KEEP_CONTROL_STATEMENT_IN_ONE_LINE" value="false" />
-    <option name="ALIGN_MULTILINE_CHAINED_METHODS" value="true" />
+    <option name="ALIGN_GROUP_FIELD_DECLARATIONS" value="true" />
     <option name="METHOD_CALL_CHAIN_WRAP" value="5" />
-    <option name="IF_BRACE_FORCE" value="3" />
-    <option name="DOWHILE_BRACE_FORCE" value="3" />
-    <option name="WHILE_BRACE_FORCE" value="3" />
-    <option name="FOR_BRACE_FORCE" value="3" />
+    <option name="KEEP_SIMPLE_BLOCKS_IN_ONE_LINE" value="true" />
+    <option name="KEEP_SIMPLE_METHODS_IN_ONE_LINE" value="true" />
+    <option name="KEEP_SIMPLE_LAMBDAS_IN_ONE_LINE" value="true" />
+    <option name="KEEP_SIMPLE_CLASSES_IN_ONE_LINE" value="true" />
+    <option name="IF_BRACE_FORCE" value="1" />
+    <option name="DOWHILE_BRACE_FORCE" value="1" />
+    <option name="WHILE_BRACE_FORCE" value="1" />
+    <option name="FOR_BRACE_FORCE" value="1" />
     <arrangement>
       <rules>
         <section>

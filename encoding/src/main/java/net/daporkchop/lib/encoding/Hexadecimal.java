@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -21,6 +21,7 @@ import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.encoding.util.FastCharIntMap;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 /**
@@ -51,7 +52,8 @@ public class Hexadecimal {
         return PorkUtil.wrap(newText);
     }
 
-    public String encode(@NonNull byte[] data, int from, int length) {
+    public String encode(@NonNull byte[] data, int from, int length) throws IndexOutOfBoundsException {
+        PorkUtil.assertInRangeLen(data.length, from, length);
         char[] newText = new char[length << 1];
         for (int i = 0; i < length; i++) {
             byte b = data[i + from];
@@ -60,6 +62,39 @@ public class Hexadecimal {
             newText[a + 1] = ALPHABET[b & 0xF];
         }
         return PorkUtil.wrap(newText);
+    }
+
+    public void encode(@NonNull StringBuilder to, @NonNull byte[] data) {
+        encode(to, data, 0, data.length);
+    }
+
+    public void encode(@NonNull StringBuilder to, @NonNull byte[] data, int from, int length) throws IndexOutOfBoundsException {
+        PorkUtil.assertInRangeLen(data.length, from, length);
+        to.ensureCapacity(length << 1);
+        for (int i = 0; i < length; i++)    {
+            byte b = data[i + from];
+            to.append(ALPHABET[(b >>> 4) & 0xF]).append(ALPHABET[b & 0xF]);
+        }
+    }
+
+    public void encode(@NonNull StringBuilder to, byte b)   {
+        to.append(ALPHABET[(b >>> 4) & 0xF]).append(ALPHABET[b & 0xF]);
+    }
+
+    public void encode(@NonNull Appendable dst, @NonNull byte[] data) throws IOException {
+        encode(dst, data, 0, data.length);
+    }
+
+    public void encode(@NonNull Appendable dst, @NonNull byte[] data, int from, int length) throws IOException, IndexOutOfBoundsException {
+        PorkUtil.assertInRangeLen(data.length, from, length);
+        for (int i = 0; i < length; i++)    {
+            byte b = data[i + from];
+            dst.append(ALPHABET[(b >>> 4) & 0xF]).append(ALPHABET[b & 0xF]);
+        }
+    }
+
+    public void encode(@NonNull Appendable dst, byte b) throws IOException  {
+        dst.append(ALPHABET[(b >>> 4) & 0xF]).append(ALPHABET[b & 0xF]);
     }
 
     public byte[] decode(@NonNull String input) {
@@ -75,8 +110,27 @@ public class Hexadecimal {
             if (b < 0 || a < 0) {
                 throw new IllegalArgumentException("Illegal input text!");
             }
-            data[i >> 1] = (byte) ((a & 0xF) | (b << 4));
+            data[i >> 1] = (byte) (a | (b << 4));
         }
         return data;
+    }
+
+    public byte decode(char c1, char c2)  {
+        byte a = INDEX[c2];
+        byte b = INDEX[c1];
+        if (b < 0 || a < 0) {
+            throw new IllegalArgumentException("Illegal input text!");
+        }
+        return (byte) (a | (b << 4));
+    }
+
+    public int decodeUnsigned(char c1, char c2)  {
+        byte a = INDEX[c2];
+        byte b = INDEX[c1];
+        if (a >= 0 && b >= 0) {
+            return (a | (b << 4));
+        } else {
+            return -1;
+        }
     }
 }

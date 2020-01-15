@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -26,10 +26,10 @@ import net.daporkchop.lib.http.HttpClient;
 import net.daporkchop.lib.http.HttpMethod;
 import net.daporkchop.lib.http.entity.HttpEntity;
 import net.daporkchop.lib.http.header.Header;
+import net.daporkchop.lib.http.header.map.ArrayHeaderMap;
 import net.daporkchop.lib.http.header.map.HeaderMap;
 import net.daporkchop.lib.http.header.map.HeaderMaps;
 import net.daporkchop.lib.http.header.map.MutableHeaderMap;
-import net.daporkchop.lib.http.header.map.MutableHeaderMapImpl;
 import net.daporkchop.lib.http.impl.java.JavaHttpClient;
 import net.daporkchop.lib.http.request.auth.Authentication;
 import net.daporkchop.lib.http.response.aggregate.ResponseAggregator;
@@ -67,19 +67,19 @@ public abstract class AbstractRequestBuilder<V, C extends HttpClient> implements
     protected Proxy proxy;
 
     @NonNull
-    @Getter(AccessLevel.NONE)
-    protected HeaderMap      headers        = HeaderMaps.empty();
+    @Getter
+    protected HeaderMap headers = HeaderMaps.empty();
 
     @NonNull
     protected Authentication authentication = Authentication.none();
 
-    protected boolean        followRedirects = false;
+    protected boolean followRedirects = false;
 
     @Override
     public RequestBuilder<V> method(@NonNull HttpMethod method) throws IllegalArgumentException {
-        if (!this.client.supportedMethods().contains(method))   {
+        if (!this.client.supportedMethods().contains(method)) {
             throw new IllegalArgumentException(String.format("HTTP method %s is not supported by \"%s\"!", method, PorkUtil.className(this.client)));
-        } else if (!method.hasRequestBody())  {
+        } else if (!method.hasRequestBody()) {
             this.body = null;
         }
         this.method = method;
@@ -88,7 +88,7 @@ public abstract class AbstractRequestBuilder<V, C extends HttpClient> implements
 
     @Override
     public RequestBuilder<V> body(@NonNull HttpEntity body) throws IllegalStateException {
-        if (this.method.hasRequestBody())  {
+        if (this.method.hasRequestBody()) {
             this.body = body;
             return this;
         } else {
@@ -105,26 +105,58 @@ public abstract class AbstractRequestBuilder<V, C extends HttpClient> implements
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public RequestBuilder<V> header(@NonNull Header header) {
+    public RequestBuilder<V> putHeader(@NonNull String key, @NonNull String value) {
+        this.internalHeaderMap().put(key, value);
+        return this;
+    }
+
+    @Override
+    public RequestBuilder<V> putHeader(@NonNull String key, @NonNull List<String> values) {
+        this.internalHeaderMap().put(key, values);
+        return this;
+    }
+
+    @Override
+    public RequestBuilder<V> putHeader(@NonNull Header header) {
+        this.internalHeaderMap().put(header);
+        return this;
+    }
+
+    @Override
+    public RequestBuilder<V> addHeader(@NonNull String key, @NonNull String value) {
+        this.internalHeaderMap().add(key, value);
+        return this;
+    }
+
+    @Override
+    public RequestBuilder<V> addHeader(@NonNull String key, @NonNull List<String> values) {
+        this.internalHeaderMap().add(key, values);
+        return this;
+    }
+
+    @Override
+    public RequestBuilder<V> addHeader(@NonNull Header header) {
+        this.internalHeaderMap().add(header);
+        return this;
+    }
+
+    protected MutableHeaderMap internalHeaderMap() {
         HeaderMap headers = this.headers;
         MutableHeaderMap mutableHeaders;
         if (headers instanceof MutableHeaderMap) {
             mutableHeaders = (MutableHeaderMap) headers;
         } else if (headers == HeaderMaps.empty()) {
-            mutableHeaders = new MutableHeaderMapImpl();
+            mutableHeaders = new ArrayHeaderMap();
         } else {
             mutableHeaders = headers.mutableCopy();
         }
-        mutableHeaders.put(header);
-        this.headers = mutableHeaders;
-        return this;
+        return (MutableHeaderMap) (this.headers = mutableHeaders);
     }
 
-    protected void assertConfigured()   {
-        if (this.aggregator == null)    {
+    protected void assertConfigured() {
+        if (this.aggregator == null) {
             throw new IllegalStateException("aggregator isn't set!");
-        } else if (this.method.hasRequestBody() && this.body == null)  {
+        } else if (this.method.hasRequestBody() && this.body == null) {
             throw new IllegalStateException("body isn't set!");
         }
     }

@@ -60,11 +60,11 @@ public class PorkUtil {
 
     public final Class<?> ABSTRACTSTRINGBUILDER_CLASS        = classForName("java.lang.AbstractStringBuilder");
     public final long     ABSTRACTSTRINGBUILDER_VALUE_OFFSET = PUnsafe.pork_getOffset(ABSTRACTSTRINGBUILDER_CLASS, "value");
-    public final long     ABSTRACTSTRINGBUILDER_COUNT_OFFSET = PUnsafe.pork_getOffset(ABSTRACTSTRINGBUILDER_CLASS, "count");
 
     private final Function<Throwable, StackTraceElement[]> GET_STACK_TRACE_WRAPPER;
 
-    public final HandledPool<byte[]> BUFFER_POOL = new DefaultThreadHandledPool<>(() -> new byte[PUnsafe.PAGE_SIZE], 4);
+    public final HandledPool<byte[]>        BUFFER_POOL        = new DefaultThreadHandledPool<>(() -> new byte[PUnsafe.PAGE_SIZE], 4);
+    public final HandledPool<StringBuilder> STRINGBUILDER_POOL = new DefaultThreadHandledPool<>(StringBuilder::new, 4); //TODO: make this soft
 
     private final AtomicInteger DEFAULT_EXECUTOR_THREAD_COUNTER = new AtomicInteger(0);
     public final  Executor      DEFAULT_EXECUTOR                = new ThreadPoolExecutor(
@@ -75,7 +75,7 @@ public class PorkUtil {
     );
 
     public final DateFormat DATE_FORMAT     = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-    public final String     PORKLIB_VERSION = "0.4.0-SNAPSHOT";
+    public final String     PORKLIB_VERSION = "0.5.0-SNAPSHOT";
     public final int        CPU_COUNT       = Runtime.getRuntime().availableProcessors();
 
     static {
@@ -114,6 +114,25 @@ public class PorkUtil {
     }
 
     /**
+     * Unwraps a {@link CharSequence} into a {@code char[]} without copying the array, if possible.
+     * <p>
+     * Be aware that the returned {@code char[]} may be larger than the actual size of the {@link CharSequence}. It is therefore strongly advised to use
+     * {@link CharSequence#length()} instead of {@code char[]#length}.
+     *
+     * @param seq the {@link CharSequence} to unwrap
+     * @return the value of the {@link CharSequence} as a {@code char[]}, or {@code null} if the given {@link CharSequence} cannot be unwrapped
+     */
+    public char[] tryUnwrap(@NonNull CharSequence seq) {
+        if (seq instanceof String) {
+            return PUnsafe.getObject(seq, STRING_VALUE_OFFSET);
+        } else if (seq instanceof StringBuilder || seq instanceof StringBuffer) {
+            return PUnsafe.getObject(seq, ABSTRACTSTRINGBUILDER_VALUE_OFFSET);
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * Unwraps a {@link String} into a {@code char[]} without copying the array.
      *
      * @param string the {@link String} to unwrap
@@ -125,6 +144,9 @@ public class PorkUtil {
 
     /**
      * Unwraps a {@link StringBuilder} into a {@code char[]} without copying the array.
+     * <p>
+     * Be aware that the returned {@code char[]} may be larger than the actual size of the {@link StringBuilder}. It is therefore strongly advised to use
+     * {@link StringBuilder#length()} instead of {@code char[]#length}.
      *
      * @param builder the {@link StringBuilder} to unwrap
      * @return the value of the {@link StringBuilder} as a {@code char[]}
@@ -135,6 +157,9 @@ public class PorkUtil {
 
     /**
      * Unwraps a {@link StringBuffer} into a {@code char[]} without copying the array.
+     * <p>
+     * Be aware that the returned {@code char[]} may be larger than the actual size of the {@link StringBuffer}. It is therefore strongly advised to use
+     * {@link StringBuffer#length()} instead of {@code char[]#length}.
      *
      * @param buffer the {@link StringBuffer} to unwrap
      * @return the value of the {@link StringBuffer} as a {@code char[]}
@@ -289,7 +314,7 @@ public class PorkUtil {
         return PUnsafe.<CharSequence>getObject(matcher, MATCHER_TEXT_OFFSET).subSequence(start, end);
     }
 
-    public void assertInRange(int size, int start, int end) {
+    public void assertInRange(int size, int start, int end) throws IndexOutOfBoundsException {
         if (start < 0) {
             throw new IndexOutOfBoundsException(String.format("start (%d) < 0", start));
         } else if (end > size) {
@@ -299,7 +324,7 @@ public class PorkUtil {
         }
     }
 
-    public void assertInRangeLen(int size, int start, int len) {
+    public void assertInRangeLen(int size, int start, int len) throws IndexOutOfBoundsException {
         assertInRange(size, start, start + len);
     }
 }

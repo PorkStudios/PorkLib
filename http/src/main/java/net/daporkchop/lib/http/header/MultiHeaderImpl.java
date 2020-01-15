@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 /**
  * An implementation of {@link Header} which has multiple values.
@@ -37,11 +38,15 @@ public final class MultiHeaderImpl implements Header {
     protected       int          hash;
 
     public MultiHeaderImpl(@NonNull String key, @NonNull List<String> values) {
+        this(key, values, false);
+    }
+
+    public MultiHeaderImpl(@NonNull String key, @NonNull List<String> values, boolean skipCopy) {
         if (values.isEmpty()) {
             throw new IllegalArgumentException("values list is empty!");
         } else {
             this.key = key;
-            this.values = new ArrayList<>(values);
+            this.values = skipCopy ? values : new ArrayList<>(values);
         }
     }
 
@@ -51,9 +56,7 @@ public final class MultiHeaderImpl implements Header {
 
     @Override
     public String value() {
-        return this.singleton()
-                ? this.values.get(0)
-                : this.values.stream().collect(() -> new StringJoiner(", "), StringJoiner::add, StringJoiner::merge).toString();
+        return this.singleton() ? this.values.get(0) : this.values.stream().collect(Collectors.joining(", "));
     }
 
     @Override

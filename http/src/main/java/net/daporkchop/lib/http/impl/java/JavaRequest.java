@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.http.impl.java;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
@@ -22,7 +23,6 @@ import io.netty.util.concurrent.Promise;
 import lombok.NonNull;
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.http.Http;
 import net.daporkchop.lib.http.HttpMethod;
 import net.daporkchop.lib.http.StatusCode;
 import net.daporkchop.lib.http.entity.HttpEntity;
@@ -45,35 +45,34 @@ import net.daporkchop.lib.unsafe.PUnsafe;
 import sun.net.www.http.HttpClient;
 
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLEncoder;
+import java.nio.channels.Channels;
+import java.nio.channels.WritableByteChannel;
 import java.util.List;
 
 /**
- * Shared implementation of {@link Request} for {@link JavaHttpClient}.
+ * Base implementation of {@link Request} for {@link JavaHttpClient}.
  *
  * @author DaPorkchop_
  */
-public final class JavaRequest<V> implements Request<V>, Runnable {
+public abstract class JavaRequest<V> implements Request<V>, Runnable {
     static {
         PUnsafe.ensureClassInitialized(HttpClient.class);
         PUnsafe.pork_getStaticField(HttpClient.class, "keepAliveProp").setBoolean(false);
     }
 
     protected final JavaHttpClient        client;
-    protected final Thread                thread;
     protected final JavaRequestBuilder<V> builder;
+    protected       Thread                thread;
     protected       HttpURLConnection     connection;
 
     protected final Promise<ResponseHeaders<V>> headers;
-    protected final Promise<ResponseBody<V>> body;
+    protected final Promise<ResponseBody<V>>    body;
 
     public JavaRequest(@NonNull JavaRequestBuilder<V> builder) {
         this.client = builder.client();
         this.builder = builder;
-        this.thread = this.client.factory.newThread(this);
 
         EventExecutor executor = this.client.group.next();
         this.headers = executor.newPromise();
@@ -84,8 +83,6 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
                 this.headers.setFailure(f.isSuccess() ? new IllegalStateException("Complete future was successful, but response future was never set!") : f.cause());
             }
         });
-
-        this.thread.start();
     }
 
     @Override
@@ -106,7 +103,11 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
 
     @Override
     public void run() {
-        if (Thread.currentThread() != this.thread) throw new IllegalStateException("Invoked from illegal thread!");
+        if (this.thread == null) {
+            throw new IllegalStateException("Thread is not set?!?");
+        } else if (Thread.currentThread() != this.thread) {
+            throw new IllegalStateException(String.format("Invoked from illegal thread \"%s\", expected: \"%s\"", Thread.currentThread().getName(), this.thread.getName()));
+        }
 
         if (!this.client.addRequest(this)) {
             //return immediately if client is closed (addRequest will cancel the futures for us)
@@ -126,61 +127,70 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
                 this.connection.setDoInput(method.hasResponseBody());
 
                 //set request headers
-                {
-                    HeaderMap headers = this.builder._prepareHeaders();
-                    //add all headers as properties (we don't need to use set since HeaderMap already guarantees distinct keys, so using setRequestProperty would only cause needless string comparisons)
-                    headers.forEach(header -> this.connection.setRequestProperty(header.key(), header.value())); //if it's a list all the values will be joined together
+                HeaderMap headers = this.builder._prepareHeaders();
+                //add all headers as properties (we don't need to use set since HeaderMap already guarantees distinct keys, so using setRequestProperty would only cause needless string comparisons)
+                headers.forEach(header -> this.connection.setRequestProperty(header.key(), header.value())); //if it's a list all the values will be joined together
 
-                    if (!headers.hasKey("user-agent")) this.connection.setRequestProperty("User-Agent", this.client.userAgents.any());
-
-                    if (method.hasRequestBody()) {
-                        HttpEntity entity = this.builder.body();
-
-                        this.connection.setRequestProperty("Content-Encoding", entity.encoding().name());
-                        this.connection.setRequestProperty("Content-Type", entity.type().formatted());
-
-                        if (entity.transferEncoding() != StandardTransferEncoding.chunked) {
-                            this.connection.setRequestProperty("Content-Length", String.valueOf(entity.length()));
-                        }
-                    }
+                if (!headers.hasKey("user-agent")) {
+                    this.connection.setRequestProperty("User-Agent", this.client.userAgents.any());
                 }
 
                 if (method.hasRequestBody()) {
                     HttpEntity entity = this.builder.body();
-                    TransferEncoding encoding = entity.transferEncoding();
-                    long length = entity.length();
+                    TransferSession session = entity.newSession();
+                    try {
+                        TransferEncoding encoding = session.transferEncoding();
+                        long length = session.length();
 
-                    if (length < 0L) {
+                        this.connection.setRequestProperty("Content-Encoding", entity.encoding().name());
+                        this.connection.setRequestProperty("Content-Type", entity.type().formatted());
+
                         if (encoding != StandardTransferEncoding.chunked) {
-                            throw new IllegalStateException(String.format("Chunked transport required, but found \"%s\"!", encoding.name()));
-                        } else {
-                            //enable chunked transport
-                            this.connection.setChunkedStreamingMode(0);
+                            this.connection.setRequestProperty("Content-Length", String.valueOf(length));
                         }
-                    } else {
-                        if (encoding == StandardTransferEncoding.chunked) {
-                            //user is requesting chunked transport anyway for some reason or another
-                            this.connection.setChunkedStreamingMode(0);
-                        } else {
-                            //set fixed length output
-                            this.connection.setFixedLengthStreamingMode(length);
-                        }
-                    }
 
-                    //send body
-                    try (TransferSession session = entity.newSession();
-                         OutputStream out = this.connection.getOutputStream()) {
-                        long transferred = session.transferAllBlocking(out);
-                        if (transferred < 0L) {
-                            throw new IllegalStateException(String.format("Transferred %d bytes (negative?!?)", transferred));
-                        } else if (length >= 0L && transferred != length) {
-                            throw new IllegalStateException(String.format("Transferred %d bytes (expected: %d)", transferred, length));
+                        if (length < 0L) {
+                            if (encoding != StandardTransferEncoding.chunked) {
+                                throw new IllegalStateException(String.format("Chunked transport required, but found \"%s\"!", encoding.name()));
+                            } else {
+                                //enable chunked transport
+                                this.connection.setChunkedStreamingMode(0);
+                            }
+                        } else {
+                            if (encoding == StandardTransferEncoding.chunked) {
+                                //user is requesting chunked transport anyway for some reason or another
+                                this.connection.setChunkedStreamingMode(0);
+                            } else {
+                                //set fixed length output
+                                this.connection.setFixedLengthStreamingMode(length);
+                            }
                         }
+
+                        //send body
+                        if (session.hasByteBuf()) {
+                            ByteBuf buf = session.getByteBuf();
+                            try {
+                                buf.readBytes(this.connection.getOutputStream(), buf.readableBytes());
+                            } finally {
+                                buf.release();
+                            }
+                        } else {
+                            try (WritableByteChannel out = Channels.newChannel(this.connection.getOutputStream())) {
+                                long transferred = session.transferAllBlocking(session.position(), out);
+                                if (transferred < 0L) {
+                                    throw new IllegalStateException(String.format("Transferred %d bytes (negative?!?)", transferred));
+                                } else if (length >= 0L && transferred != length) {
+                                    throw new IllegalStateException(String.format("Transferred %d bytes (expected: %d)", transferred, length));
+                                }
+                            }
+                        }
+                    } finally {
+                        session.release();
                     }
                 }
 
                 //TODO: this no work correct
-                ResponseHeadersImpl<V> headers = new ResponseHeadersImpl<>(
+                ResponseHeadersImpl<V> responseHeaders = new ResponseHeadersImpl<>(
                         this,
                         StatusCode.of(this.connection.getResponseCode(), this.connection.getResponseMessage()),
                         new HeaderSnapshot(this.connection.getHeaderFields().entrySet().stream()
@@ -190,13 +200,13 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
                                     return (key == null || value.isEmpty()) ? null : Header.of(key, value);
                                 })));
 
-                if (this.builder.followRedirects() && headers.isRedirect()) {
-                    url = Constants.encodeUrl(headers.redirectLocation());
+                if (this.builder.followRedirects() && responseHeaders.isRedirect()) {
+                    url = Constants.encodeUrl(responseHeaders.redirectLocation());
                     this.connection.disconnect();
                     continue;
                 }
 
-                if (!this.headers.trySuccess(headers) && !this.headers.isCancelled()) {
+                if (!this.headers.trySuccess(responseHeaders) && !this.headers.isCancelled()) {
                     //what?
                     throw new IllegalStateException("Unable to mark headers as received!");
                 } else if (this.headers.isCancelled() || this.body.isCancelled()) {
@@ -204,8 +214,8 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
                     return;
                 }
 
-                V bodyValue = this.implReceiveBody(this.connection.getInputStream(), headers);
-                if (!this.body.trySuccess(new DelegatingResponseBodyImpl<>(headers, bodyValue)) && !this.body.isCancelled()) {
+                V bodyValue = this.implReceiveBody(this.connection.getInputStream(), responseHeaders);
+                if (!this.body.trySuccess(new DelegatingResponseBodyImpl<>(responseHeaders, bodyValue)) && !this.body.isCancelled()) {
                     //what?
                     throw new IllegalStateException("Unable to mark body as received!");
                 }
@@ -218,11 +228,11 @@ public final class JavaRequest<V> implements Request<V>, Runnable {
             if (this.connection != null) {
                 this.connection.disconnect();
             }
-            if (!this.body.isDone())    {
-                if (this.headers.isDone())  {
+            if (!this.body.isDone()) {
+                if (this.headers.isDone()) {
                     if (this.headers.isCancelled()) {
                         this.body.cancel(true);
-                    } else if (!this.headers.isSuccess())   {
+                    } else if (!this.headers.isSuccess()) {
                         this.body.setFailure(this.headers.cause());
                     } else {
                         this.body.setFailure(new IllegalStateException("Body was never marked as complete?!?"));

@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -15,13 +15,16 @@
 
 package net.daporkchop.lib.http.entity.transfer;
 
-import io.netty.buffer.ByteBuf;
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
-import java.io.OutputStream;
-import java.nio.ByteBuffer;
+import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.nio.channels.WritableByteChannel;
 
 /**
  * A simple {@link TransferSession} that reads data from a {@link FileChannel}.
@@ -29,25 +32,69 @@ import java.nio.channels.FileChannel;
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
 public final class FileChannelTransferSession implements TransferSession {
+    protected final long position;
+    protected final long length;
+
+    @Getter(AccessLevel.NONE)
     @NonNull
     protected final FileChannel channel;
 
-    @Override
-    public long transferAllBlocking(@NonNull OutputStream out) throws Exception {
-        ByteBuffer buf = ByteBuffer.allocate(32768);
-        long read = 0L;
-        int i;
-        while ((i = this.channel.read(buf)) >= 0)   {
-            read += i;
-            out.write(buf.array(), 0, i);
-            buf.clear();
-        }
-        return read;
+    protected int refCount = 1;
+
+    public FileChannelTransferSession(@NonNull FileChannel channel) throws IOException {
+        this(0L, channel.size(), channel);
     }
 
     @Override
-    public void close() throws Exception {
-        this.channel.close();
+    public long transfer(long position, @NonNull WritableByteChannel out) throws Exception {
+        if (position >= this.position + this.length || position < this.position) {
+            throw new IndexOutOfBoundsException(String.format("position=%d, length=%d, requested=%d", this.position, this.length, position));
+        }
+        return this.channel.transferTo(position, this.length - (position - this.position), out);
+    }
+
+    @Override
+    public long transferAllBlocking(long position, @NonNull WritableByteChannel out) throws Exception {
+        if (position >= this.position + this.length || position < this.position) {
+            throw new IndexOutOfBoundsException(String.format("position=%d, length=%d, requested=%d", this.position, this.length, position));
+        }
+        long required = this.length - (position - this.position);
+        for (long transferred = 0L; transferred < required; ) {
+            this.channel.transferTo(position + transferred, required - transferred, out);
+        }
+        return required;
+    }
+
+    @Override
+    public boolean reusable() {
+        return true;
+    }
+
+    @Override
+    public synchronized void retain() {
+        if (this.refCount == 0) {
+            throw new AlreadyReleasedException();
+        } else {
+            this.refCount++;
+        }
+    }
+
+    @Override
+    public synchronized boolean release() {
+        if (this.refCount == 0) {
+            throw new AlreadyReleasedException();
+        } else if (--this.refCount == 0) {
+            try {
+                this.channel.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            return true;
+        } else {
+            return false;
+        }
     }
 }

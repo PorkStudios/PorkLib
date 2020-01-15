@@ -55,7 +55,7 @@ public final class JavaRequestBuilder<V> extends AbstractRequestBuilder<V, JavaH
     @Override
     public Request<V> send() {
         this.assertConfigured();
-        return new JavaRequest<>(this);
+        return this.client.buildRequest(this);
     }
 
     @Override

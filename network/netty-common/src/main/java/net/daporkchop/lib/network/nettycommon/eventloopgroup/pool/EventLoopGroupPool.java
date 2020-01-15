@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -15,12 +15,10 @@
 
 package net.daporkchop.lib.network.nettycommon.eventloopgroup.pool;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFactory;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.ServerChannel;
 import io.netty.util.concurrent.Future;
 import lombok.NonNull;
+import net.daporkchop.lib.network.nettycommon.transport.Transport;
 
 /**
  * Allows for sharing a single {@link EventLoopGroup} across multiple bootstraps.
@@ -28,6 +26,13 @@ import lombok.NonNull;
  * @author DaPorkchop_
  */
 public interface EventLoopGroupPool extends AutoCloseable {
+    /**
+     * Gets the {@link Transport} that this pool's {@link EventLoopGroup} uses.
+     *
+     * @return this pool's {@link EventLoopGroup}'s {@link Transport}
+     */
+    Transport transport();
+
     /**
      * Gets the currently active {@link EventLoopGroup}, creating a new one if none is currently active.
      *

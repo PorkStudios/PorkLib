@@ -56,6 +56,16 @@ public class Constants {
     public final String                USER_AGENT                        = "PorkLib/" + PorkUtil.PORKLIB_VERSION;
     public final SelectionPool<String> DEFAULT_USER_AGENT_SELECTION_POOL = SelectionPool.singleton(USER_AGENT);
 
+    // The maximum length of the query string
+    public final int MAX_QUERY_SIZE = 1 << 12; // 4 KiB
+    // The maximum length of a single header line (including name)
+    public final int MAX_HEADER_SIZE = 1 << 13; // 8 KiB
+    // The maximum number of headers per request
+    public final int MAX_HEADER_COUNT = 256;
+
+    // The maximum length of a request (query string + headers)
+    public final int MAX_REQUEST_SIZE = (32 + MAX_QUERY_SIZE) + MAX_HEADER_SIZE * MAX_HEADER_COUNT;
+
     /*public final ThreadLocal<byte[]> CACHE_4KB_BUFFER = ThreadLocal.withInitial(() -> new byte[4096]);
 
     public final Pattern PATTERN_REQUEST = Pattern.compile("^([A-Z]+) ([^ ]+) HTTP/1\\.1$");
@@ -69,13 +79,6 @@ public class Constants {
     public final byte[] BYTES_CRLF = {(byte) '\r', (byte) '\n'};
     public final byte[] BYTES_2X_CRLF = {(byte) '\r', (byte) '\n', (byte) '\r', (byte) '\n'};
     public final byte[] BYTES_HEADER_SEPARATOR = {(byte) ':', (byte) ' '};
-
-    // The maximum length of the query string
-    public final int MAX_QUERY_SIZE = 1 << 12; // 4 KiB
-    // The maximum length of a single header line (including name)
-    public final int MAX_HEADER_SIZE = 1 << 13; // 8 KiB
-    // The maximum number of headers per request
-    public final int MAX_HEADER_COUNT = 256;
 
     public void writeUTF16ToByteBuf(@NonNull ByteBuf dst, @NonNull CharSequence str) {
         if (str instanceof String) {

@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -24,7 +24,7 @@ import lombok.experimental.Accessors;
 import java.nio.charset.StandardCharsets;
 
 /**
- * A wrapper around a {@link ByteBuf} to allow it to be used as a {@link CharSequence} of 1-byte characters (aka. Latin, Extended ASCII or ISO/IEC 8859-1).
+ * A wrapper around a {@link ByteBuf} to allow it to be used as a {@link CharSequence} of ASCII-encoded characters.
  *
  * @author DaPorkchop_
  */
@@ -84,6 +84,6 @@ public final class ByteBufASCIISequence implements CharSequence {
 
     @Override
     public String toString() {
-        return this.buf.toString(StandardCharsets.ISO_8859_1);
+        return this.buf.toString(StandardCharsets.US_ASCII);
     }
 }

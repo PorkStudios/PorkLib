@@ -13,6 +13,25 @@
  *
  */
 
-dependencies {
-    compile "nl.sandergielisse:mythan:1.0-SNAPSHOT"
+package net.daporkchop.lib.ai.alg;
+
+import lombok.NonNull;
+import net.daporkchop.lib.ai.AI;
+import net.daporkchop.lib.ai.Evaluator;
+import net.daporkchop.lib.ai.Trainer;
+
+/**
+ * Abstract representation of a machine learning algorithm.
+ *
+ * @author DaPorkchop_
+ */
+public interface MachineLearning<A extends AI, O extends TrainingOptions<? extends A, O>> {
+    /**
+     * Prepares to begin training an AI.
+     *
+     * @param evaluator the {@link Evaluator} that will evaluate the AI's performance
+     * @param options   options used for training
+     * @return a {@link Trainer} that will be used to control the training process
+     */
+    Trainer<A, O> beginTraining(@NonNull Evaluator<A> evaluator, @NonNull O options);
 }

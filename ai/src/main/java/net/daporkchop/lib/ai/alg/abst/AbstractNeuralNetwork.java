@@ -13,6 +13,36 @@
  *
  */
 
-dependencies {
-    compile "nl.sandergielisse:mythan:1.0-SNAPSHOT"
+package net.daporkchop.lib.ai.alg.abst;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.ai.NeuralNetwork;
+import net.daporkchop.lib.ai.alg.TrainingOptions;
+
+/**
+ * A basic implementation of {@link NeuralNetwork}.
+ *
+ * @author DaPorkchop_
+ */
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public abstract class AbstractNeuralNetwork implements NeuralNetwork {
+    protected final int inputs;
+    protected final int outputs;
+
+    protected double fitness = Double.NaN;
+
+    protected void validateParameters(@NonNull double[] inputs, @NonNull double[] outputs) throws IllegalArgumentException  {
+        if (inputs.length != this.inputs)   {
+            throw new IllegalArgumentException(String.format("Invalid input count! Expected %d, found %d", this.inputs, inputs.length));
+        } else if (outputs.length != this.outputs)   {
+            throw new IllegalArgumentException(String.format("Invalid output count! Expected %d, found %d", this.outputs, outputs.length));
+        }
+    }
 }

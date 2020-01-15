@@ -13,6 +13,40 @@
  *
  */
 
-dependencies {
-    compile "nl.sandergielisse:mythan:1.0-SNAPSHOT"
+package net.daporkchop.lib.ai.alg.pgen.evolution;
+
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
+/**
+ * A sample of all members of a single species during a specific generation.
+ *
+ * @author DaPorkchop_
+ */
+@Getter
+@Accessors(fluent = true)
+public class Population {
+    @NonNull
+    protected Specimen[] members;
+    @NonNull
+    protected final Species species;
+    protected final int generation;
+
+    public Population(@NonNull Specimen[] members, @NonNull Species species)    {
+        this.members = members;
+        this.species = species;
+        this.generation = species.generation;
+    }
+
+    /**
+     * @return the population that came before this one, or {@code null} if this is the base population
+     */
+    public Population previous()    {
+        return this.generation > 0 ? this.species.populations.get(this.generation - 1) : null;
+    }
 }

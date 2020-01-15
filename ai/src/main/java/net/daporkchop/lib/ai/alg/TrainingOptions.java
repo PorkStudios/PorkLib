@@ -13,6 +13,37 @@
  *
  */
 
-dependencies {
-    compile "nl.sandergielisse:mythan:1.0-SNAPSHOT"
+package net.daporkchop.lib.ai.alg;
+
+import lombok.Getter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.ai.AI;
+import net.daporkchop.lib.common.util.PorkUtil;
+
+/**
+ * Options used when training an AI.
+ *
+ * @author DaPorkchop_
+ */
+@Accessors(fluent = true, chain = true)
+@Getter
+public abstract class TrainingOptions<A extends AI, O extends TrainingOptions<A, O>> {
+    /**
+     * The number of worker threads to use for training.
+     * <p>
+     * Defaults to the CPU count.
+     */
+    protected int workers = PorkUtil.CPU_COUNT;
+
+    /**
+     * @see #workers
+     */
+    @SuppressWarnings("unchecked")
+    public O workers(int workers) {
+        if (workers <= 0) {
+            throw new IllegalStateException("Must have at least 1 worker!");
+        }
+        this.workers = workers;
+        return (O) this;
+    }
 }

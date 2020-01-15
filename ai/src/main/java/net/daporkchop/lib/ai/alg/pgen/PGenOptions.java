@@ -13,6 +13,41 @@
  *
  */
 
-dependencies {
-    compile "nl.sandergielisse:mythan:1.0-SNAPSHOT"
+package net.daporkchop.lib.ai.alg.pgen;
+
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.ai.alg.TrainingOptions;
+
+import java.util.function.DoubleUnaryOperator;
+
+/**
+ * Options for training a neural network using the PGen algorithm.
+ *
+ * @author DaPorkchop_
+ */
+@Accessors(chain = true, fluent = true)
+@Getter
+@Setter
+public class PGenOptions extends TrainingOptions<PGenNetwork, PGenOptions> {
+    protected int inputs = 0;
+    protected int outputs = 0;
+
+    //these default values are somewhat very arbitrary
+    protected double mutationNewConnectionChance = 0.3d;
+    protected double mutationDeleteConnectionChance = 0.1d;
+    protected double mutationWeightMaxDeviation = 0.06d;
+    protected double speciesCrossBreedChance = 0.1d;
+
+    protected int generationSurvivors = 64;
+
+    protected int maxSpeciesSize = 1024;
+    protected int maxSpeciesCount = 64;
+
+    protected int baseSpeciesSize = 512;
+
+    @NonNull
+    protected DoubleUnaryOperator activationFunction = x -> 1.0D / (1.0D + Math.exp(-4.9D * x)); //Mythan's "CustomizedSigmoidActivation"
 }

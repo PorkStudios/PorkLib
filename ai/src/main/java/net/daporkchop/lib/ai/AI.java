@@ -13,6 +13,21 @@
  *
  */
 
-dependencies {
-    compile "nl.sandergielisse:mythan:1.0-SNAPSHOT"
+package net.daporkchop.lib.ai;
+
+/**
+ * Abstract representation of an AI.
+ *
+ * @author DaPorkchop_
+ * @see NeuralNetwork
+ */
+public interface AI {
+    /**
+     * Gets this AIs fitness level (aka skill).
+     *
+     * The meaning of this value varies depending on the {@link Evaluator} used to train this AI.
+     *
+     * @return this AIs fitness
+     */
+    double fitness();
 }

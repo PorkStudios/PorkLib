@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -21,14 +21,17 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
  * A method of selecting a certain value out of a larger quantity.
+ * <p>
+ * This isn't so much a pool as a group which provides access to some collection of values.
  *
  * @author DaPorkchop_
  */
-public interface SelectionPool<V> {
+public interface SelectionPool<V> extends Supplier<V> {
     /**
      * Gets a pool with no values.
      *
@@ -84,7 +87,7 @@ public interface SelectionPool<V> {
             case 1:
                 return singleton(values[0]);
             default:
-                return new RandomSelectionPool<>(skipClone ? values : values.clone(), random, values.length);
+                return new RandomSelectionPool<>(skipClone ? values : values.clone(), random);
         }
     }
 
@@ -100,14 +103,14 @@ public interface SelectionPool<V> {
     /**
      * Constructs a new pool which will randomly select a value from the given {@link Stream} of values.
      *
-     * @param values    the {@link Stream} of values to choose from
-     * @param random    an {@link Random} to use for choosing a value. If {@code null}, {@link java.util.concurrent.ThreadLocalRandom} will be used
-     * @param <V>       the type of value
+     * @param values the {@link Stream} of values to choose from
+     * @param random an {@link Random} to use for choosing a value. If {@code null}, {@link java.util.concurrent.ThreadLocalRandom} will be used
+     * @param <V>    the type of value
      * @return a new pool with the given values
      */
     @SuppressWarnings("unchecked")
     static <V> SelectionPool<V> random(@NonNull Stream<V> values, Random random) {
-        return (SelectionPool<V>) random(values.toArray(Object[]::new), random);
+        return (SelectionPool<V>) random(values.toArray(Object[]::new), random, true);
     }
 
     /**
@@ -122,14 +125,62 @@ public interface SelectionPool<V> {
     /**
      * Constructs a new pool which will randomly select a value from the given {@link Collection} of values.
      *
-     * @param values    the {@link Collection} of values to choose from
-     * @param random    an {@link Random} to use for choosing a value. If {@code null}, {@link java.util.concurrent.ThreadLocalRandom} will be used
-     * @param <V>       the type of value
+     * @param values the {@link Collection} of values to choose from
+     * @param random an {@link Random} to use for choosing a value. If {@code null}, {@link java.util.concurrent.ThreadLocalRandom} will be used
+     * @param <V>    the type of value
      * @return a new pool with the given values
      */
     @SuppressWarnings("unchecked")
     static <V> SelectionPool<V> random(@NonNull Collection<V> values, Random random) {
-        return (SelectionPool<V>) random(values.toArray(), random);
+        return (SelectionPool<V>) random(values.toArray(), random, true);
+    }
+
+    /**
+     * Constructs a new pool which will select a value from the given array of values using a round-robin method.
+     *
+     * @see #roundRobin(Object[], boolean)
+     */
+    static <V> SelectionPool<V> roundRobin(@NonNull V[] values) {
+        return roundRobin(values, false);
+    }
+
+    /**
+     * Constructs a new pool which will select a value from the given array of values using a round-robin method.
+     *
+     * @param values    the array of values to choose from
+     * @param skipClone whether to skip cloning the array before creating the pool
+     * @param <V>       the type of value
+     * @return a new pool with the given values
+     */
+    static <V> SelectionPool<V> roundRobin(@NonNull V[] values, boolean skipClone) {
+        switch (values.length) {
+            case 0:
+                return empty();
+            case 1:
+                return singleton(values[0]);
+            default:
+                return new RoundRobinSelectionPool<>(skipClone ? values : values.clone());
+        }
+    }
+
+    /**
+     * Constructs a new pool which will select a value from the given {@link Stream} of values using a round-robin method.
+     *
+     * @see #roundRobin(Stream)
+     */
+    @SuppressWarnings("unchecked")
+    static <V> SelectionPool<V> roundRobin(@NonNull Stream<V> values) {
+        return (SelectionPool<V>) roundRobin(values.toArray(Object[]::new), true);
+    }
+
+    /**
+     * Constructs a new pool which will select a value from the given {@link Collection} of values using a round-robin method.
+     *
+     * @see #roundRobin(Collection)
+     */
+    @SuppressWarnings("unchecked")
+    static <V> SelectionPool<V> roundRobin(@NonNull Collection<V> values) {
+        return (SelectionPool<V>) roundRobin(values.toArray(), true);
     }
 
     /**
@@ -152,15 +203,10 @@ public interface SelectionPool<V> {
     List<V> matching(@NonNull Predicate<V> condition);
 
     /**
-     * Retrieves any value from this pool which matches the given condition.
-     * <p>
-     * Unless explicitly stated in the implementation, this is expected to behave identically to {@link #any()}, with the only difference being that a value
-     * must match the given condition to be eligible to be returned.
-     * <p>
-     * In the event that no values match the given condition, {@code null} will be returned.
-     *
-     * @param condition the condition to match
-     * @return a value from this pool which matches the given condition
+     * Provided only for convenience so that a {@link SelectionPool} may be used as a {@link Supplier}.
      */
-    V anyMatching(@NonNull Predicate<V> condition);
+    @Override
+    default V get() {
+        return this.any();
+    }
 }

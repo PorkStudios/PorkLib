@@ -13,49 +13,28 @@
  *
  */
 
-package net.daporkchop.lib.collections.stream;
+package net.daporkchop.lib.collections;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.collections.PList;
-import net.daporkchop.lib.collections.PSet;
-import net.daporkchop.lib.collections.impl.list.JavaListWrapper;
-import net.daporkchop.lib.collections.impl.set.JavaSetWrapper;
-import net.daporkchop.lib.collections.stream.impl.array.ArrayStream;
-import net.daporkchop.lib.collections.stream.impl.list.UncheckedListStream;
-import net.daporkchop.lib.collections.stream.impl.set.UncheckedSetStream;
-
-import java.util.List;
-import java.util.Set;
+import net.daporkchop.lib.collections.util.BaseCollection;
 
 /**
+ * A representation of a stack datastructure.
+ *
  * @author DaPorkchop_
  */
-@UtilityClass
-public class PStreams {
-    public <V> PStream<V> of(@NonNull V... values)   {
-        return ofArray(values);
-    }
+//TODO: merge with ObjStack in primitive?
+public interface PStack<V> extends BaseCollection {
+    /**
+     * Pushes a value to the stack.
+     *
+     * @param value the value to push to the stack
+     */
+    void push(V value);
 
-    public <V> PStream<V> ofArray(@NonNull V[] array) {
-        return new ArrayStream<>(array);
-    }
-
-    public <V> PStream<V> list(@NonNull List<V> list)  {
-        return list(new JavaListWrapper<>(list));
-    }
-
-    public <V> PStream<V> list(@NonNull PList<V> list) {
-        return list.stream();
-    }
-
-    public <V> PStream<V> set(@NonNull Set<V> set)  {
-        return set(new JavaSetWrapper<>(set));
-    }
-
-    public <V> PStream<V> set(@NonNull PSet<V> set) {
-        return set.stream();
-    }
+    /**
+     * Pops a value off the stack.
+     *
+     * @return the popped value
+     */
+    V pop();
 }

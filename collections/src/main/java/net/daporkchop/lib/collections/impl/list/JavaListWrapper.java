@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -32,17 +32,17 @@ public class JavaListWrapper<V> extends AbstractJavaCollectionWrapper<V, List<V>
         super(delegate);
     }
     @Override
-    public void add(long pos, @NonNull V value) {
+    public void add(long pos,  V value) {
         this.delegate.add((int) pos, value);
     }
 
     @Override
-    public void set(long pos, @NonNull V value) {
+    public void set(long pos,  V value) {
         this.delegate.set((int) pos, value);
     }
 
     @Override
-    public V replace(long pos, @NonNull V value) {
+    public V replace(long pos,  V value) {
         return this.delegate.set((int) pos, value);
     }
 
@@ -62,7 +62,7 @@ public class JavaListWrapper<V> extends AbstractJavaCollectionWrapper<V, List<V>
     }
 
     @Override
-    public long indexOf(@NonNull V value) {
+    public long indexOf( V value) {
         return this.delegate.indexOf(value);
     }
 }

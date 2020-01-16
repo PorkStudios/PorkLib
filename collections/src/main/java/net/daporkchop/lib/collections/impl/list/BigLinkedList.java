@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -34,8 +34,8 @@ public class BigLinkedList<V> implements PList<V> {
     protected Node<V> end;
 
     @Override
-    public void add(long pos, @NonNull V value) {
-        if (pos == this.size)   {
+    public void add(long pos, V value) {
+        if (pos == this.size) {
             this.add(value);
             return;
         }
@@ -54,7 +54,7 @@ public class BigLinkedList<V> implements PList<V> {
                 if (next == this.end) {
                     this.end = node;
                 }
-                if (prev != null)   {
+                if (prev != null) {
                     prev.next = node;
                 }
                 node.next = next;
@@ -64,7 +64,7 @@ public class BigLinkedList<V> implements PList<V> {
     }
 
     @Override
-    public void set(long pos, @NonNull V value) {
+    public void set(long pos, V value) {
         Node<V> node = this.root;
         while (--pos >= 0L && node != null) {
             node = node.next;
@@ -77,7 +77,7 @@ public class BigLinkedList<V> implements PList<V> {
     }
 
     @Override
-    public V replace(long pos, @NonNull V value) {
+    public V replace(long pos, V value) {
         Node<V> node = this.root;
         while (--pos >= 0L && node != null) {
             node = node.next;
@@ -141,7 +141,7 @@ public class BigLinkedList<V> implements PList<V> {
     }
 
     @Override
-    public long indexOf(@NonNull V value) {
+    public long indexOf(V value) {
         Node<V> node = this.root;
         long l = 0L;
         while (node != null) {
@@ -156,7 +156,7 @@ public class BigLinkedList<V> implements PList<V> {
     }
 
     @Override
-    public void add(@NonNull V value) {
+    public void add(V value) {
         Node<V> node = new Node<>(value);
         if (this.end == null) {
             this.end = this.root = node;
@@ -168,7 +168,7 @@ public class BigLinkedList<V> implements PList<V> {
     }
 
     @Override
-    public void remove(@NonNull V value) {
+    public void remove(V value) {
         Node<V> node = this.root;
         Node<V> prev = null;
         while (node != null) {
@@ -186,7 +186,7 @@ public class BigLinkedList<V> implements PList<V> {
     }
 
     @Override
-    public boolean checkAndRemove(@NonNull V value) {
+    public boolean checkAndRemove(V value) {
         Node<V> node = this.root;
         Node<V> prev = null;
         while (node != null) {
@@ -242,7 +242,7 @@ public class BigLinkedList<V> implements PList<V> {
             public V peek() {
                 if (this.curr == null) {
                     throw new IterationCompleteException();
-                } else if (this.removed)    {
+                } else if (this.removed) {
                     throw new AlreadyRemovedException();
                 } else {
                     return this.curr.value;
@@ -253,7 +253,7 @@ public class BigLinkedList<V> implements PList<V> {
             public void remove() {
                 if (this.curr == null) {
                     throw new IterationCompleteException();
-                } else if (this.removed)    {
+                } else if (this.removed) {
                     throw new AlreadyRemovedException();
                 } else if (this.prev == null) {
                     if (this.next == null) {
@@ -280,10 +280,10 @@ public class BigLinkedList<V> implements PList<V> {
             }
 
             @Override
-            public void set(@NonNull V value) {
+            public void set(V value) {
                 if (this.curr == null) {
                     throw new IterationCompleteException();
-                } else if (this.removed)    {
+                } else if (this.removed) {
                     throw new AlreadyRemovedException();
                 } else {
                     this.curr.value = value;
@@ -294,7 +294,7 @@ public class BigLinkedList<V> implements PList<V> {
             public void recompute(@NonNull Function<V, V> mappingFunction) {
                 if (this.curr == null) {
                     throw new IterationCompleteException();
-                } else if (this.removed)    {
+                } else if (this.removed) {
                     throw new AlreadyRemovedException();
                 } else {
                     this.curr.value = mappingFunction.apply(this.curr.value);

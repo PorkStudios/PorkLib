@@ -1,7 +1,7 @@
 #include <common.h>
 #include "net_daporkchop_lib_natives_zlib_NativeInflater.h"
 
-#include "../lib-zlib/zlib.h"
+#include <lib-zlib/zlib.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -39,7 +39,7 @@ __attribute__((visibility("default"))) jlong JNICALL Java_net_daporkchop_lib_nat
     int ret = inflateInit2(stream, windowBits);
 
     if (ret != Z_OK)    {
-        char* msg = stream->msg;
+        const char* msg = stream->msg;
         free(stream);
         throwException(env, msg == nullptr ? "Couldn't init inflater!" : msg, ret);
     }
@@ -51,14 +51,14 @@ __attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_nati
     z_stream* stream = (z_stream*) ctx;
     int ret = inflateReset(stream);
     if (ret != Z_OK)    {
-        char* msg = stream->msg;
+        const char* msg = stream->msg;
         free(stream);
         throwException(env, msg == nullptr ? "Couldn't reset inflater!" : msg, ret);
         return;
     }
 
     ret = inflateEnd(stream);
-    char* msg = stream->msg;
+    const char* msg = stream->msg;
     free(stream);
 
     if (ret != Z_OK)    {

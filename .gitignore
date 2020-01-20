@@ -29,10 +29,3 @@ test_out/
 
 # project root
 /src/
-
-#native libraries
-/natives/**/*.so
-/natives/**/*.dll
-/natives/**/*.o
-/natives/src/main/native/*/lib-*/
-/natives/src/main/native/*/build*/

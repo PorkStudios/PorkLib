@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -36,25 +36,33 @@ public class NativeTests {
             orig.setByte(i, ThreadLocalRandom.current().nextInt(8));
         }
         ByteBuf compressed = Unpooled.directBuffer(SIZE >>> 3, SIZE).clear();
+        ByteBuf decompressed = Unpooled.directBuffer(SIZE, SIZE);
 
-        try (PDeflater deflater = PNatives.ZLIB.get().deflater(Zlib.ZLIB_LEVEL_BEST)) {
-            System.out.printf("Deflating with %s...\nFinished: %b\n", PorkUtil.className(deflater), deflater.finished());
-            deflater.deflate(orig, compressed);
-            System.out.printf("Read: %d\nWritten: %d\nFinished: %b\n", deflater.readBytes(), deflater.writtenBytes(), deflater.finished());
-        }
+        long startTime = System.currentTimeMillis();
+        for (int pass = 0; pass < 3; pass++) {
+            orig.resetReaderIndex();
+            compressed.clear();
+            decompressed.clear();
 
-        ByteBuf decompressed = Unpooled.directBuffer(SIZE, SIZE).clear();
+            try (PDeflater deflater = PNatives.ZLIB.get().deflater(Zlib.ZLIB_LEVEL_BEST)) {
+                System.out.printf("Deflating with %s...\nFinished: %b\n", PorkUtil.className(deflater), deflater.finished());
+                deflater.deflate(orig, compressed);
+                System.out.printf("Read: %d\nWritten: %d\nFinished: %b\n", deflater.readBytes(), deflater.writtenBytes(), deflater.finished());
+            }
 
-        try (PInflater inflater = PNatives.ZLIB.get().inflater()) {
-            System.out.printf("Inflating with %s...\nFinished: %b\n", PorkUtil.className(inflater), inflater.finished());
-            inflater.inflate(compressed, decompressed);
-            System.out.printf("Read: %d\nWritten: %d\nFinished: %b\n", inflater.readBytes(), inflater.writtenBytes(), inflater.finished());
-        }
+            try (PInflater inflater = PNatives.ZLIB.get().inflater()) {
+                System.out.printf("Inflating with %s...\nFinished: %b\n", PorkUtil.className(inflater), inflater.finished());
+                inflater.inflate(compressed, decompressed);
+                System.out.printf("Read: %d\nWritten: %d\nFinished: %b\n", inflater.readBytes(), inflater.writtenBytes(), inflater.finished());
+            }
 
-        for (int i = 0; i < SIZE; i++) {
-            if (orig.getByte(i) != decompressed.getByte(i)) {
-                throw new IllegalStateException();
+            for (int i = 0; i < SIZE; i++) {
+                if (orig.getByte(i) != decompressed.getByte(i)) {
+                    throw new IllegalStateException();
+                }
             }
         }
+
+        System.out.printf("Took %.2fs!\n", (System.currentTimeMillis() - startTime) / 1000.0d);
     }
 }

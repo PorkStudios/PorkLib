@@ -1,7 +1,7 @@
 #include <common.h>
 #include "net_daporkchop_lib_natives_zlib_NativeDeflater.h"
 
-#include "../lib-zlib/zlib.h"
+#include <lib-zlib/zlib.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -44,7 +44,7 @@ __attribute__((visibility("default"))) jlong JNICALL Java_net_daporkchop_lib_nat
     int ret = deflateInit2(stream, level, Z_DEFLATED, windowBits, 8, Z_DEFAULT_STRATEGY);
 
     if (ret != Z_OK)    {
-        char* msg = stream->msg;
+        const char* msg = stream->msg;
         free(stream);
         throwException(env, msg == nullptr ? "Couldn't init deflater!" : msg, ret);
     }
@@ -61,7 +61,7 @@ __attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_nati
     }
 
     ret = deflateEnd(stream);
-    char* msg = stream->msg;
+    const char* msg = stream->msg;
     free(stream);
 
     if (ret != Z_OK)    {

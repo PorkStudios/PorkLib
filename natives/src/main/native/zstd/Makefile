@@ -8,10 +8,10 @@ clean:
 
 $(BUILD):
 	@[ -d $(BUILDDIR) ] || mkdir -p $(BUILDDIR)
-	@$(MAKE) --no-print-directory -C $(BUILDDIR) -f $(CURDIR)/Makefile BUILD=$(BUILD) zlib-$(BUILD)
+	@$(MAKE) --no-print-directory -C $(BUILDDIR) -f $(CURDIR)/Makefile BUILD=$(BUILD) zstd-$(BUILD)
 
 else
-.PHONY: zlib-$(BUILD) lib-zlib
+.PHONY: zstd-$(BUILD) lib-zstd
 
 include $(TOPDIR)/toolchain/$(BUILD)
 
@@ -23,28 +23,27 @@ OFILES			:=	$(addsuffix .o,$(subst /,__,$(CFILES)) $(subst /,__,$(CPPFILES)))
 
 INCLUDE			:=	$(foreach dir,$(INCLUDES),-I$(dir)) -I$(PROJDIR)/include -I$(CURDIR)
 
-zlib-$(BUILD): $(OUTDIR)/$(BUILD)/libzlib.$(EXT)
+zstd-$(BUILD): $(OUTDIR)/$(BUILD)/libzstd.$(EXT)
 
-$(OUTDIR)/$(BUILD)/libzlib.$(EXT): $(CFILES) $(CPPFILES) $(OFILES) $(TOPDIR)/Makefile $(PROJDIR)/Makefile $(CURDIR)/lib-zlib/libz-ng.a
+$(OUTDIR)/$(BUILD)/libzstd.$(EXT): $(CFILES) $(CPPFILES) $(OFILES) $(TOPDIR)/Makefile $(PROJDIR)/Makefile $(CURDIR)/lib-zstd/lib/libzstd.a
 	@[ -d $(OUTDIR)/$(BUILD) ] || mkdir -p $(OUTDIR)/$(BUILD)
 	@echo "Linking $@..."
-	@$(LD) $(LDFLAGS) $(INCLUDE) -o $@ $(OFILES) $(CURDIR)/lib-zlib/libz-ng.a
+	@$(LD) $(LDFLAGS) $(INCLUDE) -o $@ $(OFILES) $(CURDIR)/lib-zstd/lib/libzstd.a
 	@echo "Stripping $@..."
 	@strip $@
 
-%.c.o: $(CFILES) $(TOPDIR)/Makefile $(PROJDIR)/Makefile $(CURDIR)/lib-zlib/libz-ng.a
+%.c.o: $(CFILES) $(TOPDIR)/Makefile $(PROJDIR)/Makefile $(CURDIR)/lib-zstd/lib/libzstd.a
 	@echo "Building $(subst .o,,$(subst __,/,$@))..."
 	@$(CC) $(CFLAGS) $(INCLUDE) -c $(subst .o,,$(subst __,/,$@)) -o $@
 
-%.cpp.o: $(CPPFILES) $(TOPDIR)/Makefile $(PROJDIR)/Makefile $(CURDIR)/lib-zlib/libz-ng.a
+%.cpp.o: $(CPPFILES) $(TOPDIR)/Makefile $(PROJDIR)/Makefile $(CURDIR)/lib-zstd/lib/libzstd.a
 	@echo "Building $(subst .o,,$(subst __,/,$@))..."
 	@$(CXX) $(CXXFLAGS) $(INCLUDE) -c $(subst .o,,$(subst __,/,$@)) -o $@
 
-$(CURDIR)/lib-zlib/libz-ng.a: $(TOPDIR)/zlib-ng-1.2.11.tar.gz
-	@[ ! -d lib-zlib ] || rm -rf lib-zlib/
-	@tar zxf $(TOPDIR)/zlib-ng-1.2.11.tar.gz
-	@mv zlib-ng-1.2.11/ lib-zlib/
-	@cd lib-zlib/ && CFLAGS="-fPIC -Ofast -fvisibility=hidden -ffunction-sections -fdata-sections" ./configure --static --64 --with-gzfileops && cd ..
-	@$(MAKE) -C $(CURDIR)/lib-zlib/ -f $(CURDIR)/lib-zlib/Makefile libz-ng.a
+$(CURDIR)/lib-zstd/lib/libzstd.a: $(TOPDIR)/zstd-1.4.4.tar.gz
+	@[ ! -d lib-zstd ] || rm -rf lib-zstd/
+	@tar zxf $(TOPDIR)/zstd-1.4.4.tar.gz
+	@mv zstd-1.4.4/ lib-zstd/
+	@$(MAKE) -C $(CURDIR)/lib-zstd/ -f $(CURDIR)/lib-zstd/Makefile lib-release
 
 endif

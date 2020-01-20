@@ -38,7 +38,7 @@ public interface RefCounted extends AutoCloseable {
      *
      * @throws AlreadyReleasedException if this instance's reference count has already reached 0
      */
-    void retain() throws AlreadyReleasedException;
+    RefCounted retain() throws AlreadyReleasedException;
 
     /**
      * Releases this instance by decrementing the reference count.

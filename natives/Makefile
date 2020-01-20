@@ -13,8 +13,7 @@ export LDFLAGS		:=	$(CFLAGS) -Wl,--gc-sections
 export SOURCES		:=	$(SRCDIR)/common/source
 export INCLUDES		:=	$(SRCDIR)/common/include $(JAVA_HOME)include $(JAVA_HOME)include/linux
 
-export ARCHS		:=	x86_64-linux-gnu
-#export ARCHS		:=	x86_64-linux-gnu x86_64-w64-mingw32
+export ARCHS		:=	x86_64-linux-gnu x86_64-w64-mingw32
 #export ARCHS		:=	$(foreach arch,$(ARCHS),$(if $(shell which $(arch)-gcc),$(arch)))
 #export ARCHS		:=	$(foreach arch,$(ARCHS),$(if $(shell which $(arch)-g++),$(arch)))
 export ARCH_TASKS	:=	$(foreach arch,$(ARCHS),build.$(arch))

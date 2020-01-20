@@ -26,26 +26,26 @@ INCLUDE			:=	$(foreach dir,$(INCLUDES),-I$(dir)) -I$(PROJDIR)/include -I$(CURDIR
 
 zlib-$(BUILD): $(OUTDIR)/$(BUILD)/libzlib.$(EXT)
 
-$(OUTDIR)/$(BUILD)/libzlib.$(EXT): $(CFILES) $(CPPFILES) $(OFILES) $(TOPDIR)/Makefile $(TOPDIR)/src/main/native/zlib/Makefile
+$(OUTDIR)/$(BUILD)/libzlib.$(EXT): $(CFILES) $(CPPFILES) $(OFILES) $(TOPDIR)/Makefile $(TOPDIR)/src/main/native/zlib/Makefile $(CURDIR)/lib-zlib/libz-ng.a
 	@[ -d $(OUTDIR)/$(BUILD) ] || mkdir -p $(OUTDIR)/$(BUILD)
 	@echo "Linking $@..."
-	@$(LD) $(LDFLAGS) $(INCLUDE) -o $@ $(OFILES)
+	@$(LD) $(LDFLAGS) $(INCLUDE) -o $@ $(OFILES) $(CURDIR)/lib-zlib/libz-ng.a
 	@echo "Stripping $@..."
 	@strip $@
 
-%.c.o: $(CFILES) $(TOPDIR)/Makefile $(TOPDIR)/src/main/native/zlib/Makefile lib-zlib
+%.c.o: $(CFILES) $(TOPDIR)/Makefile $(TOPDIR)/src/main/native/zlib/Makefile $(CURDIR)/lib-zlib/libz-ng.a
 	@echo "Building $(subst .o,,$(subst __,/,$@))..."
 	@$(CC) $(CFLAGS) $(INCLUDE) -c $(subst .o,,$(subst __,/,$@)) -o $@
 
-%.cpp.o: $(CPPFILES) $(TOPDIR)/Makefile $(TOPDIR)/src/main/native/zlib/Makefile lib-zlib
+%.cpp.o: $(CPPFILES) $(TOPDIR)/Makefile $(TOPDIR)/src/main/native/zlib/Makefile $(CURDIR)/lib-zlib/libz-ng.a
 	@echo "Building $(subst .o,,$(subst __,/,$@))..."
 	@$(CXX) $(CXXFLAGS) $(INCLUDE) -c $(subst .o,,$(subst __,/,$@)) -o $@
 
-lib-zlib: $(TOPDIR)/zlib-ng-1.2.11.tar.gz
+$(CURDIR)/lib-zlib/libz-ng.a: $(TOPDIR)/zlib-ng-1.2.11.tar.gz
 	@[ ! -d lib-zlib ] || rm -rf lib-zlib/
 	@tar zxf $(TOPDIR)/zlib-ng-1.2.11.tar.gz
 	@mv zlib-ng-1.2.11/ lib-zlib/
-	@cd lib-zlib/ && CFLAGS="-Ofast -fvisibility=hidden -ffunction-sections -fdata-sections" ./configure --static --64 --with-gzfileops && cd ..
-	@$(MAKE) -C $(CURDIR)/lib-zlib/ -f $(CURDIR)/lib-zlib/Makefile static
+	@cd lib-zlib/ && CFLAGS="-fPIC -Ofast -fvisibility=hidden -ffunction-sections -fdata-sections" ./configure --static --64 --with-gzfileops && cd ..
+	@$(MAKE) -C $(CURDIR)/lib-zlib/ -f $(CURDIR)/lib-zlib/Makefile libz-ng.a
 
 endif

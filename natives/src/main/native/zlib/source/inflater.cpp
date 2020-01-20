@@ -1,7 +1,7 @@
 #include <common.h>
 #include "net_daporkchop_lib_natives_zlib_NativeInflater.h"
 
-#include <lib-zlib/zlib.h>
+#include <lib-zlib/zlib-ng.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -33,10 +33,10 @@ __attribute__((visibility("default"))) jlong JNICALL Java_net_daporkchop_lib_nat
         return 0;
     }
     
-    z_stream* stream = (z_stream*) malloc(sizeof(z_stream));
-    memset(stream, 0, sizeof(z_stream));
+    zng_stream* stream = (zng_stream*) malloc(sizeof(zng_stream));
+    memset(stream, 0, sizeof(zng_stream));
 
-    int ret = inflateInit2(stream, windowBits);
+    int ret = zng_inflateInit2(stream, windowBits);
 
     if (ret != Z_OK)    {
         const char* msg = stream->msg;
@@ -48,8 +48,8 @@ __attribute__((visibility("default"))) jlong JNICALL Java_net_daporkchop_lib_nat
 }
 
 __attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeInflater_end(JNIEnv* env, jclass cla, jlong ctx)  {
-    z_stream* stream = (z_stream*) ctx;
-    int ret = inflateReset(stream);
+    zng_stream* stream = (zng_stream*) ctx;
+    int ret = zng_inflateReset(stream);
     if (ret != Z_OK)    {
         const char* msg = stream->msg;
         free(stream);
@@ -57,7 +57,7 @@ __attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_nati
         return;
     }
 
-    ret = inflateEnd(stream);
+    ret = zng_inflateEnd(stream);
     const char* msg = stream->msg;
     free(stream);
 
@@ -67,28 +67,28 @@ __attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_nati
 }
 
 __attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeInflater_input(JNIEnv* env, jobject obj, jlong srcAddr, jint srcLen) {
-    z_stream* stream = (z_stream*) env->GetLongField(obj, ctxID);
+    zng_stream* stream = (zng_stream*) env->GetLongField(obj, ctxID);
 
     stream->next_in = (unsigned char*) srcAddr;
     stream->avail_in = srcLen;
 }
 
 __attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeInflater_output(JNIEnv* env, jobject obj, jlong dstAddr, jint dstLen)    {
-    z_stream* stream = (z_stream*) env->GetLongField(obj, ctxID);
+    zng_stream* stream = (zng_stream*) env->GetLongField(obj, ctxID);
 
     stream->next_out = (unsigned char*) dstAddr;
     stream->avail_out = dstLen;
 }
 
 __attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeInflater_inflate(JNIEnv* env, jobject obj)  {
-    z_stream* stream = (z_stream*) env->GetLongField(obj, ctxID);
+    zng_stream* stream = (zng_stream*) env->GetLongField(obj, ctxID);
 
     jint avail_in  = stream->avail_in;
     jint avail_out = stream->avail_out;
 
     //don't actually run inflate with the flush flag if the entire data isn't going to be able to be read this invocation
     //of course this doesn't mean it'll be buffering 4GB of data, it just means that it won't begin flushing the data until it decides to
-    int ret = inflate(stream, Z_SYNC_FLUSH);
+    int ret = zng_inflate(stream, Z_SYNC_FLUSH);
     if (ret == Z_STREAM_END)    {
         env->SetBooleanField(obj, finishedID, (jboolean) 1);
     } else if (ret != Z_OK)    {
@@ -101,9 +101,9 @@ __attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_nati
 }
 
 __attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_natives_zlib_NativeInflater_reset(JNIEnv* env, jobject obj)     {
-    z_stream* stream = (z_stream*) env->GetLongField(obj, ctxID);
+    zng_stream* stream = (zng_stream*) env->GetLongField(obj, ctxID);
     
-    int ret = inflateReset(stream);
+    int ret = zng_inflateReset(stream);
     
     if (ret != Z_OK)    {
         throwException(env, stream->msg == nullptr ? "Couldn't reset inflater!" : stream->msg, ret);

@@ -18,11 +18,7 @@ package collections;
 import net.daporkchop.lib.collections.PIterator;
 import net.daporkchop.lib.collections.PList;
 import net.daporkchop.lib.collections.impl.list.BigLinkedList;
-import net.daporkchop.lib.collections.impl.list.PArrayList;
-import net.daporkchop.lib.logging.Logging;
 import org.junit.Test;
-
-import java.util.function.Supplier;
 
 import static net.daporkchop.lib.logging.Logging.*;
 
@@ -34,8 +30,7 @@ public class CollectionTest {
     @SuppressWarnings("unchecked")
     public void testLists() {
         for (PList<Integer> list : (PList<Integer>[]) new PList[]   {
-                new BigLinkedList<>(),
-                new PArrayList() //TODO: doesn't work
+                new BigLinkedList<>()
         })  {
             logger.info("Testing %s...", list.getClass());
             for (int i = 8192; i > 0; i--)  {

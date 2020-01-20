@@ -15,59 +15,30 @@
 
 package net.daporkchop.lib.natives.zlib;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.unsafe.PCleaner;
-import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
-
 /**
- * Implementation of {@link PDeflater} using native code.
+ * The different modes supported by Zlib.
  *
  * @author DaPorkchop_
  */
-@Getter
-@Accessors(fluent = true)
-public final class NativeDeflater implements PDeflater {
-    static native void load();
-
-    private static native long init(int level, int mode);
-
-    private static native void end(long ctx);
-
-    @Getter(AccessLevel.NONE)
-    private final long ctx;
-
-    @Getter(AccessLevel.NONE)
-    private final PCleaner cleaner;
-
-    private int readBytes;
-    private int writtenBytes;
-
-    private boolean finished;
-
-    NativeDeflater(int level, @NonNull ZlibMode mode) {
-        long ctx = this.ctx = init(level, mode.ordinal());
-        this.cleaner = PCleaner.cleaner(this, () -> end(ctx));
-    }
-
-    @Override
-    public native void input(long addr, int size);
-
-    @Override
-    public native void output(long addr, int size);
-
-    @Override
-    public native void deflate(boolean finish);
-
-    @Override
-    public native void reset();
-
-    @Override
-    public void release() throws AlreadyReleasedException {
-        if (!this.cleaner.tryClean()) {
-            throw new AlreadyReleasedException();
-        }
-    }
+public enum ZlibMode {
+    /**
+     * Zlib wrapping mode, uses a 6-byte header with an Adler32 checksum.
+     * <p>
+     * This is the default mode.
+     */
+    ZLIB,
+    /**
+     * Gzip wrapping mode, uses an (at least) 18-byte header with a CRC32 checksum.
+     */
+    GZIP,
+    /**
+     * Only for use by {@link PInflater}, automatically detects whether the input data is in the Zlib or Gzip format.
+     * <p>
+     * Note that this doesn't work for data encoded in the {@link #ZLIB_MODE_RAW} format.
+     */
+    AUTO,
+    /**
+     * "Raw" Deflate mode, no wrapping is applied to the compressed data.
+     */
+    RAW;
 }

@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -14,6 +14,8 @@
  */
 
 package net.daporkchop.lib.natives.zlib;
+
+import lombok.NonNull;
 
 /**
  * Base representation of the Zlib algorithm.
@@ -42,68 +44,44 @@ public interface Zlib {
     int ZLIB_LEVEL_DEFAULT = -1;
 
     /**
-     * Zlib wrapping mode, uses a 6-byte header with an Adler32 checksum.
-     * <p>
-     * This is the default mode.
-     */
-    int ZLIB_MODE_ZLIB = 0;
-
-    /**
-     * Gzip wrapping mode, uses an (at least) 18-byte header with a CRC32 checksum.
-     */
-    int ZLIB_MODE_GZIP = 1;
-
-    /**
-     * Only for use by {@link PInflater}, automatically detects whether the input data is in the Zlib or Gzip format.
-     * <p>
-     * Note that this doesn't work for data encoded in the {@link #ZLIB_MODE_RAW} format.
-     */
-    int ZLIB_MODE_AUTO = 2;
-
-    /**
-     * "Raw" Deflate mode, no wrapping is applied to the compressed data.
-     */
-    int ZLIB_MODE_RAW = 3;
-
-    /**
      * Creates a new {@link PDeflater}.
      * <p>
-     * The returned {@link PDeflater} will use {@link #ZLIB_MODE_ZLIB}.
+     * The returned {@link PDeflater} will use {@link ZlibMode#ZLIB}.
      *
      * @param level the Deflate compression level to use. Must be in range 0-9 (inclusive), or {@link #ZLIB_LEVEL_DEFAULT} to use the library default
      * @return a new {@link PDeflater} instance
-     * @see #deflater(int, int)
+     * @see #deflater(int, ZlibMode)
      */
     default PDeflater deflater(int level) {
-        return this.deflater(level, ZLIB_MODE_ZLIB);
+        return this.deflater(level, ZlibMode.ZLIB);
     }
 
     /**
      * Creates a new {@link PDeflater}.
      *
      * @param level the Deflate compression level to use. Must be in range 0-9 (inclusive), or {@link #ZLIB_LEVEL_DEFAULT} to use the library default
-     * @param mode  the zlib wrapping mode to use. Must be one of {@link #ZLIB_MODE_ZLIB}, {@link #ZLIB_MODE_RAW} or {@link #ZLIB_MODE_GZIP}
+     * @param mode  the zlib wrapping mode to use
      * @return a new {@link PDeflater} instance
      */
-    PDeflater deflater(int level, int mode);
+    PDeflater deflater(int level, @NonNull ZlibMode mode);
 
     /**
      * Creates a new {@link PInflater}.
      * <p>
-     * The returned {@link PInflater} will use {@link #ZLIB_MODE_ZLIB}.
+     * The returned {@link PInflater} will use {@link ZlibMode#ZLIB}.
      *
      * @return a new {@link PInflater} instance
-     * @see #inflater(int)
+     * @see #inflater(ZlibMode)
      */
     default PInflater inflater() {
-        return this.inflater(ZLIB_MODE_ZLIB);
+        return this.inflater(ZlibMode.ZLIB);
     }
 
     /**
      * Creates a new {@link PDeflater}.
      *
-     * @param mode the zlib wrapping mode to use. Must be one of {@link #ZLIB_MODE_ZLIB}, {@link #ZLIB_MODE_GZIP}, {@link #ZLIB_MODE_AUTO} or {@link #ZLIB_MODE_RAW}
+     * @param mode the zlib wrapping mode to use
      * @return a new {@link PInflater} instance
      */
-    PInflater inflater(int mode);
+    PInflater inflater(@NonNull ZlibMode mode);
 }

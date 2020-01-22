@@ -166,7 +166,7 @@ public abstract class PorkBuf implements RefCounted {
      * @param index the index of the {@code short} to set
      * @param val   the value to set
      */
-    public abstract PorkBuf setShortNE(long index, short val);
+    public abstract PorkBuf setShortN(long index, short val);
 
     /**
      * Sets a big-endian {@code char} at the given index.
@@ -190,7 +190,7 @@ public abstract class PorkBuf implements RefCounted {
      * @param index the index of the {@code char} to set
      * @param val   the value to set
      */
-    public abstract PorkBuf setCharNE(long index, char val);
+    public abstract PorkBuf setCharN(long index, char val);
 
     /**
      * Sets a big-endian {@code int} at the given index.
@@ -214,7 +214,7 @@ public abstract class PorkBuf implements RefCounted {
      * @param index the index of the {@code int} to set
      * @param val   the value to set
      */
-    public abstract PorkBuf setIntNE(long index, int val);
+    public abstract PorkBuf setIntN(long index, int val);
 
     /**
      * Sets a big-endian {@code long} at the given index.
@@ -238,7 +238,7 @@ public abstract class PorkBuf implements RefCounted {
      * @param index the index of the {@code long} to set
      * @param val   the value to set
      */
-    public abstract PorkBuf setLongNE(long index, long val);
+    public abstract PorkBuf setLongN(long index, long val);
 
     /**
      * Sets a big-endian {@code float} at the given index.
@@ -262,7 +262,7 @@ public abstract class PorkBuf implements RefCounted {
      * @param index the index of the {@code float} to set
      * @param val   the value to set
      */
-    public abstract PorkBuf setFloatNE(long index, float val);
+    public abstract PorkBuf setFloatN(long index, float val);
 
     /**
      * Sets a big-endian {@code double} at the given index.
@@ -286,7 +286,7 @@ public abstract class PorkBuf implements RefCounted {
      * @param index the index of the {@code double} to set
      * @param val   the value to set
      */
-    public abstract PorkBuf setDoubleNE(long index, double val);
+    public abstract PorkBuf setDoubleN(long index, double val);
 
     /**
      * Equivalent to {@code setBytes(index, arr, 0, arr.length);}

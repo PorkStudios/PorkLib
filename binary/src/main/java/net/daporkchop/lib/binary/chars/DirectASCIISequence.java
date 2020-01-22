@@ -15,7 +15,6 @@
 
 package net.daporkchop.lib.binary.chars;
 
-import io.netty.util.internal.PlatformDependent;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +23,6 @@ import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
 import net.daporkchop.lib.unsafe.capability.Releasable;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
-import sun.nio.ch.DirectBuffer;
 
 import java.nio.MappedByteBuffer;
 
@@ -55,7 +53,7 @@ public class DirectASCIISequence implements CharSequence {
         return start == 0 && end == this.length ? this : this.slice(start, end - start);
     }
 
-    protected CharSequence slice(int start, int len)    {
+    protected CharSequence slice(int start, int len) {
         return new DirectASCIISequence(this.addr + start, len);
     }
 
@@ -111,11 +109,11 @@ public class DirectASCIISequence implements CharSequence {
         private MappedByteBuffer buffer;
 
         public Mapped(@NonNull MappedByteBuffer buffer) {
-            this(buffer, PlatformDependent.directBufferAddress(buffer) + buffer.position(), buffer.remaining(), false);
+            this(buffer, PorkUtil.unwrap(buffer) + buffer.position(), buffer.remaining(), false);
         }
 
         public Mapped(@NonNull MappedByteBuffer buffer, boolean load) {
-            this(buffer, PlatformDependent.directBufferAddress(buffer) + buffer.position(), buffer.remaining(), load);
+            this(buffer, PorkUtil.unwrap(buffer) + buffer.position(), buffer.remaining(), load);
         }
 
         public Mapped(@NonNull MappedByteBuffer buffer, long address, int size) {
@@ -127,7 +125,7 @@ public class DirectASCIISequence implements CharSequence {
 
             this.buffer = buffer;
 
-            if (load)   {
+            if (load) {
                 buffer.load();
             }
         }
@@ -139,7 +137,7 @@ public class DirectASCIISequence implements CharSequence {
 
         @Override
         public synchronized void release() throws AlreadyReleasedException {
-            if (this.buffer != null)    {
+            if (this.buffer != null) {
                 PorkUtil.release(this.buffer);
                 this.buffer = null;
             } else {

@@ -31,8 +31,10 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.lang.reflect.Method;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
+import java.nio.MappedByteBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Map;
@@ -57,6 +59,7 @@ public class PorkUtil {
     public final long STRING_VALUE_OFFSET   = PUnsafe.pork_getOffset(String.class, "value");
     public final long MATCHER_GROUPS_OFFSET = PUnsafe.pork_getOffset(Matcher.class, "groups");
     public final long MATCHER_TEXT_OFFSET   = PUnsafe.pork_getOffset(Matcher.class, "text");
+    public final long BUFFER_ADDRESS_OFFSET = PUnsafe.pork_getOffset(Buffer.class, "address");
 
     public final Class<?> ABSTRACTSTRINGBUILDER_CLASS        = classForName("java.lang.AbstractStringBuilder");
     public final long     ABSTRACTSTRINGBUILDER_VALUE_OFFSET = PUnsafe.pork_getOffset(ABSTRACTSTRINGBUILDER_CLASS, "value");
@@ -98,6 +101,21 @@ public class PorkUtil {
             } finally {
                 GET_STACK_TRACE_WRAPPER = func;
             }
+        }
+    }
+
+    /**
+     * Unwraps a direct {@link ByteBuffer} to get its memory address.
+     *
+     * @param buffer the {@link ByteBuffer} to unwrap
+     * @return the buffer's memory address
+     * @throws IllegalArgumentException if the given {@link ByteBuffer} is not a direct buffer
+     */
+    public long unwrap(@NonNull ByteBuffer buffer) throws IllegalArgumentException {
+        if (buffer instanceof MappedByteBuffer) {
+            return PUnsafe.getLong(buffer, BUFFER_ADDRESS_OFFSET);
+        } else {
+            throw new IllegalArgumentException(buffer.getClass().getCanonicalName());
         }
     }
 
@@ -213,6 +231,24 @@ public class PorkUtil {
     public boolean classExistsWithName(@NonNull String name) {
         try {
             Class.forName(name);
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> Class<T> classForName(@NonNull String name, boolean initialize, @NonNull ClassLoader classLoader) {
+        try {
+            return (Class<T>) Class.forName(name, initialize, classLoader);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean classExistsWithName(@NonNull String name, boolean initialize, @NonNull ClassLoader classLoader) {
+        try {
+            Class.forName(name, initialize, classLoader);
             return true;
         } catch (ClassNotFoundException e) {
             return false;

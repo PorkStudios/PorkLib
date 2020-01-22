@@ -46,12 +46,6 @@ public abstract class AbstractPorkBuf implements PorkBuf {
         }
     }
 
-    protected static void validateArrayBounds(int index, int length, int capacity) throws IndexOutOfBoundsException {
-        if (index < 0 || length < 0 || capacity < index + length) {
-            throw new ArrayIndexOutOfBoundsException(String.format("index: %d, length: %d, capacity: %d", index, length, capacity));
-        }
-    }
-
     private long readerIndex;
     private long writerIndex;
 
@@ -141,31 +135,31 @@ public abstract class AbstractPorkBuf implements PorkBuf {
     //
 
     @Override
-    public PorkBuf setByte(long index, byte val) {
+    public PorkBuf setByte(long index, int val) {
         validateBounds(index, 1L, this.capacity);
         this.setByte0(index, val);
         return this;
     }
 
-    protected abstract void setByte0(long index, byte val);
+    protected abstract void setByte0(long index, int val);
 
     @Override
-    public PorkBuf setShort(long index, short val) {
+    public PorkBuf setShort(long index, int val) {
         validateBounds(index, 2L, this.capacity);
         this.setShort0(index, val);
         return this;
     }
 
-    protected abstract void setShort0(long index, short val);
+    protected abstract void setShort0(long index, int val);
 
     @Override
-    public PorkBuf setShortLE(long index, short val) {
+    public PorkBuf setShortLE(long index, int val) {
         validateBounds(index, 2L, this.capacity);
         this.setShortLE0(index, val);
         return this;
     }
 
-    protected abstract void setShortLE0(long index, short val);
+    protected abstract void setShortLE0(long index, int val);
 
     @Override
     public PorkBuf setChar(long index, char val) {
@@ -259,7 +253,7 @@ public abstract class AbstractPorkBuf implements PorkBuf {
 
     @Override
     public PorkBuf setBytes(long index, @NonNull byte[] arr, int start, int length) throws IndexOutOfBoundsException {
-        validateArrayBounds(start, length, arr.length);
+        PorkUtil.assertInRangeLen(arr.length, start, length);
         validateBounds(index, length, this.capacity);
         this.setBytes0(index, arr, start, length);
         return this;

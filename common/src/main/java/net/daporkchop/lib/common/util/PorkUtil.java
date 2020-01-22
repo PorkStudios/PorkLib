@@ -327,4 +327,18 @@ public class PorkUtil {
     public void assertInRangeLen(int size, int start, int len) throws IndexOutOfBoundsException {
         assertInRange(size, start, start + len);
     }
+
+    public void assertInRange(long size, long start, long end) throws IndexOutOfBoundsException {
+        if (start < 0L) {
+            throw new IndexOutOfBoundsException(String.format("start (%d) < 0", start));
+        } else if (end > size) {
+            throw new IndexOutOfBoundsException(String.format("end (%d) > size (%d)", end, size));
+        } else if (end < start) {
+            throw new IllegalArgumentException(String.format("end (%d) < start (%d)", end, start));
+        }
+    }
+
+    public void assertInRangeLen(long size, long start, long len) throws IndexOutOfBoundsException {
+        assertInRange(size, start, start + len);
+    }
 }

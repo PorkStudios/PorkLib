@@ -26,11 +26,14 @@ import java.nio.ByteBuffer;
  * A buffer interface heavily inspired by Netty's {@link io.netty.buffer.ByteBuf}, but intended for use with 64-bit systems
  * where Netty's restriction to {@code int} for indexing is a limiting factor.
  * <p>
+ * Additionally, in order to achieve maximum performance and maintain simplicity, all implementations are assumed to be backed by
+ * direct memory.
+ * <p>
  * Unless specifically stated by an implementation, instances of a {@link PorkBuf} are not expected to be thread-safe.
  *
  * @author DaPorkchop_
  */
-public interface PorkBuf extends RefCounted {
+public abstract class PorkBuf implements RefCounted {
     //
     //
     // Indexing methods
@@ -40,7 +43,7 @@ public interface PorkBuf extends RefCounted {
     /**
      * @return this {@link PorkBuf}'s current reader index
      */
-    long readerIndex();
+    public abstract long readerIndex();
 
     /**
      * Sets this {@link PorkBuf}'s reader index.
@@ -48,12 +51,12 @@ public interface PorkBuf extends RefCounted {
      * @param readerIndex the new reader index to set
      * @throws IndexOutOfBoundsException if the given reader index is less than {@code 0}, or greater than {@link #writerIndex()}
      */
-    PorkBuf readerIndex(long readerIndex) throws IndexOutOfBoundsException;
+    public abstract PorkBuf readerIndex(long readerIndex) throws IndexOutOfBoundsException;
 
     /**
      * @return this {@link PorkBuf}'s current writer index
      */
-    long writerIndex();
+    public abstract long writerIndex();
 
     /**
      * Sets this {@link PorkBuf}'s writer index.
@@ -61,17 +64,17 @@ public interface PorkBuf extends RefCounted {
      * @param writerIndex the new writer index to set
      * @throws IndexOutOfBoundsException if the given writer index is less than {@link #readerIndex()}, or greater than {@link #capacity()}
      */
-    PorkBuf writerIndex(long writerIndex) throws IndexOutOfBoundsException;
+    public abstract PorkBuf writerIndex(long writerIndex) throws IndexOutOfBoundsException;
 
     /**
      * @return this {@link PorkBuf}'s current capacity. Will always be less than or equal to {@link #maxCapacity()}.
      */
-    long capacity();
+    public abstract long capacity();
 
     /**
      * @return this {@link PorkBuf}'s maximum capacity
      */
-    long maxCapacity();
+    public abstract long maxCapacity();
 
     /**
      * Ensures that the given number of bytes are writable in this buffer.
@@ -81,7 +84,7 @@ public interface PorkBuf extends RefCounted {
      * @param count the number of writable bytes to ensure
      * @throws IndexOutOfBoundsException if {@link #writerIndex()} + {@code count} > {@link #maxCapacity()}
      */
-    PorkBuf ensureWritable(long count) throws IndexOutOfBoundsException;
+    public abstract PorkBuf ensureWritable(long count) throws IndexOutOfBoundsException;
 
     /**
      * Ensures that the buffer's capacity is at least the given size.
@@ -91,24 +94,25 @@ public interface PorkBuf extends RefCounted {
      * @param count the capacity to ensure
      * @throws IndexOutOfBoundsException if {@code count} > {@link #maxCapacity()}
      */
-    PorkBuf ensureCapacity(long count) throws IndexOutOfBoundsException;
+    public abstract PorkBuf ensureCapacity(long count) throws IndexOutOfBoundsException;
 
     /**
      * Increases the buffer's {@link #readerIndex()} by the given number of bytes.
+     *
      * @param count the number of bytes to skip
      * @throws IndexOutOfBoundsException if {@link #readerIndex()} + {@code count} > {@link #writerIndex()}
      */
-    PorkBuf skip(long count) throws IndexOutOfBoundsException;
+    public abstract PorkBuf skip(long count) throws IndexOutOfBoundsException;
 
     /**
      * @return the number of readable bytes in this {@link PorkBuf}
      */
-    long readableBytes();
+    public abstract long readableBytes();
 
     /**
      * @return the number of writable bytes in this {@link PorkBuf}
      */
-    long writableBytes();
+    public abstract long writableBytes();
 
     //
     //
@@ -122,9 +126,7 @@ public interface PorkBuf extends RefCounted {
      * @param index the index of the {@code boolean} to set
      * @param val   the value to set
      */
-    default PorkBuf setBoolean(long index, boolean val) {
-        return this.setByte(index, val ? (byte) 1 : 0);
-    }
+    public abstract PorkBuf setBoolean(long index, boolean val);
 
     /**
      * Sets a {@code byte} at the given index.
@@ -132,7 +134,7 @@ public interface PorkBuf extends RefCounted {
      * @param index the index of the {@code byte} to set
      * @param val   the value to set
      */
-    PorkBuf setByte(long index, byte val);
+    public abstract PorkBuf setByte(long index, int val);
 
     /**
      * Sets a big-endian {@code short} at the given index.
@@ -140,7 +142,7 @@ public interface PorkBuf extends RefCounted {
      * @param index the index of the {@code short} to set
      * @param val   the value to set
      */
-    PorkBuf setShort(long index, short val);
+    public abstract PorkBuf setShort(long index, int val);
 
     /**
      * Sets a little-endian {@code short} at the given index.
@@ -148,7 +150,15 @@ public interface PorkBuf extends RefCounted {
      * @param index the index of the {@code short} to set
      * @param val   the value to set
      */
-    PorkBuf setShortLE(long index, short val);
+    public abstract PorkBuf setShortLE(long index, int val);
+
+    /**
+     * Sets a {@code short} at the given index using the native byte order.
+     *
+     * @param index the index of the {@code short} to set
+     * @param val   the value to set
+     */
+    public abstract PorkBuf setShortNE(long index, int val);
 
     /**
      * Sets a big-endian {@code char} at the given index.
@@ -156,7 +166,7 @@ public interface PorkBuf extends RefCounted {
      * @param index the index of the {@code char} to set
      * @param val   the value to set
      */
-    PorkBuf setChar(long index, char val);
+    public abstract PorkBuf setChar(long index, int val);
 
     /**
      * Sets a little-endian {@code char} at the given index.
@@ -164,7 +174,15 @@ public interface PorkBuf extends RefCounted {
      * @param index the index of the {@code char} to set
      * @param val   the value to set
      */
-    PorkBuf setCharLE(long index, char val);
+    public abstract PorkBuf setCharLE(long index, int val);
+
+    /**
+     * Sets a {@code char} at the given index using the native byte order.
+     *
+     * @param index the index of the {@code char} to set
+     * @param val   the value to set
+     */
+    public abstract PorkBuf setCharNE(long index, int val);
 
     /**
      * Sets a big-endian {@code int} at the given index.
@@ -172,7 +190,7 @@ public interface PorkBuf extends RefCounted {
      * @param index the index of the {@code int} to set
      * @param val   the value to set
      */
-    PorkBuf setInt(long index, int val);
+    public abstract PorkBuf setInt(long index, int val);
 
     /**
      * Sets a little-endian {@code int} at the given index.
@@ -180,7 +198,15 @@ public interface PorkBuf extends RefCounted {
      * @param index the index of the {@code int} to set
      * @param val   the value to set
      */
-    PorkBuf setIntLE(long index, int val);
+    public abstract PorkBuf setIntLE(long index, int val);
+
+    /**
+     * Sets a {@code int} at the given index using the native byte order.
+     *
+     * @param index the index of the {@code int} to set
+     * @param val   the value to set
+     */
+    public abstract PorkBuf setIntNE(long index, int val);
 
     /**
      * Sets a big-endian {@code long} at the given index.
@@ -188,7 +214,7 @@ public interface PorkBuf extends RefCounted {
      * @param index the index of the {@code long} to set
      * @param val   the value to set
      */
-    PorkBuf setLong(long index, long val);
+    public abstract PorkBuf setLong(long index, long val);
 
     /**
      * Sets a little-endian {@code long} at the given index.
@@ -196,7 +222,15 @@ public interface PorkBuf extends RefCounted {
      * @param index the index of the {@code long} to set
      * @param val   the value to set
      */
-    PorkBuf setLongLE(long index, long val);
+    public abstract PorkBuf setLongLE(long index, long val);
+
+    /**
+     * Sets a {@code long} at the given index using the native byte order.
+     *
+     * @param index the index of the {@code long} to set
+     * @param val   the value to set
+     */
+    public abstract PorkBuf setLongNE(long index, long val);
 
     /**
      * Sets a big-endian {@code float} at the given index.
@@ -204,7 +238,7 @@ public interface PorkBuf extends RefCounted {
      * @param index the index of the {@code float} to set
      * @param val   the value to set
      */
-    PorkBuf setFloat(long index, float val);
+    public abstract PorkBuf setFloat(long index, float val);
 
     /**
      * Sets a little-endian {@code float} at the given index.
@@ -212,7 +246,15 @@ public interface PorkBuf extends RefCounted {
      * @param index the index of the {@code float} to set
      * @param val   the value to set
      */
-    PorkBuf setFloatLE(long index, float val);
+    public abstract PorkBuf setFloatLE(long index, float val);
+
+    /**
+     * Sets a {@code float} at the given index using the native byte order.
+     *
+     * @param index the index of the {@code float} to set
+     * @param val   the value to set
+     */
+    public abstract PorkBuf setFloatNE(long index, float val);
 
     /**
      * Sets a big-endian {@code double} at the given index.
@@ -220,7 +262,7 @@ public interface PorkBuf extends RefCounted {
      * @param index the index of the {@code double} to set
      * @param val   the value to set
      */
-    PorkBuf setDouble(long index, double val);
+    public abstract PorkBuf setDouble(long index, double val);
 
     /**
      * Sets a little-endian {@code double} at the given index.
@@ -228,14 +270,22 @@ public interface PorkBuf extends RefCounted {
      * @param index the index of the {@code double} to set
      * @param val   the value to set
      */
-    PorkBuf setDoubleLE(long index, double val);
+    public abstract PorkBuf setDoubleLE(long index, double val);
+
+    /**
+     * Sets a {@code double} at the given index using the native byte order.
+     *
+     * @param index the index of the {@code double} to set
+     * @param val   the value to set
+     */
+    public abstract PorkBuf setDoubleNE(long index, double val);
 
     /**
      * Equivalent to {@code setBytes(index, arr, 0, arr.length);}
      *
      * @see #setBytes(long, byte[], int, int)
      */
-    default PorkBuf setBytes(long index, @NonNull byte[] arr) {
+    public final PorkBuf setBytes(long index, @NonNull byte[] arr) {
         return this.setBytes(index, arr, 0, arr.length);
     }
 
@@ -248,14 +298,14 @@ public interface PorkBuf extends RefCounted {
      * @param length the number of bytes to set
      * @throws IndexOutOfBoundsException if {@code start} and {@code length} are out of bounds of the given array, or {@code index} + {@code length} > {@link #capacity()}
      */
-    PorkBuf setBytes(long index, @NonNull byte[] arr, int start, int length) throws IndexOutOfBoundsException;
+    public abstract PorkBuf setBytes(long index, @NonNull byte[] arr, int start, int length) throws IndexOutOfBoundsException;
 
     /**
      * Equivalent to {@code setBytes(index, buf, buf.readableBytes());}
      *
      * @see #setBytes(long, PorkBuf, long)
      */
-    default PorkBuf setBytes(long index, @NonNull PorkBuf buf) throws IndexOutOfBoundsException {
+    public final PorkBuf setBytes(long index, @NonNull PorkBuf buf) throws IndexOutOfBoundsException {
         return this.setBytes(index, buf, buf.readableBytes());
     }
 
@@ -267,7 +317,7 @@ public interface PorkBuf extends RefCounted {
      * @param length the number of bytes to set
      * @throws IndexOutOfBoundsException if {@code length} is out of bounds of the given {@link PorkBuf}, or {@code index} + {@code length} > {@link #capacity()}
      */
-    PorkBuf setBytes(long index, @NonNull PorkBuf buf, long length) throws IndexOutOfBoundsException;
+    public abstract PorkBuf setBytes(long index, @NonNull PorkBuf buf, long length) throws IndexOutOfBoundsException;
 
     /**
      * Sets the bytes at the given index by getting them from the given {@link PorkBuf}.
@@ -278,14 +328,14 @@ public interface PorkBuf extends RefCounted {
      * @param length the number of bytes to set
      * @throws IndexOutOfBoundsException if {@code start} and {@code length} are out of bounds of the given {@link PorkBuf}, or {@code index} + {@code length} > {@link #capacity()}
      */
-    PorkBuf setBytes(long index, @NonNull PorkBuf buf, long start, long length) throws IndexOutOfBoundsException;
+    public abstract PorkBuf setBytes(long index, @NonNull PorkBuf buf, long start, long length) throws IndexOutOfBoundsException;
 
     /**
      * Equivalent to {@code setBytes(index, buf, buf.readableBytes());}
      *
      * @see #setBytes(long, ByteBuf, int)
      */
-    default PorkBuf setBytes(long index, @NonNull ByteBuf buf) throws IndexOutOfBoundsException {
+    public final PorkBuf setBytes(long index, @NonNull ByteBuf buf) throws IndexOutOfBoundsException {
         return this.setBytes(index, buf, buf.readableBytes());
     }
 
@@ -297,7 +347,7 @@ public interface PorkBuf extends RefCounted {
      * @param length the number of bytes to set
      * @throws IndexOutOfBoundsException if {@code length} is out of bounds of the given {@link ByteBuf}, or {@code index} + {@code length} > {@link #capacity()}
      */
-    PorkBuf setBytes(long index, @NonNull ByteBuf buf, int length) throws IndexOutOfBoundsException;
+    public abstract PorkBuf setBytes(long index, @NonNull ByteBuf buf, int length) throws IndexOutOfBoundsException;
 
     /**
      * Sets the bytes at the given index by getting them from the given {@link ByteBuf}.
@@ -308,14 +358,14 @@ public interface PorkBuf extends RefCounted {
      * @param length the number of bytes to set
      * @throws IndexOutOfBoundsException if {@code start} and {@code length} are out of bounds of the given {@link ByteBuf}, or {@code index} + {@code length} > {@link #capacity()}
      */
-    PorkBuf setBytes(long index, @NonNull ByteBuf buf, int start, int length) throws IndexOutOfBoundsException;
+    public abstract PorkBuf setBytes(long index, @NonNull ByteBuf buf, int start, int length) throws IndexOutOfBoundsException;
 
     /**
      * Equivalent to {@code setBytes(index, buf, buf.readableBytes());}
      *
      * @see #setBytes(long, ByteBuffer, int)
      */
-    default PorkBuf setBytes(long index, @NonNull ByteBuffer buf) throws IndexOutOfBoundsException {
+    public PorkBuf setBytes(long index, @NonNull ByteBuffer buf) throws IndexOutOfBoundsException {
         return this.setBytes(index, buf, buf.remaining());
     }
 
@@ -327,7 +377,7 @@ public interface PorkBuf extends RefCounted {
      * @param length the number of bytes to set
      * @throws IndexOutOfBoundsException if {@code length} is out of bounds of the given {@link ByteBuffer}, or {@code index} + {@code length} > {@link #capacity()}
      */
-    PorkBuf setBytes(long index, @NonNull ByteBuffer buf, int length) throws IndexOutOfBoundsException;
+    public abstract PorkBuf setBytes(long index, @NonNull ByteBuffer buf, int length) throws IndexOutOfBoundsException;
 
     /**
      * Sets the bytes at the given index by getting them from the given {@link ByteBuffer}.
@@ -338,7 +388,7 @@ public interface PorkBuf extends RefCounted {
      * @param length the number of bytes to set
      * @throws IndexOutOfBoundsException if {@code start} and {@code length} are out of bounds of the given {@link ByteBuffer}, or {@code index} + {@code length} > {@link #capacity()}
      */
-    PorkBuf setBytes(long index, @NonNull ByteBuffer buf, int start, int length) throws IndexOutOfBoundsException;
+    public abstract PorkBuf setBytes(long index, @NonNull ByteBuffer buf, int start, int length) throws IndexOutOfBoundsException;
 
     //
     //
@@ -349,7 +399,12 @@ public interface PorkBuf extends RefCounted {
     /**
      * @return whether or not this {@link PorkBuf} is read-only
      */
-    boolean readOnly();
+    public abstract boolean readOnly();
+
+    /**
+     * @return the base memory address of this {@link PorkBuf}'s internal buffer
+     */
+    public abstract long memoryAddress();
 
     //
     //
@@ -358,11 +413,11 @@ public interface PorkBuf extends RefCounted {
     //
 
     @Override
-    int refCnt();
+    public abstract int refCnt();
 
     @Override
-    PorkBuf retain() throws AlreadyReleasedException;
+    public abstract PorkBuf retain() throws AlreadyReleasedException;
 
     @Override
-    boolean release() throws AlreadyReleasedException;
+    public abstract boolean release() throws AlreadyReleasedException;
 }

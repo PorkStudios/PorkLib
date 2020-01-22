@@ -400,6 +400,262 @@ public abstract class PorkBuf implements RefCounted {
 
     //
     //
+    // Indexed read methods
+    //
+    //
+
+    /**
+     * Gets a {@code boolean} at the given index.
+     *
+     * @param index the index of the {@code boolean} to get
+     */
+    public abstract boolean getBoolean(long index);
+
+    /**
+     * Gets a {@code byte} at the given index.
+     *
+     * @param index the index of the {@code byte} to get
+     */
+    public abstract byte getByte(long index);
+
+    /**
+     * Gets a big-endian {@code short} at the given index.
+     *
+     * @param index the index of the {@code short} to get
+     */
+    public abstract short getShort(long index);
+
+    /**
+     * Gets a little-endian {@code short} at the given index.
+     *
+     * @param index the index of the {@code short} to get
+     */
+    public abstract short getShortLE(long index);
+
+    /**
+     * Gets a {@code short} at the given index using the native byte order.
+     *
+     * @param index the index of the {@code short} to get
+     */
+    public abstract short getShortN(long index);
+
+    /**
+     * Gets a big-endian {@code char} at the given index.
+     *
+     * @param index the index of the {@code char} to get
+     */
+    public abstract char getChar(long index);
+
+    /**
+     * Gets a little-endian {@code char} at the given index.
+     *
+     * @param index the index of the {@code char} to get
+     */
+    public abstract char getCharLE(long index);
+
+    /**
+     * Gets a {@code char} at the given index using the native byte order.
+     *
+     * @param index the index of the {@code char} to get
+     */
+    public abstract char getCharN(long index);
+
+    /**
+     * Gets a big-endian {@code int} at the given index.
+     *
+     * @param index the index of the {@code int} to get
+     */
+    public abstract int getInt(long index);
+
+    /**
+     * Gets a little-endian {@code int} at the given index.
+     *
+     * @param index the index of the {@code int} to get
+     */
+    public abstract int getIntLE(long index);
+
+    /**
+     * Gets a {@code int} at the given index using the native byte order.
+     *
+     * @param index the index of the {@code int} to get
+     */
+    public abstract int getIntN(long index);
+
+    /**
+     * Gets a big-endian {@code long} at the given index.
+     *
+     * @param index the index of the {@code long} to get
+     */
+    public abstract long getLong(long index);
+
+    /**
+     * Gets a little-endian {@code long} at the given index.
+     *
+     * @param index the index of the {@code long} to get
+     */
+    public abstract long getLongLE(long index);
+
+    /**
+     * Gets a {@code long} at the given index using the native byte order.
+     *
+     * @param index the index of the {@code long} to get
+     */
+    public abstract long getLongN(long index);
+
+    /**
+     * Gets a big-endian {@code float} at the given index.
+     *
+     * @param index the index of the {@code float} to get
+     */
+    public abstract float getFloat(long index);
+
+    /**
+     * Gets a little-endian {@code float} at the given index.
+     *
+     * @param index the index of the {@code float} to get
+     */
+    public abstract float getFloatLE(long index);
+
+    /**
+     * Gets a {@code float} at the given index using the native byte order.
+     *
+     * @param index the index of the {@code float} to get
+     */
+    public abstract float getFloatN(long index);
+
+    /**
+     * Gets a big-endian {@code double} at the given index.
+     *
+     * @param index the index of the {@code double} to get
+     */
+    public abstract double getDouble(long index);
+
+    /**
+     * Gets a little-endian {@code double} at the given index.
+     *
+     * @param index the index of the {@code double} to get
+     */
+    public abstract double getDoubleLE(long index);
+
+    /**
+     * Gets a {@code double} at the given index using the native byte order.
+     *
+     * @param index the index of the {@code double} to get
+     */
+    public abstract double getDoubleN(long index);
+
+    /**
+     * Equivalent to {@code setBytes(index, arr, 0, arr.length);}
+     *
+     * @see #setBytes(long, byte[], int, int)
+     */
+    public final PorkBuf getBytes(long index, @NonNull byte[] arr) {
+        return this.setBytes(index, arr, 0, arr.length);
+    }
+
+    /**
+     * Sets the bytes at the given index by getting them from the given array.
+     *
+     * @param index  the first index of the bytes to set
+     * @param arr    the {@code byte[]} containing the new bytes
+     * @param start  the first index in the array
+     * @param length the number of bytes to set
+     * @throws IndexOutOfBoundsException if {@code start} and {@code length} are out of bounds of the given array, or {@code index} + {@code length} > {@link #capacity()}
+     */
+    public abstract PorkBuf setBytes(long index, @NonNull byte[] arr, int start, int length) throws IndexOutOfBoundsException;
+
+    /**
+     * Equivalent to {@code setBytes(index, buf, buf.readableBytes());}
+     *
+     * @see #setBytes(long, PorkBuf, long)
+     */
+    public final PorkBuf setBytes(long index, @NonNull PorkBuf buf) throws IndexOutOfBoundsException {
+        return this.setBytes(index, buf, buf.readableBytes());
+    }
+
+    /**
+     * Sets the bytes at the given index by reading them from the given {@link PorkBuf}.
+     *
+     * @param index  the first index of the bytes to set
+     * @param buf    the {@link PorkBuf} containing the new bytes
+     * @param length the number of bytes to set
+     * @throws IndexOutOfBoundsException if {@code length} is out of bounds of the given {@link PorkBuf}, or {@code index} + {@code length} > {@link #capacity()}
+     */
+    public abstract PorkBuf setBytes(long index, @NonNull PorkBuf buf, long length) throws IndexOutOfBoundsException;
+
+    /**
+     * Sets the bytes at the given index by getting them from the given {@link PorkBuf}.
+     *
+     * @param index  the first index of the bytes to set
+     * @param buf    the {@link PorkBuf} containing the new bytes
+     * @param start  the first index in the {@link PorkBuf}
+     * @param length the number of bytes to set
+     * @throws IndexOutOfBoundsException if {@code start} and {@code length} are out of bounds of the given {@link PorkBuf}, or {@code index} + {@code length} > {@link #capacity()}
+     */
+    public abstract PorkBuf setBytes(long index, @NonNull PorkBuf buf, long start, long length) throws IndexOutOfBoundsException;
+
+    /**
+     * Equivalent to {@code setBytes(index, buf, buf.readableBytes());}
+     *
+     * @see #setBytes(long, ByteBuf, int)
+     */
+    public final PorkBuf setBytes(long index, @NonNull ByteBuf buf) throws IndexOutOfBoundsException {
+        return this.setBytes(index, buf, buf.readableBytes());
+    }
+
+    /**
+     * Sets the bytes at the given index by reading them from the given {@link ByteBuf}.
+     *
+     * @param index  the first index of the bytes to set
+     * @param buf    the {@link ByteBuf} containing the new bytes
+     * @param length the number of bytes to set
+     * @throws IndexOutOfBoundsException if {@code length} is out of bounds of the given {@link ByteBuf}, or {@code index} + {@code length} > {@link #capacity()}
+     */
+    public abstract PorkBuf setBytes(long index, @NonNull ByteBuf buf, int length) throws IndexOutOfBoundsException;
+
+    /**
+     * Sets the bytes at the given index by getting them from the given {@link ByteBuf}.
+     *
+     * @param index  the first index of the bytes to set
+     * @param buf    the {@link ByteBuf} containing the new bytes
+     * @param start  the first index in the {@link ByteBuf}
+     * @param length the number of bytes to set
+     * @throws IndexOutOfBoundsException if {@code start} and {@code length} are out of bounds of the given {@link ByteBuf}, or {@code index} + {@code length} > {@link #capacity()}
+     */
+    public abstract PorkBuf setBytes(long index, @NonNull ByteBuf buf, int start, int length) throws IndexOutOfBoundsException;
+
+    /**
+     * Equivalent to {@code setBytes(index, buf, buf.readableBytes());}
+     *
+     * @see #setBytes(long, ByteBuffer, int)
+     */
+    public PorkBuf setBytes(long index, @NonNull ByteBuffer buf) throws IndexOutOfBoundsException {
+        return this.setBytes(index, buf, buf.remaining());
+    }
+
+    /**
+     * Sets the bytes at the given index by reading them from the given {@link ByteBuffer}.
+     *
+     * @param index  the first index of the bytes to set
+     * @param buf    the {@link ByteBuffer} containing the new bytes
+     * @param length the number of bytes to set
+     * @throws IndexOutOfBoundsException if {@code length} is out of bounds of the given {@link ByteBuffer}, or {@code index} + {@code length} > {@link #capacity()}
+     */
+    public abstract PorkBuf setBytes(long index, @NonNull ByteBuffer buf, int length) throws IndexOutOfBoundsException;
+
+    /**
+     * Sets the bytes at the given index by getting them from the given {@link ByteBuffer}.
+     *
+     * @param index  the first index of the bytes to set
+     * @param buf    the {@link ByteBuffer} containing the new bytes
+     * @param start  the first index in the {@link ByteBuffer}
+     * @param length the number of bytes to set
+     * @throws IndexOutOfBoundsException if {@code start} and {@code length} are out of bounds of the given {@link ByteBuffer}, or {@code index} + {@code length} > {@link #capacity()}
+     */
+    public abstract PorkBuf setBytes(long index, @NonNull ByteBuffer buf, int start, int length) throws IndexOutOfBoundsException;
+
+    //
+    //
     // General methods
     //
     //

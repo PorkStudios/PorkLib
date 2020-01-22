@@ -57,6 +57,8 @@ public abstract class AbstractPorkBuf extends PorkBuf {
     private long capacity;
     @Setter(AccessLevel.PROTECTED) //TODO: use actual setter implementations here
     private long maxCapacity;
+    
+    private long memoryAddress;
 
     @Override
     public PorkBuf readerIndex(long readerIndex) throws IndexOutOfBoundsException {
@@ -147,98 +149,98 @@ public abstract class AbstractPorkBuf extends PorkBuf {
     @Override
     public PorkBuf setByte(long index, byte val) {
         validateBounds(index, 1L, this.capacity);
-        PUnsafe.putByte(this.memoryAddress() + index, val);
+        PUnsafe.putByte(this.memoryAddress + index, val);
         return this;
     }
 
     @Override
     public PorkBuf setByte(long index, int val) {
         validateBounds(index, 1L, this.capacity);
-        PUnsafe.putByte(this.memoryAddress() + index, (byte) val);
+        PUnsafe.putByte(this.memoryAddress + index, (byte) val);
         return this;
     }
 
     @Override
     public PorkBuf setShort(long index, short val) {
         validateBounds(index, 2L, this.capacity);
-        AlignedUnsafe.putShortBE(this.memoryAddress() + index, val);
+        AlignedUnsafe.putShortBE(this.memoryAddress + index, val);
         return this;
     }
 
     @Override
     public PorkBuf setShortLE(long index, short val) {
         validateBounds(index, 2L, this.capacity);
-        AlignedUnsafe.putShortLE(this.memoryAddress() + index, val);
+        AlignedUnsafe.putShortLE(this.memoryAddress + index, val);
         return this;
     }
 
     @Override
     public PorkBuf setShortN(long index, short val) {
         validateBounds(index, 2L, this.capacity);
-        AlignedUnsafe.putShortN(this.memoryAddress() + index, val);
+        AlignedUnsafe.putShortN(this.memoryAddress + index, val);
         return this;
     }
 
     @Override
     public PorkBuf setChar(long index, char val) {
         validateBounds(index, 2L, this.capacity);
-        AlignedUnsafe.putCharBE(this.memoryAddress() + index, val);
+        AlignedUnsafe.putCharBE(this.memoryAddress + index, val);
         return this;
     }
 
     @Override
     public PorkBuf setCharLE(long index, char val) {
         validateBounds(index, 2L, this.capacity);
-        AlignedUnsafe.putCharLE(this.memoryAddress() + index, val);
+        AlignedUnsafe.putCharLE(this.memoryAddress + index, val);
         return this;
     }
 
     @Override
     public PorkBuf setCharN(long index, char val) {
         validateBounds(index, 2L, this.capacity);
-        AlignedUnsafe.putCharN(this.memoryAddress() + index, val);
+        AlignedUnsafe.putCharN(this.memoryAddress + index, val);
         return this;
     }
 
     @Override
     public PorkBuf setInt(long index, int val) {
         validateBounds(index, 2L, this.capacity);
-        AlignedUnsafe.putIntBE(this.memoryAddress() + index, val);
+        AlignedUnsafe.putIntBE(this.memoryAddress + index, val);
         return this;
     }
 
     @Override
     public PorkBuf setIntLE(long index, int val) {
         validateBounds(index, 2L, this.capacity);
-        AlignedUnsafe.putIntLE(this.memoryAddress() + index, val);
+        AlignedUnsafe.putIntLE(this.memoryAddress + index, val);
         return this;
     }
 
     @Override
     public PorkBuf setIntN(long index, int val) {
         validateBounds(index, 2L, this.capacity);
-        AlignedUnsafe.putIntN(this.memoryAddress() + index, val);
+        AlignedUnsafe.putIntN(this.memoryAddress + index, val);
         return this;
     }
 
     @Override
     public PorkBuf setLong(long index, long val) {
         validateBounds(index, 2L, this.capacity);
-        AlignedUnsafe.putLongBE(this.memoryAddress() + index, val);
+        AlignedUnsafe.putLongBE(this.memoryAddress + index, val);
         return this;
     }
 
     @Override
     public PorkBuf setLongLE(long index, long val) {
         validateBounds(index, 2L, this.capacity);
-        AlignedUnsafe.putLongLE(this.memoryAddress() + index, val);
+        AlignedUnsafe.putLongLE(this.memoryAddress + index, val);
         return this;
     }
 
     @Override
     public PorkBuf setLongN(long index, long val) {
         validateBounds(index, 2L, this.capacity);
-        AlignedUnsafe.putLongN(this.memoryAddress() + index, val);
+        AlignedUnsafe.putLongN(this.memoryAddress + index, val);
         return this;
     }
 
@@ -276,7 +278,7 @@ public abstract class AbstractPorkBuf extends PorkBuf {
     public PorkBuf setBytes(long index, @NonNull byte[] arr, int start, int length) throws IndexOutOfBoundsException {
         PorkUtil.assertInRangeLen(arr.length, start, length);
         validateBounds(index, length, this.capacity);
-        PUnsafe.copyMemory(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET + start, null, this.memoryAddress() + index, length);
+        PUnsafe.copyMemory(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET + start, null, this.memoryAddress + index, length);
         return this;
     }
 
@@ -285,7 +287,7 @@ public abstract class AbstractPorkBuf extends PorkBuf {
         long readerIndex = buf.readerIndex();
         validateBounds(readerIndex, length, buf.capacity());
         validateBounds(index, length, this.capacity);
-        PUnsafe.copyMemory(buf.memoryAddress() + readerIndex, this.memoryAddress() + index, length);
+        PUnsafe.copyMemory(buf.memoryAddress() + readerIndex, this.memoryAddress + index, length);
         buf.readerIndex(readerIndex + length);
         return this;
     }
@@ -294,7 +296,7 @@ public abstract class AbstractPorkBuf extends PorkBuf {
     public PorkBuf setBytes(long index, @NonNull PorkBuf buf, long start, long length) throws IndexOutOfBoundsException {
         validateBounds(start, length, buf.capacity());
         validateBounds(index, length, this.capacity);
-        PUnsafe.copyMemory(buf.memoryAddress() + start, this.memoryAddress() + index, length);
+        PUnsafe.copyMemory(buf.memoryAddress() + start, this.memoryAddress + index, length);
         return this;
     }
 
@@ -304,9 +306,9 @@ public abstract class AbstractPorkBuf extends PorkBuf {
         validateBounds(readerIndex, length, buf.capacity());
         validateBounds(index, length, this.capacity);
         if (buf.hasArray()) {
-            PUnsafe.copyMemory(buf.array(), PUnsafe.ARRAY_BYTE_BASE_OFFSET + buf.arrayOffset() + readerIndex, null, this.memoryAddress() + index, length);
+            PUnsafe.copyMemory(buf.array(), PUnsafe.ARRAY_BYTE_BASE_OFFSET + buf.arrayOffset() + readerIndex, null, this.memoryAddress + index, length);
         } else if (buf.hasMemoryAddress()) {
-            PUnsafe.copyMemory(buf.memoryAddress() + readerIndex, this.memoryAddress() + index, length);
+            PUnsafe.copyMemory(buf.memoryAddress() + readerIndex, this.memoryAddress + index, length);
         } else {
             throw new IllegalArgumentException();
         }
@@ -319,9 +321,9 @@ public abstract class AbstractPorkBuf extends PorkBuf {
         validateBounds(start, length, buf.capacity());
         validateBounds(index, length, this.capacity);
         if (buf.hasArray()) {
-            PUnsafe.copyMemory(buf.array(), PUnsafe.ARRAY_BYTE_BASE_OFFSET + buf.arrayOffset() + buf.readerIndex(), null, this.memoryAddress() + index, length);
+            PUnsafe.copyMemory(buf.array(), PUnsafe.ARRAY_BYTE_BASE_OFFSET + buf.arrayOffset() + buf.readerIndex(), null, this.memoryAddress + index, length);
         } else if (buf.hasMemoryAddress()) {
-            PUnsafe.copyMemory(buf.memoryAddress() + buf.readerIndex(), this.memoryAddress() + index, length);
+            PUnsafe.copyMemory(buf.memoryAddress() + buf.readerIndex(), this.memoryAddress + index, length);
         } else {
             throw new IllegalArgumentException();
         }
@@ -334,9 +336,9 @@ public abstract class AbstractPorkBuf extends PorkBuf {
         validateBounds(position, length, buf.capacity());
         validateBounds(index, length, this.capacity);
         if (buf.hasArray())    {
-            PUnsafe.copyMemory(buf.array(), PUnsafe.ARRAY_BYTE_BASE_OFFSET + buf.arrayOffset() + position, null, this.memoryAddress() + index, length);
+            PUnsafe.copyMemory(buf.array(), PUnsafe.ARRAY_BYTE_BASE_OFFSET + buf.arrayOffset() + position, null, this.memoryAddress + index, length);
         } else {
-            PUnsafe.copyMemory(PorkUtil.unwrap(buf) + position, this.memoryAddress() + index, length);
+            PUnsafe.copyMemory(PorkUtil.unwrap(buf) + position, this.memoryAddress + index, length);
         }
         buf.position(position + length);
         return this;
@@ -347,9 +349,9 @@ public abstract class AbstractPorkBuf extends PorkBuf {
         validateBounds(start, length, buf.capacity());
         validateBounds(index, length, this.capacity);
         if (buf.hasArray())    {
-            PUnsafe.copyMemory(buf.array(), PUnsafe.ARRAY_BYTE_BASE_OFFSET + buf.arrayOffset() + buf.position(), null, this.memoryAddress() + index, length);
+            PUnsafe.copyMemory(buf.array(), PUnsafe.ARRAY_BYTE_BASE_OFFSET + buf.arrayOffset() + buf.position(), null, this.memoryAddress + index, length);
         } else {
-            PUnsafe.copyMemory(PorkUtil.unwrap(buf) + buf.position(), this.memoryAddress() + index, length);
+            PUnsafe.copyMemory(PorkUtil.unwrap(buf) + buf.position(), this.memoryAddress + index, length);
         }
         return this;
     }

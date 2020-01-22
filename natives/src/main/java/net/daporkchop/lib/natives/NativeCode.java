@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -21,6 +21,7 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.system.Architecture;
 import net.daporkchop.lib.common.system.OperatingSystem;
 import net.daporkchop.lib.common.system.PlatformInfo;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.File;
@@ -70,10 +71,26 @@ public final class NativeCode<T> implements Supplier<T> {
                 }
             }
         }
+
+        StackTraceElement[] elements = Thread.getAllStackTraces().get(Thread.currentThread());
+        Class<?> clazz;
+        if (elements == null)   {
+            //cannot get stack trace?
+            clazz = NativeCode.class;
+        } else {
+            //get class that called this method
+            int i = 0;
+            while ((clazz = PorkUtil.classForName(elements[i++].getClassName())) != NativeCode.class && i < elements.length);
+            if (clazz != NativeCode.class)   {
+                throw new IllegalStateException();
+            }
+            clazz = PorkUtil.classForName(elements[i].getClassName());
+        }
+
         try {
             File file = File.createTempFile(String.format("%s-%s-", name, LIB_ARCH), String.format(".%s", LIB_EXT));
             file.deleteOnExit();
-            try (InputStream is = NativeCode.class.getResourceAsStream(String.format("/%s/lib%s.%s", LIB_ARCH, name, LIB_EXT));
+            try (InputStream is = clazz.getResourceAsStream(String.format("/%s/lib%s.%s", LIB_ARCH, name, LIB_EXT));
                  OutputStream os = new FileOutputStream(file))   {
                 byte[] arr = new byte[PUnsafe.pageSize()];
                 for (int b; (b = is.read(arr)) >= 0; os.write(arr, 0, b));

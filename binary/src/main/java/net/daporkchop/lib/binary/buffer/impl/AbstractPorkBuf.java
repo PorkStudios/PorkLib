@@ -23,6 +23,8 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.buffer.PorkBuf;
 import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.unsafe.Endianess;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.nio.ByteBuffer;
 
@@ -33,7 +35,7 @@ import java.nio.ByteBuffer;
  */
 @Getter
 @Accessors(fluent = true)
-public abstract class AbstractPorkBuf implements PorkBuf {
+public abstract class AbstractPorkBuf extends PorkBuf {
     protected static void validateIndices(long readerIndex, long writerIndex, long capacity) throws IndexOutOfBoundsException {
         if (readerIndex < 0L || writerIndex < readerIndex || capacity < writerIndex) {
             throw new IndexOutOfBoundsException(String.format("readerIndex: %d, writerIndex: %d, capacity: %d", readerIndex, writerIndex, capacity));
@@ -80,8 +82,8 @@ public abstract class AbstractPorkBuf implements PorkBuf {
     public PorkBuf ensureCapacity(long count) throws IndexOutOfBoundsException {
         if (count < 0L) {
             throw new IllegalArgumentException(String.valueOf(count));
-        } else if (count > this.capacity)  {
-            if (count > this.maxCapacity)   {
+        } else if (count > this.capacity) {
+            if (count > this.maxCapacity) {
                 throw new IndexOutOfBoundsException(String.format("count: %d, maxCapacity: %d", count, this.maxCapacity));
             }
 
@@ -134,122 +136,151 @@ public abstract class AbstractPorkBuf implements PorkBuf {
     //
     //
 
+
     @Override
-    public PorkBuf setByte(long index, int val) {
+    public PorkBuf setBoolean(long index, boolean val) {
+        validateBounds(index, 1L, this.capacity);
+        this.setBoolean0(index, val);
+        return this;
+    }
+
+    protected abstract void setBoolean0(long index, boolean val);
+
+    @Override
+    public PorkBuf setByte(long index, byte val) {
         validateBounds(index, 1L, this.capacity);
         this.setByte0(index, val);
         return this;
     }
 
-    protected abstract void setByte0(long index, int val);
+    @Override
+    public PorkBuf setByte(long index, int val) {
+        validateBounds(index, 1L, this.capacity);
+        this.setByte0(index, (byte) val);
+        return this;
+    }
+
+    protected abstract void setByte0(long index, byte val);
 
     @Override
-    public PorkBuf setShort(long index, int val) {
+    public PorkBuf setShort(long index, short val) {
+        return this.setShortNE(index, Endianess.BIG_ENDIAN_NATIVE ? val : Short.reverseBytes(val));
+    }
+
+    @Override
+    public PorkBuf setShortLE(long index, short val) {
+        //TODO: something something unaligned access won't work, need to fix
+        return this.setShortNE(index, Endianess.LITTLE_ENDIAN_NATIVE ? val : Short.reverseBytes(val));
+    }
+
+    @Override
+    public PorkBuf setShortNE(long index, short val) {
         validateBounds(index, 2L, this.capacity);
         this.setShort0(index, val);
         return this;
     }
 
-    protected abstract void setShort0(long index, int val);
-
-    @Override
-    public PorkBuf setShortLE(long index, int val) {
-        validateBounds(index, 2L, this.capacity);
-        this.setShortLE0(index, val);
-        return this;
-    }
-
-    protected abstract void setShortLE0(long index, int val);
+    protected abstract void setShort0(long index, short val);
 
     @Override
     public PorkBuf setChar(long index, char val) {
-        validateBounds(index, 2L, this.capacity);
-        this.setChar0(index, val);
-        return this;
+        return null;
     }
-
-    protected abstract void setChar0(long index, char val);
 
     @Override
     public PorkBuf setCharLE(long index, char val) {
-        validateBounds(index, 2L, this.capacity);
-        this.setCharLE0(index, val);
-        return this;
+        return null;
     }
 
-    protected abstract void setCharLE0(long index, char val);
+    @Override
+    public PorkBuf setCharNE(long index, char val) {
+        return null;
+    }
+
+    @Override
+    public boolean readOnly() {
+        return false;
+    }
+
+    @Override
+    public long memoryAddress() {
+        return 0;
+    }
+
+    @Override
+    public int refCnt() {
+        return 0;
+    }
+
+    @Override
+    public PorkBuf retain() throws AlreadyReleasedException {
+        return null;
+    }
+
+    @Override
+    public boolean release() throws AlreadyReleasedException {
+        return false;
+    }
 
     @Override
     public PorkBuf setInt(long index, int val) {
-        validateBounds(index, 4L, this.capacity);
-        this.setInt0(index, val);
-        return this;
+        return null;
     }
-
-    protected abstract void setInt0(long index, int val);
 
     @Override
     public PorkBuf setIntLE(long index, int val) {
-        validateBounds(index, 4L, this.capacity);
-        this.setIntLE0(index, val);
-        return this;
+        return null;
     }
 
-    protected abstract void setIntLE0(long index, int val);
+    @Override
+    public PorkBuf setIntNE(long index, int val) {
+        return null;
+    }
 
     @Override
     public PorkBuf setLong(long index, long val) {
-        validateBounds(index, 8L, this.capacity);
-        this.setLong0(index, val);
-        return this;
+        return null;
     }
-
-    protected abstract void setLong0(long index, long val);
 
     @Override
     public PorkBuf setLongLE(long index, long val) {
-        validateBounds(index, 8L, this.capacity);
-        this.setLongLE0(index, val);
-        return this;
+        return null;
     }
 
-    protected abstract void setLongLE0(long index, long val);
+    @Override
+    public PorkBuf setLongNE(long index, long val) {
+        return null;
+    }
 
     @Override
     public PorkBuf setFloat(long index, float val) {
-        validateBounds(index, 4L, this.capacity);
-        this.setFloat0(index, val);
-        return this;
+        return null;
     }
-
-    protected abstract void setFloat0(long index, float val);
 
     @Override
     public PorkBuf setFloatLE(long index, float val) {
-        validateBounds(index, 4L, this.capacity);
-        this.setFloatLE0(index, val);
-        return this;
+        return null;
     }
 
-    protected abstract void setFloatLE0(long index, float val);
+    @Override
+    public PorkBuf setFloatNE(long index, float val) {
+        return null;
+    }
 
     @Override
     public PorkBuf setDouble(long index, double val) {
-        validateBounds(index, 8L, this.capacity);
-        this.setDouble0(index, val);
-        return this;
+        return null;
     }
-
-    protected abstract void setDouble0(long index, double val);
 
     @Override
     public PorkBuf setDoubleLE(long index, double val) {
-        validateBounds(index, 8L, this.capacity);
-        this.setDoubleLE0(index, val);
-        return this;
+        return null;
     }
 
-    protected abstract void setDoubleLE0(long index, double val);
+    @Override
+    public PorkBuf setDoubleNE(long index, double val) {
+        return null;
+    }
 
     @Override
     public PorkBuf setBytes(long index, @NonNull byte[] arr, int start, int length) throws IndexOutOfBoundsException {

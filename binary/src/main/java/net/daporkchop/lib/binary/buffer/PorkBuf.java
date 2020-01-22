@@ -134,6 +134,14 @@ public abstract class PorkBuf implements RefCounted {
      * @param index the index of the {@code byte} to set
      * @param val   the value to set
      */
+    public abstract PorkBuf setByte(long index, byte val);
+
+    /**
+     * Sets a {@code byte} at the given index.
+     *
+     * @param index the index of the {@code byte} to set
+     * @param val   the value to set
+     */
     public abstract PorkBuf setByte(long index, int val);
 
     /**
@@ -142,7 +150,7 @@ public abstract class PorkBuf implements RefCounted {
      * @param index the index of the {@code short} to set
      * @param val   the value to set
      */
-    public abstract PorkBuf setShort(long index, int val);
+    public abstract PorkBuf setShort(long index, short val);
 
     /**
      * Sets a little-endian {@code short} at the given index.
@@ -150,7 +158,7 @@ public abstract class PorkBuf implements RefCounted {
      * @param index the index of the {@code short} to set
      * @param val   the value to set
      */
-    public abstract PorkBuf setShortLE(long index, int val);
+    public abstract PorkBuf setShortLE(long index, short val);
 
     /**
      * Sets a {@code short} at the given index using the native byte order.
@@ -158,7 +166,7 @@ public abstract class PorkBuf implements RefCounted {
      * @param index the index of the {@code short} to set
      * @param val   the value to set
      */
-    public abstract PorkBuf setShortNE(long index, int val);
+    public abstract PorkBuf setShortNE(long index, short val);
 
     /**
      * Sets a big-endian {@code char} at the given index.
@@ -166,7 +174,7 @@ public abstract class PorkBuf implements RefCounted {
      * @param index the index of the {@code char} to set
      * @param val   the value to set
      */
-    public abstract PorkBuf setChar(long index, int val);
+    public abstract PorkBuf setChar(long index, char val);
 
     /**
      * Sets a little-endian {@code char} at the given index.
@@ -174,7 +182,7 @@ public abstract class PorkBuf implements RefCounted {
      * @param index the index of the {@code char} to set
      * @param val   the value to set
      */
-    public abstract PorkBuf setCharLE(long index, int val);
+    public abstract PorkBuf setCharLE(long index, char val);
 
     /**
      * Sets a {@code char} at the given index using the native byte order.
@@ -182,7 +190,7 @@ public abstract class PorkBuf implements RefCounted {
      * @param index the index of the {@code char} to set
      * @param val   the value to set
      */
-    public abstract PorkBuf setCharNE(long index, int val);
+    public abstract PorkBuf setCharNE(long index, char val);
 
     /**
      * Sets a big-endian {@code int} at the given index.

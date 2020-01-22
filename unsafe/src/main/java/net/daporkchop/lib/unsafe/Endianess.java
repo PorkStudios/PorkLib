@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.binary;
+package net.daporkchop.lib.unsafe;
 
 import java.nio.ByteOrder;
 
@@ -31,7 +31,14 @@ public enum Endianess {
      */
     public static final Endianess NATIVE = ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN ? BIG : LITTLE;
 
-    public static final boolean BIG_ENDIAN_NATIVE    = ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN;
+    /**
+     * Whether or not the native byte order is big-endian.
+     */
+    public static final boolean BIG_ENDIAN_NATIVE = ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN;
+
+    /**
+     * Whether or not the native byte order is little-endian.
+     */
     public static final boolean LITTLE_ENDIAN_NATIVE = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN;
 
     /**

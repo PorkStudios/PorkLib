@@ -20,7 +20,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.StatusCode;
-import net.daporkchop.lib.http.util.StatusCodes;
 
 /**
  * An {@link HttpException} containing a user-defined {@link StatusCode} (to avoid having to define implementations of {@link HttpException} for every HTTP
@@ -63,6 +62,6 @@ public final class GenericHttpException extends HttpException {
     @Override
     public String getMessage() {
         String message = super.getMessage();
-        return message == null ? String.format("%d %s", this.status.code(), this.status.msg()) : message;
+        return message == null ? String.format("%d %s", this.status.code(), this.status.name()) : message;
     }
 }

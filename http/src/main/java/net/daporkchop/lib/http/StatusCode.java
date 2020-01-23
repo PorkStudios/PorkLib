@@ -15,16 +15,12 @@
 
 package net.daporkchop.lib.http;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.util.Constants;
 import net.daporkchop.lib.http.util.StatusCodes;
-
-import java.nio.charset.StandardCharsets;
 
 /**
  * An abstract representation of an HTTP status code.
@@ -59,7 +55,7 @@ public interface StatusCode {
     /**
      * @return this status code's message (textual representation)
      */
-    CharSequence msg();
+    CharSequence name();
 
     /**
      * @return the status code's numeric ID
@@ -85,7 +81,7 @@ public interface StatusCode {
         private final int code;
 
         @Override
-        public CharSequence msg() {
+        public CharSequence name() {
             return "UNKNOWN";
         }
 
@@ -106,7 +102,7 @@ public interface StatusCode {
     }
 
     /**
-     * An unknown HTTP status code with a message.
+     * An unknown HTTP status code with a name.
      *
      * @author DaPorkchop_
      */
@@ -115,13 +111,8 @@ public interface StatusCode {
     @Accessors(fluent = true)
     final class UnknownNamed implements StatusCode {
         @NonNull
-        private final CharSequence msg;
+        private final CharSequence name;
         private final int          code;
-
-        @Override
-        public CharSequence msg() {
-            return "UNKNOWN";
-        }
 
         @Override
         public int hashCode() {
@@ -135,7 +126,7 @@ public interface StatusCode {
 
         @Override
         public String toString() {
-            return String.format("StatusCode(%d %s)", this.code, this.msg);
+            return String.format("StatusCode(%d %s)", this.code, this.name);
         }
     }
 }

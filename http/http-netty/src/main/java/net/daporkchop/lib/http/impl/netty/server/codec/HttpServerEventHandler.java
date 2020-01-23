@@ -41,7 +41,6 @@ import net.daporkchop.lib.http.message.Message;
 import net.daporkchop.lib.http.request.query.Query;
 import net.daporkchop.lib.http.request.query.UnsetQuery;
 import net.daporkchop.lib.http.util.StatusCodes;
-import net.daporkchop.lib.http.util.exception.GenericHttpException;
 
 import java.util.Formatter;
 
@@ -94,7 +93,7 @@ public final class HttpServerEventHandler extends ChannelDuplexHandler {
         StatusCode status = response.status();
         if (status == null) {
             server.logger().error("Response to %s has no status code!", ctx.channel().remoteAddress());
-            throw StatusCodes.Internal_Server_Error.exception();
+            throw StatusCodes.INTERNAL_SERVER_ERROR.exception();
         }
 
         HttpEntity body = response.body();
@@ -106,17 +105,17 @@ public final class HttpServerEventHandler extends ChannelDuplexHandler {
             if (transferEncoding == StandardTransferEncoding.identity) {
                 if (contentLength < 0L) {
                     server.logger().debug("Using \"transfer-encoding: identity\" for response with unknown content length!");
-                    throw StatusCodes.Internal_Server_Error.exception();
+                    throw StatusCodes.INTERNAL_SERVER_ERROR.exception();
                 }
                 headers.put("content-length", String.valueOf(contentLength));
             } else if (false && transferEncoding == StandardTransferEncoding.chunked) {
                 if (contentLength >= 0L) {
                     server.logger().debug("Using \"transfer-encoding: chunked\" for response with known content length!");
-                    throw StatusCodes.Internal_Server_Error.exception();
+                    throw StatusCodes.INTERNAL_SERVER_ERROR.exception();
                 }
             } else {
                 server.logger().debug("Using unsupported \"transfer-encoding: %s\" for response with content length %d!", transferEncoding.name(), contentLength);
-                throw StatusCodes.Internal_Server_Error.exception();
+                throw StatusCodes.INTERNAL_SERVER_ERROR.exception();
             }
 
             if (transferEncoding != StandardTransferEncoding.identity) {
@@ -139,7 +138,7 @@ public final class HttpServerEventHandler extends ChannelDuplexHandler {
             Object[] args = new Object[2];
 
             args[0] = status.code();
-            args[1] = status.msg();
+            args[1] = status.name();
             fmt.format("HTTP/1.1 %1$d %2$s\r\n", args);
 
             //server.logger().debug("Response headers:");

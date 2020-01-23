@@ -35,36 +35,6 @@ public class HttpServerExample {
     public static void main(String... args) throws HttpException {
         logger.enableANSI().setLogAmount(LogAmount.DEBUG);
 
-        if (false)   {
-            String[] arr = {
-                    "/",
-                    "/lol/",
-                    "/lol",
-                    "/lol?jeff",
-                    "/lol/?jeff&lol&ok",
-                    "/lol/?jeff=ok",
-                    "/lol/?jeff&nyef=jef",
-                    "/lol?jeff=ok&nyef=jef&lol&my=name",
-                    "/lol/?jeff=ok&nyef=j%20%20%c2a7",
-                    "/lol/?jeff=ok&nyef=jef&lol&my=name",
-                    "/lol/#section",
-                    "/lol/?jeff=ok&nyef=jef&lol&my=name#section",
-                    "/lol?jeff#section",
-                    "/lol/?jeff#section",
-                    "/lol?jeff=ok#section",
-                    "/lol/?jeff=ok#section",
-                    "/lol?jeff&nyef#section",
-                    "/lol/?jeff&nyef#section",
-                    "/lol?jeff=ok&nyef#section",
-                    "/lol/?jeff=ok&nyef#section",
-                    "/Avatar%20%5b2009%5d.mp4"
-            };
-            for (String line : arr) {
-                System.out.println(NettyHttpUtil.parseQuery(HttpMethod.GET, line));
-            }
-            return;
-        }
-
         HttpServer server = new NettyHttpServer();
 
         server.handler(new ExampleServerHandler());

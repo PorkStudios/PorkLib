@@ -37,7 +37,7 @@ import net.daporkchop.lib.minecraft.text.component.MCTextRoot;
 @NoArgsConstructor
 @Getter
 @ToString
-public class MinecraftFormatParser implements FormatParser {
+public final class MinecraftFormatParser implements FormatParser {
     /**
      * @return a default instance of {@link MinecraftFormatParser} which can parse both legacy and json-formatted text and automatically choose the best
      */

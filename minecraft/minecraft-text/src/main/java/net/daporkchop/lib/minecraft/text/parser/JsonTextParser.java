@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -19,9 +19,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.common.function.PFunctions;
 import net.daporkchop.lib.common.misc.InstancePool;
 import net.daporkchop.lib.logging.console.TextFormat;
 import net.daporkchop.lib.logging.format.TextStyle;
@@ -31,28 +31,23 @@ import net.daporkchop.lib.minecraft.text.MCTextType;
 import net.daporkchop.lib.minecraft.text.component.MCTextRoot;
 
 import java.awt.Color;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author DaPorkchop_
  * @see net.daporkchop.lib.minecraft.text.MCTextType#JSON
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public abstract class JsonTextParser {
-    protected static final JsonParser PARSER = InstancePool.getInstance(JsonParser.class);
-    protected static final Map<String, Color> COLOR_LOOKUP = new HashMap<>();
+@UtilityClass
+public class JsonTextParser {
+    protected final JsonParser                PARSER       = InstancePool.getInstance(JsonParser.class);
+    protected final Map<String, MCTextFormat> COLOR_LOOKUP = Arrays.stream(MCTextFormat.COLOR_CODES).collect(Collectors.toMap(
+            format -> format.name().toLowerCase(),
+            PFunctions.identity()
+    ));
 
-    static {
-        for (MCTextFormat format : MCTextFormat.COLOR_CODES) {
-            Color color = new Color(format.getColor());
-            COLOR_LOOKUP.put(format.name().toUpperCase().intern(), color);
-            COLOR_LOOKUP.put(format.name().toLowerCase().intern(), color);
-            COLOR_LOOKUP.put(String.valueOf(format.getCode()).intern(), color);
-        }
-    }
-
-    public static MCTextRoot parse(@NonNull String raw) {
+    public MCTextRoot parse(@NonNull String raw) {
         try {
             return parse(PARSER.parse(raw), raw);
         } catch (JsonSyntaxException e) {
@@ -60,13 +55,13 @@ public abstract class JsonTextParser {
         }
     }
 
-    public static MCTextRoot parse(@NonNull JsonElement json, @NonNull String original) {
+    public MCTextRoot parse(@NonNull JsonElement json, @NonNull String original) {
         MCTextRoot root = new MCTextRoot(MCTextType.JSON, original);
         doParseJson(root, new TextFormat(), json);
         return root;
     }
 
-    protected static void doParseJson(@NonNull MCTextRoot root, @NonNull TextFormat format, @NonNull JsonElement element) {
+    protected void doParseJson(@NonNull MCTextRoot root, @NonNull TextFormat format, @NonNull JsonElement element) {
         String text = null;
         if (element.isJsonPrimitive()) {
             text = element.getAsString();
@@ -81,7 +76,7 @@ public abstract class JsonTextParser {
             checkStyle(object, format, TextStyle.ITALIC, "italic");
             checkStyle(object, format, TextStyle.UNDERLINE, "underline");
             checkStyle(object, format, TextStyle.STRIKETHROUGH, "strikethrough");
-            format.setTextColor(COLOR_LOOKUP.get(getString(object, "color")));
+            format.setTextColor(getColor(getString(object, "color")));
             JsonElement textElement;
             if (object.has("text") && (textElement = object.get("text")).isJsonPrimitive()) {
                 text = textElement.getAsString();
@@ -100,7 +95,7 @@ public abstract class JsonTextParser {
         }
     }
 
-    protected static void checkStyle(@NonNull JsonObject object, @NonNull TextFormat format, int mask, @NonNull String name) {
+    protected void checkStyle(@NonNull JsonObject object, @NonNull TextFormat format, int mask, @NonNull String name) {
         JsonElement element;
         if (object.has(name) && (element = object.get(name)).isJsonPrimitive() && "true".equals(element.getAsString())) {
             format.setStyle(format.getStyle() | mask);
@@ -109,8 +104,24 @@ public abstract class JsonTextParser {
         }
     }
 
-    protected static String getString(@NonNull JsonObject object, @NonNull String name) {
+    protected String getString(@NonNull JsonObject object, @NonNull String name) {
         JsonElement element;
         return object.has(name) && (element = object.get(name)).isJsonPrimitive() ? element.getAsString() : null;
+    }
+
+    protected Color getColor(String name) {
+        if (name != null) {
+            MCTextFormat format;
+            if ((name.length() != 1 || (format = MCTextFormat.lookup(name.charAt(0))) == null)
+                    && (format = COLOR_LOOKUP.get(name)) == null
+                    && (format = COLOR_LOOKUP.get(name.toLowerCase())) == null) {
+                throw new IllegalArgumentException("Unknown color name: \"" + name + '"');
+            } else if (!format.hasColor())  {
+                throw new IllegalArgumentException("Not a color code: \"" + name + '"');
+            }
+            return format.awtColor();
+        } else {
+            return null;
+        }
     }
 }

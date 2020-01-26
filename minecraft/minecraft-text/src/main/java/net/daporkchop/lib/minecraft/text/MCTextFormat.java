@@ -20,9 +20,12 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.cache.Cache;
 import net.daporkchop.lib.common.cache.ThreadCache;
+import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
 
 import java.awt.Color;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -65,14 +68,32 @@ public enum MCTextFormat {
     public static final  Pattern        CLEAN_PATTERN       = Pattern.compile("§[0-9a-fk-or]", Pattern.CASE_INSENSITIVE);
     private static final Cache<Matcher> CLEAN_MATCHER_CACHE = ThreadCache.soft(() -> CLEAN_PATTERN.matcher(""));
 
-    public static final MCTextFormat[] VALUES      = values();
-    public static final MCTextFormat[] COLOR_CODES = Arrays.copyOfRange(VALUES, 0, WHITE.ordinal() + 1);
-    private static final MCTextFormat[] CODE_LOOKUP = new MCTextFormat['r' + 1];
+    public static final MCTextFormat[] VALUES = values();
+    public static final MCTextFormat[] COLORS = Arrays.copyOfRange(VALUES, 0, WHITE.ordinal() + 1);
+
+    private static final MCTextFormat[] CODE_LOOKUP       = new MCTextFormat['r' + 1];
+    private static final MCTextFormat[] CODE_COLOR_LOOKUP = new MCTextFormat['r' + 1];
+
+    private static final Map<String, MCTextFormat> NAME_LOOKUP       = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    private static final Map<String, MCTextFormat> NAME_COLOR_LOOKUP = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
     static {
         for (MCTextFormat format : VALUES) {
             CODE_LOOKUP[Character.toLowerCase(format.code)] = format;
             CODE_LOOKUP[Character.toUpperCase(format.code)] = format;
+
+            NAME_LOOKUP.put(format.name(), format);
+
+            if (format.hasColor()) {
+                if (!format.hasBgColor()) {
+                    throw new IllegalStateException(format.name());
+                }
+
+                CODE_COLOR_LOOKUP[Character.toLowerCase(format.code)] = format;
+                CODE_COLOR_LOOKUP[Character.toUpperCase(format.code)] = format;
+
+                NAME_COLOR_LOOKUP.put(format.name(), format);
+            }
         }
     }
 
@@ -110,7 +131,7 @@ public enum MCTextFormat {
         MCTextFormat closest = null;
         int closestDist = 1 << 30;
 
-        for (MCTextFormat format : COLOR_CODES) {
+        for (MCTextFormat format : COLORS) {
             if (color == format.awtColor) {
                 //if the colors match at an identity level, blindly accept it
                 return format;
@@ -138,6 +159,44 @@ public enum MCTextFormat {
      */
     public static MCTextFormat lookup(char code) {
         return code <= 'r' ? CODE_LOOKUP[code] : null;
+    }
+
+    /**
+     * Finds the {@link MCTextFormat} with the given color (not formatting!) code.
+     *
+     * @param code the color code to search for
+     * @return the {@link MCTextFormat} with the given color code, or {@code null} if none could be found
+     */
+    public static MCTextFormat lookupColor(char code) {
+        return code <= 'r' ? CODE_COLOR_LOOKUP[code] : null;
+    }
+
+    /**
+     * Finds the {@link MCTextFormat} with the given name.
+     *
+     * @param name the name of the formatting code to search for
+     * @return the {@link MCTextFormat} with the given name, or {@code null} if none could be found
+     */
+    public static MCTextFormat lookup(@NonNull String name) {
+        MCTextFormat format;
+        if (name.length() == 1 && (format = lookup(name.charAt(0))) != null)    {
+            return format;
+        }
+        return NAME_LOOKUP.get(name);
+    }
+
+    /**
+     * Finds the {@link MCTextFormat} with the given name.
+     *
+     * @param name the name of the color code to search for
+     * @return the {@link MCTextFormat} with the given name, or {@code null} if none could be found
+     */
+    public static MCTextFormat lookupColor(@NonNull String name) {
+        MCTextFormat format;
+        if (name.length() == 1 && (format = lookupColor(name.charAt(0))) != null)    {
+            return format;
+        }
+        return NAME_COLOR_LOOKUP.get(name);
     }
 
     /**
@@ -185,6 +244,8 @@ public enum MCTextFormat {
         this.color = (this.awtColor = color) != null ? (color.getRGB() | 0xFF000000) : 0;
         this.bgColor = (this.awtBgColor = bgColor) != null ? (color.getRGB() | 0xFF000000) : 0;
         this.code = code;
+
+        PUnsafeStrings.setEnumName(this, this.name().toLowerCase());
     }
 
     MCTextFormat(char code, int color, int bgColor) {

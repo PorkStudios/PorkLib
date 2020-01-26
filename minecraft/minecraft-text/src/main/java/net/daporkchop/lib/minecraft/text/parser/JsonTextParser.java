@@ -42,10 +42,8 @@ import java.util.stream.Collectors;
 @UtilityClass
 public class JsonTextParser {
     protected final JsonParser                PARSER       = InstancePool.getInstance(JsonParser.class);
-    protected final Map<String, MCTextFormat> COLOR_LOOKUP = Arrays.stream(MCTextFormat.COLOR_CODES).collect(Collectors.toMap(
-            format -> format.name().toLowerCase(),
-            PFunctions.identity()
-    ));
+    protected final Map<String, MCTextFormat> COLOR_LOOKUP = Arrays.stream(MCTextFormat.COLORS)
+            .collect(Collectors.toMap(MCTextFormat::name, PFunctions.identity()));
 
     public MCTextRoot parse(@NonNull String raw) {
         try {
@@ -83,7 +81,7 @@ public class JsonTextParser {
             }
         }
         if (text != null && !text.isEmpty()) {
-            root.getChildren().add(new TextComponentString(format, text));
+            root.addChild(new TextComponentString(format, text));
         }
         if (element.isJsonObject()) {
             JsonElement extra;
@@ -110,18 +108,15 @@ public class JsonTextParser {
     }
 
     protected Color getColor(String name) {
-        if (name != null) {
-            MCTextFormat format;
-            if ((name.length() != 1 || (format = MCTextFormat.lookup(name.charAt(0))) == null)
-                    && (format = COLOR_LOOKUP.get(name)) == null
-                    && (format = COLOR_LOOKUP.get(name.toLowerCase())) == null) {
-                throw new IllegalArgumentException("Unknown color name: \"" + name + '"');
-            } else if (!format.hasColor())  {
-                throw new IllegalArgumentException("Not a color code: \"" + name + '"');
-            }
-            return format.awtColor();
-        } else {
+        if (name == null)   {
             return null;
         }
+        MCTextFormat format = MCTextFormat.lookupColor(name);
+        if (format == null) {
+            throw new IllegalArgumentException("Unknown color code: \"" + name + '"');
+        } else if (!format.hasColor())  {
+            throw new IllegalStateException();
+        }
+        return format.awtColor();
     }
 }

@@ -19,6 +19,8 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.logging.console.TextFormat;
 import net.daporkchop.lib.logging.format.TextStyle;
 import net.daporkchop.lib.logging.format.component.TextComponentString;
@@ -38,12 +40,27 @@ import java.io.StringReader;
 @UtilityClass
 public class LegacyTextParser {
     public MCTextRoot parse(@NonNull String raw) {
+        try {
+            return parse(new StringReader(raw), raw);
+        } catch (IOException e) {
+            //impossible
+            throw new IllegalStateException(e);
+        }
+    }
+
+    public MCTextRoot parse(@NonNull Reader reader) throws IOException {
+        return parse(reader, null);
+    }
+
+    protected MCTextRoot parse(@NonNull Reader reader, String raw) throws IOException {
         MCTextRoot root = new MCTextRoot(MCTextType.LEGACY, raw);
 
         TextFormat format = new TextFormat();
         boolean expectingCode = false;
-        try (Reader reader = new StringReader(raw)) {
-            StringBuffer buffer = new StringBuffer(); //TODO: pool these
+        try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get()) {
+            StringBuilder builder = handle.value();
+            builder.setLength(0);
+
             int nextChar;
             while ((nextChar = reader.read()) != -1)    {
                 if (expectingCode)  {
@@ -51,10 +68,9 @@ public class LegacyTextParser {
                     if (code == null)   {
                         throw new IllegalArgumentException(String.format("Invalid formatting code: %c", (char) nextChar));
                     }
-                    format.setTextColor(code.awtColor());
 
                     if (code.hasColor())    {
-                        format.setStyle(0);
+                        format.setTextColor(code.awtColor()).setStyle(0);
                     } else {
                         switch (code)   {
                             case BOLD:
@@ -76,23 +92,21 @@ public class LegacyTextParser {
                     }
                     expectingCode = false;
                 } else if (nextChar == '§') {
-                    createComponent(root, buffer, format);
+                    createComponent(root, builder, format);
                     expectingCode = true;
                 } else {
-                    buffer.append((char) nextChar);
+                    builder.append((char) nextChar);
                 }
             }
-            createComponent(root, buffer, format);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            createComponent(root, builder, format);
         }
         return root;
     }
 
-    protected void createComponent(@NonNull MCTextRoot root, @NonNull StringBuffer buffer, @NonNull TextFormat format)   {
-        if (buffer.length() > 0)    {
-            root.getChildren().add(new TextComponentString(format, buffer.toString()));
-            buffer.setLength(0);
+    protected void createComponent(@NonNull MCTextRoot root, @NonNull StringBuilder builder, @NonNull TextFormat format)   {
+        if (builder.length() > 0)    {
+            root.addChild(new TextComponentString(format, builder.toString()));
+            builder.setLength(0);
         }
     }
 }

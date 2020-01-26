@@ -13,6 +13,8 @@
  *
  */
 
+import net.daporkchop.lib.minecraft.text.MCTextEncoder;
+import net.daporkchop.lib.minecraft.text.MCTextType;
 import net.daporkchop.lib.minecraft.text.parser.MinecraftFormatParser;
 
 import static net.daporkchop.lib.logging.Logging.*;
@@ -21,17 +23,33 @@ import static net.daporkchop.lib.logging.Logging.*;
  * @author DaPorkchop_
  */
 public class FormattedPrintExample {
+    private static final String[] MESSAGES = {
+            "§9Hello §lWorld§c!",
+            "§9§lTeam §c§lPepsi §r§fNetwork",
+            "{    \"text\": \"foo\",    \"bold\": \"true\",    \"extra\": [    {        \"text\": \"bar\"    },    {        \"text\": \"baz\",        \"bold\": \"false\"    },    {        \"text\": \"qux\",        \"bold\": \"true\"    }]}",
+            "\n2b2t:",
+            "{\"text\":\"\",\"extra\":[{\"text\":\"2B \",\"italic\":true,\"bold\":true,\"color\":\"gray\"},{\"text\":\"A blackhole of destruction into\\n\",\"color\":\"gold\"},{\"text\":\"2T \",\"italic\":true,\"bold\":true,\"color\":\"gray\"},{\"text\":\"a singularity of power\",\"color\":\"gold\"}]}",
+            "\nMineplex:",
+            "{\"text\":\"\",\"extra\":[{\"text\":\" \"},{\"text\":\"---\",\"strikethrough\":true,\"color\":\"blue\"},{\"text\":\"[-\",\"strikethrough\":true,\"bold\":true,\"color\":\"dark_gray\"},{\"text\":\" \",\"color\":\"white\"},{\"text\":\"Mineplex \",\"bold\":true,\"color\":\"gold\"},{\"text\":\"Games \",\"bold\":true,\"color\":\"white\"},{\"text\":\"[\",\"color\":\"dark_gray\"},{\"text\":\"US\",\"color\":\"gray\"},{\"text\":\"] \",\"color\":\"dark_gray\"},{\"text\":\"-]\",\"strikethrough\":true,\"bold\":true,\"color\":\"dark_gray\"},{\"text\":\"---\",\"strikethrough\":true,\"color\":\"blue\"},{\"text\":\"\\n \",\"color\":\"white\"},{\"text\":\"CLANS SEASON 6\",\"bold\":true,\"color\":\"red\"}]}"
+    };
+
     public static void main(String... args) {
-        logger.setFormatParser(MinecraftFormatParser.getDefaultInstance()).enableANSI();
+        logger.enableANSI();
 
-        logger.info("§9Hello §lWorld§c!");
-        logger.info("§9§lTeam §c§lPepsi §r§fNetwork");
+        logger.info("Displaying legacy text:");
+        for (String message : MESSAGES) {
+            logger.info(MCTextEncoder.encode(MCTextType.LEGACY, MinecraftFormatParser.getDefaultInstance().parse(message)));
+        }
 
-        //various text messages to test the json text thingy
-        logger.info("{    \"text\": \"foo\",    \"bold\": \"true\",    \"extra\": [    {        \"text\": \"bar\"    },    {        \"text\": \"baz\",        \"bold\": \"false\"    },    {        \"text\": \"qux\",        \"bold\": \"true\"    }]}");
-        logger.info("\n2b2t:");
-        logger.info("{\"text\":\"\",\"extra\":[{\"text\":\"2B \",\"italic\":true,\"bold\":true,\"color\":\"gray\"},{\"text\":\"A blackhole of destruction into\\n\",\"color\":\"gold\"},{\"text\":\"2T \",\"italic\":true,\"bold\":true,\"color\":\"gray\"},{\"text\":\"a singularity of power\",\"color\":\"gold\"}]}");
-        logger.info("\nMineplex:");
-        logger.info("{\"text\":\"\",\"extra\":[{\"text\":\" \"},{\"text\":\"---\",\"strikethrough\":true,\"color\":\"blue\"},{\"text\":\"[-\",\"strikethrough\":true,\"bold\":true,\"color\":\"dark_gray\"},{\"text\":\" \",\"color\":\"white\"},{\"text\":\"Mineplex \",\"bold\":true,\"color\":\"gold\"},{\"text\":\"Games \",\"bold\":true,\"color\":\"white\"},{\"text\":\"[\",\"color\":\"dark_gray\"},{\"text\":\"US\",\"color\":\"gray\"},{\"text\":\"] \",\"color\":\"dark_gray\"},{\"text\":\"-]\",\"strikethrough\":true,\"bold\":true,\"color\":\"dark_gray\"},{\"text\":\"---\",\"strikethrough\":true,\"color\":\"blue\"},{\"text\":\"\\n \",\"color\":\"white\"},{\"text\":\"CLANS SEASON 6\",\"bold\":true,\"color\":\"red\"}]}");
+        logger.setFormatParser(MinecraftFormatParser.getDefaultInstance())
+                .info("\nDisplaying legacy text as formatted messages:");
+        for (String message : MESSAGES) {
+            logger.info(MCTextEncoder.encode(MCTextType.LEGACY, MinecraftFormatParser.getDefaultInstance().parse(message)));
+        }
+
+        logger.info("\nDisplaying formatted messages:");
+        for (String message : MESSAGES) {
+            logger.info(message);
+        }
     }
 }

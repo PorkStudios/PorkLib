@@ -24,9 +24,7 @@ import lombok.NoArgsConstructor;
 import net.daporkchop.lib.binary.oio.appendable.ASCIIByteBufAppendable;
 import net.daporkchop.lib.binary.oio.appendable.PAppendable;
 import net.daporkchop.lib.binary.oio.appendable.UTF8ByteBufAppendable;
-import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.function.io.IOConsumer;
-import net.daporkchop.lib.common.misc.InstancePool;
 import net.daporkchop.lib.common.system.PlatformInfo;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.http.StatusCode;
@@ -38,11 +36,8 @@ import net.daporkchop.lib.logging.Logger;
 import net.daporkchop.lib.network.nettycommon.PorkNettyHelper;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.util.Formatter;
-import java.util.Objects;
 
 /**
  * @author DaPorkchop_
@@ -64,7 +59,7 @@ public final class HttpServerExceptionHandler extends ChannelInboundHandlerAdapt
             PAppendable out = new UTF8ByteBufAppendable(buf, "\n");
             Formatter fmt = new Formatter(out);
 
-            StatusCode status = StatusCodes.Internal_Server_Error;
+            StatusCode status = StatusCodes.INTERNAL_SERVER_ERROR;
             if (cause instanceof HttpException && ((HttpException) cause).status() != null) {
                 status = ((HttpException) cause).status();
             } else {
@@ -75,7 +70,7 @@ public final class HttpServerExceptionHandler extends ChannelInboundHandlerAdapt
 
             Object[] args = {
                     status.code(),
-                    status.msg(),
+                    status.name(),
                     status.errorMessage(),
                     -1,
                     PorkUtil.PORKLIB_VERSION,

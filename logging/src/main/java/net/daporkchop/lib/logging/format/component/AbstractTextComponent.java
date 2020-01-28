@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -18,10 +18,12 @@ package net.daporkchop.lib.logging.format.component;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -34,9 +36,24 @@ public abstract class AbstractTextComponent implements TextComponent {
     protected final Color backgroundColor;
     protected final int style;
 
-    protected final List<TextComponent> children = new ArrayList<>();
+    protected List<TextComponent> children = Collections.emptyList();
 
     public AbstractTextComponent()  {
         this(null, null, 0);
+    }
+
+    @Override
+    public List<TextComponent> getChildren()    {
+        List<TextComponent> children = this.children;
+        return children == Collections.<TextComponent>emptyList() ? children : Collections.unmodifiableList(this.children);
+    }
+
+    @Override
+    public synchronized void addChild(@NonNull TextComponent child) {
+        List<TextComponent> children = this.children;
+        if (children == Collections.<TextComponent>emptyList()) {
+            this.children = children = new ArrayList<>();
+        }
+        children.add(child);
     }
 }

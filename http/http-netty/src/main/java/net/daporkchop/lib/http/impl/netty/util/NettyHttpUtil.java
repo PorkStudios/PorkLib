@@ -58,7 +58,7 @@ public class NettyHttpUtil {
     public Query parseQuery(@NonNull HttpMethod method, @NonNull CharSequence query) throws HttpException {
         Matcher urlMatcher = _URL_PATTERN.matcher(query);
         if (!urlMatcher.find()) {
-            throw StatusCodes.Bad_Request.exception();
+            throw StatusCodes.BAD_REQUEST.exception();
         }
 
         if (false) {
@@ -86,7 +86,7 @@ public class NettyHttpUtil {
                     String key = URLEncoding.decode(fastGroup(paramsMatcher, "key"));
                     CharSequence rawValue = fastGroup(paramsMatcher, "value");
                     if (params.putIfAbsent(key, rawValue == null ? "" : URLEncoding.decode(rawValue)) != null) {
-                        throw new GenericHttpException(StatusCodes.Bad_Request, "Duplicate parameter: " + key);
+                        throw new GenericHttpException(StatusCodes.BAD_REQUEST, "Duplicate parameter: " + key);
                     }
                 } while (paramsMatcher.find());
             }

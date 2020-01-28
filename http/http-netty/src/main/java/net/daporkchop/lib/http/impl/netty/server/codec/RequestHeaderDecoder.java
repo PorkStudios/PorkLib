@@ -56,7 +56,7 @@ public final class RequestHeaderDecoder extends ChannelInboundHandlerAdapter {
         try {
             buf.writeBytes((ByteBuf) msg);
         } catch (IndexOutOfBoundsException e) {
-            throw StatusCodes.Bad_Request.exception();
+            throw StatusCodes.BAD_REQUEST.exception();
         } finally {
             ReferenceCountUtil.release(msg);
         }
@@ -66,7 +66,7 @@ public final class RequestHeaderDecoder extends ChannelInboundHandlerAdapter {
                 //carriage return
                 if (buf.readByte() != '\n') {
                     //if not a newline then something is broken
-                    throw StatusCodes.Bad_Request.exception();
+                    throw StatusCodes.BAD_REQUEST.exception();
                 }
 
                 if (this.query == null) {
@@ -78,7 +78,7 @@ public final class RequestHeaderDecoder extends ChannelInboundHandlerAdapter {
                     //second carriage return
                     if (buf.readByte() != '\n') {
                         //if not a newline then something is broken
-                        throw StatusCodes.Bad_Request.exception();
+                        throw StatusCodes.BAD_REQUEST.exception();
                     }
 
                     //double CRLF, we've reached the end of the request headers
@@ -90,7 +90,7 @@ public final class RequestHeaderDecoder extends ChannelInboundHandlerAdapter {
                     if (this.query.method().hasRequestBody()) {
                         String contentLengthText = this.headers.getValue("content-length");
                         if (contentLengthText == null)  {
-                            throw StatusCodes.Length_Required.exception();
+                            throw StatusCodes.LENGTH_REQUIRED.exception();
                         }
 
                         //retain buf so that it isn't released by handlerRemoved
@@ -118,11 +118,11 @@ public final class RequestHeaderDecoder extends ChannelInboundHandlerAdapter {
     private void parseQuery(ChannelHandlerContext ctx, DirectASCIISequence request) throws Exception {
         Matcher matcher = REQUEST_LINE_PATTERN.matcher(request);
         if (!matcher.find()) {
-            throw StatusCodes.Bad_Request.exception();
+            throw StatusCodes.BAD_REQUEST.exception();
         }
         HttpMethod method = HttpMethod.LOOKUP.get(matcher.group(1));
         if (method == null) {
-            throw StatusCodes.Method_Not_Allowed.exception();
+            throw StatusCodes.METHOD_NOT_ALLOWED.exception();
         }
         this.query = NettyHttpUtil.parseQuery(method, NettyHttpUtil.fastGroup(matcher, 2));
     }

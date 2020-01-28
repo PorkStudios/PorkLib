@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -21,24 +21,25 @@ import lombok.RequiredArgsConstructor;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
 @Getter
 public class TextComponentHolder implements TextComponent {
     @NonNull
-    protected final List<TextComponent> children;
+    protected List<TextComponent> children;
 
     public TextComponentHolder() {
-        this(new ArrayList<>());
+        this(Collections.emptyList());
     }
 
     public TextComponentHolder(@NonNull TextComponent... children) {
         this(new ArrayList<>());
+
         for (TextComponent child : children) {
             if (child == null) {
                 throw new NullPointerException();
@@ -47,9 +48,32 @@ public class TextComponentHolder implements TextComponent {
         }
     }
 
+    public TextComponentHolder(@NonNull List<TextComponent> children) {
+        this.children = children;
+
+        if (children.contains(null))   {
+            throw new NullPointerException();
+        }
+    }
+
     @Override
     public String getText() {
         return null;
+    }
+
+    @Override
+    public List<TextComponent> getChildren()    {
+        List<TextComponent> children = this.children;
+        return children == Collections.<TextComponent>emptyList() ? children : Collections.unmodifiableList(this.children);
+    }
+
+    @Override
+    public synchronized void addChild(@NonNull TextComponent child) {
+        List<TextComponent> children = this.children;
+        if (children == Collections.<TextComponent>emptyList()) {
+            this.children = children = new ArrayList<>();
+        }
+        children.add(child);
     }
 
     @Override

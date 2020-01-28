@@ -13,43 +13,42 @@
  *
  */
 
-package net.daporkchop.lib.http.server.handle;
+package net.daporkchop.lib.common.misc.string;
 
-import io.netty.buffer.ByteBuf;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.http.HttpMethod;
-import net.daporkchop.lib.http.header.map.HeaderMap;
-import net.daporkchop.lib.http.message.Message;
-import net.daporkchop.lib.http.request.query.Query;
-import net.daporkchop.lib.http.server.ResponseBuilder;
-import net.daporkchop.lib.http.util.StatusCodes;
-import net.daporkchop.lib.http.util.exception.GenericHttpException;
+import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.common.util.PArrays;
+import net.daporkchop.lib.common.util.PorkUtil;
+
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
- * An implementation of {@link ServerHandler} that simply replies with {@link StatusCodes#OK}.
- *
  * @author DaPorkchop_
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class NoopServerHandler implements ServerHandler {
-    public static final NoopServerHandler INSTANCE = new NoopServerHandler();
-
-    @Override
-    public int maxBodySize() {
-        throw new UnsupportedOperationException();
+@UtilityClass
+public class PStrings {
+    public StringGroup split(@NonNull String src, char delimiter) {
+        return split(PorkUtil.unwrap(src), delimiter);
     }
 
-    @Override
-    public void handleQuery(@NonNull Query query) throws Exception {
-        if (query.method() != HttpMethod.GET)   {
-            throw StatusCodes.METHOD_NOT_ALLOWED.exception();
+    public StringGroup split(@NonNull char[] src, char delimiter) {
+        final int length = src.length;
+        List<char[]> list = new LinkedList<>(); //probably better performance-wise (due to O(1) add time in all cases)? benchmarks needed
+
+        int off = 0;
+        int next;
+        while ((next = PArrays.indexOf(src, delimiter, off, length)) != -1) {
+            list.add(Arrays.copyOfRange(src, off, next));
+            off = next + 1;
         }
+        list.add(Arrays.copyOfRange(src, off, length));
+
+        return new StringGroup(list.toArray(new char[list.size()][]));
     }
 
-    @Override
-    public void handle(@NonNull Query query, @NonNull Message message, @NonNull ResponseBuilder response) throws Exception {
-        response.status(StatusCodes.OK);
+    public String clone(@NonNull String src)    {
+        return PorkUtil.wrap(PorkUtil.unwrap(src).clone());
     }
 }

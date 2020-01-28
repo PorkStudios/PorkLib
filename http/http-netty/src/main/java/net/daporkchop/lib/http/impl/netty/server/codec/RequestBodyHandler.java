@@ -47,7 +47,7 @@ public final class RequestBodyHandler extends ChannelInboundHandlerAdapter {
         try {
             ByteBuf tmp = (ByteBuf) msg;
             if (tmp.readableBytes() > buf.writableBytes())  {
-                throw StatusCodes.Payload_Too_Large.exception();
+                throw StatusCodes.PAYLOAD_TOO_LARGE.exception();
             }
             buf.writeBytes((ByteBuf) msg);
         } finally {

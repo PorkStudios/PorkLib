@@ -190,6 +190,18 @@ public class PorkUtil {
         return arr != null ? CharBuffer.wrap(arr, start, end - start) : seq.subSequence(start, end);
     }
 
+    /**
+     * Gets a value, falling back to another value if {@code null}
+     *
+     * @param value    the value to get
+     * @param fallback the fallback value to use
+     * @param <T>      the value type
+     * @return the value, or the fallback value if the value was {@code null}
+     */
+    public <T> T fallbackIfNull(T value, T fallback) {
+        return value != null ? value : fallback;
+    }
+
     public StackTraceElement[] getStackTrace(@NonNull Throwable t) {
         return GET_STACK_TRACE_WRAPPER.apply(t);
     }

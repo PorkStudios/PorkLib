@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -57,9 +57,16 @@ public interface TextComponent {
      * This method may never return {@code null}, and should return an empty list (e.g. via {@link Collections#emptyList()}) if it does not contain any
      * children.
      *
-     * @return all children of this text component
+     * @return an immutable list containing all children of this text component
      */
     List<TextComponent> getChildren();
+
+    /**
+     * Adds a new child element to this component.
+     *
+     * @param child the child to add
+     */
+    void addChild(@NonNull TextComponent child);
 
     /**
      * Gets this text component's color, if set. If no color is explicitly set (i.e. the default color should be used), this method returns {@code null}.
@@ -83,17 +90,6 @@ public interface TextComponent {
      * @see net.daporkchop.lib.logging.format.TextStyle
      */
     int getStyle();
-
-    default TextComponent insertToHeadOf(@NonNull TextComponent component) {
-        if (this.getText() == null) {
-            return component;
-        } else if (component.getText() == null) {
-            component.getChildren().add(0, this);
-            return component;
-        } else {
-            return new TextComponentHolder(this, component);
-        }
-    }
 
     default void internal_toRawStringRecursive(@NonNull StringBuilder builder) {
         {
@@ -125,7 +121,7 @@ public interface TextComponent {
         List<TextComponent> cache = new ArrayList<>();
         AtomicReference<TextComponent> ref = new AtomicReference<>(new TextComponentHolder());
         this.internal_addComponents(cache, ref, this, null);
-        if (!ref.get().getChildren().isEmpty())  {
+        if (!ref.get().getChildren().isEmpty()) {
             cache.add(ref.get());
         }
         return cache;
@@ -136,18 +132,18 @@ public interface TextComponent {
             String text = component.getText();
             if (text != null && !text.isEmpty()) {
                 if (text.indexOf('\n') == -1) {
-                    curr.get().getChildren().add(component);
+                    curr.get().addChild(component);
                 } else {
                     int newlineCount = 0;
-                    for (int i = text.length() - 1; i >= 0; i--)    {
+                    for (int i = text.length() - 1; i >= 0; i--) {
                         if (text.charAt(i) == '\n') {
                             newlineCount++;
                         }
                     }
                     String[] split = text.split("\n");
                     for (String line : split) {
-                        curr.get().getChildren().add(new TextComponentString(component.getColor(), component.getBackgroundColor(), component.getStyle(), line));
-                        if (newlineCount-- <= 0)    {
+                        curr.get().addChild(new TextComponentString(component.getColor(), component.getBackgroundColor(), component.getStyle(), line));
+                        if (newlineCount-- <= 0) {
                             continue;
                         }
                         cache.add(curr.getAndSet(new TextComponentHolder()));

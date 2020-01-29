@@ -22,19 +22,20 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
 import net.daporkchop.lib.gui.GuiEngine;
-import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.Element;
-import net.daporkchop.lib.gui.component.orientation.advanced.Axis;
 import net.daporkchop.lib.gui.component.state.WindowState;
 import net.daporkchop.lib.gui.component.type.Window;
+import net.daporkchop.lib.gui.swing.GuiEngineSwing;
 import net.daporkchop.lib.gui.swing.impl.SwingContainer;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 
+import javax.swing.SwingUtilities;
 import java.awt.*;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -66,6 +67,10 @@ public abstract class AbstractSwingWindow<Impl extends AbstractSwingWindow<Impl,
     public WindowState getState() {
         if (!this.built) {
             return WindowState.CONSTRUCTION;
+        } else if (this.closed) {
+            return WindowState.RELEASED;
+        } else if (this.closing) {
+            return WindowState.CLOSED;
         } else if (this.isVisible()) {
             if (this.minimized) {
                 return WindowState.VISIBLE_MINIMIZED;
@@ -74,10 +79,6 @@ public abstract class AbstractSwingWindow<Impl extends AbstractSwingWindow<Impl,
             } else {
                 return WindowState.VISIBLE_INACTIVE;
             }
-        } else if (this.closed) {
-            return WindowState.CLOSED;
-        } else if (this.closing) {
-            return WindowState.CLOSING;
         } else {
             return WindowState.HIDDEN;
         }
@@ -86,9 +87,13 @@ public abstract class AbstractSwingWindow<Impl extends AbstractSwingWindow<Impl,
     @Override
     @SuppressWarnings("unchecked")
     public Impl setIcon(@NonNull PIcon icon) {
-        if (icon != this.icon) {
-            this.icon = icon;
-            this.swing.setIconImage(icon.getAsBufferedImage());
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            if (icon != this.icon) {
+                this.icon = icon;
+                this.swing.setIconImage(icon.getAsBufferedImage());
+            }
+        } else {
+            SwingUtilities.invokeLater(() -> this.setIcon(icon));
         }
         return (Impl) this;
     }
@@ -114,23 +119,32 @@ public abstract class AbstractSwingWindow<Impl extends AbstractSwingWindow<Impl,
             }
         }
         this.icon = maxI;
-        this.swing.setIconImages(Stream.of(icons).map(PIcon::getAsBufferedImage).collect(Collectors.toList()));
+        List<Image> images = Stream.of(icons).map(PIcon::getAsBufferedImage).collect(Collectors.toList());
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            this.swing.setIconImages(images);
+        } else {
+            SwingUtilities.invokeLater(() -> this.swing.setIconImages(images));
+        }
         return (Impl) this;
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public Impl setBounds(@NonNull BoundingBox bounds) {
-        if (this.bounds == null || !this.bounds.equals(bounds)) {
-            this.bounds = bounds;
-            Insets insets = this.swing.getInsets();
-            this.swing.setBounds(
-                    bounds.getX(),
-                    bounds.getY(),
-                    bounds.getWidth() + insets.left + insets.right,
-                    bounds.getHeight() + insets.top + insets.bottom
-            );
-            this.update();
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            if (this.bounds == null || !this.bounds.equals(bounds)) {
+                this.bounds = bounds;
+                Insets insets = this.swing.getInsets();
+                this.swing.setBounds(
+                        bounds.getX(),
+                        bounds.getY(),
+                        bounds.getWidth() + insets.left + insets.right,
+                        bounds.getHeight() + insets.top + insets.bottom
+                );
+                this.update();
+            }
+        } else {
+            SwingUtilities.invokeLater(() -> this.setBounds(bounds));
         }
         return (Impl) this;
     }
@@ -138,14 +152,18 @@ public abstract class AbstractSwingWindow<Impl extends AbstractSwingWindow<Impl,
     @Override
     @SuppressWarnings("unchecked")
     public Impl update() {
-        if (this.bounds == null) {
-            this.bounds = new BoundingBox(0, 0, 128, 128);
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            if (this.bounds == null) {
+                this.bounds = new BoundingBox(0, 0, 128, 128);
+            }
+            if (this.oldDimensions == null || !this.oldDimensions.equals(this.bounds)) {
+                this.oldDimensions = this.bounds;
+            }
+            this.children.values().forEach(Element::update);
+            this.swing.revalidate();
+        } else {
+            SwingUtilities.invokeLater(this::update);
         }
-        if (this.oldDimensions == null || !this.oldDimensions.equals(this.bounds)) {
-            this.oldDimensions = this.bounds;
-        }
-        this.children.values().forEach(Element::update);
-        this.swing.revalidate();
         return (Impl) this;
     }
 
@@ -167,7 +185,11 @@ public abstract class AbstractSwingWindow<Impl extends AbstractSwingWindow<Impl,
 
     @Override
     public void release() {
-        this.swing.dispose();
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            this.swing.dispose();
+        } else {
+            SwingUtilities.invokeLater(this::release);
+        }
     }
 
     protected class SwingWindowListener implements WindowListener {
@@ -230,10 +252,12 @@ public abstract class AbstractSwingWindow<Impl extends AbstractSwingWindow<Impl,
 
         @Override
         public void componentShown(ComponentEvent e) {
+            AbstractSwingWindow.this.fireStateChange();
         }
 
         @Override
         public void componentHidden(ComponentEvent e) {
+            AbstractSwingWindow.this.fireStateChange();
         }
     }
 }

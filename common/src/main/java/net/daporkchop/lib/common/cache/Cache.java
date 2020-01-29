@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -24,26 +24,29 @@ import java.util.function.Supplier;
  *
  * @author DaPorkchop_
  */
-public interface Cache<T> {
+public interface Cache<T> extends Supplier<T> {
     /**
-     * Gets a simple cache that won't hold a reference to the object until requested
+     * Gets a simple {@link Cache} will compute the value using the given {@link Supplier} once first requested.
      *
-     * @param supplier the supplier for the object type
-     * @param <T>      the type
-     * @return a cache
+     * @param factory the {@link Supplier} for the value
+     * @param <T>     the value type
+     * @return a {@link Cache}
      */
-    static <T> Cache<T> of(@NonNull Supplier<T> supplier) {
-        return new Cache<T>() {
-            private T val;
+    static <T> Cache<T> late(@NonNull Supplier<T> factory) {
+        return new LateReferencedCache<>(factory);
+    }
 
-            @Override
-            public synchronized T get() {
-                if (this.val == null && (this.val = supplier.get()) == null) {
-                    throw new NullPointerException();
-                }
-                return this.val;
-            }
-        };
+    /**
+     * Gets a simple {@link Cache} will compute the value using the given {@link Supplier} once first requested, and store it in a soft reference,
+     * allowing it to be garbage-collected later on if the garbage-collector deems it necessary. If garbage-collected, it will be re-computed using the
+     * {@link Supplier} and cached again.
+     *
+     * @param factory the {@link Supplier} for the value
+     * @param <T>     the value type
+     * @return a {@link Cache}
+     */
+    static <T> Cache<T> soft(@NonNull Supplier<T> factory) {
+        return new SoftCache<>(factory);
     }
 
     /**

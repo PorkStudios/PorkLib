@@ -16,6 +16,7 @@
 package net.daporkchop.lib.unsafe;
 
 import lombok.NonNull;
+import lombok.experimental.UtilityClass;
 import sun.misc.Cleaner;
 import sun.misc.Unsafe;
 
@@ -30,7 +31,8 @@ import java.security.ProtectionDomain;
  *
  * @author DaPorkchop_
  */
-public abstract class PUnsafe {
+@UtilityClass
+public class PUnsafe {
     static {
         Unsafe unsafe = null;
         try {
@@ -55,108 +57,109 @@ public abstract class PUnsafe {
     /**
      * The value of {@code arrayBaseOffset(boolean[].class)}
      */
-    public static final int ARRAY_BOOLEAN_BASE_OFFSET = arrayBaseOffset(boolean[].class);
+    public static final int ARRAY_BOOLEAN_BASE_OFFSET = UNSAFE.arrayBaseOffset(boolean[].class);
 
     //some constants
     /**
      * The value of {@code arrayBaseOffset(byte[].class)}
      */
-    public static final int ARRAY_BYTE_BASE_OFFSET = arrayBaseOffset(byte[].class);
+    public static final int ARRAY_BYTE_BASE_OFFSET = UNSAFE.arrayBaseOffset(byte[].class);
 
     /**
      * The value of {@code arrayBaseOffset(short[].class)}
      */
-    public static final int ARRAY_SHORT_BASE_OFFSET = arrayBaseOffset(short[].class);
+    public static final int ARRAY_SHORT_BASE_OFFSET = UNSAFE.arrayBaseOffset(short[].class);
 
     /**
      * The value of {@code arrayBaseOffset(char[].class)}
      */
-    public static final int ARRAY_CHAR_BASE_OFFSET = arrayBaseOffset(char[].class);
+    public static final int ARRAY_CHAR_BASE_OFFSET = UNSAFE.arrayBaseOffset(char[].class);
 
     /**
      * The value of {@code arrayBaseOffset(int[].class)}
      */
-    public static final int ARRAY_INT_BASE_OFFSET = arrayBaseOffset(int[].class);
+    public static final int ARRAY_INT_BASE_OFFSET = UNSAFE.arrayBaseOffset(int[].class);
 
     /**
      * The value of {@code arrayBaseOffset(long[].class)}
      */
-    public static final int ARRAY_LONG_BASE_OFFSET = arrayBaseOffset(long[].class);
+    public static final int ARRAY_LONG_BASE_OFFSET = UNSAFE.arrayBaseOffset(long[].class);
 
     /**
      * The value of {@code arrayBaseOffset(float[].class)}
      */
-    public static final int ARRAY_FLOAT_BASE_OFFSET = arrayBaseOffset(float[].class);
+    public static final int ARRAY_FLOAT_BASE_OFFSET = UNSAFE.arrayBaseOffset(float[].class);
 
     /**
      * The value of {@code arrayBaseOffset(double[].class)}
      */
-    public static final int ARRAY_DOUBLE_BASE_OFFSET = arrayBaseOffset(double[].class);
+    public static final int ARRAY_DOUBLE_BASE_OFFSET = UNSAFE.arrayBaseOffset(double[].class);
 
     /**
      * The value of {@code arrayBaseOffset(Object[].class)}
      */
-    public static final int ARRAY_OBJECT_BASE_OFFSET = arrayBaseOffset(Object[].class);
+    public static final int ARRAY_OBJECT_BASE_OFFSET = UNSAFE.arrayBaseOffset(Object[].class);
 
     /**
      * The value of {@code arrayIndexScale(boolean[].class)}
      */
-    public static final int ARRAY_BOOLEAN_INDEX_SCALE = arrayIndexScale(boolean[].class);
+    public static final int ARRAY_BOOLEAN_INDEX_SCALE = UNSAFE.arrayIndexScale(boolean[].class);
 
     /**
      * The value of {@code arrayIndexScale(byte[].class)}
      */
-    public static final int ARRAY_BYTE_INDEX_SCALE = arrayIndexScale(byte[].class);
+    public static final int ARRAY_BYTE_INDEX_SCALE = UNSAFE.arrayIndexScale(byte[].class);
 
     /**
      * The value of {@code arrayIndexScale(short[].class)}
      */
-    public static final int ARRAY_SHORT_INDEX_SCALE = arrayIndexScale(short[].class);
+    public static final int ARRAY_SHORT_INDEX_SCALE = UNSAFE.arrayIndexScale(short[].class);
 
     /**
      * The value of {@code arrayIndexScale(char[].class)}
      */
-    public static final int ARRAY_CHAR_INDEX_SCALE = arrayIndexScale(char[].class);
+    public static final int ARRAY_CHAR_INDEX_SCALE = UNSAFE.arrayIndexScale(char[].class);
 
     /**
      * The value of {@code arrayIndexScale(int[].class)}
      */
-    public static final int ARRAY_INT_INDEX_SCALE = arrayIndexScale(int[].class);
+    public static final int ARRAY_INT_INDEX_SCALE = UNSAFE.arrayIndexScale(int[].class);
 
     /**
      * The value of {@code arrayIndexScale(long[].class)}
      */
-    public static final int ARRAY_LONG_INDEX_SCALE = arrayIndexScale(long[].class);
+    public static final int ARRAY_LONG_INDEX_SCALE = UNSAFE.arrayIndexScale(long[].class);
 
     /**
      * The value of {@code arrayIndexScale(float[].class)}
      */
-    public static final int ARRAY_FLOAT_INDEX_SCALE = arrayIndexScale(float[].class);
+    public static final int ARRAY_FLOAT_INDEX_SCALE = UNSAFE.arrayIndexScale(float[].class);
 
     /**
      * The value of {@code arrayIndexScale(double[].class)}
      */
-    public static final int ARRAY_DOUBLE_INDEX_SCALE = arrayIndexScale(double[].class);
+    public static final int ARRAY_DOUBLE_INDEX_SCALE = UNSAFE.arrayIndexScale(double[].class);
 
     /**
      * The value of {@code arrayIndexScale(Object[].class)}
      */
-    public static final int ARRAY_OBJECT_INDEX_SCALE = arrayIndexScale(Object[].class);
+    public static final int ARRAY_OBJECT_INDEX_SCALE = UNSAFE.arrayIndexScale(Object[].class);
 
-    public static final ThreadLocal<Object[]> objArrCache = ThreadLocal.withInitial(() -> new Object[1]);
+    /**
+     * The value of {@link Unsafe#addressSize()}.
+     */
+    public static final int ADDRESS_SIZE = UNSAFE.addressSize();
+
+    /**
+     * The value of {@link Unsafe#pageSize()}.
+     */
+    public static final int PAGE_SIZE = UNSAFE.pageSize();
 
     //methods
-    public static int getInt(Object o, long pos) {
-        return UNSAFE.getInt(o, pos);
-    }
-
-    public static void putInt(Object o, long pos, int val) {
-        UNSAFE.putInt(o, pos, val);
-    }
-
-    @SuppressWarnings("unchecked")
     public static <T> T getObject(Object o, long pos) {
-        return (T) UNSAFE.getObject(o, pos);
+        @SuppressWarnings("unchecked")
+        T value = (T) UNSAFE.getObject(o, pos);
+        return value;
     }
 
     public static void putObject(Object o, long pos, Object val) {
@@ -193,6 +196,14 @@ public abstract class PUnsafe {
 
     public static void putChar(Object o, long pos, char val) {
         UNSAFE.putChar(o, pos, val);
+    }
+
+    public static int getInt(Object o, long pos) {
+        return UNSAFE.getInt(o, pos);
+    }
+
+    public static void putInt(Object o, long pos, int val) {
+        UNSAFE.putInt(o, pos, val);
     }
 
     public static long getLong(Object o, long pos) {
@@ -552,6 +563,15 @@ public abstract class PUnsafe {
         }
     }
 
+    public static UnsafeStaticField pork_getStaticField(@NonNull Class clazz, @NonNull String fieldName) {
+        try {
+            return new UnsafeStaticField(clazz, fieldName);
+        } catch (NoSuchFieldException e) {
+            UNSAFE.throwException(e);
+            throw new RuntimeException(e);
+        }
+    }
+
     @SuppressWarnings("unchecked")
     public static <V> V pork_swapObject(Object o, long pos, Object newValue) {
         Object v;
@@ -580,9 +600,5 @@ public abstract class PUnsafe {
             }
         } while (!UNSAFE.compareAndSwapObject(o, pos, v, newValue));
         return (V) v;
-    }
-
-    private PUnsafe() {
-        throw new IllegalStateException();
     }
 }

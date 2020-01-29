@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -15,9 +15,12 @@
 
 package net.daporkchop.lib.http.entity.transfer;
 
+import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
+import net.daporkchop.lib.http.entity.transfer.encoding.StandardTransferEncoding;
+import net.daporkchop.lib.http.entity.transfer.encoding.TransferEncoding;
 
-import java.io.OutputStream;
+import java.nio.channels.WritableByteChannel;
 
 /**
  * Handles the actual process of transferring the HTTP entity's data to a single remote peer.
@@ -27,25 +30,100 @@ import java.io.OutputStream;
  *
  * @author DaPorkchop_
  */
-//TODO: add some other transfer methods here so as to make chunked transfer something useful
 //implementing this later on netty won't be too useful if TransferSession is hogging all the worker threads
-public interface TransferSession extends AutoCloseable {
+public interface TransferSession {
     /**
-     * Transfers the entire HTTP entity to the given {@link OutputStream} in a blocking fashion, simply waiting until all bytes are written.
+     * @return the starting position of the transfer
+     * @throws Exception if an exception occurs
+     */
+    long position() throws Exception;
+
+    /**
+     * Gets the size (in bytes) of this entity's data.
+     * <p>
+     * If, for whatever reason, the data's size is not known in advance, this method should return {@code -1L}. By default, this will result in the
+     * data being sent using the "chunked" Transfer-Encoding rather than simply setting "Content-Length".
      *
-     * @param out the {@link OutputStream} to write data to
+     * @return the size (in bytes) of this entity's data, or {@code -1L} if it is not known
+     * @throws Exception if an exception occurs
+     */
+    long length() throws Exception;
+
+    /**
+     * @return the {@link TransferEncoding} that will be used for transferring data to the remote endpoint
+     * @throws Exception if an exception occurs
+     */
+    default TransferEncoding transferEncoding() throws Exception {
+        return this.length() < 0L ? StandardTransferEncoding.chunked : StandardTransferEncoding.identity;
+    }
+
+    /**
+     * Transfers a number of bytes to the given {@link WritableByteChannel}.
+     *
+     * @param position the position to start the transfer at
+     * @param out      the {@link WritableByteChannel} to write data to
+     * @return the number of bytes transferred
+     * @throws Exception if an exception occurs while transferring the data
+     */
+    long transfer(long position, @NonNull WritableByteChannel out) throws Exception;
+
+    /**
+     * Transfers the entire HTTP entity to the given {@link WritableByteChannel} in a blocking fashion, simply waiting until all bytes are written.
+     *
+     * @param position the position to start the transfer at
+     * @param out      the {@link WritableByteChannel} to write data to
      * @return the total number of bytes transferred
      * @throws Exception if an exception occurs while transferring the data
      */
-    long transferAllBlocking(@NonNull OutputStream out) throws Exception;
+    long transferAllBlocking(long position, @NonNull WritableByteChannel out) throws Exception;
 
     /**
-     * Closes this {@link TransferSession} instance.
-     * <p>
-     * This will only be called once per instance to release any resources allocated by this instance (such as memory, file handles, etc.).
-     *
-     * @throws Exception if an exception occurs while closing this {@link TransferSession} instance
+     * @return whether or not this {@link TransferSession}'s data is available as a {@link ByteBuf}
      */
-    @Override
-    void close() throws Exception;
+    default boolean hasByteBuf() {
+        return false;
+    }
+
+    /**
+     * Gets the contents of this {@link TransferSession} as a {@link ByteBuf}.
+     * <p>
+     * The returned {@link ByteBuf}'s reader/writer indices may be modified by the HTTP engine, it's recommended to return a slice if this is a problem.
+     *
+     * @return the contents of this {@link TransferSession} as a {@link ByteBuf}
+     * @throws UnsupportedOperationException if this {@link TransferSession} does not support accessing it's data as a {@link ByteBuf} ({@link #hasByteBuf()} is {@code false})
+     * @throws Exception                     if an exception occurs
+     */
+    default ByteBuf getByteBuf() throws Exception {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * @return checks whether or not this {@link TransferSession} is reusable
+     */
+    default boolean reusable() {
+        return false;
+    }
+
+    /**
+     * Retains this {@link TransferSession} by incrementing its reference count.
+     * <p>
+     * If this {@link TransferSession} is not reusable, this method will do nothing.
+     */
+    default void retain() {
+        //no-op
+    }
+
+    /**
+     * Releases this {@link TransferSession} by decrementing its reference count.
+     * <p>
+     * If the reference count reaches 0, it will be released.
+     * <p>
+     * If this {@link TransferSession} is not reusable, this method will do nothing.
+     * <p>
+     * Even if this results in this {@link TransferSession} being released, any {@link ByteBuf}s returned by {@link #getByteBuf()} (if available) must remain
+     * valid until they themselves are released.
+     */
+    default boolean release() {
+        return false;
+    }
 }

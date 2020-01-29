@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -23,12 +23,20 @@ import net.daporkchop.lib.logging.format.TextStyle;
 import java.awt.Color;
 import java.io.File;
 
+import static net.daporkchop.lib.logging.Logging.*;
+
 /**
  * @author DaPorkchop_
  */
-public class LogExample implements Logging {
+public class LogExample {
     public static void main(String... args) {
         logger.enableANSI().addFile(new File("./test_out/log_example.log"), LogAmount.DEBUG);
+
+        System.out.println("stdout before logger override");
+        System.err.println("stderr before logger override");
+        logger.redirectStdOut();
+        System.out.println("stdout after logger override");
+        System.err.println("stderr after logger override");
 
         logger.info("Hello %2$s!", 89365, "world");
         logger.alert("ALERT!\nYOUR COMPUTER HAVE VIRUS!");

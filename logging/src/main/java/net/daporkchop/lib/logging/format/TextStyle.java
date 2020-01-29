@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -15,44 +15,47 @@
 
 package net.daporkchop.lib.logging.format;
 
+import lombok.experimental.UtilityClass;
+
 /**
  * Flags indicating additional formatting to apply to text
  * 
  * @author DaPorkchop_
  */
-public interface TextStyle {
-    int BOLD = 1 << 0;
-    int ITALIC = 1 << 1;
-    int UNDERLINE = 1 << 2;
-    int STRIKETHROUGH = 1 << 3;
-    int OVERLINE = 1 << 4;
-    int BLINKING = 1 << 5;
+@UtilityClass
+public class TextStyle {
+    public int BOLD = 1 << 0;
+    public int ITALIC = 1 << 1;
+    public int UNDERLINE = 1 << 2;
+    public int STRIKETHROUGH = 1 << 3;
+    public int OVERLINE = 1 << 4;
+    public int BLINKING = 1 << 5;
     
-    static boolean isDefault(int flag)  {
+    public boolean isDefault(int flag)  {
         return flag == 0;
     }
 
-    static boolean isBold(int flag) {
+    public boolean isBold(int flag) {
         return (flag & BOLD) != 0;
     }
 
-    static boolean isItalic(int flag) {
+    public boolean isItalic(int flag) {
         return (flag & ITALIC) != 0;
     }
 
-    static boolean isUnderline(int flag) {
+    public boolean isUnderline(int flag) {
         return (flag & UNDERLINE) != 0;
     }
 
-    static boolean isStrikethrough(int flag) {
+    public boolean isStrikethrough(int flag) {
         return (flag & STRIKETHROUGH) != 0;
     }
 
-    static boolean isOverline(int flag) {
+    public boolean isOverline(int flag) {
         return (flag & OVERLINE) != 0;
     }
 
-    static boolean isBlinking(int flag) {
+    public boolean isBlinking(int flag) {
         return (flag & BLINKING) != 0;
     }
 }

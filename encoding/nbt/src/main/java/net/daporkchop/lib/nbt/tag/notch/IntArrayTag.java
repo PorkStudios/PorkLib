@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -18,23 +18,27 @@ package net.daporkchop.lib.nbt.tag.notch;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.nbt.NBTInputStream;
+import net.daporkchop.lib.nbt.NBTOutputStream;
+import net.daporkchop.lib.nbt.alloc.NBTArrayHandle;
 import net.daporkchop.lib.nbt.tag.Tag;
 import net.daporkchop.lib.nbt.tag.TagRegistry;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
 
 /**
- * A tag that contains a single int[]
+ * A tag that contains a single {@code int[]}.
  *
  * @author DaPorkchop_
  */
 @Getter
-@Setter
+@Accessors(fluent = true)
 public class IntArrayTag extends Tag {
-    @NonNull
-    private int[] value;
+    protected int[] value;
+
+    protected NBTArrayHandle<int[]> handle;
 
     public IntArrayTag(String name) {
         super(name);
@@ -46,24 +50,50 @@ public class IntArrayTag extends Tag {
     }
 
     @Override
-    public void read(DataIn in, TagRegistry registry) throws IOException {
-        int len = in.readInt();
-        this.value = new int[len];
-        for (int i = 0; i < len; i++) {
-            this.value[i] = in.readInt();
+    public synchronized void read(NBTInputStream in, TagRegistry registry) throws IOException {
+        final int length = in.readInt();
+        this.value(in.alloc().intArray(length));
+        final int[] value = this.value;
+        for (int i = 0; i < length; i++) {
+            value[i] = in.readInt();
         }
     }
 
     @Override
-    public void write(DataOut out, TagRegistry registry) throws IOException {
-        out.writeInt(this.value.length);
-        for (int i = 0; i < this.value.length; i++) {
-            out.writeInt(this.value[i]);
+    public void write(NBTOutputStream out, TagRegistry registry) throws IOException {
+        final int[] value = this.value;
+        final int length = value.length;
+        out.writeInt(length);
+        for (int i = 0; i < length; i++) {
+            out.writeInt(value[i]);
+        }
+    }
+
+    @Override
+    public synchronized void release() throws AlreadyReleasedException {
+        if (this.value != null) {
+            if (this.handle != null) {
+                this.handle.release();
+                this.handle = null;
+            }
+            this.value = null;
+        } else {
+            throw new AlreadyReleasedException();
         }
     }
 
     @Override
     public String toString() {
         return String.format("IntArrayTag(\"%s\"): %d ints", this.getName(), this.value.length);
+    }
+
+    public synchronized void value(@NonNull int[] value)    {
+        this.value = value;
+        this.handle = null;
+    }
+
+    public synchronized void value(@NonNull NBTArrayHandle<int[]> handle)   {
+        this.value = handle.value();
+        this.handle = handle;
     }
 }

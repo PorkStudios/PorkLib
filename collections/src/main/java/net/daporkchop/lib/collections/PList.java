@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -15,7 +15,6 @@
 
 package net.daporkchop.lib.collections;
 
-import lombok.NonNull;
 import net.daporkchop.lib.collections.stream.PStream;
 import net.daporkchop.lib.collections.stream.impl.list.ConcurrentListStream;
 import net.daporkchop.lib.collections.stream.impl.list.UncheckedListStream;
@@ -37,7 +36,7 @@ public interface PList<V> extends PCollection<V> {
      *              for the new element.
      * @param value the value to add
      */
-    void add(long pos, @NonNull V value);
+    void add(long pos, V value);
 
     /**
      * Sets a value at a specific position in this list.
@@ -45,7 +44,7 @@ public interface PList<V> extends PCollection<V> {
      * @param pos   the position of the element to set. The old value at this position will be replaced silently.
      * @param value the new value to set at the given position
      */
-    void set(long pos, @NonNull V value);
+    void set(long pos, V value);
 
     /**
      * Sets a value at a specific position in this list.
@@ -53,7 +52,7 @@ public interface PList<V> extends PCollection<V> {
      * @param pos   the position of the element to set. The old value at this position will be replaced silently.
      * @param value the new value to set at the given position
      */
-    V replace(long pos, @NonNull V value);
+    V replace(long pos, V value);
 
     /**
      * Gets a value at a specific position in this list.
@@ -84,10 +83,10 @@ public interface PList<V> extends PCollection<V> {
      * @param value the value whose position should be obtained
      * @return the value's position in the list, or {@code -1} if not present
      */
-    long indexOf(@NonNull V value);
+    long indexOf(V value);
 
     @Override
-    default boolean contains(@NonNull V value) {
+    default boolean contains(V value) {
         return this.indexOf(value) != -1L;
     }
 

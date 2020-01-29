@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -56,7 +56,7 @@ public interface Logger {
         throwable.printStackTrace(new PrintWriter(DataOut.slashDevSlashNull(), true) {
             @Override
             public void println(Object x) {
-                linePrinter.accept(String.valueOf(x));
+                linePrinter.accept(String.valueOf(x).replace("\t", "    "));
             }
         });
     }
@@ -121,6 +121,34 @@ public interface Logger {
     }
 
     /**
+     * Writes an exception stack trace with a plain message to the log using the {@link LogLevel#INFO} level.
+     *
+     * @param message an additional message that will be displayed
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger info(@NonNull String message, @NonNull Throwable throwable) {
+        StringJoiner joiner = new StringJoiner("\n");
+        joiner.add(message).add("");
+        getStackTrace(throwable, joiner::add);
+        return this.info(joiner.toString());
+    }
+
+    /**
+     * Writes an exception stack trace with a formatted message to the log using the {@link LogLevel#INFO} level.
+     * <p>
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param format an additional message that will be displayed
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger info(@NonNull String format, @NonNull Throwable throwable, @NonNull Object... args) {
+        StringJoiner joiner = new StringJoiner("\n");
+        joiner.add(String.format(format, args)).add("");
+        getStackTrace(throwable, joiner::add);
+        return this.info(joiner.toString());
+    }
+
+    /**
      * Writes a plain message to the log using the {@link LogLevel#SUCCESS} level.
      *
      * @param message the message to be written
@@ -148,6 +176,34 @@ public interface Logger {
      */
     default Logger success(@NonNull Throwable throwable) {
         StringJoiner joiner = new StringJoiner("\n");
+        getStackTrace(throwable, joiner::add);
+        return this.success(joiner.toString());
+    }
+
+    /**
+     * Writes an exception stack trace with a plain message to the log using the {@link LogLevel#SUCCESS} level.
+     *
+     * @param message an additional message that will be displayed
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger success(@NonNull String message, @NonNull Throwable throwable) {
+        StringJoiner joiner = new StringJoiner("\n");
+        joiner.add(message).add("");
+        getStackTrace(throwable, joiner::add);
+        return this.success(joiner.toString());
+    }
+
+    /**
+     * Writes an exception stack trace with a formatted message to the log using the {@link LogLevel#SUCCESS} level.
+     * <p>
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param format an additional message that will be displayed
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger success(@NonNull String format, @NonNull Throwable throwable, @NonNull Object... args) {
+        StringJoiner joiner = new StringJoiner("\n");
+        joiner.add(String.format(format, args)).add("");
         getStackTrace(throwable, joiner::add);
         return this.success(joiner.toString());
     }
@@ -185,6 +241,34 @@ public interface Logger {
     }
 
     /**
+     * Writes an exception stack trace with a plain message to the log using the {@link LogLevel#ERROR} level.
+     *
+     * @param message an additional message that will be displayed
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger error(@NonNull String message, @NonNull Throwable throwable) {
+        StringJoiner joiner = new StringJoiner("\n");
+        joiner.add(message).add("");
+        getStackTrace(throwable, joiner::add);
+        return this.error(joiner.toString());
+    }
+
+    /**
+     * Writes an exception stack trace with a formatted message to the log using the {@link LogLevel#ERROR} level.
+     * <p>
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param format an additional message that will be displayed
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger error(@NonNull String format, @NonNull Throwable throwable, @NonNull Object... args) {
+        StringJoiner joiner = new StringJoiner("\n");
+        joiner.add(String.format(format, args)).add("");
+        getStackTrace(throwable, joiner::add);
+        return this.error(joiner.toString());
+    }
+
+    /**
      * Writes a plain message to the log using the {@link LogLevel#FATAL} level.
      *
      * @param message the message to be written
@@ -212,6 +296,34 @@ public interface Logger {
      */
     default Logger fatal(@NonNull Throwable throwable) {
         StringJoiner joiner = new StringJoiner("\n");
+        getStackTrace(throwable, joiner::add);
+        return this.fatal(joiner.toString());
+    }
+
+    /**
+     * Writes an exception stack trace with a plain message to the log using the {@link LogLevel#FATAL} level.
+     *
+     * @param message an additional message that will be displayed
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger fatal(@NonNull String message, @NonNull Throwable throwable) {
+        StringJoiner joiner = new StringJoiner("\n");
+        joiner.add(message).add("");
+        getStackTrace(throwable, joiner::add);
+        return this.fatal(joiner.toString());
+    }
+
+    /**
+     * Writes an exception stack trace with a formatted message to the log using the {@link LogLevel#FATAL} level.
+     * <p>
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param format an additional message that will be displayed
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger fatal(@NonNull String format, @NonNull Throwable throwable, @NonNull Object... args) {
+        StringJoiner joiner = new StringJoiner("\n");
+        joiner.add(String.format(format, args)).add("");
         getStackTrace(throwable, joiner::add);
         return this.fatal(joiner.toString());
     }
@@ -249,6 +361,34 @@ public interface Logger {
     }
 
     /**
+     * Writes an exception stack trace with a plain message to the log using the {@link LogLevel#ALERT} level.
+     *
+     * @param message an additional message that will be displayed
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger alert(@NonNull String message, @NonNull Throwable throwable) {
+        StringJoiner joiner = new StringJoiner("\n");
+        joiner.add(message).add("");
+        getStackTrace(throwable, joiner::add);
+        return this.alert(joiner.toString());
+    }
+
+    /**
+     * Writes an exception stack trace with a formatted message to the log using the {@link LogLevel#ALERT} level.
+     * <p>
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param format an additional message that will be displayed
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger alert(@NonNull String format, @NonNull Throwable throwable, @NonNull Object... args) {
+        StringJoiner joiner = new StringJoiner("\n");
+        joiner.add(String.format(format, args)).add("");
+        getStackTrace(throwable, joiner::add);
+        return this.alert(joiner.toString());
+    }
+
+    /**
      * Writes a plain message to the log using the {@link LogLevel#WARN} level.
      *
      * @param message the message to be written
@@ -276,6 +416,34 @@ public interface Logger {
      */
     default Logger warn(@NonNull Throwable throwable) {
         StringJoiner joiner = new StringJoiner("\n");
+        getStackTrace(throwable, joiner::add);
+        return this.warn(joiner.toString());
+    }
+
+    /**
+     * Writes an exception stack trace with a plain message to the log using the {@link LogLevel#WARN} level.
+     *
+     * @param message an additional message that will be displayed
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger warn(@NonNull String message, @NonNull Throwable throwable) {
+        StringJoiner joiner = new StringJoiner("\n");
+        joiner.add(message).add("");
+        getStackTrace(throwable, joiner::add);
+        return this.warn(joiner.toString());
+    }
+
+    /**
+     * Writes an exception stack trace with a formatted message to the log using the {@link LogLevel#WARN} level.
+     * <p>
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param format an additional message that will be displayed
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger warn(@NonNull String format, @NonNull Throwable throwable, @NonNull Object... args) {
+        StringJoiner joiner = new StringJoiner("\n");
+        joiner.add(String.format(format, args)).add("");
         getStackTrace(throwable, joiner::add);
         return this.warn(joiner.toString());
     }
@@ -313,6 +481,34 @@ public interface Logger {
     }
 
     /**
+     * Writes an exception stack trace with a plain message to the log using the {@link LogLevel#TRACE} level.
+     *
+     * @param message an additional message that will be displayed
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger trace(@NonNull String message, @NonNull Throwable throwable) {
+        StringJoiner joiner = new StringJoiner("\n");
+        joiner.add(message).add("");
+        getStackTrace(throwable, joiner::add);
+        return this.trace(joiner.toString());
+    }
+
+    /**
+     * Writes an exception stack trace with a formatted message to the log using the {@link LogLevel#TRACE} level.
+     * <p>
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param format an additional message that will be displayed
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger trace(@NonNull String format, @NonNull Throwable throwable, @NonNull Object... args) {
+        StringJoiner joiner = new StringJoiner("\n");
+        joiner.add(String.format(format, args)).add("");
+        getStackTrace(throwable, joiner::add);
+        return this.trace(joiner.toString());
+    }
+
+    /**
      * Writes a plain message to the log using the {@link LogLevel#DEBUG} level.
      *
      * @param message the message to be written
@@ -340,6 +536,34 @@ public interface Logger {
      */
     default Logger debug(@NonNull Throwable throwable) {
         StringJoiner joiner = new StringJoiner("\n");
+        getStackTrace(throwable, joiner::add);
+        return this.debug(joiner.toString());
+    }
+
+    /**
+     * Writes an exception stack trace with a plain message to the log using the {@link LogLevel#DEBUG} level.
+     *
+     * @param message an additional message that will be displayed
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger debug(@NonNull String message, @NonNull Throwable throwable) {
+        StringJoiner joiner = new StringJoiner("\n");
+        joiner.add(message).add("");
+        getStackTrace(throwable, joiner::add);
+        return this.debug(joiner.toString());
+    }
+
+    /**
+     * Writes an exception stack trace with a formatted message to the log using the {@link LogLevel#DEBUG} level.
+     * <p>
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param format an additional message that will be displayed
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger debug(@NonNull String format, @NonNull Throwable throwable, @NonNull Object... args) {
+        StringJoiner joiner = new StringJoiner("\n");
+        joiner.add(String.format(format, args)).add("");
         getStackTrace(throwable, joiner::add);
         return this.debug(joiner.toString());
     }

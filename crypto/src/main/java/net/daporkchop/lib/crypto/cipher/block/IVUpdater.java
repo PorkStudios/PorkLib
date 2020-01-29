@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -16,7 +16,6 @@
 package net.daporkchop.lib.crypto.cipher.block;
 
 import lombok.NonNull;
-import net.daporkchop.lib.common.cache.SoftThreadCache;
 import net.daporkchop.lib.common.cache.ThreadCache;
 import net.daporkchop.lib.hash.util.Digest;
 
@@ -32,7 +31,7 @@ public interface IVUpdater extends Consumer<byte[]> {
     IVUpdater SHA3_256 = ofHash(Digest.SHA3_256);
 
     static IVUpdater ofHash(@NonNull Digest digest) {
-        ThreadCache<byte[]> cache = SoftThreadCache.of(() -> new byte[digest.getHashSize()]);
+        ThreadCache<byte[]> cache = ThreadCache.soft(() -> new byte[digest.getHashSize()]);
         return iv -> {
             byte[] buf = cache.get();
             for (int i = 0; i < iv.length; i += buf.length) {

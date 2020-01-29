@@ -18,8 +18,8 @@ package net.daporkchop.lib.nbt.tag.pork;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.nbt.NBTInputStream;
+import net.daporkchop.lib.nbt.NBTOutputStream;
 import net.daporkchop.lib.nbt.tag.Tag;
 import net.daporkchop.lib.nbt.tag.TagRegistry;
 
@@ -34,7 +34,7 @@ import java.io.IOException;
 @Setter
 public class DoubleArrayTag extends Tag {
     @NonNull
-    private double[] value;
+    protected double[] value;
 
     public DoubleArrayTag(String name) {
         super(name);
@@ -46,7 +46,7 @@ public class DoubleArrayTag extends Tag {
     }
 
     @Override
-    public void read(@NonNull DataIn in, @NonNull TagRegistry registry) throws IOException {
+    public void read(@NonNull NBTInputStream in, @NonNull TagRegistry registry) throws IOException {
         int len = in.readInt();
         this.value = new double[len];
         for (int i = 0; i < len; i++) {
@@ -55,7 +55,7 @@ public class DoubleArrayTag extends Tag {
     }
 
     @Override
-    public void write(@NonNull DataOut out, @NonNull TagRegistry registry) throws IOException {
+    public void write(@NonNull NBTOutputStream out, @NonNull TagRegistry registry) throws IOException {
         out.writeInt(this.value.length);
         for (int i = 0; i < this.value.length; i++) {
             out.writeDouble(this.value[i]);

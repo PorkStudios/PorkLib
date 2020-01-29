@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.common.cache;
 
+import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
@@ -22,12 +23,14 @@ import java.lang.ref.SoftReference;
 import java.util.function.Supplier;
 
 /**
+ * Implementation of {@link Cache} that uses a {@link SoftReference} to store its value.
+ *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-public class SoftCache<T> implements Cache<T> {
+@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
+public final class SoftCache<T> implements Cache<T> {
     @NonNull
-    protected final Supplier<T> supplier;
+    protected final Supplier<T> factory;
 
     protected SoftReference<T> ref;
 
@@ -35,7 +38,7 @@ public class SoftCache<T> implements Cache<T> {
     public synchronized T get() {
         T val;
         if (this.ref == null || (val = this.ref.get()) == null) {
-            this.ref = new SoftReference<>(val = this.supplier.get());
+            this.ref = new SoftReference<>(val = this.factory.get());
         }
         if (val == null) {
             throw new NullPointerException();

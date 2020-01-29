@@ -19,60 +19,63 @@ import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 /**
+ * Stores two values.
+ * <p>
+ * Really needs to get cleaned up...
+ *
  * @author DaPorkchop_
  */
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-@Accessors(chain = true)
 @ToString
 @EqualsAndHashCode
-public class Tuple<A, B> {
+@Accessors(chain = true)
+public final class Tuple<A, B> {
     protected static final long A_OFFSET = PUnsafe.pork_getOffset(Tuple.class, "a");
     protected static final long B_OFFSET = PUnsafe.pork_getOffset(Tuple.class, "b");
 
     protected A a;
     protected B b;
 
-    public boolean isANull()    {
+    public boolean isANull() {
         return this.a == null;
     }
 
-    public boolean isANonNull()    {
+    public boolean isANonNull() {
         return this.a != null;
     }
 
-    public boolean isBNull()    {
+    public boolean isBNull() {
         return this.b == null;
     }
 
-    public boolean isBNonNull()    {
+    public boolean isBNonNull() {
         return this.b != null;
     }
 
-    public Tuple<A, B> atomicSetA(A a)  {
+    public Tuple<A, B> atomicSetA(A a) {
         PUnsafe.putObjectVolatile(this, A_OFFSET, a);
         return this;
     }
 
-    public Tuple<A, B> atomicSetB(B b)  {
+    public Tuple<A, B> atomicSetB(B b) {
         PUnsafe.putObjectVolatile(this, B_OFFSET, b);
         return this;
     }
 
-    public A atomicSwapA(A a)   {
+    public A atomicSwapA(A a) {
         return PUnsafe.pork_swapObject(this, A_OFFSET, a);
     }
 
-    public B atomicSwapB(B b)   {
+    public B atomicSwapB(B b) {
         return PUnsafe.pork_swapObject(this, B_OFFSET, b);
     }
 }

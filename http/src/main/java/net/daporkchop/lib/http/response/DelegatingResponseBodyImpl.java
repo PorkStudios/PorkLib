@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.StatusCode;
 import net.daporkchop.lib.http.header.map.HeaderMap;
+import net.daporkchop.lib.http.request.Request;
 
 /**
  * A simple implementation {@link ResponseBody} which stores only the value and delegates all methods from {@link ResponseHeaders} to a separate instance of
@@ -33,8 +34,13 @@ import net.daporkchop.lib.http.header.map.HeaderMap;
 @Accessors(fluent = true)
 public final class DelegatingResponseBodyImpl<V> implements ResponseBody<V> {
     @NonNull
-    protected final ResponseHeaders delegate;
-    protected final V               value;
+    protected final ResponseHeaders<V> delegate;
+    protected final V                  body;
+
+    @Override
+    public Request<V> request() {
+        return this.delegate.request();
+    }
 
     @Override
     public StatusCode status() {

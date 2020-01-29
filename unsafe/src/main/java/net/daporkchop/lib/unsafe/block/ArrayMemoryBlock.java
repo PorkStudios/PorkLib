@@ -22,10 +22,10 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 /**
  * @author DaPorkchop_
  */
-public final class ArrayMemoryBlock implements MemoryBlock {
-    protected Object array;
-    protected final long offset;
-    protected final long size;
+public class ArrayMemoryBlock implements MemoryBlock {
+    protected       Object array;
+    protected final long   offset;
+    protected final long   size;
 
     public ArrayMemoryBlock(@NonNull Object array) {
         Class<?> clazz = array.getClass();
@@ -75,13 +75,11 @@ public final class ArrayMemoryBlock implements MemoryBlock {
     }
 
     @Override
-    public void release() throws AlreadyReleasedException {
-        synchronized (this) {
-            if (this.array == null)   {
-                throw new AlreadyReleasedException();
-            }
-            this.array = null;
+    public synchronized void release() throws AlreadyReleasedException {
+        if (this.array == null) {
+            throw new AlreadyReleasedException();
         }
+        this.array = null;
     }
 
     @Override

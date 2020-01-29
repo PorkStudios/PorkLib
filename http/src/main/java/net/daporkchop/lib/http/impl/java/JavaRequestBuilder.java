@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -20,9 +20,15 @@ import net.daporkchop.lib.http.header.map.HeaderMap;
 import net.daporkchop.lib.http.request.AbstractRequestBuilder;
 import net.daporkchop.lib.http.request.Request;
 import net.daporkchop.lib.http.request.RequestBuilder;
+import net.daporkchop.lib.http.util.Constants;
 
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Implementation of {@link RequestBuilder} for {@link JavaHttpClient}.
@@ -39,8 +45,8 @@ public final class JavaRequestBuilder<V> extends AbstractRequestBuilder<V, JavaH
     @Override
     public RequestBuilder<V> url(@NonNull String url) {
         try {
-            this.url = new URL(url);
-        } catch (MalformedURLException e) {
+            this.url = Constants.encodeUrl(url);
+        } catch (MalformedURLException | UnsupportedEncodingException e) {
             throw new IllegalArgumentException(e);
         }
         return this;
@@ -49,7 +55,7 @@ public final class JavaRequestBuilder<V> extends AbstractRequestBuilder<V, JavaH
     @Override
     public Request<V> send() {
         this.assertConfigured();
-        return new JavaRequest<>(this);
+        return this.client.buildRequest(this);
     }
 
     @Override

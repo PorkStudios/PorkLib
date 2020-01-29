@@ -23,7 +23,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.common.function.TriConsumer;
+import net.daporkchop.lib.common.function.plain.TriConsumer;
 import net.daporkchop.lib.common.function.io.IOQuadConsumer;
 import net.daporkchop.lib.common.function.io.IOTriConsumer;
 import net.daporkchop.lib.common.util.GenericMatcher;

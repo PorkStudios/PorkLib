@@ -127,8 +127,6 @@ public class TagRegistry {
     public synchronized <T extends Tag> TagRegistry register(byte id, @NonNull Class<T> clazz, @NonNull Function<String, T> creator) {
         if (this.finished) {
             throw new IllegalStateException("registry is finished!");
-        } else if (this.tagCreators.containsKey(id)) {
-            throw new IllegalStateException(String.format("Tag id %d already taken!", id & 0xFF));
         } else if (id == 0) {
             throw new IllegalArgumentException("Tag id 0 is reserved!");
         } else if (this.tagIds.containsKey(clazz)) {

@@ -17,13 +17,16 @@ package net.daporkchop.lib.minecraft.world.impl;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.registry.Registry;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.function.io.IOConsumer;
+import net.daporkchop.lib.minecraft.registry.IDRegistry;
 import net.daporkchop.lib.minecraft.registry.ResourceLocation;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.format.SaveFormat;
 import net.daporkchop.lib.primitive.map.IntObjMap;
 import net.daporkchop.lib.primitive.map.hash.opennode.IntObjOpenNodeHashMap;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
 import java.util.Hashtable;
@@ -33,15 +36,16 @@ import java.util.Map;
  * @author DaPorkchop_
  */
 @Getter
+@Accessors(fluent = true)
 public class MinecraftSaveImpl implements MinecraftSave {
-    private final SaveFormat saveFormat;
-    private final Map<ResourceLocation, Registry> registries = new Hashtable<>();
-    private final IntObjMap<World> worlds = new IntObjOpenNodeHashMap<>();
-    private final InitFunctions initFunctions;
+    private final SaveFormat          saveFormat;
+    private final MinecraftSaveConfig config;
+    private final Map<ResourceLocation, IDRegistry> registries = new Hashtable<>();
+    private final IntObjMap<World>                  worlds     = new IntObjOpenNodeHashMap<>();
 
     public MinecraftSaveImpl(@NonNull SaveBuilder builder) {
         this.saveFormat = builder.getFormat();
-        this.initFunctions = builder.getInitFunctions();
+        this.config = builder.getInitFunctions();
 
         try {
             this.saveFormat.init(this);
@@ -49,12 +53,18 @@ public class MinecraftSaveImpl implements MinecraftSave {
             throw new RuntimeException("Unable to initialize save", e);
         }
         this.saveFormat.loadRegistries(this.registries::put);
-        this.saveFormat.loadWorlds((id, worldManager) -> this.worlds.put(id, this.initFunctions.getWorldCreator().create(id, worldManager, this)));
+        this.saveFormat.loadWorlds((id, worldManager) -> this.worlds.put(id, this.config.worldFactory().create(id, worldManager, this)));
     }
 
     @Override
     public void close() throws IOException {
-        this.worlds.forEachValue(this.saveFormat::closeWorld);
+        this.worlds.forEachValue(world -> {
+            try {
+                this.saveFormat.closeWorld(world);
+            } catch (IOException e) {
+                PUnsafe.throwException(e);
+            }
+        });
         this.saveFormat.close();
     }
 }

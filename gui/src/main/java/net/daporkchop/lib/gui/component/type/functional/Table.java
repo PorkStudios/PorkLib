@@ -18,14 +18,13 @@ package net.daporkchop.lib.gui.component.type.functional;
 import lombok.NonNull;
 import net.daporkchop.lib.gui.GuiEngine;
 import net.daporkchop.lib.gui.component.Component;
-import net.daporkchop.lib.gui.component.Container;
-import net.daporkchop.lib.gui.component.NestedContainer;
 import net.daporkchop.lib.gui.component.state.functional.TableState;
+import net.daporkchop.lib.gui.component.type.container.ScrollPane;
+import net.daporkchop.lib.gui.util.handler.TableClickHandler;
 
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * A 2-dimensional grid of values, arranged into rows and columns. Each column may only have one value type,
@@ -34,24 +33,8 @@ import java.util.function.Supplier;
  * @author DaPorkchop_
  */
 public interface Table extends Component<Table, TableState> {
-    static Renderer<Object, Label> defaultTextRenderer()  {
-        return (engine, value, oldComponent) -> {
-            if (oldComponent == null)   {
-                oldComponent = engine.label();
-            }
-            oldComponent.setText(Objects.toString(value));
-            return oldComponent;
-        };
-    }
-
-    static <V, C extends Component> Renderer<V, C> updateRenderer(@NonNull Function<GuiEngine, C> componentCreator, @NonNull BiConsumer<V, C> updater)  {
-        return (engine, value, oldComponent) -> {
-            if (oldComponent == null)   {
-                oldComponent = componentCreator.apply(engine);
-            }
-            updater.accept(value, oldComponent);
-            return oldComponent;
-        };
+    static <V> CellRenderer<V> defaultTextRenderer()  {
+        return (value, label, row, col) -> label.setText(Objects.toString(value));
     }
 
     @Override
@@ -63,13 +46,21 @@ public interface Table extends Component<Table, TableState> {
                 : TableState.HIDDEN;
     }
 
+    ScrollPane getScrollPane();
+
     int getColumns();
     int getRows();
 
+    @Deprecated
     Table removeColumn(int col);
+    @Deprecated
     Table removeRow(int row);
 
+    Table removeColumn(@NonNull Column column);
+    Table removeRow(@NonNull Row row);
+
     <V> Column<V> addAndGetColumn(String name, @NonNull Class<V> clazz);
+    <V> Column<V> addAndGetColumn(String name, @NonNull Class<V> clazz, @NonNull CellRenderer<V> renderer);
     Row addAndGetRow();
     Row insertAndGetRow(int index);
     default Table addColumn(String name, @NonNull Class<?> clazz)    {
@@ -96,13 +87,13 @@ public interface Table extends Component<Table, TableState> {
         return this;
     }
 
-    default <V> V getValue(int row, int col)    {
-        return this.getRow(row).getValue(col);
-    }
-    default Table setValue(int row, int col, @NonNull Object val)   {
-        this.getRow(row).setValue(col, val);
-        return this;
-    }
+    @Deprecated
+    <V> V getValue(int row, int col);
+    @Deprecated
+    Table setValue(int row, int col, Object val);
+
+    <V> V getValue(@NonNull Row row, @NonNull Column<V> col);
+    <V> Table setValue(@NonNull Row row, @NonNull Column<V> col, V val);
 
     boolean areHeadersShown();
     Table setHeadersShown(boolean headersShown);
@@ -111,6 +102,15 @@ public interface Table extends Component<Table, TableState> {
     }
     default Table hideHeaders() {
         return this.setHeadersShown(false);
+    }
+
+    boolean areRowsSelectable();
+    Table setRowsSelectable(boolean rowsSelectable);
+    default Table enableRowSelection() {
+        return this.setRowsSelectable(true);
+    }
+    default Table disableRowSelection() {
+        return this.setRowsSelectable(false);
     }
 
     interface Column<V>    {
@@ -124,7 +124,9 @@ public interface Table extends Component<Table, TableState> {
         Column<V> swap(int dst);
 
         Class<V> getValueClass();
-        <T> Column<T> setValueType(@NonNull Class<T> clazz, @NonNull Renderer<T, ? extends Component> renderer);
+
+        TableClickHandler<V> getClickHandler();
+        Column<V> setClickHandler(TableClickHandler<V> handler);
     }
 
     interface Row   {
@@ -134,15 +136,17 @@ public interface Table extends Component<Table, TableState> {
         Row setIndex(int dst);
         Row swap(int dst);
 
+        @Deprecated
         <V> V getValue(int col);
-        Row setValue(int col, @NonNull Object val);
+        @Deprecated
+        Row setValue(int col, Object val);
 
-        default Column getColumn(int index) {
-            return this.getParent().getColumn(index);
-        }
+        <V> V getValue(@NonNull Column<V> col);
+        <V> Row setValue(@NonNull Column<V> col, V val);
     }
 
-    interface Renderer<V, C extends Component>  {
-        C update(@NonNull GuiEngine engine, @NonNull V value, C oldComponent);
+    @FunctionalInterface
+    interface CellRenderer<V>  {
+        void render(V value, @NonNull Label label, @NonNull Row row, @NonNull Column<V> col);
     }
 }

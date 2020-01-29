@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -16,6 +16,8 @@
 package net.daporkchop.lib.http.request;
 
 import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
+import lombok.NonNull;
 import net.daporkchop.lib.http.response.ResponseBody;
 import net.daporkchop.lib.http.response.ResponseHeaders;
 
@@ -27,16 +29,30 @@ import net.daporkchop.lib.http.response.ResponseHeaders;
  */
 public interface Request<V> {
     /**
-     * This future is completed once the remote server has responded with a status code and headers, or this request fails before the headers are received.
+     * This future is completed once the remote server has responded with a status code and headers, or this request fails before the putHeaders are received.
      *
      * @return a {@link Future} that will be notified when headers have been received
      */
-    Future<ResponseHeaders> headersFuture();
+    Future<ResponseHeaders<V>> headersFuture();
+
+    /**
+     * Adds a listener to {@link #headersFuture()}.
+     * <p>
+     * Simply a convenience method, since {@link Future#addListener(GenericFutureListener)} has some annoying generic parameters that make it a pain
+     * to use.
+     *
+     * @param listener the listener to add
+     * @return this {@link Request} instance
+     */
+    default Request<V> addHeadersListener(@NonNull GenericFutureListener<Future<ResponseHeaders<V>>> listener) {
+        this.headersFuture().addListener(listener);
+        return this;
+    }
 
     /**
      * Waits for {@link #headersFuture()} to be completed.
      * <p>
-     * This will block until the server responds with a status code+headers, or this request fails before the headers are received.
+     * This will block until the server responds with a status code+headers, or this request fails before the putHeaders are received.
      *
      * @return this {@link Request} instance
      * @see #headersFuture()
@@ -50,7 +66,7 @@ public interface Request<V> {
     /**
      * Waits for {@link #headersFuture()} to be completed.
      * <p>
-     * This will block until the server responds with a status code+headers, or this request fails before the headers are received.
+     * This will block until the server responds with a status code+headers, or this request fails before the putHeaders are received.
      *
      * @return this {@link Request} instance
      * @throws InterruptedException if the current thread is interrupted
@@ -65,21 +81,21 @@ public interface Request<V> {
     /**
      * Gets the {@link ResponseHeaders} from {@link #headersFuture()}, blocking if needed.
      * <p>
-     * This will block until the server responds with a status code+headers, or this request fails before the headers are received.
+     * This will block until the server responds with a status code+headers, or this request fails before the putHeaders are received.
      *
      * @return the status code+headers that the server responded with
      * @see #headersFuture()
      * @see #syncHeaders()
      * @see #syncHeadersInterruptablyAndGet()
      */
-    default ResponseHeaders syncHeadersAndGet() {
+    default ResponseHeaders<V> syncHeadersAndGet() {
         return this.headersFuture().syncUninterruptibly().getNow();
     }
 
     /**
      * Gets the {@link ResponseHeaders} from {@link #headersFuture()}, blocking if needed.
      * <p>
-     * This will block until the server responds with a status code+headers, or this request fails before the headers are received.
+     * This will block until the server responds with a status code+headers, or this request fails before the putHeaders are received.
      *
      * @return the status code+headers that the server responded with
      * @throws InterruptedException if the current thread is interrupted
@@ -87,7 +103,7 @@ public interface Request<V> {
      * @see #syncHeadersInterruptably()
      * @see #syncHeadersAndGet()
      */
-    default ResponseHeaders syncHeadersInterruptablyAndGet() throws InterruptedException {
+    default ResponseHeaders<V> syncHeadersInterruptablyAndGet() throws InterruptedException {
         return this.headersFuture().sync().getNow();
     }
 
@@ -100,6 +116,20 @@ public interface Request<V> {
      * @return a {@link Future} that will be notified when the request is complete
      */
     Future<ResponseBody<V>> bodyFuture();
+
+    /**
+     * Adds a listener to {@link #bodyFuture()}.
+     * <p>
+     * Simply a convenience method, since {@link Future#addListener(GenericFutureListener)} has some annoying generic parameters that make it a pain
+     * to use.
+     *
+     * @param listener the listener to add
+     * @return this {@link Request} instance
+     */
+    default Request<V> addBodyListener(@NonNull GenericFutureListener<Future<ResponseBody<V>>> listener) {
+        this.bodyFuture().addListener(listener);
+        return this;
+    }
 
     /**
      * Waits for {@link #bodyFuture()} to be completed.

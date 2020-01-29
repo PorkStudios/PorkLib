@@ -15,7 +15,7 @@
 
 package net.daporkchop.lib.common.function.throwing;
 
-import net.daporkchop.lib.common.util.PConstants;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
 
@@ -23,13 +23,14 @@ import java.io.IOException;
  * @author DaPorkchop_
  */
 @FunctionalInterface
-public interface ERunnable extends Runnable, PConstants {
+public interface ERunnable extends Runnable {
     @Override
     default void run() {
         try {
             this.runThrowing();
         } catch (Exception e) {
-            throw this.exception(e);
+            PUnsafe.throwException(e);
+            throw new RuntimeException(e);
         }
     }
 

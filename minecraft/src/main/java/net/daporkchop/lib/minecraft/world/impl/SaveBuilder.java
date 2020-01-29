@@ -33,7 +33,7 @@ public class SaveBuilder {
     private SaveFormat format;
 
     @NonNull
-    private InitFunctions initFunctions = new InitFunctions();
+    private MinecraftSaveConfig initFunctions = new MinecraftSaveConfig();
 
     public MinecraftSave build() {
         if (this.format == null) {

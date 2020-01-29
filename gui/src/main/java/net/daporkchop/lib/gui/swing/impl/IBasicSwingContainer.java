@@ -19,8 +19,6 @@ import lombok.NonNull;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.Element;
-import net.daporkchop.lib.gui.component.capability.ComponentAdder;
-import net.daporkchop.lib.gui.component.orientation.advanced.Axis;
 import net.daporkchop.lib.gui.component.state.ElementState;
 import net.daporkchop.lib.gui.component.type.Window;
 import net.daporkchop.lib.gui.component.type.container.Panel;
@@ -36,6 +34,7 @@ import net.daporkchop.lib.gui.component.type.functional.Spinner;
 import net.daporkchop.lib.gui.component.type.functional.Table;
 import net.daporkchop.lib.gui.component.type.functional.TextBox;
 import net.daporkchop.lib.gui.component.type.misc.RadioButtonGroup;
+import net.daporkchop.lib.gui.swing.GuiEngineSwing;
 import net.daporkchop.lib.gui.swing.type.container.SwingPanel;
 import net.daporkchop.lib.gui.swing.type.container.SwingScrollPane;
 import net.daporkchop.lib.gui.swing.type.functional.SwingButton;
@@ -47,12 +46,13 @@ import net.daporkchop.lib.gui.swing.type.functional.SwingProgressBar;
 import net.daporkchop.lib.gui.swing.type.functional.SwingRadioButton;
 import net.daporkchop.lib.gui.swing.type.functional.SwingSlider;
 import net.daporkchop.lib.gui.swing.type.functional.SwingSpinner;
-import net.daporkchop.lib.gui.swing.type.functional.SwingTable;
+import net.daporkchop.lib.gui.swing.type.functional.table.SwingTable;
 import net.daporkchop.lib.gui.swing.type.functional.SwingTextBox;
 import net.daporkchop.lib.gui.swing.type.misc.SwingRadioButtonGroup;
-import net.daporkchop.lib.gui.util.math.BoundingBox;
 
 import javax.swing.*;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 
 /**
  * @author DaPorkchop_
@@ -166,30 +166,68 @@ public interface IBasicSwingContainer<Impl extends Container, Swing extends java
     //container methods
     @Override
     default Impl addChild(@NonNull Component child, boolean update) {
-        if (!(child instanceof SwingComponent))    {
-            throw new IllegalArgumentException(String.format("Invalid child type! Expected %s but found %s!", SwingComponent.class.getCanonicalName(), child.getClass().getCanonicalName()));
-        } else if (this.getChildren().containsKey(child.getName()))  {
-            throw new IllegalArgumentException(String.format("Child with name %s exists!", child.getName()));
-        }
-        SwingComponent swing = (SwingComponent) child;
-        this.getChildren().put(child.getName(), swing.setParent(this));
-        if (swing.hasSwing())   {
-            this.getSwing().add(swing.getSwing());
-            return update ? this.update() : (Impl) this;
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            if (!(child instanceof SwingComponent)) {
+                throw new IllegalArgumentException(String.format("Invalid child type! Expected %s but found %s!", SwingComponent.class.getCanonicalName(), child.getClass().getCanonicalName()));
+            } else if (this.getChildren().containsKey(child.getName())) {
+                throw new IllegalArgumentException(String.format("Child with name %s exists!", child.getName()));
+            }
+            SwingComponent swing = (SwingComponent) child;
+            this.getChildren().put(child.getName(), swing.setParent(this));
+            if (swing.hasSwing()) {
+                this.getSwing().add(swing.getSwing());
+                return update ? this.update() : (Impl) this;
+            } else {
+                return (Impl) this;
+            }
         } else {
-            return (Impl) this;
+            try {
+                SwingUtilities.invokeAndWait(() -> this.addChild(child, update));
+                return (Impl) this;
+            } catch (InvocationTargetException e)   {
+                throw e.getCause() instanceof RuntimeException ? (RuntimeException) e.getCause() : new RuntimeException(e.getCause());
+            } catch (InterruptedException e)    {
+                throw new RuntimeException(e);
+            }
         }
     }
 
     @Override
     default Impl removeChild(@NonNull String name, boolean update) {
-        SwingComponent removed = (SwingComponent) this.getChildren().remove(name);
-        if (removed == null) {
-            throw new IllegalArgumentException(String.format("No such child: %s", name));
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            SwingComponent removed = (SwingComponent) this.getChildren().remove(name);
+            if (removed == null) {
+                throw new IllegalArgumentException(String.format("No such child: %s", name));
+            } else {
+                this.getSwing().remove(removed.getSwing());
+                return update ? this.update() : (Impl) this;
+            }
         } else {
-            this.getSwing().remove(removed.getSwing());
-            return update ? this.update() : (Impl) this;
+            try {
+                SwingUtilities.invokeAndWait(() -> this.removeChild(name, update));
+                return (Impl) this;
+            } catch (InvocationTargetException e)   {
+                throw e.getCause() instanceof RuntimeException ? (RuntimeException) e.getCause() : new RuntimeException(e.getCause());
+            } catch (InterruptedException e)    {
+                throw new RuntimeException(e);
+            }
         }
+    }
+
+    @Override
+    default Impl clear() {
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD)  {
+            for (String name : new ArrayList<>(this.getChildren().keySet())) {
+                this.removeChild(name, false);
+            }
+            if (!this.getChildren().isEmpty())   {
+                throw new IllegalStateException(String.valueOf(this.getChildren().size()));
+            }
+            this.update();
+        } else {
+            SwingUtilities.invokeLater(this::clear);
+        }
+        return (Impl) this;
     }
 
     //other

@@ -23,6 +23,7 @@ import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.orientation.advanced.Axis;
 import net.daporkchop.lib.gui.component.state.container.ScrollPaneState;
 import net.daporkchop.lib.gui.component.type.container.ScrollPane;
+import net.daporkchop.lib.gui.swing.GuiEngineSwing;
 import net.daporkchop.lib.gui.swing.common.SwingMouseListener;
 import net.daporkchop.lib.gui.swing.impl.SwingComponent;
 import net.daporkchop.lib.gui.swing.impl.SwingNestedContainer;
@@ -30,8 +31,15 @@ import net.daporkchop.lib.gui.util.ScrollCondition;
 import net.daporkchop.lib.gui.util.ScrollDir;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.Scrollable;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import java.awt.Dimension;
+import java.awt.Rectangle;
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * @author DaPorkchop_
@@ -56,105 +64,135 @@ public class SwingScrollPane extends SwingNestedContainer<ScrollPane, JScrollPan
 
     @Override
     public ScrollPane addChild(@NonNull Component child, boolean update) {
-        if (!(child instanceof SwingComponent)) {
-            throw new IllegalArgumentException(String.format("Invalid child type! Expected %s but found %s!", SwingComponent.class.getCanonicalName(), child.getClass().getCanonicalName()));
-        } else if (this.getChildren().containsKey(child.getName())) {
-            throw new IllegalArgumentException(String.format("Child with name %s exists!", child.getName()));
-        }
-        SwingComponent swing = (SwingComponent) child;
-        this.children.put(child.getName(), swing.setParent(this));
-        if (swing.hasSwing()) {
-            this.panel.add(swing.getSwing());
-            return update ? this.update() : this;
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            if (!(child instanceof SwingComponent)) {
+                throw new IllegalArgumentException(String.format("Invalid child type! Expected %s but found %s!", SwingComponent.class.getCanonicalName(), child.getClass().getCanonicalName()));
+            } else if (this.getChildren().containsKey(child.getName())) {
+                throw new IllegalArgumentException(String.format("Child with name %s exists!", child.getName()));
+            }
+            SwingComponent swing = (SwingComponent) child;
+            this.children.put(child.getName(), swing.setParent(this));
+            if (swing.hasSwing()) {
+                this.panel.add(swing.getSwing());
+                return update ? this.update() : this;
+            } else {
+                return this;
+            }
         } else {
-            return this;
+            try {
+                SwingUtilities.invokeAndWait(() -> this.addChild(child, update));
+                return this;
+            } catch (InvocationTargetException e) {
+                throw e.getCause() instanceof RuntimeException ? (RuntimeException) e.getCause() : new RuntimeException(e.getCause());
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
     @Override
     public ScrollPane removeChild(@NonNull String name, boolean update) {
-        SwingComponent removed = (SwingComponent) this.getChildren().remove(name);
-        if (removed == null) {
-            throw new IllegalArgumentException(String.format("No such child: %s", name));
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            SwingComponent removed = (SwingComponent) this.getChildren().remove(name);
+            if (removed == null) {
+                throw new IllegalArgumentException(String.format("No such child: %s", name));
+            } else {
+                this.panel.remove(removed.getSwing());
+                return update ? this.update() : this;
+            }
         } else {
-            this.panel.remove(removed.getSwing());
-            return update ? this.update() : this;
+            try {
+                SwingUtilities.invokeAndWait(() -> this.removeChild(name, update));
+                return this;
+            } catch (InvocationTargetException e) {
+                throw e.getCause() instanceof RuntimeException ? (RuntimeException) e.getCause() : new RuntimeException(e.getCause());
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
     @Override
     public ScrollPane update() {
-        super.update();
-        if (this.children.isEmpty()) {
-            this.swing.getHorizontalScrollBar().setMaximum(this.bounds.getWidth());
-            this.swing.getVerticalScrollBar().setMaximum(this.bounds.getHeight());
-        } else {
-            int minX = Integer.MAX_VALUE;
-            int maxX = Integer.MIN_VALUE;
-            int minY = Integer.MAX_VALUE;
-            int maxY = Integer.MIN_VALUE;
-            for (Component component : this.children.values()) {
-                if (!((SwingComponent) component).hasSwing()) {
-                    throw new IllegalStateException();
-                }
-                BoundingBox bb = component.getBounds();
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            super.update();
+            if (this.children.isEmpty()) {
+                this.swing.getHorizontalScrollBar().setMaximum(this.bounds.getWidth());
+                this.swing.getVerticalScrollBar().setMaximum(this.bounds.getHeight());
+            } else {
+                int minX = Integer.MAX_VALUE;
+                int maxX = Integer.MIN_VALUE;
+                int minY = Integer.MAX_VALUE;
+                int maxY = Integer.MIN_VALUE;
+                for (Component component : this.children.values()) {
+                    if (!((SwingComponent) component).hasSwing()) {
+                        throw new IllegalStateException();
+                    }
+                    BoundingBox bb = component.getBounds();
 
-                int i = Axis.LEFT.getFrom(bb, component, null);
-                if (i < minX) {
-                    minX = i;
+                    int i = Axis.LEFT.getFrom(bb, component, null);
+                    if (i < minX) {
+                        minX = i;
+                    }
+                    i = Axis.RIGHT.getFrom(bb, component, null);
+                    if (i > maxX) {
+                        maxX = i;
+                    }
+                    i = Axis.ABOVE.getFrom(bb, component, null);
+                    if (i < minY) {
+                        minY = i;
+                    }
+                    i = Axis.BELOW.getFrom(bb, component, null);
+                    if (i > maxY) {
+                        maxY = i;
+                    }
                 }
-                i = Axis.RIGHT.getFrom(bb, component, null);
-                if (i > maxX) {
-                    maxX = i;
+                if (minX != 0 || minY != 0) {
+                    for (Component component : this.children.values()) { //offset components to 0
+                        BoundingBox bounds = component.getBounds();
+                        ((SwingComponent) component).getSwing().setBounds(bounds.getX() - minX, bounds.getY() - minY, bounds.getWidth(), bounds.getHeight());
+                    }
                 }
-                i = Axis.ABOVE.getFrom(bb, component, null);
-                if (i < minY) {
-                    minY = i;
-                }
-                i = Axis.BELOW.getFrom(bb, component, null);
-                if (i > maxY) {
-                    maxY = i;
-                }
+                this.panel.setMinX(minX).setMaxX(maxX).setMinY(minY).setMaxY(maxY);
+                this.swing.getHorizontalScrollBar().setMaximum(maxX - minX);
+                this.swing.getVerticalScrollBar().setMaximum(maxY - minY);
             }
-            if (minX != 0 || minY != 0) {
-                for (Component component : this.children.values()) { //offset components to 0
-                    BoundingBox bounds = component.getBounds();
-                    ((SwingComponent) component).getSwing().setBounds(bounds.getX() - minX, bounds.getY() - minY, bounds.getWidth(), bounds.getHeight());
-                }
-            }
-            this.panel.setMinX(minX).setMaxX(maxX).setMinY(minY).setMaxY(maxY);
-            this.swing.getHorizontalScrollBar().setMaximum(maxX - minX);
-            this.swing.getVerticalScrollBar().setMaximum(maxY - minY);
+        } else {
+            SwingUtilities.invokeLater(this::update);
         }
         return this;
     }
 
     @Override
     public ScrollPane setScrolling(@NonNull ScrollDir dir, @NonNull ScrollCondition condition) {
-        if (dir == ScrollDir.HORIZONTAL) {
-            switch (condition) {
-                case ALWAYS:
-                    this.swing.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
-                    break;
-                case NEVER:
-                    this.swing.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-                    break;
-                case AUTO:
-                    this.swing.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-                    break;
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            if (dir == ScrollDir.HORIZONTAL) {
+                switch (condition) {
+                    case ALWAYS:
+                        this.swing.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+                        break;
+                    case NEVER:
+                        this.swing.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+                        break;
+                    case AUTO:
+                        this.swing.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+                        break;
+                }
+            } else {
+                switch (condition) {
+                    case ALWAYS:
+                        this.swing.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+                        break;
+                    case NEVER:
+                        this.swing.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+                        break;
+                    case AUTO:
+                        this.swing.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+                        break;
+                }
             }
         } else {
-            switch (condition) {
-                case ALWAYS:
-                    this.swing.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-                    break;
-                case NEVER:
-                    this.swing.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
-                    break;
-                case AUTO:
-                    this.swing.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-                    break;
-            }
+            SwingUtilities.invokeLater(() -> this.setScrolling(dir, condition));
         }
         return this;
     }
@@ -180,7 +218,7 @@ public class SwingScrollPane extends SwingNestedContainer<ScrollPane, JScrollPan
                     return ScrollCondition.AUTO;
             }
         }
-        throw new IllegalStateException();
+        throw new IllegalArgumentException();
     }
 
     @Getter

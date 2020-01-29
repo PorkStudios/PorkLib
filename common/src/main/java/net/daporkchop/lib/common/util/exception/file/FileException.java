@@ -17,6 +17,7 @@ package net.daporkchop.lib.common.util.exception.file;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.experimental.Accessors;
 
 import java.io.File;
 
@@ -24,19 +25,19 @@ import java.io.File;
  * @author DaPorkchop_
  */
 @Getter
+@Accessors(fluent = true)
 public abstract class FileException extends RuntimeException {
     protected final File file;
 
     public FileException(@NonNull File file)    {
-        super(file.getAbsolutePath());
+        super(file.getPath());
 
         this.file = file;
     }
 
     public FileException(@NonNull File file, @NonNull Throwable t)    {
-        super(file.getAbsolutePath(), t);
+        super(file.getPath(), t);
 
         this.file = file;
     }
-
 }

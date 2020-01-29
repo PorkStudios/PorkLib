@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -15,16 +15,12 @@
 
 package net.daporkchop.lib.http;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.util.Constants;
 import net.daporkchop.lib.http.util.StatusCodes;
-
-import java.nio.charset.StandardCharsets;
 
 /**
  * An abstract representation of an HTTP status code.
@@ -59,28 +55,12 @@ public interface StatusCode {
     /**
      * @return this status code's message (textual representation)
      */
-    CharSequence msg();
+    CharSequence name();
 
     /**
      * @return the status code's numeric ID
      */
     int code();
-
-    /**
-     * Gets the encoded value of this status.
-     * <p>
-     * The returned value will contain ASCII-encoded text formatted as such (without quotes):
-     * " <code> <message>"
-     * <p>
-     * Intended only for internal use in order to obtain maximal performance when encoding responses.
-     * <p>
-     * Modifying the contents of the returned buffer will result in undefined behavior.
-     *
-     * @return the encoded value of this status
-     */
-    default ByteBuf encodedValue() {
-        return Unpooled.wrappedBuffer(String.format(" %d %s", this.code(), this.msg()).getBytes(StandardCharsets.US_ASCII));
-    }
 
     /**
      * @return an additional textual error message that will be displayed on error pages, or {@code null} if none should be displayed
@@ -101,7 +81,7 @@ public interface StatusCode {
         private final int code;
 
         @Override
-        public CharSequence msg() {
+        public CharSequence name() {
             return "UNKNOWN";
         }
 
@@ -122,7 +102,7 @@ public interface StatusCode {
     }
 
     /**
-     * An unknown HTTP status code with a message.
+     * An unknown HTTP status code with a name.
      *
      * @author DaPorkchop_
      */
@@ -131,13 +111,8 @@ public interface StatusCode {
     @Accessors(fluent = true)
     final class UnknownNamed implements StatusCode {
         @NonNull
-        private final CharSequence msg;
+        private final CharSequence name;
         private final int          code;
-
-        @Override
-        public CharSequence msg() {
-            return "UNKNOWN";
-        }
 
         @Override
         public int hashCode() {
@@ -151,7 +126,7 @@ public interface StatusCode {
 
         @Override
         public String toString() {
-            return String.format("StatusCode(%d %s)", this.code, this.msg);
+            return String.format("StatusCode(%d %s)", this.code, this.name);
         }
     }
 }

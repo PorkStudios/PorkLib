@@ -21,9 +21,11 @@ import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.Element;
 import net.daporkchop.lib.gui.component.state.ElementState;
+import net.daporkchop.lib.gui.swing.GuiEngineSwing;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 
 import javax.swing.*;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;

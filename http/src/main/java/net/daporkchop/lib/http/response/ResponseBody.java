@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -15,6 +15,8 @@
 
 package net.daporkchop.lib.http.response;
 
+import net.daporkchop.lib.http.message.Message;
+
 /**
  * A sub-type of {@link ResponseHeaders} which additionally contains a value.
  * <p>
@@ -22,7 +24,7 @@ package net.daporkchop.lib.http.response;
  *
  * @author DaPorkchop_
  */
-public interface ResponseBody<V> extends ResponseHeaders {
+public interface ResponseBody<V> extends ResponseHeaders<V>, Message {
     /**
      * Gets the final, aggregated value of the response.
      * <p>
@@ -31,5 +33,6 @@ public interface ResponseBody<V> extends ResponseHeaders {
      *
      * @return the final, aggregated value of the response
      */
-    V value();
+    @Override
+    V body();
 }

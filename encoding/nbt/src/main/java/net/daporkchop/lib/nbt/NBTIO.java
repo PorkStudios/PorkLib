@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -16,6 +16,7 @@
 package net.daporkchop.lib.nbt;
 
 import lombok.NonNull;
+import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.nbt.tag.TagRegistry;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
@@ -30,12 +31,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * A lot of helper methods for dealing with reading and writing NBT tags
+ * Helper class for reading and writing NBT tags.
  *
  * @author DaPorkchop_
  */
+@UtilityClass
 public class NBTIO {
-    private static void verifyFileExists(@NonNull File file, boolean create) throws IOException {
+    private void verifyFileExists(@NonNull File file, boolean create) throws IOException {
         if (!file.exists()) {
             if (create) {
                 File parent = file.getParentFile();
@@ -50,78 +52,78 @@ public class NBTIO {
         }
     }
 
-    public static CompoundTag read(@NonNull InputStream inputStream) throws IOException {
+    public CompoundTag read(@NonNull InputStream inputStream) throws IOException {
         return read(inputStream, TagRegistry.NOTCHIAN);
     }
 
-    public static CompoundTag read(@NonNull InputStream inputStream, @NonNull TagRegistry registry) throws IOException {
+    public CompoundTag read(@NonNull InputStream inputStream, @NonNull TagRegistry registry) throws IOException {
         return new NBTInputStream(inputStream).readTag(registry);
     }
 
-    public static CompoundTag read(@NonNull File file) throws IOException {
+    public CompoundTag read(@NonNull File file) throws IOException {
         return read(file, TagRegistry.NOTCHIAN);
     }
 
-    public static CompoundTag read(@NonNull File file, @NonNull TagRegistry registry) throws IOException {
+    public CompoundTag read(@NonNull File file, @NonNull TagRegistry registry) throws IOException {
         verifyFileExists(file, false);
         try (NBTInputStream in = new NBTInputStream(new BufferedInputStream(new FileInputStream(file)))) {
             return in.readTag(registry);
         }
     }
 
-    public static CompoundTag readGzipCompressed(@NonNull InputStream inputStream) throws IOException {
+    public CompoundTag readGzipCompressed(@NonNull InputStream inputStream) throws IOException {
         return readGzipCompressed(inputStream, TagRegistry.NOTCHIAN);
     }
 
-    public static CompoundTag readGzipCompressed(@NonNull InputStream inputStream, @NonNull TagRegistry registry) throws IOException {
+    public CompoundTag readGzipCompressed(@NonNull InputStream inputStream, @NonNull TagRegistry registry) throws IOException {
         return new NBTInputStream(inputStream, Compression.GZIP_NORMAL).readTag(registry);
     }
 
-    public static CompoundTag readGzipCompressed(@NonNull File file) throws IOException {
+    public CompoundTag readGzipCompressed(@NonNull File file) throws IOException {
         return readGzipCompressed(file, TagRegistry.NOTCHIAN);
     }
 
-    public static CompoundTag readGzipCompressed(@NonNull File file, @NonNull TagRegistry registry) throws IOException {
+    public CompoundTag readGzipCompressed(@NonNull File file, @NonNull TagRegistry registry) throws IOException {
         verifyFileExists(file, false);
         try (NBTInputStream in = new NBTInputStream(new BufferedInputStream(new FileInputStream(file)), Compression.GZIP_NORMAL)) {
             return in.readTag(registry);
         }
     }
 
-    public static void write(@NonNull OutputStream out, @NonNull CompoundTag tag) throws IOException {
+    public void write(@NonNull OutputStream out, @NonNull CompoundTag tag) throws IOException {
         write(out, tag, TagRegistry.NOTCHIAN);
     }
 
-    public static void write(@NonNull OutputStream out, @NonNull CompoundTag tag, @NonNull TagRegistry registry) throws IOException {
+    public void write(@NonNull OutputStream out, @NonNull CompoundTag tag, @NonNull TagRegistry registry) throws IOException {
         NBTOutputStream nbtOut = new NBTOutputStream(out);
         nbtOut.writeTag(tag, registry);
     }
 
-    public static void write(@NonNull File file, @NonNull CompoundTag tag) throws IOException {
+    public void write(@NonNull File file, @NonNull CompoundTag tag) throws IOException {
         write(file, tag, TagRegistry.NOTCHIAN);
     }
 
-    public static void write(@NonNull File file, @NonNull CompoundTag tag, @NonNull TagRegistry registry) throws IOException {
+    public void write(@NonNull File file, @NonNull CompoundTag tag, @NonNull TagRegistry registry) throws IOException {
         verifyFileExists(file, true);
         try (NBTOutputStream out = new NBTOutputStream(new BufferedOutputStream(new FileOutputStream(file)))) {
             out.writeTag(tag, registry);
         }
     }
 
-    public static void writeGzipCompressed(@NonNull OutputStream out, @NonNull CompoundTag tag) throws IOException {
+    public void writeGzipCompressed(@NonNull OutputStream out, @NonNull CompoundTag tag) throws IOException {
         write(out, tag, TagRegistry.NOTCHIAN);
     }
 
-    public static void writeGzipCompressed(@NonNull OutputStream out, @NonNull CompoundTag tag, @NonNull TagRegistry registry) throws IOException {
+    public void writeGzipCompressed(@NonNull OutputStream out, @NonNull CompoundTag tag, @NonNull TagRegistry registry) throws IOException {
         NBTOutputStream nbtOut = new NBTOutputStream(out, Compression.GZIP_NORMAL);
         nbtOut.writeTag(tag, registry);
     }
 
-    public static void writeGzipCompressed(@NonNull File file, @NonNull CompoundTag tag) throws IOException {
+    public void writeGzipCompressed(@NonNull File file, @NonNull CompoundTag tag) throws IOException {
         write(file, tag, TagRegistry.NOTCHIAN);
     }
 
-    public static void writeGzipCompressed(@NonNull File file, @NonNull CompoundTag tag, @NonNull TagRegistry registry) throws IOException {
+    public void writeGzipCompressed(@NonNull File file, @NonNull CompoundTag tag, @NonNull TagRegistry registry) throws IOException {
         verifyFileExists(file, true);
         try (NBTOutputStream out = new NBTOutputStream(new BufferedOutputStream(new FileOutputStream(file)), Compression.GZIP_NORMAL)) {
             out.writeTag(tag, registry);

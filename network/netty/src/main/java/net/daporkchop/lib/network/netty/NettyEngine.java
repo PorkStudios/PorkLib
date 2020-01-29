@@ -23,7 +23,6 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.binary.netty.NettyUtil;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.network.transport.TransportEngine;
 
@@ -64,7 +63,7 @@ public abstract class NettyEngine implements TransportEngine {
 
     @Override
     public DataIn attemptRead(@NonNull Object msg) {
-        return msg instanceof ByteBuf ? NettyUtil.wrapIn((ByteBuf) msg) : null;
+        return msg instanceof ByteBuf ? DataIn.wrap((ByteBuf) msg) : null;
     }
 
     @Getter

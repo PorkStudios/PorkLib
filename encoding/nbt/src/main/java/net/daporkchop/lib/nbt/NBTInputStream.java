@@ -15,55 +15,84 @@
 
 package net.daporkchop.lib.nbt;
 
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.encoding.compression.CompressionHelper;
+import net.daporkchop.lib.nbt.alloc.DefaultNBTArrayAllocator;
+import net.daporkchop.lib.nbt.alloc.NBTArrayAllocator;
+import net.daporkchop.lib.nbt.tag.Tag;
 import net.daporkchop.lib.nbt.tag.TagRegistry;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Stack;
+import java.util.function.Function;
 
 /**
- * Allows reading NBT tags from an input stream
+ * Allows reading NBT tags from an {@link InputStream}.
  *
  * @author DaPorkchop_
  */
-public class NBTInputStream extends DataIn {
-    private final InputStream in;
-    private final TagRegistry defaultRegistry;
+@Accessors(fluent = true)
+public final class NBTInputStream extends DataIn {
+    protected final DataIn in;
+    protected final TagRegistry defaultRegistry;
+
+    @Getter
+    protected final NBTArrayAllocator alloc;
 
     public NBTInputStream(@NonNull InputStream in) throws IOException {
-        this(in, Compression.NONE, TagRegistry.NOTCHIAN);
+        this(in, Compression.NONE, TagRegistry.NOTCHIAN, DefaultNBTArrayAllocator.INSTANCE);
     }
 
     public NBTInputStream(@NonNull InputStream in, @NonNull CompressionHelper compression) throws IOException {
-        this(in, compression, TagRegistry.NOTCHIAN);
+        this(in, compression, TagRegistry.NOTCHIAN, DefaultNBTArrayAllocator.INSTANCE);
     }
 
     public NBTInputStream(@NonNull InputStream in, @NonNull TagRegistry registry) throws IOException {
-        this(in, Compression.NONE, registry);
+        this(in, Compression.NONE, registry, DefaultNBTArrayAllocator.INSTANCE);
     }
 
     public NBTInputStream(@NonNull InputStream in, @NonNull CompressionHelper compression, @NonNull TagRegistry registry) throws IOException {
-        this.in = compression.inflate(in);
+        this(in, compression, registry, DefaultNBTArrayAllocator.INSTANCE);
+    }
+
+    public NBTInputStream(@NonNull InputStream in, @NonNull NBTArrayAllocator alloc) throws IOException {
+        this(in, Compression.NONE, TagRegistry.NOTCHIAN, alloc);
+    }
+
+    public NBTInputStream(@NonNull InputStream in, @NonNull CompressionHelper compression, @NonNull NBTArrayAllocator alloc) throws IOException {
+        this(in, compression, TagRegistry.NOTCHIAN, alloc);
+    }
+
+    public NBTInputStream(@NonNull InputStream in, @NonNull TagRegistry registry, @NonNull NBTArrayAllocator alloc) throws IOException {
+        this(in, Compression.NONE, registry, alloc);
+    }
+
+    public NBTInputStream(@NonNull InputStream in, @NonNull CompressionHelper compression, @NonNull TagRegistry registry, @NonNull NBTArrayAllocator alloc) throws IOException {
+        this.in = DataIn.wrap(compression.inflate(in));
         this.defaultRegistry = registry;
+        this.alloc = alloc;
     }
 
     public CompoundTag readTag() throws IOException {
         return this.readTag(this.defaultRegistry);
     }
 
-    public CompoundTag readTag(@NonNull TagRegistry registry) throws IOException {
+    public synchronized CompoundTag readTag(@NonNull TagRegistry registry) throws IOException {
         byte id = this.readByte();
         if (registry.getId(CompoundTag.class) != id) {
             throw new IllegalStateException("Invalid id for compound tag!");
         }
-        byte[] b = new byte[this.readShort() & 0xFFFF];
+        byte[] b = new byte[this.readUShort()];
         this.readFully(b, 0, b.length);
         CompoundTag tag = new CompoundTag(new String(b, StandardCharsets.UTF_8));
+        b = null;
         tag.read(this, registry);
         return tag;
     }
@@ -113,5 +142,146 @@ public class NBTInputStream extends DataIn {
     @Override
     public boolean markSupported() {
         return this.in.markSupported();
+    }
+    
+    //datain implementations
+    @Override
+    public boolean readBoolean() throws IOException {
+        return this.in.readBoolean();
+    }
+
+    @Override
+    public byte readByte() throws IOException {
+        return this.in.readByte();
+    }
+
+    @Override
+    public int readUByte() throws IOException {
+        return this.in.readUByte();
+    }
+
+    @Override
+    public short readShort() throws IOException {
+        return this.in.readShort();
+    }
+
+    @Override
+    public int readUShort() throws IOException {
+        return this.in.readUShort();
+    }
+
+    @Override
+    public short readShortLE() throws IOException {
+        return this.in.readShortLE();
+    }
+
+    @Override
+    public int readUShortLE() throws IOException {
+        return this.in.readUShortLE();
+    }
+
+    @Override
+    public char readChar() throws IOException {
+        return this.in.readChar();
+    }
+
+    @Override
+    public char readCharLE() throws IOException {
+        return this.in.readCharLE();
+    }
+
+    @Override
+    public int readInt() throws IOException {
+        return this.in.readInt();
+    }
+
+    @Override
+    public long readUInt() throws IOException {
+        return this.in.readUInt();
+    }
+
+    @Override
+    public int readIntLE() throws IOException {
+        return this.in.readIntLE();
+    }
+
+    @Override
+    public long readUIntLE() throws IOException {
+        return this.in.readUIntLE();
+    }
+
+    @Override
+    public long readLong() throws IOException {
+        return this.in.readLong();
+    }
+
+    @Override
+    public long readLongLE() throws IOException {
+        return this.in.readLongLE();
+    }
+
+    @Override
+    public float readFloat() throws IOException {
+        return this.in.readFloat();
+    }
+
+    @Override
+    public float readFloatLE() throws IOException {
+        return this.in.readFloatLE();
+    }
+
+    @Override
+    public double readDouble() throws IOException {
+        return this.in.readDouble();
+    }
+
+    @Override
+    public double readDoubleLE() throws IOException {
+        return this.in.readDoubleLE();
+    }
+
+    @Override
+    public String readUTF() throws IOException {
+        return this.in.readUTF();
+    }
+
+    @Override
+    public byte[] readByteArray() throws IOException {
+        return this.in.readByteArray();
+    }
+
+    @Override
+    public <E extends Enum<E>> E readEnum(@NonNull Function<String, E> f) throws IOException {
+        return this.in.readEnum(f);
+    }
+
+    @Override
+    public int readVarInt() throws IOException {
+        return this.in.readVarInt();
+    }
+
+    @Override
+    public long readVarLong() throws IOException {
+        return this.in.readVarLong();
+    }
+
+    @Override
+    public byte[] readFully(@NonNull byte[] b) throws IOException {
+        return this.in.readFully(b);
+    }
+
+    @Override
+    public byte[] readFully(@NonNull byte[] b, int off, int len) throws IOException {
+        return this.in.readFully(b, off, len);
+    }
+
+    @Override
+    public byte[] readAllAvailableBytes() throws IOException {
+        return this.in.readAllAvailableBytes();
+    }
+
+    @Override
+    public InputStream unwrap() {
+        return this.in.unwrap();
     }
 }

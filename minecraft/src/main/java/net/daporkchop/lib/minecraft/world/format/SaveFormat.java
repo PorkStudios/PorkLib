@@ -16,9 +16,9 @@
 package net.daporkchop.lib.minecraft.world.format;
 
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.registry.Registry;
+import net.daporkchop.lib.minecraft.registry.IDRegistry;
 import net.daporkchop.lib.minecraft.registry.ResourceLocation;
-import net.daporkchop.lib.minecraft.world.Column;
+import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.primitive.function.biconsumer.IntObjBiConsumer;
@@ -30,14 +30,17 @@ import java.util.function.BiConsumer;
 /**
  * @author DaPorkchop_
  */
-public interface SaveFormat extends Closeable {
+public interface SaveFormat extends AutoCloseable {
     void init(@NonNull MinecraftSave save) throws IOException;
 
-    void loadWorlds(@NonNull IntObjBiConsumer<WorldManager> addFunction);
+    void loadWorlds(@NonNull IntObjBiConsumer<WorldManager> callback);
 
-    void closeWorld(@NonNull World world);
+    void closeWorld(@NonNull World world) throws IOException;
 
-    void loadRegistries(@NonNull BiConsumer<ResourceLocation, Registry> addFunction);
+    void loadRegistries(@NonNull BiConsumer<ResourceLocation, IDRegistry> callback);
 
-    Column createColumnInstance(int x, int z);
+    Chunk createColumnInstance(int x, int z);
+
+    @Override
+    void close() throws IOException;
 }

@@ -15,7 +15,7 @@
 
 package net.daporkchop.lib.crypto;
 
-import net.daporkchop.lib.common.test.TestRandomData;
+import net.daporkchop.lib.common.misc.TestRandomData;
 import net.daporkchop.lib.crypto.keygen.EntropyPool;
 import org.junit.Test;
 

@@ -17,13 +17,15 @@ package net.daporkchop.lib.minecraft.world.format;
 
 import lombok.NonNull;
 import net.daporkchop.lib.minecraft.world.Chunk;
-import net.daporkchop.lib.minecraft.world.Column;
+import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.minecraft.world.World;
+
+import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-public interface WorldManager {
+public interface WorldManager extends AutoCloseable {
     default int getMinChunkY() {
         return 0;
     }
@@ -36,17 +38,20 @@ public interface WorldManager {
 
     boolean hasColumn(int x, int z);
 
-    void loadColumn(@NonNull Column column);
+    void loadColumn(@NonNull Chunk chunk);
 
-    void saveColumn(@NonNull Column column);
+    void saveColumn(@NonNull Chunk chunk);
 
-    default void loadChunk(@NonNull Column column, int y) {
+    default void loadChunk(@NonNull Chunk chunk, int y) {
         throw new UnsupportedOperationException();
     }
 
-    default void saveChunk(@NonNull Chunk chunk) {
+    default void saveChunk(@NonNull Section section) {
         throw new UnsupportedOperationException();
     }
 
     void setWorld(@NonNull World world);
+
+    @Override
+    void close() throws IOException;
 }

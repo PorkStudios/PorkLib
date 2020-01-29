@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -20,6 +20,8 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.WritableByteChannel;
 
 /**
  * A simple {@link TransferSession} that simply returns data stored in a single {@link ByteBuf}.
@@ -27,20 +29,67 @@ import java.io.OutputStream;
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-public final class ByteBufTransferSession implements TransferSession {
+public class ByteBufTransferSession implements TransferSession {
     @NonNull
-    protected ByteBuf buf;
+    protected final ByteBuf buf;
 
     @Override
-    public long transferAllBlocking(@NonNull OutputStream out) throws Exception {
-        int readable = this.buf.readableBytes();
-        this.buf.readBytes(out, readable);
-        return readable;
+    public long position() throws Exception {
+        return this.buf.readerIndex();
     }
 
     @Override
-    public void close() throws Exception {
-        this.buf.release();
-        this.buf = null;
+    public long length() throws Exception {
+        return this.buf.readableBytes();
+    }
+
+    @Override
+    public long transfer(long position, @NonNull WritableByteChannel out) throws Exception {
+        long base = this.position();
+        long length = this.length();
+        if (position >= base + length || position < base) {
+            throw new IndexOutOfBoundsException(String.format("position=%d, length=%d, requested=%d", base, length, position));
+        }
+        return out.write(this.buf.nioBuffer((int) position, (int) (length - (base - position))));
+    }
+
+    @Override
+    public long transferAllBlocking(long position, @NonNull WritableByteChannel out) throws Exception {
+        long base = this.position();
+        long length = this.length();
+        if (position >= base + length || position < base) {
+            throw new IndexOutOfBoundsException(String.format("position=%d, length=%d, requested=%d", base, length, position));
+        }
+        long remaining = length - (base - position);
+        ByteBuffer buffer = this.buf.nioBuffer((int) position, (int) remaining);
+        while (buffer.hasRemaining())   {
+            out.write(buffer);
+        }
+        return remaining;
+    }
+
+    @Override
+    public boolean hasByteBuf() {
+        return true;
+    }
+
+    @Override
+    public ByteBuf getByteBuf() throws Exception {
+        return this.buf.retainedSlice();
+    }
+
+    @Override
+    public boolean reusable() {
+        return true;
+    }
+
+    @Override
+    public void retain() {
+        this.buf.retain();
+    }
+
+    @Override
+    public boolean release() {
+        return this.buf.release();
     }
 }

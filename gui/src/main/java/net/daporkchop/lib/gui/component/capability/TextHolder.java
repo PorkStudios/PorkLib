@@ -22,6 +22,8 @@ import net.daporkchop.lib.gui.util.Alignment;
 import net.daporkchop.lib.gui.util.HorizontalAlignment;
 import net.daporkchop.lib.gui.util.VerticalAlignment;
 
+import java.awt.Color;
+
 /**
  * @author DaPorkchop_
  */
@@ -43,6 +45,7 @@ public interface TextHolder<Impl extends TextHolder> {
         return (Impl) this.setTextHAlignment(alignment.getHorizontal()).setTextVAlignment(alignment.getVertical());
     }
 
+    Impl setTextColor(Color color);
     Impl setTextColor(int argb);
     default Impl setTextColor(int color, @NonNull ColorFormat format)  {
         return this.setTextColor(format.toArgb(color));

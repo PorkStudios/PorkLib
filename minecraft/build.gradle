@@ -13,14 +13,20 @@
  *
  */
 
+repositories {
+    maven {
+        name = "SpigotMC Snapshots"
+        url = "https://hub.spigotmc.org/nexus/content/repositories/sonatype-nexus-snapshots/"
+    }
+}
+
 dependencies {
     compile project(":binary")
     compile project(":encoding")
-    compile project(":http")
-    compile project(":minecraft:minecraft-text")
-    compile project(":primitive")
     compile project(":encoding:nbt")
+    compile project(":minecraft:minecraft-text")
+    compile project(":natives")
+    compile project(":primitive")
 
     compile "com.google.guava:guava:$guavaVersion"
-    compile "com.google.code.gson:gson:$gsonVersion"
 }

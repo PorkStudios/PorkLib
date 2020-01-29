@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -15,11 +15,18 @@
 
 package net.daporkchop.lib.binary.chars;
 
+import io.netty.util.internal.PlatformDependent;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
+import net.daporkchop.lib.unsafe.capability.Releasable;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
+import sun.nio.ch.DirectBuffer;
+
+import java.nio.MappedByteBuffer;
 
 /**
  * A wrapper around a direct memory address to allow it to be used as a {@link CharSequence} of 1-byte characters (aka. Latin, Extended ASCII or
@@ -30,31 +37,26 @@ import net.daporkchop.lib.unsafe.PUnsafe;
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public final class DirectASCIISequence implements CharSequence {
-    private final long addr;
-    private final int  length;
+public class DirectASCIISequence implements CharSequence {
+    protected final long addr;
+    protected final int  length;
 
     @Override
     public char charAt(int index) {
         if (index < 0 || index >= this.length) {
-            throw new StringIndexOutOfBoundsException(index);
+            throw new IndexOutOfBoundsException(String.valueOf(index));
         }
         return (char) (PUnsafe.getByte(this.addr + index) & 0xFF);
     }
 
     @Override
     public CharSequence subSequence(int start, int end) {
-        if (start < 0) {
-            throw new StringIndexOutOfBoundsException(start);
-        }
-        if (end > this.length) {
-            throw new StringIndexOutOfBoundsException(end);
-        }
-        int subLen = end - start;
-        if (subLen < 0) {
-            throw new StringIndexOutOfBoundsException(subLen);
-        }
-        return start == 0 && end == this.length ? this : new DirectASCIISequence(this.addr + start, subLen);
+        PorkUtil.assertInRange(this.length, start, end);
+        return start == 0 && end == this.length ? this : this.slice(start, end - start);
+    }
+
+    protected CharSequence slice(int start, int len)    {
+        return new DirectASCIISequence(this.addr + start, len);
     }
 
     @Override
@@ -93,8 +95,56 @@ public final class DirectASCIISequence implements CharSequence {
         final int len = this.length;
         char[] arr = new char[len];
         for (int i = 0; i < len; i++) {
-            arr[i] = (char) (PUnsafe.getByte(addr + i * PUnsafe.ARRAY_CHAR_INDEX_SCALE) & 0xFF);
+            arr[i] = (char) (PUnsafe.getByte(addr + i) & 0xFF);
         }
         return PorkUtil.wrap(arr);
+    }
+
+    /**
+     * A {@link DirectASCIISequence} wrapping a {@link MappedByteBuffer}.
+     *
+     * @author DaPorkchop_
+     */
+    @Getter
+    @Accessors(fluent = true)
+    public static final class Mapped extends DirectASCIISequence implements Releasable {
+        private MappedByteBuffer buffer;
+
+        public Mapped(@NonNull MappedByteBuffer buffer) {
+            this(buffer, PlatformDependent.directBufferAddress(buffer) + buffer.position(), buffer.remaining(), false);
+        }
+
+        public Mapped(@NonNull MappedByteBuffer buffer, boolean load) {
+            this(buffer, PlatformDependent.directBufferAddress(buffer) + buffer.position(), buffer.remaining(), load);
+        }
+
+        public Mapped(@NonNull MappedByteBuffer buffer, long address, int size) {
+            this(buffer, address, size, false);
+        }
+
+        public Mapped(@NonNull MappedByteBuffer buffer, long address, int size, boolean load) {
+            super(address, size);
+
+            this.buffer = buffer;
+
+            if (load)   {
+                buffer.load();
+            }
+        }
+
+        @Override
+        protected CharSequence slice(int start, int len) {
+            return new Mapped(this.buffer, this.addr + start, len);
+        }
+
+        @Override
+        public synchronized void release() throws AlreadyReleasedException {
+            if (this.buffer != null)    {
+                PorkUtil.release(this.buffer);
+                this.buffer = null;
+            } else {
+                throw new AlreadyReleasedException();
+            }
+        }
     }
 }

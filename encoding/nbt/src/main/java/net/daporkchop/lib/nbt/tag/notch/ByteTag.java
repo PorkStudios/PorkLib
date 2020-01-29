@@ -18,8 +18,8 @@ package net.daporkchop.lib.nbt.tag.notch;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.nbt.NBTInputStream;
+import net.daporkchop.lib.nbt.NBTOutputStream;
 import net.daporkchop.lib.nbt.tag.Tag;
 import net.daporkchop.lib.nbt.tag.TagRegistry;
 
@@ -33,7 +33,7 @@ import java.io.IOException;
 @Getter
 @Setter
 public class ByteTag extends Tag {
-    private byte value;
+    protected byte value;
 
     public ByteTag(String name) {
         super(name);
@@ -45,12 +45,12 @@ public class ByteTag extends Tag {
     }
 
     @Override
-    public void read(@NonNull DataIn in, @NonNull TagRegistry registry) throws IOException {
+    public void read(@NonNull NBTInputStream in, @NonNull TagRegistry registry) throws IOException {
         this.value = in.readByte();
     }
 
     @Override
-    public void write(@NonNull DataOut out, @NonNull TagRegistry registry) throws IOException {
+    public void write(@NonNull NBTOutputStream out, @NonNull TagRegistry registry) throws IOException {
         out.writeByte(this.value);
     }
 

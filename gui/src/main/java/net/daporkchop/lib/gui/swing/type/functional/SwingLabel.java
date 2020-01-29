@@ -20,6 +20,7 @@ import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
 import net.daporkchop.lib.gui.component.state.ElementState;
 import net.daporkchop.lib.gui.component.state.functional.LabelState;
 import net.daporkchop.lib.gui.component.type.functional.Label;
+import net.daporkchop.lib.gui.swing.GuiEngineSwing;
 import net.daporkchop.lib.gui.swing.SwingTextAlignment;
 import net.daporkchop.lib.gui.swing.common.SwingMouseListener;
 import net.daporkchop.lib.gui.swing.impl.SwingComponent;
@@ -36,9 +37,20 @@ import java.awt.*;
 public class SwingLabel extends SwingComponent<Label, JLabel, LabelState> implements Label {
     protected PIcon enabledIcon;
     protected PIcon disabledIcon;
+    protected final boolean originallyOpaque;
 
     public SwingLabel(String name) {
         super(name, new JLabel());
+
+        this.originallyOpaque = this.swing.isOpaque();
+
+        this.swing.addMouseListener(new SwingMouseListener<>(this));
+    }
+
+    protected SwingLabel(String name, JLabel label) {
+        super(name, label);
+
+        this.originallyOpaque = this.swing.isOpaque();
 
         this.swing.addMouseListener(new SwingMouseListener<>(this));
     }
@@ -50,8 +62,13 @@ public class SwingLabel extends SwingComponent<Label, JLabel, LabelState> implem
 
     @Override
     public SwingLabel setText(String text) {
-        if (!this.getText().equals(text)) {
-            this.swing.setText(text);
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            String currentText = this.getText();
+            if (currentText != text && (currentText == null || !currentText.equals(text))) {
+                this.swing.setText(text);
+            }
+        } else {
+            SwingUtilities.invokeLater(() -> this.setText(text));
         }
         return this;
     }
@@ -63,7 +80,11 @@ public class SwingLabel extends SwingComponent<Label, JLabel, LabelState> implem
 
     @Override
     public SwingLabel setTextVAlignment(@NonNull VerticalAlignment alignment) {
-        this.swing.setVerticalAlignment(SwingTextAlignment.toSwingVertical(alignment));
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            this.swing.setVerticalAlignment(SwingTextAlignment.toSwingVertical(alignment));
+        } else {
+            SwingUtilities.invokeLater(() -> this.setTextVAlignment(alignment));
+        }
         return this;
     }
 
@@ -74,7 +95,11 @@ public class SwingLabel extends SwingComponent<Label, JLabel, LabelState> implem
 
     @Override
     public SwingLabel setTextHAlignment(@NonNull HorizontalAlignment alignment) {
-        this.swing.setHorizontalAlignment(SwingTextAlignment.toSwingHorizontal(alignment));
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            this.swing.setHorizontalAlignment(SwingTextAlignment.toSwingHorizontal(alignment));
+        } else {
+            SwingUtilities.invokeLater(() -> this.setTextHAlignment(alignment));
+        }
         return this;
     }
 
@@ -89,34 +114,71 @@ public class SwingLabel extends SwingComponent<Label, JLabel, LabelState> implem
 
     @Override
     public Label setIcon(LabelState state, PIcon icon) {
-        if (state == null || state == LabelState.ENABLED)   {
-            if (this.enabledIcon != icon)   {
-                this.enabledIcon = icon;
-                this.swing.setIcon(icon == null ? null : icon.getAsSwingIcon());
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            if (state == null || state == LabelState.ENABLED) {
+                if (this.enabledIcon != icon) {
+                    this.enabledIcon = icon;
+                    this.swing.setIcon(icon == null ? null : icon.getAsSwingIcon());
+                }
+            } else if (this.disabledIcon != icon) {
+                this.disabledIcon = icon;
+                this.swing.setDisabledIcon(icon == null ? null : icon.getAsSwingIcon());
             }
-        } else if (this.disabledIcon != icon) {
-            this.disabledIcon = icon;
-            this.swing.setDisabledIcon(icon == null ? null : icon.getAsSwingIcon());
+        } else {
+            SwingUtilities.invokeLater(() -> this.setIcon(state, icon));
+        }
+        return this;
+    }
+
+    @Override
+    public Label setColor(Color color) {
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            if (color == null)  {
+                if (this.swing.isBackgroundSet())   {
+                    this.swing.setBackground(null);
+                    if (this.swing.isOpaque() != this.originallyOpaque)  {
+                        this.swing.setOpaque(this.originallyOpaque);
+                    }
+                }
+            } else {
+                if (!this.swing.isBackgroundSet() || this.swing.getBackground().getRGB() != color.getRGB()) {
+                    this.swing.setBackground(color);
+                    if (!this.swing.isOpaque()) {
+                        this.swing.setOpaque(true);
+                    }
+                }
+            }
+        } else {
+            SwingUtilities.invokeLater(() -> this.setColor(color));
         }
         return this;
     }
 
     @Override
     public Label setColor(int argb) {
-        if (!this.swing.isBackgroundSet() || this.swing.getBackground().getRGB() != argb) {
-            this.swing.setBackground(new Color(argb));
-            if (!this.swing.isOpaque()) {
-                this.swing.setOpaque(true);
+        return this.setColor(argb == 0 ? null : new Color(argb));
+    }
+
+    @Override
+    public Label setTextColor(Color color) {
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            if (color == null)  {
+                if (this.swing.isForegroundSet())   {
+                    this.swing.setForeground(null);
+                }
+            } else {
+                if (!this.swing.isForegroundSet() || this.swing.getForeground().getRGB() != color.getRGB()) {
+                    this.swing.setForeground(color);
+                }
             }
+        } else {
+            SwingUtilities.invokeLater(() -> this.setTextColor(color));
         }
         return this;
     }
 
     @Override
     public Label setTextColor(int argb) {
-        if (!this.swing.isForegroundSet() || this.swing.getForeground().getRGB() != argb)   {
-            this.swing.setForeground(new Color(argb));
-        }
-        return this;
+        return this.setTextColor(argb == 0 ? null : new Color(argb));
     }
 }

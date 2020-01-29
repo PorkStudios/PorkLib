@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -24,7 +24,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.cache.SoftThreadCache;
 import net.daporkchop.lib.common.cache.ThreadCache;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.network.session.AbstractUserSession;
@@ -44,7 +43,7 @@ import java.util.List;
 @Getter
 @Accessors(fluent = true)
 public class TCPWriter<S extends AbstractUserSession<S>> extends MessageToMessageEncoder<Object> {
-    protected static final ThreadCache<SendCallbackImpl> SEND_CALLBACK_CACHE = SoftThreadCache.of(SendCallbackImpl::new);
+    protected static final ThreadCache<SendCallbackImpl> SEND_CALLBACK_CACHE = ThreadCache.soft(SendCallbackImpl::new);
 
     @NonNull
     protected final TCPNioSocket<S> session;

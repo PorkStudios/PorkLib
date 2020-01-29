@@ -13,9 +13,9 @@
  *
  */
 
-package minecraft.worldscanner;import net.daporkchop.lib.minecraft.registry.Registry;
+package minecraft.worldscanner;import net.daporkchop.lib.minecraft.registry.IDRegistry;
 import net.daporkchop.lib.minecraft.registry.ResourceLocation;
-import net.daporkchop.lib.minecraft.world.Column;
+import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.format.anvil.AnvilSaveFormat;
 import net.daporkchop.lib.minecraft.world.impl.SaveBuilder;
@@ -34,18 +34,23 @@ public class AnvilTest {
                 .setFormat(new AnvilSaveFormat(new File(".", "run/testworld")))
                 .build();
 
-        System.out.printf("%d registries\n", save.getRegistries().size());
-        save.getRegistries().forEach((resourceLocation, registry) -> System.out.printf("  %s: %d entries\n", resourceLocation, registry.getSize()));
+        System.out.printf("%d registries\n", save.registries().size());
+        save.registries().forEach((resourceLocation, registry) -> System.out.printf("  %s: %d entries\n", resourceLocation, registry.size()));
 
-        Registry blockRegistry = save.getRegistry(new ResourceLocation("minecraft:blocks"));
+        IDRegistry blockRegistry = save.registry(new ResourceLocation("minecraft:blocks"));
 
-        Column column = save.getWorld(0).getColumn(30, 6);
-        column.load();
+        Chunk chunk = save.world(0).column(30, 6);
+        chunk.load();
         int id;
         for (int y = 255; y >= 0; y--) {
-            if ((id = column.getBlockId(7, y, 7)) != 0) {
-                System.out.printf("Surface in column (%d,%d) is at y=%d\n", column.getX(), column.getZ(), y);
-                System.out.printf("Surface block id id %d (registry name: %s)\n", id, blockRegistry.getName(id).toString());
+            if ((id = chunk.getBlockId(7, y, 7)) != 0) {
+                System.out.printf("Surface in chunk (%d,%d) is at y=%d\n", chunk.getX(), chunk.getZ(), y);
+                ResourceLocation surfaceBlock = blockRegistry.lookup(id);
+                if (surfaceBlock.equals("tconstruct:blueslime"))    {
+                    System.out.printf("Surface block id id %d (registry name: %s)\n", id, surfaceBlock);
+                } else {
+                    throw new IllegalStateException(String.format("Expected block type \"tconstruct:blueslime\", but found \"%s\"!", surfaceBlock));
+                }
                 break;
             }
         }

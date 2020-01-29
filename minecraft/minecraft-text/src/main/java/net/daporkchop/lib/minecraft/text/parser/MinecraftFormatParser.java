@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -23,7 +23,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.ToString;
-import net.daporkchop.lib.common.reference.InstancePool;
+import net.daporkchop.lib.common.misc.InstancePool;
 import net.daporkchop.lib.logging.format.FormatParser;
 import net.daporkchop.lib.minecraft.text.MCTextType;
 import net.daporkchop.lib.minecraft.text.component.MCTextRoot;
@@ -37,7 +37,14 @@ import net.daporkchop.lib.minecraft.text.component.MCTextRoot;
 @NoArgsConstructor
 @Getter
 @ToString
-public class MinecraftFormatParser implements FormatParser {
+public final class MinecraftFormatParser implements FormatParser {
+    /**
+     * @return a default instance of {@link MinecraftFormatParser} which can parse both legacy and json-formatted text and automatically choose the best
+     */
+    public static MinecraftFormatParser getDefaultInstance()    {
+        return InstancePool.getInstance(MinecraftFormatParser.class);
+    }
+
     /**
      * The type of text that will be parsed by this instance.
      * <p>

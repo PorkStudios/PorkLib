@@ -19,10 +19,6 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 /**
  * A type that contains resources that may be manually released.
- * <p>
- * These resources are guaranteed to be released when the instance is garbage collected (for example by using a
- * {@link net.daporkchop.lib.unsafe.PCleaner}), however both CPU and memory usage can frequently benefit by releasing
- * such resources manually as soon as they are no longer needed.
  *
  * @author DaPorkchop_
  */

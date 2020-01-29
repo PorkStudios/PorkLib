@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -20,6 +20,7 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.StatusCode;
 import net.daporkchop.lib.http.header.map.HeaderMap;
+import net.daporkchop.lib.http.request.Request;
 
 /**
  * A simple implementation of {@link ResponseBody}.
@@ -29,13 +30,15 @@ import net.daporkchop.lib.http.header.map.HeaderMap;
 @Getter
 @Accessors(fluent = true)
 public final class ResponseBodyImpl<V> implements ResponseBody<V> {
+    protected final Request<V> request;
     protected final StatusCode status;
     protected final HeaderMap  headers;
-    protected final V value;
+    protected final V          body;
 
-    public ResponseBodyImpl(@NonNull StatusCode status, @NonNull HeaderMap headers, V value) {
+    public ResponseBodyImpl(@NonNull Request<V> request, @NonNull StatusCode status, @NonNull HeaderMap headers, V body) {
+        this.request = request;
         this.status = status;
         this.headers = headers.snapshot();
-        this.value = value;
+        this.body = body;
     }
 }

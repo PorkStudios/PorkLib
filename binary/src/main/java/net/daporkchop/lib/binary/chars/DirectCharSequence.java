@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -44,17 +44,8 @@ public final class DirectCharSequence implements CharSequence {
 
     @Override
     public CharSequence subSequence(int start, int end) {
-        if (start < 0) {
-            throw new StringIndexOutOfBoundsException(start);
-        }
-        if (end > this.length) {
-            throw new StringIndexOutOfBoundsException(end);
-        }
-        int subLen = end - start;
-        if (subLen < 0) {
-            throw new StringIndexOutOfBoundsException(subLen);
-        }
-        return start == 0 && end == this.length ? this : new DirectCharSequence(this.addr + start * PUnsafe.ARRAY_CHAR_INDEX_SCALE, subLen);
+        PorkUtil.assertInRange(this.length, start, end);
+        return start == 0 && end == this.length ? this : new DirectCharSequence(this.addr + start * PUnsafe.ARRAY_CHAR_INDEX_SCALE, end - start);
     }
 
     @Override

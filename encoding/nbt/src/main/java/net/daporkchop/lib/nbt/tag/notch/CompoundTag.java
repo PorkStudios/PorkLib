@@ -17,13 +17,15 @@ package net.daporkchop.lib.nbt.tag.notch;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.nbt.NBTInputStream;
+import net.daporkchop.lib.nbt.NBTOutputStream;
 import net.daporkchop.lib.nbt.tag.Tag;
 import net.daporkchop.lib.nbt.tag.TagRegistry;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +39,7 @@ import java.util.function.Consumer;
  */
 @Getter
 public class CompoundTag extends Tag {
-    private final Map<String, Tag> contents = new HashMap<>();
+    protected Map<String, Tag> contents = new HashMap<>();
 
     public CompoundTag() {
         this("");
@@ -48,7 +50,7 @@ public class CompoundTag extends Tag {
     }
 
     @Override
-    public void read(@NonNull DataIn in, @NonNull TagRegistry registry) throws IOException {
+    public void read(@NonNull NBTInputStream in, @NonNull TagRegistry registry) throws IOException {
         byte id;
         while ((id = in.readByte()) != 0) {
             String name;
@@ -64,16 +66,28 @@ public class CompoundTag extends Tag {
     }
 
     @Override
-    public void write(@NonNull DataOut out, @NonNull TagRegistry registry) throws IOException {
+    public void write(@NonNull NBTOutputStream out, @NonNull TagRegistry registry) throws IOException {
         for (Map.Entry<String, Tag> entry : this.contents.entrySet()) {
             byte id = registry.getId(entry.getValue().getClass());
             out.writeByte(id);
-            byte[] name = entry.getKey().getBytes(StandardCharsets.UTF_8);
-            out.writeShort((short) name.length);
-            out.write(name);
+            {
+                byte[] name = entry.getKey().getBytes(StandardCharsets.UTF_8);
+                out.writeShort((short) name.length);
+                out.write(name);
+            }
             entry.getValue().write(out, registry);
         }
         out.writeByte((byte) 0);
+    }
+
+    @Override
+    public synchronized void release() throws AlreadyReleasedException {
+        if (this.contents != Collections.<String, Tag>emptyMap())    {
+            this.contents.forEach((key, tag) -> tag.release());
+            this.contents = Collections.emptyMap();
+        } else {
+            throw new AlreadyReleasedException();
+        }
     }
 
     @Override
@@ -151,7 +165,7 @@ public class CompoundTag extends Tag {
      * @param <T>      optional parameter, allows for automagical casting to the desired tag sublcass
      */
     @SuppressWarnings("unchecked")
-    public <T extends Tag> void forEach(@NonNull Consumer<T> consumer) {
+    public <T extends Tag> void forEachTag(@NonNull Consumer<T> consumer) {
         ((Map<String, T>) this.contents).values().forEach(consumer);
     }
 
@@ -389,7 +403,7 @@ public class CompoundTag extends Tag {
         if (tag == null) {
             return def;
         } else {
-            return tag.getValue();
+            return tag.value();
         }
     }
 
@@ -405,7 +419,7 @@ public class CompoundTag extends Tag {
         if (tag == null) {
             return def;
         } else {
-            return tag.getValue();
+            return tag.value();
         }
     }
 
@@ -464,12 +478,12 @@ public class CompoundTag extends Tag {
      * @param def  the default value to return if no tag could be found with the given name
      * @return the value that was found, or def if no tag could be found with the given name
      */
-    public <T extends Tag> List<T> getList(@NonNull String name, List<T> def) {
+    public <T extends Tag> ListTag<T> getList(@NonNull String name, ListTag<T> def) {
         ListTag<T> tag = this.get(name);
         if (tag == null) {
             return def;
         } else {
-            return tag.getValue();
+            return tag;
         }
     }
 
@@ -589,7 +603,7 @@ public class CompoundTag extends Tag {
      * @param name the name of the value
      * @return the value with the given name
      */
-    public <T extends Tag> List<T> getList(@NonNull String name) {
+    public <T extends Tag> ListTag<T> getList(@NonNull String name) {
         return this.getList(name, null);
     }
 }

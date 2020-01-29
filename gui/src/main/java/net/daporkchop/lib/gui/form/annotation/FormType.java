@@ -17,6 +17,7 @@ package net.daporkchop.lib.gui.form.annotation;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.experimental.UtilityClass;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
@@ -32,11 +33,8 @@ import java.util.Collections;
  *
  * @author DaPorkchop_
  */
-public abstract class FormType {
-    private FormType() {
-        throw new IllegalStateException();
-    }
-
+@UtilityClass
+public class FormType {
     /**
      * Defines a field as containing an int value
      */
@@ -98,7 +96,7 @@ public abstract class FormType {
     @Target(ElementType.FIELD)
     @Retention(RetentionPolicy.RUNTIME)
     public @interface Object {
-        Type type() default Type.SCROLL_PANE;
+        Type type() default Type.PANEL;
 
         enum Type  {
             PANEL,
@@ -118,6 +116,8 @@ public abstract class FormType {
         Type type() default Type.DROPDOWN;
 
         boolean clearDropdownValues() default true;
+
+        String[] externNames() default {};
 
         enum Type {
             DROPDOWN,

@@ -20,7 +20,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.common.reference.InstancePool;
+import net.daporkchop.lib.common.misc.InstancePool;
 import net.daporkchop.lib.common.util.GenericMatcher;
 import net.daporkchop.lib.network.protocol.Protocol;
 import net.daporkchop.lib.network.session.encode.SendCallback;

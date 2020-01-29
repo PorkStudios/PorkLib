@@ -18,8 +18,8 @@ package net.daporkchop.lib.nbt.tag.notch;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.nbt.NBTInputStream;
+import net.daporkchop.lib.nbt.NBTOutputStream;
 import net.daporkchop.lib.nbt.tag.Tag;
 import net.daporkchop.lib.nbt.tag.TagRegistry;
 
@@ -35,7 +35,7 @@ import java.nio.charset.StandardCharsets;
 @Setter
 public class StringTag extends Tag {
     @NonNull
-    private String value;
+    protected String value;
 
     public StringTag(String name) {
         super(name);
@@ -47,7 +47,7 @@ public class StringTag extends Tag {
     }
 
     @Override
-    public void read(@NonNull DataIn in, @NonNull TagRegistry registry) throws IOException {
+    public void read(@NonNull NBTInputStream in, @NonNull TagRegistry registry) throws IOException {
         int nameLength = in.readShort() & 0xFFFF;
         byte[] b = new byte[nameLength];
         in.readFully(b, 0, b.length);
@@ -55,7 +55,7 @@ public class StringTag extends Tag {
     }
 
     @Override
-    public void write(@NonNull DataOut out, @NonNull TagRegistry registry) throws IOException {
+    public void write(@NonNull NBTOutputStream out, @NonNull TagRegistry registry) throws IOException {
         byte[] b = this.value.getBytes(StandardCharsets.UTF_8);
         out.writeShort((short) b.length);
         out.write(b);

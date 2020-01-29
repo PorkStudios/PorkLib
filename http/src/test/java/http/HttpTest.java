@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -16,15 +16,12 @@
 package http;
 
 import com.google.gson.JsonParser;
-import net.daporkchop.lib.common.test.TestRandomData;
+import net.daporkchop.lib.common.misc.TestRandomData;
 import net.daporkchop.lib.encoding.basen.Base58;
 import net.daporkchop.lib.http.Http;
-import net.daporkchop.lib.http.HttpMethod;
 import net.daporkchop.lib.http.header.Header;
-import net.daporkchop.lib.http.impl.java.JavaHttpClient;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
 
 /**
@@ -58,7 +55,7 @@ public class HttpTest {
     @Test
     public void testGET() throws IOException {
         String text = Base58.encodeBase58(TestRandomData.getRandomBytes(64, 128));
-        String response = new JsonParser().parse(Http.getString(String.format("http://httpbin.org/get?data=%s", text))).getAsJsonObject().get("args").getAsJsonObject().get("data").getAsString();
+        String response = new JsonParser().parse(Http.getString(String.format("http://httpbin.org/get?data=%s", text))).getAsJsonObject().get("args").getAsJsonObject().get("keys").getAsString();
         if (!text.equals(response)) {
             throw new IllegalStateException(String.format("Data not identical! Sent=%s Received=%s", text, response));
         }

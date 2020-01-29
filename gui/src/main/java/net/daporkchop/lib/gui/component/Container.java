@@ -52,4 +52,6 @@ public interface Container<Impl extends Container, State extends ElementState<? 
     }
 
     Impl removeChild(@NonNull String name, boolean update);
+
+    Impl clear();
 }

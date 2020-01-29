@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -19,7 +19,11 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.misc.string.PStrings;
+import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.http.StatusCode;
+import net.daporkchop.lib.http.util.exception.GenericHttpException;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.nio.charset.StandardCharsets;
@@ -29,82 +33,79 @@ import java.nio.charset.StandardCharsets;
  *
  * @author DaPorkchop_
  */
+@Getter
 @Accessors(fluent = true)
 public enum StatusCodes implements StatusCode {
     // 1xx
-    Continue(100),
-    Switching_Protocols(101),
-    Processing(102),
-    Early_Hints(103),
+    CONTINUE(100),
+    SWITCHING_PROTOCOLS(101),
+    PROCESSING(102),
+    EARLY_HINTS(103),
     // 2xx
     OK(200),
-    Created(201),
-    Accepted(202),
-    Non_Authoritative_Information(203, "Non-Authoritative Information"),
-    No_Content(204),
-    Reset_Content(205),
-    Partial_Content(206),
-    Multi_Status(207, "Multi-Status"),
-    Already_Reported(208),
-    IM_Used(209),
+    CREATED(201),
+    ACCEPTED(202),
+    NON_AUTHORITATIVE_INFORMATION(203, "Non-Authoritative Information"),
+    NO_CONTENT(204),
+    RESET_CONTENT(205),
+    PARTIAL_CONTENT(206),
+    MULTI_STATUS(207, "Multi-Status"),
+    ALREADY_REPORTED(208),
+    IM_USED(209),
     // 3xx
-    Multiple_Choices(300),
-    Moved_Permanently(301),
-    Moved_Temporarily(302),
-    See_Other(303),
-    Not_Modified(304),
-    Temporary_Redirect(307),
-    Permanent_Redirect(308),
+    MULTIPLE_CHOICES(300),
+    MOVED_PERMANENTLY(301),
+    MOVED_TEMPORARILY(302),
+    SEE_OTHER(303),
+    NOT_MODIFIED(304),
+    TEMPORARY_REDIRECT(307),
+    PERMANENT_REDIRECT(308),
     // 4xx
-    Bad_Request(400),
-    Unauthorized(401),
-    Payment_Required(402),
-    Forbidden(403),
-    Not_Found(404, "The requested URL was not found on this server."),
-    Method_Not_Allowed(405),
-    Not_Acceptable(406),
-    Proxy_Authentication_Required(407),
-    Request_Timeout(408),
-    Conflict(409),
-    Gone(410),
-    Length_Required(411),
-    Precondition_Failed(412),
-    Payload_Too_Large(413),
-    URI_Too_Long(414),
-    Unsupported_Media_Type(415),
-    Range_Not_Satisfiable(416),
-    Expectation_Failed(417),
-    Im_A_Teapot(418, "I'm a teapot", "See <a href=\"https://tools.ietf.org/html/rfc2324\">RFC2324</a>, section 2.3.2."),
-    Misdirected_Request(421),
-    Unprocessable_Entity(422),
-    Locked(423),
-    Failed_Dependency(424),
-    Too_Early(425),
-    Upgrade_Required(426),
-    Precondition_Required(428),
-    Too_Many_Requests(429),
-    Request_Header_Fields_Too_Large(431),
-    Unavailable_For_Legal_Reasons(451),
+    BAD_REQUEST(400),
+    UNAUTHORIZED(401),
+    PAYMENT_REQUIRED(402),
+    FORBIDDEN(403),
+    NOT_FOUND(404, "The requested URL was not found on this server."),
+    METHOD_NOT_ALLOWED(405),
+    NOT_ACCEPTABLE(406),
+    PROXY_AUTHENTICATION_REQUIRED(407),
+    REQUEST_TIMEOUT(408),
+    CONFLICT(409),
+    GONE(410),
+    LENGTH_REQUIRED(411),
+    PRECONDITION_FAILED(412),
+    PAYLOAD_TOO_LARGE(413),
+    URI_TOO_LONG(414),
+    UNSUPPORTED_MEDIA_TYPE(415),
+    RANGE_NOT_SATISFIABLE(416),
+    EXPECTATION_FAILED(417),
+    IM_A_TEAPOT(418, "I'm a teapot", "See <a href=\"https://tools.ietf.org/html/rfc2324#section-2.3.2\">RFC2324, section 2.3.2</a>."),
+    MISDIRECTED_REQUEST(421),
+    UNPROCESSABLE_ENTITY(422),
+    LOCKED(423),
+    FAILED_DEPENDENCY(424),
+    TOO_EARLY(425),
+    UPGRADE_REQUIRED(426),
+    PRECONDITION_REQUIRED(428),
+    TOO_MANY_REQUESTS(429),
+    REQUEST_HEADER_FIELDS_TOO_LARGE(431),
+    UNAVAILABLE_FOR_LEGAL_REASONS(451),
     // 5xx
-    Internal_Server_Error(500),
-    Not_Implemented(501),
-    Bad_Gateway(502),
-    Service_Unavailable(503),
-    Gateway_Timeout(504),
-    HTTP_Version_Not_Supported(505),
-    Variant_Also_Negotiates(506),
-    Insufficient_Storage(507),
-    Loop_Detected(508),
-    Not_Extended(510),
-    Network_Authentication_Required(511)
+    INTERNAL_SERVER_ERROR(500),
+    NOT_IMPLEMENTED(501),
+    BAD_GATEWAY(502),
+    SERVICE_UNAVAILABLE(503),
+    GATEWAY_TIMEOUT(504),
+    HTTP_VERSION_NOT_SUPPORTED(505),
+    VARIANT_ALSO_NEGOTIATES(506),
+    INSUFFICIENT_STORAGE(507),
+    LOOP_DETECTED(508),
+    NOT_EXTENDED(510),
+    NETWORK_AUTHENTICATION_REQUIRED(511)
     ;
 
-    @Getter
-    private final String msg;
-    @Getter
     private final String errorMessage;
-    private final byte[] encodedValue;
-    @Getter
+    private final GenericHttpException exception;
     private final int code;
 
     StatusCodes(int code)    {
@@ -118,17 +119,26 @@ public enum StatusCodes implements StatusCode {
     StatusCodes(int code, String name, String errorMessage)    {
         this.code = code;
         this.errorMessage = errorMessage;
-        this.msg = name = (name == null ? this.name().replace('_', ' ') : name);
-        this.encodedValue = String.format(" %d %s", code, name).getBytes(StandardCharsets.US_ASCII);
-    }
 
-    @Override
-    public ByteBuf encodedValue() {
-        return Unpooled.wrappedBuffer(this.encodedValue);
+        if (name == null)   {
+            if (false) {
+                char[] arr = PorkUtil.unwrap(this.name()).clone();
+                PUnsafeStrings.replace(arr, '_', ' ');
+                PUnsafeStrings.titleFormat(arr);
+                name = PorkUtil.wrap(arr);
+            } else {
+                name = PStrings.split(this.name(), '_').titleFormat().join(' ');
+            }
+        }
+
+        PUnsafeStrings.setEnumName(this, name);
+        //this.msg = (name == null ? PStrings.split(this.name(), '_').titleFormat().join(' ') : name);
+
+        this.exception = new GenericHttpException(this, false);
     }
 
     @Override
     public String toString() {
-        return String.format("StatusCode(%d %s)", this.code, this.msg);
+        return String.format("StatusCode(%d %s)", this.code, this.name());
     }
 }

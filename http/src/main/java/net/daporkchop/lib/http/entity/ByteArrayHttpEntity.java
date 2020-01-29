@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -17,7 +17,6 @@ package net.daporkchop.lib.http.entity;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -26,27 +25,44 @@ import net.daporkchop.lib.http.entity.content.type.ContentType;
 import net.daporkchop.lib.http.entity.transfer.ByteBufTransferSession;
 import net.daporkchop.lib.http.entity.transfer.TransferSession;
 
+import java.nio.ByteBuffer;
+
 /**
  * A simple implementation of {@link HttpEntity} that stores data in a {@code byte[]}.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Accessors(fluent = true)
-public final class ByteArrayHttpEntity implements HttpEntity {
-    @NonNull
+public final class ByteArrayHttpEntity extends ByteBufTransferSession implements HttpEntity {
     protected final ContentType type;
-    @NonNull
     protected final byte[]      data;
 
-    @Override
-    public long length() throws Exception {
-        return this.data.length;
+    public ByteArrayHttpEntity(@NonNull ContentType type, @NonNull byte[] data) {
+        super(Unpooled.wrappedBuffer(data));
+
+        this.type = type;
+        this.data = data;
     }
 
     @Override
     public TransferSession newSession() throws Exception {
-        return new ByteBufTransferSession(Unpooled.wrappedBuffer(this.data));
+        return this;
+    }
+
+    @Override
+    public ByteBuf getByteBuf() throws Exception {
+        return this.buf.slice(); //no need to retain, see comment below
+    }
+
+    @Override
+    public void retain() {
+        //no need to retain, see comment below
+    }
+
+    @Override
+    public boolean release() {
+        //no-op, unpooled heap bytebuf doesn't provide any benefit from being released manually
+        return false;
     }
 }

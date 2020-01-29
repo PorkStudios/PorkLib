@@ -34,5 +34,5 @@ public @interface FormDefaultDimensions {
 
     int iHeight() default -1;
 
-    int pad() default 2;
+    int pad() default -1;
 }

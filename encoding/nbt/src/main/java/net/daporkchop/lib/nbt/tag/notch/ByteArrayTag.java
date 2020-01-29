@@ -17,24 +17,27 @@ package net.daporkchop.lib.nbt.tag.notch;
 
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.nbt.NBTInputStream;
+import net.daporkchop.lib.nbt.NBTOutputStream;
+import net.daporkchop.lib.nbt.alloc.NBTArrayHandle;
 import net.daporkchop.lib.nbt.tag.Tag;
 import net.daporkchop.lib.nbt.tag.TagRegistry;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
 
 /**
- * A tag that contains a single byte[]
+ * A tag that contains a single {@code byte[]}.
  *
  * @author DaPorkchop_
  */
 @Getter
-@Setter
+@Accessors(fluent = true)
 public class ByteArrayTag extends Tag {
-    @NonNull
-    private byte[] value;
+    protected byte[] value;
+
+    protected NBTArrayHandle<byte[]> handle;
 
     public ByteArrayTag(String name) {
         super(name);
@@ -46,20 +49,43 @@ public class ByteArrayTag extends Tag {
     }
 
     @Override
-    public void read(@NonNull DataIn in, @NonNull TagRegistry registry) throws IOException {
+    public synchronized void read(@NonNull NBTInputStream in, @NonNull TagRegistry registry) throws IOException {
         int length = in.readInt();
-        this.value = new byte[length];
-        in.readFully(this.value, 0, length);
+        this.value(in.alloc().byteArray(length));
+        in.readFully(this.value);
     }
 
     @Override
-    public void write(@NonNull DataOut out, @NonNull TagRegistry registry) throws IOException {
+    public void write(@NonNull NBTOutputStream out, @NonNull TagRegistry registry) throws IOException {
         out.writeInt(this.value.length);
         out.write(this.value);
     }
 
     @Override
+    public synchronized void release() throws AlreadyReleasedException {
+        if (this.value != null) {
+            if (this.handle != null) {
+                this.handle.release();
+                this.handle = null;
+            }
+            this.value = null;
+        } else {
+            throw new AlreadyReleasedException();
+        }
+    }
+
+    @Override
     public String toString() {
         return String.format("ByteArrayTag(\"%s\"): %d bytes", this.getName(), this.value.length);
+    }
+
+    public synchronized void value(@NonNull byte[] value)    {
+        this.value = value;
+        this.handle = null;
+    }
+
+    public synchronized void value(@NonNull NBTArrayHandle<byte[]> handle)   {
+        this.value = handle.value();
+        this.handle = handle;
     }
 }

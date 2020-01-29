@@ -19,6 +19,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
 import net.daporkchop.lib.gui.component.state.functional.CheckBoxState;
 import net.daporkchop.lib.gui.component.type.functional.CheckBox;
+import net.daporkchop.lib.gui.swing.GuiEngineSwing;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -71,27 +72,31 @@ public class SwingCheckBox extends AbstractSwingButton<CheckBox, JCheckBox, Chec
 
     @Override
     protected CheckBox doSetIcon(@NonNull CheckBoxState state, Icon newIcon) {
-        switch (state) {
-            case ENABLED:
-                this.swing.setIcon(newIcon);
-                break;
-            case ENABLED_HOVERED:
-                this.swing.setRolloverIcon(newIcon);
-                break;
-            case ENABLED_SELECTED:
-                this.swing.setSelectedIcon(newIcon);
-                break;
-            case ENABLED_HOVERED_SELECTED:
-                this.swing.setRolloverSelectedIcon(newIcon);
-                break;
-            case DISABLED:
-                this.swing.setDisabledIcon(newIcon);
-                break;
-            case DISABLED_SELECTED:
-                this.swing.setDisabledSelectedIcon(newIcon);
-                break;
-            default:
-                throw new IllegalStateException(state.name());
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            switch (state) {
+                case ENABLED:
+                    this.swing.setIcon(newIcon);
+                    break;
+                case ENABLED_HOVERED:
+                    this.swing.setRolloverIcon(newIcon);
+                    break;
+                case ENABLED_SELECTED:
+                    this.swing.setSelectedIcon(newIcon);
+                    break;
+                case ENABLED_HOVERED_SELECTED:
+                    this.swing.setRolloverSelectedIcon(newIcon);
+                    break;
+                case DISABLED:
+                    this.swing.setDisabledIcon(newIcon);
+                    break;
+                case DISABLED_SELECTED:
+                    this.swing.setDisabledSelectedIcon(newIcon);
+                    break;
+                default:
+                    throw new IllegalStateException(state.name());
+            }
+        } else {
+            SwingUtilities.invokeLater(() -> this.doSetIcon(state, newIcon));
         }
         return this;
     }

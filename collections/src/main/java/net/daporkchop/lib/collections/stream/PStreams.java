@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -18,6 +18,7 @@ package net.daporkchop.lib.collections.stream;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.collections.PList;
 import net.daporkchop.lib.collections.PSet;
 import net.daporkchop.lib.collections.impl.list.JavaListWrapper;
@@ -32,29 +33,29 @@ import java.util.Set;
 /**
  * @author DaPorkchop_
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public abstract class PStreams {
-    public static <V> PStream<V> of(@NonNull V... values)   {
+@UtilityClass
+public class PStreams {
+    public <V> PStream<V> of(@NonNull V... values)   {
         return ofArray(values);
     }
 
-    public static <V> PStream<V> ofArray(@NonNull V[] array) {
+    public <V> PStream<V> ofArray(@NonNull V[] array) {
         return new ArrayStream<>(array);
     }
 
-    public static <V> PStream<V> list(@NonNull List<V> list)  {
+    public <V> PStream<V> list(@NonNull List<V> list)  {
         return list(new JavaListWrapper<>(list));
     }
 
-    public static <V> PStream<V> list(@NonNull PList<V> list) {
+    public <V> PStream<V> list(@NonNull PList<V> list) {
         return list.stream();
     }
 
-    public static <V> PStream<V> set(@NonNull Set<V> set)  {
+    public <V> PStream<V> set(@NonNull Set<V> set)  {
         return set(new JavaSetWrapper<>(set));
     }
 
-    public static <V> PStream<V> set(@NonNull PSet<V> set) {
+    public <V> PStream<V> set(@NonNull PSet<V> set) {
         return set.stream();
     }
 }

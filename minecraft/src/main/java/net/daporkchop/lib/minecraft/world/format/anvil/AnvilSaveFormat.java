@@ -19,9 +19,10 @@ import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.common.misc.Tuple;
 import net.daporkchop.lib.encoding.compression.Compression;
-import net.daporkchop.lib.minecraft.registry.Registry;
+import net.daporkchop.lib.minecraft.registry.IDRegistry;
+import net.daporkchop.lib.minecraft.registry.IDRegistryBuilder;
 import net.daporkchop.lib.minecraft.registry.ResourceLocation;
-import net.daporkchop.lib.minecraft.world.Column;
+import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.format.SaveFormat;
@@ -36,13 +37,18 @@ import net.daporkchop.lib.primitive.function.biconsumer.IntObjBiConsumer;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.function.BiConsumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author DaPorkchop_
  */
 @Getter
 public class AnvilSaveFormat implements SaveFormat {
+    protected static final Pattern DIM_PATTERN = Pattern.compile("^DIM(-?[0-9]+)$");
+
     private final File root;
 
     private CompoundTag levelDat;
@@ -85,18 +91,31 @@ public class AnvilSaveFormat implements SaveFormat {
     }
 
     @Override
-    public void loadWorlds(IntObjBiConsumer<WorldManager> addFunction) {
-        addFunction.accept(0, new AnvilWorldManager(this, new File(this.root, "region")));
-        //TODO: other dimensions
+    public void loadWorlds(IntObjBiConsumer<WorldManager> callback) {
+        callback.accept(0, new AnvilWorldManager(this, new File(this.root, "region")));
+
+        //load other dimensions
+        Matcher matcher = null;
+        for (File file : this.root.listFiles()) {
+            if (matcher == null)    {
+                matcher = DIM_PATTERN.matcher(file.getName());
+            } else {
+                matcher.reset(file.getName());
+            }
+            if (matcher.find()) {
+                callback.accept(Integer.parseInt(matcher.group(1)), new AnvilWorldManager(this, file));
+            }
+        }
     }
 
     @Override
-    public void closeWorld(World world) {
+    public void closeWorld(@NonNull World world) throws IOException {
+        world.close();
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public void loadRegistries(BiConsumer<ResourceLocation, Registry> addFunction) {
+    public void loadRegistries(@NonNull BiConsumer<ResourceLocation, IDRegistry> callback) {
         CompoundTag fmlTag = this.levelDat.get("FML");
         if (fmlTag == null) {
             //TODO
@@ -106,19 +125,21 @@ public class AnvilSaveFormat implements SaveFormat {
             if (registriesTag == null) {
                 throw new NullPointerException("Registries");
             }
-            registriesTag.getContents().entrySet().stream()
-                    .map(entry -> new Tuple<>(new ResourceLocation(entry.getKey()), (CompoundTag) entry.getValue()))
-                    .forEach(tuple -> {
-                        ResourceLocation registryName = tuple.getA();
-                        Registry registry = new Registry(registryName);
-                        tuple.getB().<ListTag<CompoundTag>>get("ids").getValue().forEach(tag -> registry.registerEntry(new ResourceLocation(tag.<StringTag>get("K").getValue()), tag.<IntTag>get("V").getValue()));
-                        addFunction.accept(registryName, registry);
-                    });
+            IDRegistryBuilder builder = IDRegistry.builder();
+            registriesTag.getContents().forEach((key, nbt) -> {
+                ResourceLocation registryName = new ResourceLocation(key);
+                CompoundTag tag = nbt.getAsCompoundTag();
+                builder.clear().name(registryName);
+                for (CompoundTag subTag : tag.<ListTag<CompoundTag>>get("ids")) {
+                    builder.register(new ResourceLocation(subTag.getString("K")), subTag.getInt("V", -1));
+                }
+                callback.accept(registryName, builder.build());
+            });
         }
     }
 
     @Override
-    public Column createColumnInstance(int x, int z) {
+    public Chunk createColumnInstance(int x, int z) {
         return null;
     }
 }

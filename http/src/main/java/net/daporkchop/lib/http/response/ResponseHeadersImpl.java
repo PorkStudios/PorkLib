@@ -20,6 +20,7 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.StatusCode;
 import net.daporkchop.lib.http.header.map.HeaderMap;
+import net.daporkchop.lib.http.request.Request;
 
 /**
  * A simple implementation of {@link ResponseHeaders}.
@@ -28,11 +29,13 @@ import net.daporkchop.lib.http.header.map.HeaderMap;
  */
 @Getter
 @Accessors(fluent = true)
-public final class ResponseHeadersImpl implements ResponseHeaders {
+public final class ResponseHeadersImpl<V> implements ResponseHeaders<V> {
+    protected final Request<V> request;
     protected final StatusCode status;
     protected final HeaderMap  headers;
 
-    public ResponseHeadersImpl(@NonNull StatusCode status, @NonNull HeaderMap headers) {
+    public ResponseHeadersImpl(@NonNull Request<V> request, @NonNull StatusCode status, @NonNull HeaderMap headers) {
+        this.request = request;
         this.status = status;
         this.headers = headers.snapshot();
     }

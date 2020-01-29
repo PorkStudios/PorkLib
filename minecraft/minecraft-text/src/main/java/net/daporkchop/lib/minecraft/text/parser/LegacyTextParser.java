@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -18,6 +18,9 @@ package net.daporkchop.lib.minecraft.text.parser;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.logging.console.TextFormat;
 import net.daporkchop.lib.logging.format.TextStyle;
 import net.daporkchop.lib.logging.format.component.TextComponentString;
@@ -34,77 +37,76 @@ import java.io.StringReader;
  * @author DaPorkchop_
  * @see net.daporkchop.lib.minecraft.text.MCTextType#LEGACY
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public abstract class LegacyTextParser {
-    public static MCTextRoot parse(@NonNull String raw) {
+@UtilityClass
+public class LegacyTextParser {
+    public MCTextRoot parse(@NonNull String raw) {
+        try {
+            return parse(new StringReader(raw), raw);
+        } catch (IOException e) {
+            //impossible
+            throw new IllegalStateException(e);
+        }
+    }
+
+    public MCTextRoot parse(@NonNull Reader reader) throws IOException {
+        return parse(reader, null);
+    }
+
+    protected MCTextRoot parse(@NonNull Reader reader, String raw) throws IOException {
         MCTextRoot root = new MCTextRoot(MCTextType.LEGACY, raw);
 
         TextFormat format = new TextFormat();
         boolean expectingCode = false;
-        try (Reader reader = new StringReader(raw)) {
-            StringBuffer buffer = new StringBuffer(); //TODO: pool these
+        try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get()) {
+            StringBuilder builder = handle.value();
+            builder.setLength(0);
+
             int nextChar;
             while ((nextChar = reader.read()) != -1)    {
                 if (expectingCode)  {
-                    switch (Character.toLowerCase((char) nextChar))   {
-                        case '0':
-                        case '1':
-                        case '2':
-                        case '3':
-                        case '4':
-                        case '5':
-                        case '6':
-                        case '7':
-                        case '8':
-                        case '9':
-                        case 'a':
-                        case 'b':
-                        case 'c':
-                        case 'd':
-                        case 'e':
-                        case 'f':
-                            format.setTextColor(new Color(MCTextFormat.CODE_LOOKUP[Character.toUpperCase((char) nextChar)].getColor())).setStyle(0);
-                            break;
-                        case 'k':
-                            //ignore
-                            break;
-                        case 'l':
-                            format.setStyle(format.getStyle() | TextStyle.BOLD);
-                            break;
-                        case 'm':
-                            format.setStyle(format.getStyle() | TextStyle.STRIKETHROUGH);
-                            break;
-                        case 'n':
-                            format.setStyle(format.getStyle() | TextStyle.UNDERLINE);
-                            break;
-                        case 'o':
-                            format.setStyle(format.getStyle() | TextStyle.ITALIC);
-                            break;
-                        case 'r':
-                            format.setStyle(0).setTextColor(null);
-                            break;
-                        default:
-                            throw new IllegalArgumentException(String.format("Invalid formatting code: %c!", (char) nextChar));
+                    MCTextFormat code = MCTextFormat.lookup((char) nextChar);
+                    if (code == null)   {
+                        throw new IllegalArgumentException(String.format("Invalid formatting code: %c", (char) nextChar));
+                    }
+
+                    if (code.hasColor())    {
+                        format.setTextColor(code.awtColor()).setStyle(0);
+                    } else {
+                        switch (code)   {
+                            case BOLD:
+                                format.setStyle(format.getStyle() | TextStyle.BOLD);
+                                break;
+                            case STRIKETHROUGH:
+                                format.setStyle(format.getStyle() | TextStyle.STRIKETHROUGH);
+                                break;
+                            case UNDERLINE:
+                                format.setStyle(format.getStyle() | TextStyle.UNDERLINE);
+                                break;
+                            case ITALIC:
+                                format.setStyle(format.getStyle() | TextStyle.ITALIC);
+                                break;
+                            case RESET:
+                                format.setStyle(0).setTextColor(null);
+                                break;
+                        }
                     }
                     expectingCode = false;
                 } else if (nextChar == '§') {
-                    createComponent(root, buffer, format);
+                    createComponent(root, builder, format);
                     expectingCode = true;
                 } else {
-                    buffer.append((char) nextChar);
+                    builder.append((char) nextChar);
                 }
             }
-            createComponent(root, buffer, format);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            createComponent(root, builder, format);
         }
         return root;
     }
 
-    protected static void createComponent(@NonNull MCTextRoot root, @NonNull StringBuffer buffer, @NonNull TextFormat format)   {
-        if (buffer.length() > 0)    {
-            root.getChildren().add(new TextComponentString(format, buffer.toString()));
-            buffer.setLength(0);
+    protected void createComponent(@NonNull MCTextRoot root, @NonNull StringBuilder builder, @NonNull TextFormat format)   {
+        if (builder.length() > 0)    {
+            root.addChild(new TextComponentString(format, builder.toString()));
+            builder.setLength(0);
         }
     }
 }

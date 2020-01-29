@@ -16,10 +16,12 @@
 package net.daporkchop.lib.gui.component.type.functional;
 
 import lombok.NonNull;
+import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.state.functional.DropdownState;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * @author DaPorkchop_
@@ -50,6 +52,9 @@ public interface Dropdown<V> extends Component<Dropdown<V>, DropdownState> {
         return this.addValueSelectedListener(String.format("%s@%d", callback.getClass().getCanonicalName(), System.identityHashCode(callback)), value -> callback.run());
     }
     Dropdown<V> removeValueSelectedListener(@NonNull String name);
+
+    Dropdown<V> setRendererText(@NonNull Function<V, String> renderer);
+    Dropdown<V> setRendererIcon(@NonNull Function<V, PIcon> renderer);
 
     @Override
     default DropdownState getState() {

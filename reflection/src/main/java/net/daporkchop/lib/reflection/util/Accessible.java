@@ -135,4 +135,13 @@ public interface Accessible {
     default boolean isAbstract() {
         return (this.getModifiers() & Modifier.ABSTRACT) != 0;
     }
+
+    /**
+     * Checks if this member is synthetic
+     *
+     * @return whether or not this member is synthetic
+     */
+    default boolean isSynthetic()   {
+        return (this.getModifiers() & 0x00001000) != 0;
+    }
 }

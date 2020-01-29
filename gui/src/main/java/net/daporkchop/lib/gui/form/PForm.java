@@ -40,11 +40,13 @@ import java.util.function.Consumer;
 public class PForm<T> {
     protected static final Map<Class<?>, FormObject> OBJECT_CACHE = PorkUtil.newSoftCache();
 
-    protected final Class<T> clazz;
-    protected final FormObject base;
+    protected final Class<T>        clazz;
+    protected final FormObject      base;
     protected final Container<?, ?> container;
 
     protected final Collection<FormCompletionListener<T>> listeners = new ArrayList<>();
+
+    protected boolean built = false;
 
     public PForm(@NonNull Class<T> clazz, @NonNull Container container) {
         this.clazz = clazz;
@@ -53,22 +55,33 @@ public class PForm<T> {
         this.base = OBJECT_CACHE.computeIfAbsent(clazz, c -> new FormObject(c, null));
     }
 
-    public PForm<T> buildDefault() {
-        String last = this.base.buildDefault(null, this.container);
-        if (last == null) {
-            this.container.button("complete", button -> button
-                    .orientRelative(0.0d, 0.0d, 1.0d, 50)
-                    .setText("Submit")
-                    .minDimensionsAreValueSize().pad(2));
-        } else {
-            this.container.button("complete", button -> button
-                    .orientAdvanced(adv -> adv
-                            .belowAndCopyX(last)
-                            .width(1.0d))
-                    .setText("Submit")
-                    .minDimensionsAreValueSize().pad(2));
+    public synchronized PForm<T> buildDefault() {
+        if (!this.built) {
+            String last = this.base.buildDefault(null, this.container);
+            if (last == null) {
+                this.container.button("complete", button -> button
+                        .orientRelative(0.1d, 0.1d, 0.8d, 0.1d)
+                        .setText("Submit")
+                        .minDimensionsAreValueSize()
+                        .pad(10));
+            } else {
+                this.container.button("complete", button -> button
+                        .orientAdvanced(adv -> adv.below(last).x(10))
+                        .setText("Submit")
+                        .minDimensionsAreValueSize()
+                        .pad(10));
+            }
+            this.built = true;
         }
         return this.submitButton("complete");
+    }
+
+    public PForm<T> loadFrom(@NonNull T value)  {
+        if (!this.built)    {
+            throw new IllegalStateException("Form has not yet been built!");
+        }
+        this.base.loadFrom(value, this.container);
+        return this;
     }
 
     public PForm<T> submitButton(@NonNull String name) {

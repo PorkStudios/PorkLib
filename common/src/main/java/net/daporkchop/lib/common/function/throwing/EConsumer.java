@@ -15,7 +15,7 @@
 
 package net.daporkchop.lib.common.function.throwing;
 
-import net.daporkchop.lib.common.util.PConstants;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
 import java.util.function.Consumer;
@@ -24,13 +24,14 @@ import java.util.function.Consumer;
  * @author DaPorkchop_
  */
 @FunctionalInterface
-public interface EConsumer<T> extends Consumer<T>, PConstants {
+public interface EConsumer<T> extends Consumer<T> {
     @Override
     default void accept(T t) {
         try {
             this.acceptThrowing(t);
         } catch (Exception e) {
-            throw this.exception(e);
+            PUnsafe.throwException(e);
+            throw new RuntimeException(e);
         }
     }
 

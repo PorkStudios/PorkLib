@@ -29,8 +29,8 @@ import java.nio.charset.StandardCharsets;
 /**
  * @author DaPorkchop_
  */
-public class NBTOutputStream extends DataOut {
-    private final OutputStream out;
+public final class NBTOutputStream extends DataOut {
+    private final DataOut out;
     private final TagRegistry defaultRegistry;
 
     public NBTOutputStream(@NonNull OutputStream out) throws IOException {
@@ -46,7 +46,7 @@ public class NBTOutputStream extends DataOut {
     }
 
     public NBTOutputStream(@NonNull OutputStream out, @NonNull CompressionHelper compression, @NonNull TagRegistry registry) throws IOException {
-        this.out = compression.deflate(out);
+        this.out = DataOut.wrap(compression.deflate(out));
         this.defaultRegistry = registry;
     }
 
@@ -62,8 +62,7 @@ public class NBTOutputStream extends DataOut {
         tag.write(this, registry);
     }
 
-    //inpustream implementations
-
+    //inputstream implementations
     @Override
     public void close() throws IOException {
         this.out.close();
@@ -87,5 +86,141 @@ public class NBTOutputStream extends DataOut {
     @Override
     public void flush() throws IOException {
         this.out.flush();
+    }
+    
+    //dataout implementations
+    @Override
+    public DataOut writeBoolean(boolean b) throws IOException {
+        return this.out.writeBoolean(b);
+    }
+
+    @Override
+    public DataOut writeByte(byte b) throws IOException {
+        return this.out.writeByte(b);
+    }
+
+    @Override
+    public DataOut writeUByte(int b) throws IOException {
+        return this.out.writeUByte(b);
+    }
+
+    @Override
+    public DataOut writeShort(short s) throws IOException {
+        return this.out.writeShort(s);
+    }
+
+    @Override
+    public DataOut writeUShort(int s) throws IOException {
+        return this.out.writeUShort(s);
+    }
+
+    @Override
+    public DataOut writeShortLE(short s) throws IOException {
+        return this.out.writeShortLE(s);
+    }
+
+    @Override
+    public DataOut writeUShortLE(int s) throws IOException {
+        return this.out.writeUShortLE(s);
+    }
+
+    @Override
+    public DataOut writeChar(char c) throws IOException {
+        return this.out.writeChar(c);
+    }
+
+    @Override
+    public DataOut writeCharLE(char c) throws IOException {
+        return this.out.writeCharLE(c);
+    }
+
+    @Override
+    public DataOut writeInt(int i) throws IOException {
+        return this.out.writeInt(i);
+    }
+
+    @Override
+    public DataOut writeUInt(long i) throws IOException {
+        return this.out.writeUInt(i);
+    }
+
+    @Override
+    public DataOut writeIntLE(int i) throws IOException {
+        return this.out.writeIntLE(i);
+    }
+
+    @Override
+    public DataOut writeUIntLE(long i) throws IOException {
+        return this.out.writeUIntLE(i);
+    }
+
+    @Override
+    public DataOut writeLong(long l) throws IOException {
+        return this.out.writeLong(l);
+    }
+
+    @Override
+    public DataOut writeLongLE(long l) throws IOException {
+        return this.out.writeLongLE(l);
+    }
+
+    @Override
+    public DataOut writeFloat(float f) throws IOException {
+        return this.out.writeFloat(f);
+    }
+
+    @Override
+    public DataOut writeFloatLE(float f) throws IOException {
+        return this.out.writeFloatLE(f);
+    }
+
+    @Override
+    public DataOut writeDouble(double d) throws IOException {
+        return this.out.writeDouble(d);
+    }
+
+    @Override
+    public DataOut writeDoubleLE(double d) throws IOException {
+        return this.out.writeDoubleLE(d);
+    }
+
+    @Override
+    public DataOut writeUTF(@NonNull String s) throws IOException {
+        return this.out.writeUTF(s);
+    }
+
+    @Override
+    public DataOut writeByteArray(@NonNull byte[] b) throws IOException {
+        return this.out.writeByteArray(b);
+    }
+
+    @Override
+    public <E extends Enum<E>> DataOut writeEnum(@NonNull E e) throws IOException {
+        return this.out.writeEnum(e);
+    }
+
+    @Override
+    public DataOut writeVarInt(int value) throws IOException {
+        return this.out.writeVarInt(value);
+    }
+
+    @Override
+    public DataOut writeVarLong(long value) throws IOException {
+        return this.out.writeVarLong(value);
+    }
+
+    @Override
+    public DataOut writeBytes(@NonNull byte[] b) throws IOException {
+        return this.out.writeBytes(b);
+    }
+
+    @Override
+    public DataOut writeBytes(@NonNull byte[] b, int off, int len) throws IOException {
+        return this.out.writeBytes(b, off, len);
+    }
+
+    @Override
+    public OutputStream unwrap() {
+        return this.out.unwrap();
     }
 }

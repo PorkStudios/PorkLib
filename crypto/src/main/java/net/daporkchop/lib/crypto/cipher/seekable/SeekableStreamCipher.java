@@ -16,6 +16,7 @@
 package net.daporkchop.lib.crypto.cipher.seekable;
 
 import lombok.NonNull;
+import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.crypto.cipher.CipherInitSide;
 import net.daporkchop.lib.crypto.key.CipherKey;
@@ -100,12 +101,14 @@ public class SeekableStreamCipher extends SeekableCipher {
                 } else if (b.length < off + len) {
                     throw new BufferUnderflowException();
                 } else {
-                    byte[] buf = PorkUtil.BUFFER_CACHE_SMALL.get();
-                    int bytes;
-                    for (int i = 0; i < len; i += bytes) {
-                        bytes = Math.min(len - i, buf.length);
-                        this.cipher.processBytes(b, off + i, bytes, buf, 0);
-                        this.out.write(buf, 0, bytes);
+                    try (Handle<byte[]> handle = PorkUtil.BUFFER_POOL.get())    {
+                        byte[] buf = handle.value();
+                        int bytes;
+                        for (int i = 0; i < len; i += bytes) {
+                            bytes = Math.min(len - i, buf.length);
+                            this.cipher.processBytes(b, off + i, bytes, buf, 0);
+                            this.out.write(buf, 0, bytes);
+                        }
                     }
                 }
             }
@@ -153,22 +156,24 @@ public class SeekableStreamCipher extends SeekableCipher {
                 } else if (b.length < off + len) {
                     throw new BufferUnderflowException();
                 } else {
-                    byte[] buf = PorkUtil.BUFFER_CACHE_SMALL.get();
-                    int i;
-                    int j = -1;
-                    int bytes = Math.min(len, buf.length);
-                    while ((i = this.in.read(buf, 0, bytes)) != -1) {
-                        if (j == -1) {
-                            j = 0;
+                    try (Handle<byte[]> handle = PorkUtil.BUFFER_POOL.get())    {
+                        byte[] buf = handle.value();
+                        int i;
+                        int j = -1;
+                        int bytes = Math.min(len, buf.length);
+                        while ((i = this.in.read(buf, 0, bytes)) != -1) {
+                            if (j == -1) {
+                                j = 0;
+                            }
+                            this.cipher.processBytes(buf, 0, bytes, b, off + j);
+                            j += i;
+                            if ((bytes = Math.min(len - j, buf.length)) == 0) {
+                                //we're done!
+                                break;
+                            }
                         }
-                        this.cipher.processBytes(buf, 0, bytes, b, off + j);
-                        j += i;
-                        if ((bytes = Math.min(len - j, buf.length)) == 0) {
-                            //we're done!
-                            break;
-                        }
+                        return j;
                     }
-                    return j;
                 }
             }
 

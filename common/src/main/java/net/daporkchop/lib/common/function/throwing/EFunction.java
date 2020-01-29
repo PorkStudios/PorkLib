@@ -15,7 +15,7 @@
 
 package net.daporkchop.lib.common.function.throwing;
 
-import net.daporkchop.lib.common.util.PConstants;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
 import java.util.function.Function;
@@ -26,13 +26,14 @@ import java.util.function.Function;
  * @author DaPorkchop_
  */
 @FunctionalInterface
-public interface EFunction<T, R> extends Function<T, R>, PConstants {
+public interface EFunction<T, R> extends Function<T, R> {
     @Override
     default R apply(T t) {
         try {
             return this.applyThrowing(t);
         } catch (Exception e) {
-            throw this.exception(e);
+            PUnsafe.throwException(e);
+            throw new RuntimeException(e);
         }
     }
 

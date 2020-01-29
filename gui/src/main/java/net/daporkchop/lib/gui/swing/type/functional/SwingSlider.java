@@ -19,6 +19,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.gui.component.state.functional.SliderState;
 import net.daporkchop.lib.gui.component.type.functional.Slider;
 import net.daporkchop.lib.gui.component.type.functional.Spinner;
+import net.daporkchop.lib.gui.swing.GuiEngineSwing;
 import net.daporkchop.lib.gui.swing.impl.SwingComponent;
 
 import javax.swing.*;
@@ -47,7 +48,11 @@ public class SwingSlider extends SwingComponent<Slider, JSlider, SliderState> im
 
     @Override
     public Slider setValue(int val) {
-        this.swing.setValue(val);
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            this.swing.setValue(val);
+        } else {
+            SwingUtilities.invokeLater(() -> this.setValue(val));
+        }
         return this;
     }
 
@@ -58,7 +63,11 @@ public class SwingSlider extends SwingComponent<Slider, JSlider, SliderState> im
 
     @Override
     public Slider setMaxValue(int val) {
-        this.swing.setMaximum(val);
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            this.swing.setMaximum(val);
+        } else {
+            SwingUtilities.invokeLater(() -> this.setMaxValue(val));
+        }
         return this;
     }
 
@@ -69,19 +78,31 @@ public class SwingSlider extends SwingComponent<Slider, JSlider, SliderState> im
 
     @Override
     public Slider setMinValue(int val) {
-        this.swing.setMinimum(val);
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            this.swing.setMinimum(val);
+        } else {
+            SwingUtilities.invokeLater(() -> this.setMinValue(val));
+        }
         return this;
     }
 
     @Override
     public Slider setLimits(int min, int max) {
-        this.swing.setModel(new DefaultBoundedRangeModel(this.swing.getValue(), 0, min, max));
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            this.swing.setModel(new DefaultBoundedRangeModel(this.swing.getValue(), 0, min, max));
+        } else {
+            SwingUtilities.invokeLater(() -> this.setLimits(min, max));
+        }
         return this;
     }
 
     @Override
     public Slider setValAndLimits(int val, int min, int max) {
-        this.swing.setModel(new DefaultBoundedRangeModel(val, 0, min, max));
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            this.swing.setModel(new DefaultBoundedRangeModel(val, 0, min, max));
+        } else {
+            SwingUtilities.invokeLater(() -> this.setValAndLimits(val, min, max));
+        }
         return this;
     }
 
@@ -92,7 +113,11 @@ public class SwingSlider extends SwingComponent<Slider, JSlider, SliderState> im
 
     @Override
     public Slider setStepsDrawn(boolean stepsDrawn) {
-        this.swing.setPaintTicks(stepsDrawn);
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            this.swing.setPaintTicks(stepsDrawn);
+        } else {
+            SwingUtilities.invokeLater(() -> this.setStepsDrawn(stepsDrawn));
+        }
         return this;
     }
 
@@ -113,7 +138,11 @@ public class SwingSlider extends SwingComponent<Slider, JSlider, SliderState> im
 
     @Override
     public Slider setMajorStep(int step) {
-        this.swing.setMajorTickSpacing(step);
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            this.swing.setMajorTickSpacing(step);
+        } else {
+            SwingUtilities.invokeLater(() -> this.setMajorStep(step));
+        }
         return this;
     }
 
@@ -124,7 +153,11 @@ public class SwingSlider extends SwingComponent<Slider, JSlider, SliderState> im
 
     @Override
     public Slider setMinorStep(int step) {
-        this.swing.setMinorTickSpacing(step);
+        if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
+            this.swing.setMinorTickSpacing(step);
+        } else {
+            SwingUtilities.invokeLater(() -> this.setMinorStep(step));
+        }
         return this;
     }
 

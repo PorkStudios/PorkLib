@@ -308,14 +308,14 @@ public interface ComponentAdder<Impl> extends BlankComponentAdder<Impl> {
     //
     default <T> PForm<T> form(@NonNull Class<T> clazz)  {
         PForm<T> form = new PForm<>(clazz, (Container) this);
-        form.prepare();
+        form.buildDefault().prepare();
         return form;
     }
 
     default <T> Impl form(@NonNull Class<T> clazz, @NonNull Consumer<PForm<T>> initializer)  {
         PForm<T> form = new PForm<>(clazz, (Container) this);
         initializer.accept(form);
-        form.prepare();
+        form.buildDefault().prepare();
         return (Impl) this;
     }
 

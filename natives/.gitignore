@@ -1,6 +1,3 @@
-/**/*.so
-/**/*.dll
-/**/*.o
 /*.tar.gz
 /src/main/native/*/build*/
 /tmp/

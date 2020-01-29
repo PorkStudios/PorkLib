@@ -17,16 +17,19 @@ package example.graphics;
 
 import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.graphics.bitmap.PBitmap;
 import net.daporkchop.lib.graphics.bitmap.PImage;
 import net.daporkchop.lib.graphics.bitmap.image.DirectImageARGB;
 import net.daporkchop.lib.graphics.color.ColorFormat;
 import net.daporkchop.lib.graphics.interpolation.ImageInterpolator;
+import net.daporkchop.lib.graphics.util.Thumbnail;
 import net.daporkchop.lib.math.interpolation.CubicInterpolation;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Stream;
@@ -71,14 +74,14 @@ public class TestingDisplayingOfImages {
             }
 
             ImageInterpolator interpolator = new ImageInterpolator(CubicInterpolation.instance());
-            PImage scaled = interpolator.interp(image, 16.0d);
 
-            /*
-            Thumbnail thumbnail = new Thumbnail(64, 32, 16, 8, image.getWidth()).submit(image).bake();
-
-            PorkUtil.simpleDisplayImage(true, Arrays.stream(thumbnail.getIcons()).map(PBitmap::asBufferedImage).toArray(BufferedImage[]::new));
-            */
-            PorkUtil.simpleDisplayImage(true, image.asBufferedImage(), scaled.asBufferedImage());
+            if (true) {
+                Thumbnail thumbnail = new Thumbnail(64, 32, 16, 8, image.width()).submit(image).bake(interpolator);
+                PorkUtil.simpleDisplayImage(true, Arrays.stream(thumbnail.getIcons()).map(PBitmap::asBufferedImage).toArray(BufferedImage[]::new));
+            } else {
+                PImage scaled = interpolator.interp(image, 16.0d);
+                PorkUtil.simpleDisplayImage(true, image.asBufferedImage(), scaled.asBufferedImage());
+            }
         }
     }
 }

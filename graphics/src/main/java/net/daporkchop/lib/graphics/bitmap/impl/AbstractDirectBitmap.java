@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -15,10 +15,12 @@
 
 package net.daporkchop.lib.graphics.bitmap.impl;
 
+import net.daporkchop.lib.common.misc.refcount.RefCountedDirectMemory;
 import net.daporkchop.lib.graphics.bitmap.PBitmap;
 import net.daporkchop.lib.unsafe.PCleaner;
 import net.daporkchop.lib.unsafe.PUnsafe;
 import net.daporkchop.lib.unsafe.capability.AccessibleDirectMemoryHolder;
+import net.daporkchop.lib.unsafe.capability.DirectMemoryHolder;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 /**
@@ -26,10 +28,10 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
  *
  * @author DaPorkchop_
  */
-public abstract class AbstractDirectBitmap extends AbstractBitmap implements AccessibleDirectMemoryHolder {
+public abstract class AbstractDirectBitmap extends AbstractBitmap {
     protected final long ptr;
 
-    protected final PCleaner cleaner;
+    protected final RefCountedDirectMemory memory;
 
     public AbstractDirectBitmap(int width, int height) {
         super(width, height);
@@ -43,26 +45,11 @@ public abstract class AbstractDirectBitmap extends AbstractBitmap implements Acc
         PUnsafe.copyMemory(copySrcRef, copySrcOff, null, this.ptr, this.memorySize());
     }
 
-    @Override
-    public Object memoryRef() {
-        return null;
-    }
+    protected AbstractDirectBitmap(int width, int height, RefCountedDirectMemory memory)   {
+        super(width, height);
 
-    @Override
-    public long memoryOff() {
-        return this.ptr;
-    }
-
-    @Override
-    public long memorySize() {
-        return (long) this.width * (long) this.height;
-    }
-
-    @Override
-    public final void release() throws AlreadyReleasedException {
-        if (!this.cleaner.tryClean()) {
-            throw new AlreadyReleasedException();
-        }
+        this.memory = memory.retain();
+        this.ptr = memory.addr();
     }
 
     protected long addr(int x, int y) {

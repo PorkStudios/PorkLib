@@ -16,6 +16,7 @@
 package gui;
 
 import lombok.NonNull;
+import net.daporkchop.lib.graphics.bitmap.PIcon;
 import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
 import net.daporkchop.lib.graphics.bitmap.image.PImage;
 import net.daporkchop.lib.graphics.bitmap.image.direct.DirectImageRGB;

@@ -15,41 +15,47 @@
 
 package net.daporkchop.lib.common.misc.refcount;
 
+import lombok.Getter;
+import lombok.ToString;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.unsafe.PCleaner;
+import net.daporkchop.lib.unsafe.PUnsafe;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 /**
- * A type that has a reference count which can be atomically incremented and decremented, and will be released
- * once the reference count reaches 0.
- * <p>
- * The reference count of a newly created instance is always 1.
- * <p>
- * Invoking {@link AutoCloseable#close()} on a {@link RefCounted} has the same effect as {@link #release()}.
+ * A reference-counted block of direct memory.
  *
  * @author DaPorkchop_
  */
-public interface RefCounted extends AutoCloseable {
-    /**
-     * @return the current reference count
-     */
-    int refCnt();
+@ToString
+@Getter
+@Accessors(fluent = true)
+public final class RefCountedDirectMemory extends AbstractRefCounted {
+    private final long addr;
+    private final long size;
 
-    /**
-     * Retains this instance by incrementing the reference count.
-     *
-     * @throws AlreadyReleasedException if this instance's reference count has already reached 0
-     */
-    RefCounted retain() throws AlreadyReleasedException;
+    private final PCleaner cleaner;
 
-    /**
-     * Releases this instance by decrementing the reference count.
-     *
-     * @return whether or not the reference count reached 0 and instance was released
-     * @throws AlreadyReleasedException if this instance's reference count has already reached 0
-     */
-    boolean release() throws AlreadyReleasedException;
+    public RefCountedDirectMemory(long size)    {
+        this(PUnsafe.allocateMemory(size), size, true);
+    }
+
+    public RefCountedDirectMemory(long addr, long size, boolean doFree)    {
+        this.addr = addr;
+        this.size = size;
+        this.cleaner = doFree ? PCleaner.cleaner(this, addr) : null;
+    }
 
     @Override
-    default void close() {
-        this.release();
+    public RefCountedDirectMemory retain() throws AlreadyReleasedException {
+        super.retain();
+        return this;
+    }
+
+    @Override
+    protected void doRelease() {
+        if (this.cleaner != null)   {
+            this.cleaner.clean();
+        }
     }
 }

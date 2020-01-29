@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -30,11 +30,11 @@ import net.daporkchop.lib.graphics.bitmap.image.DirectImageARGB;
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 public final class ColorFormatABW implements ColorFormat {
     public static int toARGB(int abw)    {
-        return (abw << 16) | (abw << 8) | abw;
+        return (abw << 16) | ((abw & 0xFF) << 8) | (abw & 0xFF);
     }
 
     public static int fromARGB(int argb)    {
-        return ((argb >>> 16) | (argb >>> 8) | argb) & 0xFFFF;
+        return (argb >>> 16) | ((argb >>> 8) & 0xFF) | (argb & 0xFF);
     }
 
     @Override

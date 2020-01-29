@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -79,8 +79,8 @@ abstract class HelperGrid implements Grid2d {
         return true;
     }
 
-    static final class Shift0 extends HelperGrid {
-        public Shift0(@NonNull PBitmap bitmap) {
+    static final class Shift0ARGB extends HelperGrid {
+        public Shift0ARGB(@NonNull PBitmap bitmap) {
             super(bitmap);
         }
 
@@ -90,8 +90,8 @@ abstract class HelperGrid implements Grid2d {
         }
     }
 
-    static final class Shift1 extends HelperGrid {
-        public Shift1(@NonNull PBitmap bitmap) {
+    static final class Shift1ARGB extends HelperGrid {
+        public Shift1ARGB(@NonNull PBitmap bitmap) {
             super(bitmap);
         }
 
@@ -101,8 +101,8 @@ abstract class HelperGrid implements Grid2d {
         }
     }
 
-    static final class Shift2 extends HelperGrid {
-        public Shift2(@NonNull PBitmap bitmap) {
+    static final class Shift2ARGB extends HelperGrid {
+        public Shift2ARGB(@NonNull PBitmap bitmap) {
             super(bitmap);
         }
 
@@ -112,14 +112,80 @@ abstract class HelperGrid implements Grid2d {
         }
     }
 
-    static final class Shift3 extends HelperGrid {
-        public Shift3(@NonNull PBitmap bitmap) {
+    static final class Shift3ARGB extends HelperGrid {
+        public Shift3ARGB(@NonNull PBitmap bitmap) {
             super(bitmap);
         }
 
         @Override
         public int getI(int x, int y) {
             return (this.bitmap.getARGB(clamp(x, 0, this.width), clamp(y, 0, this.height)) >>> 24) & 0xFF;
+        }
+    }
+
+    static final class Shift0RGB extends HelperGrid {
+        public Shift0RGB(@NonNull PBitmap bitmap) {
+            super(bitmap);
+        }
+
+        @Override
+        public int getI(int x, int y) {
+            return this.bitmap.getRGB(clamp(x, 0, this.width), clamp(y, 0, this.height)) & 0xFF;
+        }
+    }
+
+    static final class Shift1RGB extends HelperGrid {
+        public Shift1RGB(@NonNull PBitmap bitmap) {
+            super(bitmap);
+        }
+
+        @Override
+        public int getI(int x, int y) {
+            return (this.bitmap.getRGB(clamp(x, 0, this.width), clamp(y, 0, this.height)) >>> 8) & 0xFF;
+        }
+    }
+
+    static final class Shift2RGB extends HelperGrid {
+        public Shift2RGB(@NonNull PBitmap bitmap) {
+            super(bitmap);
+        }
+
+        @Override
+        public int getI(int x, int y) {
+            return (this.bitmap.getRGB(clamp(x, 0, this.width), clamp(y, 0, this.height)) >>> 16) & 0xFF;
+        }
+    }
+
+    static final class Shift0ABW extends HelperGrid {
+        public Shift0ABW(@NonNull PBitmap bitmap) {
+            super(bitmap);
+        }
+
+        @Override
+        public int getI(int x, int y) {
+            return this.bitmap.getABW(clamp(x, 0, this.width), clamp(y, 0, this.height)) & 0xFF;
+        }
+    }
+
+    static final class Shift1ABW extends HelperGrid {
+        public Shift1ABW(@NonNull PBitmap bitmap) {
+            super(bitmap);
+        }
+
+        @Override
+        public int getI(int x, int y) {
+            return (this.bitmap.getABW(clamp(x, 0, this.width), clamp(y, 0, this.height)) >>> 8) & 0xFF;
+        }
+    }
+
+    static final class Shift0BW extends HelperGrid {
+        public Shift0BW(@NonNull PBitmap bitmap) {
+            super(bitmap);
+        }
+
+        @Override
+        public int getI(int x, int y) {
+            return this.bitmap.getBW(clamp(x, 0, this.width), clamp(y, 0, this.height));
         }
     }
 }

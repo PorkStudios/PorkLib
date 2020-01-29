@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -71,14 +71,14 @@ public class TestingDisplayingOfImages {
             }
 
             ImageInterpolator interpolator = new ImageInterpolator(CubicInterpolation.instance());
-            image = interpolator.interp(image, 32.0d);
+            PImage scaled = interpolator.interp(image, 16.0d);
 
             /*
             Thumbnail thumbnail = new Thumbnail(64, 32, 16, 8, image.getWidth()).submit(image).bake();
 
             PorkUtil.simpleDisplayImage(true, Arrays.stream(thumbnail.getIcons()).map(PBitmap::asBufferedImage).toArray(BufferedImage[]::new));
             */
-            PorkUtil.simpleDisplayImage(true, image.asBufferedImage());
+            PorkUtil.simpleDisplayImage(true, image.asBufferedImage(), scaled.asBufferedImage());
         }
     }
 }

@@ -13,6 +13,29 @@
  *
  */
 
-dependencies {
-    compile "io.netty:netty-buffer:$nettyVersion"
+package net.daporkchop.lib.compression;
+
+import io.netty.buffer.ByteBuf;
+import lombok.NonNull;
+import net.daporkchop.lib.compression.util.InvalidBufferTypeException;
+
+/**
+ * Deflates (compresses) data.
+ *
+ * @author DaPorkchop_
+ */
+public interface PDeflater extends Context<PDeflater> {
+    /**
+     * Deflates the given source data into the given destination buffer.
+     * <p>
+     * Rather than expanding the destination buffer if needed, this method will simply abort compression if not enough space is available. In such a case the
+     * reader/writer indices of both buffers will remain unaffected, however the contents of the destination buffer may be modified.
+     * <p>
+     * This method will implicitly reset the context before the actual compression. Any previous state will be ignored.
+     *
+     * @param src the {@link ByteBuf} to read data from
+     * @param dst the {@link ByteBuf} to write data to
+     * @return whether or not there was enough space in the destination buffer for the compressed data
+     */
+    boolean deflate(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException;
 }

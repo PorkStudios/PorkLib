@@ -15,10 +15,50 @@
 
 package net.daporkchop.lib.compression;
 
+import io.netty.buffer.ByteBuf;
+import lombok.NonNull;
+import net.daporkchop.lib.compression.util.InvalidBufferTypeException;
+import net.daporkchop.lib.unsafe.capability.Releasable;
+
 /**
  * Base interface for deflaters and inflaters.
+ * <p>
+ * Unless explicitly specified, implementations of this class are not safe for use on multiple threads.
  *
  * @author DaPorkchop_
  */
-interface Context {
+interface Context<I extends Context<I>> extends Releasable {
+    /**
+     * Checks whether this context uses direct or heap memory.
+     * <p>
+     * {@link io.netty.buffer.ByteBuf}s of the wrong type will not be accepted by any methods, and will cause an {@link InvalidBufferTypeException} to be thrown.
+     *
+     * @return whether this context uses direct or heap memory
+     */
+    boolean direct();
+
+    /**
+     * Sets the context's current source buffer when processing data in streaming mode.
+     *
+     * @param src the {@link ByteBuf} to read data from
+     * @return this
+     */
+    I src(@NonNull ByteBuf src) throws InvalidBufferTypeException;
+
+    /**
+     * Sets the context's current destination buffer when processing data in streaming mode.
+     *
+     * @param dst the {@link ByteBuf} to write data to
+     * @return this
+     */
+    I dst(@NonNull ByteBuf dst) throws InvalidBufferTypeException;
+
+    /**
+     * Resets this context.
+     * <p>
+     * This will erase any internal buffers and reset the source and destination buffers to {@code null}.
+     *
+     * @return this
+     */
+    I reset();
 }

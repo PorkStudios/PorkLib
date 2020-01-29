@@ -13,6 +13,16 @@
  *
  */
 
-dependencies {
-    compile "io.netty:netty-buffer:$nettyVersion"
+package net.daporkchop.lib.compression.util;
+
+/**
+ * Thrown when a {@link io.netty.buffer.ByteBuf} argument to a {@link net.daporkchop.lib.compression.PInflater} or {@link net.daporkchop.lib.compression.PDeflater}
+ * is of the wrong type.
+ *
+ * @author DaPorkchop_
+ */
+public class InvalidBufferTypeException extends IllegalArgumentException {
+    public InvalidBufferTypeException(boolean direct) {
+        super(direct ? "direct buffer expected!" : "heap buffer expected!");
+    }
 }

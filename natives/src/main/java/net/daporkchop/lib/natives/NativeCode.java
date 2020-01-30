@@ -56,6 +56,9 @@ public final class NativeCode<T> implements Supplier<T> {
                                 case x86:
                                     LIB_ARCH = "x86-linux-gnu";
                                     break;
+                                case AARCH64:
+                                    LIB_ARCH = "aarch64-linux-gnu";
+                                    break;
                             }
                             break;
                         case Windows:
@@ -166,7 +169,7 @@ public final class NativeCode<T> implements Supplier<T> {
          * Whether or not native libraries are available.
          */
         public static final boolean AVAILABLE =
-                ((PlatformInfo.ARCHITECTURE == Architecture.x86 || PlatformInfo.ARCHITECTURE == Architecture.x86_64) && PlatformInfo.OPERATING_SYSTEM == OperatingSystem.Linux)
+                ((PlatformInfo.ARCHITECTURE == Architecture.x86_64 || PlatformInfo.ARCHITECTURE == Architecture.AARCH64) && PlatformInfo.OPERATING_SYSTEM == OperatingSystem.Linux)
                 || (PlatformInfo.ARCHITECTURE == Architecture.x86_64 && PlatformInfo.OPERATING_SYSTEM == OperatingSystem.Windows);
 
         @Override
